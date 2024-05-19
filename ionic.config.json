@@ -1,0 +1,7 @@
+{
+  "name": "trailence",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
