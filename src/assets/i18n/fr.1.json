@@ -1,0 +1,11 @@
+{
+  "pages": {
+    "login": {
+      "title": "Connexion",
+      "email": "E-Mail",
+      "password": "Mot de passe",
+      "signin_button": "Se Connecter",
+      "offline": "Veuillez vous connecter à Internet pour vous connecter"
+    }
+  }
+}

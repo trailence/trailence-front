@@ -1,3 +1,11 @@
-<ion-app>
-  <ion-router-outlet></ion-router-outlet>
-</ion-app>
+<ng-container *ngIf="i18n.textsLanguage$ | async">
+  <ion-menu contentId="app-header" #appMenu [maxEdgeStart]="0">
+    TODO: menu
+  </ion-menu>
+  <ion-app>
+    <app-header id="app-header"></app-header>
+    <ion-content>
+      <ion-router-outlet></ion-router-outlet>
+    </ion-content>
+  </ion-app>
+</ng-container>

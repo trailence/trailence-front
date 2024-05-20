@@ -1,0 +1,11 @@
+{
+  "pages": {
+    "login": {
+      "title": "Sign in",
+      "email": "E-Mail",
+      "password": "Password",
+      "signin_button": "Sign In",
+      "offline": "Please connect to Internet to sign in"
+    }
+  }
+}
