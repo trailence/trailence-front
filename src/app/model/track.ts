@@ -1,9 +1,10 @@
 import { BehaviorSubject, Observable, combineLatest, map, mergeMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
-import { Versioned } from './versioned';
-import { Point } from './point';
+import { Point, PointDtoMapper } from './point';
+import { Owned } from './owned';
+import { TrackDto } from './dto/track';
 
-export class Track extends Versioned {
+export class Track extends Owned {
 
   private _segments = new BehaviorSubject<Segment[]>([]);
   private _meta = new TrackMetadata(this._segments);
@@ -14,22 +15,29 @@ export class Track extends Versioned {
   public get metadata(): TrackMetadata { return this._meta };
 
   constructor(
-    fields?: Partial<Track>
+    dto: Partial<TrackDto>
   ) {
-    super(fields);
-    fields?.segments?.map(s => {
+    super(dto);
+    dto.s?.forEach(s => {
       const segment = this.newSegment();
-      s.points.map(pt => {
-        segment.append(new Point(pt.lat, pt.lng, pt.ele, pt.time));
-      });
+      if (s.p) {
+        PointDtoMapper.toPoints(s.p).forEach(pt => segment.append(pt));
+      }
     });
   }
 
   public newSegment(): Segment {
-    const s = new Segment(this);
+    const s = new Segment();
     this._segments.value.push(s);
     this._segments.next(this._segments.value);
     return s;
+  }
+
+  public override toDto(): TrackDto {
+    return {
+      ...super.toDto(),
+      s: this.segments.map(segment => segment.toDto()),
+    }
   }
 
 }

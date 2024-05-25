@@ -1,1 +1,35 @@
 TODO: home
+<br/>
+Collections:<br/>
+<div>
+  <ng-container *ngFor="let collection$ of (collectionService.getAll$() | async)">
+    <div *ngIf="collection$ | async as collection">
+      <div>Collection {{collection.name}} type {{ collection.type }}</div>
+      <div>
+        <button (click)="deleteCollection(collection)">Delete collection</button>
+        <button (click)="renameCollection(collection)">Rename collection</button>
+      </div>
+      <div style="margin-left: 20px">
+        <ng-container *ngIf="trailService.getAllForCollectionUuid$(collection.uuid) | async as collectionTrails">
+          <div>Collection trails: {{ collectionTrails.length }}</div>
+          <ng-container *ngFor="let trail$ of collectionTrails">
+            <ng-container *ngIf="trail$ | async as trail">
+              <div>Trail {{ trail.name }}</div>
+              <div style="margin-left: 20px">
+                <ng-container *ngIf="trackService.getTrack$(trail.originalTrackUuid, trail.owner) | async as track">
+                  Distance: {{ track.metadata.distance }}<br/>
+                  Elevation: + {{ track.metadata.positiveElevation }} - {{ track.metadata.negativeElevation }}<br/>
+                  Duration: {{ track.metadata.duration }}<br/>
+                </ng-container>
+              </div>
+            </ng-container>
+          </ng-container>
+          <div>
+            <button (click)="importGpx(collection)">Import GPX</button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
+  <button (click)="newCollection()">Add collection</button>
+</div>

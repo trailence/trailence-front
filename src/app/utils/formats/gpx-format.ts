@@ -6,7 +6,7 @@ import { TypeUtils } from '../type-utils';
 
 export class GpxImporter {
 
-  public static importGpx(file: ArrayBuffer): Trail {
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string): {trail: Trail, track: Track} {
     const fileContent = new TextDecoder().decode(file);
     const parser = new DOMParser();
     const doc = parser.parseFromString(fileContent, "application/xml");
@@ -16,12 +16,14 @@ export class GpxImporter {
         throw new Error("Invalid GPX: no track found");
     }
 
-    const trail = new Trail({updated: true});
+    const track = new Track({owner: user});
+
+    const trail = new Trail({owner: user, originalTrackUuid: track.uuid, currentTrackUuid: track.uuid, collectionUuid: collectionUuid});
     trail.name = XmlUtils.getChildText(trk, 'name') ?? '';
     trail.description = XmlUtils.getChildText(trk, 'desc') ?? '';
 
     for (const trkseg of XmlUtils.getChildren(trk, 'trkseg')) {
-      const segment = trail.track.newSegment();
+      const segment = track.newSegment();
       for (const trkpt of XmlUtils.getChildren(trkseg, 'trkpt')) {
         const pt = this.readPoint(trkpt);
         if (pt) {
@@ -44,7 +46,7 @@ export class GpxImporter {
         track.wayPoints.push(wp);
     }*/
 
-    return trail;
+    return { trail, track };
   }
 
   private static readPoint(point: Element): Point | undefined {

@@ -1,18 +1,14 @@
 import { BehaviorSubject, Observable, map } from 'rxjs';
-import { Point } from './point';
+import { Point, PointDtoMapper } from './point';
 import { Arrays } from '../utils/arrays';
 import { Subscriptions } from '../utils/subscription-utils';
-import { Track } from './track';
+import { SegmentDto } from './dto/segment';
 
 export class Segment {
 
   private _points = new BehaviorSubject<Point[]>([]);
   private _segmentPoints: SegmentPoint[] = [];
   private _meta = new SegmentMetadata(this._segmentPoints);
-
-  constructor(
-    private track: Track,
-  ) {}
 
   public get points(): Point[] { return this._points.value; }
   public get points$(): Observable<Point[]> { return this._points; }
@@ -22,9 +18,19 @@ export class Segment {
   public append(point: Point): this {
     this._points.value.push(point)
     this._points.next(this._points.value);
-    this._segmentPoints.push(new SegmentPoint(this.track, this._meta, point, Arrays.last(this._segmentPoints), undefined));
-    this.track.updated = true;
+    this._segmentPoints.push(new SegmentPoint(this._meta, point, Arrays.last(this._segmentPoints), undefined));
     return this;
+  }
+
+  public toDto(): SegmentDto {
+    const dto: SegmentDto = {p: []};
+    let previousPoint: Point | undefined = undefined;
+    this.points.forEach(point => {
+      const pointDto = PointDtoMapper.toDto(point, previousPoint);
+      previousPoint = point;
+      dto.p!.push(pointDto);
+    });
+    return dto;
   }
 
 }
@@ -39,7 +45,6 @@ class SegmentPoint {
   private subscriptions = new Subscriptions();
 
   constructor(
-    private track: Track,
     private meta: SegmentMetadata,
     public point: Point,
     public previous?: SegmentPoint,
@@ -52,22 +57,18 @@ class SegmentPoint {
     this.subscriptions.add(this.point.lat$.subscribe(() => {
       this.updateDistance();
       this.next?.updateDistance();
-      this.track.updated = true;
     }));
     this.subscriptions.add(this.point.lng$.subscribe(() => {
       this.updateDistance();
       this.next?.updateDistance();
-      this.track.updated = true;
     }));
     this.subscriptions.add(this.point.ele$.subscribe(() => {
       this.updateElevation();
       this.next?.updateElevation();
-      this.track.updated = true;
     }));
     this.subscriptions.add(this.point.time$.subscribe(() => {
       this.updateDuration();
       this.next?.updateDuration();
-      this.track.updated = true;
     }));
   }
 

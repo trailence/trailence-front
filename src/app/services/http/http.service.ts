@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClientService } from './http-client.service';
 import { HttpMethod, TrailenceHttpRequest, ResponseType } from './http-request';
-import { Observable, of, switchMap, throwError } from 'rxjs';
+import { Observable, of, switchMap, throwError, timeout } from 'rxjs';
 import { TrailenceHttpResponse } from './http-response';
 import { ApiError } from './api-error';
 
@@ -52,19 +52,23 @@ export class HttpService {
   public sendRaw(request: TrailenceHttpRequest): Observable<TrailenceHttpResponse<any>> {
     let interceptedRequest = of(request);
     for (const interceptor of this.requestInterceptors) {
-      interceptedRequest = interceptedRequest.pipe(switchMap(previous => {
-        const step = interceptor(previous);
-        if (step instanceof TrailenceHttpRequest) return of(step);
-        return step;
-      }));
+      interceptedRequest = interceptedRequest.pipe(
+        switchMap(previous => {
+          const step = interceptor(previous);
+          if (step instanceof TrailenceHttpRequest) return of(step);
+          return step;
+        })
+      );
     }
     let interceptedResponse = interceptedRequest.pipe(switchMap(request => this.httpClient.send(request)));
     for (const interceptor of this.responseInterceptors) {
-      interceptedResponse = interceptedResponse.pipe(switchMap(previous => {
-        const step = interceptor(previous);
-        if (step instanceof TrailenceHttpResponse) return of(step);
-        return step;
-      }));
+      interceptedResponse = interceptedResponse.pipe(
+        switchMap(previous => {
+          const step = interceptor(previous);
+          if (step instanceof TrailenceHttpResponse) return of(step);
+          return step;
+        })
+      );
     }
     return interceptedResponse;
   }

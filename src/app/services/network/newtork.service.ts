@@ -13,6 +13,7 @@ export class NetworkService implements INetworkService {
     this._connected$ = new BehaviorSubject<boolean>(window.navigator.onLine);
     window.addEventListener('online', () => this.updateStatus());
     window.addEventListener('offline', () => this.updateStatus());
+    this._connected$.subscribe(connected => console.log("Network connected = " + connected));
   }
 
   get connected(): boolean { return this._connected$.value; }

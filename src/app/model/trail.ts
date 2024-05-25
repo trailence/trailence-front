@@ -1,46 +1,38 @@
-import { Subscription } from 'rxjs';
-import { Subscriptions } from '../utils/subscription-utils';
-import { Track } from './track';
-import { Versioned } from './versioned';
+import { TrailDto } from './dto/trail';
+import { Owned } from './owned';
 
-export class Trail extends Versioned {
+export class Trail extends Owned {
 
-  private _name: string;
-  private _description: string;
+  public name: string;
+  public description: string;
 
-  private _originalTrack: Track;
-  private _track: Track;
-
-  private _subscriptions = new Map<Track, Subscription>();
+  public originalTrackUuid: string;
+  public currentTrackUuid: string;
+  public collectionUuid: string;
 
   constructor(
-    fields?: Partial<Trail>
+    dto: Partial<TrailDto>
   ) {
-    super(fields);
-    this._name = fields?.name ?? '';
-    this._description = fields?.description ?? '';
-    this._originalTrack = fields?.originalTrack ?? new Track();
-    this._track = fields?.track ?? this.originalTrack;
+    super(dto);
+    this.name = dto.name ?? '';
+    this.description = dto.description ?? '';
+    if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
+    this.originalTrackUuid = dto.originalTrackUuid;
+    if (!dto.currentTrackUuid) throw new Error('Missing currentTrackUuid');
+    this.currentTrackUuid = dto.currentTrackUuid;
+    if (!dto.collectionUuid) throw new Error('Missing collectionUuid');
+    this.collectionUuid = dto.collectionUuid;
   }
 
-  public get name(): string { return this._name; }
-  public get description(): string { return this._description; }
-
-  public get originalTrack(): Track { return this._originalTrack; }
-  public get track(): Track { return this._track; }
-
-  public set name(name: string) {
-    if (name !== this._name) {
-      this._name = name;
-      this.updated = true;
-    }
-  }
-
-  public set description(description: string) {
-    if (description !== this._description) {
-      this._description = description;
-      this.updated = true;
-    }
+  public override toDto(): TrailDto {
+    return {
+      ...super.toDto(),
+      name: this.name,
+      description: this.description,
+      originalTrackUuid: this.originalTrackUuid,
+      currentTrackUuid: this.currentTrackUuid,
+      collectionUuid: this.collectionUuid,
+    };
   }
 
 }
