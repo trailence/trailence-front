@@ -1,0 +1,7 @@
+<span>{{label1}}</span>
+<ion-toggle
+  [checked]="value === value2"
+  (ionChange)="setValue($event.detail.checked ? value2 : value1)"
+  [ngStyle]="{'--handle-background': 'var(--ion-color-' + color + ')', '--handle-background-checked': 'var(--ion-color-' + color + ')'}"
+></ion-toggle>
+<span>{{label2}}</span>

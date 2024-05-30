@@ -1,3 +1,16 @@
-<p>
-  header works!
-</p>
+<ion-header>
+  <ion-toolbar color="primary">
+    @if (auth.email) {
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-buttons slot="end">
+        <app-header-user-menu></app-header-user-menu>
+      </ion-buttons>
+    }
+    <div class="header-title">
+      <ion-icon slot="start" name="logo"></ion-icon>
+      <div>{{title}}</div>
+    </div>
+  </ion-toolbar>
+</ion-header>

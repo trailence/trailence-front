@@ -1,0 +1,89 @@
+<div class="toolbar">
+  <app-icon-label-button icon="sort" label="{{i18n.texts.tools.sort}}" id="sort-trails-button"></app-icon-label-button>
+  <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button"></app-icon-label-button>
+  <app-icon-label-button *ngIf="collectionUuid" icon="tags" label="{{i18n.texts.tools.tags}}"></app-icon-label-button>
+  <app-icon-label-button *ngIf="collectionUuid" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
+</div>
+<div class="selection">
+  <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
+  <ng-template let-selected="nbSelected" let-total="nbShown" #templateSelectionButton>
+    <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event.detail.checked)"></ion-checkbox>
+    <ion-button color="light" size="small">
+      <ion-label>
+        {{ selected }} / {{ total }} {{ i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single'] }}
+      </ion-label>
+      <ion-icon slot="end" name="caret-down"></ion-icon>
+    </ion-button>
+  </ng-template>
+</div>
+<div class="trails">
+  @for (trailWithInfo of shownTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
+    <div class="trail">
+      <app-trail-overview [trail]="trailWithInfo.trail" [mode]="mode" [selectable]="true" [selected]="trailWithInfo.selected" (selectedChange)="trailWithInfo.selected = $event"></app-trail-overview>
+    </div>
+  }
+</div>
+
+<ion-modal trigger="filters-trails-button" #filtersModal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>
+          <ion-icon name="filters" style="margin-right: 10px"></ion-icon>
+          <ion-label>{{i18n.texts.pages.trails.edit_filters_popup_title}}</ion-label>
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      TODO
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar>
+        <ion-buttons slot="end">
+          <ion-button [strong]="true" (click)="filtersModal.dismiss()">{{i18n.texts.buttons.close}}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>
+
+
+<ion-modal trigger="sort-trails-button" #sortModal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>
+          <ion-icon name="sort" style="margin-right: 10px"></ion-icon>
+          <ion-label>{{i18n.texts.pages.trails.edit_sort_popup_title}}</ion-label>
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item lines="none">
+        <div slot="start">{{i18n.texts.order_way}}</div>
+        <app-toggle-choice
+          [value1]="true" label1="{{i18n.texts.order_asc}}"
+          [value2]="false" label2="{{i18n.texts.order_desc}}"
+          [value]="state$.value.sortAsc" (valueChanged)="sortAsc($event)"
+        ></app-toggle-choice>
+      </ion-item>
+      <br/>
+      <ion-list>
+        <ion-radio-group [value]="state$.value.sortBy" (ionChange)="sortBy($event.detail.value)">
+          <ion-item><ion-radio value="track.metadata.startDate"><ion-icon name="date"></ion-icon> {{i18n.texts.pages.trails.sorts.trail_date}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.metadata.distance"><ion-icon name="distance"></ion-icon> {{i18n.texts.pages.trails.sorts.distance}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.metadata.duration"><ion-icon name="duration"></ion-icon> {{i18n.texts.pages.trails.sorts.duration}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.metadata.positiveElevation"><ion-icon name="positive-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.positive_elevation}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.metadata.negativeElevation"><ion-icon name="negative-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.negative_elevation}}</ion-radio></ion-item>
+        </ion-radio-group>
+      </ion-list>
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar>
+        <ion-buttons slot="end">
+          <ion-button [strong]="true" (click)="sortModal.dismiss()">{{i18n.texts.buttons.close}}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

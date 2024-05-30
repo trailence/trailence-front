@@ -1,27 +1,54 @@
+import { BehaviorSubject, Observable } from 'rxjs';
 import { TrailDto } from './dto/trail';
 import { Owned } from './owned';
 
 export class Trail extends Owned {
 
-  public name: string;
-  public description: string;
+  private _name$: BehaviorSubject<string>;
+  private _description$: BehaviorSubject<string>;
 
-  public originalTrackUuid: string;
-  public currentTrackUuid: string;
-  public collectionUuid: string;
+  private _originalTrackUuid$: BehaviorSubject<string>;
+  private _currentTrackUuid$: BehaviorSubject<string>;
+  
+  private _collectionUuid$: BehaviorSubject<string>;
 
   constructor(
     dto: Partial<TrailDto>
   ) {
     super(dto);
-    this.name = dto.name ?? '';
-    this.description = dto.description ?? '';
+    this._name$ = new BehaviorSubject<string>(dto.name ?? '');
+    this._description$ = new BehaviorSubject<string>(dto.description ?? '');
     if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
-    this.originalTrackUuid = dto.originalTrackUuid;
+    this._originalTrackUuid$ = new BehaviorSubject<string>(dto.originalTrackUuid);
     if (!dto.currentTrackUuid) throw new Error('Missing currentTrackUuid');
-    this.currentTrackUuid = dto.currentTrackUuid;
+    this._currentTrackUuid$ = new BehaviorSubject<string>(dto.currentTrackUuid);
     if (!dto.collectionUuid) throw new Error('Missing collectionUuid');
-    this.collectionUuid = dto.collectionUuid;
+    this._collectionUuid$ = new BehaviorSubject<string>(dto.collectionUuid);
+  }
+
+  public get name(): string { return this._name$.value; }
+  public get name$(): Observable<String> { return this._name$; }
+  public set name(value: string) { this.setValue(value, this._name$); }
+
+  public get description(): string { return this._description$.value; }
+  public get description$(): Observable<string> { return this._description$; }
+  public set description(value: string) { this.setValue(value, this._description$); }
+
+  public get originalTrackUuid(): string { return this._originalTrackUuid$.value; }
+  public get originalTrackUuid$(): Observable<string> { return this._originalTrackUuid$; }
+  public set originalTrackUuid(value: string) { this.setValue(value, this._originalTrackUuid$); }
+
+  public get currentTrackUuid(): string { return this._currentTrackUuid$.value; }
+  public get currentTrackUuid$(): Observable<string> { return this._currentTrackUuid$; }
+  public set currentTrackUuid(value: string) { this.setValue(value, this._currentTrackUuid$); }
+
+  public get collectionUuid(): string { return this._collectionUuid$.value; }
+  public get collectionUuid$(): Observable<string> { return this._collectionUuid$; }
+  public set collectionUuid(value: string) { this.setValue(value, this._collectionUuid$); }
+
+  private setValue(value: string, target$: BehaviorSubject<string>): void {
+    if (value === target$.value) return;
+    target$.next(value);
   }
 
   public override toDto(): TrailDto {

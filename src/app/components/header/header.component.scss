@@ -1,0 +1,23 @@
+.header-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    ion-icon {
+        margin-right: 8px;
+    }
+    div {
+        font-size: 16px;
+    }
+}
+
+@media (max-height: 600px) {
+    ion-toolbar {
+        --min-height: 40px;
+
+        ion-menu-button {
+            width: 40px;
+            height: 40px;
+        }
+    }
+}

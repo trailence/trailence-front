@@ -1,0 +1,106 @@
+:host {
+  position: relative;
+  overflow: hidden;
+}
+
+.top-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  .map-container {
+    position: absolute;
+    background-color: var(--ion-background-color);
+  }
+  .list-container {
+    position: absolute;
+    background-color: var(--ion-background-color);
+    app-trails-list {
+      height: 100%;
+    }
+  }
+  .tabs-container {
+    position: absolute;
+  }
+
+  &.large {
+    .list-container {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 350px;
+    }
+    .map-container {
+      top: 0;
+      bottom: 0;
+      left: 350px;
+      right: 0;
+    }
+    .tabs-container {
+      display: none;
+    }
+    &.list-one-col {
+      .list-container {
+        width: 175px;
+      }
+      .map-container {
+        left: 175px;
+      }
+    }
+  }
+  &.small {
+
+    &.map {
+      .list-container {
+        z-index: 0;
+      }
+      .map-container {
+        z-index: 1;
+      }
+    }
+
+    &.list {
+      .list-container {
+        z-index: 1000;
+      }
+      .map-container {
+        z-index: 0;
+      }
+    }
+
+    &.vertical {
+      .tabs-container {
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 36px;
+      }
+      .map-container, .list-container {
+        top: 36px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+    }
+
+    &.horizontal {
+      .tabs-container {
+        top: 0;
+        left: 0;
+        height: 36px;
+        width: calc(80vh);
+        transform: rotate(-90deg) translateY(calc(-80vh));
+        transform-origin: top right;
+      }
+      .map-container, .list-container {
+        left: 36px;
+        right: 0;
+        top: 0;
+        bottom: 0;
+      }
+    }
+
+  }
+}

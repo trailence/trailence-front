@@ -1,0 +1,17 @@
+.metadata-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    ion-icon {
+      flex: none;
+      margin-right: 5px;
+      width: 20px;
+      height: 20px;
+      color: var(--ion-color-secondary);
+    }
+    div {
+      flex: 1 1 100%;
+      font-size: 13px;
+    }
+}

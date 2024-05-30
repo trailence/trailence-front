@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Preferences } from './preferences';
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { ComputedPreferences, Preferences, ThemeType } from './preferences';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { HttpService } from '../http/http.service';
+import { environment } from 'src/environments/environment';
 
 const defaultPreferences: {[key:string]: Preferences} = {
   'en': {
@@ -28,11 +30,15 @@ const LOCALSTORAGE_PREFERENCES_KEY = 'trailence.preferences';
 export class PreferencesService {
 
   private _prefs$: BehaviorSubject<Preferences>;
-  private _computed$: BehaviorSubject<Preferences>;
+  private _computed$: BehaviorSubject<ComputedPreferences>;
+  private _systemTheme: ThemeType;
 
   constructor(
-    authService: AuthService,
+    private authService: AuthService,
+    private httpService: HttpService,
   ) {
+    const systemTheme = document.documentElement.computedStyleMap().get('--system-theme')?.toString()
+    this._systemTheme = systemTheme === 'dark' ? 'DARK' : 'LIGHT';
     let prefs: Preferences = {};
     try {
       const stored = localStorage.getItem(LOCALSTORAGE_PREFERENCES_KEY);
@@ -48,21 +54,26 @@ export class PreferencesService {
         this._prefs$.next(prefs);
       }
     });
-    this._computed$ = new BehaviorSubject<Preferences>(this.compute(this._prefs$.value));
+    this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
     this._prefs$.subscribe(p => {
       localStorage.setItem(LOCALSTORAGE_PREFERENCES_KEY, JSON.stringify(p));
       const computed = this.compute(p);
       console.log('Preferences: ', computed);
+      window.document.body.classList.remove('dark-theme');
+      window.document.body.classList.remove('light-theme');
+      const theme = computed.theme === 'SYSTEM' ? this._systemTheme : computed.theme;
+      window.document.body.classList.add(theme.toLowerCase() + '-theme');
       this._computed$.next(computed);
     });
   }
 
-  private compute(p: Preferences): Preferences {
+  private compute(p: Preferences): ComputedPreferences {
     const result = {...p};
     if (!result.lang || !defaultPreferences[result.lang])
       result.lang = this.getDefaultLanguage();
     this.complete(result, defaultPreferences[result.lang]);
-    return result;
+    if (!result.theme) result.theme = 'SYSTEM';
+    return result as ComputedPreferences;
   }
 
   private complete(toComplete: Preferences, withPrefs: Preferences): void {
@@ -92,7 +103,40 @@ export class PreferencesService {
     return 'en';
   }
 
-  public get preferences$(): Observable<Preferences> { return this._computed$ };
-  public get preferences(): Preferences { return this._computed$.value; }
+  public get preferences$(): Observable<ComputedPreferences> { return this._computed$ };
+  public get preferences(): ComputedPreferences { return this._computed$.value; }
+
+  public setLanguage(lang: string): void {
+    if (!defaultPreferences[lang]) return;
+    const auth = this.authService.auth;
+    if (auth && auth.preferences?.lang !== lang) {
+      if (!auth.preferences) {
+        auth.preferences = {};
+      }
+      auth.preferences.lang = lang;
+      this.authService.preferencesUpdated();
+      this.httpService.put(environment.apiBaseUrl + '/preferences/v1', auth.preferences).subscribe();
+    }
+    if (this._prefs$.value.lang !== lang) {
+      this._prefs$.value.lang = lang;
+      this._prefs$.next(this._prefs$.value);
+    }
+  }
+
+  public setTheme(theme: ThemeType): void {
+    const auth = this.authService.auth;
+    if (auth && auth.preferences?.theme !== theme) {
+      if (!auth.preferences) {
+        auth.preferences = {};
+      }
+      auth.preferences.theme = theme;
+      this.authService.preferencesUpdated();
+      this.httpService.put(environment.apiBaseUrl + '/preferences/v1', auth.preferences).subscribe();
+    }
+    if (this._prefs$.value.theme !== theme) {
+      this._prefs$.value.theme = theme;
+      this._prefs$.next(this._prefs$.value);
+    }
+  }
 
 }

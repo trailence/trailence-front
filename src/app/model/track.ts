@@ -1,6 +1,6 @@
 import { BehaviorSubject, Observable, combineLatest, map, mergeMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
-import { Point, PointDtoMapper } from './point';
+import { PointDtoMapper } from './point';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 
@@ -50,6 +50,7 @@ export class TrackMetadata {
   private _highestAltitude = new BehaviorSubject<number | undefined>(undefined);
   private _lowestAltitude = new BehaviorSubject<number | undefined>(undefined);
   private _duration = new BehaviorSubject<number>(0);
+  private _startDate = new BehaviorSubject<number | undefined>(undefined);
 
   constructor(
     segments$: Observable<Segment[]>
@@ -60,6 +61,7 @@ export class TrackMetadata {
     this.addition(segments$, meta => meta.duration$, this._duration);
     this.highest(segments$, meta => meta.highestAltitude$, this._highestAltitude);
     this.lowest(segments$, meta => meta.lowestAltitude$, this._lowestAltitude);
+    this.lowest(segments$, meta => meta.startDate$, this._startDate);
   }
 
   public get distance(): number { return this._distance.value; }
@@ -79,6 +81,9 @@ export class TrackMetadata {
 
   public get duration(): number { return this._duration.value; }
   public get duration$(): Observable<number> { return this._duration; }
+
+  public get startDate(): number | undefined { return this._startDate.value; }
+  public get startDate$(): Observable<number | undefined> { return this._startDate; }
 
   private addition(segments$: Observable<Segment[]>, getter: (meta: SegmentMetadata) => Observable<number>, target: BehaviorSubject<number>): void {
     this.reduce(segments$, getter, (a,b) => a + b, 0, target);

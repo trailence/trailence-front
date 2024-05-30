@@ -1,4 +1,21 @@
 {
+  "header": {
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System preference"
+    },
+    "language": "Language"
+  },
+  "tools": {
+    "filters": "Filters",
+    "import": "Import",
+    "import_gpx_description": "Import GPX files",
+    "sort": "Sort",
+    "tags": "Tags"
+  },
   "pages": {
     "login": {
       "title": "Sign in",
@@ -6,6 +23,31 @@
       "password": "Password",
       "signin_button": "Sign In",
       "offline": "Please connect to Internet to sign in"
+    },
+    "trails": {
+      "edit_filters_popup_title": "Filter Trails",
+      "edit_sort_popup_title": "Sort Trails",
+      "sorts": {
+        "trail_date": "Date of the trail",
+        "distance": "Distance",
+        "duration": "Duration",
+        "positive_elevation": "Positive elevation",
+        "negative_elevation": "Negative elevation"
+      },
+      "tabs": {
+        "list": "List",
+        "map": "Map"
+      }
     }
-  }
+  },
+  "my_trails": "My Trails",
+  "buttons": {
+    "close": "Close",
+    "delete": "Delete"
+  },
+  "order_way": "Order",
+  "order_asc": "Ascending",
+  "order_desc": "Descending",
+  "selected_single": "selected",
+  "selected_plural": "selected"
 }

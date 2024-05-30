@@ -1,0 +1,2 @@
+<app-header [title]="title$ ? (title$ | async) || '' : ''"></app-header>
+<app-trails-and-map *ngIf="trails$" [trails$]="trails$" [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"></app-trails-and-map>

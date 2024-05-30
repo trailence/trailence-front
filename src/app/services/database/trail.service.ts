@@ -11,6 +11,8 @@ import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackService } from './track.service';
 import { TrailCollectionService } from './trail-collection.service';
 import { VersionedDto } from 'src/app/model/dto/versioned';
+import { MenuItem } from 'src/app/utils/menu-item';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +27,7 @@ export class TrailService {
     http: HttpService,
     private trackService: TrackService,
     collectionService: TrailCollectionService,
+    private auth: AuthService,
   ) {
     this._store = new TrailStore(databaseService, network, http, trackService, collectionService);
   }
@@ -58,6 +61,15 @@ export class TrailService {
     if (trail.currentTrackUuid !== trail.originalTrackUuid)
       this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner);
     this._store.delete(trail);
+  }
+
+  public getTrailMenu(trail: Trail): MenuItem[] {
+    const menu: MenuItem[] = [];
+    if (trail.owner === this.auth.email) {
+      // TODO add confirmation
+      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setAction(() => this.delete(trail)));
+    }
+    return menu;
   }
 
 }

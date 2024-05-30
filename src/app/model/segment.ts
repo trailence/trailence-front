@@ -40,6 +40,7 @@ class SegmentPoint {
   private distanceFromPrevious = 0;
   private elevationFromPrevious = 0;
   private elevation?: number;
+  private time?: number;
   private durationFromPrevious = 0;
 
   private subscriptions = new Subscriptions();
@@ -113,6 +114,10 @@ class SegmentPoint {
     const newDurationFromPrevious = this.previous?.point.time !== undefined && this.point.time !== undefined ? (this.point.time - this.previous.point.time) : 0;
     this.meta.addDuration(newDurationFromPrevious - this.durationFromPrevious);
     this.durationFromPrevious = newDurationFromPrevious;
+    if (this.time !== this.point.time) {
+      this.time = this.point.time;
+      this.meta.timeChanged(this);
+    }
   }
 
 }
@@ -125,6 +130,7 @@ export class SegmentMetadata {
   private _highestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
   private _lowestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
   private _duration = new BehaviorSubject<number>(0);
+  private _startPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
 
   constructor(
     private segmentPoints: SegmentPoint[],
@@ -148,6 +154,9 @@ export class SegmentMetadata {
   public get duration(): number { return this._duration.value; }
   public get duration$(): Observable<number> { return this._duration; }
 
+  public get startDate(): number | undefined { return this._startPoint.value?.point.time; }
+  public get startDate$(): Observable<number | undefined> { return this._startPoint.pipe(map(pt => pt?.point.time)); }
+
   addDistance(d: number): void {
     if (d === 0) return;
     this._distance.next(this._distance.value + d);
@@ -168,6 +177,11 @@ export class SegmentMetadata {
   }
 
   pointAdded(point: SegmentPoint): void {
+    if (point.point.time !== undefined) {
+      if (this._startPoint.value === undefined || this._startPoint.value.point.time! > point.point.time) {
+        this._startPoint.next(point);
+      }
+    }
     if (point.point.ele !== undefined) {
       if (this._highestPoint.value === undefined || this._highestPoint.value.point.ele! < point.point.ele) {
         this._highestPoint.next(point);
@@ -187,6 +201,11 @@ export class SegmentMetadata {
         this._lowestPoint.value.point.ele! > point.point.ele))) {
           this.computeHighestAndLowest();
       }
+  }
+
+  timeChanged(point: SegmentPoint): void {
+    if (this._startPoint.value === point || (point.point.time !== undefined && (this._startPoint.value === undefined || this._startPoint.value.point.time! > point.point.time)))
+      this._startPoint.next(point);
   }
 
   private computeHighestAndLowest(): void {

@@ -24,6 +24,7 @@ export abstract class AbstractStore<DTO extends OwnedDto, ENTITY extends Owned> 
     private databaseService: DatabaseService,
     network: NetworkService,
   ) {
+    databaseService.registerStore(this);
     // listen to database change (when authentication changed)
     databaseService.db$.subscribe(db => {
       if (db) this.load(db);
@@ -95,6 +96,8 @@ export abstract class AbstractStore<DTO extends OwnedDto, ENTITY extends Owned> 
   protected abstract getUpdatesFromServer(knownItems: OwnedDto[]): Observable<UpdatesResponse<DTO>>;
   protected abstract sendUpdatesToServer(items: DTO[]): Observable<DTO[]>;
   protected abstract deleteFromServer(uuids: string[]): Observable<void>;
+
+  public get syncStatus$(): Observable<SyncStatus> { return this._syncStatus$; }
 
   public getAll$(filter: (element: ENTITY) => boolean = () => true): Observable<Observable<ENTITY | null>[]> {
     return this._store.pipe(

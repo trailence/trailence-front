@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, EMPTY, Observable, catchError, filter, from, map, mergeMap, of, share, tap, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, filter, first, from, map, mergeMap, of, share, tap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -59,13 +59,24 @@ export class AuthService {
         if (!url.startsWith('/login')) {
           router.navigate(['/login'], { queryParams: {returnUrl: url} });
         }
+      } else if (auth) {
+        console.log('Using ' + auth.email + ', token expires at ' + new Date(auth.expires));
+        localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
       }
     });
   }
 
   public get auth$(): Observable<AuthResponse | null> { return this._auth$.pipe(filter(auth => auth !== undefined)) as Observable<AuthResponse | null>; }
+  public get auth(): AuthResponse | null { return this._auth$.value || null; }
 
-  public get email(): string | undefined { return this._auth$.value?.email; }
+  public get email(): string | undefined { return this.auth?.email; }
+
+  public preferencesUpdated(): void {
+    const auth = this.auth;
+    if (auth) {
+      localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
+    }
+  }
 
   public guardAuthenticated(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): MaybeAsync<GuardResult> {
     if (this._auth$.value) return true;
@@ -103,7 +114,6 @@ export class AuthService {
           ).pipe(map(() => response))
         ),
         tap(response => {
-          localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(response));
           this._auth$.next(response);
         })
       ))
@@ -116,7 +126,8 @@ export class AuthService {
       mergeMap(auth => {
         if (!auth || auth.expires > Date.now() - 60000) return of(auth as (AuthResponse | null));
         return this.renewAuth();
-      })
+      }),
+      first()
     );
   }
 
@@ -161,6 +172,7 @@ export class AuthService {
               signature: btoa(String.fromCharCode(...new Uint8Array(result.signature)))
             });
           }),
+          tap(response => this._auth$.next(response)),
           share()
         );
     }

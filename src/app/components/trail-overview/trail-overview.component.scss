@@ -1,0 +1,27 @@
+ion-grid {
+  --ion-grid-padding: 0;
+}
+
+ion-col {
+    display: inline-block;
+    --ion-grid-column-padding: 0;
+}
+
+.trail-name-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ion-checkbox {
+    padding-right: 8px;
+    padding-top: 4px;
+    padding-bottom: 8px;
+  }
+
+  .trail-name {
+    flex: 1 1 100%;
+    color: var(--ion-color-tertiary);
+    font-size: 15px;
+  }
+  
+}

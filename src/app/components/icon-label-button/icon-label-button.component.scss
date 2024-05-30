@@ -1,0 +1,10 @@
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba(var(--ion-color-dark-rgb), 0.1);
+  }
+}

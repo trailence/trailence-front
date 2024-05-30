@@ -106,9 +106,10 @@ class TrackStore extends AbstractStore<TrackDto, Track> {
             // TODO
             return of(null);
           })));
+        const finalResponse: UpdatesResponse<TrackDto> = { deleted: response.deleted, created: [], updated: [] };
+        if (requests.length === 0) return of(finalResponse);
         return zip(requests).pipe(
           map(responses => {
-            const finalResponse: UpdatesResponse<TrackDto> = { deleted: response.deleted, created: [], updated: [] };
             responses.forEach(track => {
               if (!track) return;
               if (response.updated.findIndex(value => value.uuid === track.uuid && value.owner === track.owner) >= 0)

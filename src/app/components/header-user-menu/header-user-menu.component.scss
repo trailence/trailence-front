@@ -1,0 +1,30 @@
+:host {
+  position: relative;
+}
+
+ion-button {
+    width: calc(var(--min-height) - 8px);
+    height: calc(var(--min-height) - 8px);
+    font-size: 0px;
+    --padding-start: 0;
+    --padding-end: 0;
+
+    div {
+        font-size: calc(var(--min-height) / 3);
+    }
+}
+
+.status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  background-color: black;
+  border-radius: 8px;
+  height: 18px;
+
+  ion-icon {
+    width: 18px;
+    height: 18px;
+    color: white;
+  }
+}

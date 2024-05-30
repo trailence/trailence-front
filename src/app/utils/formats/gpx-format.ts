@@ -60,7 +60,7 @@ export class GpxImporter {
     const elevation = eleNode ? TypeUtils.toFloat(eleNode.textContent) : undefined;
 
     const timeNode = XmlUtils.getChild(point, 'time');
-    const time = timeNode ? TypeUtils .toDate(timeNode.textContent) : undefined;
+    const time = timeNode ? TypeUtils.toDate(timeNode.textContent) : undefined;
 
     return new Point(lat, lng, elevation, time?.getTime());
   }

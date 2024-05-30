@@ -70,7 +70,8 @@ export class PointDtoMapper {
 
   private static toValue(value: number | undefined, previous: number | undefined, factor: number): number | undefined {
     if (value === undefined) return previous;
-    if (previous === undefined) return value === undefined ? undefined : this.divideFactor(value, factor);
+    if (value === 0) return undefined;
+    if (previous === undefined) return this.divideFactor(value, factor);
     return previous + this.divideFactor(value, factor);
   }
 
@@ -90,8 +91,8 @@ export class PointDtoMapper {
     const dto: PointDto = {};
     if (point.lat !== previous.lat) dto.l = this.diffCoord(point.lat, previous.lat);
     if (point.lng !== previous.lng) dto.n = this.diffCoord(point.lng, previous.lng);
-    if (point.ele !== previous.ele) dto.e = this.diff(point.ele, previous.ele, 10);
-    if (point.time !== previous.time) dto.t = this.diff(point.time, previous.time, 1);
+    dto.e = this.diff(point.ele, previous.ele, 10);
+    dto.t = this.diff(point.time, previous.time, 1);
     return dto;
   }
 
@@ -101,8 +102,9 @@ export class PointDtoMapper {
   }
 
   private static diff(newValue: number | undefined, previousValue: number | undefined, factor: number): number  | undefined {
-    if (newValue === undefined) return undefined;
-    if (previousValue === undefined) return newValue === undefined ? undefined : (factor !== 1 ? Math.floor(newValue * factor) : newValue);
+    if (newValue === previousValue) return undefined;
+    if (newValue === undefined) return 0;
+    if (previousValue === undefined) return (factor !== 1 ? Math.floor(newValue * factor) : newValue);
     if (factor === 1)
       return newValue - previousValue;
     return Math.floor(newValue * factor) - Math.floor(previousValue * factor);
