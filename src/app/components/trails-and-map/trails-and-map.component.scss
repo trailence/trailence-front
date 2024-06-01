@@ -24,6 +24,43 @@
   .tabs-container {
     position: absolute;
   }
+  .trail-sheet {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background-color: var(--ion-background-color);
+    z-index: 10;
+    width: 0;
+    height: 0;
+    transition: height 0.3s ease-in-out, width 0.3s ease-in-out;
+
+    &.bottom {
+      left: 0;
+      height: 130px;
+      width: auto;
+      &.none {
+        height: 0;
+      }
+      &.two-rows:not(.none) {
+        height: 200px;
+      }
+    }
+    &.left {
+      top: 0;
+      width: 200px;
+      height: auto;
+      padding-left: 4px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      &.none {
+        width: 0;
+      }
+      app-trail-overview {
+        display: block;
+        min-width: 196px;
+      }
+    }
+  }
 
   &.large {
     .list-container {
@@ -99,6 +136,9 @@
         right: 0;
         top: 0;
         bottom: 0;
+      }
+      .trail-sheet.bottom {
+        left: 36px;
       }
     }
 

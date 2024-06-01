@@ -1,10 +1,28 @@
 <div class="top-container {{ mode }}">
-  <div class="map-container">TODO: The Map</div>
-  <div class="list-container"><app-trails-list [trails$]="trails$" [mode]="listType" [collectionUuid]="collectionUuid"></app-trails-list></div>
+  <div class="map-container">
+    <app-map
+      [mapId]="viewId"
+      [tracks$]="mapTracks$"
+      (mouseClickPoint)="onTrailClickOnMap($event)"
+    ></app-map>
+  </div>
+  <div class="list-container">
+    <app-trails-list
+      [trails$]="trails$"
+      [metadataClass]="listMetadataClass"
+      [collectionUuid]="collectionUuid"
+      (trailClick)="onTrailClickOnList($event)"
+    ></app-trails-list>
+  </div>
   <div class="tabs-container">
     <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
       <ion-segment-button value="list" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.list}}</ion-segment-button>
       <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.map}}</ion-segment-button>
     </ion-segment>
+  </div>
+  <div class="trail-sheet {{trailSheetMode}} {{highlightedTrail ? '' : 'none'}} metadata-container {{trailSheetMetadataClass}}">
+    <app-trail-overview *ngIf="highlightedTrail"
+      [trail]="highlightedTrail"
+    ></app-trail-overview>
   </div>
 </div>

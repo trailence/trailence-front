@@ -37,6 +37,17 @@ export class AuthService {
     private router: Router,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
+    this._auth$.subscribe(auth => {
+      if (auth === null) {
+        const url = router.routerState.snapshot.url;
+        if (!url.startsWith('/login')) {
+          router.navigate(['/login'], { queryParams: {returnUrl: url} });
+        }
+      } else if (auth) {
+        console.log('Using ' + auth.email + ', token expires at ' + new Date(auth.expires));
+        localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
+      }
+    });
     try {
       const authStored = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);
       if (authStored) {
@@ -53,17 +64,6 @@ export class AuthService {
       console.error(error);
     }
     if (this._auth$.value === undefined) this._auth$.next(null);
-    this._auth$.subscribe(auth => {
-      if (auth === null) {
-        const url = router.routerState.snapshot.url;
-        if (!url.startsWith('/login')) {
-          router.navigate(['/login'], { queryParams: {returnUrl: url} });
-        }
-      } else if (auth) {
-        console.log('Using ' + auth.email + ', token expires at ' + new Date(auth.expires));
-        localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
-      }
-    });
   }
 
   public get auth$(): Observable<AuthResponse | null> { return this._auth$.pipe(filter(auth => auth !== undefined)) as Observable<AuthResponse | null>; }
@@ -124,7 +124,9 @@ export class AuthService {
     return this._auth$.pipe(
       filter(auth => auth !== undefined),
       mergeMap(auth => {
+        console.log('requires auth, current token expires in ', auth ? (auth.expires - Date.now()) : 'null');
         if (!auth || auth.expires > Date.now() - 60000) return of(auth as (AuthResponse | null));
+        console.log('renew auth');
         return this.renewAuth();
       }),
       first()

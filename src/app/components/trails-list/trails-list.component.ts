@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
-import { TrackMetadataDisplayMode } from '../track-metadata/track-metadata.component';
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FileService } from 'src/app/services/file/file.service';
@@ -43,7 +42,7 @@ interface TrailWithInfo {
   styleUrls: ['./trails-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonCheckbox, IonItem, IonList, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton, IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal, 
+  imports: [IonCheckbox, IonItem, IonList, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton, IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
     CommonModule,
     TrailOverviewComponent,
     IconLabelButtonComponent,
@@ -55,7 +54,11 @@ export class TrailsListComponent extends AbstractComponent {
   @Input() trails$?: Observable<Observable<Trail | null>[]>;
   @Input() collectionUuid?: string;
 
-  @Input() mode: TrackMetadataDisplayMode = 'TWO_COLUMNS';
+  @Input() metadataClass = 'two-columns';
+
+  highlighted?: Trail;
+
+  @Output() trailClick = new EventEmitter<Trail>();
 
   state$ = new BehaviorSubject<State>(defaultState);
 
@@ -165,6 +168,33 @@ export class TrailsListComponent extends AbstractComponent {
   sortAsc(asc: boolean): void {
     if (this.state$.value.sortAsc === asc) return;
     this.state$.next({...this.state$.value, sortAsc: asc});
+  }
+
+  onTrailClick(trail: Trail): void {
+    this.trailClick.emit(trail);
+  }
+
+  setHighlighted(trail?: Trail): void {
+    if (trail === this.highlighted) return;
+    this.highlighted = trail;
+    if (trail) {
+      const element = document.getElementById('trail-list-trail-' + trail.uuid + '-' + trail.owner);
+      if (element) {
+        const parent = element.parentElement;
+        if (parent) {
+          const scrollPos = parent.scrollTop;
+          const totalHeight = parent.offsetHeight;
+          const top = element.offsetTop - parent.offsetTop;
+          const bottom = top + element.offsetHeight;
+          if (top < scrollPos) {
+            parent.scrollTo(0, top);
+          } else if (bottom > scrollPos + totalHeight) {
+            parent.scrollTo(0, bottom - totalHeight);
+          }
+        }
+      }
+    }
+    this.changeDetector.markForCheck();
   }
 
   import(): void {

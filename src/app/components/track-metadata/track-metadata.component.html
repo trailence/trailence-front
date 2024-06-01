@@ -1,49 +1,24 @@
-@switch(mode) {
-  @case ('SINGLE_COLUMN') {
-    <div class="metadata-item">
-      <ion-icon name="distance"></ion-icon>
-      <div>{{ meta.distanceString }}</div>
-    </div>
-    <div class="metadata-item">
-      <ion-icon name="duration"></ion-icon>
-      <div>{{ meta.durationString }}</div>
-    </div>
-    <div class="metadata-item">
-      <ion-icon name="positive-elevation"></ion-icon>
-      <div>+ {{ meta.positiveElevationString }}</div>
-    </div>
-    <div class="metadata-item">
-      <ion-icon name="negative-elevation"></ion-icon>
-      <div>- {{ meta.negativeElevationString }}</div>
-    </div>
-  }
-  @case ('TWO_COLUMNS') {
-    <ion-grid>
-      <ion-col size="6">
-        <div class="metadata-item">
-          <ion-icon name="distance"></ion-icon>
-          <div>{{ meta.distanceString }}</div>
-        </div>
-      </ion-col>
-      <ion-col size="6">
-        <div class="metadata-item">
-          <ion-icon name="duration"></ion-icon>
-          <div>{{ meta.durationString }}</div>
-        </div>
-      </ion-col>
-
-      <ion-col size="6">
-        <div class="metadata-item">
-          <ion-icon name="positive-elevation"></ion-icon>
-          <div>+ {{ meta.positiveElevationString }}</div>
-        </div>
-      </ion-col>
-      <ion-col size="6">
-        <div class="metadata-item">
-          <ion-icon name="negative-elevation"></ion-icon>
-          <div>- {{ meta.negativeElevationString }}</div>
-        </div>
-      </ion-col>
-    </ion-grid>
-  }
-}
+<div class="metadata-item-container">
+  <div class="metadata-item">
+    <ion-icon name="distance"></ion-icon>
+    <div>{{ meta.distanceString }}</div>
+  </div>
+</div>
+<div class="metadata-item-container">
+  <div class="metadata-item">
+    <ion-icon name="duration"></ion-icon>
+    <div>{{ meta.durationString }}</div>
+  </div>
+</div>
+<div class="metadata-item-container">
+  <div class="metadata-item">
+    <ion-icon name="positive-elevation"></ion-icon>
+    <div>+ {{ meta.positiveElevationString }}</div>
+  </div>
+</div>
+<div class="metadata-item-container">
+  <div class="metadata-item">
+    <ion-icon name="negative-elevation"></ion-icon>
+    <div>- {{ meta.negativeElevationString }}</div>
+  </div>
+</div>

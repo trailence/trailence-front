@@ -135,3 +135,13 @@ export abstract class AbstractPage extends AbstractComponent {
   }
 
 }
+
+export class IdGenerator {
+
+  private static counter = 0;
+
+  public static generateId(prefix: string = 'id-'): string {
+    return prefix + (this.counter++) + '-' + new Date().getTime();
+  }
+
+}

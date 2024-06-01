@@ -1,12 +1,3 @@
-ion-grid {
-  --ion-grid-padding: 0;
-}
-
-ion-col {
-    display: inline-block;
-    --ion-grid-column-padding: 0;
-}
-
 .trail-name-row {
   display: flex;
   flex-direction: row;
@@ -23,5 +14,5 @@ ion-col {
     color: var(--ion-color-tertiary);
     font-size: 15px;
   }
-  
+
 }

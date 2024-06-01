@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { AbstractComponent } from 'src/app/utils/component-utils';
-import { TrackMetadataComponent, TrackMetadataDisplayMode } from '../track-metadata/track-metadata.component';
+import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
+import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonGrid, IonCol, IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, IonList } from "@ionic/angular/standalone";
+import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, IonList } from "@ionic/angular/standalone";
 import { combineLatest, mergeMap, of } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
@@ -23,7 +23,7 @@ class Meta {
   styleUrls: ['./trail-overview.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonList, IonContent, IonPopover, IonButton, IonCheckbox, IonIcon, IonGrid, IonCol,
+  imports: [IonList, IonContent, IonPopover, IonButton, IonCheckbox, IonIcon,
     CommonModule,
     TrackMetadataComponent,
     MenuContentComponent,
@@ -33,12 +33,11 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() trail?: Trail;
 
-  @Input() mode: TrackMetadataDisplayMode = 'TWO_COLUMNS';
-
   @Input() selectable = false;
   @Input() selected = false;
   @Output() selectedChange = new EventEmitter<boolean>();
 
+  id = IdGenerator.generateId();
   meta: Meta = new Meta();
   track?: Track;
 

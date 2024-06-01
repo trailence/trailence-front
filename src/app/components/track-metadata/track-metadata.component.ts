@@ -1,12 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
-import { IonGrid, IonCol, IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { BehaviorSubject, Observable, combineLatest, mergeMap, of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-
-export type TrackMetadataDisplayMode = 'SINGLE_COLUMN' | 'TWO_COLUMNS' | 'TILES';
 
 class Meta {
   distanceValue = 0;
@@ -27,7 +25,6 @@ class Meta {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    IonGrid, IonCol,
     IonIcon,
   ]
 })
@@ -38,9 +35,6 @@ export class TrackMetadataComponent extends AbstractComponent {
 
   @Input()
   track2?: Track;
-
-  @Input()
-  mode: TrackMetadataDisplayMode = 'TWO_COLUMNS';
 
   private track$ = new BehaviorSubject<Track | undefined>(undefined);
   private track2$ = new BehaviorSubject<Track | undefined>(undefined);

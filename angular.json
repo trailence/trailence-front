@@ -36,7 +36,10 @@
                 "output": "assets/ionicons"
               }
             ],
-            "styles": ["src/global.scss"],
+            "styles": [
+              "src/global.scss",
+              "./node_modules/leaflet/dist/leaflet.css"
+            ],
             "scripts": [
               "./node_modules/leaflet/dist/leaflet.js"
             ]

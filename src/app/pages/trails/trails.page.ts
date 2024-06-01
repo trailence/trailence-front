@@ -32,6 +32,8 @@ export class TrailsPage extends AbstractPage {
   title$?: Observable<string>;
   trails$?: Observable<Observable<Trail | null>[]>;
 
+  viewId?: string;
+
   constructor(
     injector: Injector,
   ) {
@@ -64,6 +66,7 @@ export class TrailsPage extends AbstractPage {
         mergeMap(auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth!.email)),
         mergeMap(collection => {
           if (!collection) return EMPTY;
+          this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
           if (collection.name.length > 0) return of(collection.name);
           if (collection.type === TrailCollectionType.MY_TRAILS)
             return this.injector.get(I18nService).texts$.pipe(map(texts => texts.my_trails));
@@ -78,6 +81,7 @@ export class TrailsPage extends AbstractPage {
   }
 
   private reset(): void {
+    this.viewId = undefined;
     this.title$ = undefined;
     this.trails$ = undefined;
   }

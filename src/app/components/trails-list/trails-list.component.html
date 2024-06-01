@@ -18,8 +18,17 @@
 </div>
 <div class="trails">
   @for (trailWithInfo of shownTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
-    <div class="trail">
-      <app-trail-overview [trail]="trailWithInfo.trail" [mode]="mode" [selectable]="true" [selected]="trailWithInfo.selected" (selectedChange)="trailWithInfo.selected = $event"></app-trail-overview>
+    <div class="trail metadata-container {{metadataClass}}"
+      [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
+      id="trail-list-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
+    >
+      <app-trail-overview
+        [trail]="trailWithInfo.trail"
+        [selectable]="true"
+        [selected]="trailWithInfo.selected"
+        (selectedChange)="trailWithInfo.selected = $event"
+        (click)="onTrailClick(trailWithInfo.trail)"
+      ></app-trail-overview>
     </div>
   }
 </div>
