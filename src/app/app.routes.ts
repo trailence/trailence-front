@@ -20,10 +20,15 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/trails/trails.page').then( m => m.TrailsPage)
       },
       {
+        path: 'trail/:trailOwner/:trailId',
+        loadComponent: () => import('./pages/trail/trail.page').then( m => m.TrailPage)
+      },
+      {
         path: '',
         redirectTo: 'trails/collection/my_trails',
         pathMatch: 'full',
       },
     ]
   },
+
 ];

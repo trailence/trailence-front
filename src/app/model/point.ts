@@ -37,6 +37,11 @@ export class Point {
     return L.CRS.Earth.distance(this, other);
   }
 
+  public samePosition(other?: L.LatLngLiteral): boolean {
+    if (!other) return false;
+    return this.lat === other.lat && this.lng === other.lng;
+  }
+
 }
 
 export class PointDtoMapper {

@@ -23,4 +23,11 @@ export class Arrays {
     return -1;
   }
 
+  // available in ES2019 as Array.flatMap
+  public static flatMap<T, U>(array: T[], callback: (value: T) => U[]): U[] {
+    const result: U[] = [];
+    array.forEach(value => result.push(...callback(value)));
+    return result;
+  }
+
 }

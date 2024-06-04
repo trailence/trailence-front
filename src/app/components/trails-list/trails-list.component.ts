@@ -15,6 +15,9 @@ import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'r
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { TagService } from 'src/app/services/database/tag.service';
+import { Router } from '@angular/router';
+import { debounceTimeExtended } from 'src/app/utils/rxjs-utils';
+import { Track } from 'src/app/model/track';
 
 interface State {
   sortAsc: boolean;
@@ -34,6 +37,7 @@ const defaultState: State = {
 
 interface TrailWithInfo {
   trail: Trail;
+  track: Track | null;
   selected: boolean;
 }
 
@@ -75,6 +79,7 @@ export class TrailsListComponent extends AbstractComponent {
     private trailService: TrailService,
     private tagService: TagService,
     private changeDetector: ChangeDetectorRef,
+    private router: Router,
   ) {
     super(injector);
   }
@@ -97,10 +102,17 @@ export class TrailsListComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       this.trails$.pipe(
         mergeMap(list => list.length > 0 ? combineLatest(list) : of([])),
-        map(trails => trails.filter(trail => !!trail) as Trail[])
+        map(trails => trails.filter(trail => !!trail) as Trail[]),
+        mergeMap(trails => trails.length === 0 ? of([]) :
+          combineLatest(trails.map(trail => trail.currentTrackUuid$)).pipe(
+            mergeMap(uuids => combineLatest(uuids.map((uuid, index) => this.trackService.getTrack$(uuid, trails[index].owner)))),
+            map(tracks => tracks.map((track, index) => ({trail: trails[index], track: track, selected: false})))
+          )
+        ),
+        debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length)
       ),
       result => {
-        this.allTrails = result.map(trail => ({trail, selected: false}));
+        this.allTrails = result;
         this.applyFilters();
         this.applySort();
         this.changeDetector.markForCheck();
@@ -130,22 +142,14 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private applySort(): void {
-    this.shownTrails.sort((a,b) => this.compareTrails(a.trail, b.trail));
+    this.shownTrails.sort((a,b) => this.compareTrails(a, b));
   }
 
-  private compareTrails(a: Trail, b: Trail): number {
+  private compareTrails(a: TrailWithInfo, b: TrailWithInfo): number {
     const field = this.state$.value.sortBy;
-    const objectA = {
-      trail: a,
-      track: this.trackService.getTrack(a.currentTrackUuid, a.owner)
-    };
-    const objectB = {
-      trail: b,
-      track: this.trackService.getTrack(b.currentTrackUuid, b.owner)
-    };
     const diff = ObjectUtils.compare(
-      ObjectUtils.extractField(objectA, field),
-      ObjectUtils.extractField(objectB, field)
+      ObjectUtils.extractField(a, field),
+      ObjectUtils.extractField(b, field)
     )
     return this.state$.value.sortAsc ? diff : -diff;
   }
@@ -219,6 +223,10 @@ export class TrailsListComponent extends AbstractComponent {
         console.log(error);
       }
     });
+  }
+
+  openTrail(trail: Trail): void {
+    this.router.navigate(['/trail/' + trail.owner + '/' + trail.uuid], {queryParams: { from: this.router.url }});
   }
 
 }

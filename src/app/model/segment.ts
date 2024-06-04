@@ -15,6 +15,8 @@ export class Segment {
 
   public get metadata(): SegmentMetadata {return this._meta; }
 
+  public get relativePoints(): SegmentPoint[] { return this._segmentPoints; }
+
   public append(point: Point): this {
     this._points.value.push(point)
     this._points.next(this._points.value);
@@ -33,9 +35,19 @@ export class Segment {
     return dto;
   }
 
+  public get departurePoint(): Point | undefined {
+    if (this._points.value.length === 0) return undefined;
+    return this._points.value[0];
+  }
+
+  public get arrivalPoint(): Point | undefined {
+    if (this._points.value.length === 0) return undefined;
+    return this._points.value[this._points.value.length - 1];
+  }
+
 }
 
-class SegmentPoint {
+export class SegmentPoint {
 
   private distanceFromPrevious = 0;
   private elevationFromPrevious = 0;
@@ -47,75 +59,87 @@ class SegmentPoint {
 
   constructor(
     private meta: SegmentMetadata,
-    public point: Point,
-    public previous?: SegmentPoint,
-    public next?: SegmentPoint,
+    private _point: Point,
+    private _previous?: SegmentPoint,
+    private _next?: SegmentPoint,
   ) {
-    if (previous) previous.setNext(this);
-    if (next) next.setPrevious(this);
+    if (_previous) _previous.setNext(this);
+    if (_next) _next.setPrevious(this);
     meta.pointAdded(this);
-    this.update();
-    this.subscriptions.add(this.point.lat$.subscribe(() => {
+    let init = false;
+    this.subscriptions.add(_point.lat$.subscribe(() => {
+      if (!init) return;
       this.updateDistance();
-      this.next?.updateDistance();
+      this._next?.updateDistance();
     }));
-    this.subscriptions.add(this.point.lng$.subscribe(() => {
+    this.subscriptions.add(_point.lng$.subscribe(() => {
+      if (!init) return;
       this.updateDistance();
-      this.next?.updateDistance();
+      this._next?.updateDistance();
     }));
-    this.subscriptions.add(this.point.ele$.subscribe(() => {
+    this.subscriptions.add(_point.ele$.subscribe(() => {
+      if (!init) return;
       this.updateElevation();
-      this.next?.updateElevation();
+      this._next?.updateElevation();
     }));
-    this.subscriptions.add(this.point.time$.subscribe(() => {
+    this.subscriptions.add(_point.time$.subscribe(() => {
+      if (!init) return;
       this.updateDuration();
-      this.next?.updateDuration();
+      this._next?.updateDuration();
     }));
+    this.update(true);
+    init = true;
   }
+
+  public get point(): Point {return this._point; }
+
+  public get distanceFromPreviousPoint(): number { return this.distanceFromPrevious; }
+  public get durationFromPreviousPoint(): number { return this.durationFromPrevious; }
+  public get elevationFromPreviousPoint(): number { return this.elevationFromPrevious; }
 
   close(): void {
     this.subscriptions.unsusbcribe();
   }
 
   private setPrevious(previous?: SegmentPoint): void {
-    this.previous?.setNext();
-    this.previous = previous;
+    this._previous?.setNext();
+    this._previous = previous;
     this.update();
   }
 
   private setNext(next?: SegmentPoint): void {
-    this.next?.setPrevious();
-    this.next = next;
+    this._next?.setPrevious();
+    this._next = next;
   }
 
-  private update(): void {
-    this.updateDistance();
-    this.updateElevation();
-    this.updateDuration();
+  private update(init: boolean = false): void {
+    this.updateDistance(init);
+    this.updateElevation(init);
+    this.updateDuration(init);
   }
 
-  private updateDistance(): void {
-    const newDistanceFromPrevious = this.previous ? this.point.distanceTo(this.previous.point) : 0;
+  private updateDistance(init: boolean = false): void {
+    const newDistanceFromPrevious = this._previous ? this._point.distanceTo(this._previous._point) : 0;
     this.meta.addDistance(newDistanceFromPrevious - this.distanceFromPrevious);
     this.distanceFromPrevious = newDistanceFromPrevious;
   }
 
-  private updateElevation(): void {
-    const newElevationFromPrevious = this.previous?.point.ele !== undefined && this.point.ele !== undefined ? (this.point.ele - this.previous.point.ele) : 0;
+  private updateElevation(init: boolean = false): void {
+    const newElevationFromPrevious = this._previous?._point.ele !== undefined && this._point.ele !== undefined ? (this._point.ele - this._previous._point.ele) : 0;
     this.meta.addElevation(newElevationFromPrevious - this.elevationFromPrevious);
     this.elevationFromPrevious = newElevationFromPrevious;
-    if (this.elevation !== this.point.ele) {
-      this.elevation = this.point.ele;
+    if (!init && this.elevation !== this._point.ele) {
+      this.elevation = this._point.ele;
       this.meta.elevationChanged(this);
     }
   }
 
-  private updateDuration(): void {
-    const newDurationFromPrevious = this.previous?.point.time !== undefined && this.point.time !== undefined ? (this.point.time - this.previous.point.time) : 0;
+  private updateDuration(init: boolean = false): void {
+    const newDurationFromPrevious = this._previous?._point.time !== undefined && this._point.time !== undefined ? (this._point.time - this._previous._point.time) : 0;
     this.meta.addDuration(newDurationFromPrevious - this.durationFromPrevious);
     this.durationFromPrevious = newDurationFromPrevious;
-    if (this.time !== this.point.time) {
-      this.time = this.point.time;
+    if (!init && this.time !== this._point.time) {
+      this.time = this._point.time;
       this.meta.timeChanged(this);
     }
   }

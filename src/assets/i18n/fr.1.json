@@ -38,6 +38,12 @@
         "list": "Liste",
         "map": "Carte"
       }
+    },
+    "trail": {
+      "tabs": {
+        "details": "Détails",
+        "map": "Carte"
+      }
     }
   },
   "my_trails": "Mes Parcours",
@@ -49,5 +55,10 @@
   "order_asc": "Croissant",
   "order_desc": "Décroissant",
   "selected_single": "sélectionné",
-  "selected_plural": "sélectionnés"
+  "selected_plural": "sélectionnés",
+  "way_points": {
+    "DA": "D A",
+    "D": "D",
+    "A": "A"
+  }
 }

@@ -3,6 +3,7 @@ import { Track } from '../../model/track';
 import { Point } from '../../model/point';
 import { XmlUtils } from '../xml-utils';
 import { TypeUtils } from '../type-utils';
+import { WayPoint } from 'src/app/model/way-point';
 
 export class GpxImporter {
 
@@ -32,19 +33,21 @@ export class GpxImporter {
       }
     }
 
-    /*
     const wayPoints = XmlUtils.getChildren(doc.documentElement, 'wpt');
     for (const wayPoint of wayPoints) {
-        const pt = GpxUtils.readPoint(wayPoint);
+        const pt = this.readPoint(wayPoint);
         if (!pt) {
             continue;
         }
         const nameNode = XmlUtils.getChild(wayPoint, 'name');
-        const name = nameNode?.textContent ? nameNode.textContent : '';
+        const name = nameNode?.textContent ?? '';
 
-        const wp = new WayPoint(pt, name);
-        track.wayPoints.push(wp);
-    }*/
+        const descNode = XmlUtils.getChild(wayPoint, 'desc');
+        const description = descNode?.textContent ?? '';
+
+        const wp = new WayPoint(pt, name, description);
+        track.appendWayPoint(wp);
+    }
 
     return { trail, track };
   }

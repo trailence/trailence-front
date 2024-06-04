@@ -1,16 +1,21 @@
 import { BehaviorSubject, Observable, combineLatest, map, mergeMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
-import { PointDtoMapper } from './point';
+import { Point, PointDtoMapper } from './point';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
+import { WayPoint } from './way-point';
 
 export class Track extends Owned {
 
   private _segments = new BehaviorSubject<Segment[]>([]);
+  private _wayPoints = new BehaviorSubject<WayPoint[]>([]);
   private _meta = new TrackMetadata(this._segments);
 
   public get segments(): Segment[] { return this._segments.value; }
   public get segments$(): Observable<Segment[]> { return this._segments; }
+
+  public get wayPoints(): WayPoint[] { return this._wayPoints.value; }
+  public get wayPoints$(): Observable<WayPoint[]> { return this._wayPoints; }
 
   public get metadata(): TrackMetadata { return this._meta };
 
@@ -24,6 +29,10 @@ export class Track extends Owned {
         PointDtoMapper.toPoints(s.p).forEach(pt => segment.append(pt));
       }
     });
+    dto.wp?.forEach(wp => {
+      const pt = new Point(wp.l, wp.n, wp.e, wp.t);
+      this.appendWayPoint(new WayPoint(pt, wp.na ?? '', wp.de ?? ''));
+    });
   }
 
   public newSegment(): Segment {
@@ -33,11 +42,33 @@ export class Track extends Owned {
     return s;
   }
 
+  public appendWayPoint(wp: WayPoint): void {
+    this._wayPoints.value.push(wp);
+    this._wayPoints.next(this._wayPoints.value);
+  }
+
   public override toDto(): TrackDto {
     return {
       ...super.toDto(),
       s: this.segments.map(segment => segment.toDto()),
+      wp: this.wayPoints.map(wp => wp.toDto())
     }
+  }
+
+  public get departurePoint(): Point | undefined {
+    for (const segment of this._segments.value) {
+      const pt = segment.departurePoint;
+      if (pt) return pt;
+    }
+    return undefined;
+  }
+
+  public get arrivalPoint(): Point | undefined {
+    for (let i = this._segments.value.length - 1; i >= 0; --i) {
+      const pt = this._segments.value[i].arrivalPoint;
+      if (pt) return pt;
+    }
+    return undefined;
   }
 
 }

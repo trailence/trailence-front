@@ -21,6 +21,7 @@
     <div class="trail metadata-container {{metadataClass}}"
       [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
       id="trail-list-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
+      (dblclick)="openTrail(trailWithInfo.trail)"
     >
       <app-trail-overview
         [trail]="trailWithInfo.trail"

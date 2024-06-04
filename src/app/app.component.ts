@@ -24,6 +24,7 @@ export class AppComponent {
   ) {
     addIcons({
       'add-circle': 'assets/ionicons/add-circle-outline.svg',
+      'arrow-back': 'assets/ionicons/arrow-back.svg',
       'caret-down': 'assets/ionicons/caret-down.svg',
       'date': 'assets/ionicons/calendar-outline.svg',
       'distance': 'assets/distance.1.svg',

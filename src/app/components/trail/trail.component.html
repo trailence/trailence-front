@@ -1,0 +1,28 @@
+<div class="top-container {{displayMode}} tab-{{tab}} bottom-sheet-{{bottomSheetMode}}" *ngIf="trail">
+  <div class="trail-details" *ngIf="tracks$ | async as tracks">
+    <div class="metadata-container two-columns">
+      <app-track-metadata [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+    </div>
+  </div>
+  <div class="map-container">
+    <app-map
+      mapId="trail-{{trail.owner}}-{{trail.uuid}}"
+      [tracks$]="mapTracks$"
+    ></app-map>
+  </div>
+  <div class="elevation-container">
+    Elevation
+  </div>
+  <div class="tabs-container">
+    <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
+      <ion-segment-button value="details" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.details}}</ion-segment-button>
+      <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.map}}</ion-segment-button>
+    </ion-segment>
+  </div>
+  <div class="bottom-sheet-container">
+    Bottom sheet
+  </div>
+  <div class="bottom-info">
+    Bottom info
+  </div>
+</div>

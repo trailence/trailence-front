@@ -12,6 +12,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { CommonModule } from '@angular/common';
+import { debounceTimeExtended } from 'src/app/utils/rxjs-utils';
 
 @Component({
   selector: 'app-trails-and-map',
@@ -76,6 +77,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
           ))
         ),
         mergeMap(tracks => tracks.length === 0 ? of([]) : combineLatest(tracks)),
+        debounceTimeExtended(0, 250, -1, (p,n) => p.length !== n.length),
         map(list =>
           list.filter(track => !!track.track)
           .map(track => new MapTrack(track.trail, track.track!, 'red', 4, false, this.i18n))
@@ -151,8 +153,15 @@ export class TrailsAndMapComponent extends AbstractComponent {
     const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
     if (mapTrack) {
       mapTrack.color = highlight ? '#4040FF' : 'red';
+      mapTrack.showDepartureAndArrivalAnchors(highlight);
     }
     this.trailsList?.setHighlighted(highlight ? trail : undefined);
+    if (highlight && this.map) {
+      const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
+      if (mapTrack) {
+        this.map.ensureVisible(mapTrack);
+      }
+    }
   }
 
   onTrailClickOnList(trail: Trail): void {

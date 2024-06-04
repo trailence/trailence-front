@@ -1,4 +1,4 @@
-import { Component, ElementRef, Injector, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, Injector, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Resubscribeables, Subscriptions } from './subscription-utils';
 import { Arrays } from './arrays';
@@ -8,6 +8,8 @@ import { Arrays } from './arrays';
 })
 export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges {
 
+  protected _parent?: AbstractComponent;
+  protected _children: AbstractComponent[] = [];
   protected _visible$ = new BehaviorSubject<boolean>(false);
   protected whenVisible = new Resubscribeables();
   protected whenAlive = new Subscriptions();
@@ -23,16 +25,29 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   constructor(
     protected injector: Injector
   ) {
+    injector.get(ElementRef).nativeElement['_abstractComponent'] = this;
     this._visible$.subscribe(visible => this._propagateVisible(visible));
   }
 
   protected initComponent(): void {}
+  protected destroyComponent(): void {}
 
   protected getComponentState(): any {}
   protected onComponentStateChanged(previousState: any, newState: any): void {};
 
 
   ngOnInit(): void {
+    if (!(this instanceof AbstractPage)) {
+      let parentElement = this.injector.get(ElementRef).nativeElement.parentElement;
+      while (parentElement && parentElement != window.document.documentElement) {
+        if (parentElement['_abstractComponent']) {
+          this._parent = parentElement['_abstractComponent'];
+          break;
+        }
+        parentElement = parentElement.parentElement;
+      }
+      this._parent?._children.push(this);
+    }
     this.initComponent();
     this._isInit = true;
     this._visible$.next(true);
@@ -45,6 +60,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this.byState.unsusbcribe();
     this.whenVisible.stop();
     this.whenAlive.unsusbcribe();
+    this.destroyComponent();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -103,21 +119,9 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   }
 
   private _propagateVisible(visible: boolean): void {
-    const view = <any>this.injector.get(ViewContainerRef);
-    const element = this.injector.get(ElementRef);
-    if (view && view['_hostLView']) {
-      for (const viewElement of view['_hostLView']) {
-        if (Array.isArray(viewElement) && viewElement[0] === element.nativeElement) {
-          for (const child of viewElement) {
-            if (child === this) continue;
-            if (child instanceof AbstractComponent) {
-              if (child._isInit) {
-                child.setVisible(visible);
-              }
-            }
-          }
-          break;
-        }
+    for (const child of this._children) {
+      if (child._isInit) {
+        child.setVisible(visible);
       }
     }
   }

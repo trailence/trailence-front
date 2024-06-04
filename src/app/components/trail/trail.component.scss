@@ -1,0 +1,156 @@
+:host {
+  position: relative;
+  overflow: hidden;
+
+  --tabs-height: 36px;
+  --bottom-sheet-button-height: 15px;
+  --elevation-height: 200px;
+  --details-width: 350px;
+}
+
+.top-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  .trail-details {
+    position: absolute;
+  }
+
+  .map-container {
+    position: absolute;
+  }
+
+  .elevation-container {
+    position: absolute;
+  }
+
+  .tabs-container {
+    position: absolute;
+  }
+
+  .bottom-sheet-container {
+    position: absolute;
+  }
+  .bottom-info {
+    position: absolute;
+  }
+
+  &.large {
+    .tabs-container {
+      display: none;
+    }
+    .bottom-sheet-container {
+      display: none;
+    }
+    .bottom-info {
+      display: none;
+    }
+    .trail-details {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: var(--details-width);
+    }
+    .map-container {
+      top: 0;
+      bottom: var(--elevation-height);
+      left: var(--details-width);
+      right: 0;
+    }
+    .elevation-container {
+      bottom: 0;
+      left: var(--details-width);
+      right: 0;
+      height: var(--elevation-height);
+    }
+  }
+
+  &.small {
+    .tabs-container {
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--tabs-height);
+    }
+
+    &.tab-details {
+      .map-container {
+        display: none;
+      }
+      .elevation-container {
+        display: none;
+      }
+      .trail-details {
+        top: var(--tabs-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+    }
+
+    &.tab-map {
+      .trail-details {
+        display: none;
+      }
+      .map-container {
+        top: var(--tabs-height);
+        left: 0;
+        right: 0;
+      }
+      .bottom-sheet-container {
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      &.bottom-sheet-none {
+        .elevation-container {
+          display: none;
+        }
+        .bottom-info {
+          display: none;
+        }
+        .bottom-sheet-container {
+          height: var(--bottom-sheet-button-height);
+        }
+        .map-container {
+          bottom: var(--bottom-sheet-button-height);
+        }
+      }
+      &.bottom-sheet-details {
+        .elevation-container {
+          display: none;
+        }
+        .bottom-info {
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: var(--elevation-height);
+        }
+        .bottom-sheet-container {
+          height: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
+        }
+        .map-container {
+          bottom: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
+        }
+      }
+      &.bottom-sheet-elevation {
+        .bottom-info {
+          display: none;
+        }
+        .elevation-container {
+          height: var(--elevation-height);
+        }
+        .bottom-sheet-container {
+          height: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
+        }
+        .map-container {
+          bottom: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
+        }
+      }
+    }
+  }
+}

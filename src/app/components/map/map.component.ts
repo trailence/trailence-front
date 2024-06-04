@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { IdGenerator } from 'src/app/utils/component-utils';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
+import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { Subscriptions } from 'src/app/utils/subscription-utils';
 import { Platform } from '@ionic/angular';
-import { BehaviorSubject, EMPTY, Observable, Subscription, combineLatest, debounceTime, filter, first, interval, mergeMap, of, takeWhile, timer } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, mergeMap, takeWhile, timer } from 'rxjs';
 import * as L from 'leaflet';
 import { MapTilesLayerOffline } from './map-tiles-layer-offline';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -22,7 +21,7 @@ const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
   standalone: true,
   imports: []
 })
-export class MapComponent implements OnInit, OnDestroy, OnChanges {
+export class MapComponent extends AbstractComponent {
 
   @Input() mapId!: string;
   @Input() tracks$!: Observable<MapTrack[]>;
@@ -34,47 +33,44 @@ export class MapComponent implements OnInit, OnDestroy, OnChanges {
   private _mapState = new MapState();
   private _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
 
-  private subscriptions = new Subscriptions();
-
   constructor(
+    injector: Injector,
     private platform: Platform,
     private prefService: PreferencesService,
   ) {
+    super(injector);
     this.id = IdGenerator.generateId('map-');
   }
 
-  ngOnInit(): void {
-    this.subscriptions.add(this.platform.resize.pipe(debounceTime(500)).subscribe(() => this._map$.value?.invalidateSize()));
+  protected override initComponent(): void {
+    this.whenVisible.subscribe(this.platform.resize.pipe(debounceTime(500)), () => this._map$.value?.invalidateSize());
+    this.visible$.subscribe(visible => {
+      if (visible) this._map$.value?.invalidateSize();
+    });
     this.loadState();
     this.updateTracks();
     this._mapState.live = true;
     this._mapState.live$.pipe(
       filter(live => live),
-      mergeMap(() => timer(25)),
-      mergeMap(() => {
-        if (!this._mapState.live) return EMPTY;
-        if (this.readyForMap()) return of(true);
-        return interval(250).pipe(
-          takeWhile(() => this._mapState.live),
-          filter(() => this.readyForMap())
-        );
-      }),
+      mergeMap(() => timer(50, 150).pipe(
+        takeWhile(() => this._mapState.live),
+        mergeMap(() => this.readyForMap$()),
+        filter(ready => ready && this._mapState.live)
+      )),
       first()
     ).subscribe(() => this.createMap());
-    this.subscriptions.add(
-      combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(
-        debounceTime(1000)
-      ).subscribe(() => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId))
+    this.whenVisible.subscribe(
+      combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
+      () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId)
     );
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  override ngOnChanges(changes: SimpleChanges): void {
     if (changes['mapId']) this.loadState();
     if (changes['tracks$']) this.updateTracks();
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsusbcribe();
+  protected override destroyComponent(): void {
     this._map$.value?.remove();
   }
 
@@ -140,10 +136,28 @@ export class MapComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+  public ensureVisible(track: MapTrack): void {
+    const map = this._map$.value;
+    if (!map) return;
+    const bounds = track.bounds;
+    if (bounds) {
+      const mapBounds = map.getBounds();
+      if (mapBounds.contains(bounds)) return;
+      const newBounds = mapBounds.extend(bounds);
+      map.flyToBounds(newBounds);
+    }
+  }
 
-  private readyForMap(): boolean {
-    const element = document.getElementById(this.id);
-    return !!element && element.clientHeight > 0 && element.clientWidth > 0;
+
+  private readyForMap$(): Observable<boolean> {
+    return new Observable<boolean>(subscriber => {
+      setTimeout(() => {
+        const element = document.getElementById(this.id);
+        const ready = !!element && element.clientHeight > 0 && element.clientWidth > 0;
+        subscriber.next(ready);
+        subscriber.complete();
+      }, 0);
+    });
   }
 
   private _tilesLayers?: {[key: string]: MapTilesLayerOffline};
@@ -191,7 +205,7 @@ export class MapComponent implements OnInit, OnDestroy, OnChanges {
 
     let distanceUnit: DistanceUnit | undefined = undefined;
     let scale: L.Control.Scale | undefined = undefined;
-    this.subscriptions.add(
+    this.whenAlive.add(
       combineLatest([this.prefService.preferences$, this._mapState.live$]).subscribe(
         ([prefs, live]) => {
           if (!live) return;

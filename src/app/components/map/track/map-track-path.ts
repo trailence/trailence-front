@@ -1,5 +1,7 @@
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
+import { Subscription, combineLatest, map, mergeMap, of, skip } from 'rxjs';
+import { Arrays } from 'src/app/utils/arrays';
 
 export class MapTrackPath {
 
@@ -9,7 +11,9 @@ export class MapTrackPath {
     private _smoothFactor: number,
   ) {}
 
+  private _map?: L.Map;
   private _path?: L.Polyline;
+  private _subscription?: Subscription;
 
   public get path(): L.Polyline {
     if (!this._path) {
@@ -17,11 +21,17 @@ export class MapTrackPath {
       for (const segment of this._track.segments) {
         const polyline: L.LatLng[] = [];
         polylines.push(polyline);
-        for (const point of segment.points) {
+        let distanceFromPrevious = 0;
+        let nb = segment.relativePoints.length;
+        for (let i = 0; i < nb; ++i) {
+          const relativePoint = segment.relativePoints[i];
+          const point = relativePoint.point;
           const pt = new L.LatLng(point.lat, point.lng);
-          if (this._smoothFactor > 1 && point !== segment.points[0] && point !== segment.points[segment.points.length - 1] && pt.distanceTo(polyline[polyline.length - 1]) < 25)
+          distanceFromPrevious += relativePoint.distanceFromPreviousPoint;
+          if (this._smoothFactor > 1 && i > 0 && i !== nb - 1 && distanceFromPrevious < 25)
             continue;
           polyline.push(pt);
+          distanceFromPrevious = 0;
         }
       }
       this._path = L.polyline(polylines, {
@@ -29,17 +39,40 @@ export class MapTrackPath {
         smoothFactor: this._smoothFactor,
         interactive: false
       });
+      if (!this._subscription) {
+        this._subscription = this._track.segments$.pipe(
+          skip(1),
+          mergeMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(segment => segment.points$))),
+          map(points => Arrays.flatMap(Arrays.flatMap(points, pts => pts), pt => [pt.lat$, pt.lng$])),
+          mergeMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
+        ).subscribe(() => {
+          if (this._path && this._map) this._path.removeFrom(this._map);
+          this._path = undefined;
+          if (this._map) this.path.addTo(this._map);
+          // TODO check if we can do a more optimized way
+          // at least for a recording track, we known that changes are only new points added at the end
+        });
+      }
     }
     return this._path;
   }
 
   public addTo(map: L.Map): void {
+    if (this._map) return;
+    this._map = map;
     this.path.addTo(map);
   }
 
-  public removeFrom(map: L.Map): void {
-    if (!this._path) return;
-    this._path.removeFrom(map);
+  public remove(): void {
+    this._subscription?.unsubscribe();
+    this._subscription = undefined;
+    if (this._map) {
+      if (this._path) {
+        this._path.removeFrom(this._map);
+      }
+    }
+    this._map = undefined;
+    this._path = undefined;
   }
 
   public get bounds(): L.LatLngBounds | undefined {

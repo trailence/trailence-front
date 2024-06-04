@@ -13,7 +13,7 @@ import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-trails',
+  selector: 'app-trails-page',
   templateUrl: './trails.page.html',
   styleUrls: ['./trails.page.scss'],
   standalone: true,

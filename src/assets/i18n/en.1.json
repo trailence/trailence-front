@@ -38,6 +38,12 @@
         "list": "List",
         "map": "Map"
       }
+    },
+    "trail": {
+      "tabs": {
+        "details": "Details",
+        "map": "Map"
+      }
     }
   },
   "my_trails": "My Trails",
@@ -49,5 +55,10 @@
   "order_asc": "Ascending",
   "order_desc": "Descending",
   "selected_single": "selected",
-  "selected_plural": "selected"
+  "selected_plural": "selected",
+  "way_points": {
+    "DA": "D A",
+    "D": "D",
+    "A": "A"
+  }
 }
