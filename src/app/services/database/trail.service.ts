@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AbstractStore, UpdatesResponse } from './abstract-store';
+import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
 import { Observable, combineLatest, map } from 'rxjs';
@@ -74,7 +74,7 @@ export class TrailService {
 
 }
 
-class TrailStore extends AbstractStore<TrailDto, Trail> {
+class TrailStore extends OwnedStore<TrailDto, Trail> {
 
   constructor(
     databaseService: DatabaseService,

@@ -14,6 +14,7 @@ import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonBu
 import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
+import { TagService } from 'src/app/services/database/tag.service';
 
 interface State {
   sortAsc: boolean;
@@ -72,6 +73,7 @@ export class TrailsListComponent extends AbstractComponent {
     private auth: AuthService,
     private trackService: TrackService,
     private trailService: TrailService,
+    private tagService: TagService,
     private changeDetector: ChangeDetectorRef,
   ) {
     super(injector);

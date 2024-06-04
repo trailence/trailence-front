@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
 import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
-import { AbstractStore } from './abstract-store';
+import { Store } from './store';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
 export const TRAIL_TABLE_NAME = 'trails';
 export const TRAIL_COLLECTION_TABLE_NAME = 'trail_collections';
+export const TAG_TABLE_NAME = 'tags';
+export const TRAIL_TAG_TABLE_NAME = 'trails_tags';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +18,7 @@ export class DatabaseService {
 
   private _db = new BehaviorSubject<Dexie | undefined>(undefined);
   private _openEmail?: string;
-  private _stores = new BehaviorSubject<AbstractStore<any,any>[]>([]);
+  private _stores = new BehaviorSubject<Store<any,any,any>[]>([]);
 
   constructor(
     auth: AuthService,
@@ -41,7 +43,7 @@ export class DatabaseService {
     );
   }
 
-  registerStore(store: AbstractStore<any,any>): void {
+  registerStore(store: Store<any,any,any>): void {
     this._stores.value.push(store);
     this._stores.next(this._stores.value);
   }
@@ -65,6 +67,8 @@ export class DatabaseService {
     storesV1[TRACK_TABLE_NAME] = 'id_owner';
     storesV1[TRAIL_TABLE_NAME] = 'id_owner';
     storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
+    storesV1[TAG_TABLE_NAME] = 'id_owner';
+    storesV1[TRAIL_TAG_TABLE_NAME] = '';
     db.version(1).stores(storesV1);
     this._db.next(db);
   }

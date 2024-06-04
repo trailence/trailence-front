@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AbstractStore, UpdatesResponse } from './abstract-store';
+import { OwnedStore, UpdatesResponse } from './owned-store';
 import { TrackDto } from 'src/app/model/dto/track';
 import { Track } from 'src/app/model/track';
 import { DatabaseService, TRACK_TABLE_NAME } from './database.service';
@@ -58,7 +58,7 @@ export class TrackService {
 
 }
 
-class TrackStore extends AbstractStore<TrackDto, Track> {
+class TrackStore extends OwnedStore<TrackDto, Track> {
 
   constructor(
     databaseService: DatabaseService,

@@ -1,89 +1,23 @@
 import { DatabaseService } from './database.service';
-import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, defaultIfEmpty, distinctUntilChanged, filter, first, from, map, mergeMap, of, timeout } from 'rxjs';
-import Dexie from 'dexie';
+import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty, distinctUntilChanged, filter, first, from, map, mergeMap, of, timeout } from 'rxjs';
 import { NetworkService } from '../network/newtork.service';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
+import { Store, StoreSyncStatus } from './store';
 
-const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
-const MINIMUM_SYNC_INTERVAL = 30 * 1000;
 
-export abstract class AbstractStore<DTO extends OwnedDto, ENTITY extends Owned> {
+export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 
-  private _store = new BehaviorSubject<BehaviorSubject<ENTITY | null>[]>([]);
   private _updatedLocally: string[] = [];
-  private _storeLoaded$ = new BehaviorSubject<boolean>(false);
-  private _db?: Dexie;
-  private _syncStatus$ = new BehaviorSubject<SyncStatus>(new SyncStatus());
-  private _operationInProgress$ = new BehaviorSubject<boolean>(false);
-  private _lastSync = 0;
-  private _syncTimeout?: any;
+  private _syncStatus$ = new BehaviorSubject<OwnedStoreSyncStatus>(new OwnedStoreSyncStatus());
 
   constructor(
-    private tableName: string,
-    private databaseService: DatabaseService,
+    tableName: string,
+    databaseService: DatabaseService,
     network: NetworkService,
   ) {
-    databaseService.registerStore(this);
-    // listen to database change (when authentication changed)
-    databaseService.db$.subscribe(db => {
-      if (db) this.load(db);
-      else this.close();
-    });
-
-    // we need to sync when:
-    combineLatest([
-      this._storeLoaded$,         // local database is loaded
-      network.connected$,         // network is connected
-      this._syncStatus$,          // there is something to sync and we are not syncing
-      this._operationInProgress$, // and no operation in progress
-    ]).pipe(
-      map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus.needsSync && !syncStatus.inProgress),
-      filter(shouldSync => {
-        if (!shouldSync) return false;
-        if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
-          if (!this._syncTimeout) {
-            this._syncTimeout = setTimeout(() => this._syncStatus$.next(this._syncStatus$.value), Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
-          }
-          return false;
-        }
-        return true;
-      }),
-    )
-    .subscribe(() => {
-      this._lastSync = Date.now();
-      if (this._syncTimeout) clearTimeout(this._syncTimeout);
-      this._syncTimeout = undefined;
-      this.sync();
-    });
-
-    // launch update from server every 30 minutes
-    let updateFromServerTimeout: any = undefined;
-    this._storeLoaded$.subscribe(() => {
-      if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-      updateFromServerTimeout = undefined;
-    });
-    let previousNeeded = false;
-    this._syncStatus$.subscribe(status => {
-      if (!previousNeeded && status.needsUpdateFromServer) {
-        previousNeeded = true;
-      } else if (previousNeeded && !status.needsUpdateFromServer) {
-        previousNeeded = false;
-        if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-        updateFromServerTimeout = setTimeout(() =>
-          this.performOperation(
-            () => false,
-            () => of(true),
-            status => {
-              if (status.needsUpdateFromServer) return false;
-              status.needsUpdateFromServer = true;
-              return true;
-            }
-          ),
-          AUTO_UPDATE_FROM_SERVER_EVERY
-        );
-      }
-    });
+    super(tableName, databaseService, network);
+    this._initStore();
   }
 
   protected abstract fromDTO(dto: DTO): ENTITY;
@@ -97,7 +31,9 @@ export abstract class AbstractStore<DTO extends OwnedDto, ENTITY extends Owned> 
   protected abstract sendUpdatesToServer(items: DTO[]): Observable<DTO[]>;
   protected abstract deleteFromServer(uuids: string[]): Observable<void>;
 
-  public get syncStatus$(): Observable<SyncStatus> { return this._syncStatus$; }
+  public override get syncStatus$() { return this._syncStatus$; }
+  public override get syncStatus() { return this._syncStatus$.value; }
+  protected override set syncStatus(status: OwnedStoreSyncStatus) { this._syncStatus$.next(status); }
 
   public getAll$(filter: (element: ENTITY) => boolean = () => true): Observable<Observable<ENTITY | null>[]> {
     return this._store.pipe(
@@ -187,38 +123,6 @@ export abstract class AbstractStore<DTO extends OwnedDto, ENTITY extends Owned> 
     );
   }
 
-  private close(): void {
-    if (!this._db) return;
-    this._db = undefined;
-    this._storeLoaded$.next(false);
-    this._updatedLocally = [];
-    const items = this._store.value;
-    this._store.next([]);
-    items.forEach(item$ => item$.complete());
-  }
-
-  private load(db: Dexie): void {
-    if (this._db) this.close();
-    this._db = db;
-    from(db.table<StoredItem<DTO>>(this.tableName).toArray()).subscribe(
-      items => {
-        if (this._db !== db) return;
-        this._syncStatus$.value.resetAllAsNeeded();
-        this._syncStatus$.next(this._syncStatus$.value);
-        if (this._syncTimeout) clearTimeout(this._syncTimeout);
-        this._syncTimeout = undefined;
-        this._lastSync = 0;
-          const newStore: BehaviorSubject<ENTITY | null>[] = [];
-        items.forEach(item => {
-          newStore.push(new BehaviorSubject<ENTITY | null>(this.fromDTO(item.item)));
-          if (item.updatedLocally) this._updatedLocally.push(item.id_owner);
-        });
-        this._store.next(newStore);
-        this._storeLoaded$.next(true);
-      }
-    );
-  }
-
   private updatedDtosFromServer(dtos: DTO[], deleted: {uuid: string; owner: string;}[] = []): Observable<boolean> {
     if (dtos.length === 0 && deleted.length === 0) return of(true);
     const items = this._store.value;
@@ -271,41 +175,22 @@ export abstract class AbstractStore<DTO extends OwnedDto, ENTITY extends Owned> 
     })).pipe(defaultIfEmpty(true), map(() => true));
   }
 
-  private performOperation(
-    storeUpdater: (store: BehaviorSubject<ENTITY | null>[]) => boolean,
-    tableUpdater: (db: Dexie) => Observable<any>,
-    statusUpdater: (status: SyncStatus) => boolean
-  ): void {
-    const db = this._db!;
-    let done = false;
-    let subscription: Subscription | undefined = undefined;
-    subscription = combineLatest([this._storeLoaded$, this._operationInProgress$])
-    .subscribe(([loaded, operationInProgress]) => {
-      if (!loaded || operationInProgress) return;
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-      if (done || this._db !== db) return;
-      done = true;
-
-      this._operationInProgress$.next(true);
-      if (storeUpdater(this._store.value)) {
-        this._store.next(this._store.value);
-      }
-      tableUpdater(db)
-      .pipe(defaultIfEmpty(true), catchError(error => of(true)))
-      .subscribe(() => {
-        const status = this._syncStatus$.value;
-        if (statusUpdater(status)) {
-          this._lastSync = 0;
-          this._syncStatus$.next(status);
-        }
-        this._operationInProgress$.next(false);
-      });
-    })
+  protected override close(): void {
+    super.close();
+    this._updatedLocally = [];
   }
 
-  private sync(): void {
+  protected override itemFromDb(item: StoredItem<DTO>): ENTITY {
+    if (item.updatedLocally) this._updatedLocally.push(item.id_owner);
+    return this.fromDTO(item.item);
+  }
+
+  protected override beforeEmittingStoreLoaded(): void {
+    this._syncStatus$.value.resetAllAsNeeded();
+    this._syncStatus$.next(this._syncStatus$.value);
+  }
+
+  protected override sync(): void {
     console.log('Sync table ' + this.tableName + ' with status ', this._syncStatus$.value);
     const db = this._db;
     const stillValid = () => this._db === db;
@@ -373,7 +258,6 @@ export abstract class AbstractStore<DTO extends OwnedDto, ENTITY extends Owned> 
           mergeMap(result => {
             console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
             if (!stillValid()) return of(false);
-            this._updatedLocally = [];
             return this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toCreate.length));
           }),
           catchError(error => {
@@ -482,7 +366,7 @@ export interface UpdatesResponse<T> {
 
 }
 
-export class SyncStatus {
+class OwnedStoreSyncStatus implements StoreSyncStatus {
   public localCreates = true;
   public localUpdates = true;
   public localDeletes = true;
