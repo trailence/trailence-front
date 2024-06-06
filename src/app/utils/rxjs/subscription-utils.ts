@@ -23,17 +23,19 @@ export type Resubscribeable = {
 
 export class Resubscribeables {
 
+  private paused = false;
   private subscriptions: Resubscribeable[] = [];
 
   public subscribe<T>(observable: Observable<T>, observer: Partial<Observer<T>> | ((value: T) => void)): void {
     this.subscriptions.push({
       observable,
       observer,
-      subscription: observable.subscribe(observer)
+      subscription: this.paused ? undefined : observable.subscribe(observer)
     });
   }
 
   public pause(): void {
+    this.paused = true;
     for (const rs of this.subscriptions) {
       rs.subscription?.unsubscribe();
       rs.subscription = undefined;
@@ -41,6 +43,7 @@ export class Resubscribeables {
   }
 
   public resume(): void {
+    this.paused = false;
     for (const rs of this.subscriptions) {
       if (!rs.subscription) rs.subscription = rs.observable.subscribe(rs.observer);
     }
@@ -49,6 +52,7 @@ export class Resubscribeables {
   public stop(): void {
     for (const rs of this.subscriptions) rs.subscription?.unsubscribe();
     this.subscriptions = [];
+    this.paused = true;
   }
 
 }

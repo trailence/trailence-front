@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, NgZone } from "@angular/core";
 import { Observable, map, of } from "rxjs";
 import { TrailCollection } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
@@ -9,6 +9,7 @@ import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { NetworkService } from "../network/newtork.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
+import { CollectionObservable } from "src/app/utils/rxjs/observable-collection";
 
 @Injectable({
     providedIn: 'root'
@@ -20,12 +21,13 @@ export class TrailCollectionService {
     constructor(
       databaseService: DatabaseService,
       network: NetworkService,
+      ngZone: NgZone,
       http: HttpService,
     ) {
-        this._store = new TrailCollectionStore(databaseService, network, http);
+        this._store = new TrailCollectionStore(databaseService, network, ngZone, http);
     }
 
-    public getAll$(): Observable<Observable<TrailCollection | null>[]> {
+    public getAll$(): CollectionObservable<Observable<TrailCollection | null>> {
         return this._store.getAll$();
       }
 
@@ -57,9 +59,10 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
     constructor(
       databaseService: DatabaseService,
       network: NetworkService,
+      ngZone: NgZone,
       private http: HttpService,
     ) {
-      super(TRAIL_COLLECTION_TABLE_NAME, databaseService, network);
+      super(TRAIL_COLLECTION_TABLE_NAME, databaseService, network, ngZone);
     }
 
     protected override fromDTO(dto: TrailCollectionDto): TrailCollection {

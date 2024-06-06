@@ -3,12 +3,13 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPath } from './map-track-path';
 import { Trail } from 'src/app/model/trail';
 import { MapTrackWayPoints } from './map-track-way-points';
+import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 
 export class MapTrack {
 
   constructor(
     private _trail: Trail | undefined,
-    private _track: Track,
+    private _track: Track | SimplifiedTrackSnapshot,
     color: string,
     smoothFactor: number,
     isRecording: boolean,
@@ -32,7 +33,7 @@ export class MapTrack {
   }
 
   public get trail(): Trail | undefined { return this._trail; }
-  public get track(): Track { return this._track; }
+  public get track(): Track | SimplifiedTrackSnapshot { return this._track; }
 
   public get bounds(): L.LatLngBounds | undefined { return this._path.bounds }
   public get color(): string { return this._path.color; }

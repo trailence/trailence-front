@@ -2,11 +2,12 @@ import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
 import { Subscription, combineLatest, map, mergeMap, of, skip } from 'rxjs';
 import { Arrays } from 'src/app/utils/arrays';
+import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 
 export class MapTrackPath {
 
   constructor(
-    private _track: Track,
+    private _track: Track | SimplifiedTrackSnapshot,
     private _color: string,
     private _smoothFactor: number,
   ) {}
@@ -17,33 +18,31 @@ export class MapTrackPath {
 
   public get path(): L.Polyline {
     if (!this._path) {
-      const polylines: L.LatLng[][]  = [];
-      for (const segment of this._track.segments) {
-        const polyline: L.LatLng[] = [];
-        polylines.push(polyline);
-        let distanceFromPrevious = 0;
-        let nb = segment.relativePoints.length;
-        for (let i = 0; i < nb; ++i) {
-          const relativePoint = segment.relativePoints[i];
-          const point = relativePoint.point;
-          const pt = new L.LatLng(point.lat, point.lng);
-          distanceFromPrevious += relativePoint.distanceFromPreviousPoint;
-          if (this._smoothFactor > 1 && i > 0 && i !== nb - 1 && distanceFromPrevious < 25)
-            continue;
-          polyline.push(pt);
-          distanceFromPrevious = 0;
+      const polylines: L.LatLngExpression[][]  = [];
+      if (this._track instanceof Track) {
+        for (const segment of this._track.segments) {
+          const polyline: L.LatLng[] = [];
+          polylines.push(polyline);
+          const nb = segment.relativePoints.length;
+          for (let i = 0; i < nb; ++i) {
+            const relativePoint = segment.relativePoints[i];
+            const point = relativePoint.point;
+            polyline.push(point.pos);
+          }
         }
+      } else {
+        polylines.push(this._track.points as L.LatLngLiteral[]);
       }
       this._path = L.polyline(polylines, {
         color: this._color,
         smoothFactor: this._smoothFactor,
         interactive: false
       });
-      if (!this._subscription) {
+      if (!this._subscription && this._track instanceof Track) {
         this._subscription = this._track.segments$.pipe(
           skip(1),
           mergeMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(segment => segment.points$))),
-          map(points => Arrays.flatMap(Arrays.flatMap(points, pts => pts), pt => [pt.lat$, pt.lng$])),
+          map(points => Arrays.flatMap(points, pts => pts.map(pt => pt.pos$))),
           mergeMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
         ).subscribe(() => {
           if (this._path && this._map) this._path.removeFrom(this._map);

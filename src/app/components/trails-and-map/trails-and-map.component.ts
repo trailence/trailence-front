@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Platform } from '@ionic/angular';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, filter, map, mergeMap } from 'rxjs';
 import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -12,7 +12,8 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { CommonModule } from '@angular/common';
-import { debounceTimeExtended } from 'src/app/utils/rxjs-utils';
+import { ArrayBehaviorSubject, CollectionObservable, mergeMapCollectionObservable } from 'src/app/utils/rxjs/observable-collection';
+import { debounceTimeReduce } from 'src/app/utils/rxjs/rxjs-utils';
 
 @Component({
   selector: 'app-trails-and-map',
@@ -27,7 +28,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @Input() viewId!: string;
 
-  @Input() trails$?: Observable<Observable<Trail | null>[]>;
+  @Input() trails$?: CollectionObservable<Observable<Trail | null>>;
   @Input() collectionUuid?: string;
 
   mode =  '';
@@ -37,7 +38,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
   trailSheetMetadataClass = 'two-columns';
 
   highlightedTrail?: Trail;
-  mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
+  mapTracks$ = new ArrayBehaviorSubject<MapTrack>([]);
+  trailsList$ = new BehaviorSubject<Observable<Trail | null>[]>([]);
 
   @ViewChild(TrailsListComponent) trailsList?: TrailsListComponent;
   @ViewChild(MapComponent) map?: MapComponent;
@@ -64,26 +66,30 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
-    this.mapTracks$.next([]);
+    this.mapTracks$.clear();
+    this.trailsList$.next([]);
     if (!this.trails$) return;
     this.byStateAndVisible.subscribe(
-      this.trails$.pipe(
-        mergeMap(trails => trails.length === 0 ? of([]) : combineLatest(trails)),
-        map(trails =>
-          trails.filter(trail => !!trail)
-          .map(trail => trail!.currentTrackUuid$.pipe(
-            mergeMap(uuid => this.trackService.getTrack$(uuid, trail!.owner)),
-            map(track => ({trail: trail!, track}))
-          ))
+      mergeMapCollectionObservable(
+        this.trails$,
+        trail => trail.currentTrackUuid$.pipe(
+          mergeMap(uuid => this.trackService.getSimplifiedTrack$(uuid, trail!.owner)),
+          filter(track => !!track),
+          map(track => ({trail: trail!, track: track!}))
         ),
-        mergeMap(tracks => tracks.length === 0 ? of([]) : combineLatest(tracks)),
-        debounceTimeExtended(0, 250, -1, (p,n) => p.length !== n.length),
-        map(list =>
-          list.filter(track => !!track.track)
-          .map(track => new MapTrack(track.trail, track.track!, 'red', 4, false, this.i18n))
-        )
+        item => new MapTrack(item.trail, item.track, 'red', 4, false, this.i18n)
+      ).pipe(
+        debounceTimeReduce(0, 250, (previousChanges, newChanges) => {
+          previousChanges.added.push(...newChanges.added);
+          previousChanges.removed.push(...newChanges.removed);
+          return previousChanges;
+        })
       ),
-      tracks => this.mapTracks$.next(tracks)
+      changes => this.mapTracks$.addAndRemove(changes.added, changes.removed)
+    );
+    this.byStateAndVisible.subscribe(
+      this.trails$.values$,
+      trails => this.trailsList$.next(trails)
     );
   }
 
@@ -150,14 +156,14 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private highlight(trail: Trail, highlight: boolean): void {
-    const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
+    const mapTrack = this.mapTracks$.values.find(mt => mt.trail === trail);
     if (mapTrack) {
       mapTrack.color = highlight ? '#4040FF' : 'red';
       mapTrack.showDepartureAndArrivalAnchors(highlight);
     }
     this.trailsList?.setHighlighted(highlight ? trail : undefined);
     if (highlight && this.map) {
-      const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
+      const mapTrack = this.mapTracks$.values.find(mt => mt.trail === trail);
       if (mapTrack) {
         this.map.ensureVisible(mapTrack);
       }

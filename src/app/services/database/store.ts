@@ -1,7 +1,9 @@
-import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, defaultIfEmpty, filter, from, map, of } from "rxjs";
+import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, from, map, of, timeout } from "rxjs";
 import { DatabaseService } from "./database.service";
-import Dexie from "dexie";
+import Dexie, { Table } from "dexie";
 import { NetworkService } from "../network/newtork.service";
+import { ArrayBehaviorSubject, CollectionObservable } from "src/app/utils/rxjs/observable-collection";
+import { NgZone } from "@angular/core";
 
 export interface StoreSyncStatus {
 
@@ -16,99 +18,125 @@ const MINIMUM_SYNC_INTERVAL = 30 * 1000;
 
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
-    protected _db?: Dexie;
+  protected _db?: Dexie;
 
-    protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
-    private _storeLoaded$ = new BehaviorSubject<boolean>(false);
-    private _lastSync = 0;
-    private _syncTimeout?: any;
+  protected _store = new ArrayBehaviorSubject<BehaviorSubject<STORE_ITEM | null>>([]);
+  protected _createdLocally: BehaviorSubject<STORE_ITEM | null>[] = [];
+  protected _deletedLocally: STORE_ITEM[] = [];
 
-    private _operationInProgress$ = new BehaviorSubject<boolean>(false);
+  private _storeLoaded$ = new BehaviorSubject<boolean>(false);
+  private _lastSync = 0;
+  private _syncTimeout?: any;
 
-    constructor(
-        protected tableName: string,
-        protected databaseService: DatabaseService,
-        protected network: NetworkService,
-    ) {}
+  private _operationInProgress$ = new BehaviorSubject<boolean>(false);
 
-    protected _initStore(): void {
-        this.databaseService.registerStore(this);
-        // listen to database change (when authentication changed)
-        this.databaseService.db$.subscribe(db => {
-          if (db) this.load(db);
-          else this.close();
-        });
-    
-        // we need to sync when:
-        combineLatest([
-          this._storeLoaded$,         // local database is loaded
-          this.network.connected$,    // network is connected
-          this.syncStatus$,           // there is something to sync and we are not syncing
-          this._operationInProgress$, // and no operation in progress
-        ]).pipe(
-          map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus.needsSync && !syncStatus.inProgress),
-          filter(shouldSync => {
-            if (!shouldSync) return false;
-            if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
-              if (!this._syncTimeout) {
-                this._syncTimeout = setTimeout(() => this.syncStatus = this.syncStatus, Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
-              }
-              return false;
+  constructor(
+    protected tableName: string,
+    protected databaseService: DatabaseService,
+    protected network: NetworkService,
+    protected ngZone: NgZone,
+  ) {}
+
+  protected abstract readyToSave(entity: STORE_ITEM): boolean;
+  protected abstract readyToSave$(entity: STORE_ITEM): Observable<boolean>;
+
+  protected abstract isDeletedLocally(item: DB_ITEM): boolean;
+  protected abstract isCreatedLocally(item: DB_ITEM): boolean;
+
+  public getAll$(): CollectionObservable<Observable<STORE_ITEM | null>> {
+    return this._store;
+  }
+
+  public filter$(predicate: (item: STORE_ITEM) => boolean): CollectionObservable<Observable<STORE_ITEM | null>> {
+    return this._store.pipe(
+      map(items$ => items$.filter(item$ => item$.value && predicate(item$.value)))
+    );
+  }
+
+  protected _initStore(): void {
+    this.databaseService.registerStore(this.syncStatus$);
+    // listen to database change (when authentication changed)
+    this.databaseService.db$.subscribe(db => {
+      if (db) this.load(db);
+      else this.close();
+    });
+
+    // we need to sync when:
+    combineLatest([
+      this._storeLoaded$,         // local database is loaded
+      this.network.connected$,    // network is connected
+      this.syncStatus$,           // there is something to sync and we are not syncing
+      this._operationInProgress$, // and no operation in progress
+    ]).pipe(
+      debounceTime(1000),
+      map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus.needsSync && !syncStatus.inProgress),
+      filter(shouldSync => {
+        if (!shouldSync) return false;
+        if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
+          this.ngZone.runOutsideAngular(() => {
+            if (!this._syncTimeout) {
+              this._syncTimeout = setTimeout(() => this.syncStatus = this.syncStatus, Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
             }
-            return true;
-          }),
-        )
-        .subscribe(() => {
-          this._lastSync = Date.now();
-          if (this._syncTimeout) clearTimeout(this._syncTimeout);
-          this._syncTimeout = undefined;
-          this.sync();
+          });
+          return false;
+        }
+        return true;
+      }),
+    )
+    .subscribe(() => {
+      this._lastSync = Date.now();
+      if (this._syncTimeout) clearTimeout(this._syncTimeout);
+      this._syncTimeout = undefined;
+      this.sync();
+    });
+
+    // launch update from server every 30 minutes
+    let updateFromServerTimeout: any = undefined;
+    this._storeLoaded$.subscribe(() => {
+      if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
+      updateFromServerTimeout = undefined;
+    });
+    let previousNeeded = false;
+    this.syncStatus$.subscribe(status => {
+      if (!previousNeeded && status.needsUpdateFromServer) {
+        previousNeeded = true;
+      } else if (previousNeeded && !status.needsUpdateFromServer) {
+        previousNeeded = false;
+        if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
+        this.ngZone.runOutsideAngular(() => {
+          updateFromServerTimeout = setTimeout(() =>
+            this.performOperation(
+              () => false,
+              () => of(true),
+              status => {
+                if (status.needsUpdateFromServer) return false;
+                status.needsUpdateFromServer = true;
+                return true;
+              }
+            ),
+            AUTO_UPDATE_FROM_SERVER_EVERY
+          );
         });
-    
-        // launch update from server every 30 minutes
-        let updateFromServerTimeout: any = undefined;
-        this._storeLoaded$.subscribe(() => {
-          if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-          updateFromServerTimeout = undefined;
-        });
-        let previousNeeded = false;
-        this.syncStatus$.subscribe(status => {
-          if (!previousNeeded && status.needsUpdateFromServer) {
-            previousNeeded = true;
-          } else if (previousNeeded && !status.needsUpdateFromServer) {
-            previousNeeded = false;
-            if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-            updateFromServerTimeout = setTimeout(() =>
-              this.performOperation(
-                () => false,
-                () => of(true),
-                status => {
-                  if (status.needsUpdateFromServer) return false;
-                  status.needsUpdateFromServer = true;
-                  return true;
-                }
-              ),
-              AUTO_UPDATE_FROM_SERVER_EVERY
-            );
-          }
-        });
-    }
+      }
+    });
+  }
 
-    public abstract get syncStatus$(): Observable<SYNCSTATUS>;
-    public abstract get syncStatus(): SYNCSTATUS;
-    protected abstract set syncStatus(status: SYNCSTATUS);
+  public abstract get syncStatus$(): Observable<SYNCSTATUS>;
+  public abstract get syncStatus(): SYNCSTATUS;
+  protected abstract set syncStatus(status: SYNCSTATUS);
 
-    protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
+  protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
 
-    protected abstract sync(): void;
+  protected abstract sync(): void;
 
-    
   protected close(): void {
     if (!this._db) return;
     this._db = undefined;
     this._storeLoaded$.next(false);
-    const items = this._store.value;
-    this._store.next([]);
+    const items = this._store.values;
+    this._store.clear();
+    this._createdLocally = [];
+    this._deletedLocally = [];
     items.forEach(item$ => item$.complete());
   }
 
@@ -122,8 +150,16 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         this._syncTimeout = undefined;
         this._lastSync = 0;
         const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
-        items.forEach(item => newStore.push(new BehaviorSubject<STORE_ITEM | null>(this.itemFromDb(item))));
-        this._store.next(newStore);
+        items.forEach(dbItem => {
+          const item = this.itemFromDb(dbItem);
+          if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
+          else {
+            const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
+            if (this.isCreatedLocally(dbItem)) this._createdLocally.push(item$);
+            newStore.push(item$);
+          }
+        });
+        this._store.change(newStore);
         this.beforeEmittingStoreLoaded();
         this._storeLoaded$.next(true);
       }
@@ -135,7 +171,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected performOperation(
-    storeUpdater: (store: BehaviorSubject<STORE_ITEM | null>[]) => boolean,
+    storeUpdater: () => void,
     tableUpdater: (db: Dexie) => Observable<any>,
     statusUpdater: (status: SYNCSTATUS) => boolean
   ): void {
@@ -152,9 +188,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       done = true;
 
       this._operationInProgress$.next(true);
-      if (storeUpdater(this._store.value)) {
-        this._store.next(this._store.value);
-      }
+      storeUpdater();
       tableUpdater(db)
       .pipe(defaultIfEmpty(true), catchError(error => of(true)))
       .subscribe(() => {
@@ -167,5 +201,59 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       });
     })
   }
+
+  protected waitReadyWithTimeout(entities: STORE_ITEM[]): Observable<STORE_ITEM[]> {
+    return combineLatest(
+      entities.map(entity => this.readyToSave$(entity).pipe(
+        filter(ready => ready),
+        timeout({ first: 5000, with: () => of(false) })
+      ))
+    ).pipe(
+      debounceTime(500),
+      first(),
+      map(readiness => entities.filter((entity, index) => readiness[index]))
+    )
+  }
+
+  protected abstract dbItemCreatedLocally(item: STORE_ITEM): DB_ITEM;
+  protected abstract updateStatusWithLocalCreate(status: SYNCSTATUS): boolean;
+
+  public create(item: STORE_ITEM): Observable<STORE_ITEM | null> {
+    const item$ = new BehaviorSubject<STORE_ITEM | null>(item)
+    this.performOperation(
+      () => {
+        this._createdLocally.push(item$);
+        this._store.add([item$]);
+      },
+      db => from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item))),
+      status => this.updateStatusWithLocalCreate(status)
+    );
+    return item$;
+  }
+
+  protected deleted(item$: BehaviorSubject<STORE_ITEM | null> | undefined, item: STORE_ITEM): void {
+    // nothing by default
+  }
+
+  protected abstract markDeletedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
+
+  protected abstract updateStatusWithLocalDelete(status: SYNCSTATUS): boolean;
+
+  public delete(item: STORE_ITEM): void {
+    this.performOperation(
+      () => {
+        const entity$ = this._store.values.find(item$ => item$.value === item);
+        entity$?.next(null);
+        if (this._deletedLocally.indexOf(item) < 0)
+          this._deletedLocally.push(item);
+        this.deleted(entity$, item);
+        if (entity$)
+          this._store.remove([entity$]);
+      },
+      db => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item),
+      status => this.updateStatusWithLocalDelete(status)
+    );
+  }
+
 
 }

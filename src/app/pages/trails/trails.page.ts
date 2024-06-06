@@ -11,6 +11,7 @@ import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-and-map.component';
 import { CommonModule } from '@angular/common';
+import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
 
 @Component({
   selector: 'app-trails-page',
@@ -30,7 +31,7 @@ export class TrailsPage extends AbstractPage {
   @Input() trailsFrom?: string;
 
   title$?: Observable<string>;
-  trails$?: Observable<Observable<Trail | null>[]>;
+  trails$?: CollectionObservable<Observable<Trail | null>>;
 
   viewId?: string;
 
@@ -50,7 +51,7 @@ export class TrailsPage extends AbstractPage {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState.type === 'collection' && newState.id === 'my_trails') {
-      this.injector.get(TrailCollectionService).getAll$().pipe(
+      this.injector.get(TrailCollectionService).getAll$().values$.pipe(
         mergeMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
         map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
         filter(myTrails => !!myTrails),

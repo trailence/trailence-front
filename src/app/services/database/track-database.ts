@@ -1,0 +1,624 @@
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, from, map, mergeMap, of, zip } from "rxjs";
+import { AuthService } from "../auth/auth.service";
+import { DatabaseService } from "./database.service";
+import Dexie, { Table } from "dexie";
+import { TrackDto } from "src/app/model/dto/track";
+import { Track } from "src/app/model/track";
+import { StoreSyncStatus } from "./store";
+import { RequestLimiter } from "src/app/utils/request-limiter";
+import { environment } from "src/environments/environment";
+import { HttpService } from "../http/http.service";
+import { VersionedDto } from "src/app/model/dto/versioned";
+import { UpdatesResponse } from "./owned-store";
+import { NetworkService } from "../network/newtork.service";
+import { OwnedDto } from "src/app/model/dto/owned";
+import { NgZone } from "@angular/core";
+
+export interface TrackMetadataSnapshot {
+  distance: number;
+  positiveElevation: number;
+  negativeElevation: number;
+  highestAltitude?: number;
+  lowestAltitude?: number;
+  duration: number;
+  startDate?: number;
+}
+
+interface MetadataItem extends TrackMetadataSnapshot {
+  key: string;
+}
+
+export interface SimplifiedTrackSnapshot {
+  points: SimplifiedPoint[];
+}
+export interface SimplifiedPoint {
+  lat: number;
+  lng: number;
+  ele?: number;
+  time?: number;
+}
+
+interface SimplifiedTrackItem extends SimplifiedTrackSnapshot {
+  key: string;
+}
+
+interface TrackItem {
+  key: string;
+  uuid: string;
+  owner: string;
+  version: number;
+  updatedLocally: number;
+  needsSync: number;
+  track?: TrackDto;
+}
+
+const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
+const MINIMUM_SYNC_INTERVAL = 30 * 1000;
+
+export class TrackDatabase {
+
+  constructor(
+    databaseService: DatabaseService,
+    auth: AuthService,
+    private http: HttpService,
+    private network: NetworkService,
+    private ngZone: NgZone,
+  ) {
+    databaseService.registerStore(this.syncStatus$);
+    auth.auth$.subscribe(
+      auth => {
+        if (!auth) this.close();
+        else this.open(auth.email);
+      }
+    );
+    this.initSync();
+  }
+
+  private db?: Dexie;;
+  private openEmail?: string;
+
+  private close() {
+    if (this.db) {
+      console.log('Close track DB')
+      this.db.close();
+      this.openEmail = undefined;
+      this.db = undefined;
+      this.syncStatus$.next(null);
+    }
+  }
+
+  private open(email: string): void {
+    if (this.openEmail === email) return;
+    this.close();
+    console.log('Open track DB for user ' + email);
+    this.openEmail = email;
+    const db = new Dexie('trailence_tracks_' + email);
+    const schemaV1: any = {};
+    schemaV1['metadata'] = 'key';
+    schemaV1['simplified_tracks'] = 'key';
+    schemaV1['full_tracks'] = 'key, version, updatedLocally, owner, needsSync';
+    db.version(1).stores(schemaV1);
+    this.metadataTable = db.table<MetadataItem, string>('metadata');
+    this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks')
+    this.fullTrackTable = db.table<TrackItem, string>('full_tracks')
+    this.db = db;
+    this.syncStatus$.next(new TrackSyncStatus());
+  }
+
+  private metadataTable?: Table<MetadataItem, string>;
+  private metadata = new Map<string, BehaviorSubject<TrackMetadataSnapshot | null>>();
+
+  public getMetadata$(uuid: string, owner: string): Observable<TrackMetadataSnapshot | null> {
+    const key = uuid + '#' + owner;
+    let item$ = this.metadata.get(key);
+    if (!item$) {
+      item$ = new BehaviorSubject<TrackMetadataSnapshot | null>(null);
+      this.loadMetadata(key, item$);
+      this.metadata.set(key, item$);
+    }
+    return item$;
+  }
+
+  private metadataKeysToLoad = new Map<string, BehaviorSubject<TrackMetadataSnapshot | null>>();
+  private metadataLoadingTimeout?: any;
+
+  private loadMetadata(key: string, item$: BehaviorSubject<TrackMetadataSnapshot | null>): void {
+    this.metadataKeysToLoad.set(key, item$);
+    this.ngZone.runOutsideAngular(() => {
+      if (!this.metadataLoadingTimeout)
+        this.metadataLoadingTimeout = setTimeout(() => {
+          this.metadataLoadingTimeout = undefined;
+          const map = this.metadataKeysToLoad;
+          this.metadataKeysToLoad = new Map();
+          this.metadataTable?.bulkGet([...map.keys()])
+          .then(items => {
+            for (let i = items.length - 1; i >= 0; --i) {
+              const item = items[i];
+              if (item) map.get(item.key)!.next(item);
+            }
+          })
+        }, 0);
+    });
+  }
+
+  private simplifiedTrackTable?: Table<SimplifiedTrackItem, string>;
+  private simplifiedTracks = new Map<string, BehaviorSubject<SimplifiedTrackSnapshot | null>>();
+
+  public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
+    const key = uuid + '#' + owner;
+    let item$ = this.simplifiedTracks.get(key);
+    if (!item$) {
+      item$ = new BehaviorSubject<SimplifiedTrackSnapshot | null>(null);
+      this.loadSimplifiedTrack(key, item$);
+      this.simplifiedTracks.set(key, item$);
+    }
+    return item$;
+  }
+
+  private simplifiedKeysToLoad = new Map<string, BehaviorSubject<SimplifiedTrackSnapshot | null>>();
+  private simplifiedLoadingTimeout?: any;
+
+  private loadSimplifiedTrack(key: string, item$: BehaviorSubject<SimplifiedTrackSnapshot | null>): void {
+    this.simplifiedKeysToLoad.set(key, item$);
+    this.ngZone.runOutsideAngular(() => {
+      if (!this.simplifiedLoadingTimeout)
+        this.simplifiedLoadingTimeout = setTimeout(() => {
+          this.simplifiedLoadingTimeout = undefined;
+          const map = this.simplifiedKeysToLoad;
+          this.simplifiedKeysToLoad = new Map();
+          this.simplifiedTrackTable?.bulkGet([...map.keys()])
+          .then(items => {
+            for (let i = items.length - 1; i >= 0; --i) {
+              const item = items[i];
+              if (item) map.get(item.key)!.next(item);
+            }
+          })
+        }, 0);
+    });
+  }
+
+  private fullTrackTable?: Table<TrackItem, string>;
+  private fullTracks = new Map<string, BehaviorSubject<Track | null>>();
+
+  public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
+    const key = uuid + '#' + owner;
+    let item$ = this.fullTracks.get(key);
+    if (!item$) {
+      item$ = new BehaviorSubject<Track | null>(null);
+      this.loadFullTrack(key, item$);
+      this.fullTracks.set(key, item$);
+    }
+    return item$;
+  }
+
+  private loadFullTrack(key: string, item$: BehaviorSubject<Track | null>): void {
+    this.fullTrackTable?.get(key)
+    .then(item => {
+      if (item?.track) item$.next(new Track(item.track));
+    });
+  }
+
+  private syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
+
+  private simplify(track: Track): SimplifiedTrackSnapshot {
+    const simplified: SimplifiedTrackSnapshot = { points: [] };
+    let previous: L.LatLng | undefined;
+    for (const segment of track.segments) {
+      for (const point of segment.points) {
+        const p = point.pos;
+        if (!previous || p.distanceTo(previous) >= 25) {
+          simplified.points.push({
+            lat: point.pos.lat,
+            lng: point.pos.lng,
+            ele: point.ele,
+            time: point.time,
+          });
+          previous = p;
+        }
+      }
+    }
+    const lastSegment = track.segments[track.segments.length - 1];
+    const lastPoint = lastSegment.points[lastSegment.points.length - 1];
+    if (previous !== lastPoint.pos) {
+      simplified.points.push({
+        lat: lastPoint.pos.lat,
+        lng: lastPoint.pos.lng,
+        ele: lastPoint.ele,
+        time: lastPoint.time,
+      });
+    }
+    return simplified;
+  }
+
+  private toMetadata(track: Track): TrackMetadataSnapshot {
+    const m = track.metadata;
+    return {
+      distance: m.distance,
+      positiveElevation: m.positiveElevation,
+      negativeElevation: m.negativeElevation,
+      highestAltitude: m.highestAltitude,
+      lowestAltitude: m.lowestAltitude,
+      duration: m.duration,
+      startDate: m.startDate,
+    }
+  }
+
+  public create(track: Track): void {
+    const key = track.uuid + '#' + track.owner;
+    const dto = track.toDto();
+    const simplified = this.simplify(track);
+    const metadata = this.toMetadata(track);
+    this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
+      this.fullTrackTable?.add({
+        key,
+        uuid: dto.uuid,
+        owner: dto.owner,
+        version: dto.version,
+        updatedLocally: 0,
+        needsSync: 1,
+        track: dto,
+      });
+      this.simplifiedTrackTable?.add({
+        ...simplified,
+        key,
+      });
+      this.metadataTable?.add({
+        ...metadata,
+        key,
+      });
+    });
+    const full$ = this.fullTracks.get(key);
+    if (full$) full$.next(track);
+    const simplified$ = this.simplifiedTracks.get(key);
+    if (simplified$) simplified$.next(simplified);
+    const metadata$ = this.metadata.get(key);
+    if (metadata$) metadata$.next(metadata);
+    if (!this.syncStatus$.value!.hasLocalChanges) {
+      this.syncStatus$.value!.hasLocalChanges = true;
+      this.syncStatus$.next(this.syncStatus$.value);
+    }
+  }
+
+  public update(track: Track): void {
+    const key = track.uuid + '#' + track.owner;
+    const dto = track.toDto();
+    const simplified = this.simplify(track);
+    const metadata = this.toMetadata(track);
+    this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
+      this.fullTrackTable?.put({
+        key,
+        uuid: dto.uuid,
+        owner: dto.owner,
+        version: dto.version,
+        updatedLocally: 1,
+        needsSync: 1,
+        track: dto,
+      });
+      this.simplifiedTrackTable?.put({
+        ...simplified,
+        key,
+      });
+      this.metadataTable?.put({
+        ...metadata,
+        key,
+      });
+    });
+    const full$ = this.fullTracks.get(key);
+    if (full$) full$.next(track);
+    const simplified$ = this.simplifiedTracks.get(key);
+    if (simplified$) simplified$.next(simplified);
+    const metadata$ = this.metadata.get(key);
+    if (metadata$) metadata$.next(metadata);
+    if (!this.syncStatus$.value!.hasLocalChanges) {
+      this.syncStatus$.value!.hasLocalChanges = true;
+      this.syncStatus$.next(this.syncStatus$.value);
+    }
+  }
+
+  public delete(uuid: string, owner: string): void {
+    const key = uuid + '#' + owner;
+    this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
+      await this.fullTrackTable?.put({
+        key,
+        uuid: uuid,
+        owner: owner,
+        version: -1,
+        updatedLocally: 0,
+        needsSync: 1,
+        track: undefined,
+      });
+      await this.simplifiedTrackTable?.delete(key);
+      await this.metadataTable?.delete(key);
+    });
+    const full$ = this.fullTracks.get(key);
+    if (full$) full$.next(null);
+    const simplified$ = this.simplifiedTracks.get(key);
+    if (simplified$) simplified$.next(null);
+    const metadata$ = this.metadata.get(key);
+    if (metadata$) metadata$.next(null);
+    if (!this.syncStatus$.value!.hasLocalChanges) {
+      this.syncStatus$.value!.hasLocalChanges = true;
+      this.syncStatus$.next(this.syncStatus$.value);
+    }
+  }
+
+  public isSavedOnServerAndNotDeletedLocally(uuid: string, owner: string): boolean {
+    const key = uuid + '#' + owner;
+    if (this.fullTracks.get(key)?.value?.isSavedOnServerAndNotDeletedLocally()) return true;
+    // cannot determine synchronously
+    return false;
+  }
+
+  public isSavedOnServerAndNotDeletedLocally$(uuid: string, owner: string): Observable<boolean> {
+    const key = uuid + '#' + owner;
+    return combineLatest([
+      of(!!this.fullTracks.get(key)?.value?.isSavedOnServerAndNotDeletedLocally()),
+      this.syncStatus$.pipe(
+        mergeMap(status => {
+          if (!status || !this.db) return of(false);
+          return concat(
+            of(false),
+            from(this.fullTrackTable!.get(key)).pipe(
+              map(item => !!item && item.version > 0)
+            )
+          );
+        })
+      )
+    ]).pipe(
+      map(([ready1, ready2]) => ready1 || ready2)
+    );
+  }
+
+  private _lastSync = 0;
+  private _syncTimeout?: any;
+
+  private initSync(): void {
+    // we need to sync when:
+    combineLatest([
+      this.network.connected$,    // network is connected
+      this.syncStatus$,           // there is something to sync and we are not syncing
+    ]).pipe(
+      debounceTime(1000),
+      map(([networkConnected, syncStatus]) => networkConnected && syncStatus?.needsSync && !syncStatus?.inProgress),
+      filter(shouldSync => {
+        if (!shouldSync) return false;
+        if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
+          if (!this._syncTimeout) {
+            this._syncTimeout = setTimeout(() => this.syncStatus$.next(this.syncStatus$.value), Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
+          }
+          return false;
+        }
+        return true;
+      }),
+    )
+    .subscribe(() => {
+      this._lastSync = Date.now();
+      if (this._syncTimeout) clearTimeout(this._syncTimeout);
+      this._syncTimeout = undefined;
+      this.sync();
+    });
+
+    // launch update from server every 30 minutes
+    let updateFromServerTimeout: any = undefined;
+    let previousDb: Dexie | undefined = undefined;
+    this.syncStatus$.subscribe(s => {
+      const db = s ? this.db : undefined;
+      if (db === previousDb) return;
+      previousDb = db;
+      if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
+      updateFromServerTimeout = undefined;
+    });
+    let previousNeeded = false;
+    this.syncStatus$.subscribe(status => {
+      if (!previousNeeded && status?.needsUpdateFromServer) {
+        previousNeeded = true;
+      } else if (previousNeeded && !status?.needsUpdateFromServer) {
+        previousNeeded = false;
+        if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
+        updateFromServerTimeout = setTimeout(() => {
+          if (this.syncStatus$.value) {
+            this.syncStatus$.value.needsUpdateFromServer = true;
+            this.syncStatus$.next(this.syncStatus$.value);
+          }
+        }, AUTO_UPDATE_FROM_SERVER_EVERY);
+      }
+    });
+  }
+
+  private sync(): void {
+    console.log('Sync tracks with status ', this.syncStatus$.value);
+    const db = this.db!;
+    this.syncStatus$.value!.inProgress = true;
+    this.syncStatus$.next(this.syncStatus$.value);
+    this.syncCreatedLocally(db).pipe(
+      mergeMap(() => this.db === db ? this.syncDeletedLocally(db) : EMPTY),
+      mergeMap(() => this.db === db ? this.syncUpdatesFromServer(db) : EMPTY),
+      mergeMap(() => this.db === db ? this.syncUpdatesToServer(db) : EMPTY),
+      mergeMap(() => this.db === db ? this.hasLocalChanges() : EMPTY)
+    ).subscribe(hasLocalChanges => {
+      if (this.db !== db) return;
+      const status = this.syncStatus$.value!;
+      status.hasLocalChanges = hasLocalChanges;
+      status.inProgress = false;
+      status.needsUpdateFromServer = false;
+      console.log('Sync done for tracks with status ', this.syncStatus$.value);
+      this.syncStatus$.next(status);
+    });
+  }
+
+  private syncCreatedLocally(db: Dexie): Observable<any> {
+    return from(this.fullTrackTable!.where('version').equals(0).toArray()).pipe(
+      mergeMap(items => {
+        if (this.db !== db) return EMPTY;
+        if (items.length === 0) return of(true);
+        console.log('' + items.length + ' tracks to be created on server');
+        const limiter = new RequestLimiter(2);
+        const requests: Observable<any>[] = [];
+        items.forEach(item => {
+          const request = () => {
+            if (this.db !== db) return EMPTY;
+            return this.http.post<TrackDto>(environment.apiBaseUrl + '/track/v1', item).pipe(
+              mergeMap(result => {
+                if (this.db !== db) return EMPTY;
+                return from(this.fullTrackTable!.put({
+                  key: result.uuid + '#' + result.owner,
+                  uuid: result.uuid,
+                  owner: result.owner,
+                  version: result.version,
+                  updatedLocally: 0,
+                  needsSync: 0,
+                  track: result,
+                }));
+              })
+            );
+          }
+          requests.push(limiter.add(request));
+        });
+        return zip(requests);
+      })
+    );
+  }
+
+  private syncDeletedLocally(db: Dexie): Observable<any> {
+    return from(this.fullTrackTable!.where('version').equals(-1).toArray()).pipe(
+      mergeMap(items => {
+        if (this.db !== db) return EMPTY;
+        if (items.length === 0) return of(true);
+        console.log('' + items.length + ' tracks to be deleted on server');
+        const uuids = items.map(item => item.uuid);
+        const keys = items.map(item => item.uuid + '#' + this.openEmail!);
+        return this.http.post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids).pipe(
+          defaultIfEmpty(true),
+          mergeMap(result => {
+            if (this.db !== db) return EMPTY;
+            return from(this.fullTrackTable!.bulkDelete(keys));
+          })
+        );
+      })
+    );
+  }
+
+  private syncUpdatesFromServer(db: Dexie): Observable<any> {
+    return from(this.fullTrackTable!.where('owner').equals(this.openEmail!).toArray()).pipe(
+      mergeMap(items => {
+        if (this.db !== db) return EMPTY;
+        const known: OwnedDto[] = [];
+        for (const item of items) {
+          if (item.version > 0) known.push({uuid: item.uuid, owner: item.owner, version: item.version});
+        }
+        console.log('Requesting updates from server: ' + known.length + ' tracks known');
+        return this.http.post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
+          mergeMap(response => {
+            if (this.db !== db) return EMPTY;
+            console.log('Server updates for tracks: ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
+            const toRetrieve = [...response.created, ...response.updated];
+            const limiter = new RequestLimiter(5);
+            const requests = toRetrieve
+              .map(item => () => {
+                if (this.db !== db) return EMPTY;
+                return this.http.get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
+              })
+              .map(request => limiter.add(request).pipe(catchError(error => {
+                // TODO
+                return of(null);
+              })));
+            return (requests.length === 0 ? of([]) : zip(requests)).pipe(
+              mergeMap(responses => this.updatesFromServer(db, responses.filter(t => !!t) as TrackDto[], response.deleted))
+            );
+          })
+        );
+      })
+    );
+  }
+
+  private syncUpdatesToServer(db: Dexie): Observable<any> {
+    return from(this.fullTrackTable!.where('updatedLocally').equals(1).toArray()).pipe(
+      mergeMap(items => {
+        if (this.db !== db) return EMPTY;
+        if (items.length === 0) return of(true);
+        console.log('' + items.length + ' tracks to be updated on server');
+        const limiter = new RequestLimiter(2);
+        const requests: Observable<TrackDto>[] = [];
+        items.forEach(item => {
+          const request = () => {
+            if (this.db !== db) return EMPTY;
+            return this.http.put<TrackDto>(environment.apiBaseUrl + '/track/v1', item);
+          }
+          requests.push(limiter.add(request));
+        });
+        return (requests.length === 0 ? of([]) : zip(requests)).pipe(
+          mergeMap(responses => this.updatesFromServer(db, responses, []))
+        );
+      })
+    );
+  }
+
+  private updatesFromServer(db: Dexie, tracks: TrackDto[], deleted: { uuid: string, owner: string }[]): Observable<any> {
+    if (this.db !== db) return EMPTY;
+    if (tracks.length === 0 && deleted.length === 0) return of(true);
+    return from(this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
+      if (deleted.length > 0) {
+        const keys = deleted.map(item => item.uuid + '#' + item.owner);
+        if (this.db !== db) return;
+        await this.metadataTable!.bulkDelete(keys);
+        if (this.db !== db) return;
+        await this.simplifiedTrackTable!.bulkDelete(keys);
+        if (this.db !== db) return;
+        await this.fullTrackTable!.bulkDelete(keys);
+        if (this.db !== db) return;
+        keys.forEach(key => {
+          this.fullTracks.get(key)?.next(null);
+          this.simplifiedTracks.get(key)?.next(null);
+          this.metadata.get(key)?.next(null);
+        });
+        if (this.db !== db) return;
+      }
+      if (tracks.length > 0) {
+        const fulls = tracks.map(track => ({
+          key: track.uuid + '#' + track.owner,
+          uuid: track.uuid,
+          owner: track.owner,
+          version: track.version,
+          updatedLocally: 0,
+          needsSync: 0,
+          track: track,
+        }));
+        await this.fullTrackTable!.bulkPut(fulls);
+        const entities = tracks.map(track => new Track(track));
+        if (this.db !== db) return;
+        entities.forEach(entity => {
+          this.fullTracks.get(entity.uuid + '#' + entity.owner)?.next(entity);
+        })
+        const simplified = entities.map(track => ({...this.simplify(track), key: track.uuid + '#' + track.owner}));
+        if (this.db !== db) return;
+        await this.simplifiedTrackTable!.bulkPut(simplified);
+        if (this.db !== db) return;
+        simplified.forEach(s => this.simplifiedTracks.get(s.key)?.next(s));
+        const metadata = entities.map(track => ({...this.toMetadata(track), key: track.uuid + '#' + track.owner}));
+        if (this.db !== db) return;
+        await this.metadataTable!.bulkPut(metadata);
+        if (this.db !== db) return;
+        metadata.forEach(m => this.metadata.get(m.key)?.next(m));
+      }
+    })).pipe(defaultIfEmpty(true));
+  }
+
+  private hasLocalChanges(): Observable<boolean> {
+    return from(this.fullTrackTable!.where('needsSync').equals(1).first()).pipe(
+      map(result => !!result)
+    );
+  }
+
+}
+
+class TrackSyncStatus implements StoreSyncStatus {
+
+  hasLocalChanges = true;
+  inProgress = false;
+  needsUpdateFromServer = true;
+
+  get needsSync(): boolean {
+    return this.hasLocalChanges || this.needsUpdateFromServer;
+  }
+
+}

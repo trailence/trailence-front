@@ -4,6 +4,10 @@ import { HeaderComponent } from './components/header/header.component';
 import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
 import { addIcons } from 'ionicons';
+import { TrackService } from './services/database/track.service';
+import { TrailService } from './services/database/trail.service';
+import { TrailCollectionService } from './services/database/trail-collection.service';
+import { TagService } from './services/database/tag.service';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +25,11 @@ import { addIcons } from 'ionicons';
 export class AppComponent {
   constructor(
     public i18n: I18nService,
+    // depends on services with stores, so they can start synchronizing
+    trackService: TrackService,
+    trailService: TrailService,
+    collectionService: TrailCollectionService,
+    tagService: TagService,
   ) {
     addIcons({
       'add-circle': 'assets/ionicons/add-circle-outline.svg',

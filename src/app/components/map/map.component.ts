@@ -10,6 +10,7 @@ import { DistanceUnit } from 'src/app/services/preferences/preferences';
 import { MapTrack } from './track/map-track';
 import { MapTrackPointReference } from './track/map-track-point-reference';
 import { MapFitBoundsTool } from './tools/map-fit-bounds-tool';
+import { Track } from 'src/app/model/track';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -109,7 +110,7 @@ export class MapComponent extends AbstractComponent {
           }
         });
         toRemove.forEach(track => track.remove());
-        this._currentTracks = tracks;
+        this._currentTracks = [...tracks];
         // if the state of the map is the initial one, zoom on the tracks
         if (tracks.length > 0 && this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) {
           this.fitTracksBounds(map, tracks);
@@ -172,10 +173,14 @@ export class MapComponent extends AbstractComponent {
         },
         this._mapState)
     }
-    const map = L.map(this.id).setView(this._mapState.center, this._mapState.zoom);
 
     const tilesLayer = this._tilesLayers[this._mapState.tilesName] || this._tilesLayers['osm'];
-    tilesLayer.addTo(map);
+
+    const map = L.map(this.id, {
+      center: this._mapState.center,
+      zoom: this._mapState.zoom,
+      layers: [tilesLayer],
+    });
 
     const layers: L.Control.LayersObject = {};
     for (const key in this._tilesLayers) {
@@ -231,16 +236,31 @@ export class MapComponent extends AbstractComponent {
       if (!mapTrack.bounds?.pad(1).contains(e.latlng)) {
         continue;
       }
-      for (let segmentIndex = 0; segmentIndex < mapTrack.track.segments.length; ++segmentIndex) {
-        const segment = mapTrack.track.segments[segmentIndex];
-        for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {
-          const pt = segment.points[pointIndex];
+      const track = mapTrack.track;
+      if (track instanceof Track) {
+        for (let segmentIndex = 0; segmentIndex < track.segments.length; ++segmentIndex) {
+          const segment = track.segments[segmentIndex];
+          for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {
+            const pt = segment.points[pointIndex];
+            const pixel = map.latLngToLayerPoint(pt.pos);
+            const distance = mouse.distanceTo(pixel);
+            if (distance < 15) {
+              if (closestDistance === undefined || distance < closestDistance) {
+                closestDistance = distance;
+                closest = new MapTrackPointReference(mapTrack, segmentIndex, segment, pointIndex, pt);
+              }
+            }
+          }
+        }
+      } else {
+        for (let pointIndex = 0; pointIndex < track.points.length; ++pointIndex) {
+          const pt = track.points[pointIndex];
           const pixel = map.latLngToLayerPoint(pt);
           const distance = mouse.distanceTo(pixel);
           if (distance < 15) {
             if (closestDistance === undefined || distance < closestDistance) {
               closestDistance = distance;
-              closest = new MapTrackPointReference(mapTrack, segmentIndex, segment, pointIndex, pt);
+              closest = new MapTrackPointReference(mapTrack, undefined, undefined, pointIndex, pt);
             }
           }
         }

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { TrackDto } from 'src/app/model/dto/track';
 import { Track } from 'src/app/model/track';
@@ -9,133 +9,61 @@ import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/newtork.service';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { VersionedDto } from 'src/app/model/dto/versioned';
+import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
+import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TrackService {
 
-  private _store: TrackStore;
+  private db: TrackDatabase;
 
   constructor(
     databaseService: DatabaseService,
     network: NetworkService,
+    ngZone: NgZone,
     http: HttpService,
+    auth: AuthService,
   ) {
-    this._store = new TrackStore(databaseService, network, http);
+    this.db = new TrackDatabase(databaseService, auth, http, network, ngZone);
   }
 
-  public getAll$(): Observable<Observable<Track | null>[]> {
-    return this._store.getAll$();
+  public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
+    return this.db.getSimplifiedTrack$(uuid, owner);
   }
 
-  public getTrack$(uuid: string, owner: string): Observable<Track | null> {
-    return this._store.getItem$(uuid, owner);
+  public getMetadata$(uuid: string, owner: string): Observable<TrackMetadataSnapshot | null> {
+    return this.db.getMetadata$(uuid, owner);
   }
 
-  public getTrack(uuid: string, owner: string): Track | null {
-    return this._store.getItem(uuid, owner);
+  public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
+    return this.db.getFullTrack$(uuid, owner);
   }
 
-  public create(track: Track): Observable<Track | null> {
-    return this._store.create(track);
+  public create(track: Track): void {
+    this.db.create(track);
   }
 
   public update(track: Track): void {
-    this._store.update(track);
+    this.db.update(track);
   }
 
   public delete(track: Track): void {
-    this._store.delete(track);
+    this.db.delete(track.uuid, track.owner);
   }
 
   public deleteByUuidAndOwner(uuid: string, owner: string): void {
-    const item = this._store.getItem(uuid, owner);
-    if (item) {
-      this.delete(item);
-    }
+    this.db.delete(uuid, owner);
   }
 
-}
-
-class TrackStore extends OwnedStore<TrackDto, Track> {
-
-  constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    private http: HttpService,
-  ) {
-    super(TRACK_TABLE_NAME, databaseService, network);
+  public isSavedOnServerAndNotDeletedLocally(uuid: string, owner: string): boolean {
+    return this.db.isSavedOnServerAndNotDeletedLocally(uuid, owner);
   }
 
-  protected override fromDTO(dto: TrackDto): Track {
-    return new Track(dto);
-  }
-
-  protected override toDTO(entity: Track): TrackDto {
-    return entity.toDto();
-  }
-
-  protected override readyToSave(entity: Track): boolean {
-    return true;
-  }
-
-  protected override readyToSave$(entity: Track): Observable<boolean> {
-    return of(true);
-  }
-
-  protected override createOnServer(items: TrackDto[]): Observable<TrackDto[]> {
-    const limiter = new RequestLimiter(2);
-    const requests: Observable<TrackDto>[] = [];
-    items.forEach(item => {
-      const request = this.http.post<TrackDto>(environment.apiBaseUrl + '/track/v1', item);
-      requests.push(limiter.add(request));
-    });
-    return zip(requests);
-  }
-
-  protected override getUpdatesFromServer(knownItems: VersionedDto[]): Observable<UpdatesResponse<TrackDto>> {
-    return this.http.post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', knownItems)
-    .pipe(
-      mergeMap(response => {
-        const toRetrieve = [...response.created, ...response.updated];
-        const limiter = new RequestLimiter(5);
-        const requests = toRetrieve
-          .map(item => this.http.get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid))
-          .map(request => limiter.add(request).pipe(catchError(error => {
-            // TODO
-            return of(null);
-          })));
-        const finalResponse: UpdatesResponse<TrackDto> = { deleted: response.deleted, created: [], updated: [] };
-        if (requests.length === 0) return of(finalResponse);
-        return zip(requests).pipe(
-          map(responses => {
-            responses.forEach(track => {
-              if (!track) return;
-              if (response.updated.findIndex(value => value.uuid === track.uuid && value.owner === track.owner) >= 0)
-                finalResponse.updated.push(track);
-              else
-                finalResponse.created.push(track);
-            })
-            return finalResponse;
-          })
-        )
-      })
-    );
-  }
-
-  protected override sendUpdatesToServer(items: TrackDto[]): Observable<TrackDto[]> {
-    const limiter = new RequestLimiter(2);
-    const requests: Observable<TrackDto>[] = [];
-    items.forEach(item => {
-      const request = this.http.put<TrackDto>(environment.apiBaseUrl + '/track/v1', item);
-      requests.push(limiter.add(request));
-    });
-    return zip(requests);
-  }
-
-  protected override deleteFromServer(uuids: string[]): Observable<void> {
-    return this.http.post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids);
+  public isSavedOnServerAndNotDeletedLocally$(uuid: string, owner: string): Observable<boolean> {
+    return this.db.isSavedOnServerAndNotDeletedLocally$(uuid, owner);
   }
 
 }

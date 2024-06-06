@@ -57,7 +57,7 @@ export class TrailComponent extends AbstractComponent {
         mergeMap(trail => {
           if (!trail) return of({trail: null, track: undefined});
           return trail.currentTrackUuid$.pipe(
-            mergeMap(uuid => this.trackService.getTrack$(uuid, trail.owner)),
+            mergeMap(uuid => this.trackService.getFullTrack$(uuid, trail.owner)),
             map(track => ({trail, track}))
           )
         })

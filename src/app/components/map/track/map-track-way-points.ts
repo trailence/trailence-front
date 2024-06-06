@@ -1,6 +1,7 @@
 import { Track } from 'src/app/model/track';
 import { MapAnchor } from '../markers/map-anchor';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 
 const anchorBorderColor = '#d00000';
 const anchorFillColor = '#a00000';
@@ -30,7 +31,7 @@ export class MapTrackWayPoints {
   private _map?: L.Map;
 
   constructor(
-    private _track: Track,
+    private _track: Track | SimplifiedTrackSnapshot,
     private _isRecording: boolean,
     private i18n: I18nService,
   ) {}
@@ -74,9 +75,16 @@ export class MapTrackWayPoints {
 
   private load(): void {
     if (this._anchors !== undefined) return;
-    const departurePoint = this._track.departurePoint;
-    const arrivalPoint = this._track.arrivalPoint;
-    if (departurePoint?.samePosition(arrivalPoint)) {
+    let departurePoint: L.LatLngLiteral | undefined;
+    let arrivalPoint: L.LatLngLiteral | undefined;
+    if (this._track instanceof Track) {
+      departurePoint = this._track.departurePoint?.pos;
+      arrivalPoint = this._track.arrivalPoint?.pos;
+    } else {
+      departurePoint = this._track.points[0];
+      arrivalPoint = this._track.points[this._track.points.length - 1];
+    }
+    if (departurePoint && arrivalPoint && departurePoint.lat === arrivalPoint.lat && departurePoint.lng === arrivalPoint.lng) {
       // D/A
       this._departureAndArrival = new MapAnchor(departurePoint, anchorDABorderColor, this.i18n.texts.way_points.DA, undefined, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor);
     } else {
@@ -90,14 +98,16 @@ export class MapTrackWayPoints {
       }
     }
     this._anchors = [];
-    let num = 1;
-    for (const wp of this._track.wayPoints) {
-      if (wp.point.samePosition(departurePoint) || wp.point.samePosition(arrivalPoint)) continue;
-      const anchor = new MapAnchor(wp.point, anchorBorderColor, '' + num, undefined, anchorTextColor, anchorFillColor);
-      this._anchors.push(anchor);
-      num++;
+    if (this._track instanceof Track) {
+      let num = 1;
+      for (const wp of this._track.wayPoints) {
+        if (wp.point.samePosition(departurePoint) || wp.point.samePosition(arrivalPoint)) continue;
+        const anchor = new MapAnchor(wp.point.pos, anchorBorderColor, '' + num, undefined, anchorTextColor, anchorFillColor);
+        this._anchors.push(anchor);
+        num++;
+      }
+      // TODO listen to changes
     }
-    // TODO listen to changes
   }
 
   private addDAToMap(): void {

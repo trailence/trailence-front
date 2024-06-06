@@ -1,8 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, filter, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Versioned } from 'src/app/model/versioned';
 import { NetworkService } from '../network/newtork.service';
@@ -13,6 +13,7 @@ import { TrailCollectionService } from './trail-collection.service';
 import { VersionedDto } from 'src/app/model/dto/versioned';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { AuthService } from '../auth/auth.service';
+import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
 
 @Injectable({
   providedIn: 'root'
@@ -24,20 +25,21 @@ export class TrailService {
   constructor(
     databaseService: DatabaseService,
     network: NetworkService,
+    ngZone: NgZone,
     http: HttpService,
     private trackService: TrackService,
     collectionService: TrailCollectionService,
     private auth: AuthService,
   ) {
-    this._store = new TrailStore(databaseService, network, http, trackService, collectionService);
+    this._store = new TrailStore(databaseService, network, ngZone, http, trackService, collectionService);
   }
 
-  public getAll$(filter: (trail: Trail) => boolean = () => true): Observable<Observable<Trail | null>[]> {
-    return this._store.getAll$(filter);
+  public getAll$(): CollectionObservable<Observable<Trail | null>> {
+    return this._store.getAll$();
   }
 
-  public getAllForCollectionUuid$(collectionUuid: string): Observable<Observable<Trail | null>[]> {
-    return this.getAll$(trail => trail.collectionUuid === collectionUuid);
+  public getAllForCollectionUuid$(colletionUuid: string): CollectionObservable<Observable<Trail | null>> {
+    return this._store.filter$(trail => trail.collectionUuid === colletionUuid);
   }
 
   public getTrail$(uuid: string, owner: string): Observable<Trail | null> {
@@ -79,11 +81,12 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   constructor(
     databaseService: DatabaseService,
     network: NetworkService,
+    ngZone: NgZone,
     private http: HttpService,
     private trackService: TrackService,
     private collectionService: TrailCollectionService,
   ) {
-    super(TRAIL_TABLE_NAME, databaseService, network);
+    super(TRAIL_TABLE_NAME, databaseService, network, ngZone);
   }
 
   protected override fromDTO(dto: TrailDto): Trail {
@@ -95,16 +98,16 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   }
 
   protected override readyToSave(entity: Trail): boolean {
-    if (!this.trackService.getTrack(entity.originalTrackUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
-    if (entity.currentTrackUuid !== entity.originalTrackUuid &&
-      !this.trackService.getTrack(entity.currentTrackUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
     if (!this.collectionService.getCollection(entity.collectionUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
+    if (!this.trackService.isSavedOnServerAndNotDeletedLocally(entity.originalTrackUuid, entity.owner)) return false;
+    if (entity.currentTrackUuid !== entity.originalTrackUuid &&
+      !this.trackService.isSavedOnServerAndNotDeletedLocally(entity.currentTrackUuid, entity.owner)) return false;
     return true;
   }
 
   protected override readyToSave$(entity: Trail): Observable<boolean> {
-    const originalTrackReady$ = this.trackService.getTrack$(entity.originalTrackUuid, entity.owner).pipe(map(track => !!track?.isSavedOnServerAndNotDeletedLocally()));
-    const currentrackReady$ = this.trackService.getTrack$(entity.currentTrackUuid, entity.owner).pipe(map(track => !!track?.isSavedOnServerAndNotDeletedLocally()));
+    const originalTrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.originalTrackUuid, entity.owner);
+    const currentrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.currentTrackUuid, entity.owner);
     const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(track => !!track?.isSavedOnServerAndNotDeletedLocally()));
     return combineLatest([originalTrackReady$, currentrackReady$, collectionReady$]).pipe(
       map(readiness => readiness.indexOf(false) < 0)

@@ -4,8 +4,7 @@ import { PointDto } from './dto/point';
 
 export class Point {
 
-  private _lat: BehaviorSubject<number>;
-  private _lng: BehaviorSubject<number>;
+  private _pos: BehaviorSubject<L.LatLng>;
   private _ele: BehaviorSubject<number | undefined>;
   private _time: BehaviorSubject<number | undefined>;
 
@@ -15,17 +14,13 @@ export class Point {
     ele?: number,
     time?: number,
   ) {
-    this._lat = new BehaviorSubject<number>(lat);
-    this._lng = new BehaviorSubject<number>(lng);
+    this._pos = new BehaviorSubject<L.LatLng>(new L.LatLng(lat, lng));
     this._ele = new BehaviorSubject<number | undefined>(ele);
     this._time = new BehaviorSubject<number | undefined>(time);
   }
 
-  public get lat(): number { return this._lat.value; }
-  public get lat$(): Observable<number> { return this._lat; }
-
-  public get lng(): number { return this._lng.value; }
-  public get lng$(): Observable<number> { return this._lng; }
+  public get pos(): L.LatLng { return this._pos.value; }
+  public get pos$(): Observable<L.LatLng> { return this._pos; }
 
   public get ele(): number | undefined { return this._ele.value; }
   public get ele$(): Observable<number | undefined> { return this._ele; }
@@ -34,12 +29,13 @@ export class Point {
   public get time$(): Observable<number | undefined> { return this._time; }
 
   public distanceTo(other: L.LatLngExpression): number {
-    return L.CRS.Earth.distance(this, other);
+    return L.CRS.Earth.distance(this._pos.value, other);
   }
 
   public samePosition(other?: L.LatLngLiteral): boolean {
     if (!other) return false;
-    return this.lat === other.lat && this.lng === other.lng;
+    const p = this._pos.value;
+    return p.lat === other.lat && p.lng === other.lng;
   }
 
 }
@@ -47,21 +43,23 @@ export class Point {
 export class PointDtoMapper {
 
   public static toPoints(dtos: PointDto[]): Point[] {
-    const points: Point[] = [];
+    const points: Point[] = new Array(dtos.length);
     let previousPoint: Point | undefined = undefined;
-    dtos.forEach(pointDto => {
-      const nextPoint = this.toPoint(pointDto, previousPoint);
+    const nb = dtos.length;
+    for (let i = 0; i < nb; ++i) {
+      const nextPoint = this.toPoint(dtos[i], previousPoint);
       previousPoint = nextPoint;
-      points.push(nextPoint);
-    });
+      points[i] = nextPoint;
+    }
     return points;
   }
 
 
   private static toPoint(dto: PointDto, previous?: Point): Point {
+    const p = previous?.pos;
     return new Point(
-      this.toCoord(dto.l, previous?.lat),
-      this.toCoord(dto.n, previous?.lng),
+      this.toCoord(dto.l, p?.lat),
+      this.toCoord(dto.n, p?.lng),
       this.toValue(dto.e, previous?.ele, 10),
       this.toValue(dto.t, previous?.time, 1)
     );
@@ -87,15 +85,17 @@ export class PointDtoMapper {
   }
 
   public static toDto(point: Point, previous?: Point): PointDto {
+    const pos = point.pos;
     if (!previous) return {
-      l: Math.floor(point.lat * 1000000),
-      n: Math.floor(point.lng * 1000000),
+      l: Math.floor(pos.lat * 1000000),
+      n: Math.floor(pos.lng * 1000000),
       e: point.ele !== undefined ? Math.floor(point.ele * 10) : undefined,
       t: point.time
     };
+    const prevPos = previous.pos;
     const dto: PointDto = {};
-    if (point.lat !== previous.lat) dto.l = this.diffCoord(point.lat, previous.lat);
-    if (point.lng !== previous.lng) dto.n = this.diffCoord(point.lng, previous.lng);
+    if (pos.lat !== prevPos.lat) dto.l = this.diffCoord(pos.lat, prevPos.lat);
+    if (pos.lng !== prevPos.lng) dto.n = this.diffCoord(pos.lng, prevPos.lng);
     dto.e = this.diff(point.ele, previous.ele, 10);
     dto.t = this.diff(point.time, previous.time, 1);
     return dto;

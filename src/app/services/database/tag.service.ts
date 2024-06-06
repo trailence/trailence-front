@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable, NgZone } from "@angular/core";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TagDto } from "src/app/model/dto/tag";
 import { Tag } from "src/app/model/tag";
@@ -14,6 +14,7 @@ import { TrailCollectionService } from "./trail-collection.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { TrailService } from "./trail.service";
 import { AuthService } from "../auth/auth.service";
+import { CollectionObservable } from "src/app/utils/rxjs/observable-collection";
 
 @Injectable({
     providedIn: 'root'
@@ -26,21 +27,18 @@ export class TagService {
     constructor(
         databaseService: DatabaseService,
         network: NetworkService,
+        ngZone: NgZone,
         http: HttpService,
         collectionService: TrailCollectionService,
         trailService: TrailService,
         private auth: AuthService,
       ) {
-        this._tagStore = new TagStore(databaseService, network, http, collectionService);
-        this._trailTagStore = new TrailTagStore(databaseService, network, http, this, trailService, auth);
+        this._tagStore = new TagStore(databaseService, network, ngZone, http, collectionService);
+        this._trailTagStore = new TrailTagStore(databaseService, network, ngZone, http, this, trailService, auth);
       }
     
-    public getAllTags$(filter: (tag: Tag) => boolean = () => true): Observable<Observable<Tag | null>[]> {
-        return this._tagStore.getAll$(filter);
-      }
-    
-      public getAllTagsForCollectionUuid$(collectionUuid: string): Observable<Observable<Tag | null>[]> {
-        return this.getAllTags$(tag => tag.collectionUuid === collectionUuid);
+    public getAllTags$(): CollectionObservable<Observable<Tag | null>> {
+        return this._tagStore.getAll$();
       }
     
       public getTag$(uuid: string): Observable<Tag | null> {
@@ -71,10 +69,11 @@ class TagStore extends OwnedStore<TagDto, Tag> {
     constructor(
         databaseService: DatabaseService,
         network: NetworkService,
+        ngZone: NgZone,
         private http: HttpService,
         private collectionService: TrailCollectionService,
       ) {
-        super(TAG_TABLE_NAME, databaseService, network);
+        super(TAG_TABLE_NAME, databaseService, network, ngZone);
       }
     
       protected override fromDTO(dto: TagDto): Tag {
@@ -122,12 +121,13 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
     constructor(
         databaseService: DatabaseService,
         network: NetworkService,
+        ngZone: NgZone,
         private http: HttpService,
         private tagService: TagService,
         private trailService: TrailService,
         private auth: AuthService,
     ) {
-        super(TRAIL_TAG_TABLE_NAME, databaseService, network);
+        super(TRAIL_TAG_TABLE_NAME, databaseService, network, ngZone);
     }
 
     protected override fromDTO(dto: TrailTagDto): TrailTag {
@@ -140,6 +140,10 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
 
     protected override areSame(dto: TrailTagDto, entity: TrailTag): boolean {
         return dto.tagUuid === entity.tagUuid && dto.trailUuid === entity.trailUuid;
+    }
+
+    protected override dbItemCriteria(item: TrailTag): { [key: string]: any; } {
+      return this.toDTO(item);
     }
 
     protected override readyToSave(entity: TrailTag): boolean {

@@ -37,8 +37,7 @@ export class PreferencesService {
     private authService: AuthService,
     private httpService: HttpService,
   ) {
-    const systemTheme = document.documentElement.computedStyleMap().get('--system-theme')?.toString()
-    this._systemTheme = systemTheme === 'dark' ? 'DARK' : 'LIGHT';
+    this._systemTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'DARK' : 'LIGHT';
     let prefs: Preferences = {};
     try {
       const stored = localStorage.getItem(LOCALSTORAGE_PREFERENCES_KEY);

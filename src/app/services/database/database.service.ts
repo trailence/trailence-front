@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
 import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
-import { Store } from './store';
+import { Store, StoreSyncStatus } from './store';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
@@ -18,7 +18,7 @@ export class DatabaseService {
 
   private _db = new BehaviorSubject<Dexie | undefined>(undefined);
   private _openEmail?: string;
-  private _stores = new BehaviorSubject<Store<any,any,any>[]>([]);
+  private _stores = new BehaviorSubject<Observable<StoreSyncStatus | null>[]>([]);
 
   constructor(
     auth: AuthService,
@@ -38,12 +38,12 @@ export class DatabaseService {
 
   public get syncStatus(): Observable<boolean> {
     return this._stores.pipe(
-      mergeMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(store => store.syncStatus$))),
-      map(status => status.map(s => s.inProgress).reduce((a,b) => a || b, false))
+      mergeMap(stores => stores.length === 0 ? of([]) : combineLatest(stores)),
+      map(status => status.map(s => !!s?.inProgress).reduce((a,b) => a || b, false))
     );
   }
 
-  registerStore(store: Store<any,any,any>): void {
+  registerStore(store: Observable<StoreSyncStatus | null>): void {
     this._stores.value.push(store);
     this._stores.next(this._stores.value);
   }

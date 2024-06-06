@@ -1,9 +1,11 @@
 import { DatabaseService } from './database.service';
-import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty, distinctUntilChanged, filter, first, from, map, mergeMap, of, timeout } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, distinctUntilChanged, filter, first, from, map, mergeMap, of, timeout } from 'rxjs';
 import { NetworkService } from '../network/newtork.service';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
+import { Table } from 'dexie';
+import { NgZone } from '@angular/core';
 
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
@@ -15,16 +17,14 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     tableName: string,
     databaseService: DatabaseService,
     network: NetworkService,
+    ngZone: NgZone,
   ) {
-    super(tableName, databaseService, network);
+    super(tableName, databaseService, network, ngZone);
     this._initStore();
   }
 
   protected abstract fromDTO(dto: DTO): ENTITY;
   protected abstract toDTO(entity: ENTITY): DTO;
-
-  protected abstract readyToSave(entity: ENTITY): boolean;
-  protected abstract readyToSave$(entity: ENTITY): Observable<boolean>;
 
   protected abstract createOnServer(items: DTO[]): Observable<DTO[]>;
   protected abstract getUpdatesFromServer(knownItems: OwnedDto[]): Observable<UpdatesResponse<DTO>>;
@@ -35,134 +35,130 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   public override get syncStatus() { return this._syncStatus$.value; }
   protected override set syncStatus(status: OwnedStoreSyncStatus) { this._syncStatus$.next(status); }
 
-  public getAll$(filter: (element: ENTITY) => boolean = () => true): Observable<Observable<ENTITY | null>[]> {
-    return this._store.pipe(
-      map(items => items.filter(item$ => item$.value && item$.value.version >= 0 && filter(item$.value))) // remove unknown items and items deleted locally
-    );
+  protected override isCreatedLocally(item: StoredItem<DTO>): boolean {
+    return item.item.version === 0;
+  }
+
+  protected override isDeletedLocally(item: StoredItem<DTO>): boolean {
+    return item.item.version < 0;
   }
 
   public getItem$(uuid: string, owner: string): Observable<ENTITY | null> {
-    return this._store.pipe(
-      mergeMap(items => {
-        const item$ = items.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner && !item$.value.isDeletedLocally());
-        if (!item$) return of(null);
-        return item$;
-      }),
-      distinctUntilChanged(),
+    const known$ = this._store.values.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
+    if (known$) return known$;
+    return concat(
+      of(null),
+      this._store.changes$.pipe(
+        mergeMap(changes => {
+          const added$ = changes.added.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
+          if (added$) return added$;
+          return EMPTY;
+        })
+      )
     );
   }
 
   public getItem(uuid: string, owner: string): ENTITY | null {
-    const item$ = this._store.value.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner && !item$.value.isDeletedLocally());
+    const item$ = this._store.values.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
     return item$?.value ?? null;
   }
 
-  public create(entity: ENTITY): Observable<ENTITY | null> {
-    const entity$ = new BehaviorSubject<ENTITY | null>(entity)
-    this.performOperation(
-      store => {
-        store.push(entity$);
-        return true;
-      },
-      db => from(db.table<StoredItem<DTO>>(this.tableName).add({id_owner: entity.uuid + '#' + entity.owner, item: this.toDTO(entity), updatedLocally: false})),
-      status => {
-        if (!status.localCreates) {
-          status.localCreates = true;
-          return true;
-        }
-        return false;
-      }
-    );
-    return entity$;
+  protected override dbItemCreatedLocally(item: ENTITY): StoredItem<DTO> {
+    return {id_owner: item.uuid + '#' + item.owner, item: this.toDTO(item), updatedLocally: false};
+  }
+
+  protected override updateStatusWithLocalCreate(status: OwnedStoreSyncStatus): boolean {
+    if (status.localCreates) return false;
+    status.localCreates = true;
+    return true;
+  }
+
+  protected override deleted(item$: BehaviorSubject<ENTITY | null> | undefined, item: ENTITY): void {
+    const key = item.uuid + '#' + item.owner;
+    const updatedIndex = this._updatedLocally.indexOf(key);
+    if (updatedIndex >= 0)
+      this._updatedLocally.splice(updatedIndex, 1);
+  }
+
+  protected override markDeletedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
+    item.markAsDeletedLocally();
+    const dto = this.toDTO(item);
+    const key = item.uuid + '#' + item.owner;
+    return from(table.put({id_owner: key, item: dto, updatedLocally: false}));
+  }
+
+  protected override updateStatusWithLocalDelete(status: OwnedStoreSyncStatus): boolean {
+    if (status.localDeletes) return false;
+    status.localDeletes = true;
+    return true;
   }
 
   public update(entity: ENTITY): void {
     const key = entity.uuid + '#' + entity.owner;
     this.performOperation(
-      store => {
-        const entity$ = store.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
-        entity$?.next(entity);
+      () => {
         if (!entity.isCreatedLocally() && this._updatedLocally.indexOf(key) < 0)
           this._updatedLocally.push(key);
-        return false;
+        const entity$ = this._store.values.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
+        entity$?.next(entity);
       },
       db => from(db.table<StoredItem<DTO>>(this.tableName).put({id_owner: key, item: this.toDTO(entity), updatedLocally: true})),
       status => {
-        if (!status.localUpdates) {
-          status.localUpdates = true;
-          return true;
-        }
-        return false;
-      }
-    );
-  }
-
-  public delete(entity: ENTITY): void {
-    const key = entity.uuid + '#' + entity.owner;
-    entity.markAsDeletedLocally();
-    this.performOperation(
-      store => {
-        const entity$ = store.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
-        entity$?.next(entity);
-        const updatedIndex = this._updatedLocally.indexOf(key);
-        if (updatedIndex >= 0)
-          this._updatedLocally.splice(updatedIndex, 1);
+        if (status.localUpdates) return false;
+        status.localUpdates = true;
         return true;
-      },
-      db => {
-        const dto = this.toDTO(entity);
-        return from(db.table<StoredItem<DTO>>(this.tableName).put({id_owner: key, item: dto, updatedLocally: false}));
-      },
-      status => {
-        if (!status.localDeletes) {
-          status.localDeletes = true;
-          return true;
-        }
-        return false;
       }
     );
   }
 
   private updatedDtosFromServer(dtos: DTO[], deleted: {uuid: string; owner: string;}[] = []): Observable<boolean> {
     if (dtos.length === 0 && deleted.length === 0) return of(true);
-    const items = this._store.value;
     const entitiesToAdd: BehaviorSubject<ENTITY | null>[] = [];
     const dtosToAdd: StoredItem<DTO>[] = [];
     const dtosToUpdate: StoredItem<DTO>[] = [];
     dtos.forEach(dto => {
       const key = dto.uuid + '#' + dto.owner;
       const entity = this.fromDTO(dto);
-      const item$ = items.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
+      const item$ = this._store.values.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
       if (!item$) {
-        entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
-        dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false});
-      } else if (!item$.value?.isDeletedLocally()) {
-        item$.next(entity);
+        if (this._deletedLocally.find(deleted => deleted.uuid === dto.uuid && deleted.owner === dto.owner)) {
+          // updated from server, but deleted locally => ignore item from server
+        } else {
+          entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
+          dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false});
+        }
+      } else {
         dtosToUpdate.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false});
         const updatedIndex = this._updatedLocally.indexOf(key);
         if (updatedIndex >= 0)
           this._updatedLocally.splice(updatedIndex, 1);
+        const createdIndex = this._createdLocally.findIndex(item$ => item$.value!.uuid === dto.uuid && item$.value!.owner === dto.owner);
+        if (createdIndex >= 0)
+          this._createdLocally.splice(createdIndex, 1);
+        item$.next(entity);
       }
     });
     const deletedKeys: string[] = [];
-    let hasDeleted = false;
+    const deletedItems: BehaviorSubject<ENTITY | null>[] = [];
     deleted.forEach(deletedItem => {
-      const index = items.findIndex(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
-      if (index >= 0) {
-        const item$ = items[index];
-        const key = deletedItem.uuid + '#' + deletedItem.owner;
-        deletedKeys.push(key);
-        const updatedIndex = this._updatedLocally.indexOf(key);
-        if (updatedIndex >= 0)
-          this._updatedLocally.splice(updatedIndex, 1);
-        items.splice(index, 1);
-        hasDeleted = true;
-        item$.next(null);
+      const localDeleteIndex = this._deletedLocally.findIndex(item => item.uuid === deletedItem.uuid && item.owner === deletedItem.owner);
+      if (localDeleteIndex >= 0) {
+        this._deletedLocally.splice(localDeleteIndex, 1);
+      } else {
+        const item$ = this._store.values.find(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
+        if (item$) {
+          const key = deletedItem.uuid + '#' + deletedItem.owner;
+          deletedKeys.push(key);
+          const updatedIndex = this._updatedLocally.indexOf(key);
+          if (updatedIndex >= 0)
+            this._updatedLocally.splice(updatedIndex, 1);
+          deletedItems.push(item$);
+        }
       }
     });
-    if (entitiesToAdd.length !== 0 || hasDeleted) {
-      items.push(...entitiesToAdd);
-      this._store.next(items);
+    if (entitiesToAdd.length !== 0 || deletedItems.length !== 0) {
+      this._store.addAndRemove(entitiesToAdd, deletedItems);
+      deletedItems.forEach(item$ => item$.next(null));
     }
     return from(this._db!.transaction('rw', this.tableName, async tx => {
       const table = tx.db.table<StoredItem<DTO>>(this.tableName);
@@ -186,7 +182,12 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override beforeEmittingStoreLoaded(): void {
-    this._syncStatus$.value.resetAllAsNeeded();
+    const status = this._syncStatus$.value;
+    status.needsUpdateFromServer = true;
+    status.inProgress = false;
+    status.localCreates = this._createdLocally.length !== 0;
+    status.localDeletes = this._deletedLocally.length !== 0;
+    status.localUpdates = this._updatedLocally.length !== 0;
     this._syncStatus$.next(this._syncStatus$.value);
   }
 
@@ -202,35 +203,27 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     .pipe(
       mergeMap(result => {
         if (!stillValid()) return of(false);
-        if (result && this._syncStatus$.value.localCreates) {
-          this._syncStatus$.value.localCreates = false;
-          this._syncStatus$.next(this._syncStatus$.value);
-        }
         return this.syncLocalDeleteToServer(stillValid);
       }),
       mergeMap(result => {
         if (!stillValid()) return of(false);
-        if (result && this._syncStatus$.value.localDeletes) {
-          this._syncStatus$.value.localDeletes = false;
-          this._syncStatus$.next(this._syncStatus$.value);
-        }
         return this.syncUpdateFromServer(stillValid);
       }),
       mergeMap(result => {
         if (!stillValid()) return of(false);
-        if (result && this._syncStatus$.value.needsUpdateFromServer) {
-          this._syncStatus$.value.needsUpdateFromServer = false;
-          this._syncStatus$.next(this._syncStatus$.value);
-        }
         return this.syncUpdateToServer(stillValid);
       }),
     ).subscribe({
       next: result => {
         if (stillValid()) {
-          if (result) this._syncStatus$.value.localUpdates = false;
-          this._syncStatus$.value.inProgress = false;
-          console.log('Sync done for table ' + this.tableName + ' with status ', this._syncStatus$.value);
-          this._syncStatus$.next(this._syncStatus$.value);
+          const status = this._syncStatus$.value;
+          status.localCreates = this._createdLocally.length !== 0;
+          status.localDeletes = this._deletedLocally.length !== 0;
+          status.localUpdates = this._updatedLocally.length !== 0;
+          status.inProgress = false;
+          status.needsUpdateFromServer = false;
+          console.log('Sync done for table ' + this.tableName + ' with status ', status);
+          this._syncStatus$.next(status);
         }
       },
       error: error => {
@@ -242,9 +235,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {
-    if (!this._syncStatus$.value.localCreates) return of(true);
-    const toCreate = this._store.value.map(item$ => item$.value).filter(item => item?.isCreatedLocally()) as ENTITY[];
-    if (toCreate.length === 0) return of(true);
+    if (this._createdLocally.length === 0) return of(true);
+    const toCreate = this._createdLocally.map(item$ => item$.value!);
     const ready = toCreate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
     return ready$.pipe(
@@ -258,7 +250,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           mergeMap(result => {
             console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
             if (!stillValid()) return of(false);
-            return this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toCreate.length));
+            return this.updatedDtosFromServer(result);
           }),
           catchError(error => {
             // TODO
@@ -272,7 +264,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   private syncUpdateFromServer(stillValid: () => boolean): Observable<boolean> {
     if (!this._syncStatus$.value.needsUpdateFromServer) return of(true);
-    const known = this._store.value.map(item$ => item$.value).filter(item => item && !item.isCreatedLocally() && !item.isDeletedLocally()).map(item => new Owned(item!).toDto());
+    const known = this._store.values.filter(item$ => this._createdLocally.indexOf(item$) < 0).map(item$ => item$.value).map(item => new Owned(item!).toDto());
     console.log('Requesting updates from server: ' + known.length + ' known element(s) of ' + this.tableName);
     return this.getUpdatesFromServer(known).pipe(
       mergeMap(result => {
@@ -289,9 +281,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   private syncUpdateToServer(stillValid: () => boolean): Observable<boolean> {
-    if (!this._syncStatus$.value.localUpdates) return of(true);
     if (this._updatedLocally.length === 0) return of(true);
-    const toUpdate = this._store.value.map(item$ => item$.value).filter(item => !!item && this._updatedLocally.indexOf(item.uuid + '#' + item.owner) >= 0) as ENTITY[];
+    const toUpdate = this._store.values.map(item$ => item$.value).filter(item => !!item && this._updatedLocally.indexOf(item.uuid + '#' + item.owner) >= 0) as ENTITY[];
     if (toUpdate.length === 0) return of(true);
     const ready = toUpdate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate)
@@ -320,9 +311,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
-    if (!this._syncStatus$.value.localDeletes) return of(true);
-    const toDelete = this._store.value.map(item$ => item$.value).filter(item => item?.isDeletedLocally()).map(item => item!.uuid);
-    if (toDelete.length === 0) return of(true);
+    if (this._deletedLocally.length === 0) return of(true);
+    const toDelete = this._deletedLocally.map(item => item.uuid);
     console.log('Deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server');
     return this.deleteFromServer(toDelete).pipe(
       defaultIfEmpty(true),
@@ -336,18 +326,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         return of(false);
       })
     );
-  }
-
-  private waitReadyWithTimeout(entities: ENTITY[]): Observable<ENTITY[]> {
-    return combineLatest(
-      entities.map(entity => this.readyToSave$(entity).pipe(
-        filter(ready => ready),
-        timeout({ first: 5000, with: () => of(false) })
-      ))
-    ).pipe(
-      first(),
-      map(readiness => entities.filter((entity, index) => readiness[index]))
-    )
   }
 
 }
@@ -367,21 +345,13 @@ export interface UpdatesResponse<T> {
 }
 
 class OwnedStoreSyncStatus implements StoreSyncStatus {
-  public localCreates = true;
-  public localUpdates = true;
-  public localDeletes = true;
+  public localCreates = false;
+  public localUpdates = false;
+  public localDeletes = false;
   public needsUpdateFromServer = true;
 
   public inProgress = false;
 
   public get needsSync(): boolean { return this.localCreates || this.localUpdates || this.localDeletes || this.needsUpdateFromServer; }
-
-  resetAllAsNeeded(): void {
-    this.localCreates = true;
-    this.localUpdates = true;
-    this.localDeletes = true;
-    this.needsUpdateFromServer = true;
-    this.inProgress = false;
-  }
 
 }

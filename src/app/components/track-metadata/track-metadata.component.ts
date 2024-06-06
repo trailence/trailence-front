@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input 
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { IonIcon } from '@ionic/angular/standalone';
-import { BehaviorSubject, Observable, combineLatest, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 
 class Meta {
   distanceValue = 0;
@@ -31,13 +32,13 @@ class Meta {
 export class TrackMetadataComponent extends AbstractComponent {
 
   @Input()
-  track?: Track;
+  track?: Track | TrackMetadataSnapshot;
 
   @Input()
-  track2?: Track;
+  track2?: Track | TrackMetadataSnapshot;
 
-  private track$ = new BehaviorSubject<Track | undefined>(undefined);
-  private track2$ = new BehaviorSubject<Track | undefined>(undefined);
+  private track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
+  private track2$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
 
   meta = new Meta();
   meta2 = new Meta();
@@ -55,18 +56,26 @@ export class TrackMetadataComponent extends AbstractComponent {
     this.toMeta(this.track2$, this.meta2);
   }
 
-  private toMeta(track$: Observable<Track | undefined>, meta: Meta): void {
+  private toMeta(track$: Observable<Track | TrackMetadataSnapshot | undefined>, meta: Meta): void {
     let previousState = 0;
     this.whenVisible.subscribe(track$.pipe(
-      mergeMap(track => !track ? of([0, 0, 0, 0, 0]) :
-        combineLatest([
+      mergeMap(track => {
+        if (!track) return of([0, 0, 0, 0, 0]);
+        if (track instanceof Track) return combineLatest([
           track.metadata.distance$,
           track.metadata.duration$,
           track.metadata.positiveElevation$,
           track.metadata.negativeElevation$,
           this.i18n.stateChanged$
-        ])
-      )
+        ]);
+        return this.i18n.stateChanged$.pipe(map(state => ([
+          track.distance,
+          track.duration,
+          track.positiveElevation,
+          track.negativeElevation,
+          state
+        ])));
+      })
     ), ([distance, duration, positiveElevation, negativeElevation, state]) => {
       let changed = false;
       if (this.updateMeta(meta, 'distance', distance, v => this.i18n.distanceToString(v), state !== previousState)) changed = true;

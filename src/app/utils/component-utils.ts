@@ -1,6 +1,6 @@
 import { Component, ElementRef, Injector, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Resubscribeables, Subscriptions } from './subscription-utils';
+import { Resubscribeables, Subscriptions } from './rxjs/subscription-utils';
 import { Arrays } from './arrays';
 
 @Component({
@@ -50,7 +50,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     }
     this.initComponent();
     this._isInit = true;
-    this._visible$.next(true);
+    this.setVisible(true);
     this._checkComponentState();
   }
 
@@ -58,6 +58,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this._visible$.next(false);
     this._visible$.complete();
     this.byState.unsusbcribe();
+    this.byStateAndVisible.stop();
     this.whenVisible.stop();
     this.whenAlive.unsusbcribe();
     this.destroyComponent();

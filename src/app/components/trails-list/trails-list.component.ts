@@ -16,8 +16,8 @@ import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { TagService } from 'src/app/services/database/tag.service';
 import { Router } from '@angular/router';
-import { debounceTimeExtended } from 'src/app/utils/rxjs-utils';
-import { Track } from 'src/app/model/track';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
+import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 
 interface State {
   sortAsc: boolean;
@@ -31,13 +31,13 @@ interface Filters {
 
 const defaultState: State = {
   sortAsc: false,
-  sortBy: 'track.metadata.startDate',
+  sortBy: 'track.startDate',
   filters: {}
 }
 
 interface TrailWithInfo {
   trail: Trail;
-  track: Track | null;
+  track: TrackMetadataSnapshot | null;
   selected: boolean;
 }
 
@@ -105,7 +105,7 @@ export class TrailsListComponent extends AbstractComponent {
         map(trails => trails.filter(trail => !!trail) as Trail[]),
         mergeMap(trails => trails.length === 0 ? of([]) :
           combineLatest(trails.map(trail => trail.currentTrackUuid$)).pipe(
-            mergeMap(uuids => combineLatest(uuids.map((uuid, index) => this.trackService.getTrack$(uuid, trails[index].owner)))),
+            mergeMap(uuids => combineLatest(uuids.map((uuid, index) => this.trackService.getMetadata$(uuid, trails[index].owner)))),
             map(tracks => tracks.map((track, index) => ({trail: trails[index], track: track, selected: false})))
           )
         ),

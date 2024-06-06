@@ -10,6 +10,7 @@ import { combineLatest, mergeMap, of } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
+import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 
 class Meta {
   name?: string;
@@ -32,6 +33,7 @@ class Meta {
 export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() trail?: Trail;
+  @Input() refreshMode: 'live' | 'snapshot' = 'snapshot';
 
   @Input() selectable = false;
   @Input() selected = false;
@@ -39,7 +41,7 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   id = IdGenerator.generateId();
   meta: Meta = new Meta();
-  track?: Track;
+  track?: Track | TrackMetadataSnapshot;
 
   constructor(
     injector: Injector,
@@ -53,7 +55,8 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   protected override getComponentState() {
     return {
-      trail: this.trail
+      trail: this.trail,
+      mode: this.refreshMode,
     }
   }
 
@@ -67,11 +70,12 @@ export class TrailOverviewComponent extends AbstractComponent {
           this.i18n.stateChanged$,
           this.trail.name$,
           this.trail.currentTrackUuid$.pipe(
-            mergeMap(uuid => this.trackService.getTrack$(uuid, owner)),
-            mergeMap(track => track ?
-              combineLatest([of(track), track.metadata.startDate$])
-              : of([undefined, undefined])
-            )
+            mergeMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
+            mergeMap(track => {
+              if (!track) return of([undefined, undefined]);
+              if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
+              return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
+            })
           )
         ]),
         ([i18nState, trailName, [track, startDate]]) => {

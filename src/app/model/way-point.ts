@@ -29,9 +29,10 @@ export class WayPoint {
   public set description(value: string) { if (this._description.value !== value) this._description.next(value); }
 
   public toDto(): WayPointDto {
+    const p = this._point.pos;
     return {
-      l: this._point.lat,
-      n: this._point.lng,
+      l: p.lat,
+      n: p.lng,
       e: this._point.ele,
       t: this._point.time,
       na: this._name.value,

@@ -26,7 +26,7 @@ export class Track extends Owned {
     dto.s?.forEach(s => {
       const segment = this.newSegment();
       if (s.p) {
-        PointDtoMapper.toPoints(s.p).forEach(pt => segment.append(pt));
+        segment.appendMany(PointDtoMapper.toPoints(s.p));
       }
     });
     dto.wp?.forEach(wp => {

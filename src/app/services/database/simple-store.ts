@@ -1,7 +1,9 @@
-import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, from, map, mergeMap, of, timeout } from "rxjs";
+import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, from, map, mergeMap, of, timeout } from "rxjs";
 import { Store, StoreSyncStatus } from "./store";
 import { DatabaseService } from "./database.service";
 import { NetworkService } from "../network/newtork.service";
+import { Table } from "dexie";
+import { NgZone } from "@angular/core";
 
 interface SimpleStoreItem<T> {
     item: T;
@@ -19,7 +21,7 @@ export class SimpleStoreSyncStatus implements StoreSyncStatus {
     public get needsSync(): boolean { return this.localCreates || this.localDeletes || this.needsUpdateFromServer; }
 }
 
-export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENTITY>, SimpleStoreItem<DTO>, SimpleStoreSyncStatus> {
+export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStoreItem<DTO>, SimpleStoreSyncStatus> {
 
     private _syncStatus$ = new BehaviorSubject<SimpleStoreSyncStatus>(new SimpleStoreSyncStatus());
 
@@ -27,8 +29,9 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENT
       tableName: string,
       databaseService: DatabaseService,
       network: NetworkService,
+      ngZone: NgZone,
     ) {
-      super(tableName, databaseService, network);
+      super(tableName, databaseService, network, ngZone);
       this._initStore();
     }
 
@@ -40,36 +43,82 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENT
     protected abstract toDTO(entity: ENTITY): DTO;
     protected abstract areSame(dto: DTO, entity: ENTITY): boolean;
   
-    protected abstract readyToSave(entity: ENTITY): boolean;
-    protected abstract readyToSave$(entity: ENTITY): Observable<boolean>;
-  
     protected abstract createOnServer(items: DTO[]): Observable<DTO[]>;
     protected abstract deleteFromServer(items: DTO[]): Observable<void>;
     protected abstract getAllFromServer(): Observable<DTO[]>;
 
-    protected override itemFromDb(item: SimpleStoreItem<DTO>): SimpleStoreItem<ENTITY> {
-        return {
-            item: this.fromDTO(item.item),
-            createdLocally: item.createdLocally,
-            deletedLocally: item.deletedLocally,
-        };
+    protected override itemFromDb(item: SimpleStoreItem<DTO>): ENTITY {
+        return this.fromDTO(item.item);
+    }
+
+    protected override isCreatedLocally(item: SimpleStoreItem<DTO>): boolean {
+      return item.createdLocally;
+    }
+
+    protected override isDeletedLocally(item: SimpleStoreItem<DTO>): boolean {
+      return item.deletedLocally;
     }
 
     private saveStore(): Observable<boolean> {
         return from(this._db!.transaction('rw', this.tableName, async tx => {
             const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
             await table.clear();
-            await table.bulkAdd(
-                this._store.value
-                .filter(item => !!item.value)
-                .map(item => ({
-                    item: this.toDTO(item.value!.item),
-                    createdLocally: item.value!.createdLocally,
-                    deletedLocally: item.value!.deletedLocally
-                }))
-            );
+            const dbItems: SimpleStoreItem<DTO>[] = [];
+            this._store.values.forEach(item$ => {
+              if (item$.value) {
+                dbItems.push({
+                  item: this.toDTO(item$.value),
+                  createdLocally: this._createdLocally.indexOf(item$) >= 0,
+                  deletedLocally: false,
+                });
+              }
+            });
+            this._deletedLocally.forEach(item => {
+              dbItems.push({
+                item: this.toDTO(item),
+                createdLocally: false,
+                deletedLocally: true,
+              })
+            });
+            await table.bulkAdd(dbItems);
           })).pipe(defaultIfEmpty(true), map(() => true));
     }
+
+    protected override beforeEmittingStoreLoaded(): void {
+      const status = this._syncStatus$.value;
+      status.needsUpdateFromServer = true;
+      status.inProgress = false;
+      status.localCreates = this._createdLocally.length !== 0;
+      status.localDeletes = this._deletedLocally.length !== 0;
+      this._syncStatus$.next(this._syncStatus$.value);
+    }
+
+    protected override dbItemCreatedLocally(item: ENTITY): SimpleStoreItem<DTO> {
+      return {
+        item: this.toDTO(item),
+        createdLocally: true,
+        deletedLocally: false,
+      };
+    }
+
+    protected override updateStatusWithLocalCreate(status: SimpleStoreSyncStatus): boolean {
+      if (status.localCreates) return false;
+      status.localCreates = true;
+      return true;
+    }
+
+    protected abstract dbItemCriteria(item: ENTITY): {[key: string]: any};
+
+    protected override markDeletedInDb(table: Table<SimpleStoreItem<DTO>, any, SimpleStoreItem<DTO>>, item: ENTITY): Observable<any> {
+      return from(table.where(this.dbItemCriteria(item)).delete());
+    }
+
+    protected override updateStatusWithLocalDelete(status: SimpleStoreSyncStatus): boolean {
+      if (status.localDeletes) return false;
+      status.localDeletes = true;
+      return true;
+    }
+  
 
     protected override sync(): void {
         console.log('Sync table ' + this.tableName + ' with status ', this._syncStatus$.value);
@@ -115,9 +164,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENT
     }
 
     private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {
-        if (!this._syncStatus$.value.localCreates) return of(true);
-        const toCreate = this._store.value.map(item$ => item$.value).filter(item => item?.createdLocally) as ENTITY[];
-        if (toCreate.length === 0) return of(true);
+        if (this._createdLocally.length === 0) return of(true);
+        const toCreate = this._createdLocally.map(item$ => item$.value!);
         const ready = toCreate.filter(entity => this.readyToSave(entity));
         const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
         return ready$.pipe(
@@ -131,14 +179,11 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENT
               mergeMap(result => {
                 console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
                 if (!stillValid()) return of(false);
-                this._store.value.forEach(storeItem => {
-                    if (storeItem.value && readyEntities.indexOf(storeItem.value.item) >= 0) {
-                        if (result.find(dto => this.areSame(dto, storeItem.value!.item))) {
-                            storeItem.value!.createdLocally = false;
-                        }
-                    }
+                result.forEach(created => {
+                  const index = this._createdLocally.findIndex(item$ => this.areSame(created, item$.value!));
+                  if (index >= 0) this._createdLocally.splice(index, 1);
                 });
-                this._store.next(this._store.value);
+                this._syncStatus$.value.localCreates = this._createdLocally.length !== 0;
                 return this.saveStore().pipe(map(ok => ok && readyEntities.length === toCreate.length));
               }),
               catchError(error => {
@@ -151,21 +196,9 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENT
         );
       }
     
-      private waitReadyWithTimeout(entities: ENTITY[]): Observable<ENTITY[]> {
-        return combineLatest(
-          entities.map(entity => this.readyToSave$(entity).pipe(
-            filter(ready => ready),
-            timeout({ first: 5000, with: () => of(false) })
-          ))
-        ).pipe(
-          first(),
-          map(readiness => entities.filter((entity, index) => readiness[index]))
-        )
-      }
-
       private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
-        if (!this._syncStatus$.value.localDeletes) return of(true);
-        const toDelete = this._store.value.map(item$ => item$.value).filter(item => item?.deletedLocally).map(item => item!.item);
+        if (this._deletedLocally.length === 0) return of(true);
+        const toDelete = [...this._deletedLocally];
         if (toDelete.length === 0) return of(true);
         console.log('Deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server');
         return this.deleteFromServer(toDelete.map(entity => this.toDTO(entity))).pipe(
@@ -173,11 +206,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENT
           mergeMap(() => {
             if (!stillValid()) return of(false);
             toDelete.forEach(entity => {
-                const index = this._store.value.findIndex(item => item.value?.item == entity);
-                if (index >= 0)
-                    this._store.value.splice(index, 1);
+              const index = this._deletedLocally.indexOf(entity);
+              if (index >= 0) this._deletedLocally.splice(index, 1);
             });
-            this._store.next(this._store.value);
+            this._syncStatus$.value.localDeletes = this._deletedLocally.length !== 0;
             return this.saveStore();
           }),
           catchError(error => {
@@ -192,25 +224,34 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<SimpleStoreItem<ENT
         return this.getAllFromServer().pipe(
             mergeMap(dtos => {
                 if (!stillValid()) return of(false);
-                let changed = false;
-                // remove items not created locally and not returned by the server
-                this._store.value.filter(item => !item.value?.createdLocally && !dtos.find(dto => this.areSame(dto, item.value!.item)))
-                .forEach(toDelete => {
-                    const index = this._store.value.indexOf(toDelete);
+                // remove items not created locally and not returned by the server, and add new items from server
+                const deleted: BehaviorSubject<ENTITY | null>[] = [];
+                this._store.values.forEach(
+                  item$ => {
+                    if (!item$.value) return;
+                    const index = dtos.findIndex(dto => this.areSame(dto, item$.value!));
                     if (index >= 0) {
-                        this._store.value.splice(index, 1);
-                        changed = true;
+                      // returned by server => already known
+                      dtos.splice(index, 1);
+                    } else {
+                      // not returned by the server
+                      if (this._createdLocally.indexOf(item$) < 0) {
+                        // not created locally => removed from server
+                        deleted.push(item$);
+                      }
                     }
+                  }
+                );
+                const added: BehaviorSubject<ENTITY | null>[] = [];
+                dtos.forEach(dto => {
+                  if (!this._deletedLocally.find(entity => this.areSame(dto, entity))) {
+                    // not deleted locally => new item from server
+                    added.push(new BehaviorSubject<ENTITY | null>(this.fromDTO(dto)));
+                  }
                 });
-                // add new items from server
-                const newItems = dtos.filter(dto => !this._store.value.find(item => item.value && this.areSame(dto, item.value.item)));
-                if (newItems) {
-                    this._store.value.push(...newItems.map(dto => new BehaviorSubject<SimpleStoreItem<ENTITY> | null>({item: this.fromDTO(dto), createdLocally: false, deletedLocally: false})));
-                    changed = true;
-                }
-                if (changed) {
-                    this._store.next(this._store.value);
-                    return this.saveStore();
+                if (deleted.length > 0 || added.length > 0) {
+                  this._store.addAndRemove(added, deleted);
+                  return this.saveStore();
                 }
                 return of(true);
             })
