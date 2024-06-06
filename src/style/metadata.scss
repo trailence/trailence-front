@@ -6,7 +6,7 @@
       flex-direction: row;
       align-items: center;
 
-      ion-icon {
+      ion-icon, svg, .icon {
         flex: none;
         margin-right: 5px;
         width: 20px;
@@ -45,7 +45,7 @@
         align-items: center;
         justify-content: center;
 
-        ion-icon {
+        ion-icon, svg, .icon {
           flex: none;
           margin-bottom: 5px;
           width: 32px;

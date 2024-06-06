@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DateFormat, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
+import { AssetsService } from '../assets/assets.service';
 
 const TEXTS_VERSION = '1';
 
@@ -20,6 +21,7 @@ export class I18nService {
 
   constructor(
     private prefService: PreferencesService,
+    private assets: AssetsService,
   ) {
     let state = '';
     prefService.preferences$.subscribe(p => {
@@ -125,33 +127,14 @@ export class I18nService {
     if (this._textsLoading === lang) return;
     this._textsLoading = lang;
     if (this._textsLoaded$.value === lang) return;
-    const iframe = document.createElement('IFRAME') as HTMLIFrameElement;
-    iframe.style.position = 'fixed';
-    iframe.style.top = '-10000px';
-    iframe.style.left = '-10000px';
-    iframe.style.width = '1px';
-    iframe.style.height = '1px';
-    iframe.onload = () => {
-      if (this._textsLoading !== lang) return;
-      const text = iframe.contentDocument?.documentElement.innerText;
-      if (text) {
-        const data = JSON.parse(text);
-        this._texts$.next(data);
-        console.log('i18n texts loaded for language ', lang);
-        document.documentElement.lang = lang;
-        this._textsLoaded$.next(lang);
-        this._stateChanged$.next(this._stateChanged$.value + 1);
-      } else {
-        console.log('Unable to load i18n texts for language ', lang);
-        // TODO
-      }
-      iframe.parentElement?.removeChild(iframe);
-    };
-    iframe.onerror = e => {
-      console.error('error loading i18n texts for language ', lang, e);
-    };
-    iframe.src = environment.assetsUrl + '/i18n/' + lang + '.' + TEXTS_VERSION + '.json';
-    document.documentElement.appendChild(iframe);
+    this.assets.loadText(environment.assetsUrl + '/i18n/' + lang + '.' + TEXTS_VERSION + '.json', true).subscribe(text => {
+      const data = JSON.parse(text.innerText);
+      this._texts$.next(data);
+      console.log('i18n texts loaded for language ', lang);
+      document.documentElement.lang = lang;
+      this._textsLoaded$.next(lang);
+      this._stateChanged$.next(this._stateChanged$.value + 1);
+    });
   }
 
 }

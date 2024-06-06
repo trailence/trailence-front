@@ -220,3 +220,15 @@ body.light-theme {
 	--ion-background-color-step-900: #191919;
 	--ion-background-color-step-950: #0d0d0d;
 }
+
+svg.ionicon {
+  stroke: currentColor;
+  
+  .ionicon-fill-none {
+    fill: none;
+  }
+  
+  .ionicon-stroke-width {
+    stroke-width: var(--ionicon-stroke-width, 32px);
+  }
+}
