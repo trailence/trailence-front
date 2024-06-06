@@ -155,13 +155,17 @@ export class MapComponent extends AbstractComponent {
       setTimeout(() => {
         const element = document.getElementById(this.id);
         const ready = !!element && element.clientHeight > 0 && element.clientWidth > 0;
-        subscriber.next(ready);
-        subscriber.complete();
+        (window as any).Gp.Services.getConfig({
+          onSuccess: () => {
+            subscriber.next(ready);
+            subscriber.complete();
+          }
+        });
       }, 0);
     });
   }
 
-  private _tilesLayers?: {[key: string]: MapTilesLayerOffline};
+  private _tilesLayers?: {[key: string]: L.TileLayer};
   private createMap(): void {
     this._tilesLayers = {
       'osm': new MapTilesLayerOffline(
@@ -171,7 +175,8 @@ export class MapComponent extends AbstractComponent {
           maxZoom: 19,
           attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         },
-        this._mapState)
+        this._mapState),
+      'ign': (window as any).Gp.LExtended.geoportalLayer.WMTS({layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2'})
     }
 
     const tilesLayer = this._tilesLayers[this._mapState.tilesName] || this._tilesLayers['osm'];
@@ -184,7 +189,9 @@ export class MapComponent extends AbstractComponent {
 
     const layers: L.Control.LayersObject = {};
     for (const key in this._tilesLayers) {
-      layers[this._tilesLayers[key].displayName] = this._tilesLayers[key];
+      const layer: L.TileLayer = this._tilesLayers[key];
+      const name = layer instanceof MapTilesLayerOffline ? layer.displayName : 'IGN';
+      layers[name] = layer;
     }
     L.control.layers(layers, {}).addTo(map);
 

@@ -41,7 +41,8 @@
               "./node_modules/leaflet/dist/leaflet.css"
             ],
             "scripts": [
-              "./node_modules/leaflet/dist/leaflet.js"
+              "./node_modules/leaflet/dist/leaflet.js",
+              "./node_modules/geoportal-extensions-leaflet/dist/GpPluginLeaflet.js"
             ]
           },
           "configurations": {

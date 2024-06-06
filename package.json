@@ -30,6 +30,7 @@
     "@capawesome/capacitor-file-picker": "^6.0.0",
     "@ionic/angular": "^8.0.0",
     "dexie": "^4.0.4",
+    "geoportal-extensions-leaflet": "^2.4.1",
     "ionicons": "^7.2.1",
     "leaflet": "^1.9.4",
     "rxjs": "~7.8.0",
