@@ -50,6 +50,9 @@
       }
     }
   },
+  "menu": {
+    "collections": "Collections"
+  },
   "my_trails": "My Trails",
   "buttons": {
     "close": "Close",

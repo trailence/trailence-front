@@ -1,0 +1,52 @@
+.menu-header {
+  height: var(--header-height);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+
+  .menu-title {
+    font-size: 24px;
+    padding: 0 8px;
+  }
+}
+
+.menu-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 5px 5px;
+
+  ion-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .section-title {
+    flex: 1 1 100%;
+    font-size: 18px;
+    padding: 0 8px;
+  }
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 3px 5px;
+  border-bottom: 1px solid var(--ion-color-light);
+  cursor: pointer;
+  &:hover {
+    background-color: var(--ion-color-light);
+  }
+
+  .item-title {
+    flex: 1 1 100%;
+    font-size: 16px;
+  }
+
+  &.under-section {
+    padding-left: 24px;
+  }
+}

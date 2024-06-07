@@ -11,13 +11,23 @@
     }
 }
 
-@media (max-height: 600px) {
-    ion-toolbar {
-        --min-height: 40px;
+ion-toolbar {
+    --min-height: var(--header-height);
 
-        ion-menu-button {
-            width: 40px;
-            height: 40px;
+    ion-menu-button {
+        width: var(--header-height);
+        height: var(--header-height);
+    }
+
+    .back-button {
+        ion-button {
+            margin-top: 0;
+            margin-bottom: 0;
+            color: var(--ion-color-primary-contrast);
+            width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+            height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+            min-width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+            min-height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
         }
     }
 }

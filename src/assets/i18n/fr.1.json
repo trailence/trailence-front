@@ -50,6 +50,9 @@
       }
     }
   },
+  "menu": {
+    "collections": "Collections"
+  },
   "my_trails": "Mes Parcours",
   "buttons": {
     "close": "Fermer",

@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular/standalone';
-import { HeaderComponent } from './components/header/header.component';
 import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
 import { TrackService } from './services/database/track.service';
@@ -8,6 +7,7 @@ import { TrailService } from './services/database/trail.service';
 import { TrailCollectionService } from './services/database/trail-collection.service';
 import { TagService } from './services/database/tag.service';
 import { AssetsService } from './services/assets/assets.service';
+import { MenuComponent } from './components/menu/menu.component';
 
 @Component({
   selector: 'app-root',
@@ -18,8 +18,8 @@ import { AssetsService } from './services/assets/assets.service';
     IonMenu,
     IonContent,
     IonRouterOutlet,
-    HeaderComponent,
     CommonModule,
+    MenuComponent,
   ],
 })
 export class AppComponent {

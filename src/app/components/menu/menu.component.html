@@ -1,0 +1,15 @@
+<div class="menu-header">
+  <div class="menu-title">Trailence</div>
+</div>
+<div class="menu-content">
+  <div class="menu-section">
+    <ion-icon name="folder"></ion-icon>
+    <div class="section-title">{{ i18n.texts.menu.collections }}</div>
+    <div></div>
+  </div>
+  @for (collection of collections; track collection.uuid) {
+    <div class="menu-item under-section" (click)="goTo('/trails/collection/' + collection.uuid)">
+      <div class="item-title">{{ collection.name.length === 0 && collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collection.name }}</div>
+    </div>
+  }
+</div>

@@ -20,6 +20,7 @@ export class AssetsService {
       'download': 'assets/ionicons/cloud-download.svg',
       'duration': 'assets/ionicons/time-outline.svg',
       'filters': 'assets/ionicons/funnel-outline.svg',
+      'folder': 'assets/ionicons/folder.svg',
       'i18n': 'assets/ionicons/language-outline.svg',
       'item-menu': 'assets/ionicons/ellipsis-vertical.svg',
       'offline': 'assets/ionicons/alert-circle-outline.svg',
