@@ -46,6 +46,7 @@ export class AssetsService {
       if (known) {
         observer.next(known);
         observer.complete();
+        return;
       }
       const loading = this._loading.get(url);
       if (loading) {
