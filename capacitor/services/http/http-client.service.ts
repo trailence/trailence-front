@@ -12,10 +12,13 @@ export class HttpClientService implements IHttpClient {
 
   send(request: TrailenceHttpRequest): Observable<TrailenceHttpResponse<any>> {
     return new Observable(subscriber => {
+      const headers = {...request.headers};
+      headers['User-Agent'] = window.navigator.userAgent;
+      if (request.body) headers['Content-Type'] = 'application/json';
       CapacitorHttp.request({
         method: request.method,
         url: request.url,
-        headers: {...request.headers, 'User-Agent': window.navigator.userAgent},
+        headers: headers,
         responseType: request.responseType,
         readTimeout: 30000,
         data: request.body,

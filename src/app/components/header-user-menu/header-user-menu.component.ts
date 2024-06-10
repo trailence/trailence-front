@@ -6,6 +6,7 @@ import { DatabaseService } from 'src/app/services/database/database.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/newtork.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { IdGenerator } from 'src/app/utils/component-utils';
 
 @Component({
   selector: 'app-header-user-menu',
@@ -22,6 +23,8 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
   status?: string;
   private subscription?: Subscription;
 
+  id: string;
+
   constructor(
     public i18n: I18nService,
     public auth: AuthService,
@@ -29,6 +32,7 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
     private databaseService: DatabaseService,
     private networkService: NetworkService,
   ) {
+    this.id = IdGenerator.generateId();
   }
 
   ngOnInit(): void {

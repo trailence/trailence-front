@@ -1,4 +1,4 @@
-<ion-button color="secondary" shape="round" fill="solid" id="header-user-button">
+<ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}">
   <div slot="icon-only">{{auth.email?.substring(0, 1)}}</div>
 </ion-button>
 <div class="status">
@@ -15,7 +15,7 @@
   }
 </div>
 
-<ion-popover #accountPopover trigger="header-user-button" triggerAction="click">
+<ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click">
   <ng-template>
     <ion-content>
       <ion-list>
