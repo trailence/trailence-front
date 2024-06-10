@@ -54,6 +54,20 @@ export class I18nService {
     return meters * 0.00062137119223733;
   }
 
+  public distanceInUserUnit(meters: number): number {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return meters;
+      case 'MILES': return this.metersToMiles(meters);
+    }
+  }
+
+  public shortUserDistanceUnit(): string {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return 'm';
+      case 'MILES': return 'mi';
+    }
+  }
+
   public elevationToString(elevation: number): string {
     switch (this.prefService.preferences.elevationUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang) + ' m';
@@ -63,6 +77,20 @@ export class I18nService {
 
   public metersToFoot(meters: number): number {
     return meters * 0.3048;
+  }
+
+  public elevationInUserUnit(meters: number): number {
+    switch (this.prefService.preferences.elevationUnit) {
+      case 'METERS': return meters;
+      case 'FOOT': return this.metersToFoot(meters);
+    }
+  }
+
+  public shortUserElevationUnit(): string {
+    switch (this.prefService.preferences.elevationUnit) {
+      case 'METERS': return 'm';
+      case 'FOOT': return 'ft';
+    }
   }
 
   public durationToString(duration: number): string {

@@ -23,7 +23,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   public get visible(): boolean { return this._visible$.value; }
 
   constructor(
-    protected injector: Injector
+    protected injector: Injector,
   ) {
     injector.get(ElementRef).nativeElement['_abstractComponent'] = this;
     this._visible$.subscribe(visible => this._propagateVisible(visible));
@@ -68,7 +68,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this._checkComponentState();
   }
 
-  protected setVisible(visible: boolean): void {
+  public setVisible(visible: boolean): void {
     if (visible === this._visible$.value) return;
     this._visible$.next(visible);
     if (visible) {
@@ -119,7 +119,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     }
   }
 
-  private _propagateVisible(visible: boolean): void {
+  protected _propagateVisible(visible: boolean): void {
     for (const child of this._children) {
       if (child._isInit) {
         child.setVisible(visible);

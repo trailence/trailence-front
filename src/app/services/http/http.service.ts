@@ -49,6 +49,10 @@ export class HttpService {
     return this.send(new TrailenceHttpRequest(HttpMethod.DELETE, url, {}, null, ResponseType.JSON));
   }
 
+  public getBlob(url: string): Observable<Blob> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, null, ResponseType.BLOB));
+  }
+
   public sendRaw(request: TrailenceHttpRequest): Observable<TrailenceHttpResponse<any>> {
     let interceptedRequest = of(request);
     for (const interceptor of this.requestInterceptors) {

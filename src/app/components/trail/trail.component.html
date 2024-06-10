@@ -1,17 +1,11 @@
-<div class="top-container {{displayMode}} tab-{{tab}} bottom-sheet-{{bottomSheetMode}}" *ngIf="trail">
-  <div class="trail-details" *ngIf="tracks$ | async as tracks">
-    <div class="metadata-container two-columns">
-      <app-track-metadata [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
-    </div>
-  </div>
+<div class="top-container {{displayMode}} tab-{{tab}} bottom-sheet-{{bottomSheetMode}}" *ngIf="trail1">
   <div class="map-container">
     <app-map
-      mapId="trail-{{trail.owner}}-{{trail.uuid}}"
+      mapId="trail-{{trail1.owner}}-{{trail1.uuid}}"
       [tracks$]="mapTracks$"
+      (mouseOverPoint)="mouseOverPointOnMap($event)"
+      (mouseClickPoint)="mouseClickOnMap($event)"
     ></app-map>
-  </div>
-  <div class="elevation-container">
-    Elevation
   </div>
   <div class="tabs-container">
     <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
@@ -25,4 +19,28 @@
   <div class="bottom-info">
     Bottom info
   </div>
+  <ng-container *ngIf="tracks$ | async as tracks">
+    <div class="trail-details" *ngIf="tracks[0]">
+      <div class="metadata-container two-columns">
+        <div class="metadata-item-container">
+          <div class="metadata-item">
+            <ion-icon name="date"></ion-icon>
+            <div>{{ i18n.timestampToDateTimeString(tracks[0].metadata.startDate) }}</div>
+          </div>
+        </div>
+        <div class="metadata-item-container empty">
+          <div class="metadata-item">
+          </div>
+        </div>
+        <app-track-metadata [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+      </div>
+      <div class="actions">
+        <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="12" color="primary" (click)="goToDeparture()"></app-icon-label-button>
+        <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="12" color="primary" (click)="downloadMap()"></app-icon-label-button>
+      </div>
+    </div>
+    <div class="elevation-container">
+      <app-elevation-graph [track1]="tracks[0]" [track2]="tracks[1]" (pointHover)="elevationGraphPointHover($event)"></app-elevation-graph>
+    </div>
+  </ng-container>
 </div>

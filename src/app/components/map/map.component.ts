@@ -4,13 +4,17 @@ import { MapState } from './map-state';
 import { Platform } from '@ionic/angular';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, mergeMap, takeWhile, timer } from 'rxjs';
 import * as L from 'leaflet';
-import { MapTilesLayerOffline } from './map-tiles-layer-offline';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
 import { MapTrack } from './track/map-track';
 import { MapTrackPointReference } from './track/map-track-point-reference';
 import { MapFitBoundsTool } from './tools/map-fit-bounds-tool';
 import { Track } from 'src/app/model/track';
+import { MapCursors } from './markers/map-cursors';
+import { handleMapOffline } from './map-tiles-layer-offline';
+import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
+import { NetworkService } from 'src/app/services/network/newtork.service';
+import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -28,7 +32,9 @@ export class MapComponent extends AbstractComponent {
   @Input() tracks$!: Observable<MapTrack[]>;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference | undefined>();
+  @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference | undefined>();
 
+  public cursors = new MapCursors();
 
   id: string;
   private _mapState = new MapState();
@@ -38,6 +44,7 @@ export class MapComponent extends AbstractComponent {
     injector: Injector,
     private platform: Platform,
     private prefService: PreferencesService,
+    private mapLayersService: MapLayersService,
   ) {
     super(injector);
     this.id = IdGenerator.generateId('map-');
@@ -46,11 +53,13 @@ export class MapComponent extends AbstractComponent {
   protected override initComponent(): void {
     this.whenVisible.subscribe(this.platform.resize.pipe(debounceTime(500)), () => this._map$.value?.invalidateSize());
     this.visible$.subscribe(visible => {
-      if (visible) this._map$.value?.invalidateSize();
+      if (visible) {
+        setTimeout(() => this._map$.value?.invalidateSize(), 0);
+      }
+      this._mapState.live = visible;
     });
     this.loadState();
     this.updateTracks();
-    this._mapState.live = true;
     this._mapState.live$.pipe(
       filter(live => live),
       mergeMap(() => timer(50, 150).pipe(
@@ -161,31 +170,35 @@ export class MapComponent extends AbstractComponent {
     });
   }
 
-  private _tilesLayers?: {[key: string]: MapTilesLayerOffline};
-  private createMap(): void {
-    this._tilesLayers = {
-      'osm': new MapTilesLayerOffline(
-        'osm',
-        'Open Street Map',
-        'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        },
-        this._mapState)
-    }
+  public get tilesLayers(): {layer: MapLayer, tiles: L.TileLayer}[] {
+    return this._tilesLayers || [];
+  }
 
-    const tilesLayer = this._tilesLayers[this._mapState.tilesName] || this._tilesLayers['osm'];
+  public get crs(): L.CRS {
+    return this._map$.value?.options.crs || L.CRS.EPSG3857;
+  }
+
+  private _tilesLayers?: {layer: MapLayer, tiles: L.TileLayer}[];
+
+  private createMap(): void {
+    this._tilesLayers = [];
+    const layers: L.Control.LayersObject = {};
+    for (const layer of this.mapLayersService.layers) {
+      const tilesLayer = {layer, tiles: layer.create()};
+      handleMapOffline(tilesLayer.layer.name, tilesLayer.tiles, this.injector.get(NetworkService), this.injector.get(OfflineMapService));
+      this._tilesLayers.push(tilesLayer);
+      layers[tilesLayer.layer.displayName] = tilesLayer.tiles;
+    }
+    let selectedLayer = this._tilesLayers.find(l => l.layer.name === this._mapState.tilesName);
+    if (!selectedLayer) selectedLayer = this._tilesLayers.find(l => l.layer.name === this.mapLayersService.getDefaultLayer());
+    if (!selectedLayer) selectedLayer = this._tilesLayers[0];
 
     const map = L.map(this.id, {
       center: this._mapState.center,
       zoom: this._mapState.zoom,
-      layers: [tilesLayer],
+      layers: [selectedLayer.tiles],
     });
 
-    const layers: L.Control.LayersObject = {};
-    for (const key in this._tilesLayers) {
-      layers[this._tilesLayers[key].displayName] = this._tilesLayers[key];
-    }
     L.control.layers(layers, {}).addTo(map);
 
     map.on('resize', () => this.mapChanged(map));
@@ -202,9 +215,16 @@ export class MapComponent extends AbstractComponent {
         this.mouseClickPoint.emit(this.getEvent(map, e));
       }
     });
+    map.on("mousemove", e => {
+      if (this.mouseOverPoint.observed) {
+        this.mouseOverPoint.emit(this.getEvent(map, e));
+      }
+    });
 
     new MapFitBoundsTool({position: 'topleft'}).addTo(map)
     map.on('fitTrackBounds', () => this.fitTracksBounds(map, this._currentTracks));
+
+    this.cursors.addTo(map);
 
     this._map$.next(map);
 

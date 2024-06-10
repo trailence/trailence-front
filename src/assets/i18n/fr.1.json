@@ -43,6 +43,10 @@
       "tabs": {
         "details": "Détails",
         "map": "Carte"
+      },
+      "actions": {
+        "go_to_departure": "Aller au départ",
+        "download_map": "Télécharger la carte"
       }
     }
   },
@@ -60,5 +64,11 @@
     "DA": "D A",
     "D": "D",
     "A": "A"
-  }
+  },
+  "elevationGraph": {
+    "distance": "Distance",
+    "elevation": "Altitude",
+    "time_duration": "Temps"
+  },
+  "downloading_map": "Téléchargement de la carte"
 }

@@ -13,9 +13,11 @@ export class AssetsService {
     this.icons = {
       'add-circle': 'assets/ionicons/add-circle-outline.svg',
       'arrow-back': 'assets/ionicons/arrow-back.svg',
+      'car': 'assets/ionicons/car.svg',
       'caret-down': 'assets/ionicons/caret-down.svg',
       'date': 'assets/ionicons/calendar-outline.svg',
       'distance': 'assets/distance.1.svg',
+      'download': 'assets/ionicons/cloud-download.svg',
       'duration': 'assets/ionicons/time-outline.svg',
       'filters': 'assets/ionicons/funnel-outline.svg',
       'i18n': 'assets/ionicons/language-outline.svg',
@@ -55,6 +57,7 @@ export class AssetsService {
       }
       this._loading.set(url, [observer]);
       const iframe = document.createElement('IFRAME') as HTMLIFrameElement;
+      iframe.allow = '';
       iframe.style.position = 'fixed';
       iframe.style.top = '-10000px';
       iframe.style.left = '-10000px';

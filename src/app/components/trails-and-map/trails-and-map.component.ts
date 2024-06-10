@@ -52,9 +52,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   ) {
     super(injector);
     this.whenVisible.subscribe(platform.resize, () => this.updateMode());
-    this._visible$.subscribe(visible => {
-      if (!visible && this.map) this.map.pause();
-    });
+    this.visible$.subscribe(() => this.updateMode());
   }
 
   protected override initComponent(): void {
@@ -105,30 +103,29 @@ export class TrailsAndMapComponent extends AbstractComponent {
     if (w >= 750 + 350) {
       this.mode = 'large list-two-cols';
       this.listMetadataClass = 'two-columns';
-      this.map?.resume();
       this.trailSheetMode = 'none';
+      this.updateVisibility(true, true, false);
     } else if (w >= 700 + 175) {
       this.mode = 'large list-one-col';
       this.listMetadataClass = 'one-column';
-      this.map?.resume();
       this.trailSheetMode = 'none';
+      this.updateVisibility(true, true, false);
     } else if (h > w) {
       this.mode = 'small vertical ' + this.tab;
       this.listMetadataClass = w >= 350 ? 'two-columns' : 'one-column';
       if (this.tab === 'map') {
-        this.map?.resume();
         this.trailSheetMode = 'bottom';
         if (w < 500 + 36) this.trailSheetMode += ' two-rows';
         this.trailSheetMetadataClass = 'two-columns';
+        this.updateVisibility(true, false, true);
       } else {
-        this.map?.pause();
         this.trailSheetMode = 'none';
+        this.updateVisibility(false, true, false);
       }
     } else {
       this.mode = 'small horizontal ' + this.tab;
       this.listMetadataClass = w >= 350 ? 'two-columns' : 'one-column';
       if (this.tab === 'map') {
-        this.map?.resume();
         if (w >= 750 || h <= 400) {
           this.trailSheetMode = 'left';
           this.trailSheetMetadataClass = 'one-column';
@@ -137,11 +134,25 @@ export class TrailsAndMapComponent extends AbstractComponent {
           if (w < 500 + 36) this.trailSheetMode += ' two-rows';
           this.trailSheetMetadataClass = 'tiles';
         }
+        this.updateVisibility(true, false, true);
       } else {
-        this.map?.pause();
         this.trailSheetMode = 'none';
+        this.updateVisibility(false, true, false);
       }
     }
+  }
+
+  private updateVisibility(mapVisible: boolean, listVisible: boolean, trailSheetVisible: boolean): void {
+    this._children.forEach(child => {
+      if (child instanceof MapComponent) child.setVisible(mapVisible);
+      else if (child instanceof TrailsListComponent) child.setVisible(listVisible);
+      else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
+      else console.error('unexpected child', child);
+    })
+  }
+
+  protected override _propagateVisible(visible: boolean): void {
+    // no
   }
 
   toggleHighlightedTrail(trail: Trail): void {

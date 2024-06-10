@@ -27,3 +27,14 @@
 
 @import "style/ionic.scss";
 @import "style/metadata.scss";
+@import "style/progress.scss";
+
+:root {
+  --header-height: 56px;
+}
+
+@media (max-height: 600px) {
+  :root {
+    --header-height: 40px;
+  }
+}

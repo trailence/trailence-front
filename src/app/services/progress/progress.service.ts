@@ -1,0 +1,99 @@
+import { Injectable } from '@angular/core';
+
+export class Progress {
+
+  private _workDone: number = 0;
+  private _subTitle: string = '';
+  private _divTitle: HTMLDivElement;
+  private _divProgress: HTMLDivElement;
+  private _divInnerProgress: HTMLDivElement;
+  private _divSubTitle: HTMLDivElement;
+
+  constructor(
+    private _service: ProgressService,
+    private _container: HTMLDivElement,
+    private _title: string,
+    private _workAmount: number,
+  ) {
+    _container.className = 'progress-item';
+    this._divTitle = document.createElement('DIV') as HTMLDivElement;
+    this._divProgress = document.createElement('DIV') as HTMLDivElement;
+    this._divInnerProgress = document.createElement('DIV') as HTMLDivElement;
+    this._divSubTitle = document.createElement('DIV') as HTMLDivElement;
+    _container.appendChild(this._divTitle);
+    _container.appendChild(this._divProgress);
+    this._divProgress.appendChild(this._divInnerProgress);
+    _container.appendChild(this._divSubTitle);
+
+    this._divTitle.className = 'progress-title';
+    this._divProgress.className = 'progress-bar';
+    this._divInnerProgress.className = 'progress-bar-inner';
+    this._divSubTitle.className = 'progress-sub-title';
+
+    this._divTitle.innerText = _title;
+    this._divInnerProgress.style.width = '0%';
+  }
+
+  public get workAmount(): number { return this._workAmount; }
+  public set workAmount(value: number) {
+    this._workAmount = value;
+    this._updateProgress();
+  }
+
+  public get workDone(): number { return this._workDone; }
+  public set workDone(value: number) {
+    this._workDone = value;
+    this._updateProgress();
+  }
+
+  public set title(value: string) {
+    this._title = value;
+    this._divTitle.innerText = value;
+  }
+
+  public set subTitle(value: string) {
+    this._subTitle = value;
+    this._divSubTitle.innerText = value;
+  }
+
+  public done(): void {
+    this._service.done(this._container);
+  }
+
+  private _updateProgress(): void {
+    this._divInnerProgress.style.width = (this._workDone * 100 / this._workAmount) + '%';
+  }
+
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ProgressService {
+
+  private _container: HTMLDivElement;
+
+  constructor() {
+    this._container = document.createElement('DIV') as HTMLDivElement;
+    this._container.className = 'progress-container';
+    this._container.style.display = 'none';
+    window.document.body.appendChild(this._container);
+  }
+
+  public create(title: string, workAmount: number): Progress {
+    const div = document.createElement('DIV') as HTMLDivElement;
+    const p = new Progress(this, div, title, workAmount);
+    this._container.appendChild(div);
+    this._container.style.display = '';
+    return p;
+  }
+
+  public done(div: HTMLDivElement): void {
+    if (div.parentElement !== this._container) return;
+    div.style.opacity = '0';
+    setTimeout(() => {
+      this._container.removeChild(div);
+    }, 1000);
+  }
+
+}

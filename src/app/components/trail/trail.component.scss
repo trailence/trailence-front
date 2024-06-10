@@ -154,3 +154,19 @@
     }
   }
 }
+
+.trail-details {
+  .metadata-container {
+    padding: 8px;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    app-icon-label-button:not(:first-child) {
+      margin-left: 10px;
+    }
+  }
+}

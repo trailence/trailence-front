@@ -8,16 +8,17 @@ ion-button {
     font-size: 0px;
     --padding-start: 0;
     --padding-end: 0;
+    margin-right: 8px;
 
     div {
-        font-size: calc(var(--min-height) / 3);
+        font-size: calc(var(--min-height) / 2);
     }
 }
 
 .status {
   position: absolute;
   right: 0;
-  bottom: 0;
+  bottom: -3px;
   background-color: black;
   border-radius: 8px;
   height: 18px;

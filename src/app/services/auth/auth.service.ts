@@ -124,9 +124,7 @@ export class AuthService {
     return this._auth$.pipe(
       filter(auth => auth !== undefined),
       mergeMap(auth => {
-        console.log('requires auth, current token expires in ', auth ? (auth.expires - Date.now()) : 'null');
-        if (!auth || auth.expires > Date.now() - 60000) return of(auth as (AuthResponse | null));
-        console.log('renew auth');
+        if (!auth || auth.expires - Date.now() - 60000 > 0) return of(auth as (AuthResponse | null));
         return this.renewAuth();
       }),
       first()

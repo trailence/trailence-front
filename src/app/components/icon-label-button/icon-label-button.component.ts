@@ -15,5 +15,8 @@ export class IconLabelButtonComponent {
   @Input() label: string = '';
 
   @Input() size = 20;
+  @Input() fontSize?: number;
+
+  @Input() color = 'default';
 
 }
