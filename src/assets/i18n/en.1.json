@@ -37,7 +37,8 @@
       "tabs": {
         "list": "List",
         "map": "Map"
-      }
+      },
+      "open_trail": "Open"
     },
     "trail": {
       "tabs": {

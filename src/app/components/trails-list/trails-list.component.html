@@ -30,6 +30,9 @@
         (selectedChange)="trailWithInfo.selected = $event"
         (click)="onTrailClick(trailWithInfo.trail)"
       ></app-trail-overview>
+      <ion-button *ngIf="highlighted === trailWithInfo.trail" (click)="openTrail(trailWithInfo.trail)">
+        {{ i18n.texts.pages.trails.open_trail }}
+      </ion-button>
     </div>
   }
 </div>

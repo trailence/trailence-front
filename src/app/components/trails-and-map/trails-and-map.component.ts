@@ -4,7 +4,7 @@ import { Platform } from '@ionic/angular';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, Observable, filter, map, mergeMap } from 'rxjs';
-import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
@@ -14,13 +14,14 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { CommonModule } from '@angular/common';
 import { ArrayBehaviorSubject, CollectionObservable, mergeMapCollectionObservable } from 'src/app/utils/rxjs/observable-collection';
 import { debounceTimeReduce } from 'src/app/utils/rxjs/rxjs-utils';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-trails-and-map',
   templateUrl: './trails-and-map.component.html',
   styleUrls: ['./trails-and-map.component.scss'],
   standalone: true,
-  imports: [IonSegmentButton, IonSegment,
+  imports: [IonButton, IonSegmentButton, IonSegment,
     TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule,
   ]
 })
@@ -49,6 +50,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     private platform: Platform,
     public i18n: I18nService,
     private trackService: TrackService,
+    private router: Router,
   ) {
     super(injector);
     this.whenVisible.subscribe(platform.resize, () => this.updateMode());
@@ -148,7 +150,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       else if (child instanceof TrailsListComponent) child.setVisible(listVisible);
       else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
       else console.error('unexpected child', child);
-    })
+    });
   }
 
   protected override _propagateVisible(visible: boolean): void {
@@ -191,6 +193,10 @@ export class TrailsAndMapComponent extends AbstractComponent {
     } else if (this.highlightedTrail) {
       this.toggleHighlightedTrail(this.highlightedTrail);
     }
+  }
+
+  openTrail(trail: Trail): void {
+    this.router.navigate(['/trail/' + trail.owner + '/' + trail.uuid], {queryParams: { from: this.router.url }});
   }
 
 }

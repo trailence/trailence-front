@@ -25,6 +25,8 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   constructor(
     protected injector: Injector,
   ) {
+    this.byStateAndVisible.pause();
+    this.whenVisible.pause();
     injector.get(ElementRef).nativeElement['_abstractComponent'] = this;
     this._visible$.subscribe(visible => this._propagateVisible(visible));
   }
@@ -116,6 +118,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
       this.byStateAndVisible.stop();
       this.onComponentStateChanged(this._currentState, state);
       this._currentState = state;
+      if (this.visible) this.byStateAndVisible.resume();
     }
   }
 
