@@ -3,7 +3,7 @@ import { Platform } from '@ionic/angular';
 import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { IFileService, OpenFileRequest } from 'src/app/services/file/file.interface';
 import { BinaryContent } from 'src/app/utils/binary-content';
-import Trailence from './trailence.service';
+import Trailence from '../trailence.service';
 
 
 @Injectable({
