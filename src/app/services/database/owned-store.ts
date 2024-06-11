@@ -43,6 +43,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return item.item.version < 0;
   }
 
+  protected override areSame(item1: ENTITY, item2: ENTITY): boolean {
+    return item1.uuid === item2.uuid && item1.owner === item2.owner;
+  }
+
   public getItem$(uuid: string, owner: string): Observable<ENTITY | null> {
     const known$ = this._store.values.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
     if (known$) return known$;

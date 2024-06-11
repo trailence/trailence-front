@@ -68,7 +68,7 @@ export class DatabaseService {
     storesV1[TRAIL_TABLE_NAME] = 'id_owner';
     storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
     storesV1[TAG_TABLE_NAME] = 'id_owner';
-    storesV1[TRAIL_TAG_TABLE_NAME] = '';
+    storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
     db.version(1).stores(storesV1);
     this._db.next(db);
   }

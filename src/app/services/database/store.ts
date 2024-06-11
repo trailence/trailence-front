@@ -126,6 +126,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract set syncStatus(status: SYNCSTATUS);
 
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
+  protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
 
   protected abstract sync(): void;
 
@@ -219,14 +220,21 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract updateStatusWithLocalCreate(status: SYNCSTATUS): boolean;
 
   public create(item: STORE_ITEM): Observable<STORE_ITEM | null> {
-    const item$ = new BehaviorSubject<STORE_ITEM | null>(item)
+    const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
+    let existing = false;
     this.performOperation(
       () => {
-        this._createdLocally.push(item$);
-        this._store.add([item$]);
+        existing = !!this._store.values.find(value => value.value && this.areSame(value.value, item));
+        if (!existing) {
+          this._createdLocally.push(item$);
+          this._store.add([item$]);
+        }
       },
-      db => from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item))),
-      status => this.updateStatusWithLocalCreate(status)
+      db => existing ? of(true) : from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item))),
+      status => {
+        if (existing) return false;
+        return this.updateStatusWithLocalCreate(status);
+      }
     );
     return item$;
   }
@@ -242,7 +250,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   public delete(item: STORE_ITEM): void {
     this.performOperation(
       () => {
-        const entity$ = this._store.values.find(item$ => item$.value === item);
+        const entity$ = this._store.values.find(item$ => item$.value && this.areSame(item$.value, item));
         entity$?.next(null);
         if (this._deletedLocally.indexOf(item) < 0)
           this._deletedLocally.push(item);

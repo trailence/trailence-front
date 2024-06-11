@@ -6,6 +6,7 @@ import { Table } from "dexie";
 import { NgZone } from "@angular/core";
 
 interface SimpleStoreItem<T> {
+    key: string;
     item: T;
     createdLocally: boolean;
     deletedLocally: boolean;
@@ -41,7 +42,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
     protected abstract fromDTO(dto: DTO): ENTITY;
     protected abstract toDTO(entity: ENTITY): DTO;
-    protected abstract areSame(dto: DTO, entity: ENTITY): boolean;
+    protected abstract getKey(entity: ENTITY): string;
   
     protected abstract createOnServer(items: DTO[]): Observable<DTO[]>;
     protected abstract deleteFromServer(items: DTO[]): Observable<void>;
@@ -59,6 +60,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       return item.deletedLocally;
     }
 
+    protected override areSame(item1: ENTITY, item2: ENTITY): boolean {
+      return this.getKey(item1) === this.getKey(item2);
+    }
+
     private saveStore(): Observable<boolean> {
         return from(this._db!.transaction('rw', this.tableName, async tx => {
             const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
@@ -67,6 +72,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             this._store.values.forEach(item$ => {
               if (item$.value) {
                 dbItems.push({
+                  key: this.getKey(item$.value),
                   item: this.toDTO(item$.value),
                   createdLocally: this._createdLocally.indexOf(item$) >= 0,
                   deletedLocally: false,
@@ -75,6 +81,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             });
             this._deletedLocally.forEach(item => {
               dbItems.push({
+                key: this.getKey(item),
                 item: this.toDTO(item),
                 createdLocally: false,
                 deletedLocally: true,
@@ -95,6 +102,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
     protected override dbItemCreatedLocally(item: ENTITY): SimpleStoreItem<DTO> {
       return {
+        key: this.getKey(item),
         item: this.toDTO(item),
         createdLocally: true,
         deletedLocally: false,
@@ -107,10 +115,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       return true;
     }
 
-    protected abstract dbItemCriteria(item: ENTITY): {[key: string]: any};
-
     protected override markDeletedInDb(table: Table<SimpleStoreItem<DTO>, any, SimpleStoreItem<DTO>>, item: ENTITY): Observable<any> {
-      return from(table.where(this.dbItemCriteria(item)).delete());
+      return from(table.where({key: this.getKey(item)}).delete());
     }
 
     protected override updateStatusWithLocalDelete(status: SimpleStoreSyncStatus): boolean {
@@ -180,7 +186,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
                 if (!stillValid()) return of(false);
                 result.forEach(created => {
-                  const index = this._createdLocally.findIndex(item$ => this.areSame(created, item$.value!));
+                  const entity = this.fromDTO(created);
+                  const index = this._createdLocally.findIndex(item$ => this.areSame(entity, item$.value!));
                   if (index >= 0) this._createdLocally.splice(index, 1);
                 });
                 this._syncStatus$.value.localCreates = this._createdLocally.length !== 0;
@@ -229,7 +236,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 this._store.values.forEach(
                   item$ => {
                     if (!item$.value) return;
-                    const index = dtos.findIndex(dto => this.areSame(dto, item$.value!));
+                    const index = dtos.findIndex(dto => this.areSame(this.fromDTO(dto), item$.value!));
                     if (index >= 0) {
                       // returned by server => already known
                       dtos.splice(index, 1);
@@ -244,7 +251,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 );
                 const added: BehaviorSubject<ENTITY | null>[] = [];
                 dtos.forEach(dto => {
-                  if (!this._deletedLocally.find(entity => this.areSame(dto, entity))) {
+                  const e = this.fromDTO(dto);
+                  if (!this._deletedLocally.find(entity => this.areSame(e, entity))) {
                     // not deleted locally => new item from server
                     added.push(new BehaviorSubject<ENTITY | null>(this.fromDTO(dto)));
                   }

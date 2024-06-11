@@ -74,6 +74,14 @@ export class TagService {
     return this._trailTagStore.filter$(t => trailsUuids.indexOf(t.trailUuid) >= 0);
   }
 
+  public addTrailTag(trailUuid: string, tagUuid: string) {
+    this._trailTagStore.create(new TrailTag({trailUuid, tagUuid}));
+  }
+
+  public deleteTrailTag(trailUuid: string, tagUuid: string) {
+    this._trailTagStore.delete(new TrailTag({trailUuid, tagUuid}));
+  }
+
 }
 
 class TagStore extends OwnedStore<TagDto, Tag> {
@@ -150,12 +158,8 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
     return entity.toDto();
   }
 
-  protected override areSame(dto: TrailTagDto, entity: TrailTag): boolean {
-    return dto.tagUuid === entity.tagUuid && dto.trailUuid === entity.trailUuid;
-  }
-
-  protected override dbItemCriteria(item: TrailTag): { [key: string]: any; } {
-    return this.toDTO(item);
+  protected override getKey(entity: TrailTag): string {
+    return entity.trailUuid + '_' + entity.tagUuid;
   }
 
   protected override readyToSave(entity: TrailTag): boolean {

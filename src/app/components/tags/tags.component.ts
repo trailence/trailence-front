@@ -203,7 +203,23 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   apply(): void {
+    this.applyNodes(this.tree);
+    this.modalController.dismiss(null, 'apply');
+  }
 
+  private applyNodes(nodes: TagNode[]): void {
+    for (const node of nodes) {
+      if (node.userSelected !== undefined) {
+        if (node.userSelected) {
+          for (const trail of this.trails!)
+            this.tagService.addTrailTag(trail.uuid, node.tag.uuid);
+        } else if (node.userSelected === false) {
+          for (const trail of this.trails!)
+            this.tagService.deleteTrailTag(trail.uuid, node.tag.uuid);
+        }
+      }
+      this.applyNodes(node.children);
+    }
   }
 
   cancel(): void {
