@@ -1,6 +1,13 @@
 <ng-container *ngFor="let item of menu">
-  <ion-item [button]="!!item.action" (click)="clicked(item)">
-    <ion-icon *ngIf="item.icon" [name]="item.icon"></ion-icon>
-    <ion-label>{{ item.label$(i18n) | async }}</ion-label>
-  </ion-item>
+  @switch (!item.action && !item.icon && !item.label && !item.i18nLabel) {
+    @case(true) {
+      <div class="separator"></div>
+    }
+    @case(false) {
+      <ion-item [button]="!!item.action" (click)="clicked(item)" [color]="item.color">
+        <ion-icon *ngIf="item.icon" [name]="item.icon"></ion-icon>
+        <ion-label>{{ item.label$(i18n) | async }}</ion-label>
+      </ion-item>
+    }
+  }
 </ng-container>

@@ -33,6 +33,7 @@
     width: 0;
     height: 0;
     transition: height 0.3s ease-in-out, width 0.3s ease-in-out;
+    padding: 0 8px;
 
     &.bottom {
       left: 0;

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { AbstractComponent } from 'src/app/utils/component-utils';
+import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
@@ -10,7 +10,7 @@ import { GpxImporter } from 'src/app/utils/formats/gpx-format';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
-import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonList, IonItem, IonCheckbox } from "@ionic/angular/standalone";
+import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonList, IonItem, IonCheckbox, IonPopover } from "@ionic/angular/standalone";
 import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
@@ -18,6 +18,7 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { Router } from '@angular/router';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
+import { MenuContentComponent } from '../menu-content/menu-content.component';
 
 interface State {
   sortAsc: boolean;
@@ -47,11 +48,12 @@ interface TrailWithInfo {
   styleUrls: ['./trails-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonCheckbox, IonItem, IonList, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton, IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
+  imports: [IonPopover, IonCheckbox, IonItem, IonList, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton, IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
     CommonModule,
     TrailOverviewComponent,
     IconLabelButtonComponent,
     ToggleChoiceComponent,
+    MenuContentComponent,
   ]
 })
 export class TrailsListComponent extends AbstractComponent {
@@ -61,6 +63,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   @Input() metadataClass = 'two-columns';
 
+  id = IdGenerator.generateId();
   highlighted?: Trail;
 
   @Output() trailClick = new EventEmitter<Trail>();
@@ -76,7 +79,7 @@ export class TrailsListComponent extends AbstractComponent {
     private fileService: FileService,
     private auth: AuthService,
     private trackService: TrackService,
-    private trailService: TrailService,
+    public trailService: TrailService,
     private tagService: TagService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
@@ -166,6 +169,10 @@ export class TrailsListComponent extends AbstractComponent {
     this.shownTrails.forEach(t => t.selected = selected);
   }
 
+  getSelectedTrails(): Trail[] {
+    return this.shownTrails.filter(t => t.selected).map(t => t.trail);
+  }
+
   sortBy(name: string): void {
     if (this.state$.value.sortBy === name) return;
     this.state$.next({...this.state$.value, sortBy: name});
@@ -184,7 +191,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (trail === this.highlighted) return;
     this.highlighted = trail;
     if (trail) {
-      const element = document.getElementById('trail-list-trail-' + trail.uuid + '-' + trail.owner);
+      const element = document.getElementById('trail-list-' + this.id + '-trail-' + trail.uuid + '-' + trail.owner);
       if (element) {
         const parent = element.parentElement;
         if (parent) {

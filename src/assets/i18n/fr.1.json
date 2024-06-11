@@ -38,7 +38,34 @@
         "list": "Liste",
         "map": "Carte"
       },
-      "open_trail": "Ouvrir"
+      "open_trail": "Ouvrir",
+      "actions": {
+        "delete_confirm_single": {
+          "title": "Supprimer un parcours",
+          "message": "Etes-vous sûr de vouloir supprimer {{}} ?",
+          "yes": "Oui, supprimer",
+          "no": "Annuler, garder"
+        },
+        "delete_confirm_multiple": {
+          "title": "Suppression de {{}} parcours",
+          "message": "Etes-vous sûr de vouloir supprimer ces {{}} parcours ?",
+          "yes": "Oui, supprimer",
+          "no": "Annuler, garder"
+        }
+      },
+      "tags": {
+        "menu_item": "Tags",
+        "popup": {
+          "title": "Tags",
+          "add_tag_label": "Nouveau tag",
+          "confirm_delete": {
+            "title": "Supprimer le Tag",
+            "message": "Etes-vous sûr de vouloir supprimer ce tag ?",
+            "yes": "Oui, supprimer",
+            "no": "Annuler, garder"
+          }
+        }
+      }
     },
     "trail": {
       "tabs": {
@@ -56,6 +83,8 @@
   },
   "my_trails": "Mes Parcours",
   "buttons": {
+    "apply": "Appliquer",
+    "cancel": "Annuler",
     "close": "Fermer",
     "delete": "Supprimer"
   },

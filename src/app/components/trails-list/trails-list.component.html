@@ -8,19 +8,28 @@
   <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
   <ng-template let-selected="nbSelected" let-total="nbShown" #templateSelectionButton>
     <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event.detail.checked)"></ion-checkbox>
-    <ion-button color="light" size="small">
+    <ion-button color="light" size="small" id="trail-list-{{id}}-selection-button" [disabled]="selected === 0">
       <ion-label>
         {{ selected }} / {{ total }} {{ i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single'] }}
       </ion-label>
       <ion-icon slot="end" name="caret-down"></ion-icon>
     </ion-button>
+    <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true">
+      <ng-template>
+        <ion-content>
+          <ion-list>
+            <app-menu-content [menu]="trailService.getTrailsMenu(getSelectedTrails())"></app-menu-content>
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-popover>
   </ng-template>
 </div>
 <div class="trails">
   @for (trailWithInfo of shownTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
     <div class="trail metadata-container {{metadataClass}}"
       [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
-      id="trail-list-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
+      id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
       (dblclick)="openTrail(trailWithInfo.trail)"
     >
       <app-trail-overview
@@ -30,7 +39,7 @@
         (selectedChange)="trailWithInfo.selected = $event"
         (click)="onTrailClick(trailWithInfo.trail)"
       ></app-trail-overview>
-      <ion-button *ngIf="highlighted === trailWithInfo.trail" (click)="openTrail(trailWithInfo.trail)">
+      <ion-button *ngIf="highlighted === trailWithInfo.trail" (click)="openTrail(trailWithInfo.trail)" size="small">
         {{ i18n.texts.pages.trails.open_trail }}
       </ion-button>
     </div>

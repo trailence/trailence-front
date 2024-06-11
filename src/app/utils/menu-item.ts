@@ -8,6 +8,7 @@ export class MenuItem {
     public i18nLabel?: string;
     public label?: string;
     public action?: () => void
+    public color?: string;
 
     constructor() {}
 
@@ -29,6 +30,11 @@ export class MenuItem {
     public setAction(action: () => void): this {
         this.action = action;
         return this;
+    }
+
+    public setColor(color?: string): this {
+      this.color = color;
+      return this;
     }
 
     public label$(i18n: I18nService): Observable<string> {

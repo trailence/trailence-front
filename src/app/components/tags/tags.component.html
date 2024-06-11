@@ -1,0 +1,59 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      <ion-icon name="tags" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.trails.tags.popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ng-container *ngTemplateOutlet="tagsNodes; context: { nodes: tree }"></ng-container>
+</ion-content>
+<ion-footer>
+  <div class="add-tag-footer">
+    <ion-input fill="outline" label="{{i18n.texts.pages.trails.tags.popup.add_tag_label}}" label-placement="floating" [(ngModel)]="newTagName"></ion-input>
+    <ion-button shape="round" color="primary" [disabled]="newTagName.length === 0" (click)="newRootTag()">
+      <ion-icon name="add" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+  <ion-toolbar>
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="apply()" [disabled]="!canApply()">{{i18n.texts.buttons.apply}}</ion-button>
+      <ion-button color="medium" (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
+
+<ng-template #tagsNodes let-nodes="nodes">
+  @for (child of nodes; track child.tag.uuid) {
+    <ng-container *ngTemplateOutlet="tagNode; context: { node: child }"></ng-container>
+  }
+</ng-template>
+
+<ng-template #tagNode let-node="node">
+  <div class="tag-node">
+    <ion-checkbox
+      [indeterminate]="node.userSelected === undefined && node.existing > 0 && node.existing !== trails?.length"
+      [checked]="node.userSelected === true || (node.userSelected !== false && node.existing > 0 && node.existing === trails?.length)"
+      (ionChange)="node.userSelected = $event.detail.checked"
+    ></ion-checkbox>
+    <div class="tag-name">
+      @switch (node.editing) {
+        @case(false) {
+          <span (click)="startEdit(node)">{{node.tag.name}}</span>
+        }
+        @case(true) {
+          <div class="editing">
+            <ion-input [(ngModel)]="node.newName" (ionBlur)="endEdit(node)" id="editing-tag-{{node.tag.uuid}}"></ion-input>
+            <ion-button fill="clear" color="danger" size="small" (click)="deleteTag(node)">
+              <ion-icon name="trash" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+  <div class="tag-children">
+    <ng-container *ngTemplateOutlet="tagsNodes; context: { nodes: node.children }"></ng-container>
+  </div>
+</ng-template>
