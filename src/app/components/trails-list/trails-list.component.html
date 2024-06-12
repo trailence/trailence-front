@@ -1,7 +1,6 @@
 <div class="toolbar">
   <app-icon-label-button icon="sort" label="{{i18n.texts.tools.sort}}" id="sort-trails-button"></app-icon-label-button>
   <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button"></app-icon-label-button>
-  <app-icon-label-button *ngIf="collectionUuid" icon="tags" label="{{i18n.texts.tools.tags}}"></app-icon-label-button>
   <app-icon-label-button *ngIf="collectionUuid" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
 </div>
 <div class="selection">

@@ -13,8 +13,7 @@
     "filters": "Filtres",
     "import": "Importer",
     "import_gpx_description": "Importer des fichiers GPX",
-    "sort": "Tri",
-    "tags": "Tags"
+    "sort": "Tri"
   },
   "pages": {
     "login": {

@@ -108,6 +108,9 @@ body.dark-theme {
   --ion-toolbar-background: #1f1f1f;
   --ion-tab-bar-background: #1f1f1f;
   --ion-card-background: #1e1e1e;
+
+  --tag-background-color: #3030F0;
+  --tag-text-color: #d0d0ff;
 }
 
 body.light-theme {
@@ -117,7 +120,7 @@ body.light-theme {
 	--ion-color-primary-contrast-rgb: 255,255,255;
 	--ion-color-primary-shade: #008d00;
 	--ion-color-primary-tint: #1aaa1a;
-  
+
 	--ion-color-secondary: #A07953;
 	--ion-color-secondary-rgb: 160,121,83;
 	--ion-color-secondary-contrast: #ffffff;
@@ -219,15 +222,18 @@ body.light-theme {
 	--ion-background-color-step-850: #262626;
 	--ion-background-color-step-900: #191919;
 	--ion-background-color-step-950: #0d0d0d;
+
+  --tag-background-color: #A0A0FF;
+  --tag-text-color: #000060;
 }
 
 svg.ionicon {
   stroke: currentColor;
-  
+
   .ionicon-fill-none {
     fill: none;
   }
-  
+
   .ionicon-stroke-width {
     stroke-width: var(--ionicon-stroke-width, 32px);
   }

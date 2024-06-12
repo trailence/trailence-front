@@ -5,7 +5,7 @@ import { Tag } from "src/app/model/tag";
 import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { Observable, combineLatest, filter, map, mergeMap, of } from "rxjs";
+import { EMPTY, Observable, combineLatest, filter, map, mergeMap, of } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
@@ -62,8 +62,12 @@ export class TagService {
   }
 
   public delete(tag: Tag): void {
-    // TODO delete from trailTagStore
+    this._trailTagStore.deleteIf(trailTag => trailTag.tagUuid === tag.uuid);
     this._tagStore.delete(tag);
+  }
+
+  public deleteTrailTagsForTrail(trailUuid: string): void {
+    this._trailTagStore.deleteIf(trailTag => trailTag.trailUuid === trailUuid);
   }
 
   public getTrailTags$(trailUuid: string): CollectionObservable<Observable<TrailTag | null>> {
@@ -80,6 +84,20 @@ export class TagService {
 
   public deleteTrailTag(trailUuid: string, tagUuid: string) {
     this._trailTagStore.delete(new TrailTag({trailUuid, tagUuid}));
+  }
+
+  public getTrailTagsNames$(trailUuid: string): Observable<string[]> {
+    return this.getTrailTags$(trailUuid).values$.pipe(
+      mergeMap(trailTags$ => trailTags$.length === 0 ? of([]) : combineLatest(trailTags$)),
+      mergeMap(trailTags => {
+        const list = trailTags.filter(t => !!t) as TrailTag[];
+        if (list.length === 0) return of([]);
+        return combineLatest(list.map(trailTag => this.getTag$(trailTag.tagUuid).pipe(
+          mergeMap(tag => tag ? tag.name$ : of(undefined))
+        )));
+      }),
+      map(names => names.filter(name => !!name) as string[])
+    );
   }
 
 }

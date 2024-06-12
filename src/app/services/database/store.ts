@@ -263,5 +263,25 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
   }
 
+  public deleteIf(predicate: (item: STORE_ITEM) => boolean): void {
+    let items: STORE_ITEM[] = [];
+    this.performOperation(
+      () => {
+        const toDelete = this._store.values.filter(item$ => item$.value && predicate(item$.value));
+        if (toDelete.length === 0) return;
+        toDelete.forEach(item$ => {
+          const item = item$.value!;
+          items.push(item);
+          if (this._deletedLocally.indexOf(item) < 0)
+            this._deletedLocally.push(item);
+          item$.next(null);
+          this.deleted(item$, item);
+        });
+        this._store.remove(toDelete);
+      },
+      db => items.length === 0 ? of(true) : combineLatest(items.map(item => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item))),
+      status => items.length === 0 ? false : this.updateStatusWithLocalDelete(status)
+    );
+  }
 
 }

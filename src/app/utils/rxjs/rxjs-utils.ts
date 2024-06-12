@@ -4,7 +4,7 @@ import { executeSchedule } from 'rxjs/internal/util/executeSchedule';
 export function debounceTimeExtended<T>(
   initialDelay: number,
   subsequentDelay: number,
-  maximumPending: number,
+  maximumPending: number = -1,
   predicateSkipDelay: (previousEmission: T, newValue: T) => boolean = () => false,
   scheduler: SchedulerLike = asyncScheduler,
 ): MonoTypeOperatorFunction<T> {

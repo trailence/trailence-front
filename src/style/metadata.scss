@@ -62,3 +62,21 @@
   }
 
 }
+
+.trail-tags-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .tag {
+    background-color: var(--tag-background-color);
+    color: var(--tag-text-color);
+    border-radius: 8px;
+    padding: 1px 5px;
+    font-size: 12px;
+
+    &:not(:first-child) {
+      margin-left: 5px;
+    }
+  }
+}

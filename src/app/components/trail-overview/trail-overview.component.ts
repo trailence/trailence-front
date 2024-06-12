@@ -6,11 +6,15 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, IonList } from "@ionic/angular/standalone";
-import { combineLatest, mergeMap, of } from 'rxjs';
+import { combineLatest, debounceTime, mergeMap, of } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
+import { TagService } from 'src/app/services/database/tag.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
+import { TrailTag } from 'src/app/model/trail-tag';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
 
 class Meta {
   name?: string;
@@ -42,6 +46,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   id = IdGenerator.generateId();
   meta: Meta = new Meta();
   track?: Track | TrackMetadataSnapshot;
+  tagsNames: string[] = [];
 
   constructor(
     injector: Injector,
@@ -49,6 +54,8 @@ export class TrailOverviewComponent extends AbstractComponent {
     private i18n: I18nService,
     private changeDetector: ChangeDetectorRef,
     public trailService: TrailService,
+    private tagService: TagService,
+    private auth: AuthService,
   ) {
     super(injector);
   }
@@ -91,6 +98,14 @@ export class TrailOverviewComponent extends AbstractComponent {
           if (changed) this.changeDetector.markForCheck();
         }
       );
+      if (owner === this.auth.email)
+        this.byStateAndVisible.subscribe(
+          this.tagService.getTrailTagsNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100)),
+          names => {
+            this.tagsNames = names;
+            this.changeDetector.markForCheck();
+          }
+        );
     }
   }
 
@@ -109,6 +124,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   private reset(): void {
     this.meta = new Meta();
     this.track = undefined;
+    this.tagsNames = [];
   }
 
   setSelected(selected: boolean) {

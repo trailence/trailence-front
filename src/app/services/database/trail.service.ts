@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, Injector, NgZone } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
@@ -15,6 +15,7 @@ import { AuthService } from '../auth/auth.service';
 import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
+import { TagService } from './tag.service';
 
 @Injectable({
   providedIn: 'root'
@@ -30,10 +31,7 @@ export class TrailService {
     http: HttpService,
     private trackService: TrackService,
     collectionService: TrailCollectionService,
-    private auth: AuthService,
-    private alertController: AlertController,
-    private modalController: ModalController,
-    private i18n: I18nService,
+    private injector: Injector,
   ) {
     this._store = new TrailStore(databaseService, network, ngZone, http, trackService, collectionService);
   }
@@ -66,12 +64,13 @@ export class TrailService {
     this.trackService.deleteByUuidAndOwner(trail.originalTrackUuid, trail.owner);
     if (trail.currentTrackUuid !== trail.originalTrackUuid)
       this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner);
+    this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid);
     this._store.delete(trail);
   }
 
   public getTrailMenu(trail: Trail): MenuItem[] {
     const menu: MenuItem[] = [];
-    if (trail.owner === this.auth.email) {
+    if (trail.owner === this.injector.get(AuthService).email) {
       menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags([trail], trail.collectionUuid)));
       menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete([trail])));
@@ -83,7 +82,7 @@ export class TrailService {
     if (trails.length === 0) return [];
     if (trails.length === 1) return this.getTrailMenu(trails[0]);
     const menu: MenuItem[] = [];
-    if (trails.every(t => t.owner === this.auth.email)) {
+    if (trails.every(t => t.owner === this.injector.get(AuthService).email)) {
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
         menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(trails, collectionUuid)));
@@ -105,8 +104,9 @@ export class TrailService {
   }
 
   public async confirmDelete(trails: Trail[]) {
-    const texts = trails.length === 1 ? this.i18n.texts.pages.trails.actions.delete_confirm_single : this.i18n.texts.pages.trails.actions.delete_confirm_multiple;
-    const alert = await this.alertController.create({
+    const i18n = this.injector.get(I18nService);
+    const texts = trails.length === 1 ? i18n.texts.pages.trails.actions.delete_confirm_single : i18n.texts.pages.trails.actions.delete_confirm_multiple;
+    const alert = await this.injector.get(AlertController).create({
       header: trails.length === 1 ? texts.title : texts.title.replace('{{}}', '' + trails.length),
       message: texts.message.replace('{{}}', trails.length === 1 ? trails[0].name : '' + trails.length),
       buttons: [
@@ -128,7 +128,7 @@ export class TrailService {
 
   public async openTags(trails: Trail[], collectionUuid: string) {
     const module = await import('../../components/tags/tags.component');
-    const modal = await this.modalController.create({
+    const modal = await this.injector.get(ModalController).create({
       component: module.TagsComponent,
       backdropDismiss: false,
       componentProps: {
