@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent } from '@ionic/angular/standalone';
 import { Subscription, combineLatest, distinctUntilChanged, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -31,6 +31,7 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
     public preferences: PreferencesService,
     private databaseService: DatabaseService,
     private networkService: NetworkService,
+    private changeDetector: ChangeDetectorRef,
   ) {
     this.id = IdGenerator.generateId();
   }
@@ -43,7 +44,10 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
         return 'online';
       }),
       distinctUntilChanged(),
-    ).subscribe(s => this.status = s);
+    ).subscribe(s => {
+      this.status = s;
+      this.changeDetector.markForCheck();
+    });
   }
 
   ngOnDestroy(): void {

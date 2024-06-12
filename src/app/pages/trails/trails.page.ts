@@ -4,7 +4,7 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { BehaviorSubject, EMPTY, Observable, combineLatest, filter, first, map, mergeMap, of, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { Trail } from 'src/app/model/trail';
@@ -12,6 +12,7 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-and-map.component';
 import { CommonModule } from '@angular/common';
 import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
+import { MenuItem } from 'src/app/utils/menu-item';
 
 @Component({
   selector: 'app-trails-page',
@@ -32,8 +33,10 @@ export class TrailsPage extends AbstractPage {
 
   title$?: Observable<string>;
   trails$?: CollectionObservable<Observable<Trail | null>>;
+  actions: MenuItem[] = [];
 
   viewId?: string;
+  shown: any;
 
   constructor(
     injector: Injector,
@@ -66,8 +69,17 @@ export class TrailsPage extends AbstractPage {
         filter(auth => !!auth),
         mergeMap(auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth!.email)),
         mergeMap(collection => {
-          if (!collection) return EMPTY;
+          if (!collection) {
+            if (this.shown && this.shown instanceof TrailCollection) {
+              // collection has been removed
+              this.injector.get(Router).navigateByUrl('/');
+            }
+            return EMPTY;
+          }
+          this.shown = collection;
           this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
+          // menu
+          this.actions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
           if (collection.name.length > 0) return of(collection.name);
           if (collection.type === TrailCollectionType.MY_TRAILS)
             return this.injector.get(I18nService).texts$.pipe(map(texts => texts.my_trails));
@@ -85,6 +97,8 @@ export class TrailsPage extends AbstractPage {
     this.viewId = undefined;
     this.title$ = undefined;
     this.trails$ = undefined;
+    this.actions = [];
+    this.shown = undefined;
   }
 
 }

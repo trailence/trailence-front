@@ -14,7 +14,21 @@
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
       </div>
-      <div>{{title}}</div>
+      <div class="title-text">{{title}}</div>
+      <div class="title-actions" *ngIf="actions && actions.length > 0">
+        <ion-button fill="clear" shape="round" id="header-title-actions-button-{{id}}">
+          <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+        </ion-button>
+        <ion-popover trigger="header-title-actions-button-{{id}}" [dismissOnSelect]="true">
+          <ng-template>
+            <ion-content>
+              <ion-list>
+                <app-menu-content [menu]="actions"></app-menu-content>
+              </ion-list>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+      </div>
     </div>
   </ion-toolbar>
 </ion-header>

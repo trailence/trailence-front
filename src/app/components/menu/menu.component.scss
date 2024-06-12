@@ -12,6 +12,11 @@
   }
 }
 
+.menu-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .menu-section {
   display: flex;
   flex-direction: row;
@@ -37,6 +42,10 @@
   padding: 3px 5px;
   border-bottom: 1px solid var(--ion-color-light);
   cursor: pointer;
+  min-height: 36px;
+  min-width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   &:hover {
     background-color: var(--ion-color-light);
   }
@@ -44,6 +53,9 @@
   .item-title {
     flex: 1 1 100%;
     font-size: 16px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-wrap: nowrap;
   }
 
   &.under-section {

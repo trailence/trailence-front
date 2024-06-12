@@ -37,6 +37,7 @@ export class I18nService {
   public get texts(): any { return this._texts$.value; }
   public get texts$(): Observable<any> { return this._texts$; }
   public get textsLanguage$(): Observable<string | undefined> { return this._textsLoaded$; }
+  public get textsLanguage(): string { return this._textsLoaded$.value || 'en'; }
 
   public get stateChanged$(): Observable<number> { return this._stateChanged$; }
 

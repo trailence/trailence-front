@@ -20,6 +20,7 @@ export class AssetsService {
       'distance': 'assets/distance.1.svg',
       'download': 'assets/ionicons/cloud-download.svg',
       'duration': 'assets/ionicons/time-outline.svg',
+      'edit': 'assets/ionicons/create-outline.svg',
       'filters': 'assets/ionicons/funnel-outline.svg',
       'folder': 'assets/ionicons/folder.svg',
       'i18n': 'assets/ionicons/language-outline.svg',

@@ -75,17 +75,32 @@
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte"
       }
+    },
+    "collection_form": {
+      "title": "Collection",
+      "collection_name": "Nom"
     }
   },
   "menu": {
     "collections": "Collections"
   },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "Supprimer la collection",
+      "message": "Etes-vous sûr de vouloir supprimer la collection {{}} ?",
+      "yes": "Oui, supprimer",
+      "no": "Annuler, garder"
+    }
+  },
   "my_trails": "Mes Parcours",
   "buttons": {
     "apply": "Appliquer",
     "cancel": "Annuler",
+    "create": "Créer",
     "close": "Fermer",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "save": "Enregistrer"
   },
   "order_way": "Par ordre",
   "order_asc": "Croissant",

@@ -9,6 +9,12 @@
     div {
         font-size: 16px;
     }
+
+    .title-text {
+      overflow: hidden;
+      text-wrap: nowrap;
+      text-overflow: ellipsis;
+    }
 }
 
 ion-toolbar {
@@ -19,7 +25,7 @@ ion-toolbar {
         height: var(--header-height);
     }
 
-    .back-button {
+    .header-title {
         ion-button {
             margin-top: 0;
             margin-bottom: 0;

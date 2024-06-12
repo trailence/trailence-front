@@ -75,17 +75,32 @@
         "go_to_departure": "Go to departure",
         "download_map": "Download map"
       }
+    },
+    "collection_form": {
+      "title": "Collection",
+      "collection_name": "Name"
     }
   },
   "menu": {
     "collections": "Collections"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "Delete Collection",
+      "message": "Are you sure you want to delete collection {{}}?",
+      "yes": "Yes, delete",
+      "no": "Cancel, keep"
+    }
   },
   "my_trails": "My Trails",
   "buttons": {
     "apply": "Apply",
     "cancel": "Cancel",
     "close": "Close",
-    "delete": "Delete"
+    "create": "Create",
+    "delete": "Delete",
+    "edit": "Edit",
+    "save": "Save"
   },
   "order_way": "Order",
   "order_asc": "Ascending",
