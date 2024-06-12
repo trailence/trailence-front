@@ -11,7 +11,14 @@
 </ion-content>
 <ion-footer>
   <div class="add-tag-footer">
-    <ion-input fill="outline" label="{{i18n.texts.pages.trails.tags.popup.add_tag_label}}" label-placement="floating" [(ngModel)]="newTagName"></ion-input>
+    <ion-input
+      fill="outline"
+      label="{{i18n.texts.pages.trails.tags.popup.add_tag_label}}"
+      label-placement="floating"
+      [(ngModel)]="newTagName"
+      [maxlength]="50"
+      [counter]="true"
+    ></ion-input>
     <ion-button shape="round" color="primary" [disabled]="newTagName.length === 0" (click)="newRootTag()">
       <ion-icon name="add" slot="icon-only"></ion-icon>
     </ion-button>
@@ -44,7 +51,12 @@
         }
         @case(true) {
           <div class="editing">
-            <ion-input [(ngModel)]="node.newName" (ionBlur)="endEdit(node)" id="editing-tag-{{node.tag.uuid}}"></ion-input>
+            <ion-input
+              [(ngModel)]="node.newName"
+              (ionBlur)="endEdit(node)"
+              [maxlength]="50"
+              [counter]="true"
+              id="editing-tag-{{node.tag.uuid}}"></ion-input>
             <ion-button fill="clear" color="danger" size="small" (click)="deleteTag(node)">
               <ion-icon name="trash" slot="icon-only"></ion-icon>
             </ion-button>

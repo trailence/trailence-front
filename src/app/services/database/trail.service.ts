@@ -53,11 +53,18 @@ export class TrailService {
   }
 
   public create(trail: Trail): Observable<Trail | null> {
+    this.check(trail);
     return this._store.create(trail);
   }
 
   public update(trail: Trail): void {
+    this.check(trail);
     this._store.update(trail);
+  }
+
+  private check(trail: Trail): void {
+    if (trail.name.length > 200) trail.name = trail.name.substring(0, 200);
+    if (trail.description.length > 50000) trail.description = trail.description.substring(0, 50000);
   }
 
   public delete(trail: Trail): void {
