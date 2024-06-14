@@ -1,4 +1,4 @@
-<div class="top-container {{displayMode}} tab-{{tab}} bottom-sheet-{{bottomSheetMode}}" *ngIf="trail1">
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}" *ngIf="trail1">
   <div class="map-container">
     <app-map
       mapId="trail-{{trail1.owner}}-{{trail1.uuid}}"
@@ -13,11 +13,18 @@
       <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.map}}</ion-segment-button>
     </ion-segment>
   </div>
-  <div class="bottom-sheet-container">
-    Bottom sheet
-  </div>
-  <div class="bottom-info">
-    Bottom info
+  <div class="bottom-sheet-container" *ngIf="displayMode === 'small'">
+    <div class="bottom-sheet-button" (click)="toggleBottomSheet()">
+      <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'"></ion-icon>
+    </div>
+    <div class="bottom-sheet-tabs">
+      <div class="bottom-sheet-tab {{bottomSheetTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('info')">
+        <ion-icon name="info"></ion-icon>
+      </div>
+      <div class="bottom-sheet-tab {{bottomSheetTab === 'elevation' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('elevation')">
+        <ion-icon name="elevation"></ion-icon>
+      </div>
+    </div>
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="tracks[0]">
@@ -32,7 +39,7 @@
           <div class="metadata-item">
           </div>
         </div>
-        <app-track-metadata [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+        <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
       </div>
       <div class="actions">
         <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="12" color="primary" (click)="goToDeparture()"></app-icon-label-button>
@@ -41,6 +48,11 @@
     </div>
     <div class="elevation-container">
       <app-elevation-graph [track1]="tracks[0]" [track2]="tracks[1]" (pointHover)="elevationGraphPointHover($event)"></app-elevation-graph>
+    </div>
+    <div class="bottom-sheet-info-content">
+      <div class="metadata-container tiles">
+        <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+      </div>
     </div>
   </ng-container>
 </div>

@@ -46,7 +46,8 @@ export class TrailComponent extends AbstractComponent {
 
   displayMode = 'large';
   tab = 'map';
-  bottomSheetMode = 'none';
+  bottomSheetOpen = false;
+  bottomSheetTab = 'info';
 
   constructor(
     injector: Injector,
@@ -62,6 +63,7 @@ export class TrailComponent extends AbstractComponent {
     this.updateDisplay();
     this.whenVisible.subscribe(this.platform.resize, () => this.updateDisplay());
     this.visible$.subscribe(() => this.updateDisplay());
+    setTimeout(() => this.updateDisplay(), 0);
   }
 
   protected override getComponentState() {
@@ -124,7 +126,7 @@ export class TrailComponent extends AbstractComponent {
       this.updateVisibility(true, true);
     } else {
       this.displayMode = 'small';
-      this.updateVisibility(this.tab === 'map', false);
+      this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation');
     }
   }
 
@@ -132,6 +134,9 @@ export class TrailComponent extends AbstractComponent {
     this._children.forEach(child => {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
       else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
+      else if (child instanceof TrackMetadataComponent) {
+
+      }
       else console.error('unexpected child', child);
     })
   }
@@ -143,6 +148,17 @@ export class TrailComponent extends AbstractComponent {
   setTab(tab: string): void {
     if (tab === this.tab) return;
     this.tab = tab;
+    this.updateDisplay();
+  }
+
+  toggleBottomSheet(): void {
+    this.bottomSheetOpen = !this.bottomSheetOpen;
+    this.updateDisplay();
+  }
+
+  setBottomSheetTab(tab: string): void {
+    if (tab === this.bottomSheetTab) return;
+    this.bottomSheetTab = tab;
     this.updateDisplay();
   }
 

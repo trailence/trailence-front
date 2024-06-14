@@ -52,7 +52,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     }
     this.initComponent();
     this._isInit = true;
-    this.setVisible(true);
+    this.setVisible(!this._parent || this._parent.visible);
     this._checkComponentState();
   }
 

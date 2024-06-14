@@ -3,9 +3,12 @@
   overflow: hidden;
 
   --tabs-height: 36px;
-  --bottom-sheet-button-height: 15px;
+  --bottom-sheet-button-height: 20px;
   --elevation-height: 200px;
   --details-width: 350px;
+  --bottom-sheet-tabs-width: 30px;
+  --bottom-sheet-tab-icon-size: 24px;
+  --bottom-sheet-tab-content-height: 150px;
 }
 
 .top-container {
@@ -45,7 +48,7 @@
     .bottom-sheet-container {
       display: none;
     }
-    .bottom-info {
+    .bottom-sheet-info-content {
       display: none;
     }
     .trail-details {
@@ -80,6 +83,12 @@
       .map-container {
         display: none;
       }
+      .bottom-sheet-container {
+        display: none;
+      }
+      .bottom-sheet-info-content {
+        display: none;
+      }
       .elevation-container {
         display: none;
       }
@@ -99,56 +108,121 @@
         top: var(--tabs-height);
         left: 0;
         right: 0;
+        transition: bottom 0.3s ease-in-out;
+      }
+      .bottom-sheet-info-content {
+        position: absolute;
+        bottom: 0;
+        left: calc(var(--bottom-sheet-tabs-width) + 50% - calc(var(--bottom-sheet-tabs-width) /2) - 100px);
+        width: 200px;
+        z-index: 501;
+        overflow: hidden;
+
+        height: 0;
+        transition: height 0.3s ease-in-out;
+      }
+      .elevation-container {
+        left: var(--bottom-sheet-tabs-width);
+        right: 0;
+        top: 100%;
+        height: var(--bottom-sheet-tab-content-height);
+        transition: top 0.3s ease-in-out;
       }
       .bottom-sheet-container {
         left: 0;
         right: 0;
         bottom: 0;
+        height: var(--bottom-sheet-button-height);
+        transition: height 0.3s ease-in-out;
+        z-index: 500;
+        background-color: var(--ion-background-color);
+
+        .bottom-sheet-button {
+          height: var(--bottom-sheet-button-height);
+          width: 100%;
+
+          ion-icon {
+            height: var(--bottom-sheet-button-height);
+            width: var(--bottom-sheet-button-height);
+            transform: scaleX(2);
+            margin-left: calc(50% - calc(var(--bottom-sheet-button-height) / 2));
+          }
+        }
       }
 
-      &.bottom-sheet-none {
-        .elevation-container {
-          display: none;
-        }
-        .bottom-info {
-          display: none;
-        }
+      &.bottom-sheet-closed {
         .bottom-sheet-container {
           height: var(--bottom-sheet-button-height);
         }
         .map-container {
           bottom: var(--bottom-sheet-button-height);
         }
-      }
-      &.bottom-sheet-details {
-        .elevation-container {
+        .bottom-sheet-tabs {
           display: none;
         }
-        .bottom-info {
-          left: 0;
-          right: 0;
+      }
+
+      &.bottom-sheet-open {
+        .bottom-sheet-container {
+          height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
+        }
+        .map-container {
+          bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
+        }
+        .bottom-sheet-button {
+          border-bottom: 1px solid var(--ion-color-light);
+        }
+        .bottom-sheet-tabs {
+          position: absolute;
+          top: var(--bottom-sheet-button-height);
           bottom: 0;
-          height: var(--elevation-height);
-        }
-        .bottom-sheet-container {
-          height: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
-        }
-        .map-container {
-          bottom: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
-        }
-      }
-      &.bottom-sheet-elevation {
-        .bottom-info {
-          display: none;
+          left: 0;
+          width: var(--bottom-sheet-tabs-width);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+
+          .bottom-sheet-tab {
+            flex: 1 1 100%;
+            border-right: 2px solid var(--ion-color-light);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: stretch;
+
+            ion-icon {
+              width: var(--bottom-sheet-tab-icon-size);
+              height: var(--bottom-sheet-tab-icon-size);
+              color: var(--ion-color-medium);
+            }
+
+            &.tab-selected {
+              background-color: var(--ion-color-light);
+              border-color: var(--ion-color-secondary);
+              ion-icon {
+                color: var(--ion-color-secondary);
+              }
+            }
+          }
         }
         .elevation-container {
-          height: var(--elevation-height);
+          top: calc(100% - var(--bottom-sheet-tab-content-height));
+          z-index: 501;
         }
-        .bottom-sheet-container {
-          height: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
+
+        &.bottom-sheet-info {
+          .bottom-sheet-info-content {
+            height: var(--bottom-sheet-tab-content-height);
+          }
+          .elevation-container {
+            display: none;
+          }
         }
-        .map-container {
-          bottom: calc(var(--bottom-sheet-button-height) + var(--elevation-height));
+
+        &.bottom-sheet-elevation {
+          .bottom-sheet-info-content {
+            display: none;
+          }
         }
       }
     }

@@ -70,7 +70,8 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.height = undefined;
     if (!this.track1) return;
     if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
-    this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
+    if (this.visible)
+      this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
   }
 
   private backgroundColor = '';
@@ -78,6 +79,7 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   private checkElementSizeThenCreateChart(): void {
     this.checkSizeTimeout = undefined;
+    if (!this.visible) return;
     const element = this.injector.get(ElementRef).nativeElement;
     this.width = element.offsetWidth;
     this.height = element.offsetHeight;
