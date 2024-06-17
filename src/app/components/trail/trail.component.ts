@@ -111,6 +111,7 @@ export class TrailComponent extends AbstractComponent {
             const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
             mapTrack.showDepartureAndArrivalAnchors();
             mapTrack.showWayPointsAnchors();
+            mapTrack.showArrowPath();
             return ([trail, track, mapTrack]) as [Trail | null, Track | undefined, MapTrack | undefined];
           })
         )

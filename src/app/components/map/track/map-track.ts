@@ -4,6 +4,7 @@ import { MapTrackPath } from './map-track-path';
 import { Trail } from 'src/app/model/trail';
 import { MapTrackWayPoints } from './map-track-way-points';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { MapTrackArrowPath } from './map-track-arrows-path';
 
 export class MapTrack {
 
@@ -17,19 +18,23 @@ export class MapTrack {
   ) {
     this._path = new MapTrackPath(_track, color, smoothFactor);
     this._wayPoints = new MapTrackWayPoints(_track, isRecording, i18n);
+    this._arrowPath = new MapTrackArrowPath(_track);
   }
 
   private _path: MapTrackPath;
   private _wayPoints: MapTrackWayPoints;
+  private _arrowPath: MapTrackArrowPath;
 
   public addTo(map: L.Map): void {
     this._path.addTo(map);
     this._wayPoints.addTo(map);
+    this._arrowPath.addTo(map);
   }
 
   public remove(): void {
     this._path.remove();
     this._wayPoints.remove();
+    this._arrowPath.remove();
   }
 
   public get trail(): Trail | undefined { return this._trail; }
@@ -45,6 +50,10 @@ export class MapTrack {
 
   public showWayPointsAnchors(show: boolean = true): void {
     this._wayPoints.showWayPoints(show);
+  }
+
+  public showArrowPath(show: boolean = true): void {
+    this._arrowPath.show(show);
   }
 
 }

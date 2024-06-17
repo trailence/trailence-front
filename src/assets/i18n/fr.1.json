@@ -50,7 +50,8 @@
           "message": "Etes-vous sûr de vouloir supprimer ces {{}} parcours ?",
           "yes": "Oui, supprimer",
           "no": "Annuler, garder"
-        }
+        },
+        "deleting_trails": "Suppression"
       },
       "tags": {
         "menu_item": "Tags",

@@ -46,6 +46,12 @@ export class Progress {
     this._updateProgress();
   }
 
+  public addWorkDone(amount: number): void {
+    this._workDone += amount;
+    this._updateProgress();
+    if (this._workDone >= this._workAmount) this.done();
+  }
+
   public set title(value: string) {
     this._title = value;
     this._divTitle.innerText = value;

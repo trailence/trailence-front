@@ -66,13 +66,6 @@ export class MapTrackWayPoints {
     }
   }
 
-  private reset(): void {
-    this._anchors = undefined;
-    this._departure = undefined;
-    this._arrival = undefined;
-    this._departureAndArrival = undefined;
-  }
-
   private load(): void {
     if (this._anchors !== undefined) return;
     let departurePoint: L.LatLngLiteral | undefined;

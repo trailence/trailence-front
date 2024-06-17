@@ -66,8 +66,8 @@ export class TagService {
     this._tagStore.delete(tag);
   }
 
-  public deleteTrailTagsForTrail(trailUuid: string): void {
-    this._trailTagStore.deleteIf(trailTag => trailTag.trailUuid === trailUuid);
+  public deleteTrailTagsForTrail(trailUuid: string, ondone?: () => void): void {
+    this._trailTagStore.deleteIf(trailTag => trailTag.trailUuid === trailUuid, ondone);
   }
 
   public getTrailTags$(trailUuid: string): CollectionObservable<Observable<TrailTag | null>> {

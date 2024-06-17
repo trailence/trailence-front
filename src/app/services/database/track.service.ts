@@ -54,8 +54,8 @@ export class TrackService {
     this.db.delete(track.uuid, track.owner);
   }
 
-  public deleteByUuidAndOwner(uuid: string, owner: string): void {
-    this.db.delete(uuid, owner);
+  public deleteByUuidAndOwner(uuid: string, owner: string, ondone?: () => void): void {
+    this.db.delete(uuid, owner, ondone);
   }
 
   public isSavedOnServerAndNotDeletedLocally(uuid: string, owner: string): boolean {

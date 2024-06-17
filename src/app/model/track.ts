@@ -71,6 +71,16 @@ export class Track extends Owned {
     return undefined;
   }
 
+  public getAllPositions(): L.LatLng[] {
+    const result: L.LatLng[] = [];
+    for (const segment of this.segments) {
+      for (const point of segment.points) {
+        result.push(point.pos);
+      }
+    }
+    return result;
+  }
+
 }
 
 export class TrackMetadata {

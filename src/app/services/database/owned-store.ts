@@ -82,6 +82,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const updatedIndex = this._updatedLocally.indexOf(key);
     if (updatedIndex >= 0)
       this._updatedLocally.splice(updatedIndex, 1);
+    const createdIndex = this._createdLocally.findIndex($item => $item === item$ || $item.value === item);
+    if (createdIndex >= 0)
+      this._createdLocally.splice(createdIndex, 1);
   }
 
   protected override markDeletedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
@@ -145,19 +148,18 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const deletedKeys: string[] = [];
     const deletedItems: BehaviorSubject<ENTITY | null>[] = [];
     deleted.forEach(deletedItem => {
+      const key = deletedItem.uuid + '#' + deletedItem.owner;
+      deletedKeys.push(key);
       const localDeleteIndex = this._deletedLocally.findIndex(item => item.uuid === deletedItem.uuid && item.owner === deletedItem.owner);
       if (localDeleteIndex >= 0) {
         this._deletedLocally.splice(localDeleteIndex, 1);
-      } else {
-        const item$ = this._store.values.find(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
-        if (item$) {
-          const key = deletedItem.uuid + '#' + deletedItem.owner;
-          deletedKeys.push(key);
-          const updatedIndex = this._updatedLocally.indexOf(key);
-          if (updatedIndex >= 0)
-            this._updatedLocally.splice(updatedIndex, 1);
-          deletedItems.push(item$);
-        }
+      }
+      const updatedIndex = this._updatedLocally.indexOf(key);
+      if (updatedIndex >= 0)
+        this._updatedLocally.splice(updatedIndex, 1);
+      const item$ = this._store.values.find(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
+      if (item$) {
+        deletedItems.push(item$);
       }
     });
     if (entitiesToAdd.length !== 0 || deletedItems.length !== 0) {
@@ -239,6 +241,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {
+    this._createdLocally = this._createdLocally.filter($item => !!$item.value);
     if (this._createdLocally.length === 0) return of(true);
     const toCreate = this._createdLocally.map(item$ => item$.value!);
     const ready = toCreate.filter(entity => this.readyToSave(entity));

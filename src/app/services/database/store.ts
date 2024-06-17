@@ -174,7 +174,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected performOperation(
     storeUpdater: () => void,
     tableUpdater: (db: Dexie) => Observable<any>,
-    statusUpdater: (status: SYNCSTATUS) => boolean
+    statusUpdater: (status: SYNCSTATUS) => boolean,
+    ondone?: () => void,
   ): void {
     const db = this._db!;
     let done = false;
@@ -189,16 +190,32 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       done = true;
 
       this._operationInProgress$.next(true);
-      storeUpdater();
-      tableUpdater(db)
+      let tableUpdate;
+      try {
+        storeUpdater();
+        tableUpdate = tableUpdater(db);
+      } catch (e) {
+        console.error(e);
+        this._operationInProgress$.next(false);
+        if (ondone) ondone();
+        return;
+      }
+      tableUpdate
       .pipe(defaultIfEmpty(true), catchError(error => of(true)))
       .subscribe(() => {
         const status = this.syncStatus;
-        if (statusUpdater(status)) {
+        let statusUpdated = false;
+        try {
+          statusUpdated = statusUpdater(status);
+        } catch (e) {
+          console.error(e);
+        }
+        if (statusUpdated) {
           this._lastSync = 0;
           this.syncStatus = status;
         }
         this._operationInProgress$.next(false);
+        if (ondone) ondone();
       });
     })
   }
@@ -247,7 +264,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract updateStatusWithLocalDelete(status: SYNCSTATUS): boolean;
 
-  public delete(item: STORE_ITEM): void {
+  public delete(item: STORE_ITEM, ondone?: () => void): void {
     this.performOperation(
       () => {
         const entity$ = this._store.values.find(item$ => item$.value && this.areSame(item$.value, item));
@@ -259,11 +276,12 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           this._store.remove([entity$]);
       },
       db => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item),
-      status => this.updateStatusWithLocalDelete(status)
+      status => this.updateStatusWithLocalDelete(status),
+      ondone,
     );
   }
 
-  public deleteIf(predicate: (item: STORE_ITEM) => boolean): void {
+  public deleteIf(predicate: (item: STORE_ITEM) => boolean, ondone?: () => void): void {
     let items: STORE_ITEM[] = [];
     this.performOperation(
       () => {
@@ -280,7 +298,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         this._store.remove(toDelete);
       },
       db => items.length === 0 ? of(true) : combineLatest(items.map(item => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item))),
-      status => items.length === 0 ? false : this.updateStatusWithLocalDelete(status)
+      status => items.length === 0 ? false : this.updateStatusWithLocalDelete(status),
+      ondone
     );
   }
 

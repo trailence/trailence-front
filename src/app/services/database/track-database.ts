@@ -1,7 +1,7 @@
 import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, from, map, mergeMap, of, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
-import Dexie, { Table } from "dexie";
+import Dexie, { PromiseExtended, Table } from "dexie";
 import { TrackDto } from "src/app/model/dto/track";
 import { Track } from "src/app/model/track";
 import { StoreSyncStatus } from "./store";
@@ -206,6 +206,7 @@ export class TrackDatabase {
     for (const segment of track.segments) {
       for (const point of segment.points) {
         const p = point.pos;
+        // TODO if the next point is almost in the same direction, we could skip it also
         if (!previous || p.distanceTo(previous) >= 25) {
           simplified.points.push({
             lat: point.pos.lat,
@@ -248,6 +249,7 @@ export class TrackDatabase {
     const dto = track.toDto();
     const simplified = this.simplify(track);
     const metadata = this.toMetadata(track);
+    console.log('create', track, dto, simplified, metadata);
     this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
       this.fullTrackTable?.add({
         key,
@@ -315,9 +317,9 @@ export class TrackDatabase {
     }
   }
 
-  public delete(uuid: string, owner: string): void {
+  public delete(uuid: string, owner: string, ondone?: () => void): void {
     const key = uuid + '#' + owner;
-    this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
+    let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
       await this.fullTrackTable?.put({
         key,
         uuid: uuid,
@@ -336,10 +338,14 @@ export class TrackDatabase {
     if (simplified$) simplified$.next(null);
     const metadata$ = this.metadata.get(key);
     if (metadata$) metadata$.next(null);
-    if (!this.syncStatus$.value!.hasLocalChanges) {
-      this.syncStatus$.value!.hasLocalChanges = true;
-      this.syncStatus$.next(this.syncStatus$.value);
-    }
+    if (!dbUpdated) dbUpdated = Promise.resolve();
+    dbUpdated.then(() => {
+      if (!this.syncStatus$.value!.hasLocalChanges) {
+        this.syncStatus$.value!.hasLocalChanges = true;
+        this.syncStatus$.next(this.syncStatus$.value);
+      }
+      if (ondone) ondone();
+    });
   }
 
   public isSavedOnServerAndNotDeletedLocally(uuid: string, owner: string): boolean {
@@ -457,7 +463,7 @@ export class TrackDatabase {
         items.forEach(item => {
           const request = () => {
             if (this.db !== db) return EMPTY;
-            return this.http.post<TrackDto>(environment.apiBaseUrl + '/track/v1', item).pipe(
+            return this.http.post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
               mergeMap(result => {
                 if (this.db !== db) return EMPTY;
                 return from(this.fullTrackTable!.put({
@@ -542,7 +548,7 @@ export class TrackDatabase {
         items.forEach(item => {
           const request = () => {
             if (this.db !== db) return EMPTY;
-            return this.http.put<TrackDto>(environment.apiBaseUrl + '/track/v1', item);
+            return this.http.put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track);
           }
           requests.push(limiter.add(request));
         });

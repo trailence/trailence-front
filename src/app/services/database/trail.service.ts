@@ -16,6 +16,8 @@ import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
 import { TagService } from './tag.service';
+import { CompositeOnDone } from 'src/app/utils/callback-utils';
+import { ProgressService } from '../progress/progress.service';
 
 @Injectable({
   providedIn: 'root'
@@ -67,12 +69,14 @@ export class TrailService {
     if (trail.description.length > 50000) trail.description = trail.description.substring(0, 50000);
   }
 
-  public delete(trail: Trail): void {
-    this.trackService.deleteByUuidAndOwner(trail.originalTrackUuid, trail.owner);
+  public delete(trail: Trail, ondone?: () => void): void {
+    const doneHandler = new CompositeOnDone(ondone);
+    this.trackService.deleteByUuidAndOwner(trail.originalTrackUuid, trail.owner, doneHandler.add());
     if (trail.currentTrackUuid !== trail.originalTrackUuid)
-      this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner);
-    this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid);
-    this._store.delete(trail);
+      this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner, doneHandler.add());
+    this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid, doneHandler.add());
+    this._store.delete(trail, doneHandler.add());
+    doneHandler.start();
   }
 
   public getTrailMenu(trail: Trail): MenuItem[] {
@@ -121,8 +125,17 @@ export class TrailService {
           text: texts.yes,
           role: 'danger',
           handler: () => {
-            trails.forEach(trail => this.delete(trail));
             alert.dismiss();
+            const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.deleting_trails, trails.length);
+            let index = 0;
+            const deleteNext = () => {
+              this.delete(trails[index], () => {
+                progress.addWorkDone(1);
+                index++;
+                if (index < trails.length) setTimeout(deleteNext, 0);
+              });
+            };
+            deleteNext();
           }
         }, {
           text: texts.no,
