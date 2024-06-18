@@ -2,8 +2,10 @@ import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, d
 import { DatabaseService } from "./database.service";
 import Dexie, { Table } from "dexie";
 import { NetworkService } from "../network/newtork.service";
-import { ArrayBehaviorSubject, CollectionObservable } from "src/app/utils/rxjs/observable-collection";
+import { CollectionObservable } from "src/app/utils/rxjs/collections/collection-observable";
 import { NgZone } from "@angular/core";
+import { ArrayBehaviorSubject } from 'src/app/utils/rxjs/collections/collection-behavior-subject';
+import { collection$filter } from 'src/app/utils/rxjs/collections/operators/filter';
 
 export interface StoreSyncStatus {
 
@@ -49,7 +51,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   public filter$(predicate: (item: STORE_ITEM) => boolean): CollectionObservable<Observable<STORE_ITEM | null>> {
     return this._store.pipe(
-      map(items$ => items$.filter(item$ => item$.value && predicate(item$.value)))
+      collection$filter((element: STORE_ITEM | null) => !!element && predicate(element))
     );
   }
 

@@ -249,7 +249,6 @@ export class TrackDatabase {
     const dto = track.toDto();
     const simplified = this.simplify(track);
     const metadata = this.toMetadata(track);
-    console.log('create', track, dto, simplified, metadata);
     this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
       this.fullTrackTable?.add({
         key,

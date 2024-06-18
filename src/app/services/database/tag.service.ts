@@ -14,7 +14,7 @@ import { TrailCollectionService } from "./trail-collection.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { TrailService } from "./trail.service";
 import { AuthService } from "../auth/auth.service";
-import { CollectionObservable } from "src/app/utils/rxjs/observable-collection";
+import { CollectionObservable } from "src/app/utils/rxjs/collections/collection-observable";
 
 @Injectable({
     providedIn: 'root'

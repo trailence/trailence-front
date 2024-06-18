@@ -8,7 +8,7 @@ import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { NetworkService } from "../network/newtork.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
-import { CollectionObservable } from "src/app/utils/rxjs/observable-collection";
+import { CollectionObservable } from "src/app/utils/rxjs/collections/collection-observable";
 import { ModalController, AlertController } from '@ionic/angular/standalone';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { I18nService } from '../i18n/i18n.service';

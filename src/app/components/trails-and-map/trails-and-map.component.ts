@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Platform } from '@ionic/angular';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, Observable, filter, map, mergeMap } from 'rxjs';
+import { BehaviorSubject, Observable, map, mergeMap, of } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -12,9 +12,14 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { CommonModule } from '@angular/common';
-import { ArrayBehaviorSubject, CollectionObservable, mergeMapCollectionObservable } from 'src/app/utils/rxjs/observable-collection';
+import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-observable';
 import { debounceTimeReduce } from 'src/app/utils/rxjs/rxjs-utils';
 import { Router } from '@angular/router';
+import { ArrayBehaviorSubject } from 'src/app/utils/rxjs/collections/collection-behavior-subject';
+import { collection$mergeMap } from 'src/app/utils/rxjs/collections/operators/merge-map';
+import { collection$filter } from 'src/app/utils/rxjs/collections/operators/filter';
+import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { collection$map } from 'src/app/utils/rxjs/collections/operators/map';
 
 @Component({
   selector: 'app-trails-and-map',
@@ -70,15 +75,19 @@ export class TrailsAndMapComponent extends AbstractComponent {
     this.trailsList$.next([]);
     if (!this.trails$) return;
     this.byStateAndVisible.subscribe(
-      mergeMapCollectionObservable(
-        this.trails$,
-        trail => trail.currentTrackUuid$.pipe(
-          mergeMap(uuid => this.trackService.getSimplifiedTrack$(uuid, trail!.owner)),
-          filter(track => !!track),
-          map(track => ({trail: trail!, track: track!}))
-        ),
-        item => new MapTrack(item.trail, item.track, 'red', 4, false, this.i18n)
+      this.trails$!.pipe(
+        collection$mergeMap<Trail | null, { trail: Trail | null, track: SimplifiedTrackSnapshot | null }>(trail => {
+          if (!trail) return of(({trail: null, track: null}));
+          return trail.currentTrackUuid$.pipe(
+            mergeMap(uuid => this.trackService.getSimplifiedTrack$(uuid, trail!.owner)),
+            map(track => ({trail, track}))
+          );
+        })
       ).pipe(
+        collection$filter(trailAndTrack => !!trailAndTrack.trail && !!trailAndTrack.track)
+      ).pipe(
+        collection$map(trailAndTrack => new MapTrack(trailAndTrack.trail!, trailAndTrack.track!, 'red', 4, false, this.i18n))
+      ).initialValuesThenChanges$.pipe(
         debounceTimeReduce(0, 250, (previousChanges, newChanges) => {
           previousChanges.added.push(...newChanges.added);
           previousChanges.removed.push(...newChanges.removed);

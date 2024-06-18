@@ -11,7 +11,7 @@ import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-and-map.component';
 import { CommonModule } from '@angular/common';
-import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
+import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-observable';
 import { MenuItem } from 'src/app/utils/menu-item';
 
 @Component({

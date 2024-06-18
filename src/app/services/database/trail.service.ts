@@ -12,7 +12,7 @@ import { TrailCollectionService } from './trail-collection.service';
 import { VersionedDto } from 'src/app/model/dto/versioned';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { AuthService } from '../auth/auth.service';
-import { CollectionObservable } from 'src/app/utils/rxjs/observable-collection';
+import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-observable';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
 import { TagService } from './tag.service';
