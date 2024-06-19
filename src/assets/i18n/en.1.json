@@ -75,6 +75,15 @@
       "actions": {
         "go_to_departure": "Go to departure",
         "download_map": "Download map"
+      },
+      "sections": {
+        "description": {
+          "title": "Description",
+          "placeholder": "Enter the description of the trail here"
+        },
+        "waypoints": {
+          "title": "Way Points"
+        }
       }
     },
     "collection_form": {

@@ -480,6 +480,11 @@ export class TrackDatabase {
           requests.push(limiter.add(request));
         });
         return zip(requests);
+      }),
+      catchError(error => {
+        // TODO
+        console.error(error);
+        return of(false);
       })
     );
   }
@@ -497,6 +502,11 @@ export class TrackDatabase {
           mergeMap(result => {
             if (this.db !== db) return EMPTY;
             return from(this.fullTrackTable!.bulkDelete(keys));
+          }),
+          catchError(error => {
+            // TODO
+            console.error(error);
+            return of(false);
           })
         );
       })
@@ -530,6 +540,11 @@ export class TrackDatabase {
             return (requests.length === 0 ? of([]) : zip(requests)).pipe(
               mergeMap(responses => this.updatesFromServer(db, responses.filter(t => !!t) as TrackDto[], response.deleted))
             );
+          }),
+          catchError(error => {
+            // TODO
+            console.error(error);
+            return of(false);
           })
         );
       })
@@ -554,6 +569,11 @@ export class TrackDatabase {
         return (requests.length === 0 ? of([]) : zip(requests)).pipe(
           mergeMap(responses => this.updatesFromServer(db, responses, []))
         );
+      }),
+      catchError(error => {
+        // TODO
+        console.error(error);
+        return of(false);
       })
     );
   }

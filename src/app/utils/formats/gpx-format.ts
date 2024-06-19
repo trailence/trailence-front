@@ -23,6 +23,14 @@ export class GpxImporter {
     trail.name = XmlUtils.getChildText(trk, 'name') ?? '';
     trail.description = XmlUtils.getChildText(trk, 'desc') ?? '';
 
+    const metadata = XmlUtils.getChild(doc.documentElement, 'metadata');
+    if (metadata) {
+      const name = XmlUtils.getChildText(metadata, 'name');
+      if (name && name.length > 0) trail.name = name;
+      const desc = XmlUtils.getChildText(metadata, 'desc');
+      if (desc && desc.length > 0) trail.description = desc;
+    }
+
     for (const trkseg of XmlUtils.getChildren(trk, 'trkseg')) {
       const segment = track.newSegment();
       for (const trkpt of XmlUtils.getChildren(trkseg, 'trkpt')) {

@@ -75,6 +75,15 @@
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte"
+      },
+      "sections": {
+        "description": {
+          "title": "Description du parcours",
+          "placeholder": "Entrez une description ici"
+        },
+        "waypoints": {
+          "title": "Points de passage"
+        }
       }
     },
     "collection_form": {

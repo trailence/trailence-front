@@ -30,7 +30,12 @@ export class Track extends Owned {
       }
     });
     dto.wp?.forEach(wp => {
-      const pt = new Point(wp.l, wp.n, wp.e, wp.t);
+      const pt = new Point(
+        PointDtoMapper.readCoordValue(wp.l),
+        PointDtoMapper.readCoordValue(wp.n),
+        wp.e !== undefined ? PointDtoMapper.readElevationValue(wp.e) : undefined,
+        wp.t
+      );
       this.appendWayPoint(new WayPoint(pt, wp.na ?? '', wp.de ?? ''));
     });
   }

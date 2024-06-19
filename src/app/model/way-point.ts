@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Point } from './point';
+import { Point, PointDtoMapper } from './point';
 import { WayPointDto } from './dto/way-point';
 
 export class WayPoint {
@@ -31,9 +31,9 @@ export class WayPoint {
   public toDto(): WayPointDto {
     const p = this._point.pos;
     return {
-      l: p.lat,
-      n: p.lng,
-      e: this._point.ele,
+      l: PointDtoMapper.writeCoordValue(p.lat),
+      n: PointDtoMapper.writeCoordValue(p.lng),
+      e: this._point.ele !== undefined ? PointDtoMapper.writeElevationValue(this._point.ele) : undefined,
       t: this._point.time,
       na: this._name.value,
       de: this._description.value,

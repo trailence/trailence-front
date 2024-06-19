@@ -16,9 +16,9 @@ export class SimpleStoreSyncStatus implements StoreSyncStatus {
     public localCreates = true;
     public localDeletes = true;
     public needsUpdateFromServer = true;
-  
+
     public inProgress = false;
-  
+
     public get needsSync(): boolean { return this.localCreates || this.localDeletes || this.needsUpdateFromServer; }
 }
 
@@ -43,7 +43,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     protected abstract fromDTO(dto: DTO): ENTITY;
     protected abstract toDTO(entity: ENTITY): DTO;
     protected abstract getKey(entity: ENTITY): string;
-  
+
     protected abstract createOnServer(items: DTO[]): Observable<DTO[]>;
     protected abstract deleteFromServer(items: DTO[]): Observable<void>;
     protected abstract getAllFromServer(): Observable<DTO[]>;
@@ -124,16 +124,16 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       status.localDeletes = true;
       return true;
     }
-  
+
 
     protected override sync(): void {
         console.log('Sync table ' + this.tableName + ' with status ', this._syncStatus$.value);
         const db = this._db;
         const stillValid = () => this._db === db;
-    
+
         this._syncStatus$.value.inProgress = true;
         this._syncStatus$.next(this._syncStatus$.value);
-    
+
         this.syncCreateNewItems(stillValid)
         .pipe(
           mergeMap(result => {
@@ -202,7 +202,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           }),
         );
       }
-    
+
       private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
         if (this._deletedLocally.length === 0) return of(true);
         const toDelete = [...this._deletedLocally];
@@ -262,6 +262,11 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                   return this.saveStore();
                 }
                 return of(true);
+            }),
+            catchError(error => {
+              // TODO
+              console.error(error);
+              return of(false);
             })
         );
       }

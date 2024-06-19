@@ -45,6 +45,26 @@
         <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="12" color="primary" (click)="goToDeparture()"></app-icon-label-button>
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="12" color="primary" (click)="downloadMap()"></app-icon-label-button>
       </div>
+      <ng-container *ngIf="!trail2">
+        <div class="section-title">
+          <ion-icon name="text"></ion-icon>
+          <div>{{ i18n.texts.pages.trail.sections.description.title }}</div>
+        </div>
+        <div class="description-text" *ngIf="!editable">
+          {{ trail1.description }}
+        </div>
+        <ion-textarea class="description-text"
+          [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
+          [maxlength]="50000"
+          [autoGrow]="true"
+          [value]="trail1.description"
+          (ionInput)="descriptionChanged($event.detail.value)"
+        ></ion-textarea>
+        <div class="section-title">
+          <ion-icon name="waypoint"></ion-icon>
+          <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+        </div>
+      </ng-container>
     </div>
     <div class="elevation-container">
       <app-elevation-graph [track1]="tracks[0]" [track2]="tracks[1]" (pointHover)="elevationGraphPointHover($event)"></app-elevation-graph>

@@ -37,11 +37,13 @@ export class AssetsService {
       'sort': 'assets/ionicons/swap-vertical-outline.svg',
       'sync': 'assets/ionicons/sync-circle-outline.svg',
       'tags': 'assets/ionicons/pricetags-outline.svg',
+      'text': 'assets/ionicons/reader-outline.svg',
       'trash': 'assets/ionicons/trash.svg',
       'theme': 'assets/ionicons/color-palette-outline.svg',
       'theme-light': 'assets/ionicons/sunny-outline.svg',
       'theme-dark': 'assets/ionicons/moon-outline.svg',
       'theme-system': 'assets/ionicons/cog-outline.svg',
+      'waypoint': 'assets/ionicons/location.svg',
     };
     addIcons(this.icons);
   }

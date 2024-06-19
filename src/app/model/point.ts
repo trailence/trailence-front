@@ -67,8 +67,12 @@ export class PointDtoMapper {
 
   private static toCoord(value: number | undefined, previous: number | undefined): number {
     if (value === undefined) return previous!;
-    if (previous === undefined) return parseFloat((value / 1000000).toFixed(6));
-    return previous + parseFloat((value / 1000000).toFixed(6));
+    if (previous === undefined) return this.readCoordValue(value);
+    return previous + this.readCoordValue(value);
+  }
+
+  public static readCoordValue(value: number): number {
+    return parseFloat((value / 1000000).toFixed(6));
   }
 
   private static toValue(value: number | undefined, previous: number | undefined, factor: number): number | undefined {
@@ -84,11 +88,15 @@ export class PointDtoMapper {
     return value / factor;
   }
 
+  public static readElevationValue(value: number): number {
+    return this.divideFactor(value, 10);
+  }
+
   public static toDto(point: Point, previous?: Point): PointDto {
     const pos = point.pos;
     if (!previous) return {
-      l: Math.floor(pos.lat * 1000000),
-      n: Math.floor(pos.lng * 1000000),
+      l: this.writeCoordValue(pos.lat),
+      n: this.writeCoordValue(pos.lng),
       e: point.ele !== undefined ? Math.floor(point.ele * 10) : undefined,
       t: point.time
     };
@@ -99,6 +107,14 @@ export class PointDtoMapper {
     dto.e = this.diff(point.ele, previous.ele, 10);
     dto.t = this.diff(point.time, previous.time, 1);
     return dto;
+  }
+
+  public static writeCoordValue(value: number): number {
+    return Math.floor(value * 1000000);
+  }
+
+  public static writeElevationValue(value: number): number {
+    return Math.floor(value * 10);
   }
 
   private static diffCoord(newValue: number, previousValue: number | undefined): number | undefined {

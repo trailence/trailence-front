@@ -1,5 +1,5 @@
 import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest, debounceTime, map, mergeMap, of } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -9,7 +9,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -17,13 +17,15 @@ import { Point } from 'src/app/model/point';
 import { ElevationGraphPointReference } from '../elevation-graph/elevation-graph-point-reference';
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
+import { TrailService } from 'src/app/services/database/trail.service';
 
 @Component({
   selector: 'app-trail',
   templateUrl: './trail.component.html',
   styleUrls: ['./trail.component.scss'],
   standalone: true,
-  imports: [IonButton, IonIcon, IonSegmentButton, IonSegment,
+  imports: [IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
     CommonModule,
     MapComponent,
     TrackMetadataComponent,
@@ -49,12 +51,17 @@ export class TrailComponent extends AbstractComponent {
   bottomSheetOpen = false;
   bottomSheetTab = 'info';
 
+  editable = false;
+  edited$ = new Subject<boolean>();
+
   constructor(
     injector: Injector,
     private trackService: TrackService,
     public i18n: I18nService,
     private platform: Platform,
     private offlineMap: OfflineMapService,
+    private auth: AuthService,
+    private trailService: TrailService,
   ) {
     super(injector);
   }
@@ -95,8 +102,18 @@ export class TrailComponent extends AbstractComponent {
         }
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
+
+        this.editable = !this.trail2 && !!this.trail1 && this.trail1.owner === this.auth.email;
       }
     );
+    this.byState.add(
+      this.edited$.pipe(
+        debounceTime(1000)
+      ).subscribe(() => {
+        if (this.editable)
+          this.saveTrail();
+      })
+    )
   }
 
   private trail$(trail$?: Observable<Trail | null>): Observable<[Trail | null, Track | undefined, MapTrack | undefined]> {
@@ -238,5 +255,18 @@ export class TrailComponent extends AbstractComponent {
     if (!bounds) return;
     bounds = (bounds as L.LatLngBounds).pad(1);
     this.offlineMap.save(bounds, layer.tiles, this.map.crs, layer.layer);
+  }
+
+  descriptionChanged(text: string | null | undefined): void {
+    text = text ?? '';
+    if (this.trail1?.description !== text) {
+      this.trail1!.description = text;
+      this.edited$.next(true);
+    }
+  }
+
+  saveTrail(): void {
+    if (this.trail1)
+      this.trailService.update(this.trail1);
   }
 }

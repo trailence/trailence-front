@@ -94,7 +94,8 @@ export class MapTrackWayPoints {
     if (this._track instanceof Track) {
       let num = 1;
       for (const wp of this._track.wayPoints) {
-        if (wp.point.samePosition(departurePoint) || wp.point.samePosition(arrivalPoint)) continue;
+        if ((departurePoint && wp.point.distanceTo(departurePoint) < 10) ||
+            (arrivalPoint && wp.point.distanceTo(arrivalPoint) < 10)) continue;
         const anchor = new MapAnchor(wp.point.pos, anchorBorderColor, '' + num, undefined, anchorTextColor, anchorFillColor);
         this._anchors.push(anchor);
         num++;
