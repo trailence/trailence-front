@@ -1,5 +1,5 @@
 import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, combineLatest, debounceTime, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, filter, map, mergeMap, of } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -19,7 +19,7 @@ import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailService } from 'src/app/services/database/trail.service';
-import { Recording } from 'src/app/services/trace-recorder/trace-recorder.service';
+import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 
 @Component({
   selector: 'app-trail',
@@ -65,6 +65,7 @@ export class TrailComponent extends AbstractComponent {
     private offlineMap: OfflineMapService,
     private auth: AuthService,
     private trailService: TrailService,
+    private traceRecorder: TraceRecorderService,
   ) {
     super(injector);
   }
@@ -121,6 +122,24 @@ export class TrailComponent extends AbstractComponent {
         this.editable = !this.trail2 && !!this.trail1 && this.trail1.owner === this.auth.email;
       }
     );
+    if (this.recording$)
+      this.byStateAndVisible.subscribe(
+        this.recording$.pipe(
+          mergeMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
+          map(r => r?.track.arrivalPoint),
+        ),
+        pt => {
+          console.log(pt);
+          if (this.map) {
+            if (pt)
+              this.map.showLocation(pt.pos.lat, pt.pos.lng);
+            else
+              this.map.hideLocation();
+          }
+        }
+      );
+    else
+      this.map?.hideLocation();
     this.byState.add(
       this.edited$.pipe(
         debounceTime(1000)
@@ -278,6 +297,17 @@ export class TrailComponent extends AbstractComponent {
       this.trail1!.description = text;
       this.edited$.next(true);
     }
+  }
+
+  togglePauseRecording(): void {
+    if (this.recording?.paused)
+      this.traceRecorder.resume();
+    else
+      this.traceRecorder.pause();
+  }
+
+  stopRecording(): void {
+    this.traceRecorder.stop(false).subscribe(); // TODO save
   }
 
   saveTrail(): void {

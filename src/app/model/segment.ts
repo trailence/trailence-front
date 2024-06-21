@@ -26,14 +26,13 @@ export class Segment {
 
   public append(point: Point): this {
     this._points.value.push(point)
-    this._points.next(this._points.value);
     this._segmentPoints.push(new SegmentPoint(this._meta, point, Arrays.last(this._segmentPoints), undefined));
+    this._points.next(this._points.value);
     return this;
   }
 
   public appendMany(points: Point[]): this {
     this._points.value.push(...points)
-    this._points.next(this._points.value);
     let previous = Arrays.last(this._segmentPoints);
     const nb = points.length;
     const newPoints: SegmentPoint[] = new Array(nb);
@@ -45,6 +44,7 @@ export class Segment {
     this._meta.computeNewPoints(newPoints);
     for (let i = 0; i < nb; ++i) newPoints[i].setMeta(this._meta);
     this._segmentPoints.push(...newPoints);
+    this._points.next(this._points.value);
     return this;
   }
 

@@ -1,4 +1,4 @@
-<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}" *ngIf="trail1 || recording">
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}">
   <div class="map-container">
     <app-map
       mapId="trail-{{trail1?.owner || recording?.trail?.owner}}-{{trail1?.uuid || recording?.trail?.uuid}}"
@@ -44,6 +44,10 @@
       <div class="actions">
         <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="12" color="primary" (click)="goToDeparture()"></app-icon-label-button>
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="12" color="primary" (click)="downloadMap()"></app-icon-label-button>
+        <ng-container *ngIf="recording">
+          <app-icon-label-button [icon]="recording.paused ? 'play-circle' : 'pause-circle'" [label]="i18n.texts.trace_recorder[recording.paused ? 'resume' : 'pause']" [size]="28" [fontSize]="12" color="primary" (click)="togglePauseRecording()"></app-icon-label-button>
+          <app-icon-label-button icon="stop-circle" [label]="i18n.texts.trace_recorder.stop" [size]="28" [fontSize]="12" color="primary" (click)="stopRecording()"></app-icon-label-button>
+        </ng-container>
       </div>
       <ng-container *ngIf="trail1 && !trail2">
         <div class="section-title">

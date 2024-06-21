@@ -136,9 +136,10 @@ export class TraceRecorderService {
   public stop(save: boolean): Observable<Trail | null> {
     const recording = this._recording$.value;
     if (!recording) return of(null);
-    this._recording$.next(null);
     return this.stopRecording(recording).pipe(
       mergeMap(() => {
+        console.log('Recording stopped');
+        this._recording$.next(null);
         if (this._table) this._table.delete(1);
         if (save && this._email) {
           this.trackService.create(recording.track)

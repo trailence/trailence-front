@@ -100,6 +100,16 @@ export class MapTrackWayPoints {
         this._anchors.push(anchor);
         num++;
       }
+      if (!departurePoint) {
+        const subscr = this._track.changes$.subscribe(() => {
+          departurePoint = (this._track as Track).departurePoint?.pos;
+          if (departurePoint) {
+            subscr.unsubscribe();
+            this._departure = new MapAnchor(departurePoint, anchorDepartureBorderColor, this.i18n.texts.way_points.D, undefined, anchorDepartureTextColor, anchorDepartureFillColor);
+            if (this._showDA) this.addDAToMap();
+          }
+        });
+      }
       // TODO listen to changes
     }
   }

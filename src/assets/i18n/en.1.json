@@ -131,6 +131,9 @@
   },
   "downloading_map": "Downloading map",
   "trace_recorder": {
-    "trail_name_start": "Trail of"
+    "trail_name_start": "Trail of",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop"
   }
 }

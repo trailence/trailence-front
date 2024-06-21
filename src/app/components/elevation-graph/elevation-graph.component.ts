@@ -157,7 +157,7 @@ export class ElevationGraphComponent extends AbstractComponent {
               return title;
             },
             label: (context: any) => {
-              return this.i18n.elevationToString(context.raw.ele);
+              return context.raw.ele ? this.i18n.elevationToString(context.raw.ele) : '';
             },
             labelColor: (context: any) => {
               return {

@@ -79,7 +79,10 @@ export class MapTrackPath {
     if (p.isEmpty()) {
       return undefined;
     }
-    return p.getBounds();
+    const b = p.getBounds();
+    if (b.isValid())
+      return b;
+    return undefined;
   }
 
   public get color(): string { return this._color; }

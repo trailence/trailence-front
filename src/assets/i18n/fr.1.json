@@ -131,6 +131,9 @@
   },
   "downloading_map": "Téléchargement de la carte",
   "trace_recorder": {
-    "trail_name_start": "Parcours du"
+    "trail_name_start": "Parcours du",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "stop": "Terminer"
   }
 }

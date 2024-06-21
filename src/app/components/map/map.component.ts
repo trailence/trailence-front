@@ -15,6 +15,7 @@ import { handleMapOffline } from './map-tiles-layer-offline';
 import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
 import { NetworkService } from 'src/app/services/network/newtork.service';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { MapCenterOnPositionTool } from './tools/center-on-location';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -158,6 +159,61 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
+  private _followingLocation = false;
+  private _locationMarker?: L.CircleMarker;
+  private _toolCenterOnPosition?: L.Control;
+  public showLocation(lat: number, lng: number): void {
+    if (this._locationMarker) {
+      this._locationMarker.setLatLng({lat, lng});
+      if (this._map$.value && this._followingLocation && !this._map$.value.getBounds().pad(-0.2).contains(this._locationMarker.getLatLng())) {
+        this.centerOnLocation();
+      }
+    } else {
+      this._locationMarker = new L.CircleMarker({lat, lng}, {
+        radius: 7,
+        color: '#2020FF',
+        opacity: 0.75,
+        stroke: true,
+      });
+      this._followingLocation = true;
+      if (this._map$.value) {
+        this._locationMarker.addTo(this._map$.value);
+        this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+        this._followingLocation = true;
+        if (!this._toolCenterOnPosition) {
+          this.addToolCenterOnPosition(this._map$.value);
+        }
+      }
+    }
+  }
+
+  public centerOnLocation(): void {
+    if (this._map$.value && this._locationMarker) {
+      this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+    }
+    this._followingLocation = true;
+  }
+
+  public hideLocation(): void {
+    if (this._locationMarker) {
+      if (this._map$.value) {
+        this._locationMarker.removeFrom(this._map$.value);
+      }
+      this._locationMarker = undefined;
+    }
+    this._followingLocation = false;
+    if (this._toolCenterOnPosition) {
+      this._toolCenterOnPosition.remove();
+      this._toolCenterOnPosition = undefined;
+    }
+  }
+
+  private addToolCenterOnPosition(map: L.Map): void {
+    this._toolCenterOnPosition = new MapCenterOnPositionTool({
+      position: 'topleft'
+    }).addTo(map);
+  }
+
 
   private readyForMap$(): Observable<boolean> {
     return new Observable<boolean>(subscriber => {
@@ -225,6 +281,13 @@ export class MapComponent extends AbstractComponent {
     map.on('fitTrackBounds', () => this.fitTracksBounds(map, this._currentTracks));
 
     this.cursors.addTo(map);
+
+    if (this._locationMarker) {
+      this._locationMarker.addTo(map);
+      map.setView(this._locationMarker.getLatLng(), Math.max(map.getZoom(), 16));
+      this.addToolCenterOnPosition(map);
+    }
+    map.on('centerOnLocation', () => this.centerOnLocation());
 
     this._map$.next(map);
 
