@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
 import * as L from 'leaflet';
 import { PointDto } from './dto/point';
 
@@ -7,16 +7,28 @@ export class Point {
   private _pos: BehaviorSubject<L.LatLng>;
   private _ele: BehaviorSubject<number | undefined>;
   private _time: BehaviorSubject<number | undefined>;
+  private _posAccuracy: BehaviorSubject<number | undefined>;
+  private _eleAccuracy: BehaviorSubject<number | undefined>;
+  private _heading: BehaviorSubject<number | undefined>;
+  private _speed: BehaviorSubject<number | undefined>;
 
   constructor(
     lat: number,
     lng: number,
     ele?: number,
     time?: number,
+    posAccuracy?: number,
+    eleAccuracy?: number,
+    heading?: number,
+    speed?: number,
   ) {
     this._pos = new BehaviorSubject<L.LatLng>(new L.LatLng(lat, lng));
     this._ele = new BehaviorSubject<number | undefined>(ele);
     this._time = new BehaviorSubject<number | undefined>(time);
+    this._posAccuracy = new BehaviorSubject<number | undefined>(posAccuracy);
+    this._eleAccuracy = new BehaviorSubject<number | undefined>(eleAccuracy);
+    this._heading = new BehaviorSubject<number | undefined>(heading);
+    this._speed = new BehaviorSubject<number | undefined>(speed);
   }
 
   public get pos(): L.LatLng { return this._pos.value; }
@@ -27,6 +39,24 @@ export class Point {
 
   public get time(): number | undefined { return this._time.value; }
   public get time$(): Observable<number | undefined> { return this._time; }
+
+  public get posAccuracy(): number | undefined { return this._posAccuracy.value; }
+  public get posAccuracy$(): Observable<number | undefined> { return this._posAccuracy; }
+
+  public get eleAccuracy(): number | undefined { return this._eleAccuracy.value; }
+  public get eleAccuracy$(): Observable<number | undefined> { return this._eleAccuracy; }
+
+  public get heading(): number | undefined { return this._heading.value; }
+  public get heading$(): Observable<number | undefined> { return this._heading; }
+
+  public get speed(): number | undefined { return this._speed.value; }
+  public get speed$(): Observable<number | undefined> { return this._speed; }
+
+  public get changes$(): Observable<any> {
+    return combineLatest([this.pos$, this.ele$, this.time$, this.posAccuracy$, this.eleAccuracy$, this.heading$, this.speed$]).pipe(
+      skip(1)
+    );
+  }
 
   public distanceTo(other: L.LatLngExpression): number {
     return L.CRS.Earth.distance(this._pos.value, other);
@@ -61,7 +91,11 @@ export class PointDtoMapper {
       this.toCoord(dto.l, p?.lat),
       this.toCoord(dto.n, p?.lng),
       this.toValue(dto.e, previous?.ele, 10),
-      this.toValue(dto.t, previous?.time, 1)
+      this.toValue(dto.t, previous?.time, 1),
+      dto.pa === undefined ? undefined : this.divideFactor(dto.pa, 100),
+      dto.ea === undefined ? undefined : this.divideFactor(dto.ea, 100),
+      dto.h === undefined ? undefined : this.divideFactor(dto.h, 100),
+      dto.s === undefined ? undefined : this.divideFactor(dto.s, 100),
     );
   }
 
@@ -98,7 +132,11 @@ export class PointDtoMapper {
       l: this.writeCoordValue(pos.lat),
       n: this.writeCoordValue(pos.lng),
       e: point.ele !== undefined ? Math.floor(point.ele * 10) : undefined,
-      t: point.time
+      t: point.time,
+      pa: point.posAccuracy !== undefined ? Math.floor(point.posAccuracy * 100) : undefined,
+      ea: point.eleAccuracy !== undefined ? Math.floor(point.eleAccuracy * 100) : undefined,
+      h: point.heading !== undefined ? Math.floor(point.heading * 100) : undefined,
+      s: point.speed !== undefined ? Math.floor(point.speed * 100) : undefined,
     };
     const prevPos = previous.pos;
     const dto: PointDto = {};
@@ -106,6 +144,10 @@ export class PointDtoMapper {
     if (pos.lng !== prevPos.lng) dto.n = this.diffCoord(pos.lng, prevPos.lng);
     dto.e = this.diff(point.ele, previous.ele, 10);
     dto.t = this.diff(point.time, previous.time, 1);
+    if (point.posAccuracy !== undefined) dto.pa = Math.floor(point.posAccuracy * 100);
+    if (point.eleAccuracy !== undefined) dto.ea = Math.floor(point.eleAccuracy * 100);
+    if (point.heading !== undefined) dto.h = Math.floor(point.heading * 100);
+    if (point.speed !== undefined) dto.s = Math.floor(point.speed * 100);
     return dto;
   }
 

@@ -54,12 +54,9 @@ export class TrailsPage extends AbstractPage {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState.type === 'collection' && newState.id === 'my_trails') {
-      this.injector.get(TrailCollectionService).getAll$().values$.pipe(
-        mergeMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
-        map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
-        filter(myTrails => !!myTrails),
-        first()
-      ).subscribe(myTrails => this.injector.get(Router).navigateByUrl('/trails/collection/' + myTrails!.uuid));
+      this.injector.get(TrailCollectionService).getMyTrails$().subscribe(
+        myTrails => this.injector.get(Router).navigateByUrl('/trails/collection/' + myTrails!.uuid)
+      );
       return;
     }
     this.reset();

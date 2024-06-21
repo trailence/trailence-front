@@ -6,6 +6,7 @@ import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collec
 import { combineLatest, map, mergeMap, of } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 
 @Component({
   selector: 'app-menu',
@@ -26,6 +27,7 @@ export class MenuComponent {
     public collectionService: TrailCollectionService,
     private router: Router,
     public menuController: MenuController,
+    public traceRecorder: TraceRecorderService,
   ) {
     collectionService.getAll$().values$.pipe(
       mergeMap(items$ => items$.length === 0 ? of([]) : combineLatest(items$)),
@@ -42,6 +44,20 @@ export class MenuComponent {
 
   goTo(url: string): void {
     this.router.navigateByUrl(url);
+  }
+
+  goToRecordTrace(): void {
+    const trace = this.traceRecorder.current;
+    if (trace) {
+      if (trace.followingTrailUuid) {
+        this.goTo('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrackUuid!);
+      } else {
+        this.goTo('/trail');
+      }
+    } else {
+      this.traceRecorder.start();
+      this.goTo('/trail');
+    }
   }
 
 }

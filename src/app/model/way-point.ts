@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
 import { Point, PointDtoMapper } from './point';
 import { WayPointDto } from './dto/way-point';
 
@@ -27,6 +27,12 @@ export class WayPoint {
   public get description(): string { return this._description.value; }
   public get description$(): Observable<string> { return this._description; }
   public set description(value: string) { if (this._description.value !== value) this._description.next(value); }
+
+  public get changes$(): Observable<any> {
+    return combineLatest([this.name$, this.description$]).pipe(
+      skip(1)
+    );
+  }
 
   public toDto(): WayPointDto {
     const p = this._point.pos;

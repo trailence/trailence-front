@@ -92,7 +92,9 @@
     }
   },
   "menu": {
-    "collections": "Collections"
+    "collections": "Collections",
+    "start_trace": "Start a trace",
+    "current_trace": "Trace in progress"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -127,5 +129,8 @@
     "elevation": "Altitude",
     "time_duration": "Time"
   },
-  "downloading_map": "Downloading map"
+  "downloading_map": "Downloading map",
+  "trace_recorder": {
+    "trail_name_start": "Trail of"
+  }
 }

@@ -13,6 +13,9 @@ export interface Preferences {
   dateFormat?: DateFormat;
   theme?: ThemeType;
 
+  traceMinMeters?: number;
+  traceMinMillis?: number;
+
 }
 
 export interface ComputedPreferences extends Preferences {
@@ -23,5 +26,8 @@ export interface ComputedPreferences extends Preferences {
   hourFormat: HourFormat;
   dateFormat: DateFormat;
   theme: ThemeType;
+
+  traceMinMeters: number;
+  traceMinMillis: number;
 
 }

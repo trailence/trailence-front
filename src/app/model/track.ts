@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, combineLatest, map, mergeMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, map, mergeMap, of, skip } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
 import { Point, PointDtoMapper } from './point';
 import { Owned } from './owned';
@@ -18,6 +18,19 @@ export class Track extends Owned {
   public get wayPoints$(): Observable<WayPoint[]> { return this._wayPoints; }
 
   public get metadata(): TrackMetadata { return this._meta };
+
+  public get changes$(): Observable<any> {
+    return combineLatest([
+      this.segments$.pipe(
+        mergeMap(segments => segments.length === 0 ? of([]) : concat(of([]), combineLatest(segments.map(s => s.changes$))))
+      ),
+      this.wayPoints$.pipe(
+        mergeMap(wayPoints => wayPoints.length === 0 ? of([]) : concat(of([]), combineLatest(wayPoints.map(wp => wp.changes$))))
+      )
+    ]).pipe(
+      skip(1)
+    );
+  }
 
   constructor(
     dto: Partial<TrackDto>

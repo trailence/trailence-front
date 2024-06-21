@@ -19,6 +19,7 @@ import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailService } from 'src/app/services/database/trail.service';
+import { Recording } from 'src/app/services/trace-recorder/trace-recorder.service';
 
 @Component({
   selector: 'app-trail',
@@ -35,11 +36,13 @@ import { TrailService } from 'src/app/services/database/trail.service';
 })
 export class TrailComponent extends AbstractComponent {
 
-  @Input() trail1$!: Observable<Trail | null>;
+  @Input() trail1$?: Observable<Trail | null>;
   @Input() trail2$?: Observable<Trail | null>;
+  @Input() recording$?: Observable<Recording | null>;
 
   trail1: Trail | null = null;
   trail2: Trail | null = null;
+  recording: Recording | null = null;
   tracks$ = new BehaviorSubject<Track[]>([]);
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
 
@@ -76,29 +79,41 @@ export class TrailComponent extends AbstractComponent {
   protected override getComponentState() {
     return {
       trail1: this.trail1$,
-      trail2: this.trail2$
+      trail2: this.trail2$,
+      recording: this.recording$,
     }
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.trail1 = null;
     this.trail2 = null;
+    this.recording = null;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$)]),
-      ([trail1, trail2]) => {
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), this.recording$ || of(null)]),
+      ([trail1, trail2, recording]) => {
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
+        this.recording = recording;
         const tracks: Track[] = [];
         if (trail1[1]) {
           tracks.push(trail1[1]);
           if (trail2[1]) tracks.push(trail2[1]);
         }
+        if (recording && !trail2[0]) {
+          tracks.push(recording.track);
+        }
         const mapTracks: MapTrack[] = [];
         if (trail1[2]) {
           mapTracks.push(trail1[2]);
           if (trail2[2]) mapTracks.push(trail2[2]);
+        }
+        if (recording && !trail2[0]) {
+          const mapTrack = new MapTrack(recording.trail, recording.track, 'blue', 1, true, this.i18n);
+          mapTrack.showDepartureAndArrivalAnchors();
+          mapTrack.showArrowPath();
+          mapTracks.push(mapTrack)
         }
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);

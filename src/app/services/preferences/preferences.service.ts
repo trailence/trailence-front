@@ -24,6 +24,9 @@ const defaultPreferences: {[key:string]: Preferences} = {
 
 const LOCALSTORAGE_PREFERENCES_KEY = 'trailence.preferences';
 
+const DEFAULT_TRACE_MIN_METERS = 5;
+const DEFAULT_TRACE_MIN_MILLIS = 500;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -81,6 +84,8 @@ export class PreferencesService {
     if (!toComplete.distanceUnit) toComplete.distanceUnit = withPrefs.distanceUnit;
     if (!toComplete.hourFormat) toComplete.hourFormat = withPrefs.hourFormat;
     if (!toComplete.dateFormat) toComplete.dateFormat = withPrefs.dateFormat;
+    if (toComplete.traceMinMeters === undefined) toComplete.traceMinMeters = DEFAULT_TRACE_MIN_METERS;
+    if (toComplete.traceMinMillis === undefined) toComplete.traceMinMillis = DEFAULT_TRACE_MIN_MILLIS;
   }
 
   private getDefaultLanguage(): string {

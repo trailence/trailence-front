@@ -32,6 +32,7 @@ export class AssetsService {
       'offline': 'assets/ionicons/alert-circle-outline.svg',
       'online': 'assets/ionicons/checkmark-circle-outline.svg',
       'negative-elevation': 'assets/negative-elevation.1.svg',
+      'play': 'assets/ionicons/play-outline.svg',
       'positive-elevation': 'assets/positive-elevation.1.svg',
       'settings': 'assets/ionicons/settings.svg',
       'sort': 'assets/ionicons/swap-vertical-outline.svg',

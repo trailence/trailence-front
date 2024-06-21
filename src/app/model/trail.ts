@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
 import { TrailDto } from './dto/trail';
 import { Owned } from './owned';
 
@@ -9,7 +9,7 @@ export class Trail extends Owned {
 
   private _originalTrackUuid$: BehaviorSubject<string>;
   private _currentTrackUuid$: BehaviorSubject<string>;
-  
+
   private _collectionUuid$: BehaviorSubject<string>;
 
   constructor(
@@ -45,6 +45,12 @@ export class Trail extends Owned {
   public get collectionUuid(): string { return this._collectionUuid$.value; }
   public get collectionUuid$(): Observable<string> { return this._collectionUuid$; }
   public set collectionUuid(value: string) { this.setValue(value, this._collectionUuid$); }
+
+  public get changes$(): Observable<any> {
+    return combineLatest([this.name$, this.description$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
+      skip(1),
+    );
+  }
 
   private setValue(value: string, target$: BehaviorSubject<string>): void {
     if (value === target$.value) return;

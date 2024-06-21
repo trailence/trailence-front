@@ -50,6 +50,13 @@
     background-color: var(--ion-color-light);
   }
 
+  ion-icon {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+  }
+
   .item-title {
     flex: 1 1 100%;
     font-size: 16px;
@@ -61,4 +68,8 @@
   &.under-section {
     padding-left: 24px;
   }
+}
+
+.menu-separator {
+  height: 16px;
 }

@@ -72,7 +72,7 @@ export class MapTrackWayPoints {
     let arrivalPoint: L.LatLngLiteral | undefined;
     if (this._track instanceof Track) {
       departurePoint = this._track.departurePoint?.pos;
-      arrivalPoint = this._track.arrivalPoint?.pos;
+      arrivalPoint = this._isRecording ? undefined : this._track.arrivalPoint?.pos;
     } else {
       departurePoint = this._track.points[0];
       arrivalPoint = this._track.points[this._track.points.length - 1];

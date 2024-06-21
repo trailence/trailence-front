@@ -6,6 +6,7 @@ import { HeaderComponent } from 'src/app/components/header/header.component';
 import { TrailComponent } from 'src/app/components/trail/trail.component';
 import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';
+import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
 
 @Component({
@@ -26,11 +27,13 @@ export class TrailPage extends AbstractPage {
 
   trail$ = new BehaviorSubject<Trail | null>(null);
   backUrl?: string;
+  recording$ = new BehaviorSubject<Recording | null>(null);
 
   constructor(
     injector: Injector,
     route: ActivatedRoute,
     private trailService: TrailService,
+    traceRecorder: TraceRecorderService,
   ) {
     super(injector);
     this.whenAlive.add(
@@ -41,6 +44,9 @@ export class TrailPage extends AbstractPage {
         }
       )
     );
+    this.whenVisible.subscribe(traceRecorder.current$, recording => {
+      this.recording$.next(recording ? recording : null);
+    })
   }
 
   protected override getComponentState() {
