@@ -33,6 +33,13 @@
         "positive_elevation": "Dénivelé positif",
         "negative_elevation": "Dénivelé négatif"
       },
+      "filters": {
+        "duration": "Durée",
+        "distance": "Distance",
+        "positive_elevation": "Dénivelé positif",
+        "negative_elevation": "Dénivelé négatif",
+        "reset_button": "Enlever tous les filtres"
+      },
       "tabs": {
         "list": "Liste",
         "map": "Carte"
@@ -134,6 +141,7 @@
     "trail_name_start": "Parcours du",
     "pause": "Pause",
     "resume": "Reprendre",
-    "stop": "Terminer"
+    "stop": "Terminer",
+    "start_this_trail": "Démarrer le parcours"
   }
 }

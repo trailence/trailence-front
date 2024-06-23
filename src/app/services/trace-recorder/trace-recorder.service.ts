@@ -207,7 +207,6 @@ export class TraceRecorderService {
   }
 
   private save(recording: Recording): void {
-    console.log('save', this._saving, this._saved);
     this._saved = false;
     if (this._saving) return;
     if (!this._table) return;

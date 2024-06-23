@@ -129,7 +129,6 @@ export class TrailComponent extends AbstractComponent {
           map(r => r?.track.arrivalPoint),
         ),
         pt => {
-          console.log(pt);
           if (this.map) {
             if (pt)
               this.map.showLocation(pt.pos.lat, pt.pos.lng);
@@ -297,6 +296,10 @@ export class TrailComponent extends AbstractComponent {
       this.trail1!.description = text;
       this.edited$.next(true);
     }
+  }
+
+  startTrail(): void {
+    this.traceRecorder.start(this.trail1!);
   }
 
   togglePauseRecording(): void {

@@ -40,10 +40,10 @@ export class MapTrackPath {
       });
       if (!this._subscription && this._track instanceof Track) {
         this._subscription = this._track.segments$.pipe(
-          skip(1),
           mergeMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(segment => segment.points$))),
           map(points => Arrays.flatMap(points, pts => pts.map(pt => pt.pos$))),
           mergeMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
+          skip(1),
         ).subscribe(() => {
           if (this._path && this._map) this._path.removeFrom(this._map);
           this._path = undefined;

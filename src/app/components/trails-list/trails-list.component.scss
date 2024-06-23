@@ -38,3 +38,19 @@
     border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.1);
   }
 }
+
+.filter-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ion-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    color: var(--ion-color-secondary);
+  }
+  div {
+    color: var(--ion-color-tertiary);
+  }
+}

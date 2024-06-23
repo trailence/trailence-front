@@ -1,4 +1,5 @@
-<div class="button-container" [ngStyle]="{'width': (size * 2.5) + 'px', 'padding': (size / 4) + 'px', 'border-radius': (size / 3) + 'px'}" [ngClass]="['color-' + color]">
+<div class="button-container" [ngStyle]="{'width': (size * 2.5) + 'px', 'max-width': (size * 2.5) + 'px', 'height': (size * 2.5) + 'px', 'max-height': (size * 2.5) + 'px', 'padding': (size / 4) + 'px', 'border-radius': (size / 3) + 'px'}" [ngClass]="['color-' + color]">
   <ion-icon [name]="icon" [ngStyle]="{'width': size + 'px', 'height': size + 'px', 'margin-bottom': (size / 8) + 'px'}"></ion-icon>
   <div [ngStyle]="{'font-size': (fontSize ? fontSize : (size / 1.5)) + 'px'}">{{label}}</div>
+  <ion-badge *ngIf="badge !== undefined && (!showBadge || showBadge(badge))">{{ badge }}</ion-badge>
 </div>

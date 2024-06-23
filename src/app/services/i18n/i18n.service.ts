@@ -51,14 +51,35 @@ export class I18nService {
     }
   }
 
+  public distanceInUserUnitToString(distance: number): string {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS':
+        if (distance < 1000) return distance.toLocaleString(this.prefService.preferences.lang) + ' m';
+        return (distance / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 2}) + ' km';
+      case 'MILES':
+        return distance.toLocaleString(this.prefService.preferences.lang) + ' mi';
+    }
+  }
+
   public metersToMiles(meters: number): number {
     return meters * 0.00062137119223733;
+  }
+
+  public milesToMeters(miles: number): number {
+    return miles * 1609.344;
   }
 
   public distanceInUserUnit(meters: number): number {
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return meters;
       case 'MILES': return this.metersToMiles(meters);
+    }
+  }
+
+  public distanceInMetersFromUserUnit(distance: number): number {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return distance;
+      case 'MILES': return this.milesToMeters(distance);
     }
   }
 
@@ -69,6 +90,22 @@ export class I18nService {
     }
   }
 
+  public getMaxFilterDistance(): number {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return 50000;
+      case 'MILES': return 30;
+      default: return 1;
+    }
+  }
+
+  public getFilterDistanceStep(): number {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return 1000;
+      case 'MILES': return 1;
+      default: return 1;
+    }
+  }
+
   public elevationToString(elevation: number): string {
     switch (this.prefService.preferences.elevationUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang) + ' m';
@@ -76,8 +113,19 @@ export class I18nService {
     }
   }
 
+  public elevationInUserUnitToString(elevation: number): string {
+    switch (this.prefService.preferences.elevationUnit) {
+      case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang) + ' m';
+      case 'FOOT': return elevation.toLocaleString(this.prefService.preferences.lang) + 'ft';
+    }
+  }
+
   public metersToFoot(meters: number): number {
-    return meters * 0.3048;
+    return meters * 3.2808398950131;
+  }
+
+  public footToMeters(foot: number): number {
+    return foot * 0.3048;
   }
 
   public elevationInUserUnit(meters: number): number {
@@ -87,10 +135,33 @@ export class I18nService {
     }
   }
 
+  public elevationInMetersFromUserUnit(elevation: number): number {
+    switch (this.prefService.preferences.elevationUnit) {
+      case 'METERS': return elevation;
+      case 'FOOT': return this.footToMeters(elevation);
+    }
+  }
+
   public shortUserElevationUnit(): string {
     switch (this.prefService.preferences.elevationUnit) {
       case 'METERS': return 'm';
       case 'FOOT': return 'ft';
+    }
+  }
+
+  public getMaxFilterElevation(): number {
+    switch (this.prefService.preferences.elevationUnit) {
+      case 'METERS': return 2000;
+      case 'FOOT': return 6500;
+      default: return 1;
+    }
+  }
+
+  public getFilterElevationStep(): number {
+    switch (this.prefService.preferences.elevationUnit) {
+      case 'METERS': return 50;
+      case 'FOOT': return 150;
+      default: return 1;
     }
   }
 
@@ -103,6 +174,10 @@ export class I18nService {
       minS = '0' + minS;
     }
     return hours.toString() + 'h' + minS;
+  }
+
+  public hoursToString(hours: number): string {
+    return '' + hours + 'h';
   }
 
   public timestampToDateTimeString(timestamp?: number): string {

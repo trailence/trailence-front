@@ -33,6 +33,13 @@
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation"
       },
+      "filters": {
+        "duration": "Duration",
+        "distance": "Distance",
+        "positive_elevation": "Positive elevation",
+        "negative_elevation": "Negative elevation",
+        "reset_button": "Reset all filters"
+      },
       "tabs": {
         "list": "List",
         "map": "Map"
@@ -134,6 +141,7 @@
     "trail_name_start": "Trail of",
     "pause": "Pause",
     "resume": "Resume",
-    "stop": "Stop"
+    "stop": "Stop",
+    "start_this_trail": "Start this trail"
   }
 }

@@ -50,7 +50,7 @@ export class MenuComponent {
     const trace = this.traceRecorder.current;
     if (trace) {
       if (trace.followingTrailUuid) {
-        this.goTo('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrackUuid!);
+        this.goTo('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid!);
       } else {
         this.goTo('/trail');
       }

@@ -3,6 +3,7 @@
   flex-direction: column;
   align-items: center;
   cursor: pointer;
+  position: relative;
 
   &:hover {
     background-color: rgba(var(--ion-color-dark-rgb), 0.1);
@@ -10,6 +11,7 @@
 
   div {
     text-align: center;
+    max-height: 50%;
   }
 
   &.color-primary {
@@ -19,5 +21,12 @@
     &:hover {
       background-color: var(--ion-color-primary-shade);
     }
+  }
+
+  ion-badge {
+    position: absolute;
+    right: 0;
+    top: 0;
+    --background: rgba(var(--ion-color-success-rgb), 0.75);
   }
 }

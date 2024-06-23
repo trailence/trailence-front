@@ -1,6 +1,6 @@
 <div class="toolbar">
   <app-icon-label-button icon="sort" label="{{i18n.texts.tools.sort}}" id="sort-trails-button"></app-icon-label-button>
-  <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button"></app-icon-label-button>
+  <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button" [badge]="nbActiveFilters()" [showBadge]="isPositive"></app-icon-label-button>
   <app-icon-label-button *ngIf="collectionUuid" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
 </div>
 <div class="selection">
@@ -56,11 +56,61 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      TODO
+      <div class="filter-header">
+        <ion-icon name="duration"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.duration }}</div>
+      </div>
+      <div class="filter-value">
+        <app-filter-numeric
+          [minValue]="0" [maxValue]="24" [step]="1"
+          [selectedMinValue]="state$.value.filters.duration.from || 0" [selectedMaxValue]="state$.value.filters.duration.to || 24"
+          (selectionChange)="updateNumericFilter(state$.value.filters.duration, $event)"
+          [valueFormatter]="durationFormatter"
+          [maxValueLabel]="i18n.hoursToString(24) + '+'"></app-filter-numeric>
+      </div>
+
+      <div class="filter-header">
+        <ion-icon name="distance"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.distance }}</div>
+      </div>
+      <div class="filter-value">
+        <app-filter-numeric
+          [minValue]="0" [maxValue]="i18n.getMaxFilterDistance()" [step]="i18n.getFilterDistanceStep()"
+          [selectedMinValue]="state$.value.filters.distance.from || 0" [selectedMaxValue]="state$.value.filters.distance.to || i18n.getMaxFilterDistance()"
+          (selectionChange)="updateNumericFilter(state$.value.filters.distance, $event)"
+          [valueFormatter]="distanceFormatter"
+          [maxValueLabel]="distanceFormatter(i18n.getMaxFilterDistance()) + '+'"></app-filter-numeric>
+      </div>
+
+      <div class="filter-header">
+        <ion-icon name="positive-elevation"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.positive_elevation }}</div>
+      </div>
+      <div class="filter-value">
+        <app-filter-numeric
+          [minValue]="0" [maxValue]="i18n.getMaxFilterElevation()" [step]="i18n.getFilterElevationStep()"
+          [selectedMinValue]="state$.value.filters.positiveElevation.from || 0" [selectedMaxValue]="state$.value.filters.positiveElevation.to || i18n.getMaxFilterElevation()"
+          (selectionChange)="updateNumericFilter(state$.value.filters.positiveElevation, $event)"
+          [valueFormatter]="elevationFormatter"
+          [maxValueLabel]="elevationFormatter(i18n.getMaxFilterElevation()) + '+'"></app-filter-numeric>
+      </div>
+      <div class="filter-header">
+        <ion-icon name="negative-elevation"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.negative_elevation }}</div>
+      </div>
+      <div class="filter-value">
+        <app-filter-numeric
+          [minValue]="0" [maxValue]="i18n.getMaxFilterElevation()" [step]="i18n.getFilterElevationStep()"
+          [selectedMinValue]="state$.value.filters.negativeElevation.from || 0" [selectedMaxValue]="state$.value.filters.negativeElevation.to || i18n.getMaxFilterElevation()"
+          (selectionChange)="updateNumericFilter(state$.value.filters.negativeElevation, $event)"
+          [valueFormatter]="elevationFormatter"
+          [maxValueLabel]="elevationFormatter(i18n.getMaxFilterElevation()) + '+'"></app-filter-numeric>
+      </div>
     </ion-content>
     <ion-footer>
       <ion-toolbar>
         <ion-buttons slot="end">
+          <ion-button (click)="resetFilters()">{{i18n.texts.pages.trails.filters.reset_button}}</ion-button>
           <ion-button [strong]="true" (click)="filtersModal.dismiss()">{{i18n.texts.buttons.close}}</ion-button>
         </ion-buttons>
       </ion-toolbar>

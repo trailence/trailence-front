@@ -19,6 +19,9 @@ import { Router } from '@angular/router';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
+import { FilterNumeric } from '../filters/filter';
+import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 interface State {
   sortAsc: boolean;
@@ -27,13 +30,33 @@ interface State {
 }
 
 interface Filters {
-
+  duration: FilterNumeric;
+  distance: FilterNumeric;
+  positiveElevation: FilterNumeric;
+  negativeElevation: FilterNumeric;
 }
 
 const defaultState: State = {
   sortAsc: false,
   sortBy: 'track.startDate',
-  filters: {}
+  filters: {
+    duration: {
+      from: undefined,
+      to: undefined,
+    },
+    distance: {
+      from: undefined,
+      to: undefined,
+    },
+    positiveElevation: {
+      from: undefined,
+      to: undefined,
+    },
+    negativeElevation: {
+      from: undefined,
+      to: undefined,
+    },
+  }
 }
 
 interface TrailWithInfo {
@@ -48,12 +71,15 @@ interface TrailWithInfo {
   styleUrls: ['./trails-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonPopover, IonCheckbox, IonItem, IonList, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton, IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
+  imports: [
+    IonPopover, IonCheckbox, IonItem, IonList, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
+    IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
     CommonModule,
     TrailOverviewComponent,
     IconLabelButtonComponent,
     ToggleChoiceComponent,
     MenuContentComponent,
+    FilterNumericComponent,
   ]
 })
 export class TrailsListComponent extends AbstractComponent {
@@ -73,6 +99,11 @@ export class TrailsListComponent extends AbstractComponent {
   allTrails: TrailWithInfo[] = [];
   shownTrails: TrailWithInfo[] = [];
 
+  durationFormatter = (value: number) => this.i18n.hoursToString(value);
+  distanceFormatter = (value: number) => this.i18n.distanceInUserUnitToString(value);
+  elevationFormatter = (value: number) => this.i18n.elevationInUserUnitToString(value);
+  isPositive = (value: any) => typeof value === 'number' && value > 0;
+
   constructor(
     injector: Injector,
     public i18n: I18nService,
@@ -83,8 +114,28 @@ export class TrailsListComponent extends AbstractComponent {
     private tagService: TagService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
+    preferences: PreferencesService,
   ) {
     super(injector);
+    let currentDistanceUnit = preferences.preferences.distanceUnit;
+    let currentElevationUnit = preferences.preferences.elevationUnit;
+    this.whenVisible.subscribe(preferences.preferences$,
+      prefs => {
+        let changed = false;
+        if (currentDistanceUnit !== prefs.distanceUnit) {
+          currentDistanceUnit = prefs.distanceUnit;
+          this.state$.value.filters.distance = { from: undefined, to: undefined };
+          changed = true;
+        }
+        if (currentElevationUnit !== prefs.elevationUnit) {
+          currentElevationUnit = prefs.elevationUnit;
+          this.state$.value.filters.positiveElevation = { from: undefined, to: undefined };
+          this.state$.value.filters.negativeElevation = { from: undefined, to: undefined };
+        }
+        if (changed)
+          this.state$.next({...this.state$.value, filters: {...this.state$.value.filters}});
+      }
+    );
   }
 
   protected override getComponentState() {
@@ -131,6 +182,7 @@ export class TrailsListComponent extends AbstractComponent {
           this.applySort();
           this.changeDetector.markForCheck();
         } else if (state.sortAsc !== previous.sortAsc || state.sortBy !== previous.sortBy) {
+          console.log('sort changed');
           this.applySort();
           this.changeDetector.markForCheck();
         }
@@ -140,8 +192,26 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private applyFilters(): void {
-    // TODO
-    this.shownTrails = [...this.allTrails];
+    const filters = this.state$.value.filters;
+    const minDistance = filters.distance.from === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.from);
+    const maxDistance = filters.distance.to === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.to);
+    const minPosEle = filters.positiveElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.from);
+    const maxPosEle = filters.positiveElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.to);
+    const minNegEle = filters.negativeElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from);
+    const maxNegEle = filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to);
+    this.shownTrails = this.allTrails.filter(
+      t => {
+        if (filters.duration.from !== undefined && (t.track?.duration === undefined || t.track.duration < filters.duration.from * 60 * 60 * 1000)) return false;
+        if (filters.duration.to !== undefined && (t.track?.duration === undefined || t.track.duration > filters.duration.to * 60 * 60 * 1000)) return false;
+        if (minDistance !== undefined && (t.track?.distance === undefined || t.track.distance < minDistance)) return false;
+        if (maxDistance !== undefined && (t.track?.distance === undefined || t.track.distance > maxDistance)) return false;
+        if (minPosEle !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation < minPosEle)) return false;
+        if (maxPosEle !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation > maxPosEle)) return false;
+        if (minNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < minNegEle)) return false;
+        if (maxNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > maxNegEle)) return false;
+        return true;
+      }
+    );
   }
 
   private applySort(): void {
@@ -181,6 +251,41 @@ export class TrailsListComponent extends AbstractComponent {
   sortAsc(asc: boolean): void {
     if (this.state$.value.sortAsc === asc) return;
     this.state$.next({...this.state$.value, sortAsc: asc});
+  }
+
+  updateNumericFilter(filter: FilterNumeric, $event: NumericFilterValueEvent): void {
+    const newMin = $event.min === $event.valueMin ? undefined : $event.valueMin;
+    const newMax = $event.max === $event.valueMax ? undefined : $event.valueMax;
+    if (filter.from === newMin && filter.to === newMax) return;
+    filter.from = newMin;
+    filter.to = newMax;
+    this.state$.next({
+      ...this.state$.value,
+      filters: { ...this.state$.value.filters }
+    });
+  }
+
+  nbActiveFilters(): number {
+    let nb = 0;
+    const filters = this.state$.value.filters;
+    if (filters.duration.from !== undefined || filters.duration.to !== undefined) nb++;
+    if (filters.distance.from !== undefined || filters.distance.to !== undefined) nb++;
+    if (filters.positiveElevation.from !== undefined || filters.positiveElevation.to !== undefined) nb++;
+    if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
+    return nb;
+  }
+
+  resetFilters(): void {
+    const filters = this.state$.value.filters;
+    filters.duration.from = undefined;
+    filters.duration.to = undefined;
+    filters.distance.from = undefined;
+    filters.distance.to = undefined;
+    filters.positiveElevation.from = undefined;
+    filters.positiveElevation.to = undefined;
+    filters.negativeElevation.from = undefined;
+    filters.negativeElevation.to = undefined;
+    this.state$.next({...this.state$.value, filters: {...filters}});
   }
 
   onTrailClick(trail: Trail): void {
