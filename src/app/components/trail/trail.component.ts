@@ -1,5 +1,5 @@
 import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, filter, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, map, mergeMap, of } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -9,29 +9,34 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonModal, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
-import { Point } from 'src/app/model/point';
-import { ElevationGraphPointReference } from '../elevation-graph/elevation-graph-point-reference';
+import { ElevationGraphPointReference } from '../elevation-graph/elevation-graph-events';
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
+import { TrailHoverCursor } from './hover-cursor';
+import { TrailPathSelection } from './path-selection';
+import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
+import { MapLayer } from 'src/app/services/map/map-layers.service';
+import * as L from 'leaflet';
 
 @Component({
   selector: 'app-trail',
   templateUrl: './trail.component.html',
   styleUrls: ['./trail.component.scss'],
   standalone: true,
-  imports: [IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
+  imports: [IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, IonModal, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
     CommonModule,
     MapComponent,
     TrackMetadataComponent,
     ElevationGraphComponent,
     IconLabelButtonComponent,
+    MapLayerSelectionComponent,
   ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -48,14 +53,18 @@ export class TrailComponent extends AbstractComponent {
 
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
+  @ViewChild('downloadMapModal') downloadMapModal?: IonModal;
 
   displayMode = 'large';
   tab = 'map';
-  bottomSheetOpen = false;
+  bottomSheetOpen = true;
   bottomSheetTab = 'info';
 
   editable = false;
   edited$ = new Subject<boolean>();
+
+  hover: TrailHoverCursor;
+  pathSelection: TrailPathSelection;
 
   constructor(
     injector: Injector,
@@ -68,6 +77,8 @@ export class TrailComponent extends AbstractComponent {
     private traceRecorder: TraceRecorderService,
   ) {
     super(injector);
+    this.hover = new TrailHoverCursor(this);
+    this.pathSelection = new TrailPathSelection(this, injector);
   }
 
   protected override initComponent(): void {
@@ -116,6 +127,7 @@ export class TrailComponent extends AbstractComponent {
           mapTrack.showArrowPath();
           mapTracks.push(mapTrack)
         }
+        mapTracks.push(...this.pathSelection.mapTracks$.value);
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
 
@@ -134,6 +146,9 @@ export class TrailComponent extends AbstractComponent {
               this.map.showLocation(pt.pos.lat, pt.pos.lng);
             else
               this.map.hideLocation();
+          }
+          if (pt && this.elevationGraph) {
+            this.elevationGraph.refresh();
           }
         }
       );
@@ -171,10 +186,9 @@ export class TrailComponent extends AbstractComponent {
 
   private updateDisplay(): void {
     const w = this.platform.width();
-    const h = this.platform.height();
     if (w >= 750 + 350) {
       this.displayMode = 'large';
-      this.updateVisibility(true, true);
+      this.updateVisibility(true, this.bottomSheetOpen);
     } else {
       this.displayMode = 'small';
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation');
@@ -185,9 +199,7 @@ export class TrailComponent extends AbstractComponent {
     this._children.forEach(child => {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
       else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
-      else if (child instanceof TrackMetadataComponent) {
-
-      }
+      else if (child instanceof TrackMetadataComponent) {}
       else console.error('unexpected child', child);
     })
   }
@@ -205,6 +217,9 @@ export class TrailComponent extends AbstractComponent {
   toggleBottomSheet(): void {
     this.bottomSheetOpen = !this.bottomSheetOpen;
     this.updateDisplay();
+    if (this.displayMode === 'large') {
+      setTimeout(() => this.map?.invalidateSize(), 500);
+    }
   }
 
   setBottomSheetTab(tab: string): void {
@@ -213,38 +228,17 @@ export class TrailComponent extends AbstractComponent {
     this.updateDisplay();
   }
 
-  private _hoverCursor: {pos: L.LatLngExpression}[] = [];
-
-  private resetHover(): void {
-    this._hoverCursor.forEach(cursor => {
-      this.map?.cursors.removeCursor(cursor.pos);
-    });
-    this._hoverCursor = [];
-  }
 
   mouseOverPointOnMap(event?: MapTrackPointReference) {
-    this.resetHover();
-    this.elevationGraph?.hideCursor();
-    if (event) {
-      const pt = event.point;
-      const pos = pt instanceof Point ? pt.pos : pt;
-      this.map?.cursors.addCursor(pos);
-      this.elevationGraph?.showCursorForPosition(pos.lat, pos.lng);
-      this._hoverCursor.push({pos});
-    }
+    this.hover.mouseOverPointOnMap(event);
   }
 
   elevationGraphPointHover(references: ElevationGraphPointReference[]) {
-    this.resetHover();
-    references.forEach(pt => {
-      const pos = pt.pos;
-      this._hoverCursor.push({pos});
-      this.map?.cursors.addCursor(pos);
-    });
+    this.hover.elevationGraphPointHover(references);
   }
 
   mouseClickOnMap(event?: MapTrackPointReference) {
-
+    // nothing so far
   }
 
 
@@ -276,9 +270,11 @@ export class TrailComponent extends AbstractComponent {
   }
 
   downloadMap(): void {
-    if (!this.map) return;
-    const layer = this.map.tilesLayers.find(l => l.layer.name === 'osm');
-    if (!layer) return;
+    this.downloadMapModal?.present();
+  }
+
+  launchDownloadMap(selection: {layer: MapLayer, tiles: L.TileLayer}[]): void {
+    this.downloadMapModal?.dismiss();
     let bounds: L.LatLngBounds | undefined = undefined;
     this.mapTracks$.value.forEach(track => {
       const b = track.bounds
@@ -286,8 +282,10 @@ export class TrailComponent extends AbstractComponent {
         if (!bounds) bounds = b; else bounds = bounds.extend(b);
     });
     if (!bounds) return;
-    bounds = (bounds as L.LatLngBounds).pad(1);
-    this.offlineMap.save(bounds, layer.tiles, this.map.crs, layer.layer);
+    for (const layer of selection) {
+      this.offlineMap.save(bounds, layer.tiles, this.map?.crs || L.CRS.EPSG3857, layer.layer);
+    }
+    console.log(selection);
   }
 
   descriptionChanged(text: string | null | undefined): void {

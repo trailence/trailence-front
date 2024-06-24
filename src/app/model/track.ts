@@ -99,6 +99,23 @@ export class Track extends Owned {
     return result;
   }
 
+  public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
+    const sub = new Track({owner: 'nobody'});
+    const newPoints: Point[] = [];
+    for (let si = startSegment; si <= endSegment; si++) {
+      const s = this._segments.value[si];
+      const pts = s.points;
+      const endi = si === endSegment ? endPoint : pts.length - 1;
+      for (let pi = si === startSegment ? startPoint : 0; pi <= endi; pi++) {
+        const p = pts[pi];
+        newPoints.push(new Point(p.pos.lat, p.pos.lng, p.ele, p.time, p.posAccuracy, p.eleAccuracy, p.heading, p.speed));
+      }
+    }
+    const newSegment = sub.newSegment();
+    newSegment.appendMany(newPoints);
+    return sub;
+  }
+
 }
 
 export class TrackMetadata {

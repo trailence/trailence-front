@@ -109,14 +109,14 @@ export class I18nService {
   public elevationToString(elevation: number): string {
     switch (this.prefService.preferences.elevationUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang) + ' m';
-      case 'FOOT': return this.metersToFoot(elevation).toLocaleString(this.prefService.preferences.lang) + 'ft';
+      case 'FOOT': return this.metersToFoot(elevation).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';
     }
   }
 
   public elevationInUserUnitToString(elevation: number): string {
     switch (this.prefService.preferences.elevationUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang) + ' m';
-      case 'FOOT': return elevation.toLocaleString(this.prefService.preferences.lang) + 'ft';
+      case 'FOOT': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';
     }
   }
 

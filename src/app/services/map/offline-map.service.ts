@@ -126,15 +126,14 @@ export class OfflineMapService {
 
   public computeTilesCoords(bounds: L.LatLngBounds, layer: L.TileLayer, crs: L.CRS): L.Coords[] {
     const coords: L.Coords[] = [];
-    const maxZoom = 15; // TODO use max zoom from preferences
+    const maxZoom = 16; // TODO use max zoom from preferences
     for (let zoom = 1; zoom <= Math.min(layer.options.maxZoom!, maxZoom); zoom++) {
       const area = L.bounds(
         crs.latLngToPoint(bounds.getNorthWest(), zoom),
         crs.latLngToPoint(bounds.getSouthEast(), zoom)
       );
       const points = this.getTilesPoints(area, layer.getTileSize());
-      for (let i = 0; i < points.length; ++i) {
-        const point = points[i];
+      for (const point of points) {
         (point as any)['z'] = zoom;
         coords.push(point as L.Coords);
       }

@@ -27,8 +27,8 @@ export class MapTrack {
 
   public addTo(map: L.Map): void {
     this._path.addTo(map);
-    this._wayPoints.addTo(map);
     this._arrowPath.addTo(map);
+    this._wayPoints.addTo(map);
   }
 
   public remove(): void {
@@ -54,6 +54,11 @@ export class MapTrack {
 
   public showArrowPath(show: boolean = true): void {
     this._arrowPath.show(show);
+  }
+
+  public bringToFront(): void {
+    this._path.bringToFront();
+    this._arrowPath.bringToFront();
   }
 
 }

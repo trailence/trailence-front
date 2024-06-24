@@ -48,6 +48,8 @@ export class AssetsService {
       'theme-dark': 'assets/ionicons/moon-outline.svg',
       'theme-system': 'assets/ionicons/cog-outline.svg',
       'waypoint': 'assets/ionicons/location.svg',
+      'zoom-in': 'assets/zoom-in.1.svg',
+      'zoom-out': 'assets/zoom-out.1.svg',
     };
     addIcons(this.icons);
   }

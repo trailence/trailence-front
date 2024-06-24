@@ -92,10 +92,10 @@ export class PointDtoMapper {
       this.toCoord(dto.n, p?.lng),
       this.toValue(dto.e, previous?.ele, 10),
       this.toValue(dto.t, previous?.time, 1),
-      dto.pa === undefined ? undefined : this.divideFactor(dto.pa, 100),
-      dto.ea === undefined ? undefined : this.divideFactor(dto.ea, 100),
-      dto.h === undefined ? undefined : this.divideFactor(dto.h, 100),
-      dto.s === undefined ? undefined : this.divideFactor(dto.s, 100),
+      this.toValue(dto.pa, previous?.posAccuracy, 100),
+      this.toValue(dto.ea, previous?.eleAccuracy, 100),
+      this.toValue(dto.h, previous?.heading, 100),
+      this.toValue(dto.s, previous?.speed, 100),
     );
   }
 
@@ -144,10 +144,10 @@ export class PointDtoMapper {
     if (pos.lng !== prevPos.lng) dto.n = this.diffCoord(pos.lng, prevPos.lng);
     dto.e = this.diff(point.ele, previous.ele, 10);
     dto.t = this.diff(point.time, previous.time, 1);
-    if (point.posAccuracy !== undefined) dto.pa = Math.floor(point.posAccuracy * 100);
-    if (point.eleAccuracy !== undefined) dto.ea = Math.floor(point.eleAccuracy * 100);
-    if (point.heading !== undefined) dto.h = Math.floor(point.heading * 100);
-    if (point.speed !== undefined) dto.s = Math.floor(point.speed * 100);
+    dto.pa = this.diff(point.posAccuracy, previous.posAccuracy, 100)
+    dto.ea = this.diff(point.eleAccuracy, previous.eleAccuracy, 100)
+    dto.h = this.diff(point.heading, previous.heading, 100)
+    dto.s = this.diff(point.speed, previous.speed, 100)
     return dto;
   }
 

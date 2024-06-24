@@ -93,6 +93,10 @@ export class MapComponent extends AbstractComponent {
     this._mapState.live = true;
   }
 
+  public invalidateSize(): void {
+    this._map$.value?.invalidateSize();
+  }
+
   private loadState(): void {
     this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
   }
@@ -127,6 +131,24 @@ export class MapComponent extends AbstractComponent {
         }
       }
     );
+  }
+
+  public addTrack(track: MapTrack): void {
+    if (this._map$.value)
+      track.addTo(this._map$.value)
+    this._currentTracks.push(track);
+  }
+
+  public removeTrack(track: MapTrack): void {
+    track.remove();
+    const index = this._currentTracks.indexOf(track);
+    if (index >= 0)
+      this._currentTracks.splice(index, 1);
+  }
+
+  public fitBounds(tracks: MapTrack[] | undefined): void {
+    if (!this._map$.value) return;
+    this.fitTracksBounds(this._map$.value, tracks || this._currentTracks);
   }
 
   private fitTracksBounds(map: L.Map, tracks: MapTrack[], padding: number = 0.05): void {

@@ -1,0 +1,10 @@
+<ion-radio-group (ionChange)="select($event.detail.value, true, true)">
+<div class="layer" *ngFor="let layer of layers">
+  <div class="header">
+    <ion-radio *ngIf="!multiple" [value]="layer.layer.name"></ion-radio>
+    <ion-checkbox *ngIf="multiple" [checked]="selection.indexOf(layer.layer.name) >= 0" (ionChange)="select(layer.layer.name, $event.detail.checked, false)"></ion-checkbox>
+    <div class="name">{{ layer.layer.displayName }}</div>
+  </div>
+  <img src="{{layer.layer.getTileUrl(layer.tiles, coords, crs)}}" style="width: 150px; height: 150px;">
+</div>
+</ion-radio-group>

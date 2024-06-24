@@ -13,7 +13,7 @@
       <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.map}}</ion-segment-button>
     </ion-segment>
   </div>
-  <div class="bottom-sheet-container" *ngIf="displayMode === 'small'">
+  <div class="bottom-sheet-container">
     <div class="bottom-sheet-button" (click)="toggleBottomSheet()">
       <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'"></ion-icon>
     </div>
@@ -74,7 +74,17 @@
       </ng-container>
     </div>
     <div class="elevation-container">
-      <app-elevation-graph [track1]="tracks[0]" [track2]="tracks[1]" (pointHover)="elevationGraphPointHover($event)"></app-elevation-graph>
+      <app-elevation-graph
+        [track1]="pathSelection.zoomOnSelection ? pathSelection.selection[0] : tracks[0]"
+        [track2]="pathSelection.zoomOnSelection ? pathSelection.selection[1] : tracks[1]"
+        (pointHover)="elevationGraphPointHover($event)"
+        [selectable]="!pathSelection.zoomOnSelection"
+        (selecting)="pathSelection.elevationGraphSelecting($event)"
+        (selection)="pathSelection.elevationGraphSelection($event)"
+      ></app-elevation-graph>
+      <ion-button class="zoom-button" *ngIf="pathSelection.selection.length > 0" (click)="pathSelection.toggleZoom()">
+        <ion-icon [name]="pathSelection.zoomOnSelection ? 'zoom-out' : 'zoom-in'" slot="icon-only"></ion-icon>
+      </ion-button>
     </div>
     <div class="bottom-sheet-info-content">
       <div class="metadata-container tiles">
@@ -83,3 +93,27 @@
     </div>
   </ng-container>
 </div>
+
+<ion-modal #downloadMapModal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>
+          <ion-icon name="download" style="margin-right: 10px"></ion-icon>
+          <ion-label>{{i18n.texts.pages.trail.actions.download_map}}</ion-label>
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <app-map-layer-selection #downloadLayersSelection [multiple]="true"></app-map-layer-selection>
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar>
+        <ion-buttons slot="end">
+          <ion-button color="success" [disabled]="downloadLayersSelection.selection.length === 0" (click)="launchDownloadMap(downloadLayersSelection.getSelectedLayers())">{{i18n.texts.buttons.download}}</ion-button>
+          <ion-button (click)="downloadMapModal.dismiss()">{{i18n.texts.buttons.cancel}}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

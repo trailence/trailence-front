@@ -62,7 +62,7 @@ function createDefaultLayer(
         y: coords.y,
         z: coords.z
       } as any;
-      if (!crs.infinite) {
+      if (!crs.infinite && (layer as any)._globalTileRange) {
         const invertedY = (layer as any)._globalTileRange.max.y - coords.y;
         if (layer.options.tms) {
           data['y'] = invertedY;

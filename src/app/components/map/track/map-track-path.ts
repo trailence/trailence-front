@@ -92,4 +92,8 @@ export class MapTrackPath {
     if (this._path) this._path.setStyle({color: value});
   }
 
+  public bringToFront(): void {
+    if (this._map) this.path.bringToFront();
+  }
+
 }

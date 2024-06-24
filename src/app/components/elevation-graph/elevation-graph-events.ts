@@ -15,3 +15,11 @@ export class ElevationGraphPointReference {
   ) {}
 
 }
+
+export class ElevationGraphRange {
+  constructor(
+    public track: Track,
+    public start: ElevationGraphPointReference,
+    public end: ElevationGraphPointReference,
+  ) {}
+}

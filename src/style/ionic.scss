@@ -111,6 +111,8 @@ body.dark-theme {
 
   --tag-background-color: #3030F0;
   --tag-text-color: #d0d0ff;
+  --graph-selecting-color: #4040F0;
+  --graph-selection-color: #2020FF;
 }
 
 body.light-theme {
@@ -225,6 +227,9 @@ body.light-theme {
 
   --tag-background-color: #A0A0FF;
   --tag-text-color: #000060;
+
+  --graph-selecting-color: #4040F0;
+  --graph-selection-color: #0000FF;
 }
 
 svg.ionicon {

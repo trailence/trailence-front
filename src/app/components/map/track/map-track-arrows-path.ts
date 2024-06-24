@@ -120,4 +120,10 @@ export class MapTrackArrowPath {
     ]);
   }
 
+  public bringToFront(): void {
+    if (!this._shown || !this._map || this._currentZoomShown < 0) return;
+    if (this._arrowsByZoom[this._currentZoomShown])
+      this._arrowsByZoom[this._currentZoomShown].every(p => p.bringToFront());
+  }
+
 }
