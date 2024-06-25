@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, from, map, mergeMap, of, timeout } from "rxjs";
+import { BehaviorSubject, Observable, catchError, defaultIfEmpty, from, map, of, switchMap } from "rxjs";
 import { Store, StoreSyncStatus } from "./store";
 import { DatabaseService } from "./database.service";
 import { NetworkService } from "../network/newtork.service";
@@ -136,7 +136,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
         this.syncCreateNewItems(stillValid)
         .pipe(
-          mergeMap(result => {
+          switchMap(result => {
             if (!stillValid()) return of(false);
             if (result && this._syncStatus$.value.localCreates) {
               this._syncStatus$.value.localCreates = false;
@@ -144,7 +144,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             }
             return this.syncLocalDeleteToServer(stillValid);
           }),
-          mergeMap(result => {
+          switchMap(result => {
             if (!stillValid()) return of(false);
             if (result && this._syncStatus$.value.localDeletes) {
               this._syncStatus$.value.localDeletes = false;
@@ -175,14 +175,14 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         const ready = toCreate.filter(entity => this.readyToSave(entity));
         const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
         return ready$.pipe(
-          mergeMap(readyEntities => {
+          switchMap(readyEntities => {
             if (readyEntities.length === 0) {
               console.log('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
               return of(false);
             }
             console.log('Creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server');
             return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
-              mergeMap(result => {
+              switchMap(result => {
                 console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
                 if (!stillValid()) return of(false);
                 result.forEach(created => {
@@ -210,7 +210,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         console.log('Deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server');
         return this.deleteFromServer(toDelete.map(entity => this.toDTO(entity))).pipe(
           defaultIfEmpty(true),
-          mergeMap(() => {
+          switchMap(() => {
             if (!stillValid()) return of(false);
             toDelete.forEach(entity => {
               const index = this._deletedLocally.indexOf(entity);
@@ -229,7 +229,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
       private syncGetAllFromServer(stillValid: () => boolean): Observable<boolean> {
         return this.getAllFromServer().pipe(
-            mergeMap(dtos => {
+          switchMap(dtos => {
                 if (!stillValid()) return of(false);
                 // remove items not created locally and not returned by the server, and add new items from server
                 const deleted: BehaviorSubject<ENTITY | null>[] = [];

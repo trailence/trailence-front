@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, concat, from, mergeMap, of, skip, tap, timeout } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, concat, from, of, skip, switchMap, tap, timeout } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -137,7 +137,7 @@ export class TraceRecorderService {
     const recording = this._recording$.value;
     if (!recording) return of(null);
     return this.stopRecording(recording).pipe(
-      mergeMap(() => {
+      switchMap(() => {
         console.log('Recording stopped');
         this._recording$.next(null);
         if (this._table) this._table.delete(1);

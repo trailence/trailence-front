@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
-import { Store, StoreSyncStatus } from './store';
+import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
+import { StoreSyncStatus } from './store';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
@@ -38,7 +38,7 @@ export class DatabaseService {
 
   public get syncStatus(): Observable<boolean> {
     return this._stores.pipe(
-      mergeMap(stores => stores.length === 0 ? of([]) : combineLatest(stores)),
+      switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores)),
       map(status => status.map(s => !!s?.inProgress).reduce((a,b) => a || b, false))
     );
   }

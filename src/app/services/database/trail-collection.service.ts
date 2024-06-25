@@ -1,5 +1,5 @@
 import { Injectable, Injector, NgZone } from "@angular/core";
-import { Observable, combineLatest, filter, first, map, mergeMap, of } from "rxjs";
+import { Observable, combineLatest, filter, first, map, of, switchMap } from "rxjs";
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
@@ -44,7 +44,7 @@ export class TrailCollectionService {
 
   public getMyTrails$(): Observable<TrailCollection | null> {
     return this.getAll$().values$.pipe(
-      mergeMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
+      switchMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
       map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
       filter(myTrails => !!myTrails),
       first()

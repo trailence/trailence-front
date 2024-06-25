@@ -1,5 +1,5 @@
 import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, map, of, switchMap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -137,7 +137,7 @@ export class TrailComponent extends AbstractComponent {
     if (this.recording$)
       this.byStateAndVisible.subscribe(
         this.recording$.pipe(
-          mergeMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
+          switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
           map(r => r?.track.arrivalPoint),
         ),
         pt => {
@@ -167,10 +167,10 @@ export class TrailComponent extends AbstractComponent {
   private trail$(trail$?: Observable<Trail | null>): Observable<[Trail | null, Track | undefined, MapTrack | undefined]> {
     if (!trail$) return of(([null, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined]);
     return trail$.pipe(
-      mergeMap(trail => {
+      switchMap(trail => {
         if (!trail) return of(([null, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined]);
         return trail.currentTrackUuid$.pipe(
-          mergeMap(uuid => this.trackService.getFullTrack$(uuid, trail.owner)),
+          switchMap(uuid => this.trackService.getFullTrack$(uuid, trail.owner)),
           map(track => {
             if (!track) return ([trail, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined];
             const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);

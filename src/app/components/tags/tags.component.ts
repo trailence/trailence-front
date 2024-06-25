@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
-import { Subscription, combineLatest, debounceTime, mergeMap, of } from 'rxjs';
+import { Subscription, combineLatest, debounceTime, of, switchMap } from 'rxjs';
 import { Tag } from 'src/app/model/tag';
 import { Trail } from 'src/app/model/trail';
 import { TrailTag } from 'src/app/model/trail-tag';
@@ -71,9 +71,9 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.collectionUuid || !this.trails) return;
 
     const tags$ = this.tagService.getAllTagsForCollectionUuid$(this.collectionUuid).values$
-    .pipe(mergeMap(tags$ => tags$.length === 0 ? of([]) : combineLatest(tags$)));
+    .pipe(switchMap(tags$ => tags$.length === 0 ? of([]) : combineLatest(tags$)));
     const trailsTags$ = this.tagService.getTrailsTags$(this.trails.map(t => t.uuid)).values$
-    .pipe(mergeMap(trailsTags$ => trailsTags$.length === 0 ? of([]) : combineLatest(trailsTags$)));
+    .pipe(switchMap(trailsTags$ => trailsTags$.length === 0 ? of([]) : combineLatest(trailsTags$)));
 
     this.subscription = combineLatest([tags$, trailsTags$]).pipe(
       debounceTime(100)

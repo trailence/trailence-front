@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { IonIcon } from '@ionic/angular/standalone';
-import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, debounceTime, map, of, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -98,7 +98,7 @@ export class TrackMetadataComponent extends AbstractComponent {
   private toMeta(track$: Observable<Track | TrackMetadataSnapshot | undefined>, meta: Meta): void {
     let previousState = 0;
     this.whenVisible.subscribe(track$.pipe(
-      mergeMap(track => {
+      switchMap(track => {
         if (!track) return of([0, 0, 0, 0, 0]);
         if (track instanceof Track) return combineLatest([
           track.metadata.distance$,
@@ -114,7 +114,8 @@ export class TrackMetadataComponent extends AbstractComponent {
           track.negativeElevation,
           state
         ])));
-      })
+      }),
+      debounceTime(100),
     ), ([distance, duration, positiveElevation, negativeElevation, state]) => {
       this.updateMeta(meta, 'distance', distance, v => this.i18n.distanceToString(v), state !== previousState);
       this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState);

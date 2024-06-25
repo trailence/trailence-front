@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, from, map, mergeMap, of, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, from, map, of, switchMap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -8,7 +8,6 @@ import { StoreSyncStatus } from "./store";
 import { RequestLimiter } from "src/app/utils/request-limiter";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
-import { VersionedDto } from "src/app/model/dto/versioned";
 import { UpdatesResponse } from "./owned-store";
 import { NetworkService } from "../network/newtork.service";
 import { OwnedDto } from "src/app/model/dto/owned";
@@ -359,7 +358,7 @@ export class TrackDatabase {
     return combineLatest([
       of(!!this.fullTracks.get(key)?.value?.isSavedOnServerAndNotDeletedLocally()),
       this.syncStatus$.pipe(
-        mergeMap(status => {
+        switchMap(status => {
           if (!status || !this.db) return of(false);
           return concat(
             of(false),
@@ -436,10 +435,10 @@ export class TrackDatabase {
     this.syncStatus$.value!.inProgress = true;
     this.syncStatus$.next(this.syncStatus$.value);
     this.syncCreatedLocally(db).pipe(
-      mergeMap(() => this.db === db ? this.syncDeletedLocally(db) : EMPTY),
-      mergeMap(() => this.db === db ? this.syncUpdatesFromServer(db) : EMPTY),
-      mergeMap(() => this.db === db ? this.syncUpdatesToServer(db) : EMPTY),
-      mergeMap(() => this.db === db ? this.hasLocalChanges() : EMPTY)
+      switchMap(() => this.db === db ? this.syncDeletedLocally(db) : EMPTY),
+      switchMap(() => this.db === db ? this.syncUpdatesFromServer(db) : EMPTY),
+      switchMap(() => this.db === db ? this.syncUpdatesToServer(db) : EMPTY),
+      switchMap(() => this.db === db ? this.hasLocalChanges() : EMPTY)
     ).subscribe(hasLocalChanges => {
       if (this.db !== db) return;
       const status = this.syncStatus$.value!;
@@ -453,7 +452,7 @@ export class TrackDatabase {
 
   private syncCreatedLocally(db: Dexie): Observable<any> {
     return from(this.fullTrackTable!.where('version').equals(0).toArray()).pipe(
-      mergeMap(items => {
+      switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
         console.log('' + items.length + ' tracks to be created on server');
@@ -463,7 +462,7 @@ export class TrackDatabase {
           const request = () => {
             if (this.db !== db) return EMPTY;
             return this.http.post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
-              mergeMap(result => {
+              switchMap(result => {
                 if (this.db !== db) return EMPTY;
                 return from(this.fullTrackTable!.put({
                   key: result.uuid + '#' + result.owner,
@@ -491,7 +490,7 @@ export class TrackDatabase {
 
   private syncDeletedLocally(db: Dexie): Observable<any> {
     return from(this.fullTrackTable!.where('version').equals(-1).toArray()).pipe(
-      mergeMap(items => {
+      switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
         console.log('' + items.length + ' tracks to be deleted on server');
@@ -499,7 +498,7 @@ export class TrackDatabase {
         const keys = items.map(item => item.uuid + '#' + this.openEmail!);
         return this.http.post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids).pipe(
           defaultIfEmpty(true),
-          mergeMap(result => {
+          switchMap(result => {
             if (this.db !== db) return EMPTY;
             return from(this.fullTrackTable!.bulkDelete(keys));
           }),
@@ -515,7 +514,7 @@ export class TrackDatabase {
 
   private syncUpdatesFromServer(db: Dexie): Observable<any> {
     return from(this.fullTrackTable!.where('owner').equals(this.openEmail!).toArray()).pipe(
-      mergeMap(items => {
+      switchMap(items => {
         if (this.db !== db) return EMPTY;
         const known: OwnedDto[] = [];
         for (const item of items) {
@@ -523,7 +522,7 @@ export class TrackDatabase {
         }
         console.log('Requesting updates from server: ' + known.length + ' tracks known');
         return this.http.post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
-          mergeMap(response => {
+          switchMap(response => {
             if (this.db !== db) return EMPTY;
             console.log('Server updates for tracks: ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
             const toRetrieve = [...response.created, ...response.updated];
@@ -538,7 +537,7 @@ export class TrackDatabase {
                 return of(null);
               })));
             return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-              mergeMap(responses => this.updatesFromServer(db, responses.filter(t => !!t) as TrackDto[], response.deleted))
+              switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t) as TrackDto[], response.deleted))
             );
           }),
           catchError(error => {
@@ -553,7 +552,7 @@ export class TrackDatabase {
 
   private syncUpdatesToServer(db: Dexie): Observable<any> {
     return from(this.fullTrackTable!.where('updatedLocally').equals(1).toArray()).pipe(
-      mergeMap(items => {
+      switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
         console.log('' + items.length + ' tracks to be updated on server');
@@ -567,7 +566,7 @@ export class TrackDatabase {
           requests.push(limiter.add(request));
         });
         return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-          mergeMap(responses => this.updatesFromServer(db, responses, []))
+          switchMap(responses => this.updatesFromServer(db, responses, []))
         );
       }),
       catchError(error => {

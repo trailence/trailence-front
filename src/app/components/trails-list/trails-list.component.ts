@@ -11,7 +11,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonList, IonItem, IonCheckbox, IonPopover } from "@ionic/angular/standalone";
-import { BehaviorSubject, Observable, combineLatest, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { TagService } from 'src/app/services/database/tag.service';
@@ -155,11 +155,11 @@ export class TrailsListComponent extends AbstractComponent {
     this.state$.next(defaultState);
     this.byStateAndVisible.subscribe(
       this.trails$.pipe(
-        mergeMap(list => list.length > 0 ? combineLatest(list) : of([])),
+        switchMap(list => list.length > 0 ? combineLatest(list) : of([])),
         map(trails => trails.filter(trail => !!trail) as Trail[]),
-        mergeMap(trails => trails.length === 0 ? of([]) :
+        switchMap(trails => trails.length === 0 ? of([]) :
           combineLatest(trails.map(trail => trail.currentTrackUuid$)).pipe(
-            mergeMap(uuids => combineLatest(uuids.map((uuid, index) => this.trackService.getMetadata$(uuid, trails[index].owner)))),
+            switchMap(uuids => combineLatest(uuids.map((uuid, index) => this.trackService.getMetadata$(uuid, trails[index].owner)))),
             map(tracks => tracks.map((track, index) => ({trail: trails[index], track: track, selected: false})))
           )
         ),

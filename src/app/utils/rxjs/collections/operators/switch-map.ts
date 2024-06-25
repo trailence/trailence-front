@@ -1,13 +1,13 @@
-import { Observable, map, mergeMap } from 'rxjs';
+import { Observable, map, switchMap } from 'rxjs';
 import { CollectionObservable, CollectionOperatorFunction } from '../collection-observable';
 
-export function collection$mergeMap<S, T>(
+export function collection$switchMap<S, T>(
   mapper: (source: S, index: number) => Observable<T>
 ): CollectionOperatorFunction<Observable<S>, Observable<T>> {
-  return source => new Collection$MergeMap<S, T>(source, mapper);
+  return source => new Collection$SwitchMap<S, T>(source, mapper);
 }
 
-class Collection$MergeMap<S, T> extends CollectionObservable<Observable<T>> {
+class Collection$SwitchMap<S, T> extends CollectionObservable<Observable<T>> {
 
   constructor(
     private source: CollectionObservable<Observable<S>>,
@@ -26,7 +26,7 @@ class Collection$MergeMap<S, T> extends CollectionObservable<Observable<T>> {
           item => {
             let known = this._knownMapping.get(item);
             if (!known) {
-              known = item.pipe(mergeMap(this.mapper));
+              known = item.pipe(switchMap(this.mapper));
               this._knownMapping.set(item, known);
             } else {
               toRemove.splice(toRemove.indexOf(item), 1);
@@ -56,7 +56,7 @@ class Collection$MergeMap<S, T> extends CollectionObservable<Observable<T>> {
         changes.added.forEach(added => {
           let known = this._knownMapping.get(added);
           if (!known) {
-            known = added.pipe(mergeMap(this.mapper));
+            known = added.pipe(switchMap(this.mapper));
             this._knownMapping.set(added, known);
           }
           result.added.push(known);

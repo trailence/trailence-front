@@ -1,15 +1,9 @@
 import { Injectable, NgZone } from '@angular/core';
-import { OwnedStore, UpdatesResponse } from './owned-store';
-import { TrackDto } from 'src/app/model/dto/track';
 import { Track } from 'src/app/model/track';
-import { DatabaseService, TRACK_TABLE_NAME } from './database.service';
+import { DatabaseService } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, catchError, map, mergeMap, of, zip } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { Observable } from 'rxjs';
 import { NetworkService } from '../network/newtork.service';
-import { RequestLimiter } from 'src/app/utils/request-limiter';
-import { VersionedDto } from 'src/app/model/dto/versioned';
-import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-observable';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
 import { AuthService } from '../auth/auth.service';
 

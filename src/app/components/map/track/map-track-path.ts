@@ -1,6 +1,6 @@
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
-import { Subscription, combineLatest, map, mergeMap, of, skip } from 'rxjs';
+import { Subscription, combineLatest, map, of, skip, switchMap } from 'rxjs';
 import { Arrays } from 'src/app/utils/arrays';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 
@@ -40,9 +40,9 @@ export class MapTrackPath {
       });
       if (!this._subscription && this._track instanceof Track) {
         this._subscription = this._track.segments$.pipe(
-          mergeMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(segment => segment.points$))),
+          switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(segment => segment.points$))),
           map(points => Arrays.flatMap(points, pts => pts.map(pt => pt.pos$))),
-          mergeMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
+          switchMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
           skip(1),
         ).subscribe(() => {
           if (this._path && this._map) this._path.removeFrom(this._map);

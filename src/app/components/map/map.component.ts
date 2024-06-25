@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Outp
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { Platform } from '@ionic/angular';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, mergeMap, takeWhile, timer } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, switchMap, takeWhile, timer } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -63,9 +63,9 @@ export class MapComponent extends AbstractComponent {
     this.updateTracks();
     this._mapState.live$.pipe(
       filter(live => live),
-      mergeMap(() => timer(50, 150).pipe(
+      switchMap(() => timer(50, 150).pipe(
         takeWhile(() => this._mapState.live),
-        mergeMap(() => this.readyForMap$()),
+        switchMap(() => this.readyForMap$()),
         filter(ready => ready && this._mapState.live)
       )),
       first()

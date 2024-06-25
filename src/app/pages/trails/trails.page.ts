@@ -2,7 +2,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, Observable, combineLatest, filter, first, map, mergeMap, of, tap } from 'rxjs';
+import { EMPTY, Observable, filter, map, of, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -64,8 +64,8 @@ export class TrailsPage extends AbstractPage {
       // title is collection name, or default
       this.title$ = this.injector.get(AuthService).auth$.pipe(
         filter(auth => !!auth),
-        mergeMap(auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth!.email)),
-        mergeMap(collection => {
+        switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth!.email)),
+        switchMap(collection => {
           if (!collection) {
             if (this.shown && this.shown instanceof TrailCollection) {
               // collection has been removed

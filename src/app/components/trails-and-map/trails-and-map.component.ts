@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Platform } from '@ionic/angular';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, Observable, map, mergeMap, of } from 'rxjs';
+import { BehaviorSubject, Observable, map, of, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -16,10 +16,10 @@ import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-
 import { debounceTimeReduce } from 'src/app/utils/rxjs/rxjs-utils';
 import { Router } from '@angular/router';
 import { ArrayBehaviorSubject } from 'src/app/utils/rxjs/collections/collection-behavior-subject';
-import { collection$mergeMap } from 'src/app/utils/rxjs/collections/operators/merge-map';
 import { collection$filter } from 'src/app/utils/rxjs/collections/operators/filter';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { collection$map } from 'src/app/utils/rxjs/collections/operators/map';
+import { collection$switchMap } from 'src/app/utils/rxjs/collections/operators/switch-map';
 
 @Component({
   selector: 'app-trails-and-map',
@@ -76,10 +76,10 @@ export class TrailsAndMapComponent extends AbstractComponent {
     if (!this.trails$) return;
     this.byStateAndVisible.subscribe(
       this.trails$!.pipe(
-        collection$mergeMap<Trail | null, { trail: Trail | null, track: SimplifiedTrackSnapshot | null }>(trail => {
+        collection$switchMap<Trail | null, { trail: Trail | null, track: SimplifiedTrackSnapshot | null }>(trail => {
           if (!trail) return of(({trail: null, track: null}));
           return trail.currentTrackUuid$.pipe(
-            mergeMap(uuid => this.trackService.getSimplifiedTrack$(uuid, trail!.owner)),
+            switchMap(uuid => this.trackService.getSimplifiedTrack$(uuid, trail!.owner)),
             map(track => ({trail, track}))
           );
         })

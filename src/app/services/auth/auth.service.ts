@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, EMPTY, Observable, catchError, filter, first, from, map, mergeMap, of, share, tap, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, filter, first, from, map, of, share, switchMap, tap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -106,8 +106,8 @@ export class AuthService {
       false,
       ['sign', 'verify']
     )).pipe(
-      mergeMap(keyPair => from(window.crypto.subtle.exportKey('spki', keyPair.publicKey)).pipe(
-        mergeMap(pk =>
+      switchMap(keyPair => from(window.crypto.subtle.exportKey('spki', keyPair.publicKey)).pipe(
+        switchMap(pk =>
           this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
             email,
             password,
@@ -115,7 +115,7 @@ export class AuthService {
             deviceInfo: new DeviceInfo(this.platform)
           } as LoginRequest)
         ),
-        mergeMap(response =>
+        switchMap(response =>
           from(this.openDB(response.email)
             .transaction('rw', DB_SECURITY_TABLE, tx => {
               tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keyPair.privateKey, keyId: response.keyId})
@@ -132,7 +132,7 @@ export class AuthService {
   private requireAuth(): Observable<AuthResponse | null> {
     return this._auth$.pipe(
       filter(auth => auth !== undefined),
-      mergeMap(auth => {
+      switchMap(auth => {
         if (!auth || auth.expires - Date.now() - 60000 > 0) return of(auth as (AuthResponse | null));
         return this.renewAuth();
       }),
@@ -148,14 +148,14 @@ export class AuthService {
       this._currentAuth =
         from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(email)))
         .pipe(
-          mergeMap(security => {
+          switchMap(security => {
             if (!security) {
               this._auth$.next(null);
               return of(null);
             }
             return this.http.post<{random:string}>(environment.apiBaseUrl + '/auth/v1/init_renew', {email: security.email, keyId: security.keyId} as InitRenewRequest)
             .pipe(
-              mergeMap(initResponse =>
+              switchMap(initResponse =>
                 from(window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', security.privateKey, new TextEncoder().encode(security.email + initResponse.random)))
                 .pipe(map(signature => ({signature, randomBase64: initResponse.random, keyId: security.keyId})))
               ),
@@ -172,7 +172,7 @@ export class AuthService {
               })
             )
           }),
-          mergeMap(result => {
+          switchMap(result => {
             if (!result) return of(null);
             return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', {
               email,
@@ -209,7 +209,7 @@ export class AuthService {
         return of(request);
       }
     return this.requireAuth().pipe(
-      mergeMap(auth => {
+      switchMap(auth => {
         if (!auth) {
           return EMPTY; // cancel the request
         }

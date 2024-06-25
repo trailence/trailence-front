@@ -5,7 +5,7 @@ import { Tag } from "src/app/model/tag";
 import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, filter, map, mergeMap, of } from "rxjs";
+import { Observable, combineLatest, filter, map, of, switchMap } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
@@ -46,7 +46,7 @@ export class TagService {
   }
 
   public getTag$(uuid: string): Observable<Tag | null> {
-    return this.auth.auth$.pipe(filter(auth => !!auth),mergeMap(auth => this._tagStore.getItem$(uuid, auth!.email)))
+    return this.auth.auth$.pipe(filter(auth => !!auth),switchMap(auth => this._tagStore.getItem$(uuid, auth!.email)))
   }
 
   public getTag(uuid: string): Tag | null {
@@ -88,12 +88,12 @@ export class TagService {
 
   public getTrailTagsNames$(trailUuid: string): Observable<string[]> {
     return this.getTrailTags$(trailUuid).values$.pipe(
-      mergeMap(trailTags$ => trailTags$.length === 0 ? of([]) : combineLatest(trailTags$)),
-      mergeMap(trailTags => {
+      switchMap(trailTags$ => trailTags$.length === 0 ? of([]) : combineLatest(trailTags$)),
+      switchMap(trailTags => {
         const list = trailTags.filter(t => !!t) as TrailTag[];
         if (list.length === 0) return of([]);
         return combineLatest(list.map(trailTag => this.getTag$(trailTag.tagUuid).pipe(
-          mergeMap(tag => tag ? tag.name$ : of(undefined))
+          switchMap(tag => tag ? tag.name$ : of(undefined))
         )));
       }),
       map(names => names.filter(name => !!name) as string[])

@@ -1,5 +1,5 @@
 import { DatabaseService } from './database.service';
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, distinctUntilChanged, filter, first, from, map, mergeMap, of, timeout } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, concat, defaultIfEmpty, from, map, of, switchMap } from 'rxjs';
 import { NetworkService } from '../network/newtork.service';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
@@ -53,7 +53,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return concat(
       of(null),
       this._store.changes$.pipe(
-        mergeMap(changes => {
+        switchMap(changes => {
           const added$ = changes.added.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
           if (added$) return added$;
           return EMPTY;
@@ -207,15 +207,15 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
     this.syncCreateNewItems(stillValid)
     .pipe(
-      mergeMap(result => {
+      switchMap(result => {
         if (!stillValid()) return of(false);
         return this.syncLocalDeleteToServer(stillValid);
       }),
-      mergeMap(result => {
+      switchMap(result => {
         if (!stillValid()) return of(false);
         return this.syncUpdateFromServer(stillValid);
       }),
-      mergeMap(result => {
+      switchMap(result => {
         if (!stillValid()) return of(false);
         return this.syncUpdateToServer(stillValid);
       }),
@@ -247,14 +247,14 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const ready = toCreate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
     return ready$.pipe(
-      mergeMap(readyEntities => {
+      switchMap(readyEntities => {
         if (readyEntities.length === 0) {
           console.log('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
           return of(false);
         }
         console.log('Creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server');
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
-          mergeMap(result => {
+          switchMap(result => {
             console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
             if (!stillValid()) return of(false);
             return this.updatedDtosFromServer(result);
@@ -274,7 +274,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const known = this._store.values.filter(item$ => this._createdLocally.indexOf(item$) < 0).map(item$ => item$.value).map(item => new Owned(item!).toDto());
     console.log('Requesting updates from server: ' + known.length + ' known element(s) of ' + this.tableName);
     return this.getUpdatesFromServer(known).pipe(
-      mergeMap(result => {
+      switchMap(result => {
         if (!stillValid()) return of(false);
         console.log('Server updates for ' + this.tableName + ': ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
         return this.updatedDtosFromServer([...result.updated, ...result.created], result.deleted);
@@ -294,14 +294,14 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const ready = toUpdate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate)
     return ready$.pipe(
-      mergeMap(readyEntities => {
+      switchMap(readyEntities => {
         if (readyEntities.length === 0) {
           console.log('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName);
           return of(false);
         }
         console.log('Updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server');
         return this.sendUpdatesToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
-          mergeMap(result => {
+          switchMap(result => {
             if (!stillValid()) return of(false);
             console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server');
             this._updatedLocally = [];
@@ -323,7 +323,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     console.log('Deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server');
     return this.deleteFromServer(toDelete).pipe(
       defaultIfEmpty(true),
-      mergeMap(() => {
+      switchMap(() => {
         if (!stillValid()) return of(false);
         return this.updatedDtosFromServer([], toDelete.map(uuid => ({uuid, owner: this.databaseService.email!})));
       }),

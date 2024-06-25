@@ -6,14 +6,13 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, IonList } from "@ionic/angular/standalone";
-import { combineLatest, debounceTime, mergeMap, of } from 'rxjs';
+import { combineLatest, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { TrailTag } from 'src/app/model/trail-tag';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
 
 class Meta {
@@ -77,8 +76,8 @@ export class TrailOverviewComponent extends AbstractComponent {
           this.i18n.stateChanged$,
           this.trail.name$,
           this.trail.currentTrackUuid$.pipe(
-            mergeMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
-            mergeMap(track => {
+            switchMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
+            switchMap(track => {
               if (!track) return of([undefined, undefined]);
               if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
               return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
