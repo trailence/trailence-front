@@ -5,6 +5,8 @@ export const GEOLOCATION_TIMEOUT = 5000;
 
 export interface IGeolocationService {
 
+  waitingForGps: boolean;
+
   getCurrentPosition(): Promise<PointDto>;
 
   watchPosition(listener: (position: PointDto) => void, onerror?: (error: any) => void): void;

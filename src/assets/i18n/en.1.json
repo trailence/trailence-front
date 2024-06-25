@@ -144,5 +144,6 @@
     "resume": "Resume",
     "stop": "Stop",
     "start_this_trail": "Start this trail"
-  }
+  },
+  "waiting_for_gps": "Waiting for GPS signal..."
 }

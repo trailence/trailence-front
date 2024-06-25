@@ -8,10 +8,12 @@ import { TrailCollectionService } from './services/database/trail-collection.ser
 import { TagService } from './services/database/tag.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menu/menu.component';
+import { GeolocationService } from './services/geolocation/geolocation.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
+  styleUrls: ['app.component.scss'],
   standalone: true,
   imports: [
     IonApp,
@@ -25,6 +27,7 @@ import { MenuComponent } from './components/menu/menu.component';
 export class AppComponent {
   constructor(
     public i18n: I18nService,
+    public geolocation: GeolocationService,
     // init assets
     assetsService: AssetsService,
     // depends on services with stores, so they can start synchronizing

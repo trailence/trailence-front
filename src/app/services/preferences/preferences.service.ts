@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ComputedPreferences, Preferences, ThemeType } from './preferences';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
+import { NetworkService } from '../network/newtork.service';
 
 const defaultPreferences: {[key:string]: Preferences} = {
   'en': {
@@ -35,10 +36,12 @@ export class PreferencesService {
   private _prefs$: BehaviorSubject<Preferences>;
   private _computed$: BehaviorSubject<ComputedPreferences>;
   private _systemTheme: ThemeType;
+  private _saveNeeded$ = new BehaviorSubject<string | undefined>(undefined);
 
   constructor(
     private authService: AuthService,
     private httpService: HttpService,
+    private network: NetworkService,
   ) {
     this._systemTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'DARK' : 'LIGHT';
     let prefs: Preferences = {};
@@ -67,6 +70,13 @@ export class PreferencesService {
       window.document.body.classList.add(theme.toLowerCase() + '-theme');
       this._computed$.next(computed);
     });
+    combineLatest([network.connected$, authService.auth$, this._saveNeeded$]).subscribe(
+      ([connected, auth, saveNeeded]) => {
+        if (connected && auth?.preferences && saveNeeded === auth?.email) {
+          this.httpService.put(environment.apiBaseUrl + '/preferences/v1', auth.preferences).subscribe();
+        }
+      }
+    );
   }
 
   private compute(p: Preferences): ComputedPreferences {
@@ -84,8 +94,8 @@ export class PreferencesService {
     if (!toComplete.distanceUnit) toComplete.distanceUnit = withPrefs.distanceUnit;
     if (!toComplete.hourFormat) toComplete.hourFormat = withPrefs.hourFormat;
     if (!toComplete.dateFormat) toComplete.dateFormat = withPrefs.dateFormat;
-    if (toComplete.traceMinMeters === undefined) toComplete.traceMinMeters = DEFAULT_TRACE_MIN_METERS;
-    if (toComplete.traceMinMillis === undefined) toComplete.traceMinMillis = DEFAULT_TRACE_MIN_MILLIS;
+    if (toComplete.traceMinMeters === undefined || toComplete.traceMinMeters === null) toComplete.traceMinMeters = DEFAULT_TRACE_MIN_METERS;
+    if (toComplete.traceMinMillis === undefined || toComplete.traceMinMillis === null) toComplete.traceMinMillis = DEFAULT_TRACE_MIN_MILLIS;
   }
 
   private getDefaultLanguage(): string {
@@ -119,7 +129,7 @@ export class PreferencesService {
       }
       auth.preferences.lang = lang;
       this.authService.preferencesUpdated();
-      this.httpService.put(environment.apiBaseUrl + '/preferences/v1', auth.preferences).subscribe();
+      this._saveNeeded$.next(auth.email);
     }
     if (this._prefs$.value.lang !== lang) {
       this._prefs$.value.lang = lang;
@@ -135,7 +145,7 @@ export class PreferencesService {
       }
       auth.preferences.theme = theme;
       this.authService.preferencesUpdated();
-      this.httpService.put(environment.apiBaseUrl + '/preferences/v1', auth.preferences).subscribe();
+      this._saveNeeded$.next(auth.email);
     }
     if (this._prefs$.value.theme !== theme) {
       this._prefs$.value.theme = theme;

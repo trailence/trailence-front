@@ -79,9 +79,11 @@ export class TrackMetadataComponent extends AbstractComponent {
     })
 
     const info1 = document.createElement('DIV') as HTMLDivElement;
+    info1.className = "metadata-primary";
     item.appendChild(info1);
 
     const info2 = document.createElement('DIV') as HTMLDivElement;
+    info2.className = "metadata-secondary";
     item.appendChild(info2);
 
     parent.appendChild(container);
@@ -114,20 +116,18 @@ export class TrackMetadataComponent extends AbstractComponent {
         ])));
       })
     ), ([distance, duration, positiveElevation, negativeElevation, state]) => {
-      let changed = false;
-      if (this.updateMeta(meta, 'distance', distance, v => this.i18n.distanceToString(v), state !== previousState)) changed = true;
-      if (this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState)) changed = true;
-      if (this.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + this.i18n.elevationToString(v), state !== previousState)) changed = true;
-      if (this.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + this.i18n.elevationToString(v), state !== previousState)) changed = true;
+      this.updateMeta(meta, 'distance', distance, v => this.i18n.distanceToString(v), state !== previousState);
+      this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState);
+      this.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + this.i18n.elevationToString(v), state !== previousState);
+      this.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + this.i18n.elevationToString(v), state !== previousState);
       previousState = state;
     })
   }
 
-  private updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean): boolean {
-    if (!forceChange && meta[key  + 'Value'] === value) return false;
+  private updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean): void {
+    if (!forceChange && meta[key  + 'Value'] === value) return;
     meta[key + 'Value'] = value;
     (meta[key + 'Div'] as HTMLDivElement).innerText = toString(value);
-    return true;
   }
 
   protected override getComponentState(): any {
@@ -139,7 +139,7 @@ export class TrackMetadataComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState?.track !== previousState?.track) this.track$.next(newState.track);
-    if (newState?.track !== previousState?.track) this.track2$.next(newState.track2);
+    if (newState?.track2 !== previousState?.track2) this.track2$.next(newState.track2);
   }
 
 }

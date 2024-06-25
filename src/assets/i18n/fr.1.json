@@ -144,5 +144,6 @@
     "resume": "Reprendre",
     "stop": "Terminer",
     "start_this_trail": "Démarrer le parcours"
-  }
+  },
+  "waiting_for_gps": "En attente du signal GPS..."
 }

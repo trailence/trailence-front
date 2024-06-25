@@ -111,6 +111,10 @@ body.dark-theme {
 
   --tag-background-color: #3030F0;
   --tag-text-color: #d0d0ff;
+  --secondary-text-color: #7070FF;
+
+  --graph-primary-color: #FF0000;
+  --graph-secondary-color: #8080FF;
   --graph-selecting-color: #4040F0;
   --graph-selection-color: #2020FF;
 }
@@ -227,7 +231,10 @@ body.light-theme {
 
   --tag-background-color: #A0A0FF;
   --tag-text-color: #000060;
+  --secondary-text-color: #5050FF;
 
+  --graph-primary-color: #FF0000;
+  --graph-secondary-color: #0000FF;
   --graph-selecting-color: #4040F0;
   --graph-selection-color: #0000FF;
 }

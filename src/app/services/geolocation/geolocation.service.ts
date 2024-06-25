@@ -7,6 +7,8 @@ import { PointDto } from 'src/app/model/dto/point';
 })
 export class GeolocationService implements IGeolocationService {
 
+  public waitingForGps = false;
+
   private watchId?: number;
   private watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
 
@@ -34,8 +36,15 @@ export class GeolocationService implements IGeolocationService {
     listener: (position: PointDto) => void,
     onerror?: (error: any) => void
   ): void {
-    const initial = this.getCurrentPosition().then(pos => listener(pos));
-    if (onerror) initial.catch(onerror);
+    this.waitingForGps = true;
+    this.getCurrentPosition()
+    .then(pos => {
+      this.waitingForGps = false;
+      listener(pos);
+    })
+    .catch(e => {
+      if (onerror) onerror(e);
+    });
     this.watchListeners.push({listener, onerror});
     if (!this.watchId) {
       this.watchId = window.navigator.geolocation.watchPosition(pos => this.emitPosition(pos), err => this.emitError(err), this.options);
@@ -49,6 +58,7 @@ export class GeolocationService implements IGeolocationService {
       if (this.watchListeners.length === 0) {
         window.navigator.geolocation.clearWatch(this.watchId!);
         this.watchId = undefined;
+        this.waitingForGps = false;
       }
     }
   }
@@ -67,12 +77,14 @@ export class GeolocationService implements IGeolocationService {
   }
 
   private emitPosition(position: GeolocationPosition): void {
+    this.waitingForGps = false;
     const dto = this.positionToPointDto(position);
     for (const l of this.watchListeners)
       l.listener(dto);
   }
 
   private emitError(err: any): void {
+    this.waitingForGps = true;
     for (const l of this.watchListeners)
       if (l.onerror) l.onerror(err);
   }

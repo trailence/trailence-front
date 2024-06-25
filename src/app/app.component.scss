@@ -1,0 +1,19 @@
+.waiting-for-gps {
+  position: fixed;
+  top: 5px;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  div {
+    background-color: rgba(0, 0, 0, 0.33);
+    color: white;
+    padding: 3px 8px;
+    font-size: 14px;
+    border-radius: 5px;
+  }
+}

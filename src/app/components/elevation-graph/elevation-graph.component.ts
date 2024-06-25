@@ -103,6 +103,8 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   private backgroundColor = '';
   private contrastColor = '';
+  private primaryColor = '';
+  private secondaryColor = '';
   private selectingColor = '';
   private selectionColor = '';
 
@@ -116,6 +118,8 @@ export class ElevationGraphComponent extends AbstractComponent {
       const styles = getComputedStyle(element);
       this.backgroundColor = String(styles.getPropertyValue('--ion-background-color')).trim();
       this.contrastColor = String(styles.getPropertyValue('--ion-text-color')).trim();
+      this.primaryColor = String(styles.getPropertyValue('--graph-primary-color')).trim();
+      this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
       this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
       this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
       this.createChart();
@@ -222,8 +226,10 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.chartData = {
       datasets: []
     }
-    let maxDistance = this.buildDataSet(this.track1, '#FF0000');
-    // TODO track2
+    let maxDistance = this.buildDataSet(this.track1, this.primaryColor);
+    if (this.track2) {
+      maxDistance = Math.max(maxDistance, this.buildDataSet(this.track2, this.secondaryColor));
+    }
     this.chartOptions!.scales!['x']!.max = this.i18n.distanceInUserUnit(maxDistance);
     setTimeout(() => this.injector.get(ChangeDetectorRef).detectChanges(), 0);
   }

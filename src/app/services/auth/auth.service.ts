@@ -5,8 +5,13 @@ import { BehaviorSubject, EMPTY, Observable, catchError, filter, first, from, ma
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
-import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, Router, RouterStateSnapshot } from '@angular/router';
 import { ApiError } from '../http/api-error';
+import { LoginRequest } from './login-request';
+import { DeviceInfo } from './device-info';
+import { Platform } from '@ionic/angular/standalone';
+import { InitRenewRequest } from './init-renew-request';
+import { RenewRequest } from './renew-request';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
@@ -35,6 +40,7 @@ export class AuthService {
   constructor(
     private http: HttpService,
     private router: Router,
+    private platform: Platform,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {
@@ -103,8 +109,11 @@ export class AuthService {
       mergeMap(keyPair => from(window.crypto.subtle.exportKey('spki', keyPair.publicKey)).pipe(
         mergeMap(pk =>
           this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
-            email, password, publicKey: btoa(String.fromCharCode(...new Uint8Array(pk)))
-          })
+            email,
+            password,
+            publicKey: btoa(String.fromCharCode(...new Uint8Array(pk))),
+            deviceInfo: new DeviceInfo(this.platform)
+          } as LoginRequest)
         ),
         mergeMap(response =>
           from(this.openDB(response.email)
@@ -144,7 +153,7 @@ export class AuthService {
               this._auth$.next(null);
               return of(null);
             }
-            return this.http.post<{random:string}>(environment.apiBaseUrl + '/auth/v1/init_renew', {email: security.email, keyId: security.keyId})
+            return this.http.post<{random:string}>(environment.apiBaseUrl + '/auth/v1/init_renew', {email: security.email, keyId: security.keyId} as InitRenewRequest)
             .pipe(
               mergeMap(initResponse =>
                 from(window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', security.privateKey, new TextEncoder().encode(security.email + initResponse.random)))
@@ -169,8 +178,9 @@ export class AuthService {
               email,
               random: result.randomBase64,
               keyId: result.keyId,
-              signature: btoa(String.fromCharCode(...new Uint8Array(result.signature)))
-            });
+              signature: btoa(String.fromCharCode(...new Uint8Array(result.signature))),
+              deviceInfo: new DeviceInfo(this.platform),
+            } as RenewRequest);
           }),
           tap(response => this._auth$.next(response)),
           share()
