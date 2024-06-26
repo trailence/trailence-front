@@ -138,9 +138,10 @@ export class TrailComponent extends AbstractComponent {
       this.byStateAndVisible.subscribe(
         this.recording$.pipe(
           switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
-          map(r => r?.track.arrivalPoint),
+          debounceTime(10),
         ),
-        pt => {
+        r => {
+          const pt = r?.track.arrivalPoint;
           if (this.map) {
             if (pt)
               this.map.showLocation(pt.pos.lat, pt.pos.lng);
@@ -148,7 +149,7 @@ export class TrailComponent extends AbstractComponent {
               this.map.hideLocation();
           }
           if (pt && this.elevationGraph) {
-            this.elevationGraph.refresh();
+            this.elevationGraph.updateRecording(r.track);
           }
         }
       );

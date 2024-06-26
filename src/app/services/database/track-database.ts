@@ -15,8 +15,8 @@ import { NgZone } from "@angular/core";
 
 export interface TrackMetadataSnapshot {
   distance: number;
-  positiveElevation: number;
-  negativeElevation: number;
+  positiveElevation?: number;
+  negativeElevation?: number;
   highestAltitude?: number;
   lowestAltitude?: number;
   duration: number;

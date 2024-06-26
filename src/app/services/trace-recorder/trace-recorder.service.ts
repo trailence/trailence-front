@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, concat, from, of, skip, switchMap, tap, timeout } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, concat, of, skip, timeout } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -14,6 +14,7 @@ import { Point } from 'src/app/model/point';
 import { PreferencesService } from '../preferences/preferences.service';
 import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
+import * as L from 'leaflet';
 
 @Injectable({
   providedIn: 'root'
@@ -121,7 +122,7 @@ export class TraceRecorderService {
     if (!this._recording$.value) return;
     if (this._recording$.value.paused) return;
     this._recording$.value.paused = true;
-    this.stopRecording(this._recording$.value).subscribe();
+    this.stopRecording(this._recording$.value);
     this.save(this._recording$.value);
   }
 
@@ -136,21 +137,20 @@ export class TraceRecorderService {
   public stop(save: boolean): Observable<Trail | null> {
     const recording = this._recording$.value;
     if (!recording) return of(null);
-    return this.stopRecording(recording).pipe(
-      switchMap(() => {
-        console.log('Recording stopped');
-        this._recording$.next(null);
-        if (this._table) this._table.delete(1);
-        if (save && this._email) {
-          this.trackService.create(recording.track)
-          return this.trailService.create(recording.trail)
-        }
-        return of(null);
-      })
-    );
+    this.stopRecording(recording);
+    console.log('Recording stopped');
+    this._recording$.next(null);
+    if (this._table) this._table.delete(1);
+    if (save && this._email) {
+      this.trackService.create(recording.track)
+      return this.trailService.create(recording.trail)
+    }
+    return of(null);
   }
 
   private _geolocationListener?: (position: PointDto) => void;
+  private latestDefinitivePoint: Point | undefined = undefined;
+  private latestTemporaryPoint: Point | undefined = undefined;
 
   private startRecording(): void {
     const recording = this._recording$.value;
@@ -163,12 +163,25 @@ export class TraceRecorderService {
     .pipe(skip(1))
     .subscribe(() => this.save(recording));
     this._geolocationListener = (position: PointDto) => {
-      const last = recording.track.arrivalPoint;
-      if (!last || this.takePoint(last, position)) {
-        console.log('new position', position);
-        this.addPoint(recording, position);
+      // always keep latest position, but replace previous one if minimum distance or minimum time is not reached
+      if (this.latestDefinitivePoint === undefined) {
+        this.latestDefinitivePoint = this.addPoint(recording, position);
+      } else if (this.latestTemporaryPoint === undefined) {
+        this.latestTemporaryPoint = this.addPoint(recording, position);
+      } else if (this.takePoint(this.latestDefinitivePoint, position)) {
+        if (this.latestTemporaryPoint === undefined) {
+          this.latestDefinitivePoint = this.addPoint(recording, position);
+        } else {
+          this.updatePoint(this.latestTemporaryPoint, position);
+          this.latestDefinitivePoint = this.latestTemporaryPoint;
+          this.latestTemporaryPoint = undefined;
+        }
       } else {
-        console.log('position skipped', position);
+        if (this.latestTemporaryPoint === undefined) {
+          this.latestTemporaryPoint = this.addPoint(recording, position);
+        } else {
+          this.updatePoint(this.latestTemporaryPoint, position);
+        }
       }
     }
     this.geolocation.watchPosition(this._geolocationListener);
@@ -181,29 +194,35 @@ export class TraceRecorderService {
     return true;
   }
 
-  private addPoint(recording: Recording, position: PointDto): void {
+  private addPoint(recording: Recording, position: PointDto): Point {
+    console.log('new position', position);
     const point = new Point(
       position.l!, position.n!, position.e, position.t, position.pa, position.ea, position.h, position.s
     );
     const segment = recording.track.segments.length === 0 ? recording.track.newSegment() : recording.track.segments[recording.track.segments.length - 1];
     segment.append(point);
+    return point;
   }
 
-  private stopRecording(recording: Recording): Observable<any> {
+  private updatePoint(point: Point, position: PointDto): void {
+    console.log('update position', position);
+    point.pos = new L.LatLng(position.l!, position.n!);
+    point.ele = position.e;
+    point.time = position.t;
+    point.posAccuracy = position.pa;
+    point.eleAccuracy = position.ea;
+    point.heading = position.h;
+    point.speed = position.s;
+  }
+
+  private stopRecording(recording: Recording): void {
     console.log('Stop recording');
     this._changesSubscription?.unsubscribe();
     this._changesSubscription = undefined;
     if (this._geolocationListener) this.geolocation.stopWatching(this._geolocationListener);
     this._geolocationListener = undefined;
-    return from(this.geolocation.getCurrentPosition()).pipe(
-      timeout(5000),
-      tap(pos => {
-        console.log('last position to stop recording', pos);
-        this.addPoint(recording, pos);
-        this.save(recording);
-      }),
-      catchError(() => of(true))
-    );
+    this.latestDefinitivePoint = undefined;
+    this.latestTemporaryPoint = undefined;
   }
 
   private save(recording: Recording): void {

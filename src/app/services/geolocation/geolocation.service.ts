@@ -43,6 +43,7 @@ export class GeolocationService implements IGeolocationService {
       listener(pos);
     })
     .catch(e => {
+      console.log('Geolocation error', e);
       if (onerror) onerror(e);
     });
     this.watchListeners.push({listener, onerror});
@@ -84,6 +85,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   private emitError(err: any): void {
+    console.log('Geolocation error', err);
     this.waitingForGps = true;
     for (const l of this.watchListeners)
       if (l.onerror) l.onerror(err);

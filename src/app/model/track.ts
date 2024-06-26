@@ -89,6 +89,14 @@ export class Track extends Owned {
     return undefined;
   }
 
+  public get startDate(): number | undefined {
+    for (let i = 0; i < this._segments.value.length; ++i) {
+      const t = this._segments.value[i].startDate;
+      if (t) return t;
+    }
+    return undefined;
+  }
+
   public getAllPositions(): L.LatLng[] {
     const result: L.LatLng[] = [];
     for (const segment of this.segments) {
@@ -121,8 +129,8 @@ export class Track extends Owned {
 export class TrackMetadata {
 
   private _distance = new BehaviorSubject<number>(0);
-  private _positiveElevation = new BehaviorSubject<number>(0);
-  private _negativeElevation = new BehaviorSubject<number>(0);
+  private _positiveElevation = new BehaviorSubject<number | undefined>(undefined);
+  private _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
   private _highestAltitude = new BehaviorSubject<number | undefined>(undefined);
   private _lowestAltitude = new BehaviorSubject<number | undefined>(undefined);
   private _duration = new BehaviorSubject<number>(0);
@@ -132,8 +140,8 @@ export class TrackMetadata {
     segments$: Observable<Segment[]>
   ) {
     this.addition(segments$, meta => meta.distance$, this._distance);
-    this.addition(segments$, meta => meta.positiveElevation$, this._positiveElevation);
-    this.addition(segments$, meta => meta.negativeElevation$, this._negativeElevation);
+    this.addition2(segments$, meta => meta.positiveElevation$, this._positiveElevation);
+    this.addition2(segments$, meta => meta.negativeElevation$, this._negativeElevation);
     this.addition(segments$, meta => meta.duration$, this._duration);
     this.highest(segments$, meta => meta.highestAltitude$, this._highestAltitude);
     this.lowest(segments$, meta => meta.lowestAltitude$, this._lowestAltitude);
@@ -143,11 +151,11 @@ export class TrackMetadata {
   public get distance(): number { return this._distance.value; }
   public get distance$(): Observable<number> { return this._distance; }
 
-  public get positiveElevation(): number { return this._positiveElevation.value; }
-  public get positiveElevation$(): Observable<number> { return this._positiveElevation; }
+  public get positiveElevation(): number | undefined { return this._positiveElevation.value; }
+  public get positiveElevation$(): Observable<number | undefined> { return this._positiveElevation; }
 
-  public get negativeElevation(): number { return this._negativeElevation.value; }
-  public get negativeElevation$(): Observable<number> { return this._negativeElevation; }
+  public get negativeElevation(): number | undefined { return this._negativeElevation.value; }
+  public get negativeElevation$(): Observable<number | undefined> { return this._negativeElevation; }
 
   public get highestAltitude(): number | undefined { return this._highestAltitude.value; }
   public get highestAltitude$(): Observable<number | undefined> { return this._highestAltitude; }
@@ -163,6 +171,14 @@ export class TrackMetadata {
 
   private addition(segments$: Observable<Segment[]>, getter: (meta: SegmentMetadata) => Observable<number>, target: BehaviorSubject<number>): void {
     this.reduce(segments$, getter, (a,b) => a + b, 0, target);
+  }
+
+  private addition2(segments$: Observable<Segment[]>, getter: (meta: SegmentMetadata) => Observable<number | undefined>, target: BehaviorSubject<number | undefined>): void {
+    this.reduce(segments$, getter, (a,b) => {
+      if (a === undefined) return b;
+      if (b === undefined) return a;
+      return a + b;
+    }, undefined, target);
   }
 
   private highest(segments$: Observable<Segment[]>, getter: (meta: SegmentMetadata) => Observable<number | undefined>, target: BehaviorSubject<number | undefined>): void {

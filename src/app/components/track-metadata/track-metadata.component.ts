@@ -9,10 +9,10 @@ import { TrackMetadataSnapshot } from 'src/app/services/database/track-database'
 import { AssetsService } from 'src/app/services/assets/assets.service';
 
 class Meta {
-  distanceValue = 0;
-  durationValue = 0;
-  positiveElevationValue = 0;
-  negativeElevationValue = 0;
+  distanceValue?: number = undefined;
+  durationValue?: number = undefined;
+  positiveElevationValue?: number = undefined;
+  negativeElevationValue?: number = undefined;
 
   constructor(
     public distanceDiv: HTMLDivElement,
@@ -99,7 +99,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     let previousState = 0;
     this.whenVisible.subscribe(track$.pipe(
       switchMap(track => {
-        if (!track) return of([0, 0, 0, 0, 0]);
+        if (!track) return of([undefined, undefined, undefined, undefined, 0]);
         if (track instanceof Track) return combineLatest([
           track.metadata.distance$,
           track.metadata.duration$,
@@ -121,14 +121,14 @@ export class TrackMetadataComponent extends AbstractComponent {
       this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState);
       this.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + this.i18n.elevationToString(v), state !== previousState);
       this.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + this.i18n.elevationToString(v), state !== previousState);
-      previousState = state;
+      previousState = state as number;
     })
   }
 
   private updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean): void {
     if (!forceChange && meta[key  + 'Value'] === value) return;
     meta[key + 'Value'] = value;
-    (meta[key + 'Div'] as HTMLDivElement).innerText = toString(value);
+    (meta[key + 'Div'] as HTMLDivElement).innerText = value === undefined ? '' : toString(value);
   }
 
   protected override getComponentState(): any {

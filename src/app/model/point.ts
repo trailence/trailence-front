@@ -1,6 +1,7 @@
 import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
 import * as L from 'leaflet';
 import { PointDto } from './dto/point';
+import { IdGenerator } from '../utils/component-utils';
 
 export class Point {
 
@@ -11,6 +12,7 @@ export class Point {
   private _eleAccuracy: BehaviorSubject<number | undefined>;
   private _heading: BehaviorSubject<number | undefined>;
   private _speed: BehaviorSubject<number | undefined>;
+  private _id = IdGenerator.generateId();
 
   constructor(
     lat: number,
@@ -33,28 +35,39 @@ export class Point {
 
   public get pos(): L.LatLng { return this._pos.value; }
   public get pos$(): Observable<L.LatLng> { return this._pos; }
+  public set pos(p: L.LatLng) {
+    const current = this._pos.value;
+    if (current.lat === p.lat && current.lng === p.lng) return;
+    this._pos.next(p);
+  }
 
   public get ele(): number | undefined { return this._ele.value; }
   public get ele$(): Observable<number | undefined> { return this._ele; }
+  public set ele(e: number | undefined) { if (this._ele.value !== e) this._ele.next(e); }
 
   public get time(): number | undefined { return this._time.value; }
   public get time$(): Observable<number | undefined> { return this._time; }
+  public set time(t: number | undefined) { if (this._time.value !== t) this._time.next(t); }
 
   public get posAccuracy(): number | undefined { return this._posAccuracy.value; }
   public get posAccuracy$(): Observable<number | undefined> { return this._posAccuracy; }
+  public set posAccuracy(pa: number | undefined) { if (this._posAccuracy.value !== pa) this._posAccuracy.next(pa); }
 
   public get eleAccuracy(): number | undefined { return this._eleAccuracy.value; }
   public get eleAccuracy$(): Observable<number | undefined> { return this._eleAccuracy; }
+  public set eleAccuracy(ea: number | undefined) { if (this._eleAccuracy.value !== ea) this._eleAccuracy.next(ea); }
 
   public get heading(): number | undefined { return this._heading.value; }
   public get heading$(): Observable<number | undefined> { return this._heading; }
+  public set heading(h: number | undefined) { if (this._heading.value !== h) this._heading.next(h); }
 
   public get speed(): number | undefined { return this._speed.value; }
   public get speed$(): Observable<number | undefined> { return this._speed; }
+  public set speed(s: number | undefined) { if (this._speed.value !== s) this._speed.next(s); }
 
   public get changes$(): Observable<any> {
     return combineLatest([this.pos$, this.ele$, this.time$, this.posAccuracy$, this.eleAccuracy$, this.heading$, this.speed$]).pipe(
-      skip(1)
+      skip(1),
     );
   }
 

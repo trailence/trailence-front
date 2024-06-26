@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, map, of, skip, switchMap, tap } from 'rxjs';
 import { Point, PointDtoMapper } from './point';
 import { Arrays } from '../utils/arrays';
 import { Subscriptions } from '../utils/rxjs/subscription-utils';
@@ -19,7 +19,7 @@ export class Segment {
 
   public get changes$(): Observable<any> {
     return this.points$.pipe(
-      switchMap(points => points.length === 0 ? of([]) : concat(of([]), combineLatest(points.map(point => point.changes$)))),
+      switchMap(points => points.length === 0 ? of([]) : combineLatest(points.map(point => concat(of(true), point.changes$)))),
       skip(1)
     )
   }
@@ -70,12 +70,20 @@ export class Segment {
     return this._points.value[this._points.value.length - 1];
   }
 
+  public get startDate(): number | undefined {
+    if (this._points.value.length === 0) return undefined;
+    for (const point of this._points.value) {
+      if (point.time) return point.time;
+    }
+    return undefined;
+  }
+
 }
 
 export class SegmentPoint {
 
   private distanceFromPrevious = 0;
-  private elevationFromPrevious = 0;
+  private elevationFromPrevious?: number;
   private elevation?: number;
   private time?: number;
   private durationFromPrevious = 0;
@@ -115,7 +123,7 @@ export class SegmentPoint {
 
   public get distanceFromPreviousPoint(): number { return this.distanceFromPrevious; }
   public get durationFromPreviousPoint(): number { return this.durationFromPrevious; }
-  public get elevationFromPreviousPoint(): number { return this.elevationFromPrevious; }
+  public get elevationFromPreviousPoint(): number | undefined { return this.elevationFromPrevious; }
 
   close(): void {
     this.subscriptions.unsusbcribe();
@@ -145,8 +153,9 @@ export class SegmentPoint {
   }
 
   private updateElevation(init: boolean = false): void {
-    const newElevationFromPrevious = this._previous?._point.ele !== undefined && this._point.ele !== undefined ? (this._point.ele - this._previous._point.ele) : 0;
-    this.meta?.addElevation(newElevationFromPrevious - this.elevationFromPrevious);
+    const newElevationFromPrevious = this._previous?._point.ele !== undefined && this._point.ele !== undefined ? (this._point.ele - this._previous._point.ele) : undefined;
+    if (newElevationFromPrevious)
+      this.meta?.addElevation(this.elevationFromPrevious !== undefined ? newElevationFromPrevious - this.elevationFromPrevious : newElevationFromPrevious);
     this.elevationFromPrevious = newElevationFromPrevious;
     if (!init && this.elevation !== this._point.ele) {
       this.elevation = this._point.ele;
@@ -173,8 +182,8 @@ export class SegmentPoint {
 export class SegmentMetadata {
 
   private _distance = new BehaviorSubject<number>(0);
-  private _positiveElevation = new BehaviorSubject<number>(0);
-  private _negativeElevation = new BehaviorSubject<number>(0);
+  private _positiveElevation = new BehaviorSubject<number | undefined>(undefined);
+  private _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
   private _highestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
   private _lowestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
   private _duration = new BehaviorSubject<number>(0);
@@ -187,11 +196,11 @@ export class SegmentMetadata {
   public get distance(): number { return this._distance.value; }
   public get distance$(): Observable<number> { return this._distance; }
 
-  public get positiveElevation(): number { return this._positiveElevation.value; }
-  public get positiveElevation$(): Observable<number> { return this._positiveElevation; }
+  public get positiveElevation(): number | undefined { return this._positiveElevation.value; }
+  public get positiveElevation$(): Observable<number | undefined> { return this._positiveElevation; }
 
-  public get negativeElevation(): number { return this._negativeElevation.value; }
-  public get negativeElevation$(): Observable<number> { return this._negativeElevation; }
+  public get negativeElevation(): number | undefined { return this._negativeElevation.value; }
+  public get negativeElevation$(): Observable<number | undefined> { return this._negativeElevation; }
 
   public get highestAltitude(): number | undefined { return this._highestPoint.value?.point.ele; }
   public get highestAltitude$(): Observable<number | undefined> { return this._highestPoint.pipe(map(pt => pt?.point.ele)); }
@@ -211,12 +220,16 @@ export class SegmentMetadata {
   }
 
   addElevation(e: number): void {
-    if (e === 0) return;
-    if (e < 0) {
-      this._negativeElevation.next(this._negativeElevation.value + (-e));
-    } else {
-      this._positiveElevation.next(this._positiveElevation.value + e);
-    }
+    const addN = e <= 0 ? -e : 0;
+    const addP = e >= 0 ? e : 0;
+    if (this._negativeElevation.value === undefined)
+      this._negativeElevation.next(addN);
+    else if (addN > 0)
+      this._negativeElevation.next(this._negativeElevation.value + addN);
+    if (this._positiveElevation.value === undefined)
+      this._positiveElevation.next(addP);
+    else if (addP > 0)
+      this._positiveElevation.next(this._positiveElevation.value + addP);
   }
 
   addDuration(d: number): void {
@@ -277,16 +290,18 @@ export class SegmentMetadata {
   computeNewPoints(points: SegmentPoint[]): void {
     let distance = 0;
     let duration = 0;
-    let positiveElevation = 0;
-    let negativeElevation = 0;
+    let positiveElevation: number | undefined = undefined;
+    let negativeElevation: number | undefined = undefined;
     let startPoint = this._startPoint.value;
     points.forEach(pt => {
       distance += pt.distanceFromPreviousPoint;
       duration += pt.durationFromPreviousPoint;
-      if (pt.elevationFromPreviousPoint > 0)
-        positiveElevation += pt.elevationFromPreviousPoint;
-      else
-        negativeElevation += -pt.elevationFromPreviousPoint;
+      if (pt.elevationFromPreviousPoint !== undefined) {
+        if (pt.elevationFromPreviousPoint > 0)
+          positiveElevation = positiveElevation ? positiveElevation + pt.elevationFromPreviousPoint : pt.elevationFromPreviousPoint;
+        else
+          negativeElevation = negativeElevation ? negativeElevation - pt.elevationFromPreviousPoint : -pt.elevationFromPreviousPoint;
+      }
       if (pt.point.time !== undefined) {
         if (startPoint === undefined || startPoint.point.time! > pt.point.time) {
           startPoint = pt;
@@ -295,8 +310,10 @@ export class SegmentMetadata {
     });
     this.addDistance(distance);
     this.addDuration(duration);
-    if (positiveElevation > 0) this._positiveElevation.next(this._positiveElevation.value + positiveElevation);
-    if (negativeElevation > 0) this._negativeElevation.next(this._negativeElevation.value + negativeElevation);
+    if (positiveElevation !== undefined && (this._positiveElevation.value === undefined || positiveElevation > 0))
+      this._positiveElevation.next((this._positiveElevation.value || 0) + positiveElevation);
+    if (negativeElevation !== undefined && (this._negativeElevation.value === undefined || negativeElevation > 0))
+      this._negativeElevation.next((this._negativeElevation.value || 0) + negativeElevation);
     if (this._startPoint.value !== startPoint) this._startPoint.next(startPoint);
     this.computeHighestAndLowest();
   }

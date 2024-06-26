@@ -4,7 +4,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Platform } from '@ionic/angular';
-import { ActiveElement, Chart, ChartData, CoreChartOptions, DatasetChartOptions, ElementChartOptions, Filler, LineController, LineControllerChartOptions, LineElement, LinearScale, Plugin, PluginChartOptions, Point, PointElement, ScaleChartOptions, Tooltip } from 'chart.js';
+import * as C from 'chart.js';
 import { _DeepPartialObject } from 'chart.js/dist/types/utils';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Color } from 'src/app/utils/color';
@@ -14,8 +14,9 @@ import { ElevationGraphPointReference, ElevationGraphRange } from './elevation-g
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BackgroundPlugin } from './plugins/background';
 import { RangeSelection, RangeSelectionEvent } from './plugins/range-selection';
+import { Point } from 'src/app/model/point';
 
-Chart.register(LinearScale, LineController, PointElement, LineElement, Filler, Tooltip);
+C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
 export interface DataPoint {
   x: number;
@@ -51,9 +52,9 @@ export class ElevationGraphComponent extends AbstractComponent {
   @Output() selecting = new EventEmitter<ElevationGraphRange[] | undefined>();
   @Output() selection = new EventEmitter<ElevationGraphRange[] | undefined>();
 
-  chartOptions?: _DeepPartialObject<CoreChartOptions<"line"> & ElementChartOptions<"line"> & PluginChartOptions<"line"> & DatasetChartOptions<"line"> & ScaleChartOptions<"line"> & LineControllerChartOptions>;
-  chartData?: ChartData<"line", (number | Point | null)[]>;
-  chartPlugins: Plugin<"line", AnyObject>[] = [];
+  chartOptions?: _DeepPartialObject<C.CoreChartOptions<"line"> & C.ElementChartOptions<"line"> & C.PluginChartOptions<"line"> & C.DatasetChartOptions<"line"> & C.ScaleChartOptions<"line"> & C.LineControllerChartOptions>;
+  chartData?: C.ChartData<"line", (number | C.Point | null)[]>;
+  chartPlugins: C.Plugin<"line", AnyObject>[] = [];
   width?: number;
   height?: number;
 
@@ -66,7 +67,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     preferencesService: PreferencesService,
   ) {
     super(injector);
-    this.whenVisible.subscribe(platform.resize, () => this.resetChart());
+    this.whenVisible.subscribe(platform.resize, () => this.resizeChart());
     this.visible$.subscribe(() => this.resetChart());
     this.whenVisible.subscribe(preferencesService.preferences$, () => this.resetChart());
     injector.get(ElementRef).nativeElement.addEventListener('mouseout', () => this.pointHover.emit([]));
@@ -84,8 +85,13 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.resetChart();
   }
 
-  public refresh(): void {
-    this.resetChart();
+  public updateRecording(track: Track): void {
+    // when updating a recording track, the latest point may be updated, and new points may appeared
+    if (!this.chartData) return;
+    const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
+    if (datasetIndex < 0) return;
+    const ds = this.chartData.datasets[datasetIndex];
+    this.updateRecordingData(ds, track);
   }
 
   private checkSizeTimeout?: any;
@@ -93,8 +99,17 @@ export class ElevationGraphComponent extends AbstractComponent {
   private resetChart(): void {
     this.chartOptions = undefined;
     this.chartData = undefined;
+    this.chartPlugins = [];
     this.width = undefined;
     this.height = undefined;
+    if (!this.track1) return;
+    if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
+    if (this.visible)
+      this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
+  }
+
+  private resizeChart(): void {
+    if (!this.chartOptions) return;
     if (!this.track1) return;
     if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
     if (this.visible)
@@ -115,24 +130,63 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.width = element.offsetWidth;
     this.height = element.offsetHeight;
     if (this.width! > 0 && this.height! > 0) {
-      const styles = getComputedStyle(element);
-      this.backgroundColor = String(styles.getPropertyValue('--ion-background-color')).trim();
-      this.contrastColor = String(styles.getPropertyValue('--ion-text-color')).trim();
-      this.primaryColor = String(styles.getPropertyValue('--graph-primary-color')).trim();
-      this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
-      this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
-      this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
-      this.createChart();
+      if (this.chartOptions && this.canvas?.chart) {
+        console.log(this.width, this.height);
+        const chart = this.canvas.chart;
+        setTimeout(() => chart.resize(), 0);
+      } else {
+        const styles = getComputedStyle(element);
+        this.backgroundColor = String(styles.getPropertyValue('--ion-background-color')).trim();
+        this.contrastColor = String(styles.getPropertyValue('--ion-text-color')).trim();
+        this.primaryColor = String(styles.getPropertyValue('--graph-primary-color')).trim();
+        this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
+        this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
+        this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
+        setTimeout(() => this.createChart(), 0);
+      }
     } else
       this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 100);
   }
 
   private createChart(): void {
+    if (!this.chartOptions) this.buildOptions();
+    if (this.chartPlugins.length === 0)
+      this.chartPlugins.push(
+        new HoverVerticalLine(this.contrastColor),
+        new BackgroundPlugin(this.backgroundColor),
+        new RangeSelection(
+          this.selectingColor, this.selectionColor,
+          event => this.selecting.emit(this.rangeSelectionToEvent(event)),
+          event => this.selection.emit(this.rangeSelectionToEvent(event)),
+          () => this.selectable
+        )
+      );
+
+    this.chartData = {
+      datasets: []
+    }
+    let maxDistance = this.buildDataSet(this.track1, this.primaryColor);
+    if (this.track2) {
+      maxDistance = Math.max(maxDistance, this.buildDataSet(this.track2, this.secondaryColor));
+    }
+    this.chartOptions!.scales!['x']!.max = this.i18n.distanceInUserUnit(maxDistance);
+    setTimeout(() => this.injector.get(ChangeDetectorRef).detectChanges(), 0);
+  }
+
+  private buildOptions(): void {
     this.chartOptions = {
       responsive: false,
       backgroundColor: this.backgroundColor,
       color: this.contrastColor,
       animation: false,
+      normalized: true,
+      spanGaps: true,
+      maintainAspectRatio: false,
+      elements: {
+        point: {
+          radius: 0,
+        },
+      },
       scales: {
         x: {
           type: 'linear',
@@ -180,6 +234,10 @@ export class ElevationGraphComponent extends AbstractComponent {
       plugins: {
         filler: {
         },
+        decimation: {
+          enabled: true,
+          algorithm: 'lttb',
+        },
         tooltip: {
           boxPadding: 3,
           callbacks: {
@@ -206,37 +264,15 @@ export class ElevationGraphComponent extends AbstractComponent {
         }
       },
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
-      onHover: (event:any, elements: ActiveElement[], chart: any) => {
+      onHover: (event:any, elements: C.ActiveElement[], chart: any) => {
         const references = elements.filter(element => !!(element?.element as any)?.$context).map(element => this.activeElementToPointReference(element));
         this.pointHover.emit(references);
       },
     };
-    if (this.chartPlugins.length === 0)
-      this.chartPlugins.push(
-        new HoverVerticalLine(this.contrastColor),
-        new BackgroundPlugin(this.backgroundColor),
-        new RangeSelection(
-          this.selectingColor, this.selectionColor,
-          event => this.selecting.emit(this.rangeSelectionToEvent(event)),
-          event => this.selection.emit(this.rangeSelectionToEvent(event)),
-          () => this.selectable
-        )
-      );
-
-    this.chartData = {
-      datasets: []
-    }
-    let maxDistance = this.buildDataSet(this.track1, this.primaryColor);
-    if (this.track2) {
-      maxDistance = Math.max(maxDistance, this.buildDataSet(this.track2, this.secondaryColor));
-    }
-    this.chartOptions!.scales!['x']!.max = this.i18n.distanceInUserUnit(maxDistance);
-    setTimeout(() => this.injector.get(ChangeDetectorRef).detectChanges(), 0);
   }
 
   private buildDataSet(track: Track, color: string) {
     const ds = {
-      label: 'TODO i18n.elevation',
       fill: 'origin',
       borderColor: color,
       backgroundColor: new Color(color).setAlpha(0.2).toString(),
@@ -244,41 +280,63 @@ export class ElevationGraphComponent extends AbstractComponent {
       strokeColor: color,
       fillColor: color,
       pointStyle: false,
+      parsing: false,
       data: []
     };
-    let distance = 0;
-    let lastPoint = undefined;
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const segment = track.segments[segmentIndex];
-      lastPoint = undefined;
       for (let pointIndex = 0; pointIndex < segment.points.length; pointIndex++) {
         const pt = segment.points[pointIndex];
-        const elevation = pt.ele ? pt.ele : 0;
-        if (lastPoint) {
-          distance += pt.distanceTo(lastPoint.pos);
-        }
-        lastPoint = pt;
-        let timeSinceStart = undefined;
-        if (pt.time && track.segments[0].points[0].time) {
-          timeSinceStart = pt.time - track.segments[0].points[0].time;
-        }
-        const dataPoint: DataPoint = {
-          x: this.i18n.distanceInUserUnit(distance),
-          y: this.i18n.elevationInUserUnit(elevation),
-          segmentIndex,
-          pointIndex,
-          time: pt.time,
-          timeSinceStart,
-          lat: pt.pos.lat,
-          lng: pt.pos.lng,
-          ele: pt.ele,
-          distanceMeters: distance
-        };
-        (ds.data as any[]).push(dataPoint);
+        (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], pt, segmentIndex, pointIndex, track));
       }
     }
     this.chartData!.datasets.push(ds as any);
-    return distance;
+    return ds.data.length === 0 ? 0 : (ds.data[ds.data.length - 1] as DataPoint).distanceMeters;
+  }
+
+  private updateRecordingData(ds: any, track: Track): void {
+    let pointCount = 0;
+    for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
+      const segment = track.segments[segmentIndex];
+      for (let pointIndex = 0; pointIndex < segment.points.length; pointIndex++) {
+        if (pointCount < ds.data.length - 1) {
+          pointCount++;
+          continue;
+        }
+        if (pointCount === ds.data.length - 1) {
+          // latest known point => update it
+          ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segment.points[pointIndex], segmentIndex, pointIndex, track);
+        } else {
+          ds.data.push(this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segment.points[pointIndex], segmentIndex, pointIndex, track));
+        }
+        pointCount++;
+      }
+    }
+    this.canvas?.chart?.update();
+  }
+
+  private createDataPoint(previous: DataPoint | undefined, point: Point, segmentIndex: number, pointIndex: number, track: Track): DataPoint {
+    let distance = previous?.distanceMeters || 0;
+    if (pointIndex > 0) distance += point.distanceTo(previous!);
+    let timeSinceStart = undefined;
+    if (previous && previous.timeSinceStart && previous.time && point.time)
+      timeSinceStart = previous.timeSinceStart + (point.time - previous.time);
+    else if (point.time) {
+      const start = track.startDate;
+      if (start) timeSinceStart = point.time - start;
+    }
+    return {
+      x: this.i18n.distanceInUserUnit(distance),
+      y: this.i18n.elevationInUserUnit(point.ele || 0),
+      segmentIndex,
+      pointIndex,
+      time: point.time,
+      timeSinceStart,
+      lat: point.pos.lat,
+      lng: point.pos.lng,
+      ele: point.ele,
+      distanceMeters: distance
+    };
   }
 
   public showCursorForPosition(lat: number, lng: number): void {
@@ -308,9 +366,9 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.canvas?.chart?.canvas.dispatchEvent(new MouseEvent('mouseout'));
   }
 
-  private activeElementToPointReference(element: ActiveElement): ElevationGraphPointReference {
+  private activeElementToPointReference(element: C.ActiveElement): ElevationGraphPointReference {
     const pt: DataPoint = (element.element as any).$context.raw;
-    const e: PointElement = element.element as PointElement;
+    const e: C.PointElement = element.element as C.PointElement;
     return new ElevationGraphPointReference(
       element.datasetIndex === 0 ? this.track1 : this.track2!,
       pt.segmentIndex,
