@@ -104,7 +104,41 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <app-map-layer-selection #downloadLayersSelection [multiple]="true"></app-map-layer-selection>
+      <div>
+        <div class="page-section-title">{{i18n.texts.offline_map.select_layers}}</div>
+        <app-map-layer-selection #downloadLayersSelection [multiple]="true"></app-map-layer-selection>
+        <div class="page-section-title">{{i18n.texts.offline_map.parameters}}</div>
+        <div class="page-section-sub-title">{{i18n.texts.offline_map.max_zoom}}</div>
+        <div class="page-section-text">{{i18n.texts.offline_map.max_zoom_explaination}}</div>
+        <div class="page-section-text">{{i18n.texts.offline_map.max_zoom_reco}}</div>
+        <ion-range #downloadMapMaxZoom
+          mode="md"
+          [pin]="true"
+          [ticks]="true"
+          [snaps]="true"
+          [min]="13"
+          [max]="19"
+          [step]="1"
+          [value]="preferencesService.preferences.offlineMapMaxZoom"
+          class="always-show-knob-pin"
+        >
+        </ion-range>
+        <div class="page-section-sub-title">{{i18n.texts.offline_map.padding}}</div>
+        <div class="page-section-text">{{i18n.texts.offline_map.padding_explaination}}</div>
+        <ion-range #downloadMapPadding
+          mode="md"
+          [pin]="true"
+          [ticks]="true"
+          [snaps]="true"
+          [pinFormatter]="percentageFormatter"
+          [min]="100"
+          [max]="500"
+          [step]="25"
+          [value]="150"
+          class="always-show-knob-pin"
+        >
+        </ion-range>
+      </div>
     </ion-content>
     <ion-footer>
       <ion-toolbar>

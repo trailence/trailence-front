@@ -16,6 +16,9 @@ export interface Preferences {
   traceMinMeters?: number;
   traceMinMillis?: number;
 
+  offlineMapMaxKeepDays?: number;
+  offlineMapMaxZoom?: number;
+
 }
 
 export interface ComputedPreferences extends Preferences {
@@ -29,5 +32,8 @@ export interface ComputedPreferences extends Preferences {
 
   traceMinMeters: number;
   traceMinMillis: number;
+
+  offlineMapMaxKeepDays: number;
+  offlineMapMaxZoom: number;
 
 }

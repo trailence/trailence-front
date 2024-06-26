@@ -3,6 +3,7 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
 import * as L from 'leaflet';
 import { CommonModule } from '@angular/common';
 import { IonRadio, IonRadioGroup, IonCheckbox } from "@ionic/angular/standalone";
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-map-layer-selection',
@@ -19,15 +20,12 @@ export class MapLayerSelectionComponent {
 
   selection: string[] = [];
 
-  crs = L.CRS.EPSG3857;
-  coords: L.Coords;
   layers: {layer: MapLayer, tiles: L.TileLayer}[] = [];
+  assertsUrl = environment.assetsUrl;
 
   constructor(
     private service: MapLayersService,
   ) {
-    this.coords = new L.Point(34095, 23834) as L.Coords;
-    this.coords.z = 16;
     for (const l of service.layers) {
       this.layers.push({layer: l, tiles: l.create()});
     }

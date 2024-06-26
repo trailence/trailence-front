@@ -45,7 +45,8 @@ function createDefaultLayer(
   urlTemplate: string,
   maxZoom: number,
   copyright: string,
-  maxConcurrentRequests: number
+  maxConcurrentRequests: number,
+  additionalOptions: any = {},
 ): MapLayer {
   return {
     name,
@@ -53,6 +54,7 @@ function createDefaultLayer(
     create: () => new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution: copyright,
+      ...additionalOptions
     }),
     getTileUrl(layer, coords, crs) {
       const data = {

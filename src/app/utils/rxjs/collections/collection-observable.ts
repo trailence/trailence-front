@@ -1,5 +1,6 @@
 import { Observable, UnaryFunction, concat, filter, first, map } from "rxjs";
 
+// TODO remove this, it was a good idea, but can be done with smart custom rxjs operators I think
 export abstract class CollectionObservable<T> {
 
     public abstract get values$(): Observable<T[]>;

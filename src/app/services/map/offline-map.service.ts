@@ -9,6 +9,7 @@ import { Observable, combineLatest, from, map, of, zip } from 'rxjs';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { HttpService } from '../http/http.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
+import { PreferencesService } from '../preferences/preferences.service';
 
 interface TileMetadata {
   key: string;
@@ -35,6 +36,7 @@ export class OfflineMapService {
     private progressService: ProgressService,
     private i18n: I18nService,
     private http: HttpService,
+    private preferencesService: PreferencesService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -78,11 +80,13 @@ export class OfflineMapService {
       const key = '' + c.z + '_' + c.y + '_' + c.x;
       existing$.push(from(metaTable.get(key)));
     }
+    const maxTime = Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000;
     combineLatest(existing$).subscribe(
       result => {
         const coordsToDl = [];
         for (let i = 0; i < coords.length; ++i) {
-          if (result[i]) continue; // TODO download if too old
+          const known = result[i];
+          if (known && known.date > maxTime) continue;
           coordsToDl.push(coords[i]);
         }
         if (coordsToDl.length === 0) {
@@ -126,7 +130,7 @@ export class OfflineMapService {
 
   public computeTilesCoords(bounds: L.LatLngBounds, layer: L.TileLayer, crs: L.CRS): L.Coords[] {
     const coords: L.Coords[] = [];
-    const maxZoom = 16; // TODO use max zoom from preferences
+    const maxZoom = this.preferencesService.preferences.offlineMapMaxZoom;
     for (let zoom = 1; zoom <= Math.min(layer.options.maxZoom!, maxZoom); zoom++) {
       const area = L.bounds(
         crs.latLngToPoint(bounds.getNorthWest(), zoom),

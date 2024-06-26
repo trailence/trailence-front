@@ -28,6 +28,9 @@ const LOCALSTORAGE_PREFERENCES_KEY = 'trailence.preferences';
 const DEFAULT_TRACE_MIN_METERS = 5;
 const DEFAULT_TRACE_MIN_MILLIS = 5000;
 
+const DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS = 60;
+const DEFAULT_OFFLINE_MAP_MAX_ZOOM = 16;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -96,6 +99,8 @@ export class PreferencesService {
     if (!toComplete.dateFormat) toComplete.dateFormat = withPrefs.dateFormat;
     if (toComplete.traceMinMeters === undefined || toComplete.traceMinMeters === null) toComplete.traceMinMeters = DEFAULT_TRACE_MIN_METERS;
     if (toComplete.traceMinMillis === undefined || toComplete.traceMinMillis === null) toComplete.traceMinMillis = DEFAULT_TRACE_MIN_MILLIS;
+    if (toComplete.offlineMapMaxKeepDays === undefined || toComplete.offlineMapMaxKeepDays === null) toComplete.offlineMapMaxKeepDays = DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS;
+    if (toComplete.offlineMapMaxZoom === undefined || toComplete.offlineMapMaxZoom === null) toComplete.offlineMapMaxZoom = DEFAULT_OFFLINE_MAP_MAX_ZOOM;
   }
 
   private getDefaultLanguage(): string {
@@ -138,17 +143,28 @@ export class PreferencesService {
   }
 
   public setTheme(theme: ThemeType): void {
+    this.setPreference('theme', theme);
+  }
+
+  public setOfflineMapMaxZoom(value: number): void {
+    this.setPreference('offlineMapMaxZoom', value);
+  }
+
+  private setPreference(field: string, value: any): void {
     const auth = this.authService.auth;
-    if (auth && auth.preferences?.theme !== theme) {
-      if (!auth.preferences) {
-        auth.preferences = {};
+    if (auth) {
+      const currentValue = auth && auth.preferences ? (auth.preferences as any)[field] : undefined;
+      if (auth && currentValue !== value) {
+        if (!auth.preferences) {
+          auth.preferences = {};
+        }
+        (auth.preferences as any)[field] = value;
+        this.authService.preferencesUpdated();
+        this._saveNeeded$.next(auth.email);
       }
-      auth.preferences.theme = theme;
-      this.authService.preferencesUpdated();
-      this._saveNeeded$.next(auth.email);
-    }
-    if (this._prefs$.value.theme !== theme) {
-      this._prefs$.value.theme = theme;
+      }
+    if ((this._prefs$.value as any)[field] !== value) {
+      (this._prefs$.value as any)[field] = value;
       this._prefs$.next(this._prefs$.value);
     }
   }

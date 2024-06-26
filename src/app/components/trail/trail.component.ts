@@ -9,7 +9,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonModal, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonModal, IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonRange } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -24,13 +24,14 @@ import { TrailPathSelection } from './path-selection';
 import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
 import { MapLayer } from 'src/app/services/map/map-layers.service';
 import * as L from 'leaflet';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
   selector: 'app-trail',
   templateUrl: './trail.component.html',
   styleUrls: ['./trail.component.scss'],
   standalone: true,
-  imports: [IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, IonModal, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
+  imports: [IonRange, IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, IonModal, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
     CommonModule,
     MapComponent,
     TrackMetadataComponent,
@@ -54,11 +55,14 @@ export class TrailComponent extends AbstractComponent {
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
   @ViewChild('downloadMapModal') downloadMapModal?: IonModal;
+  @ViewChild('downloadMapMaxZoom') downloadMapMaxZoom?: IonRange;
+  @ViewChild('downloadMapPadding') downloadMapPadding?: IonRange;
 
   displayMode = 'large';
   tab = 'map';
   bottomSheetOpen = true;
   bottomSheetTab = 'info';
+  percentageFormatter = (value: number) => '' + value + '%';
 
   editable = false;
   edited$ = new Subject<boolean>();
@@ -75,6 +79,7 @@ export class TrailComponent extends AbstractComponent {
     private auth: AuthService,
     private trailService: TrailService,
     private traceRecorder: TraceRecorderService,
+    public preferencesService: PreferencesService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -275,18 +280,20 @@ export class TrailComponent extends AbstractComponent {
   }
 
   launchDownloadMap(selection: {layer: MapLayer, tiles: L.TileLayer}[]): void {
+    this.preferencesService.setOfflineMapMaxZoom(this.downloadMapMaxZoom!.value as number)
+    const padding = ((this.downloadMapPadding!.value as number) - 100) / 100;
     this.downloadMapModal?.dismiss();
     let bounds: L.LatLngBounds | undefined = undefined;
-    this.mapTracks$.value.forEach(track => {
+    for (const track of this.mapTracks$.value) {
       const b = track.bounds
       if (b)
         if (!bounds) bounds = b; else bounds = bounds.extend(b);
-    });
+    }
     if (!bounds) return;
+    if (padding > 0) bounds = bounds.pad(padding);
     for (const layer of selection) {
       this.offlineMap.save(bounds, layer.tiles, this.map?.crs || L.CRS.EPSG3857, layer.layer);
     }
-    console.log(selection);
   }
 
   descriptionChanged(text: string | null | undefined): void {

@@ -250,3 +250,25 @@ svg.ionicon {
     stroke-width: var(--ionicon-stroke-width, 32px);
   }
 }
+
+ion-range.always-show-knob-pin::part(pin) {
+  transform: translate3d(0px, -24px, 0px) scale(1);
+}
+
+ion-range::part(tick) {
+  top: calc((var(--height) - var(--bar-height) * 2) / 2);
+  width: calc(var(--bar-height) * 2);
+  height: calc(var(--bar-height) * 2);
+  background: rgba(var(--ion-text-color-rgb), 0.5);
+}
+
+ion-range::part(tick-active) {
+  top: calc((var(--height) - var(--bar-height) * 2) / 2);
+  width: calc(var(--bar-height) * 2);
+  height: calc(var(--bar-height) * 2);
+  background: var(--ion-color-primary);
+}
+
+ion-range {
+  --bar-background: rgba(var(--ion-text-color-rgb), 0.33);
+}

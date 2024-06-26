@@ -138,6 +138,15 @@
     "time_duration": "Temps"
   },
   "downloading_map": "Téléchargement de la carte",
+  "offline_map": {
+    "select_layers": "Sélectionnez les cartes à télécharger",
+    "parameters": "Paramètres",
+    "max_zoom": "Niveau de zoom maximum à télécharger",
+    "max_zoom_explaination": "Plus vous sélectionnez un niveau de zoom élevé, plus vous pourrez zoomer pendant votre parcours lorsque vous serez hors-ligne, mais en conséquence plus le temps de téléchargement sera long et plus cela nécessitera de la place de stockage sur votre appareil.",
+    "max_zoom_reco": "Une valeur entre 15 et 17 est recommendée. En deça de 15, le niveau de détail est souvent trop faible pour bien voir les petits chemins. Au dessus de 17, la taille du téléchargement est importante, et n'est générallement pas nécessaire pour parfaitement suivre un itinéraire.",
+    "padding": "Etendre la zone à télécharger (%)",
+    "padding_explaination": "Pourcentage de la zone à télécharger autour de la zone du parcours (100% veut dire pas plus que le parcours). Permet de voir d'avantage autour du parcours en mode hors-ligne."
+  },
   "trace_recorder": {
     "trail_name_start": "Parcours du",
     "pause": "Pause",
