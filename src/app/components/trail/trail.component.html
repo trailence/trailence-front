@@ -79,7 +79,7 @@
         (pointHover)="elevationGraphPointHover($event)"
         [selectable]="!pathSelection.zoomOnSelection"
         (selecting)="pathSelection.elevationGraphSelecting($event)"
-        (selection)="pathSelection.elevationGraphSelection($event)"
+        (selected)="pathSelection.elevationGraphSelected($event)"
       ></app-elevation-graph>
       <ion-button class="zoom-button" *ngIf="pathSelection.selection.length > 0" (click)="pathSelection.toggleZoom()">
         <ion-icon [name]="pathSelection.zoomOnSelection ? 'zoom-out' : 'zoom-in'" slot="icon-only"></ion-icon>

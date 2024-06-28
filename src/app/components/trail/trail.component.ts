@@ -323,4 +323,5 @@ export class TrailComponent extends AbstractComponent {
     if (this.trail1)
       this.trailService.update(this.trail1);
   }
+
 }

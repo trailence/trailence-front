@@ -1,5 +1,6 @@
 import * as C from 'chart.js';
 import { Color } from 'src/app/utils/color';
+import { PathRange } from '../../trail/path-selection';
 
 export class RangeEvent {
   constructor(
@@ -15,28 +16,32 @@ export class RangeSelectionEvent {
   ) {}
 }
 
+export interface SelectedRange {
+  startX: number;
+  startElements?: C.ActiveElement[];
+  endX: number;
+  endElements?: C.ActiveElement[];
+}
+
 export class RangeSelection implements C.Plugin<"line"> {
 
   id = 'trailence-range-selection';
 
-  private startX = -1;
-  private startElements?: C.ActiveElement[];
-  private endX = -1;
-  private endElements?: C.ActiveElement[];
+  private selecting?: SelectedRange;
   private moving = false;
-
-  private selectedFromX = -1;
-  private selectedFromElements?: C.ActiveElement[];
-  private selectedToX = -1;
-  private selectedToElements?: C.ActiveElement[];
+  private selected?: SelectedRange;
 
   constructor(
     private selectingColor: string,
     private selectionColor: string,
     private onSelecting: (event: RangeSelectionEvent | undefined) => void,
     private onSelected: (event: RangeSelectionEvent | undefined) => void,
-    private isEnabled: () => boolean
+    private isEnabled: () => boolean,
   ) {}
+
+  public setSelection(selection: SelectedRange): void {
+    this.selected = selection;
+  }
 
   afterEvent(chart: C.Chart<"line">, args: any): void {
     if (!this.isEnabled()) {
@@ -46,30 +51,29 @@ export class RangeSelection implements C.Plugin<"line"> {
     if (event.type === 'mousedown') {
       this.cancelSelection();
       this.onSelected(undefined);
-      this.startX = event.x;
-      this.startElements = chart.getActiveElements();
-      this.endX = -1;
-      this.endElements = undefined;
+      this.selecting = {
+        startX: event.x,
+        startElements: chart.getActiveElements(),
+        endX: -1,
+        endElements: undefined,
+      }
       this.moving = false;
     } else if (event.type === 'mousemove') {
-      if (this.startX >= 0) {
+      if (this.selecting) {
         this.moving = true;
-        this.endX = event.x;
-        this.endElements = chart.getActiveElements();
+        this.selecting.endX = event.x;
+        this.selecting.endElements = chart.getActiveElements();
         this.onSelecting(this.buildSelectingEvent());
       }
     } else if (event.type === 'mouseout') {
-      if (this.startX >= 0) {
+      if (this.selecting) {
         this.cancelSelecting();
         this.onSelecting(undefined);
       }
     } else if (event.type === 'mouseup') {
       this.onSelecting(undefined);
-      if (this.startX >= 0 && this.moving) {
-        this.selectedFromX = this.startX;
-        this.selectedFromElements = this.startElements;
-        this.selectedToX = this.endX;
-        this.selectedToElements = this.endElements;
+      if (this.selecting && this.moving) {
+        this.selected = this.selecting;
         this.onSelected(this.buildSelectionEvent());
       }
       this.cancelSelecting();
@@ -78,28 +82,22 @@ export class RangeSelection implements C.Plugin<"line"> {
   }
 
   private cancelSelecting(): void {
-    this.startX = -1;
-    this.startElements = undefined;
-    this.endX = -1;
-    this.endElements = undefined;
+    this.selecting = undefined;
     this.moving = false;
   }
 
   private cancelSelection(): void {
-    this.selectedFromX = -1;
-    this.selectedFromElements = undefined;
-    this.selectedToX = -1;
-    this.selectedToElements = undefined;
+    this.selected = undefined;
   }
 
   afterDraw(chart: C.Chart<"line">): void {
     if (!this.isEnabled()) return;
-    if (this.startX >= 0 && this.endX >= 0 && this.startX !== this.endX && this.moving) {
+    if (this.selecting && this.selecting.endX >= 0 && this.selecting.startX !== this.selecting.endX && this.moving) {
       // draw selecting
-      this.draw(chart, this.startX, this.endX, this.selectingColor);
-    } else if (this.selectedFromX >= 0 && this.selectedToX >= 0 && this.selectedFromX !== this.selectedToX) {
+      this.draw(chart, this.selecting.startX, this.selecting.endX, this.selectingColor);
+    } else if (this.selected && this.selected.endX >= 0 && this.selected.startX !== this.selected.endX) {
       // draw selection
-      this.draw(chart, this.selectedFromX, this.selectedToX, this.selectionColor);
+      this.draw(chart, this.selected.startX, this.selected.endX, this.selectionColor);
     }
   }
 
@@ -134,11 +132,11 @@ export class RangeSelection implements C.Plugin<"line"> {
   }
 
   private buildSelectingEvent(): RangeSelectionEvent | undefined {
-    return this.buildEvent(this.startElements, this.endElements);
+    return this.buildEvent(this.selecting?.startElements, this.selecting?.endElements);
   }
 
   private buildSelectionEvent(): RangeSelectionEvent | undefined {
-    return this.buildEvent(this.selectedFromElements, this.selectedToElements);
+    return this.buildEvent(this.selected?.startElements, this.selected?.endElements);
   }
 
   private buildEvent(startElements?: C.ActiveElement[], endElements?: C.ActiveElement[]): RangeSelectionEvent | undefined {

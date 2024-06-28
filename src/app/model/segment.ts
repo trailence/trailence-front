@@ -153,12 +153,17 @@ export class SegmentPoint {
   }
 
   private updateElevation(init: boolean = false): void {
-    const newElevationFromPrevious = this._previous?._point.ele !== undefined && this._point.ele !== undefined ? (this._point.ele - this._previous._point.ele) : undefined;
-    if (newElevationFromPrevious)
-      this.meta?.addElevation(this.elevationFromPrevious !== undefined ? newElevationFromPrevious - this.elevationFromPrevious : newElevationFromPrevious);
+    const previousEle = this._previous?._point.ele;
+    const pointEle = this._point.ele;
+    const newElevationFromPrevious = previousEle !== undefined && pointEle !== undefined ? (pointEle - previousEle) : undefined;
+    if (newElevationFromPrevious !== undefined) {
+      if (this.elevationFromPrevious !== undefined)
+        this.meta?.cancelElevation(this.elevationFromPrevious);
+      this.meta?.addElevation(newElevationFromPrevious);
+    }
     this.elevationFromPrevious = newElevationFromPrevious;
-    if (!init && this.elevation !== this._point.ele) {
-      this.elevation = this._point.ele;
+    if (!init && this.elevation !== pointEle) {
+      this.elevation = pointEle;
       this.meta?.elevationChanged(this);
     }
   }
@@ -232,6 +237,15 @@ export class SegmentMetadata {
       this._positiveElevation.next(this._positiveElevation.value + addP);
   }
 
+  cancelElevation(e: number): void {
+    const subN = e <= 0 ? -e : 0;
+    const subP = e >= 0 ? e : 0;
+    if (this._negativeElevation.value !== undefined && subN > 0)
+      this._negativeElevation.next(this._negativeElevation.value - subN);
+    if (this._positiveElevation.value !== undefined && subP > 0)
+      this._positiveElevation.next(this._positiveElevation.value - subP);
+  }
+
   addDuration(d: number): void {
     if (d === 0) return;
     this._duration.next(this._duration.value + d);
@@ -254,12 +268,13 @@ export class SegmentMetadata {
   }
 
   elevationChanged(point: SegmentPoint): void {
+    const pointEle = point.point.ele;
     if (this._highestPoint.value === point || this._lowestPoint.value === point ||
-      (point.point.ele !== undefined &&
+      (pointEle !== undefined &&
         (this._highestPoint.value === undefined ||
         this._lowestPoint.value === undefined ||
-        this._highestPoint.value.point.ele! < point.point.ele ||
-        this._lowestPoint.value.point.ele! > point.point.ele))) {
+        this._highestPoint.value.point.ele! < pointEle ||
+        this._lowestPoint.value.point.ele! > pointEle))) {
           this.computeHighestAndLowest();
       }
   }

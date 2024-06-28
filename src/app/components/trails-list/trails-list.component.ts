@@ -14,7 +14,6 @@ import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonBu
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
-import { TagService } from 'src/app/services/database/tag.service';
 import { Router } from '@angular/router';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -22,6 +21,7 @@ import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { FilterNumeric } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 
 interface State {
   sortAsc: boolean;
@@ -111,10 +111,10 @@ export class TrailsListComponent extends AbstractComponent {
     private auth: AuthService,
     private trackService: TrackService,
     public trailService: TrailService,
-    private tagService: TagService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
     preferences: PreferencesService,
+    private trackEdition: TrackEditionService,
   ) {
     super(injector);
     let currentDistanceUnit = preferences.preferences.distanceUnit;
@@ -327,7 +327,10 @@ export class TrailsListComponent extends AbstractComponent {
       onloaded: (files, fromReading) => {
         files.forEach(file => {
           const imported = GpxImporter.importGpx(file, this.auth.email!, this.collectionUuid!);
+          const improved = this.trackEdition.applyDefaultImprovments(imported.track);
+          imported.trail.currentTrackUuid = improved.uuid;
           this.trackService.create(imported.track);
+          this.trackService.create(improved);
           this.trailService.create(imported.trail);
         });
       },

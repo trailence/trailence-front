@@ -13,8 +13,9 @@ import { HoverVerticalLine } from './plugins/hover-vertical-line';
 import { ElevationGraphPointReference, ElevationGraphRange } from './elevation-graph-events';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BackgroundPlugin } from './plugins/background';
-import { RangeSelection, RangeSelectionEvent } from './plugins/range-selection';
+import { RangeSelection, RangeSelectionEvent, SelectedRange } from './plugins/range-selection';
 import { Point } from 'src/app/model/point';
+import { PathRange } from '../trail/path-selection';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -50,7 +51,7 @@ export class ElevationGraphComponent extends AbstractComponent {
   @Output() pointHover = new EventEmitter<ElevationGraphPointReference[]>();
 
   @Output() selecting = new EventEmitter<ElevationGraphRange[] | undefined>();
-  @Output() selection = new EventEmitter<ElevationGraphRange[] | undefined>();
+  @Output() selected = new EventEmitter<ElevationGraphRange[] | undefined>();
 
   chartOptions?: _DeepPartialObject<C.CoreChartOptions<"line"> & C.ElementChartOptions<"line"> & C.PluginChartOptions<"line"> & C.DatasetChartOptions<"line"> & C.ScaleChartOptions<"line"> & C.LineControllerChartOptions>;
   chartData?: C.ChartData<"line", (number | C.Point | null)[]>;
@@ -102,6 +103,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.chartPlugins = [];
     this.width = undefined;
     this.height = undefined;
+    this.selectionRange = [];
     if (!this.track1) return;
     if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
     if (this.visible)
@@ -131,7 +133,6 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.height = element.offsetHeight;
     if (this.width! > 0 && this.height! > 0) {
       if (this.chartOptions && this.canvas?.chart) {
-        console.log(this.width, this.height);
         const chart = this.canvas.chart;
         setTimeout(() => chart.resize(), 0);
       } else {
@@ -148,6 +149,22 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 100);
   }
 
+  private selectionRange: PathRange[] = [];
+
+  public setSelection(ranges: PathRange[]): void {
+    const plugin = this.chartPlugins.find(p => p instanceof RangeSelection);
+    if (plugin) {
+      const selection = this.pathRangeToRangeSelection(ranges);
+      if (selection) {
+        this.selectionRange = [];
+        (plugin as RangeSelection).setSelection(selection);
+        this.canvas?.chart?.draw();
+      }
+    } else {
+      this.selectionRange = ranges;
+    }
+  }
+
   private createChart(): void {
     if (!this.chartOptions) this.buildOptions();
     if (this.chartPlugins.length === 0)
@@ -157,8 +174,8 @@ export class ElevationGraphComponent extends AbstractComponent {
         new RangeSelection(
           this.selectingColor, this.selectionColor,
           event => this.selecting.emit(this.rangeSelectionToEvent(event)),
-          event => this.selection.emit(this.rangeSelectionToEvent(event)),
-          () => this.selectable
+          event => this.selected.emit(this.rangeSelectionToEvent(event)),
+          () => this.selectable,
         )
       );
 
@@ -170,7 +187,14 @@ export class ElevationGraphComponent extends AbstractComponent {
       maxDistance = Math.max(maxDistance, this.buildDataSet(this.track2, this.secondaryColor));
     }
     this.chartOptions!.scales!['x']!.max = this.i18n.distanceInUserUnit(maxDistance);
-    setTimeout(() => this.injector.get(ChangeDetectorRef).detectChanges(), 0);
+    setTimeout(() => {
+      this.injector.get(ChangeDetectorRef).detectChanges();
+      if (this.selectionRange) {
+        setTimeout(() => {
+          this.setSelection(this.selectionRange);
+        }, 0);
+      }
+    }, 0);
   }
 
   private buildOptions(): void {
@@ -396,5 +420,52 @@ export class ElevationGraphComponent extends AbstractComponent {
     }
     return events;
   };
+
+  private pathRangeToRangeSelection(ranges: PathRange[]): SelectedRange | undefined {
+    if (ranges.length === 0 || !this.canvas?.chart) return undefined;
+    const chart = this.canvas.chart;
+    const selection: SelectedRange = {
+      startX: -1,
+      startElements: [],
+      endX: -1,
+      endElements: [],
+    };
+    for (const range of ranges) {
+      const datasetIndex = range.track === this.track1 ? 0 : 1;
+      const startIndex = this.chartData!.datasets[datasetIndex].data.findIndex(d => (d as DataPoint).segmentIndex === range.startSegmentIndex && (d as DataPoint).pointIndex === range.startPointIndex);
+      if (startIndex >= 0) {
+        const startData = this.chartData!.datasets[datasetIndex].data[startIndex] as DataPoint;
+        if (selection.startX === -1) {
+          selection.startX = chart.scales['x'].getPixelForValue((startData as DataPoint).x);
+        }
+        const element = new C.PointElement(chart.getDatasetMeta(datasetIndex).data[startIndex]);
+        (element as any).$context = {
+          raw: startData
+        };
+        selection.startElements!.push({
+          datasetIndex: datasetIndex,
+          index: startIndex,
+          element: element,
+        });
+      }
+      const endIndex = this.chartData!.datasets[datasetIndex].data.findIndex(d => (d as DataPoint).segmentIndex === range.endSegmentIndex && (d as DataPoint).pointIndex === range.endPointIndex);
+      if (endIndex >= 0) {
+        const endData = this.chartData!.datasets[datasetIndex].data[endIndex] as DataPoint;
+        if (selection.endX === -1) {
+          selection.endX = chart.scales['x'].getPixelForValue((endData as DataPoint).x);
+        }
+        const element = new C.PointElement(chart.getDatasetMeta(datasetIndex).data[endIndex]);
+        (element as any).$context = {
+          raw: endData
+        };
+        selection.endElements!.push({
+          datasetIndex: datasetIndex,
+          index: endIndex,
+          element: element,
+        });
+      }
+    }
+    return selection;
+  }
 
 }
