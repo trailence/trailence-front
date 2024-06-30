@@ -84,6 +84,10 @@
                   "with": "capacitor/services/file/file.service.ts"
                 },
                 {
+                  "replace": "src/app/services/geolocation/geolocation.service.ts",
+                  "with": "capacitor/services/geolocation/geolocation.service.ts"
+                },
+                {
                   "replace": "src/app/services/http/http-client.service.ts",
                   "with": "capacitor/services/http/http-client.service.ts"
                 },

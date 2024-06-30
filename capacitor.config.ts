@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
     CapacitorHttp: {
       enabled: false
     }
+  },
+  android: {
+    useLegacyBridge: true,
   }
 };
 

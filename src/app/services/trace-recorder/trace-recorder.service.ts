@@ -15,6 +15,7 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
 import * as L from 'leaflet';
+import { applyElevationThresholdToSegment } from '../track-edition/elevation/elevation-threshold';
 
 @Injectable({
   providedIn: 'root'
@@ -94,16 +95,18 @@ export class TraceRecorderService {
         next: myTrails => {
           if (!this._email) { reject(); return; }
           const track = new Track({ owner: this._email });
+          const rawTrack = new Track({ owner: this._email });
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
             collectionUuid: myTrails!.uuid,
-            originalTrackUuid: track.uuid,
+            originalTrackUuid: rawTrack.uuid,
             currentTrackUuid: track.uuid,
           });
           const recording = new Recording(
             trail,
             track,
+            rawTrack,
             false,
             following?.uuid,
             following?.owner,
@@ -142,15 +145,16 @@ export class TraceRecorderService {
     this._recording$.next(null);
     if (this._table) this._table.delete(1);
     if (save && this._email) {
-      this.trackService.create(recording.track)
+      this.trackService.create(recording.rawTrack);
+      this.trackService.create(recording.track);
       return this.trailService.create(recording.trail)
     }
     return of(null);
   }
 
   private _geolocationListener?: (position: PointDto) => void;
-  private latestDefinitivePoint: Point | undefined = undefined;
-  private latestTemporaryPoint: Point | undefined = undefined;
+  private latestDefinitivePoint: Point[] | undefined = undefined;
+  private latestTemporaryPoint: Point[] | undefined = undefined;
 
   private startRecording(): void {
     const recording = this._recording$.value;
@@ -168,11 +172,12 @@ export class TraceRecorderService {
         this.latestDefinitivePoint = this.addPoint(recording, position);
       } else if (this.latestTemporaryPoint === undefined) {
         this.latestTemporaryPoint = this.addPoint(recording, position);
-      } else if (this.takePoint(this.latestDefinitivePoint, position)) {
+      } else if (this.takePoint(this.latestDefinitivePoint[0], position)) {
         if (this.latestTemporaryPoint === undefined) {
           this.latestDefinitivePoint = this.addPoint(recording, position);
         } else {
-          this.updatePoint(this.latestTemporaryPoint, position);
+          this.updatePoint(this.latestTemporaryPoint[0], position);
+          this.updatePoint(this.latestTemporaryPoint[1], position);
           this.latestDefinitivePoint = this.latestTemporaryPoint;
           this.latestTemporaryPoint = undefined;
         }
@@ -180,7 +185,8 @@ export class TraceRecorderService {
         if (this.latestTemporaryPoint === undefined) {
           this.latestTemporaryPoint = this.addPoint(recording, position);
         } else {
-          this.updatePoint(this.latestTemporaryPoint, position);
+          this.updatePoint(this.latestTemporaryPoint[0], position);
+          this.updatePoint(this.latestTemporaryPoint[1], position);
         }
       }
     }
@@ -194,12 +200,21 @@ export class TraceRecorderService {
     return true;
   }
 
-  private addPoint(recording: Recording, position: PointDto): Point {
+  private addPoint(recording: Recording, position: PointDto): Point[] {
     console.log('new position', position);
+    const points = [
+      this.addPointToTrack(position, recording.rawTrack),
+      this.addPointToTrack(position, recording.track),
+    ];
+    applyElevationThresholdToSegment(recording.track.segments[recording.track.segments.length - 1], 10);
+    return points;
+  }
+
+  private addPointToTrack(position: PointDto, track: Track): Point {
     const point = new Point(
       position.l!, position.n!, position.e, position.t, position.pa, position.ea, position.h, position.s
     );
-    const segment = recording.track.segments.length === 0 ? recording.track.newSegment() : recording.track.segments[recording.track.segments.length - 1];
+    const segment = track.segments.length === 0 ? track.newSegment() : track.segments[track.segments.length - 1];
     segment.append(point);
     return point;
   }
@@ -246,6 +261,7 @@ export class Recording {
   constructor(
     public trail: Trail,
     public track: Track,
+    public rawTrack: Track,
     public paused: boolean,
     public followingTrailUuid?: string,
     public followingTrailOwner?: string,
@@ -257,6 +273,7 @@ export class Recording {
       key: 1,
       trail: this.trail.toDto(),
       track: this.track.toDto(),
+      rawTrack: this.rawTrack.toDto(),
       paused: this.paused,
       followingTrailUuid: this.followingTrailUuid,
       followingTrailOwner: this.followingTrailOwner,
@@ -268,6 +285,7 @@ export class Recording {
     return new Recording(
       new Trail(dto.trail),
       new Track(dto.track),
+      new Track(dto.rawTrack),
       dto.paused,
       dto.followingTrailUuid,
       dto.followingTrailOwner,
@@ -282,6 +300,7 @@ interface RecordingDto {
   key: number;
   trail: TrailDto;
   track: TrackDto;
+  rawTrack: TrackDto;
   paused: boolean;
   followingTrailUuid: string | undefined;
   followingTrailOwner: string | undefined;

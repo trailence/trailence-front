@@ -1,5 +1,5 @@
 import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -25,6 +25,7 @@ import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-sel
 import { MapLayer } from 'src/app/services/map/map-layers.service';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-trail',
@@ -316,7 +317,8 @@ export class TrailComponent extends AbstractComponent {
   }
 
   stopRecording(): void {
-    this.traceRecorder.stop(false).subscribe(); // TODO save
+    this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
+    .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail!.owner + '/' + trail!.uuid));
   }
 
   saveTrail(): void {

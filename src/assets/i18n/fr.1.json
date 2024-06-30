@@ -152,7 +152,9 @@
     "pause": "Pause",
     "resume": "Reprendre",
     "stop": "Terminer",
-    "start_this_trail": "Démarrer le parcours"
+    "start_this_trail": "Démarrer le parcours",
+    "notif_title": "Trailence",
+    "notif_message": "Trace en cours"
   },
   "waiting_for_gps": "En attente du signal GPS..."
 }
