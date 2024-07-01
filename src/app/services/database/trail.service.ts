@@ -2,7 +2,7 @@ import { Injectable, Injector, NgZone } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/newtork.service';
 import { Trail } from 'src/app/model/trail';
@@ -18,6 +18,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { TagService } from './tag.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ProgressService } from '../progress/progress.service';
+import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
 
 @Injectable({
   providedIn: 'root'
@@ -83,6 +84,26 @@ export class TrailService {
     const menu: MenuItem[] = [];
     if (trail.owner === this.injector.get(AuthService).email) {
       menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags([trail], trail.collectionUuid)));
+      menu.push(new MenuItem());
+      menu.push(new MenuItem().setIcon('folder').setI18nLabel('pages.trails.actions.move_to_collection')
+        .setChildrenProvider(() => this.injector.get(TrailCollectionService).getAll$().values$.pipe(
+          switchMap(cols => cols.length === 0 ? of([]) : combineLatest(cols)),
+          map(cols => (cols.filter(col => !!col && col.uuid !== trail.collectionUuid) as TrailCollection[]).map(
+            col => {
+              const item = new MenuItem();
+              if (col.name === '' && col.type === TrailCollectionType.MY_TRAILS)
+                item.setI18nLabel('my_trails');
+              else
+                item.setFixedLabel(col.name);
+              item.setAction(() => {
+                trail.collectionUuid = col.uuid;
+                this.update(trail);
+              });
+              return item;
+            }
+          ))
+        ))
+      );
       menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete([trail])));
     }

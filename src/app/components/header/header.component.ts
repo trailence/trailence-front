@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, IonPopover, IonContent, IonList } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, IonPopover, IonContent } from '@ionic/angular/standalone';
 import { HeaderUserMenuComponent } from '../header-user-menu/header-user-menu.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Router } from '@angular/router';
@@ -13,7 +13,7 @@ import { MenuContentComponent } from '../menu-content/menu-content.component';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
   standalone: true,
-  imports: [IonList, IonContent, IonPopover, IonButton,
+  imports: [IonContent, IonPopover, IonButton,
     IonHeader,
     IonToolbar,
     IonButtons,

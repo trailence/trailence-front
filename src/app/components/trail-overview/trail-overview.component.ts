@@ -5,7 +5,7 @@ import { TrackMetadataComponent } from '../track-metadata/track-metadata.compone
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, IonList } from "@ionic/angular/standalone";
+import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent } from "@ionic/angular/standalone";
 import { combineLatest, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
@@ -27,7 +27,7 @@ class Meta {
   styleUrls: ['./trail-overview.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonList, IonContent, IonPopover, IonButton, IonCheckbox, IonIcon,
+  imports: [IonContent, IonPopover, IonButton, IonCheckbox, IonIcon,
     CommonModule,
     TrackMetadataComponent,
     MenuContentComponent,

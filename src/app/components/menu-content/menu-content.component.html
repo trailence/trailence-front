@@ -1,13 +1,28 @@
-<ng-container *ngFor="let item of menu">
-  @switch (!item.action && !item.icon && !item.label && !item.i18nLabel) {
-    @case(true) {
-      <div class="separator"></div>
-    }
-    @case(false) {
-      <ion-item [button]="!!item.action" (click)="clicked(item)" [color]="item.color">
-        <ion-icon *ngIf="item.icon" [name]="item.icon"></ion-icon>
-        <ion-label>{{ item.label$(i18n) | async }}</ion-label>
+<ion-list>
+  <ng-container *ngIf="parents.length > 0">
+    <ng-container *ngIf="parents[parents.length - 1] as parent">
+      <ion-list-header>
+        <ion-button shape="round" fill="clear" color="secondary" (click)="back($event)">
+          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+        </ion-button>
+        <ion-icon *ngIf="parent.from.item.icon" [name]="parent.from.item.icon"></ion-icon>
+        <ion-label>{{ parent.from.item.label$(i18n) | async }}</ion-label>
+      </ion-list-header>
+    </ng-container>
+  </ng-container>
+  <ng-container *ngFor="let computedItem of computed">
+    <div class="separator" *ngIf="computedItem.separator"></div>
+    <ng-container *ngIf="!computedItem.separator">
+      <ion-item
+        [button]="computedItem.clickable"
+        [detail]="computedItem.item.children || computedItem.item.childrenProvider"
+        [color]="computedItem.item.color"
+        (click)="clicked(computedItem, $event)"
+        [disabled]="(computedItem.item.children || computedItem.item.childrenProvider) && computedItem.children.length === 0"
+      >
+        <ion-icon *ngIf="computedItem.item.icon" [name]="computedItem.item.icon"></ion-icon>
+        <ion-label>{{ computedItem.item.label$(i18n) | async }}</ion-label>
       </ion-item>
-    }
-  }
-</ng-container>
+    </ng-container>
+  </ng-container>
+</ion-list>

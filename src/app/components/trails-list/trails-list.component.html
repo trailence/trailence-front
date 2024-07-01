@@ -16,9 +16,7 @@
     <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true">
       <ng-template>
         <ion-content>
-          <ion-list>
-            <app-menu-content [menu]="trailService.getTrailsMenu(getSelectedTrails())"></app-menu-content>
-          </ion-list>
+          <app-menu-content [menu]="trailService.getTrailsMenu(getSelectedTrails())"></app-menu-content>
         </ion-content>
       </ng-template>
     </ion-popover>

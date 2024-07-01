@@ -10,7 +10,7 @@ import { GpxImporter } from 'src/app/utils/formats/gpx-format';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
-import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonList, IonItem, IonCheckbox, IonPopover } from "@ionic/angular/standalone";
+import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList } from "@ionic/angular/standalone";
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
@@ -71,8 +71,8 @@ interface TrailWithInfo {
   styleUrls: ['./trails-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [
-    IonPopover, IonCheckbox, IonItem, IonList, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
+  imports: [IonList,
+    IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
     IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
     CommonModule,
     TrailOverviewComponent,

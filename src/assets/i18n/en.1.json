@@ -58,7 +58,8 @@
           "yes": "Yes, delete",
           "no": "Cancel, keep"
         },
-        "deleting_trails": "Deleting"
+        "deleting_trails": "Deleting",
+        "move_to_collection": "Move to..."
       },
       "tags": {
         "menu_item": "Tags",
