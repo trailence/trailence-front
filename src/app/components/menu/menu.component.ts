@@ -7,6 +7,7 @@ import { combineLatest, map, of, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Component({
   selector: 'app-menu',
@@ -29,9 +30,9 @@ export class MenuComponent {
     public menuController: MenuController,
     public traceRecorder: TraceRecorderService,
   ) {
-    collectionService.getAll$().values$.pipe(
-      switchMap(items$ => items$.length === 0 ? of([]) : combineLatest(items$)),
-      map(list => (list.filter(item => !!item) as TrailCollection[]).sort((c1, c2) => this.compareCollections(c1, c2)))
+    collectionService.getAll$().pipe(
+      collection$items(),
+      map(list => list.sort((c1, c2) => this.compareCollections(c1, c2)))
     )
     .subscribe(list => this.collections = list);
   }

@@ -8,7 +8,6 @@ import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { NetworkService } from "../network/newtork.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
-import { CollectionObservable } from "src/app/utils/rxjs/collections/collection-observable";
 import { ModalController, AlertController } from '@ionic/angular/standalone';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { I18nService } from '../i18n/i18n.service';
@@ -30,7 +29,7 @@ export class TrailCollectionService {
     this._store = new TrailCollectionStore(databaseService, network, ngZone, http);
   }
 
-  public getAll$(): CollectionObservable<Observable<TrailCollection | null>> {
+  public getAll$(): Observable<Observable<TrailCollection | null>[]> {
     return this._store.getAll$();
   }
 
@@ -43,7 +42,7 @@ export class TrailCollectionService {
   }
 
   public getMyTrails$(): Observable<TrailCollection | null> {
-    return this.getAll$().values$.pipe(
+    return this.getAll$().pipe(
       switchMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
       map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
       filter(myTrails => !!myTrails),

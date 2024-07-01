@@ -12,7 +12,6 @@ import { TrailCollectionService } from './trail-collection.service';
 import { VersionedDto } from 'src/app/model/dto/versioned';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { AuthService } from '../auth/auth.service';
-import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-observable';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
 import { TagService } from './tag.service';
@@ -39,12 +38,10 @@ export class TrailService {
     this._store = new TrailStore(databaseService, network, ngZone, http, trackService, collectionService);
   }
 
-  public getAll$(): CollectionObservable<Observable<Trail | null>> {
-    return this._store.getAll$();
-  }
+  // TODO remove tracks not used by any trail (do the same for all entities, like trails belonging to a non existing collection...)
 
-  public getAllForCollectionUuid$(colletionUuid: string): CollectionObservable<Observable<Trail | null>> {
-    return this._store.filter$(trail => trail.collectionUuid === colletionUuid);
+  public getAll$(): Observable<Observable<Trail | null>[]> {
+    return this._store.getAll$();
   }
 
   public getTrail$(uuid: string, owner: string): Observable<Trail | null> {
@@ -86,7 +83,7 @@ export class TrailService {
       menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags([trail], trail.collectionUuid)));
       menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('folder').setI18nLabel('pages.trails.actions.move_to_collection')
-        .setChildrenProvider(() => this.injector.get(TrailCollectionService).getAll$().values$.pipe(
+        .setChildrenProvider(() => this.injector.get(TrailCollectionService).getAll$().pipe(
           switchMap(cols => cols.length === 0 ? of([]) : combineLatest(cols)),
           map(cols => (cols.filter(col => !!col && col.uuid !== trail.collectionUuid) as TrailCollection[]).map(
             col => {

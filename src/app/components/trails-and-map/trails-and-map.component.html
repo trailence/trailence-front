@@ -2,13 +2,13 @@
   <div class="map-container">
     <app-map
       [mapId]="viewId"
-      [tracks$]="mapTracks$.values$"
+      [tracks$]="mapTracks$"
       (mouseClickPoint)="onTrailClickOnMap($event)"
     ></app-map>
   </div>
   <div class="list-container">
     <app-trails-list
-      [trails$]="trailsList$"
+      [trails]="trails"
       [metadataClass]="listMetadataClass"
       [collectionUuid]="collectionUuid"
       (trailClick)="onTrailClickOnList($event)"

@@ -48,14 +48,14 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   public getItem$(uuid: string, owner: string): Observable<ENTITY | null> {
-    const known$ = this._store.values.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
+    const known$ = this._store.value.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
     if (known$) return known$;
     return concat(
       of(null),
-      this._store.changes$.pipe(
-        switchMap(changes => {
-          const added$ = changes.added.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
-          if (added$) return added$;
+      this._store.pipe(
+        switchMap(items$ => {
+          const item = items$.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
+          if (item) return item;
           return EMPTY;
         })
       )
@@ -63,7 +63,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   public getItem(uuid: string, owner: string): ENTITY | null {
-    const item$ = this._store.values.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
+    const item$ = this._store.value.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
     return item$?.value ?? null;
   }
 
@@ -106,7 +106,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       () => {
         if (!entity.isCreatedLocally() && this._updatedLocally.indexOf(key) < 0)
           this._updatedLocally.push(key);
-        const entity$ = this._store.values.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
+        const entity$ = this._store.value.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
         entity$?.next(entity);
       },
       db => from(db.table<StoredItem<DTO>>(this.tableName).put({id_owner: key, item: this.toDTO(entity), updatedLocally: true})),
@@ -126,7 +126,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     dtos.forEach(dto => {
       const key = dto.uuid + '#' + dto.owner;
       const entity = this.fromDTO(dto);
-      const item$ = this._store.values.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
+      const item$ = this._store.value.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
       if (!item$) {
         if (this._deletedLocally.find(deleted => deleted.uuid === dto.uuid && deleted.owner === dto.owner)) {
           // updated from server, but deleted locally => ignore item from server
@@ -157,13 +157,18 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       const updatedIndex = this._updatedLocally.indexOf(key);
       if (updatedIndex >= 0)
         this._updatedLocally.splice(updatedIndex, 1);
-      const item$ = this._store.values.find(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
+      const item$ = this._store.value.find(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
       if (item$) {
         deletedItems.push(item$);
       }
     });
     if (entitiesToAdd.length !== 0 || deletedItems.length !== 0) {
-      this._store.addAndRemove(entitiesToAdd, deletedItems);
+      for (const item$ of deletedItems) {
+        const index = this._store.value.indexOf(item$);
+        if (index >= 0) this._store.value.splice(index, 1);
+      }
+      this._store.value.push(...entitiesToAdd);
+      this._store.next(this._store.value);
       deletedItems.forEach(item$ => item$.next(null));
     }
     return from(this._db!.transaction('rw', this.tableName, async tx => {
@@ -271,7 +276,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   private syncUpdateFromServer(stillValid: () => boolean): Observable<boolean> {
     if (!this._syncStatus$.value.needsUpdateFromServer) return of(true);
-    const known = this._store.values.filter(item$ => this._createdLocally.indexOf(item$) < 0).map(item$ => item$.value).map(item => new Owned(item!).toDto());
+    const known = this._store.value.filter(item$ => this._createdLocally.indexOf(item$) < 0).map(item$ => item$.value).map(item => new Owned(item!).toDto());
     console.log('Requesting updates from server: ' + known.length + ' known element(s) of ' + this.tableName);
     return this.getUpdatesFromServer(known).pipe(
       switchMap(result => {
@@ -289,7 +294,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   private syncUpdateToServer(stillValid: () => boolean): Observable<boolean> {
     if (this._updatedLocally.length === 0) return of(true);
-    const toUpdate = this._store.values.map(item$ => item$.value).filter(item => !!item && this._updatedLocally.indexOf(item.uuid + '#' + item.owner) >= 0) as ENTITY[];
+    const toUpdate = this._store.value.map(item$ => item$.value).filter(item => !!item && this._updatedLocally.indexOf(item.uuid + '#' + item.owner) >= 0) as ENTITY[];
     if (toUpdate.length === 0) return of(true);
     const ready = toUpdate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate)

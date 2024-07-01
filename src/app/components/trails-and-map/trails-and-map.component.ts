@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Platform } from '@ionic/angular';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, Observable, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, of, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -12,14 +12,10 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { CommonModule } from '@angular/common';
-import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-observable';
 import { Router } from '@angular/router';
-import { ArrayBehaviorSubject } from 'src/app/utils/rxjs/collections/collection-behavior-subject';
-import { collection$filter } from 'src/app/utils/rxjs/collections/operators/filter';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
-import { collection$map } from 'src/app/utils/rxjs/collections/operators/map';
-import { collection$switchMap } from 'src/app/utils/rxjs/collections/operators/switch-map';
-import { debounceTimeReduce } from 'src/app/utils/rxjs/debounce-time-reduce';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { CollectionMapper } from 'src/app/utils/arrays';
 
 @Component({
   selector: 'app-trails-and-map',
@@ -34,7 +30,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @Input() viewId!: string;
 
-  @Input() trails$?: CollectionObservable<Observable<Trail | null>>;
+  @Input() trails: Trail[] = [];
   @Input() collectionUuid?: string;
 
   mode =  '';
@@ -44,8 +40,11 @@ export class TrailsAndMapComponent extends AbstractComponent {
   trailSheetMetadataClass = 'two-columns';
 
   highlightedTrail?: Trail;
-  mapTracks$ = new ArrayBehaviorSubject<MapTrack>([]);
-  trailsList$ = new BehaviorSubject<Observable<Trail | null>[]>([]);
+  mapTracksMapper = new CollectionMapper<{trail: Trail, track: SimplifiedTrackSnapshot}, MapTrack>(
+    trailAndTrack => new MapTrack(trailAndTrack.trail!, trailAndTrack.track!, 'red', 4, false, this.i18n),
+    (t1, t2) => t1.track === t2.track
+  );
+  mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
 
   @ViewChild(TrailsListComponent) trailsList?: TrailsListComponent;
   @ViewChild(MapComponent) map?: MapComponent;
@@ -67,38 +66,25 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   protected override getComponentState() {
-    return {trails$: this.trails$}
+    return {trails: this.trails}
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
-    this.mapTracks$.clear();
-    this.trailsList$.next([]);
-    if (!this.trails$) return;
     this.byStateAndVisible.subscribe(
-      this.trails$!.pipe(
-        collection$switchMap<Trail | null, { trail: Trail | null, track: SimplifiedTrackSnapshot | null }>(trail => {
-          if (!trail) return of(({trail: null, track: null}));
-          return trail.currentTrackUuid$.pipe(
-            switchMap(uuid => this.trackService.getSimplifiedTrack$(uuid, trail!.owner)),
-            map(track => ({trail, track}))
-          );
-        })
+      this.trails.length === 0 ? of([]) : combineLatest(
+        this.trails.map(
+          trail => trail.currentTrackUuid$.pipe(
+            switchMap(trackUuid => this.trackService.getSimplifiedTrack$(trackUuid, trail.owner)),
+            filter(track => !!track),
+            map(track => ({trail, track: track!})),
+          )
+        )
       ).pipe(
-        collection$filter(trailAndTrack => !!trailAndTrack.trail && !!trailAndTrack.track)
-      ).pipe(
-        collection$map(trailAndTrack => new MapTrack(trailAndTrack.trail!, trailAndTrack.track!, 'red', 4, false, this.i18n))
-      ).initialValuesThenChanges$.pipe(
-        debounceTimeReduce(0, 250, (previousChanges, newChanges) => {
-          previousChanges.added.push(...newChanges.added);
-          previousChanges.removed.push(...newChanges.removed);
-          return previousChanges;
-        })
+        debounceTimeExtended(1, 250)
       ),
-      changes => this.mapTracks$.addAndRemove(changes.added, changes.removed)
-    );
-    this.byStateAndVisible.subscribe(
-      this.trails$.values$,
-      trails => this.trailsList$.next(trails)
+      trailsAndTracks => {
+        this.mapTracks$.next(this.mapTracksMapper.update(trailsAndTracks));
+      }
     );
   }
 
@@ -178,14 +164,14 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private highlight(trail: Trail, highlight: boolean): void {
-    const mapTrack = this.mapTracks$.values.find(mt => mt.trail === trail);
+    const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
     if (mapTrack) {
       mapTrack.color = highlight ? '#4040FF' : 'red';
       mapTrack.showDepartureAndArrivalAnchors(highlight);
     }
     this.trailsList?.setHighlighted(highlight ? trail : undefined);
     if (highlight && this.map) {
-      const mapTrack = this.mapTracks$.values.find(mt => mt.trail === trail);
+      const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
       if (mapTrack) {
         this.map.ensureVisible(mapTrack);
       }

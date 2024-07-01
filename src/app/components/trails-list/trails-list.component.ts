@@ -11,7 +11,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList } from "@ionic/angular/standalone";
-import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, filter, map, of, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -84,7 +84,7 @@ interface TrailWithInfo {
 })
 export class TrailsListComponent extends AbstractComponent {
 
-  @Input() trails$?: Observable<Observable<Trail | null>[]>;
+  @Input() trails: Trail[] = [];
   @Input() collectionUuid?: string;
 
   @Input() metadataClass = 'two-columns';
@@ -140,39 +140,35 @@ export class TrailsListComponent extends AbstractComponent {
 
   protected override getComponentState() {
     return {
-      trails$: this.trails$,
+      trails: this.trails,
       collectionUuid: this.collectionUuid,
     }
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
-    this.allTrails = [];
-    this.shownTrails = [];
-    this.changeDetector.markForCheck();
-    if (!this.trails$) {
-      return;
-    }
-    this.state$.next(defaultState);
+    if (newState?.collectionUuid !== previousState?.collectionUuid)
+      this.state$.next(defaultState);
+
     this.byStateAndVisible.subscribe(
-      this.trails$.pipe(
-        switchMap(list => list.length > 0 ? combineLatest(list) : of([])),
-        map(trails => trails.filter(trail => !!trail) as Trail[]),
-        switchMap(trails => trails.length === 0 ? of([]) :
-          combineLatest(trails.map(trail => trail.currentTrackUuid$)).pipe(
-            switchMap(uuids => combineLatest(uuids.map((uuid, index) => this.trackService.getMetadata$(uuid, trails[index].owner)))),
-            map(tracks => tracks.map((track, index) => ({trail: trails[index], track: track, selected: false})))
+      this.trails.length === 0 ? of([]) : combineLatest(
+        this.trails.map(
+          trail => trail.currentTrackUuid$.pipe(
+            switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
+            map(meta => ({trail, track: meta, selected: false}) as TrailWithInfo),
           )
-        ),
+        )
+      ).pipe(
         debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length)
       ),
-      result => {
-        this.allTrails = result;
+      trailsWithInfo => {
+        this.allTrails = trailsWithInfo;
         this.applyFilters();
         this.applySort();
-        this.changeDetector.markForCheck();
+        this.changeDetector.detectChanges();
       }
     );
-    let previous = defaultState;
+
+    let previous = this.state$.value;
     this.byStateAndVisible.subscribe(
       this.state$,
       state => {
@@ -182,9 +178,8 @@ export class TrailsListComponent extends AbstractComponent {
           this.applySort();
           this.changeDetector.markForCheck();
         } else if (state.sortAsc !== previous.sortAsc || state.sortBy !== previous.sortBy) {
-          console.log('sort changed');
           this.applySort();
-          this.changeDetector.markForCheck();
+          this.changeDetector.detectChanges();
         }
         previous = state;
       }

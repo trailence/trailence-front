@@ -69,7 +69,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
             await table.clear();
             const dbItems: SimpleStoreItem<DTO>[] = [];
-            this._store.values.forEach(item$ => {
+            this._store.value.forEach(item$ => {
               if (item$.value) {
                 dbItems.push({
                   key: this.getKey(item$.value),
@@ -233,7 +233,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 if (!stillValid()) return of(false);
                 // remove items not created locally and not returned by the server, and add new items from server
                 const deleted: BehaviorSubject<ENTITY | null>[] = [];
-                this._store.values.forEach(
+                this._store.value.forEach(
                   item$ => {
                     if (!item$.value) return;
                     const index = dtos.findIndex(dto => this.areSame(this.fromDTO(dto), item$.value!));
@@ -258,7 +258,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                   }
                 });
                 if (deleted.length > 0 || added.length > 0) {
-                  this._store.addAndRemove(added, deleted);
+                  for (const item$ of deleted) {
+                    const index = this._store.value.indexOf(item$);
+                    if (index >= 0) this._store.value.splice(index, 1);
+                  }
+                  this._store.value.push(...added);
+                  this._store.next(this._store.value);
                   return this.saveStore();
                 }
                 return of(true);

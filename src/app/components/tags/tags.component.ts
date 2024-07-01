@@ -9,6 +9,7 @@ import { TrailTag } from 'src/app/model/trail-tag';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TagService } from 'src/app/services/database/tag.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 class TagNode {
 
@@ -70,16 +71,16 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
     if (!this.collectionUuid || !this.trails) return;
 
-    const tags$ = this.tagService.getAllTagsForCollectionUuid$(this.collectionUuid).values$
-    .pipe(switchMap(tags$ => tags$.length === 0 ? of([]) : combineLatest(tags$)));
-    const trailsTags$ = this.tagService.getTrailsTags$(this.trails.map(t => t.uuid)).values$
-    .pipe(switchMap(trailsTags$ => trailsTags$.length === 0 ? of([]) : combineLatest(trailsTags$)));
+    const tags$ = this.tagService.getAllTags$().pipe(
+      collection$items(tag => tag.collectionUuid === this.collectionUuid)
+    );
+    const trailsTags$ = this.tagService.getTrailsTags$(this.trails.map(t => t.uuid));
 
     this.subscription = combineLatest([tags$, trailsTags$]).pipe(
       debounceTime(100)
     ).subscribe(
       ([tags, trailsTags]) => {
-        this.tree = this.buildTree(tags.filter(t => !!t) as Tag[], this.tree, trailsTags.filter(t => !!t) as TrailTag[]);
+        this.tree = this.buildTree(tags, this.tree, trailsTags);
       }
     );
   }

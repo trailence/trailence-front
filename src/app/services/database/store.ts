@@ -2,10 +2,7 @@ import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, d
 import { DatabaseService } from "./database.service";
 import Dexie, { Table } from "dexie";
 import { NetworkService } from "../network/newtork.service";
-import { CollectionObservable } from "src/app/utils/rxjs/collections/collection-observable";
 import { NgZone } from "@angular/core";
-import { ArrayBehaviorSubject } from 'src/app/utils/rxjs/collections/collection-behavior-subject';
-import { collection$filter } from 'src/app/utils/rxjs/collections/operators/filter';
 
 export interface StoreSyncStatus {
 
@@ -22,7 +19,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected _db?: Dexie;
 
-  protected _store = new ArrayBehaviorSubject<BehaviorSubject<STORE_ITEM | null>>([]);
+  protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
   protected _createdLocally: BehaviorSubject<STORE_ITEM | null>[] = [];
   protected _deletedLocally: STORE_ITEM[] = [];
 
@@ -45,14 +42,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract isDeletedLocally(item: DB_ITEM): boolean;
   protected abstract isCreatedLocally(item: DB_ITEM): boolean;
 
-  public getAll$(): CollectionObservable<Observable<STORE_ITEM | null>> {
+  public getAll$(): Observable<Observable<STORE_ITEM | null>[]> {
     return this._store;
-  }
-
-  public filter$(predicate: (item: STORE_ITEM) => boolean): CollectionObservable<Observable<STORE_ITEM | null>> {
-    return this._store.pipe(
-      collection$filter((element: STORE_ITEM | null) => !!element && predicate(element))
-    );
   }
 
   protected _initStore(): void {
@@ -136,8 +127,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     if (!this._db) return;
     this._db = undefined;
     this._storeLoaded$.next(false);
-    const items = this._store.values;
-    this._store.clear();
+    const items = this._store.value;
+    this._store.next([]);
     this._createdLocally = [];
     this._deletedLocally = [];
     items.forEach(item$ => item$.complete());
@@ -162,7 +153,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
             newStore.push(item$);
           }
         });
-        this._store.change(newStore);
+        this._store.next(newStore);
         this.beforeEmittingStoreLoaded();
         this._storeLoaded$.next(true);
       }
@@ -243,10 +234,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     let existing = false;
     this.performOperation(
       () => {
-        existing = !!this._store.values.find(value => value.value && this.areSame(value.value, item));
+        existing = !!this._store.value.find(value => value.value && this.areSame(value.value, item));
         if (!existing) {
           this._createdLocally.push(item$);
-          this._store.add([item$]);
+          this._store.value.push(item$);
+          this._store.next(this._store.value);
         }
       },
       db => existing ? of(true) : from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item))),
@@ -269,13 +261,16 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   public delete(item: STORE_ITEM, ondone?: () => void): void {
     this.performOperation(
       () => {
-        const entity$ = this._store.values.find(item$ => item$.value && this.areSame(item$.value, item));
+        const index = this._store.value.findIndex(item$ => item$.value && this.areSame(item$.value, item));
+        const entity$ = index >= 0 ? this._store.value[index] : undefined;
         entity$?.next(null);
         if (this._deletedLocally.indexOf(item) < 0)
           this._deletedLocally.push(item);
         this.deleted(entity$, item);
-        if (entity$)
-          this._store.remove([entity$]);
+        if (index >= 0) {
+          this._store.value.splice(index, 1);
+          this._store.next(this._store.value);
+        }
       },
       db => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item),
       status => this.updateStatusWithLocalDelete(status),
@@ -287,7 +282,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     let items: STORE_ITEM[] = [];
     this.performOperation(
       () => {
-        const toDelete = this._store.values.filter(item$ => item$.value && predicate(item$.value));
+        const toDelete = this._store.value.filter(item$ => item$.value && predicate(item$.value));
         if (toDelete.length === 0) return;
         toDelete.forEach(item$ => {
           const item = item$.value!;
@@ -296,8 +291,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
             this._deletedLocally.push(item);
           item$.next(null);
           this.deleted(item$, item);
+          const index = this._store.value.indexOf(item$);
+          if (index >= 0) this._store.value.splice(index, 1);
         });
-        this._store.remove(toDelete);
+        this._store.next(this._store.value);
       },
       db => items.length === 0 ? of(true) : combineLatest(items.map(item => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item))),
       status => items.length === 0 ? false : this.updateStatusWithLocalDelete(status),

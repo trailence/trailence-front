@@ -31,3 +31,37 @@ export class Arrays {
   }
 
 }
+
+export class CollectionMapper<S, T> {
+
+  private _current: {source: S, target: T}[] = [];
+
+  constructor(
+    private mapper: (item: S) => T,
+    private matcher: (item1: S, item2: S) => boolean = (item1, item2) => { return item1 === item2; }
+  ) {}
+
+  public update(items: S[]): T[] {
+    const result: T[] = [];
+    if (this._current.length > 0) {
+      const toRemove: S[] = [];
+      for (let i = 0; i < this._current.length; ++i) {
+        const known = this._current[i];
+        if (items.findIndex(item => this.matcher(item, known.source)) < 0) {
+          this._current.splice(i, 1);
+          i--;
+        }
+      }
+    }
+    for (const source of items) {
+      let known = this._current.find(k => this.matcher(k.source, source));
+      if (!known) {
+        known = {source, target: this.mapper(source)};
+        this._current.push(known);
+      }
+      result.push(known.target);
+    }
+    return result;
+  }
+
+}

@@ -14,7 +14,7 @@ import { TrailCollectionService } from "./trail-collection.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { TrailService } from "./trail.service";
 import { AuthService } from "../auth/auth.service";
-import { CollectionObservable } from "src/app/utils/rxjs/collections/collection-observable";
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Injectable({
     providedIn: 'root'
@@ -37,12 +37,8 @@ export class TagService {
     this._trailTagStore = new TrailTagStore(databaseService, network, ngZone, http, this, trailService, auth);
   }
 
-  public getAllTags$(): CollectionObservable<Observable<Tag | null>> {
+  public getAllTags$(): Observable<Observable<Tag | null>[]> {
     return this._tagStore.getAll$();
-  }
-
-  public getAllTagsForCollectionUuid$(colletionUuid: string): CollectionObservable<Observable<Tag | null>> {
-    return this._tagStore.filter$(tag => tag.collectionUuid === colletionUuid);
   }
 
   public getTag$(uuid: string): Observable<Tag | null> {
@@ -70,12 +66,16 @@ export class TagService {
     this._trailTagStore.deleteIf(trailTag => trailTag.trailUuid === trailUuid, ondone);
   }
 
-  public getTrailTags$(trailUuid: string): CollectionObservable<Observable<TrailTag | null>> {
-    return this._trailTagStore.filter$(t => t.trailUuid === trailUuid);
+  public getTrailTags$(trailUuid: string): Observable<TrailTag[]> {
+    return this._trailTagStore.getAll$().pipe(
+      collection$items(trailTag => trailTag.trailUuid === trailUuid)
+    );
   }
 
-  public getTrailsTags$(trailsUuids: string[]): CollectionObservable<Observable<TrailTag | null>> {
-    return this._trailTagStore.filter$(t => trailsUuids.indexOf(t.trailUuid) >= 0);
+  public getTrailsTags$(trailsUuids: string[]): Observable<TrailTag[]> {
+    return this._trailTagStore.getAll$().pipe(
+      collection$items(trailTag => trailsUuids.indexOf(trailTag.trailUuid) >= 0)
+    );
   }
 
   public addTrailTag(trailUuid: string, tagUuid: string) {
@@ -87,12 +87,10 @@ export class TagService {
   }
 
   public getTrailTagsNames$(trailUuid: string): Observable<string[]> {
-    return this.getTrailTags$(trailUuid).values$.pipe(
-      switchMap(trailTags$ => trailTags$.length === 0 ? of([]) : combineLatest(trailTags$)),
+    return this.getTrailTags$(trailUuid).pipe(
       switchMap(trailTags => {
-        const list = trailTags.filter(t => !!t) as TrailTag[];
-        if (list.length === 0) return of([]);
-        return combineLatest(list.map(trailTag => this.getTag$(trailTag.tagUuid).pipe(
+        if (trailTags.length === 0) return of([]);
+        return combineLatest(trailTags.map(trailTag => this.getTag$(trailTag.tagUuid).pipe(
           switchMap(tag => tag ? tag.name$ : of(undefined))
         )));
       }),
