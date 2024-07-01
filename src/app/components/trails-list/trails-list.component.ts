@@ -15,13 +15,13 @@ import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from '
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { FilterNumeric } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 interface State {
   sortAsc: boolean;

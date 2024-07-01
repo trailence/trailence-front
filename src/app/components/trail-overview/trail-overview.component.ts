@@ -13,7 +13,7 @@ import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/rxjs-utils';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 class Meta {
   name?: string;

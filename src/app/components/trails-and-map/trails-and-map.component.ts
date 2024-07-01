@@ -13,13 +13,13 @@ import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { CommonModule } from '@angular/common';
 import { CollectionObservable } from 'src/app/utils/rxjs/collections/collection-observable';
-import { debounceTimeReduce } from 'src/app/utils/rxjs/rxjs-utils';
 import { Router } from '@angular/router';
 import { ArrayBehaviorSubject } from 'src/app/utils/rxjs/collections/collection-behavior-subject';
 import { collection$filter } from 'src/app/utils/rxjs/collections/operators/filter';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { collection$map } from 'src/app/utils/rxjs/collections/operators/map';
 import { collection$switchMap } from 'src/app/utils/rxjs/collections/operators/switch-map';
+import { debounceTimeReduce } from 'src/app/utils/rxjs/debounce-time-reduce';
 
 @Component({
   selector: 'app-trails-and-map',
