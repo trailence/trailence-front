@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, from, map, of, switchMap, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, interval, map, of, switchMap, takeWhile, tap, timer, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -10,10 +10,17 @@ import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { UpdatesResponse } from "./owned-store";
 import { NetworkService } from "../network/newtork.service";
-import { OwnedDto } from "src/app/model/dto/owned";
-import { NgZone } from "@angular/core";
+import { OwnedDto, VersionDto } from "src/app/model/dto/owned";
+import { Injector, NgZone } from "@angular/core";
+import { DatabaseCleanupService } from './database-cleanup.service';
+import { TrailService } from './trail.service';
+import { TrackService } from './track.service';
 
 export interface TrackMetadataSnapshot {
+  uuid: string;
+  owner: string;
+  createdAt: number;
+  updatedAt: number;
   distance: number;
   positiveElevation?: number;
   negativeElevation?: number;
@@ -57,14 +64,10 @@ const MINIMUM_SYNC_INTERVAL = 30 * 1000;
 export class TrackDatabase {
 
   constructor(
-    databaseService: DatabaseService,
-    auth: AuthService,
-    private http: HttpService,
-    private network: NetworkService,
-    private ngZone: NgZone,
+    private injector: Injector,
   ) {
-    databaseService.registerStore(this.syncStatus$);
-    auth.auth$.subscribe(
+    injector.get(DatabaseService).registerStore(this.syncStatus$);
+    injector.get(AuthService).auth$.subscribe(
       auth => {
         if (!auth) this.close();
         else this.open(auth.email);
@@ -73,11 +76,12 @@ export class TrackDatabase {
     this.initSync();
   }
 
-  private db?: Dexie;;
+  private db?: Dexie;
   private openEmail?: string;
 
   private close() {
     if (this.db) {
+      this.injector.get(DatabaseCleanupService).unregister(this._cleanupCallback);
       console.log('Close track DB')
       this.db.close();
       this.openEmail = undefined;
@@ -102,6 +106,67 @@ export class TrackDatabase {
     this.fullTrackTable = db.table<TrackItem, string>('full_tracks')
     this.db = db;
     this.syncStatus$.next(new TrackSyncStatus());
+    this.registerCleanup();
+  }
+
+  private _cleanupCallback = () => this.cleanup();
+  private registerCleanup(): void {
+    const db = this.db;
+    this._cleanupCallback = () => {
+      if (this.db === db) return this.cleanup();
+      return of(false);
+    };
+    this.injector.get(DatabaseCleanupService).register(
+      interval(30000).pipe(
+        takeWhile(() => this.db === db),
+        filter(() => !this.syncStatus$.value?.needsSync && !this.syncStatus$.value?.inProgress),
+        first(),
+      ),
+      this._cleanupCallback
+    );
+  }
+  private cleanup(): Observable<any> {
+    // remove all tracks not linked by any trail
+    const db = this.db;
+    return this.injector.get(TrailService).getAll$().pipe(
+      switchMap(trails$ => trails$.length === 0 ? of([]) : combineLatest(trails$)),
+      first(),
+      switchMap(trails => {
+        if (this.db !== db) return of(false);
+        const allKnownKeys: string[] = [];
+        for (const trail of trails) {
+          if (trail) {
+            allKnownKeys.push(trail.originalTrackUuid + '#' + trail.owner);
+            if (trail.currentTrackUuid !== trail.originalTrackUuid)
+              allKnownKeys.push(trail.currentTrackUuid + '#' + trail.owner);
+          }
+        }
+        return from(this.metadataTable!.toCollection().primaryKeys()).pipe(
+          map(keys => {
+            const eligibleKeys: string[] = [];
+            for (const key of keys) {
+              if (allKnownKeys.indexOf(key) < 0) {
+                eligibleKeys.push(key);
+              }
+            }
+            return eligibleKeys;
+          }),
+          switchMap(keys => {
+            if (keys.length === 0) return of([]);
+            if (this.db !== db) return of([]);
+            return from(this.metadataTable!.bulkGet(keys));
+          }),
+          map(items => {
+            console.log('Tracks cleanup: ' + items.length + ' to delete');
+            for (const item of items) {
+              if (item && item.updatedAt < Date.now() - 24 * 60 * 60 * 1000)
+                this.injector.get(TrackService).deleteByUuidAndOwner(item.uuid, item.owner);
+            }
+            return true;
+          })
+        )
+      })
+    );
   }
 
   private metadataTable?: Table<MetadataItem, string>;
@@ -123,7 +188,7 @@ export class TrackDatabase {
 
   private loadMetadata(key: string, item$: BehaviorSubject<TrackMetadataSnapshot | null>): void {
     this.metadataKeysToLoad.set(key, item$);
-    this.ngZone.runOutsideAngular(() => {
+    this.injector.get(NgZone).runOutsideAngular(() => {
       if (!this.metadataLoadingTimeout)
         this.metadataLoadingTimeout = setTimeout(() => {
           this.metadataLoadingTimeout = undefined;
@@ -159,7 +224,7 @@ export class TrackDatabase {
 
   private loadSimplifiedTrack(key: string, item$: BehaviorSubject<SimplifiedTrackSnapshot | null>): void {
     this.simplifiedKeysToLoad.set(key, item$);
-    this.ngZone.runOutsideAngular(() => {
+    this.injector.get(NgZone).runOutsideAngular(() => {
       if (!this.simplifiedLoadingTimeout)
         this.simplifiedLoadingTimeout = setTimeout(() => {
           this.simplifiedLoadingTimeout = undefined;
@@ -233,6 +298,10 @@ export class TrackDatabase {
   private toMetadata(track: Track): TrackMetadataSnapshot {
     const m = track.metadata;
     return {
+      uuid: track.uuid,
+      owner: track.owner,
+      createdAt: track.createdAt,
+      updatedAt: track.updatedAt,
       distance: m.distance,
       positiveElevation: m.positiveElevation,
       negativeElevation: m.negativeElevation,
@@ -281,6 +350,7 @@ export class TrackDatabase {
 
   public update(track: Track): void {
     const key = track.uuid + '#' + track.owner;
+    track.updatedAt = Date.now();
     const dto = track.toDto();
     const simplified = this.simplify(track);
     const metadata = this.toMetadata(track);
@@ -379,7 +449,7 @@ export class TrackDatabase {
   private initSync(): void {
     // we need to sync when:
     combineLatest([
-      this.network.connected$,    // network is connected
+      this.injector.get(NetworkService).connected$,    // network is connected
       this.syncStatus$,           // there is something to sync and we are not syncing
     ]).pipe(
       debounceTime(1000),
@@ -461,7 +531,7 @@ export class TrackDatabase {
         items.forEach(item => {
           const request = () => {
             if (this.db !== db) return EMPTY;
-            return this.http.post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
+            return this.injector.get(HttpService).post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
               switchMap(result => {
                 if (this.db !== db) return EMPTY;
                 return from(this.fullTrackTable!.put({
@@ -496,7 +566,7 @@ export class TrackDatabase {
         console.log('' + items.length + ' tracks to be deleted on server');
         const uuids = items.map(item => item.uuid);
         const keys = items.map(item => item.uuid + '#' + this.openEmail!);
-        return this.http.post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids).pipe(
+        return this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids).pipe(
           defaultIfEmpty(true),
           switchMap(result => {
             if (this.db !== db) return EMPTY;
@@ -516,12 +586,12 @@ export class TrackDatabase {
     return from(this.fullTrackTable!.where('owner').equals(this.openEmail!).toArray()).pipe(
       switchMap(items => {
         if (this.db !== db) return EMPTY;
-        const known: OwnedDto[] = [];
+        const known: VersionDto[] = [];
         for (const item of items) {
           if (item.version > 0) known.push({uuid: item.uuid, owner: item.owner, version: item.version});
         }
         console.log('Requesting updates from server: ' + known.length + ' tracks known');
-        return this.http.post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
+        return this.injector.get(HttpService).post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
           switchMap(response => {
             if (this.db !== db) return EMPTY;
             console.log('Server updates for tracks: ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
@@ -530,7 +600,7 @@ export class TrackDatabase {
             const requests = toRetrieve
               .map(item => () => {
                 if (this.db !== db) return EMPTY;
-                return this.http.get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
+                return this.injector.get(HttpService).get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
               })
               .map(request => limiter.add(request).pipe(catchError(error => {
                 // TODO
@@ -561,7 +631,7 @@ export class TrackDatabase {
         items.forEach(item => {
           const request = () => {
             if (this.db !== db) return EMPTY;
-            return this.http.put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track);
+            return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track);
           }
           requests.push(limiter.add(request));
         });

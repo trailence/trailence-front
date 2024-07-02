@@ -1,11 +1,7 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
-import { DatabaseService } from './database.service';
-import { HttpService } from '../http/http.service';
 import { Observable } from 'rxjs';
-import { NetworkService } from '../network/newtork.service';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
-import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,13 +11,9 @@ export class TrackService {
   private db: TrackDatabase;
 
   constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
-    http: HttpService,
-    auth: AuthService,
+    injector: Injector,
   ) {
-    this.db = new TrackDatabase(databaseService, auth, http, network, ngZone);
+    this.db = new TrackDatabase(injector);
   }
 
   public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {

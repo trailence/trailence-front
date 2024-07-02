@@ -136,8 +136,6 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   newRootTag(): void {
     this.tagService.create(new Tag({
       owner: this.auth.email!,
-      version: 0,
-      uuid: window.crypto.randomUUID(),
       name: this.newTagName,
       collectionUuid: this.collectionUuid,
     }));

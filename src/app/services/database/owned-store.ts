@@ -102,6 +102,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   public update(entity: ENTITY): void {
     const key = entity.uuid + '#' + entity.owner;
+    entity.updatedAt = Date.now();
     this.performOperation(
       () => {
         if (!entity.isCreatedLocally() && this._updatedLocally.indexOf(key) < 0)

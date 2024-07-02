@@ -4,6 +4,7 @@ export class TrailTag {
 
     private _tagUuid: string;
     private _trailUuid: string;
+    private _createdAt: number;
 
     constructor(
         dto: Partial<TrailTagDto>
@@ -12,13 +13,15 @@ export class TrailTag {
         this._tagUuid = dto.tagUuid;
         if (!dto.trailUuid) throw new Error('Missing trailUuid');
         this._trailUuid = dto.trailUuid;
+        this._createdAt = dto.createdAt ?? Date.now();
     }
 
     public get tagUuid(): string { return this._tagUuid; }
     public get trailUuid(): string { return this._trailUuid; }
+    public get createdAt(): number { return this._createdAt; }
 
     public toDto(): TrailTagDto {
-        return { tagUuid: this._tagUuid, trailUuid: this._trailUuid };
+        return { tagUuid: this._tagUuid, trailUuid: this._trailUuid, createdAt: this._createdAt };
     }
 
 }

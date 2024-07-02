@@ -10,7 +10,7 @@ export class Tag extends Owned {
     private _parentUuid$: BehaviorSubject<string | null>;
 
     constructor(
-        dto: TagDto,
+        dto: Partial<TagDto>,
     ) {
         super(dto);
         this._name$ = new BehaviorSubject<string>(dto.name ?? '');
