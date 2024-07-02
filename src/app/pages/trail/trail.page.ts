@@ -26,13 +26,14 @@ export class TrailPage extends AbstractPage {
   @Input() trailId?: string;
 
   trail$ = new BehaviorSubject<Trail | null>(null);
+  trail: Trail | null = null;
   backUrl?: string;
   recording$ = new BehaviorSubject<Recording | null>(null);
 
   constructor(
     injector: Injector,
     route: ActivatedRoute,
-    private trailService: TrailService,
+    public trailService: TrailService,
     traceRecorder: TraceRecorderService,
   ) {
     super(injector);
@@ -61,11 +62,16 @@ export class TrailPage extends AbstractPage {
       this.byStateAndVisible.subscribe(
         this.trailService.getTrail$(newState.uuid, newState.owner),
         t => {
-          if (this.trail$.value !== t) this.trail$.next(t);
+          if (this.trail$.value !== t) {
+            this.trail$.next(t);
+            this.trail = t;
+          }
         }
       );
-    else if (this.trail$.value)
+    else if (this.trail$.value) {
       this.trail$.next(null);
+      this.trail = null;
+    }
   }
 
 }

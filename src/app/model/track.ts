@@ -124,6 +124,17 @@ export class Track extends Owned {
     return sub;
   }
 
+  public copy(email: string): Track {
+    return new Track({
+      ...this.toDto(),
+      uuid: undefined,
+      owner: email,
+      version: undefined,
+      createdAt: undefined,
+      updatedAt: undefined
+    });
+  }
+
 }
 
 export class TrackMetadata {

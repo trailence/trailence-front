@@ -2,7 +2,7 @@ import { Injectable, Injector, NgZone } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
+import { Observable, combineLatest, filter, first, map, of, switchMap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/newtork.service';
 import { Trail } from 'src/app/model/trail';
@@ -18,6 +18,7 @@ import { TagService } from './tag.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ProgressService } from '../progress/progress.service';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -77,50 +78,85 @@ export class TrailService {
     doneHandler.start();
   }
 
-  public getTrailMenu(trail: Trail): MenuItem[] {
-    const menu: MenuItem[] = [];
-    if (trail.owner === this.injector.get(AuthService).email) {
-      menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags([trail], trail.collectionUuid)));
-      menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('folder').setI18nLabel('pages.trails.actions.move_to_collection')
-        .setChildrenProvider(() => this.injector.get(TrailCollectionService).getAll$().pipe(
-          switchMap(cols => cols.length === 0 ? of([]) : combineLatest(cols)),
-          map(cols => (cols.filter(col => !!col && col.uuid !== trail.collectionUuid) as TrailCollection[]).map(
-            col => {
-              const item = new MenuItem();
-              if (col.name === '' && col.type === TrailCollectionType.MY_TRAILS)
-                item.setI18nLabel('my_trails');
-              else
-                item.setFixedLabel(col.name);
-              item.setAction(() => {
-                trail.collectionUuid = col.uuid;
-                this.update(trail);
-              });
-              return item;
-            }
-          ))
-        ))
-      );
-      menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete([trail])));
-    }
-    return menu;
-  }
-
-  public getTrailsMenu(trails: Trail[]): MenuItem[] {
+  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false): MenuItem[] {
     if (trails.length === 0) return [];
-    if (trails.length === 1) return this.getTrailMenu(trails[0]);
     const menu: MenuItem[] = [];
-    if (trails.every(t => t.owner === this.injector.get(AuthService).email)) {
+    const email = this.injector.get(AuthService).email!;
+    if (trails.every(t => t.owner === email)) {
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
         menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(trails, collectionUuid)));
       }
+      if (collectionUuid) {
+        if (menu.length > 0)
+          menu.push(new MenuItem());
+        menu.push(
+          new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
+          .setChildrenProvider(() => this.getCollectionsMenuItems(collectionUuid, (col) => {
+            const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.copying, trails.length);
+            for (const trail of trails) {
+              const originalTrack$ = this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner);
+              const currentTrack$ = trail.originalTrackUuid === trail.currentTrackUuid ? originalTrack$ : this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner);
+              zip([originalTrack$, currentTrack$])
+              .pipe(filter(tracks => !!tracks[0] && !!tracks[1]), first())
+              .subscribe(
+                tracks => {
+                  const originalTrack = tracks[0]!.copy(email);
+                  const currentTrack = tracks[1]!.uuid === tracks[0]!.uuid ? undefined : tracks[1]!.copy(email);
+                  const copy = new Trail({
+                    ...trail.toDto(),
+                    uuid: undefined,
+                    owner: email,
+                    version: undefined,
+                    createdAt: undefined,
+                    updatedAt: undefined,
+                    collectionUuid: col.uuid,
+                    originalTrackUuid: originalTrack.uuid,
+                    currentTrackUuid: currentTrack?.uuid ?? originalTrack.uuid
+                  });
+                  this.injector.get(TrackService).create(originalTrack);
+                  if (currentTrack)
+                    this.injector.get(TrackService).create(currentTrack);
+                  this.create(copy);
+                  progress.addWorkDone(1);
+                  if (fromTrail) this.injector.get(Router).navigateByUrl('/trail/' + email + '/' + copy.uuid);
+                }
+              );
+            }
+          }))
+        );
+        menu.push(
+          new MenuItem().setIcon('collection-move').setI18nLabel('pages.trails.actions.move_to_collection')
+          .setChildrenProvider(() => this.getCollectionsMenuItems(collectionUuid, (col) => {
+            for (const trail of trails) {
+              trail.collectionUuid = col.uuid;
+              this.update(trail);
+            }
+          }))
+        );
+      }
       if (menu.length > 0)
         menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(trails)));
+      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(trails, fromTrail)));
     }
     return menu;
+  }
+
+  private getCollectionsMenuItems(excludeUuid: string, action: (col: TrailCollection) => void): Observable<MenuItem[]> {
+    return this.injector.get(TrailCollectionService).getAll$().pipe(
+      switchMap(cols => cols.length === 0 ? of([]) : combineLatest(cols)),
+      map(cols => (cols.filter(col => !!col && col.uuid !== excludeUuid) as TrailCollection[]).map(
+        col => {
+          const item = new MenuItem();
+          if (col.name === '' && col.type === TrailCollectionType.MY_TRAILS)
+            item.setI18nLabel('my_trails');
+          else
+            item.setFixedLabel(col.name);
+          item.setAction(() => action(col));
+          return item;
+        }
+      ))
+    );
   }
 
   private getUniqueCollectionUuid(trails: Trail[]): string | undefined {
@@ -132,7 +168,7 @@ export class TrailService {
     return uuid;
   }
 
-  public async confirmDelete(trails: Trail[]) {
+  public async confirmDelete(trails: Trail[], fromTrail: boolean) {
     const i18n = this.injector.get(I18nService);
     const texts = trails.length === 1 ? i18n.texts.pages.trails.actions.delete_confirm_single : i18n.texts.pages.trails.actions.delete_confirm_multiple;
     const alert = await this.injector.get(AlertController).create({
@@ -151,6 +187,7 @@ export class TrailService {
                 progress.addWorkDone(1);
                 index++;
                 if (index < trails.length) setTimeout(deleteNext, 0);
+                else if (fromTrail) this.injector.get(Router).navigateByUrl('/trails/collection/' + trails[0].collectionUuid);
               });
             };
             deleteNext();

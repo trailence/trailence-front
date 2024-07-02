@@ -61,7 +61,9 @@
           "no": "Cancel, keep"
         },
         "deleting_trails": "Deleting",
-        "move_to_collection": "Move to..."
+        "move_to_collection": "Move to...",
+        "copy_to_collection": "Copy into...",
+        "copying": "Copying"
       },
       "tags": {
         "menu_item": "Tags",
