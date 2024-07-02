@@ -68,8 +68,15 @@ export class OfflineMapService {
     this._db = db;
   }
 
-  public save(bounds: L.LatLngBounds, tiles: L.TileLayer, crs: L.CRS, layer: MapLayer): void {
-    const coords = this.computeTilesCoords(bounds, tiles, crs);
+  public save(bounds: L.LatLngBounds[], tiles: L.TileLayer, crs: L.CRS, layer: MapLayer): void {
+    const coords: L.Coords[] = [];
+    for (const b of bounds) {
+      const c = this.computeTilesCoords(b, tiles, crs);
+      for (const coord of c) {
+        const exists = coords.find(e => e.x === coord.x && e.y === coord.y && e.z === coord.z);
+        if (!exists) coords.push(coord);
+      }
+    }
     if (coords.length === 0) return;
     const progress = this.progressService.create(this.i18n.texts.downloading_map, coords.length);
     const db = this._db!;

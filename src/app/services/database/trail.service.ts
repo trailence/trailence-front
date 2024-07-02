@@ -2,7 +2,7 @@ import { Injectable, Injector, NgZone } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, filter, first, map, of, switchMap, zip } from 'rxjs';
+import { Observable, combineLatest, debounceTime, filter, first, map, of, switchMap, timeout, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/newtork.service';
 import { Trail } from 'src/app/model/trail';
@@ -19,6 +19,8 @@ import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ProgressService } from '../progress/progress.service';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
+import { Arrays } from 'src/app/utils/arrays';
+import { Track } from 'src/app/model/track';
 
 @Injectable({
   providedIn: 'root'
@@ -83,13 +85,15 @@ export class TrailService {
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email!;
     if (trails.every(t => t.owner === email)) {
+      menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map').setAction(() => this.openDownloadMap(trails)));
+
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
+        menu.push(new MenuItem());
         menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(trails, collectionUuid)));
       }
       if (collectionUuid) {
-        if (menu.length > 0)
-          menu.push(new MenuItem());
+        menu.push(new MenuItem());
         menu.push(
           new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
           .setChildrenProvider(() => this.getCollectionsMenuItems(collectionUuid, (col) => {
@@ -135,8 +139,7 @@ export class TrailService {
           }))
         );
       }
-      if (menu.length > 0)
-        menu.push(new MenuItem());
+      menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(trails, fromTrail)));
     }
     return menu;
@@ -212,6 +215,33 @@ export class TrailService {
       }
     });
     modal.present();
+  }
+
+  public openDownloadMap(trails: Trail[]) {
+    combineLatest(trails.map(trail =>
+      this.trackService.getFullTrack$(trail.currentTrackUuid, trail.owner).pipe(
+        filter(track => !!track),
+        timeout({
+          first: 10000,
+          with: () => of(null)
+        }),
+        first()
+      )
+    )).pipe(
+      debounceTime(100),
+      first(),
+      map(tracks => tracks.filter(t => !!t) as Track[])
+    ).subscribe(async (tracks) => {
+      const module = await import('../../components/download-map-popup/download-map-popup.component');
+      const modal = await this.injector.get(ModalController).create({
+        component: module.DownloadMapPopupComponent,
+        backdropDismiss: false,
+        componentProps: {
+          tracks,
+        }
+      });
+      modal.present();
+    });
   }
 
 }

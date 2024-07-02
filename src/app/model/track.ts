@@ -4,6 +4,7 @@ import { Point, PointDtoMapper } from './point';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 import { WayPoint } from './way-point';
+import * as L from 'leaflet';
 
 export class Track extends Owned {
 
@@ -105,6 +106,32 @@ export class Track extends Owned {
       }
     }
     return result;
+  }
+
+  public getBounds(): L.LatLngBounds | undefined {
+    let topLat: number | undefined;
+    let bottomLat: number | undefined;
+    let leftLng: number | undefined;
+    let rightLng: number | undefined;
+    for (const segment of this.segments) {
+      for (const point of segment.points) {
+        const pos = point.pos;
+        if (topLat === undefined || pos.lat < topLat) {
+          topLat = pos.lat;
+        }
+        if (bottomLat === undefined || pos.lat > bottomLat) {
+          bottomLat = pos.lat;
+        }
+        if (leftLng === undefined || pos.lng < leftLng) {
+          leftLng = pos.lng;
+        }
+        if (rightLng === undefined || pos.lng > rightLng) {
+          rightLng = pos.lng;
+        }
+      }
+    }
+    if (topLat === undefined || topLat === bottomLat || leftLng === rightLng) return undefined;
+    return new L.LatLngBounds([topLat!, leftLng!], [bottomLat!, rightLng!]);
   }
 
   public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
