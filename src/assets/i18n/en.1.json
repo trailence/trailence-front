@@ -28,6 +28,8 @@
       "edit_sort_popup_title": "Sort Trails",
       "sorts": {
         "trail_date": "Date of the trail",
+        "creation_date": "Creation in Trailence",
+        "update_date": "Last update in Trailence",
         "distance": "Distance",
         "duration": "Duration",
         "positive_elevation": "Positive elevation",

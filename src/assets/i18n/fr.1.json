@@ -28,6 +28,8 @@
       "edit_sort_popup_title": "Trier les Parcours",
       "sorts": {
         "trail_date": "Date du parcours",
+        "creation_date": "Création dans Trailence",
+        "update_date": "Dernière mise à jour dans Trailence",
         "distance": "Distance",
         "duration": "Durée",
         "positive_elevation": "Dénivelé positif",

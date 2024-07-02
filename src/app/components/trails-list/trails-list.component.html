@@ -140,6 +140,8 @@
       <ion-list>
         <ion-radio-group [value]="state$.value.sortBy" (ionChange)="sortBy($event.detail.value)">
           <ion-item><ion-radio value="track.startDate"><ion-icon name="date"></ion-icon> {{i18n.texts.pages.trails.sorts.trail_date}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.createdAt"><ion-icon name="date"></ion-icon> {{i18n.texts.pages.trails.sorts.creation_date}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.updatedAt"><ion-icon name="date"></ion-icon> {{i18n.texts.pages.trails.sorts.update_date}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.distance"><ion-icon name="distance"></ion-icon> {{i18n.texts.pages.trails.sorts.distance}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.duration"><ion-icon name="duration"></ion-icon> {{i18n.texts.pages.trails.sorts.duration}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.positiveElevation"><ion-icon name="positive-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.positive_elevation}}</ion-radio></ion-item>
