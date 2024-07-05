@@ -1,0 +1,315 @@
+:host {
+  position: relative;
+  overflow: hidden;
+
+  --tabs-height: 36px;
+  --bottom-sheet-button-height: 20px;
+  --bottom-sheet-large-height: 180px;
+  --details-width: 350px;
+  --bottom-sheet-tabs-width: 30px;
+  --bottom-sheet-tab-icon-size: 24px;
+  --bottom-sheet-tab-content-height: 150px;
+}
+
+.top-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  .trail-details {
+    position: absolute;
+  }
+
+  .map-container {
+    position: absolute;
+  }
+
+  .elevation-container {
+    position: absolute;
+
+    .zoom-button {
+      z-index: 502;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  }
+
+  .tabs-container {
+    position: absolute;
+  }
+
+  .bottom-sheet-container {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    height: var(--bottom-sheet-button-height);
+    transition: height 0.3s ease-in-out;
+    z-index: 500;
+    background-color: var(--ion-background-color);
+
+    .bottom-sheet-button {
+      height: var(--bottom-sheet-button-height);
+      width: 100%;
+
+      ion-icon {
+        height: var(--bottom-sheet-button-height);
+        width: var(--bottom-sheet-button-height);
+        transform: scaleX(2);
+        margin-left: calc(50% - calc(var(--bottom-sheet-button-height) / 2));
+      }
+    }
+  }
+  .bottom-info {
+    position: absolute;
+  }
+
+  &.large {
+    .tabs-container {
+      display: none;
+    }
+
+    .bottom-sheet-container {
+      left: var(--details-width);
+    }
+    &.bottom-sheet-closed {
+      .bottom-sheet-container {
+        height: var(--bottom-sheet-button-height);
+      }
+      .map-container {
+        bottom: var(--bottom-sheet-button-height);
+      }
+      .elevation-container {
+        top: 100%;
+      }
+    }
+    &.bottom-sheet-open {
+      .bottom-sheet-container {
+        height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height));
+      }
+      .map-container {
+        bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height));
+      }
+      .elevation-container {
+        z-index: 501;
+        top: calc(100% - var(--bottom-sheet-large-height));
+      }
+    }
+
+    .bottom-sheet-info-content {
+      display: none;
+    }
+    .bottom-sheet-tabs {
+      display: none;
+    }
+    .trail-details {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: var(--details-width);
+      border-right: 1px solid var(--ion-color-light);
+    }
+    .map-container {
+      top: 0;
+      left: var(--details-width);
+      right: 0;
+    }
+    .elevation-container {
+      bottom: 0;
+      left: var(--details-width);
+      right: 0;
+      height: var(--bottom-sheet-large-height);
+      background-color: var(--ion-color-light);
+      transition: top 0.3s ease-in-out;
+    }
+  }
+
+  &.small {
+    .tabs-container {
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--tabs-height);
+    }
+
+    &.tab-details {
+      .map-container {
+        display: none;
+      }
+      .bottom-sheet-container {
+        display: none;
+      }
+      .bottom-sheet-info-content {
+        display: none;
+      }
+      .elevation-container {
+        display: none;
+      }
+      .trail-details {
+        top: var(--tabs-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+    }
+
+    &.tab-map {
+      .trail-details {
+        display: none;
+      }
+      .map-container {
+        top: var(--tabs-height);
+        left: 0;
+        right: 0;
+        transition: bottom 0.3s ease-in-out;
+      }
+      .bottom-sheet-info-content {
+        position: absolute;
+        bottom: 0;
+        left: calc(var(--bottom-sheet-tabs-width) + 50% - calc(var(--bottom-sheet-tabs-width) /2) - 100px);
+        width: 200px;
+        z-index: 501;
+        overflow: hidden;
+
+        height: 0;
+        transition: height 0.3s ease-in-out;
+      }
+      .elevation-container {
+        left: var(--bottom-sheet-tabs-width);
+        right: 0;
+        top: 100%;
+        height: var(--bottom-sheet-tab-content-height);
+        transition: top 0.3s ease-in-out;
+      }
+
+      .bottom-sheet-container {
+        left: 0;
+      }
+
+      &.bottom-sheet-closed {
+        .bottom-sheet-container {
+          height: var(--bottom-sheet-button-height);
+        }
+        .map-container {
+          bottom: var(--bottom-sheet-button-height);
+        }
+        .bottom-sheet-tabs {
+          display: none;
+        }
+      }
+
+      &.bottom-sheet-open {
+        .bottom-sheet-container {
+          height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
+        }
+        .map-container {
+          bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
+        }
+        .bottom-sheet-button {
+          border-bottom: 1px solid var(--ion-color-light);
+        }
+        .bottom-sheet-tabs {
+          position: absolute;
+          top: var(--bottom-sheet-button-height);
+          bottom: 0;
+          left: 0;
+          width: var(--bottom-sheet-tabs-width);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+
+          .bottom-sheet-tab {
+            flex: 1 1 100%;
+            border-right: 2px solid var(--ion-color-light);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: stretch;
+
+            ion-icon {
+              width: var(--bottom-sheet-tab-icon-size);
+              height: var(--bottom-sheet-tab-icon-size);
+              color: var(--ion-color-medium);
+            }
+
+            &.tab-selected {
+              background-color: var(--ion-color-light);
+              border-color: var(--ion-color-secondary);
+              ion-icon {
+                color: var(--ion-color-secondary);
+              }
+            }
+          }
+        }
+        .elevation-container {
+          top: calc(100% - var(--bottom-sheet-tab-content-height));
+          z-index: 501;
+        }
+
+        &.bottom-sheet-info {
+          .bottom-sheet-info-content {
+            height: var(--bottom-sheet-tab-content-height);
+          }
+          .elevation-container {
+            display: none;
+          }
+        }
+
+        &.bottom-sheet-elevation {
+          .bottom-sheet-info-content {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+.trail-details {
+  .metadata-container {
+    padding: 8px;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 8px;
+
+    app-icon-label-button:not(:first-child) {
+      margin-left: 10px;
+    }
+  }
+
+  .section-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: var(--ion-color-tertiary);
+    background-color: var(--ion-color-light);
+    padding: 8px;
+    margin-top: 5px;
+    border-bottom: 1px solid var(--ion-color-medium);
+
+    ion-icon {
+      width: 24px;
+      height: 24px;
+    }
+    div {
+      font-size: 16px;
+      margin-left: 5px;
+    }
+  }
+
+  div.description-text {
+    padding: 5px 8px;
+    color: var(--ion-color-medium);
+  }
+  ion-textarea.description-text {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    color: var(--ion-color-medium);
+  }
+}

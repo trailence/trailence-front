@@ -1,0 +1,33 @@
+<ng-container *ngIf="trail">
+  <div class="trail-name-row">
+    <ion-checkbox *ngIf="selectable" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
+    <div class="trail-name">{{ meta.name }}</div>
+    <ion-button size="small" fill="clear" color="dark" id="trail-menu-button-{{id}}">
+      <ion-icon name="item-menu" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <ion-popover trigger="trail-menu-button-{{id}}" [dismissOnSelect]="true">
+      <ng-template>
+        <ion-content>
+          <app-menu-content [menu]="trailService.getTrailsMenu([trail])"></app-menu-content>
+        </ion-content>
+      </ng-template>
+    </ion-popover>
+  </div>
+  <div class="trail-tags-row">
+    <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
+  </div>
+
+  <div class="metadata-item-container">
+    <div class="metadata-item">
+      <ion-icon name="date"></ion-icon>
+      <div>{{ meta.dateString }}</div>
+    </div>
+  </div>
+  <div class="metadata-item-container empty">
+    <div class="metadata-item">
+    </div>
+  </div>
+  <app-track-metadata *ngIf="track" [track]="track"></app-track-metadata>
+
+</ng-container>

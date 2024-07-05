@@ -1,0 +1,168 @@
+{
+  "header": {
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System preference"
+    },
+    "language": "Language"
+  },
+  "tools": {
+    "filters": "Filters",
+    "import": "Import",
+    "import_gpx_description": "Import GPX files",
+    "importing": "Importing",
+    "sort": "Sort"
+  },
+  "pages": {
+    "login": {
+      "title": "Sign in",
+      "email": "E-Mail",
+      "password": "Password",
+      "signin_button": "Sign In",
+      "offline": "Please connect to Internet to sign in"
+    },
+    "trails": {
+      "edit_filters_popup_title": "Filter Trails",
+      "edit_sort_popup_title": "Sort Trails",
+      "sorts": {
+        "trail_date": "Date of the trail",
+        "creation_date": "Creation in Trailence",
+        "update_date": "Last update in Trailence",
+        "distance": "Distance",
+        "duration": "Duration",
+        "positive_elevation": "Positive elevation",
+        "negative_elevation": "Negative elevation"
+      },
+      "filters": {
+        "duration": "Duration",
+        "distance": "Distance",
+        "positive_elevation": "Positive elevation",
+        "negative_elevation": "Negative elevation",
+        "reset_button": "Reset all filters"
+      },
+      "tabs": {
+        "list": "List",
+        "map": "Map"
+      },
+      "open_trail": "Open",
+      "actions": {
+        "delete_confirm_single": {
+          "title": "Delete Trail",
+          "message": "Are you sure you want to delete {{}}?",
+          "yes": "Yes, delete",
+          "no": "Cancel, keep"
+        },
+        "delete_confirm_multiple": {
+          "title": "Delete {{}} Trails",
+          "message": "Are you sure you want to delete these {{}} trails?",
+          "yes": "Yes, delete",
+          "no": "Cancel, keep"
+        },
+        "deleting_trails": "Deleting",
+        "move_to_collection": "Move to...",
+        "copy_to_collection": "Copy into...",
+        "copying": "Copying",
+        "export": "Export"
+      },
+      "tags": {
+        "menu_item": "Tags",
+        "popup": {
+          "title": "Tags",
+          "add_tag_label": "New tag",
+          "confirm_delete": {
+            "title": "Delete Tag",
+            "message": "Are you sure you want to delete this tag?",
+            "yes": "Yes, delete",
+            "no": "Cancel, keep"
+          }
+        }
+      }
+    },
+    "trail": {
+      "tabs": {
+        "details": "Details",
+        "map": "Map"
+      },
+      "actions": {
+        "go_to_departure": "Go to departure",
+        "download_map": "Download map"
+      },
+      "sections": {
+        "description": {
+          "title": "Description",
+          "placeholder": "Enter the description of the trail here"
+        },
+        "waypoints": {
+          "title": "Way Points"
+        }
+      }
+    },
+    "collection_form": {
+      "title": "Collection",
+      "collection_name": "Name"
+    }
+  },
+  "menu": {
+    "collections": "Collections",
+    "start_trace": "Start a trace",
+    "current_trace": "Trace in progress"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "Delete Collection",
+      "message": "Are you sure you want to delete collection {{}}?",
+      "yes": "Yes, delete",
+      "no": "Cancel, keep"
+    },
+    "deleting": "Delete collection"
+  },
+  "my_trails": "My Trails",
+  "buttons": {
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "close": "Close",
+    "create": "Create",
+    "delete": "Delete",
+    "download": "Download",
+    "edit": "Edit",
+    "save": "Save"
+  },
+  "order_way": "Order",
+  "order_asc": "Ascending",
+  "order_desc": "Descending",
+  "selected_single": "selected",
+  "selected_plural": "selected",
+  "way_points": {
+    "DA": "D A",
+    "D": "D",
+    "A": "A"
+  },
+  "elevationGraph": {
+    "distance": "Distance",
+    "elevation": "Altitude",
+    "time_duration": "Time"
+  },
+  "downloading_map": "Downloading map",
+  "offline_map": {
+    "select_layers": "Select the layers to download",
+    "parameters": "Parameters",
+    "max_zoom": "Maximum zoom level to download",
+    "max_zoom_explaination": "The higher you select a zoom level, the more you will be able to zoom during your trail when you are offline, but consequently the longer the download will take and the more storage space will be required on your device.",
+    "max_zoom_reco": "A value between 15 and 17 is recommended. Below 15, the level of detail is often too low to see small paths clearly. Above 17, the download size is large, and is generally not necessary to perfectly follow a route.",
+    "padding": "Extend the area to download (%)",
+    "padding_explaination": "Percentage of the area to download in around the trail area (100% means only the trail area). Allows you to see more around the trail in offline mode."
+  },
+  "trace_recorder": {
+    "trail_name_start": "Trail of",
+    "pause": "Pause",
+    "resume": "Resume",
+    "stop": "Stop",
+    "start_this_trail": "Start this trail",
+    "notif_title": "Trailence",
+    "notif_message": "Track in progress"
+  },
+  "waiting_for_gps": "Waiting for GPS signal..."
+}

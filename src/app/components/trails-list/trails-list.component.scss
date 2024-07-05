@@ -1,0 +1,56 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.toolbar {
+  flex: none;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.1);
+  padding-bottom: 2px;
+}
+
+.selection {
+  flex: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.1);
+
+  ion-checkbox {
+    padding-right: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-left: 5px;
+  }
+}
+
+.trails {
+  flex: 1 1 100%;
+  overflow-y: auto;
+
+  .trail {
+    padding: 3px 5px;
+    border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.1);
+  }
+}
+
+.filter-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ion-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    color: var(--ion-color-secondary);
+  }
+  div {
+    color: var(--ion-color-tertiary);
+  }
+}

@@ -1,0 +1,17 @@
+.layer {
+  display: inline-block;
+  margin: 10px;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: 14px;
+
+    margin-bottom: 3px;
+
+    .name {
+      margin-left: 5px;
+    }
+  }
+}

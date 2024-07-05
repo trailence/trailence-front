@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    @if (auth.email) {
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-buttons slot="end">
+        <app-header-user-menu></app-header-user-menu>
+      </ion-buttons>
+    }
+    <div class="header-title">
+      <div class="back-button" *ngIf="backUrl">
+        <ion-button shape="round" fill="clear" (click)="back()">
+          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="title-text">{{title}}</div>
+      <div class="title-actions" *ngIf="actions && actions.length > 0">
+        <ion-button fill="clear" shape="round" id="header-title-actions-button-{{id}}">
+          <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+        </ion-button>
+        <ion-popover trigger="header-title-actions-button-{{id}}" [dismissOnSelect]="true">
+          <ng-template>
+            <ion-content>
+              <app-menu-content [menu]="actions"></app-menu-content>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>

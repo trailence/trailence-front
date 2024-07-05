@@ -1,0 +1,25 @@
+<div class="menu-header">
+  <div class="menu-title">Trailence</div>
+</div>
+<div class="menu-content">
+  <div class="menu-section">
+    <ion-icon name="collection"></ion-icon>
+    <div class="section-title">{{ i18n.texts.menu.collections }}</div>
+    <div class="section-buttons">
+      <ion-button fill="clear" color="dark" size="small" (click)="collectionService.collectionPopup(); menuController.close();">
+        <ion-icon name="add" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+  @for (collection of collections; track collection.uuid) {
+    <div class="menu-item under-section" (click)="goTo('/trails/collection/' + collection.uuid); menuController.close();">
+      <div class="item-title">{{ collection.name.length === 0 && collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collection.name }}</div>
+    </div>
+  }
+
+  <div class="menu-separator"></div>
+  <div class="menu-item" (click)="goToRecordTrace(); menuController.close();">
+    <ion-icon name="play"></ion-icon>
+    <div class="item-title">{{ i18n.texts.menu[traceRecorder.recording ? 'current_trace' : 'start_trace'] }}</div>
+  </div>
+</div>

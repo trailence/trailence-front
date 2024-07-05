@@ -1,0 +1,94 @@
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}">
+  <div class="map-container">
+    <app-map
+      mapId="trail-{{trail1?.owner || recording?.trail?.owner}}-{{trail1?.uuid || recording?.trail?.uuid}}"
+      [tracks$]="mapTracks$"
+      (mouseOverPoint)="mouseOverPointOnMap($event)"
+      (mouseClickPoint)="mouseClickOnMap($event)"
+    ></app-map>
+  </div>
+  <div class="tabs-container">
+    <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
+      <ion-segment-button value="details" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.details}}</ion-segment-button>
+      <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.map}}</ion-segment-button>
+    </ion-segment>
+  </div>
+  <div class="bottom-sheet-container">
+    <div class="bottom-sheet-button" (click)="toggleBottomSheet()">
+      <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'"></ion-icon>
+    </div>
+    <div class="bottom-sheet-tabs">
+      <div class="bottom-sheet-tab {{bottomSheetTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('info')">
+        <ion-icon name="info"></ion-icon>
+      </div>
+      <div class="bottom-sheet-tab {{bottomSheetTab === 'elevation' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('elevation')">
+        <ion-icon name="elevation"></ion-icon>
+      </div>
+    </div>
+  </div>
+  <ng-container *ngIf="tracks$ | async as tracks">
+    <div class="trail-details" *ngIf="tracks[0]">
+      <div class="metadata-container one-column">
+        <div class="metadata-item-container">
+          <div class="metadata-item">
+            <ion-icon name="date"></ion-icon>
+            <div class="metadata-primary">{{ i18n.timestampToDateTimeString(tracks[0].metadata.startDate) }}</div>
+            <div class="metadata-secondary" *ngIf="tracks[1]">{{ i18n.timestampToDateTimeString(tracks[1].metadata.startDate) }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-container two-columns">
+        <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+      </div>
+      <div class="actions">
+        <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
+        <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
+        <ng-container *ngIf="trail1 && !recording">
+          <app-icon-label-button icon="play-circle" [label]="i18n.texts.trace_recorder.start_this_trail" [size]="28" [fontSize]="11" color="primary" (click)="startTrail()"></app-icon-label-button>
+        </ng-container>
+        <ng-container *ngIf="recording">
+          <app-icon-label-button [icon]="recording.paused ? 'play-circle' : 'pause-circle'" [label]="i18n.texts.trace_recorder[recording.paused ? 'resume' : 'pause']" [size]="28" [fontSize]="11" color="primary" (click)="togglePauseRecording()"></app-icon-label-button>
+          <app-icon-label-button icon="stop-circle" [label]="i18n.texts.trace_recorder.stop" [size]="28" [fontSize]="11" color="primary" (click)="stopRecording()"></app-icon-label-button>
+        </ng-container>
+      </div>
+      <ng-container *ngIf="trail1 && !trail2">
+        <div class="section-title">
+          <ion-icon name="text"></ion-icon>
+          <div>{{ i18n.texts.pages.trail.sections.description.title }}</div>
+        </div>
+        <div class="description-text" *ngIf="!editable">
+          {{ trail1.description }}
+        </div>
+        <ion-textarea class="description-text"
+          [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
+          [maxlength]="50000"
+          [autoGrow]="true"
+          [value]="trail1.description"
+          (ionInput)="descriptionChanged($event.detail.value)"
+        ></ion-textarea>
+        <div class="section-title">
+          <ion-icon name="waypoint"></ion-icon>
+          <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+        </div>
+      </ng-container>
+    </div>
+    <div class="elevation-container">
+      <app-elevation-graph
+        [track1]="pathSelection.zoomOnSelection ? pathSelection.selection[0] : tracks[0]"
+        [track2]="pathSelection.zoomOnSelection ? pathSelection.selection[1] : tracks[1]"
+        (pointHover)="elevationGraphPointHover($event)"
+        [selectable]="!pathSelection.zoomOnSelection"
+        (selecting)="pathSelection.elevationGraphSelecting($event)"
+        (selected)="pathSelection.elevationGraphSelected($event)"
+      ></app-elevation-graph>
+      <ion-button class="zoom-button" *ngIf="pathSelection.selection.length > 0" (click)="pathSelection.toggleZoom()">
+        <ion-icon [name]="pathSelection.zoomOnSelection ? 'zoom-out' : 'zoom-in'" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="bottom-sheet-info-content">
+      <div class="metadata-container tiles">
+        <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+      </div>
+    </div>
+  </ng-container>
+</div>

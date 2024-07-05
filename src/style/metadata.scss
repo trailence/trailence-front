@@ -1,0 +1,90 @@
+.metadata-container {
+
+  &.two-columns, &.one-column {
+    .metadata-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      ion-icon, svg, .icon {
+        flex: none;
+        margin-right: 5px;
+        width: 20px;
+        height: 20px;
+        color: var(--ion-color-secondary);
+      }
+      div {
+        flex: 1 1 100%;
+        font-size: 13px;
+      }
+    }
+  }
+
+  &.two-columns {
+    .metadata-item-container {
+      min-width: 50%;
+      max-width: 50%;
+      display: inline-block;
+    }
+  }
+
+  &.tiles {
+    .metadata-item-container {
+      display: inline-block;
+      min-width: 100px;
+      max-width: 100px;
+      min-height: 75px;
+      max-height: 75px;
+      &.empty {
+        display: none;
+      }
+
+      .metadata-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon, svg, .icon {
+          flex: none;
+          margin-bottom: 5px;
+          width: 32px;
+          height: 32px;
+          color: var(--ion-color-secondary);
+        }
+        div {
+          flex: 1 1 100%;
+          font-size: 13px;
+          text-align: center;
+        }
+      }
+    }
+  }
+
+}
+
+.metadata-primary {
+
+}
+
+.metadata-secondary {
+  color: var(--secondary-text-color);
+}
+
+.trail-tags-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .tag {
+    background-color: var(--tag-background-color);
+    color: var(--tag-text-color);
+    border-radius: 8px;
+    padding: 1px 5px;
+    font-size: 12px;
+
+    &:not(:first-child) {
+      margin-left: 5px;
+    }
+  }
+}

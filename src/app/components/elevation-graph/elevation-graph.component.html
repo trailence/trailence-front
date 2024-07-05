@@ -1,0 +1,10 @@
+<div style="width: 100%; height: 100%">
+  <canvas baseChart [height]="height" [width]="width" *ngIf="chartOptions && chartData && height" [ngStyle]="{ 'width': width + 'px', 'height': height + 'px' }"
+    #canvas
+    [type]="'line'"
+    [data]="chartData"
+    [options]="chartOptions"
+    [plugins]="chartPlugins"
+    [legend]="false">
+  </canvas>
+</div>

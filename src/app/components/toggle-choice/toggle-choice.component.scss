@@ -1,0 +1,12 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+ion-toggle {
+  margin: 0 10px;
+  --track-background: var(--ion-color-medium);
+  --track-background-checked: var(--ion-color-medium);
+}

@@ -1,0 +1,6 @@
+<app-header
+  [title]="(trail$ | async)?.name || (recording$ | async)?.trail?.name || ''"
+  [backUrl]="backUrl"
+  [actions]="trailService.getTrailsMenu(trail ? [trail] : [], true)"
+></app-header>
+<app-trail [trail1$]="trail$" [recording$]="recording$"></app-trail>

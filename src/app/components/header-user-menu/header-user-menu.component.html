@@ -1,0 +1,76 @@
+<ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}">
+  <div slot="icon-only">{{auth.email?.substring(0, 1)}}</div>
+</ion-button>
+<div class="status">
+  @switch(status) {
+    @case('online') {
+      <ion-icon name="online"></ion-icon>
+    }
+    @case('offline') {
+      <ion-icon name="offline"></ion-icon>
+    }
+    @case('sync') {
+      <ion-icon name="sync"></ion-icon>
+    }
+  }
+</div>
+
+<ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click">
+  <ng-template>
+    <ion-content>
+      <ion-list>
+        <ion-item>
+          {{ auth.email }}
+        </ion-item>
+        <ion-item button id="item-language" [detail]="true">
+          <ion-icon slot="start" name="i18n"></ion-icon>
+          <ion-label>{{i18n.texts.header.language}}</ion-label>
+        </ion-item>
+        <ion-item button id="item-theme" [detail]="true">
+          <ion-icon slot="start" name="theme"></ion-icon>
+          <ion-label>{{i18n.texts.header.theme}}</ion-label>
+        </ion-item>
+        <ion-item button>
+          <ion-icon slot="start" name="settings"></ion-icon>
+          <ion-label>{{i18n.texts.header.preferences}}</ion-label>
+        </ion-item>
+
+        <ion-popover trigger="item-language" [dismissOnSelect]="true" side="start">
+          <ng-template>
+            <ion-content>
+              <ion-list>
+                <ion-item button (click)="preferences.setLanguage('en')">
+                  <ion-label>English</ion-label>
+                </ion-item>
+                <ion-item button (click)="preferences.setLanguage('fr')">
+                  <ion-label>Français</ion-label>
+                </ion-item>
+              </ion-list>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+
+        <ion-popover trigger="item-theme" [dismissOnSelect]="true" side="start">
+          <ng-template>
+            <ion-content>
+              <ion-list>
+                <ion-item button (click)="preferences.setTheme('LIGHT')">
+                  <ion-icon slot="start" name="theme-light"></ion-icon>
+                  <ion-label>{{i18n.texts.header.themes.light}}</ion-label>
+                </ion-item>
+                <ion-item button (click)="preferences.setTheme('DARK')">
+                  <ion-icon slot="start" name="theme-dark"></ion-icon>
+                  <ion-label>{{i18n.texts.header.themes.dark}}</ion-label>
+                </ion-item>
+                <ion-item button (click)="preferences.setTheme('SYSTEM')">
+                  <ion-icon slot="start" name="theme-system"></ion-icon>
+                  <ion-label>{{i18n.texts.header.themes.system}}</ion-label>
+                </ion-item>
+              </ion-list>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-popover>

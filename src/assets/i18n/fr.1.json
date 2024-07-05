@@ -1,0 +1,168 @@
+{
+  "header": {
+    "preferences": "Préférences",
+    "theme": "Thème",
+    "themes": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Préférence du système"
+    },
+    "language": "Language"
+  },
+  "tools": {
+    "filters": "Filtres",
+    "import": "Importer",
+    "import_gpx_description": "Importer des fichiers GPX",
+    "importing": "Import",
+    "sort": "Tri"
+  },
+  "pages": {
+    "login": {
+      "title": "Connexion",
+      "email": "E-Mail",
+      "password": "Mot de passe",
+      "signin_button": "Se Connecter",
+      "offline": "Veuillez vous connecter à Internet afin de vous connecter sur Trailence"
+    },
+    "trails": {
+      "edit_filters_popup_title": "Filtrer les Parcours",
+      "edit_sort_popup_title": "Trier les Parcours",
+      "sorts": {
+        "trail_date": "Date du parcours",
+        "creation_date": "Création dans Trailence",
+        "update_date": "Dernière mise à jour dans Trailence",
+        "distance": "Distance",
+        "duration": "Durée",
+        "positive_elevation": "Dénivelé positif",
+        "negative_elevation": "Dénivelé négatif"
+      },
+      "filters": {
+        "duration": "Durée",
+        "distance": "Distance",
+        "positive_elevation": "Dénivelé positif",
+        "negative_elevation": "Dénivelé négatif",
+        "reset_button": "Enlever tous les filtres"
+      },
+      "tabs": {
+        "list": "Liste",
+        "map": "Carte"
+      },
+      "open_trail": "Ouvrir",
+      "actions": {
+        "delete_confirm_single": {
+          "title": "Supprimer un parcours",
+          "message": "Etes-vous sûr de vouloir supprimer {{}} ?",
+          "yes": "Oui, supprimer",
+          "no": "Annuler, garder"
+        },
+        "delete_confirm_multiple": {
+          "title": "Suppression de {{}} parcours",
+          "message": "Etes-vous sûr de vouloir supprimer ces {{}} parcours ?",
+          "yes": "Oui, supprimer",
+          "no": "Annuler, garder"
+        },
+        "deleting_trails": "Suppression",
+        "move_to_collection": "Déplacer vers...",
+        "copy_to_collection": "Copier dans...",
+        "copying": "Copie",
+        "export": "Exporter"
+      },
+      "tags": {
+        "menu_item": "Tags",
+        "popup": {
+          "title": "Tags",
+          "add_tag_label": "Nouveau tag",
+          "confirm_delete": {
+            "title": "Supprimer le Tag",
+            "message": "Etes-vous sûr de vouloir supprimer ce tag ?",
+            "yes": "Oui, supprimer",
+            "no": "Annuler, garder"
+          }
+        }
+      }
+    },
+    "trail": {
+      "tabs": {
+        "details": "Détails",
+        "map": "Carte"
+      },
+      "actions": {
+        "go_to_departure": "Aller au départ",
+        "download_map": "Télécharger la carte"
+      },
+      "sections": {
+        "description": {
+          "title": "Description du parcours",
+          "placeholder": "Entrez une description ici"
+        },
+        "waypoints": {
+          "title": "Points de passage"
+        }
+      }
+    },
+    "collection_form": {
+      "title": "Collection",
+      "collection_name": "Nom"
+    }
+  },
+  "menu": {
+    "collections": "Collections",
+    "start_trace": "Démarrer une trace",
+    "current_trace": "Trace en cours"
+  },
+  "collection_menu": {
+    "delete_confirm": {
+      "title": "Supprimer la collection",
+      "message": "Etes-vous sûr de vouloir supprimer la collection {{}} ?",
+      "yes": "Oui, supprimer",
+      "no": "Annuler, garder"
+    },
+    "deleting": "Supression de la collection"
+  },
+  "my_trails": "Mes Parcours",
+  "buttons": {
+    "apply": "Appliquer",
+    "cancel": "Annuler",
+    "create": "Créer",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "download": "Télécharger",
+    "edit": "Modifier",
+    "save": "Enregistrer"
+  },
+  "order_way": "Par ordre",
+  "order_asc": "Croissant",
+  "order_desc": "Décroissant",
+  "selected_single": "sélectionné",
+  "selected_plural": "sélectionnés",
+  "way_points": {
+    "DA": "D A",
+    "D": "D",
+    "A": "A"
+  },
+  "elevationGraph": {
+    "distance": "Distance",
+    "elevation": "Altitude",
+    "time_duration": "Temps"
+  },
+  "downloading_map": "Téléchargement de la carte",
+  "offline_map": {
+    "select_layers": "Sélectionnez les cartes à télécharger",
+    "parameters": "Paramètres",
+    "max_zoom": "Niveau de zoom maximum à télécharger",
+    "max_zoom_explaination": "Plus vous sélectionnez un niveau de zoom élevé, plus vous pourrez zoomer pendant votre parcours lorsque vous serez hors-ligne, mais en conséquence plus le temps de téléchargement sera long et plus cela nécessitera de la place de stockage sur votre appareil.",
+    "max_zoom_reco": "Une valeur entre 15 et 17 est recommendée. En deça de 15, le niveau de détail est souvent trop faible pour bien voir les petits chemins. Au dessus de 17, la taille du téléchargement est importante, et n'est générallement pas nécessaire pour parfaitement suivre un itinéraire.",
+    "padding": "Etendre la zone à télécharger (%)",
+    "padding_explaination": "Pourcentage de la zone à télécharger autour de la zone du parcours (100% veut dire pas plus que le parcours). Permet de voir d'avantage autour du parcours en mode hors-ligne."
+  },
+  "trace_recorder": {
+    "trail_name_start": "Parcours du",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "stop": "Terminer",
+    "start_this_trail": "Démarrer le parcours",
+    "notif_title": "Trailence",
+    "notif_message": "Trace en cours"
+  },
+  "waiting_for_gps": "En attente du signal GPS..."
+}

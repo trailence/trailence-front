@@ -1,3 +1,13 @@
-<ion-app>
-  <ion-router-outlet></ion-router-outlet>
-</ion-app>
+<ng-container *ngIf="i18n.textsLanguage$ | async">
+  <ion-menu contentId="content" #appMenu [maxEdgeStart]="0">
+    <app-menu></app-menu>
+  </ion-menu>
+  <ion-app>
+    <ion-content id="content">
+      <ion-router-outlet></ion-router-outlet>
+    </ion-content>
+  </ion-app>
+  <div class="waiting-for-gps" *ngIf="geolocation.waitingForGps">
+    <div>{{ i18n.texts.waiting_for_gps }}</div>
+  </div>
+</ng-container>

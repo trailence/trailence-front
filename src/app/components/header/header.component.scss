@@ -1,0 +1,39 @@
+.header-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    ion-icon {
+        margin-right: 8px;
+    }
+    div {
+        font-size: 16px;
+    }
+
+    .title-text {
+      overflow: hidden;
+      text-wrap: nowrap;
+      text-overflow: ellipsis;
+    }
+}
+
+ion-toolbar {
+    --min-height: var(--header-height);
+
+    ion-menu-button {
+        width: var(--header-height);
+        height: var(--header-height);
+    }
+
+    .header-title {
+        ion-button {
+            margin-top: 0;
+            margin-bottom: 0;
+            color: var(--ion-color-primary-contrast);
+            width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+            height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+            min-width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+            min-height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+        }
+    }
+}

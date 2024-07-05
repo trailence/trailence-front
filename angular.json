@@ -29,10 +29,20 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*.svg",
+                "input": "node_modules/ionicons/dist/ionicons/svg",
+                "output": "assets/ionicons"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
-            "scripts": []
+            "styles": [
+              "src/global.scss",
+              "./node_modules/leaflet/dist/leaflet.css"
+            ],
+            "scripts": [
+              "./node_modules/leaflet/dist/leaflet.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -66,12 +76,71 @@
             },
             "ci": {
               "progress": false
+            },
+            "android-dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/services/file/file.service.ts",
+                  "with": "capacitor/services/file/file.service.ts"
+                },
+                {
+                  "replace": "src/app/services/geolocation/geolocation.service.ts",
+                  "with": "capacitor/services/geolocation/geolocation.service.ts"
+                },
+                {
+                  "replace": "src/app/services/http/http-client.service.ts",
+                  "with": "capacitor/services/http/http-client.service.ts"
+                },
+                {
+                  "replace": "src/app/services/network/network.service.ts",
+                  "with": "capacitor/services/network/network.service.ts"
+                },
+                {
+                  "replace": "src/app/services/trailence.service.ts",
+                  "with": "capacitor/services/trailence.service.ts"
+                },
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "capacitor/environments/android.dev.ts"
+                }
+              ]
+            },
+            "android-local": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/services/file/file.service.ts",
+                  "with": "capacitor/services/file/file.service.ts"
+                },
+                {
+                  "replace": "src/app/services/geolocation/geolocation.service.ts",
+                  "with": "capacitor/services/geolocation/geolocation.service.ts"
+                },
+                {
+                  "replace": "src/app/services/http/http-client.service.ts",
+                  "with": "capacitor/services/http/http-client.service.ts"
+                },
+                {
+                  "replace": "src/app/services/network/network.service.ts",
+                  "with": "capacitor/services/network/network.service.ts"
+                },
+                {
+                  "replace": "src/app/services/trailence.service.ts",
+                  "with": "capacitor/services/trailence.service.ts"
+                },
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "capacitor/environments/android.local.ts"
+                }
+              ]
             }
           },
-          "defaultConfiguration": "production"
+        "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "app:build:production"
@@ -104,10 +173,20 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "test/assets",
+                "output": "assets/test"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
-            "scripts": []
+            "styles": [
+              "src/global.scss",
+              "./node_modules/leaflet/dist/leaflet.css"
+            ],
+            "scripts": [
+              "./node_modules/leaflet/dist/leaflet.js"
+            ]
           },
           "configurations": {
             "ci": {
@@ -126,7 +205,10 @@
     }
   },
   "cli": {
-    "schematicCollections": ["@ionic/angular-toolkit"]
+    "schematicCollections": [
+      "@ionic/angular-toolkit"
+    ],
+    "analytics": false
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {
