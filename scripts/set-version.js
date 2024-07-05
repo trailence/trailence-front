@@ -1,0 +1,46 @@
+const child_process = require('child_process');
+const fs = require('fs');
+
+if (process.argv.length < 3) {
+  console.log('Usage: set-version <major>.<minor>.<fix>');
+  console.log('No version found.')
+  return 1;
+}
+
+const versionStr = process.argv[2];
+const versionRegexp = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
+const version = versionStr.match(versionRegexp);
+if (!version) {
+  console.log('Invalid version: ', versionStr);
+  return 1;
+}
+const major = parseInt(version[1]);
+const minor = parseInt(version[2]);
+const fix = parseInt(version[3]);
+
+console.log('Version: ', versionStr);
+
+const versionCode = fix + minor * 100 + major * 10000;
+
+console.log('Code: ', versionCode);
+
+console.log('Updating version in package.json');
+child_process.execSync('npm version ' + versionStr + ' --allow-same-version=true --commit-hooks=false --no-git-tag-version --force');
+
+console.log('Updating version in wep app');
+fs.writeFileSync(
+  'src/app/trailence-version.ts',
+  'export const trailenceAppVersionName="' + versionStr + '";\n' +
+  'export const trailenceAppVersionCode=' + versionCode + ';\n'
+);
+
+console.log('Updating version in android app');
+fs.writeFileSync(
+  'android/version.gradle',
+  'ext {\n' +
+  '  versionCode = ' + versionCode + '\n' +
+  '  versionName = \'' + versionStr + '\'\n' +
+  '}\n'
+);
+
+console.log('Successfully updated version to ', versionStr);
