@@ -1,4 +1,4 @@
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
@@ -11,7 +11,7 @@ describe('Test Trail and Track DTOs', () => {
   let http: HttpClient;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({imports: [HttpClientModule]});
+    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
   });
 

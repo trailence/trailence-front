@@ -1,4 +1,4 @@
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { Point } from 'src/app/model/point';
@@ -12,7 +12,7 @@ describe('Test Gpx Format', () => {
   let http: HttpClient;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({imports: [HttpClientModule]});
+    TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
   });
 
