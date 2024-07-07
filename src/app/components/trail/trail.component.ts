@@ -199,8 +199,10 @@ export class TrailComponent extends AbstractComponent {
 
   private updateVisibility(mapVisible: boolean, graphVisible: boolean): void {
     this._children.forEach(child => {
-      if (child instanceof MapComponent) child.setVisible(mapVisible);
-      else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
+      if (child instanceof MapComponent) {
+        child.setVisible(mapVisible);
+        child.invalidateSize();
+      } else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
       else if (child instanceof TrackMetadataComponent) {}
       else console.error('unexpected child', child);
     })
@@ -219,9 +221,7 @@ export class TrailComponent extends AbstractComponent {
   toggleBottomSheet(): void {
     this.bottomSheetOpen = !this.bottomSheetOpen;
     this.updateDisplay();
-    if (this.displayMode === 'large') {
-      setTimeout(() => this.map?.invalidateSize(), 500);
-    }
+    setTimeout(() => this.map?.invalidateSize(), 500);
   }
 
   setBottomSheetTab(tab: string): void {

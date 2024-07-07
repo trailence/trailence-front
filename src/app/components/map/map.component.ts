@@ -52,10 +52,10 @@ export class MapComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
-    this.whenVisible.subscribe(this.platform.resize.pipe(debounceTime(500)), () => this._map$.value?.invalidateSize());
+    this.whenVisible.subscribe(this.platform.resize.pipe(debounceTime(500)), () => this.invalidateSize());
     this.visible$.subscribe(visible => {
       if (visible) {
-        setTimeout(() => this._map$.value?.invalidateSize(), 0);
+        setTimeout(() => this.invalidateSize(), 0);
       }
       this._mapState.live = visible;
     });
@@ -94,7 +94,9 @@ export class MapComponent extends AbstractComponent {
   }
 
   public invalidateSize(): void {
-    this._map$.value?.invalidateSize();
+    if (this._mapState.live) {
+      this._map$.value?.invalidateSize();
+    }
   }
 
   private loadState(): void {
