@@ -2,7 +2,10 @@ import { Observable } from 'rxjs';
 
 export interface INetworkService {
 
-  get connected(): boolean;
-  get connected$(): Observable<boolean>;
+  get server(): boolean;
+  get server$(): Observable<boolean>;
+
+  get internet(): boolean;
+  get internet$(): Observable<boolean>;
 
 }

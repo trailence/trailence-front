@@ -11,10 +11,12 @@ import { environment } from 'src/environments/environment';
 })
 export class NetworkService implements INetworkService {
 
-  private _connected$ = new BehaviorSubject<boolean>(false);
+  private _server$ = new BehaviorSubject<boolean>(false);
+  private _internet$ = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClientService) {
-    this._connected$ = new BehaviorSubject<boolean>(false);
+    this._server$ = new BehaviorSubject<boolean>(false);
+    this._internet$ = new BehaviorSubject<boolean>(false);
     Network.getStatus().then(status => {
       this.updateStatus(status);
     });
@@ -24,19 +26,21 @@ export class NetworkService implements INetworkService {
     });
   }
 
-  get connected(): boolean { return this._connected$.value; }
-  get connected$(): Observable<boolean> { return this._connected$; }
+  get server(): boolean { return this._server$.value; }
+  get server$(): Observable<boolean> { return this._server$; }
 
-  private networks = new Map<ConnectionType, boolean>();
-  private count = 0;
+  get internet(): boolean { return this._internet$.value; }
+  get internet$(): Observable<boolean> { return this._internet$; }
+
+  private countPing = 0;
+  private countNet = 0;
 
   private updateStatus(status: ConnectionStatus): void {
-    this.networks.set(status.connectionType, status.connected);
-    console.log('Network changed', this.networks, 'ping server');
-    const c = ++this.count;
+    console.log('Network changed', status, 'ping server');
+    const c = ++this.countPing;
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
-      if (c != this.count) return;
+      if (c != this.countPing) return;
       let status: boolean;
       if (response.status === 200) {
         console.log('Server ping response received: connected');
@@ -45,10 +49,16 @@ export class NetworkService implements INetworkService {
         console.log('Server ping response error (' + response.status + '): not connected');
         status = false;
       }
-      if (status !== this._connected$.value) {
-        this._connected$.next(status);
+      if (status !== this._server$.value) {
+        this._server$.next(status);
       }
     });
+    const c2 = ++this.countNet;
+    setTimeout(() => {
+      if (c2 === this.countNet && status.connected !== this._internet$.value) {
+        this._internet$.next(status.connected);
+      }
+    }, 2500);
   }
 
 }

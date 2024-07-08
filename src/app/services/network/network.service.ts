@@ -10,23 +10,39 @@ import { environment } from 'src/environments/environment';
 })
 export class NetworkService implements INetworkService {
 
-  private _connected$: BehaviorSubject<boolean>;
+  private _server$: BehaviorSubject<boolean>;
+  private _internet$: BehaviorSubject<boolean>;
 
   constructor(private http: HttpClientService) {
-    this._connected$ = new BehaviorSubject<boolean>(false);
+    this._server$ = new BehaviorSubject<boolean>(false);
+    this._internet$ = new BehaviorSubject<boolean>(false);
     this.updateStatus();
     window.addEventListener('online', () => this.updateStatus());
     window.addEventListener('offline', () => this.updateStatus());
-    this._connected$.subscribe(connected => console.log("Network connected = " + connected));
+    this._server$.subscribe(connected => console.log("Server reachable = " + connected));
+    this._internet$.subscribe(connected => console.log("Network connection = " + connected));
   }
 
-  get connected(): boolean { return this._connected$.value; }
-  get connected$(): Observable<boolean> { return this._connected$; }
+  get server(): boolean { return this._server$.value; }
+  get server$(): Observable<boolean> { return this._server$; }
+
+  get internet(): boolean { return this._internet$.value; }
+  get internet$(): Observable<boolean> { return this._internet$; }
 
   private count = 0;
 
   private updateStatus(): void {
-    console.log('Network changed (' + window.navigator.onLine + '), ping server');
+    const newStatus = window.navigator.onLine;
+    console.log('Network changed (' + newStatus + '), ping server');
+    if (!newStatus) {
+      if (this._internet$.value) {
+        this._internet$.next(false);
+      }
+    } else if (!this._internet$.value) {
+      setTimeout(() => {
+        if (window.navigator.onLine && !this._internet$.value) this._internet$.next(true);
+      }, 2000);
+    }
     const c = ++this.count;
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
@@ -39,8 +55,8 @@ export class NetworkService implements INetworkService {
         console.log('Server ping response error (' + response.status + '): not connected');
         status = false;
       }
-      if (status !== this._connected$.value) {
-        this._connected$.next(status);
+      if (status !== this._server$.value) {
+        this._server$.next(status);
       }
     });
   }

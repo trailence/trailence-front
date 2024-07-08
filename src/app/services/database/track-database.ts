@@ -449,7 +449,7 @@ export class TrackDatabase {
   private initSync(): void {
     // we need to sync when:
     combineLatest([
-      this.injector.get(NetworkService).connected$,    // network is connected
+      this.injector.get(NetworkService).server$,    // network is connected
       this.syncStatus$,           // there is something to sync and we are not syncing
     ]).pipe(
       debounceTime(1000),

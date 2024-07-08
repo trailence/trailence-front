@@ -57,7 +57,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     // we need to sync when:
     combineLatest([
       this._storeLoaded$,         // local database is loaded
-      this.network.connected$,    // network is connected
+      this.network.server$,    // network is connected
       this.syncStatus$,           // there is something to sync and we are not syncing
       this._operationInProgress$, // and no operation in progress
     ]).pipe(

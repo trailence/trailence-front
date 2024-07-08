@@ -73,7 +73,7 @@ export class PreferencesService {
       window.document.body.classList.add(theme.toLowerCase() + '-theme');
       this._computed$.next(computed);
     });
-    combineLatest([network.connected$, authService.auth$, this._saveNeeded$]).subscribe(
+    combineLatest([network.server$, authService.auth$, this._saveNeeded$]).subscribe(
       ([connected, auth, saveNeeded]) => {
         if (connected && auth?.preferences && saveNeeded === auth?.email) {
           this.httpService.put(environment.apiBaseUrl + '/preferences/v1', auth.preferences).subscribe();

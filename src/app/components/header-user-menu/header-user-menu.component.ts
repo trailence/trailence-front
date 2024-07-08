@@ -37,7 +37,7 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subscription = combineLatest([this.networkService.connected$, this.databaseService.syncStatus]).pipe(
+    this.subscription = combineLatest([this.networkService.server$, this.databaseService.syncStatus]).pipe(
       map(([connected, sync]) => {
         if (!connected) return 'offline';
         if (sync) return 'sync';

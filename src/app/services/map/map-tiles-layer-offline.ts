@@ -13,7 +13,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
       offlineMap.getTile(name, coords).subscribe({
         next: binary => {
           if (!binary) {
-            network.connected$.pipe(
+            network.internet$.pipe(
               filter(c => !!c),
               first()
             ).subscribe(() => img.src = originalSrc);
@@ -38,7 +38,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
       loadOffline(img);
     });
     img.crossOrigin = 'anonymous';
-    if (!network.connected) {
+    if (!network.internet) {
       loadOffline(img);
     }
     return img;
