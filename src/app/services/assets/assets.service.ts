@@ -32,6 +32,7 @@ export class AssetsService {
       'i18n': 'assets/ionicons/language-outline.svg',
       'info': 'assets/ionicons/information-circle-outline.svg',
       'item-menu': 'assets/ionicons/ellipsis-vertical.svg',
+      'layers': 'assets/ionicons/layers-outline.svg',
       'offline': 'assets/ionicons/alert-circle-outline.svg',
       'online': 'assets/ionicons/checkmark-circle-outline.svg',
       'negative-elevation': 'assets/negative-elevation.1.svg',

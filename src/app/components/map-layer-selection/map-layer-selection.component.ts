@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
 import * as L from 'leaflet';
 import { CommonModule } from '@angular/common';
@@ -12,9 +12,12 @@ import { environment } from 'src/environments/environment';
   standalone: true,
   imports: [IonCheckbox, IonRadioGroup, IonRadio, CommonModule, ]
 })
-export class MapLayerSelectionComponent {
+export class MapLayerSelectionComponent implements OnInit {
 
   @Input() multiple = false;
+  @Input() asButtons = false;
+  @Input() initialSelection: string[] = [];
+  @Input() onSelectionChanged?: (selection: string[]) => void;
 
   @Output() selectionChange = new EventEmitter<string[]>();
 
@@ -31,6 +34,13 @@ export class MapLayerSelectionComponent {
     }
   }
 
+  ngOnInit(): void {
+    if (this.initialSelection.length > 0) this.selection = [...this.initialSelection];
+    if (this.onSelectionChanged) {
+      this.selectionChange.subscribe(event => this.onSelectionChanged!(event));
+    }
+  }
+
   select(value: string, selected: boolean, unselectOthers: boolean): void {
     if (unselectOthers) {
       if (this.multiple) return;
@@ -42,6 +52,26 @@ export class MapLayerSelectionComponent {
       if (index >= 0) this.selection.splice(index, 1);
     }
     this.selectionChange.emit(this.selection);
+  }
+
+  layerClick(layer: {layer: MapLayer, tiles: L.TileLayer}): void {
+    if (this.asButtons) {
+      if (this.multiple) {
+        const index = this.selection.indexOf(layer.layer.name);
+        if (index >= 0) {
+          this.selection.splice(index, 1);
+        } else {
+          this.selection.push(layer.layer.name);
+        }
+      } else {
+        if (this.selection.length > 0 && this.selection[0] === layer.layer.name) {
+          this.selection = [];
+        } else {
+          this.selection = [layer.layer.name];
+        }
+      }
+      this.selectionChange.emit(this.selection);
+    }
   }
 
   getSelectedLayers(): {layer: MapLayer, tiles: L.TileLayer}[] {

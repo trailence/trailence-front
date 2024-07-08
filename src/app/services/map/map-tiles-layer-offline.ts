@@ -3,18 +3,20 @@ import { filter, first } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 
-export function handleMapOffline(name: string, tiles: L.TileLayer, network: NetworkService, offlineMap: OfflineMapService) {
+export function handleMapOffline(name: string, tiles: L.TileLayer, network: NetworkService, offlineMap: OfflineMapService): L.TileLayer {
   const originalCreateTile = (tiles as any)['createTile'];
   (tiles as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {
     const loadOffline = (img: any) => {
       const originalSrc = img.src;
       img.src = '';
       img._offlineLoaded = true;
-      img._originalSrc = originalSrc;
       offlineMap.getTile(name, coords).subscribe({
         next: binary => {
           if (!binary) {
-            img.src = originalSrc;
+            network.connected$.pipe(
+              filter(c => !!c),
+              first()
+            ).subscribe(() => img.src = originalSrc);
           } else {
             binary.toBase64().then(url => img.src = url);
           }
@@ -30,18 +32,16 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
         return;
       }
       if (img._offlineLoaded) {
-        network.connected$.pipe(
-          filter(c => !!c),
-          first()
-        ).subscribe(() => img.src = img._originalSrc);
         done(error, tile);
         return;
       }
       loadOffline(img);
     });
+    img.crossOrigin = 'anonymous';
     if (!network.connected) {
       loadOffline(img);
     }
     return img;
   }
+  return tiles;
 }

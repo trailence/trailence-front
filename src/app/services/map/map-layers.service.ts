@@ -1,5 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import * as L from 'leaflet';
+import { handleMapOffline } from './map-tiles-layer-offline';
+import { NetworkService } from '../network/network.service';
+import { OfflineMapService } from './offline-map.service';
 
 export interface MapLayer {
 
@@ -21,14 +24,14 @@ export class MapLayersService {
 
   public layers: MapLayer[];
 
-  constructor() {
+  constructor(injector: Injector) {
     this.layers = [
-      createDefaultLayer('osm', 'Open Street Map', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>', 2),
-      createDefaultLayer('osmfr', 'Open Street Map French', 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.fr">OpenStreetMap</a>', 2),
+      createDefaultLayer(injector, 'osm', 'Open Street Map', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>', 2),
+      createDefaultLayer(injector, 'osmfr', 'Open Street Map French', 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.fr">OpenStreetMap</a>', 2),
       //createDefaultLayer('osmch', 'Open Street Map Swiss', 'https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png', 19, '&copy; <a href="https://sosm.ch/">Swiss OpenStreetMap Association</a>', 2),
-      createDefaultLayer('otm', 'Open Topo Map', 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', 17, '&copy; <a href="http://www.opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)', 2),
-      createIgnLayer('ign', 'IGN (France)', 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', 'image/png', 19, 2),
-      createIgnLayer('ign-sat', 'IGN Satellite (France)', 'ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg', 19, 2),
+      createDefaultLayer(injector, 'otm', 'Open Topo Map', 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', 17, '&copy; <a href="http://www.opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)', 2),
+      createIgnLayer(injector, 'ign', 'IGN (France)', 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', 'image/png', 19, 2),
+      createIgnLayer(injector, 'ign-sat', 'IGN Satellite (France)', 'ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg', 19, 2),
       //createDefaultLayer('stadia-sat', 'Stadia Satellite', 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg', 20, '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 2),
     ];
   }
@@ -40,6 +43,7 @@ export class MapLayersService {
 }
 
 function createDefaultLayer(
+  injector: Injector,
   name: string,
   displayName: string,
   urlTemplate: string,
@@ -51,11 +55,12 @@ function createDefaultLayer(
   return {
     name,
     displayName,
-    create: () => new L.TileLayer(urlTemplate, {
+    create: () => handleMapOffline(name, new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution: copyright,
+      id: name,
       ...additionalOptions
-    }),
+    }), injector.get(NetworkService), injector.get(OfflineMapService)),
     getTileUrl(layer, coords, crs) {
       const data = {
         r: L.Browser.retina ? '@2x' : '',
@@ -79,6 +84,7 @@ function createDefaultLayer(
 
 // TODO set boundaries for IGN map ?
 function createIgnLayer(
+  injector: Injector,
   name: string,
   displayName: string,
   layerName: string,
@@ -90,10 +96,10 @@ function createIgnLayer(
   return {
     name,
     displayName,
-    create: () => new L.TileLayer(urlTemplate, {
+    create: () => handleMapOffline(name, new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution: '&copy; IGN France',
-    }),
+    }), injector.get(NetworkService), injector.get(OfflineMapService)),
     getTileUrl: (layer, coords, crs) => {
       const data = {
         x: coords.x,

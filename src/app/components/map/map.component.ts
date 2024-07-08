@@ -11,11 +11,9 @@ import { MapTrackPointReference } from './track/map-track-point-reference';
 import { MapFitBoundsTool } from './tools/map-fit-bounds-tool';
 import { Track } from 'src/app/model/track';
 import { MapCursors } from './markers/map-cursors';
-import { handleMapOffline } from './map-tiles-layer-offline';
-import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
-import { NetworkService } from 'src/app/services/network/network.service';
-import { OfflineMapService } from 'src/app/services/map/offline-map.service';
+import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { MapCenterOnPositionTool } from './tools/center-on-location';
+import { MapLayerSelectionTool } from './tools/layer-selection-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -253,43 +251,29 @@ export class MapComponent extends AbstractComponent {
     });
   }
 
-  public get tilesLayers(): {layer: MapLayer, tiles: L.TileLayer}[] {
-    return this._tilesLayers || [];
-  }
-
   public get crs(): L.CRS {
     return this._map$.value?.options.crs || L.CRS.EPSG3857;
   }
 
-  private _tilesLayers?: {layer: MapLayer, tiles: L.TileLayer}[];
-
   private createMap(): void {
-    this._tilesLayers = [];
-    const layers: L.Control.LayersObject = {};
-    for (const layer of this.mapLayersService.layers) {
-      const tilesLayer = {layer, tiles: layer.create()};
-      handleMapOffline(tilesLayer.layer.name, tilesLayer.tiles, this.injector.get(NetworkService), this.injector.get(OfflineMapService));
-      this._tilesLayers.push(tilesLayer);
-      layers[tilesLayer.layer.displayName] = tilesLayer.tiles;
-    }
-    let selectedLayer = this._tilesLayers.find(l => l.layer.name === this._mapState.tilesName);
-    if (!selectedLayer) selectedLayer = this._tilesLayers.find(l => l.layer.name === this.mapLayersService.getDefaultLayer());
-    if (!selectedLayer) selectedLayer = this._tilesLayers[0];
+    let layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName);
+    if (!layer) layer = this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer());
+    if (!layer) layer = this.mapLayersService.layers[0];
 
     const map = L.map(this.id, {
       center: this._mapState.center,
       zoom: this._mapState.zoom,
-      layers: [selectedLayer.tiles],
+      layers: [layer.create()],
     });
 
-    L.control.layers(layers, {}).addTo(map);
+    new MapLayerSelectionTool(this.injector, this._mapState, {position: 'topright'}).addTo(map);
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {
       this.mapChanged(map);
       if ((e as any)['originalEvent']) {
         // action from user
-        // TODO this.followingLocation = false;
+        this._followingLocation = false;
       }
     });
     map.on('zoom', () => this.mapChanged(map));

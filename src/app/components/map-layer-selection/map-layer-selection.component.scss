@@ -14,4 +14,30 @@
       margin-left: 5px;
     }
   }
+
+  &.as-button {
+    padding: 1px 5px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+
+    ion-radio {
+      display: none;
+    }
+
+    .name {
+      margin-left: 0;
+      text-align: center;
+      width: 100%;
+    }
+
+    &:hover:not(.selected) {
+      border-color: rgba(var(--ion-color-secondary-rgb), 0.5);
+      background-color: rgba(var(--ion-color-secondary-rgb), 0.1);
+    }
+
+    &.selected {
+      border-color: var(--ion-color-secondary);
+      background-color: rgba(var(--ion-color-secondary-rgb), 0.2);
+    }
+  }
 }

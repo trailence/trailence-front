@@ -1,0 +1,70 @@
+import * as L from 'leaflet';
+import { MapToolUtils } from './map-tool-utils';
+import { AssetsService } from 'src/app/services/assets/assets.service';
+import { Injector } from '@angular/core';
+import { ModalController } from '@ionic/angular/standalone';
+import { MapLayerSelectionComponent } from '../../map-layer-selection/map-layer-selection.component';
+import { MapState } from '../map-state';
+import { MapLayersService } from 'src/app/services/map/map-layers.service';
+
+export class MapLayerSelectionTool extends L.Control {
+
+  constructor(
+    private injector: Injector,
+    private mapState: MapState,
+    options?: L.ControlOptions,
+  ) {
+    super(options);
+  }
+
+  public override onAdd(map: L.Map) {
+    const button = MapToolUtils.createButton();
+    button.style.color = 'black';
+    const assets = this.injector.get(AssetsService);
+    assets.loadText(assets.icons['layers'], true).subscribe(
+      svg => {
+        const icon = svg.cloneNode(true) as any;
+        icon.style.width = '32px';
+        icon.style.height = '32px';
+        icon.style.margin = '3px 3px -2px 3px';
+        button.appendChild(icon);
+      }
+    );
+    button.onclick = async (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const modalController = this.injector.get(ModalController);
+      const modal = await modalController.create({
+        component: MapLayerSelectionComponent,
+        componentProps: {
+          asButtons: true,
+          initialSelection: [this.mapState.tilesName],
+          onSelectionChanged: (selection: string[]) => {
+            if (selection.length > 0) {
+              modal.dismiss();
+              const layer = this.injector.get(MapLayersService).layers.find(layer => layer.name === selection[0]);
+              if (layer) {
+                let found = false;
+                map.eachLayer(current => {
+                  if ((current.options as any)['id'] === layer.name) {
+                    found = true;
+                  }
+                });
+                if (!found) {
+                  map.eachLayer(current => {
+                    if ((current as any)['_url']) current.remove();
+                  });
+                  map.addLayer(layer.create());
+                  this.mapState.tilesName = layer.name;
+                }
+              }
+            }
+          },
+        }
+      });
+      modal.present();
+    };
+    return button;
+  }
+
+}

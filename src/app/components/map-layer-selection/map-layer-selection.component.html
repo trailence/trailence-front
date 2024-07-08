@@ -1,5 +1,5 @@
-<ion-radio-group (ionChange)="select($event.detail.value, true, true)">
-<div class="layer" *ngFor="let layer of layers">
+<ion-radio-group (ionChange)="select($event.detail.value, true, true)" [value]="selection.length > 0 ? selection[0] : undefined">
+<div class="layer" *ngFor="let layer of layers" [ngClass]="{'as-button': asButtons, 'selected': selection.indexOf(layer.layer.name) >= 0}" (click)="layerClick(layer)">
   <div class="header">
     <ion-radio *ngIf="!multiple" [value]="layer.layer.name"></ion-radio>
     <ion-checkbox *ngIf="multiple" [checked]="selection.indexOf(layer.layer.name) >= 0" (ionChange)="select(layer.layer.name, $event.detail.checked, false)"></ion-checkbox>
