@@ -37,11 +37,12 @@ export class MapLayerSelectionTool extends L.Control {
       const modal = await modalController.create({
         component: MapLayerSelectionComponent,
         componentProps: {
-          asButtons: true,
+          buttons: true,
+          popup: true,
           initialSelection: [this.mapState.tilesName],
           onSelectionChanged: (selection: string[]) => {
+            modal.dismiss();
             if (selection.length > 0) {
-              modal.dismiss();
               const layer = this.injector.get(MapLayersService).layers.find(layer => layer.name === selection[0]);
               if (layer) {
                 let found = false;

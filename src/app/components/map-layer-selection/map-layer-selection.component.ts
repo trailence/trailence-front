@@ -15,7 +15,8 @@ import { environment } from 'src/environments/environment';
 export class MapLayerSelectionComponent implements OnInit {
 
   @Input() multiple = false;
-  @Input() asButtons = false;
+  @Input() buttons = false;
+  @Input() popup = false;
   @Input() initialSelection: string[] = [];
   @Input() onSelectionChanged?: (selection: string[]) => void;
 
@@ -55,23 +56,21 @@ export class MapLayerSelectionComponent implements OnInit {
   }
 
   layerClick(layer: {layer: MapLayer, tiles: L.TileLayer}): void {
-    if (this.asButtons) {
-      if (this.multiple) {
-        const index = this.selection.indexOf(layer.layer.name);
-        if (index >= 0) {
-          this.selection.splice(index, 1);
-        } else {
-          this.selection.push(layer.layer.name);
-        }
+    if (this.multiple) {
+      const index = this.selection.indexOf(layer.layer.name);
+      if (index >= 0) {
+        this.selection.splice(index, 1);
       } else {
-        if (this.selection.length > 0 && this.selection[0] === layer.layer.name) {
-          this.selection = [];
-        } else {
-          this.selection = [layer.layer.name];
-        }
+        this.selection.push(layer.layer.name);
       }
-      this.selectionChange.emit(this.selection);
+    } else {
+      if (this.selection.length > 0 && this.selection[0] === layer.layer.name) {
+        this.selection = [];
+      } else {
+        this.selection = [layer.layer.name];
+      }
     }
+    this.selectionChange.emit(this.selection);
   }
 
   getSelectedLayers(): {layer: MapLayer, tiles: L.TileLayer}[] {
