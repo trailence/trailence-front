@@ -24,6 +24,12 @@
 
   .map-container {
     position: absolute;
+    ion-button {
+      position: absolute;
+      z-index: 501;
+      top: 5px;
+      left: calc(50% - 85px);
+    }
   }
 
   .elevation-container {

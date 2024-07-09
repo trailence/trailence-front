@@ -122,19 +122,23 @@ export class TraceRecorderService {
   }
 
   public pause(): void {
-    if (!this._recording$.value) return;
-    if (this._recording$.value.paused) return;
-    this._recording$.value.paused = true;
-    this.stopRecording(this._recording$.value);
-    this.save(this._recording$.value);
+    const recording = this._recording$.value;
+    if (!recording) return;
+    if (recording.paused) return;
+    recording.paused = true;
+    this.stopRecording(recording);
+    this.save(recording);
   }
 
   public resume(): void {
-    if (!this._recording$.value) return;
-    if (!this._recording$.value.paused) return;
-    this._recording$.value.paused = false;
+    const recording = this._recording$.value;
+    if (!recording) return;
+    if (!recording.paused) return;
+    recording.rawTrack.newSegment();
+    recording.track.newSegment();
+    recording.paused = false;
     this.startRecording();
-    this.save(this._recording$.value);
+    this.save(recording);
   }
 
   public stop(save: boolean): Observable<Trail | null> {
@@ -169,17 +173,24 @@ export class TraceRecorderService {
     ])
     .pipe(skip(1))
     .subscribe(() => this.save(recording));
+    this.latestDefinitivePoint = undefined;
+    this.latestTemporaryPoint = undefined;
     this._geolocationListener = (position: PointDto) => {
       // always keep latest position, but replace previous one if minimum distance or minimum time is not reached
       if (this.latestDefinitivePoint === undefined) {
         this.latestDefinitivePoint = this.addPoint(recording, position);
-      } else if (this.latestTemporaryPoint === undefined) {
-        this.latestTemporaryPoint = this.addPoint(recording, position);
       } else if (this.takePoint(this.latestDefinitivePoint[0], position)) {
         if (this.latestTemporaryPoint === undefined) {
-          this.latestDefinitivePoint = this.addPoint(recording, position);
+          // if previous definitive point has low accuracy, replace it
+          if (position.pa &&
+            position.t && (this.latestDefinitivePoint[0].time === undefined || position.t - this.latestDefinitivePoint[0].time <= 5000) &&
+            (this.latestDefinitivePoint[0].posAccuracy === undefined || this.latestDefinitivePoint[0].posAccuracy >= position.pa * 2)) {
+            this.updatePoints(position, this.latestDefinitivePoint);
+          } else {
+            this.latestDefinitivePoint = this.addPoint(recording, position);
+          }
         } else {
-          this.updateTemporaryPoints(position);
+          this.updatePoints(position, this.latestTemporaryPoint);
           this.latestDefinitivePoint = this.latestTemporaryPoint;
           this.latestTemporaryPoint = undefined;
         }
@@ -187,7 +198,7 @@ export class TraceRecorderService {
         if (this.latestTemporaryPoint === undefined) {
           this.latestTemporaryPoint = this.addPoint(recording, position);
         } else {
-          this.updateTemporaryPoints(position);
+          this.updatePoints(position, this.latestTemporaryPoint);
         }
       }
     }
@@ -220,10 +231,10 @@ export class TraceRecorderService {
     return point;
   }
 
-  private updateTemporaryPoints(position: PointDto): void {
+  private updatePoints(position: PointDto, points: Point[]): void {
     console.log('update position', position);
-    this.updatePoint(this.latestTemporaryPoint![0], position);
-    this.updatePoint(this.latestTemporaryPoint![1], position);
+    this.updatePoint(points[0], position);
+    this.updatePoint(points[1], position);
   }
 
   private updatePoint(point: Point, position: PointDto): void {

@@ -145,7 +145,7 @@ export class TrailComponent extends AbstractComponent {
           const pt = r?.track.arrivalPoint;
           if (this.map) {
             if (pt)
-              this.map.showLocation(pt.pos.lat, pt.pos.lng, waitingForGps ? '#555' : '#2020FF');
+              this.map.showLocation(pt.pos.lat, pt.pos.lng, waitingForGps || r.paused ? '#555' : '#2020FF');
             else
               this.map.hideLocation();
           }

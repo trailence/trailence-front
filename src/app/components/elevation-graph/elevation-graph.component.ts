@@ -297,6 +297,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
       onHover: (event:any, elements: C.ActiveElement[], chart: any) => {
         const references = elements.filter(element => !!(element?.element as any)?.$context).map(element => this.activeElementToPointReference(element));
+        if (references.length === 0 && event.native.detail === -1) return;
         this.pointHover.emit(references);
       },
     };
@@ -387,7 +388,8 @@ export class ElevationGraphComponent extends AbstractComponent {
         if (!isNaN(rectangle.left) && !isNaN(rectangle.top) && !isNaN(ptElement.x) && !isNaN(ptElement.y)) {
           const mouseMoveEvent = new MouseEvent('mousemove', {
             clientX: rectangle.left + ptElement.x,
-            clientY: rectangle.top + ptElement.y
+            clientY: rectangle.top + ptElement.y,
+            detail: -1,
           });
           this.canvas.chart.canvas.dispatchEvent(mouseMoveEvent);
         }
