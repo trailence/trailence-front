@@ -14,6 +14,8 @@ import { MapCursors } from './markers/map-cursors';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { MapCenterOnPositionTool } from './tools/center-on-location';
 import { MapLayerSelectionTool } from './tools/layer-selection-tool';
+import { ZoomLevelDisplayTool } from './tools/zoom-level-display';
+import { DownloadMapTool } from './tools/download-map-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -29,6 +31,7 @@ export class MapComponent extends AbstractComponent {
 
   @Input() mapId!: string;
   @Input() tracks$!: Observable<MapTrack[]>;
+  @Input() downloadMapTool = false;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference | undefined>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference | undefined>();
@@ -239,7 +242,6 @@ export class MapComponent extends AbstractComponent {
     }).addTo(map);
   }
 
-
   private readyForMap$(): Observable<boolean> {
     return new Observable<boolean>(subscriber => {
       setTimeout(() => {
@@ -266,7 +268,10 @@ export class MapComponent extends AbstractComponent {
       layers: [layer.create()],
     });
 
+    new ZoomLevelDisplayTool({position: 'topleft'}).addTo(map);
     new MapLayerSelectionTool(this.injector, this._mapState, {position: 'topright'}).addTo(map);
+    if (this.downloadMapTool)
+      new DownloadMapTool(this.injector, {position: 'topright'}).addTo(map);
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {

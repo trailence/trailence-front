@@ -254,8 +254,8 @@ export class TrailService {
     modal.present();
   }
 
-  public openDownloadMap(trails: Trail[]) {
-    combineLatest(trails.map(trail =>
+  public openDownloadMap(trails: Trail[], bounds?: L.LatLngBounds) {
+    const tracks$ = trails.length === 0 ? of([]) : combineLatest(trails.map(trail =>
       this.trackService.getFullTrack$(trail.currentTrackUuid, trail.owner).pipe(
         filter(track => !!track),
         timeout({
@@ -268,13 +268,15 @@ export class TrailService {
       debounceTime(100),
       first(),
       map(tracks => tracks.filter(t => !!t) as Track[])
-    ).subscribe(async (tracks) => {
+    );
+    tracks$.subscribe(async (tracks) => {
       const module = await import('../../components/download-map-popup/download-map-popup.component');
       const modal = await this.injector.get(ModalController).create({
         component: module.DownloadMapPopupComponent,
         backdropDismiss: false,
         componentProps: {
           tracks,
+          bounds,
         }
       });
       modal.present();

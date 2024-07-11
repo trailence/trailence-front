@@ -17,7 +17,8 @@ import { Track } from 'src/app/model/track';
 })
 export class DownloadMapPopupComponent {
 
-  @Input() tracks!: Track[];
+  @Input() tracks?: Track[];
+  @Input() bounds?: L.LatLngBounds;
 
   @ViewChild('downloadMapMaxZoom') downloadMapMaxZoom?: IonRange;
   @ViewChild('downloadMapPadding') downloadMapPadding?: IonRange;
@@ -40,11 +41,16 @@ export class DownloadMapPopupComponent {
     const padding = ((this.downloadMapPadding!.value as number) - 100) / 100;
     this.modalController.dismiss(null, 'cancel');
     const allBounds: L.LatLngBounds[] = [];
-    for (const track of this.tracks) {
-      let bounds = track.getBounds();
-      if (!bounds) continue;
-      if (padding > 0) bounds = bounds.pad(padding);
-      allBounds.push(bounds);
+    if (this.bounds) {
+      allBounds.push(this.bounds);
+    }
+    if (this.tracks) {
+      for (const track of this.tracks) {
+        let bounds = track.getBounds();
+        if (!bounds) continue;
+        if (padding > 0) bounds = bounds.pad(padding);
+        allBounds.push(bounds);
+      }
     }
     if (allBounds.length === 0) return;
     for (const layer of selection) {
