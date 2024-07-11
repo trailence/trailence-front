@@ -19,4 +19,10 @@ export class TypeUtils {
     return d;
   }
 
+  public static addOrUndefined(n1: number | undefined, n2: number | undefined): number | undefined {
+    if (n1 === undefined) return undefined;
+    if (n2 === undefined) return undefined;
+    return n1 + n2;
+  }
+
 }

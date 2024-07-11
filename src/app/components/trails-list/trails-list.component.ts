@@ -326,7 +326,11 @@ export class TrailsListComponent extends AbstractComponent {
         const importNext = (index: number) => {
           const file = files[index];
           const imported = GpxFormat.importGpx(file, this.auth.email!, this.collectionUuid!);
-          if (!imported) return;
+          if (!imported) {
+            // TODO show message
+            progress.done();
+            return;
+          }
           if (imported.tracks.length === 1) {
             const improved = this.trackEdition.applyDefaultImprovments(imported.tracks[0]);
             imported.trail.currentTrackUuid = improved.uuid;

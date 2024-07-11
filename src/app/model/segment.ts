@@ -78,6 +78,65 @@ export class Segment {
     return undefined;
   }
 
+  public get endDate(): number | undefined {
+    if (this._points.value.length === 0) return undefined;
+    const points = this.points;
+    const nb = this.points.length;
+    for (let i = nb - 1; i >= 0; --i)
+      if (points[i].time) return points[i].time;
+    return undefined;
+  }
+
+  public timeSinceSegmentStart(time: number | undefined): number | undefined {
+    if (!time) return undefined;
+    const start = this.startDate;
+    if (!start) return undefined;
+    if (time < start) return undefined;
+    return time - start;
+  }
+
+  public get duration(): number {
+    const start = this.startDate;
+    if (!start) return 0;
+    const end = this.endDate;
+    return end! - start;
+  }
+
+  public nearestPoint(position: L.LatLngLiteral, predicate: (point: Point) => boolean = () => true): Point | undefined {
+    let nearest: Point | undefined = undefined;
+    let nearestDistance: number | undefined;
+    for (const point of this.points) {
+      if (!predicate(point)) continue;
+      if (!nearest) {
+        nearest = point;
+        nearestDistance = point.distanceTo(position);
+      } else {
+        const distance = point.distanceTo(position);
+        if (distance < nearestDistance!) {
+          nearest = point;
+          nearestDistance = point.distanceTo(position);
+        }
+      }
+    }
+    return nearest;
+  }
+
+  public distanceFromSegmentStart(pointIndex: number): number {
+    if (pointIndex === 0) return 0;
+    let p: SegmentPoint | undefined = this.relativePoints[pointIndex];
+    let total = 0;
+    do {
+      total += p.distanceFromPreviousPoint;
+      p = p.previousPoint;
+    } while (p);
+    return total;
+  }
+
+  public computeTotalDistance(): number {
+    if (this.relativePoints.length < 2) return 0;
+    return this.distanceFromSegmentStart(this.relativePoints.length - 1);
+  }
+
 }
 
 export class SegmentPoint {
@@ -125,6 +184,9 @@ export class SegmentPoint {
   public get durationFromPreviousPoint(): number { return this.durationFromPrevious; }
   public get elevationFromPreviousPoint(): number | undefined { return this.elevationFromPrevious; }
 
+  public get previousPoint(): SegmentPoint | undefined { return this._previous; }
+  public get nextPoint(): SegmentPoint | undefined { return this._next; }
+
   close(): void {
     this.subscriptions.unsusbcribe();
   }
@@ -153,7 +215,9 @@ export class SegmentPoint {
   }
 
   private updateElevation(init: boolean = false): void {
-    const previousEle = this._previous?._point.ele;
+    let p = this._previous;
+    while (p && p._point.ele === undefined) p = p._previous;
+    const previousEle = p?._point.ele;
     const pointEle = this._point.ele;
     const newElevationFromPrevious = previousEle !== undefined && pointEle !== undefined ? (pointEle - previousEle) : undefined;
     if (newElevationFromPrevious !== undefined) {
@@ -169,7 +233,9 @@ export class SegmentPoint {
   }
 
   private updateDuration(init: boolean = false): void {
-    const newDurationFromPrevious = this._previous?._point.time !== undefined && this._point.time !== undefined ? (this._point.time - this._previous._point.time) : 0;
+    let p = this._previous;
+    while (p && !p._point.time) p = p._previous;
+    const newDurationFromPrevious = p && this._point.time !== undefined ? (this._point.time - p._point.time!) : 0;
     this.meta?.addDuration(newDurationFromPrevious - this.durationFromPrevious);
     this.durationFromPrevious = newDurationFromPrevious;
     if (!init && this.time !== this._point.time) {

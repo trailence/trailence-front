@@ -50,6 +50,21 @@ export class GpxFormat {
       }
       tracks.push(track);
     }
+    for (const rte of XmlUtils.getChildren(doc.documentElement, 'rte')) {
+      if (trailDto.name!.length === 0)
+        trailDto.name = XmlUtils.getChildText(rte, 'name') ?? '';
+      if (trailDto.description!.length === 0)
+        trailDto.description = XmlUtils.getChildText(rte, 'desc') ?? '';
+      const track = new Track({owner: user});
+      const segment = track.newSegment();
+      for (const rtept of XmlUtils.getChildren(rte, 'rtept')) {
+        const pt = this.readPoint(rtept);
+        if (pt) {
+            segment.append(pt);
+        }
+      }
+      tracks.push(track);
+    }
 
     if (tracks.length > 0 && tracks[tracks.length - 1].wayPoints.length === 0) {
       const track = tracks[tracks.length - 1];

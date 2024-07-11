@@ -4,7 +4,7 @@ import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
-import { Track } from 'src/app/model/track';
+import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
@@ -23,6 +23,8 @@ import { TrailPathSelection } from './path-selection';
 import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
 import { Router } from '@angular/router';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
+import { MapAnchor } from '../map/markers/map-anchor';
+import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
 
 @Component({
   selector: 'app-trail',
@@ -303,6 +305,18 @@ export class TrailComponent extends AbstractComponent {
   saveTrail(): void {
     if (this.trail1)
       this.trailService.update(this.trail1);
+  }
+
+  getDepartureAndArrival(waypoints: ComputedWayPoint[]): ComputedWayPoint | undefined {
+    return waypoints.find(wp => wp.isDeparture && wp.isArrival);
+  }
+
+  waypointImg(wp: ComputedWayPoint, isArrival: boolean, index: number): string {
+    if (isArrival)
+      return MapAnchor.createDataIcon(anchorArrivalBorderColor, this.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
+    if (wp.isDeparture)
+      return MapAnchor.createDataIcon(anchorDepartureBorderColor, this.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
+    return MapAnchor.createDataIcon(anchorBorderColor, '' + index, anchorTextColor, anchorFillColor);
   }
 
 }

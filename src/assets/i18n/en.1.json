@@ -138,7 +138,10 @@
   "way_points": {
     "DA": "D A",
     "D": "D",
-    "A": "A"
+    "A": "A",
+    "distance": "Distance",
+    "altitude": "Altitude",
+    "time": "Time"
   },
   "elevationGraph": {
     "distance": "Distance",

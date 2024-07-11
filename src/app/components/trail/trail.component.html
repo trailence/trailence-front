@@ -70,10 +70,51 @@
           [value]="trail1.description"
           (ionInput)="descriptionChanged($event.detail.value)"
         ></ion-textarea>
-        <div class="section-title">
-          <ion-icon name="waypoint"></ion-icon>
-          <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
-        </div>
+        <ng-container *ngIf="(tracks$ | async) as tracks">
+          <ng-container *ngIf="tracks.length > 0">
+            <ng-container *ngIf="(tracks[0].computedWayPoints$ | async) as waypoints">
+              <div class="section-title">
+                <ion-icon name="waypoint"></ion-icon>
+                <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+              </div>
+              <ng-container *ngFor="let wp of waypoints; let index = index">
+                <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture, index}"></ng-container>
+              </ng-container>
+              <ng-container *ngIf="getDepartureAndArrival(waypoints) as arrival">
+                <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: arrival, isArrival: true, index: -1}"></ng-container>
+              </ng-container>
+              <ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival" let-index="index">
+                <div class="waypoint">
+                  <div class="waypoint-anchor">
+                    <img [src]="waypointImg(wp, arrival, index)" width="40" height="40">
+                  </div>
+                  <div class="waypoint-content">
+                    <div class="waypoint-info-section">
+                      <div class="waypoint-info">
+                        <div class="waypoint-info-title">{{i18n.texts.way_points.altitude}}</div>
+                        <div class="waypoint-info-value">{{wp.altitude !== undefined ? i18n.elevationToString(wp.altitude) : '?'}}</div>
+                      </div>
+                      <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
+                        <div class="waypoint-info-title">{{i18n.texts.way_points.distance}}</div>
+                        <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.distanceToString(tracks[0].metadata.distance) : (wp.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.distanceFromDeparture) : '?')}}</div>
+                      </div>
+                      <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
+                        <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
+                        <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.durationToString(tracks[0].metadata.duration) : (wp.timeSinceDeparture !== undefined ? i18n.durationToString(wp.timeSinceDeparture) : '?')}}</div>
+                      </div>
+                    </div>
+                    <div class="waypoint-name">
+                      {{wp.wayPoint.name}}
+                    </div>
+                    <div class="waypoint-description">
+                      {{wp.wayPoint.description}}
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </ng-container>
+          </ng-container>
+        </ng-container>
       </ng-container>
     </div>
     <div class="elevation-container">

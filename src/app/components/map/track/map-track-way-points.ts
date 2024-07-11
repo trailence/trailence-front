@@ -2,22 +2,24 @@ import { Track } from 'src/app/model/track';
 import { MapAnchor } from '../markers/map-anchor';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { Subscription } from 'rxjs';
+import * as L from 'leaflet';
 
-const anchorBorderColor = '#d00000';
-const anchorFillColor = '#a00000';
-const anchorTextColor = '#ffffff';
+export const anchorBorderColor = '#d00000';
+export const anchorFillColor = '#a00000';
+export const anchorTextColor = '#ffffff';
 const anchorBorderColorHighlighted = '#00d000';
 
 const anchorDABorderColor = 'rgba(64, 128, 0, 0.75)';
 const anchorDATextColor = anchorTextColor;
 
-const anchorDepartureBorderColor = 'rgba(0, 128, 0, 0.75)';
-const anchorDepartureFillColor = 'rgba(0, 128, 0, 0.75)';
-const anchorDepartureTextColor = anchorTextColor;
+export const anchorDepartureBorderColor = 'rgba(0, 128, 0, 0.75)';
+export const anchorDepartureFillColor = 'rgba(0, 128, 0, 0.75)';
+export const anchorDepartureTextColor = anchorTextColor;
 
-const anchorArrivalBorderColor = 'rgba(196, 0, 0, 0.75)';
-const anchorArrivalFillColor = 'rgba(196, 0, 0, 0.75)';
-const anchorArrivalTextColor = anchorTextColor;
+export const anchorArrivalBorderColor = 'rgba(196, 0, 0, 0.75)';
+export const anchorArrivalFillColor = 'rgba(196, 0, 0, 0.75)';
+export const anchorArrivalTextColor = anchorTextColor;
 
 export class MapTrackWayPoints {
 
@@ -29,6 +31,7 @@ export class MapTrackWayPoints {
   private _showDA = false;
   private _showWP = false;
   private _map?: L.Map;
+  private subscription?: Subscription;
 
   constructor(
     private _track: Track | SimplifiedTrackSnapshot,
@@ -48,6 +51,8 @@ export class MapTrackWayPoints {
     if (this._showDA) this.removeDAFromMap();
     if (this._showWP) this.removeWPFromMap();
     this._map = undefined;
+    this.subscription?.unsubscribe();
+    this.subscription = undefined;
   }
 
   public showDepartureAndArrival(show: boolean): void {
@@ -68,50 +73,60 @@ export class MapTrackWayPoints {
 
   private load(): void {
     if (this._anchors !== undefined) return;
-    let departurePoint: L.LatLngLiteral | undefined;
-    let arrivalPoint: L.LatLngLiteral | undefined;
-    if (this._track instanceof Track) {
-      departurePoint = this._track.departurePoint?.pos;
-      arrivalPoint = this._isRecording ? undefined : this._track.arrivalPoint?.pos;
-    } else {
-      departurePoint = this._track.points[0];
-      arrivalPoint = this._track.points[this._track.points.length - 1];
-    }
-    if (departurePoint && arrivalPoint && departurePoint.lat === arrivalPoint.lat && departurePoint.lng === arrivalPoint.lng) {
-      // D/A
-      this._departureAndArrival = new MapAnchor(departurePoint, anchorDABorderColor, this.i18n.texts.way_points.DA, undefined, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor);
-    } else {
-      if (departurePoint) {
-        // D
-        this._departure = new MapAnchor(departurePoint, anchorDepartureBorderColor, this.i18n.texts.way_points.D, undefined, anchorDepartureTextColor, anchorDepartureFillColor);
-      }
-      if (arrivalPoint) {
-        // A
-        this._arrival = new MapAnchor(arrivalPoint, anchorArrivalBorderColor, this.i18n.texts.way_points.A, undefined, anchorArrivalTextColor, anchorArrivalFillColor);
-      }
-    }
     this._anchors = [];
     if (this._track instanceof Track) {
-      let num = 1;
-      for (const wp of this._track.wayPoints) {
-        if ((departurePoint && wp.point.distanceTo(departurePoint) < 10) ||
-            (arrivalPoint && wp.point.distanceTo(arrivalPoint) < 10)) continue;
-        const anchor = new MapAnchor(wp.point.pos, anchorBorderColor, '' + num, undefined, anchorTextColor, anchorFillColor);
-        this._anchors.push(anchor);
-        num++;
-      }
-      if (!departurePoint) {
-        const subscr = this._track.changes$.subscribe(() => {
-          departurePoint = (this._track as Track).departurePoint?.pos;
-          if (departurePoint) {
-            subscr.unsubscribe();
-            this._departure = new MapAnchor(departurePoint, anchorDepartureBorderColor, this.i18n.texts.way_points.D, undefined, anchorDepartureTextColor, anchorDepartureFillColor);
-            if (this._showDA) this.addDAToMap();
+      this.subscription = this._track.computedWayPoints$.subscribe(
+        list => {
+          if (this._map && this._showDA) this.removeDAFromMap();
+          if (this._map && this._showWP) this.removeWPFromMap();
+          this._anchors = [];
+          for (const wp of list) {
+            if (wp.isDeparture) {
+              if (wp.isArrival) {
+                this._departureAndArrival = this.createDepartureAndArrival(wp.wayPoint.point.pos);
+              } else {
+                this._departure = this.createDeparture(wp.wayPoint.point.pos);
+              }
+            } else if (wp.isArrival) {
+              this._arrival = this.createArrival(wp.wayPoint.point.pos);
+            } else {
+              this._anchors.push(this.createWayPoint(wp.wayPoint.point.pos, list.indexOf(wp)));
+            }
           }
-        });
+          if (this._map && this._showDA) this.addDAToMap();
+          if (this._map && this._showWP) this.addWPToMap();
+        }
+      );
+    } else {
+      const departurePoint = this._track.points[0];
+      const arrivalPoint = this._track.points[this._track.points.length - 1];
+      if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= 25) {
+        this._departureAndArrival = this.createDepartureAndArrival(departurePoint);
+      } else {
+        if (departurePoint) {
+          this._departure = this.createDeparture(departurePoint);
+        }
+        if (arrivalPoint) {
+          this._arrival = this.createArrival(arrivalPoint);
+        }
       }
-      // TODO listen to changes
     }
+  }
+
+  private createDepartureAndArrival(point: L.LatLngLiteral): MapAnchor {
+    return new MapAnchor(point, anchorDABorderColor, this.i18n.texts.way_points.DA, undefined, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor);
+  }
+
+  private createDeparture(point: L.LatLngLiteral): MapAnchor {
+    return new MapAnchor(point, anchorDepartureBorderColor, this.i18n.texts.way_points.D, undefined, anchorDepartureTextColor, anchorDepartureFillColor);
+  }
+
+  private createArrival(point: L.LatLngLiteral): MapAnchor {
+    return new MapAnchor(point, anchorArrivalBorderColor, this.i18n.texts.way_points.A, undefined, anchorArrivalTextColor, anchorArrivalFillColor);
+  }
+
+  private createWayPoint(point: L.LatLngLiteral, index: number): MapAnchor {
+    return new MapAnchor(point, anchorBorderColor, '' + index, undefined, anchorTextColor, anchorFillColor);
   }
 
   private addDAToMap(): void {

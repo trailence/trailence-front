@@ -23,6 +23,12 @@ export class Arrays {
     return -1;
   }
 
+  public static findLastIndex<T>(array: T[], predicate: (element: T) => boolean): number {
+    for (let i = array.length - 1; i >= 0; --i)
+      if (predicate(array[i])) return i;
+    return -1;
+  }
+
   // available in ES2019 as Array.flatMap
   public static flatMap<T, U>(array: T[], callback: (value: T) => U[]): U[] {
     const result: U[] = [];
