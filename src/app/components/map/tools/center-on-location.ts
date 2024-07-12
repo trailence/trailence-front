@@ -1,15 +1,48 @@
 import * as L from 'leaflet';
 import { environment } from 'src/environments/environment';
 import { MapToolUtils } from './map-tool-utils';
+import { Observable, Subscription } from 'rxjs';
+import { Injector } from '@angular/core';
+import { AssetsService } from 'src/app/services/assets/assets.service';
 
-export const MapCenterOnPositionTool = L.Control.extend({
+export class MapCenterOnPositionTool extends L.Control {
 
-  onAdd: (map: L.Map) => {
-    const img = L.DomUtil.create('img');
-    img.src = environment.assetsUrl + '/center-on-location.1.svg';
-    img.style.width = '26px';
-    img.style.margin = '3px 3px -2px 3px';
-    return MapToolUtils.createButtonWithEvent(map, img, 'centerOnLocation');
-  },
-  onRemove: (map: L.Map) => {}
-});
+  constructor(
+    private injector: Injector,
+    private following$: Observable<boolean>,
+    options?: L.ControlOptions,
+  ) {
+    super(options);
+  }
+
+  private subscription?: Subscription;
+
+  override onAdd(map: L.Map) {
+    const button = MapToolUtils.createButton();
+    button.style.color = 'black';
+    const assets = this.injector.get(AssetsService);
+    assets.loadText(assets.icons['center-on-location'], true).subscribe(
+      svg => {
+        const icon = svg.cloneNode(true) as any;
+        icon.style.width = '26px';
+        icon.style.height = '26px';
+        icon.style.margin = '3px 3px -2px 3px';
+        button.appendChild(icon);
+      }
+    );
+    this.subscription = this.following$.subscribe(
+      following => button.style.color = following ? 'red' : 'black'
+    );
+    button.onclick = async (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      map.fireEvent('centerOnLocation');
+    };
+    return button;
+  }
+
+  override onRemove(map: L.Map): void {
+    this.subscription?.unsubscribe();
+    this.subscription = undefined;
+  }
+}

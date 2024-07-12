@@ -184,15 +184,27 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  private _followingLocation = false;
+  private _followingLocation$ = new BehaviorSubject<boolean>(false);
   private _locationMarker?: L.CircleMarker;
   private _toolCenterOnPosition?: L.Control;
   public showLocation(lat: number, lng: number, color: string): void {
     if (this._locationMarker) {
       this._locationMarker.setLatLng({lat, lng});
       this._locationMarker.setStyle({color, fillColor: color});
-      if (this._map$.value && this._followingLocation && !this._map$.value.getBounds().pad(-0.2).contains(this._locationMarker.getLatLng())) {
-        this.centerOnLocation();
+      const map = this._map$.value;
+      if (map && this._followingLocation$.value) {
+        let bounds = map.getBounds();
+        const sw = map.latLngToContainerPoint(bounds.getSouthWest());
+        const ne = map.latLngToContainerPoint(bounds.getNorthEast());
+        ne.y += 40;
+        sw.y -= 40;
+        ne.x -= 65;
+        sw.x += 65;
+        bounds = L.latLngBounds(map.containerPointToLatLng(sw), map.containerPointToLatLng(ne));
+        //L.rectangle(bounds).addTo(map);
+        if (!bounds.contains(this._locationMarker.getLatLng())) {
+          this.centerOnLocation();
+        }
       }
     } else {
       this._locationMarker = new L.CircleMarker({lat, lng}, {
@@ -203,11 +215,11 @@ export class MapComponent extends AbstractComponent {
         fillOpacity: 0.33,
         stroke: true,
       });
-      this._followingLocation = true;
+      this._followingLocation$.next(true);
       if (this._map$.value) {
         this._locationMarker.addTo(this._map$.value);
         this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
-        this._followingLocation = true;
+        this._followingLocation$.next(true);
         if (!this._toolCenterOnPosition) {
           this.addToolCenterOnPosition(this._map$.value);
         }
@@ -219,7 +231,15 @@ export class MapComponent extends AbstractComponent {
     if (this._map$.value && this._locationMarker) {
       this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
     }
-    this._followingLocation = true;
+    this._followingLocation$.next(true);
+  }
+
+  private toggleCenterOnLocation(): void {
+    if (this._followingLocation$.value) {
+      this._followingLocation$.next(false);
+    } else {
+      this.centerOnLocation();
+    }
   }
 
   public hideLocation(): void {
@@ -229,7 +249,7 @@ export class MapComponent extends AbstractComponent {
       }
       this._locationMarker = undefined;
     }
-    this._followingLocation = false;
+    this._followingLocation$.next(false);
     if (this._toolCenterOnPosition) {
       this._toolCenterOnPosition.remove();
       this._toolCenterOnPosition = undefined;
@@ -237,9 +257,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   private addToolCenterOnPosition(map: L.Map): void {
-    this._toolCenterOnPosition = new MapCenterOnPositionTool({
-      position: 'topleft'
-    }).addTo(map);
+    this._toolCenterOnPosition = new MapCenterOnPositionTool(this.injector, this._followingLocation$, { position: 'topleft' }).addTo(map);
   }
 
   private readyForMap$(): Observable<boolean> {
@@ -278,7 +296,7 @@ export class MapComponent extends AbstractComponent {
       this.mapChanged(map);
       if ((e as any)['originalEvent']) {
         // action from user
-        this._followingLocation = false;
+        this._followingLocation$.next(false);
       }
     });
     map.on('zoom', () => this.mapChanged(map));
@@ -303,7 +321,7 @@ export class MapComponent extends AbstractComponent {
       map.setView(this._locationMarker.getLatLng(), Math.max(map.getZoom(), 16));
       this.addToolCenterOnPosition(map);
     }
-    map.on('centerOnLocation', () => this.centerOnLocation());
+    map.on('centerOnLocation', () => this.toggleCenterOnLocation());
 
     this._map$.next(map);
 
