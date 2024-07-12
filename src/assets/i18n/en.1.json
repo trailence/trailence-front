@@ -1,14 +1,4 @@
 {
-  "header": {
-    "preferences": "Preferences",
-    "theme": "Theme",
-    "themes": {
-      "light": "Light",
-      "dark": "Dark",
-      "system": "System preference"
-    },
-    "language": "Language"
-  },
   "tools": {
     "filters": "Filters",
     "import": "Import",
@@ -103,6 +93,40 @@
     "collection_form": {
       "title": "Collection",
       "collection_name": "Name"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "display_section_title": "Display",
+      "language": "Language",
+      "theme": "Theme",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System preference"
+      },
+      "distance_unit": "Distance Unit",
+      "elevation_unit": "Altitude Unit",
+      "units": {
+        "meters": "Meters",
+        "miles": "Miles",
+        "foot": "Foot"
+      },
+      "date_format": "Date format",
+      "time_format": "Time format",
+      "trace_recorder": "Trace recording",
+      "traceMinMeters": "Minimum distance between each recorded point",
+      "traceMinMeters_explaination": "A value that is too low may result in a low-quality track due to the imprecision of GPS.<br/>A value that is too high may also produce a low-quality track with long straight lines.<br/>It is also important to consider that the shorter the distance, the higher the number of recorded points, which can impact battery consumption during recording.<br/>For a good compromise, we recommend a value of 15 meters (approximately 0.01 miles).",
+      "traceMinMillis": "Minimum time between each recorded point",
+      "traceMinMillis_explaination": "If you want to limit the number of recorded points to reduce battery consumption, you can use a longer minimum time between each recorded point. The minimum distance between each point is also taken into account, so BOTH the minimum distance and minimum time must be reached before recording a new point.<br/>We recommend setting the minimum time to 0 and only applying a distance limitation.",
+      "offline_map": "Offline maps",
+      "offlineMapMaxKeepDays": "Number of days a downloaded map is valid",
+      "offlineMapMaxKeepDays_explaination": "When you download a map to make it available offline, this setting indicates how long it will be retained. This also makes it possible to not download a map item if it has already been downloaded recently, saving time when downloading.",
+      "offline_maps": {
+        "title": "Downloaded maps",
+        "items": "Items",
+        "size": "Size",
+        "remove_all": "Remove all"
+      }
     }
   },
   "menu": {
@@ -167,5 +191,11 @@
     "notif_title": "Trailence",
     "notif_message": "Track in progress"
   },
-  "waiting_for_gps": "Waiting for GPS signal..."
+  "waiting_for_gps": "Waiting for GPS signal...",
+  "bytes": {
+    "bytes": "Bytes",
+    "kb": "KB",
+    "mb": "MB",
+    "gb": "GB"
+  }
 }

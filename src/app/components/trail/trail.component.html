@@ -145,8 +145,8 @@
     <div class="metadata-item-container">
       <div class="metadata-item">
         <ion-icon name="center-on-location"></ion-icon>
-        <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{currentPoint.pos.lat}}</div>
-        <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{currentPoint.pos.lng}}</div>
+        <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{currentPoint.pos.lat.toFixed(6)}}</div>
+        <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{currentPoint.pos.lng.toFixed(6)}}</div>
       </div>
     </div>
     <div class="metadata-item-container">

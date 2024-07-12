@@ -10,6 +10,7 @@ import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { HttpService } from '../http/http.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
+import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 
 interface TileMetadata {
   key: string;
@@ -29,6 +30,7 @@ export class OfflineMapService {
 
   private _db?: Dexie;
   private _openEmail?: string;
+  private _cleanExpiredTimeout?: any;
 
   constructor(
     auth: AuthService,
@@ -37,6 +39,7 @@ export class OfflineMapService {
     private i18n: I18nService,
     private http: HttpService,
     private preferencesService: PreferencesService,
+    private traceRecorder: TraceRecorderService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -51,6 +54,8 @@ export class OfflineMapService {
       this._db.close();
       this._openEmail = undefined;
       this._db = undefined;
+      if (this._cleanExpiredTimeout) clearTimeout(this._cleanExpiredTimeout);
+      this._cleanExpiredTimeout = undefined;
     }
   }
 
@@ -66,6 +71,7 @@ export class OfflineMapService {
     }
     db.version(1).stores(storesV1);
     this._db = db;
+    this.cleanExpiredTimeout();
   }
 
   public save(bounds: L.LatLngBounds[], tiles: L.TileLayer, crs: L.CRS, layer: MapLayer): void {
@@ -177,6 +183,80 @@ export class OfflineMapService {
         return new BinaryContent(blob);
       })
     );
+  }
+
+  public computeContent(): Observable<{items: number, size: number}> {
+    return combineLatest(this.layers.layers.map(layer => this.computeLayerContent(layer.name))).pipe(
+      map(list => {
+        const result = {items: 0, size: 0};
+        for (const layer of list) {
+          result.items += layer.items;
+          result.size += layer.size;
+        }
+        return result;
+      })
+    );
+  }
+
+  private computeLayerContent(name: string): Observable<{items: number, size: number}> {
+    const result = {items: 0, size: 0};
+    if (!this._db) return of(result);
+    return from(this._db.table<TileMetadata>(name + '_meta').each((item => {
+      result.items++;
+      result.size += item.size;
+    }))).pipe(
+      map(() => result)
+    );
+  }
+
+  private cleanExpiredTimeout() {
+    const db = this._db!;
+    this._cleanExpiredTimeout = setTimeout(() => {
+      if (db !== this._db) return;
+      this._cleanExpiredTimeout = undefined;
+      if (this.traceRecorder.recording) {
+        this.cleanExpiredTimeout();
+        return;
+      }
+      this.cleanExpired(db);
+    }, 2 * 60 * 1000);
+  }
+
+  private cleanExpired(db: Dexie): void {
+    for (let i = 0; i < this.layers.layers.length; ++i) {
+      const name = this.layers.layers[i].name;
+      setTimeout(() => this.cleanExpiredLayer(db, name), i * 60000);
+    }
+  }
+
+  private cleanExpiredLayer(db: Dexie, layerName: string): void {
+    if (db !== this._db) return;
+    let count = 0;
+    console.log('Cleaning offline maps: ' + layerName);
+    db.table<TileMetadata, string>(layerName + '_meta')
+      .where('date')
+      .below(Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000)
+      .eachPrimaryKey(key => {
+        this.cleanExpiredTile(db, layerName, key);
+        count++;
+      }).then(() => {
+        console.log('Offline maps removed: ', layerName, count);
+      });
+  }
+
+  private cleanExpiredTile(db: Dexie, layerName: string, key: string): void {
+    if (db !== this._db) return;
+    db.table<TileMetadata, string>(layerName + '_meta').delete(key);
+    db.table<TileBlob, string>(layerName + '_tiles').delete(key);
+  }
+
+  public removeAll(): Observable<any> {
+    const promises = [];
+    for (const layer of this.layers.layers) {
+      promises.push(from(this._db!.table(layer.name + '_meta').clear()));
+      promises.push(from(this._db!.table(layer.name + '_tiles').clear()));
+    }
+    return zip(promises);
   }
 
 }

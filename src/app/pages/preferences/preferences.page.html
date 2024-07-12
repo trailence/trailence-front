@@ -1,0 +1,228 @@
+<app-header
+  [title]="i18n.texts.pages.preferences.title"
+></app-header>
+<div class="content-container"><div class="content">
+  <div class="page-section-title">{{i18n.texts.pages.preferences.display_section_title}}</div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="i18n"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.language}}</div>
+      <div class="value">
+        <ion-segment [value]="preferences.preferences.lang" mode="ios" (ionChange)="preferences.setLanguage($event.detail.value?.toString() ?? 'en')" [scrollable]="true">
+          <ion-segment-button value="en">
+            <ion-label>English</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="fr">
+            <ion-label>Français</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="theme"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.theme}}</div>
+      <div class="value">
+        <ion-segment [value]="preferences.preferences.theme" mode="ios" (ionChange)="setTheme($event.detail.value?.toString())" [scrollable]="true">
+          <ion-segment-button value="LIGHT" layout="icon-top">
+            <ion-icon name="theme-light"></ion-icon>
+            <ion-label>{{i18n.texts.pages.preferences.themes.light}}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="DARK">
+            <ion-icon name="theme-dark"></ion-icon>
+            <ion-label>{{i18n.texts.pages.preferences.themes.dark}}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="SYSTEM">
+            <ion-icon name="theme-system"></ion-icon>
+            <ion-label>{{i18n.texts.pages.preferences.themes.system}}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="distance"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.distance_unit}}</div>
+      <div class="value">
+        <ion-segment [value]="preferences.preferences.distanceUnit" mode="ios" (ionChange)="setDistanceUnit($event.detail.value?.toString())" [scrollable]="true">
+          <ion-segment-button value="METERS">
+            <ion-label>{{i18n.texts.pages.preferences.units.meters}}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="MILES">
+            <ion-label>{{i18n.texts.pages.preferences.units.miles}}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="altitude"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.elevation_unit}}</div>
+      <div class="value">
+        <ion-segment [value]="preferences.preferences.elevationUnit" mode="ios" (ionChange)="setElevationUnit($event.detail.value?.toString())" [scrollable]="true">
+          <ion-segment-button value="METERS">
+            <ion-label>{{i18n.texts.pages.preferences.units.meters}}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="FOOT">
+            <ion-label>{{i18n.texts.pages.preferences.units.foot}}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="date"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.date_format}}</div>
+      <div class="value">
+        <ion-segment [value]="preferences.preferences.dateFormat" mode="ios" (ionChange)="setDateFormat($event.detail.value?.toString())" [scrollable]="true">
+          <ion-segment-button value="dd/mm/yyyy">
+            <ion-label>{{i18n.getDateForFormat(timestamp, 'dd/mm/yyyy')}}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="m/d/yyyy">
+            <ion-label>{{i18n.getDateForFormat(timestamp, 'm/d/yyyy')}}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="duration"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.time_format}}</div>
+      <div class="value">
+        <ion-segment [value]="preferences.preferences.hourFormat" mode="ios" (ionChange)="setHourFormat($event.detail.value?.toString())" [scrollable]="true">
+          <ion-segment-button value="H24">
+            <ion-label>{{i18n.getTimeForFormat(timestamp, 'H24')}}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="H12">
+            <ion-label>{{i18n.getTimeForFormat(timestamp, 'H12')}}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="page-section-title">
+    {{i18n.texts.pages.preferences.trace_recorder}}
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="points-distance"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.traceMinMeters}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.traceMinMeters_explaination"></div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="1" [max]="100" [step]="1"
+          [pin]="true" [pinFormatter]="distanceFormatterMeters"
+          [ngModel]="preferences.preferences.traceMinMeters" (ngModelChange)="setTraceMinimumDistance($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">{{distanceFormatterMeters(1)}}</ion-label>
+          <ion-label slot="end">{{distanceFormatterMeters(100)}}</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="chrono"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.traceMinMillis}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.traceMinMillis_explaination"></div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="0" [max]="60000" [step]="500"
+          [pin]="true" [pinFormatter]="millisecondsFormatter"
+          [ngModel]="preferences.preferences.traceMinMillis" (ngModelChange)="setTraceMinimumInterval($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">0s</ion-label>
+          <ion-label slot="end">60s</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-section-title">
+    {{i18n.texts.pages.preferences.offline_map}}
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="hourglass"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.offlineMapMaxKeepDays}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.offlineMapMaxKeepDays_explaination"></div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="15" [max]="300" [step]="15"
+          [pin]="true"
+          [ngModel]="preferences.preferences.offlineMapMaxKeepDays" (ngModelChange)="preferences.setOfflineMapMaxKeepDays($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">15</ion-label>
+          <ion-label slot="end">300</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="database"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.offline_maps.title}}</div>
+      <div class="value">
+        <table>
+          <tr>
+            <th>{{i18n.texts.pages.preferences.offline_maps.items}}</th>
+            <td>
+              {{offlineMapCounters?.items}}
+            </td>
+          </tr>
+          <tr>
+            <th>{{i18n.texts.pages.preferences.offline_maps.size}}</th>
+            <td>
+              {{i18n.sizeToString(offlineMapCounters?.size)}}
+            </td>
+          </tr>
+        </table>
+        <ion-button (click)="cleanOfflineMaps()">
+          <ion-icon name="cleaning" slot="start"></ion-icon>
+          <ion-label>{{i18n.texts.pages.preferences.offline_maps.remove_all}}</ion-label>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+</div></div>

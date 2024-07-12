@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="collection" style="margin-right: 10px"></ion-icon>
       <ion-label>{{i18n.texts.pages.collection_form.title}}</ion-label>
@@ -17,7 +17,7 @@
   ></ion-input>
 </ion-content>
 <ion-footer>
-  <ion-toolbar>
+  <ion-toolbar color="footer">
     <ion-buttons slot="end">
       <ion-button color="success" (click)="apply()" [disabled]="!canApply()">{{!!uuid ? i18n.texts.buttons.save : i18n.texts.buttons.create}}</ion-button>
       <ion-button color="medium" (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>

@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="download" style="margin-right: 10px"></ion-icon>
       <ion-label>{{i18n.texts.pages.trail.actions.download_map}}</ion-label>
@@ -44,7 +44,7 @@
   </div>
 </ion-content>
 <ion-footer>
-  <ion-toolbar>
+  <ion-toolbar color="footer">
     <ion-buttons slot="end">
       <ion-button color="success" [disabled]="downloadLayersSelection.selection.length === 0" (click)="launchDownloadMap(downloadLayersSelection.getSelectedLayers())">{{i18n.texts.buttons.download}}</ion-button>
       <ion-button (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>

@@ -24,15 +24,15 @@
         </ion-item>
         <ion-item button id="item-language" [detail]="true">
           <ion-icon slot="start" name="i18n"></ion-icon>
-          <ion-label>{{i18n.texts.header.language}}</ion-label>
+          <ion-label>{{i18n.texts.pages.preferences.language}}</ion-label>
         </ion-item>
         <ion-item button id="item-theme" [detail]="true">
           <ion-icon slot="start" name="theme"></ion-icon>
-          <ion-label>{{i18n.texts.header.theme}}</ion-label>
+          <ion-label>{{i18n.texts.pages.preferences.theme}}</ion-label>
         </ion-item>
-        <ion-item button>
+        <ion-item button (click)="router.navigateByUrl('/preferences'); accountPopover.dismiss();">
           <ion-icon slot="start" name="settings"></ion-icon>
-          <ion-label>{{i18n.texts.header.preferences}}</ion-label>
+          <ion-label>{{i18n.texts.pages.preferences.title}}</ion-label>
         </ion-item>
 
         <ion-popover trigger="item-language" [dismissOnSelect]="true" side="start">
@@ -56,15 +56,15 @@
               <ion-list>
                 <ion-item button (click)="preferences.setTheme('LIGHT')">
                   <ion-icon slot="start" name="theme-light"></ion-icon>
-                  <ion-label>{{i18n.texts.header.themes.light}}</ion-label>
+                  <ion-label>{{i18n.texts.pages.preferences.themes.light}}</ion-label>
                 </ion-item>
                 <ion-item button (click)="preferences.setTheme('DARK')">
                   <ion-icon slot="start" name="theme-dark"></ion-icon>
-                  <ion-label>{{i18n.texts.header.themes.dark}}</ion-label>
+                  <ion-label>{{i18n.texts.pages.preferences.themes.dark}}</ion-label>
                 </ion-item>
                 <ion-item button (click)="preferences.setTheme('SYSTEM')">
                   <ion-icon slot="start" name="theme-system"></ion-icon>
-                  <ion-label>{{i18n.texts.header.themes.system}}</ion-label>
+                  <ion-label>{{i18n.texts.pages.preferences.themes.system}}</ion-label>
                 </ion-item>
               </ion-list>
             </ion-content>

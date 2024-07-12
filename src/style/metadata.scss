@@ -25,6 +25,12 @@
       min-width: 50%;
       max-width: 50%;
       display: inline-block;
+
+      .metadata-item {
+        .metadata-primary + .metadata-secondary, .metadata-primary + .metadata-primary, .metadata-secondary + .metadata-secondary {
+          margin-left: 3px;
+        }
+      }
     }
   }
 

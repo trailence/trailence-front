@@ -62,6 +62,13 @@ body.dark-theme {
   --ion-color-dark-shade: #d7d8da;
   --ion-color-dark-tint: #f5f6f9;
 
+  --ion-color-footer: #303030;
+	--ion-color-footer-rgb: 48,48,48;
+	--ion-color-footer-contrast: #ffffff;
+	--ion-color-footer-contrast-rgb: 255,255,255;
+	--ion-color-footer-shade: #2a2a2a;
+	--ion-color-footer-tint: #454545;
+
   --ion-background-color: #121212;
   --ion-background-color-rgb: 18, 18, 18;
   --ion-text-color: #ffffff;
@@ -183,6 +190,13 @@ body.light-theme {
   --ion-color-dark-shade: #1e2023;
   --ion-color-dark-tint: #383a3e;
 
+  --ion-color-footer: #E0E0E0;
+	--ion-color-footer-rgb: 224,224,224;
+	--ion-color-footer-contrast: #000000;
+	--ion-color-footer-contrast-rgb: 0,0,0;
+	--ion-color-footer-shade: #c5c5c5;
+	--ion-color-footer-tint: #e3e3e3;
+
   --ion-background-color: #ffffff;
 	--ion-background-color-rgb: 255,255,255;
 
@@ -239,6 +253,15 @@ body.light-theme {
   --graph-selection-color: #0000FF;
 }
 
+.ion-color-footer {
+	--ion-color-base: var(--ion-color-footer);
+	--ion-color-base-rgb: var(--ion-color-footer-rgb);
+	--ion-color-contrast: var(--ion-color-footer-contrast);
+	--ion-color-contrast-rgb: var(--ion-color-footer-contrast-rgb);
+	--ion-color-shade: var(--ion-color-footer-shade);
+	--ion-color-tint: var(--ion-color-footer-tint);
+}
+
 svg.ionicon {
   stroke: currentColor;
   fill: currentColor;
@@ -272,4 +295,10 @@ ion-range::part(tick-active) {
 
 ion-range {
   --bar-background: rgba(var(--ion-text-color-rgb), 0.33);
+}
+
+.alert-head {
+  background-color: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  margin-bottom: 20px;
 }

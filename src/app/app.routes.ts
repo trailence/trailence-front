@@ -28,11 +28,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/trail/trail.page').then( m => m.TrailPage)
       },
       {
+        path: 'preferences',
+        loadComponent: () => import('./pages/preferences/preferences.page').then( m => m.PreferencesPage)
+      },
+      {
         path: '',
         redirectTo: 'trails/collection/my_trails',
         pathMatch: 'full',
       },
     ]
   },
-
 ];

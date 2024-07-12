@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent } from '@ionic/angular/standalone';
 import { Subscription, combineLatest, distinctUntilChanged, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -32,6 +33,7 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
     private databaseService: DatabaseService,
     private networkService: NetworkService,
     private changeDetector: ChangeDetectorRef,
+    public router: Router,
   ) {
     this.id = IdGenerator.generateId();
   }

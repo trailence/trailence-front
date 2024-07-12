@@ -46,7 +46,7 @@
 <ion-modal trigger="filters-trails-button-{{id}}" #filtersModal>
   <ng-template>
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar color="primary">
         <ion-title>
           <ion-icon name="filters" style="margin-right: 10px"></ion-icon>
           <ion-label>{{i18n.texts.pages.trails.edit_filters_popup_title}}</ion-label>
@@ -106,7 +106,7 @@
       </div>
     </ion-content>
     <ion-footer>
-      <ion-toolbar>
+      <ion-toolbar color="footer">
         <ion-buttons slot="end">
           <ion-button (click)="resetFilters()">{{i18n.texts.pages.trails.filters.reset_button}}</ion-button>
           <ion-button [strong]="true" (click)="filtersModal.dismiss()">{{i18n.texts.buttons.close}}</ion-button>
@@ -120,7 +120,7 @@
 <ion-modal trigger="sort-trails-button-{{id}}" #sortModal>
   <ng-template>
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar color="primary">
         <ion-title>
           <ion-icon name="sort" style="margin-right: 10px"></ion-icon>
           <ion-label>{{i18n.texts.pages.trails.edit_sort_popup_title}}</ion-label>
@@ -150,7 +150,7 @@
       </ion-list>
     </ion-content>
     <ion-footer>
-      <ion-toolbar>
+      <ion-toolbar color="footer">
         <ion-buttons slot="end">
           <ion-button [strong]="true" (click)="sortModal.dismiss()">{{i18n.texts.buttons.close}}</ion-button>
         </ion-buttons>

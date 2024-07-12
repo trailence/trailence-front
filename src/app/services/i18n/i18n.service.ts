@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { DateFormat, HourFormat } from '../preferences/preferences';
+import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
 
@@ -83,11 +83,15 @@ export class I18nService {
     }
   }
 
-  public shortUserDistanceUnit(): string {
-    switch (this.prefService.preferences.distanceUnit) {
+  public shortDistanceUnit(unit: DistanceUnit): string {
+    switch (unit) {
       case 'METERS': return 'm';
       case 'MILES': return 'mi';
     }
+  }
+
+  public shortUserDistanceUnit(): string {
+    return this.shortDistanceUnit(this.prefService.preferences.distanceUnit);
   }
 
   public getMaxFilterDistance(): number {
@@ -209,7 +213,7 @@ export class I18nService {
     return this.getTimeForFormat(timestamp, this.prefService.preferences.hourFormat);
   }
 
-  private getDateForFormat(timestamp: number, format: DateFormat): string {
+  public getDateForFormat(timestamp: number, format: DateFormat): string {
     const date = new Date(timestamp);
     return format
       .replace('dd', StringUtils.padLeft('' + date.getDate(), 2, '0'))
@@ -220,7 +224,7 @@ export class I18nService {
       ;
   }
 
-  private getTimeForFormat(timestamp: number, format: HourFormat): string {
+  public getTimeForFormat(timestamp: number, format: HourFormat): string {
     const date = new Date(timestamp);
     const h = date.getHours();
     let s = '';
@@ -239,6 +243,14 @@ export class I18nService {
       s += ' ' + (h >= 12 ? 'PM' : 'AM');
     }
     return s;
+  }
+
+  public sizeToString(size?: number): string {
+    if (size === null || size === undefined) return '';
+    if (size < 1024) return size + ' ' + this.texts.bytes.bytes;
+    if (size < 1024 * 1024) return Math.floor(size / 1024) + ' ' + this.texts.bytes.kb;
+    if (size < 1024 * 1024 * 1024) return Math.floor(size / (1024 * 1024)) + ' ' + this.texts.bytes.mb;
+    return Math.floor(size / (1024 * 1024 * 1024)) + ' ' + this.texts.bytes.gb;
   }
 
   private loadTexts(lang: string): void {

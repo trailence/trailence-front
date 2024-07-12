@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ComputedPreferences, Preferences, ThemeType } from './preferences';
+import { ComputedPreferences, DateFormat, DistanceUnit, ElevationUnit, HourFormat, Preferences, ThemeType } from './preferences';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { HttpService } from '../http/http.service';
@@ -146,8 +146,36 @@ export class PreferencesService {
     this.setPreference('theme', theme);
   }
 
+  public setDistanceUnit(unit?: DistanceUnit): void {
+    this.setPreference('distanceUnit', unit);
+  }
+
+  public setElevationUnit(unit?: ElevationUnit): void {
+    this.setPreference('elevationUnit', unit);
+  }
+
+  public setDateFormat(format?: DateFormat): void {
+    this.setPreference('dateFormat', format);
+  }
+
+  public setHourFormat(format?: HourFormat): void {
+    this.setPreference('hourFormat', format);
+  }
+
+  public setTraceMinMeters(meters: number): void {
+    this.setPreference('traceMinMeters', meters);
+  }
+
+  public setTraceMinMillis(millis: number): void {
+    this.setPreference('traceMinMillis', millis);
+  }
+
   public setOfflineMapMaxZoom(value: number): void {
     this.setPreference('offlineMapMaxZoom', value);
+  }
+
+  public setOfflineMapMaxKeepDays(value: number): void {
+    this.setPreference('offlineMapMaxkeepDays', value);
   }
 
   private setPreference(field: string, value: any): void {

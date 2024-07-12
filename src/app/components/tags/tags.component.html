@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="tags" style="margin-right: 10px"></ion-icon>
       <ion-label>{{i18n.texts.pages.trails.tags.popup.title}}</ion-label>
@@ -23,7 +23,7 @@
       <ion-icon name="add" slot="icon-only"></ion-icon>
     </ion-button>
   </div>
-  <ion-toolbar>
+  <ion-toolbar color="footer">
     <ion-buttons slot="end">
       <ion-button color="success" (click)="apply()" [disabled]="!canApply()">{{i18n.texts.buttons.apply}}</ion-button>
       <ion-button color="medium" (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
