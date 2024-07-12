@@ -68,7 +68,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     preferencesService: PreferencesService,
   ) {
     super(injector);
-    this.whenVisible.subscribe(platform.resize, () => this.resizeChart());
+    this.whenVisible.subscribe(platform.resize, () => this.resetChart());
     this.visible$.subscribe(() => this.resetChart());
     this.whenVisible.subscribe(preferencesService.preferences$, () => this.resetChart());
     injector.get(ElementRef).nativeElement.addEventListener('mouseout', () => this.pointHover.emit([]));
@@ -110,14 +110,6 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
   }
 
-  private resizeChart(): void {
-    if (!this.chartOptions) return;
-    if (!this.track1) return;
-    if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
-    if (this.visible)
-      this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
-  }
-
   private backgroundColor = '';
   private contrastColor = '';
   private primaryColor = '';
@@ -132,19 +124,14 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.width = element.offsetWidth;
     this.height = element.offsetHeight;
     if (this.width! > 0 && this.height! > 0) {
-      if (this.chartOptions && this.canvas?.chart) {
-        const chart = this.canvas.chart;
-        setTimeout(() => chart.resize(), 0);
-      } else {
-        const styles = getComputedStyle(element);
-        this.backgroundColor = String(styles.getPropertyValue('--ion-background-color')).trim();
-        this.contrastColor = String(styles.getPropertyValue('--ion-text-color')).trim();
-        this.primaryColor = String(styles.getPropertyValue('--graph-primary-color')).trim();
-        this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
-        this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
-        this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
-        setTimeout(() => this.createChart(), 0);
-      }
+      const styles = getComputedStyle(element);
+      this.backgroundColor = String(styles.getPropertyValue('--ion-background-color')).trim();
+      this.contrastColor = String(styles.getPropertyValue('--ion-text-color')).trim();
+      this.primaryColor = String(styles.getPropertyValue('--graph-primary-color')).trim();
+      this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
+      this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
+      this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
+      setTimeout(() => this.createChart(), 0);
     } else
       this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 100);
   }

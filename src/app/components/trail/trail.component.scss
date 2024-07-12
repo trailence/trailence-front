@@ -48,6 +48,13 @@
     position: absolute;
   }
 
+  &.small-height {
+    --bottom-sheet-tab-content-height: 80px;
+    &.bottom-sheet-tab-open-elevation {
+      --bottom-sheet-tab-content-height: 150px;
+    }
+  }
+
   .bottom-sheet-container {
     position: absolute;
     right: 0;
@@ -175,13 +182,19 @@
       .bottom-sheet-info-content {
         position: absolute;
         bottom: 0;
-        left: calc(var(--bottom-sheet-tabs-width) + 50% - calc(var(--bottom-sheet-tabs-width) /2) - 100px);
-        width: 200px;
+        left: var(--bottom-sheet-tabs-width);
         z-index: 501;
-        overflow: hidden;
 
         height: 0;
         transition: height 0.3s ease-in-out;
+
+        .metadata-container.tiles {
+          display: flex;
+          flex-direction: column;
+          flex-wrap: wrap;
+          max-height: 100%;
+          overflow-x: auto;
+        }
       }
       .elevation-container {
         left: var(--bottom-sheet-tabs-width);

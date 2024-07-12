@@ -13,12 +13,16 @@ class Meta {
   durationValue?: number = undefined;
   positiveElevationValue?: number = undefined;
   negativeElevationValue?: number = undefined;
+  highestAltitudeValue?: number = undefined;
+  lowestAltitudeValue?: number = undefined;
 
   constructor(
     public distanceDiv: HTMLDivElement,
     public durationDiv: HTMLDivElement,
     public positiveElevationDiv: HTMLDivElement,
     public negativeElevationDiv: HTMLDivElement,
+    public highestAltitudeDiv: HTMLDivElement | undefined,
+    public lowestAltitudeDiv: HTMLDivElement | undefined,
   ) {}
 }
 
@@ -35,11 +39,9 @@ class Meta {
 })
 export class TrackMetadataComponent extends AbstractComponent {
 
-  @Input()
-  track?: Track | TrackMetadataSnapshot;
-
-  @Input()
-  track2?: Track | TrackMetadataSnapshot;
+  @Input() track?: Track | TrackMetadataSnapshot;
+  @Input() track2?: Track | TrackMetadataSnapshot;
+  @Input() detailed = false;
 
   private track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
   private track2$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
@@ -50,16 +52,16 @@ export class TrackMetadataComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     private i18n: I18nService,
-    element: ElementRef,
-    assets: AssetsService,
+    private element: ElementRef,
+    private assets: AssetsService,
   ) {
     super(injector);
     const distance = this.createItemElement(element.nativeElement, 'distance', assets);
     const duration = this.createItemElement(element.nativeElement, 'duration', assets);
     const positiveElevation = this.createItemElement(element.nativeElement, 'positive-elevation', assets);
     const negativeElevation = this.createItemElement(element.nativeElement, 'negative-elevation', assets);
-    this.meta = new Meta(distance[0], duration[0], positiveElevation[0], negativeElevation[0]);
-    this.meta2 = new Meta(distance[1], duration[1], positiveElevation[1], negativeElevation[1]);
+    this.meta = new Meta(distance[0], duration[0], positiveElevation[0], negativeElevation[0], undefined, undefined);
+    this.meta2 = new Meta(distance[1], duration[1], positiveElevation[1], negativeElevation[1], undefined, undefined);
   }
 
   private createItemElement(parent: HTMLElement, icon: string, assets: AssetsService): [HTMLDivElement, HTMLDivElement] {
@@ -99,12 +101,14 @@ export class TrackMetadataComponent extends AbstractComponent {
     let previousState = 0;
     this.whenVisible.subscribe(track$.pipe(
       switchMap(track => {
-        if (!track) return of([undefined, undefined, undefined, undefined, 0]);
+        if (!track) return of([undefined, undefined, undefined, undefined, undefined, undefined, 0]);
         if (track instanceof Track) return combineLatest([
           track.metadata.distance$,
           track.metadata.duration$,
           track.metadata.positiveElevation$,
           track.metadata.negativeElevation$,
+          this.detailed ? track.metadata.highestAltitude$ : of(undefined),
+          this.detailed ? track.metadata.lowestAltitude$ : of(undefined),
           this.i18n.stateChanged$
         ]);
         return this.i18n.stateChanged$.pipe(map(state => ([
@@ -112,15 +116,29 @@ export class TrackMetadataComponent extends AbstractComponent {
           track.duration,
           track.positiveElevation,
           track.negativeElevation,
+          track.highestAltitude,
+          track.lowestAltitude,
           state
         ])));
       }),
       debounceTime(100),
-    ), ([distance, duration, positiveElevation, negativeElevation, state]) => {
+    ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, state]) => {
       this.updateMeta(meta, 'distance', distance, v => this.i18n.distanceToString(v), state !== previousState);
       this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState);
       this.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + this.i18n.elevationToString(v), state !== previousState);
       this.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + this.i18n.elevationToString(v), state !== previousState);
+      if (this.detailed) {
+        if (!meta.highestAltitudeDiv) {
+          const highestAltitudeDivs = this.createItemElement(this.element.nativeElement, 'highest-point', this.assets);
+          const lowestAltitudeDivs = this.createItemElement(this.element.nativeElement, 'lowest-point', this.assets);
+          this.meta.highestAltitudeDiv = highestAltitudeDivs[0];
+          this.meta2.highestAltitudeDiv = highestAltitudeDivs[1];
+          this.meta.lowestAltitudeDiv = lowestAltitudeDivs[0];
+          this.meta2.lowestAltitudeDiv = lowestAltitudeDivs[1];
+        }
+        this.updateMeta(meta, 'highestAltitude', highestAltitude, v => this.i18n.elevationToString(v), state !== previousState);
+        this.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => this.i18n.elevationToString(v), state !== previousState);
+      }
       previousState = state as number;
     })
   }

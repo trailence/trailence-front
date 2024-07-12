@@ -190,11 +190,12 @@ export class TrailComponent extends AbstractComponent {
 
   private updateDisplay(): void {
     const w = this.platform.width();
+    const h = this.platform.height();
     if (w >= 750 + 350) {
       this.displayMode = 'large';
       this.updateVisibility(true, this.bottomSheetOpen);
     } else {
-      this.displayMode = 'small';
+      this.displayMode = h > 500 || w < 500 ? 'small' : 'small small-height bottom-sheet-tab-open-' + this.bottomSheetTab;
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation');
     }
   }
@@ -204,8 +205,9 @@ export class TrailComponent extends AbstractComponent {
       if (child instanceof MapComponent) {
         child.setVisible(mapVisible);
         child.invalidateSize();
-      } else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
-      else if (child instanceof TrackMetadataComponent) {}
+      } else if (child instanceof ElevationGraphComponent) {
+        child.setVisible(graphVisible);
+      } else if (child instanceof TrackMetadataComponent) {}
       else console.error('unexpected child', child);
     })
   }

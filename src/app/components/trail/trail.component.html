@@ -42,7 +42,8 @@
         </div>
       </div>
       <div class="metadata-container two-columns">
-        <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+        <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
+        <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
       <div class="actions">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
@@ -132,8 +133,29 @@
     </div>
     <div class="bottom-sheet-info-content">
       <div class="metadata-container tiles">
-        <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]"></app-track-metadata>
+        <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
+        <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
     </div>
   </ng-container>
 </div>
+
+<ng-template #recordingMeta let-tracks="tracks">
+  <ng-container *ngIf="recording?.rawTrack?.arrivalPoint as currentPoint">
+    <div class="metadata-item-container">
+      <div class="metadata-item">
+        <ion-icon name="center-on-location"></ion-icon>
+        <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{currentPoint.pos.lat}}</div>
+        <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{currentPoint.pos.lng}}</div>
+      </div>
+    </div>
+    <div class="metadata-item-container">
+      <div class="metadata-item">
+        <ion-icon name="altitude"></ion-icon>
+        <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">
+          {{currentPoint.ele !== undefined ? currentPoint.ele : '?'}}
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</ng-template>

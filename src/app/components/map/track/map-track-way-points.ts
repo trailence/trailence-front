@@ -82,13 +82,14 @@ export class MapTrackWayPoints {
           this._anchors = [];
           for (const wp of list) {
             if (wp.isDeparture) {
-              if (wp.isArrival) {
+              if (wp.isArrival && !this._isRecording) {
                 this._departureAndArrival = this.createDepartureAndArrival(wp.wayPoint.point.pos);
               } else {
                 this._departure = this.createDeparture(wp.wayPoint.point.pos);
               }
             } else if (wp.isArrival) {
-              this._arrival = this.createArrival(wp.wayPoint.point.pos);
+              if (!this._isRecording)
+                this._arrival = this.createArrival(wp.wayPoint.point.pos);
             } else {
               this._anchors.push(this.createWayPoint(wp.wayPoint.point.pos, list.indexOf(wp)));
             }
