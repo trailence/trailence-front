@@ -55,7 +55,12 @@
         "move_to_collection": "Move to...",
         "copy_to_collection": "Copy into...",
         "copying": "Copying",
-        "export": "Export"
+        "export": "Export",
+        "rename": "Rename",
+        "rename_popup": {
+          "title": "Rename trail",
+          "name": "Name"
+        }
       },
       "tags": {
         "menu_item": "Tags",

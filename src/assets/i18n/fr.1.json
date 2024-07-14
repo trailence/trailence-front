@@ -55,7 +55,12 @@
         "move_to_collection": "Déplacer vers...",
         "copy_to_collection": "Copier dans...",
         "copying": "Copie",
-        "export": "Exporter"
+        "export": "Exporter",
+        "rename": "Renommer",
+        "rename_popup": {
+          "title": "Renommer le parcours",
+          "name": "Nom"
+        }
       },
       "tags": {
         "menu_item": "Tags",

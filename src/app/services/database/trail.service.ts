@@ -125,6 +125,8 @@ export class TrailService {
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
         menu.push(new MenuItem());
+        if (trails.length === 1)
+          menu.push(new MenuItem().setIcon('edit').setI18nLabel('pages.trails.actions.rename').setAction(() => this.openRenameTrail(trails[0])));
         menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(trails, collectionUuid)));
       }
       menu.push(new MenuItem());
@@ -206,6 +208,36 @@ export class TrailService {
       if (trails[i].collectionUuid !== uuid) return undefined;
     }
     return uuid;
+  }
+
+  public async openRenameTrail(trail: Trail) {
+    const i18n = this.injector.get(I18nService);
+    const alert = await this.injector.get(AlertController).create({
+      header: i18n.texts.pages.trails.actions.rename_popup.title,
+      inputs: [{
+        placeholder: i18n.texts.pages.trails.actions.rename_popup.name,
+        value: trail.name,
+        attributes: {
+          maxlength: 200,
+          counter: true,
+        }
+      }],
+      buttons: [{
+        text: i18n.texts.buttons.apply,
+        role: 'ok',
+        handler: (result) => {
+          alert.dismiss();
+          if (trail.name !== result[0].trim()) {
+            trail.name = result[0].trim();
+            this.update(trail);
+          }
+        }
+      }, {
+        text: i18n.texts.buttons.cancel,
+        role: 'cancel'
+      }]
+    });
+    await alert.present();
   }
 
   public async confirmDelete(trails: Trail[], fromTrail: boolean) {
