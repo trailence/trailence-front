@@ -3,6 +3,7 @@ import * as L from 'leaflet';
 import { handleMapOffline } from './map-tiles-layer-offline';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';
+import { ExtensionsService } from '../database/extensions.service';
 
 export interface MapLayer {
 
@@ -34,6 +35,14 @@ export class MapLayersService {
       createIgnLayer(injector, 'ign-sat', 'IGN Satellite (France)', 'ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg', 19, 2),
       //createDefaultLayer('stadia-sat', 'Stadia Satellite', 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg', 20, '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 2),
     ];
+    injector.get(ExtensionsService).getExtensions$().subscribe(
+      extensions => {
+        const thunderforest = extensions.find(e => e.extension === 'thunderforest.com');
+        if (thunderforest && thunderforest.data['apikey']) {
+          this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2));
+        }
+      }
+    );
   }
 
   public getDefaultLayer(): string {

@@ -126,7 +126,9 @@
         "items": "Eléments",
         "size": "Taille",
         "remove_all": "Tout supprimer"
-      }
+      },
+      "more_maps_layers": "Plus de fonds de carte",
+      "thunderforest_explaination": "Vous pouvez ajouter les cartes de thunderforest.com si vous avez un compte chez eux (un compte gratuit est disponible). Pour cela, entrez votre clé d'API ci-dessous"
     }
   },
   "menu": {

@@ -126,7 +126,9 @@
         "items": "Items",
         "size": "Size",
         "remove_all": "Remove all"
-      }
+      },
+      "more_maps_layers": "More Map Layers",
+      "thunderforest_explaination": "You can add maps from thunderforest.com if you have an account on their web site (a free account is available). Enter your API key below"
     }
   },
   "menu": {

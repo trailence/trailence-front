@@ -10,6 +10,7 @@ export const TRAIL_TABLE_NAME = 'trails';
 export const TRAIL_COLLECTION_TABLE_NAME = 'trail_collections';
 export const TAG_TABLE_NAME = 'tags';
 export const TRAIL_TAG_TABLE_NAME = 'trails_tags';
+export const EXTENSIONS_TABLE_NAME = 'extensions';
 
 @Injectable({
   providedIn: 'root'
@@ -69,6 +70,7 @@ export class DatabaseService {
     storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
     storesV1[TAG_TABLE_NAME] = 'id_owner';
     storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
+    storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
     db.version(1).stores(storesV1);
     this._db.next(db);
   }
