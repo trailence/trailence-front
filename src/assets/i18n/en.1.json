@@ -165,6 +165,7 @@
     "DA": "D A",
     "D": "D",
     "A": "A",
+    "position": "Location",
     "distance": "Distance",
     "altitude": "Altitude",
     "time": "Time"

@@ -92,6 +92,10 @@
                   <div class="waypoint-content">
                     <div class="waypoint-info-section">
                       <div class="waypoint-info">
+                        <div class="waypoint-info-title">{{i18n.texts.way_points.position}}</div>
+                        <div class="waypoint-info-value small">{{wp.wayPoint.point.pos.lat.toFixed(6)}}<br/>{{wp.wayPoint.point.pos.lng.toFixed(6)}}</div>
+                      </div>
+                      <div class="waypoint-info">
                         <div class="waypoint-info-title">{{i18n.texts.way_points.altitude}}</div>
                         <div class="waypoint-info-value">{{wp.altitude !== undefined ? i18n.elevationToString(wp.altitude) : '?'}}</div>
                       </div>
@@ -153,7 +157,7 @@
       <div class="metadata-item">
         <ion-icon name="altitude"></ion-icon>
         <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">
-          {{currentPoint.ele !== undefined ? currentPoint.ele : '?'}}
+          {{currentPoint.ele !== undefined ? i18n.elevationToString(currentPoint.ele) : '?'}}
         </div>
       </div>
     </div>
