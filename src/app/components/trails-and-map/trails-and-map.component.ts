@@ -13,7 +13,7 @@ import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { CollectionMapper } from 'src/app/utils/arrays';
 
@@ -71,21 +71,29 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.byStateAndVisible.subscribe(
-      this.trails.length === 0 ? of([]) : combineLatest(
-        this.trails.map(
-          trail => trail.currentTrackUuid$.pipe(
-            switchMap(trackUuid => this.trackService.getSimplifiedTrack$(trackUuid, trail.owner)),
-            filter(track => !!track),
-            map(track => ({trail, track: track!})),
+      this.mapTrails$.pipe(
+        switchMap(trails =>
+          trails.length === 0 ? of([]) : combineLatest(
+            trails.map(
+              trail => trail.currentTrackUuid$.pipe(
+                switchMap(trackUuid => this.trackService.getSimplifiedTrack$(trackUuid, trail.owner)),
+                filter(track => !!track),
+                map(track => ({trail, track: track!})),
+              )
+            )
           )
-        )
-      ).pipe(
+        ),
         debounceTimeExtended(1, 250)
       ),
       trailsAndTracks => {
         this.mapTracks$.next(this.mapTracksMapper.update(trailsAndTracks));
       }
     );
+  }
+
+  private mapTrails$ = new BehaviorSubject<Trail[]>([]);
+  updateMapTracks(trailsAndTracks: {trail: Trail, track: TrackMetadataSnapshot | null}[]): void {
+    this.mapTrails$.next(trailsAndTracks.map(t => t.trail));
   }
 
   setTab(tab: string): void {

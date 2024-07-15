@@ -46,7 +46,7 @@ export class DownloadMapPopupComponent {
     }
     if (this.tracks) {
       for (const track of this.tracks) {
-        let bounds = track.getBounds();
+        let bounds = track.metadata.bounds;
         if (!bounds) continue;
         if (padding > 0) bounds = bounds.pad(padding);
         allBounds.push(bounds);

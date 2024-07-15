@@ -132,32 +132,6 @@ export class Track extends Owned {
     return result;
   }
 
-  public getBounds(): L.LatLngBounds | undefined {
-    let topLat: number | undefined;
-    let bottomLat: number | undefined;
-    let leftLng: number | undefined;
-    let rightLng: number | undefined;
-    for (const segment of this.segments) {
-      for (const point of segment.points) {
-        const pos = point.pos;
-        if (topLat === undefined || pos.lat < topLat) {
-          topLat = pos.lat;
-        }
-        if (bottomLat === undefined || pos.lat > bottomLat) {
-          bottomLat = pos.lat;
-        }
-        if (leftLng === undefined || pos.lng < leftLng) {
-          leftLng = pos.lng;
-        }
-        if (rightLng === undefined || pos.lng > rightLng) {
-          rightLng = pos.lng;
-        }
-      }
-    }
-    if (topLat === undefined || topLat === bottomLat || leftLng === rightLng) return undefined;
-    return new L.LatLngBounds([topLat!, leftLng!], [bottomLat!, rightLng!]);
-  }
-
   public segmentTimeSinceDeparture(segmentIndex: number): number {
     if (segmentIndex === 0) return 0;
     let time = 0;
@@ -206,6 +180,7 @@ export class TrackMetadata {
   private _lowestAltitude = new BehaviorSubject<number | undefined>(undefined);
   private _duration = new BehaviorSubject<number>(0);
   private _startDate = new BehaviorSubject<number | undefined>(undefined);
+  private _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
 
   constructor(
     segments$: Observable<Segment[]>
@@ -217,6 +192,11 @@ export class TrackMetadata {
     this.highest(segments$, meta => meta.highestAltitude$, this._highestAltitude);
     this.lowest(segments$, meta => meta.lowestAltitude$, this._lowestAltitude);
     this.lowest(segments$, meta => meta.startDate$, this._startDate);
+    this.reduce(segments$, meta => meta.bounds$, (a, b) => {
+      if (a === undefined) return b;
+      if (b === undefined) return a;
+      return L.latLngBounds(L.latLng(a.getSouth(), a.getWest()), L.latLng(a.getNorth(), a.getWest())).extend(b);
+    }, undefined, this._bounds);
   }
 
   public get distance(): number { return this._distance.value; }
@@ -239,6 +219,9 @@ export class TrackMetadata {
 
   public get startDate(): number | undefined { return this._startDate.value; }
   public get startDate$(): Observable<number | undefined> { return this._startDate; }
+
+  public get bounds(): L.LatLngBounds | undefined { return this._bounds.value; }
+  public get bounds$(): Observable<L.LatLngBounds | undefined> { return this._bounds; }
 
   private addition(segments$: Observable<Segment[]>, getter: (meta: SegmentMetadata) => Observable<number>, target: BehaviorSubject<number>): void {
     this.reduce(segments$, getter, (a,b) => a + b, 0, target);

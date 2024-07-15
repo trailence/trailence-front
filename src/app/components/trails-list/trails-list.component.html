@@ -23,7 +23,7 @@
   </ng-template>
 </div>
 <div class="trails">
-  @for (trailWithInfo of shownTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
+  @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
     <div class="trail metadata-container {{metadataClass}}"
       [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
       id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
@@ -54,6 +54,13 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
+      <div class="filter-value">
+        <ion-checkbox
+          [checked]="state$.value.filters.onlyVisibleOnMap"
+          (ionChange)="updateFilterOnlyVisibleOnMap($event.detail.checked)"
+          labelPlacement="end"
+        >{{i18n.texts.pages.trails.filters.onlyVisibleOnMap}}</ion-checkbox>
+      </div>
       <div class="filter-header">
         <ion-icon name="duration"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.duration }}</div>

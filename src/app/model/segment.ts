@@ -1,8 +1,9 @@
-import { BehaviorSubject, Observable, combineLatest, concat, map, of, skip, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
 import { Point, PointDtoMapper } from './point';
 import { Arrays } from '../utils/arrays';
 import { Subscriptions } from '../utils/rxjs/subscription-utils';
 import { SegmentDto } from './dto/segment';
+import * as L from 'leaflet';
 
 export class Segment {
 
@@ -163,6 +164,7 @@ export class SegmentPoint {
       if (!init) return;
       this.updateDistance();
       this._next?.updateDistance();
+      this.meta?.positionChanged(this);
     }));
     this.subscriptions.add(_point.ele$.subscribe(() => {
       if (!init) return;
@@ -259,6 +261,11 @@ export class SegmentMetadata {
   private _lowestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
   private _duration = new BehaviorSubject<number>(0);
   private _startPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
+  private _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
+  private _topLat: SegmentPoint | undefined = undefined;
+  private _bottomLat: SegmentPoint | undefined = undefined;
+  private _leftLng: SegmentPoint | undefined = undefined;
+  private _rightLng: SegmentPoint | undefined = undefined;
 
   constructor(
     private segmentPoints: SegmentPoint[],
@@ -284,6 +291,9 @@ export class SegmentMetadata {
 
   public get startDate(): number | undefined { return this._startPoint.value?.point.time; }
   public get startDate$(): Observable<number | undefined> { return this._startPoint.pipe(map(pt => pt?.point.time)); }
+
+  public get bounds(): L.LatLngBounds | undefined { return this._bounds.value; }
+  public get bounds$(): Observable<L.LatLngBounds | undefined> { return this._bounds; }
 
   addDistance(d: number): void {
     if (d === 0) return;
@@ -331,6 +341,33 @@ export class SegmentMetadata {
         this._lowestPoint.next(point);
       }
     }
+    const p = point.point.pos;
+    if (this._bounds.value === undefined) {
+      this._bounds.next(L.latLngBounds(p, p));
+      this._topLat = this._bottomLat = this._leftLng = this._rightLng = point;
+    } else {
+      const b = this._bounds.value;
+      let changed = false;
+      if (p.lat < b.getNorth()) {
+        this._topLat = point;
+        changed = true;
+      }
+      if (p.lat > b.getSouth()) {
+        this._bottomLat = point;
+        changed = true;
+      }
+      if (p.lng < b.getWest()) {
+        this._leftLng = point;
+        changed = true;
+      }
+      if (p.lng > b.getEast()) {
+        this._rightLng = point;
+        changed = true;
+      }
+      if (changed) {
+        this._bounds.next(b.extend(p));
+      }
+    }
   }
 
   elevationChanged(point: SegmentPoint): void {
@@ -350,10 +387,42 @@ export class SegmentMetadata {
       this._startPoint.next(point);
   }
 
+  positionChanged(point: SegmentPoint): void {
+    const p = point.point.pos;
+    const b = this._bounds.value!;
+    if ((this._topLat === point && p.lat > b.getNorth()) ||
+        (this._bottomLat === point && p.lat < b.getSouth()) ||
+        (this._leftLng === point && p.lng > b.getWest()) ||
+        (this._rightLng === point && p.lng < b.getEast())) {
+      this.computeBounds();
+    } else {
+      let changed = false;
+      if (p.lat < b.getNorth()) {
+        this._topLat = point;
+        changed = true;
+      }
+      if (p.lat > b.getSouth()) {
+        this._bottomLat = point;
+        changed = true;
+      }
+      if (p.lng < b.getWest()) {
+        this._leftLng = point;
+        changed = true;
+      }
+      if (p.lng > b.getEast()) {
+        this._rightLng = point;
+        changed = true;
+      }
+      if (changed) {
+        this._bounds.next(b.extend(p));
+      }
+    }
+  }
+
   private computeHighestAndLowest(): void {
     let highest: SegmentPoint | undefined = undefined;
     let lowest: SegmentPoint | undefined = undefined;
-    this.segmentPoints.forEach(pt => {
+    for (const pt of this.segmentPoints) {
       if (pt.point.ele !== undefined) {
         if (highest === undefined) {
           highest = lowest = pt;
@@ -363,9 +432,50 @@ export class SegmentMetadata {
           lowest = pt;
         }
       }
-    });
+    }
     if (this._highestPoint.value !== highest) this._highestPoint.next(highest);
     if (this._lowestPoint.value !== lowest) this._lowestPoint.next(lowest);
+  }
+
+  private computeBounds(): void {
+    this._topLat = this._bottomLat = this._leftLng = this._rightLng = undefined;
+    let n, s, e, w;
+    let b: L.LatLngBounds | undefined = undefined;
+    for (const pt of this.segmentPoints) {
+      const p = pt.point.pos;
+      if (b === undefined) {
+        this._topLat = this._bottomLat = this._leftLng = this._rightLng = pt;
+        n = s = p.lat;
+        e = w = p.lng;
+        b = L.latLngBounds(p, p);
+      } else {
+        let changed = false;
+        if (p.lat < n!) {
+          n = p.lat;
+          this._topLat = pt;
+          changed = true;
+        }
+        if (p.lat > s!) {
+          s = p.lat;
+          this._bottomLat = pt;
+          changed = true;
+        }
+        if (p.lng < w!) {
+          w = p.lng;
+          this._leftLng = pt;
+          changed = true;
+        }
+        if (p.lng > e!) {
+          e = p.lng;
+          this._rightLng = pt;
+          changed = true;
+        }
+        if (changed) b = b!.extend(p);
+      }
+    }
+    const cb = this._bounds.value;
+    if (cb === undefined || cb.getNorth() !== n || cb.getSouth() !== s || cb.getWest() !== w || cb.getEast() !== e)
+      this._bounds.next(b);
   }
 
   computeNewPoints(points: SegmentPoint[]): void {
@@ -376,7 +486,15 @@ export class SegmentMetadata {
     let highestPoint: SegmentPoint | undefined = this._highestPoint.value;
     let lowestPoint: SegmentPoint | undefined = this._lowestPoint.value;
     let startPoint = this._startPoint.value;
-    points.forEach(pt => {
+    let northPoint: SegmentPoint | undefined = this._topLat;
+    let southPoint: SegmentPoint | undefined = this._bottomLat;
+    let westPoint: SegmentPoint | undefined = this._leftLng;
+    let eastPoint: SegmentPoint | undefined = this._rightLng;
+    let n: number | undefined = northPoint?.point.pos.lat;
+    let s: number | undefined = southPoint?.point.pos.lat;
+    let w: number | undefined = westPoint?.point.pos.lng;
+    let e: number | undefined = eastPoint?.point.pos.lng;
+    for (const pt of points) {
       distance += pt.distanceFromPreviousPoint;
       duration += pt.durationFromPreviousPoint;
       if (pt.elevationFromPreviousPoint !== undefined) {
@@ -399,7 +517,24 @@ export class SegmentMetadata {
           lowestPoint = pt;
         }
       }
-    });
+      const p = pt.point.pos;
+      if (n === undefined || p.lat < n) {
+        n = p.lat;
+        northPoint = pt;
+      }
+      if (s === undefined || p.lat > s) {
+        s = p.lat;
+        southPoint = pt;
+      }
+      if (w === undefined || p.lng < w) {
+        w = p.lng;
+        westPoint = pt;
+      }
+      if (e === undefined || p.lng > e) {
+        e = p.lng;
+        eastPoint = pt;
+      }
+    }
     this.addDistance(distance);
     this.addDuration(duration);
     if (positiveElevation !== undefined && (this._positiveElevation.value === undefined || positiveElevation > 0))
@@ -409,6 +544,27 @@ export class SegmentMetadata {
     if (this._startPoint.value !== startPoint) this._startPoint.next(startPoint);
     if (this._highestPoint.value !== highestPoint) this._highestPoint.next(highestPoint);
     if (this._lowestPoint.value !== lowestPoint) this._lowestPoint.next(lowestPoint);
+    let boundsChanged = false;
+    if (this._topLat !== northPoint) {
+      this._topLat = northPoint;
+      boundsChanged = true;
+    }
+    if (this._bottomLat !== southPoint) {
+      this._bottomLat = southPoint;
+      boundsChanged = true;
+    }
+    if (this._leftLng !== westPoint) {
+      this._leftLng = westPoint;
+      boundsChanged = true;
+    }
+    if (this._rightLng !== eastPoint) {
+      this._rightLng = eastPoint;
+      boundsChanged = true;
+    }
+    if (boundsChanged) {
+      if (s === undefined) this._bounds.next(undefined);
+      else this._bounds.next(L.latLngBounds(L.latLng(s!, w!), L.latLng(n!, e!)));
+    }
   }
 
 }

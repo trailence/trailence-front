@@ -100,6 +100,14 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
+  public getState(): MapState {
+    return this._mapState;
+  }
+
+  public getBounds(): L.LatLngBounds | undefined {
+    return this._map$.value?.getBounds();
+  }
+
   private loadState(): void {
     this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
   }

@@ -28,6 +28,7 @@ export interface TrackMetadataSnapshot {
   lowestAltitude?: number;
   duration: number;
   startDate?: number;
+  bounds?: L.LatLngTuple[];
 }
 
 interface MetadataItem extends TrackMetadataSnapshot {
@@ -297,6 +298,7 @@ export class TrackDatabase {
 
   private toMetadata(track: Track): TrackMetadataSnapshot {
     const m = track.metadata;
+    const b = m.bounds;
     return {
       uuid: track.uuid,
       owner: track.owner,
@@ -309,6 +311,7 @@ export class TrackDatabase {
       lowestAltitude: m.lowestAltitude,
       duration: m.duration,
       startDate: m.startDate,
+      bounds: b ? [[b.getNorth(), b.getWest()], [b.getSouth(), b.getWest()]] : undefined,
     }
   }
 

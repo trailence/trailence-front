@@ -11,7 +11,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -23,6 +23,9 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { ProgressService } from 'src/app/services/progress/progress.service';
+import { MapComponent } from '../map/map.component';
+
+const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
 interface State {
   sortAsc: boolean;
@@ -35,6 +38,7 @@ interface Filters {
   distance: FilterNumeric;
   positiveElevation: FilterNumeric;
   negativeElevation: FilterNumeric;
+  onlyVisibleOnMap: boolean;
 }
 
 const defaultState: State = {
@@ -57,6 +61,7 @@ const defaultState: State = {
       from: undefined,
       to: undefined,
     },
+    onlyVisibleOnMap: false,
   }
 }
 
@@ -90,15 +95,20 @@ export class TrailsListComponent extends AbstractComponent {
 
   @Input() metadataClass = 'two-columns';
 
+  @Input() map?: MapComponent;
+  @Input() listId!: string;
+
   id = IdGenerator.generateId();
   highlighted?: Trail;
 
   @Output() trailClick = new EventEmitter<Trail>();
+  @Output() mapFilteredTrails = new EventEmitter<{trail: Trail, track: TrackMetadataSnapshot | null}[]>();
 
   state$ = new BehaviorSubject<State>(defaultState);
 
   allTrails: TrailWithInfo[] = [];
-  shownTrails: TrailWithInfo[] = [];
+  mapTrails: TrailWithInfo[] = [];
+  listTrails: TrailWithInfo[] = [];
 
   durationFormatter = (value: number) => this.i18n.hoursToString(value);
   distanceFormatter = (value: number) => this.i18n.distanceInUserUnitToString(value);
@@ -137,6 +147,9 @@ export class TrailsListComponent extends AbstractComponent {
           this.state$.next({...this.state$.value, filters: {...this.state$.value.filters}});
       }
     );
+    this.state$.pipe(
+      skip(1)
+    ).subscribe(() => this.saveState());
   }
 
   protected override getComponentState() {
@@ -148,20 +161,23 @@ export class TrailsListComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState?.collectionUuid !== previousState?.collectionUuid)
-      this.state$.next(defaultState);
+      this.loadState();
 
     this.byStateAndVisible.subscribe(
-      this.trails.length === 0 ? of([]) : combineLatest(
-        this.trails.map(
-          trail => trail.currentTrackUuid$.pipe(
-            switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
-            map(meta => ({trail, track: meta, selected: false}) as TrailWithInfo),
+      combineLatest([
+        this.map ? combineLatest([this.map.getState().center$, this.map.getState().zoom$]) : of([undefined, undefined]),
+        this.trails.length === 0 ? of([]) : combineLatest(
+          this.trails.map(
+            trail => trail.currentTrackUuid$.pipe(
+              switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
+              map(meta => ({trail, track: meta, selected: false}) as TrailWithInfo),
+            )
           )
         )
-      ).pipe(
-        debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length)
+      ]).pipe(
+        debounceTimeExtended(0, 250, -1, (p, n) => p[1].length !== n[1].length)
       ),
-      trailsWithInfo => {
+      ([mapState, trailsWithInfo]) => {
         this.allTrails = trailsWithInfo;
         this.applyFilters();
         this.applySort();
@@ -195,7 +211,7 @@ export class TrailsListComponent extends AbstractComponent {
     const maxPosEle = filters.positiveElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.to);
     const minNegEle = filters.negativeElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from);
     const maxNegEle = filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to);
-    this.shownTrails = this.allTrails.filter(
+    this.mapTrails = this.allTrails.filter(
       t => {
         if (filters.duration.from !== undefined && (t.track?.duration === undefined || t.track.duration < filters.duration.from * 60 * 60 * 1000)) return false;
         if (filters.duration.to !== undefined && (t.track?.duration === undefined || t.track.duration > filters.duration.to * 60 * 60 * 1000)) return false;
@@ -208,10 +224,20 @@ export class TrailsListComponent extends AbstractComponent {
         return true;
       }
     );
+    const mapBounds = this.map?.getBounds();
+    if (filters.onlyVisibleOnMap && mapBounds) {
+      this.listTrails = this.mapTrails.filter(t => {
+        const b = t.track?.bounds;
+        return !b || mapBounds.overlaps(b);
+      });
+    } else {
+      this.listTrails = this.mapTrails;
+    }
+    this.mapFilteredTrails.emit(this.mapTrails.map(t => ({trail: t.trail, track: t.track})));
   }
 
   private applySort(): void {
-    this.shownTrails.sort((a,b) => this.compareTrails(a, b));
+    this.listTrails.sort((a,b) => this.compareTrails(a, b));
   }
 
   private compareTrails(a: TrailWithInfo, b: TrailWithInfo): number {
@@ -223,20 +249,32 @@ export class TrailsListComponent extends AbstractComponent {
     return this.state$.value.sortAsc ? diff : -diff;
   }
 
+  private loadState(): void {
+    const stateStr = localStorage.getItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId);
+    if (!stateStr) this.state$.next(defaultState);
+    else this.state$.next(JSON.parse(stateStr));
+  }
+
+  private saveState(): void {
+    const state = this.state$.value;
+    if (state === defaultState) localStorage.removeItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId);
+    else localStorage.setItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId, JSON.stringify(state));
+  }
+
   public get nbShown(): number {
-    return this.shownTrails.length
+    return this.listTrails.length
   }
 
   public get nbSelected(): number {
-    return this.shownTrails.reduce((nb, trail) => nb + (trail.selected ? 1 : 0), 0);
+    return this.listTrails.reduce((nb, trail) => nb + (trail.selected ? 1 : 0), 0);
   }
 
   selectAll(selected: boolean): void {
-    this.shownTrails.forEach(t => t.selected = selected);
+    this.listTrails.forEach(t => t.selected = selected);
   }
 
   getSelectedTrails(): Trail[] {
-    return this.shownTrails.filter(t => t.selected).map(t => t.trail);
+    return this.listTrails.filter(t => t.selected).map(t => t.trail);
   }
 
   sortBy(name: string): void {
@@ -261,6 +299,14 @@ export class TrailsListComponent extends AbstractComponent {
     });
   }
 
+  updateFilterOnlyVisibleOnMap(checked: boolean): void {
+    if (checked === this.state$.value.filters.onlyVisibleOnMap) return;
+    this.state$.next({
+      ...this.state$.value,
+      filters: { ...this.state$.value.filters, onlyVisibleOnMap: checked }
+    });
+  }
+
   nbActiveFilters(): number {
     let nb = 0;
     const filters = this.state$.value.filters;
@@ -268,6 +314,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (filters.distance.from !== undefined || filters.distance.to !== undefined) nb++;
     if (filters.positiveElevation.from !== undefined || filters.positiveElevation.to !== undefined) nb++;
     if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
+    if (filters.onlyVisibleOnMap) nb++;
     return nb;
   }
 
@@ -281,6 +328,7 @@ export class TrailsListComponent extends AbstractComponent {
     filters.positiveElevation.to = undefined;
     filters.negativeElevation.from = undefined;
     filters.negativeElevation.to = undefined;
+    filters.onlyVisibleOnMap = false;
     this.state$.next({...this.state$.value, filters: {...filters}});
   }
 

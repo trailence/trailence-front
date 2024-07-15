@@ -31,6 +31,7 @@
         "distance": "Distance",
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation",
+        "onlyVisibleOnMap": "Show in list only trails visible on map",
         "reset_button": "Reset all filters"
       },
       "tabs": {
