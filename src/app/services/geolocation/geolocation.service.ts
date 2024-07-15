@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, IGeolocationService } from './geolocation.interface';
+import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from './geolocation.interface';
 import { PointDto } from 'src/app/model/dto/point';
 import { BehaviorSubject, Observable } from 'rxjs';
 
@@ -23,6 +23,35 @@ export class GeolocationService implements IGeolocationService {
 
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
+
+  getState(): Promise<GeolocationState> {
+    return window.navigator.permissions.query({name: 'geolocation'})
+    .then(status => {
+      console.log('geolocation permission', status);
+      if (status.state === 'granted') {
+        return Promise.resolve(GeolocationState.ENABLED);
+      }
+      if (status.state === 'prompt') {
+        return new Promise((resolve, error) => {
+          const listener = () => {
+            console.log('geolocation permission status changed', status);
+            if (status.state === 'granted') {
+              resolve(GeolocationState.ENABLED);
+              status.removeEventListener('change', listener);
+            } else if (status.state === 'denied') {
+              resolve(GeolocationState.DENIED);
+              status.removeEventListener('change', listener);
+            } else {
+              this.getCurrentPosition();
+            }
+          };
+          status.addEventListener('change', listener);
+          this.getCurrentPosition();
+        });
+      }
+      return Promise.resolve(GeolocationState.DENIED);
+    });
+  }
 
   public getCurrentPosition(): Promise<PointDto> {
     return new Promise((resolve, error) => {

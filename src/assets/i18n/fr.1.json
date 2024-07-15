@@ -160,7 +160,8 @@
     "delete": "Supprimer",
     "download": "Télécharger",
     "edit": "Modifier",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "retry": "Réessayer"
   },
   "order_way": "Par ordre",
   "order_asc": "Croissant",
@@ -198,7 +199,11 @@
     "stop": "Terminer",
     "start_this_trail": "Démarrer le parcours",
     "notif_title": "Trailence",
-    "notif_message": "Trace en cours"
+    "notif_message": "Trace en cours",
+    "disabled_popup": {
+      "title": "GPS désactivé",
+      "message": "Votre GPS est actuellement désactivé, veuillez le démarrer afin de pouvoir démarrer une trace."
+    }
   },
   "waiting_for_gps": "En attente du signal GPS...",
   "bytes": {

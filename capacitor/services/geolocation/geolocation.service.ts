@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Geolocation, Position } from '@capacitor/geolocation';
+import { Geolocation, PermissionStatus, Position } from '@capacitor/geolocation';
 import { PointDto } from 'src/app/model/dto/point';
-import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, IGeolocationService } from 'src/app/services/geolocation/geolocation.interface';
+import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from 'src/app/services/geolocation/geolocation.interface';
 
 import {BackgroundGeolocationPlugin, Location} from "@capacitor-community/background-geolocation";
 import { registerPlugin } from '@capacitor/core';
@@ -26,10 +26,34 @@ export class GeolocationService implements IGeolocationService {
     timeout: GEOLOCATION_TIMEOUT
   }
 
-  constructor(private i18n: I18nService) { }
+  constructor(
+    private i18n: I18nService
+  ) { }
 
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
+
+  public getState(): Promise<GeolocationState> {
+    return Geolocation.checkPermissions()
+    .then(result => this.handlePermissions(result))
+    .catch(error => {
+      console.error('checkPermissions error', error);
+      return Promise.resolve(GeolocationState.DISABLED);
+    })
+  }
+
+  private handlePermissions(status: PermissionStatus): Promise<GeolocationState> {
+    console.log('checkPermissions status', status);
+    if (status.location === 'prompt') {
+      return new Promise((resolve, reject) => {
+        Geolocation.requestPermissions().then(r => this.handlePermissions(r).then(resolve).catch(reject)).catch(reject);
+      });
+    } else if (status.location === 'granted') {
+      return Promise.resolve(GeolocationState.ENABLED);
+    } else {
+      return Promise.resolve(GeolocationState.DENIED);
+    }
+  }
 
   public getCurrentPosition(): Promise<PointDto> {
     return Geolocation.getCurrentPosition(this.options).then(p => this.positionToPointDto(p))

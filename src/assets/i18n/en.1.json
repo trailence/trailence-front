@@ -160,7 +160,8 @@
     "delete": "Delete",
     "download": "Download",
     "edit": "Edit",
-    "save": "Save"
+    "save": "Save",
+    "retry": "Retry"
   },
   "order_way": "Order",
   "order_asc": "Ascending",
@@ -198,7 +199,11 @@
     "stop": "Stop",
     "start_this_trail": "Start this trail",
     "notif_title": "Trailence",
-    "notif_message": "Track in progress"
+    "notif_message": "Track in progress",
+    "disabled_popup": {
+      "title": "GPS disabled",
+      "message": "Your GPS is disabled, please enable it to start a track."
+    }
   },
   "waiting_for_gps": "Waiting for GPS signal...",
   "bytes": {

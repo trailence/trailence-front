@@ -16,6 +16,8 @@ import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
 import * as L from 'leaflet';
 import { applyElevationThresholdToSegment } from '../track-edition/elevation/elevation-threshold';
+import { GeolocationState } from '../geolocation/geolocation.interface';
+import { AlertController } from '@ionic/angular/standalone';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +40,7 @@ export class TraceRecorderService {
     private preferencesService: PreferencesService,
     private trackService: TrackService,
     private trailService: TrailService,
+    private alertController: AlertController,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -79,8 +82,7 @@ export class TraceRecorderService {
     this._table.get(1)
     .then(dto => {
       const recording = dto ? Recording.fromDto(dto) : null;
-      this._recording$.next(recording);
-      if (recording && !recording.paused) this.startRecording();
+      if (recording && !recording.paused) this.startRecording(recording);
     })
     .catch(e => {
       console.error(e);
@@ -112,9 +114,7 @@ export class TraceRecorderService {
             following?.owner,
             following?.currentTrackUuid,
           );
-          this._recording$.next(recording);
-          resolve(recording);
-          this.startRecording();
+          this.startRecording(recording).catch(e => reject(e)).then(() => resolve(recording));
         },
         error: e => reject(e)
       });
@@ -137,7 +137,7 @@ export class TraceRecorderService {
     recording.rawTrack.newSegment();
     recording.track.newSegment();
     recording.paused = false;
-    this.startRecording();
+    this.startRecording(recording);
     this.save(recording);
   }
 
@@ -163,46 +163,76 @@ export class TraceRecorderService {
   private latestDefinitivePoint: Point[] | undefined = undefined;
   private latestTemporaryPoint: Point[] | undefined = undefined;
 
-  private startRecording(): void {
-    const recording = this._recording$.value;
-    if (!recording) return;
-    console.log('Start recording');
-    this._changesSubscription = combineLatest([
-      concat(of(true), recording.trail.changes$),
-      concat(of(true), recording.track.changes$)
-    ])
-    .pipe(skip(1))
-    .subscribe(() => this.save(recording));
-    this.latestDefinitivePoint = undefined;
-    this.latestTemporaryPoint = undefined;
-    this._geolocationListener = (position: PointDto) => {
-      // always keep latest position, but replace previous one if minimum distance or minimum time is not reached
-      if (this.latestDefinitivePoint === undefined) {
-        this.latestDefinitivePoint = this.addPoint(recording, position);
-      } else if (this.takePoint(this.latestDefinitivePoint[0], position)) {
-        if (this.latestTemporaryPoint === undefined) {
-          // if previous definitive point has low accuracy, replace it
-          if (position.pa &&
-            position.t && (this.latestDefinitivePoint[0].time === undefined || position.t - this.latestDefinitivePoint[0].time <= 5000) &&
-            (this.latestDefinitivePoint[0].posAccuracy === undefined || this.latestDefinitivePoint[0].posAccuracy >= position.pa * 2)) {
-            this.updatePoints(position, this.latestDefinitivePoint);
-          } else {
-            this.latestDefinitivePoint = this.addPoint(recording, position);
-          }
-        } else {
-          this.updatePoints(position, this.latestTemporaryPoint);
-          this.latestDefinitivePoint = this.latestTemporaryPoint;
-          this.latestTemporaryPoint = undefined;
-        }
+  private startRecording(recording: Recording): Promise<Recording> {
+    return this.geolocation.getState()
+    .then(state => {
+      if (state === GeolocationState.DISABLED) {
+        return new Promise((resolve, reject) => {
+          this.alertController.create({
+            header: this.i18n.texts.trace_recorder.disabled_popup.title,
+            message: this.i18n.texts.trace_recorder.disabled_popup.message,
+            backdropDismiss: false,
+            buttons: [{
+              text: this.i18n.texts.buttons.retry,
+              role: 'ok',
+              handler: () => {
+                this.alertController.dismiss();
+                this.startRecording(recording).then(resolve).catch(reject);
+              }
+            }, {
+              text: this.i18n.texts.buttons.cancel,
+              role: 'cancel',
+              handler: () => {
+                this.alertController.dismiss();
+                reject('Geolocation disabled');
+              }
+            }]
+          }).then(alert => alert.present());
+        });
+      } else if (state === GeolocationState.DENIED) {
+        return Promise.reject('Geolocation access denied by user');
       } else {
-        if (this.latestTemporaryPoint === undefined) {
-          this.latestTemporaryPoint = this.addPoint(recording, position);
-        } else {
-          this.updatePoints(position, this.latestTemporaryPoint);
+        console.log('Start recording');
+        this._recording$.next(recording);
+        this._changesSubscription = combineLatest([
+          concat(of(true), recording.trail.changes$),
+          concat(of(true), recording.track.changes$)
+        ])
+        .pipe(skip(1))
+        .subscribe(() => this.save(recording));
+        this.latestDefinitivePoint = undefined;
+        this.latestTemporaryPoint = undefined;
+        this._geolocationListener = (position: PointDto) => {
+          // always keep latest position, but replace previous one if minimum distance or minimum time is not reached
+          if (this.latestDefinitivePoint === undefined) {
+            this.latestDefinitivePoint = this.addPoint(recording, position);
+          } else if (this.takePoint(this.latestDefinitivePoint[0], position)) {
+            if (this.latestTemporaryPoint === undefined) {
+              // if previous definitive point has low accuracy, replace it
+              if (position.pa &&
+                position.t && (this.latestDefinitivePoint[0].time === undefined || position.t - this.latestDefinitivePoint[0].time <= 5000) &&
+                (this.latestDefinitivePoint[0].posAccuracy === undefined || this.latestDefinitivePoint[0].posAccuracy >= position.pa * 2)) {
+                this.updatePoints(position, this.latestDefinitivePoint);
+              } else {
+                this.latestDefinitivePoint = this.addPoint(recording, position);
+              }
+            } else {
+              this.updatePoints(position, this.latestTemporaryPoint);
+              this.latestDefinitivePoint = this.latestTemporaryPoint;
+              this.latestTemporaryPoint = undefined;
+            }
+          } else {
+            if (this.latestTemporaryPoint === undefined) {
+              this.latestTemporaryPoint = this.addPoint(recording, position);
+            } else {
+              this.updatePoints(position, this.latestTemporaryPoint);
+            }
+          }
         }
+        this.geolocation.watchPosition(this._geolocationListener);
+        return Promise.resolve(recording);
       }
-    }
-    this.geolocation.watchPosition(this._geolocationListener);
+    });
   }
 
   private takePoint(previous: Point, pos: PointDto): boolean {
