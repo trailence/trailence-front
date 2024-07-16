@@ -19,6 +19,7 @@ class Meta {
   name?: string;
   dateValue?: number;
   dateString?: string;
+  location?: string;
 }
 
 @Component({
@@ -75,6 +76,7 @@ export class TrailOverviewComponent extends AbstractComponent {
         combineLatest([
           this.i18n.stateChanged$,
           this.trail.name$,
+          this.trail.location$,
           this.trail.currentTrackUuid$.pipe(
             switchMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
             switchMap(track => {
@@ -84,7 +86,7 @@ export class TrailOverviewComponent extends AbstractComponent {
             })
           )
         ]),
-        ([i18nState, trailName, [track, startDate]]) => {
+        ([i18nState, trailName, trailLocation, [track, startDate]]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
@@ -93,6 +95,7 @@ export class TrailOverviewComponent extends AbstractComponent {
             changed = true;
           }
           if (this.updateMeta(this.meta, 'name', trailName, undefined, force)) changed = true;
+          if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'date', startDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
           if (changed) this.changeDetector.markForCheck();
         }

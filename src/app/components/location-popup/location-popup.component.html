@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="location" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.location_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ion-input
+    fill="outline"
+    label="{{i18n.texts.pages.location_popup.location}}"
+    label-placement="floating"
+    [(ngModel)]="location"
+    [maxlength]="100"
+    [counter]="true"
+  ></ion-input>
+
+  <ion-button *ngIf="!proposedPlaces && !searchingPlaces" (click)="searchPlaces()">{{i18n.texts.pages.location_popup.search_from_departure}}</ion-button>
+  <ion-spinner name="dots" *ngIf="searchingPlaces"></ion-spinner>
+  <ul *ngIf="proposedPlaces && !searchingPlaces">
+    <li *ngFor="let place of proposedPlaces">
+      <a href="#" (click)="location = place; $event.stopPropagation(); $event.preventDefault();">{{place}}</a>
+    </li>
+  </ul>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="save()">{{i18n.texts.buttons.save}}</ion-button>
+      <ion-button color="medium" (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

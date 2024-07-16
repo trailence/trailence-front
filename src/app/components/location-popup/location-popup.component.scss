@@ -1,0 +1,6 @@
+ul a {
+  color: var(--ion-color-secondary);
+  &:hover {
+    color: var(--ion-color-secondary-tint);
+  }
+}

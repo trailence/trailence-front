@@ -17,6 +17,14 @@
         flex: 1 1 100%;
         font-size: 13px;
       }
+
+      &.nowrap {
+        div {
+          text-wrap: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+      }
     }
   }
 

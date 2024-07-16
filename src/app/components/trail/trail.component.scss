@@ -289,7 +289,18 @@
 
 .trail-details {
   .metadata-container {
-    padding: 8px;
+    padding: 0 8px;
+
+    &.one-column .metadata-item-container {
+      margin: 3px 0;
+
+      &.clickable {
+        cursor: pointer;
+        &:hover {
+          background-color: rgba(var(--ion-color-secondary-rgb), 0.1);
+        }
+      }
+    }
   }
 
   .actions {

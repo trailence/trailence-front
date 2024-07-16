@@ -6,6 +6,7 @@ export class Trail extends Owned {
 
   private _name$: BehaviorSubject<string>;
   private _description$: BehaviorSubject<string>;
+  private _location$: BehaviorSubject<string>;
 
   private _originalTrackUuid$: BehaviorSubject<string>;
   private _currentTrackUuid$: BehaviorSubject<string>;
@@ -18,6 +19,7 @@ export class Trail extends Owned {
     super(dto);
     this._name$ = new BehaviorSubject<string>(dto.name ?? '');
     this._description$ = new BehaviorSubject<string>(dto.description ?? '');
+    this._location$ = new BehaviorSubject<string>(dto.location ?? '');
     if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
     this._originalTrackUuid$ = new BehaviorSubject<string>(dto.originalTrackUuid);
     if (!dto.currentTrackUuid) throw new Error('Missing currentTrackUuid');
@@ -28,11 +30,15 @@ export class Trail extends Owned {
 
   public get name(): string { return this._name$.value; }
   public get name$(): Observable<String> { return this._name$; }
-  public set name(value: string) { this.setValue(value, this._name$); }
+  public set name(value: string) { this.setValue(value.trim(), this._name$); }
 
   public get description(): string { return this._description$.value; }
   public get description$(): Observable<string> { return this._description$; }
-  public set description(value: string) { this.setValue(value, this._description$); }
+  public set description(value: string) { this.setValue(value.trim(), this._description$); }
+
+  public get location(): string { return this._location$.value; }
+  public get location$(): Observable<string> { return this._location$; }
+  public set location(value: string) { this.setValue(value.trim(), this._location$); }
 
   public get originalTrackUuid(): string { return this._originalTrackUuid$.value; }
   public get originalTrackUuid$(): Observable<string> { return this._originalTrackUuid$; }
@@ -47,7 +53,7 @@ export class Trail extends Owned {
   public set collectionUuid(value: string) { this.setValue(value, this._collectionUuid$); }
 
   public get changes$(): Observable<any> {
-    return combineLatest([this.name$, this.description$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
+    return combineLatest([this.name$, this.description$, this.location$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
       skip(1),
     );
   }
@@ -62,6 +68,7 @@ export class Trail extends Owned {
       ...super.toDto(),
       name: this.name,
       description: this.description,
+      location: this.location,
       originalTrackUuid: this.originalTrackUuid,
       currentTrackUuid: this.currentTrackUuid,
       collectionUuid: this.collectionUuid,

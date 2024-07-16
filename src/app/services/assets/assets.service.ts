@@ -40,6 +40,7 @@ export class AssetsService {
       'info': 'assets/ionicons/information-circle-outline.svg',
       'item-menu': 'assets/ionicons/ellipsis-vertical.svg',
       'layers': 'assets/ionicons/layers-outline.svg',
+      'location': 'assets/ionicons/location.svg',
       'lowest-point': 'assets/lowest-point.1.svg',
       'offline': 'assets/ionicons/alert-circle-outline.svg',
       'online': 'assets/ionicons/checkmark-circle-outline.svg',
@@ -60,7 +61,6 @@ export class AssetsService {
       'theme-light': 'assets/ionicons/sunny-outline.svg',
       'theme-dark': 'assets/ionicons/moon-outline.svg',
       'theme-system': 'assets/ionicons/cog-outline.svg',
-      'waypoint': 'assets/ionicons/location.svg',
       'zoom-in': 'assets/zoom-in.1.svg',
       'zoom-out': 'assets/zoom-out.1.svg',
     };

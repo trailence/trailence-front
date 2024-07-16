@@ -125,8 +125,10 @@ export class TrailService {
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
         menu.push(new MenuItem());
-        if (trails.length === 1)
+        if (trails.length === 1) {
           menu.push(new MenuItem().setIcon('edit').setI18nLabel('pages.trails.actions.rename').setAction(() => this.openRenameTrail(trails[0])));
+          menu.push(new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location').setAction(() => this.openLocationPopup(trails[0])));
+        }
         menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(trails, collectionUuid)));
       }
       menu.push(new MenuItem());
@@ -358,6 +360,18 @@ export class TrailService {
        )
       }
     });
+  }
+
+  public async openLocationPopup(trail: Trail) {
+    const module = await import('../../components/location-popup/location-popup.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.LocationPopupComponent,
+      backdropDismiss: true,
+      componentProps: {
+        trail,
+      }
+    });
+    modal.present();
   }
 
 }

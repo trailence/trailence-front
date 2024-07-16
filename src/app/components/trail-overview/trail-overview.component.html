@@ -24,8 +24,10 @@
       <div>{{ meta.dateString }}</div>
     </div>
   </div>
-  <div class="metadata-item-container empty">
-    <div class="metadata-item">
+  <div class="metadata-item-container">
+    <div class="metadata-item nowrap">
+      <ion-icon name="location"></ion-icon>
+      <div>{{ meta.location }}</div>
     </div>
   </div>
   <app-track-metadata *ngIf="track" [track]="track"></app-track-metadata>

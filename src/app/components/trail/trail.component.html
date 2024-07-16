@@ -40,6 +40,13 @@
             <div class="metadata-secondary" *ngIf="tracks[1]">{{ i18n.timestampToDateTimeString(tracks[1].metadata.startDate) }}</div>
           </div>
         </div>
+        <div class="metadata-item-container" [ngClass]="{'clickable': !trail2}" (click)="openLocationDialog()">
+          <div class="metadata-item">
+            <ion-icon name="location"></ion-icon>
+            <div class="metadata-primary">{{ trail1?.location ?? '' }}</div>
+            <div class="metadata-secondary" *ngIf="trail2?.location">{{ trail2?.location ?? '' }}</div>
+          </div>
+        </div>
       </div>
       <div class="metadata-container two-columns">
         <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
@@ -75,7 +82,7 @@
           <ng-container *ngIf="tracks.length > 0">
             <ng-container *ngIf="(tracks[0].computedWayPoints$ | async) as waypoints">
               <div class="section-title">
-                <ion-icon name="waypoint"></ion-icon>
+                <ion-icon name="location"></ion-icon>
                 <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
               </div>
               <ng-container *ngFor="let wp of waypoints; let index = index">

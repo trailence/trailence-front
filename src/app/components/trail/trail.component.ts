@@ -321,4 +321,9 @@ export class TrailComponent extends AbstractComponent {
     return MapAnchor.createDataIcon(anchorBorderColor, '' + index, anchorTextColor, anchorFillColor);
   }
 
+  openLocationDialog(): void {
+    if (this.trail2 || !this.trail1) return;
+    this.trailService.openLocationPopup(this.trail1);
+  }
+
 }

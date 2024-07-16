@@ -61,7 +61,8 @@
         "rename_popup": {
           "title": "Renommer le parcours",
           "name": "Nom"
-        }
+        },
+        "edit_location": "Modifier l'emplacement"
       },
       "tags": {
         "menu_item": "Tags",
@@ -99,6 +100,11 @@
     "collection_form": {
       "title": "Collection",
       "collection_name": "Nom"
+    },
+    "location_popup": {
+      "title": "Emplacement du parcours",
+      "location": "Emplacement",
+      "search_from_departure": "Proposer des lieux par rapport au départ"
     },
     "preferences": {
       "title": "Préférences",
