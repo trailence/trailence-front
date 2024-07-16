@@ -41,6 +41,10 @@ export class I18nService {
 
   public get stateChanged$(): Observable<number> { return this._stateChanged$; }
 
+  public coordToString(latOrLng: number): string {
+    return latOrLng.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 6});
+  }
+
   public distanceToString(distance: number): string {
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS':

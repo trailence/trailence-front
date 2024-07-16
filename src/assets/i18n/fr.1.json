@@ -180,7 +180,9 @@
   "elevationGraph": {
     "distance": "Distance",
     "elevation": "Altitude",
-    "time_duration": "Temps"
+    "time_duration": "Temps",
+    "elevation_grade": "Pente",
+    "location": "Position"
   },
   "downloading_map": "Téléchargement de la carte",
   "offline_map": {

@@ -16,6 +16,8 @@ import { BackgroundPlugin } from './plugins/background';
 import { RangeSelection, RangeSelectionEvent, SelectedRange } from './plugins/range-selection';
 import { Point } from 'src/app/model/point';
 import { PathRange } from '../trail/path-selection';
+import { Segment } from 'src/app/model/segment';
+import { TrackUtils } from 'src/app/utils/track-utils';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -30,6 +32,7 @@ export interface DataPoint {
   lng: number;
   ele?: number;
   distanceMeters: number;
+  grade?: number;
 }
 
 @Component({
@@ -261,16 +264,23 @@ export class ElevationGraphComponent extends AbstractComponent {
           callbacks: {
             title: (context: any) => {
               const pt: DataPoint = context[0].raw;
-              let title = this.i18n.texts.elevationGraph.distance + ': ' + this.i18n.distanceToString(pt.distanceMeters);
-              if (pt.timeSinceStart) {
-                title += '\n' + this.i18n.texts.elevationGraph.time_duration + ': ';
-                title += this.i18n.durationToString(pt.timeSinceStart);
-              }
-              title += '\n' + this.i18n.texts.elevationGraph.elevation + ':';
-              return title;
+              return this.i18n.texts.elevationGraph.distance + ': ' + this.i18n.distanceToString(pt.distanceMeters);
+            },
+            beforeLabel: (context: any) => {
+              const pt: DataPoint = context.raw;
+              let s: string [] = [];
+              if (pt.timeSinceStart !== undefined) s.push(this.i18n.texts.elevationGraph.time_duration + ': ' + this.i18n.durationToString(pt.timeSinceStart));
+              return s;
             },
             label: (context: any) => {
-              return context.raw.ele ? this.i18n.elevationToString(context.raw.ele) : '';
+              return context.raw.ele ? this.i18n.texts.elevationGraph.elevation + ': ' + this.i18n.elevationToString(context.raw.ele) : '';
+            },
+            afterLabel: (context: any) => {
+              const pt: DataPoint = context.raw;
+              let s: string [] = [];
+              if (pt.grade !== undefined) s.push(this.i18n.texts.elevationGraph.elevation_grade + ': ' + Math.floor(pt.grade * 100) + '%');
+              s.push(this.i18n.texts.elevationGraph.location + ': ' + this.i18n.coordToString(pt.lat) + ' ' + this.i18n.coordToString(pt.lng));
+              return s;
             },
             labelColor: (context: any) => {
               return {
@@ -304,9 +314,9 @@ export class ElevationGraphComponent extends AbstractComponent {
     };
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const segment = track.segments[segmentIndex];
-      for (let pointIndex = 0; pointIndex < segment.points.length; pointIndex++) {
-        const pt = segment.points[pointIndex];
-        (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], pt, segmentIndex, pointIndex, track));
+      const points = segment.points;
+      for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
+        (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, segment, points));
       }
     }
     this.chartData!.datasets.push(ds as any);
@@ -317,16 +327,17 @@ export class ElevationGraphComponent extends AbstractComponent {
     let pointCount = 0;
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const segment = track.segments[segmentIndex];
-      for (let pointIndex = 0; pointIndex < segment.points.length; pointIndex++) {
+      const points = segment.points;
+      for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
         if (pointCount < ds.data.length - 1) {
           pointCount++;
           continue;
         }
         if (pointCount === ds.data.length - 1) {
           // latest known point => update it
-          ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segment.points[pointIndex], segmentIndex, pointIndex, track);
+          ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, segment, points);
         } else {
-          ds.data.push(this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segment.points[pointIndex], segmentIndex, pointIndex, track));
+          ds.data.push(this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, segment, points));
         }
         pointCount++;
       }
@@ -338,7 +349,8 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.canvas?.chart?.update();
   }
 
-  private createDataPoint(previous: DataPoint | undefined, point: Point, segmentIndex: number, pointIndex: number, track: Track): DataPoint {
+  private createDataPoint(previous: DataPoint | undefined, segmentIndex: number, pointIndex: number, track: Track, segment: Segment, points: Point[]): DataPoint {
+    const point = points[pointIndex];
     let distance = previous?.distanceMeters || 0;
     if (pointIndex > 0) distance += point.distanceTo(previous!);
     let timeSinceStart = undefined;
@@ -358,7 +370,8 @@ export class ElevationGraphComponent extends AbstractComponent {
       lat: point.pos.lat,
       lng: point.pos.lng,
       ele: point.ele,
-      distanceMeters: distance
+      distanceMeters: distance,
+      grade: TrackUtils.elevationGrade(points, pointIndex),
     };
   }
 
