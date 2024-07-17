@@ -16,23 +16,33 @@ export class FileService implements IFileService {
   ) {
   }
 
-  public openFileDialog(request: OpenFileRequest): void {
+  public openFileDialog<P,T>(request: OpenFileRequest<P,T>): void {
     FilePicker.pickFiles({
       types: [request.mimeType],
       limit: request.multiple ? 0 : 1,
       readData: true
     }).then(pickedFiles => {
       if (pickedFiles.files.length > 0) {
-        request.onreading().then(fromOnreading => {
-          const content = [];
-          for (const file of pickedFiles.files) {
-            const buffer = Uint8Array.from(atob(file.data!), c => c.charCodeAt(0));
-            content.push(buffer);
-          }
-          request.onloaded(content, fromOnreading);
-        }).catch(onerror);
+        request.onstartreading(pickedFiles.files.length)
+        .then(fromStartReading => {
+          const results: T[] = [];
+          const readNext = (index: number) => {
+            const buffer = Uint8Array.from(atob(pickedFiles.files[index].data!), c => c.charCodeAt(0));
+            request.onfileread(index, pickedFiles.files.length, fromStartReading, buffer)
+            .then(result => {
+              results.push(result);
+              if (index === pickedFiles.files.length - 1) {
+                setTimeout(() => request.onfilesloaded(fromStartReading, results), 0);
+              } else {
+                setTimeout(() => readNext(index + 1), 0);
+              }
+            })
+            .catch(e => request.onerror(e, fromStartReading));
+          };
+          setTimeout(() => readNext(0), 0);
+        }).catch(e => request.onerror(e, undefined));
       }
-    }).catch(onerror);
+    }).catch(e => request.onerror(e, undefined));
   }
 
   public saveBinaryData(filename: string, data: BinaryContent): Promise<boolean> {

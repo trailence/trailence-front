@@ -106,6 +106,19 @@
       "location": "Location",
       "search_from_departure": "Suggest locations based on departure"
     },
+    "import_tags_popup": {
+      "title": "Import tags",
+      "message": "The following tags were found in the imported filed",
+      "tag": "Tag",
+      "status": "Status",
+      "status_exists": "Exists",
+      "status_does_not_exist": "Does not exist",
+      "message2": "What do you want to do with these tags?",
+      "import_existing_only": "Import only existing tags",
+      "import_and_create": "Import all tags by creating the missing ones",
+      "import_all": "Import all",
+      "ignore_all": "Do not import tags"
+    },
     "preferences": {
       "title": "Preferences",
       "display_section_title": "Display",

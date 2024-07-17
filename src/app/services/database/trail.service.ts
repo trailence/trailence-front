@@ -2,7 +2,7 @@ import { Injectable, Injector, NgZone } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, debounceTime, filter, first, from, map, of, switchMap, timeout, toArray, zip } from 'rxjs';
+import { Observable, combineLatest, debounceTime, filter, first, forkJoin, from, map, of, switchMap, timeout, toArray, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/network.service';
 import { Trail } from 'src/app/model/trail';
@@ -26,6 +26,8 @@ import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { downloadZip } from 'client-zip';
+import { TrackEditionService } from '../track-edition/track-edition.service';
+import { Arrays } from 'src/app/utils/arrays';
 
 @Injectable({
   providedIn: 'root'
@@ -132,7 +134,7 @@ export class TrailService {
         menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(trails, collectionUuid)));
       }
       menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export').setAction(() => this.export(trails)));
+      menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export').setAction(() => this.exportGpx(trails)));
       if (collectionUuid) {
         menu.push(new MenuItem());
         menu.push(
@@ -255,9 +257,11 @@ export class TrailService {
           handler: () => {
             alert.dismiss();
             const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.deleting_trails, trails.length);
+            progress.subTitle = '0/' + trails.length;
             let index = 0;
             const deleteNext = () => {
               this.delete(trails[index], () => {
+                progress.subTitle = '' + (index + 1) + '/' + trails.length;
                 progress.addWorkDone(1);
                 index++;
                 if (index < trails.length) setTimeout(deleteNext, 0);
@@ -317,22 +321,107 @@ export class TrailService {
     });
   }
 
-  public export(trails: Trail[]): void {
+  public async openLocationPopup(trail: Trail) {
+    const module = await import('../../components/location-popup/location-popup.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.LocationPopupComponent,
+      backdropDismiss: true,
+      componentProps: {
+        trail,
+      }
+    });
+    modal.present();
+  }
+
+  public importGpxDialog(collectionUuid: string): void {
+    const i18n = this.injector.get(I18nService);
+    const email = this.injector.get(AuthService).email!;
+    this.injector.get(FileService).openFileDialog({
+      extension: '.gpx',
+      mimeType: 'application/gpx+xml',
+      multiple: true,
+      description: i18n.texts.tools.import_gpx_description,
+      onstartreading: (nbFiles: number) => {
+        const progress = this.injector.get(ProgressService).create(i18n.texts.tools.importing, nbFiles);
+        progress.subTitle = '0/' + nbFiles;
+        return Promise.resolve(progress);
+      },
+      onfileread: (index: number, nbFiles: number, progress: Progress, file: ArrayBuffer) => {
+        const imported = this.importGpx(file, email, collectionUuid);
+        if (!imported) {
+          // TODO show message
+        }
+        progress.subTitle = '' + (index + 1) + '/' + nbFiles;
+        progress.addWorkDone(1);
+        return Promise.resolve(imported);
+      },
+      onfilesloaded: (progress: Progress, imported: ({trailUuid: string, tags: string[][]} | undefined)[]) => {
+        progress.done();
+        const allTags: string[][] = [];
+        for (const trail of imported) {
+          if (trail && trail.tags.length > 0) {
+            for (const tag of trail.tags) {
+              const exists = allTags.find(t => Arrays.sameContent(t, tag));
+              if (!exists) allTags.push(tag);
+            }
+          }
+        }
+        if (allTags.length > 0)
+          import('../../components/import-tags-popup/import-tags-popup.component')
+          .then(module => this.injector.get(ModalController).create({
+            component: module.ImportTagsPopupComponent,
+            backdropDismiss: false,
+            componentProps: {
+              collectionUuid,
+              tags: allTags,
+              toImport: imported.filter(i => !!i) as {trailUuid: string, tags: string[][]}[],
+            }
+          }))
+          .then(modal => modal.present());
+      },
+      onerror: (error, progress) => {
+        console.log(error);
+        progress?.done();
+      }
+    });
+  }
+
+  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string): {trailUuid: string, tags: string[][]} | undefined {
+    const imported = GpxFormat.importGpx(file, owner, collectionUuid);
+    if (!imported) return undefined;
+    if (imported.tracks.length === 1) {
+      const improved = this.injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
+      imported.trail.currentTrackUuid = improved.uuid;
+      imported.tracks.push(improved);
+    }
+    this.trackService.create(imported.tracks[0]);
+    this.trackService.create(imported.tracks[imported.tracks.length - 1]);
+    this.create(imported.trail);
+    return {trailUuid: imported.trail.uuid, tags: imported.tags};
+  }
+
+  public exportGpx(trails: Trail[]): void {
     const data: BinaryContent[] = [];
-    from(trails).pipe(
-      switchMap(trail => {
+    const email = this.injector.get(AuthService).email!;
+    forkJoin(trails.map(
+      trail => {
         const tracks: Observable<Track | null>[] = [];
         tracks.push(this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
         if (trail.currentTrackUuid !== trail.originalTrackUuid)
           tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
-        return combineLatest(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 5000, () => null as (Track | null))))).pipe(
+        console.log('trail', tracks.length);
+        return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
           map(tracks => ({trail, tracks: tracks.filter(track => !!track) as Track[]})),
+          switchMap(t => {
+            const tags$ = (t.tracks.length === 0 || t.trail.owner !== email) ? of([]) : this.injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true);
+            return tags$.pipe(
+              map(tags => ({trail: t.trail, tracks: t.tracks, tags: tags}))
+            );
+          }),
         );
-      }),
-      filter(t => t.tracks.length > 0),
-      map(t => ({data: GpxFormat.exportGpx(t.trail, t.tracks), filename: StringUtils.toFilename(t.trail.name)})),
-      toArray(),
-    ).subscribe(files => {
+      }
+    )).subscribe(result => {
+      const files = result.filter(r => r.tracks.length > 0).map(t => ({data: GpxFormat.exportGpx(t.trail, t.tracks, t.tags), filename: StringUtils.toFilename(t.trail.name)}));
       if (files.length === 0) return;
       if (files.length === 1) {
         this.injector.get(FileService).saveBinaryData(files[0].filename + '.gpx', files[0].data);
@@ -360,18 +449,6 @@ export class TrailService {
        )
       }
     });
-  }
-
-  public async openLocationPopup(trail: Trail) {
-    const module = await import('../../components/location-popup/location-popup.component');
-    const modal = await this.injector.get(ModalController).create({
-      component: module.LocationPopupComponent,
-      backdropDismiss: true,
-      componentProps: {
-        trail,
-      }
-    });
-    modal.present();
   }
 
 }

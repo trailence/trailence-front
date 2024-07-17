@@ -53,7 +53,7 @@
           <div class="editing">
             <ion-input
               [(ngModel)]="node.newName"
-              (ionBlur)="endEdit(node)"
+              (ionBlur)="endEdit(node, $event)"
               [maxlength]="50"
               [counter]="true"
               id="editing-tag-{{node.tag.uuid}}"></ion-input>

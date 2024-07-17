@@ -102,7 +102,7 @@ export class TrailOverviewComponent extends AbstractComponent {
       );
       if (owner === this.auth.email)
         this.byStateAndVisible.subscribe(
-          this.tagService.getTrailTagsNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100)),
+          this.tagService.getTrailTagsFullNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100)),
           names => {
             this.tagsNames = names;
             this.changeDetector.markForCheck();

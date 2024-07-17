@@ -5,7 +5,7 @@ import { Tag } from "src/app/model/tag";
 import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { Observable, combineLatest, filter, map, of, switchMap, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, filter, first, map, of, switchMap, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
@@ -120,15 +120,36 @@ export class TagService {
     this._trailTagStore.delete(new TrailTag({trailUuid, tagUuid}));
   }
 
-  public getTrailTagsNames$(trailUuid: string): Observable<string[]> {
-    return this.getTrailTags$(trailUuid).pipe(
+  public getTagNames$(tagUuid: string, firstReady: boolean = false): Observable<string[]> {
+    const result$ = this.getTag$(tagUuid).pipe(
+      switchMap(tag => {
+        if (!tag) return firstReady ? EMPTY : of(['']);
+        const name = tag.name;
+        const parent = tag.parentUuid;
+        if (!parent) return of([name]);
+        return this.getTagNames$(parent, firstReady).pipe(
+          map(parentNames => [...parentNames, name])
+        );
+      })
+    );
+    if (firstReady) return result$.pipe(firstTimeout(() => true, 5000, () => [] as string[]));
+    return result$;
+  }
+
+  public getTrailTagsNames$(trailUuid: string, firstReady: boolean = false): Observable<string[][]> {
+    const result$ = this.getTrailTags$(trailUuid).pipe(
       switchMap(trailTags => {
         if (trailTags.length === 0) return of([]);
-        return combineLatest(trailTags.map(trailTag => this.getTag$(trailTag.tagUuid).pipe(
-          switchMap(tag => tag ? tag.name$ : of(undefined))
-        )));
-      }),
-      map(names => names.filter(name => !!name) as string[])
+        return combineLatest(trailTags.map(trailTag => this.getTagNames$(trailTag.tagUuid, firstReady)));
+      })
+    );
+    if (firstReady) return result$.pipe(first());
+    return result$;
+  }
+
+  public getTrailTagsFullNames$(trailUuid: string): Observable<string[]> {
+    return this.getTrailTagsNames$(trailUuid).pipe(
+      map(list => list.map(names => names.join('/')))
     );
   }
 

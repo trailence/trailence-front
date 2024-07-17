@@ -5,9 +5,6 @@ import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { FileService } from 'src/app/services/file/file.service';
-import { GpxFormat } from 'src/app/utils/formats/gpx-format';
-import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList } from "@ionic/angular/standalone";
@@ -20,9 +17,7 @@ import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { FilterNumeric } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { ProgressService } from 'src/app/services/progress/progress.service';
 import { MapComponent } from '../map/map.component';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
@@ -118,14 +113,11 @@ export class TrailsListComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     public i18n: I18nService,
-    private fileService: FileService,
-    private auth: AuthService,
     private trackService: TrackService,
     public trailService: TrailService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
     preferences: PreferencesService,
-    private trackEdition: TrackEditionService,
   ) {
     super(injector);
     let currentDistanceUnit = preferences.preferences.distanceUnit;
@@ -178,6 +170,10 @@ export class TrailsListComponent extends AbstractComponent {
         debounceTimeExtended(0, 250, -1, (p, n) => p[1].length !== n[1].length)
       ),
       ([mapState, trailsWithInfo]) => {
+        for (const t of trailsWithInfo) {
+          const current = this.allTrails.find(c => c.trail.uuid === t.trail.uuid && c.trail.owner === t.trail.owner);
+          if (current?.selected) t.selected = true;
+        }
         this.allTrails = trailsWithInfo;
         this.applyFilters();
         this.applySort();
@@ -360,43 +356,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   import(): void {
-    this.fileService.openFileDialog({
-      extension: '.gpx',
-      mimeType: 'application/gpx+xml',
-      multiple: true,
-      description: this.i18n.texts.tools.import_gpx_description,
-      onreading: () => new Promise((resolve, reject) => {
-        resolve(null);
-      }),
-      onloaded: (files, fromReading) => {
-        const progress = this.injector.get(ProgressService).create(this.i18n.texts.tools.importing, files.length);
-        progress.subTitle = '0/' + files.length;
-        const importNext = (index: number) => {
-          const file = files[index];
-          const imported = GpxFormat.importGpx(file, this.auth.email!, this.collectionUuid!);
-          if (!imported) {
-            // TODO show message
-            progress.done();
-            return;
-          }
-          if (imported.tracks.length === 1) {
-            const improved = this.trackEdition.applyDefaultImprovments(imported.tracks[0]);
-            imported.trail.currentTrackUuid = improved.uuid;
-            imported.tracks.push(improved);
-          }
-          this.trackService.create(imported.tracks[0]);
-          this.trackService.create(imported.tracks[imported.tracks.length - 1]);
-          this.trailService.create(imported.trail);
-          progress.subTitle = (index + 1) + '/' + files.length;
-          progress.addWorkDone(1);
-          if (index < files.length - 1) setTimeout(() => importNext(index + 1), 0);
-        }
-        setTimeout(() => importNext(0), 0);
-      },
-      onerror: (error, fromReading) => {
-        console.log(error);
-      }
-    });
+    this.trailService.importGpxDialog(this.collectionUuid!);
   }
 
   openTrail(trail: Trail): void {

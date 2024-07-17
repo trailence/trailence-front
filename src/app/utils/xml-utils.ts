@@ -3,7 +3,7 @@ export class XmlUtils {
   public static getChild(parent: Element, childName: string): Element | null {
     for (let i = 0; i < parent.children.length; ++i) {
       const child = parent.children.item(i)!;
-      if (child.nodeName === childName) {
+      if (child.localName === childName) {
         return child;
       }
     }
@@ -14,7 +14,7 @@ export class XmlUtils {
     const result: Element[] = [];
     for (let i = 0; i < parent.children.length; ++i) {
       const child = parent.children.item(i)!;
-      if (child.nodeName === childName) {
+      if (child.localName === childName) {
         result.push(child);
       }
     }

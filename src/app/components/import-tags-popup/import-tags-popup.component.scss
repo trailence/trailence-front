@@ -1,0 +1,14 @@
+table {
+  margin: 10px 0;
+
+  td {
+    padding: 2px 8px;
+  }
+}
+
+.buttons {
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="tags" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.import_tags_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="message">
+    {{i18n.texts.pages.import_tags_popup.message}}
+  </div>
+  <table *ngIf="resolvedTags">
+    <tr>
+      <th>{{i18n.texts.pages.import_tags_popup.tag}}</th>
+      <th>{{i18n.texts.pages.import_tags_popup.status}}</th>
+    </tr>
+    <tr *ngFor="let tag of resolvedTags">
+      <td>{{tag.fullName}}</td>
+      <td>
+        <ng-container *ngIf="tag.resolvedUuid">
+          <ion-icon name="checkmark" color="success"></ion-icon>
+          <span>{{i18n.texts.pages.import_tags_popup.status_exists}}</span>
+        </ng-container>
+        <ng-container *ngIf="!tag.resolvedUuid">
+          <ion-icon name="cross" color="danger"></ion-icon>
+          <span>{{i18n.texts.pages.import_tags_popup.status_does_not_exist}}</span>
+        </ng-container>
+      </td>
+    </tr>
+  </table>
+  <div class="message2">
+    {{i18n.texts.pages.import_tags_popup.message2}}
+  </div>
+  <div class="buttons">
+    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, false)">{{i18n.texts.pages.import_tags_popup.import_existing_only}}</ion-button>
+    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, true)">{{i18n.texts.pages.import_tags_popup.import_and_create}}</ion-button>
+    <ion-button *ngIf="resolvedTags && !hasMissing && hasExisting" (click)="import(true, false)">{{i18n.texts.pages.import_tags_popup.import_all}}</ion-button>
+    <ion-button *ngIf="resolvedTags && hasMissing && !hasExisting" (click)="import(false, true)">{{i18n.texts.pages.import_tags_popup.import_all}}</ion-button>
+    <ion-button *ngIf="resolvedTags" (click)="cancel()">{{i18n.texts.pages.import_tags_popup.ignore_all}}</ion-button>
+  </div>
+</ion-content>

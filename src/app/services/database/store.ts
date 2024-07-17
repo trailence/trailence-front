@@ -267,6 +267,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         entity$?.next(null);
         if (this._deletedLocally.indexOf(item) < 0)
           this._deletedLocally.push(item);
+        if (entity$) {
+          const created = this._createdLocally.indexOf(entity$);
+          if (created) this._createdLocally.splice(created, 1);
+        }
         this.deleted(entity$, item);
         if (index >= 0) {
           this._store.value.splice(index, 1);
@@ -290,6 +294,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           items.push(item);
           if (this._deletedLocally.indexOf(item) < 0)
             this._deletedLocally.push(item);
+          const created = this._createdLocally.indexOf(item$);
+          if (created) this._createdLocally.splice(created, 1);
           item$.next(null);
           this.deleted(item$, item);
           const index = this._store.value.indexOf(item$);

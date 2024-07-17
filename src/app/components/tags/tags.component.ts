@@ -160,12 +160,18 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     setTimeout(autofocus, 0);
   }
 
-  endEdit(node: TagNode): void {
+  endEdit(node: TagNode, event$: CustomEvent<FocusEvent>): void {
     if (node.tag.name !== node.newName) {
       node.tag.name = node.newName;
       this.tagService.update(node.tag);
     }
-    node.editing = false;
+    console.log((event$.detail.relatedTarget as any | null)?.nodeName);
+    if ((event$.detail.relatedTarget as any | null)?.nodeName === 'ION-BUTTON') {
+      // give the time for the delete button to be taken into account
+      setTimeout(() => node.editing = false, 1000);
+    } else {
+      node.editing = false;
+    }
   }
 
   async deleteTag(node: TagNode) {

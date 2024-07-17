@@ -9,13 +9,14 @@ import { BinaryContent } from '../binary-content';
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string): {trail: Trail, tracks: Track[]} | undefined {
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string): {trail: Trail, tracks: Track[], tags: string[][]} | undefined {
     const fileContent = new TextDecoder().decode(file);
     const parser = new DOMParser();
     const doc = parser.parseFromString(fileContent, "application/xml");
 
     const trailDto = {owner: user, collectionUuid, name: '', description: ''} as TrailDto;
     const tracks: Track[] = [];
+    const importedTags: string[][] = [];
 
     const metadata = XmlUtils.getChild(doc.documentElement, 'metadata');
     if (metadata) {
@@ -23,6 +24,26 @@ export class GpxFormat {
       if (name && name.length > 0) trailDto.name = name;
       const desc = XmlUtils.getChildText(metadata, 'desc');
       if (desc && desc.length > 0) trailDto.description = desc;
+      const extensions = XmlUtils.getChild(metadata, 'extensions');
+      if (extensions) {
+        const location = XmlUtils.getChildText(extensions, 'location');
+        if (location && location.length > 0) trailDto.location = location;
+        const tags = XmlUtils.getChild(extensions, 'tags');
+        if (tags) {
+          for (const tag of XmlUtils.getChildren(tags, 'tag')) {
+            const tagResult: string[] = [];
+            for (const tagname of XmlUtils.getChildren(tag, 'tagname')) {
+              const name = tagname.textContent;
+              if (name && name.length > 0) {
+                tagResult.push(name);
+              }
+            }
+            if (tagResult.length > 0) {
+              importedTags.push(tagResult);
+            }
+          }
+        }
+      }
     }
 
     for (const trk of XmlUtils.getChildren(doc.documentElement, 'trk')) {
@@ -77,7 +98,8 @@ export class GpxFormat {
     if (tracks.length === 0) return undefined;
     const trail = new Trail({...trailDto, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks[tracks.length - 1].uuid});
 
-    return { trail, tracks };
+    console.log(importedTags);
+    return { trail, tracks, tags: importedTags };
   }
 
   private static readPoint(point: Element): Point | undefined {
@@ -127,12 +149,30 @@ export class GpxFormat {
     return new WayPoint(pt, name, description);
   }
 
-  public static exportGpx(trail: Trail, tracks: Track[]): BinaryContent {
+  public static exportGpx(trail: Trail, tracks: Track[], tags: string[][]): BinaryContent {
     let gpx = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n';
     gpx += '<gpx version="1.1" creator="Trailence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xmlns:ext="https://trailence.org/schemas/gpx_extension/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">\n';
     gpx += '<metadata>';
       gpx += '<name>' + XmlUtils.escapeHtml(trail.name) + '</name>';
       gpx += '<desc>' + XmlUtils.escapeHtml(trail.description) + '</desc>';
+      if (trail.location.length > 0 || tags.length > 0) {
+        gpx += '<extensions>';
+        if (trail.location.length > 0) {
+          gpx += '<ext:location>' + XmlUtils.escapeHtml(trail.location) + '</ext:location>';
+        }
+        if (tags.length > 0) {
+          gpx += '<ext:tags>';
+          for (const tag of tags) {
+            gpx += '<ext:tag>';
+            for (const name of tag) {
+              gpx += '<ext:tagname>' + XmlUtils.escapeHtml(name) + '</ext:tagname>';
+            }
+            gpx += '</ext:tag>';
+          }
+          gpx += '</ext:tags>';
+        }
+        gpx += '</extensions>';
+      }
     gpx += '</metadata>\n';
     for (const track of tracks) {
       gpx += '<trk>';
@@ -166,9 +206,9 @@ export class GpxFormat {
     const pt = point instanceof Point ? point : point.point;
     const wp = point instanceof WayPoint ? point : undefined;
     let gpx = '<' + elementName;
-    gpx += ' lat="' + pt.pos.lat + '" lon="' + pt.pos.lng + '">';
+    gpx += ' lat="' + pt.pos.lat.toFixed(7) + '" lon="' + pt.pos.lng.toFixed(7) + '">';
     if (pt.ele !== undefined) {
-      gpx += '<ele>' + pt.ele + '</ele>';
+      gpx += '<ele>' + pt.ele.toFixed(1) + '</ele>';
     }
     if (pt.time !== undefined) {
       gpx += '<time>' + new Date(pt.time).toISOString() + '</time>';
@@ -180,18 +220,18 @@ export class GpxFormat {
       gpx += '<desc>' + XmlUtils.escapeHtml(wp.description) + '</desc>';
     }
     if (pt.posAccuracy !== undefined) {
-      gpx += '<hdop>' + pt.posAccuracy + '</hdop>';
+      gpx += '<hdop>' + pt.posAccuracy.toFixed(2) + '</hdop>';
     }
     if (pt.eleAccuracy !== undefined) {
-      gpx += '<vdop>' + pt.eleAccuracy + '</vdop>';
+      gpx += '<vdop>' + pt.eleAccuracy.toFixed(2) + '</vdop>';
     }
     if (pt.heading !== undefined || pt.speed !== undefined) {
       gpx += '<extensions>';
       if (pt.heading) {
-        gpx += '<ext:heading>' + pt.heading + '</ext:heading>';
+        gpx += '<ext:heading>' + pt.heading.toFixed(2) + '</ext:heading>';
       }
       if (pt.speed) {
-        gpx += '<ext:speed>' + pt.speed + '</ext:speed>';
+        gpx += '<ext:speed>' + pt.speed.toFixed(2) + '</ext:speed>';
       }
       gpx += '</extensions>';
     }

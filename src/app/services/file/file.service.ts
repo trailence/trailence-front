@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BinaryContent } from 'src/app/utils/binary-content';
-import { IFileService } from './file.interface';
+import { IFileService, OpenFileRequest } from './file.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class FileService implements IFileService {
   ) {
   }
 
-  public openFileDialog(request: OpenFileRequest): void {
+  public openFileDialog<P,T>(request: OpenFileRequest<P,T>): void {
     if (this.tryOpenFileWithBrowserMethod(request)) {
       return;
     }
@@ -23,7 +23,7 @@ export class FileService implements IFileService {
     // TODO
   }
 
-  private tryOpenFileWithBrowserMethod(r: OpenFileRequest): boolean {
+  private tryOpenFileWithBrowserMethod<P,T>(r: OpenFileRequest<P,T>): boolean {
     if (!this.platform.is('desktop') && !this.platform.is('mobileweb')) {
       return false;
     }
@@ -36,39 +36,37 @@ export class FileService implements IFileService {
       (window as any).showOpenFilePicker({
         types: [{description: r.description, accept}],
         multiple: r.multiple
-      }).then((files: any[]) => {
-        r.onreading().then(obj => {
-          this.getFilesContentFromFilePicker(files).then(content => {
-            r.onloaded(content, obj);
-          }).catch((e: any) => r.onerror(e, obj));
-        }).catch((e: any) => r.onerror(e, undefined));
-      }).catch((e: any) => r.onerror(e, undefined));
+      }).then((files: FileSystemFileHandle[]) =>
+        r.onstartreading(files.length)
+        .then(fromStartReading => {
+          const results: T[] = [];
+          const readNext = (index: number) => {
+            files[index].getFile().then(file => {
+              file.arrayBuffer().then(fileContent => {
+                r.onfileread(index, files.length, fromStartReading, fileContent)
+                .then(result => {
+                  results.push(result);
+                  if (index === files.length - 1) {
+                    setTimeout(() => r.onfilesloaded(fromStartReading, results), 0);
+                  } else {
+                    setTimeout(() => readNext(index + 1), 0);
+                  }
+                })
+                .catch(e => r.onerror(e, fromStartReading));
+              }).catch(e => r.onerror(e, fromStartReading));
+            }).catch(e => r.onerror(e, fromStartReading));
+          };
+          setTimeout(() => readNext(0), 0);
+        })
+      )
+      .catch((e: any) => r.onerror(e, undefined));
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  private getFilesContentFromFilePicker(selectedFiles: any[]): Promise<ArrayBuffer[]> {
-    return new Promise<ArrayBuffer[]>((resolve, reject) => {
-      this.getFilesContentStepFromFilePicker(selectedFiles, [], 0, resolve, reject);
-    });
-  }
-
-  private getFilesContentStepFromFilePicker(selectedFiles: any[], content: ArrayBuffer[], index: number, onDone: (content: ArrayBuffer[]) => void, onError: (e: any) => void): void {
-    if (index >= selectedFiles.length) {
-      onDone(content);
-      return;
-    }
-    selectedFiles[index].getFile().then((file: File) => {
-      file.arrayBuffer().then((fileContent: ArrayBuffer) => {
-        content.push(fileContent);
-        this.getFilesContentStepFromFilePicker(selectedFiles, content, index + 1, onDone, onError);
-      }).catch(onError);
-    }).catch(onError);
-  }
-
-  private tryWithHiddenInputFile(r: OpenFileRequest): boolean {
+  private tryWithHiddenInputFile<P,T>(r: OpenFileRequest<P,T>): boolean {
     const input = document.createElement('INPUT') as HTMLInputElement;
     input.type = 'file';
     input.multiple = r.multiple;
@@ -78,10 +76,26 @@ export class FileService implements IFileService {
     input.style.left = '-10000px';
     input.addEventListener('change', () => {
       if (input.files && input.files.length > 0) {
-        r.onreading().then(obj => {
-          this.getFilesContent(input.files!).then(content => {
-            r.onloaded(content, obj);
-          }).catch((e: any) => { document.documentElement.removeChild(input); r.onerror(e, obj); });
+        r.onstartreading(input.files.length).then(fromStartReading => {
+          const results: T[] = [];
+          const readNext = (index: number) => {
+            input.files![index].arrayBuffer().then(fileContent => {
+              r.onfileread(index, input.files!.length, fromStartReading, fileContent)
+              .then(result => {
+                results.push(result);
+                if (index === input.files!.length - 1) {
+                  setTimeout(() => {
+                    r.onfilesloaded(fromStartReading, results);
+                    document.documentElement.removeChild(input);
+                  }, 0);
+                } else {
+                  setTimeout(() => readNext(index + 1), 0);
+                }
+              })
+              .catch(e => { document.documentElement.removeChild(input); r.onerror(e, fromStartReading); });
+            }).catch(e => { document.documentElement.removeChild(input); r.onerror(e, fromStartReading); });
+          };
+          setTimeout(() => readNext(0), 0);
         }).catch((e: any) => { document.documentElement.removeChild(input); r.onerror(e, undefined); });
       }
     });
@@ -89,23 +103,6 @@ export class FileService implements IFileService {
     const click = new MouseEvent('click');
     input.dispatchEvent(click);
     return true;
-  }
-
-  private getFilesContent(selectedFiles: FileList): Promise<ArrayBuffer[]> {
-    return new Promise<ArrayBuffer[]>((resolve, reject) => {
-      this.getFilesContentStep(selectedFiles, [], 0, resolve, reject);
-    });
-  }
-
-  private getFilesContentStep(selectedFiles: FileList, content: ArrayBuffer[], index: number, onDone: (content: ArrayBuffer[]) => void, onError: (e: any) => void): void {
-    if (index >= selectedFiles.length) {
-      onDone(content);
-      return;
-    }
-    selectedFiles[index].arrayBuffer().then((fileContent: ArrayBuffer) => {
-      content.push(fileContent);
-      this.getFilesContentStep(selectedFiles, content, index + 1, onDone, onError);
-    }).catch(onError);
   }
 
   public saveBinaryData(filename: string, data: BinaryContent): Promise<boolean> {
@@ -124,17 +121,4 @@ export class FileService implements IFileService {
       }
     );
   }
-}
-
-class OpenFileRequest {
-    constructor(
-      public description: string,
-      public mimeType: string,
-      public extension: string,
-      public multiple: boolean,
-      public onreading: () => Promise<any>,
-      public onloaded: (content: ArrayBuffer[], fromOnreading: any) => void,
-      public onerror: (error: any, fromOnreading?: any) => void
-    ) {
-    }
 }

@@ -106,6 +106,19 @@
       "location": "Emplacement",
       "search_from_departure": "Proposer des lieux par rapport au départ"
     },
+    "import_tags_popup": {
+      "title": "Import des tags",
+      "message": "Les tags suivants ont été trouvés dans les fichiers importés",
+      "tag": "Tag",
+      "status": "Statut",
+      "status_exists": "Existe",
+      "status_does_not_exist": "N'existe pas",
+      "message2": "Que souhaitez-vous faire avec ces tags ?",
+      "import_existing_only": "Importer seulement les tags déjà existants",
+      "import_and_create": "Importer tous les tags en créant les manquants",
+      "import_all": "Tout importer",
+      "ignore_all": "Ne pas importer les tags"
+    },
     "preferences": {
       "title": "Préférences",
       "display_section_title": "Affichage",
