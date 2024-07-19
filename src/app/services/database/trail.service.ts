@@ -409,7 +409,6 @@ export class TrailService {
         tracks.push(this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
         if (trail.currentTrackUuid !== trail.originalTrackUuid)
           tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
-        console.log('trail', tracks.length);
         return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
           map(tracks => ({trail, tracks: tracks.filter(track => !!track) as Track[]})),
           switchMap(t => {

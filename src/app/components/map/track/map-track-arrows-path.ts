@@ -11,19 +11,37 @@ export class MapTrackArrowPath {
   private _shown = false;
   private _map?: L.Map;
   private _arrowsByZoom: {[key:number]: L.Polyline[]} = {};
-  private _zoomHandler = () => this.updateArrowsOnMap();
+  private _zoomStartHandler = () => {
+    if (!this._shown) return;
+    if (this._arrowsByZoom[this._currentZoomShown])
+      for (const polyline of this._arrowsByZoom[this._currentZoomShown])
+        polyline.removeFrom(this._map!);
+  };
+  private _zoomEndHandler = () => {
+    if (!this._shown) return;
+    let z = this._map!.getZoom();
+    if (z < 10) z = -1
+    if (z === this._currentZoomShown && z >= 0 && this._arrowsByZoom[this._currentZoomShown]) {
+      for (const polyline of this._arrowsByZoom[this._currentZoomShown])
+        polyline.addTo(this._map!);
+    } else {
+      this.updateArrowsOnMap();
+    }
+  };
   private _currentZoomShown = -1;
 
   public addTo(map: L.Map): void {
     if (this._map) return;
     this._map = map;
-    map.addEventListener('zoom', this._zoomHandler);
+    map.addEventListener('zoomstart', this._zoomStartHandler);
+    map.addEventListener('zoomend', this._zoomEndHandler);
     this.updateArrowsOnMap();
   }
 
   public remove(): void {
     if (!this._map) return;
-    this._map.removeEventListener('zoom', this._zoomHandler);
+    this._map.removeEventListener('zoomstart', this._zoomStartHandler);
+    this._map.removeEventListener('zoomend', this._zoomEndHandler);
     if (this._currentZoomShown >= 0)
       for (const polyline of this._arrowsByZoom[this._currentZoomShown])
         polyline.removeFrom(this._map);

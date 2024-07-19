@@ -7,9 +7,9 @@ export class ZoomLevelDisplayTool extends L.Control {
     span.style.backgroundColor = 'rgba(255,255,255,0.5)';
     span.style.color = '#202020';
     span.style.padding = '1px 2px';
-    span.innerText = 'Zoom: ' + map.getZoom();
+    span.innerText = 'Zoom: ' + map.getZoom().toLocaleString('en', {maximumFractionDigits: 1});
     map.on('zoom', () => {
-      span.innerText = 'Zoom: ' + map.getZoom();
+      span.innerText = 'Zoom: ' + map.getZoom().toLocaleString('en', {maximumFractionDigits: 1});
     });
     return span;
   }
