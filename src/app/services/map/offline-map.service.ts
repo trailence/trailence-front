@@ -65,9 +65,9 @@ export class OfflineMapService {
     this._openEmail = email;
     const db = new Dexie('trailence_offline_map_' + email);
     const storesV1: any = {};
-    for (const layer of this.layers.layers) {
-      storesV1[layer.name + '_meta'] = 'key, date';
-      storesV1[layer.name + '_tiles'] = 'key';
+    for (const layer of this.layers.possibleLayers) {
+      storesV1[layer + '_meta'] = 'key, date';
+      storesV1[layer + '_tiles'] = 'key';
     }
     db.version(1).stores(storesV1);
     this._db = db;

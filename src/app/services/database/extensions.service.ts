@@ -71,6 +71,8 @@ export class ExtensionsService {
     if (this._db) this.close();
     this._db = db;
     this._lastSync = 0;
+    this._syncStatus$.value.needsUpdateFromServer = true;
+    this._syncStatus$.next(this._syncStatus$.value);
     db.table<DbItem>(EXTENSIONS_TABLE_NAME).toArray().then(items => {
       this._extensions$.next(items.map(item => new Extension(item.version, item.extension, item.data)));
       combineLatest([

@@ -24,6 +24,7 @@ export interface MapLayer {
 export class MapLayersService {
 
   public layers: MapLayer[];
+  public possibleLayers: string[];
 
   constructor(injector: Injector) {
     this.layers = [
@@ -43,6 +44,10 @@ export class MapLayersService {
         }
       }
     );
+    this.possibleLayers = [
+      'osm', 'osmfr', 'otm', 'ign', 'ign-sat',
+      'tfo'
+    ]
   }
 
   public getDefaultLayer(): string {
