@@ -12,7 +12,7 @@
     "lint": "ng lint",
     "install-global-commands": "npm i cpy-cli -g",
     "update-android": "ionic capacitor update android",
-    "install-android": "ionic capacitor copy android --configuration=android-%npm_config_env% && cd android/environments/%npm_config_env% && cpy . ../../app/src/main",
+    "install-android": "ionic capacitor copy android --configuration=android-%npm_config_env% && cd android/environments/%npm_config_env% && cpy . ../..",
     "install-android-dev": "npm run install-android --env=dev",
     "install-android-local": "npm run install-android --env=local",
     "set-version": "node ./scripts/set-version.js %npm_config_newversion%"
