@@ -154,6 +154,35 @@
       },
       "more_maps_layers": "More Map Layers",
       "thunderforest_explaination": "You can add maps from thunderforest.com if you have an account on their web site (a free account is available). Enter your API key below"
+    },
+    "myaccount": {
+      "title": "My Account",
+      "devices": "Connected devices",
+      "devices_table": {
+        "connected_since": "Connected since",
+        "last_usage": "Latest usage",
+        "this_device": "This device",
+        "types": {
+          "capacitor": "Mobile application",
+          "mobileweb": "Mobile web application",
+          "desktop": "Desktop web application"
+        }
+      },
+      "change_password": {
+        "button": "Change my password",
+        "current_password": "Current password",
+        "new_password1": "New password",
+        "new_password2": "Confirm the new password",
+        "verification_code_explaination": "We have just sent a 6-digit code to your email address, please enter it below",
+        "in_progress": "Changing your password...",
+        "error": "An error occured, please go back and try again"
+      }
+    },
+    "link": {
+      "stop_change_password": {
+        "in_progress": "Thank you for reporting the problem to us, we are canceling the password change request for your account...",
+        "done": "Thank you for reporting the issue, we have canceled all password change requests for your account."
+      }
     }
   },
   "menu": {
@@ -179,6 +208,8 @@
     "delete": "Delete",
     "download": "Download",
     "edit": "Edit",
+    "next": "Continue",
+    "previous": "Back",
     "save": "Save",
     "retry": "Retry"
   },

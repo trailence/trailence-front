@@ -11,6 +11,7 @@ export class AssetsService {
 
   constructor() {
     this.icons = {
+      'account': 'assets/ionicons/person-circle-outline.svg',
       'add': 'assets/ionicons/add.svg',
       'add-circle': 'assets/ionicons/add-circle-outline.svg',
       'altitude': 'assets/altitude.1.svg',

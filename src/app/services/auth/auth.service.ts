@@ -5,7 +5,7 @@ import { BehaviorSubject, EMPTY, Observable, catchError, filter, first, from, ma
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
-import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, NavigationStart, Router, RouterStateSnapshot } from '@angular/router';
 import { ApiError } from '../http/api-error';
 import { LoginRequest } from './login-request';
 import { DeviceInfo } from './device-info';
@@ -54,22 +54,32 @@ export class AuthService {
         localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
       }
     });
-    try {
-      const authStored = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);
-      if (authStored) {
-        const auth = JSON.parse(authStored) as AuthResponse;
-        if (!auth.accessToken) throw Error('No accessToken');
-        if (!auth.expires) throw Error('No expires');
-        if (!auth.email) throw Error('No email');
-        if (!auth.keyId) throw Error('No keyId');
-        console.log('Found stored authentication for user', auth.email);
-        this.openDB(auth.email);
-        this._auth$.next(auth);
+    router.events.pipe(
+      filter(e => {
+        if (e instanceof NavigationStart) {
+          if (!e.url.startsWith("/link/")) return true;
+        }
+        return false;
+      }),
+      first(),
+    ).subscribe(() => {
+      try {
+        const authStored = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);
+        if (authStored) {
+          const auth = JSON.parse(authStored) as AuthResponse;
+          if (!auth.accessToken) throw Error('No accessToken');
+          if (!auth.expires) throw Error('No expires');
+          if (!auth.email) throw Error('No email');
+          if (!auth.keyId) throw Error('No keyId');
+          console.log('Found stored authentication for user', auth.email);
+          this.openDB(auth.email);
+          this._auth$.next(auth);
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
-    if (this._auth$.value === undefined) this._auth$.next(null);
+      if (this._auth$.value === undefined) this._auth$.next(null);
+    });
   }
 
   public get auth$(): Observable<AuthResponse | null> { return this._auth$.pipe(filter(auth => auth !== undefined)) as Observable<AuthResponse | null>; }
@@ -205,7 +215,8 @@ export class AuthService {
     if (!request.url.startsWith(environment.apiBaseUrl + '/') ||
       request.url === environment.apiBaseUrl + '/auth/v1/login' ||
       request.url === environment.apiBaseUrl + '/auth/v1/init_renew' ||
-      request.url === environment.apiBaseUrl + '/auth/v1/renew') {
+      request.url === environment.apiBaseUrl + '/auth/v1/renew' ||
+      (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE')) {
         return of(request);
       }
     return this.requireAuth().pipe(

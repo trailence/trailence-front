@@ -8,6 +8,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page').then( m => m.LoginPage)
   },
   {
+    path: 'link/:link',
+    loadComponent: () => import('./pages/link/link.page').then( m => m.LinkPage)
+  },
+  {
     path: '',
     canActivate: [(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => inject(AuthService).guardAuthenticated(route, state)],
     children: [
@@ -30,6 +34,10 @@ export const routes: Routes = [
       {
         path: 'preferences',
         loadComponent: () => import('./pages/preferences/preferences.page').then( m => m.PreferencesPage)
+      },
+      {
+        path: 'myaccount',
+        loadComponent: () => import('./pages/myaccount/myaccount.page').then( m => m.MyaccountPage)
       },
       {
         path: '',

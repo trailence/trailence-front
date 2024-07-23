@@ -1,0 +1,63 @@
+.page-content {
+  flex: 1 1 100%;
+  display: block;
+  padding: 10px;
+  overflow: auto;
+}
+
+.page-section-title:not(:first-child) {
+  margin-top: 25px;
+}
+
+.device {
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--ion-color-medium);
+  margin-bottom: 3px;
+
+  .device-row {
+    width: 245px;
+
+    .device-info {
+      .device-description {
+        .device-systemtype {
+          display: flex;
+          flex-direction: row;
+          div {
+            color: var(--ion-color-secondary);
+            font-size: 14px;
+            &:not(:first-child) {
+              margin-left: 8px;
+            }
+          }
+        }
+        .device-details {
+          color: var(--ion-color-medium);
+          font-size: 11px;
+        }
+      }
+      .device-date {
+        display: flex;
+        flex-direction: row;
+        font-size: 14px;
+        div:first-child {
+          color: var(--ion-color-medium);
+        }
+        div:not(:first-child) {
+          color: var(--ion-text-color);
+          margin-left: 5px;
+        }
+      }
+    }
+  }
+  .device-action {
+    flex: none;
+    width: 95px;
+    padding: 5px 2px;
+    font-size: 12px;
+    span {
+      font-style: italic;
+    }
+  }
+}

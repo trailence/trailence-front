@@ -34,6 +34,10 @@
           <ion-icon slot="start" name="settings"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.title}}</ion-label>
         </ion-item>
+        <ion-item button (click)="router.navigateByUrl('/myaccount'); accountPopover.dismiss();">
+          <ion-icon slot="start" name="account"></ion-icon>
+          <ion-label>{{i18n.texts.pages.myaccount.title}}</ion-label>
+        </ion-item>
 
         <ion-popover trigger="item-language" [dismissOnSelect]="true" side="start">
           <ng-template>

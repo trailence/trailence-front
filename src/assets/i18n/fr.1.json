@@ -154,6 +154,35 @@
       },
       "more_maps_layers": "Plus de fonds de carte",
       "thunderforest_explaination": "Vous pouvez ajouter les cartes de thunderforest.com si vous avez un compte chez eux (un compte gratuit est disponible). Pour cela, entrez votre clé d'API ci-dessous"
+    },
+    "myaccount": {
+      "title": "Mon Compte",
+      "devices": "Périphériques connectés",
+      "devices_table": {
+        "connected_since": "Connecté depuis",
+        "last_usage": "Dernière utilisation",
+        "this_device": "Ce périphérique",
+        "types": {
+          "capacitor": "Application mobile",
+          "mobileweb": "Web application mobile",
+          "desktop": "Web application desktop"
+        }
+      },
+      "change_password": {
+        "button": "Modifier mon mot de passe",
+        "current_password": "Mot de passe actuel",
+        "new_password1": "Nouveau mot de passe",
+        "new_password2": "Confirmez le nouveau mot de passe",
+        "verification_code_explaination": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
+        "in_progress": "Changement du mot de passe...",
+        "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer"
+      }
+    },
+    "link": {
+      "stop_change_password": {
+        "in_progress": "Merci de nous avoir signalé le problème, nous annulons la demande de changement de mot de passe pour votre compte...",
+        "done": "Merci de nous avoir signalé le problème, nous avons annulé toutes les demandes de changement de mot de passe pour votre compte."
+      }
     }
   },
   "menu": {
@@ -179,6 +208,8 @@
     "delete": "Supprimer",
     "download": "Télécharger",
     "edit": "Modifier",
+    "next": "Continuer",
+    "previous": "Revenir",
     "save": "Enregistrer",
     "retry": "Réessayer"
   },

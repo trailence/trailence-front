@@ -1,0 +1,49 @@
+<app-header
+  [title]="i18n.texts.pages.myaccount.title"
+></app-header>
+<div class="page-content">
+  <div class="page-section-title">
+    {{email}}
+  </div>
+
+  <ion-button (click)="changePassword()">
+    {{i18n.texts.pages.myaccount.change_password.button}}
+  </ion-button>
+
+  <div class="page-section-title">
+    {{i18n.texts.pages.myaccount.devices}}
+  </div>
+
+  <ng-container *ngIf="keys">
+    <div class="device" *ngFor="let key of keys">
+      <div class="device-row">
+        <div class="device-info">
+          <div class="device-description">
+            <div class="device-systemtype">
+              <div class="device-type">{{deviceApplicationType(key)}}</div>
+              <div class="device-system">{{deviceSystem(key)}}</div>
+            </div>
+            <div class="device-details">{{deviceDetails(key)}}</div>
+          </div>
+          <div class="device-date">
+            <div>{{i18n.texts.pages.myaccount.devices_table.connected_since}}</div>
+            <div>{{i18n.timestampToDateTimeString(key.createdAt)}}</div>
+          </div>
+          <div class="device-date">
+            <div>{{i18n.texts.pages.myaccount.devices_table.last_usage}}</div>
+            <div>{{i18n.timestampToDateTimeString(key.lastUsage)}}</div>
+          </div>
+        </div>
+      </div>
+      <div class="device-action">
+        <span *ngIf="isThisDevice(key)">
+          {{i18n.texts.pages.myaccount.devices_table.this_device}}
+        </span>
+        <ion-button size="small" *ngIf="!isThisDevice(key)" (click)="deleteKey(key)">
+          {{i18n.texts.buttons.delete}}
+        </ion-button>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

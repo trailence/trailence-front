@@ -39,6 +39,7 @@
     "@capacitor/status-bar": "^6.0.0",
     "@capawesome/capacitor-file-picker": "^6.0.1",
     "@ionic/angular": "^8.2.5",
+    "angular-code-input": "^2.0.0",
     "chart.js": "^4.4.3",
     "client-zip": "^1.6.4",
     "dexie": "4.0.4",
