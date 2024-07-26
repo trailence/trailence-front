@@ -16,6 +16,7 @@ import { MapCenterOnPositionTool } from './tools/center-on-location';
 import { MapLayerSelectionTool } from './tools/layer-selection-tool';
 import { ZoomLevelDisplayTool } from './tools/zoom-level-display';
 import { DownloadMapTool } from './tools/download-map-tool';
+import { DarkMapToggle } from './tools/dark-map-toggle';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -296,6 +297,7 @@ export class MapComponent extends AbstractComponent {
 
     new ZoomLevelDisplayTool({position: 'topleft'}).addTo(map);
     new MapLayerSelectionTool(this.injector, this._mapState, {position: 'topright'}).addTo(map);
+    new DarkMapToggle(this.injector, {position: 'topright'}).addTo(map);
     if (this.downloadMapTool)
       new DownloadMapTool(this.injector, {position: 'topright'}).addTo(map);
 

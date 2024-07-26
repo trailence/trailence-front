@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent } from '@ionic/angular/standalone';
+import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons } from '@ionic/angular/standalone';
 import { Subscription, combineLatest, distinctUntilChanged, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
@@ -14,7 +14,7 @@ import { IdGenerator } from 'src/app/utils/component-utils';
   templateUrl: './header-user-menu.component.html',
   styleUrls: ['./header-user-menu.component.scss'],
   standalone: true,
-  imports: [IonContent, IonLabel, IonIcon, IonItem, IonList,
+  imports: [IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList,
     IonButton,
     IonPopover,
   ]
@@ -25,6 +25,9 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
   private subscription?: Subscription;
 
   id: string;
+  loggingOut = false;
+
+  @ViewChild('logoutModal') logoutModal?: IonModal;
 
   constructor(
     public i18n: I18nService,
@@ -54,6 +57,19 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+  }
+
+  logout(): void {
+    this.logoutModal?.present();
+  }
+
+  doLogout(withDelete: boolean): void {
+    this.loggingOut = true;
+    this.auth.logout(withDelete).subscribe(() => {
+      this.logoutModal?.dismiss();
+      this.loggingOut = false;
+      this.router.navigateByUrl('/');
+    });
   }
 
 }

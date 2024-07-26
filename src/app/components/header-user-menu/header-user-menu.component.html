@@ -1,4 +1,4 @@
-<ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}">
+<ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button">
   <div slot="icon-only">{{auth.email?.substring(0, 1)}}</div>
 </ion-button>
 <div class="status">
@@ -37,6 +37,10 @@
         <ion-item button (click)="router.navigateByUrl('/myaccount'); accountPopover.dismiss();">
           <ion-icon slot="start" name="account"></ion-icon>
           <ion-label>{{i18n.texts.pages.myaccount.title}}</ion-label>
+        </ion-item>
+        <ion-item button (click)="logout(); accountPopover.dismiss();">
+          <ion-icon slot="start" name="logout"></ion-icon>
+          <ion-label>{{i18n.texts.logout.title}}</ion-label>
         </ion-item>
 
         <ion-popover trigger="item-language" [dismissOnSelect]="true" side="start">
@@ -78,3 +82,27 @@
     </ion-content>
   </ng-template>
 </ion-popover>
+
+<ion-modal #logoutModal [backdropDismiss]="false">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>
+          <ion-icon name="logout" style="margin-right: 10px"></ion-icon>
+          <ion-label>{{i18n.texts.logout.title}}</ion-label>
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding" [innerHTML]="i18n.texts.logout.text">
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar color="footer">
+        <ion-buttons slot="end">
+          <ion-button color="danger" [disabled]="loggingOut" (click)="doLogout(true);">{{i18n.texts.logout.button_delete}}</ion-button>
+          <ion-button color="success" [disabled]="loggingOut" (click)="doLogout(false);">{{i18n.texts.logout.button_keep}}</ion-button>
+          <ion-button color="medium" [disabled]="loggingOut" (click)="logoutModal.dismiss()">{{i18n.texts.buttons.cancel}}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

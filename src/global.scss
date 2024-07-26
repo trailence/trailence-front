@@ -40,3 +40,18 @@
     --header-height: 40px;
   }
 }
+
+app-map .leaflet-container {
+  background: var(--ion-background-color);
+}
+
+body.dark-map {
+
+  .leaflet-layer,
+  .leaflet-control-zoom-in,
+  .leaflet-control-zoom-out,
+  .leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  }
+
+}

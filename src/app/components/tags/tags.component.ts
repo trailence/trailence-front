@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
 import { Subscription, combineLatest, debounceTime, of, switchMap } from 'rxjs';
@@ -35,8 +35,13 @@ class TagNode {
 })
 export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
+  @Input() inPopup = true;
+  @Input() editable = true;
   @Input() collectionUuid?: string;
   @Input() trails?: Trail[];
+
+  @Input() selection?: string[];
+  @Output() selectionChange = new EventEmitter<Tag[]>();
 
   tree: TagNode[] = [];
 
@@ -69,12 +74,12 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     this.subscription = undefined;
     this.tree = [];
 
-    if (!this.collectionUuid || !this.trails) return;
+    if (!this.collectionUuid) return;
 
     const tags$ = this.tagService.getAllTags$().pipe(
       collection$items(tag => tag.collectionUuid === this.collectionUuid)
     );
-    const trailsTags$ = this.tagService.getTrailsTags$(this.trails.map(t => t.uuid));
+    const trailsTags$ = this.trails ? this.tagService.getTrailsTags$(this.trails.map(t => t.uuid)) : of([]);
 
     this.subscription = combineLatest([tags$, trailsTags$]).pipe(
       debounceTime(100)
@@ -107,9 +112,11 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
         node.tag = tag;
         node.existing = existing;
         node.parentNode = parentNode;
+        if (this.selection && this.selection.indexOf(tag.uuid) >= 0) node.userSelected = true;
         nodes.push(node);
       } else {
         const node = new TagNode(tag, existing, undefined, [], parentNode);
+        if (this.selection && this.selection.indexOf(tag.uuid) >= 0) node.userSelected = true;
         nodes.push(node);
       }
     }
@@ -143,6 +150,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   startEdit(node: TagNode): void {
+    if (!this.editable) return;
     node.newName = node.tag.name;
     node.editing = true;
     const startTime = Date.now();
@@ -165,7 +173,6 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
       node.tag.name = node.newName;
       this.tagService.update(node.tag);
     }
-    console.log((event$.detail.relatedTarget as any | null)?.nodeName);
     if ((event$.detail.relatedTarget as any | null)?.nodeName === 'ION-BUTTON') {
       // give the time for the delete button to be taken into account
       setTimeout(() => node.editing = false, 1000);
@@ -229,6 +236,25 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   cancel(): void {
     this.modalController.dismiss(null, 'cancel');
+  }
+
+  selectionChanged(): void {
+    this.selectionChange.emit(this.getSelection());
+  }
+
+  private getSelection(): Tag[] {
+    const selection: Tag[] = [];
+    this.fillSelection(selection, this.tree);
+    return selection;
+  }
+
+  private fillSelection(selection: Tag[], nodes: TagNode[]): void {
+    for (const node of nodes) {
+      if (node.userSelected === true) {
+        selection.push(node.tag);
+      }
+      this.fillSelection(selection, node.children);
+    }
   }
 
 }

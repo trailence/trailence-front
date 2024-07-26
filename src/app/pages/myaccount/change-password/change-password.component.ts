@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonButtons, IonFooter, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
 import { CodeInputModule } from 'angular-code-input';
+import { AuthService } from 'src/app/services/auth/auth.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
@@ -16,6 +17,7 @@ import { environment } from 'src/environments/environment';
 })
 export class ChangePasswordComponent {
 
+  hasPreviousPassword = true;
   page = 1;
   previousPassword = '';
   newPassword1 = '';
@@ -27,10 +29,13 @@ export class ChangePasswordComponent {
     public i18n: I18nService,
     private modalController: ModalController,
     private http: HttpService,
-  ) { }
+    auth: AuthService
+  ) {
+    this.hasPreviousPassword = auth.auth?.complete === false ? false : true;
+  }
 
   canGoNext(): boolean {
-    if (this.page === 1) return this.previousPassword.length > 0 && this.newPassword1.length >= 8 && this.newPassword1 === this.newPassword2;
+    if (this.page === 1) return (!this.hasPreviousPassword || this.previousPassword.length > 0) && this.newPassword1.length >= 8 && this.newPassword1 === this.newPassword2;
     if (this.page === 2) return this.code.length === 6;
     return false;
   }
@@ -41,11 +46,12 @@ export class ChangePasswordComponent {
       this.code = '';
     } else if (this.page === 2) {
       this.changeResult = undefined;
-      this.http.post(environment.apiBaseUrl + '/user/v1/changePassword', {
-        previousPassword: this.previousPassword,
+      const request = {
         newPassword: this.newPassword1,
-        code: this.code
-      }).subscribe({
+        code: this.code,
+      } as any;
+      if (this.hasPreviousPassword) request.previousPassword = this.previousPassword;
+      this.http.post(environment.apiBaseUrl + '/user/v1/changePassword', request).subscribe({
         complete: () => {
           this.modalController.dismiss(null, 'cancel');
         },

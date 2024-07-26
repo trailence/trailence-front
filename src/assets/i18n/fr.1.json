@@ -4,7 +4,8 @@
     "import": "Importer",
     "import_gpx_description": "Importer des fichiers GPX",
     "importing": "Import",
-    "sort": "Tri"
+    "sort": "Tri",
+    "share": "Partager"
   },
   "pages": {
     "login": {
@@ -12,7 +13,9 @@
       "email": "E-Mail",
       "password": "Mot de passe",
       "signin_button": "Se Connecter",
-      "offline": "Veuillez vous connecter à Internet afin de vous connecter sur Trailence"
+      "offline": "Veuillez vous connecter à Internet afin de vous connecter sur Trailence",
+      "incorrect_message": "Identifiants incorrects",
+      "error_message": "Erreur d'authentification, veuillez réessayer"
     },
     "trails": {
       "edit_filters_popup_title": "Filtrer les Parcours",
@@ -119,6 +122,23 @@
       "import_all": "Tout importer",
       "ignore_all": "Ne pas importer les tags"
     },
+    "share_popup": {
+      "title": "Partager",
+      "type": {
+        "question": "Que souhaitez-vous partager ?",
+        "collection": "Toute la collection",
+        "tags": "Des tags"
+      },
+      "tags": {
+        "question": "Quels tags ?"
+      },
+      "name": "Donner un nom au partage",
+      "name_info": "Ce nom sera visible par vous et la personne avec qui vous paratgez",
+      "who_question": "Avec qui ?",
+      "email": "Email",
+      "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
+      "language": "Dans quelle langue devons-nous envoyer le mail ?"
+    },
     "preferences": {
       "title": "Préférences",
       "display_section_title": "Affichage",
@@ -182,11 +202,19 @@
       "stop_change_password": {
         "in_progress": "Merci de nous avoir signalé le problème, nous annulons la demande de changement de mot de passe pour votre compte...",
         "done": "Merci de nous avoir signalé le problème, nous avons annulé toutes les demandes de changement de mot de passe pour votre compte."
+      },
+      "share": {
+        "in_progress": "Nous chargeons les données de votre lien de partage...",
+        "error": "Votre lien est invalide. Il est possible que le partage de ce lien ait été supprimé."
       }
     }
   },
   "menu": {
     "collections": "Collections",
+    "shared_with_me": "Partagé avec moi",
+    "nothing_shared_with_me": "Aucun parcours partagé avec vous",
+    "shared_by_me": "Partagé par moi",
+    "nothing_shared_by_me": "Vous ne partagez aucun parcours",
     "start_trace": "Démarrer une trace",
     "current_trace": "Trace en cours"
   },
@@ -263,5 +291,17 @@
     "kb": "Ko",
     "mb": "Mo",
     "gb": "Go"
+  },
+  "logout": {
+    "title": "Déconnexion",
+    "text": "Souhaitez-vous également supprimer toutes vos données sur ce périphérique ?<p>Si vous supprimer vos données de ce périphérique, elles seront conservées sur notre serveur mais lors de votre prochaine connexion toutes vos données devront être de nouveau téléchargées. Si vous les conservez, uniquement les mises à jour auront besoin d'être téléchargées.</p><p>Si vous les supprimer, assuez-vous que la synchronisation de vos données sur notre serveur est complète, sinon les modifications non synchronisées seront perdues.</p><p>Si vous êtes sur un périphérique partagé, il est recommendé de supprimer vos données.</p>",
+    "button_delete": "Déconnecter et supprimer",
+    "button_keep": "Déconnecter sans supprimer"
+  },
+  "confirm_delete_share": {
+    "title": "Supprimer un partage",
+    "message": "Etes-vous sûr de vouloir supprimer {{}} ?",
+    "yes": "Oui, supprimer",
+    "no": "Annuler, garder"
   }
 }

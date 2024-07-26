@@ -587,7 +587,7 @@ export class TrackDatabase {
   }
 
   private syncUpdatesFromServer(db: Dexie): Observable<any> {
-    return from(this.fullTrackTable!.where('owner').equals(this.openEmail!).toArray()).pipe(
+    return from(this.fullTrackTable!.toArray()).pipe(
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         const known: VersionDto[] = [];

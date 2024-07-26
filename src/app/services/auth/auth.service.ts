@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, EMPTY, Observable, catchError, filter, first, from, map, of, share, switchMap, tap, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, share, switchMap, tap, throwError, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -12,6 +12,7 @@ import { DeviceInfo } from './device-info';
 import { Platform } from '@ionic/angular/standalone';
 import { InitRenewRequest } from './init-renew-request';
 import { RenewRequest } from './renew-request';
+import { LoginShareRequest } from './login-share-request';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
@@ -50,7 +51,7 @@ export class AuthService {
           router.navigate(['/login'], { queryParams: {returnUrl: url} });
         }
       } else if (auth) {
-        console.log('Using ' + auth.email + ', token expires at ' + new Date(auth.expires));
+        console.log('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete);
         localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
       }
     });
@@ -63,6 +64,7 @@ export class AuthService {
       }),
       first(),
     ).subscribe(() => {
+      if (this._auth$.value !== undefined) return;
       try {
         const authStored = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);
         if (authStored) {
@@ -95,7 +97,6 @@ export class AuthService {
   }
 
   public guardAuthenticated(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): MaybeAsync<GuardResult> {
-    if (this._auth$.value) return true;
     return this._auth$.pipe(
       filter(auth => auth !== undefined),
       map(auth => {
@@ -106,6 +107,55 @@ export class AuthService {
   }
 
   public login(email: string, password: string): Observable<AuthResponse> {
+    return this.generateKeys().pipe(
+      switchMap(keys =>
+        this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
+          email,
+          password,
+          publicKey: keys.publicKeyBase64,
+          deviceInfo: new DeviceInfo(this.platform)
+        } as LoginRequest)
+        .pipe(
+          switchMap(response =>
+            from(this.openDB(response.email)
+              .transaction('rw', DB_SECURITY_TABLE, tx => {
+                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
+              })
+            ).pipe(map(() => response))
+          ),
+          tap(response => {
+            this._auth$.next(response);
+          })
+        )
+      ),
+    );
+  }
+
+  public loginWithShareLink(token: string): Observable<AuthResponse> {
+    return this.generateKeys().pipe(
+      switchMap(keys =>
+        this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/share', {
+          token,
+          publicKey: keys.publicKeyBase64,
+          deviceInfo: new DeviceInfo(this.platform)
+        } as LoginShareRequest)
+        .pipe(
+          switchMap(response =>
+            from(this.openDB(response.email)
+              .transaction('rw', DB_SECURITY_TABLE, tx => {
+                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
+              })
+            ).pipe(map(() => response))
+          ),
+          tap(response => {
+            this._auth$.next(response);
+          })
+        )
+      ),
+    );
+  }
+
+  private generateKeys(): Observable<{keyPair: CryptoKeyPair, publicKeyBase64: string}> {
     return from(window.crypto.subtle.generateKey(
       {
         name: 'RSASSA-PKCS1-v1_5',
@@ -116,27 +166,56 @@ export class AuthService {
       false,
       ['sign', 'verify']
     )).pipe(
-      switchMap(keyPair => from(window.crypto.subtle.exportKey('spki', keyPair.publicKey)).pipe(
-        switchMap(pk =>
-          this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
-            email,
-            password,
-            publicKey: btoa(String.fromCharCode(...new Uint8Array(pk))),
-            deviceInfo: new DeviceInfo(this.platform)
-          } as LoginRequest)
-        ),
-        switchMap(response =>
-          from(this.openDB(response.email)
-            .transaction('rw', DB_SECURITY_TABLE, tx => {
-              tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keyPair.privateKey, keyId: response.keyId})
-            })
-          ).pipe(map(() => response))
-        ),
-        tap(response => {
-          this._auth$.next(response);
-        })
-      ))
+      switchMap(keyPair =>
+        from(window.crypto.subtle.exportKey('spki', keyPair.publicKey)).pipe(
+          map(pk => ({keyPair: keyPair, publicKeyBase64: btoa(String.fromCharCode(...new Uint8Array(pk)))}))
+        )
+      )
     );
+  }
+
+  public logout(withDelete: boolean): Observable<any> {
+    const email = this.email;
+    if (!email) return of(true);
+    if (withDelete) {
+      for (let i = 0; i < localStorage.length; ++i) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('trailence')) {
+          localStorage.removeItem(key);
+          i--;
+        }
+      }
+      return from(Dexie.getDatabaseNames())
+      .pipe(
+        switchMap(names => {
+          const deletes: Observable<any>[] = [];
+          for (const name of names) {
+            if (name.startsWith('trailence_') && name.endsWith('_' + email)) {
+              deletes.push(from(Dexie.delete(name)));
+            }
+          }
+          return deletes.length === 0 ? of(true) : zip(deletes);
+        }),
+        defaultIfEmpty(true),
+        switchMap(() => this.doLogout())
+      )
+    }
+    return this.doLogout();
+  }
+
+  private doLogout(): Observable<any> {
+    localStorage.removeItem(LOCALSTORAGE_KEY_AUTH);
+    const auth = this._auth$.value;
+    if (auth) {
+      this.http.delete(environment.apiBaseUrl + '/auth/v1/mykeys/' + auth.keyId).subscribe();
+    }
+    if (this.db) {
+      const db = this.db;
+      db.delete().then(() => db.close());
+      this.db = undefined;
+    }
+    this._auth$.next(null);
+    return of(true);
   }
 
   private requireAuth(): Observable<AuthResponse | null> {
@@ -216,6 +295,7 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/auth/v1/login' ||
       request.url === environment.apiBaseUrl + '/auth/v1/init_renew' ||
       request.url === environment.apiBaseUrl + '/auth/v1/renew' ||
+      request.url === environment.apiBaseUrl + '/auth/v1/share' ||
       (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE')) {
         return of(request);
       }

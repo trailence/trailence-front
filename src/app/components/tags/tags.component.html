@@ -1,3 +1,4 @@
+<ng-container *ngIf="inPopup">
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title>
@@ -30,6 +31,11 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
+</ng-container>
+
+<ng-container *ngIf="!inPopup">
+  <ng-container *ngTemplateOutlet="tagsNodes; context: { nodes: tree }"></ng-container>
+</ng-container>
 
 <ng-template #tagsNodes let-nodes="nodes">
   @for (child of nodes; track child.tag.uuid) {
@@ -42,7 +48,7 @@
     <ion-checkbox
       [indeterminate]="node.userSelected === undefined && node.existing > 0 && node.existing !== trails?.length"
       [checked]="node.userSelected === true || (node.userSelected !== false && node.existing > 0 && node.existing === trails?.length)"
-      (ionChange)="node.userSelected = $event.detail.checked"
+      (ionChange)="node.userSelected = $event.detail.checked; selectionChanged();"
     ></ion-checkbox>
     <div class="tag-name">
       @switch (node.editing) {

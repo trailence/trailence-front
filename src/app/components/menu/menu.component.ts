@@ -8,6 +8,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { Share } from 'src/app/model/share';
+import { ShareService } from 'src/app/services/database/share.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
 
 @Component({
   selector: 'app-menu',
@@ -22,6 +25,12 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 export class MenuComponent {
 
   collections: TrailCollection[] = [];
+  sharedWithMe: Share[] = [];
+  sharedByMe: Share[] = [];
+
+  collectionsOpen = true;
+  sharedWithMeOpen = false;
+  sharedByMeOpen = false;
 
   constructor(
     public i18n: I18nService,
@@ -29,18 +38,29 @@ export class MenuComponent {
     private router: Router,
     public menuController: MenuController,
     public traceRecorder: TraceRecorderService,
+    shareService: ShareService,
+    authService: AuthService,
   ) {
     collectionService.getAll$().pipe(
       collection$items(),
       map(list => list.sort((c1, c2) => this.compareCollections(c1, c2)))
     )
     .subscribe(list => this.collections = list);
+    combineLatest([authService.auth$, shareService.getAll$().pipe(collection$items())])
+    .subscribe(([auth, shares]) => {
+      this.sharedByMe = shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
+      this.sharedWithMe = shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
+    });
   }
 
   private compareCollections(c1: TrailCollection, c2: TrailCollection): number {
     if (c1.type === TrailCollectionType.MY_TRAILS) return -1;
     if (c2.type === TrailCollectionType.MY_TRAILS) return 1;
     return c1.name.localeCompare(c2.name, this.i18n.textsLanguage);
+  }
+
+  private compareShares(s1: Share, s2: Share): number {
+    return s2.createdAt - s1.createdAt;
   }
 
   goTo(url: string): void {

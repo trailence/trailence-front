@@ -10,6 +10,7 @@ import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menu/menu.component';
 import { GeolocationService } from './services/geolocation/geolocation.service';
 import { ExtensionsService } from './services/database/extensions.service';
+import { ShareService } from './services/database/share.service';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +38,7 @@ export class AppComponent {
     collectionService: TrailCollectionService,
     tagService: TagService,
     extensionsService: ExtensionsService,
+    shareService: ShareService,
   ) {
   }
 }

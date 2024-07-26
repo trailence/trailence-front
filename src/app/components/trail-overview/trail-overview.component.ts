@@ -38,6 +38,7 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() trail?: Trail;
   @Input() refreshMode: 'live' | 'snapshot' = 'snapshot';
+  @Input() fromCollection = true;
 
   @Input() selectable = false;
   @Input() selected = false;

@@ -117,13 +117,12 @@ export class TrailService {
     );
   }
 
-  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false): MenuItem[] {
+  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: string | undefined = undefined): MenuItem[] {
     if (trails.length === 0) return [];
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email!;
+    menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map').setAction(() => this.openDownloadMap(trails)));
     if (trails.every(t => t.owner === email)) {
-      menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map').setAction(() => this.openDownloadMap(trails)));
-
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
         menu.push(new MenuItem());
@@ -133,65 +132,72 @@ export class TrailService {
         }
         menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(trails, collectionUuid)));
       }
-      menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export').setAction(() => this.exportGpx(trails)));
-      if (collectionUuid) {
+    }
+    menu.push(new MenuItem());
+    menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export').setAction(() => this.exportGpx(trails)));
+    menu.push(new MenuItem());
+    menu.push(
+      new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
+      .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email), (col) => {
+        const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.copying, trails.length);
+        for (const trail of trails) {
+          const originalTrack$ = this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner);
+          const currentTrack$ = trail.originalTrackUuid === trail.currentTrackUuid ? originalTrack$ : this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner);
+          zip([originalTrack$, currentTrack$])
+          .pipe(filter(tracks => !!tracks[0] && !!tracks[1]), first())
+          .subscribe(
+            tracks => {
+              const originalTrack = tracks[0]!.copy(email);
+              const currentTrack = tracks[1]!.uuid === tracks[0]!.uuid ? undefined : tracks[1]!.copy(email);
+              const copy = new Trail({
+                ...trail.toDto(),
+                uuid: undefined,
+                owner: email,
+                version: undefined,
+                createdAt: undefined,
+                updatedAt: undefined,
+                collectionUuid: col.uuid,
+                originalTrackUuid: originalTrack.uuid,
+                currentTrackUuid: currentTrack?.uuid ?? originalTrack.uuid
+              });
+              this.injector.get(TrackService).create(originalTrack);
+              if (currentTrack)
+                this.injector.get(TrackService).create(currentTrack);
+              this.create(copy);
+              progress.addWorkDone(1);
+              if (fromTrail) this.injector.get(Router).navigateByUrl('/trail/' + email + '/' + copy.uuid);
+            }
+          );
+        }
+      }))
+    );
+    if (fromCollection !== undefined) {
+      if (trails.every(t => t.owner === email)) {
+        const collectionUuid = this.getUniqueCollectionUuid(trails);
+        if (fromCollection === collectionUuid) {
+          menu.push(
+            new MenuItem().setIcon('collection-move').setI18nLabel('pages.trails.actions.move_to_collection')
+            .setChildrenProvider(() => this.getCollectionsMenuItems([collectionUuid], (col) => {
+              for (const trail of trails) {
+                trail.collectionUuid = col.uuid;
+                this.update(trail);
+              }
+            }))
+          );
+          menu.push(new MenuItem());
+          menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share').setAction(() => this.openSharePopup(collectionUuid, trails)))
+        }
         menu.push(new MenuItem());
-        menu.push(
-          new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
-          .setChildrenProvider(() => this.getCollectionsMenuItems(collectionUuid, (col) => {
-            const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.copying, trails.length);
-            for (const trail of trails) {
-              const originalTrack$ = this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner);
-              const currentTrack$ = trail.originalTrackUuid === trail.currentTrackUuid ? originalTrack$ : this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner);
-              zip([originalTrack$, currentTrack$])
-              .pipe(filter(tracks => !!tracks[0] && !!tracks[1]), first())
-              .subscribe(
-                tracks => {
-                  const originalTrack = tracks[0]!.copy(email);
-                  const currentTrack = tracks[1]!.uuid === tracks[0]!.uuid ? undefined : tracks[1]!.copy(email);
-                  const copy = new Trail({
-                    ...trail.toDto(),
-                    uuid: undefined,
-                    owner: email,
-                    version: undefined,
-                    createdAt: undefined,
-                    updatedAt: undefined,
-                    collectionUuid: col.uuid,
-                    originalTrackUuid: originalTrack.uuid,
-                    currentTrackUuid: currentTrack?.uuid ?? originalTrack.uuid
-                  });
-                  this.injector.get(TrackService).create(originalTrack);
-                  if (currentTrack)
-                    this.injector.get(TrackService).create(currentTrack);
-                  this.create(copy);
-                  progress.addWorkDone(1);
-                  if (fromTrail) this.injector.get(Router).navigateByUrl('/trail/' + email + '/' + copy.uuid);
-                }
-              );
-            }
-          }))
-        );
-        menu.push(
-          new MenuItem().setIcon('collection-move').setI18nLabel('pages.trails.actions.move_to_collection')
-          .setChildrenProvider(() => this.getCollectionsMenuItems(collectionUuid, (col) => {
-            for (const trail of trails) {
-              trail.collectionUuid = col.uuid;
-              this.update(trail);
-            }
-          }))
-        );
+        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(trails, fromTrail)));
       }
-      menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(trails, fromTrail)));
     }
     return menu;
   }
 
-  private getCollectionsMenuItems(excludeUuid: string, action: (col: TrailCollection) => void): Observable<MenuItem[]> {
+  private getCollectionsMenuItems(excludeUuids: string[], action: (col: TrailCollection) => void): Observable<MenuItem[]> {
     return this.injector.get(TrailCollectionService).getAll$().pipe(
       switchMap(cols => cols.length === 0 ? of([]) : combineLatest(cols)),
-      map(cols => (cols.filter(col => !!col && col.uuid !== excludeUuid) as TrailCollection[]).map(
+      map(cols => (cols.filter(col => !!col && excludeUuids.indexOf(col.uuid) < 0) as TrailCollection[]).map(
         col => {
           const item = new MenuItem();
           if (col.name === '' && col.type === TrailCollectionType.MY_TRAILS)
@@ -212,6 +218,15 @@ export class TrailService {
       if (trails[i].collectionUuid !== uuid) return undefined;
     }
     return uuid;
+  }
+
+  private getAllCollectionsUuids(trails: Trail[], owner: string): string[] {
+    const result: string[] = [];
+    for (const trail of trails) {
+      if (trail.owner === owner && result.indexOf(trail.collectionUuid) < 0)
+        result.push(trail.collectionUuid)
+    }
+    return result;
   }
 
   public async openRenameTrail(trail: Trail) {
@@ -450,6 +465,18 @@ export class TrailService {
     });
   }
 
+  async openSharePopup(collectionUuid: string, trails: Trail[]) {
+    const module = await import('../../components/share-popup/share-popup.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.SharePopupComponent,
+      componentProps: {
+        collectionUuid,
+        trails
+      }
+    });
+    modal.present();
+  }
+
 }
 
 class TrailStore extends OwnedStore<TrailDto, Trail> {
@@ -484,7 +511,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   protected override readyToSave$(entity: Trail): Observable<boolean> {
     const originalTrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.originalTrackUuid, entity.owner);
     const currentrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.currentTrackUuid, entity.owner);
-    const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(track => !!track?.isSavedOnServerAndNotDeletedLocally()));
+    const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
     return combineLatest([originalTrackReady$, currentrackReady$, collectionReady$]).pipe(
       map(readiness => readiness.indexOf(false) < 0)
     );

@@ -363,4 +363,8 @@ export class TrailsListComponent extends AbstractComponent {
     this.router.navigate(['/trail/' + trail.owner + '/' + trail.uuid], {queryParams: { from: this.router.url }});
   }
 
+  share(): void {
+    this.trailService.openSharePopup(this.collectionUuid!, []);
+  }
+
 }

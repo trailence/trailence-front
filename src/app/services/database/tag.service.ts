@@ -112,6 +112,10 @@ export class TagService {
     );
   }
 
+  public getAllTrailsTags$(): Observable<Observable<TrailTag | null>[]> {
+    return this._trailTagStore.getAll$();
+  }
+
   public addTrailTag(trailUuid: string, tagUuid: string) {
     this._trailTagStore.create(new TrailTag({trailUuid, tagUuid}));
   }

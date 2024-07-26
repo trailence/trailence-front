@@ -5,6 +5,8 @@ import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';
 import { ExtensionsService } from '../database/extensions.service';
 
+const LOCALSTORAGE_KEY_DARKMAP = 'trailence.dark-map';
+
 export interface MapLayer {
 
   name: string;
@@ -25,6 +27,8 @@ export class MapLayersService {
 
   public layers: MapLayer[];
   public possibleLayers: string[];
+
+  private _darkMap = false;
 
   constructor(injector: Injector) {
     this.layers = [
@@ -47,11 +51,26 @@ export class MapLayersService {
     this.possibleLayers = [
       'osm', 'osmfr', 'otm', 'ign', 'ign-sat',
       'tfo'
-    ]
+    ];
+    const darkmap = localStorage.getItem(LOCALSTORAGE_KEY_DARKMAP);
+    if (darkmap) this.toggleDarkMap();
   }
 
   public getDefaultLayer(): string {
     return 'osm';
+  }
+
+  public get darkMapEnabled(): boolean { return this._darkMap; }
+
+  public toggleDarkMap(): void {
+    this._darkMap = !this._darkMap;
+    if (this._darkMap) {
+      localStorage.setItem(LOCALSTORAGE_KEY_DARKMAP, "true");
+      window.document.body.classList.add('dark-map');
+    } else {
+      localStorage.removeItem(LOCALSTORAGE_KEY_DARKMAP);
+      window.document.body.classList.remove('dark-map');
+    }
   }
 
 }

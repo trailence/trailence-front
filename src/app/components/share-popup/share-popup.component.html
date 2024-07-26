@@ -1,0 +1,84 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="share" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.share_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+
+  @switch (pages[pageIndex]) {
+    @case ('type') {
+      <div class="question">{{i18n.texts.pages.share_popup.type.question}}</div>
+      <ion-radio-group [value]="elementType" (ionChange)="setElementType($event.detail.value)">
+        <div>
+          <ion-radio value="COLLECTION" labelPlacement="end">{{i18n.texts.pages.share_popup.type.collection}} <i>{{collectionName}}</i></ion-radio>
+        </div>
+        <div>
+          <ion-radio value="TAG" labelPlacement="end">{{i18n.texts.pages.share_popup.type.tags}}</ion-radio>
+        </div>
+      </ion-radio-group>
+    }
+
+    @case ('elements') {
+      @switch (elementType) {
+        @case ('TAG') {
+          <div class="question">{{i18n.texts.pages.share_popup.tags.question}}</div>
+          <app-tags [collectionUuid]="collectionUuid" [inPopup]="false" [editable]="false" (selectionChange)="tagsSelected($event)" [selection]="elements"></app-tags>
+        }
+      }
+    }
+
+    @case ('name_who') {
+      <ion-input
+        fill="outline"
+        label="{{i18n.texts.pages.share_popup.name}}"
+        label-placement="floating"
+        [(ngModel)]="name"
+        [maxlength]="50"
+        [counter]="true"
+      ></ion-input>
+      <div class="info">
+        <ion-icon name="info"></ion-icon>
+        <div>{{i18n.texts.pages.share_popup.name_info}}</div>
+      </div>
+
+      <div class="question"></div>
+      <div class="question">{{i18n.texts.pages.share_popup.who_question}}</div>
+      <ion-input
+        fill="outline"
+        label="{{i18n.texts.pages.share_popup.email}}"
+        label-placement="floating"
+        [(ngModel)]="to"
+        type="email"
+      ></ion-input>
+      <div class="info">
+        <ion-icon name="info"></ion-icon>
+        <div>{{i18n.texts.pages.share_popup.email_info}}</div>
+      </div>
+
+      <div class="question"></div>
+      <div class="question">{{i18n.texts.pages.share_popup.language}}</div>
+      <ion-radio-group [value]="toLanguage" (ionChange)="toLanguage = $event.detail.value">
+        <div>
+          <ion-radio value="en" labelPlacement="end">English</ion-radio>
+        </div>
+        <div>
+          <ion-radio value="fr" labelPlacement="end">Français</ion-radio>
+        </div>
+      </ion-radio-group>
+    }
+  }
+
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="secondary" *ngIf="pageIndex > 0" (click)="previous()">{{i18n.texts.buttons.previous}}</ion-button>
+      <ion-button color="success" *ngIf="pageIndex < pages.length - 1" (click)="next()" [disabled]="!canGoNext()">{{i18n.texts.buttons.next}}</ion-button>
+      <ion-button color="success" *ngIf="pageIndex === pages.length - 1" (click)="save()" [disabled]="!canSave()">{{i18n.texts.buttons.save}}</ion-button>
+      <ion-button color="medium" (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

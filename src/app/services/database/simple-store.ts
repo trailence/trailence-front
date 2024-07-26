@@ -64,6 +64,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       return this.getKey(item1) === this.getKey(item2);
     }
 
+    protected updateEntityFromServer(): boolean {
+      return false;
+    }
+
     private saveStore(): Observable<boolean> {
         return from(this._db!.transaction('rw', this.tableName, async tx => {
             const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
@@ -239,6 +243,11 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                     const index = dtos.findIndex(dto => this.areSame(this.fromDTO(dto), item$.value!));
                     if (index >= 0) {
                       // returned by server => already known
+                      if (this.updateEntityFromServer()) {
+                        const dto = dtos[index];
+                        const entity = this.fromDTO(dto);
+                        item$.next(entity);
+                      }
                       dtos.splice(index, 1);
                     } else {
                       // not returned by the server

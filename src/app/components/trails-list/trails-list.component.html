@@ -2,6 +2,7 @@
   <app-icon-label-button icon="sort" label="{{i18n.texts.tools.sort}}" id="sort-trails-button-{{id}}"></app-icon-label-button>
   <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button-{{id}}" [badge]="nbActiveFilters()" [showBadge]="isPositive"></app-icon-label-button>
   <app-icon-label-button *ngIf="collectionUuid" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
+  <app-icon-label-button *ngIf="collectionUuid" icon="share" label="{{i18n.texts.tools.share}}" (click)="share()"></app-icon-label-button>
 </div>
 <div class="selection">
   <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
@@ -16,7 +17,7 @@
     <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true">
       <ng-template>
         <ion-content>
-          <app-menu-content [menu]="trailService.getTrailsMenu(getSelectedTrails())"></app-menu-content>
+          <app-menu-content [menu]="trailService.getTrailsMenu(getSelectedTrails(), false, collectionUuid)"></app-menu-content>
         </ion-content>
       </ng-template>
     </ion-popover>
@@ -35,6 +36,7 @@
         [selected]="trailWithInfo.selected"
         (selectedChange)="trailWithInfo.selected = $event"
         (click)="onTrailClick(trailWithInfo.trail)"
+        [fromCollection]="!!collectionUuid"
       ></app-trail-overview>
       <ion-button *ngIf="highlighted === trailWithInfo.trail" (click)="openTrail(trailWithInfo.trail)" size="small">
         {{ i18n.texts.pages.trails.open_trail }}

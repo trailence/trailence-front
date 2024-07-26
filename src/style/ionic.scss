@@ -302,3 +302,12 @@ ion-range {
   color: var(--ion-color-primary-contrast);
   margin-bottom: 20px;
 }
+
+ion-menu::part(backdrop) {
+  opacity: 0.5 !important;
+}
+
+ion-menu::part(container) {
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0px 0px 32px rgba(var(--ion-text-color-rgb), 0.33);
+}

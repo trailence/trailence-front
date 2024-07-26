@@ -7,5 +7,6 @@ export interface AuthResponse {
   email: string;
   keyId: string;
   preferences: Preferences;
+  complete: boolean;
 
 }

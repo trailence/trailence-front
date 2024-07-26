@@ -13,6 +13,10 @@ import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-
 import { CommonModule } from '@angular/common';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { ShareService } from 'src/app/services/database/share.service';
+import { ShareElementType } from 'src/app/model/dto/share';
+import { TagService } from 'src/app/services/database/tag.service';
+import { Share } from 'src/app/model/share';
 
 @Component({
   selector: 'app-trails-page',
@@ -90,6 +94,57 @@ export class TrailsPage extends AbstractPage {
         ),
         trails => this.trails$.next(trails)
       );
+    } else if (newState.type === 'share') {
+      this.byStateAndVisible.subscribe(
+        this.injector.get(ShareService).getAll$().pipe(
+          collection$items(),
+          map(shares => shares.find(share => share.id === newState.id && share.from === newState.from)),
+          switchMap(share => {
+            if (!share) return of({share, trails: [] as Trail[]});
+            if (share.from === this.injector.get(AuthService).email) {
+              if (share.type === ShareElementType.TRAIL)
+                return this.injector.get(TrailService).getAll$().pipe(
+                  collection$items(),
+                  map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.uuid) >= 0)),
+                  map(trails => ({share, trails}))
+                );
+              if (share.type === ShareElementType.COLLECTION)
+                return this.injector.get(TrailService).getAll$().pipe(
+                  collection$items(),
+                  map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.collectionUuid) >= 0)),
+                  map(trails => ({share, trails}))
+                );
+              return this.injector.get(TagService).getAllTrailsTags$().pipe(
+                collection$items(),
+                map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
+                switchMap(uuids => this.injector.get(TrailService).getAll$().pipe(
+                  collection$items(),
+                  map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)),
+                  map(trails => ({share, trails}))
+                ))
+              )
+            } else {
+              return this.injector.get(TrailService).getAll$().pipe(
+                collection$items(),
+                map(trails => trails.filter(trail => trail.owner === share.from && share.trails.indexOf(trail.uuid) >= 0)),
+                map(trails => ({share, trails}))
+              );
+            }
+          })
+        ), (result: {share: Share | undefined, trails: Trail[]}) => {
+          if (!result.share) {
+            if (this.shown && this.shown instanceof Share) {
+              // share has been removed
+              this.injector.get(Router).navigateByUrl('/');
+            }
+            return;
+          }
+          this.title$.next(result.share.name);
+          this.trails$.next(result.trails);
+          this.viewId = "share-" + result.share.id + "-" + result.share.from;
+          this.shown = result.share;
+          this.actions = this.injector.get(ShareService).getShareMenu(result.share);
+        });
     } else {
       this.injector.get(Router).navigateByUrl('/');
     }

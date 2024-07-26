@@ -2,7 +2,7 @@
   position: relative;
 }
 
-ion-button {
+ion-button.user-button {
     width: calc(var(--min-height) - 8px);
     height: calc(var(--min-height) - 8px);
     font-size: 0px;

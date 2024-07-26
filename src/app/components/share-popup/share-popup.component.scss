@@ -1,0 +1,20 @@
+.question {
+  margin: 5px 0 10px 0;
+}
+
+.info {
+  margin: 8px 0 16px 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ion-icon {
+    font-size: 14px;
+    margin-right: 8px;
+  }
+
+  div {
+    font-size: 12px;
+    font-style: italic;
+  }
+}

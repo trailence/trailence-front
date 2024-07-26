@@ -1,5 +1,15 @@
+:host {
+  max-height: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .menu-header {
   height: var(--header-height);
+  flex: none;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -13,26 +23,34 @@
 }
 
 .menu-content {
+  flex: 1 1 100%;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 .menu-section {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 5px 5px;
+  .menu-section-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px 5px;
 
-  ion-icon {
-    width: 32px;
-    height: 32px;
+    ion-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .section-title {
+      flex: 1 1 100%;
+      font-size: 18px;
+      padding: 0 8px;
+    }
   }
 
-  .section-title {
-    flex: 1 1 100%;
-    font-size: 18px;
-    padding: 0 8px;
+  .menu-item {
+    padding-left: 24px;
   }
+
 }
 
 .menu-item {
@@ -49,6 +67,10 @@
   &:hover {
     background-color: var(--ion-color-light);
   }
+  &.no-item {
+    font-style: italic;
+    font-size: 12px;
+  }
 
   ion-icon {
     flex: none;
@@ -57,19 +79,31 @@
     margin-right: 8px;
   }
 
-  .item-title {
+  .item-title-container {
     flex: 1 1 100%;
-    font-size: 16px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    text-wrap: nowrap;
-  }
+    display: flex;
+    flex-direction: column;
 
-  &.under-section {
-    padding-left: 24px;
+    .item-title {
+      font-size: 16px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      text-wrap: nowrap;
+    }
+
+    .item-sub-title {
+      font-size: 12px;
+      font-style: italic;
+      color: rgba(var(--ion-text-color-rgb), 0.7);
+      text-overflow: ellipsis;
+      overflow: hidden;
+      text-wrap: nowrap;
+    }
   }
 }
 
 .menu-separator {
-  height: 16px;
+  margin: 8px 5px 8px 0px;
+  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.75);
+  height: 0;
 }

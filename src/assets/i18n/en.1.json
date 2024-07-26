@@ -4,7 +4,8 @@
     "import": "Import",
     "import_gpx_description": "Import GPX files",
     "importing": "Importing",
-    "sort": "Sort"
+    "sort": "Sort",
+    "share": "Share"
   },
   "pages": {
     "login": {
@@ -12,7 +13,9 @@
       "email": "E-Mail",
       "password": "Password",
       "signin_button": "Sign In",
-      "offline": "Please connect to Internet to sign in"
+      "offline": "Please connect to Internet to sign in",
+      "incorrect_message": "Invalid e-mail or password",
+      "error_message": "Autnetication error, please retry"
     },
     "trails": {
       "edit_filters_popup_title": "Filter Trails",
@@ -119,6 +122,23 @@
       "import_all": "Import all",
       "ignore_all": "Do not import tags"
     },
+    "share_popup": {
+      "title": "Share",
+      "type": {
+        "question": "What would you like to share?",
+        "collection": "The whole collection",
+        "tags": "Some tags"
+      },
+      "tags": {
+        "question": "Which tags?"
+      },
+      "name": "Give a name to this share",
+      "name_info": "This name will be visible by you and the person with who you are sharing",
+      "who_question": "With who?",
+      "email": "Email",
+      "email_info": "An e-mail will be sent to inform about this share",
+      "language": "In which language should we send the e-mail?"
+    },
     "preferences": {
       "title": "Preferences",
       "display_section_title": "Display",
@@ -182,11 +202,19 @@
       "stop_change_password": {
         "in_progress": "Thank you for reporting the problem to us, we are canceling the password change request for your account...",
         "done": "Thank you for reporting the issue, we have canceled all password change requests for your account."
+      },
+      "share": {
+        "in_progress": "We are loading data for your share link...",
+        "error": "Your link is not valid. May be the share of this link has been removed."
       }
     }
   },
   "menu": {
     "collections": "Collections",
+    "shared_with_me": "Shared with me",
+    "nothing_shared_with_me": "No trail shared with you",
+    "shared_by_me": "Shared by me",
+    "nothing_shared_by_me": "You don't share any trail",
     "start_trace": "Start a trace",
     "current_trace": "Trace in progress"
   },
@@ -263,5 +291,17 @@
     "kb": "KB",
     "mb": "MB",
     "gb": "GB"
+  },
+  "logout": {
+    "title": "Sign out",
+    "text": "Do you also want to delete all your data on this device?<p>If you delete your data from this device, it will be kept on our server but the next time you log in all your data will need to be downloaded again. If you keep it, only the updates will need to be downloaded.</p><p>If you delete it, make sure that the synchronization of your data on our server is complete, otherwise unsynchronized changes will be lost.</p><p>If you are on a shared device, it is recommended to delete your data.</p>",
+    "button_delete": "Sign out and delete",
+    "button_keep": "Sign out without delete"
+  },
+  "confirm_delete_share": {
+    "title": "Delete a share",
+    "message": "Are you sure you want to delete {{}}?",
+    "yes": "Yes, delete",
+    "no": "Cancel, keep"
   }
 }
