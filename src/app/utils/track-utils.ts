@@ -41,4 +41,26 @@ export class TrackUtils {
     return (nextEle - previousEle) / (nextEleDistance! + previousEleDistance!);
   }
 
+  public static previousPointIndexWithElevation(points: Point[], index: number): number {
+    for (let i = index - 1; i >= 0; --i) {
+      if (points[i].ele !== undefined) return i;
+    }
+    return -1;
+  }
+
+  public static nextPointIndexWithElevation(points: Point[], index: number): number {
+    for (let i = index + 1; i < points.length; ++i) {
+      if (points[i].ele !== undefined) return i;
+    }
+    return -1;
+  }
+
+  public static distanceBetween(points: Point[], startIndex: number, endIndex: number): number {
+    let total = 0;
+    for (let i = startIndex + 1; i <= endIndex; ++i) {
+      total += points[i].distanceTo(points[i - 1].pos);
+    }
+    return total;
+  }
+
 }

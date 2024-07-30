@@ -15,9 +15,9 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
 import * as L from 'leaflet';
-import { applyElevationThresholdToSegment } from '../track-edition/elevation/elevation-threshold';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular/standalone';
+import { ImprovmentRecordingState, TrackEditionService } from '../track-edition/track-edition.service';
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +41,7 @@ export class TraceRecorderService {
     private trackService: TrackService,
     private trailService: TrailService,
     private alertController: AlertController,
+    private trackEdition: TrackEditionService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -162,6 +163,7 @@ export class TraceRecorderService {
   private _geolocationListener?: (position: PointDto) => void;
   private latestDefinitivePoint: Point[] | undefined = undefined;
   private latestTemporaryPoint: Point[] | undefined = undefined;
+  private improvmentState: ImprovmentRecordingState | undefined = undefined;
 
   private startRecording(recording: Recording): Promise<Recording> {
     return this.geolocation.getState()
@@ -248,7 +250,9 @@ export class TraceRecorderService {
       this.addPointToTrack(position, recording.rawTrack),
       this.addPointToTrack(position, recording.track),
     ];
-    applyElevationThresholdToSegment(recording.track.segments[recording.track.segments.length - 1], 10);
+    const lastSegment = recording.track.segments[recording.track.segments.length - 1];
+    if (lastSegment.points.length > 5 && (lastSegment.points.length % 10) === 0)
+      this.improvmentState = this.trackEdition.applyDefaultImprovmentsForRecordingSegment(lastSegment, this.improvmentState, false);
     return points;
   }
 
@@ -299,6 +303,8 @@ export class TraceRecorderService {
     this._geolocationListener = undefined;
     this.latestDefinitivePoint = undefined;
     this.latestTemporaryPoint = undefined;
+    this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments[recording.track.segments.length - 1], this.improvmentState, true);
+    this.improvmentState = undefined;
   }
 
   private save(recording: Recording): void {

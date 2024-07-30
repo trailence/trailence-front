@@ -25,6 +25,7 @@ import { Router } from '@angular/router';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
+import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 
 @Component({
   selector: 'app-trail',
@@ -111,6 +112,7 @@ export class TrailComponent extends AbstractComponent {
         const tracks: Track[] = [];
         if (trail1[1]) {
           tracks.push(trail1[1]);
+          //tracks.push(this.injector.get(TrackEditionService).applyDefaultImprovments(trail1[1]));
           if (trail2[1]) tracks.push(trail2[1]);
         }
         if (recording && !trail2[0]) {

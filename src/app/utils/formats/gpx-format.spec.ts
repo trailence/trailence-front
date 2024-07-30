@@ -75,7 +75,7 @@ describe('Test Gpx Format', () => {
   it('Import gpx-001, then export, then import again', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
     const imported = GpxFormat.importGpx(file, 'test@example.com', '0');
-    const exported = await GpxFormat.exportGpx(imported!.trail, imported!.tracks).toArrayBuffer();
+    const exported = await GpxFormat.exportGpx(imported!.trail, imported!.tracks, []).toArrayBuffer();
     const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0');
     expect(imported2).not.toBeNull();
     compareTrails(imported!.trail, imported2!.trail);

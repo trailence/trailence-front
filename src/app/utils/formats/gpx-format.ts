@@ -98,7 +98,6 @@ export class GpxFormat {
     if (tracks.length === 0) return undefined;
     const trail = new Trail({...trailDto, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks[tracks.length - 1].uuid});
 
-    console.log(importedTags);
     return { trail, tracks, tags: importedTags };
   }
 
