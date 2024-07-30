@@ -8,6 +8,8 @@
 </ion-header>
 <ion-content class="ion-padding">
   <div>
+    <div class="page-section-sub-title" *ngIf="tracks && tracks.length > 0">{{i18n.texts.offline_map.download_trail}}</div>
+    <div class="page-section-sub-title" *ngIf="!tracks || tracks.length === 0">{{i18n.texts.offline_map.download_map}}</div>
     <div class="page-section-title">{{i18n.texts.offline_map.select_layers}}</div>
     <app-map-layer-selection #downloadLayersSelection [multiple]="true"></app-map-layer-selection>
     <div class="page-section-title">{{i18n.texts.offline_map.parameters}}</div>
@@ -27,7 +29,8 @@
     >
     </ion-range>
     <div class="page-section-sub-title">{{i18n.texts.offline_map.padding}}</div>
-    <div class="page-section-text">{{i18n.texts.offline_map.padding_explaination}}</div>
+    <div class="page-section-text" *ngIf="tracks && tracks.length > 0">{{i18n.texts.offline_map.padding_explaination_for_trail}}</div>
+    <div class="page-section-text" *ngIf="!tracks || tracks.length === 0">{{i18n.texts.offline_map.padding_explaination_for_map}}</div>
     <ion-range #downloadMapPadding
       mode="md"
       [pin]="true"
@@ -37,7 +40,7 @@
       [min]="100"
       [max]="500"
       [step]="25"
-      [value]="150"
+      [value]="tracks && tracks.length > 0 ? 150 : 100"
       class="always-show-knob-pin"
     >
     </ion-range>

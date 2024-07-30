@@ -7,13 +7,14 @@ import { MapLayer } from 'src/app/services/map/map-layers.service';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import * as L from 'leaflet';
 import { Track } from 'src/app/model/track';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-download-map-popup',
   templateUrl: './download-map-popup.component.html',
   styleUrls: ['./download-map-popup.component.scss'],
   standalone: true,
-  imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, MapLayerSelectionComponent ]
+  imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, MapLayerSelectionComponent, CommonModule ]
 })
 export class DownloadMapPopupComponent {
 

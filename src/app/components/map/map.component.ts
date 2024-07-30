@@ -32,7 +32,6 @@ export class MapComponent extends AbstractComponent {
 
   @Input() mapId!: string;
   @Input() tracks$!: Observable<MapTrack[]>;
-  @Input() downloadMapTool = false;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference | undefined>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference | undefined>();
@@ -298,8 +297,7 @@ export class MapComponent extends AbstractComponent {
     new ZoomLevelDisplayTool({position: 'topleft'}).addTo(map);
     new MapLayerSelectionTool(this.injector, this._mapState, {position: 'topright'}).addTo(map);
     new DarkMapToggle(this.injector, {position: 'topright'}).addTo(map);
-    if (this.downloadMapTool)
-      new DownloadMapTool(this.injector, {position: 'topright'}).addTo(map);
+    new DownloadMapTool(this.injector, {position: 'topright'}).addTo(map);
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {

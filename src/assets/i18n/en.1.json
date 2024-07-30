@@ -264,13 +264,16 @@
   },
   "downloading_map": "Downloading map",
   "offline_map": {
+    "download_trail": "Maps corresponding to the trail will be downloaded to be available offline",
+    "download_map": "Maps of the currently displayed area will be downloaded to be available offline",
     "select_layers": "Select the layers to download",
     "parameters": "Parameters",
     "max_zoom": "Maximum zoom level to download",
     "max_zoom_explaination": "The higher you select a zoom level, the more you will be able to zoom during your trail when you are offline, but consequently the longer the download will take and the more storage space will be required on your device.",
     "max_zoom_reco": "A value between 15 and 17 is recommended. Below 15, the level of detail is often too low to see small paths clearly. Above 17, the download size is large, and is generally not necessary to perfectly follow a route.",
     "padding": "Extend the area to download (%)",
-    "padding_explaination": "Percentage of the area to download in around the trail area (100% means only the trail area). Allows you to see more around the trail in offline mode."
+    "padding_explaination_for_trail": "Percentage of the area to download in around the trail area (100% means only the trail area). Allows you to see more around the trail in offline mode.",
+    "padding_explaination_for_map": "Percentage of the area to download in around the currently displayed area (100% means only the trail area). Allows you to see a larger area in offline mode."
   },
   "trace_recorder": {
     "trail_name_start": "Trail of",
