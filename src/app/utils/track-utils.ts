@@ -1,4 +1,5 @@
 import { Point } from '../model/point';
+import * as L from 'leaflet';
 
 export class TrackUtils {
 
@@ -61,6 +62,21 @@ export class TrackUtils {
       total += points[i].distanceTo(points[i - 1].pos);
     }
     return total;
+  }
+
+  public static findClosestPoint(pos: L.LatLngLiteral, points: L.LatLngLiteral[], maxDistance: number = -1): number {
+    if (points.length === 0) return -1;
+    let closestIndex = -1;
+    let closestDistance = -1;
+    const p = L.latLng(pos);
+    for (let i = 0; i < points.length; ++i) {
+      const d = p.distanceTo(points[i]);
+      if ((maxDistance < 0 || d <= maxDistance) && (closestDistance === -1 || d < closestDistance)) {
+        closestIndex = i;
+        closestDistance = d;
+      }
+    }
+    return closestIndex;
   }
 
 }

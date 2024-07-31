@@ -207,6 +207,30 @@
         "in_progress": "We are loading data for your share link...",
         "error": "Your link is not valid. May be the share of this link has been removed."
       }
+    },
+    "trailplanner": {
+      "title": "Trail Planner",
+      "please_zoom": "To see possibles ways and position points, please zoom at least to level",
+      "start": "Start",
+      "stop": "Stop",
+      "reset": "Reset",
+      "resume": "Resume",
+      "undo": "Undo last point",
+      "show_routes": "Display circuits",
+      "put_free_point": "Add a free point",
+      "back_to_non_free_point": "Pick up points on paths",
+      "meta": {
+        "from": "From",
+        "to": "to"
+      },
+      "legend": {
+        "permissive": "Passage tolerated (can be closed at any time)",
+        "forbidden": "Passage forbidden"
+      },
+      "save": {
+        "trail_name": "Trail name",
+        "collection": "In which collection"
+      }
     }
   },
   "menu": {
@@ -216,7 +240,8 @@
     "shared_by_me": "Shared by me",
     "nothing_shared_by_me": "You don't share any trail",
     "start_trace": "Start a trace",
-    "current_trace": "Trace in progress"
+    "current_trace": "Trace in progress",
+    "planner": "Plan a trail"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -306,5 +331,6 @@
     "message": "Are you sure you want to delete {{}}?",
     "yes": "Yes, delete",
     "no": "Cancel, keep"
-  }
+  },
+  "search_place_placeholder": "Search a place"
 }

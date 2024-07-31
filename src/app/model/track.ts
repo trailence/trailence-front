@@ -114,6 +114,10 @@ export class Track extends Owned {
     return undefined;
   }
 
+  public get lastSegment(): Segment {
+    return this.segments[this.segments.length - 1];
+  }
+
   public get startDate(): number | undefined {
     for (let i = 0; i < this._segments.value.length; ++i) {
       const t = this._segments.value[i].startDate;

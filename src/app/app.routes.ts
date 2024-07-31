@@ -41,10 +41,15 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/myaccount/myaccount.page').then( m => m.MyaccountPage)
       },
       {
+        path: 'trail-planner',
+        loadComponent: () => import('./pages/trail-planner/trail-planner.page').then( m => m.TrailPlannerPage)
+      },
+      {
         path: '',
         redirectTo: 'trails/collection/my_trails',
         pathMatch: 'full',
       },
     ]
   },
+
 ];

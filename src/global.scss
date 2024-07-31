@@ -41,17 +41,35 @@
   }
 }
 
-app-map .leaflet-container {
-  background: var(--ion-background-color);
+app-map {
+
+  .leaflet-container {
+    background: var(--ion-background-color);
+  }
+
+  &.mouse-pointer {
+    .leaflet-grab {
+      cursor: pointer;
+    }
+  }
+
 }
 
 body.dark-map {
 
   .leaflet-layer,
-  .leaflet-control-zoom-in,
-  .leaflet-control-zoom-out,
-  .leaflet-control-attribution {
+  .leaflet-control {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
   }
+  .leaflet-legend {
+    background: #181818;
+    color: #D0D0D0;
+  }
 
+}
+.leaflet-legend {
+  background: #E8E8E8;
+  color: #202020;
+  z-index: 1000;
+  font-size: 11px;
 }

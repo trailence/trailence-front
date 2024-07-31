@@ -9,7 +9,7 @@ import { Arrays } from './arrays';
 export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges {
 
   protected _parent?: AbstractComponent;
-  protected _children: AbstractComponent[] = [];
+  protected _children$ = new BehaviorSubject<AbstractComponent[]>([]);
   protected _visible$ = new BehaviorSubject<boolean>(false);
   protected whenVisible = new Resubscribeables();
   protected whenAlive = new Subscriptions();
@@ -48,7 +48,10 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
         }
         parentElement = parentElement.parentElement;
       }
-      this._parent?._children.push(this);
+      if (this._parent) {
+        this._parent._children$.value.push(this);
+        this._parent._children$.next(this._parent._children$.value);
+      }
     }
     this.initComponent();
     this._isInit = true;
@@ -63,6 +66,13 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this.byStateAndVisible.stop();
     this.whenVisible.stop();
     this.whenAlive.unsusbcribe();
+    if (this._parent) {
+      const index = this._parent._children$.value.indexOf(this);
+      if (index >= 0) {
+        this._parent._children$.value.splice(index, 1);
+        this._parent._children$.next(this._parent._children$.value);
+      }
+    }
     this.destroyComponent();
   }
 
@@ -123,7 +133,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   }
 
   protected _propagateVisible(visible: boolean): void {
-    for (const child of this._children) {
+    for (const child of this._children$.value) {
       if (child._isInit) {
         child.setVisible(visible);
       }

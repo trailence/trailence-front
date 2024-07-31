@@ -148,7 +148,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private updateVisibility(mapVisible: boolean, listVisible: boolean, trailSheetVisible: boolean): void {
-    this._children.forEach(child => {
+    this._children$.value.forEach(child => {
       if (child instanceof MapComponent) {
         child.setVisible(mapVisible);
         child.invalidateSize();
@@ -192,9 +192,10 @@ export class TrailsAndMapComponent extends AbstractComponent {
     this.toggleHighlightedTrail(trail);
   }
 
-  onTrailClickOnMap(event: MapTrackPointReference | undefined): void {
-    if (event?.track.trail) {
-      this.toggleHighlightedTrail(event.track.trail);
+  onTrailClickOnMap(event: MapTrackPointReference[]): void {
+    const closest = MapTrackPointReference.closest(event);
+    if (closest?.track.trail) {
+      this.toggleHighlightedTrail(closest.track.trail);
     } else if (this.highlightedTrail) {
       this.toggleHighlightedTrail(this.highlightedTrail);
     }

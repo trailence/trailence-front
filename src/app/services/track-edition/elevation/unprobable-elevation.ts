@@ -22,9 +22,22 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
       const distance = TrackUtils.distanceBetween(points, previous, i);
       const diff = Math.abs(ele - previousEle);
       const diffByMeter = diff / distance;
-      if (diffByMeter > 0.2) {
-        const mostProbable = bestAccuracy(previousEleAccuracy, eleAccuracy);
-        console.log(i, diffByMeter, mostProbable, previousEle, ele);
+      if (diffByMeter > 1 && diff > 10) {
+        let mostProbable;
+        if (previousEleAccuracy !== undefined || eleAccuracy !== undefined)
+          mostProbable = bestAccuracy(previousEleAccuracy, eleAccuracy);
+        else {
+          const next = TrackUtils.nextPointIndexWithElevation(points, i);
+          if (next < 0) continue;
+          const nextEle = points[next].ele!;
+          const nextDistance = TrackUtils.distanceBetween(points, i, next);
+          const nextDiffByMeter = Math.abs(nextEle - ele) / nextDistance;
+          if (nextDiffByMeter < diffByMeter)
+            mostProbable = 1;
+          else
+            mostProbable = -1;
+        }
+        console.log(i, diffByMeter, mostProbable, previousEle, ele, previousEleAccuracy, eleAccuracy);
         if (mostProbable <= 0) {
           points[i].ele = previousEle;
           points[i].eleAccuracy = previousEleAccuracy;

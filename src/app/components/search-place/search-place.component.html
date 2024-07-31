@@ -1,0 +1,20 @@
+<ion-searchbar #searchBar
+  id="{{id}}"
+  placeholder="{{i18n.texts.search_place_placeholder}}"
+  show-clear-button="always"
+  (ionChange)="inputChanged($event)"
+>
+</ion-searchbar>
+<ion-popover #dropdown size="cover" side="bottom" reference="trigger" trigger="{{id}}" triggerAction="context-menu" [showBackdrop]="false">
+  <ng-template>
+    <ion-spinner *ngIf="searching" name="dots"></ion-spinner>
+    <ion-list *ngIf="!searching">
+      <ion-item *ngFor="let place of places" button (click)="placeSelected.emit(place); dropdown.dismiss()">
+        <ion-label>
+          <h1>{{place.names[0]}}</h1>
+          <h2>{{place.names.slice(1).join(', ')}}</h2>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-popover>

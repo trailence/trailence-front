@@ -312,6 +312,11 @@ export class ElevationGraphComponent extends AbstractComponent {
       parsing: false,
       data: []
     };
+    this.fillDataSet(ds, track);
+    this.chartData!.datasets.push(ds as any);
+  }
+
+  private fillDataSet(ds: any, track: Track): void {
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const segment = track.segments[segmentIndex];
       const points = segment.points;
@@ -319,7 +324,6 @@ export class ElevationGraphComponent extends AbstractComponent {
         (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, segment, points));
       }
     }
-    this.chartData!.datasets.push(ds as any);
   }
 
   private updateRecordingData(ds: any, track: Track): void {
@@ -342,6 +346,20 @@ export class ElevationGraphComponent extends AbstractComponent {
         pointCount++;
       }
     }
+    this.updateMaxDistance();
+    if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
+      this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
+    }
+    this.canvas?.chart?.update();
+  }
+
+  public updateTrack(track: Track): void {
+    if (!this.chartData) return;
+    const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
+    if (datasetIndex < 0) return;
+    const ds = this.chartData.datasets[datasetIndex];
+    ds.data = [];
+    this.fillDataSet(ds, track);
     this.updateMaxDistance();
     if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
       this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;

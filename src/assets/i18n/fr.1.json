@@ -207,6 +207,30 @@
         "in_progress": "Nous chargeons les données de votre lien de partage...",
         "error": "Votre lien est invalide. Il est possible que le partage de ce lien ait été supprimé."
       }
+    },
+    "trailplanner": {
+      "title": "Planificateur de parcours",
+      "please_zoom": "Pour voir les chemins possibles et positionner des points, veuillez zoomer au moins au niveau",
+      "start": "Commencer",
+      "stop": "Arrêter",
+      "reset": "Recommencer tout",
+      "resume": "Reprendre",
+      "undo": "Annuler le dernier point",
+      "show_routes": "Afficher les circuits",
+      "put_free_point": "Positionner un point libre",
+      "back_to_non_free_point": "Reprendre des points sur les chemins",
+      "meta": {
+        "from": "De",
+        "to": "à"
+      },
+      "legend": {
+        "permissive": "Passage toléré (peut être fermé à tout moment)",
+        "forbidden": "Passage interdit"
+      },
+      "save": {
+        "trail_name": "Nom du parcours",
+        "collection": "Dans quelle collection"
+      }
     }
   },
   "menu": {
@@ -216,7 +240,8 @@
     "shared_by_me": "Partagé par moi",
     "nothing_shared_by_me": "Vous ne partagez aucun parcours",
     "start_trace": "Démarrer une trace",
-    "current_trace": "Trace en cours"
+    "current_trace": "Trace en cours",
+    "planner": "Plannifier un parcours"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -306,5 +331,6 @@
     "message": "Etes-vous sûr de vouloir supprimer {{}} ?",
     "yes": "Oui, supprimer",
     "no": "Annuler, garder"
-  }
+  },
+  "search_place_placeholder": "Rechercher un lieu"
 }

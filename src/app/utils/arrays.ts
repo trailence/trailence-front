@@ -29,6 +29,11 @@ export class Arrays {
     return -1;
   }
 
+  public static containsAll<T>(array: T[], toBeContained: T[]): boolean {
+    for (const element of toBeContained) if (array.indexOf(element) < 0) return false;
+    return true;
+  }
+
   // available in ES2019 as Array.flatMap
   public static flatMap<T, U>(array: T[], callback: (value: T) => U[]): U[] {
     const result: U[] = [];

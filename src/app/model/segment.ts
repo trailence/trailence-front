@@ -49,6 +49,27 @@ export class Segment {
     return this;
   }
 
+  public removePoint(point: Point): this {
+    const index = this._points.value.indexOf(point);
+    if (index < 0) return this;
+    return this.removePointAt(index);
+  }
+
+  public removePointAt(index: number): this {
+    this._points.value.splice(index, 1);
+    const sp = this._segmentPoints.splice(index, 1)[0];
+    sp.removed();
+    this._points.next(this._points.value);
+    return this;
+  }
+
+  public removeMany(points: Point[]): this {
+    for (const point of points) {
+      this.removePoint(point);
+    }
+    return this;
+  }
+
   public toDto(): SegmentDto {
     const nb = this.points.length;
     const dto: SegmentDto = {p: new Array(nb)};
@@ -246,8 +267,21 @@ export class SegmentPoint {
     }
   }
 
-  setMeta(meta: SegmentMetadata) {
+  setMeta(meta: SegmentMetadata): void {
     this.meta = meta;
+  }
+
+  removed(): void {
+    if (this._previous)
+      this._previous._next = this._next;
+    if (this.elevationFromPrevious)
+      this.meta?.cancelElevation(this.elevationFromPrevious);
+    if (this.distanceFromPrevious)
+      this.meta?.addDistance(-this.distanceFromPrevious);
+    if (this._next) {
+      this._next._previous = this._previous;
+      this._next.update();
+    }
   }
 
 }

@@ -8,6 +8,8 @@ import { MapTrackArrowPath } from './map-track-arrows-path';
 
 export class MapTrack {
 
+  public data: any;
+
   constructor(
     private _trail: Trail | undefined,
     private _track: Track | SimplifiedTrackSnapshot,

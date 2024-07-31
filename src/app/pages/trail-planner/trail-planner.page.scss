@@ -1,0 +1,89 @@
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1 1 100%;
+  position: relative;
+
+  --left-pane-width: 400px;
+  --elevation-graph-height: 0px;
+
+  &.has-elevation {
+    --elevation-graph-height: 200px;
+  }
+
+  .left-pane {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--left-pane-width);
+    padding: 10px;
+    overflow-y: auto;
+
+    .message-zoom {
+      margin: 10px 0;
+      color: var(--ion-color-dark);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .separator {
+      margin: 15px 0 10px 0;
+      height: 0;
+      width: 100%;
+      border-bottom: 1px solid var(--ion-color-medium);
+    }
+  }
+
+  .map-container {
+    position: absolute;
+    top: 0;
+    bottom: var(--elevation-graph-height);
+    right: 0;
+    left: var(--left-pane-width);
+  }
+
+  .elevation-graph-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    left: var(--left-pane-width);
+    height: var(--elevation-graph-height);
+  }
+}
+
+.routes {
+  ion-item {
+    ion-label {
+      h1 {
+        font-size: 13px;
+      }
+      h2 {
+        font-size: 11px;
+        color: rgba(var(--ion-text-color-rgb), 0.6);
+      }
+    }
+  }
+  .way-symbol {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+  }
+  .meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    span {
+      font-size: 11px;
+      color: rgba(var(--ion-text-color-rgb), 0.8);
+    }
+  }
+}

@@ -25,7 +25,6 @@ import { Router } from '@angular/router';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
-import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 
 @Component({
   selector: 'app-trail',
@@ -203,7 +202,7 @@ export class TrailComponent extends AbstractComponent {
   }
 
   private updateVisibility(mapVisible: boolean, graphVisible: boolean): void {
-    this._children.forEach(child => {
+    this._children$.value.forEach(child => {
       if (child instanceof MapComponent) {
         child.setVisible(mapVisible);
         child.invalidateSize();
@@ -237,15 +236,15 @@ export class TrailComponent extends AbstractComponent {
   }
 
 
-  mouseOverPointOnMap(event?: MapTrackPointReference) {
-    this.hover.mouseOverPointOnMap(event);
+  mouseOverPointOnMap(event: MapTrackPointReference[]) {
+    this.hover.mouseOverPointOnMap(MapTrackPointReference.closest(event));
   }
 
   elevationGraphPointHover(references: ElevationGraphPointReference[]) {
     this.hover.elevationGraphPointHover(references);
   }
 
-  mouseClickOnMap(event?: MapTrackPointReference) {
+  mouseClickOnMap(event: MapTrackPointReference[]) {
     // nothing so far
   }
 

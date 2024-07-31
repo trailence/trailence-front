@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonButton, MenuController } from "@ionic/angular/standalone";
+import { IonIcon, IonButton, MenuController, Platform } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
-import { combineLatest, map, of, switchMap } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
@@ -32,6 +32,8 @@ export class MenuComponent {
   sharedWithMeOpen = false;
   sharedByMeOpen = false;
 
+  large = false;
+
   constructor(
     public i18n: I18nService,
     public collectionService: TrailCollectionService,
@@ -40,7 +42,10 @@ export class MenuComponent {
     public traceRecorder: TraceRecorderService,
     shareService: ShareService,
     authService: AuthService,
+    platform: Platform,
   ) {
+    this.updateSize(platform);
+    platform.resize.subscribe(() => this.updateSize(platform));
     collectionService.getAll$().pipe(
       collection$items(),
       map(list => list.sort((c1, c2) => this.compareCollections(c1, c2)))
@@ -51,6 +56,10 @@ export class MenuComponent {
       this.sharedByMe = shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
       this.sharedWithMe = shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
     });
+  }
+
+  private updateSize(platform: Platform): void {
+    this.large = platform.width() > 600 && platform.height() > 400;
   }
 
   private compareCollections(c1: TrailCollection, c2: TrailCollection): number {

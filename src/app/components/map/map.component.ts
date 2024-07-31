@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Outp
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { Platform } from '@ionic/angular';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, switchMap, takeWhile, timer } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, switchMap, takeWhile, timer } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -17,6 +17,7 @@ import { MapLayerSelectionTool } from './tools/layer-selection-tool';
 import { ZoomLevelDisplayTool } from './tools/zoom-level-display';
 import { DownloadMapTool } from './tools/download-map-tool';
 import { DarkMapToggle } from './tools/dark-map-toggle';
+import { CommonModule } from '@angular/common';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -33,10 +34,13 @@ export class MapComponent extends AbstractComponent {
   @Input() mapId!: string;
   @Input() tracks$!: Observable<MapTrack[]>;
 
-  @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference | undefined>();
-  @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference | undefined>();
+  @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
+  @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
+  @Output() mouseOver = new EventEmitter<L.LatLngLiteral>();
+  @Output() mouseClick = new EventEmitter<L.LatLngLiteral>();
 
   public cursors = new MapCursors();
+  public eventPixelMaxDistance = 15;
 
   id: string;
   private _mapState = new MapState();
@@ -106,6 +110,22 @@ export class MapComponent extends AbstractComponent {
 
   public getBounds(): L.LatLngBounds | undefined {
     return this._map$.value?.getBounds();
+  }
+
+  public goTo(lat: number, lng: number, zoom?: number) {
+    this._map$.value?.setView({lat, lng}, zoom);
+  }
+
+  public get ready$(): Observable<boolean> {
+    return this._map$.pipe(filter(m => !!m), first(), map(m => true));
+  }
+
+  public addToMap(element: L.Layer): void {
+    element.addTo(this._map$.value!);
+  }
+
+  public removeFromMap(element: L.Layer): void {
+    element.remove();
   }
 
   private loadState(): void {
@@ -312,10 +332,16 @@ export class MapComponent extends AbstractComponent {
       if (this.mouseClickPoint.observed) {
         this.mouseClickPoint.emit(this.getEvent(map, e));
       }
+      if (this.mouseClick.observed) {
+        this.mouseClick.emit(e.latlng);
+      }
     });
     map.on("mousemove", e => {
       if (this.mouseOverPoint.observed) {
         this.mouseOverPoint.emit(this.getEvent(map, e));
+      }
+      if (this.mouseOver.observed) {
+        this.mouseOver.emit(e.latlng);
       }
     });
 
@@ -353,10 +379,9 @@ export class MapComponent extends AbstractComponent {
     );
   }
 
-  private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference | undefined {
+  private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] {
     const mouse = e.layerPoint;
-    let closest: MapTrackPointReference | undefined = undefined;
-    let closestDistance: number | undefined = undefined;
+    const result: MapTrackPointReference[] = [];
     for (const mapTrack of this._currentTracks) {
       if (!mapTrack.bounds?.pad(1).contains(e.latlng)) {
         continue;
@@ -369,11 +394,8 @@ export class MapComponent extends AbstractComponent {
             const pt = segment.points[pointIndex];
             const pixel = map.latLngToLayerPoint(pt.pos);
             const distance = mouse.distanceTo(pixel);
-            if (distance < 15) {
-              if (closestDistance === undefined || distance < closestDistance) {
-                closestDistance = distance;
-                closest = new MapTrackPointReference(mapTrack, segmentIndex, segment, pointIndex, pt);
-              }
+            if (distance <= this.eventPixelMaxDistance) {
+              result.push(new MapTrackPointReference(mapTrack, segmentIndex, segment, pointIndex, pt, distance));
             }
           }
         }
@@ -382,16 +404,13 @@ export class MapComponent extends AbstractComponent {
           const pt = track.points[pointIndex];
           const pixel = map.latLngToLayerPoint(pt);
           const distance = mouse.distanceTo(pixel);
-          if (distance < 15) {
-            if (closestDistance === undefined || distance < closestDistance) {
-              closestDistance = distance;
-              closest = new MapTrackPointReference(mapTrack, undefined, undefined, pointIndex, pt);
-            }
+          if (distance <= this.eventPixelMaxDistance) {
+            result.push(new MapTrackPointReference(mapTrack, undefined, undefined, pointIndex, pt, distance));
           }
         }
       }
     }
-    return closest;
+    return result;
   }
 
 }

@@ -1,3 +1,10 @@
 :host {
   position: relative;
 }
+
+.leaflet-legend {
+  position: absolute;
+  right: 3px;
+  bottom: 20px;
+  max-width: 200px;
+}

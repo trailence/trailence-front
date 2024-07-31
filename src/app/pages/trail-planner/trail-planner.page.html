@@ -1,0 +1,160 @@
+<app-header title="{{i18n.texts.pages.trailplanner.title}}"></app-header>
+<div class="page-content" [ngClass]="{'has-elevation': !!track && anchors.length > 1}">
+
+  <div class="left-pane">
+    <ng-container *ngIf="!track && mapState">
+      <app-search-place (placeSelected)="goToPlace($event)"></app-search-place>
+    </ng-container>
+
+    <ng-container *ngIf="track && mapState">
+      <div class="metadata-container two-columns">
+        <div class="metadata-item-container">
+          <div class="metadata-item">
+            <ion-icon name="distance"></ion-icon>
+            <div class="metadata-primary">{{ i18n.distanceToString(track.metadata.distance) }}</div>
+          </div>
+        </div>
+        <div class="metadata-item-container">
+          <div class="metadata-item">
+            <ion-icon name="duration"></ion-icon>
+            <div class="metadata-primary"><span *ngIf="estimatedTime">≈ {{ i18n.durationToString(estimatedTime) }}</span></div>
+          </div>
+        </div>
+        <div class="metadata-item-container">
+          <div class="metadata-item">
+            <ion-icon name="positive-elevation"></ion-icon>
+            <div class="metadata-primary"><span *ngIf="track.metadata.positiveElevation">+ {{ i18n.elevationToString(track.metadata.positiveElevation) }}</span></div>
+          </div>
+        </div>
+        <div class="metadata-item-container">
+          <div class="metadata-item">
+            <ion-icon name="negative-elevation"></ion-icon>
+            <div class="metadata-primary"><span *ngIf="track.metadata.negativeElevation">- {{ i18n.elevationToString(track.metadata.negativeElevation) }}</span></div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="mapState">
+
+      <div class="message-zoom" *ngIf="mapState.zoom < minZoom">
+        {{ i18n.texts.pages.trailplanner.please_zoom }} {{ minZoom }}
+      </div>
+
+      <div class="actions">
+        <ion-button (click)="start()" *ngIf="!track && mapState.zoom >= minZoom">
+          <ion-icon slot="start" name="play"></ion-icon>
+          {{ i18n.texts.pages.trailplanner.start }}
+        </ion-button>
+      </div>
+
+      <ion-list>
+        <ion-item (click)="undo()" *ngIf="anchors.length > 0" size="small" button>
+          <ion-icon slot="start" name="undo" color="medium"></ion-icon>
+          <ion-label color="medium">{{ i18n.texts.pages.trailplanner.undo }}</ion-label>
+        </ion-item>
+        <ion-item (click)="enableFreeAnchor()" *ngIf="putAnchors" size="small" button>
+          <ion-icon name="location" slot="start"></ion-icon>
+          <ion-label>{{ i18n.texts.pages.trailplanner.put_free_point }}</ion-label>
+        </ion-item>
+        <ion-item (click)="backToNonFreeAnchors()" *ngIf="putFreeAnchor" size="small" button>
+          <ion-icon name="location" slot="start"></ion-icon>
+          <ion-label>{{ i18n.texts.pages.trailplanner.back_to_non_free_point }}</ion-label>
+        </ion-item>
+        <ion-item (click)="stop()" *ngIf="track && (putAnchors || putFreeAnchor)" size="small" button>
+          <ion-icon slot="start" name="stop" color="secondary"></ion-icon>
+          <ion-label color="secondary">{{ i18n.texts.pages.trailplanner.stop }}</ion-label>
+        </ion-item>
+        <ion-item (click)="resume()" *ngIf="track && !putAnchors && !putFreeAnchor && mapState.zoom >= minZoom" size="small" button>
+          <ion-icon slot="start" name="play" color="success"></ion-icon>
+          <ion-label color="success">{{ i18n.texts.pages.trailplanner.resume }}</ion-label>
+        </ion-item>
+        <ion-item (click)="saveModal.present()" *ngIf="track && !putAnchors && !putFreeAnchor && anchors.length > 1" size="small" button>
+          <ion-icon slot="start" name="save" color="success"></ion-icon>
+          <ion-label color="success">{{i18n.texts.buttons.save}}</ion-label>
+        </ion-item>
+        <ion-item (click)="reset()" *ngIf="track" size="small" button>
+          <ion-icon slot="start" name="reset" color="danger"></ion-icon>
+          <ion-label color="danger">{{ i18n.texts.pages.trailplanner.reset }}</ion-label>
+        </ion-item>
+      </ion-list>
+
+    </ng-container>
+
+    <div class="separator"></div>
+
+    <ng-container *ngIf="mapState && mapState.zoom >= minZoom">
+      <ion-toggle [checked]="showRoutes" color="secondary" (ionChange)="toggleShowRoutes($event.detail.checked)" labelPlacement="end">{{ i18n.texts.pages.trailplanner.show_routes }}</ion-toggle>
+
+      <ion-list *ngIf="routes.length > 0" class="routes">
+        <ion-item *ngFor="let route of routes" (click)="toggleHighlightRoute(route)" button>
+          <ion-checkbox [checked]="highlightedRoute === route" slot="start" mode="ios"></ion-checkbox>
+          <ion-label>
+            <h1>{{ route.name }}</h1>
+            <h2>{{ route.description }}</h2>
+          </ion-label>
+          <div slot="end" *ngIf="route.distance" class="meta">
+            <ion-icon name="distance" color="secondary"></ion-icon>
+            <span>{{ i18n.distanceToString(route.distance) }}</span>
+          </div>
+          <div slot="end" *ngIf="route.positiveElevation || route.negativeElevation" class="meta">
+            <ion-icon name="elevation" color="secondary"></ion-icon>
+            <span *ngIf="route.positiveElevation">+ {{ i18n.elevationToString(route.positiveElevation) }}</span>
+            <span *ngIf="route.negativeElevation">- {{ i18n.elevationToString(route.negativeElevation) }}</span>
+          </div>
+          <div slot="end" [innerHTML]="generateRouteSymbol(route)" class="way-symbol"></div>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+  </div>
+
+  <div class="map-container">
+    <app-map #map mapId="trail-planner" [tracks$]="mapTracks$" [ngClass]="{'mouse-pointer': putAnchors}"></app-map>
+  </div>
+  <div class="elevation-graph-container">
+    <app-elevation-graph [track1]="track" *ngIf="track"></app-elevation-graph>
+  </div>
+
+</div>
+
+<ion-modal #saveModal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>
+          <ion-icon name="save" style="margin-right: 10px"></ion-icon>
+          <ion-label>{{i18n.texts.buttons.save}}</ion-label>
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-input
+        fill="outline"
+        label="{{i18n.texts.pages.trailplanner.save.trail_name}}"
+        label-placement="floating"
+        [(ngModel)]="trailName"
+        [maxlength]="200"
+        [counter]="true"
+      ></ion-input>
+
+      <ion-select
+        [(ngModel)]="collectionUuid"
+        label="{{i18n.texts.pages.trailplanner.save.collection}}"
+        fill="outline"
+        labelPlacement="floating"
+        cancelText="{{i18n.texts.buttons.cancel}}"
+        okText="{{i18n.texts.buttons.apply}}"
+      >
+        <ion-select-option *ngFor="let collection of collections" [value]="collection.uuid">{{getCollectionName(collection)}}</ion-select-option>
+      </ion-select>
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar color="footer">
+        <ion-buttons slot="end">
+          <ion-button color="success" [disabled]="trailName.length === 0 || !collectionUuid" (click)="save()">{{i18n.texts.buttons.save}}</ion-button>
+          <ion-button (click)="saveModal.dismiss()">{{i18n.texts.buttons.cancel}}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

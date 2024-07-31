@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonInput, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular/standalone";
 import { filter, first, switchMap, timeout } from 'rxjs';
@@ -30,6 +30,7 @@ export class LocationPopupComponent implements OnInit {
     private geo: GeoService,
     private trackService: TrackService,
     private trailService: TrailService,
+    private changeDetector: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
@@ -48,16 +49,20 @@ export class LocationPopupComponent implements OnInit {
         this.proposedPlaces = [];
         for (const place of places) {
           let s = place[0];
-          this.proposedPlaces.push(s);
+          if (this.proposedPlaces.indexOf(s) < 0)
+            this.proposedPlaces.push(s);
           for (let i = 1; i < place.length; ++i) {
             s = s + ', ' + place[i];
-            this.proposedPlaces.push(s);
+            if (this.proposedPlaces.indexOf(s) < 0)
+              this.proposedPlaces.push(s);
           }
         }
         this.searchingPlaces = false;
+        this.changeDetector.markForCheck();
       },
       error: e => {
         this.searchingPlaces = false;
+        this.changeDetector.markForCheck();
       }
     });
   }
