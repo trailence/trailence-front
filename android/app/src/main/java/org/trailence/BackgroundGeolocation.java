@@ -45,6 +45,7 @@ import org.json.JSONObject;
 )
 public class BackgroundGeolocation extends Plugin {
     private PluginCall callPendingPermissions = null;
+    private BackgroundGeolocationService.LocalBinder service = null;
     private Boolean stoppedWithoutPermissions = false;
 
     private void fetchLastLocation(PluginCall call) {
@@ -235,9 +236,6 @@ public class BackgroundGeolocation extends Plugin {
         return obj;
     }
 
-    // Sends messages to the service.
-    private BackgroundGeolocationService.LocalBinder service = null;
-
     // Receives messages from the service.
     private class ServiceReceiver extends BroadcastReceiver {
         @Override
@@ -319,7 +317,6 @@ public class BackgroundGeolocation extends Plugin {
     @Override
     protected void handleOnResume() {
         if (service != null) {
-            service.onActivityStarted();
             if (stoppedWithoutPermissions && hasRequiredPermissions()) {
                 service.onPermissionsGranted();
             }
@@ -329,9 +326,6 @@ public class BackgroundGeolocation extends Plugin {
 
     @Override
     protected void handleOnPause() {
-        if (service != null) {
-            service.onActivityStopped();
-        }
         stoppedWithoutPermissions = !hasRequiredPermissions();
         super.handleOnPause();
     }
