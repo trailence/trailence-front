@@ -30,6 +30,7 @@ interface State {
 
 interface Filters {
   duration: FilterNumeric;
+  estimatedDuration: FilterNumeric;
   distance: FilterNumeric;
   positiveElevation: FilterNumeric;
   negativeElevation: FilterNumeric;
@@ -41,6 +42,10 @@ const defaultState: State = {
   sortBy: 'track.startDate',
   filters: {
     duration: {
+      from: undefined,
+      to: undefined,
+    },
+    estimatedDuration: {
       from: undefined,
       to: undefined,
     },
@@ -209,8 +214,14 @@ export class TrailsListComponent extends AbstractComponent {
     const maxNegEle = filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to);
     this.mapTrails = this.allTrails.filter(
       t => {
-        if (filters.duration.from !== undefined && (t.track?.duration === undefined || t.track.duration < filters.duration.from * 60 * 60 * 1000)) return false;
-        if (filters.duration.to !== undefined && (t.track?.duration === undefined || t.track.duration > filters.duration.to * 60 * 60 * 1000)) return false;
+        if (filters.duration.from !== undefined || filters.duration.to !== undefined) {
+          let duration = t.track?.duration;
+          if (duration !== undefined && t.track?.breaksDuration !== undefined) duration -= t.track.breaksDuration;
+          if (filters.duration.from !== undefined && (duration === undefined || duration < filters.duration.from * 60 * 60 * 1000)) return false;
+          if (filters.duration.to !== undefined && (duration === undefined || duration > filters.duration.to * 60 * 60 * 1000)) return false;
+        }
+        if (filters.estimatedDuration.from !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration < filters.estimatedDuration.from * 60 * 60 * 1000)) return false;
+        if (filters.estimatedDuration.to !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration > filters.estimatedDuration.to * 60 * 60 * 1000)) return false;
         if (minDistance !== undefined && (t.track?.distance === undefined || t.track.distance < minDistance)) return false;
         if (maxDistance !== undefined && (t.track?.distance === undefined || t.track.distance > maxDistance)) return false;
         if (minPosEle !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation < minPosEle)) return false;
@@ -238,17 +249,36 @@ export class TrailsListComponent extends AbstractComponent {
 
   private compareTrails(a: TrailWithInfo, b: TrailWithInfo): number {
     const field = this.state$.value.sortBy;
-    const diff = ObjectUtils.compare(
-      ObjectUtils.extractField(a, field),
-      ObjectUtils.extractField(b, field)
-    )
+    let diff;
+    if (field === 'track.duration') {
+      let d1 = a.track?.duration;
+      if (d1 !== undefined && a.track?.breaksDuration !== undefined) d1 -= a.track?.breaksDuration;
+      let d2 = b.track?.duration;
+      if (d2 !== undefined && b.track?.breaksDuration !== undefined) d2 -= b.track?.breaksDuration;
+      diff = ObjectUtils.compare(d1, d2);
+    } else {
+      diff = ObjectUtils.compare(ObjectUtils.extractField(a, field), ObjectUtils.extractField(b, field));
+    }
     return this.state$.value.sortAsc ? diff : -diff;
   }
 
   private loadState(): void {
     const stateStr = localStorage.getItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId);
     if (!stateStr) this.state$.next(defaultState);
-    else this.state$.next(JSON.parse(stateStr));
+    else {
+      const newState = JSON.parse(stateStr);
+      let valid = true;
+      for (const key in defaultState) {
+        if (!newState[key]) {
+          valid = false;
+          break;
+        }
+      }
+      if (valid)
+        this.state$.next(newState);
+      else
+        this.state$.next(defaultState);
+    }
   }
 
   private saveState(): void {

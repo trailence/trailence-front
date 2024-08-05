@@ -63,6 +63,7 @@
           labelPlacement="end"
         >{{i18n.texts.pages.trails.filters.onlyVisibleOnMap}}</ion-checkbox>
       </div>
+
       <div class="filter-header">
         <ion-icon name="duration"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.duration }}</div>
@@ -72,6 +73,19 @@
           [minValue]="0" [maxValue]="24" [step]="1"
           [selectedMinValue]="state$.value.filters.duration.from || 0" [selectedMaxValue]="state$.value.filters.duration.to || 24"
           (selectionChange)="updateNumericFilter(state$.value.filters.duration, $event)"
+          [valueFormatter]="durationFormatter"
+          [maxValueLabel]="i18n.hoursToString(24) + '+'"></app-filter-numeric>
+      </div>
+
+      <div class="filter-header">
+        <ion-icon name="chrono"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.estimatedDuration }}</div>
+      </div>
+      <div class="filter-value">
+        <app-filter-numeric
+          [minValue]="0" [maxValue]="24" [step]="1"
+          [selectedMinValue]="state$.value.filters.estimatedDuration.from || 0" [selectedMaxValue]="state$.value.filters.estimatedDuration.to || 24"
+          (selectionChange)="updateNumericFilter(state$.value.filters.estimatedDuration, $event)"
           [valueFormatter]="durationFormatter"
           [maxValueLabel]="i18n.hoursToString(24) + '+'"></app-filter-numeric>
       </div>
@@ -153,6 +167,7 @@
           <ion-item><ion-radio value="track.updatedAt"><ion-icon name="date"></ion-icon> {{i18n.texts.pages.trails.sorts.update_date}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.distance"><ion-icon name="distance"></ion-icon> {{i18n.texts.pages.trails.sorts.distance}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.duration"><ion-icon name="duration"></ion-icon> {{i18n.texts.pages.trails.sorts.duration}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.estimatedDuration"><ion-icon name="chrono"></ion-icon> {{i18n.texts.pages.trails.sorts.estimatedDuration}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.positiveElevation"><ion-icon name="positive-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.positive_elevation}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.negativeElevation"><ion-icon name="negative-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.negative_elevation}}</ion-radio></ion-item>
         </ion-radio-group>

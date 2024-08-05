@@ -172,6 +172,65 @@
   </div>
 
   <div class="page-section-title">
+    {{i18n.texts.pages.preferences.time_calculation.title}}
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="speed"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.time_calculation.base_speed}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.time_calculation.base_speed_explaination"></div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="2000" [max]="20000" [step]="250"
+          [pin]="true" [pinFormatter]="speedFormatter"
+          [ngModel]="preferences.preferences.estimatedBaseSpeed" (ngModelChange)="setEstimatedBaseSpeed($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">{{i18n.getSpeedString(2000)}}</ion-label>
+          <ion-label slot="end">{{i18n.getSpeedString(20000)}}</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="hourglass"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.time_calculation.long_breaks_title}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.time_calculation.long_break_explaination"></div>
+      <div class="sub-title">{{i18n.texts.pages.preferences.time_calculation.long_break_minimum_duration}}</div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="180000" [max]="900000" [step]="60000"
+          [pin]="true" [pinFormatter]="minutesFormatter"
+          [ngModel]="preferences.preferences.longBreakMinimumDuration" (ngModelChange)="setLongBreakMinimumDuration($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">3m</ion-label>
+          <ion-label slot="end">15m</ion-label>
+        </ion-range>
+      </div>
+      <div class="sub-title">{{i18n.texts.pages.preferences.time_calculation.long_break_maximum_distance}}</div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="15" [max]="200" [step]="5"
+          [pin]="true" [pinFormatter]="distanceFormatterMeters"
+          [ngModel]="preferences.preferences.longBreakMaximumDistance" (ngModelChange)="setLongBreakMaximumDistance($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">{{distanceFormatterMeters(15)}}</ion-label>
+          <ion-label slot="end">{{distanceFormatterMeters(200)}}</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-section-title">
     {{i18n.texts.pages.preferences.offline_map}}
   </div>
 

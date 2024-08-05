@@ -31,6 +31,10 @@ const DEFAULT_TRACE_MIN_MILLIS = 5000;
 const DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS = 60;
 const DEFAULT_OFFLINE_MAP_MAX_ZOOM = 16;
 
+const DEFAULT_ESTIMATED_BASE_SPEED = 5000;
+const DEFAULT_LONG_BREAK_MINIMUM_DURATION = 5 * 60 * 1000;
+const DEFAULT_LONG_BREAK_MAXIMUM_DISTANCE = 50;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -101,6 +105,9 @@ export class PreferencesService {
     if (toComplete.traceMinMillis === undefined || toComplete.traceMinMillis === null) toComplete.traceMinMillis = DEFAULT_TRACE_MIN_MILLIS;
     if (toComplete.offlineMapMaxKeepDays === undefined || toComplete.offlineMapMaxKeepDays === null) toComplete.offlineMapMaxKeepDays = DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS;
     if (toComplete.offlineMapMaxZoom === undefined || toComplete.offlineMapMaxZoom === null) toComplete.offlineMapMaxZoom = DEFAULT_OFFLINE_MAP_MAX_ZOOM;
+    if (toComplete.estimatedBaseSpeed === undefined || toComplete.estimatedBaseSpeed === null) toComplete.estimatedBaseSpeed = DEFAULT_ESTIMATED_BASE_SPEED;
+    if (toComplete.longBreakMinimumDuration === undefined || toComplete.longBreakMinimumDuration === null) toComplete.longBreakMinimumDuration = DEFAULT_LONG_BREAK_MINIMUM_DURATION;
+    if (toComplete.longBreakMaximumDistance === undefined || toComplete.longBreakMaximumDistance === null) toComplete.longBreakMaximumDistance = DEFAULT_LONG_BREAK_MAXIMUM_DISTANCE;
   }
 
   private getDefaultLanguage(): string {
@@ -176,6 +183,18 @@ export class PreferencesService {
 
   public setOfflineMapMaxKeepDays(value: number): void {
     this.setPreference('offlineMapMaxkeepDays', value);
+  }
+
+  public setEstimatedBaseSpeed(value: number): void {
+    this.setPreference('estimatedBaseSpeed', value);
+  }
+
+  public setLongBreakMinimumDuration(value: number): void {
+    this.setPreference('longBreakMinimumDuration', value);
+  }
+
+  public setLongBreakMaximumDistance(value: number): void {
+    this.setPreference('longBreakMaximumDistance', value);
   }
 
   private setPreference(field: string, value: any): void {

@@ -82,7 +82,7 @@ export class TraceRecorderService {
     this._table = this._db.table<RecordingDto, number>('record');
     this._table.get(1)
     .then(dto => {
-      const recording = dto ? Recording.fromDto(dto) : null;
+      const recording = dto ? Recording.fromDto(dto, this.preferencesService) : null;
       if (recording && !recording.paused) this.startRecording(recording);
     })
     .catch(e => {
@@ -97,8 +97,8 @@ export class TraceRecorderService {
       this.collectionService.getMyTrails$().pipe(timeout(30000)).subscribe({
         next: myTrails => {
           if (!this._email) { reject(); return; }
-          const track = new Track({ owner: this._email });
-          const rawTrack = new Track({ owner: this._email });
+          const track = new Track({ owner: this._email }, this.preferencesService);
+          const rawTrack = new Track({ owner: this._email }, this.preferencesService);
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
@@ -348,11 +348,11 @@ export class Recording {
     }
   }
 
-  static fromDto(dto: RecordingDto): Recording {
+  static fromDto(dto: RecordingDto, preferencesService: PreferencesService): Recording {
     return new Recording(
       new Trail(dto.trail),
-      new Track(dto.track),
-      new Track(dto.rawTrack),
+      new Track(dto.track, preferencesService),
+      new Track(dto.rawTrack, preferencesService),
       dto.paused,
       dto.followingTrailUuid,
       dto.followingTrailOwner,

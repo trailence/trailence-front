@@ -40,4 +40,10 @@ export class BehaviorSubjectOnDemand<T> {
     });
   }
 
+  public snapshot(): T {
+    if (this.lastValue === undefined || this.observers.length === 0)
+      return this.valueProvider();
+    return this.lastValue;
+  }
+
 }

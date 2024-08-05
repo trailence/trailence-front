@@ -61,6 +61,7 @@ export class AssetsService {
       'settings': 'assets/ionicons/settings.svg',
       'share': 'assets/ionicons/share-social.svg',
       'share-outline': 'assets/ionicons/share-social-outline.svg',
+      'speed': 'assets/ionicons/speedometer-outline.svg',
       'sort': 'assets/ionicons/swap-vertical-outline.svg',
       'stop': 'assets/ionicons/stop-outline.svg',
       'stop-circle': 'assets/ionicons/stop-circle-outline.svg',

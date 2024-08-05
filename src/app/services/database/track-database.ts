@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, interval, map, of, switchMap, takeWhile, tap, timer, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, interval, map, of, switchMap, takeWhile, tap, timer, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -15,6 +15,7 @@ import { Injector, NgZone } from "@angular/core";
 import { DatabaseCleanupService } from './database-cleanup.service';
 import { TrailService } from './trail.service';
 import { TrackService } from './track.service';
+import { PreferencesService } from '../preferences/preferences.service';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -29,6 +30,8 @@ export interface TrackMetadataSnapshot {
   duration: number;
   startDate?: number;
   bounds?: L.LatLngTuple[];
+  breaksDuration: number;
+  estimatedDuration: number;
 }
 
 interface MetadataItem extends TrackMetadataSnapshot {
@@ -79,6 +82,7 @@ export class TrackDatabase {
 
   private db?: Dexie;
   private openEmail?: string;
+  private preferencesSubscription?: Subscription;
 
   private close() {
     if (this.db) {
@@ -88,6 +92,8 @@ export class TrackDatabase {
       this.openEmail = undefined;
       this.db = undefined;
       this.syncStatus$.next(null);
+      this.preferencesSubscription?.unsubscribe();
+      this.preferencesSubscription = undefined;
     }
   }
 
@@ -108,6 +114,62 @@ export class TrackDatabase {
     this.db = db;
     this.syncStatus$.next(new TrackSyncStatus());
     this.registerCleanup();
+    let previousBaseSpeed: number | undefined = undefined;
+    let previousBreakDuration: number | undefined = undefined;
+    let previousBreakDistance: number | undefined = undefined;
+    this.preferencesSubscription = this.injector.get(PreferencesService).preferences$.pipe(
+      debounceTime(5000),
+    ).subscribe(
+      prefs => {
+        let speedChanged = false;
+        if (previousBaseSpeed === undefined)
+          previousBaseSpeed = prefs.estimatedBaseSpeed;
+        else if (previousBaseSpeed !== prefs.estimatedBaseSpeed) {
+          speedChanged = true;
+          previousBaseSpeed = prefs.estimatedBaseSpeed;
+        }
+
+        let breaksChanged = false;
+        if (previousBreakDuration === undefined)
+          previousBreakDuration = prefs.longBreakMinimumDuration;
+        else if (previousBreakDuration !== prefs.longBreakMinimumDuration) {
+          breaksChanged = true;
+          previousBreakDuration = prefs.longBreakMinimumDuration;
+        }
+        if (previousBreakDistance === undefined)
+          previousBreakDistance = prefs.longBreakMaximumDistance;
+        else if (previousBreakDistance !== prefs.longBreakMaximumDistance) {
+          breaksChanged = true;
+          previousBreakDistance = prefs.longBreakMaximumDistance;
+        }
+
+        if (speedChanged || breaksChanged) {
+          if (!this.db || !this.metadataTable || !this.fullTrackTable) return;
+          this.db?.transaction('rw', [this.fullTrackTable, this.metadataTable], () => {
+            this.fullTrackTable?.each(trackItem => {
+              if (!trackItem.track || trackItem.version === -1) return;
+              const track = new Track(trackItem.track, this.injector.get(PreferencesService));
+              let meta$ = this.metadata.get(trackItem.key);
+              if (meta$ && meta$.value) {
+                const meta = meta$.value;
+                if (speedChanged) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
+                if (breaksChanged) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
+                meta$.next(meta);
+                this.metadataTable?.put({
+                  key: trackItem.key,
+                  ...meta
+                });
+              } else {
+                this.metadataTable?.put({
+                  key: trackItem.key,
+                  ...this.toMetadata(track)
+                });
+              }
+            });
+          })
+        }
+      }
+    );
   }
 
   private _cleanupCallback = () => this.cleanup();
@@ -259,7 +321,7 @@ export class TrackDatabase {
   private loadFullTrack(key: string, item$: BehaviorSubject<Track | null>): void {
     this.fullTrackTable?.get(key)
     .then(item => {
-      if (item?.track) item$.next(new Track(item.track));
+      if (item?.track) item$.next(new Track(item.track, this.injector.get(PreferencesService)));
     });
   }
 
@@ -312,6 +374,8 @@ export class TrackDatabase {
       duration: m.duration,
       startDate: m.startDate,
       bounds: b ? [[b.getNorth(), b.getWest()], [b.getSouth(), b.getWest()]] : undefined,
+      breaksDuration: track.computedMetadata.breakDurationSnapshot(),
+      estimatedDuration: track.computedMetadata.estimatedDurationSnapshot(),
     }
   }
 
@@ -682,7 +746,7 @@ export class TrackDatabase {
           track: track,
         }));
         await this.fullTrackTable!.bulkPut(fulls);
-        const entities = tracks.map(track => new Track(track));
+        const entities = tracks.map(track => new Track(track, this.injector.get(PreferencesService)));
         if (this.db !== db) return;
         entities.forEach(entity => {
           this.fullTracks.get(entity.uuid + '#' + entity.owner)?.next(entity);

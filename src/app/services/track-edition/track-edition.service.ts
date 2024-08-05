@@ -3,14 +3,19 @@ import { Track } from 'src/app/model/track';
 import { applyElevationThresholdToSegment, applyElevationThresholdToTrack } from './elevation/elevation-threshold';
 import { Segment } from 'src/app/model/segment';
 import { adjustUnprobableElevationToSegment, adjustUnprobableElevationToTrack } from './elevation/unprobable-elevation';
+import { PreferencesService } from '../preferences/preferences.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TrackEditionService {
 
+  constructor(
+    private preferencesService: PreferencesService,
+  ) {}
+
   public applyDefaultImprovments(track: Track): Track {
-    const newTrack = new Track({...track.toDto(), uuid: undefined});
+    const newTrack = new Track({...track.toDto(), uuid: undefined}, this.preferencesService);
     adjustUnprobableElevationToTrack(newTrack);
     applyElevationThresholdToTrack(newTrack, 10, 250);
     return newTrack;

@@ -19,6 +19,10 @@ export interface Preferences {
   offlineMapMaxKeepDays?: number;
   offlineMapMaxZoom?: number;
 
+  estimatedBaseSpeed?: number;
+  longBreakMinimumDuration?: number;
+  longBreakMaximumDistance?: number;
+
 }
 
 export interface ComputedPreferences extends Preferences {
@@ -35,5 +39,9 @@ export interface ComputedPreferences extends Preferences {
 
   offlineMapMaxKeepDays: number;
   offlineMapMaxZoom: number;
+
+  estimatedBaseSpeed: number;
+  longBreakMinimumDuration: number;
+  longBreakMaximumDistance: number;
 
 }

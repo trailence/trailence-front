@@ -8,12 +8,16 @@ import * as L from 'leaflet';
 import { BehaviorSubjectOnDemand } from '../utils/rxjs/behavior-subject-ondemand';
 import { Arrays } from '../utils/arrays';
 import { TypeUtils } from '../utils/type-utils';
+import { calculateLongBreaksFromTrack } from '../services/track-edition/time/break-detection';
+import { PreferencesService } from '../services/preferences/preferences.service';
+import { estimateTimeForTrack } from '../services/track-edition/time/time-estimation';
 
 export class Track extends Owned {
 
   private _segments = new BehaviorSubject<Segment[]>([]);
   private _wayPoints = new BehaviorSubject<WayPoint[]>([]);
   private _meta = new TrackMetadata(this._segments);
+  private _computedMeta: TrackComputedMetadata;
 
   public get segments(): Segment[] { return this._segments.value; }
   public get segments$(): Observable<Segment[]> { return this._segments; }
@@ -22,6 +26,7 @@ export class Track extends Owned {
   public get wayPoints$(): Observable<WayPoint[]> { return this._wayPoints; }
 
   public get metadata(): TrackMetadata { return this._meta };
+  public get computedMetadata(): TrackComputedMetadata { return this._computedMeta; }
 
   public get changes$(): Observable<any> {
     return combineLatest([
@@ -46,7 +51,8 @@ export class Track extends Owned {
   }
 
   constructor(
-    dto: Partial<TrackDto>
+    dto: Partial<TrackDto>,
+    private preferencesService: PreferencesService,
   ) {
     super(dto);
     dto.s?.forEach(s => {
@@ -64,6 +70,7 @@ export class Track extends Owned {
       );
       this.appendWayPoint(new WayPoint(pt, wp.na ?? '', wp.de ?? ''));
     });
+    this._computedMeta = new TrackComputedMetadata(this, preferencesService);
   }
 
   public newSegment(): Segment {
@@ -146,7 +153,7 @@ export class Track extends Owned {
   }
 
   public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
-    const sub = new Track({owner: 'nobody'});
+    const sub = new Track({owner: 'nobody'}, this.preferencesService);
     const newPoints: Point[] = [];
     for (let si = startSegment; si <= endSegment; si++) {
       const s = this._segments.value[si];
@@ -170,7 +177,7 @@ export class Track extends Owned {
       version: undefined,
       createdAt: undefined,
       updatedAt: undefined
-    });
+    }, this.preferencesService);
   }
 
 }
@@ -277,6 +284,36 @@ export class TrackMetadata {
       }
     });
   }
+
+}
+
+export class TrackComputedMetadata {
+
+  private _breaksDuration$: BehaviorSubjectOnDemand<number>;
+  private _estimatedDuration$: BehaviorSubjectOnDemand<number>;
+
+  constructor(
+    track: Track,
+    preferencesService: PreferencesService,
+  ) {
+    const changes$ = combineLatest([preferencesService.preferences$, track.segments$.pipe(
+      switchMap(segments => segments.length === 0 ? of([]) : concat(of([]), combineLatest(segments.map(s => s.changes$))))
+    )]);
+    this._breaksDuration$ = new BehaviorSubjectOnDemand<number>(
+      () => calculateLongBreaksFromTrack(track, preferencesService.preferences),
+      changes$
+    );
+    this._estimatedDuration$ = new BehaviorSubjectOnDemand<number>(
+      () => estimateTimeForTrack(track, preferencesService.preferences),
+      changes$
+    );
+  }
+
+  public get breaksDuration$(): Observable<number> { return this._breaksDuration$.asObservable(); }
+  public get estimatedDuration$(): Observable<number> { return this._estimatedDuration$.asObservable(); }
+
+  public breakDurationSnapshot(): number { return this._breaksDuration$.snapshot(); }
+  public estimatedDurationSnapshot(): number { return this._estimatedDuration$.snapshot(); }
 
 }
 

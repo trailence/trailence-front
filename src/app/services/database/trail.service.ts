@@ -28,6 +28,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
 import { downloadZip } from 'client-zip';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { Arrays } from 'src/app/utils/arrays';
+import { PreferencesService } from '../preferences/preferences.service';
 
 @Injectable({
   providedIn: 'root'
@@ -402,7 +403,7 @@ export class TrailService {
   }
 
   public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string): {trailUuid: string, tags: string[][]} | undefined {
-    const imported = GpxFormat.importGpx(file, owner, collectionUuid);
+    const imported = GpxFormat.importGpx(file, owner, collectionUuid, this.injector.get(PreferencesService));
     if (!imported) return undefined;
     if (imported.tracks.length === 1) {
       const improved = this.injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);

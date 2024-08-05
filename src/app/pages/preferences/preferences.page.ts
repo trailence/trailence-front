@@ -22,6 +22,8 @@ export class PreferencesPage implements OnDestroy {
   timestamp = new Date(2001, 11, 27, 18, 36, 42).getTime();
   distanceFormatterMeters = (value: number) => value + this.i18n.shortDistanceUnit('METERS');
   millisecondsFormatter = (value: number) => (value / 1000).toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits: 1}) + 's';
+  minutesFormatter = (value: number) => (value / 60000).toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits:0}) + 'm';
+  speedFormatter = (value: number) => this.i18n.getSpeedString(value);
 
   offlineMapCounters?: {items: number, size: number};
   tfoApiKey?: string;
@@ -77,6 +79,18 @@ export class PreferencesPage implements OnDestroy {
 
   setTraceMinimumInterval(millis: number): void {
     this.preferences.setTraceMinMillis(millis);
+  }
+
+  setEstimatedBaseSpeed(speed: number): void {
+    this.preferences.setEstimatedBaseSpeed(speed);
+  }
+
+  setLongBreakMinimumDuration(value: number): void {
+    this.preferences.setLongBreakMinimumDuration(value);
+  }
+
+  setLongBreakMaximumDistance(value: number): void {
+    this.preferences.setLongBreakMaximumDistance(value);
   }
 
   cleanOfflineMaps(): void {

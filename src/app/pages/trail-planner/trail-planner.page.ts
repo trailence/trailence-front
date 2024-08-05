@@ -36,6 +36,7 @@ import { Way, WayPermission } from 'src/app/services/geolocation/way';
 import { RouteCircuit } from 'src/app/services/geolocation/route';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 const MIN_ZOOM = 14;
 
@@ -144,7 +145,7 @@ export class TrailPlannerPage extends AbstractPage {
   }
 
   start(): void {
-    this.track = new Track({owner: this.injector.get(AuthService).email});
+    this.track = new Track({owner: this.injector.get(AuthService).email}, this.injector.get(PreferencesService));
     this.enablePutAnchor();
     this.updateWays();
     this.saveToLocalStorage();
@@ -469,7 +470,7 @@ export class TrailPlannerPage extends AbstractPage {
     this.currentMapTrack$.next(mt);
     this.getElevation().subscribe(() => {
       this.saveToLocalStorage();
-      this.estimatedTime = estimateTimeForTrack(this.track!);
+      this.estimatedTime = estimateTimeForTrack(this.track!, this.injector.get(PreferencesService).preferences);
       this.updateElevationGraph();
     });
   }
@@ -482,7 +483,7 @@ export class TrailPlannerPage extends AbstractPage {
         try {
           const points = JSON.parse(pointsInStorage) as {s: number, p: number}[];
           const dto = JSON.parse(trackInStorage) as Partial<TrackDto>;
-          this.track = new Track(dto);
+          this.track = new Track(dto, this.injector.get(PreferencesService));
           for (let i = 0; i < points.length; ++i) {
             const p = points[i];
             const point = this.track.segments[p.s].points[p.p];

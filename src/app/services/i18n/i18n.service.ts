@@ -114,6 +114,13 @@ export class I18nService {
     }
   }
 
+  public getSpeedString(speed: number) {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return (speed / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' km/h';
+      case 'MILES': return this.metersToMiles(speed).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' mi/h';
+    }
+  }
+
   public elevationToString(elevation: number): string {
     switch (this.prefService.preferences.elevationUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
@@ -189,17 +196,19 @@ export class I18nService {
 
   public durationToString(duration: number): string {
     const minutes = Math.floor(duration / (1000 * 60));
-    const hours = Math.floor(minutes / 60);
-    const min = minutes - (hours * 60);
+    const days = Math.floor(minutes / (24 * 60));
+    const hours = Math.floor((minutes - days * 24 * 60) / 60);
+    const min = minutes - (days * 24 * 60) - (hours * 60);
     let minS = min.toString();
-    if (minS.length < 2) {
-      minS = '0' + minS;
-    }
-    return hours.toString() + 'h' + minS;
+    if (minS.length < 2) minS = '0' + minS;
+    let hourS = hours.toString();
+    if (days === 0) return hourS + this.texts.duration.hours + minS;
+    if (hourS.length < 2) hourS = '0' + hourS;
+    return days.toString() + this.texts.duration.days + hourS + this.texts.duration.hours + minS;
   }
 
   public hoursToString(hours: number): string {
-    return '' + hours + 'h';
+    return '' + hours + this.texts.duration.hours;
   }
 
   public timestampToDateTimeString(timestamp?: number): string {

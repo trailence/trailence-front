@@ -6,10 +6,11 @@ import { TypeUtils } from '../type-utils';
 import { WayPoint } from 'src/app/model/way-point';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { BinaryContent } from '../binary-content';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string): {trail: Trail, tracks: Track[], tags: string[][]} | undefined {
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): {trail: Trail, tracks: Track[], tags: string[][]} | undefined {
     const fileContent = new TextDecoder().decode(file);
     const parser = new DOMParser();
     const doc = parser.parseFromString(fileContent, "application/xml");
@@ -52,7 +53,7 @@ export class GpxFormat {
       if (trailDto.description!.length === 0)
         trailDto.description = XmlUtils.getChildText(trk, 'desc') ?? '';
 
-      const track = new Track({owner: user});
+      const track = new Track({owner: user}, preferencesService);
       for (const trkseg of XmlUtils.getChildren(trk, 'trkseg')) {
         const segment = track.newSegment();
         for (const trkpt of XmlUtils.getChildren(trkseg, 'trkpt')) {
@@ -76,7 +77,7 @@ export class GpxFormat {
         trailDto.name = XmlUtils.getChildText(rte, 'name') ?? '';
       if (trailDto.description!.length === 0)
         trailDto.description = XmlUtils.getChildText(rte, 'desc') ?? '';
-      const track = new Track({owner: user});
+      const track = new Track({owner: user}, preferencesService);
       const segment = track.newSegment();
       for (const rtept of XmlUtils.getChildren(rte, 'rtept')) {
         const pt = this.readPoint(rtept);

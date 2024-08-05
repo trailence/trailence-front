@@ -26,11 +26,13 @@
         "update_date": "Last update in Trailence",
         "distance": "Distance",
         "duration": "Duration",
+        "estimatedDuration": "Estimated hiking duration",
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation"
       },
       "filters": {
         "duration": "Duration",
+        "estimatedDuration": "Estimated hiking duration",
         "distance": "Distance",
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation",
@@ -173,7 +175,16 @@
         "remove_all": "Remove all"
       },
       "more_maps_layers": "More Map Layers",
-      "thunderforest_explaination": "You can add maps from thunderforest.com if you have an account on their web site (a free account is available). Enter your API key below"
+      "thunderforest_explaination": "You can add maps from thunderforest.com if you have an account on their web site (a free account is available). Enter your API key below",
+      "time_calculation": {
+        "title": "Calculation of trail duration",
+        "base_speed": "Speed on flat terrain",
+        "base_speed_explaination": "This speed is used for estimating trail durations. It is weighted according to the elevation and trail duration.",
+        "long_breaks_title": "Detection of long stops",
+        "long_break_explaination": "A stop is considered long when you have stayed within the configured perimeter for more than the minimum stop time. When a long stop is detected, we keep the minimum time in the normal trail duration, the rest is considered as stop time outside the normal trail duration.",
+        "long_break_minimum_duration": "Minimum stop time",
+        "long_break_maximum_distance": "Maximum perimeter"
+      }
     },
     "myaccount": {
       "title": "My Account",
@@ -319,6 +330,10 @@
     "kb": "KB",
     "mb": "MB",
     "gb": "GB"
+  },
+  "duration": {
+    "days": "d",
+    "hours": "h"
   },
   "logout": {
     "title": "Sign out",
