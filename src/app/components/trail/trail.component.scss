@@ -9,6 +9,7 @@
   --bottom-sheet-tabs-width: 30px;
   --bottom-sheet-tab-icon-size: 24px;
   --bottom-sheet-tab-content-height: 150px;
+  --edit-tools-width: 0px;
 }
 
 .top-container {
@@ -57,7 +58,7 @@
 
   .bottom-sheet-container {
     position: absolute;
-    right: 0;
+    right: var(--edit-tools-width);
     bottom: 0;
     height: var(--bottom-sheet-button-height);
     transition: height 0.3s ease-in-out;
@@ -78,6 +79,21 @@
   }
   .bottom-info {
     position: absolute;
+  }
+
+  .edit-tools-container {
+    position: absolute;
+    display: none;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: var(--edit-tools-width);
+  }
+  &.edit-tools-open {
+    --edit-tools-width: 300px;
+    .edit-tools-container {
+      display: block;
+    }
   }
 
   &.large {
@@ -128,12 +144,12 @@
     .map-container {
       top: 0;
       left: var(--details-width);
-      right: 0;
+      right: var(--edit-tools-width);
     }
     .elevation-container {
       bottom: 0;
       left: var(--details-width);
-      right: 0;
+      right: var(--edit-tools-width);
       height: var(--bottom-sheet-large-height);
       background-color: var(--ion-color-light);
       transition: top 0.3s ease-in-out;

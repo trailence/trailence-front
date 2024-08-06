@@ -90,7 +90,8 @@
       },
       "actions": {
         "go_to_departure": "Go to departure",
-        "download_map": "Download map"
+        "download_map": "Download map",
+        "edit_tools": "Edition tools"
       },
       "sections": {
         "description": {
@@ -100,6 +101,16 @@
         "waypoints": {
           "title": "Way Points"
         }
+      },
+      "edit_tools": {
+        "title": "Edition tools",
+        "back_to_original": "Back to the original track",
+        "elevation": "Elevation",
+        "remove_unprobable_elevations": "Remove unprobable elevations",
+        "apply_elevation_threshold": "Smooth with a slope threshold",
+        "elevation_threshold": "Slope threshold",
+        "elevation_threshold_distance": "Maximum distance",
+        "elevation_threshold_explaination": "The purpose of smoothing is to smooth out GPS inaccuracies.<br/>Because of these inaccuracies, it often happens that in a few meters of distance the altitude also rises and falls by a few meters, while the reality is a continuous slope.<br/>Smoothing therefore works as follows:<ul><li>We look for sections in which the altitude has varied within the configured threshold, and over a configured maximum distance.</li><li>For each section found, we take the starting altitude and the arrival altitude, and we smooth into a continuous slope.</li><li>In order to avoid losing the high points or low points of the route, if we find such a point in the middle of the section, we reduce the section to keep this point.</li></ul>"
       }
     },
     "collection_form": {
@@ -275,7 +286,9 @@
     "next": "Continue",
     "previous": "Back",
     "save": "Save",
-    "retry": "Retry"
+    "retry": "Retry",
+    "undo": "Undo",
+    "redo": "Redo"
   },
   "order_way": "Order",
   "order_asc": "Ascending",
@@ -296,7 +309,8 @@
     "elevation": "Altitude",
     "time_duration": "Time",
     "elevation_grade": "Grade",
-    "location": "Location"
+    "location": "Location",
+    "precision": "Accuracy"
   },
   "downloading_map": "Downloading map",
   "offline_map": {

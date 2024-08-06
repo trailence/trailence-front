@@ -73,3 +73,20 @@ body.dark-map {
   z-index: 1000;
   font-size: 11px;
 }
+
+.graph-tooltip {
+  font-size: 12px;
+  background-color: rgba(var(--ion-background-color-rgb), 0.8);
+  padding: 3px;
+  border-radius: 5px;
+
+  table {
+    td, th {
+      padding: 1px 5px;
+      text-align: left;
+    }
+    tr.header th {
+      text-align: center;
+    }
+  }
+}

@@ -1,4 +1,4 @@
-<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}">
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }} {{editToolsComponent ? 'edit-tools-open' : ''}}">
   <div class="map-container">
     <ion-button shape="round" *ngIf="recording?.paused" (click)="togglePauseRecording()">
       <ion-icon slot="start" name="play-circle"></ion-icon>
@@ -29,6 +29,11 @@
         <ion-icon name="elevation"></ion-icon>
       </div>
     </div>
+  </div>
+  <div class="edit-tools-container">
+    <ng-container *ngIf="editToolsComponent">
+      <ng-container *ngComponentOutlet="editToolsComponent; inputs: editToolsInputs"></ng-container>
+    </ng-container>
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="tracks[0]">

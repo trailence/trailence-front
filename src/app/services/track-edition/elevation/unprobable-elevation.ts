@@ -37,7 +37,6 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
           else
             mostProbable = -1;
         }
-        console.log(i, diffByMeter, mostProbable, previousEle, ele, previousEleAccuracy, eleAccuracy);
         if (mostProbable <= 0) {
           points[i].ele = previousEle;
           points[i].eleAccuracy = previousEleAccuracy;

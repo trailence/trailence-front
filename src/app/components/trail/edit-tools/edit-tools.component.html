@@ -1,0 +1,100 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      <ion-icon name="tool" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.trail.edit_tools.title}}</ion-label>
+    </ion-title>
+    <ion-button slot="end" fill="clear" color="dark" (click)="close()">
+      <ion-icon name="cross" slot="icon-only"></ion-icon>
+    </ion-button>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+
+  <ion-list>
+    <ion-item button (click)="backToOriginalTrack()">
+      {{i18n.texts.pages.trail.edit_tools.back_to_original}}
+    </ion-item>
+  </ion-list>
+
+  <div class="page-section-title">
+    <ion-icon name="elevation"></ion-icon>
+    <span>{{i18n.texts.pages.trail.edit_tools.elevation}}</span>
+  </div>
+
+  <ion-list>
+    <ion-item button (click)="removeUnprobableElevations()">
+      {{i18n.texts.pages.trail.edit_tools.remove_unprobable_elevations}}
+    </ion-item>
+    <ion-item button id="elevation-threshold-button-{{id}}">
+      {{i18n.texts.pages.trail.edit_tools.apply_elevation_threshold}}
+    </ion-item>
+  </ion-list>
+
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button (click)="undo()" [disabled]="history.length === 0">
+        <ion-icon name="undo" slot="start"></ion-icon>
+        {{i18n.texts.buttons.undo}}
+      </ion-button>
+      <ion-button (click)="redo()" [disabled]="undone.length === 0">
+        <ion-icon name="redo" slot="start"></ion-icon>
+        {{i18n.texts.buttons.redo}}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
+
+<ion-modal #modalElevationThreshold trigger="elevation-threshold-button-{{id}}">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>
+          <ion-label>{{i18n.texts.pages.trail.edit_tools.apply_elevation_threshold}}</ion-label>
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+
+      <div class="page-section-text" [innerHTML]="i18n.texts.pages.trail.edit_tools.elevation_threshold_explaination"></div>
+
+      <div class="page-section-sub-title">
+        {{i18n.texts.pages.trail.edit_tools.elevation_threshold}}
+      </div>
+      <ion-range #elevationThresholdElevation
+        mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThreshold()" [max]="getMaxElevationThreshold()" [step]="getElevationThresholdStep()"
+        [value]="getInitialElevationThreshold()"
+        [pin]="true" [pinFormatter]="elevationFormatter"
+        class="always-show-knob-pin"
+      >
+        <ion-label slot="start">{{elevationFormatter(getMinElevationThreshold())}}</ion-label>
+        <ion-label slot="end">{{elevationFormatter(getMaxElevationThreshold())}}</ion-label>
+      </ion-range>
+
+      <div class="page-section-sub-title">
+        {{i18n.texts.pages.trail.edit_tools.elevation_threshold_distance}}
+      </div>
+
+      <ion-range #elevationThresholdDistance
+        mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThresholdDistance()" [max]="getMaxElevationThresholdDistance()" [step]="getElevationThresholdDistanceStep()"
+        [value]="getInitialElevationThresholdDistance()"
+        [pin]="true" [pinFormatter]="distanceFormatter"
+        class="always-show-knob-pin"
+      >
+        <ion-label slot="start">{{distanceFormatter(getMinElevationThresholdDistance())}}</ion-label>
+        <ion-label slot="end">{{distanceFormatter(getMaxElevationThresholdDistance())}}</ion-label>
+      </ion-range>
+    </ion-content>
+
+    <ion-footer>
+      <ion-toolbar color="footer">
+        <ion-buttons slot="end">
+          <ion-button color="success" (click)="applyElevationThreshold(elevationThresholdElevation.value, elevationThresholdDistance.value); modalElevationThreshold.dismiss()">{{i18n.texts.buttons.apply}}</ion-button>
+          <ion-button color="medium" (click)="modalElevationThreshold.dismiss()">{{i18n.texts.buttons.cancel}}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

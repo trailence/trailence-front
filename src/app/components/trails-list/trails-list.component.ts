@@ -6,7 +6,6 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
-import { TrailService } from 'src/app/services/database/trail.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
@@ -19,6 +18,7 @@ import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filt
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MapComponent } from '../map/map.component';
+import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -119,7 +119,7 @@ export class TrailsListComponent extends AbstractComponent {
     injector: Injector,
     public i18n: I18nService,
     private trackService: TrackService,
-    public trailService: TrailService,
+    public trailMenuService: TrailMenuService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
     preferences: PreferencesService,
@@ -386,7 +386,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   import(): void {
-    this.trailService.importGpxDialog(this.collectionUuid!);
+    this.trailMenuService.importGpxDialog(this.collectionUuid!);
   }
 
   openTrail(trail: Trail): void {
@@ -394,7 +394,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   share(): void {
-    this.trailService.openSharePopup(this.collectionUuid!, []);
+    this.trailMenuService.openSharePopup(this.collectionUuid!, []);
   }
 
 }

@@ -1,4 +1,4 @@
-import { Component, Injector, Input, ViewChild } from '@angular/core';
+import { Component, Injector, Input, ViewChild, ViewContainerRef } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
@@ -25,6 +25,7 @@ import { Router } from '@angular/router';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
+import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 
 @Component({
   selector: 'app-trail',
@@ -50,6 +51,8 @@ export class TrailComponent extends AbstractComponent {
   trail2: Trail | null = null;
   recording: Recording | null = null;
   tracks$ = new BehaviorSubject<Track[]>([]);
+  toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
+  toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
 
   @ViewChild(MapComponent) map?: MapComponent;
@@ -75,6 +78,7 @@ export class TrailComponent extends AbstractComponent {
     private trailService: TrailService,
     private traceRecorder: TraceRecorderService,
     private geolocation: GeolocationService,
+    private trailMenuService: TrailMenuService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -103,19 +107,24 @@ export class TrailComponent extends AbstractComponent {
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), this.recording$ || of(null)]),
-      ([trail1, trail2, recording]) => {
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), this.recording$ || of(null), this.toolsBaseTrack$, this.toolsModifiedTrack$]).pipe(debounceTime(1)),
+      ([trail1, trail2, recording, toolsBaseTrack, toolsModifiedTrack]) => {
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
         this.recording = recording;
         const tracks: Track[] = [];
-        if (trail1[1]) {
+        if (toolsBaseTrack && !recording && !trail2[0]) {
+          tracks.push(toolsBaseTrack);
+        }
+        if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
-          //tracks.push(this.injector.get(TrackEditionService).applyDefaultImprovments(trail1[1]));
           if (trail2[1]) tracks.push(trail2[1]);
         }
         if (recording && !trail2[0]) {
           tracks.push(recording.track);
+        }
+        if (!recording && !trail2[0] && toolsModifiedTrack) {
+          tracks.push(toolsModifiedTrack);
         }
         const mapTracks: MapTrack[] = [];
         if (trail1[2]) {
@@ -208,7 +217,11 @@ export class TrailComponent extends AbstractComponent {
         child.invalidateSize();
       } else if (child instanceof ElevationGraphComponent) {
         child.setVisible(graphVisible);
-      } else if (child instanceof TrackMetadataComponent) {}
+      } else if (child instanceof TrackMetadataComponent) {
+        // nothing
+      } else if (this.editToolsComponent && child instanceof this.editToolsComponent) {
+        child.setVisible(true);
+      }
       else console.error('unexpected child', child);
     })
   }
@@ -250,35 +263,13 @@ export class TrailComponent extends AbstractComponent {
 
 
   goToDeparture(): void {
-    if (this.tracks$.value.length === 0) return;
-    const point = this.tracks$.value[0].departurePoint;
-    if (!point) return;
-    if (this.platform.is('capacitor')) {
-      const link = document.createElement('A') as HTMLAnchorElement;
-      link.style.position = 'fixed';
-      link.style.top = '-10000px';
-      link.style.left = '-10000px';
-      link.href = 'geo:0,0?q=' + point.pos.lat + ',' + point.pos.lng;
-      link.target = '_blank';
-      document.documentElement.appendChild(link);
-      link.click();
-      document.documentElement.removeChild(link);
-    } else {
-      const link = document.createElement('A') as HTMLAnchorElement;
-      link.style.position = 'fixed';
-      link.style.top = '-10000px';
-      link.style.left = '-10000px';
-      link.target = '_blank';
-      link.href = 'https://www.google.com/maps/dir/?api=1&dir_action=navigate&destination=' + point.pos.lat + ',' + point.pos.lng;
-      document.documentElement.appendChild(link);
-      link.click();
-      document.documentElement.removeChild(link);
-    }
+    if (this.trail1)
+      this.trailMenuService.goToDeparture(this.trail1);
   }
 
   downloadMap(): void {
     if (this.trail1)
-      this.trailService.openDownloadMap([this.trail1]);
+      this.trailMenuService.openDownloadMap([this.trail1]);
   }
 
   descriptionChanged(text: string | null | undefined): void {
@@ -324,7 +315,35 @@ export class TrailComponent extends AbstractComponent {
 
   openLocationDialog(): void {
     if (this.trail2 || !this.trail1) return;
-    this.trailService.openLocationPopup(this.trail1);
+    this.trailMenuService.openLocationPopup(this.trail1);
+  }
+
+  editToolsComponent: any;
+  editToolsInputs: any;
+
+  public async enableEditTools() {
+    if (this.editToolsComponent) return;
+    const module = await import('./edit-tools/edit-tools.component');
+    this.editToolsComponent = module.EditToolsComponent;
+    this.editToolsInputs = {
+      trail: this.trail1,
+      baseTrack$: this.toolsBaseTrack$,
+      modifiedTrack$: this.toolsModifiedTrack$,
+      close: () => {
+        this.editToolsComponent = undefined;
+        this.editToolsInputs = undefined;
+        this.toolsModifiedTrack$.next(undefined);
+        this.toolsBaseTrack$.next(undefined);
+        setTimeout(() => {
+          this._children$.value.find(child => child instanceof MapComponent)?.invalidateSize();
+          this._children$.value.find(child => child instanceof ElevationGraphComponent)?.resetChart();
+        }, 0);
+      }
+    };
+    setTimeout(() => {
+      this._children$.value.find(child => child instanceof MapComponent)?.invalidateSize();
+      this._children$.value.find(child => child instanceof ElevationGraphComponent)?.resetChart();
+    }, 0);
   }
 
 }

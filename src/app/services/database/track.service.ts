@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
-import { Observable } from 'rxjs';
+import { filter, first, Observable, timeout } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
 
 @Injectable({
@@ -26,6 +26,14 @@ export class TrackService {
 
   public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
     return this.db.getFullTrack$(uuid, owner);
+  }
+
+  public getFullTrackReady$(uuid: string, owner: string): Observable<Track> {
+    return this.getFullTrack$(uuid, owner).pipe(
+      filter(t => !!t),
+      timeout(10000),
+      first()
+    );
   }
 
   public create(track: Track): void {

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
-import { AbstractComponent } from 'src/app/utils/component-utils';
+import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { Platform } from '@ionic/angular';
 import * as C from 'chart.js';
 import { _DeepPartialObject } from 'chart.js/dist/types/utils';
@@ -33,6 +33,7 @@ export interface DataPoint {
   ele?: number;
   distanceMeters: number;
   grade?: number;
+  eleAccuracy?: number;
 }
 
 @Component({
@@ -61,6 +62,7 @@ export class ElevationGraphComponent extends AbstractComponent {
   chartPlugins: C.Plugin<"line", AnyObject>[] = [];
   width?: number;
   height?: number;
+  id = IdGenerator.generateId();
 
   @ViewChild('canvas', {read: BaseChartDirective}) canvas?: BaseChartDirective;
 
@@ -100,7 +102,7 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   private checkSizeTimeout?: any;
 
-  private resetChart(): void {
+  public resetChart(): void {
     this.chartOptions = undefined;
     this.chartData = undefined;
     this.chartPlugins = [];
@@ -260,6 +262,67 @@ export class ElevationGraphComponent extends AbstractComponent {
           algorithm: 'lttb',
         },
         tooltip: {
+          enabled: false,
+          external: (context: any) => {
+            const container = document.getElementById('graph-tooltip-' + this.id);
+            if (!container) return;
+            if (context.tooltip.opacity === 0) {
+              container.style.display = 'none';
+              return;
+            }
+            const points: any[] = context.tooltip.dataPoints;
+            container.style.display = 'block';
+            let html = '<table>';
+            if (points.length > 1) {
+              html += '<tr class="header"><th></th>';
+              for (const point of points) {
+                html += '<th><div style="width: 25px; height: 0; display: inline-block; border-bottom: 2px solid ' + point.dataset.strokeColor + ';"></div></th>';
+              }
+              html += '</tr>';
+            }
+            const addInfo = (title: string, text: (pt: any) => string) => {
+              const values: string[] = [];
+              let hasValue = false;
+              for (const point of points) {
+                const v = text(point);
+                if (v && v.length > 0) hasValue = true;
+                if (v === undefined || v === null) values.push('');
+                else values.push(v);
+              }
+              if (!hasValue) return;
+              html += '<tr><th>' + title + '</th>';
+              for (const point of points) html += '<td>' + text(point) + '</td>';
+              html += '</tr>';
+            };
+            addInfo(this.i18n.texts.elevationGraph.elevation, pt => this.i18n.elevationToString(pt.raw.ele));
+            addInfo(this.i18n.texts.elevationGraph.elevation_grade, pt => Math.floor(pt.raw.grade * 100) + '%');
+            addInfo(this.i18n.texts.elevationGraph.precision, pt => pt.raw.eleAccuracy !== undefined ? ('+/- ' + this.i18n.elevationToString(pt.raw.eleAccuracy)) : '');
+            addInfo(this.i18n.texts.elevationGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters))
+            addInfo(this.i18n.texts.elevationGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
+            html += '<tr><th>' + this.i18n.texts.elevationGraph.location + '</th>';
+            for (const point of points) {
+              html += '<td>' + this.i18n.coordToString(point.raw.lat) + '<br/>' + this.i18n.coordToString(point.raw.lng) + '</td>';
+            }
+            html += '</tr>';
+            html += '</table>';
+            container.innerHTML = html;
+            const chartRect = context.chart.canvas.getBoundingClientRect();
+            if (context.tooltip.caretX < chartRect.width / 2) {
+              container.style.left = (context.tooltip.caretX + 15) + 'px';
+              container.style.right = '';
+            } else {
+              container.style.right = (chartRect.width - context.tooltip.caretX + 15) + 'px';
+              container.style.left = '';
+            }
+            if (context.tooltip.caretY < chartRect.height * 0.3) {
+              container.style.top = (context.tooltip.caretY + 5) + 'px';
+              container.style.bottom = '';
+            } else {
+              container.style.bottom = (chartRect.height - context.tooltip.caretY + 5) + 'px';
+              container.style.top = '';
+            }
+          }
+          /*
           boxPadding: 3,
           callbacks: {
             title: (context: any) => {
@@ -288,7 +351,7 @@ export class ElevationGraphComponent extends AbstractComponent {
                 backgroundColor: context.dataset.borderColor,
               };
             }
-          }
+          }*/
         }
       },
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
@@ -390,6 +453,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       ele: point.ele,
       distanceMeters: distance,
       grade: TrackUtils.elevationGrade(points, pointIndex),
+      eleAccuracy: point.eleAccuracy,
     };
   }
 

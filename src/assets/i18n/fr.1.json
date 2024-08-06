@@ -90,7 +90,8 @@
       },
       "actions": {
         "go_to_departure": "Aller au départ",
-        "download_map": "Télécharger la carte"
+        "download_map": "Télécharger la carte",
+        "edit_tools": "Outils d'édition"
       },
       "sections": {
         "description": {
@@ -100,6 +101,16 @@
         "waypoints": {
           "title": "Points de passage"
         }
+      },
+      "edit_tools": {
+        "title": "Outils d'édition",
+        "back_to_original": "Revenir à la trace d'origine",
+        "elevation": "Altitude",
+        "remove_unprobable_elevations": "Enlever les altitudes improbables",
+        "apply_elevation_threshold": "Lisser avec un seuil de dénivelé",
+        "elevation_threshold": "Seuil de dénivelé",
+        "elevation_threshold_distance": "Distance maximum",
+        "elevation_threshold_explaination": "Le but du lissage est de gommer les imprécisions du GPS.<br/>Du fait de ces imprécisions, il arrive fréquemment que en quelques mètres de distance l'altitude monte et descende également de quelques mètres, alors que la réalité est une pente continue.<br/>Le lissage fonctionne donc comme suit:<ul><li>On recherche les sections dans lesquelles l'altitude a varié dans la limite du seuil configuré, et sur une distance maximum configurée.</li><li>Pour chaque section trouvée, on prend l'altitude de départ et l'altitude d'arrivée, et on lisse en une pente continue.</li><li>Afin d'éviter de perdre les points hauts ou les points bas du parcours, si nous trouvons un tel point au milieu de la section, nous réduisons la section pour conserver ce point.</li></ul>"
       }
     },
     "collection_form": {
@@ -275,7 +286,9 @@
     "next": "Continuer",
     "previous": "Revenir",
     "save": "Enregistrer",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "undo": "Revenir",
+    "redo": "Refaire"
   },
   "order_way": "Par ordre",
   "order_asc": "Croissant",
@@ -296,7 +309,8 @@
     "elevation": "Altitude",
     "time_duration": "Temps",
     "elevation_grade": "Pente",
-    "location": "Position"
+    "location": "Position",
+    "precision": "Précision"
   },
   "downloading_map": "Téléchargement de la carte",
   "offline_map": {

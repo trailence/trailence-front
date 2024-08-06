@@ -1,0 +1,21 @@
+:host {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+ion-toolbar {
+  --min-height: 48px;
+}
+
+.page-section-title {
+  padding: 5px 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ion-icon {
+    margin-right: 8px;
+  }
+}

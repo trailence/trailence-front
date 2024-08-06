@@ -39,7 +39,7 @@ class Cursor {
 export function applyElevationThresholdToSegment(segment: Segment, threshold: number, maxDistance: number, lastIndexProcessed: number | undefined, finish: boolean): number {
   const points = segment.points;
   if (points.length < 3) return 0;
-  const smoothOutsideThreshold = 2;
+  const smoothOutsideThreshold = threshold * 0.75;
   const start = lastIndexProcessed ? lastIndexProcessed : 0;
   const cursor = new Cursor(points, start);
   const nb = finish ? points.length : points.length - 10;
@@ -95,13 +95,22 @@ function smoothElevation(points: Point[], previousIndex: number, previousEle: nu
 
 function outsideFromSmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, threshold: number): {index: number, distance: number} | null {
   let currentDistance = 0;
+  let distanceAbove = 0;
+  let distanceBelow = 0;
   for (let j = previousIndex + 1; j < toIndex; ++j) {
-    currentDistance += points[j].distanceTo(points[j - 1].pos);
+    const dist = points[j].distanceTo(points[j - 1].pos);
+    currentDistance += dist;
     const ele = points[j].ele;
     if (ele !== undefined) {
       const smoothEle = previousEle + (diff * currentDistance / totalDistance);
-      const d = Math.abs(ele - smoothEle);
-      if (d > threshold) {
+      const smoothDiff = ele - smoothEle;
+      if (smoothDiff > threshold / 10) distanceAbove += dist;
+      else if (smoothDiff < -(threshold / 10)) distanceBelow += dist;
+      const stop = (currentDistance > totalDistance / 3 && currentDistance > 100 && (distanceAbove > currentDistance * 0.4 || distanceBelow > currentDistance * 0.4)) ||
+        (Math.abs(smoothDiff) > threshold);
+      if (stop) {
+        const newOutside = outsideFromSmoothElevation(points, previousIndex, previousEle, j, points[j].ele! - previousEle, currentDistance, threshold);
+        if (newOutside) return newOutside;
         return {index: j, distance: currentDistance};
       }
     }

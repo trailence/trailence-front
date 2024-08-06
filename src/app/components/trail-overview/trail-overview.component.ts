@@ -8,12 +8,12 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent } from "@ionic/angular/standalone";
 import { combineLatest, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrailService } from 'src/app/services/database/trail.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 
 class Meta {
   name?: string;
@@ -54,7 +54,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private trackService: TrackService,
     private i18n: I18nService,
     private changeDetector: ChangeDetectorRef,
-    public trailService: TrailService,
+    public trailMenuService: TrailMenuService,
     private tagService: TagService,
     private auth: AuthService,
   ) {
