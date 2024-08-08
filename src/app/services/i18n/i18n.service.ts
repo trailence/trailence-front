@@ -114,7 +114,8 @@ export class I18nService {
     }
   }
 
-  public getSpeedString(speed: number) {
+  public getSpeedString(speed?: number): string {
+    if (speed === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return (speed / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' km/h';
       case 'MILES': return this.metersToMiles(speed).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' mi/h';
@@ -194,12 +195,14 @@ export class I18nService {
     }
   }
 
-  public durationToString(duration: number): string {
+  public durationToString(duration?: number, showZeroHour: boolean = true): string {
+    if (duration === undefined) return '';
     const minutes = Math.floor(duration / (1000 * 60));
     const days = Math.floor(minutes / (24 * 60));
     const hours = Math.floor((minutes - days * 24 * 60) / 60);
     const min = minutes - (days * 24 * 60) - (hours * 60);
     let minS = min.toString();
+    if (!showZeroHour && hours === 0 && days === 0) return minS + this.texts.duration.minutes;
     if (minS.length < 2) minS = '0' + minS;
     let hourS = hours.toString();
     if (days === 0) return hourS + this.texts.duration.hours + minS;

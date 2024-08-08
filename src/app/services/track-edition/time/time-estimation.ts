@@ -32,8 +32,10 @@ export function estimateTimeForSegment(segment: Segment, preferences: ComputedPr
       durationSincePeviousBreak = 0;
     }
   }
-  // round to 5 minutes
-  const _5minutes = total % (5 * 60 * 1000);
-  if (_5minutes > 0) total += 5 * 60 * 1000 - _5minutes;
+  if (total > 15 * 60 * 1000) {
+    // round to 5 minutes
+    const _5minutes = total % (5 * 60 * 1000);
+    if (_5minutes > 0) total += 5 * 60 * 1000 - _5minutes;
+  }
   return total;
 }

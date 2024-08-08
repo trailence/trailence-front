@@ -182,6 +182,10 @@ export class MapComponent extends AbstractComponent {
     this.fitTracksBounds(this._map$.value, tracks || this._currentTracks);
   }
 
+  public centerAndZoomOn(bounds: L.LatLngBounds): void {
+    this._map$.value?.fitBounds(bounds);
+  }
+
   private fitTracksBounds(map: L.Map, tracks: MapTrack[], padding: number = 0.05): void {
     let bounds;
     for (const t of tracks) {

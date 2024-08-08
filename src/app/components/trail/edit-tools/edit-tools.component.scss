@@ -19,3 +19,13 @@ ion-toolbar {
     margin-right: 8px;
   }
 }
+
+.inline-tool {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  > div:first-child {
+    flex: 1 1 100%;
+  }
+}

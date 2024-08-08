@@ -50,6 +50,7 @@ export class AssetsService {
       'offline': 'assets/ionicons/alert-circle-outline.svg',
       'online': 'assets/ionicons/checkmark-circle-outline.svg',
       'negative-elevation': 'assets/negative-elevation.1.svg',
+      'path': 'assets/path.1.svg',
       'pause-circle': 'assets/ionicons/pause-circle-outline.svg',
       'planner': 'assets/ionicons/calendar-outline.svg',
       'play': 'assets/ionicons/play-outline.svg',

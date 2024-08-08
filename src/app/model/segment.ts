@@ -21,7 +21,7 @@ export class Segment {
   public get changes$(): Observable<any> {
     return this.points$.pipe(
       switchMap(points => points.length === 0 ? of([]) : combineLatest(points.map(point => concat(of(true), point.changes$)))),
-      skip(1)
+      skip(1),
     )
   }
 
@@ -351,9 +351,9 @@ export class SegmentMetadata {
     const subN = e <= 0 ? -e : 0;
     const subP = e >= 0 ? e : 0;
     if (this._negativeElevation.value !== undefined && subN > 0)
-      this._negativeElevation.next(this._negativeElevation.value - subN);
+      this._negativeElevation.next(Math.max(0, this._negativeElevation.value - subN));
     if (this._positiveElevation.value !== undefined && subP > 0)
-      this._positiveElevation.next(this._positiveElevation.value - subP);
+      this._positiveElevation.next(Math.max(0, this._positiveElevation.value - subP));
   }
 
   addDuration(d: number): void {

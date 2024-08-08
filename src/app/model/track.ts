@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, map, of, skip, switchMap } from 'rxjs';
-import { Segment, SegmentMetadata, SegmentPoint } from './segment';
+import { Segment, SegmentMetadata } from './segment';
 import { Point, PointDtoMapper } from './point';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
@@ -31,10 +31,10 @@ export class Track extends Owned {
   public get changes$(): Observable<any> {
     return combineLatest([
       this.segments$.pipe(
-        switchMap(segments => segments.length === 0 ? of([]) : concat(of([]), combineLatest(segments.map(s => s.changes$))))
+        switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(s => concat(of([]), s.changes$)))),
       ),
       this.wayPoints$.pipe(
-        switchMap(wayPoints => wayPoints.length === 0 ? of([]) : concat(of([]), combineLatest(wayPoints.map(wp => wp.changes$))))
+        switchMap(wayPoints => wayPoints.length === 0 ? of([]) : combineLatest(wayPoints.map(wp => concat(of([], wp.changes$))))),
       )
     ]).pipe(
       skip(1)

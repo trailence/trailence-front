@@ -285,7 +285,7 @@ export class TraceRecorderService {
       point.eleAccuracy = position.ea;
       updated = true;
     }
-    if (updated)
+    if (updated || (position.t !== undefined && (point.time === undefined || position.t - point.time >= 60000)))
       point.time = position.t;
   }
 
@@ -303,7 +303,8 @@ export class TraceRecorderService {
     this._geolocationListener = undefined;
     this.latestDefinitivePoint = undefined;
     this.latestTemporaryPoint = undefined;
-    this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments[recording.track.segments.length - 1], this.improvmentState, true);
+    if (recording.track.segments.length > 0)
+      this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments[recording.track.segments.length - 1], this.improvmentState, true);
     this.improvmentState = undefined;
   }
 
@@ -314,6 +315,7 @@ export class TraceRecorderService {
     const t = this._table;
     this._saving = true;
     this._saved = true;
+    const dto = recording.toDto();
     this._table.put(recording.toDto(), 1).finally(() => {
       if (this._table !== t) return;
       this._saving = false;

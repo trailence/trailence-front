@@ -76,8 +76,10 @@ export class GeolocationService implements IGeolocationService {
     this.watchListeners.push({listener, onerror});
     if (!this.watchBackgroundId) {
       BackgroundGeolocation.addWatcher({
-        backgroundMessage: this.i18n.texts.trace_recorder.notif_message,
-        backgroundTitle: this.i18n.texts.trace_recorder.notif_title,
+        //backgroundMessage: this.i18n.texts.trace_recorder.notif_message,
+        //backgroundTitle: this.i18n.texts.trace_recorder.notif_title,
+        backgroundMessage: '',
+        backgroundTitle: this.i18n.texts.trace_recorder.notif_message,
         distanceFilter: 1,
       }, (position, err) => {
         console.log('background watcher', position, err);

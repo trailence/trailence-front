@@ -53,6 +53,7 @@ export class TrailComponent extends AbstractComponent {
   tracks$ = new BehaviorSubject<Track[]>([]);
   toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
+  toolsFocusTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
 
   @ViewChild(MapComponent) map?: MapComponent;
@@ -106,37 +107,60 @@ export class TrailComponent extends AbstractComponent {
     this.recording = null;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
+    let previousFocus: Track | undefined = undefined;
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), this.recording$ || of(null), this.toolsBaseTrack$, this.toolsModifiedTrack$]).pipe(debounceTime(1)),
-      ([trail1, trail2, recording, toolsBaseTrack, toolsModifiedTrack]) => {
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), this.recording$ || of(null), this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$]).pipe(debounceTime(1)),
+      ([trail1, trail2, recording, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack]) => {
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
         this.recording = recording;
         const tracks: Track[] = [];
+        const mapTracks: MapTrack[] = [];
+
         if (toolsBaseTrack && !recording && !trail2[0]) {
           tracks.push(toolsBaseTrack);
+          mapTracks.push(new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n));
         }
         if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
-          if (trail2[1]) tracks.push(trail2[1]);
+          if (trail1[2])
+            mapTracks.push(trail1[2]);
+          if (trail2[1]) {
+            tracks.push(trail2[1]);
+            if (trail2[2])
+              mapTracks.push(trail2[2]);
+          }
         }
+
         if (recording && !trail2[0]) {
           tracks.push(recording.track);
-        }
-        if (!recording && !trail2[0] && toolsModifiedTrack) {
-          tracks.push(toolsModifiedTrack);
-        }
-        const mapTracks: MapTrack[] = [];
-        if (trail1[2]) {
-          mapTracks.push(trail1[2]);
-          if (trail2[2]) mapTracks.push(trail2[2]);
-        }
-        if (recording && !trail2[0]) {
           const mapTrack = new MapTrack(recording.trail, recording.track, 'blue', 1, true, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
           mapTrack.showArrowPath();
           mapTracks.push(mapTrack)
         }
+
+        if (!recording && !trail2[0]) {
+          if (toolsModifiedTrack) {
+            tracks.push(toolsModifiedTrack);
+            mapTracks.push(new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n));
+          }
+          if (toolsFocusTrack !== previousFocus) {
+            previousFocus = toolsFocusTrack;
+            if (toolsFocusTrack) {
+              let bounds = toolsFocusTrack.metadata.bounds;
+              if (bounds) {
+                bounds = bounds.pad(0.05);
+                this.map?.centerAndZoomOn(bounds);
+              }
+            }
+          }
+          if (toolsFocusTrack) {
+            tracks.push(toolsFocusTrack);
+            mapTracks.push(new MapTrack(undefined, toolsFocusTrack, '#A08000C0', 1, false, this.i18n));
+          }
+        }
+
         mapTracks.push(...this.pathSelection.mapTracks$.value);
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
@@ -329,11 +353,13 @@ export class TrailComponent extends AbstractComponent {
       trail: this.trail1,
       baseTrack$: this.toolsBaseTrack$,
       modifiedTrack$: this.toolsModifiedTrack$,
+      focusTrack$: this.toolsFocusTrack$,
       close: () => {
         this.editToolsComponent = undefined;
         this.editToolsInputs = undefined;
         this.toolsModifiedTrack$.next(undefined);
         this.toolsBaseTrack$.next(undefined);
+        this.toolsFocusTrack$.next(undefined);
         setTimeout(() => {
           this._children$.value.find(child => child instanceof MapComponent)?.invalidateSize();
           this._children$.value.find(child => child instanceof ElevationGraphComponent)?.resetChart();

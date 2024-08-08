@@ -96,10 +96,11 @@ public class BackgroundGeolocation extends Plugin {
                                 "Using your location"
                             )
                     )
-                    .setContentText(backgroundMessage)
                     .setOngoing(true)
                     .setPriority(Notification.PRIORITY_HIGH)
                     .setWhen(System.currentTimeMillis());
+            if (!backgroundMessage.isEmpty())
+              builder = builder.setContentText(backgroundMessage);
 
             try {
                 String name = getAppString(
@@ -178,7 +179,8 @@ public class BackgroundGeolocation extends Plugin {
             call.reject("Missing id.");
             return;
         }
-        service.removeWatcher(callbackId);
+        if (service != null)
+          service.removeWatcher(callbackId);
         PluginCall savedCall = bridge.getSavedCall(callbackId);
         if (savedCall != null) {
             savedCall.release(bridge);

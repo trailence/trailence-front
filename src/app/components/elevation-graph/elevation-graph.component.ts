@@ -191,7 +191,8 @@ export class ElevationGraphComponent extends AbstractComponent {
     let maxX = 0;
     for (const ds of this.chartData!.datasets) {
       const pts = ds.data as any[];
-      maxX = Math.max(maxX, pts[pts.length - 1].x);
+      if (pts.length > 0)
+        maxX = Math.max(maxX, pts[pts.length - 1].x);
     }
     this.chartOptions!.scales!['x']!.max = maxX;
   }

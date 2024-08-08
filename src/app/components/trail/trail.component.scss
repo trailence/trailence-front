@@ -36,6 +36,7 @@
 
   .elevation-container {
     position: absolute;
+    z-index: 1000;
 
     .zoom-button {
       z-index: 502;
@@ -123,7 +124,6 @@
         bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height));
       }
       .elevation-container {
-        z-index: 501;
         top: calc(100% - var(--bottom-sheet-large-height));
       }
     }
@@ -281,7 +281,6 @@
         }
         .elevation-container {
           top: calc(100% - var(--bottom-sheet-tab-content-height));
-          z-index: 501;
         }
 
         &.bottom-sheet-info {
