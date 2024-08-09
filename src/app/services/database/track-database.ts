@@ -405,10 +405,13 @@ export class TrackDatabase {
     });
     const full$ = this.fullTracks.get(key);
     if (full$) full$.next(track);
+    else this.fullTracks.set(key, new BehaviorSubject<Track | null>(track));
     const simplified$ = this.simplifiedTracks.get(key);
     if (simplified$) simplified$.next(simplified);
+    else this.simplifiedTracks.set(key, new BehaviorSubject<SimplifiedTrackSnapshot | null>(simplified));
     const metadata$ = this.metadata.get(key);
     if (metadata$) metadata$.next(metadata);
+    else this.metadata.set(key, new BehaviorSubject<TrackMetadataSnapshot | null>(metadata));
     if (!this.syncStatus$.value!.hasLocalChanges) {
       this.syncStatus$.value!.hasLocalChanges = true;
       this.syncStatus$.next(this.syncStatus$.value);

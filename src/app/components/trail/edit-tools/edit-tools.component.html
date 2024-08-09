@@ -62,16 +62,25 @@
 </ion-content>
 <ion-footer *ngIf="!inlineTool">
   <ion-toolbar color="footer">
-    <ion-buttons slot="end">
-      <ion-button (click)="undo()" [disabled]="history.length === 0">
-        <ion-icon name="undo" slot="start"></ion-icon>
-        {{i18n.texts.buttons.undo}}
-      </ion-button>
-      <ion-button (click)="redo()" [disabled]="undone.length === 0">
-        <ion-icon name="redo" slot="start"></ion-icon>
-        {{i18n.texts.buttons.redo}}
-      </ion-button>
-    </ion-buttons>
+    <div>
+      <ion-buttons slot="end">
+        <ion-button (click)="undo()" [disabled]="history.length === 0">
+          <ion-icon name="undo" slot="start"></ion-icon>
+          {{i18n.texts.buttons.undo}}
+        </ion-button>
+        <ion-button (click)="redo()" [disabled]="undone.length === 0">
+          <ion-icon name="redo" slot="start"></ion-icon>
+          {{i18n.texts.buttons.redo}}
+        </ion-button>
+      </ion-buttons>
+    </div>
+    <div>
+      <ion-buttons slot="end">
+        <ion-button color="success" [disabled]="!canSave()" (click)="save()">
+          {{i18n.texts.buttons.save}}
+        </ion-button>
+      </ion-buttons>
+    </div>
   </ion-toolbar>
 </ion-footer>
 

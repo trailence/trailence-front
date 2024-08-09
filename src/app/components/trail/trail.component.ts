@@ -167,7 +167,8 @@ export class TrailComponent extends AbstractComponent {
         this.mapTracks$.next(mapTracks);
 
         this.editable = !this.trail2 && !!this.trail1 && this.trail1.owner === this.auth.email;
-        this.elevationGraph?.resetChart();
+        if (toolsModifiedTrack)
+          this.elevationGraph?.resetChart();
       }
     );
     if (this.recording$)

@@ -14,6 +14,7 @@ import { applyElevationThresholdToTrack } from 'src/app/services/track-edition/e
 import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/break-detection';
 import { Point } from 'src/app/model/point';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
+import { TrailService } from 'src/app/services/database/trail.service';
 
 interface HistoryState {
   base: Track | undefined;
@@ -48,6 +49,7 @@ export class EditToolsComponent {
   constructor(
     public i18n: I18nService,
     private trackService: TrackService,
+    private trailService: TrailService,
     private auth: AuthService,
     public prefs: PreferencesService,
     private geo: GeoService,
@@ -78,6 +80,24 @@ export class EditToolsComponent {
       modified: this.modifiedTrack$.value,
     });
     this.undone = [];
+  }
+
+  canSave(): boolean {
+    return !!this.baseTrack$.value || !!this.modifiedTrack$.value;
+  }
+
+  save(): void {
+    let track = (this.modifiedTrack$.value || this.baseTrack$.value)!;
+    if (track?.version && track.version > 0) track = track.copy(this.auth.email!);
+    this.trackService.create(track);
+    this.trail.currentTrackUuid = track.uuid;
+    this.trailService.update(this.trail);
+    this.history = [];
+    this.undone = [];
+    this.inlineTool = undefined;
+    this.focusTrack$.next(undefined);
+    this.modifiedTrack$.next(undefined);
+    this.baseTrack$.next(undefined);
   }
 
   backToOriginalTrack(): void {
