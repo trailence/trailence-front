@@ -101,7 +101,7 @@ export class TrailPage extends AbstractPage {
           this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, t1?.collectionUuid);
           if (!t2 && t1?.owner === this.injector.get(AuthService).email) {
             const platform = this.injector.get(Platform);
-            if (platform.width() >= 1500 && platform.height() >= 600) {
+            if (platform.width() >= 1500 && platform.height() >= 500) {
               if (!this.injector.get(TraceRecorderService).recording) {
                 // eligible for edit tools
                 const sepIndex = this.menu.findIndex(item => !item.action && !item.icon && !item.label && !item.i18nLabel);

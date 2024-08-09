@@ -24,6 +24,9 @@
     </div>
 
     <ion-list>
+      <ion-item button (click)="downloadElevations()">
+        {{i18n.texts.pages.trail.edit_tools.download_elevations}}
+      </ion-item>
       <ion-item button (click)="removeUnprobableElevations()">
         {{i18n.texts.pages.trail.edit_tools.remove_unprobable_elevations}}
       </ion-item>
@@ -37,6 +40,17 @@
       <span>{{i18n.texts.pages.trail.edit_tools.path}}</span>
     </div>
 
+    <ng-container *ngIf="(canJoinArrivalAndDeparture$() | async)">
+      <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.join_departure_and_arrival.title}}</div>
+      <ion-item button (click)="joinArrivalToDeparture()">
+        {{i18n.texts.pages.trail.edit_tools.join_departure_and_arrival.join_arrival}}
+      </ion-item>
+      <ion-item button (click)="joinDepartureToArrival()">
+        {{i18n.texts.pages.trail.edit_tools.join_departure_and_arrival.join_departure}}
+      </ion-item>
+    </ng-container>
+
+    <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.breaks}}</div>
     <ion-item button (click)="inlineTool = removeLongBreaksMoves">
       {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.title}}
     </ion-item>

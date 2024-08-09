@@ -12,6 +12,8 @@ import { CommonModule } from '@angular/common';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { applyElevationThresholdToTrack } from 'src/app/services/track-edition/elevation/elevation-threshold';
 import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/break-detection';
+import { Point } from 'src/app/model/point';
+import { GeoService } from 'src/app/services/geolocation/geo.service';
 
 interface HistoryState {
   base: Track | undefined;
@@ -48,6 +50,7 @@ export class EditToolsComponent {
     private trackService: TrackService,
     private auth: AuthService,
     public prefs: PreferencesService,
+    private geo: GeoService,
   ) { }
 
   undo(): void {
@@ -61,8 +64,10 @@ export class EditToolsComponent {
   }
 
   redo(): void {
-    this.pushHistory();
     const state = this.undone.splice(this.undone.length - 1, 1)[0];
+    const newUndone = this.undone;
+    this.pushHistory();
+    this.undone = newUndone;
     this.baseTrack$.next(state.base);
     this.modifiedTrack$.next(state.modified);
   }
@@ -72,6 +77,7 @@ export class EditToolsComponent {
       base: this.baseTrack$.value,
       modified: this.modifiedTrack$.value,
     });
+    this.undone = [];
   }
 
   backToOriginalTrack(): void {
@@ -82,6 +88,14 @@ export class EditToolsComponent {
         this.modifiedTrack$.next(undefined);
       }
     );
+  }
+
+  private getTrack(): Observable<Track> {
+    if (this.modifiedTrack$.value)
+      return of(this.modifiedTrack$.value);
+    if (this.baseTrack$.value)
+      return of(this.baseTrack$.value);
+    return this.trackService.getFullTrackReady$(this.trail.currentTrackUuid, this.trail.owner).pipe(first());
   }
 
   private modify(): Observable<Track> {
@@ -110,6 +124,19 @@ export class EditToolsComponent {
           })
         );
       })
+    );
+  }
+
+  downloadElevations(): void {
+    this.modify().subscribe(
+      track => {
+        for (const segment of track.segments)
+          for (const point of segment.points) {
+            point.ele = undefined;
+            point.eleAccuracy = undefined;
+          }
+        this.geo.fillTrackElevation(track).subscribe(() => this.modifiedTrack$.next(track));
+      }
     );
   }
 
@@ -183,6 +210,44 @@ export class EditToolsComponent {
     this.modify().subscribe(track => applyElevationThresholdToTrack(track, threshold, maxDistance));
   }
 
+  canJoinArrivalAndDeparture$(): Observable<boolean> {
+    return this.getTrack().pipe(map(track => !!track.departurePoint && !!track.arrivalPoint && track.departurePoint.distanceTo(track.arrivalPoint!.pos) > 1 && track.departurePoint.distanceTo(track.arrivalPoint!.pos) < 100));
+  }
+
+  joinArrivalToDeparture(): void {
+    this.modify().subscribe(track => {
+      const segment = track.segments[track.segments.length - 1];
+      const departure = track.departurePoint;
+      if (!departure) return;
+      segment.append(new Point(
+        departure.pos.lat,
+        departure.pos.lng,
+        departure.ele,
+        track.arrivalPoint!.time,
+        departure.posAccuracy,
+        departure.eleAccuracy,
+        undefined, undefined
+      ));
+    });
+  }
+
+  joinDepartureToArrival(): void {
+    this.modify().subscribe(track => {
+      const segment = track.segments[0];
+      const arrival = track.arrivalPoint;
+      if (!arrival) return;
+      segment.insert(0, new Point(
+        arrival.pos.lat,
+        arrival.pos.lng,
+        arrival.ele,
+        track.departurePoint!.time,
+        arrival.posAccuracy,
+        arrival.eleAccuracy,
+        undefined, undefined
+      ));
+    });
+  }
+
   getMinLongBreaksMovesDistance(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 15;
@@ -213,12 +278,7 @@ export class EditToolsComponent {
   detectLongBreaks(minDuration: any, maxDistance: any): void {
     this.longBreaksMinDuration = minDuration;
     this.longBreaksMaxDistance = maxDistance;
-    if (this.modifiedTrack$.value)
-      this.detectLongBreaksForTrack(this.modifiedTrack$.value);
-    else if (this.baseTrack$.value)
-      this.detectLongBreaksForTrack(this.baseTrack$.value);
-    else
-      this.trackService.getFullTrackReady$(this.trail.currentTrackUuid, this.trail.owner).pipe(first()).subscribe(track => this.detectLongBreaksForTrack(track));
+    this.getTrack().subscribe(track => this.detectLongBreaksForTrack(track));
   }
 
   detectLongBreaksForTrack(track: Track): void {

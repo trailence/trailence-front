@@ -113,12 +113,19 @@
         "title": "Edition tools",
         "back_to_original": "Back to the original track",
         "elevation": "Elevation",
+        "download_elevations": "Download elevations",
         "remove_unprobable_elevations": "Remove unprobable elevations",
         "apply_elevation_threshold": "Smooth with a slope threshold",
         "elevation_threshold": "Slope threshold",
         "elevation_threshold_distance": "Maximum distance",
         "elevation_threshold_explaination": "The purpose of smoothing is to smooth out GPS inaccuracies.<br/>Because of these inaccuracies, it often happens that in a few meters of distance the altitude also rises and falls by a few meters, while the reality is a continuous slope.<br/>Smoothing therefore works as follows:<ul><li>We look for sections in which the altitude has varied within the configured threshold, and over a configured maximum distance.</li><li>For each section found, we take the starting altitude and the arrival altitude, and we smooth into a continuous slope.</li><li>In order to avoid losing the high points or low points of the route, if we find such a point in the middle of the section, we reduce the section to keep this point.</li></ul>",
         "path": "Trail path",
+        "join_departure_and_arrival": {
+          "title": "Join departure and arrival",
+          "join_departure": "By starting the trail at the same place as the arrival",
+          "join_arrival": "By finishing the trail at the same place as the departure"
+        },
+        "breaks": "Breaks",
         "remove_long_breaks_moves": {
           "title": "Remove moves during long breaks",
           "configuration": "Configuration",

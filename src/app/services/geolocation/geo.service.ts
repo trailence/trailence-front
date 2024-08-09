@@ -105,6 +105,7 @@ export class GeoService {
 
   private getElevationFromIGN(points: Point[]): Observable<any> {
     const requests: Observable<any>[] = [];
+    let positions: number[][] = [];
     for (let i = 0; i < points.length; i += 100) {
       let lat = '';
       let lon = '';
@@ -114,8 +115,11 @@ export class GeoService {
           lat += '|';
           lon += '|';
         }
-        lat += point.pos.lat;
-        lon += point.pos.lng;
+        const plat = Math.floor(point.pos.lat * 1000000);
+        const plng = Math.floor(point.pos.lng * 1000000);
+        lat += (plat / 1000000).toFixed(6);
+        lon += (plng / 1000000).toFixed(6);
+        positions.push([plat, plng])
       }
       requests.push(this.http.get('https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?resource=ign_rge_alti_par_territoires&delimiter=' + encodeURIComponent('|') + '&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon)));
     }
@@ -124,8 +128,12 @@ export class GeoService {
         for (const response of responses) {
           for (const elevation of response.elevations) {
             if (elevation.z < -1000) continue;
-            for (const point of points) {
-              if (point.ele === undefined && point.pos.lat === elevation.lat && point.pos.lng === elevation.lon) {
+            const lat = Math.floor(elevation.lat * 1000000);
+            const lng = Math.floor(elevation.lon * 1000000);
+            for (let i = 0; i < points.length; ++i) {
+              const point = points[i];
+              const pos = positions[i];
+              if (point.ele === undefined && pos[0] === lat && pos[1] === lng) {
                 point.ele = elevation.z;
               }
             }

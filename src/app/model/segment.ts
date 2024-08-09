@@ -49,6 +49,16 @@ export class Segment {
     return this;
   }
 
+  public insert(index: number, point: Point): this {
+    if (index < 0 || index >= this._points.value.length) return this.append(point);
+    this._points.value.splice(index, 0, point)
+    const prev = index > 0 ? this._segmentPoints[index - 1] : undefined;
+    const next = this._segmentPoints[index];
+    this._segmentPoints.splice(index, 0, new SegmentPoint(this._meta, point, prev, next));
+    this._points.next(this._points.value);
+    return this;
+  }
+
   public removePoint(point: Point): this {
     const index = this._points.value.indexOf(point);
     if (index < 0) return this;

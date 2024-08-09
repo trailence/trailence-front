@@ -5,7 +5,7 @@
       <span>{{i18n.texts.trace_recorder.resume}}</span>
     </ion-button>
     <app-map
-      mapId="trail-{{trail1?.owner || recording?.trail?.owner}}-{{trail1?.uuid || recording?.trail?.uuid}}"
+      mapId="trail-{{trail1?.owner || recording?.trail?.owner}}-{{trail1?.uuid || recording?.trail?.uuid}}{{trail2 ? '-' + trail2.owner + '-' + trail2.uuid : ''}}"
       [tracks$]="mapTracks$"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
       (mouseClickPoint)="mouseClickOnMap($event)"

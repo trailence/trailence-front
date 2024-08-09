@@ -113,12 +113,19 @@
         "title": "Outils d'édition",
         "back_to_original": "Revenir à la trace d'origine",
         "elevation": "Altitude",
+        "download_elevations": "Télécharger les altitudes",
         "remove_unprobable_elevations": "Enlever les altitudes improbables",
         "apply_elevation_threshold": "Lisser avec un seuil de dénivelé",
         "elevation_threshold": "Seuil de dénivelé",
         "elevation_threshold_distance": "Distance maximum",
         "elevation_threshold_explaination": "Le but du lissage est de gommer les imprécisions du GPS.<br/>Du fait de ces imprécisions, il arrive fréquemment que en quelques mètres de distance l'altitude monte et descende également de quelques mètres, alors que la réalité est une pente continue.<br/>Le lissage fonctionne donc comme suit:<ul><li>On recherche les sections dans lesquelles l'altitude a varié dans la limite du seuil configuré, et sur une distance maximum configurée.</li><li>Pour chaque section trouvée, on prend l'altitude de départ et l'altitude d'arrivée, et on lisse en une pente continue.</li><li>Afin d'éviter de perdre les points hauts ou les points bas du parcours, si nous trouvons un tel point au milieu de la section, nous réduisons la section pour conserver ce point.</li></ul>",
         "path": "Parcours",
+        "join_departure_and_arrival": {
+          "title": "Relier le départ à l'arrivée",
+          "join_departure": "En faisant démarrer le parcours au même endroit que l'arrivée",
+          "join_arrival": "En faisant terminer le parcours au même endroit que le départ"
+        },
+        "breaks": "Pauses",
         "remove_long_breaks_moves": {
           "title": "Enlever les mouvements pendant les longues pauses",
           "configuration": "Configuration",
