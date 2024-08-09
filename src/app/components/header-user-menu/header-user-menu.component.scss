@@ -30,3 +30,19 @@ ion-button.user-button {
     color: white;
   }
 }
+
+.synchro {
+  font-size: 12px;
+
+  .title {
+    color: rgba(var(--ion-text-color-rgb), 0.7);
+  }
+  .value {
+    &.valid {
+      color: var(--ion-color-success);
+    }
+    &.invalid {
+      color: var(--ion-color-danger);
+    }
+  }
+}

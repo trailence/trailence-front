@@ -26,7 +26,7 @@ export class ExtensionsService {
     private ngZone: NgZone,
     private http: HttpService,
   ) {
-    databaseService.registerStore(this._syncStatus$);
+    databaseService.registerStore({status: this._syncStatus$, syncNow: () => this.syncNow()});
     this.databaseService.db$.subscribe(db => {
       if (db) this.load(db);
       else this.close();
@@ -52,6 +52,7 @@ export class ExtensionsService {
     })
     this._extensions$.next(this._extensions$.value);
     this._syncStatus$.value.needsUpdateFromServer = true;
+    this._syncStatus$.value.hasLocalChanges = true;
     this._syncStatus$.next(this._syncStatus$.value);
   }
 
@@ -105,6 +106,14 @@ export class ExtensionsService {
     });
   }
 
+  private syncNow(): void {
+    this._lastSync = 0;
+    if (this._syncTimeout) clearTimeout(this._syncTimeout);
+    this._syncTimeout = undefined;
+    this._syncStatus$.value.needsUpdateFromServer = true;
+    this._syncStatus$.next(this._syncStatus$.value);
+  }
+
   private sync(): void {
     if (!this._db) return;
     console.log('Sync extensions');
@@ -122,6 +131,8 @@ export class ExtensionsService {
         }
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.value.needsUpdateFromServer = false;
+        this._syncStatus$.value.lastUpdateFromServer = Date.now();
+        this._syncStatus$.value.hasLocalChanges = false;
         this._syncStatus$.next(this._syncStatus$.value);
       },
       error: e => {
@@ -139,6 +150,8 @@ class ExtensionsSyncStatus implements StoreSyncStatus {
 
   inProgress = false;
   needsUpdateFromServer = true;
+  lastUpdateFromServer?: number;
+  hasLocalChanges = false;
 
   get needsSync(): boolean {
     return this.needsUpdateFromServer;

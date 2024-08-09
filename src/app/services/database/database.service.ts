@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, from, map, of, switchMap } from 'rxjs';
 import { StoreSyncStatus } from './store';
 
 const DB_PREFIX = 'trailence_data_';
@@ -13,6 +13,11 @@ export const TRAIL_TAG_TABLE_NAME = 'trails_tags';
 export const EXTENSIONS_TABLE_NAME = 'extensions';
 export const SHARE_TABLE_NAME = 'shares';
 
+interface RegisteredStore {
+  status: Observable<StoreSyncStatus | null>;
+  syncNow: () => void;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -20,7 +25,7 @@ export class DatabaseService {
 
   private _db = new BehaviorSubject<Dexie | undefined>(undefined);
   private _openEmail?: string;
-  private _stores = new BehaviorSubject<Observable<StoreSyncStatus | null>[]>([]);
+  private _stores = new BehaviorSubject<RegisteredStore[]>([]);
 
   constructor(
     auth: AuthService,
@@ -40,12 +45,47 @@ export class DatabaseService {
 
   public get syncStatus(): Observable<boolean> {
     return this._stores.pipe(
-      switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores)),
+      switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.status))),
       map(status => status.map(s => !!s?.inProgress).reduce((a,b) => a || b, false))
     );
   }
 
-  registerStore(store: Observable<StoreSyncStatus | null>): void {
+  public get hasLocalChanges(): Observable<boolean> {
+    return this._stores.pipe(
+      switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.status))),
+      map(status => status.map(s => !!s?.hasLocalChanges).reduce((a,b) => a || b, false))
+    );
+  }
+
+  public get lastSync(): Observable<number | undefined> {
+    return this._stores.pipe(
+      switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.status))),
+      map(status => {
+        let last = undefined;
+        for (const s of status) {
+          if (!s?.lastUpdateFromServer) last = null;
+          else if (last !== null && (last === undefined || s.lastUpdateFromServer < last)) last = s.lastUpdateFromServer;
+        }
+        return last ? last : undefined;
+      })
+    );
+  }
+
+  public syncNow(): void {
+    this._stores.value.forEach(s => s.syncNow());
+  }
+
+  public resetAll(): void {
+    const db = this._db.value;
+    const email = this._openEmail;
+    if (db && email) {
+      this.close();
+      Dexie.delete(DB_PREFIX + email)
+      .then(() => this.open(email));
+    }
+  }
+
+  registerStore(store: RegisteredStore): void {
     this._stores.value.push(store);
     this._stores.next(this._stores.value);
   }

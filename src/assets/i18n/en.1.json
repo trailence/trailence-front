@@ -378,6 +378,17 @@
     "button_delete": "Sign out and delete",
     "button_keep": "Sign out without delete"
   },
+  "synchro": {
+    "in_progress": "Synchronization in progress",
+    "offline": "Offline",
+    "last_sync": "Last synchronization",
+    "not_yet": "Not yet",
+    "local_changes": "Local changes",
+    "yes": "Yes",
+    "no": "No",
+    "sync_now": "Synchronize now",
+    "reset_all": "Reset everything and download again from the server"
+  },
   "confirm_delete_share": {
     "title": "Delete a share",
     "message": "Are you sure you want to delete {{}}?",

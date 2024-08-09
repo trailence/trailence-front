@@ -70,7 +70,7 @@ export class TrackDatabase {
   constructor(
     private injector: Injector,
   ) {
-    injector.get(DatabaseService).registerStore(this.syncStatus$);
+    injector.get(DatabaseService).registerStore({status: this.syncStatus$, syncNow: () => this.syncNow()});
     injector.get(AuthService).auth$.subscribe(
       auth => {
         if (!auth) this.close();
@@ -513,6 +513,14 @@ export class TrackDatabase {
   private _lastSync = 0;
   private _syncTimeout?: any;
 
+  private syncNow(): void {
+    this._lastSync = 0;
+    if (this._syncTimeout) clearTimeout(this._syncTimeout);
+    this._syncTimeout = undefined;
+    this.syncStatus$.value!.needsUpdateFromServer = true;
+    this.syncStatus$.next(this.syncStatus$.value);
+  }
+
   private initSync(): void {
     // we need to sync when:
     combineLatest([
@@ -583,6 +591,7 @@ export class TrackDatabase {
       status.hasLocalChanges = hasLocalChanges;
       status.inProgress = false;
       status.needsUpdateFromServer = false;
+      status.lastUpdateFromServer = Date.now();
       console.log('Sync done for tracks with status ', this.syncStatus$.value);
       this.syncStatus$.next(status);
     });
@@ -778,6 +787,7 @@ class TrackSyncStatus implements StoreSyncStatus {
   hasLocalChanges = true;
   inProgress = false;
   needsUpdateFromServer = true;
+  lastUpdateFromServer?: number;
 
   get needsSync(): boolean {
     return this.hasLocalChanges || this.needsUpdateFromServer;

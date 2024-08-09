@@ -7,9 +7,11 @@ import { NgZone } from "@angular/core";
 export interface StoreSyncStatus {
 
     get needsSync(): boolean;
+    get hasLocalChanges(): boolean;
 
     inProgress: boolean;
     needsUpdateFromServer: boolean;
+    lastUpdateFromServer?: number;
 }
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
@@ -42,12 +44,20 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract isDeletedLocally(item: DB_ITEM): boolean;
   protected abstract isCreatedLocally(item: DB_ITEM): boolean;
 
+  protected syncNow(): void {
+    this._lastSync = 0;
+    if (this._syncTimeout) clearTimeout(this._syncTimeout);
+    this._syncTimeout = undefined;
+    this.fireSync();
+  }
+  protected abstract fireSync(): void;
+
   public getAll$(): Observable<Observable<STORE_ITEM | null>[]> {
     return this._store;
   }
 
   protected _initStore(): void {
-    this.databaseService.registerStore(this.syncStatus$);
+    this.databaseService.registerStore({status: this.syncStatus$, syncNow: () => this.syncNow()});
     // listen to database change (when authentication changed)
     this.databaseService.db$.subscribe(db => {
       if (db) this.load(db);

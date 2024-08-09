@@ -47,6 +47,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return item1.uuid === item2.uuid && item1.owner === item2.owner;
   }
 
+  protected override fireSync(): void {
+    this._syncStatus$.value.needsUpdateFromServer = true;
+    this._syncStatus$.next(this._syncStatus$.value);
+  }
+
   public getItem$(uuid: string, owner: string): Observable<ENTITY | null> {
     const known$ = this._store.value.find(item$ => item$.value?.uuid === uuid && item$.value?.owner === owner);
     if (known$) return known$;
@@ -234,6 +239,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           status.localUpdates = this._updatedLocally.length !== 0;
           status.inProgress = false;
           status.needsUpdateFromServer = false;
+          status.lastUpdateFromServer = Date.now();
           console.log('Sync done for table ' + this.tableName + ' with status ', status);
           this._syncStatus$.next(status);
         }
@@ -362,9 +368,11 @@ class OwnedStoreSyncStatus implements StoreSyncStatus {
   public localUpdates = false;
   public localDeletes = false;
   public needsUpdateFromServer = true;
+  public lastUpdateFromServer?: number;
 
   public inProgress = false;
 
   public get needsSync(): boolean { return this.localCreates || this.localUpdates || this.localDeletes || this.needsUpdateFromServer; }
+  public get hasLocalChanges(): boolean { return this.localCreates || this.localUpdates || this.localDeletes; }
 
 }

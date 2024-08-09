@@ -378,6 +378,17 @@
     "button_delete": "Déconnecter et supprimer",
     "button_keep": "Déconnecter sans supprimer"
   },
+  "synchro": {
+    "in_progress": "Synchronisation en cours",
+    "offline": "Hors ligne",
+    "last_sync": "Dernière synchronisation",
+    "not_yet": "Pas encore",
+    "local_changes": "Modifications locales",
+    "yes": "Oui",
+    "no": "Non",
+    "sync_now": "Synchroniser maintenant",
+    "reset_all": "Tout réinitialiser et télécharger depuis le serveur"
+  },
   "confirm_delete_share": {
     "title": "Supprimer un partage",
     "message": "Etes-vous sûr de vouloir supprimer {{}} ?",

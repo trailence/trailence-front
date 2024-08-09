@@ -16,10 +16,12 @@ export class SimpleStoreSyncStatus implements StoreSyncStatus {
     public localCreates = true;
     public localDeletes = true;
     public needsUpdateFromServer = true;
+    public lastUpdateFromServer?: number;
 
     public inProgress = false;
 
     public get needsSync(): boolean { return this.localCreates || this.localDeletes || this.needsUpdateFromServer; }
+    public get hasLocalChanges(): boolean { return this.localCreates || this.localDeletes; }
 }
 
 export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStoreItem<DTO>, SimpleStoreSyncStatus> {
@@ -129,6 +131,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       return true;
     }
 
+    protected override fireSync(): void {
+      this._syncStatus$.value.needsUpdateFromServer = true;
+      this._syncStatus$.next(this._syncStatus$.value);
+    }
 
     protected override sync(): void {
         console.log('Sync table ' + this.tableName + ' with status ', this._syncStatus$.value);
@@ -159,7 +165,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         ).subscribe({
           next: result => {
             if (stillValid()) {
-              if (result) this._syncStatus$.value.needsUpdateFromServer = false;
+              if (result) {
+                this._syncStatus$.value.needsUpdateFromServer = false;
+                this._syncStatus$.value.lastUpdateFromServer = Date.now();
+              }
               this._syncStatus$.value.inProgress = false;
               console.log('Sync done for table ' + this.tableName + ' with status ', this._syncStatus$.value);
               this._syncStatus$.next(this._syncStatus$.value);

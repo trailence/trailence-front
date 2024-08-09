@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons } from '@ionic/angular/standalone';
@@ -17,11 +18,14 @@ import { IdGenerator } from 'src/app/utils/component-utils';
   imports: [IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList,
     IonButton,
     IonPopover,
+    CommonModule,
   ]
 })
 export class HeaderUserMenuComponent implements OnInit, OnDestroy {
 
   status?: string;
+  lastSync?: number;
+  hasLocalChanges = false;
   private subscription?: Subscription;
 
   id: string;
@@ -42,15 +46,21 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subscription = combineLatest([this.networkService.server$, this.databaseService.syncStatus]).pipe(
-      map(([connected, sync]) => {
-        if (!connected) return 'offline';
-        if (sync) return 'sync';
-        return 'online';
-      }),
-      distinctUntilChanged(),
-    ).subscribe(s => {
+    this.subscription =
+      combineLatest([
+        combineLatest([this.networkService.server$, this.databaseService.syncStatus]).pipe(
+          map(([connected, sync]) => {
+            if (!connected) return 'offline';
+            if (sync) return 'sync';
+            return 'online';
+          })
+        ),
+        this.databaseService.hasLocalChanges,
+        this.databaseService.lastSync
+      ]).subscribe(([s, localChanges, lastSync]) => {
       this.status = s;
+      this.hasLocalChanges = localChanges;
+      this.lastSync = lastSync;
       this.changeDetector.markForCheck();
     });
   }
@@ -70,6 +80,14 @@ export class HeaderUserMenuComponent implements OnInit, OnDestroy {
       this.loggingOut = false;
       this.router.navigateByUrl('/');
     });
+  }
+
+  syncNow(): void {
+    this.databaseService.syncNow();
+  }
+
+  resetAll(): void {
+    this.databaseService.resetAll();
   }
 
 }
