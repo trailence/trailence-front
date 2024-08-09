@@ -25,4 +25,10 @@ export class TypeUtils {
     return n1 + n2;
   }
 
+  public static valueToEnum<T>(value: any, enumType: any): T | undefined {
+    if (value === null || value === undefined) return undefined;
+    const key = Object.keys(enumType).find(k => enumType[k] === value) as T | undefined;
+    return key ? enumType[key] : undefined;
+  }
+
 }

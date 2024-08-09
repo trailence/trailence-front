@@ -127,6 +127,23 @@
           [valueFormatter]="elevationFormatter"
           [maxValueLabel]="elevationFormatter(i18n.getMaxFilterElevation()) + '+'"></app-filter-numeric>
       </div>
+      <div class="filter-header">
+        <ion-icon name="loop"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.loopType }}</div>
+      </div>
+      <div class="filter-value">
+        <ion-select
+          [multiple]="true"
+          [value]="state$.value.filters.loopTypes || []"
+          (ionChange)="updateEnumFilter(state$.value.filters.loopTypes, $event.detail.value)"
+          placeholder="{{i18n.texts.pages.trails.filters.loopTypePlaceholder}}"
+          cancelText="{{i18n.texts.buttons.cancel}}"
+          okText="{{i18n.texts.buttons.apply}}"
+          [interfaceOptions]="{header: i18n.texts.pages.trails.filters.loopType}"
+        >
+          <ion-select-option  *ngFor="let lt of loopTypes" [value]="lt">{{ i18n.texts.loopType[lt] }}</ion-select-option>
+        </ion-select>
+      </div>
     </ion-content>
     <ion-footer>
       <ion-toolbar color="footer">

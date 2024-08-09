@@ -31,5 +31,11 @@
     </div>
   </div>
   <app-track-metadata *ngIf="track" [track]="track"></app-track-metadata>
+  <div class="metadata-item-container" *ngIf="meta.loopTypeString">
+    <div class="metadata-item">
+      <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
+      <div>{{ meta.loopTypeString }}</div>
+    </div>
+  </div>
 
 </ng-container>

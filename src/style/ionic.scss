@@ -303,6 +303,10 @@ ion-range {
   margin-bottom: 20px;
 }
 
+.alert-button.sc-ion-alert-md {
+  color: var(--ion-color-success);
+}
+
 ion-menu::part(backdrop) {
   opacity: 0.5 !important;
 }

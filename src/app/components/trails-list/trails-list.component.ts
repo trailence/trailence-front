@@ -1,19 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList } from "@ionic/angular/standalone";
+import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
-import { FilterNumeric } from '../filters/filter';
+import { FilterEnum, FilterNumeric } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
@@ -34,6 +34,7 @@ interface Filters {
   distance: FilterNumeric;
   positiveElevation: FilterNumeric;
   negativeElevation: FilterNumeric;
+  loopTypes: FilterEnum<TrailLoopType>;
   onlyVisibleOnMap: boolean;
 }
 
@@ -61,6 +62,9 @@ const defaultState: State = {
       from: undefined,
       to: undefined,
     },
+    loopTypes: {
+      selected: undefined
+    },
     onlyVisibleOnMap: false,
   }
 }
@@ -77,7 +81,7 @@ interface TrailWithInfo {
   styleUrls: ['./trails-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonList,
+  imports: [IonList, IonSelect, IonSelectOption,
     IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
     IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
     CommonModule,
@@ -114,6 +118,8 @@ export class TrailsListComponent extends AbstractComponent {
   distanceFormatter = (value: number) => this.i18n.distanceInUserUnitToString(value);
   elevationFormatter = (value: number) => this.i18n.elevationInUserUnitToString(value);
   isPositive = (value: any) => typeof value === 'number' && value > 0;
+
+  loopTypes = Object.values(TrailLoopType);
 
   constructor(
     injector: Injector,
@@ -228,6 +234,7 @@ export class TrailsListComponent extends AbstractComponent {
         if (maxPosEle !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation > maxPosEle)) return false;
         if (minNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < minNegEle)) return false;
         if (maxNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > maxNegEle)) return false;
+        if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || filters.loopTypes.selected.indexOf(t.trail.loopType) < 0)) return false;
         return true;
       }
     );
@@ -333,6 +340,16 @@ export class TrailsListComponent extends AbstractComponent {
     });
   }
 
+  updateEnumFilter(filter: FilterEnum<any>, $event: string[]): void {
+    const selected = $event.length > 0 ? $event : undefined;
+    if (filter.selected === selected) return;
+    filter.selected = selected;
+    this.state$.next({
+      ...this.state$.value,
+      filters: { ...this.state$.value.filters }
+    });
+  }
+
   nbActiveFilters(): number {
     let nb = 0;
     const filters = this.state$.value.filters;
@@ -340,6 +357,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (filters.distance.from !== undefined || filters.distance.to !== undefined) nb++;
     if (filters.positiveElevation.from !== undefined || filters.positiveElevation.to !== undefined) nb++;
     if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
+    if (filters.loopTypes.selected) nb++;
     if (filters.onlyVisibleOnMap) nb++;
     return nb;
   }
@@ -354,6 +372,7 @@ export class TrailsListComponent extends AbstractComponent {
     filters.positiveElevation.to = undefined;
     filters.negativeElevation.from = undefined;
     filters.negativeElevation.to = undefined;
+    filters.loopTypes.selected = undefined;
     filters.onlyVisibleOnMap = false;
     this.state$.next({...this.state$.value, filters: {...filters}});
   }

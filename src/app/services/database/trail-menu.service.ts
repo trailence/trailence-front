@@ -316,6 +316,7 @@ export class TrailMenuService {
       imported.trail.currentTrackUuid = improved.uuid;
       imported.tracks.push(improved);
     }
+    this.injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
     this.injector.get(TrackService).create(imported.tracks[0]);
     this.injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1]);
     this.injector.get(TrailService).create(imported.trail);

@@ -5,7 +5,7 @@ import { HttpService } from '../http/http.service';
 import { Observable, combineLatest, map, of, switchMap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/network.service';
-import { Trail } from 'src/app/model/trail';
+import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackService } from './track.service';
 import { TrailCollectionService } from './trail-collection.service';
@@ -101,6 +101,17 @@ export class TrailService {
         });
       })
     );
+  }
+
+  getLoopTypeIcon(loopType: TrailLoopType | undefined): string {
+    if (loopType === undefined) return 'question';
+    switch (loopType) {
+      case TrailLoopType.ONE_WAY: return 'one-way';
+      case TrailLoopType.LOOP: return 'loop';
+      case TrailLoopType.HALF_LOOP: return 'half-loop';
+      case TrailLoopType.SMALL_LOOP: return 'small-loop';
+      case TrailLoopType.OUT_AND_BACK: return 'out-and-back';
+    }
   }
 
 }

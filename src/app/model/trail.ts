@@ -1,12 +1,14 @@
 import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
 import { TrailDto } from './dto/trail';
 import { Owned } from './owned';
+import { TypeUtils } from '../utils/type-utils';
 
 export class Trail extends Owned {
 
   private _name$: BehaviorSubject<string>;
   private _description$: BehaviorSubject<string>;
   private _location$: BehaviorSubject<string>;
+  private _loopType$: BehaviorSubject<TrailLoopType | undefined>;
 
   private _originalTrackUuid$: BehaviorSubject<string>;
   private _currentTrackUuid$: BehaviorSubject<string>;
@@ -20,6 +22,7 @@ export class Trail extends Owned {
     this._name$ = new BehaviorSubject<string>(dto.name ?? '');
     this._description$ = new BehaviorSubject<string>(dto.description ?? '');
     this._location$ = new BehaviorSubject<string>(dto.location ?? '');
+    this._loopType$ = new BehaviorSubject<TrailLoopType | undefined>(TypeUtils.valueToEnum(dto.loopType, TrailLoopType));
     if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
     this._originalTrackUuid$ = new BehaviorSubject<string>(dto.originalTrackUuid);
     if (!dto.currentTrackUuid) throw new Error('Missing currentTrackUuid');
@@ -40,6 +43,10 @@ export class Trail extends Owned {
   public get location$(): Observable<string> { return this._location$; }
   public set location(value: string) { this.setValue(value.trim(), this._location$); }
 
+  public get loopType(): TrailLoopType | undefined { return this._loopType$.value; }
+  public get loopType$(): Observable<TrailLoopType | undefined> { return this._loopType$; }
+  public set loopType(value: TrailLoopType | undefined) { this.setValue(value, this._loopType$); }
+
   public get originalTrackUuid(): string { return this._originalTrackUuid$.value; }
   public get originalTrackUuid$(): Observable<string> { return this._originalTrackUuid$; }
   public set originalTrackUuid(value: string) { this.setValue(value, this._originalTrackUuid$); }
@@ -53,12 +60,12 @@ export class Trail extends Owned {
   public set collectionUuid(value: string) { this.setValue(value, this._collectionUuid$); }
 
   public get changes$(): Observable<any> {
-    return combineLatest([this.name$, this.description$, this.location$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
+    return combineLatest([this.name$, this.description$, this.location$, this.loopType$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
       skip(1),
     );
   }
 
-  private setValue(value: string, target$: BehaviorSubject<string>): void {
+  private setValue<T>(value: T, target$: BehaviorSubject<T>): void {
     if (value === target$.value) return;
     target$.next(value);
   }
@@ -69,10 +76,19 @@ export class Trail extends Owned {
       name: this.name,
       description: this.description,
       location: this.location,
+      loopType: this.loopType,
       originalTrackUuid: this.originalTrackUuid,
       currentTrackUuid: this.currentTrackUuid,
       collectionUuid: this.collectionUuid,
     };
   }
 
+}
+
+export enum TrailLoopType {
+  ONE_WAY = 'ow',
+  LOOP = 'lp',
+  HALF_LOOP = 'hl',
+  SMALL_LOOP = 'sl',
+  OUT_AND_BACK = 'ob',
 }

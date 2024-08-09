@@ -36,6 +36,8 @@
         "distance": "Distance",
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation",
+        "loopType": "Trail type",
+        "loopTypePlaceholder": "Select types",
         "onlyVisibleOnMap": "Show in list only trails visible on map",
         "reset_button": "Reset all filters"
       },
@@ -377,5 +379,12 @@
     "yes": "Yes, delete",
     "no": "Cancel, keep"
   },
-  "search_place_placeholder": "Search a place"
+  "search_place_placeholder": "Search a place",
+  "loopType": {
+    "ow": "Point to point",
+    "lp": "Loop",
+    "hl": "Half loop",
+    "sl": "Small loop",
+    "ob": "Out and back"
+  }
 }

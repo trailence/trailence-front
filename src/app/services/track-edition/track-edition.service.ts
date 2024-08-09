@@ -4,6 +4,8 @@ import { applyElevationThresholdToSegment, applyElevationThresholdToTrack } from
 import { Segment } from 'src/app/model/segment';
 import { adjustUnprobableElevationToSegment, adjustUnprobableElevationToTrack } from './elevation/unprobable-elevation';
 import { PreferencesService } from '../preferences/preferences.service';
+import { Trail } from 'src/app/model/trail';
+import { detectLoopType } from './path-analysis/loop-type-detection';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +21,10 @@ export class TrackEditionService {
     adjustUnprobableElevationToTrack(newTrack);
     applyElevationThresholdToTrack(newTrack, 10, 250);
     return newTrack;
+  }
+
+  public computeFinalMetadata(trail: Trail, track: Track): void {
+    trail.loopType = detectLoopType(track);
   }
 
   public applyDefaultImprovmentsForRecordingSegment(segment: Segment, state: ImprovmentRecordingState | undefined, finish: boolean): ImprovmentRecordingState {

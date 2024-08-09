@@ -36,6 +36,8 @@
         "distance": "Distance",
         "positive_elevation": "Dénivelé positif",
         "negative_elevation": "Dénivelé négatif",
+        "loopType": "Type de parcours",
+        "loopTypePlaceholder": "Sélectionnez les types",
         "onlyVisibleOnMap": "Afficher dans la liste uniquement les parcours visibles sur la carte",
         "reset_button": "Enlever tous les filtres"
       },
@@ -377,5 +379,12 @@
     "yes": "Oui, supprimer",
     "no": "Annuler, garder"
   },
-  "search_place_placeholder": "Rechercher un lieu"
+  "search_place_placeholder": "Rechercher un lieu",
+  "loopType": {
+    "ow": "Aller simple",
+    "lp": "Boucle",
+    "hl": "Demi boucle",
+    "sl": "Petite boucle",
+    "ob": "Aller retour"
+  }
 }

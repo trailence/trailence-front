@@ -19,12 +19,12 @@ class Meta {
   lowestAltitudeValue?: number = undefined;
 
   constructor(
-    public distanceDiv: HTMLDivElement,
-    public durationDiv: HTMLDivElement,
-    public estimatedDurationDiv: HTMLDivElement,
-    public breaksDurationDiv: HTMLDivElement,
-    public positiveElevationDiv: HTMLDivElement,
-    public negativeElevationDiv: HTMLDivElement,
+    public distanceDiv: HTMLDivElement | undefined,
+    public durationDiv: HTMLDivElement | undefined,
+    public estimatedDurationDiv: HTMLDivElement | undefined,
+    public breaksDurationDiv: HTMLDivElement | undefined,
+    public positiveElevationDiv: HTMLDivElement | undefined,
+    public negativeElevationDiv: HTMLDivElement | undefined,
     public highestAltitudeDiv: HTMLDivElement | undefined,
     public lowestAltitudeDiv: HTMLDivElement | undefined,
   ) {}
@@ -50,8 +50,8 @@ export class TrackMetadataComponent extends AbstractComponent {
   private track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
   private track2$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
 
-  meta: Meta;
-  meta2: Meta;
+  meta!: Meta;
+  meta2!: Meta;
 
   constructor(
     injector: Injector,
@@ -60,17 +60,24 @@ export class TrackMetadataComponent extends AbstractComponent {
     private assets: AssetsService,
   ) {
     super(injector);
-    const duration = this.createItemElement(element.nativeElement, 'duration', assets);
-    const breaksDuration = this.createItemElement(element.nativeElement, 'hourglass', assets);
-    const estimatedDuration = this.createItemElement(element.nativeElement, 'chrono', assets);
-    const distance = this.createItemElement(element.nativeElement, 'distance', assets);
-    const positiveElevation = this.createItemElement(element.nativeElement, 'positive-elevation', assets);
-    const negativeElevation = this.createItemElement(element.nativeElement, 'negative-elevation', assets);
-    this.meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], undefined, undefined);
-    this.meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], undefined, undefined);
   }
 
-  private createItemElement(parent: HTMLElement, icon: string, assets: AssetsService): [HTMLDivElement, HTMLDivElement] {
+  protected override initComponent(): void {
+    const duration = this.createItemElement(this.element.nativeElement, 'duration', this.assets);
+    const breaksDuration = this.detailed ? this.createItemElement(this.element.nativeElement, 'hourglass', this.assets) : [undefined, undefined];
+    const estimatedDuration = this.detailed ? this.createItemElement(this.element.nativeElement, 'chrono', this.assets) : [undefined, undefined];
+    const distance = this.createItemElement(this.element.nativeElement, 'distance', this.assets);
+    const positiveElevation = this.createItemElement(this.element.nativeElement, 'positive-elevation', this.assets);
+    const negativeElevation = this.createItemElement(this.element.nativeElement, 'negative-elevation', this.assets);
+    const highestAltitudeDivs = this.detailed ? this.createItemElement(this.element.nativeElement, 'highest-point', this.assets) : [undefined, undefined];
+    const lowestAltitudeDivs = this.detailed ? this.createItemElement(this.element.nativeElement, 'lowest-point', this.assets) : [undefined, undefined];
+    this.meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0]);
+    this.meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
+    this.toMeta(this.track$, this.meta);
+    this.toMeta(this.track2$, this.meta2);
+  }
+
+  private createItemElement(parent: HTMLElement, icon: string, assets: AssetsService): [HTMLDivElement, HTMLDivElement | undefined] {
     const container = document.createElement('DIV');
     container.className = 'metadata-item-container';
 
@@ -90,17 +97,15 @@ export class TrackMetadataComponent extends AbstractComponent {
     info1.className = "metadata-primary";
     item.appendChild(info1);
 
-    const info2 = document.createElement('DIV') as HTMLDivElement;
-    info2.className = "metadata-secondary";
-    item.appendChild(info2);
+    let info2: HTMLDivElement | undefined = undefined;
+    if (this.detailed) {
+      info2 = document.createElement('DIV') as HTMLDivElement;
+      info2.className = "metadata-secondary";
+      item.appendChild(info2);
+    }
 
     parent.appendChild(container);
     return ([info1, info2]);
-  }
-
-  protected override initComponent(): void {
-    this.toMeta(this.track$, this.meta);
-    this.toMeta(this.track2$, this.meta2);
   }
 
   private toMeta(track$: Observable<Track | TrackMetadataSnapshot | undefined>, meta: Meta): void {
@@ -137,20 +142,16 @@ export class TrackMetadataComponent extends AbstractComponent {
       this.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + this.i18n.elevationToString(v), state !== previousState);
       this.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + this.i18n.elevationToString(v), state !== previousState);
       if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
-      this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState);
-      this.updateMeta(meta, 'breaksDuration', breaksDuration, v => this.i18n.durationToString(v), state !== previousState);
-      this.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + this.i18n.durationToString(v), state !== previousState);
       if (this.detailed) {
-        if (!meta.highestAltitudeDiv) {
-          const highestAltitudeDivs = this.createItemElement(this.element.nativeElement, 'highest-point', this.assets);
-          const lowestAltitudeDivs = this.createItemElement(this.element.nativeElement, 'lowest-point', this.assets);
-          this.meta.highestAltitudeDiv = highestAltitudeDivs[0];
-          this.meta2.highestAltitudeDiv = highestAltitudeDivs[1];
-          this.meta.lowestAltitudeDiv = lowestAltitudeDivs[0];
-          this.meta2.lowestAltitudeDiv = lowestAltitudeDivs[1];
-        }
         this.updateMeta(meta, 'highestAltitude', highestAltitude, v => this.i18n.elevationToString(v), state !== previousState);
         this.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => this.i18n.elevationToString(v), state !== previousState);
+        this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState);
+        this.updateMeta(meta, 'breaksDuration', breaksDuration, v => this.i18n.durationToString(v), state !== previousState);
+        this.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + this.i18n.durationToString(v), state !== previousState);
+      } else {
+        let d = this.i18n.durationToString(duration);
+        if (estimatedDuration !== undefined) d += ' (≈ ' + this.i18n.durationToString(estimatedDuration) + ')';
+        this.updateMeta(meta, 'duration', d, v => v, state !== previousState);
       }
       previousState = state as number;
     })
@@ -159,7 +160,9 @@ export class TrackMetadataComponent extends AbstractComponent {
   private updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean): void {
     if (!forceChange && meta[key  + 'Value'] === value) return;
     meta[key + 'Value'] = value;
-    (meta[key + 'Div'] as HTMLDivElement).innerText = value === undefined ? '' : toString(value);
+    const div = (meta[key + 'Div'] as HTMLDivElement);
+    if (div)
+      div.innerText = value === undefined ? '' : toString(value);
   }
 
   protected override getComponentState(): any {

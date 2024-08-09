@@ -153,6 +153,7 @@ export class TraceRecorderService {
       recording.rawTrack.removeEmptySegments();
       recording.track.removeEmptySegments();
       if (recording.rawTrack.segments.length === 0) return of(null);
+      this.trackEdition.computeFinalMetadata(recording.trail, recording.track);
       this.trackService.create(recording.rawTrack);
       this.trackService.create(recording.track);
       return this.trailService.create(recording.trail)

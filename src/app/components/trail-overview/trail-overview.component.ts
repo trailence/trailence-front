@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
-import { Trail } from 'src/app/model/trail';
+import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { Track } from 'src/app/model/track';
@@ -14,12 +14,17 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { TrailService } from 'src/app/services/database/trail.service';
 
 class Meta {
   name?: string;
   dateValue?: number;
   dateString?: string;
   location?: string;
+  loopTypeValue?: string;
+  loopTypeString?: string;
+  loopTypeIconValue?: string;
+  loopTypeIconString?: string;
 }
 
 @Component({
@@ -57,6 +62,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     public trailMenuService: TrailMenuService,
     private tagService: TagService,
     private auth: AuthService,
+    private trailService: TrailService,
   ) {
     super(injector);
   }
@@ -78,6 +84,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           this.i18n.stateChanged$,
           this.trail.name$,
           this.trail.location$,
+          this.trail.loopType$,
           this.trail.currentTrackUuid$.pipe(
             switchMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
             switchMap(track => {
@@ -87,7 +94,7 @@ export class TrailOverviewComponent extends AbstractComponent {
             })
           )
         ]),
-        ([i18nState, trailName, trailLocation, [track, startDate]]) => {
+        ([i18nState, trailName, trailLocation, loopType, [track, startDate]]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
@@ -98,6 +105,8 @@ export class TrailOverviewComponent extends AbstractComponent {
           if (this.updateMeta(this.meta, 'name', trailName, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'date', startDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
+          if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
+          this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force);
           if (changed) this.changeDetector.markForCheck();
         }
       );
