@@ -86,6 +86,8 @@
       }
     },
     "trail": {
+      "title_compare": "Compare",
+      "title_compare_and": "et",
       "tabs": {
         "details": "Détails",
         "map": "Carte"
@@ -93,7 +95,10 @@
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",
-        "edit_tools": "Outils d'édition"
+        "edit_tools": "Outils d'édition",
+        "compare": "Comparer",
+        "compare_with": "Comparer avec...",
+        "compare_with_this_one": "Comparer avec ce parcours"
       },
       "sections": {
         "description": {

@@ -86,6 +86,8 @@
       }
     },
     "trail": {
+      "title_compare": "Compare",
+      "title_compare_and": "and",
       "tabs": {
         "details": "Details",
         "map": "Map"
@@ -93,7 +95,10 @@
       "actions": {
         "go_to_departure": "Go to departure",
         "download_map": "Download map",
-        "edit_tools": "Edition tools"
+        "edit_tools": "Edition tools",
+        "compare": "Compare",
+        "compare_with": "Compare with...",
+        "compare_with_this_one": "Compare with this trail"
       },
       "sections": {
         "description": {

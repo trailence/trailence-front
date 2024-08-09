@@ -32,7 +32,7 @@ export class Trail extends Owned {
   }
 
   public get name(): string { return this._name$.value; }
-  public get name$(): Observable<String> { return this._name$; }
+  public get name$(): Observable<string> { return this._name$; }
   public set name(value: string) { this.setValue(value.trim(), this._name$); }
 
   public get description(): string { return this._description$.value; }

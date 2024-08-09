@@ -25,6 +25,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/trails/trails.page').then( m => m.TrailsPage)
       },
       {
+        path: 'trail/:trailOwner/:trailId/:trailOwner2/:trailId2',
+        loadComponent: () => import('./pages/trail/trail.page').then( m => m.TrailPage)
+      },
+      {
         path: 'trail/:trailOwner/:trailId',
         loadComponent: () => import('./pages/trail/trail.page').then( m => m.TrailPage)
       },

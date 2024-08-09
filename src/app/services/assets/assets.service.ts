@@ -28,6 +28,7 @@ export class AssetsService {
       'collection': 'assets/collection.1.svg',
       'collection-copy': 'assets/collection-copy.1.svg',
       'collection-move': 'assets/collection-move.1.svg',
+      'compare': 'assets/ionicons/swap-horizontal-outline.svg',
       'cross': 'assets/ionicons/close-outline.svg',
       'database': 'assets/ionicons/server-outline.svg',
       'date': 'assets/ionicons/calendar-outline.svg',

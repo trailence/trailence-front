@@ -67,8 +67,8 @@
       </div>
       <div class="actions">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
-        <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
-        <ng-container *ngIf="trail1 && !recording">
+        <app-icon-label-button *ngIf="!trail2" icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
+        <ng-container *ngIf="trail1 && !recording && !trail2">
           <app-icon-label-button icon="play-circle" [label]="i18n.texts.trace_recorder.start_this_trail" [size]="28" [fontSize]="11" color="primary" (click)="startTrail()"></app-icon-label-button>
         </ng-container>
         <ng-container *ngIf="recording">
