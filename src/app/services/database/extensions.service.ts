@@ -49,7 +49,7 @@ export class ExtensionsService {
       version: extension.version,
       extension: extension.extension,
       data: extension.data
-    })
+    });
     this._extensions$.next(this._extensions$.value);
     this._syncStatus$.value.needsUpdateFromServer = true;
     this._syncStatus$.value.hasLocalChanges = true;
@@ -125,7 +125,18 @@ export class ExtensionsService {
         if (this._db !== db) return;
         if (!Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
           console.log('Extension received from server: ', list.length);
-          this._extensions$.next(list.map(item => new Extension(item.version, item.extension, item.data)));
+          const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
+          this._extensions$.next(extensions);
+          this._db.transaction('rw', [EXTENSIONS_TABLE_NAME], () => {
+            db.table<DbItem>(EXTENSIONS_TABLE_NAME).clear();
+            for (const extension of extensions) {
+              db.table<DbItem>(EXTENSIONS_TABLE_NAME).put({
+                version: extension.version,
+                extension: extension.extension,
+                data: extension.data
+              });
+            }
+          });
         } else {
           console.log('Extensions sync without change', list.length);
         }

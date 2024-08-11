@@ -85,8 +85,8 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this._visible$.next(visible);
     if (visible) {
       this.whenVisible.resume();
-      this.byStateAndVisible.resume();
       this._checkComponentState();
+      this.byStateAndVisible.resume();
     } else {
       this.whenVisible.pause();
       this.byStateAndVisible.pause();

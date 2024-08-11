@@ -18,6 +18,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
               filter(c => !!c),
               first()
             ).subscribe(() => {
+              if (!img.parentElement) return;
               img._loaded = true;
               img.onerror = undefined;
               img.onload = undefined;

@@ -11,6 +11,7 @@ import { HttpService } from '../http/http.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
+import { HttpClient } from '@angular/common/http';
 
 interface TileMetadata {
   key: string;
@@ -40,6 +41,7 @@ export class OfflineMapService {
     private http: HttpService,
     private preferencesService: PreferencesService,
     private traceRecorder: TraceRecorderService,
+    private angularHttp: HttpClient,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -111,7 +113,7 @@ export class OfflineMapService {
         const limiter = new RequestLimiter(layer.maxConcurrentRequests);
         let done = 0;
         for (const c of coordsToDl) {
-          const request$ = limiter.add(() => this.http.getBlob(layer.getTileUrl(tiles, c, crs)));
+          const request$ = limiter.add(() => this.getBlob(layer, layer.getTileUrl(tiles, c, crs)));
           request$.subscribe({
             next: blob => {
               zip([
@@ -139,6 +141,13 @@ export class OfflineMapService {
         }
       }
     );
+  }
+
+  private getBlob(layer: MapLayer, url: string): Observable<Blob> {
+    if (layer.doNotUseNativeHttp) {
+      return this.angularHttp.get(url, {responseType: 'blob'});
+    }
+    return this.http.getBlob(url);
   }
 
   public computeTilesCoords(bounds: L.LatLngBounds, layer: L.TileLayer, crs: L.CRS): L.Coords[] {

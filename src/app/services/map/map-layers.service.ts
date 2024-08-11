@@ -17,6 +17,7 @@ export interface MapLayer {
   getTileUrl(layer: L.TileLayer, coords: L.Coords, crs: L.CRS): string;
 
   maxConcurrentRequests: number;
+  doNotUseNativeHttp: boolean;
 
 }
 
@@ -32,10 +33,10 @@ export class MapLayersService {
 
   constructor(injector: Injector) {
     this.layers = [
-      createDefaultLayer(injector, 'osm', 'Open Street Map', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>', 2),
-      createDefaultLayer(injector, 'osmfr', 'Open Street Map French', 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.fr">OpenStreetMap</a>', 2),
-      //createDefaultLayer('osmch', 'Open Street Map Swiss', 'https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png', 19, '&copy; <a href="https://sosm.ch/">Swiss OpenStreetMap Association</a>', 2),
-      createDefaultLayer(injector, 'otm', 'Open Topo Map', 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', 17, '&copy; <a href="http://www.opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)', 2),
+      createDefaultLayer(injector, 'osm', 'Open Street Map', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>', 2, true),
+      createDefaultLayer(injector, 'osmfr', 'Open Street Map French', 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.fr">OpenStreetMap</a>', 2, false),
+      //createDefaultLayer('osmch', 'Open Street Map Swiss', 'https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png', 19, '&copy; <a href="https://sosm.ch/">Swiss OpenStreetMap Association</a>', 2, false),
+      createDefaultLayer(injector, 'otm', 'Open Topo Map', 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', 17, '&copy; <a href="http://www.opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)', 2, false),
       createIgnLayer(injector, 'ign', 'IGN (France)', 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', 'image/png', 19, 2),
       createIgnLayer(injector, 'ign-sat', 'IGN Satellite (France)', 'ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg', 19, 2),
       //createDefaultLayer('stadia-sat', 'Stadia Satellite', 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg', 20, '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 2),
@@ -44,7 +45,7 @@ export class MapLayersService {
       extensions => {
         const thunderforest = extensions.find(e => e.extension === 'thunderforest.com');
         if (thunderforest && thunderforest.data['apikey']) {
-          this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2));
+          this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2, false));
         }
       }
     );
@@ -83,6 +84,7 @@ function createDefaultLayer(
   maxZoom: number,
   copyright: string,
   maxConcurrentRequests: number,
+  doNotUseNativeHttp: boolean,
   additionalOptions: any = {},
 ): MapLayer {
   return {
@@ -112,6 +114,7 @@ function createDefaultLayer(
       return L.Util.template((layer as any)._url, L.Util.extend(data, layer.options));
     },
     maxConcurrentRequests,
+    doNotUseNativeHttp
   };
 }
 
@@ -142,5 +145,6 @@ function createIgnLayer(
       return L.Util.template(urlTemplate, data);
     },
     maxConcurrentRequests,
+    doNotUseNativeHttp: false,
   };
 }

@@ -35,6 +35,7 @@ export class Resubscribeables {
   }
 
   public pause(): void {
+    if (this.paused) return;
     this.paused = true;
     for (const rs of this.subscriptions) {
       rs.subscription?.unsubscribe();
@@ -43,6 +44,7 @@ export class Resubscribeables {
   }
 
   public resume(): void {
+    if (!this.paused) return;
     this.paused = false;
     for (const rs of this.subscriptions) {
       if (!rs.subscription) rs.subscription = rs.observable.subscribe(rs.observer);

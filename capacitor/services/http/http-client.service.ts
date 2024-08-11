@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { CapacitorHttp, HttpResponse } from '@capacitor/core';
+import { CapacitorHttp, HttpHeaders, HttpResponse } from '@capacitor/core';
 import { Observable } from 'rxjs';
 import { IHttpClient } from 'src/app/services/http/http-client.interface';
-import { TrailenceHttpRequest } from 'src/app/services/http/http-request';
+import { TrailenceHttpRequest, ResponseType } from 'src/app/services/http/http-request';
 import { TrailenceHttpResponse } from 'src/app/services/http/http-response';
+import { BinaryContent } from 'src/app/utils/binary-content';
 
 @Injectable({
   providedIn: 'root'
@@ -25,8 +26,10 @@ export class HttpClientService implements IHttpClient {
         data: request.body,
       })
       .then(response => {
-        subscriber.next(this.toResponse(request, response));
-        subscriber.complete();
+        this.toResponse(request, response).then(response => {
+          subscriber.next(response);
+          subscriber.complete();
+        });
       })
       .catch(error => {
         subscriber.next(this.toErrorResponse(request, error));
@@ -35,19 +38,40 @@ export class HttpClientService implements IHttpClient {
     });
   }
 
-  private toResponse(request: TrailenceHttpRequest, response: HttpResponse): TrailenceHttpResponse<any> {
-    return new TrailenceHttpResponse(
-      request,
-      this.body(response.data),
-      response.headers,
-      response.status,
-      ''
-    );
+  private toResponse(request: TrailenceHttpRequest, response: HttpResponse): Promise<TrailenceHttpResponse<any>> {
+    if ((response as any)['error']) {
+      return Promise.resolve(new TrailenceHttpResponse(
+        request,
+        undefined,
+        {},
+        response.status,
+        response.data
+      ));
+    }
+    return this.body(response.data, request.responseType, response.headers).then(body => {
+      return new TrailenceHttpResponse(
+        request,
+        body,
+        response.headers,
+        response.status,
+        ''
+      );
+    });
   }
 
-  private body(data: any): any {
-    if (data?.flag !== undefined) return data.flag;
-    return data;
+  private body(data: any, responseType: ResponseType, responseHeaders: HttpHeaders): Promise<any> {
+    if (data?.flag !== undefined) return Promise.resolve(data.flag);
+    if (responseType === ResponseType.BLOB) {
+      let type = '';
+      for (const key in responseHeaders) {
+        if (key.toLowerCase() === 'content-type') {
+          type = responseHeaders[key];
+          break;
+        }
+      }
+      return new BinaryContent(data, type).toBlob();
+    }
+    return Promise.resolve(data);
   }
 
   private toErrorResponse(request: TrailenceHttpRequest, error: any): TrailenceHttpResponse<any> {
@@ -66,7 +90,7 @@ export class HttpClientService implements IHttpClient {
       {},
       status,
       message
-    )
+    );
   }
 
 }
