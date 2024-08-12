@@ -5,6 +5,7 @@ import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { Platform } from '@ionic/angular';
 import * as C from 'chart.js';
+import { getRelativePosition } from 'chart.js/helpers';
 import { _DeepPartialObject } from 'chart.js/dist/types/utils';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Color } from 'src/app/utils/color';
@@ -32,7 +33,7 @@ export interface DataPoint {
   lng: number;
   ele?: number;
   distanceMeters: number;
-  grade?: number;
+  grade: {gradeBefore: number | undefined; gradeAfter: number | undefined};
   eleAccuracy?: number;
 }
 
@@ -252,7 +253,7 @@ export class ElevationGraphComponent extends AbstractComponent {
         }
       },
       interaction: {
-        mode: 'index',
+        mode: 'myCustomMode',
         intersect: false,
       },
       plugins: {
@@ -296,7 +297,15 @@ export class ElevationGraphComponent extends AbstractComponent {
               html += '</tr>';
             };
             addInfo(this.i18n.texts.elevationGraph.elevation, pt => this.i18n.elevationToString(pt.raw.ele));
-            addInfo(this.i18n.texts.elevationGraph.elevation_grade, pt => Math.floor(pt.raw.grade * 100) + '%');
+            addInfo(this.i18n.texts.elevationGraph.elevation_grade, pt => {
+              let s = '';
+              if (pt.raw.grade.gradeBefore !== undefined) s = Math.floor(pt.raw.grade.gradeBefore * 100) + '%';
+              if (pt.raw.grade.gradeAfter !== undefined) {
+                if (s.length > 0) s += ' / ';
+                s += Math.floor(pt.raw.grade.gradeAfter * 100) + '%';
+              }
+              return s;
+            });
             addInfo(this.i18n.texts.elevationGraph.precision, pt => pt.raw.eleAccuracy !== undefined ? ('+/- ' + this.i18n.elevationToString(pt.raw.eleAccuracy)) : '');
             addInfo(this.i18n.texts.elevationGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters))
             addInfo(this.i18n.texts.elevationGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
@@ -323,36 +332,6 @@ export class ElevationGraphComponent extends AbstractComponent {
               container.style.top = '';
             }
           }
-          /*
-          boxPadding: 3,
-          callbacks: {
-            title: (context: any) => {
-              const pt: DataPoint = context[0].raw;
-              return this.i18n.texts.elevationGraph.distance + ': ' + this.i18n.distanceToString(pt.distanceMeters);
-            },
-            beforeLabel: (context: any) => {
-              const pt: DataPoint = context.raw;
-              let s: string [] = [];
-              if (pt.timeSinceStart !== undefined) s.push(this.i18n.texts.elevationGraph.time_duration + ': ' + this.i18n.durationToString(pt.timeSinceStart));
-              return s;
-            },
-            label: (context: any) => {
-              return context.raw.ele ? this.i18n.texts.elevationGraph.elevation + ': ' + this.i18n.elevationToString(context.raw.ele) : '';
-            },
-            afterLabel: (context: any) => {
-              const pt: DataPoint = context.raw;
-              let s: string [] = [];
-              if (pt.grade !== undefined) s.push(this.i18n.texts.elevationGraph.elevation_grade + ': ' + Math.floor(pt.grade * 100) + '%');
-              s.push(this.i18n.texts.elevationGraph.location + ': ' + this.i18n.coordToString(pt.lat) + ' ' + this.i18n.coordToString(pt.lng));
-              return s;
-            },
-            labelColor: (context: any) => {
-              return {
-                borderColor: context.dataset.borderColor,
-                backgroundColor: context.dataset.borderColor,
-              };
-            }
-          }*/
         }
       },
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
@@ -564,4 +543,24 @@ export class ElevationGraphComponent extends AbstractComponent {
     return selection;
   }
 
+}
+
+declare module 'chart.js' {
+  interface InteractionModeMap {
+    myCustomMode: C.InteractionModeFunction;
+  }
+}
+
+C.Interaction.modes.myCustomMode = function(chart, event, options, useFinalPosition) {
+  const position = getRelativePosition(event, chart as any);
+  const items: C.InteractionItem[] = [];
+  C.Interaction.evaluateInteractionItems(chart, 'x', position, (element, datasetIndex, index) => {
+    const sameDataset = items.findIndex(e => e.datasetIndex === datasetIndex);
+    if (sameDataset < 0) {
+      items.push({element, datasetIndex, index});
+    } else if (Math.abs(position.x - items[sameDataset].element.x) > Math.abs(position.x - element.x)) {
+      items[sameDataset] = {element, datasetIndex, index};
+    }
+  });
+  return items;
 }

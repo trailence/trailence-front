@@ -3,10 +3,11 @@ import * as L from 'leaflet';
 
 export class TrackUtils {
 
-  public static elevationGrade(points: Point[], pointIndex: number): number | undefined {
+  public static elevationGrade(points: Point[], pointIndex: number): {gradeBefore: number | undefined, gradeAfter: number | undefined} {
     const pt = points[pointIndex];
     const pte = pt.ele;
-    if (pte === undefined) return undefined;
+    const result: {gradeBefore: number | undefined, gradeAfter: number | undefined} = {gradeBefore: undefined, gradeAfter: undefined};
+    if (pte === undefined) return result;
     let previousEle: number | undefined;
     let previousEleDistance: number | undefined;
     let nextEle: number | undefined;
@@ -29,17 +30,13 @@ export class TrackUtils {
         break;
       }
     }
-    if (previousEle === undefined) {
-      if (nextEle === undefined) return undefined;
-      return (nextEle - pte) / nextEleDistance!;
+    if (previousEle !== undefined) {
+      result.gradeBefore = (pte - previousEle) / previousEleDistance!;
     }
-    if (nextEle === undefined) {
-      return (pte - previousEle) / previousEleDistance!;
+    if (nextEle !== undefined) {
+      result.gradeAfter = (nextEle - pte) / nextEleDistance!;
     }
-    if ((nextEle < pte && previousEle < pte) || (nextEle > pte && previousEle > pte)) {
-      return (pte - previousEle) / previousEleDistance!;
-    }
-    return (nextEle - previousEle) / (nextEleDistance! + previousEleDistance!);
+    return result;
   }
 
   public static previousPointIndexWithElevation(points: Point[], index: number): number {

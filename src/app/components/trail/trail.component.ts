@@ -128,8 +128,10 @@ export class TrailComponent extends AbstractComponent {
             mapTracks.push(trail1[2]);
           if (trail2[1]) {
             tracks.push(trail2[1]);
-            if (trail2[2])
+            if (trail2[2]) {
+              trail2[2].color = 'blue';
               mapTracks.push(trail2[2]);
+            }
           }
         }
 
