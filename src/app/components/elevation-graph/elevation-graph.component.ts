@@ -441,28 +441,22 @@ export class ElevationGraphComponent extends AbstractComponent {
     if (!this.canvas || !this.canvas.chart || !this.chartData) {
       return;
     }
+    const elements: C.ActiveElement[] = [];
     for (let dsIndex = 0; dsIndex < this.chartData.datasets.length; dsIndex++) {
       const pointIndex = this.chartData.datasets[dsIndex].data.findIndex((pt: any) => pt.lat === lat && pt.lng === lng);
       if (pointIndex >= 0) {
-        const meta = this.canvas.chart.getDatasetMeta(dsIndex);
-        const ptElement = meta.data[pointIndex];
-        const rectangle = this.canvas.chart.canvas.getBoundingClientRect();
-        if (!isNaN(rectangle.left) && !isNaN(rectangle.top) && !isNaN(ptElement.x) && !isNaN(ptElement.y)) {
-          const mouseMoveEvent = new MouseEvent('mousemove', {
-            clientX: rectangle.left + ptElement.x,
-            clientY: rectangle.top + ptElement.y,
-            detail: -1,
-          });
-          this.canvas.chart.canvas.dispatchEvent(mouseMoveEvent);
-        }
-        return;
+        elements.push({element: this.canvas?.chart.getDatasetMeta(dsIndex).data[pointIndex], datasetIndex: dsIndex, index: pointIndex});
       }
     }
-    this.hideCursor();
+    this.canvas.chart.setActiveElements(elements);
+    this.canvas.chart.update();
   }
 
   public hideCursor(): void {
-    this.canvas?.chart?.canvas.dispatchEvent(new MouseEvent('mouseout'));
+    if (this.canvas?.chart) {
+      this.canvas.chart.setActiveElements([]);
+      this.canvas.chart.update();
+    }
   }
 
   private activeElementToPointReference(element: C.ActiveElement): ElevationGraphPointReference {

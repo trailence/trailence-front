@@ -9,7 +9,7 @@ export class HoverVerticalLine implements C.Plugin<"line"> {
   ) {}
 
   afterDraw(chart: C.Chart<"line">): void {
-    const activeElements = chart.tooltip?.getActiveElements();
+    const activeElements = chart.getActiveElements();
     if (activeElements?.length) {
       let ctx = chart.ctx;
       ctx.save();
