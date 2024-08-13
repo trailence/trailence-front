@@ -26,7 +26,6 @@ import { GeolocationService } from 'src/app/services/geolocation/geolocation.ser
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
-import { detectLoopType } from 'src/app/services/track-edition/path-analysis/loop-type-detection';
 
 @Component({
   selector: 'app-trail',
@@ -359,6 +358,7 @@ export class TrailComponent extends AbstractComponent {
       baseTrack$: this.toolsBaseTrack$,
       modifiedTrack$: this.toolsModifiedTrack$,
       focusTrack$: this.toolsFocusTrack$,
+      map: this.map!,
       close: () => {
         this.editToolsComponent = undefined;
         this.editToolsInputs = undefined;

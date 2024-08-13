@@ -137,6 +137,9 @@
           "remove_moves": "Remove these moves",
           "skip_moves": "Skip these moves",
           "duration": "Duration"
+        },
+        "selected_point": {
+          "title": "Selected point"
         }
       }
     },

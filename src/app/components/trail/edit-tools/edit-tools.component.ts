@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { BehaviorSubject, first, map, Observable, of, switchMap, tap } from 'rxjs';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, first, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonList, IonItem, IonModal, IonRange } from "@ionic/angular/standalone";
@@ -15,6 +15,9 @@ import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/b
 import { Point } from 'src/app/model/point';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { TrailService } from 'src/app/services/database/trail.service';
+import { MapComponent } from '../../map/map.component';
+import { MapAnchor } from '../../map/markers/map-anchor';
+import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
 
 interface HistoryState {
   base: Track | undefined;
@@ -28,12 +31,13 @@ interface HistoryState {
   standalone: true,
   imports: [IonRange, IonModal, IonItem, IonList, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
 })
-export class EditToolsComponent {
+export class EditToolsComponent implements OnInit, OnDestroy {
 
   @Input() trail!: Trail;
   @Input() baseTrack$!: BehaviorSubject<Track | undefined>;
   @Input() modifiedTrack$!: BehaviorSubject<Track | undefined>;
   @Input() focusTrack$!: BehaviorSubject<Track | undefined>;
+  @Input() map!: MapComponent;
   @Input() close!: () => void;
 
   id = IdGenerator.generateId();
@@ -54,6 +58,40 @@ export class EditToolsComponent {
     public prefs: PreferencesService,
     private geo: GeoService,
   ) { }
+
+  private mapClickSubscription?: Subscription;
+  private selectedPointAnchor = new MapAnchor({lat: 0, lng: 0}, '#6060FFC0', undefined, undefined, undefined, '#6060FF80', undefined);
+  selectedPoint?: MapTrackPointReference;
+  ngOnInit(): void {
+    this.mapClickSubscription = this.map.mouseClickPoint.subscribe(event => {
+      if (event.length === 0) {
+        if (this.selectedPoint) {
+          this.selectedPoint = undefined;
+          this.map.removeFromMap(this.selectedPointAnchor.marker);
+        }
+        return;
+      }
+      if (this.inlineTool) return;
+      this.getTrack().subscribe(track => {
+        const points = event.filter(p => p.track.track === track).sort((p1,p2) => p1.distanceToEvent - p2.distanceToEvent);
+        const point = points.length > 0 ? points[0] : undefined;
+        if (!point) {
+          if (this.selectedPoint) {
+            this.selectedPoint = undefined;
+            this.map.removeFromMap(this.selectedPointAnchor.marker);
+          }
+        } else {
+          this.selectedPointAnchor.marker.setLatLng(point.position);
+          if (!this.selectedPoint)
+            this.map.addToMap(this.selectedPointAnchor.marker);
+          this.selectedPoint = point;
+        }
+      });
+    });
+  }
+  ngOnDestroy(): void {
+    this;this.mapClickSubscription?.unsubscribe();
+  }
 
   undo(): void {
     this.undone.push({
@@ -145,6 +183,23 @@ export class EditToolsComponent {
         );
       })
     );
+  }
+
+  getSelectedPointDistance(): number {
+    if (!this.selectedPoint) return 0;
+    let distance = 0;
+    for (let i = 0; i < this.selectedPoint.segmentIndex!; ++i) distance += (this.selectedPoint.track.track as Track).segments[i].computeTotalDistance();
+    distance += (this.selectedPoint.track.track as Track).segments[this.selectedPoint.segmentIndex!].distanceFromSegmentStart(this.selectedPoint.pointIndex);
+    return distance;
+  }
+
+  removeSelectedPoint(): void {
+    this.modify().subscribe(track => {
+      if (this.selectedPoint?.segmentIndex === undefined) return;
+      track.segments[this.selectedPoint.segmentIndex].removePointAt(this.selectedPoint.pointIndex);
+      this.selectedPoint = undefined;
+      this.map.removeFromMap(this.selectedPointAnchor.marker);
+    });
   }
 
   downloadElevations(): void {

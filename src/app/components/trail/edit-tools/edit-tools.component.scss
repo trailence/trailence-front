@@ -33,3 +33,15 @@ ion-toolbar {
     flex: 1 1 100%;
   }
 }
+
+ion-footer {
+  ion-toolbar {
+    div {
+      display: flex;
+      flex-direction: rown;
+      align-items: center;
+      justify-content: center;
+      padding: 3px;
+    }
+  }
+}

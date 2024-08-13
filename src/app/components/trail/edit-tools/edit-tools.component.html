@@ -11,7 +11,7 @@
 </ion-header>
 <ion-content>
 
-  <ng-container *ngIf="!inlineTool">
+  <ng-container *ngIf="!inlineTool && !selectedPoint">
     <ion-list>
       <ion-item button (click)="backToOriginalTrack()">
         {{i18n.texts.pages.trail.edit_tools.back_to_original}}
@@ -59,6 +59,10 @@
   <ng-container *ngIf="inlineTool">
     <ng-container *ngTemplateOutlet="inlineTool"></ng-container>
   </ng-container>
+
+  <ng-container *ngIf="!inlineTool && selectedPoint">
+    <ng-container *ngTemplateOutlet="selectedPointTools"></ng-container>
+  </ng-container>
 </ion-content>
 <ion-footer *ngIf="!inlineTool">
   <ion-toolbar color="footer">
@@ -77,12 +81,36 @@
     <div>
       <ion-buttons slot="end">
         <ion-button color="success" [disabled]="!canSave()" (click)="save()">
+          <ion-icon name="save" slot="start"></ion-icon>
           {{i18n.texts.buttons.save}}
         </ion-button>
       </ion-buttons>
     </div>
   </ion-toolbar>
 </ion-footer>
+
+<ng-template #selectedPointTools>
+  <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.selected_point.title}}</div>
+  <div style="padding: 2px 5px">
+    <div class="metadata-container one-column">
+      <div class="metadata-item">
+        <ion-icon name="center-on-location"></ion-icon>
+        <div>{{i18n.coordToString(selectedPoint!.position.lat)}}, {{i18n.coordToString(selectedPoint!.position.lng)}}</div>
+      </div>
+      <div class="metadata-item">
+        <ion-icon name="altitude"></ion-icon>
+        <div>{{i18n.elevationToString(selectedPoint!.point.ele)}}</div>
+      </div>
+      <div class="metadata-item">
+        <ion-icon name="distance"></ion-icon>
+        <div>{{i18n.distanceToString(getSelectedPointDistance())}}</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding: 10px">
+    <ion-button color="danger" (click)="removeSelectedPoint()">{{i18n.texts.buttons.delete}}</ion-button>
+  </div>
+</ng-template>
 
 <ion-modal #modalElevationThreshold trigger="elevation-threshold-button-{{id}}">
   <ng-template>
