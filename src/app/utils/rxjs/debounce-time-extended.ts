@@ -15,7 +15,7 @@ export function debounceTimeExtended<T>(
     let firstEmitted = false;
     let pending = 0;
 
-    source.subscribe({
+    const subscription = source.subscribe({
       next: value => {
         lastValue = value;
         pending++;
@@ -60,5 +60,6 @@ export function debounceTimeExtended<T>(
         lastValue = activeTask = null!
       },
     });
+    return () => subscription.unsubscribe();
   });
 }

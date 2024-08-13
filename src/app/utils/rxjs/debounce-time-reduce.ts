@@ -12,7 +12,7 @@ export function debounceTimeReduce<T>(
     let activeTask: Subscription | undefined;
     let firstEmitted = false;
 
-    source.subscribe({
+    const subscription = source.subscribe({
       next: value => {
         activeTask?.unsubscribe();
         activeTask = undefined;
@@ -51,5 +51,6 @@ export function debounceTimeReduce<T>(
         currentValue = activeTask = undefined;
       },
     });
+    return () => subscription.unsubscribe();
   });
 }

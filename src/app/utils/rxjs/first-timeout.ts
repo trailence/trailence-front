@@ -16,11 +16,13 @@ export function firstTimeout<T>(
       next: value => {
         if (emitted) {
           subscription?.unsubscribe();
+          subscription = undefined;
           return;
         }
         if (predicate(value)) {
           emitted = true;
           subscription?.unsubscribe();
+          subscription = undefined;
           destination.next(value);
           destination.complete();
           return;
@@ -34,9 +36,9 @@ export function firstTimeout<T>(
           () => {
             activeTask = undefined;
             subscription?.unsubscribe();
+            subscription = undefined;
             if (emitted) return;
             emitted = true;
-            subscription?.unsubscribe();
             destination.next(itemOnTimeout());
             destination.complete();
           },
@@ -63,5 +65,6 @@ export function firstTimeout<T>(
         }
       },
     });
+    return () => subscription?.unsubscribe();
   });
 }
