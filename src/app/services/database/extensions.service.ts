@@ -116,7 +116,6 @@ export class ExtensionsService {
 
   private sync(): void {
     if (!this._db) return;
-    console.log('Sync extensions');
     const db = this._db;
     this._syncStatus$.value.inProgress = true;
     this._syncStatus$.next(this._syncStatus$.value);
@@ -124,7 +123,7 @@ export class ExtensionsService {
       next: list => {
         if (this._db !== db) return;
         if (!Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
-          console.log('Extension received from server: ', list.length);
+          console.log('Extension(s) received from server: ', list.length);
           const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
           this._extensions$.next(extensions);
           this._db.transaction('rw', [EXTENSIONS_TABLE_NAME], () => {

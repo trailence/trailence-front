@@ -86,7 +86,6 @@ export class TrackDatabase {
 
   private close() {
     if (this.db) {
-      this.injector.get(DatabaseCleanupService).unregister(this._cleanupCallback);
       console.log('Close track DB')
       this.db.close();
       this.openEmail = undefined;
@@ -113,7 +112,6 @@ export class TrackDatabase {
     this.fullTrackTable = db.table<TrackItem, string>('full_tracks')
     this.db = db;
     this.syncStatus$.next(new TrackSyncStatus());
-    this.registerCleanup();
     let previousBaseSpeed: number | undefined = undefined;
     let previousBreakDuration: number | undefined = undefined;
     let previousBreakDistance: number | undefined = undefined;
@@ -172,30 +170,13 @@ export class TrackDatabase {
     );
   }
 
-  private _cleanupCallback = () => this.cleanup();
-  private registerCleanup(): void {
-    const db = this.db;
-    this._cleanupCallback = () => {
-      if (this.db === db) return this.cleanup();
-      return of(false);
-    };
-    this.injector.get(DatabaseCleanupService).register(
-      interval(30000).pipe(
-        takeWhile(() => this.db === db),
-        filter(() => !this.syncStatus$.value?.needsSync && !this.syncStatus$.value?.inProgress),
-        first(),
-      ),
-      this._cleanupCallback
-    );
-  }
-  private cleanup(): Observable<any> {
+  public cleanDatabase(email: string): Observable<any> {
     // remove all tracks not linked by any trail
-    const db = this.db;
     return this.injector.get(TrailService).getAll$().pipe(
       switchMap(trails$ => trails$.length === 0 ? of([]) : combineLatest(trails$)),
       first(),
       switchMap(trails => {
-        if (this.db !== db) return of(false);
+        if (this.openEmail !== email) return of(false);
         const allKnownKeys: string[] = [];
         for (const trail of trails) {
           if (trail) {
@@ -216,7 +197,7 @@ export class TrackDatabase {
           }),
           switchMap(keys => {
             if (keys.length === 0) return of([]);
-            if (this.db !== db) return of([]);
+            if (this.openEmail !== email) return of([]);
             return from(this.metadataTable!.bulkGet(keys));
           }),
           map(items => {
@@ -579,7 +560,6 @@ export class TrackDatabase {
   }
 
   private sync(): void {
-    console.log('Sync tracks with status ', this.syncStatus$.value);
     const db = this.db!;
     this.syncStatus$.value!.inProgress = true;
     this.syncStatus$.next(this.syncStatus$.value);
@@ -595,7 +575,6 @@ export class TrackDatabase {
       status.inProgress = false;
       status.needsUpdateFromServer = false;
       status.lastUpdateFromServer = Date.now();
-      console.log('Sync done for tracks with status ', this.syncStatus$.value);
       this.syncStatus$.next(status);
     });
   }
@@ -670,11 +649,10 @@ export class TrackDatabase {
         for (const item of items) {
           if (item.version > 0) known.push({uuid: item.uuid, owner: item.owner, version: item.version});
         }
-        console.log('Requesting updates from server: ' + known.length + ' tracks known');
         return this.injector.get(HttpService).post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
           switchMap(response => {
             if (this.db !== db) return EMPTY;
-            console.log('Server updates for tracks: ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
+            console.log('Server updates for tracks: sent ' + known.length + ' known tracks, received ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
             const toRetrieve = [...response.created, ...response.updated];
             const limiter = new RequestLimiter(5);
             const requests = toRetrieve

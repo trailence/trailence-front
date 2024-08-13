@@ -88,8 +88,8 @@ export class TrackMetadataComponent extends AbstractComponent {
     const iconContainer = document.createElement('DIV');
     iconContainer.className = 'icon';
     item.appendChild(iconContainer);
-    assets.loadText(assets.icons[icon], true).subscribe(svg => {
-      iconContainer.parentElement?.insertBefore(svg.cloneNode(true), iconContainer);
+    assets.loadSvg(assets.icons[icon]).subscribe(svg => {
+      iconContainer.parentElement?.insertBefore(svg, iconContainer);
       iconContainer.parentElement?.removeChild(iconContainer);
     })
 

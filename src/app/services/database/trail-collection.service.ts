@@ -1,12 +1,11 @@
-import { Injectable, Injector, NgZone } from "@angular/core";
+import { Injectable, Injector } from "@angular/core";
 import { Observable, combineLatest, filter, first, map, of, switchMap } from "rxjs";
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
-import { DatabaseService, TRAIL_COLLECTION_TABLE_NAME } from "./database.service";
+import { TRAIL_COLLECTION_TABLE_NAME } from "./database.service";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
-import { NetworkService } from "../network/network.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { ModalController, AlertController } from '@ionic/angular/standalone';
 import { MenuItem } from 'src/app/utils/menu-item';
@@ -14,6 +13,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { TagService } from './tag.service';
 import { TrailService } from './trail.service';
 import { Progress, ProgressService } from '../progress/progress.service';
+import Dexie from 'dexie';
 
 @Injectable({
     providedIn: 'root'
@@ -23,13 +23,10 @@ export class TrailCollectionService {
   private _store: TrailCollectionStore;
 
   constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
     http: HttpService,
     private injector: Injector,
   ) {
-    this._store = new TrailCollectionStore(databaseService, network, ngZone, http);
+    this._store = new TrailCollectionStore(injector, http);
   }
 
   public getAll$(): Observable<Observable<TrailCollection | null>[]> {
@@ -119,12 +116,10 @@ export class TrailCollectionService {
 class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollection> {
 
     constructor(
-      databaseService: DatabaseService,
-      network: NetworkService,
-      ngZone: NgZone,
+      injector: Injector,
       private http: HttpService,
     ) {
-      super(TRAIL_COLLECTION_TABLE_NAME, databaseService, network, ngZone);
+      super(TRAIL_COLLECTION_TABLE_NAME, injector);
     }
 
     protected override fromDTO(dto: TrailCollectionDto): TrailCollection {
@@ -157,6 +152,10 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override deleteFromServer(uuids: string[]): Observable<void> {
       return this.http.post<void>(environment.apiBaseUrl + '/trail-collection/v1/_bulkDelete', uuids);
+    }
+
+    protected override doCleaning(email: string, db: Dexie): Observable<any> {
+      return of(false);
     }
 
   }

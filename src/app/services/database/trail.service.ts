@@ -1,10 +1,9 @@
-import { Injectable, Injector, NgZone } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
-import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
+import { TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, map, of, switchMap, zip } from 'rxjs';
+import { Observable, combineLatest, first, map, of, switchMap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { NetworkService } from '../network/network.service';
 import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackService } from './track.service';
@@ -14,6 +13,10 @@ import { TagService } from './tag.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import Dexie from 'dexie';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { ShareService } from './share.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,18 +26,13 @@ export class TrailService {
   private _store: TrailStore;
 
   constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
     http: HttpService,
     private trackService: TrackService,
     collectionService: TrailCollectionService,
     private injector: Injector,
   ) {
-    this._store = new TrailStore(databaseService, network, ngZone, http, trackService, collectionService);
+    this._store = new TrailStore(injector, http, trackService, collectionService);
   }
-
-  // TODO remove tracks not used by any trail (do the same for all entities, like trails belonging to a non existing collection...)
 
   public getAll$(): Observable<Observable<Trail | null>[]> {
     return this._store.getAll$();
@@ -114,19 +112,21 @@ export class TrailService {
     }
   }
 
+  public cleanDatabase(email: string): Observable<any> {
+    return this._store.cleanDatabase(email);
+  }
+
 }
 
 class TrailStore extends OwnedStore<TrailDto, Trail> {
 
   constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
+    injector: Injector,
     private http: HttpService,
     private trackService: TrackService,
     private collectionService: TrailCollectionService,
   ) {
-    super(TRAIL_TABLE_NAME, databaseService, network, ngZone);
+    super(TRAIL_TABLE_NAME, injector);
   }
 
   protected override fromDTO(dto: TrailDto): Trail {
@@ -168,6 +168,44 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
 
   protected override deleteFromServer(uuids: string[]): Observable<void> {
     return this.http.post<void>(environment.apiBaseUrl + '/trail/v1/_bulkDelete', uuids);
+  }
+
+  protected override doCleaning(email: string, db: Dexie): Observable<any> {
+    return zip([
+      this.getAll$().pipe(collection$items()),
+      this.collectionService.getAll$().pipe(collection$items()),
+      this.injector.get(ShareService).getAll$().pipe(collection$items()),
+    ]).pipe(
+      first(),
+      switchMap(([trails, collections, shares]) => {
+        return new Observable<any>(subscriber => {
+          if (this.injector.get(AuthService).email !== email) {
+            subscriber.next(false);
+            subscriber.complete();
+            return;
+          }
+          const maxDate = Date.now() - 24 * 60 * 60 * 1000;
+          let count = 0;
+          const ondone = new CompositeOnDone(() => {
+            console.log('Trails database cleaned: ' + count + ' removed');
+            subscriber.next(true);
+            subscriber.complete();
+          });
+          for (const trail of trails) {
+            if (trail.createdAt > maxDate || trail.updatedAt > maxDate) continue;
+            if (trail.owner === email) {
+              const collection = collections.find(c => c.uuid === trail.collectionUuid && c.owner === email);
+              if (collection) continue;
+            }
+            const share = shares.find(s => s.from === trail.owner && s.trails.indexOf(trail.uuid) >= 0);
+            if (share) continue;
+            count++;
+            this.delete(trail, ondone.add());
+          }
+          ondone.start();
+        });
+      })
+    );
   }
 
 }

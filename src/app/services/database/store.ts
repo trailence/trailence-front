@@ -2,7 +2,8 @@ import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, d
 import { DatabaseService } from "./database.service";
 import Dexie, { Table } from "dexie";
 import { NetworkService } from "../network/network.service";
-import { NgZone } from "@angular/core";
+import { Injector, NgZone } from "@angular/core";
+import { AuthService } from '../auth/auth.service';
 
 export interface StoreSyncStatus {
 
@@ -33,9 +34,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   constructor(
     protected tableName: string,
-    protected databaseService: DatabaseService,
-    protected network: NetworkService,
-    protected ngZone: NgZone,
+    protected injector: Injector,
   ) {}
 
   protected abstract readyToSave(entity: STORE_ITEM): boolean;
@@ -57,17 +56,20 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected _initStore(): void {
-    this.databaseService.registerStore({status: this.syncStatus$, syncNow: () => this.syncNow()});
+    const dbService = this.injector.get(DatabaseService);
+    dbService.registerStore({status: this.syncStatus$, syncNow: () => this.syncNow()});
     // listen to database change (when authentication changed)
-    this.databaseService.db$.subscribe(db => {
+    dbService.db$.subscribe(db => {
       if (db) this.load(db);
       else this.close();
     });
 
+    const ngZone = this.injector.get(NgZone);
+
     // we need to sync when:
     combineLatest([
       this._storeLoaded$,         // local database is loaded
-      this.network.server$,    // network is connected
+      this.injector.get(NetworkService).server$,    // network is connected
       this.syncStatus$,           // there is something to sync and we are not syncing
       this._operationInProgress$, // and no operation in progress
     ]).pipe(
@@ -76,7 +78,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       filter(shouldSync => {
         if (!shouldSync) return false;
         if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
-          this.ngZone.runOutsideAngular(() => {
+          ngZone.runOutsideAngular(() => {
             if (!this._syncTimeout) {
               this._syncTimeout = setTimeout(() => this.syncStatus = this.syncStatus, Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
             }
@@ -107,7 +109,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       } else if (previousNeeded && !status.needsUpdateFromServer) {
         previousNeeded = false;
         if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-        this.ngZone.runOutsideAngular(() => {
+        ngZone.runOutsideAngular(() => {
           updateFromServerTimeout = setTimeout(() =>
             this.performOperation(
               () => false,
@@ -180,6 +182,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     tableUpdater: (db: Dexie) => Observable<any>,
     statusUpdater: (status: SYNCSTATUS) => boolean,
     ondone?: () => void,
+    oncancelled?: () => void,
   ): void {
     const db = this._db!;
     let done = false;
@@ -190,7 +193,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       if (subscription) {
         subscription.unsubscribe();
       }
-      if (done || this._db !== db) return;
+      if (done) return;
+      if (this._db !== db) {
+        if (oncancelled) oncancelled();
+        return;
+      }
       done = true;
 
       this._operationInProgress$.next(true);
@@ -318,5 +325,30 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       ondone
     );
   }
+
+  public cleanDatabase(email: string): Observable<any> {
+    return new Observable(subscriber => {
+      if (this.injector.get(AuthService).email !== email) {
+        subscriber.next(false);
+        subscriber.complete();
+        return;
+      }
+      this.performOperation(
+        () => {},
+        db => this.doCleaning(email, db),
+        () => false,
+        () => {
+          subscriber.next(true);
+          subscriber.complete();
+        },
+        () => {
+          subscriber.next(false);
+          subscriber.complete();
+        }
+      )
+    });
+  }
+
+  protected abstract doCleaning(email: string, db: Dexie): Observable<any>;
 
 }

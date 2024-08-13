@@ -220,6 +220,9 @@ export class OfflineMapService {
 
   private cleanExpiredTimeout() {
     const db = this._db!;
+    const lastClean = localStorage.getItem('trailence.map-offline.last-cleaning.' + this._openEmail);
+    const lastCleanTime = lastClean ? parseInt(lastClean) : undefined;
+    const nextClean = lastCleanTime && !isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
     this._cleanExpiredTimeout = setTimeout(() => {
       if (db !== this._db) return;
       this._cleanExpiredTimeout = undefined;
@@ -228,7 +231,7 @@ export class OfflineMapService {
         return;
       }
       this.cleanExpired(db);
-    }, 2 * 60 * 1000);
+    }, Math.max(nextClean - Date.now(), 60000));
   }
 
   private cleanExpired(db: Dexie): void {
@@ -236,6 +239,12 @@ export class OfflineMapService {
       const name = this.layers.layers[i].name;
       setTimeout(() => this.cleanExpiredLayer(db, name), i * 60000);
     }
+    setTimeout(() => {
+      if (this._db === db) {
+        localStorage.setItem('trailence.map-offline.last-cleaning.' + this._openEmail, '' + Date.now());
+        console.log('All offline maps cleaned, next cleaning in 24 hours');
+      }
+    }, this.layers.layers.length * 60000);
   }
 
   private cleanExpiredLayer(db: Dexie, layerName: string): void {

@@ -18,9 +18,9 @@ export class DarkMapToggle extends L.Control {
     button.style.color = '#000';
     const assets = this.injector.get(AssetsService);
     let iconDark: any, iconLight: any;
-    assets.loadText(assets.icons['theme-dark'], true).subscribe(
+    assets.loadSvg(assets.icons['theme-dark']).subscribe(
       svg => {
-        iconDark = svg.cloneNode(true) as any;
+        iconDark = svg;
         iconDark.style.width = '32px';
         iconDark.style.height = '32px';
         iconDark.style.margin = '3px 3px -2px 3px';
@@ -29,9 +29,9 @@ export class DarkMapToggle extends L.Control {
         }
       }
     );
-    assets.loadText(assets.icons['theme-light'], true).subscribe(
+    assets.loadSvg(assets.icons['theme-light']).subscribe(
       svg => {
-        iconLight = svg.cloneNode(true) as any;
+        iconLight = svg;
         iconLight.style.width = '32px';
         iconLight.style.height = '32px';
         iconLight.style.margin = '3px 3px -2px 3px';

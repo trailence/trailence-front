@@ -60,4 +60,8 @@ export class TrackService {
     return this.db.isSavedOnServerAndNotDeletedLocally$(uuid, owner);
   }
 
+  public cleanDatabase(email: string): Observable<any> {
+    return this.db.cleanDatabase(email);
+  }
+
 }

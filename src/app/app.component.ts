@@ -11,6 +11,7 @@ import { MenuComponent } from './components/menu/menu.component';
 import { GeolocationService } from './services/geolocation/geolocation.service';
 import { ExtensionsService } from './services/database/extensions.service';
 import { ShareService } from './services/database/share.service';
+import { DatabaseCleanupService } from './services/database/database-cleanup.service';
 
 @Component({
   selector: 'app-root',
@@ -39,6 +40,7 @@ export class AppComponent {
     tagService: TagService,
     extensionsService: ExtensionsService,
     shareService: ShareService,
+    databaseCleanup: DatabaseCleanupService,
   ) {
   }
 }

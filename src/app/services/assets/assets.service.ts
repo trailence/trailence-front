@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from "@angular/core";
 import { addIcons } from 'ionicons';
 import { Observable, Subscriber } from "rxjs";
@@ -9,7 +10,7 @@ export class AssetsService {
 
   public icons: {[name: string]: string};
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.icons = {
       'account': 'assets/ionicons/person-circle-outline.svg',
       'add': 'assets/ionicons/add.svg',
@@ -90,48 +91,55 @@ export class AssetsService {
     addIcons(this.icons);
   }
 
-  private _loaded = new Map<string, HTMLElement>();
-  private _loading = new Map<string, Subscriber<HTMLElement>[]>();
+  private _loadedSvg = new Map<string, SVGSVGElement>();
+  private _loadingSvg = new Map<string, Subscriber<SVGSVGElement>[]>();
 
-  public loadText(url: string, keepInCache: boolean): Observable<HTMLElement> {
-    return new Observable<HTMLElement>(observer => {
-      const known = this._loaded.get(url);
+  public loadJson(url: string): Observable<any> {
+    return this.http.get(url);
+  }
+
+  public loadSvg(url: string): Observable<SVGSVGElement> {
+    return new Observable<SVGSVGElement>(observer => {
+      const known = this._loadedSvg.get(url);
       if (known) {
-        observer.next(known);
+        observer.next(known.cloneNode(true) as SVGSVGElement);
         observer.complete();
         return;
       }
-      const loading = this._loading.get(url);
+      const loading = this._loadingSvg.get(url);
       if (loading) {
         loading.push(observer);
         return;
       }
-      this._loading.set(url, [observer]);
-      const iframe = document.createElement('IFRAME') as HTMLIFrameElement;
-      iframe.allow = '';
-      iframe.style.position = 'fixed';
-      iframe.style.top = '-10000px';
-      iframe.style.left = '-10000px';
-      iframe.style.width = '1px';
-      iframe.style.height = '1px';
-      iframe.onload = () => {
-        const element = iframe.contentDocument?.documentElement;
-        if (keepInCache && element)
-          this._loaded.set(url, element);
-        const subscribers = this._loading.get(url);
-        this._loading.delete(url);
+      this._loadingSvg.set(url, [observer]);
+      const error = (e: any) => {
+        console.error('Error loading SVG ' + url, e);
+        const subscribers = this._loadingSvg.get(url);
+        this._loadingSvg.delete(url);
         subscribers?.forEach(s => {
-          if (element)
-            s.next(element);
-          s.complete();
+          s.error(e);
         });
-        iframe.parentElement?.removeChild(iframe);
       };
-      iframe.onerror = e => {
-        console.error('error loading asset', url);
-      };
-      iframe.src = url;
-      document.documentElement.appendChild(iframe);
+      this.http.get(url, {responseType: 'text'}).subscribe({
+        next: svgText => {
+          const el = document.createElement('html');
+          el.innerHTML = svgText;
+          const svg = el.getElementsByTagName('svg').item(0);
+          if (!svg) {
+            error(new Error('Invalid SVG'));
+            return;
+          }
+          const subscribers = this._loadingSvg.get(url);
+          this._loadingSvg.delete(url);
+          subscribers?.forEach(s => {
+            s.next(svg.cloneNode(true) as SVGSVGElement);
+            s.complete();
+          });
+        },
+        error: e => {
+          error(e);
+        }
+      });
     });
   }
 

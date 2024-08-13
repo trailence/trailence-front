@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from "@angular/core";
+import { Injectable, Injector } from "@angular/core";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TagDto } from "src/app/model/dto/tag";
 import { Tag } from "src/app/model/tag";
@@ -8,8 +8,7 @@ import { TrailTag } from "src/app/model/trail-tag";
 import { EMPTY, Observable, combineLatest, filter, first, map, of, switchMap, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
-import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
-import { NetworkService } from "../network/network.service";
+import { TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
 import { TrailCollectionService } from "./trail-collection.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { TrailService } from "./trail.service";
@@ -17,6 +16,8 @@ import { AuthService } from "../auth/auth.service";
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import Dexie from 'dexie';
+import { CompositeOnDone } from 'src/app/utils/callback-utils';
 
 @Injectable({
     providedIn: 'root'
@@ -27,16 +28,14 @@ export class TagService {
   private _trailTagStore: TrailTagStore;
 
   constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
+    injector: Injector,
     http: HttpService,
     collectionService: TrailCollectionService,
     trailService: TrailService,
     private auth: AuthService,
   ) {
-    this._tagStore = new TagStore(databaseService, network, ngZone, http, collectionService);
-    this._trailTagStore = new TrailTagStore(databaseService, network, ngZone, http, this, trailService, auth);
+    this._tagStore = new TagStore(injector, http, collectionService);
+    this._trailTagStore = new TrailTagStore(injector, http, this, trailService, auth);
   }
 
   public getAllTags$(): Observable<Observable<Tag | null>[]> {
@@ -157,18 +156,22 @@ export class TagService {
     );
   }
 
+  public cleanDatabase(email: string): Observable<any> {
+    return this._tagStore.cleanDatabase(email).pipe(
+      switchMap(() => this._trailTagStore.cleanDatabase(email))
+    );
+  }
+
 }
 
 class TagStore extends OwnedStore<TagDto, Tag> {
 
   constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
+    injector: Injector,
     private http: HttpService,
     private collectionService: TrailCollectionService,
   ) {
-    super(TAG_TABLE_NAME, databaseService, network, ngZone);
+    super(TAG_TABLE_NAME, injector);
   }
 
   protected override fromDTO(dto: TagDto): Tag {
@@ -209,20 +212,51 @@ class TagStore extends OwnedStore<TagDto, Tag> {
     return this.http.post<void>(environment.apiBaseUrl + '/tag/v1/_bulkDelete', uuids);
   }
 
+  protected override doCleaning(email: string, db: Dexie): Observable<any> {
+    return zip([
+      this.getAll$().pipe(collection$items()),
+      this.collectionService.getAll$().pipe(collection$items()),
+    ]).pipe(
+      first(),
+      switchMap(([tags, collections]) => {
+        return new Observable<any>(subscriber => {
+          if (this.injector.get(AuthService).email !== email) {
+            subscriber.next(false);
+            subscriber.complete();
+            return;
+          }
+          const maxDate = Date.now() - 24 * 60 * 60 * 1000;
+          let count = 0;
+          const ondone = new CompositeOnDone(() => {
+            console.log('Tags database cleaned: ' + count + ' removed');
+            subscriber.next(true);
+            subscriber.complete();
+          });
+          for (const tag of tags) {
+            if (tag.createdAt > maxDate || tag.updatedAt > maxDate) continue;
+            const collection = collections.find(c => c.uuid === tag.collectionUuid && c.owner === email);
+            if (collection) continue;
+            count++;
+            this.delete(tag, ondone.add());
+          }
+          ondone.start();
+        });
+      })
+    );
+  }
+
 }
 
 class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
 
   constructor(
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
+    injector: Injector,
     private http: HttpService,
     private tagService: TagService,
     private trailService: TrailService,
     private auth: AuthService,
   ) {
-    super(TRAIL_TAG_TABLE_NAME, databaseService, network, ngZone);
+    super(TRAIL_TAG_TABLE_NAME, injector);
   }
 
   protected override fromDTO(dto: TrailTagDto): TrailTag {
@@ -261,5 +295,39 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
 
   protected override getAllFromServer(): Observable<TrailTagDto[]> {
     return this.http.get<TrailTagDto[]>(environment.apiBaseUrl + '/tag/v1/trails');
+  }
+
+  protected override doCleaning(email: string, db: Dexie): Observable<any> {
+    return zip([
+      this.getAll$().pipe(collection$items()),
+      this.tagService.getAllTags$().pipe(collection$items()),
+      this.trailService.getAll$().pipe(collection$items()),
+    ]).pipe(
+      first(),
+      switchMap(([trailsTags, tags, trails]) => {
+        return new Observable<any>(subscriber => {
+          if (this.injector.get(AuthService).email !== email) {
+            subscriber.next(false);
+            subscriber.complete();
+            return;
+          }
+          const maxDate = Date.now() - 24 * 60 * 60 * 1000;
+          let count = 0;
+          const ondone = new CompositeOnDone(() => {
+            console.log('TrailTags database cleaned: ' + count + ' removed');
+            subscriber.next(true);
+            subscriber.complete();
+          });
+          for (const trailTag of trailsTags) {
+            const tag = tags.find(t => t.uuid === trailTag.tagUuid);
+            const trail = trails.find(t => t.uuid === trailTag.trailUuid && t.owner === email);
+            if (tag && trail) continue;
+            count++;
+            this.delete(trailTag, ondone.add());
+          }
+          ondone.start();
+        });
+      })
+    );
   }
 }

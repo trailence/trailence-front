@@ -1,11 +1,10 @@
-import { DatabaseService } from './database.service';
 import { BehaviorSubject, EMPTY, Observable, catchError, concat, defaultIfEmpty, from, map, of, switchMap } from 'rxjs';
-import { NetworkService } from '../network/network.service';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
 import { Table } from 'dexie';
-import { NgZone } from '@angular/core';
+import { Injector } from '@angular/core';
+import { DatabaseService } from './database.service';
 
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
@@ -15,11 +14,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   constructor(
     tableName: string,
-    databaseService: DatabaseService,
-    network: NetworkService,
-    ngZone: NgZone,
+    injector: Injector,
   ) {
-    super(tableName, databaseService, network, ngZone);
+    super(tableName, injector);
     this._initStore();
   }
 
@@ -209,7 +206,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override sync(): void {
-    console.log('Sync table ' + this.tableName + ' with status ', this._syncStatus$.value);
     const db = this._db;
     const stillValid = () => this._db === db;
 
@@ -240,7 +236,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           status.inProgress = false;
           status.needsUpdateFromServer = false;
           status.lastUpdateFromServer = Date.now();
-          console.log('Sync done for table ' + this.tableName + ' with status ', status);
           this._syncStatus$.next(status);
         }
       },
@@ -264,7 +259,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           console.log('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
           return of(false);
         }
-        console.log('Creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server');
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
             console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
@@ -273,7 +267,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           }),
           catchError(error => {
             // TODO
-            console.error(error);
+            console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             return of(false);
           })
         );
@@ -284,16 +278,15 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   private syncUpdateFromServer(stillValid: () => boolean): Observable<boolean> {
     if (!this._syncStatus$.value.needsUpdateFromServer) return of(true);
     const known = this._store.value.filter(item$ => this._createdLocally.indexOf(item$) < 0).map(item$ => item$.value).map(item => new Owned(item!).toDto());
-    console.log('Requesting updates from server: ' + known.length + ' known element(s) of ' + this.tableName);
     return this.getUpdatesFromServer(known).pipe(
       switchMap(result => {
         if (!stillValid()) return of(false);
-        console.log('Server updates for ' + this.tableName + ': ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
+        console.log('Server updates for ' + this.tableName + ': sent ' + known.length + ' known element(s), received ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
         return this.updatedDtosFromServer([...result.updated, ...result.created], result.deleted);
       }),
       catchError(error => {
         // TODO
-        console.error(error);
+        console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.tableName, error);
         return of(false);
       })
     );
@@ -311,7 +304,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           console.log('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName);
           return of(false);
         }
-        console.log('Updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server');
         return this.sendUpdatesToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
             if (!stillValid()) return of(false);
@@ -321,7 +313,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           }),
           catchError(error => {
             // TODO
-            console.error(error);
+            console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             return of(false);
           })
         );
@@ -332,16 +324,16 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
     if (this._deletedLocally.length === 0) return of(true);
     const toDelete = this._deletedLocally.map(item => item.uuid);
-    console.log('Deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server');
     return this.deleteFromServer(toDelete).pipe(
       defaultIfEmpty(true),
       switchMap(() => {
         if (!stillValid()) return of(false);
-        return this.updatedDtosFromServer([], toDelete.map(uuid => ({uuid, owner: this.databaseService.email!})));
+        console.log('' + toDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
+        return this.updatedDtosFromServer([], toDelete.map(uuid => ({uuid, owner: this.injector.get(DatabaseService).email!})));
       }),
       catchError(error => {
         // TODO
-        console.error(error);
+        console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server', error);
         return of(false);
       })
     );

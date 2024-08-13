@@ -1,9 +1,8 @@
-import { Injectable, Injector, NgZone } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { SimpleStore } from './simple-store';
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
 import { Share } from 'src/app/model/share';
-import { DatabaseService, SHARE_TABLE_NAME } from './database.service';
-import { NetworkService } from '../network/network.service';
+import { SHARE_TABLE_NAME } from './database.service';
 import { combineLatest, EMPTY, map, Observable, of, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
@@ -15,7 +14,7 @@ import { TrailService } from './trail.service';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController } from '@ionic/angular/standalone';
-import { ProgressService } from '../progress/progress.service';
+import Dexie from 'dexie';
 
 @Injectable({
   providedIn: 'root'
@@ -81,9 +80,9 @@ export class ShareService {
 class ShareStore extends SimpleStore<ShareDto, Share> {
 
   constructor(
-    private injector: Injector
+    injector: Injector
   ) {
-    super(SHARE_TABLE_NAME, injector.get(DatabaseService), injector.get(NetworkService), injector.get(NgZone));
+    super(SHARE_TABLE_NAME, injector);
   }
 
   protected override fromDTO(dto: ShareDto): Share { return Share.fromDto(dto); }
@@ -179,6 +178,10 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
         map(readiness => readiness.indexOf(false) < 0)
       );
     }
+    return of(false);
+  }
+
+  protected override doCleaning(email: string, db: Dexie): Observable<any> {
     return of(false);
   }
 

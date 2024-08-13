@@ -17,13 +17,12 @@ export class DownloadMapTool extends L.Control {
     const button = MapToolUtils.createButton();
     button.style.color = map.getZoom() < 12 ? '#A0A0A0' : '#000000';
     const assets = this.injector.get(AssetsService);
-    assets.loadText(assets.icons['download'], true).subscribe(
+    assets.loadSvg(assets.icons['download']).subscribe(
       svg => {
-        const icon = svg.cloneNode(true) as any;
-        icon.style.width = '32px';
-        icon.style.height = '32px';
-        icon.style.margin = '3px 3px -2px 3px';
-        button.appendChild(icon);
+        svg.style.width = '32px';
+        svg.style.height = '32px';
+        svg.style.margin = '3px 3px -2px 3px';
+        button.appendChild(svg);
       }
     );
     map.on('zoom', () => {
