@@ -139,7 +139,8 @@
           "duration": "Durée"
         },
         "selected_point": {
-          "title": "Point sélectionné"
+          "title": "Point sélectionné",
+          "create_waypoint": "Créer un point de passage"
         }
       }
     },

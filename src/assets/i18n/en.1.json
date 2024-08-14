@@ -139,7 +139,8 @@
           "duration": "Duration"
         },
         "selected_point": {
-          "title": "Selected point"
+          "title": "Selected point",
+          "create_waypoint": "Create a way point"
         }
       }
     },

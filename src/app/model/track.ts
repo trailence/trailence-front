@@ -85,6 +85,14 @@ export class Track extends Owned {
     this._wayPoints.next(this._wayPoints.value);
   }
 
+  public removeWayPoint(wp: WayPoint): void {
+    const index = this._wayPoints.value.indexOf(wp);
+    if (index >= 0) {
+      this._wayPoints.value.splice(index, 1);
+      this._wayPoints.next(this._wayPoints.value);
+    }
+  }
+
   public removeEmptySegments(): void {
     let changed = false;
     for (let i = 0; i < this._segments.value.length; ++i) {

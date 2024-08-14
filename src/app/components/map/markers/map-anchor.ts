@@ -13,7 +13,8 @@ export class MapAnchor {
     public title?: string,
     public textColor?: string,
     public fillColor?: string,
-    public fillColor2?: string
+    public fillColor2?: string,
+    rotateOnMouseHover: boolean = true,
   ) {
     this.marker = L.marker(point, {
       icon: L.icon({
@@ -23,6 +24,34 @@ export class MapAnchor {
       }),
       title
     });
+    if (rotateOnMouseHover) {
+      let rotate = false;
+      const mousemovelistener = (event: L.LeafletMouseEvent) => {
+        const icon = (this.marker as any)._icon as HTMLImageElement;
+        const pos = (icon as any)._leaflet_pos as L.Point;
+        const mouseX = event.layerPoint.x - pos.x;
+        const mouseY = event.layerPoint.y - pos.y;
+        if (mouseX > -23 && mouseX < 23 && mouseY > -43 && mouseY < 3) {
+          if (!rotate) {
+            icon.style.transformOrigin = 'bottom center';
+            const sign = mouseX < 0 ? '' : '-';
+            icon.style.transform = 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0px) rotateZ(' + sign + '90deg)'
+            rotate = true;
+          }
+        } else if (rotate) {
+          icon.style.transform = 'translate3d(' + pos.x + 'px,' + pos.y + 'px,0px)'
+          rotate = false;
+        }
+      };
+      this.marker.addEventListener('add', (event) => {
+        const map = event.target._map as L.Map;
+        map.addEventListener('mousemove', mousemovelistener);
+      });
+      this.marker.addEventListener('remove', (event) => {
+        const map = event.target._map as L.Map;
+        map.removeEventListener('mousemove', mousemovelistener);
+      });
+    }
   }
 
   public bindTooltip(content: string): MapAnchor {

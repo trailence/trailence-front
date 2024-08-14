@@ -269,7 +269,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                     added.push(new BehaviorSubject<ENTITY | null>(this.fromDTO(dto)));
                   }
                 });
-                console.log('Updates from server for ' + this.tableName + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
+                console.log('Server updates for ' + this.tableName + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
                 if (deleted.length > 0 || added.length > 0) {
                   for (const item$ of deleted) {
                     const index = this._store.value.indexOf(item$);

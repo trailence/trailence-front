@@ -256,7 +256,7 @@ export class TrailPlannerPage extends AbstractPage {
   private enablePutAnchor(): void {
     this.disableFreeAnchor();
     this.putAnchors = true;
-    this._addAnchor = this.createAnchor({lat: 0, lng: 0}, '+');
+    this._addAnchor = this.createAnchor({lat: 0, lng: 0}, '+', false);
     this.anchorMapOverSubscription = this.map!.mouseOverPoint.subscribe(refs => {
       if (this.mapState!.zoom < MIN_ZOOM) {
         this.possibleWaysFromCursor$.next([]);
@@ -314,7 +314,7 @@ export class TrailPlannerPage extends AbstractPage {
     this.disablePutAnchors();
     this.cancelWays();
     this.putFreeAnchor = true;
-    this._addAnchor = this.createAnchor({lat: 0, lng: 0}, '+');
+    this._addAnchor = this.createAnchor({lat: 0, lng: 0}, '+', false);
     this.map!.addToMap(this._addAnchor!.marker);
     this.anchorMapOverSubscription = this.map!.mouseOver.subscribe(pos => {
       this._addAnchor!.marker.setLatLng(pos);
@@ -394,12 +394,12 @@ export class TrailPlannerPage extends AbstractPage {
     return matching;
   }
 
-  private createAnchor(pos: L.LatLngLiteral, text: string): MapAnchor {
-    return new MapAnchor(pos, '#d00000', text, undefined, '#ffffff', '#d00000');
+  private createAnchor(pos: L.LatLngLiteral, text: string, canRotate: boolean): MapAnchor {
+    return new MapAnchor(pos, '#d00000', text, undefined, '#ffffff', '#d00000', undefined, canRotate);
   }
 
   private newPoint(pos: L.LatLngLiteral, using: MapTrack | undefined): void {
-    const anchor = this.createAnchor(pos, '' + (this.anchors.length + 1));
+    const anchor = this.createAnchor(pos, '' + (this.anchors.length + 1), true);
     if (this.anchors.length === 0) {
       // first point
       const segment = this.track!.newSegment();
@@ -487,7 +487,7 @@ export class TrailPlannerPage extends AbstractPage {
           for (let i = 0; i < points.length; ++i) {
             const p = points[i];
             const point = this.track.segments[p.s].points[p.p];
-            const a = this.createAnchor(point.pos, '' + (this.anchors.length + 1));
+            const a = this.createAnchor(point.pos, '' + (this.anchors.length + 1), true);
             this.anchors.push(a);
             this.map!.addToMap(a.marker);
             if (i > 0) {

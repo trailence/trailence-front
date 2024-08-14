@@ -55,6 +55,8 @@ export class TrailComponent extends AbstractComponent {
   toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsFocusTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
+  wayPoints: ComputedWayPoint[] = [];
+  wayPointsTrack: Track | undefined;
 
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
@@ -119,12 +121,20 @@ export class TrailComponent extends AbstractComponent {
 
         if (toolsBaseTrack && !recording && !trail2[0]) {
           tracks.push(toolsBaseTrack);
-          mapTracks.push(new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n));
+          const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
+          mapTrack.showDepartureAndArrivalAnchors();
+          mapTrack.showWayPointsAnchors();
+          mapTracks.push(mapTrack);
         }
         if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
-          if (trail1[2])
+          if (trail1[2]) {
             mapTracks.push(trail1[2]);
+            if (!toolsModifiedTrack) {
+              trail1[2].showDepartureAndArrivalAnchors();
+              trail1[2].showWayPointsAnchors();
+            }
+          }
           if (trail2[1]) {
             tracks.push(trail2[1]);
             if (trail2[2]) {
@@ -145,7 +155,10 @@ export class TrailComponent extends AbstractComponent {
         if (!recording && !trail2[0]) {
           if (toolsModifiedTrack) {
             tracks.push(toolsModifiedTrack);
-            mapTracks.push(new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n));
+            const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n);
+            mapTrack.showDepartureAndArrivalAnchors();
+            mapTrack.showWayPointsAnchors();
+            mapTracks.push(mapTrack);
           }
           if (toolsFocusTrack !== previousFocus) {
             previousFocus = toolsFocusTrack;
@@ -172,6 +185,15 @@ export class TrailComponent extends AbstractComponent {
           this.elevationGraph?.resetChart();
       }
     );
+
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.toolsModifiedTrack$, this.tracks$]).pipe(
+        map(([modified, tracks]) => modified || (tracks.length > 0 ? tracks[0] : undefined)),
+        switchMap(track => { this.wayPointsTrack = track; return track ? track.computedWayPoints$ : of([]); })
+      ),
+      waypoints => this.wayPoints = waypoints
+    );
+
     if (this.recording$)
       this.byStateAndVisible.subscribe(
         this.recording$.pipe(
@@ -216,8 +238,6 @@ export class TrailComponent extends AbstractComponent {
           map(track => {
             if (!track) return ([trail, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined];
             const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
-            mapTrack.showDepartureAndArrivalAnchors();
-            mapTrack.showWayPointsAnchors();
             mapTrack.showArrowPath();
             return ([trail, track, mapTrack]) as [Trail | null, Track | undefined, MapTrack | undefined];
           })
@@ -341,13 +361,32 @@ export class TrailComponent extends AbstractComponent {
     return MapAnchor.createDataIcon(anchorBorderColor, '' + index, anchorTextColor, anchorFillColor);
   }
 
+  removeWayPoint(wp: ComputedWayPoint): void {
+    if (!this.wayPointsTrack) return;
+    const index = this.wayPointsTrack.wayPoints.indexOf(wp.wayPoint);
+    if (index >= 0) {
+      this.editToolsComponentInstance.modify().subscribe((track: Track) => {
+        track.removeWayPoint(track.wayPoints[index]);
+      })
+    }
+  }
+
   openLocationDialog(): void {
     if (this.trail2 || !this.trail1) return;
     this.trailMenuService.openLocationPopup(this.trail1);
   }
 
+  canEdit(): boolean {
+    if (this.editToolsComponent) return false;
+    if (this.trail2) return false;
+    if (this.trail1?.owner !== this.auth.email) return false;
+    if (this.recording) return false;
+    return this.platform.width() >= 1500 && this.platform.height() >= 500;
+  }
+
   editToolsComponent: any;
   editToolsInputs: any;
+  editToolsComponentInstance: any;
 
   public async enableEditTools() {
     if (this.editToolsComponent) return;
@@ -359,6 +398,7 @@ export class TrailComponent extends AbstractComponent {
       modifiedTrack$: this.toolsModifiedTrack$,
       focusTrack$: this.toolsFocusTrack$,
       map: this.map!,
+      getMe: (me: any) => { this.editToolsComponentInstance = me; },
       close: () => {
         this.editToolsComponent = undefined;
         this.editToolsInputs = undefined;

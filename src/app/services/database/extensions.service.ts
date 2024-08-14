@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, combineLatest, debounceTime, filter, map, Observable, takeWhile } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, takeWhile } from 'rxjs';
 import { Extension } from 'src/app/model/extension';
 import { DatabaseService, EXTENSIONS_TABLE_NAME } from './database.service';
 import { StoreSyncStatus } from './store';
@@ -19,6 +19,7 @@ export class ExtensionsService {
   private _db?: Dexie;
   private _lastSync = 0;
   private _syncTimeout?: any;
+  private updateFromServerTimeout: any = undefined;
 
   constructor(
     private databaseService: DatabaseService,
@@ -39,21 +40,28 @@ export class ExtensionsService {
 
   public saveExtension(extension: Extension): void {
     if (!this._db) return;
-    const index = this._extensions$.value.findIndex(e => e.extension === extension.extension);
-    if (index >= 0) {
-      this._extensions$.value[index] = extension;
-    } else {
-      this._extensions$.value.push(extension);
-    }
-    this._db.table<DbItem>(EXTENSIONS_TABLE_NAME).put({
-      version: extension.version,
-      extension: extension.extension,
-      data: extension.data
+    const db = this._db;
+    this._syncStatus$.pipe(
+      filter(s => !s.inProgress),
+      first(),
+    ).subscribe(() => {
+      if (db != this._db) return;
+      const index = this._extensions$.value.findIndex(e => e.extension === extension.extension);
+      if (index >= 0) {
+        this._extensions$.value[index] = extension;
+      } else {
+        this._extensions$.value.push(extension);
+      }
+      db.table<DbItem>(EXTENSIONS_TABLE_NAME).put({
+        version: extension.version,
+        extension: extension.extension,
+        data: extension.data
+      });
+      this._extensions$.next(this._extensions$.value);
+      this._syncStatus$.value.needsUpdateFromServer = true;
+      this._syncStatus$.value.hasLocalChanges = true;
+      this._syncStatus$.next(this._syncStatus$.value);
     });
-    this._extensions$.next(this._extensions$.value);
-    this._syncStatus$.value.needsUpdateFromServer = true;
-    this._syncStatus$.value.hasLocalChanges = true;
-    this._syncStatus$.next(this._syncStatus$.value);
   }
 
   public removeExtension(extension: Extension): void {
@@ -65,6 +73,8 @@ export class ExtensionsService {
     if (this._db) {
       this._extensions$.next([]);
       this._db = undefined;
+      if (this.updateFromServerTimeout) clearTimeout(this.updateFromServerTimeout);
+      this.updateFromServerTimeout = undefined;
     }
   }
 
@@ -102,6 +112,23 @@ export class ExtensionsService {
         if (this._syncTimeout) clearTimeout(this._syncTimeout);
         this._syncTimeout = undefined;
         this.sync();
+      });
+
+      // launch update from server every 30 minutes
+      let previousNeeded = false;
+      this._syncStatus$.subscribe(status => {
+        if (!previousNeeded && status.needsUpdateFromServer) {
+          previousNeeded = true;
+        } else if (previousNeeded && !status.needsUpdateFromServer) {
+          previousNeeded = false;
+          if (this.updateFromServerTimeout) clearTimeout(this.updateFromServerTimeout);
+          this.ngZone.runOutsideAngular(() => {
+            this.updateFromServerTimeout = setTimeout(() => {
+              this._syncStatus$.value.needsUpdateFromServer = true;
+              this._syncStatus$.next(this._syncStatus$.value);
+            }, 30 * 60 * 1000);
+          });
+        }
       });
     });
   }

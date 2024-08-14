@@ -18,6 +18,7 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { MapComponent } from '../../map/map.component';
 import { MapAnchor } from '../../map/markers/map-anchor';
 import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
+import { WayPoint } from 'src/app/model/way-point';
 
 interface HistoryState {
   base: Track | undefined;
@@ -39,6 +40,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   @Input() focusTrack$!: BehaviorSubject<Track | undefined>;
   @Input() map!: MapComponent;
   @Input() close!: () => void;
+  @Input() getMe!: (me: EditToolsComponent) => void;
 
   id = IdGenerator.generateId();
   history: HistoryState[] = [];
@@ -88,6 +90,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
         }
       });
     });
+    this.getMe(this);
   }
   ngOnDestroy(): void {
     this;this.mapClickSubscription?.unsubscribe();
@@ -156,7 +159,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     return this.trackService.getFullTrackReady$(this.trail.currentTrackUuid, this.trail.owner).pipe(first());
   }
 
-  private modify(): Observable<Track> {
+  public modify(): Observable<Track> {
     return this.modifiedTrack$.pipe(
       first(),
       switchMap(previous => {
@@ -197,6 +200,14 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     this.modify().subscribe(track => {
       if (this.selectedPoint?.segmentIndex === undefined) return;
       track.segments[this.selectedPoint.segmentIndex].removePointAt(this.selectedPoint.pointIndex);
+      this.selectedPoint = undefined;
+      this.map.removeFromMap(this.selectedPointAnchor.marker);
+    });
+  }
+
+  createWayPoint(): void {
+    this.modify().subscribe(track => {
+      track.appendWayPoint(new WayPoint(this.selectedPoint!.point as Point, '', ''));
       this.selectedPoint = undefined;
       this.map.removeFromMap(this.selectedPointAnchor.marker);
     });
