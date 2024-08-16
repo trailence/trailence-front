@@ -1,6 +1,7 @@
 import { Point } from 'src/app/model/point';
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
+import { TrackUtils } from 'src/app/utils/track-utils';
 
 export function applyElevationThresholdToTrack(track: Track, threshold: number, maxDistance: number): void {
   for (const segment of track.segments)
@@ -86,11 +87,9 @@ export function applyElevationThresholdToSegment(segment: Segment, threshold: nu
 function smoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, smoothOutsideThreshold: number): number {
   const outside = outsideFromSmoothElevation(points, previousIndex, previousEle, toIndex, diff, totalDistance, smoothOutsideThreshold);
   if (outside !== null) {
-    applySmoothElevation(points, previousIndex, previousEle, outside.index, points[outside.index].ele! - previousEle, outside.distance);
-    return outside.index;
+    return applySmoothElevation(points, previousIndex, previousEle, outside.index, points[outside.index].ele! - previousEle, outside.distance);
   }
-  applySmoothElevation(points, previousIndex, previousEle, toIndex, diff, totalDistance);
-  return toIndex;
+  return applySmoothElevation(points, previousIndex, previousEle, toIndex, diff, totalDistance);
 }
 
 function outsideFromSmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, threshold: number): {index: number, distance: number} | null {
@@ -118,7 +117,29 @@ function outsideFromSmoothElevation(points: Point[], previousIndex: number, prev
   return null;
 }
 
-function applySmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number) {
+function applySmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number): number {
+  if (previousIndex > 0) {
+    const ppEle = points[previousIndex - 1].ele;
+    if (ppEle !== undefined) {
+      if ((previousEle - ppEle > 0 && diff < 0) || (previousEle - ppEle < 0 && diff > 0)) {
+        // change of elevation way
+        if (totalDistance > 50 && toIndex - previousIndex > 3) {
+          // let's take a middle point first
+          const middle = Math.floor(previousIndex + (toIndex - previousIndex) / 2);
+          const middleEle = points[middle].ele;
+          if (middleEle !== undefined) {
+            applyFinalSmoothElevation(points, previousIndex, previousEle, middle, middleEle - previousEle, TrackUtils.distanceBetween(points, previousIndex, middle));
+            return middle;
+          }
+        }
+      }
+    }
+  }
+  applyFinalSmoothElevation(points, previousIndex, previousEle, toIndex, diff, totalDistance);
+  return toIndex;
+}
+
+function applyFinalSmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number) {
   let currentDistance = 0;
   for (let j = previousIndex + 1; j < toIndex; ++j) {
     currentDistance += points[j].distanceTo(points[j - 1].pos);

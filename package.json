@@ -15,6 +15,7 @@
     "install-android": "ionic capacitor copy android --configuration=android-%npm_config_env% && cd android/environments/%npm_config_env% && cpy . ../..",
     "install-android-dev": "npm run install-android --env=dev",
     "install-android-local": "npm run install-android --env=local",
+    "install-android-prod": "npm run install-android --env=prod",
     "set-version": "node ./scripts/set-version.js %npm_config_newversion%"
   },
   "license": "Apache-2.0",
@@ -63,6 +64,7 @@
     "@angular/language-service": "^18.1.3",
     "@capacitor/cli": "^6.1.1",
     "@ionic/angular-toolkit": "^11.0.1",
+    "@ionic/cli": "^7.2.0",
     "@types/jasmine": "~5.1.0",
     "@types/leaflet": "^1.9.12",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -77,5 +79,5 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.5.4"
   },
-  "description": "An Ionic project"
+  "description": "Trailence"
 }

@@ -6,5 +6,6 @@
   .graph-tooltip {
     display: none;
     position: absolute;
+    pointer-events: none;
   }
 }

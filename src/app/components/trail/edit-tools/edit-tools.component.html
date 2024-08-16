@@ -11,7 +11,7 @@
 </ion-header>
 <ion-content>
 
-  <ng-container *ngIf="!inlineTool && !selectedPoint">
+  <div [ngStyle]="{'display': !inlineTool && !selectedPoint ? 'block': 'none'}">
     <ion-list>
       <ion-item button (click)="backToOriginalTrack()">
         {{i18n.texts.pages.trail.edit_tools.back_to_original}}
@@ -54,7 +54,7 @@
     <ion-item button (click)="inlineTool = removeLongBreaksMoves">
       {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.title}}
     </ion-item>
-  </ng-container>
+  </div>
 
   <ng-container *ngIf="inlineTool">
     <ng-container *ngTemplateOutlet="inlineTool"></ng-container>
