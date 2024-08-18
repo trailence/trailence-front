@@ -15,7 +15,10 @@
       "signin_button": "Sign In",
       "offline": "Please connect to Internet to sign in",
       "incorrect_message": "Invalid e-mail or password",
-      "error_message": "Autnetication error, please retry"
+      "error_message": "Autnetication error, please retry",
+      "captcha_message": "Following several attempts, we need to check you are not a robot",
+      "locked_message": "Your account has been locked, please use the forgot password button",
+      "forgot_password": "Forgot password?"
     },
     "trails": {
       "edit_filters_popup_title": "Filter Trails",

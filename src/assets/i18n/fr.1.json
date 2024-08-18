@@ -15,7 +15,19 @@
       "signin_button": "Se Connecter",
       "offline": "Veuillez vous connecter à Internet afin de vous connecter sur Trailence",
       "incorrect_message": "Identifiants incorrects",
-      "error_message": "Erreur d'authentification, veuillez réessayer"
+      "error_message": "Erreur d'authentification, veuillez réessayer",
+      "captcha_message": "Suite à plusieurs tentative, nous avons besoin de vérifier que vous n'êtes pas un robot",
+      "locked_message": "Votre compte a été bloqué, veuillez utiliser le bouton Mot de passe oublié",
+      "forgot_password": "Mot de passe oublié ?",
+      "reset_password": {
+        "title": "Mot de passe oublié",
+        "email": "E-Mail",
+        "new_password1": "Nouveau mot de passe",
+        "new_password2": "Confirmez le nouveau mot de passe",
+        "verification_code_explaination": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
+        "in_progress": "Changement du mot de passe...",
+        "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer"
+      }
     },
     "trails": {
       "edit_filters_popup_title": "Filtrer les Parcours",

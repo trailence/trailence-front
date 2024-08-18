@@ -37,6 +37,10 @@ export class HttpService {
     return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, null, ResponseType.JSON));
   }
 
+  public getString(url: string): Observable<string> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.GET, url, {}, null, ResponseType.TEXT));
+  }
+
   public post<T>(url: string, body: any, headers?: any): Observable<T> {
     return this.send(new TrailenceHttpRequest(HttpMethod.POST, url, headers ?? {}, body, ResponseType.JSON));
   }

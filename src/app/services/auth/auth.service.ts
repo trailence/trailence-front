@@ -106,14 +106,15 @@ export class AuthService {
     );
   }
 
-  public login(email: string, password: string): Observable<AuthResponse> {
+  public login(email: string, password: string, captchaToken?: string): Observable<AuthResponse> {
     return this.generateKeys().pipe(
       switchMap(keys =>
         this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
           email,
           password,
           publicKey: keys.publicKeyBase64,
-          deviceInfo: new DeviceInfo(this.platform)
+          deviceInfo: new DeviceInfo(this.platform),
+          captchaToken,
         } as LoginRequest)
         .pipe(
           switchMap(response =>
@@ -296,6 +297,9 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/auth/v1/init_renew' ||
       request.url === environment.apiBaseUrl + '/auth/v1/renew' ||
       request.url === environment.apiBaseUrl + '/auth/v1/share' ||
+      request.url === environment.apiBaseUrl + '/auth/v1/captcha' ||
+      request.url === environment.apiBaseUrl + '/auth/v1/forgot' ||
+      request.url === environment.apiBaseUrl + '/user/v1/resetPassword' ||
       (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE')) {
         return of(request);
       }
