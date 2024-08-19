@@ -8,6 +8,7 @@ import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { ApiError } from 'src/app/services/http/api-error';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
   selector: 'app-login',
@@ -52,6 +53,7 @@ export class LoginPage {
     private changeDetector: ChangeDetectorRef,
     private captchaService: CaptchaService,
     private modalController: ModalController,
+    public preferencesService: PreferencesService,
   ) {
     route.queryParamMap.subscribe(params => {
       this.returnUrl = params.get('returnUrl') ?? '';
