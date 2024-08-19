@@ -9,7 +9,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -26,13 +26,14 @@ import { GeolocationService } from 'src/app/services/geolocation/geolocation.ser
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { WayPoint } from 'src/app/model/way-point';
 
 @Component({
   selector: 'app-trail',
   templateUrl: './trail.component.html',
   styleUrls: ['./trail.component.scss'],
   standalone: true,
-  imports: [IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
+  imports: [IonInput, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
     CommonModule,
     MapComponent,
     TrackMetadataComponent,
@@ -367,8 +368,34 @@ export class TrailComponent extends AbstractComponent {
     if (index >= 0) {
       this.editToolsComponentInstance.modify().subscribe((track: Track) => {
         track.removeWayPoint(track.wayPoints[index]);
-      })
+      });
     }
+  }
+
+  wayPointDescriptionChanged(wp: WayPoint, description: string): void {
+    if (!this.wayPointsTrack) return;
+    const index = this.wayPointsTrack.wayPoints.indexOf(wp);
+    this.editToolsComponentInstance.modify().subscribe((track: Track) => {
+      if (index >= 0) {
+        track.wayPoints[index].description = description.trim();
+      } else if (description.trim().length > 0) {
+        const twp = new WayPoint(wp.point, '', description.trim());
+        track.appendWayPoint(twp);
+      }
+    });
+  }
+
+  wayPointNameChanged(wp: WayPoint, name: string): void {
+    if (!this.wayPointsTrack) return;
+    const index = this.wayPointsTrack.wayPoints.indexOf(wp);
+    this.editToolsComponentInstance.modify().subscribe((track: Track) => {
+      if (index >= 0) {
+        track.wayPoints[index].name = name.trim();
+      } else if (name.trim().length > 0) {
+        const twp = new WayPoint(wp.point, name.trim(), '');
+        track.appendWayPoint(twp);
+      }
+    });
   }
 
   openLocationDialog(): void {

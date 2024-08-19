@@ -128,10 +128,27 @@
                   </div>
                 </div>
                 <div class="waypoint-name">
-                  {{wp.wayPoint.name}}
+                  <span *ngIf="!editToolsComponent">{{wp.wayPoint.name}}</span>
+                  <ion-input *ngIf="editToolsComponent"
+                    [label]="i18n.texts.way_points.name_placeholder"
+                    labelPlacement="floating"
+                    color="tertiary"
+                    [maxlength]="100"
+                    [value]="wp.wayPoint.name"
+                    (ionChange)="wayPointNameChanged(wp.wayPoint, $event.detail.value || '')"
+                  ></ion-input>
                 </div>
                 <div class="waypoint-description">
-                  {{wp.wayPoint.description}}
+                  <span *ngIf="!editToolsComponent">{{wp.wayPoint.description}}</span>
+                  <ion-textarea *ngIf="editToolsComponent"
+                    [label]="i18n.texts.way_points.description_placeholder"
+                    labelPlacement="floating"
+                    color="medium"
+                    [maxlength]="1000"
+                    [autoGrow]="true"
+                    [value]="wp.wayPoint.description"
+                    (ionChange)="wayPointDescriptionChanged(wp.wayPoint, $event.detail.value || '')"
+                  ></ion-textarea>
                 </div>
               </div>
               <div class="waypoint-actions" *ngIf="editToolsComponent && !wp.isDeparture && !wp.isArrival">

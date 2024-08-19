@@ -129,7 +129,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
 
   save(): void {
     let track = (this.modifiedTrack$.value || this.baseTrack$.value)!;
-    if (track?.version && track.version > 0) track = track.copy(this.auth.email!);
+    track = track.copy(this.auth.email!);
     this.trackService.create(track);
     this.trail.currentTrackUuid = track.uuid;
     this.trailService.update(this.trail);

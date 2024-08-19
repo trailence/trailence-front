@@ -348,7 +348,9 @@
     "position": "Position",
     "distance": "Distance",
     "altitude": "Altitude",
-    "time": "Temps"
+    "time": "Temps",
+    "description_placeholder": "Description",
+    "name_placeholder": "Nom"
   },
   "elevationGraph": {
     "distance": "Distance",
