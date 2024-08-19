@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'https://www.trailence.org/api',
+  apiBaseUrl: 'https://trailence.org/api',
   assetsUrl: '/assets',
-  baseUrl: 'https://www.trailence.org',
+  baseUrl: 'https://trailence.org',
 };
