@@ -95,6 +95,7 @@
         "details": "Details",
         "map": "Map"
       },
+      "show_original": "Show original trace",
       "actions": {
         "go_to_departure": "Go to departure",
         "download_map": "Download map",

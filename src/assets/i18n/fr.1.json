@@ -104,6 +104,7 @@
         "details": "Détails",
         "map": "Carte"
       },
+      "show_original": "Afficher la trace d'origine",
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",

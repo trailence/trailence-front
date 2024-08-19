@@ -9,7 +9,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput, IonCheckbox } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -33,7 +33,7 @@ import { WayPoint } from 'src/app/model/way-point';
   templateUrl: './trail.component.html',
   styleUrls: ['./trail.component.scss'],
   standalone: true,
-  imports: [IonInput, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
+  imports: [IonCheckbox, IonInput, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
     CommonModule,
     MapComponent,
     TrackMetadataComponent,
@@ -47,6 +47,8 @@ export class TrailComponent extends AbstractComponent {
   @Input() trail1$?: Observable<Trail | null>;
   @Input() trail2$?: Observable<Trail | null>;
   @Input() recording$?: Observable<Recording | null>;
+
+  showOriginal$ = new BehaviorSubject<boolean>(false);
 
   trail1: Trail | null = null;
   trail2: Trail | null = null;
@@ -234,13 +236,18 @@ export class TrailComponent extends AbstractComponent {
     return trail$.pipe(
       switchMap(trail => {
         if (!trail) return of(([null, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined]);
-        return trail.currentTrackUuid$.pipe(
-          switchMap(uuid => this.trackService.getFullTrack$(uuid, trail.owner)),
-          map(track => {
-            if (!track) return ([trail, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined];
-            const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
-            mapTrack.showArrowPath();
-            return ([trail, track, mapTrack]) as [Trail | null, Track | undefined, MapTrack | undefined];
+        return this.showOriginal$.pipe(
+          switchMap(original => {
+            const uuid$ = original ? trail.originalTrackUuid$ : trail.currentTrackUuid$;
+            return uuid$.pipe(
+              switchMap(uuid => this.trackService.getFullTrack$(uuid, trail.owner)),
+              map(track => {
+                if (!track) return ([trail, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined];
+                const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
+                mapTrack.showArrowPath();
+                return ([trail, track, mapTrack]) as [Trail | null, Track | undefined, MapTrack | undefined];
+              })
+            );
           })
         )
       })
@@ -417,6 +424,7 @@ export class TrailComponent extends AbstractComponent {
 
   public async enableEditTools() {
     if (this.editToolsComponent) return;
+    if (this.showOriginal$.value) this.showOriginal$.next(false);
     const module = await import('./edit-tools/edit-tools.component');
     this.editToolsComponent = module.EditToolsComponent;
     this.editToolsInputs = {
