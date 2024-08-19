@@ -2,11 +2,11 @@
   <div class="trail-name-row">
     <ion-checkbox *ngIf="selectable" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
     <div class="trail-name">{{ meta.name }}</div>
-    <ion-button size="small" fill="clear" color="dark" id="trail-menu-button-{{id}}">
+    <ion-button size="small" fill="clear" color="dark" id="trail-menu-button-{{id}}" (click)="triggerPopoverPosition($event)">
       <ion-icon name="item-menu" slot="icon-only"></ion-icon>
     </ion-button>
 
-    <ion-popover trigger="trail-menu-button-{{id}}" [dismissOnSelect]="true">
+    <ion-popover trigger="trail-menu-button-{{id}}" [dismissOnSelect]="true" side="right" [arrow]="true" style="--offset-y: {{popoverOffsetY}}; --max-height: {{popoverMaxHeight}}">
       <ng-template>
         <ion-content>
           <app-menu-content [menu]="trailMenuService.getTrailsMenu([trail], false, fromCollection ? trail.collectionUuid : undefined)"></app-menu-content>

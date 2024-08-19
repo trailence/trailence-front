@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
-import { Trail, TrailLoopType } from 'src/app/model/trail';
+import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent } from "@ionic/angular/standalone";
+import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, Platform } from "@ionic/angular/standalone";
 import { combineLatest, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
@@ -63,6 +63,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private tagService: TagService,
     private auth: AuthService,
     private trailService: TrailService,
+    private platform: Platform,
   ) {
     super(injector);
   }
@@ -143,6 +144,21 @@ export class TrailOverviewComponent extends AbstractComponent {
     if (selected === this.selected) return;
     this.selected = selected;
     this.selectedChange.emit(selected);
+  }
+
+  popoverOffsetY = '0px';
+  popoverMaxHeight = '90%';
+  triggerPopoverPosition(event: MouseEvent): void {
+    const y = event.pageY;
+    const h = this.platform.height();
+    const remaining = h - y - 15;
+    if (remaining < 300) {
+      this.popoverOffsetY = (-300 + remaining) + 'px';
+      this.popoverMaxHeight = '300px';
+    } else {
+      this.popoverOffsetY = '0px';
+      this.popoverMaxHeight = (h - y - 10) + 'px';
+    }
   }
 
 }
