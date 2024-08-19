@@ -21,6 +21,17 @@
     padding: 0 8px;
   }
 }
+.menu-footer {
+  flex: none;
+  margin-top: 5px;
+  border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
+
+  .version {
+    font-size: 12px;
+    text-align: center;
+    color: rgba(var(--ion-color-medium-rgb), 0.75);
+  }
+}
 
 .menu-content {
   flex: 1 1 100%;

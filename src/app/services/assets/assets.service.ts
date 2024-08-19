@@ -16,6 +16,7 @@ export class AssetsService {
       'add': 'assets/ionicons/add.svg',
       'add-circle': 'assets/ionicons/add-circle-outline.svg',
       'altitude': 'assets/altitude.1.svg',
+      'android': 'assets/ionicons/logo-android.svg',
       'arrow-back': 'assets/ionicons/arrow-back.svg',
       'car': 'assets/ionicons/car.svg',
       'caret-down': 'assets/ionicons/caret-down.svg',

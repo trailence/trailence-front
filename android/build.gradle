@@ -18,6 +18,7 @@ buildscript {
 apply from: "variables.gradle"
 apply from: "version.gradle"
 apply from: "app.gradle"
+apply from: "keys.gradle"
 
 allprojects {
     repositories {

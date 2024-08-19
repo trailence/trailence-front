@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonButton, MenuController, Platform } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
@@ -11,6 +11,10 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Share } from 'src/app/model/share';
 import { ShareService } from 'src/app/services/database/share.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { trailenceAppVersionCode, trailenceAppVersionName } from 'src/app/trailence-version';
+import { HttpService } from 'src/app/services/http/http.service';
+import { environment } from 'src/environments/environment';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 @Component({
   selector: 'app-menu',
@@ -34,6 +38,12 @@ export class MenuComponent {
 
   large = false;
 
+  versionName = trailenceAppVersionName;
+  versionCode = trailenceAppVersionCode;
+
+  canDownloadAndroid = false;
+  androidUpdateAvailable = false;
+
   constructor(
     public i18n: I18nService,
     public collectionService: TrailCollectionService,
@@ -43,7 +53,10 @@ export class MenuComponent {
     shareService: ShareService,
     authService: AuthService,
     platform: Platform,
+    private injector: Injector,
+    private http: HttpService,
   ) {
+    this.canDownloadAndroid = platform.is('android') && platform.is('mobileweb') && !platform.is('capacitor');
     this.updateSize(platform);
     platform.resize.subscribe(() => this.updateSize(platform));
     collectionService.getAll$().pipe(
@@ -56,6 +69,19 @@ export class MenuComponent {
       this.sharedByMe = shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
       this.sharedWithMe = shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
     });
+    if (platform.is('android') && platform.is('capacitor')) {
+      this.injector.get(NetworkService).server$.subscribe(connected => {
+        if (!this.androidUpdateAvailable && connected)
+          this.http.get(environment.baseUrl + '/assets/apk/metadata.json').subscribe((metadata: any) => {
+            if (metadata.elements && metadata.elements[0].versionCode) {
+              console.log('current version', this.versionCode, 'latest', metadata.elements[0].versionCode);
+              if (metadata.elements[0].versionCode > this.versionCode)
+                this.androidUpdateAvailable = true;
+              injector.get(ChangeDetectorRef).detectChanges();
+            }
+          });
+      });
+    }
   }
 
   private updateSize(platform: Platform): void {
@@ -88,6 +114,16 @@ export class MenuComponent {
       this.traceRecorder.start();
       this.goTo('/trail');
     }
+  }
+
+  downloadAndroid(): void {
+    const link = document.createElement('A') as HTMLAnchorElement;
+    link.href = environment.baseUrl + '/assets/apk/trailence.apk';
+    link.download = 'trailence.apk';
+    link.target = '_blank';
+    link.setAttribute('style', 'display: none');
+    document.documentElement.appendChild(link);
+    link.click();
   }
 
 }

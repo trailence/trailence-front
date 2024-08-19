@@ -96,3 +96,18 @@
   </ng-container>
 
 </div>
+<div class="menu-footer">
+  <div class="menu-item" (click)="downloadAndroid()" *ngIf="canDownloadAndroid">
+    <ion-icon name="android"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{i18n.texts.menu.downalod_android}}</div>
+    </div>
+  </div>
+  <div class="menu-item" (click)="downloadAndroid()" *ngIf="androidUpdateAvailable">
+    <ion-icon name="android"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{i18n.texts.menu.update_android}}</div>
+    </div>
+  </div>
+  <div class="version">Trailence {{versionName}}</div>
+</div>

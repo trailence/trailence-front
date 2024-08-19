@@ -306,7 +306,9 @@
     "nothing_shared_by_me": "Vous ne partagez aucun parcours",
     "start_trace": "Démarrer une trace",
     "current_trace": "Trace en cours",
-    "planner": "Plannifier un parcours"
+    "planner": "Plannifier un parcours",
+    "download_android": "Télécharger l'application Android",
+    "update_android": "Télécharger la mise à jour Android"
   },
   "collection_menu": {
     "delete_confirm": {
