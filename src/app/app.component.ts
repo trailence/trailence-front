@@ -12,6 +12,8 @@ import { GeolocationService } from './services/geolocation/geolocation.service';
 import { ExtensionsService } from './services/database/extensions.service';
 import { ShareService } from './services/database/share.service';
 import { DatabaseCleanupService } from './services/database/database-cleanup.service';
+import { NavigationEnd, Router } from '@angular/router';
+import { combineLatest, filter, first } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +33,7 @@ export class AppComponent {
   constructor(
     public i18n: I18nService,
     public geolocation: GeolocationService,
+    router: Router,
     // init assets
     assetsService: AssetsService,
     // depends on services with stores, so they can start synchronizing
@@ -42,5 +45,28 @@ export class AppComponent {
     shareService: ShareService,
     databaseCleanup: DatabaseCleanupService,
   ) {
+    combineLatest([
+      router.events.pipe(
+        filter(e => e instanceof NavigationEnd),
+        first(),
+      ),
+      i18n.texts$.pipe(
+        filter(texts => !!texts),
+        first(),
+      )
+    ]).subscribe(() => {
+      const startup = document.getElementById('startup')!;
+      document.getElementById('root')!.style.display = '';
+      this.ready(startup);
+    });
+  }
+
+  private ready(startup: HTMLElement): void {
+    if (!document.documentElement.classList.contains('ion-ce')) {
+      setTimeout(() => this.ready(startup), 10);
+      return;
+    }
+    startup.style.opacity = '0';
+    setTimeout(() => startup.parentElement?.removeChild(startup), 500);
   }
 }

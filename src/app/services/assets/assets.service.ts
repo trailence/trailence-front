@@ -49,6 +49,7 @@ export class AssetsService {
       'item-menu': 'assets/ionicons/ellipsis-vertical.svg',
       'layers': 'assets/ionicons/layers-outline.svg',
       'location': 'assets/ionicons/location.svg',
+      'logo': 'assets/icon/trailence.1.svg',
       'logout': 'assets/ionicons/log-out-outline.svg',
       'loop': 'assets/loop.1.svg',
       'lowest-point': 'assets/lowest-point.1.svg',

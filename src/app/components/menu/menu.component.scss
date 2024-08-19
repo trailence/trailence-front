@@ -19,6 +19,13 @@
   .menu-title {
     font-size: 24px;
     padding: 0 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    ion-icon {
+      margin-right: 6px;
+    }
   }
 }
 .menu-footer {
