@@ -505,7 +505,9 @@ export class TrackDatabase {
   public isSavedOnServerAndNotDeletedLocally$(uuid: string, owner: string): Observable<boolean> {
     const key = uuid + '#' + owner;
     return combineLatest([
-      of(!!this.fullTracks.get(key)?.loadedValue?.isSavedOnServerAndNotDeletedLocally()),
+      this.getFullTrack$(uuid, owner).pipe(
+        map(track => track?.isSavedOnServerAndNotDeletedLocally())
+      ),
       this.syncStatus$.pipe(
         switchMap(status => {
           if (!status || !this.db) return of(false);
