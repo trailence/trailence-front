@@ -405,9 +405,9 @@ export class EditToolsComponent implements OnInit, OnDestroy {
       this.detectLongBreaks(this.longBreaksMinDuration, this.longBreaksMaxDistance);
     else {
       this.longBreaksSkipped++;
-      this.longBreaksDetected?.splice(0, 1);
+      this.longBreaksDetected!.splice(0, 1);
       if (this.longBreaksDetected!.length > 0)
-        this.focusOn(this.focusTrack$.value!, this.longBreaksDetected![0].segmentIndex, this.longBreaksDetected![0].startIndex, this.longBreaksDetected![0].endIndex);
+        this.focusOn(this.longBreaksTrack!, this.longBreaksDetected![0].segmentIndex, this.longBreaksDetected![0].startIndex, this.longBreaksDetected![0].endIndex);
       else
         this.focusTrack$.next(undefined);
     }

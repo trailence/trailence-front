@@ -174,14 +174,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private highlight(trail: Trail, highlight: boolean): void {
-    const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
+    const mapTrack = this.mapTracks$.value.find(mt => mt.trail?.uuid === trail.uuid && mt.trail?.owner === trail.owner);
     if (mapTrack) {
       mapTrack.color = highlight ? '#4040FF' : 'red';
       mapTrack.showDepartureAndArrivalAnchors(highlight);
     }
     this.trailsList?.setHighlighted(highlight ? trail : undefined);
     if (highlight && this.map) {
-      const mapTrack = this.mapTracks$.value.find(mt => mt.trail === trail);
       if (mapTrack) {
         this.map.ensureVisible(mapTrack);
       }

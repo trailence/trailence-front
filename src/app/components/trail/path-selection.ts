@@ -83,4 +83,56 @@ export class TrailPathSelection {
     }, 0);
   }
 
+  updatedTracks(tracks: Track[]): void {
+    if (this.selection.length === 0) return;
+    let mapTracksChanged = false;
+    for (let i = 0; i < this.selectionRange.length; ++i) {
+      const range = this.selectionRange[i];
+      if (tracks.indexOf(range.track) < 0) {
+        this.selectionRange.splice(i, 1);
+        const subTrack = this.selection[i];
+        this.selection.splice(i, 1);
+        const mapIndex = this.mapTracks$.value.findIndex(mt => mt.track === subTrack);
+        if (mapIndex >= 0) {
+          const mt = this.mapTracks$.value[i];
+          this.component.map?.removeTrack(mt);
+          this.mapTracks$.value.splice(mapIndex, 1);
+          mapTracksChanged = true;
+        }
+        i--;
+      } else {
+        const subTrack = range.track.subTrack(range.startSegmentIndex, range.startPointIndex, range.endSegmentIndex, range.endPointIndex);
+        const previous = this.selection[i];
+        if (this.changed(subTrack, previous)) {
+          this.selection[i] = subTrack;
+          const mapIndex = this.mapTracks$.value.findIndex(mt => mt.track === previous);
+          if (mapIndex >= 0) {
+            const mt = this.mapTracks$.value[i];
+            this.component.map?.removeTrack(mt);
+            const newMapTrack = new MapTrack(undefined, subTrack, mt.color, 1, false, this.injector.get(I18nService));
+            this.mapTracks$.value.splice(mapIndex, 1, newMapTrack);
+            mapTracksChanged = true;
+          }
+        }
+      }
+    }
+    if (this.selection.length === 0 && this.zoomOnSelection) this.zoomOnSelection = false;
+    if (mapTracksChanged) this.mapTracks$.next(this.mapTracks$.value);
+  }
+
+  private changed(track1: Track, track2: Track): boolean {
+    if (track1.segments.length !== track2.segments.length) return true;
+    for (let i = 0; i < track1.segments.length; ++i) {
+      const s1 = track1.segments[i];
+      const s2 = track2.segments[i];
+      if (s1.points.length !== s2.points.length) return true;
+      for (let j = 0; j < s1.points.length; ++j) {
+        const p1 = s1.points[j];
+        const p2 = s2.points[j];
+        if (p1.pos.lat !== p2.pos.lat || p1.pos.lng !== p2.pos.lng || p1.ele !== p2.ele) return true;
+      }
+    }
+    return false;
+  }
+
 }

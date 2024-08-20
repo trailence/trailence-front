@@ -27,6 +27,8 @@ import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { WayPoint } from 'src/app/model/way-point';
+import { TagService } from 'src/app/services/database/tag.service';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 @Component({
   selector: 'app-trail',
@@ -60,6 +62,7 @@ export class TrailComponent extends AbstractComponent {
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
+  tagsNames: string[] | undefined;
 
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
@@ -84,7 +87,8 @@ export class TrailComponent extends AbstractComponent {
     public trailService: TrailService,
     private traceRecorder: TraceRecorderService,
     private geolocation: GeolocationService,
-    private trailMenuService: TrailMenuService,
+    public trailMenuService: TrailMenuService,
+    private tagService: TagService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -113,16 +117,17 @@ export class TrailComponent extends AbstractComponent {
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     let previousFocus: Track | undefined = undefined;
+    const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), this.recording$ || of(null), this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$]).pipe(debounceTime(1)),
-      ([trail1, trail2, recording, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack]) => {
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$]).pipe(debounceTime(1)),
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack]) => {
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
-        this.recording = recording;
+        this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];
 
-        if (toolsBaseTrack && !recording && !trail2[0]) {
+        if (toolsBaseTrack && !recordingWithTrack && !trail2[0]) {
           tracks.push(toolsBaseTrack);
           const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
@@ -147,15 +152,15 @@ export class TrailComponent extends AbstractComponent {
           }
         }
 
-        if (recording && !trail2[0]) {
-          tracks.push(recording.track);
-          const mapTrack = new MapTrack(recording.trail, recording.track, 'blue', 1, true, this.i18n);
+        if (recordingWithTrack && !trail2[0]) {
+          tracks.push(recordingWithTrack.track);
+          const mapTrack = new MapTrack(recordingWithTrack.recording.trail, recordingWithTrack.track, 'blue', 1, true, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
           mapTrack.showArrowPath();
           mapTracks.push(mapTrack)
         }
 
-        if (!recording && !trail2[0]) {
+        if (!recordingWithTrack && !trail2[0]) {
           if (toolsModifiedTrack) {
             tracks.push(toolsModifiedTrack);
             const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n);
@@ -179,6 +184,7 @@ export class TrailComponent extends AbstractComponent {
           }
         }
 
+        this.pathSelection.updatedTracks(tracks);
         mapTracks.push(...this.pathSelection.mapTracks$.value);
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
@@ -196,6 +202,16 @@ export class TrailComponent extends AbstractComponent {
       ),
       waypoints => this.wayPoints = waypoints
     );
+
+    if (this.trail1$)
+      this.byStateAndVisible.subscribe(
+        combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
+          switchMap(([trail, trail2]) => !trail2 && trail && trail.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail.uuid).pipe(debounceTimeExtended(0, 100)) : of(undefined))
+        ),
+        names => {
+          this.tagsNames = names;
+        }
+      );
 
     if (this.recording$)
       this.byStateAndVisible.subscribe(

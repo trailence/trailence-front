@@ -43,7 +43,8 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
         let previousIndex = TrackUtils.previousPointIndexWithElevation(points, previous);
         if (previousIndex !== -1) {
           const ppEle = points[previousIndex].ele!;
-          if ((previousEle < ppEle && previousEle < ele) || (previousEle > ppEle && previousEle > ele)) {
+          if (((previousEle < ppEle && previousEle < ele) || (previousEle > ppEle && previousEle > ele)) &&
+              (Math.abs(previousEle - ppEle) >= TrackUtils.distanceBetween(points, previousIndex, previous) / 2)) {
             // previous is a peak, set it with the average
             const dist = TrackUtils.distanceBetween(points, previousIndex, i);
             const dist2 = TrackUtils.distanceBetween(points, previousIndex, previous);
@@ -55,7 +56,8 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
         let nextIndex = TrackUtils.nextPointIndexWithElevation(points, i);
         if (nextIndex !== -1) {
           const nEle = points[nextIndex].ele!;
-          if ((ele < previousEle && ele < nEle) || (ele > previousEle && ele > nEle)) {
+          if (((ele < previousEle && ele < nEle) || (ele > previousEle && ele > nEle)) &&
+              (Math.abs(nEle - ele) >= TrackUtils.distanceBetween(points, i, nextIndex) / 2)) {
             // current point is a peak, set it with the average
             const dist = TrackUtils.distanceBetween(points, previous, nextIndex);
             const dist2 = TrackUtils.distanceBetween(points, previous, i);

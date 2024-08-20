@@ -37,6 +37,9 @@
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="tracks[0]">
+      <div class="trail-tags-row" *ngIf="tagsNames && trail1" (click)="trailMenuService.openTags([trail1], trail1.collectionUuid)">
+        <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
+      </div>
       <div class="metadata-container one-column">
         <div class="metadata-item-container">
           <div class="metadata-item">
