@@ -449,12 +449,15 @@ export class ElevationGraphComponent extends AbstractComponent {
       }
     }
     this.canvas.chart.setActiveElements(elements);
+    if (elements.length > 0)
+      this.canvas.chart.tooltip!.setActiveElements(elements, elements[0].element);
     this.canvas.chart.update();
   }
 
   public hideCursor(): void {
     if (this.canvas?.chart) {
       this.canvas.chart.setActiveElements([]);
+      this.canvas.chart.tooltip!.setActiveElements([], {x: 0, y: 0});
       this.canvas.chart.update();
     }
   }

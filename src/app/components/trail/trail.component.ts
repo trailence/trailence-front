@@ -29,6 +29,8 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { WayPoint } from 'src/app/model/way-point';
 import { TagService } from 'src/app/services/database/tag.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/break-detection';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
   selector: 'app-trail',
@@ -89,6 +91,7 @@ export class TrailComponent extends AbstractComponent {
     private geolocation: GeolocationService,
     public trailMenuService: TrailMenuService,
     private tagService: TagService,
+    private preferencesService: PreferencesService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -138,9 +141,20 @@ export class TrailComponent extends AbstractComponent {
           tracks.push(trail1[1]);
           if (trail1[2]) {
             mapTracks.push(trail1[2]);
+            trail1[2].breaks.reset();
+            trail1[2].breaks.show(false);
             if (!toolsModifiedTrack) {
               trail1[2].showDepartureAndArrivalAnchors();
               trail1[2].showWayPointsAnchors();
+              if (!trail2[2] && !recordingWithTrack) {
+                const breaks = detectLongBreaksFromTrack(trail1[1], this.preferencesService.preferences.longBreakMinimumDuration, this.preferencesService.preferences.longBreakMaximumDistance);
+                for (const b of breaks) {
+                  const pointIndex = Math.floor(b.startIndex + (b.endIndex - b.startIndex) / 2);
+                  const point = trail1[1].segments[b.segmentIndex].points[pointIndex];
+                  trail1[2].breaks.addBreakPoint(point.pos);
+                }
+              }
+              trail1[2].breaks.show(true);
             }
           }
           if (trail2[1]) {
