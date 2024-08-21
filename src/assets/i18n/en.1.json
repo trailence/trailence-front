@@ -141,7 +141,11 @@
           "no_more_break": "There is no more long break detected with movements",
           "remove_moves": "Remove these moves",
           "skip_moves": "Skip these moves",
-          "duration": "Duration"
+          "duration": "Duration",
+          "adjust_start": "Adjust start point",
+          "adjust_end": "Adjust end point",
+          "before": "Previous",
+          "after": "Next"
         },
         "selected_point": {
           "title": "Selected point",

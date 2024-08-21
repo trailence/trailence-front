@@ -212,6 +212,22 @@
               {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.duration}}:
               {{i18n.durationToString(longBreakDetectedDuration(), false)}}
             </div>
+            <div class="separator"></div>
+            <div>
+              <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.adjust_start}}</div>
+              <ion-buttons>
+                <ion-button [disabled]="longBreaksDetected[0].startIndex === 0" (click)="longBreakStartBefore()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.before}}</ion-button>
+                <ion-button [disabled]="longBreaksDetected[0].startIndex === longBreaksDetected[0].endIndex" (click)="longBreakStartAfter()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.after}}</ion-button>
+              </ion-buttons>
+            </div>
+            <div>
+              <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.adjust_end}}</div>
+              <ion-buttons>
+                <ion-button [disabled]="longBreaksDetected[0].endIndex === longBreaksDetected[0].startIndex" (click)="longBreakEndBefore()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.before}}</ion-button>
+                <ion-button [disabled]="!longBreakEndCanGoAfter()" (click)="longBreakEndAfter()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.after}}</ion-button>
+              </ion-buttons>
+            </div>
+            <div class="separator"></div>
             <ion-button (click)="removeCurrentLongBreakMoves()">
               {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.remove_moves}}
             </ion-button>

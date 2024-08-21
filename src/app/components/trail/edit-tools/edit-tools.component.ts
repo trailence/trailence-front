@@ -384,6 +384,26 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     return endTime - startTime;
   }
 
+  longBreakStartBefore(): void {
+    this.longBreaksDetected![0].startIndex--;
+    this.focusOn(this.longBreaksTrack!, this.longBreaksDetected![0].segmentIndex, this.longBreaksDetected![0].startIndex, this.longBreaksDetected![0].endIndex);
+  }
+  longBreakStartAfter(): void {
+    this.longBreaksDetected![0].startIndex++;
+    this.focusOn(this.longBreaksTrack!, this.longBreaksDetected![0].segmentIndex, this.longBreaksDetected![0].startIndex, this.longBreaksDetected![0].endIndex);
+  }
+  longBreakEndBefore(): void {
+    this.longBreaksDetected![0].endIndex--;
+    this.focusOn(this.longBreaksTrack!, this.longBreaksDetected![0].segmentIndex, this.longBreaksDetected![0].startIndex, this.longBreaksDetected![0].endIndex);
+  }
+  longBreakEndAfter(): void {
+    this.longBreaksDetected![0].endIndex++;
+    this.focusOn(this.longBreaksTrack!, this.longBreaksDetected![0].segmentIndex, this.longBreaksDetected![0].startIndex, this.longBreaksDetected![0].endIndex);
+  }
+  longBreakEndCanGoAfter(): boolean {
+    return this.longBreaksDetected![0].endIndex < this.longBreaksTrack!.segments[this.longBreaksDetected![0].segmentIndex].points.length - 1;
+  }
+
   exitLongBreaksMovesDetection(): void {
     this.longBreaksSkipped = 0;
     this.longBreaksDetected = undefined;

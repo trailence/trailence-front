@@ -45,3 +45,10 @@ ion-footer {
     }
   }
 }
+
+.separator {
+  margin: 8px 0px;
+  border-bottom: 1px solid rgba(var(--ion-color-dark-rgb), 0.5);
+  height: 0;
+  width: 100%;
+}
