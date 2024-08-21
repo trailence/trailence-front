@@ -41,6 +41,7 @@
         "negative_elevation": "Negative elevation",
         "loopType": "Trail type",
         "loopTypePlaceholder": "Select types",
+        "tags": "Tags",
         "onlyVisibleOnMap": "Show in list only trails visible on map",
         "reset_button": "Reset all filters"
       },
@@ -421,5 +422,17 @@
     "hl": "Half loop",
     "sl": "Small loop",
     "ob": "Out and back"
+  },
+  "tags_filter": {
+    "onlyWithAnyTag": "Trails having at least one tag",
+    "onlyWithoutAnyTag": "Trails having no tag",
+    "include_singular": "Trails having tag",
+    "include_plural": "Trails having tags",
+    "exclude_singular": "Trails without tag",
+    "exclude_plural": "Trails without tags",
+    "click_to_select": "Click to select",
+    "popup": {
+      "title": "Filter on tags"
+    }
   }
 }

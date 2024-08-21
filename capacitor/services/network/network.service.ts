@@ -37,10 +37,19 @@ export class NetworkService implements INetworkService {
 
   private updateStatus(status: ConnectionStatus): void {
     console.log('Network changed', status, 'ping server');
-    const c = ++this.countPing;
+    this.checkServerConnection(++this.countPing, 1);
+    const c2 = ++this.countNet;
+    setTimeout(() => {
+      if (c2 === this.countNet && status.connected !== this._internet$.value) {
+        this._internet$.next(status.connected);
+      }
+    }, 2500);
+  }
+
+  private checkServerConnection(count: number, trial: number): void {
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
-      if (c != this.countPing) return;
+      if (count !== this.countPing) return;
       let status: boolean;
       if (response.status === 200) {
         console.log('Server ping response received: connected');
@@ -48,17 +57,12 @@ export class NetworkService implements INetworkService {
       } else {
         console.log('Server ping response error (' + response.status + '): not connected');
         status = false;
+        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
       }
       if (status !== this._server$.value) {
         this._server$.next(status);
       }
     });
-    const c2 = ++this.countNet;
-    setTimeout(() => {
-      if (c2 === this.countNet && status.connected !== this._internet$.value) {
-        this._internet$.next(status.connected);
-      }
-    }, 2500);
   }
 
 }

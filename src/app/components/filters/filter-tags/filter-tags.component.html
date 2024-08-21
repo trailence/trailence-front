@@ -1,0 +1,55 @@
+<ion-button fill="clear" color="dark" expand="true" id="filter-tags-button-{{id}}" style="text-transform: none; letter-spacing: inherit;">
+  <div *ngIf="filter.onlyWithAnyTag">
+    {{i18n.texts.tags_filter.onlyWithAnyTag}}
+  </div>
+  <div *ngIf="filter.onlyWithoutAnyTag">
+    {{i18n.texts.tags_filter.onlyWithoutAnyTag}}
+  </div>
+  <div *ngIf="!filter.onlyWithAnyTag && !filter.onlyWithoutAnyTag && filter.tagsUuids.length > 0">
+    <span *ngIf="filter.tagsUuids.length === 1 && !filter.exclude">{{i18n.texts.tags_filter.include_singular}} </span>
+    <span *ngIf="filter.tagsUuids.length === 1 && filter.exclude">{{i18n.texts.tags_filter.exclude_singular}} </span>
+    <span *ngIf="filter.tagsUuids.length > 1" && !filter.exclude>{{i18n.texts.tags_filter.include_plural}} </span>
+    <span *ngIf="filter.tagsUuids.length > 1" && filter.exclude>{{i18n.texts.tags_filter.exclude_plural}} </span>
+    <span *ngFor="let uuid of filter.tagsUuids; let index = index">
+      <span *ngIf="index > 0">,&nbsp;</span>
+      <span>{{tagsByUuid.get(uuid)?.name}}</span>
+    </span>
+  </div>
+  <div *ngIf="!filter.onlyWithAnyTag && !filter.onlyWithoutAnyTag && filter.tagsUuids.length === 0">
+    {{i18n.texts.tags_filter.click_to_select}}
+  </div>
+</ion-button>
+
+<ion-modal trigger="filter-tags-button-{{id}}" #modal>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>
+          <ion-icon name="tags" style="margin-right: 10px"></ion-icon>
+          <ion-label>{{i18n.texts.tags_filter.popup.title}}</ion-label>
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-radio-group [value]="filter.onlyWithAnyTag ? 'onlyWithAnyTag' : filter.onlyWithoutAnyTag ? 'onlyWithoutAnyTag' : filter.exclude ? 'exclude' : 'include'" (ionChange)="updateType($event.detail.value)">
+        <div><ion-radio value="onlyWithAnyTag" labelPlacement="end">{{i18n.texts.tags_filter.onlyWithAnyTag}}</ion-radio></div>
+        <div><ion-radio value="onlyWithoutAnyTag" labelPlacement="end">{{i18n.texts.tags_filter.onlyWithoutAnyTag}}</ion-radio></div>
+        <div><ion-radio value="include" labelPlacement="end">{{i18n.texts.tags_filter.include_plural}}</ion-radio></div>
+        <div><ion-radio value="exclude" labelPlacement="end">{{i18n.texts.tags_filter.exclude_plural}}</ion-radio></div>
+      </ion-radio-group>
+      <div style="margin-bottom: 15px;"></div>
+      <ng-container *ngIf="!filter.onlyWithAnyTag && !filter.onlyWithoutAnyTag">
+        <div *ngFor="let tag of tags">
+          <ion-checkbox labelPlacement="end" [checked]="filter.tagsUuids.indexOf(tag.uuid) >= 0" (ionChange)="updateTagSelection(tag, $event.detail.checked)">{{tag.name}}</ion-checkbox>
+        </div>
+      </ng-container>
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar color="footer">
+        <ion-buttons slot="end">
+          <ion-button [strong]="true" (click)="modal.dismiss()">{{i18n.texts.buttons.close}}</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

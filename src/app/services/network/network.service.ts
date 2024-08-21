@@ -43,10 +43,13 @@ export class NetworkService implements INetworkService {
         if (window.navigator.onLine && !this._internet$.value) this._internet$.next(true);
       }, 2000);
     }
-    const c = ++this.count;
+    this.checkServerConnection(++this.count, 1);
+  }
+
+  private checkServerConnection(count: number, trial: number): void {
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
-      if (c !== this.count) return;
+      if (count !== this.count) return;
       let status: boolean;
       if (response.status === 200) {
         console.log('Server ping response received: connected');
@@ -54,6 +57,7 @@ export class NetworkService implements INetworkService {
       } else {
         console.log('Server ping response error (' + response.status + '): not connected');
         status = false;
+        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
       }
       if (status !== this._server$.value) {
         this._server$.next(status);

@@ -50,6 +50,7 @@
         "negative_elevation": "Dénivelé négatif",
         "loopType": "Type de parcours",
         "loopTypePlaceholder": "Sélectionnez les types",
+        "tags": "Tags",
         "onlyVisibleOnMap": "Afficher dans la liste uniquement les parcours visibles sur la carte",
         "reset_button": "Enlever tous les filtres"
       },
@@ -430,5 +431,17 @@
     "hl": "Demi boucle",
     "sl": "Petite boucle",
     "ob": "Aller retour"
+  },
+  "tags_filter": {
+    "onlyWithAnyTag": "Parcours ayant au moins un tag",
+    "onlyWithoutAnyTag": "Parcours n'ayant aucun tag",
+    "include_singular": "Parcours ayant le tag",
+    "include_plural": "Parcours ayant les tags",
+    "exclude_singular": "Parcours n'ayant pas le tag",
+    "exclude_plural": "Parcours n'ayant pas les tags",
+    "click_to_select": "Cliquez pour sélectionner",
+    "popup": {
+      "title": "Filtre sur les tags"
+    }
   }
 }

@@ -144,6 +144,15 @@
           <ion-select-option  *ngFor="let lt of loopTypes" [value]="lt">{{ i18n.texts.loopType[lt] }}</ion-select-option>
         </ion-select>
       </div>
+      <ng-container *ngIf="collectionUuid">
+        <div class="filter-header">
+          <ion-icon name="tags"></ion-icon>
+          <div>{{ i18n.texts.pages.trails.filters.tags }}</div>
+        </div>
+        <div class="filter-value">
+          <app-filter-tags [collectionUuid]="collectionUuid" [filter]="state$.value.filters.tags" (filterChange)="updateTagsFilter($event)"></app-filter-tags>
+        </div>
+      </ng-container>
     </ion-content>
     <ion-footer>
       <ion-toolbar color="footer">

@@ -13,12 +13,16 @@ import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component'
 import { Router } from '@angular/router';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
-import { FilterEnum, FilterNumeric } from '../filters/filter';
+import { FilterEnum, FilterNumeric, FilterTags } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MapComponent } from '../map/map.component';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { TagService } from 'src/app/services/database/tag.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
+import { TrailTag } from 'src/app/model/trail-tag';
+import { FilterTagsComponent } from '../filters/filter-tags/filter-tags.component';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -36,6 +40,7 @@ interface Filters {
   negativeElevation: FilterNumeric;
   loopTypes: FilterEnum<TrailLoopType>;
   onlyVisibleOnMap: boolean;
+  tags: FilterTags;
 }
 
 const defaultState: State = {
@@ -66,12 +71,19 @@ const defaultState: State = {
       selected: undefined
     },
     onlyVisibleOnMap: false,
+    tags: {
+      tagsUuids: [],
+      exclude: false,
+      onlyWithoutAnyTag: false,
+      onlyWithAnyTag: false,
+    }
   }
 }
 
 interface TrailWithInfo {
   trail: Trail;
   track: TrackMetadataSnapshot | null;
+  tags: TrailTag[];
   selected: boolean;
 }
 
@@ -90,6 +102,7 @@ interface TrailWithInfo {
     ToggleChoiceComponent,
     MenuContentComponent,
     FilterNumericComponent,
+    FilterTagsComponent,
   ]
 })
 export class TrailsListComponent extends AbstractComponent {
@@ -129,6 +142,8 @@ export class TrailsListComponent extends AbstractComponent {
     private changeDetector: ChangeDetectorRef,
     private router: Router,
     preferences: PreferencesService,
+    private tagService: TagService,
+    private authService:AuthService,
   ) {
     super(injector);
     let currentDistanceUnit = preferences.preferences.distanceUnit;
@@ -171,9 +186,16 @@ export class TrailsListComponent extends AbstractComponent {
         this.map ? combineLatest([this.map.getState().center$, this.map.getState().zoom$]) : of([undefined, undefined]),
         this.trails.length === 0 ? of([]) : combineLatest(
           this.trails.map(
-            trail => trail.currentTrackUuid$.pipe(
-              switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
-              map(meta => ({trail, track: meta, selected: false}) as TrailWithInfo),
+            trail => combineLatest([
+              trail.currentTrackUuid$.pipe(switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner))),
+              trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([])
+            ]).pipe(
+              map(([track, tags]) => ({
+                trail,
+                track,
+                tags,
+                selected: false,
+              }) as TrailWithInfo)
             )
           )
         )
@@ -235,6 +257,18 @@ export class TrailsListComponent extends AbstractComponent {
         if (minNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < minNegEle)) return false;
         if (maxNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > maxNegEle)) return false;
         if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || filters.loopTypes.selected.indexOf(t.trail.loopType) < 0)) return false;
+        if (filters.tags.onlyWithAnyTag) {
+          if (t.tags.length === 0) return false;
+        } else if (filters.tags.onlyWithoutAnyTag) {
+          if (t.tags.length !== 0) return false;
+        } else if (filters.tags.tagsUuids.length > 0) {
+          const uuids = t.tags.map(tag => tag.tagUuid);
+          if (filters.tags.exclude) {
+            if (uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
+          } else {
+            if (!uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
+          }
+        }
         return true;
       }
     );
@@ -275,8 +309,9 @@ export class TrailsListComponent extends AbstractComponent {
     else {
       const newState = JSON.parse(stateStr);
       let valid = true;
+      const properties = Object.getOwnPropertyNames(newState);
       for (const key in defaultState) {
-        if (!newState[key]) {
+        if (properties.indexOf(key) < 0) {
           valid = false;
           break;
         }
@@ -350,6 +385,13 @@ export class TrailsListComponent extends AbstractComponent {
     });
   }
 
+  updateTagsFilter(filter: FilterTags): void {
+    this.state$.next({
+      ...this.state$.value,
+      filters: { ...this.state$.value.filters, tags: filter }
+    });
+  }
+
   nbActiveFilters(): number {
     let nb = 0;
     const filters = this.state$.value.filters;
@@ -359,6 +401,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
     if (filters.loopTypes.selected) nb++;
     if (filters.onlyVisibleOnMap) nb++;
+    if (filters.tags.onlyWithAnyTag || filters.tags.onlyWithoutAnyTag || filters.tags.tagsUuids.length !== 0) nb++;
     return nb;
   }
 
@@ -374,6 +417,10 @@ export class TrailsListComponent extends AbstractComponent {
     filters.negativeElevation.to = undefined;
     filters.loopTypes.selected = undefined;
     filters.onlyVisibleOnMap = false;
+    filters.tags.onlyWithAnyTag = false;
+    filters.tags.onlyWithoutAnyTag = false;
+    filters.tags.exclude = false;
+    filters.tags.tagsUuids = [];
     this.state$.next({...this.state$.value, filters: {...filters}});
   }
 
