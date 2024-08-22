@@ -105,6 +105,11 @@ export class Track extends Owned {
     if (changed) this._segments.next(this._segments.value);
   }
 
+  public removeSegmentAt(index: number): void {
+    this._segments.value.splice(index, 1);
+    this._segments.next(this._segments.value);
+  }
+
   public override toDto(): TrackDto {
     return {
       ...super.toDto(),

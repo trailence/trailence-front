@@ -45,6 +45,24 @@ export class MapTrackBreaks {
     if (this._show && this._map) anchor.marker.addTo(this._map);
   }
 
+  public addPausePoint(point: L.LatLngLiteral): void {
+    const anchor = new MapAnchor(point, anchorBorderColor, '&#x23F8;', undefined, anchorTextColor, anchorFillColor);
+    this._anchors.push(anchor);
+    if (this._show && this._map) anchor.marker.addTo(this._map);
+  }
+
+  public addResumePoint(point: L.LatLngLiteral): void {
+    const anchor = new MapAnchor(point, anchorBorderColor, '&#x23F5;', undefined, anchorTextColor, anchorFillColor);
+    this._anchors.push(anchor);
+    if (this._show && this._map) anchor.marker.addTo(this._map);
+  }
+
+  public addPauseResumePoint(point: L.LatLngLiteral): void {
+    const anchor = new MapAnchor(point, anchorBorderColor, '&#x23EF;', undefined, anchorTextColor, anchorFillColor);
+    this._anchors.push(anchor);
+    if (this._show && this._map) anchor.marker.addTo(this._map);
+  }
+
   private addToMap(): void {
     for (const anchor of this._anchors) {
       anchor.marker.addTo(this._map!);

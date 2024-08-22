@@ -54,6 +54,9 @@
     <ion-item button (click)="inlineTool = removeLongBreaksMoves">
       {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.title}}
     </ion-item>
+    <ion-item button (click)="mergeSegments()" *ngIf="canMergeSegments() | async">
+      {{i18n.texts.pages.trail.edit_tools.merge_segments}}
+    </ion-item>
   </div>
 
   <ng-container *ngIf="inlineTool">

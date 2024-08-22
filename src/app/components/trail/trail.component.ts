@@ -1,4 +1,4 @@
-import { Component, Injector, Input, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
@@ -31,6 +31,7 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/break-detection';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { Segment } from 'src/app/model/segment';
 
 @Component({
   selector: 'app-trail',
@@ -53,6 +54,7 @@ export class TrailComponent extends AbstractComponent {
   @Input() recording$?: Observable<Recording | null>;
 
   showOriginal$ = new BehaviorSubject<boolean>(false);
+  showBreaks$ = new BehaviorSubject<boolean>(true);
 
   trail1: Trail | null = null;
   trail2: Trail | null = null;
@@ -122,8 +124,8 @@ export class TrailComponent extends AbstractComponent {
     let previousFocus: Track | undefined = undefined;
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$]).pipe(debounceTime(1)),
-      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack]) => {
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.showBreaks$]).pipe(debounceTime(1)),
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, showBreaks]) => {
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
@@ -135,7 +137,12 @@ export class TrailComponent extends AbstractComponent {
           const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
           mapTrack.showWayPointsAnchors();
+          mapTrack.showArrowPath();
           mapTracks.push(mapTrack);
+          if (showBreaks) {
+            this.addBreaks(toolsBaseTrack, mapTrack);
+            mapTrack.breaks.show(true);
+          }
         }
         if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
@@ -146,15 +153,10 @@ export class TrailComponent extends AbstractComponent {
             if (!toolsModifiedTrack) {
               trail1[2].showDepartureAndArrivalAnchors();
               trail1[2].showWayPointsAnchors();
-              if (!trail2[2] && !recordingWithTrack) {
-                const breaks = detectLongBreaksFromTrack(trail1[1], this.preferencesService.preferences.longBreakMinimumDuration, this.preferencesService.preferences.longBreakMaximumDistance);
-                for (const b of breaks) {
-                  const pointIndex = Math.floor(b.startIndex + (b.endIndex - b.startIndex) / 2);
-                  const point = trail1[1].segments[b.segmentIndex].points[pointIndex];
-                  trail1[2].breaks.addBreakPoint(point.pos);
-                }
+              if (!trail2[2] && !recordingWithTrack && showBreaks) {
+                this.addBreaks(trail1[1], trail1[2]);
+                trail1[2].breaks.show(true);
               }
-              trail1[2].breaks.show(true);
             }
           }
           if (trail2[1]) {
@@ -282,6 +284,29 @@ export class TrailComponent extends AbstractComponent {
         )
       })
     );
+  }
+
+  private addBreaks(track: Track, mapTrack: MapTrack): void {
+    const breaks = detectLongBreaksFromTrack(track, this.preferencesService.preferences.longBreakMinimumDuration, this.preferencesService.preferences.longBreakMaximumDistance);
+    for (const b of breaks) {
+      const pointIndex = Math.floor(b.startIndex + (b.endIndex - b.startIndex) / 2);
+      const point = track.segments[b.segmentIndex].points[pointIndex];
+      mapTrack.breaks.addBreakPoint(point.pos);
+    }
+    let previous: Segment | undefined;
+    for (const segment of track.segments) {
+      if (segment.points.length < 2) continue;
+      if (previous !== undefined) {
+        const distance = segment.departurePoint!.distanceTo(previous.arrivalPoint!.pos);
+        if (distance > 15) {
+          mapTrack.breaks.addPausePoint(previous.arrivalPoint!.pos);
+          mapTrack.breaks.addResumePoint(segment.departurePoint!.pos);
+        } else {
+          mapTrack.breaks.addPauseResumePoint(segment.departurePoint!.pos);
+        }
+      }
+      previous = segment;
+    }
   }
 
   private updateDisplay(): void {

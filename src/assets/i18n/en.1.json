@@ -97,6 +97,7 @@
         "map": "Map"
       },
       "show_original": "Show original trace",
+      "show_breaks": "Show breaks",
       "actions": {
         "go_to_departure": "Go to departure",
         "download_map": "Download map",
@@ -147,6 +148,7 @@
           "before": "Previous",
           "after": "Next"
         },
+        "merge_segments": "Connect pause and resume points",
         "selected_point": {
           "title": "Selected point",
           "create_waypoint": "Create a way point"

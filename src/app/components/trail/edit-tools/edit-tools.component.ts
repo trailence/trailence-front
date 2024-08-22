@@ -433,6 +433,20 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     }
   }
 
+  canMergeSegments(): Observable<boolean> {
+    return this.getTrack().pipe(map(track => track.segments.length > 1));
+  }
+
+  mergeSegments(): void {
+    this.modify().subscribe(track => {
+      track.removeEmptySegments();
+      while (track.segments.length > 1) {
+        track.segments[0].appendMany(track.segments[1].points);
+        track.removeSegmentAt(1);
+      }
+    });
+  }
+
   focusOn(track: Track, segmentIndex: number, startPoint: number, endPoint: number): void {
     this.focusTrack$.next(track.subTrack(segmentIndex, startPoint, segmentIndex, endPoint));
   }

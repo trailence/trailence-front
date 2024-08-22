@@ -5,16 +5,17 @@ import { ComputedPreferences } from '../../preferences/preferences';
 export function calculateLongBreaksFromTrack(track: Track, preferences: ComputedPreferences): number {
   const segments = track.segments;
   if (segments.length === 0) return 0;
-  let previousSegment = segments[0];
-  let breaks = calculateLongBreaksFromSegment(previousSegment, preferences);
+  //let previousSegment = segments[0];
+  //let breaks = calculateLongBreaksFromSegment(previousSegment, preferences);
+  let breaks = calculateLongBreaksFromSegment(segments[0], preferences);
   for (let i = 1; i < segments.length; ++i) {
     const segment = segments[i];
-    const segmentStart = segment.startDate;
-    if (segmentStart === undefined) continue;
-    const previousEnd = previousSegment.endDate;
-    if (previousEnd !== undefined) breaks += segmentStart - previousEnd;
+    //const segmentStart = segment.startDate;
+    //if (segmentStart === undefined) continue;
+    //const previousEnd = previousSegment.endDate;
+    //if (previousEnd !== undefined) breaks += segmentStart - previousEnd;
     breaks += calculateLongBreaksFromSegment(segment, preferences);
-    previousSegment = segment;
+    //previousSegment = segment;
   }
   return breaks;
 }

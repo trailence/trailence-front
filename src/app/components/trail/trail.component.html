@@ -68,7 +68,10 @@
         </div>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
-      <div *ngIf="!editToolsComponent" style="padding: 10px 3px">
+      <div *ngIf="!trail2 && !recording" style="padding: 10px 3px 5px 3px">
+        <ion-checkbox labelPlacement="end" [checked]="showBreaks$.value" (ionChange)="showBreaks$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
+      </div>
+      <div *ngIf="!editToolsComponent" style="padding: 5px 3px 10px 3px">
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
       </div>
       <div class="actions">

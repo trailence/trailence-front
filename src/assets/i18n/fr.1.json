@@ -106,6 +106,7 @@
         "map": "Carte"
       },
       "show_original": "Afficher la trace d'origine",
+      "show_breaks": "Afficher les pauses",
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",
@@ -156,6 +157,7 @@
           "before": "Précédent",
           "after": "Suivant"
         },
+        "merge_segments": "Relier les points de pause et de reprise",
         "selected_point": {
           "title": "Point sélectionné",
           "create_waypoint": "Créer un point de passage"
