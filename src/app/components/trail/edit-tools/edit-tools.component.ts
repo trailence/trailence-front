@@ -205,6 +205,39 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     });
   }
 
+  removeAllPointsAfterSelected(): void {
+    this.modify().subscribe(track => {
+      const si = this.selectedPoint?.segmentIndex;
+      if (si === undefined) return;
+      while (track.segments.length > si + 1) track.removeSegmentAt(si + 1);
+      const pi = this.selectedPoint?.pointIndex!;
+      const segment = track.segments[si];
+      if (pi < segment.points.length - 1) {
+        segment.removeMany(segment.points.slice(pi + 1));
+      }
+      this.selectedPoint = undefined;
+      this.map.removeFromMap(this.selectedPointAnchor.marker);
+    });
+  }
+
+  removeAllPointsBeforeSelected(): void {
+    this.modify().subscribe(track => {
+      let si = this.selectedPoint?.segmentIndex;
+      if (si === undefined) return;
+      while (si > 0) {
+        track.removeSegmentAt(0);
+        si--;
+      }
+      const pi = this.selectedPoint?.pointIndex!;
+      const segment = track.segments[0];
+      if (pi > 0) {
+        segment.removeMany(segment.points.slice(0, pi));
+      }
+      this.selectedPoint = undefined;
+      this.map.removeFromMap(this.selectedPointAnchor.marker);
+    });
+  }
+
   createWayPoint(): void {
     this.modify().subscribe(track => {
       track.appendWayPoint(new WayPoint(this.selectedPoint!.point as Point, '', ''));

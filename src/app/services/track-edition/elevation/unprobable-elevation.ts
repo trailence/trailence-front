@@ -10,6 +10,7 @@ export function adjustUnprobableElevationToTrack(track: Track) {
 export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: number | undefined, finish: boolean): number {
   const points = segment.points;
   const nb = finish ? points.length : points.length - 10;
+  let isBack = -1;
   for (let i = lastIndex ?? 0; i < nb; ++i) {
     const ele = points[i].ele;
     if (ele === undefined) continue;
@@ -24,6 +25,7 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
           // this point has 2 times more precision than the previous, most probably the previous point has a wrong elevation
           points[previous].ele = ele;
           points[previous].eleAccuracy = eleAccuracy + 1;
+          isBack = i;
           i = previous - 1;
           if (i < 0) i = 0;
           continue;
@@ -34,6 +36,10 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
           points[i].eleAccuracy = previousEleAccuracy + 1;
           continue;
         }
+      }
+      if (isBack != -1 && isBack <= i) {
+        isBack = -1;
+        continue;
       }
       const diffEle = Math.abs(ele - previousEle);
       if (diffEle >= distance) {
@@ -68,7 +74,7 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
         }
 
         // not a peak
-        // let's have a look at the 10 previous points
+        // let's have a look at the previous points up to 50 meters back
         let nbPrevious = 0;
         let previousTotalEle = 0;
         let previousTotalDist = previousIndex !== -1 ? TrackUtils.distanceBetween(points, previousIndex, previous) : 0;
@@ -81,7 +87,7 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
           previousIndex = j;
         }
 
-        // let's also have a look at the 10 next points
+        // let's also have a look at the next points up to 50 meters forward
         let nbNext = 0;
         let nextTotalEle = 0;
         let nextTotalDist = nextIndex !== -1 ? TrackUtils.distanceBetween(points, i, nextIndex) : 0;
@@ -116,7 +122,6 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
           } else {
             // let's make an adjustement of the previous point
             points[previous].ele = ele + (previousEle - ele) / 2;
-            points[previous].eleAccuracy = eleAccuracy !== undefined ? eleAccuracy + 1 : undefined;
             points[previous].eleAccuracy = previousEleAccuracy !== undefined && eleAccuracy !== undefined ? (previousEleAccuracy + eleAccuracy) / 2 + 2 : undefined;
           }
           continue;

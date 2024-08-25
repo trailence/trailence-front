@@ -43,7 +43,7 @@ export class Track extends Owned {
 
   private _computedWayPoints$ = new BehaviorSubjectOnDemand<ComputedWayPoint[]>(
     () => ComputedWayPoint.compute(this),
-    this.changes$.pipe(debounceTime(10)) // invalide on changes
+    this.changes$.pipe(debounceTime(250)) // invalide on changes
   );
 
   public get computedWayPoints$(): Observable<ComputedWayPoint[]> {
@@ -310,7 +310,8 @@ export class TrackComputedMetadata {
     preferencesService: PreferencesService,
   ) {
     const changes$ = combineLatest([preferencesService.preferences$, track.segments$.pipe(
-      switchMap(segments => segments.length === 0 ? of([]) : concat(of([]), combineLatest(segments.map(s => s.changes$))))
+      switchMap(segments => segments.length === 0 ? of([]) : concat(of([]), combineLatest(segments.map(s => s.changes$)))),
+      debounceTime(250),
     )]);
     this._breaksDuration$ = new BehaviorSubjectOnDemand<number>(
       () => calculateLongBreaksFromTrack(track, preferencesService.preferences),

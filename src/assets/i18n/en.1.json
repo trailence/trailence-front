@@ -151,7 +151,9 @@
         "merge_segments": "Connect pause and resume points",
         "selected_point": {
           "title": "Selected point",
-          "create_waypoint": "Create a way point"
+          "create_waypoint": "Create a way point",
+          "remove_all_next_points": "Remove all points after this one",
+          "remove_all_previous_points": "Remove all points before this one"
         }
       }
     },
