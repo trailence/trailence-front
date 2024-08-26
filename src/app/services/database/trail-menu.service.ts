@@ -382,12 +382,12 @@ export class TrailMenuService {
       } else {
         const existingFilenames: string[] = [];
         for (const file of files) {
-          if (existingFilenames.indexOf(file.filename) >= 0) {
+          if (existingFilenames.indexOf(file.filename.toLowerCase()) >= 0) {
             let i = 2;
-            while (existingFilenames.indexOf(file.filename + '_' + i) >= 0) i++;
+            while (existingFilenames.indexOf(file.filename.toLowerCase() + '_' + i) >= 0) i++;
             file.filename = file.filename + '_' + i;
           }
-          existingFilenames.push(file.filename);
+          existingFilenames.push(file.filename.toLowerCase());
         }
        combineLatest(files.map(file => from(file.data.toArrayBufferOrBlob()))).subscribe(
         inputs => {

@@ -8,6 +8,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Arrays } from 'src/app/utils/arrays';
+import { Progress, ProgressService } from 'src/app/services/progress/progress.service';
 
 class ResolvedTag {
   constructor(
@@ -39,6 +40,7 @@ export class ImportTagsPopupComponent  implements OnInit {
     private tagService: TagService,
     private modalController: ModalController,
     private auth: AuthService,
+    private progressService: ProgressService,
   ) { }
 
   ngOnInit() {
@@ -71,21 +73,23 @@ export class ImportTagsPopupComponent  implements OnInit {
   }
 
   import(existing: boolean, missing: boolean): void {
-    if (missing) this.importMissing();
-    if (existing) this.importExisting();
+    const progress = this.progressService.create(this.i18n.texts.pages.import_tags_popup.title, 1);
+    if (existing) this.importExisting(progress);
+    if (missing) this.importMissing(progress);
     this.modalController.dismiss(null, 'ok');
+    progress.addWorkDone(1);
   }
 
-  private importMissing(): void {
+  private importMissing(progress: Progress): void {
     let maxLevel = 0;
     for (const resolved of this.resolvedTags!) {
       maxLevel = Math.max(maxLevel, resolved.tree.length - 1);
     }
     for (let level = 0; level <= maxLevel; level++)
-      this.importMissingLevel(level);
+      this.importMissingLevel(level, progress);
   }
 
-  private importMissingLevel(level: number): void {
+  private importMissingLevel(level: number, progress: Progress): void {
     const created = new Map<string, string>();
     for (const resolved of this.resolvedTags!) {
       if (!resolved.tree[level].uuid) {
@@ -98,14 +102,26 @@ export class ImportTagsPopupComponent  implements OnInit {
             name: resolved.tree[level].name,
             parentUuid: level > 0 ? resolved.tree[level - 1].uuid! : undefined,
           });
-          this.tagService.create(tag)
+          progress.addWorkToDo(1);
+          this.tagService.create(tag, () => progress.addWorkDone(1));
           resolved.tree[level].uuid = tag.uuid;
+          if (resolved.tree.length === level + 1) {
+            const resolvedTags = resolved.tree.map(node => node.name);
+            for (const trail of this.toImport) {
+              for (const tags of trail.tags) {
+                if (Arrays.sameContent(tags, resolvedTags)) {
+                  progress.addWorkToDo(1);
+                  this.tagService.addTrailTag(trail.trailUuid, tag.uuid, () => progress.addWorkDone(1));
+                }
+              }
+            }
+          }
         }
       }
     }
   }
 
-  private importExisting(): void {
+  private importExisting(progress: Progress): void {
     for (const resolved of this.resolvedTags!) {
       const uuid = resolved.tree[resolved.tree.length - 1].uuid;
       if (!uuid) continue;
@@ -113,7 +129,8 @@ export class ImportTagsPopupComponent  implements OnInit {
       for (const trail of this.toImport) {
         for (const tags of trail.tags) {
           if (Arrays.sameContent(tags, resolvedTags)) {
-            this.tagService.addTrailTag(trail.trailUuid, uuid);
+            progress.addWorkToDo(1);
+            this.tagService.addTrailTag(trail.trailUuid, uuid, () => progress.addWorkDone(1));
           }
         }
       }

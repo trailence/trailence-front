@@ -21,6 +21,7 @@ const MINIMUM_SYNC_INTERVAL = 30 * 1000;
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
   protected _db?: Dexie;
+  protected ngZone: NgZone;
 
   protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
   protected _createdLocally: BehaviorSubject<STORE_ITEM | null>[] = [];
@@ -35,7 +36,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   constructor(
     protected tableName: string,
     protected injector: Injector,
-  ) {}
+  ) {
+    this.ngZone = injector.get(NgZone);
+  }
 
   protected abstract readyToSave(entity: STORE_ITEM): boolean;
   protected abstract readyToSave$(entity: STORE_ITEM): Observable<boolean>;
@@ -64,8 +67,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       else this.close();
     });
 
-    const ngZone = this.injector.get(NgZone);
-
     // we need to sync when:
     combineLatest([
       this._storeLoaded$,         // local database is loaded
@@ -73,12 +74,12 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this.syncStatus$,           // there is something to sync and we are not syncing
       this._operationInProgress$, // and no operation in progress
     ]).pipe(
-      debounceTime(1000),
+      debounceTime(5000),
       map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus.needsSync && !syncStatus.inProgress),
       filter(shouldSync => {
         if (!shouldSync) return false;
         if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
-          ngZone.runOutsideAngular(() => {
+          this.ngZone.runOutsideAngular(() => {
             if (!this._syncTimeout) {
               this._syncTimeout = setTimeout(() => this.syncStatus = this.syncStatus, Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
             }
@@ -109,7 +110,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       } else if (previousNeeded && !status.needsUpdateFromServer) {
         previousNeeded = false;
         if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-        ngZone.runOutsideAngular(() => {
+        this.ngZone.runOutsideAngular(() => {
           updateFromServerTimeout = setTimeout(() =>
             this.performOperation(
               () => false,
@@ -177,6 +178,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     // nothing by default
   }
 
+  private operationsQueue: ((resolve: (done: boolean) => void) => void)[] = [];
+
   protected performOperation(
     storeUpdater: () => void,
     tableUpdater: (db: Dexie) => Observable<any>,
@@ -185,30 +188,20 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     oncancelled?: () => void,
   ): void {
     const db = this._db!;
-    let done = false;
-    let subscription: Subscription | undefined = undefined;
-    subscription = combineLatest([this._storeLoaded$, this._operationInProgress$])
-    .subscribe(([loaded, operationInProgress]) => {
-      if (!loaded || operationInProgress) return;
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-      if (done) return;
+    const operationExecution = (resolve: (done: boolean) => void) => {
       if (this._db !== db) {
         if (oncancelled) oncancelled();
+        resolve(false);
         return;
       }
-      done = true;
-
-      this._operationInProgress$.next(true);
       let tableUpdate;
       try {
         storeUpdater();
         tableUpdate = tableUpdater(db);
       } catch (e) {
         console.error(e);
-        this._operationInProgress$.next(false);
         if (ondone) ondone();
+        resolve(true);
         return;
       }
       tableUpdate
@@ -225,10 +218,41 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           this._lastSync = 0;
           this.syncStatus = status;
         }
-        this._operationInProgress$.next(false);
         if (ondone) ondone();
+        resolve(true);
       });
-    })
+    };
+    this.operationsQueue.push(operationExecution);
+    if (this._operationInProgress$.value) return;
+    if (this._storeLoaded$.value) {
+      this.launchOperationQueue();
+      return;
+    }
+    if (this.operationsQueue.length === 1)
+      this._storeLoaded$.pipe(
+        filter(loaded => loaded),
+        first()
+      ).subscribe(() => this.launchOperationQueue());
+  }
+
+  private launchOperationQueue(): void {
+    this._operationInProgress$.next(true);
+    this.ngZone.runOutsideAngular(() => {
+      setTimeout(() => this.executeNextOperation(), 0);
+    });
+  }
+
+  private executeNextOperation(): void {
+    if (this.operationsQueue.length === 0) {
+      this._operationInProgress$.next(false);
+      return;
+    }
+    const operation = this.operationsQueue.splice(0, 1)[0];
+    operation(() => {
+      this.ngZone.runOutsideAngular(() => {
+        setTimeout(() => this.executeNextOperation(), 0);
+      });
+    });
   }
 
   protected waitReadyWithTimeout(entities: STORE_ITEM[]): Observable<STORE_ITEM[]> {
@@ -247,7 +271,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract dbItemCreatedLocally(item: STORE_ITEM): DB_ITEM;
   protected abstract updateStatusWithLocalCreate(status: SYNCSTATUS): boolean;
 
-  public create(item: STORE_ITEM): Observable<STORE_ITEM | null> {
+  public create(item: STORE_ITEM, ondone?: () => void): Observable<STORE_ITEM | null> {
     const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
     let existing = false;
     this.performOperation(
@@ -263,7 +287,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       status => {
         if (existing) return false;
         return this.updateStatusWithLocalCreate(status);
-      }
+      },
+      ondone
     );
     return item$;
   }

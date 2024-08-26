@@ -73,6 +73,7 @@ export class TrailService {
 
   public deleteAllTrailsFromCollection(collectionUuid: string, owner: string, progress: Progress, progressWork: number): Observable<any> {
     return this._store.getAll$().pipe(
+      first(),
       switchMap(trails$ => zip(trails$.map(trail$ => trail$.pipe(firstTimeout(t => !!t, 1000, () => null as Trail | null))))),
       switchMap(trail => {
         const toRemove = trail.filter(trail => !!trail && trail.collectionUuid === collectionUuid && trail.owner === owner);

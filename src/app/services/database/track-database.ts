@@ -540,7 +540,7 @@ export class TrackDatabase {
       this.injector.get(NetworkService).server$,    // network is connected
       this.syncStatus$,           // there is something to sync and we are not syncing
     ]).pipe(
-      debounceTime(1000),
+      debounceTime(5000),
       map(([networkConnected, syncStatus]) => networkConnected && syncStatus?.needsSync && !syncStatus?.inProgress),
       filter(shouldSync => {
         if (!shouldSync) return false;

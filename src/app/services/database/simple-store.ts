@@ -178,7 +178,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
     private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {
         if (this._createdLocally.length === 0) return of(true);
-        const toCreate = this._createdLocally.map(item$ => item$.value!);
+        const toCreate = this._createdLocally.filter(item$ => !!item$.value).map(item$ => item$.value!);
+        if (toCreate.length === 0) return of(true);
         const ready = toCreate.filter(entity => this.readyToSave(entity));
         const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
         return ready$.pipe(
@@ -193,7 +194,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 if (!stillValid()) return of(false);
                 result.forEach(created => {
                   const entity = this.fromDTO(created);
-                  const index = this._createdLocally.findIndex(item$ => this.areSame(entity, item$.value!));
+                  const index = this._createdLocally.findIndex(item$ => item$.value && this.areSame(entity, item$.value));
                   if (index >= 0) this._createdLocally.splice(index, 1);
                 });
                 this._syncStatus$.value.localCreates = this._createdLocally.length !== 0;

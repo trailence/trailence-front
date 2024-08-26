@@ -29,7 +29,6 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { WayPoint } from 'src/app/model/way-point';
 import { TagService } from 'src/app/services/database/tag.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
   selector: 'app-trail',
@@ -79,6 +78,7 @@ export class TrailComponent extends AbstractComponent {
 
   hover: TrailHoverCursor;
   pathSelection: TrailPathSelection;
+  previousFocus: Track | undefined = undefined;
 
   constructor(
     injector: Injector,
@@ -91,7 +91,6 @@ export class TrailComponent extends AbstractComponent {
     private geolocation: GeolocationService,
     public trailMenuService: TrailMenuService,
     private tagService: TagService,
-    private preferencesService: PreferencesService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -119,7 +118,6 @@ export class TrailComponent extends AbstractComponent {
     this.recording = null;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
-    let previousFocus: Track | undefined = undefined;
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.showBreaks$]).pipe(debounceTime(1)),
@@ -177,8 +175,8 @@ export class TrailComponent extends AbstractComponent {
             mapTrack.showBreaksAnchors(showBreaks);
             mapTracks.push(mapTrack);
           }
-          if (toolsFocusTrack !== previousFocus) {
-            previousFocus = toolsFocusTrack;
+          if (toolsFocusTrack !== this.previousFocus) {
+            this.previousFocus = toolsFocusTrack;
             if (toolsFocusTrack) {
               let bounds = toolsFocusTrack.metadata.bounds;
               if (bounds) {

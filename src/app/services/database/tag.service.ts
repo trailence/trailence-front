@@ -50,8 +50,8 @@ export class TagService {
     return this._tagStore.getItem(uuid, this.auth.email!);
   }
 
-  public create(tag: Tag): Observable<Tag | null> {
-    return this._tagStore.create(tag);
+  public create(tag: Tag, ondone?: () => void): Observable<Tag | null> {
+    return this._tagStore.create(tag, ondone);
   }
 
   public update(tag: Tag): void {
@@ -71,6 +71,7 @@ export class TagService {
 
   public deleteAllTagsFromCollection(collectionUuid: string, owner: string, progress: Progress, progressWork: number): Observable<any> {
     return this._tagStore.getAll$().pipe(
+      first(),
       switchMap(tags$ => zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
       switchMap(tags => {
         const toRemove = tags.filter(tag => !!tag && tag.collectionUuid === collectionUuid && tag.owner === owner);
@@ -115,8 +116,8 @@ export class TagService {
     return this._trailTagStore.getAll$();
   }
 
-  public addTrailTag(trailUuid: string, tagUuid: string) {
-    this._trailTagStore.create(new TrailTag({trailUuid, tagUuid}));
+  public addTrailTag(trailUuid: string, tagUuid: string, ondone?: () => void) {
+    this._trailTagStore.create(new TrailTag({trailUuid, tagUuid}), ondone);
   }
 
   public deleteTrailTag(trailUuid: string, tagUuid: string) {

@@ -442,6 +442,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     this.longBreaksDetected = undefined;
     this.longBreaksTrack = undefined;
     this.inlineTool = undefined;
+    this.focusTrack$.next(undefined);
   }
 
   removeCurrentLongBreakMoves(): void {

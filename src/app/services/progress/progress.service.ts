@@ -53,7 +53,7 @@ export class Progress {
   }
 
   public addWorkToDo(amount: number): void {
-    this.workDone += amount;
+    this.workAmount += amount;
   }
 
   public set title(value: string) {
