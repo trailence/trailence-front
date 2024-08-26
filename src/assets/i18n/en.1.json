@@ -307,9 +307,7 @@
     "nothing_shared_by_me": "You don't share any trail",
     "start_trace": "Start a trace",
     "current_trace": "Trace in progress",
-    "planner": "Plan a trail",
-    "download_android": "Download Android application",
-    "update_android": "Download Android update"
+    "planner": "Plan a trail"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -442,5 +440,9 @@
     "popup": {
       "title": "Filter on tags"
     }
+  },
+  "update": {
+    "download_android": "Download Android application",
+    "update_android": "Download Android update"
   }
 }

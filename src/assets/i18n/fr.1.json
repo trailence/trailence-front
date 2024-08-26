@@ -316,9 +316,7 @@
     "nothing_shared_by_me": "Vous ne partagez aucun parcours",
     "start_trace": "Démarrer une trace",
     "current_trace": "Trace en cours",
-    "planner": "Plannifier un parcours",
-    "download_android": "Télécharger l'application Android",
-    "update_android": "Télécharger la mise à jour Android"
+    "planner": "Plannifier un parcours"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -451,5 +449,9 @@
     "popup": {
       "title": "Filtre sur les tags"
     }
+  },
+  "update": {
+    "download_android": "Télécharger l'application Android",
+    "update_android": "Télécharger la mise à jour Android"
   }
 }

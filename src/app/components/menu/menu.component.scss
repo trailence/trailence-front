@@ -97,6 +97,23 @@
     margin-right: 8px;
   }
 
+  .icon-badge {
+    position: relative;
+
+    ion-badge {
+      position: absolute;
+      left: 16px;
+      font-size: 13px;
+      --background: rgba(var(--ion-color-success-rgb), 0.85);
+      --color: var(--ion-color-success-contrast);
+      --padding-start: 1px;
+      --padding-end: 1px;
+      --padding-top: 1px;
+      --padding-bottom: 1px;
+    }
+  }
+
+
   .item-title-container {
     flex: 1 1 100%;
     display: flex;
