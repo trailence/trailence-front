@@ -274,6 +274,7 @@ export class OfflineMapService {
       promises.push(from(this._db!.table(layer.name + '_meta').clear()));
       promises.push(from(this._db!.table(layer.name + '_tiles').clear()));
     }
+    if (promises.length === 0) return of(null);
     return zip(promises);
   }
 

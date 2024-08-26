@@ -114,6 +114,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
       }
       requests.push(limiter.add(request));
     });
+    if (requests.length === 0) return of([]);
     return zip(requests);
   }
 
@@ -128,6 +129,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
       }
       requests.push(limiter.add(request));
     });
+    if (requests.length === 0) return of([]).pipe(map(() => {}));
     return zip(requests).pipe(map(() => {}));
   }
 

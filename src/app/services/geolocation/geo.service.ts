@@ -123,7 +123,7 @@ export class GeoService {
       }
       requests.push(this.http.get('https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?resource=ign_rge_alti_par_territoires&delimiter=' + encodeURIComponent('|') + '&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lon)));
     }
-    return zip(requests).pipe(
+    return (requests.length === 0 ? of([]) : zip(requests)).pipe(
       map(responses => {
         for (const response of responses) {
           for (const elevation of response.elevations) {

@@ -72,7 +72,7 @@ export class TagService {
   public deleteAllTagsFromCollection(collectionUuid: string, owner: string, progress: Progress, progressWork: number): Observable<any> {
     return this._tagStore.getAll$().pipe(
       first(),
-      switchMap(tags$ => zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
+      switchMap(tags$ => tags$.length === 0 ? of([]) : zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
       switchMap(tags => {
         const toRemove = tags.filter(tag => !!tag && tag.collectionUuid === collectionUuid && tag.owner === owner);
         if (toRemove.length === 0) {

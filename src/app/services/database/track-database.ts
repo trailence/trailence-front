@@ -636,6 +636,7 @@ export class TrackDatabase {
           }
           requests.push(limiter.add(request));
         });
+        if (requests.length === 0) return of([]);
         return zip(requests);
       }),
       catchError(error => {
