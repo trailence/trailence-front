@@ -54,6 +54,7 @@ export class TrailMenuService {
     }
 
     if (trails.length === 2) {
+      menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare')
         .setAction(() => {
           this.trailToCompare = undefined;
@@ -61,9 +62,9 @@ export class TrailMenuService {
           router.navigateByUrl('/trail/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '/' + encodeURIComponent(trails[1].owner) + '/' + trails[1].uuid + '?from=' + encodeURIComponent(router.url));
         })
       );
-      menu.push(new MenuItem());
     }
     if (trails.length === 1) {
+      menu.push(new MenuItem());
       if (this.trailToCompare) {
         menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare_with_this_one').setAction(() => {
           const trail1 = this.trailToCompare!;
@@ -76,7 +77,10 @@ export class TrailMenuService {
           this.trailToCompare = trails[0];
         }));
       }
+    }
+    if (trails.length > 1 && fromCollection) {
       menu.push(new MenuItem());
+      menu.push(new MenuItem().setIcon('merge').setI18nLabel('pages.trail.actions.merge_trails').setAction(() => this.mergeTrails(trails, fromCollection)))
     }
 
     menu.push(new MenuItem());
@@ -451,6 +455,50 @@ export class TrailMenuService {
         }
       }
     });
+  }
+
+  mergeTrails(trails: Trail[], collectionUuid: string): void {
+    const trackService = this.injector.get(TrackService);
+    combineLatest(trails.map(
+      trail => combineLatest([
+        trackService.getFullTrackReady$(trail.originalTrackUuid, trail.owner).pipe(first()),
+        trackService.getFullTrackReady$(trail.currentTrackUuid, trail.owner).pipe(first())
+      ]).pipe(
+        map(([track1, track2]) => ({trail, track1, track2}))
+      )
+    )).subscribe(trailsAndTracks => {
+      trailsAndTracks.sort((t1, t2) => (t1.track1.metadata.startDate || 0) - (t2.track1.metadata.startDate || 0))
+      const owner = this.injector.get(AuthService).email!;
+      const preferences = this.injector.get(PreferencesService);
+      const originalTrack = new Track({owner}, preferences);
+      const editedTrack = new Track({owner}, preferences);
+      const merge = new Trail({
+        owner,
+        collectionUuid,
+        name: this.injector.get(I18nService).texts.pages.trail.actions.merged_trail_name,
+        originalTrackUuid: originalTrack.uuid,
+        currentTrackUuid: editedTrack.uuid
+      });
+      for (const trail of trailsAndTracks) {
+        this.mergeTrack(trail.track1, originalTrack);
+        this.mergeTrack(trail.track2, editedTrack);
+      }
+      trackService.create(editedTrack);
+      trackService.create(originalTrack);
+      this.injector.get(TrailService).create(merge);
+      const router = this.injector.get(Router);
+      router.navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + merge.uuid + '?from=' + encodeURIComponent(router.url));
+    });
+  }
+
+  private mergeTrack(source: Track, target: Track) {
+    for (const segment of source.segments) {
+      const st = target.newSegment();
+      st.appendMany(segment.points.map(pt => pt.copy()));
+    }
+    for (const wp of source.wayPoints) {
+      target.appendWayPoint(wp.copy());
+    }
   }
 
 }

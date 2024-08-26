@@ -46,4 +46,8 @@ export class WayPoint {
     }
   }
 
+  public copy(): WayPoint {
+    return new WayPoint(this.point.copy(), this.name, this.description);
+  }
+
 }

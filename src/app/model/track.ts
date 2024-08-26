@@ -161,7 +161,7 @@ export class Track extends Owned {
   public segmentTimeSinceDeparture(segmentIndex: number): number {
     if (segmentIndex === 0) return 0;
     let time = 0;
-    for (let i = segmentIndex - 1; i >= 0; ++i) {
+    for (let i = segmentIndex - 1; i >= 0; --i) {
       time += this.segments[i].duration;
     }
     return time;

@@ -81,6 +81,19 @@ export class Point {
     return p.lat === other.lat && p.lng === other.lng;
   }
 
+  public copy(): Point {
+    return new Point(
+      this.pos.lat,
+      this.pos.lng,
+      this.ele,
+      this.time,
+      this.posAccuracy,
+      this.eleAccuracy,
+      this.heading,
+      this.speed
+    );
+  }
+
 }
 
 const POSITION_FACTOR = 10000000;

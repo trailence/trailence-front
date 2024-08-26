@@ -104,7 +104,9 @@
         "edit_tools": "Edition tools",
         "compare": "Compare",
         "compare_with": "Compare with...",
-        "compare_with_this_one": "Compare with this trail"
+        "compare_with_this_one": "Compare with this trail",
+        "merge_trails": "Merge these trails",
+        "merged_trail_name": "Merged trail"
       },
       "sections": {
         "description": {

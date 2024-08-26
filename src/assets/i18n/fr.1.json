@@ -113,7 +113,9 @@
         "edit_tools": "Outils d'édition",
         "compare": "Comparer",
         "compare_with": "Comparer avec...",
-        "compare_with_this_one": "Comparer avec ce parcours"
+        "compare_with_this_one": "Comparer avec ce parcours",
+        "merge_trails": "Fusionner ces parcours",
+        "merged_trail_name": "Parcours fusionné"
       },
       "sections": {
         "description": {
