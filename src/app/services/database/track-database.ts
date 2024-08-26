@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, interval, map, of, switchMap, takeWhile, tap, timer, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, map, of, switchMap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -10,9 +10,8 @@ import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { UpdatesResponse } from "./owned-store";
 import { NetworkService } from "../network/network.service";
-import { OwnedDto, VersionDto } from "src/app/model/dto/owned";
+import { VersionDto } from "src/app/model/dto/owned";
 import { Injector, NgZone } from "@angular/core";
-import { DatabaseCleanupService } from './database-cleanup.service';
 import { TrailService } from './trail.service';
 import { TrackService } from './track.service';
 import { PreferencesService } from '../preferences/preferences.service';

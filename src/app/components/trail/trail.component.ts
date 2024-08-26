@@ -24,14 +24,12 @@ import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-sel
 import { Router } from '@angular/router';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { MapAnchor } from '../map/markers/map-anchor';
-import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor } from '../map/track/map-track-way-points';
+import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { WayPoint } from 'src/app/model/way-point';
 import { TagService } from 'src/app/services/database/tag.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/break-detection';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { Segment } from 'src/app/model/segment';
 
 @Component({
   selector: 'app-trail',
@@ -135,28 +133,22 @@ export class TrailComponent extends AbstractComponent {
         if (toolsBaseTrack && !recordingWithTrack && !trail2[0]) {
           tracks.push(toolsBaseTrack);
           const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
-          mapTrack.showDepartureAndArrivalAnchors();
-          mapTrack.showWayPointsAnchors();
           mapTrack.showArrowPath();
-          mapTracks.push(mapTrack);
-          if (showBreaks) {
-            this.addBreaks(toolsBaseTrack, mapTrack);
-            mapTrack.breaks.show(true);
+          if (!toolsModifiedTrack) {
+            mapTrack.showDepartureAndArrivalAnchors();
+            mapTrack.showWayPointsAnchors();
+            mapTrack.showBreaksAnchors(showBreaks);
           }
+          mapTracks.push(mapTrack);
         }
         if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
           if (trail1[2]) {
             mapTracks.push(trail1[2]);
-            trail1[2].breaks.reset();
-            trail1[2].breaks.show(false);
             if (!toolsModifiedTrack) {
               trail1[2].showDepartureAndArrivalAnchors();
               trail1[2].showWayPointsAnchors();
-              if (!trail2[2] && !recordingWithTrack && showBreaks) {
-                this.addBreaks(trail1[1], trail1[2]);
-                trail1[2].breaks.show(true);
-              }
+              trail1[2].showBreaksAnchors(showBreaks);
             }
           }
           if (trail2[1]) {
@@ -182,6 +174,7 @@ export class TrailComponent extends AbstractComponent {
             const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n);
             mapTrack.showDepartureAndArrivalAnchors();
             mapTrack.showWayPointsAnchors();
+            mapTrack.showBreaksAnchors(showBreaks);
             mapTracks.push(mapTrack);
           }
           if (toolsFocusTrack !== previousFocus) {
@@ -216,7 +209,7 @@ export class TrailComponent extends AbstractComponent {
         map(([modified, tracks]) => modified || (tracks.length > 0 ? tracks[0] : undefined)),
         switchMap(track => { this.wayPointsTrack = track; return track ? track.computedWayPoints$ : of([]); })
       ),
-      waypoints => this.wayPoints = waypoints
+      wayPoints => this.wayPoints = wayPoints
     );
 
     if (this.trail1$)
@@ -284,29 +277,6 @@ export class TrailComponent extends AbstractComponent {
         )
       })
     );
-  }
-
-  private addBreaks(track: Track, mapTrack: MapTrack): void {
-    const breaks = detectLongBreaksFromTrack(track, this.preferencesService.preferences.longBreakMinimumDuration, this.preferencesService.preferences.longBreakMaximumDistance);
-    for (const b of breaks) {
-      const pointIndex = Math.floor(b.startIndex + (b.endIndex - b.startIndex) / 2);
-      const point = track.segments[b.segmentIndex].points[pointIndex];
-      mapTrack.breaks.addBreakPoint(point.pos);
-    }
-    let previous: Segment | undefined;
-    for (const segment of track.segments) {
-      if (segment.points.length < 2) continue;
-      if (previous !== undefined) {
-        const distance = segment.departurePoint!.distanceTo(previous.arrivalPoint!.pos);
-        if (distance > 15) {
-          mapTrack.breaks.addPausePoint(previous.arrivalPoint!.pos);
-          mapTrack.breaks.addResumePoint(segment.departurePoint!.pos);
-        } else {
-          mapTrack.breaks.addPauseResumePoint(segment.departurePoint!.pos);
-        }
-      }
-      previous = segment;
-    }
   }
 
   private updateDisplay(): void {
@@ -416,12 +386,14 @@ export class TrailComponent extends AbstractComponent {
     return waypoints.find(wp => wp.isDeparture && wp.isArrival);
   }
 
-  waypointImg(wp: ComputedWayPoint, isArrival: boolean, index: number): string {
+  waypointImg(wp: ComputedWayPoint, isArrival: boolean): string {
     if (isArrival)
       return MapAnchor.createDataIcon(anchorArrivalBorderColor, this.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
     if (wp.isDeparture)
       return MapAnchor.createDataIcon(anchorDepartureBorderColor, this.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
-    return MapAnchor.createDataIcon(anchorBorderColor, '' + index, anchorTextColor, anchorFillColor);
+    if (wp.breakPoint)
+      return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
+    return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
   }
 
   removeWayPoint(wp: ComputedWayPoint): void {

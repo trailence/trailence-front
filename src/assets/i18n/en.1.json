@@ -348,6 +348,7 @@
     "distance": "Distance",
     "altitude": "Altitude",
     "time": "Time",
+    "duration": "Duration",
     "description_placeholder": "Description",
     "name_placeholder": "Name"
   },

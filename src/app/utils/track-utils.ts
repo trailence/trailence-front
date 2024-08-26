@@ -61,6 +61,14 @@ export class TrackUtils {
     return total;
   }
 
+  public static durationBetween(startPoint: Point, endPoint: Point): number {
+    const startTime = startPoint.time;
+    if (startTime === undefined) return 0;
+    const endTime = endPoint.time;
+    if (endTime === undefined) return 0;
+    return endTime - startTime;
+  }
+
   public static findClosestPoint(pos: L.LatLngLiteral, points: L.LatLngLiteral[], maxDistance: number = -1): number {
     if (points.length === 0) return -1;
     let closestIndex = -1;

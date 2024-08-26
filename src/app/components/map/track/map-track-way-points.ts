@@ -1,4 +1,4 @@
-import { Track } from 'src/app/model/track';
+import { BreakWayPoint, Track } from 'src/app/model/track';
 import { MapAnchor } from '../markers/map-anchor';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
@@ -21,15 +21,21 @@ export const anchorArrivalBorderColor = 'rgba(196, 0, 0, 0.75)';
 export const anchorArrivalFillColor = 'rgba(196, 0, 0, 0.75)';
 export const anchorArrivalTextColor = anchorTextColor;
 
+export const anchorBreakBorderColor = '#b0865cD8';
+export const anchorBreakFillColor = '#C8986890';
+export const anchorBreakTextColor = '#ffffff';
+
 export class MapTrackWayPoints {
 
   private _anchors?: MapAnchor[];
+  private _breaks?: MapAnchor[];
   private _departure?: MapAnchor;
   private _arrival?: MapAnchor;
   private _departureAndArrival?: MapAnchor;
 
   private _showDA = false;
   private _showWP = false;
+  private _showBreaks = false;
   private _map?: L.Map;
   private subscription?: Subscription;
 
@@ -43,12 +49,14 @@ export class MapTrackWayPoints {
     if (this._map) return;
     this._map = map;
     if (this._showDA) this.addDAToMap();
+    if (this._showBreaks) this.addBreaksToMap();
     if (this._showWP) this.addWPToMap();
   }
 
   public remove(): void {
     if (!this._map) return;
     if (this._showDA) this.removeDAFromMap();
+    if (this._showBreaks) this.removeBreaksFromMap();
     if (this._showWP) this.removeWPFromMap();
     this._map = undefined;
     this.subscription?.unsubscribe();
@@ -64,22 +72,31 @@ export class MapTrackWayPoints {
   }
 
   public showWayPoints(show: boolean): void {
-    if (this._showWP === show) return;
+    if (show === this._showWP) return;
     this._showWP = show;
     if (this._map) {
       if (show) this.addWPToMap(); else this.removeWPFromMap();
     }
   }
 
+  public showBreaks(show: boolean): void {
+    if (show === this._showBreaks) return;
+    this._showBreaks = show;
+    if (this._map) {
+      if (show) this.addBreaksToMap(); else this.removeBreaksFromMap();
+    }
+  }
+
   private load(): void {
     if (this._anchors !== undefined) return;
-    this._anchors = [];
     if (this._track instanceof Track) {
       this.subscription = this._track.computedWayPoints$.subscribe(
         list => {
           if (this._map && this._showDA) this.removeDAFromMap();
           if (this._map && this._showWP) this.removeWPFromMap();
+          if (this._map && this._showBreaks) this.removeBreaksFromMap();
           this._anchors = [];
+          this._breaks = [];
           for (const wp of list) {
             if (wp.isDeparture) {
               if (wp.isArrival && !this._isRecording) {
@@ -90,15 +107,21 @@ export class MapTrackWayPoints {
             } else if (wp.isArrival) {
               if (!this._isRecording)
                 this._arrival = this.createArrival(wp.wayPoint.point.pos);
+            } else if (wp.breakPoint) {
+              this._breaks.push(this.createBreakPoint(wp.wayPoint.point.pos, wp.breakPoint));
             } else {
-              this._anchors.push(this.createWayPoint(wp.wayPoint.point.pos, list.indexOf(wp)));
+              this._anchors.push(this.createWayPoint(wp.wayPoint.point.pos, wp.index));
             }
           }
           if (this._map && this._showDA) this.addDAToMap();
+          if (this._map && this._showBreaks) this.addBreaksToMap();
           if (this._map && this._showWP) this.addWPToMap();
         }
       );
     } else {
+      if (this._map && this._showDA) this.removeDAFromMap();
+      this._anchors = [];
+      this._breaks = [];
       const departurePoint = this._track.points[0];
       const arrivalPoint = this._track.points[this._track.points.length - 1];
       if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= 25) {
@@ -111,6 +134,7 @@ export class MapTrackWayPoints {
           this._arrival = this.createArrival(arrivalPoint);
         }
       }
+      if (this._map && this._showDA) this.addDAToMap();
     }
   }
 
@@ -128,6 +152,14 @@ export class MapTrackWayPoints {
 
   private createWayPoint(point: L.LatLngLiteral, index: number): MapAnchor {
     return new MapAnchor(point, anchorBorderColor, '' + index, undefined, anchorTextColor, anchorFillColor);
+  }
+
+  private createBreakPoint(point: L.LatLngLiteral, breakPoint: BreakWayPoint): MapAnchor {
+    return new MapAnchor(point, anchorBreakBorderColor, MapTrackWayPoints.breakPointText(breakPoint), undefined, anchorBreakTextColor, anchorBreakFillColor);
+  }
+
+  public static breakPointText(breakPoint: BreakWayPoint): string {
+    return breakPoint.isBreak ? '&#8987;' : breakPoint.isPause ? '&#x23F8;' : breakPoint.isResume ? '&#x23F5;' : '&#x23EF;';
   }
 
   private addDAToMap(): void {
@@ -157,6 +189,20 @@ export class MapTrackWayPoints {
   private removeWPFromMap(): void {
     if (this._anchors)
       for (const anchor of this._anchors) {
+        anchor.marker.removeFrom(this._map!);
+      }
+  }
+
+  private addBreaksToMap(): void {
+    this.load();
+    for (const anchor of this._breaks!) {
+      anchor.marker.addTo(this._map!);
+    }
+  }
+
+  private removeBreaksFromMap(): void {
+    if (this._breaks)
+      for (const anchor of this._breaks) {
         anchor.marker.removeFrom(this._map!);
       }
   }
