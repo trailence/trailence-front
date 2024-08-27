@@ -83,7 +83,10 @@ export class TraceRecorderService {
     this._table.get(1)
     .then(dto => {
       const recording = dto ? Recording.fromDto(dto, this.preferencesService) : null;
-      if (recording && !recording.paused) this.startRecording(recording);
+      if (recording) {
+        this._recording$.next(recording);
+        if (!recording.paused) this.startRecording(recording);
+      }
     })
     .catch(e => {
       console.error(e);

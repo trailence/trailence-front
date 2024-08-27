@@ -9,7 +9,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput, IonCheckbox } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -154,6 +154,9 @@ export class TrailComponent extends AbstractComponent {
             if (trail2[2]) {
               trail2[2].color = 'blue';
               mapTracks.push(trail2[2]);
+              trail2[2].showDepartureAndArrivalAnchors();
+              trail2[2].showWayPointsAnchors();
+              trail2[2].showBreaksAnchors(showBreaks);
             }
           }
         }
@@ -363,16 +366,76 @@ export class TrailComponent extends AbstractComponent {
     this.traceRecorder.start(this.trail1!);
   }
 
-  togglePauseRecording(): void {
-    if (this.recording?.paused)
-      this.traceRecorder.resume();
-    else
-      this.traceRecorder.pause();
+  togglePauseRecording(withConfirmation: boolean = false): void {
+    if (withConfirmation) {
+      this.injector.get(AlertController).create({
+        header: this.recording?.paused ? this.i18n.texts.trace_recorder.resume : this.i18n.texts.trace_recorder.pause,
+        message: this.recording?.paused ? this.i18n.texts.trace_recorder.confirm_popup.resume_message : this.i18n.texts.trace_recorder.confirm_popup.pause_message,
+        buttons: [
+          {
+            text: this.i18n.texts.buttons.confirm,
+            role: 'confirm',
+            handler: () => {
+              if (this.recording?.paused)
+                this.traceRecorder.resume();
+              else
+                this.traceRecorder.pause();
+              this.injector.get(AlertController).dismiss();
+            }
+          }, {
+            text: this.i18n.texts.buttons.cancel,
+            role: 'cancel',
+            handler: () => {
+              this.injector.get(AlertController).dismiss();
+            }
+          }
+        ]
+      }).then(p => {
+        p.present();
+        setTimeout(() => {
+          if ((p as any).presented) p.dismiss();
+        }, 10000);
+      });
+    } else {
+      if (this.recording?.paused)
+        this.traceRecorder.resume();
+      else
+        this.traceRecorder.pause();
+    }
   }
 
-  stopRecording(): void {
-    this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
-    .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail!.owner + '/' + trail!.uuid));
+  stopRecording(withConfirmation: boolean = false): void {
+    if (withConfirmation) {
+      this.injector.get(AlertController).create({
+        header: this.i18n.texts.trace_recorder.stop,
+        message: this.i18n.texts.trace_recorder.confirm_popup.stop_message,
+        buttons: [
+          {
+            text: this.i18n.texts.buttons.confirm,
+            role: 'confirm',
+            handler: () => {
+              this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
+              .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail!.owner + '/' + trail!.uuid));
+              this.injector.get(AlertController).dismiss();
+            }
+          }, {
+            text: this.i18n.texts.buttons.cancel,
+            role: 'cancel',
+            handler: () => {
+              this.injector.get(AlertController).dismiss();
+            }
+          }
+        ]
+      }).then(p => {
+        p.present();
+        setTimeout(() => {
+          if ((p as any).presented) p.dismiss();
+        }, 10000);
+      });
+    } else {
+      this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
+      .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail!.owner + '/' + trail!.uuid));
+    }
   }
 
   saveTrail(): void {

@@ -22,7 +22,7 @@
         <ion-item>
           {{ auth.email }}
         </ion-item>
-        <ion-item button [detail]="true" id="item-synchro">
+        <ion-item button [detail]="true" id="item-synchro" [disabled]="status !== 'online'">
           <ion-icon slot="start" name="sync"></ion-icon>
           <div class="synchro">
             @switch(status) {

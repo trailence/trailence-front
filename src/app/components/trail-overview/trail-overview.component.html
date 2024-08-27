@@ -21,20 +21,37 @@
   <div class="metadata-item-container">
     <div class="metadata-item">
       <ion-icon name="date"></ion-icon>
-      <div>{{ meta.dateString }}</div>
+      <div class="metadata-content">
+        <div class="metadata-value">
+          <div>{{ meta.dateString }}</div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="metadata-item-container">
     <div class="metadata-item nowrap">
       <ion-icon name="location"></ion-icon>
-      <div>{{ meta.location }}</div>
+      <div class="metadata-content">
+        <div class="metadata-value">
+          <div>{{ meta.location }}</div>
+        </div>
+      </div>
     </div>
   </div>
   <app-track-metadata *ngIf="track" [track]="track"></app-track-metadata>
   <div class="metadata-item-container" *ngIf="meta.loopTypeString">
     <div class="metadata-item">
       <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
-      <div>{{ meta.loopTypeString }}</div>
+      <div class="metadata-content">
+        <div class="metadata-value">
+          <div>{{ meta.loopTypeString }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="metadata-item-container">
+    <div class="metadata-item">
+      <!-- Empty until another meta -->
     </div>
   </div>
 

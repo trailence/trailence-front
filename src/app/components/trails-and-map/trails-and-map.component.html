@@ -26,9 +26,11 @@
   <div class="trail-sheet {{trailSheetMode}} {{highlightedTrail ? '' : 'none'}} metadata-container {{trailSheetMetadataClass}}">
     <ng-container *ngIf="highlightedTrail">
       <app-trail-overview [trail]="highlightedTrail"></app-trail-overview>
-      <ion-button (click)="openTrail(highlightedTrail)" size="small">
-        {{ i18n.texts.pages.trails.open_trail }}
-      </ion-button>
+      <div style="display:flex; flex-direction: row; align-items: center; justify-content: center;">
+        <ion-button (click)="openTrail(highlightedTrail)" size="small">
+          {{ i18n.texts.pages.trails.open_trail }}
+        </ion-button>
+      </div>
     </ng-container>
   </div>
 </div>

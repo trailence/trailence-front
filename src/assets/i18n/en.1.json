@@ -108,6 +108,7 @@
         "merge_trails": "Merge these trails",
         "merged_trail_name": "Merged trail"
       },
+      "no_tag_message": "No tag on this trail",
       "sections": {
         "description": {
           "title": "Description",
@@ -324,6 +325,7 @@
   "buttons": {
     "apply": "Apply",
     "cancel": "Cancel",
+    "confirm": "Confirm",
     "close": "Close",
     "create": "Create",
     "delete": "Delete",
@@ -387,6 +389,11 @@
     "disabled_popup": {
       "title": "GPS disabled",
       "message": "Your GPS is disabled, please enable it to start a track."
+    },
+    "confirm_popup": {
+      "resume_message": "Please confirm to resume the trail",
+      "pause_message": "Please confirm to pause the trail",
+      "stop_message": "Please confirm the end of the trail"
     }
   },
   "waiting_for_gps": "Waiting for GPS signal...",
@@ -447,5 +454,20 @@
   "update": {
     "download_android": "Download Android application",
     "update_android": "Download Android update"
+  },
+  "metadata": {
+    "trail_date": "Trail date",
+    "trail_location": "Location",
+    "loop_type": "Type",
+    "duration": "Duration",
+    "distance": "Distance",
+    "positiveElevation": "Ascent",
+    "negativeElevation": "Descent",
+    "breaksDuration": "Breaks",
+    "estimatedDuration": "Average duration",
+    "highestAltitude": "Highest altitude",
+    "lowestAltitude": "Lowest altitude",
+    "current_position": "Current position",
+    "current_altitude": "Current altitude"
   }
 }

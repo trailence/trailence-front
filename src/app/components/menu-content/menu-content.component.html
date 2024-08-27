@@ -10,7 +10,7 @@
       </ion-list-header>
     </ng-container>
   </ng-container>
-  <ng-container *ngFor="let computedItem of computed">
+  <ng-container *ngFor="let computedItem of computed; let index = index">
     <div class="separator" *ngIf="computedItem.separator"></div>
     <ng-container *ngIf="!computedItem.separator">
       <ion-item
@@ -19,6 +19,7 @@
         [color]="computedItem.item.color"
         (click)="clicked(computedItem, $event)"
         [disabled]="(computedItem.item.children || computedItem.item.childrenProvider) && computedItem.children.length === 0"
+        [lines]="index < computed.length - 1 && !computed[index + 1].separator ? 'full' : 'none'"
       >
         <ion-icon *ngIf="computedItem.item.icon" [name]="computedItem.item.icon"></ion-icon>
         <ion-label>{{ computedItem.item.label$(i18n) | async }}</ion-label>

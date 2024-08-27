@@ -2,7 +2,8 @@ ion-icon {
     margin-right: 10px;
 }
 .separator {
-  border-bottom: 2px solid var(--ion-color-light-tint);
+  border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.25);
+  box-shadow: 0px 0px 3px 0px rgba(var(--ion-text-color-rgb), 0.66);
   margin: 3px 0px;
 }
 ion-list-header {

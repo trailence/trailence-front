@@ -99,7 +99,7 @@
       }
     },
     "trail": {
-      "title_compare": "Compare",
+      "title_compare": "Comparaison de",
       "title_compare_and": "et",
       "tabs": {
         "details": "Détails",
@@ -117,6 +117,7 @@
         "merge_trails": "Fusionner ces parcours",
         "merged_trail_name": "Parcours fusionné"
       },
+      "no_tag_message": "Aucun tag sur ce parcours",
       "sections": {
         "description": {
           "title": "Description du parcours",
@@ -201,7 +202,7 @@
         "question": "Quels tags ?"
       },
       "name": "Donner un nom au partage",
-      "name_info": "Ce nom sera visible par vous et la personne avec qui vous paratgez",
+      "name_info": "Ce nom sera visible par vous et la personne avec qui vous partagez",
       "who_question": "Avec qui ?",
       "email": "Email",
       "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
@@ -333,6 +334,7 @@
   "buttons": {
     "apply": "Appliquer",
     "cancel": "Annuler",
+    "confirm": "Confirmer",
     "create": "Créer",
     "close": "Fermer",
     "delete": "Supprimer",
@@ -396,6 +398,11 @@
     "disabled_popup": {
       "title": "GPS désactivé",
       "message": "Votre GPS est actuellement désactivé, veuillez le démarrer afin de pouvoir démarrer une trace."
+    },
+    "confirm_popup": {
+      "resume_message": "Veuillez confirmer la reprise du parcours",
+      "pause_message": "Veuillez confirmer la mise en pause du parcours",
+      "stop_message": "Veuillez confirmer la fin du parcours"
     }
   },
   "waiting_for_gps": "En attente du signal GPS...",
@@ -456,5 +463,20 @@
   "update": {
     "download_android": "Télécharger l'application Android",
     "update_android": "Télécharger la mise à jour Android"
+  },
+  "metadata": {
+    "trail_date": "Date du parcours",
+    "trail_location": "Emplacement",
+    "loop_type": "Type",
+    "duration": "Durée",
+    "distance": "Distance",
+    "positiveElevation": "Dénivelé positif",
+    "negativeElevation": "Dénivelé négatif",
+    "breaksDuration": "Pauses",
+    "estimatedDuration": "Durée moyenne",
+    "highestAltitude": "Point haut",
+    "lowestAltitude": "Point bas",
+    "current_position": "Position actuelle",
+    "current_altitude": "Altitude actuelle"
   }
 }

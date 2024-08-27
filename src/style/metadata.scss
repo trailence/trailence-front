@@ -13,16 +13,56 @@
         height: 20px;
         color: var(--ion-color-secondary);
       }
-      div {
+
+      .metadata-content {
         flex: 1 1 100%;
-        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+
+        .metadata-title {
+          display: none;
+        }
+        .metadata-value {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+
+          div {
+            flex: 1 1 100%;
+            font-size: 13px;
+          }
+        }
       }
 
       &.nowrap {
-        div {
-          text-wrap: nowrap;
-          text-overflow: ellipsis;
-          overflow: hidden;
+        .metadata-value {
+          div {
+            text-wrap: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+          }
+        }
+      }
+    }
+
+    &.with-title {
+      .metadata-item {
+        margin: 3px 0;
+
+        ion-icon, svg, .icon {
+          width: 32px;
+          height: 32px;
+          color: var(--ion-color-secondary);
+        }
+
+        .metadata-content {
+
+          .metadata-title {
+            display: block;
+            font-size: 11px;
+            color: var(--ion-color-secondary);
+            margin-bottom: 3px;
+          }
         }
       }
     }
@@ -34,7 +74,7 @@
       max-width: 50%;
       display: inline-block;
 
-      .metadata-item {
+      .metadata-item .metadata-value {
         .metadata-primary + .metadata-secondary, .metadata-primary + .metadata-primary, .metadata-secondary + .metadata-secondary {
           margin-left: 3px;
         }
@@ -66,10 +106,27 @@
           height: 32px;
           color: var(--ion-color-secondary);
         }
-        div {
-          flex: 1 1 100%;
-          font-size: 13px;
-          text-align: center;
+
+        .metadata-content {
+          display: flex;
+          flex-direction: column;
+
+          .metadata-title {
+            display: none;
+          }
+
+          .metadata-value {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            div {
+              flex: 1 1 100%;
+              font-size: 13px;
+              text-align: center;
+            }
+          }
         }
       }
     }

@@ -315,3 +315,7 @@ ion-menu::part(container) {
   border-radius: 0 8px 8px 0;
   box-shadow: 0px 0px 32px rgba(var(--ion-text-color-rgb), 0.33);
 }
+
+ion-input.input-label-placement-floating:not(.label-floating) .label-text-wrapper .label-text {
+  color: var(--ion-color-medium);
+}

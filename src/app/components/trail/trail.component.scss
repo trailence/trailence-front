@@ -26,11 +26,20 @@
 
   .map-container {
     position: absolute;
-    ion-button {
+    .map-top-buttons {
       position: absolute;
-      z-index: 501;
       top: 5px;
-      left: calc(50% - 85px);
+      left: 45px;
+      right: 55px;
+      z-index: 501;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+
+      ion-button:not(:first-child) {
+        margin-left: 8px;
+      }
     }
   }
 
@@ -305,7 +314,18 @@
 .trail-details {
 
   .trail-tags-row {
-    margin: 5px;
+    padding: 5px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(var(--ion-text-color-rgb), 0.05);
+    }
+
+    .no-tag {
+      color: rgba(var(--ion-color-medium-rgb), 0.75);
+      font-size: 12px;
+      font-style: italic;
+    }
   }
 
   .metadata-container {
@@ -396,7 +416,7 @@
         .waypoint-info-title {
           color: var(--ion-color-secondary);
           font-weight: bold;
-          font-size: 14px;
+          font-size: 12px;
         }
         .waypoint-info-value {
           font-size: 14px;
