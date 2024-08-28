@@ -90,3 +90,16 @@ body.dark-map {
     }
   }
 }
+
+ion-button a, a.inherit {
+  color: inherit;
+  text-decoration: inherit;
+  &:hover {
+    color: inherit;
+    text-decoration: inherit;
+  }
+  &:active {
+    color: inherit;
+    text-decoration: inherit;
+  }
+}
