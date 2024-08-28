@@ -7,38 +7,40 @@
       <div>{{ i18n.texts.pages.login.offline }}</div>
     </ng-container>
     <ng-container *ngIf="connected">
-      <ion-list>
-        <ion-item>
-          <ion-input label="{{i18n.texts.pages.login.email}}" labelPlacement="floating" type="email" [(ngModel)]="email"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-input label="{{i18n.texts.pages.login.password}}" labelPlacement="floating" type="password" [(ngModel)]="password"></ion-input>
-        </ion-item>
-      </ion-list>
-      <div *ngIf="incorrect">
-        <ion-label color="danger">{{i18n.texts.pages.login.incorrect_message}}</ion-label>
-      </div>
-      <div *ngIf="error">
-        <ion-label color="danger">{{i18n.texts.pages.login.error_message}}</ion-label>
-      </div>
-      <div *ngIf="locked">
-        <ion-label color="danger">{{i18n.texts.pages.login.locked_message}}</ion-label>
-      </div>
-      <div [ngStyle]="{'display': captchaNeeded ? 'block' : 'none'}">
-        <div>{{i18n.texts.pages.login.captcha_message}}</div>
-        <div id="captcha-login"></div>
-      </div>
-      <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; margin-top: 10px">
-        <ion-button fill="clear" color="secondary" (click)="signin()" [disabled]="!canSignin() || inprogress">
-          <span *ngIf="!inprogress">{{i18n.texts.pages.login.signin_button}}</span>
-          <ion-spinner *ngIf="inprogress"></ion-spinner>
-        </ion-button>
-      </div>
-      <div>
-        <ion-button fill="clear" color="tertiary" (click)="resetPassword()" [disabled]="inprogress">
-          {{i18n.texts.pages.login.forgot_password}}
-        </ion-button>
-      </div>
+      <form (ngSubmit)="onSubmit()">
+        <ion-list>
+          <ion-item>
+            <ion-input label="{{i18n.texts.pages.login.email}}" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" autocomplete="email"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-input label="{{i18n.texts.pages.login.password}}" labelPlacement="floating" type="password" name="password" [(ngModel)]="password" autocomplete="current-password"></ion-input>
+          </ion-item>
+        </ion-list>
+        <div *ngIf="incorrect">
+          <ion-label color="danger">{{i18n.texts.pages.login.incorrect_message}}</ion-label>
+        </div>
+        <div *ngIf="error">
+          <ion-label color="danger">{{i18n.texts.pages.login.error_message}}</ion-label>
+        </div>
+        <div *ngIf="locked">
+          <ion-label color="danger">{{i18n.texts.pages.login.locked_message}}</ion-label>
+        </div>
+        <div [ngStyle]="{'display': captchaNeeded ? 'block' : 'none'}">
+          <div>{{i18n.texts.pages.login.captcha_message}}</div>
+          <div id="captcha-login"></div>
+        </div>
+        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; margin-top: 10px">
+          <ion-button fill="clear" color="secondary" (click)="signin()" [disabled]="!canSignin() || inprogress" type="submit">
+            <span *ngIf="!inprogress">{{i18n.texts.pages.login.signin_button}}</span>
+            <ion-spinner *ngIf="inprogress"></ion-spinner>
+          </ion-button>
+        </div>
+        <div>
+          <ion-button fill="clear" color="tertiary" (click)="resetPassword()" [disabled]="inprogress">
+            {{i18n.texts.pages.login.forgot_password}}
+          </ion-button>
+        </div>
+      </form>
     </ng-container>
   </ion-card-content>
 </ion-card>

@@ -169,6 +169,10 @@
       "location": "Location",
       "search_from_departure": "Suggest locations based on departure"
     },
+    "import_gpx_popup": {
+      "title": "Import new trail",
+      "message": "Please select the collection you want the file to be imported into"
+    },
     "import_tags_popup": {
       "title": "Import tags",
       "message": "The following tags were found in the imported filed",

@@ -8,6 +8,8 @@ export interface TrailencePlugin {
 
   startZipFile(call: {id: number, filename: string}): Promise<{success: boolean}>;
 
+  listenToImportedFiles(callback: (message: {fileId: number, chunks?: number, chunkIndex?: number, data?: string}) => void): void;
+
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');

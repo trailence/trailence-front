@@ -178,6 +178,10 @@
       "location": "Emplacement",
       "search_from_departure": "Proposer des lieux par rapport au départ"
     },
+    "import_gpx_popup": {
+      "title": "Import d'un nouveau parcours",
+      "message": "Veuillez sélectionner la collection dans laquelle vous souhaitez que le fichier soit importé"
+    },
     "import_tags_popup": {
       "title": "Import des tags",
       "message": "Les tags suivants ont été trouvés dans les fichiers importés",

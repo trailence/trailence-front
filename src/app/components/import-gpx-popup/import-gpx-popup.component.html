@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.texts.pages.import_gpx_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+
+  <div style="margin-bottom: 15px;">
+    {{i18n.texts.pages.import_gpx_popup.message}}
+  </div>
+
+  <ion-radio-group (ionChange)="collectionUuid = $event.detail.value">
+    <div *ngFor="let collection of collections"><ion-radio labelPlacement="end" value="{{collection.uuid}}">{{ collectionName(collection) }}</ion-radio></div>
+  </ion-radio-group>
+
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" [disabled]="!collectionUuid" (click)="ok()">{{i18n.texts.buttons.confirm}}</ion-button>
+      <ion-button (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

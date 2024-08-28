@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, first, map, of, switchMap, zip } from 'rxjs';
+import { Observable, combineLatest, filter, first, map, of, switchMap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
@@ -17,6 +17,10 @@ import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { ShareService } from './share.service';
 import { AuthService } from '../auth/auth.service';
+import Trailence from '../trailence.service';
+import { TrailMenuService } from './trail-menu.service';
+import { Router } from '@angular/router';
+import { ModalController} from '@ionic/angular/standalone';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +36,7 @@ export class TrailService {
     private injector: Injector,
   ) {
     this._store = new TrailStore(injector, http, trackService, collectionService);
+    this.listenToImportGpx();
   }
 
   public getAll$(): Observable<Observable<Trail | null>[]> {
@@ -115,6 +120,73 @@ export class TrailService {
 
   public cleanDatabase(email: string): Observable<any> {
     return this._store.cleanDatabase(email);
+  }
+
+  private listenToImportGpx(): void {
+    const files = new Map<number, {nbChunks: number, chunks: string[]}>();
+    Trailence.listenToImportedFiles((message) => {
+      if (message.chunks !== undefined) {
+        files.set(message.fileId, {nbChunks: message.chunks, chunks: new Array(message.chunks)});
+        console.log('Start receiving new file from device with ' + message.chunks + ' chunks');
+      } else if (message.chunkIndex !== undefined && message.data !== undefined) {
+        const file = files.get(message.fileId);
+        if (!file) {
+          console.error('Received a chunk of data from device for an unknown file id', message.fileId);
+          return;
+        }
+        file.chunks[message.chunkIndex] = message.data;
+        let done = true;
+        for (const chunk of file.chunks) {
+          if (chunk === undefined || chunk === null) {
+            done = false;
+            break;
+          }
+        }
+        console.log('new chunk of data received from device', file);
+        if (done) {
+          files.delete(message.fileId);
+          this.importGpx(file.chunks);
+        }
+      }
+    });
+  }
+
+  private importGpx(chunks: string[]): void {
+    console.log('Received GPX data to import from device');
+    this.injector.get(AuthService).auth$.pipe(
+      filter(auth => !!auth),
+      first(),
+    ).subscribe(auth => {
+      const owner = auth.email;
+      const binaryChunks = chunks.map(c => atob(c));
+      let size = 0;
+      for (const c of binaryChunks) size += c.length;
+      const bytes = new Uint8Array(size);
+      let pos = 0;
+      for (const c of binaryChunks) {
+        for (let i = 0; i < c.length; ++i)
+          bytes[pos + i] = c.charCodeAt(i);
+        pos += c.length;
+      }
+      const buffer = bytes.buffer;
+
+      const menuService = this.injector.get(TrailMenuService);
+      import('../../components/import-gpx-popup/import-gpx-popup.component')
+      .then(module => this.injector.get(ModalController).create({
+        component: module.ImportGpxPopupComponent,
+        backdropDismiss: false,
+        componentProps: {
+          onDone: (collectionUuid: string) => {
+            const imported = menuService.importGpx(buffer, owner, collectionUuid);
+            if (imported) {
+              menuService.importTags([imported], collectionUuid);
+              this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid);
+            }
+          }
+        }
+      }))
+      .then(modal => modal.present());
+    });
   }
 
 }

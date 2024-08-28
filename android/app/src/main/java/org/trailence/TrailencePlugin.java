@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -149,12 +151,38 @@ public class TrailencePlugin extends Plugin {
         e.printStackTrace();
         call.reject(e.getMessage());
       }
-      /*
-      try (OutputStream out = this.getContext().getContentResolver().openOutputStream(result.getData().getData())) {
-        out.write(Base64.getDecoder().decode(call.getString("data")));
-        call.resolve(new JSObject().put("saved", true));*/
     } else {
       call.resolve(new JSObject().put("id", false));
+    }
+  }
+
+  private LinkedList<List<byte[]>> filesToImport = new LinkedList<>();
+  private PluginCall importFilesListener = null;
+
+  public void addFileToImport(List<byte[]> content) {
+    if (importFilesListener == null)
+      this.filesToImport.add(content);
+    else
+      this.pushFileToImport(content);
+  }
+
+  @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
+  public void listenToImportedFiles(PluginCall call) {
+    call.setKeepAlive(true);
+    this.importFilesListener = call;
+    while (!filesToImport.isEmpty()) {
+      List<byte[]> content = filesToImport.removeFirst();
+      this.pushFileToImport(content);
+    }
+  }
+
+  private int pushFileIdCounter = 1;
+  private void pushFileToImport(List<byte[]> content) {
+    int id = pushFileIdCounter++;
+    this.importFilesListener.resolve(new JSObject().put("fileId", id).put("chunks", content.size()));
+    int index = 0;
+    for (byte[] chunk : content) {
+      this.importFilesListener.resolve(new JSObject().put("fileId", id).put("chunkIndex", index++).put("data", Base64.getEncoder().encodeToString(chunk)));
     }
   }
 

@@ -65,6 +65,10 @@ export class LoginPage {
     });
   }
 
+  onSubmit(): void {
+    if (this.canSignin()) this.signin();
+  }
+
   canSignin(): boolean {
     return this.email.length > 0 && this.password.length > 0 && (!this.captchaNeeded || !!this.captchaToken);
   }

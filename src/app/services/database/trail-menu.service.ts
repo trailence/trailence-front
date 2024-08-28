@@ -314,27 +314,7 @@ export class TrailMenuService {
       },
       onfilesloaded: (progress: Progress, imported: ({trailUuid: string, tags: string[][]} | undefined)[]) => {
         progress.done();
-        const allTags: string[][] = [];
-        for (const trail of imported) {
-          if (trail && trail.tags.length > 0) {
-            for (const tag of trail.tags) {
-              const exists = allTags.find(t => Arrays.sameContent(t, tag));
-              if (!exists) allTags.push(tag);
-            }
-          }
-        }
-        if (allTags.length > 0)
-          import('../../components/import-tags-popup/import-tags-popup.component')
-          .then(module => this.injector.get(ModalController).create({
-            component: module.ImportTagsPopupComponent,
-            backdropDismiss: false,
-            componentProps: {
-              collectionUuid,
-              tags: allTags,
-              toImport: imported.filter(i => !!i) as {trailUuid: string, tags: string[][]}[],
-            }
-          }))
-          .then(modal => modal.present());
+        this.importTags(imported, collectionUuid);
       },
       onerror: (error, progress) => {
         console.log(error);
@@ -356,6 +336,30 @@ export class TrailMenuService {
     this.injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1]);
     this.injector.get(TrailService).create(imported.trail);
     return {trailUuid: imported.trail.uuid, tags: imported.tags};
+  }
+
+  public importTags(imported: ({trailUuid: string, tags: string[][]} | undefined)[], collectionUuid: string): void {
+    const allTags: string[][] = [];
+    for (const trail of imported) {
+      if (trail && trail.tags.length > 0) {
+        for (const tag of trail.tags) {
+          const exists = allTags.find(t => Arrays.sameContent(t, tag));
+          if (!exists) allTags.push(tag);
+        }
+      }
+    }
+    if (allTags.length > 0)
+      import('../../components/import-tags-popup/import-tags-popup.component')
+      .then(module => this.injector.get(ModalController).create({
+        component: module.ImportTagsPopupComponent,
+        backdropDismiss: false,
+        componentProps: {
+          collectionUuid,
+          tags: allTags,
+          toImport: imported.filter(i => !!i) as {trailUuid: string, tags: string[][]}[],
+        }
+      }))
+      .then(modal => modal.present());
   }
 
   public exportGpx(trails: Trail[]): void {
