@@ -10,7 +10,6 @@ import { FileService } from '../file/file.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { StringUtils } from 'src/app/utils/string-utils';
-import { downloadZip } from 'client-zip';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -360,53 +359,67 @@ export class TrailMenuService {
   }
 
   public exportGpx(trails: Trail[]): void {
-    const data: BinaryContent[] = [];
+    if (trails.length === 0) return;
+    const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.export, trails.length + 1);
     const email = this.injector.get(AuthService).email!;
-    forkJoin(trails.map(
-      trail => {
-        const tracks: Observable<Track | null>[] = [];
-        tracks.push(this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
-        if (trail.currentTrackUuid !== trail.originalTrackUuid)
-          tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
-        return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
-          map(tracks => ({trail, tracks: tracks.filter(track => !!track) as Track[]})),
-          switchMap(t => {
-            const tags$ = (t.tracks.length === 0 || t.trail.owner !== email) ? of([]) : this.injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true);
-            return tags$.pipe(
-              map(tags => ({trail: t.trail, tracks: t.tracks, tags: tags}))
-            );
-          }),
-        );
-      }
-    )).subscribe(result => {
-      const files = result.filter(r => r.tracks.length > 0).map(t => ({data: GpxFormat.exportGpx(t.trail, t.tracks, t.tags), filename: StringUtils.toFilename(t.trail.name)}));
-      if (files.length === 0) return;
-      if (files.length === 1) {
-        this.injector.get(FileService).saveBinaryData(files[0].filename + '.gpx', files[0].data);
-      } else {
-        const existingFilenames: string[] = [];
-        for (const file of files) {
-          if (existingFilenames.indexOf(file.filename.toLowerCase()) >= 0) {
-            let i = 2;
-            while (existingFilenames.indexOf(file.filename.toLowerCase() + '_' + i) >= 0) i++;
-            file.filename = file.filename + '_' + i;
-          }
-          existingFilenames.push(file.filename.toLowerCase());
+    const trailToData$ = (trail: Trail) => {
+      const tracks: Observable<Track | null>[] = [];
+      tracks.push(this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
+      if (trail.currentTrackUuid !== trail.originalTrackUuid)
+        tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
+      return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
+        map(tracks => ({trail, tracks: tracks.filter(track => !!track) as Track[]})),
+        switchMap(t => {
+          if (t.tracks.length === 0) return of(null);
+          const tags$ = t.trail.owner !== email ? of([]) : this.injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true);
+          return tags$.pipe(
+            map(tags => ({name: t.trail.name, gpx: GpxFormat.exportGpx(t.trail, t.tracks, tags)}))
+          );
+        }),
+      );
+    };
+    const fileService = this.injector.get(FileService);
+    if (trails.length === 1) {
+      trailToData$(trails[0]).subscribe(data => {
+        if (!data) {
+          progress.done();
+          return;
         }
-       combineLatest(files.map(file => from(file.data.toArrayBufferOrBlob()))).subscribe(
-        inputs => {
-          downloadZip(files.map((file, index) => ({
-            name: file.filename + '.gpx',
-            input: inputs[index],
-          })), {
-            buffersAreUTF8: true,
-          }).blob().then(blob => {
-            this.injector.get(FileService).saveBinaryData('trailence-export.zip', new BinaryContent(blob, 'application/x-zip'));
-          });
-        }
-       )
+        progress.addWorkDone(1);
+        fileService.saveBinaryData(StringUtils.toFilename(data.name) + '.gpx', data.gpx).then(() => progress.done());
+      });
+      return;
+    }
+    progress.subTitle = '0/' + trails.length;
+    let index = 0;
+    const existingFilenames: string[] = [];
+    const processNextTrail = (resolve: (result: { filename: string; data: BinaryContent; } | null) => void) => {
+      progress.subTitle = index + '/' + trails.length;
+      progress.workDone = index;
+      if (index === trails.length) {
+        resolve(null);
+        return;
       }
-    });
+      trailToData$(trails[index++]).subscribe(data => {
+        if (!data) {
+          processNextTrail(resolve);
+          return;
+        }
+        let filename = StringUtils.toFilename(data.name);
+        if (existingFilenames.indexOf(filename.toLowerCase()) >= 0) {
+          let i = 2;
+          while (existingFilenames.indexOf(filename.toLowerCase() + '_' + i) >= 0) i++;
+          filename = filename + '_' + i;
+        }
+        existingFilenames.push(filename.toLowerCase());
+        resolve({filename: filename + '.gpx', data: data.gpx});
+      });
+    };
+    fileService.saveZip('trailence-export.zip', () => {
+      return new Promise<{ filename: string; data: BinaryContent; } | null>((resolve) => {
+        processNextTrail(resolve);
+      });
+    }).then(() => progress.done());
   }
 
   async openSharePopup(collectionUuid: string, trails: Trail[]) {

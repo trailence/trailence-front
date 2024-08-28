@@ -86,6 +86,12 @@ export class BinaryContent {
     return this.toArrayBuffer();
   }
 
+  public toRaw(): ArrayBuffer | Blob | string {
+    if (this.buffer) return this.buffer;
+    if (this.blob) return this.blob;
+    return this.base64!;
+  }
+
   private b64toBlob(b64Data: string, contentType: string = '', sliceSize: number = 512) {
     const byteCharacters = atob(b64Data);
     const byteArrays = [];

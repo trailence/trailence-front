@@ -42,7 +42,7 @@
     "@ionic/angular": "^8.2.6",
     "angular-code-input": "^2.0.0",
     "chart.js": "^4.4.3",
-    "client-zip": "^1.6.4",
+    "jszip": "^3.10.1",
     "dexie": "^4.0.8",
     "ionicons": "^7.4.0",
     "leaflet": "^1.9.4",

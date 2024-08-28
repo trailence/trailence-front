@@ -609,7 +609,7 @@ export class TrackDatabase {
   }
 
   private syncCreatedLocally(db: Dexie): Observable<any> {
-    return from(this.fullTrackTable!.where('version').equals(0).toArray()).pipe(
+    return from(this.fullTrackTable!.where('version').equals(0).limit(50).toArray()).pipe(
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
@@ -648,7 +648,7 @@ export class TrackDatabase {
   }
 
   private syncDeletedLocally(db: Dexie): Observable<any> {
-    return from(this.fullTrackTable!.where('version').equals(-1).toArray()).pipe(
+    return from(this.fullTrackTable!.where('version').equals(-1).limit(50).toArray()).pipe(
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
@@ -683,20 +683,36 @@ export class TrackDatabase {
           switchMap(response => {
             if (this.db !== db) return EMPTY;
             console.log('Server updates for tracks: sent ' + known.length + ' known tracks, received ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
+            let operations$: Observable<any>;
+            if (response.deleted.length > 0) {
+              operations$ = this.updatesFromServer(db, [], response.deleted);
+            } else {
+              operations$ = of(true);
+            }
             const toRetrieve = [...response.created, ...response.updated];
-            const limiter = new RequestLimiter(5);
-            const requests = toRetrieve
-              .map(item => () => {
-                if (this.db !== db) return EMPTY;
-                return this.injector.get(HttpService).get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
-              })
-              .map(request => limiter.add(request).pipe(catchError(error => {
-                // TODO
-                return of(null);
-              })));
-            return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-              switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t) as TrackDto[], response.deleted))
-            );
+            if (toRetrieve.length > 0) {
+              for (let i = 0; i < toRetrieve.length; i += 20) {
+                const bunch = toRetrieve.slice(i, Math.min(toRetrieve.length, i + 20));
+                const limiter = new RequestLimiter(3);
+                const requests = bunch
+                .map(item => () => {
+                  if (this.db !== db) return EMPTY;
+                  return this.injector.get(HttpService).get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
+                })
+                .map(request => limiter.add(request).pipe(
+                  catchError(error => {
+                    // TODO
+                    return of(null);
+                  })
+                ));
+                operations$ = operations$.pipe(
+                  switchMap(() => (requests.length === 0 ? of([]) : zip(requests)).pipe(
+                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t) as TrackDto[], []))
+                  ))
+                );
+              }
+            }
+            return operations$;
           }),
           catchError(error => {
             // TODO
@@ -709,7 +725,7 @@ export class TrackDatabase {
   }
 
   private syncUpdatesToServer(db: Dexie): Observable<any> {
-    return from(this.fullTrackTable!.where('updatedLocally').equals(1).toArray()).pipe(
+    return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(50).toArray()).pipe(
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);

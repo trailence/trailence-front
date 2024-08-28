@@ -2,7 +2,11 @@ import { registerPlugin } from '@capacitor/core';
 
 export interface TrailencePlugin {
 
-  saveFile(call: {filename: string, type: string, data: string}): Promise<{saved: boolean}>;
+  startSaveFile(call: {filename: string, type: string, isZip?: boolean}): Promise<{id: number | boolean}>;
+
+  saveFileChunk(call: {id: number, data?: string, isEnd?: boolean}): Promise<{success: boolean}>;
+
+  startZipFile(call: {id: number, filename: string}): Promise<{success: boolean}>;
 
 }
 

@@ -6,6 +6,8 @@ export interface IFileService {
 
     saveBinaryData(filename: string, data: BinaryContent): Promise<boolean>;
 
+    saveZip(filename: string, contentProvider: () => Promise<{ filename: string; data: BinaryContent; } | null>): Promise<boolean>;
+
 }
 
 export class OpenFileRequest<P, T> {

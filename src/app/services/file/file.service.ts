@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
+import * as JSZip from 'jszip';
 
 @Injectable({
   providedIn: 'root'
@@ -120,5 +121,26 @@ export class FileService implements IFileService {
         return true;
       }
     );
+  }
+
+  public saveZip(filename: string, contentProvider: () => Promise<{ filename: string; data: BinaryContent; } | null>): Promise<boolean> {
+    return this.internalSaveZip(filename, contentProvider);
+  }
+
+  private async internalSaveZip(filename: string, contentProvider: () => Promise<{ filename: string; data: BinaryContent; } | null>) {
+    const zip = new JSZip();
+    let nextFile: { filename: string; data: BinaryContent; } | null;
+    while ((nextFile = await contentProvider()) !== null) {
+      const data = nextFile.data.toRaw();
+      zip.file(nextFile.filename, data, {
+        base64: typeof data === 'string',
+        binary: true
+      });
+    }
+    const blob = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+    });
+    return await this.saveBinaryData(filename, new BinaryContent(blob));
   }
 }
