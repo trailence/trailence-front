@@ -10,3 +10,11 @@ button.alert-button.alert-button-role-cancel {
 button.alert-button.alert-button-role-ok {
   color: var(--ion-color-secondary);
 }
+
+.alert-wrapper .alert-button-group {
+  flex-wrap: nowrap;
+
+  button {
+    text-align: center;
+  }
+}

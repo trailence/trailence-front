@@ -29,6 +29,7 @@ ion-toolbar {
       position: relative;
       width: 0px;
       height: 0px;
+      pointer-events: none;
 
       ion-badge {
         position: absolute;
@@ -41,6 +42,7 @@ ion-toolbar {
         --padding-end: 2px;
         --padding-top: 2px;
         --padding-bottom: 2px;
+        pointer-events: none;
       }
     }
 

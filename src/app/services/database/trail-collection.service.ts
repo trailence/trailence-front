@@ -84,6 +84,7 @@ export class TrailCollectionService {
       component: module.CollectionFormPopupComponent,
       componentProps: { collection },
       backdropDismiss: false,
+      cssClass: 'small-modal',
     });
     modal.present();
   }

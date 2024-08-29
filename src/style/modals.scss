@@ -1,0 +1,17 @@
+ion-modal.small-modal {
+  --width: auto;
+  --height: auto;
+  width: auto;
+  height: auto;
+
+  ion-content {
+    flex: 1 1 100%;
+    height: auto;
+    contain: content;
+    overflow-y: auto;
+
+    &::part(scroll) {
+      position: static;
+    }
+  }
+}
