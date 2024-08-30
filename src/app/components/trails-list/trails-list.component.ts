@@ -7,7 +7,7 @@ import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, map, of, skip, switchMap, timeout } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -23,6 +23,7 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { FilterTagsComponent } from '../filters/filter-tags/filter-tags.component';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -146,6 +147,7 @@ export class TrailsListComponent extends AbstractComponent {
     private authService:AuthService,
   ) {
     super(injector);
+    changeDetector.detach();
     let currentDistanceUnit = preferences.preferences.distanceUnit;
     let currentElevationUnit = preferences.preferences.elevationUnit;
     this.whenVisible.subscribe(preferences.preferences$,
@@ -187,7 +189,10 @@ export class TrailsListComponent extends AbstractComponent {
         this.trails.length === 0 ? of([]) : combineLatest(
           this.trails.map(
             trail => combineLatest([
-              trail.currentTrackUuid$.pipe(switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner))),
+              trail.currentTrackUuid$.pipe(
+                switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
+                firstTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
+              ),
               trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([])
             ]).pipe(
               map(([track, tags]) => ({
@@ -216,13 +221,13 @@ export class TrailsListComponent extends AbstractComponent {
 
     let previous = this.state$.value;
     this.byStateAndVisible.subscribe(
-      this.state$,
+      this.state$.pipe(debounceTime(100)),
       state => {
         if (state === previous) return;
         if (state.filters !== previous.filters) {
           this.applyFilters();
           this.applySort();
-          this.changeDetector.markForCheck();
+          this.changeDetector.detectChanges();
         } else if (state.sortAsc !== previous.sortAsc || state.sortBy !== previous.sortBy) {
           this.applySort();
           this.changeDetector.detectChanges();
@@ -339,6 +344,11 @@ export class TrailsListComponent extends AbstractComponent {
 
   selectAll(selected: boolean): void {
     this.listTrails.forEach(t => t.selected = selected);
+    this.changeDetector.detectChanges();
+  }
+
+  onTrailSelected(): void {
+    this.changeDetector.detectChanges();
   }
 
   getSelectedTrails(): Trail[] {
@@ -448,7 +458,7 @@ export class TrailsListComponent extends AbstractComponent {
         }
       }
     }
-    this.changeDetector.markForCheck();
+    this.changeDetector.detectChanges();
   }
 
   import(): void {

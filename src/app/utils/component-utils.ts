@@ -77,7 +77,13 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (!this._isInit) return;
+    this.onChangesBeforeCheckComponentState(changes);
     this._checkComponentState();
+  }
+
+  protected onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
+    // nothing by default
   }
 
   public setVisible(visible: boolean): void {

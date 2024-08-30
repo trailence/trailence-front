@@ -5,6 +5,7 @@ import { Trail } from 'src/app/model/trail';
 import { MapTrackWayPoints } from './map-track-way-points';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { MapTrackArrowPath } from './map-track-arrows-path';
+import * as L from 'leaflet';
 
 export class MapTrack {
 
@@ -42,7 +43,20 @@ export class MapTrack {
   public get trail(): Trail | undefined { return this._trail; }
   public get track(): Track | SimplifiedTrackSnapshot { return this._track; }
 
-  public get bounds(): L.LatLngBounds | undefined { return this._path.bounds }
+  public get bounds(): L.LatLngBounds | undefined {
+    if (this._track instanceof Track) return this._track.metadata.bounds;
+    const pathBounds = this._path.getBounds(false);
+    if (pathBounds) return pathBounds;
+    let minLat, maxLat, minLng, maxLng;
+    for (const pt of this._track.points) {
+      if (minLat === undefined || pt.lat < minLat) minLat = pt.lat;
+      if (maxLat === undefined || pt.lat > maxLat) maxLat = pt.lat;
+      if (minLng === undefined || pt.lng < minLng) minLng = pt.lng;
+      if (maxLng === undefined || pt.lng > maxLng) maxLng = pt.lng;
+    }
+    if (minLat === undefined) return undefined;
+    return L.latLngBounds({lat: minLat!, lng: minLng!}, {lat: maxLat!, lng: maxLng!});
+  }
   public get color(): string { return this._path.color; }
   public set color(value: string) { this._path.color = value; }
 

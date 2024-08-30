@@ -34,7 +34,7 @@
         [trail]="trailWithInfo.trail"
         [selectable]="true"
         [selected]="trailWithInfo.selected"
-        (selectedChange)="trailWithInfo.selected = $event"
+        (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
         (click)="onTrailClick(trailWithInfo.trail)"
         [fromCollection]="!!collectionUuid"
       ></app-trail-overview>

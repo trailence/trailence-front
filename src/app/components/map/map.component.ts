@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, NgZone, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { Platform } from '@ionic/angular';
@@ -68,7 +68,7 @@ export class MapComponent extends AbstractComponent {
     this.updateTracks();
     this._mapState.live$.pipe(
       filter(live => live),
-      switchMap(() => timer(50, 150).pipe(
+      switchMap(() => timer(100, 300).pipe(
         takeWhile(() => this._mapState.live),
         switchMap(() => this.readyForMap$()),
         filter(ready => ready && this._mapState.live)
@@ -81,7 +81,7 @@ export class MapComponent extends AbstractComponent {
     );
   }
 
-  override ngOnChanges(changes: SimpleChanges): void {
+  override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['mapId']) this.loadState();
     if (changes['tracks$']) this.updateTracks();
   }
@@ -294,12 +294,14 @@ export class MapComponent extends AbstractComponent {
 
   private readyForMap$(): Observable<boolean> {
     return new Observable<boolean>(subscriber => {
-      setTimeout(() => {
-        const element = document.getElementById(this.id);
-        const ready = !!element && element.clientHeight > 0 && element.clientWidth > 0;
-        subscriber.next(ready);
-        subscriber.complete();
-      }, 0);
+      this.injector.get(NgZone).runOutsideAngular(() => {
+        setTimeout(() => {
+          const element = document.getElementById(this.id);
+          const ready = !!element && element.clientHeight > 0 && element.clientWidth > 0;
+          subscriber.next(ready);
+          subscriber.complete();
+        }, 0);
+      });
     });
   }
 

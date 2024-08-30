@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { IonIcon } from '@ionic/angular/standalone';
@@ -67,8 +67,10 @@ export class TrackMetadataComponent extends AbstractComponent {
     private i18n: I18nService,
     private element: ElementRef,
     private assets: AssetsService,
+    changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
+    changeDetector.detach();
   }
 
   protected override initComponent(): void {
@@ -165,24 +167,26 @@ export class TrackMetadataComponent extends AbstractComponent {
           state
         ])));
       }),
-      debounceTime(100),
+      debounceTime(1),
     ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, state]) => {
-      this.updateMeta(meta, 'distance', distance, v => this.i18n.distanceToString(v), state !== previousState);
-      this.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + this.i18n.elevationToString(v), state !== previousState);
-      this.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + this.i18n.elevationToString(v), state !== previousState);
+      const force = state !== previousState;
+      let changed = force;
+      if (this.updateMeta(meta, 'distance', distance, v => this.i18n.distanceToString(v), force)) changed = true;
+      if (this.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + this.i18n.elevationToString(v), force)) changed = true;
+      if (this.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + this.i18n.elevationToString(v), force)) changed = true;
       if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
       if (this.detailed) {
-        this.updateMeta(meta, 'highestAltitude', highestAltitude, v => this.i18n.elevationToString(v), state !== previousState);
-        this.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => this.i18n.elevationToString(v), state !== previousState);
-        this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), state !== previousState);
-        this.updateMeta(meta, 'breaksDuration', breaksDuration, v => this.i18n.durationToString(v), state !== previousState);
-        this.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + this.i18n.durationToString(v), state !== previousState);
+        if (this.updateMeta(meta, 'highestAltitude', highestAltitude, v => this.i18n.elevationToString(v), force)) changed = true;
+        if (this.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => this.i18n.elevationToString(v), force)) changed = true;
+        if (this.updateMeta(meta, 'duration', duration, v => this.i18n.durationToString(v), force)) changed = true;
+        if (this.updateMeta(meta, 'breaksDuration', breaksDuration, v => this.i18n.durationToString(v), force)) changed = true;
+        if (this.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + this.i18n.durationToString(v), force)) changed = true;
       } else {
         let d = this.i18n.durationToString(duration);
         if (estimatedDuration !== undefined) d += ' (≈ ' + this.i18n.durationToString(estimatedDuration) + ')';
-        this.updateMeta(meta, 'duration', d, v => v, state !== previousState);
+        if (this.updateMeta(meta, 'duration', d, v => v, force)) changed = true;
       }
-      if (state !== previousState) {
+      if (force) {
         this.durationTitle.innerText = this.i18n.texts.metadata.duration;
         this.distanceTitle.innerText = this.i18n.texts.metadata.distance;
         this.positiveElevationTitle.innerText = this.i18n.texts.metadata.positiveElevation;
@@ -195,15 +199,17 @@ export class TrackMetadataComponent extends AbstractComponent {
         }
       }
       previousState = state as number;
+      //if (changed) this.changeDetector.detectChanges();
     })
   }
 
-  private updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean): void {
-    if (!forceChange && meta[key  + 'Value'] === value) return;
+  private updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean): boolean {
+    if (!forceChange && meta[key  + 'Value'] === value) return false;
     meta[key + 'Value'] = value;
     const div = (meta[key + 'Div'] as HTMLDivElement);
     if (div)
       div.innerText = value === undefined ? '' : toString(value);
+    return true;
   }
 
   protected override getComponentState(): any {

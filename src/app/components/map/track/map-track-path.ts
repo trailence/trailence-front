@@ -74,7 +74,8 @@ export class MapTrackPath {
     this._path = undefined;
   }
 
-  public get bounds(): L.LatLngBounds | undefined {
+  public getBounds(computeIfNoPath: boolean): L.LatLngBounds | undefined {
+    if (!computeIfNoPath && !this._path) return undefined;
     const p = this.path;
     if (p.isEmpty()) {
       return undefined;

@@ -103,6 +103,10 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private updateMode(): void {
+    if (!this.visible) {
+      this.updateVisibility(false, false, false);
+      return;
+    }
     const w = this.platform.width();
     const h = this.platform.height();
     if (w >= 750 + 350) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
@@ -6,7 +6,7 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, Platform } from "@ionic/angular/standalone";
-import { combineLatest, of, switchMap } from 'rxjs';
+import { combineLatest, concat, debounceTime, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -15,6 +15,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { TrailService } from 'src/app/services/database/trail.service';
+import { Arrays } from 'src/app/utils/arrays';
 
 class Meta {
   name?: string;
@@ -66,6 +67,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private platform: Platform,
   ) {
     super(injector);
+    this.changeDetector.detach();
   }
 
   protected override getComponentState() {
@@ -73,6 +75,10 @@ export class TrailOverviewComponent extends AbstractComponent {
       trail: this.trail,
       mode: this.refreshMode,
     }
+  }
+
+  protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
+    if (changes['selected']) this.changeDetector.detectChanges();
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
@@ -93,9 +99,12 @@ export class TrailOverviewComponent extends AbstractComponent {
               if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
               return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
             })
-          )
-        ]),
-        ([i18nState, trailName, trailLocation, loopType, [track, startDate]]) => {
+          ),
+          owner === this.auth.email ?
+            concat(of([]), this.tagService.getTrailTagsFullNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100))) :
+            of([]),
+        ]).pipe(debounceTime(1)),
+        ([i18nState, trailName, trailLocation, loopType, [track, startDate], tagsNames]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
@@ -107,18 +116,14 @@ export class TrailOverviewComponent extends AbstractComponent {
           if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'date', startDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
           if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
-          this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force);
-          if (changed) this.changeDetector.markForCheck();
+          if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
+          if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
+            this.tagsNames = tagsNames;
+            changed = true;
+          }
+          if (changed) this.changeDetector.detectChanges();
         }
       );
-      if (owner === this.auth.email)
-        this.byStateAndVisible.subscribe(
-          this.tagService.getTrailTagsFullNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100)),
-          names => {
-            this.tagsNames = names;
-            this.changeDetector.markForCheck();
-          }
-        );
     }
   }
 
