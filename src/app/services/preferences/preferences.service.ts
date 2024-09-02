@@ -5,6 +5,7 @@ import { AuthService } from '../auth/auth.service';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/network.service';
+import { StringUtils } from 'src/app/utils/string-utils';
 
 const defaultPreferences: {[key:string]: Preferences} = {
   'en': {
@@ -111,7 +112,16 @@ export class PreferencesService {
   }
 
   private getDefaultLanguage(): string {
-    let s = window.navigator.language;
+    let s = window.location.search;
+    if (s.length > 0) {
+      const params = StringUtils.parseQueryParams(s);
+      if (params['lang']) {
+        if (defaultPreferences[params['lang']]) {
+          return params['lang'];
+        }
+      }
+    }
+    s = window.navigator.language;
     if (s) {
       if (s.length > 2) s = s.substring(0, 2);
       s = s.toLowerCase();

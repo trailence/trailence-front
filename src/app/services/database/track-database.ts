@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, map, of, switchMap, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -17,6 +17,8 @@ import { TrackService } from './track.service';
 import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
+import { ProgressService } from '../progress/progress.service';
+import { I18nService } from '../i18n/i18n.service';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -33,6 +35,7 @@ export interface TrackMetadataSnapshot {
   bounds?: L.LatLngTuple[];
   breaksDuration: number;
   estimatedDuration: number;
+  localUpdate: number;
 }
 
 interface MetadataItem extends TrackMetadataSnapshot {
@@ -212,10 +215,10 @@ export class TrackDatabase {
             return from(this.metadataTable!.bulkGet(keys));
           }),
           map(items => {
+            items = items.filter(i => i && i.localUpdate < Date.now() - 24 * 60 * 60 * 1000 && i.updatedAt < Date.now() - 24 * 60 * 60 * 1000);
             console.log('Tracks cleanup: ' + items.length + ' to delete');
             for (const item of items) {
-              if (item && item.updatedAt < Date.now() - 24 * 60 * 60 * 1000)
-                this.injector.get(TrackService).deleteByUuidAndOwner(item.uuid, item.owner);
+              this.injector.get(TrackService).deleteByUuidAndOwner(item!.uuid, item!.owner);
             }
             return true;
           })
@@ -249,12 +252,18 @@ export class TrackDatabase {
             this.metadataLoadingTimeout = undefined;
             const map = this.metadataKeysToLoad;
             this.metadataKeysToLoad = new Map();
-            this.metadataTable?.bulkGet([...map.keys()])
+            let missing = [...map.keys()];
+            this.metadataTable?.bulkGet([...missing])
             .then(items => {
               for (let i = items.length - 1; i >= 0; --i) {
                 const item = items[i];
-                if (item) map.get(item.key)!(item);
+                if (item) {
+                  map.get(item.key)!(item);
+                  const j = missing.indexOf(item.key);
+                  if (j >= 0) missing.splice(j, 1);
+                }
               }
+              for (const key of missing) map.get(key)!(null);
             })
           }, 0);
       });
@@ -286,12 +295,18 @@ export class TrackDatabase {
             this.simplifiedLoadingTimeout = undefined;
             const map = this.simplifiedKeysToLoad;
             this.simplifiedKeysToLoad = new Map();
-            this.simplifiedTrackTable?.bulkGet([...map.keys()])
+            let missing = [...map.keys()];
+            this.simplifiedTrackTable?.bulkGet([...missing])
             .then(items => {
               for (let i = items.length - 1; i >= 0; --i) {
                 const item = items[i];
-                if (item) map.get(item.key)!(item);
+                if (item) {
+                  map.get(item.key)!(item);
+                  const j = missing.indexOf(item.key);
+                  if (j >= 0) missing.splice(j, 1);
+                }
               }
+              for (const key of missing) map.get(key)!(null);
             })
           }, 0);
       });
@@ -381,6 +396,7 @@ export class TrackDatabase {
       bounds: b ? [[b.getNorth(), b.getWest()], [b.getSouth(), b.getWest()]] : undefined,
       breaksDuration: track.computedMetadata.breakDurationSnapshot(),
       estimatedDuration: track.computedMetadata.estimatedDurationSnapshot(),
+      localUpdate: Date.now(),
     }
   }
 
@@ -691,6 +707,9 @@ export class TrackDatabase {
             }
             const toRetrieve = [...response.created, ...response.updated];
             if (toRetrieve.length > 0) {
+              const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.synchronizing_your_data, toRetrieve.length);
+              progress.subTitle = '0/' + toRetrieve.length;
+              let done = 0;
               for (let i = 0; i < toRetrieve.length; i += 20) {
                 const bunch = toRetrieve.slice(i, Math.min(toRetrieve.length, i + 20));
                 const limiter = new RequestLimiter(3);
@@ -700,7 +719,15 @@ export class TrackDatabase {
                   return this.injector.get(HttpService).get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
                 })
                 .map(request => limiter.add(request).pipe(
+                  tap(() => {
+                    done++;
+                    progress.addWorkDone(1);
+                    progress.subTitle = '' + done + '/' + toRetrieve.length;
+                  }),
                   catchError(error => {
+                    done++;
+                    progress.addWorkDone(1);
+                    progress.subTitle = '' + done + '/' + toRetrieve.length;
                     // TODO
                     return of(null);
                   })
@@ -782,8 +809,9 @@ export class TrackDatabase {
           track: track,
         }));
         await this.fullTrackTable!.bulkPut(fulls);
-        const entities = tracks.map(track => new Track(track, this.injector.get(PreferencesService)));
         if (this.db !== db) return;
+        const prefs = this.injector.get(PreferencesService);
+        const entities = tracks.map(track => new Track(track, prefs));
         entities.forEach(entity => {
           this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
         })

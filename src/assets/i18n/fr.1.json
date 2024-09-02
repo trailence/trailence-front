@@ -272,9 +272,12 @@
       },
       "change_password": {
         "button": "Modifier mon mot de passe",
+        "button_new": "Créer mon compte",
         "current_password": "Mot de passe actuel",
         "new_password1": "Nouveau mot de passe",
         "new_password2": "Confirmez le nouveau mot de passe",
+        "new_password1_new": "Mot de passe",
+        "new_password2_new": "Confirmez votre mot de passe",
         "verification_code_explaination": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
         "in_progress": "Changement du mot de passe...",
         "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer"
@@ -482,5 +485,6 @@
     "lowestAltitude": "Point bas",
     "current_position": "Position actuelle",
     "current_altitude": "Altitude actuelle"
-  }
+  },
+  "synchronizing_your_data": "Téléchargement de vos parcours"
 }

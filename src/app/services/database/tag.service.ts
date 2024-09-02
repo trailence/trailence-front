@@ -237,8 +237,15 @@ class TagStore extends OwnedStore<TagDto, Tag> {
             if (tag.createdAt > maxDate || tag.updatedAt > maxDate) continue;
             const collection = collections.find(c => c.uuid === tag.collectionUuid && c.owner === email);
             if (collection) continue;
-            count++;
-            this.delete(tag, ondone.add());
+            const d = ondone.add();
+            this.getLocalUpdate(tag).then(date => {
+              if (!date || date > maxDate) {
+                d();
+                return;
+              }
+              count++;
+              this.delete(tag, d);
+            });
           }
           ondone.start();
         });

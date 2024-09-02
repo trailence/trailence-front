@@ -29,9 +29,13 @@ export class ChangePasswordComponent {
     public i18n: I18nService,
     private modalController: ModalController,
     private http: HttpService,
-    auth: AuthService
+    public auth: AuthService
   ) {
     this.hasPreviousPassword = auth.auth?.complete === false ? false : true;
+  }
+
+  onSubmit(): void {
+    if (this.canGoNext()) this.next();
   }
 
   canGoNext(): boolean {
@@ -54,6 +58,7 @@ export class ChangePasswordComponent {
       this.http.post(environment.apiBaseUrl + '/user/v1/changePassword', request).subscribe({
         complete: () => {
           this.modalController.dismiss(null, 'cancel');
+          this.auth.completed();
         },
         error: e => this.changeResult = e
       })

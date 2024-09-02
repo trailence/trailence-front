@@ -272,8 +272,15 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
             }
             const share = shares.find(s => s.from === trail.owner && s.trails.indexOf(trail.uuid) >= 0);
             if (share) continue;
-            count++;
-            this.delete(trail, ondone.add());
+            const d = ondone.add();
+            this.getLocalUpdate(trail).then(date => {
+              if (!date || date > maxDate) {
+                d();
+                return;
+              }
+              count++;
+              this.delete(trail, d);
+            });
           }
           ondone.start();
         });

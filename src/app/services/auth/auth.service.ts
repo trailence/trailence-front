@@ -46,8 +46,8 @@ export class AuthService {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {
       if (auth === null) {
-        const url = router.routerState.snapshot.url;
-        if (!url.startsWith('/login')) {
+        const url = window.location.pathname;
+        if (!url.startsWith('/login') && !url.startsWith('/link')) {
           router.navigate(['/login'], { queryParams: {returnUrl: url} });
         }
       } else if (auth) {
@@ -93,6 +93,13 @@ export class AuthService {
     const auth = this.auth;
     if (auth) {
       localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
+    }
+  }
+
+  public completed(): void {
+    if (this._auth$.value && !this._auth$.value.complete) {
+      this._auth$.value.complete = true;
+      this._auth$.next(this._auth$.value);
     }
   }
 

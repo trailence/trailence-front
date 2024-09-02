@@ -10,7 +10,7 @@
       <form (ngSubmit)="onSubmit()">
         <ion-list>
           <ion-item>
-            <ion-input label="{{i18n.texts.pages.login.email}}" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" autocomplete="email"></ion-input>
+            <ion-input label="{{i18n.texts.pages.login.email}}" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" autocomplete="username"></ion-input>
           </ion-item>
           <ion-item>
             <ion-input label="{{i18n.texts.pages.login.password}}" labelPlacement="floating" type="password" name="password" [(ngModel)]="password" autocomplete="current-password"></ion-input>

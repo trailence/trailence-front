@@ -7,7 +7,7 @@
   </div>
 
   <ion-button (click)="changePassword()">
-    {{i18n.texts.pages.myaccount.change_password.button}}
+    {{ complete ? i18n.texts.pages.myaccount.change_password.button : i18n.texts.pages.myaccount.change_password.button_new }}
   </ion-button>
 
   <div class="page-section-title">

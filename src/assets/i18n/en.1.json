@@ -263,9 +263,12 @@
       },
       "change_password": {
         "button": "Change my password",
+        "button_new": "Create my account",
         "current_password": "Current password",
         "new_password1": "New password",
         "new_password2": "Confirm the new password",
+        "new_password1_new": "Password",
+        "new_password2_new": "Confirm your password",
         "verification_code_explaination": "We have just sent a 6-digit code to your email address, please enter it below",
         "in_progress": "Changing your password...",
         "error": "An error occured, please go back and try again"
@@ -473,5 +476,6 @@
     "lowestAltitude": "Lowest altitude",
     "current_position": "Current position",
     "current_altitude": "Current altitude"
-  }
+  },
+  "synchronizing_your_data": "Downloading your trails"
 }

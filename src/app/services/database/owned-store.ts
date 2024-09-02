@@ -70,7 +70,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override dbItemCreatedLocally(item: ENTITY): StoredItem<DTO> {
-    return {id_owner: item.uuid + '#' + item.owner, item: this.toDTO(item), updatedLocally: false};
+    return {id_owner: item.uuid + '#' + item.owner, item: this.toDTO(item), updatedLocally: false, localUpdate: Date.now()};
   }
 
   protected override updateStatusWithLocalCreate(status: OwnedStoreSyncStatus): boolean {
@@ -93,7 +93,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     item.markAsDeletedLocally();
     const dto = this.toDTO(item);
     const key = item.uuid + '#' + item.owner;
-    return from(table.put({id_owner: key, item: dto, updatedLocally: false}));
+    return from(table.put({id_owner: key, item: dto, updatedLocally: false, localUpdate: Date.now()}));
   }
 
   protected override updateStatusWithLocalDelete(status: OwnedStoreSyncStatus): boolean {
@@ -112,7 +112,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         const entity$ = this._store.value.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
         entity$?.next(entity);
       },
-      db => from(db.table<StoredItem<DTO>>(this.tableName).put({id_owner: key, item: this.toDTO(entity), updatedLocally: true})),
+      db => from(db.table<StoredItem<DTO>>(this.tableName).put({id_owner: key, item: this.toDTO(entity), updatedLocally: true, localUpdate: Date.now()})),
       status => {
         if (status.localUpdates) return false;
         status.localUpdates = true;
@@ -135,10 +135,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           // updated from server, but deleted locally => ignore item from server
         } else {
           entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
-          dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false});
+          dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
         }
       } else {
-        dtosToUpdate.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false});
+        dtosToUpdate.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
         const updatedIndex = this._updatedLocally.indexOf(key);
         if (updatedIndex >= 0)
           this._updatedLocally.splice(updatedIndex, 1);
@@ -339,12 +339,17 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     );
   }
 
+  protected getLocalUpdate(entity: ENTITY): Promise<number | undefined> {
+    return this._db!.table<StoredItem<DTO>>(this.tableName).get(entity.uuid + '#' + entity.owner).then(item => item?.localUpdate);
+  }
+
 }
 
 interface StoredItem<DTO> {
   id_owner: string;
   item: DTO;
   updatedLocally: boolean;
+  localUpdate: number;
 }
 
 export interface UpdatesResponse<T> {

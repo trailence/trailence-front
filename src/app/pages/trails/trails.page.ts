@@ -2,7 +2,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, Observable, filter, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, filter, map, of, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';

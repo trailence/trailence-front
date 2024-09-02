@@ -6,13 +6,18 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { environment } from 'src/environments/environment';
+import { IonIcon } from "@ionic/angular/standalone";
+import { ShareService } from 'src/app/services/database/share.service';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { map } from 'rxjs';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 
 @Component({
   selector: 'app-link',
   templateUrl: './link.page.html',
   styleUrls: ['./link.page.scss'],
   standalone: true,
-  imports: []
+  imports: [IonIcon, ]
 })
 export class LinkPage {
 
@@ -61,7 +66,12 @@ export class LinkPage {
               lang = lang.substring(6);
               this.injector.get(PreferencesService).setLanguage(lang);
             }
-            this.router.navigateByUrl('/trails/share/' + payload.data);
+            let i = payload.data.indexOf('/');
+            this.injector.get(ShareService).getAll$().pipe(
+              collection$items(),
+              map(shares => shares.find(share => share.id === payload.data.substring(0, i) && share.from === payload.data.substring(i + 1))),
+              firstTimeout(share => !!share, 10000, () => null as any)
+            ).subscribe(() => this.router.navigateByUrl('/trails/share/' + payload.data));
           },
           error: error => {
             console.log(error);

@@ -32,6 +32,7 @@
 .trails {
   flex: 1 1 100%;
   overflow-y: auto;
+  overflow-x: hidden;
 
   .trail {
     padding: 3px 5px;

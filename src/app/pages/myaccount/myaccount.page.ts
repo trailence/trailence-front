@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import { IonButton, ModalController } from "@ionic/angular/standalone";
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-myaccount',
@@ -14,10 +15,13 @@ import { IonButton, ModalController } from "@ionic/angular/standalone";
   standalone: true,
   imports: [IonButton, HeaderComponent, CommonModule]
 })
-export class MyaccountPage {
+export class MyaccountPage implements OnDestroy {
 
   keys?: UserKey[];
   email: string;
+  complete: boolean;
+
+  subscription: Subscription;
 
   constructor(
     public i18n: I18nService,
@@ -26,6 +30,12 @@ export class MyaccountPage {
     private modalController: ModalController,
   ) {
     this.email = auth.email!;
+    this.complete = auth.auth?.complete || false;
+    this.subscription = auth.auth$.subscribe(a => this.complete = a?.complete || false);
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   ionViewWillEnter(): void {
