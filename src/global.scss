@@ -66,6 +66,16 @@ body.dark-map {
     background: #181818;
     color: #D0D0D0;
   }
+  .leaflet-position-marker {
+    &[stroke="#2020FF"] {
+      stroke: #FFFF00;
+      fill: #A0A0FF;
+    }
+    &[stroke="#555"] {
+      stroke: #808000;
+      fill: #888;
+    }
+  }
 
 }
 .leaflet-legend {

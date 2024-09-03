@@ -402,6 +402,7 @@
     "start_this_trail": "Démarrer le parcours",
     "notif_title": "Trailence",
     "notif_message": "Trace en cours",
+    "notif_message_map": "Suivi de votre position sur la carte",
     "disabled_popup": {
       "title": "GPS désactivé",
       "message": "Votre GPS est actuellement désactivé, veuillez le démarrer afin de pouvoir démarrer une trace."

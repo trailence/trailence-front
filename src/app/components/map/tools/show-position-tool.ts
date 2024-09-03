@@ -4,11 +4,11 @@ import { Observable, Subscription } from 'rxjs';
 import { Injector } from '@angular/core';
 import { AssetsService } from 'src/app/services/assets/assets.service';
 
-export class MapCenterOnPositionTool extends L.Control {
+export class MapShowPositionTool extends L.Control {
 
   constructor(
     private injector: Injector,
-    private following$: Observable<boolean>,
+    private activated$: Observable<boolean>,
     options?: L.ControlOptions,
   ) {
     super(options);
@@ -20,21 +20,40 @@ export class MapCenterOnPositionTool extends L.Control {
     const button = MapToolUtils.createButton();
     button.style.color = 'black';
     const assets = this.injector.get(AssetsService);
-    assets.loadSvg(assets.icons['center-on-location']).subscribe(
+    let svgOn: SVGSVGElement, svgOff: SVGSVGElement;
+    let activated = false;
+    assets.loadSvg(assets.icons['pin']).subscribe(
       svg => {
+        svgOn = svg;
         svg.style.width = '26px';
         svg.style.height = '26px';
         svg.style.margin = '3px 3px -2px 3px';
-        button.appendChild(svg);
+        if (!activated)
+          button.appendChild(svg);
       }
     );
-    this.subscription = this.following$.subscribe(
-      following => button.style.color = following ? 'red' : 'black'
+    assets.loadSvg(assets.icons['pin-off']).subscribe(
+      svg => {
+        svgOff = svg;
+        svg.style.width = '26px';
+        svg.style.height = '26px';
+        svg.style.margin = '3px 3px -2px 3px';
+        if (activated)
+          button.appendChild(svg);
+      }
+    );
+    this.subscription = this.activated$.subscribe(
+      isActivated => {
+        activated = isActivated;
+        if (button.children.length > 0) button.removeChild(button.children.item(0)!);
+        if (activated && svgOff) button.appendChild(svgOff);
+        else if (!activated && svgOn) button.appendChild(svgOn);
+      }
     );
     button.onclick = async (event: MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
-      map.fireEvent('centerOnLocation');
+      map.fireEvent('toggleShowPosition');
     };
     return button;
   }

@@ -2,13 +2,11 @@ import { Injectable } from '@angular/core';
 import { Geolocation, PermissionStatus, Position } from '@capacitor/geolocation';
 import { PointDto } from 'src/app/model/dto/point';
 import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from 'src/app/services/geolocation/geolocation.interface';
-
-import {BackgroundGeolocationPlugin, Location} from "@capacitor-community/background-geolocation";
+import { BackgroundGeolocationPlugin, Location } from "@capacitor-community/background-geolocation";
 import { registerPlugin } from '@capacitor/core';
-import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { BehaviorSubject } from 'rxjs';
-const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("BackgroundGeolocation");
 
+const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("BackgroundGeolocation");
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +25,6 @@ export class GeolocationService implements IGeolocationService {
   }
 
   constructor(
-    private i18n: I18nService
   ) { }
 
   public get waitingForGps$() { return this._waitingForGps$; }
@@ -60,6 +57,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   public watchPosition(
+    notifMessage: string,
     listener: (position: PointDto) => void,
     onerror?: (error: any) => void
   ): void {
@@ -79,7 +77,7 @@ export class GeolocationService implements IGeolocationService {
         //backgroundMessage: this.i18n.texts.trace_recorder.notif_message,
         //backgroundTitle: this.i18n.texts.trace_recorder.notif_title,
         backgroundMessage: '',
-        backgroundTitle: this.i18n.texts.trace_recorder.notif_message,
+        backgroundTitle: notifMessage,
         distanceFilter: 1,
       }, (position, err) => {
         console.log('background watcher', position, err);

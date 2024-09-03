@@ -18,6 +18,8 @@ import { ZoomLevelDisplayTool } from './tools/zoom-level-display';
 import { DownloadMapTool } from './tools/download-map-tool';
 import { DarkMapToggle } from './tools/dark-map-toggle';
 import { CommonModule } from '@angular/common';
+import { MapGeolocationService } from 'src/app/services/map/map-geolocation.service';
+import { MapShowPositionTool } from './tools/show-position-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -33,6 +35,7 @@ export class MapComponent extends AbstractComponent {
 
   @Input() mapId!: string;
   @Input() tracks$!: Observable<MapTrack[]>;
+  @Input() autoFollowLocation = false;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
@@ -51,6 +54,7 @@ export class MapComponent extends AbstractComponent {
     private platform: Platform,
     private prefService: PreferencesService,
     private mapLayersService: MapLayersService,
+    private mapGeolocation: MapGeolocationService,
   ) {
     super(injector);
     this.id = IdGenerator.generateId('map-');
@@ -87,7 +91,14 @@ export class MapComponent extends AbstractComponent {
   }
 
   protected override destroyComponent(): void {
-    this._map$.value?.remove();
+    if (this._map$.value) {
+      for (const track of this._currentTracks) {
+        track.remove();
+      }
+      this._currentTracks = [];
+      this._map$.value.remove();
+      this._map$.next(undefined);
+    }
   }
 
   public pause() {
@@ -219,7 +230,7 @@ export class MapComponent extends AbstractComponent {
   private _followingLocation$ = new BehaviorSubject<boolean>(false);
   private _locationMarker?: L.CircleMarker;
   private _toolCenterOnPosition?: L.Control;
-  public showLocation(lat: number, lng: number, color: string): void {
+  private showLocation(lat: number, lng: number, color: string): void {
     if (this._locationMarker) {
       this._locationMarker.setLatLng({lat, lng});
       this._locationMarker.setStyle({color, fillColor: color});
@@ -246,12 +257,17 @@ export class MapComponent extends AbstractComponent {
         fillColor: color,
         fillOpacity: 0.33,
         stroke: true,
+        className: 'leaflet-position-marker',
       });
-      this._followingLocation$.next(true);
+      if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
+        this._followingLocation$.next(true);
       if (this._map$.value) {
         this._locationMarker.addTo(this._map$.value);
-        this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
-        this._followingLocation$.next(true);
+        if (this._followingLocation$.value) {
+          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+        } else {
+          this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
+        }
         if (!this._toolCenterOnPosition) {
           this.addToolCenterOnPosition(this._map$.value);
         }
@@ -259,7 +275,7 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  public centerOnLocation(): void {
+  private centerOnLocation(): void {
     if (this._map$.value && this._locationMarker) {
       this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
     }
@@ -274,7 +290,7 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  public hideLocation(): void {
+  private hideLocation(): void {
     if (this._locationMarker) {
       if (this._map$.value) {
         this._locationMarker.removeFrom(this._map$.value);
@@ -362,6 +378,7 @@ export class MapComponent extends AbstractComponent {
       this.addToolCenterOnPosition(map);
     }
     map.on('centerOnLocation', () => this.toggleCenterOnLocation());
+    map.on('toggleShowPosition', () => this.mapGeolocation.toggleShowPosition());
 
     this._map$.next(map);
 
@@ -379,6 +396,35 @@ export class MapComponent extends AbstractComponent {
             });
             distanceUnit = prefs.distanceUnit;
             scale.addTo(map);
+          }
+        }
+      )
+    );
+    let toolShowPosition: MapShowPositionTool | undefined;
+    this.whenAlive.add(
+      combineLatest([
+        this._mapState.live$,
+        this.mapGeolocation.position$,
+        this.mapGeolocation.recorder.current$,
+      ]).subscribe(
+        ([live, position, recording]) => {
+          if (!live) return;
+          // show tool only if not recording
+          if (recording) {
+            if (toolShowPosition) {
+              toolShowPosition.remove();
+              toolShowPosition = undefined;
+            }
+          } else {
+            if (!toolShowPosition) {
+              toolShowPosition = new MapShowPositionTool(this.injector, this.mapGeolocation.showPosition$, { position: 'topleft' }).addTo(map);
+            }
+          }
+          // show position
+          if (position) {
+            this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
+          } else {
+            this.hideLocation();
           }
         }
       )

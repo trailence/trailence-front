@@ -57,6 +57,8 @@ export class AssetsService {
       'one-way': 'assets/point-to-point.1.svg',
       'online': 'assets/ionicons/checkmark-circle-outline.svg',
       'out-and-back': 'assets/out-and-back.1.svg',
+      'pin': 'assets/pin.1.svg',
+      'pin-off': 'assets/pin-off.1.svg',
       'merge': 'assets/ionicons/git-merge-outline.svg',
       'negative-elevation': 'assets/negative-elevation.1.svg',
       'path': 'assets/path.1.svg',

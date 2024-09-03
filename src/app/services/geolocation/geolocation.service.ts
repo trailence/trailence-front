@@ -66,6 +66,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   public watchPosition(
+    notifMessage: string,
     listener: (position: PointDto) => void,
     onerror?: (error: any) => void
   ): void {

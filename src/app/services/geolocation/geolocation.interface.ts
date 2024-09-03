@@ -19,7 +19,7 @@ export interface IGeolocationService {
 
   getCurrentPosition(): Promise<PointDto>;
 
-  watchPosition(listener: (position: PointDto) => void, onerror?: (error: any) => void): void;
+  watchPosition(notifMessage: string, listener: (position: PointDto) => void, onerror?: (error: any) => void): void;
 
   stopWatching(listener: (position: PointDto) => void): void;
 

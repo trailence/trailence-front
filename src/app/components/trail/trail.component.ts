@@ -226,27 +226,16 @@ export class TrailComponent extends AbstractComponent {
     if (this.recording$)
       this.byStateAndVisible.subscribe(
         this.recording$.pipe(
-          switchMap(r => combineLatest([
-            this.geolocation.waitingForGps$,
-            r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)
-          ])),
+          switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
           debounceTime(10),
         ),
-        ([waitingForGps, r]) => {
+        r => {
           const pt = r?.track.arrivalPoint;
-          if (this.map) {
-            if (pt)
-              this.map.showLocation(pt.pos.lat, pt.pos.lng, waitingForGps || r.paused ? '#555' : '#2020FF');
-            else
-              this.map.hideLocation();
-          }
           if (pt && this.elevationGraph) {
             this.elevationGraph.updateRecording(r.track);
           }
         }
       );
-    else
-      this.map?.hideLocation();
     this.byState.add(
       this.edited$.pipe(
         debounceTime(1000)

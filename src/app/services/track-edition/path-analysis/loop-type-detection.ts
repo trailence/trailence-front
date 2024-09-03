@@ -9,10 +9,15 @@ export function detectLoopType(track: Track): TrailLoopType | undefined {
   if (!departure) return undefined;
   const departureArrivalDistance = departure.distanceTo(arrival.pos);
   if (departureArrivalDistance > 250) return TrailLoopType.ONE_WAY;
-
   let points = track.getAllPositions();
   if (departureArrivalDistance > 5) points.push(points[0]);
-  points = buildClosePoints(points, 10);
+  const trackDistance = track.metadata.distance;
+  const useDistances =
+    trackDistance < 25000 ? ({closePoints: 10, maxDistance: 25}) :
+    trackDistance < 100000 ? ({closePoints: 40, maxDistance: 100}) :
+    trackDistance < 500000 ? ({closePoints: 200, maxDistance: 500}) :
+    ({closePoints: 500, maxDistance: 1000});
+  points = buildClosePoints(points, useDistances.closePoints);
 
   let distanceOutAndBack = 0;
   let totalDistance = 0;
@@ -33,9 +38,9 @@ export function detectLoopType(track: Track): TrailLoopType | undefined {
       const p3 = points[j];
       const p4 = points[j + 1];
       const d1 = p3.distanceTo(p2);
-      if (d1 > 25) continue;
+      if (d1 > useDistances.maxDistance) continue;
       const d2 = p4.distanceTo(p1);
-      if (d2 > 25) continue;
+      if (d2 > useDistances.maxDistance) continue;
       if (bestDistanceWithPoints !== -1 && d1 + d2 >= bestDistanceWithPoints) continue;
       const angle2 = Math.atan2(p3.lat - p4.lat, p3.lng - p4.lng);
       if (Math.abs(angle - angle2) > 1) continue;

@@ -393,6 +393,7 @@
     "start_this_trail": "Start this trail",
     "notif_title": "Trailence",
     "notif_message": "Track in progress",
+    "notif_message_map": "Following your position on the map",
     "disabled_popup": {
       "title": "GPS disabled",
       "message": "Your GPS is disabled, please enable it to start a track."

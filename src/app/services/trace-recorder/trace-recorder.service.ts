@@ -235,7 +235,7 @@ export class TraceRecorderService {
             }
           }
         }
-        this.geolocation.watchPosition(this._geolocationListener);
+        this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
         return Promise.resolve(recording);
       }
     });
