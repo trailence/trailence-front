@@ -1,4 +1,4 @@
-import { BreakWayPoint, Track } from 'src/app/model/track';
+import { BreakWayPoint, ComputedWayPoint, Track } from 'src/app/model/track';
 import { MapAnchor } from '../markers/map-anchor';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
@@ -108,9 +108,9 @@ export class MapTrackWayPoints {
               if (!this._isRecording)
                 this._arrival = this.createArrival(wp.wayPoint.point.pos);
             } else if (wp.breakPoint) {
-              this._breaks.push(this.createBreakPoint(wp.wayPoint.point.pos, wp.breakPoint));
+              this._breaks.push(this.createBreakPoint(wp));
             } else {
-              this._anchors.push(this.createWayPoint(wp.wayPoint.point.pos, wp.index));
+              this._anchors.push(this.createWayPoint(wp));
             }
           }
           if (this._map && this._showDA) this.addDAToMap();
@@ -150,12 +150,12 @@ export class MapTrackWayPoints {
     return new MapAnchor(point, anchorArrivalBorderColor, this.i18n.texts.way_points.A, undefined, anchorArrivalTextColor, anchorArrivalFillColor);
   }
 
-  private createWayPoint(point: L.LatLngLiteral, index: number): MapAnchor {
-    return new MapAnchor(point, anchorBorderColor, '' + index, undefined, anchorTextColor, anchorFillColor);
+  private createWayPoint(wp: ComputedWayPoint): MapAnchor {
+    return new MapAnchor(wp.wayPoint.point.pos, anchorBorderColor, '' + wp.index, undefined, anchorTextColor, anchorFillColor, undefined, true, wp);
   }
 
-  private createBreakPoint(point: L.LatLngLiteral, breakPoint: BreakWayPoint): MapAnchor {
-    return new MapAnchor(point, anchorBreakBorderColor, MapTrackWayPoints.breakPointText(breakPoint), undefined, anchorBreakTextColor, anchorBreakFillColor);
+  private createBreakPoint(wp: ComputedWayPoint): MapAnchor {
+    return new MapAnchor(wp.wayPoint.point.pos, anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint!), undefined, anchorBreakTextColor, anchorBreakFillColor, undefined, true, wp);
   }
 
   public static breakPointText(breakPoint: BreakWayPoint): string {
@@ -205,6 +205,36 @@ export class MapTrackWayPoints {
       for (const anchor of this._breaks) {
         anchor.marker.removeFrom(this._map!);
       }
+  }
+
+  public highlight(wp: ComputedWayPoint): void {
+    const anchor = this.getAnchor(wp);
+    if (anchor) {
+      anchor.marker.getElement()?.classList.add('highlighted');
+    }
+  }
+
+  public unhighlight(wp: ComputedWayPoint): void {
+    const anchor = this.getAnchor(wp);
+    if (anchor) {
+      anchor.marker.getElement()?.classList.remove('highlighted');
+    }
+  }
+
+  private getAnchor(wp: ComputedWayPoint): MapAnchor | undefined {
+    if (wp.isDeparture) {
+      return this._departure || this._departureAndArrival;
+    }
+    if (wp.isArrival) {
+      return this._arrival || this._departureAndArrival;
+    }
+    if (wp.breakPoint && this._breaks) {
+      return this._breaks.find(b => b.data === wp);
+    }
+    if (this._anchors) {
+      return this._anchors.find(b => b.data === wp);
+    }
+    return undefined;
   }
 
 }

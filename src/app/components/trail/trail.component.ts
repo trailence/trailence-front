@@ -210,7 +210,10 @@ export class TrailComponent extends AbstractComponent {
         map(([modified, tracks]) => modified || (tracks.length > 0 ? tracks[0] : undefined)),
         switchMap(track => { this.wayPointsTrack = track; return track ? track.computedWayPoints$ : of([]); })
       ),
-      wayPoints => this.wayPoints = wayPoints
+      wayPoints => {
+        if (this._highlightedWayPoint) this.unhighlightWayPoint(this._highlightedWayPoint, true);
+        this.wayPoints = wayPoints;
+      }
     );
 
     if (this.trail1$)
@@ -484,6 +487,38 @@ export class TrailComponent extends AbstractComponent {
         track.appendWayPoint(twp);
       }
     });
+  }
+
+  _highlightedWayPoint?: ComputedWayPoint;
+  private _highlightedWayPointFromClick = false;
+
+  highlightWayPoint(wp: ComputedWayPoint, click: boolean): void {
+    if (this._highlightedWayPoint === wp) {
+      if (click) this._highlightedWayPointFromClick = true;
+      return;
+    }
+    if (!click && this._highlightedWayPointFromClick) return;
+    if (this._highlightedWayPoint) {
+      this.unhighlightWayPoint(this._highlightedWayPoint, true);
+    }
+    this._highlightedWayPoint = wp;
+    this._highlightedWayPointFromClick = click;
+    const mapTrack = this.mapTracks$.value.find(mt => mt.track === this.wayPointsTrack);
+    mapTrack?.highlightWayPoint(wp);
+  }
+
+  unhighlightWayPoint(wp: ComputedWayPoint, force: boolean): void {
+    if (this._highlightedWayPoint === wp && (force || !this._highlightedWayPointFromClick)) {
+      this._highlightedWayPoint = undefined;
+      this._highlightedWayPointFromClick = false;
+      const mapTrack = this.mapTracks$.value.find(mt => mt.track === this.wayPointsTrack);
+      mapTrack?.unhighlightWayPoint(wp);
+    }
+  }
+
+  toogleHighlightWayPoint(wp: ComputedWayPoint): void {
+    if (this._highlightedWayPoint === wp && this._highlightedWayPointFromClick) this.unhighlightWayPoint(wp, true);
+    else this.highlightWayPoint(wp, true);
   }
 
   openLocationDialog(): void {

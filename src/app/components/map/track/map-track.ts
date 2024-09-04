@@ -1,4 +1,4 @@
-import { Track } from 'src/app/model/track';
+import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPath } from './map-track-path';
 import { Trail } from 'src/app/model/trail';
@@ -79,6 +79,14 @@ export class MapTrack {
   public bringToFront(): void {
     this._path.bringToFront();
     this._arrowPath.bringToFront();
+  }
+
+  public highlightWayPoint(wp: ComputedWayPoint): void {
+    this._wayPoints.highlight(wp);
+  }
+
+  public unhighlightWayPoint(wp: ComputedWayPoint): void {
+    this._wayPoints.unhighlight(wp);
   }
 
 }

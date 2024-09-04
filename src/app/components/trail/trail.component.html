@@ -140,7 +140,7 @@
             <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: arrival, isArrival: true}"></ng-container>
           </ng-container>
           <ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival">
-            <div class="waypoint">
+            <div class="waypoint" (mouseover)="highlightWayPoint(wp, false)" (mouseenter)="highlightWayPoint(wp, false)" (mouseleave)="unhighlightWayPoint(wp, false)" (click)="toogleHighlightWayPoint(wp)" [ngClass]="{'highlighted': _highlightedWayPoint === wp}">
               <div class="waypoint-anchor">
                 <img [src]="waypointImg(wp, arrival)" width="40" height="40">
               </div>

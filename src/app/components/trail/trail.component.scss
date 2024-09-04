@@ -393,6 +393,10 @@
   padding-bottom: 2px;
   border-bottom: 1px solid var(--ion-color-light);
 
+  &.highlighted {
+    background-color: rgba(var(--ion-text-color-rgb), 0.1);
+  }
+
   .waypoint-anchor {
     flex: none;
   }

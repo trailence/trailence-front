@@ -15,6 +15,7 @@ export class MapAnchor {
     public fillColor?: string,
     public fillColor2?: string,
     rotateOnMouseHover: boolean = true,
+    public data: any = undefined,
   ) {
     this.marker = L.marker(point, {
       icon: L.icon({
