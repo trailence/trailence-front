@@ -1,4 +1,4 @@
-import { Component, ElementRef, Injector, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Directive, ElementRef, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Resubscribeables, Subscriptions } from './rxjs/subscription-utils';
 import { Arrays } from './arrays';

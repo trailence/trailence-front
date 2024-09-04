@@ -47,6 +47,7 @@ export function detectLoopType(track: Track): TrailLoopType | undefined {
       bestDistanceWithPoints = d1 + d2;
       bestDistance = p4.distanceTo(p3);
       best = j;
+      if (bestDistanceWithPoints < useDistances.closePoints) break;
     }
     if (best !== -1) {
       distanceOutAndBack += distance + bestDistance;

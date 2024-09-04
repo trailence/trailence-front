@@ -55,7 +55,6 @@ export class CollectionMapper<S, T> {
   public update(items: S[]): T[] {
     const result: T[] = [];
     if (this._current.length > 0) {
-      const toRemove: S[] = [];
       for (let i = 0; i < this._current.length; ++i) {
         const known = this._current[i];
         if (items.findIndex(item => this.matcher(item, known.source)) < 0) {

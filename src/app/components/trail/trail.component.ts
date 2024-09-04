@@ -68,10 +68,11 @@ export class TrailComponent extends AbstractComponent {
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
 
-  displayMode = 'large';
+  displayMode = 'loading';
   tab = 'map';
   bottomSheetOpen = true;
   bottomSheetTab = 'info';
+  isSmall = false;
 
   editable = false;
   edited$ = new Subject<boolean>();
@@ -281,9 +282,11 @@ export class TrailComponent extends AbstractComponent {
     const h = this.platform.height();
     if (w >= 750 + 350) {
       this.displayMode = 'large';
+      this.isSmall = false;
       this.updateVisibility(true, this.bottomSheetOpen);
     } else {
       this.displayMode = h > 500 || w < 500 ? 'small' : 'small small-height bottom-sheet-tab-open-' + this.bottomSheetTab;
+      this.isSmall = true;
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation');
     }
   }

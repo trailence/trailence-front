@@ -37,6 +37,7 @@
         (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
         (click)="onTrailClick(trailWithInfo.trail)"
         [fromCollection]="!!collectionUuid"
+        [trackSnapshot]="trailWithInfo.track"
       ></app-trail-overview>
       <div style="display:flex; flex-direction: row; align-items: center; justify-content: center;">
         <ion-button *ngIf="highlighted === trailWithInfo.trail" (click)="openTrail(trailWithInfo.trail)" size="small">

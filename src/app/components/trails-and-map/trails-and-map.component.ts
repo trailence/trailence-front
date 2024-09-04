@@ -38,6 +38,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   tab = 'map';
   trailSheetMode = 'none';
   trailSheetMetadataClass = 'two-columns';
+  isSmall = false;
 
   highlightedTrail?: Trail;
   mapTracksMapper = new CollectionMapper<{trail: Trail, track: SimplifiedTrackSnapshot}, MapTrack>(
@@ -70,6 +71,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
+    this.mapTrails$.next(this.trails);
     this.byStateAndVisible.subscribe(
       this.mapTrails$.pipe(
         switchMap(trails =>
@@ -113,14 +115,17 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.mode = 'large list-two-cols';
       this.listMetadataClass = 'two-columns';
       this.trailSheetMode = 'none';
+      this.isSmall = false;
       this.updateVisibility(true, true, false);
     } else if (w >= 700 + 175) {
       this.mode = 'large list-one-col';
       this.listMetadataClass = 'one-column';
       this.trailSheetMode = 'none';
+      this.isSmall = false;
       this.updateVisibility(true, true, false);
     } else if (h > w) {
       this.mode = 'small vertical ' + this.tab;
+      this.isSmall = true;
       this.listMetadataClass = w >= 350 ? 'two-columns' : 'one-column';
       if (this.tab === 'map') {
         this.trailSheetMode = 'bottom';
@@ -133,6 +138,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       }
     } else {
       this.mode = 'small horizontal ' + this.tab;
+      this.isSmall = true;
       this.listMetadataClass = w >= 350 ? 'two-columns' : 'one-column';
       if (this.tab === 'map') {
         if (w >= 750 || h <= 400) {

@@ -246,24 +246,24 @@ export class TrackDatabase {
   private loadMetadata(key: string): Promise<TrackMetadataSnapshot | null> {
     return new Promise<TrackMetadataSnapshot | null>((resolve) => {
       this.metadataKeysToLoad.set(key, resolve);
+      if (this.metadataLoadingTimeout) return;
       this.injector.get(NgZone).runOutsideAngular(() => {
         if (!this.metadataLoadingTimeout)
           this.metadataLoadingTimeout = setTimeout(() => {
             this.metadataLoadingTimeout = undefined;
             const map = this.metadataKeysToLoad;
             this.metadataKeysToLoad = new Map();
-            let missing = [...map.keys()];
-            this.metadataTable?.bulkGet([...missing])
+            let keys = [...map.keys()];
+            this.metadataTable?.bulkGet(keys)
             .then(items => {
               for (let i = items.length - 1; i >= 0; --i) {
                 const item = items[i];
                 if (item) {
                   map.get(item.key)!(item);
-                  const j = missing.indexOf(item.key);
-                  if (j >= 0) missing.splice(j, 1);
+                } else {
+                  map.get(keys[i])!(null);
                 }
               }
-              for (const key of missing) map.get(key)!(null);
             })
           }, 0);
       });
@@ -289,24 +289,24 @@ export class TrackDatabase {
   private loadSimplifiedTrack(key: string): Promise<SimplifiedTrackSnapshot | null> {
     return new Promise<SimplifiedTrackSnapshot | null>((resolve) => {
       this.simplifiedKeysToLoad.set(key, resolve);
+      if (this.simplifiedLoadingTimeout) return;
       this.injector.get(NgZone).runOutsideAngular(() => {
         if (!this.simplifiedLoadingTimeout)
           this.simplifiedLoadingTimeout = setTimeout(() => {
             this.simplifiedLoadingTimeout = undefined;
             const map = this.simplifiedKeysToLoad;
             this.simplifiedKeysToLoad = new Map();
-            let missing = [...map.keys()];
-            this.simplifiedTrackTable?.bulkGet([...missing])
+            let keys = [...map.keys()];
+            this.simplifiedTrackTable?.bulkGet(keys)
             .then(items => {
               for (let i = items.length - 1; i >= 0; --i) {
                 const item = items[i];
                 if (item) {
                   map.get(item.key)!(item);
-                  const j = missing.indexOf(item.key);
-                  if (j >= 0) missing.splice(j, 1);
+                } else {
+                  map.get(keys[i])!(null)
                 }
               }
-              for (const key of missing) map.get(key)!(null);
             })
           }, 0);
       });
@@ -688,13 +688,10 @@ export class TrackDatabase {
   }
 
   private syncUpdatesFromServer(db: Dexie): Observable<any> {
-    return from(this.fullTrackTable!.toArray()).pipe(
-      switchMap(items => {
+    const known: VersionDto[] = [];
+    return from(this.fullTrackTable!.where('version').above(0).each(item => known.push({uuid: item.uuid, owner: item.owner, version: item.version}))).pipe(
+      switchMap(() => {
         if (this.db !== db) return EMPTY;
-        const known: VersionDto[] = [];
-        for (const item of items) {
-          if (item.version > 0) known.push({uuid: item.uuid, owner: item.owner, version: item.version});
-        }
         return this.injector.get(HttpService).post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
           switchMap(response => {
             if (this.db !== db) return EMPTY;

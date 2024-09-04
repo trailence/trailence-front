@@ -18,7 +18,7 @@
     ></app-trails-list>
   </div>
   <div class="tabs-container">
-    <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
+    <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())" *ngIf="isSmall">
       <ion-segment-button value="list" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.list}}</ion-segment-button>
       <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.map}}</ion-segment-button>
     </ion-segment>

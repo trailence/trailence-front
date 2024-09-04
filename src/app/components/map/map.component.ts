@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, NgZone, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { Platform } from '@ionic/angular';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, switchMap, takeWhile, timer } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -17,7 +17,6 @@ import { MapLayerSelectionTool } from './tools/layer-selection-tool';
 import { ZoomLevelDisplayTool } from './tools/zoom-level-display';
 import { DownloadMapTool } from './tools/download-map-tool';
 import { DarkMapToggle } from './tools/dark-map-toggle';
-import { CommonModule } from '@angular/common';
 import { MapGeolocationService } from 'src/app/services/map/map-geolocation.service';
 import { MapShowPositionTool } from './tools/show-position-tool';
 
@@ -64,21 +63,15 @@ export class MapComponent extends AbstractComponent {
     this.whenVisible.subscribe(this.platform.resize.pipe(debounceTime(500)), () => this.invalidateSize());
     this.visible$.subscribe(visible => {
       if (visible) {
-        setTimeout(() => this.invalidateSize(), 0);
+        setTimeout(() => {
+          if (!this._map$.value) this.createMap();
+          else this.invalidateSize();
+        }, 0);
       }
       this._mapState.live = visible;
     });
     this.loadState();
     this.updateTracks();
-    this._mapState.live$.pipe(
-      filter(live => live),
-      switchMap(() => timer(100, 300).pipe(
-        takeWhile(() => this._mapState.live),
-        switchMap(() => this.readyForMap$()),
-        filter(ready => ready && this._mapState.live)
-      )),
-      first()
-    ).subscribe(() => this.createMap());
     this.whenVisible.subscribe(
       combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
       () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId)
@@ -306,19 +299,6 @@ export class MapComponent extends AbstractComponent {
 
   private addToolCenterOnPosition(map: L.Map): void {
     this._toolCenterOnPosition = new MapCenterOnPositionTool(this.injector, this._followingLocation$, { position: 'topleft' }).addTo(map);
-  }
-
-  private readyForMap$(): Observable<boolean> {
-    return new Observable<boolean>(subscriber => {
-      this.injector.get(NgZone).runOutsideAngular(() => {
-        setTimeout(() => {
-          const element = document.getElementById(this.id);
-          const ready = !!element && element.clientHeight > 0 && element.clientWidth > 0;
-          subscriber.next(ready);
-          subscriber.complete();
-        }, 0);
-      });
-    });
   }
 
   public get crs(): L.CRS {

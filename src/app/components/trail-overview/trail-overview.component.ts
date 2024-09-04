@@ -5,8 +5,8 @@ import { TrackMetadataComponent } from '../track-metadata/track-metadata.compone
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonIcon, IonCheckbox, IonButton, IonPopover, IonContent, Platform, IonSpinner } from "@ionic/angular/standalone";
-import { combineLatest, concat, debounceTime, of, switchMap } from 'rxjs';
+import { IonIcon, IonCheckbox, IonButton, Platform, IonSpinner, PopoverController } from "@ionic/angular/standalone";
+import { BehaviorSubject, combineLatest, debounceTime, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -16,6 +16,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Arrays } from 'src/app/utils/arrays';
+import { AssetsService } from 'src/app/services/assets/assets.service';
 
 class Meta {
   name?: string;
@@ -34,7 +35,7 @@ class Meta {
   styleUrls: ['./trail-overview.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonSpinner, IonContent, IonPopover, IonButton, IonCheckbox, IonIcon,
+  imports: [IonSpinner, IonButton, IonCheckbox, IonIcon,
     CommonModule,
     TrackMetadataComponent,
     MenuContentComponent,
@@ -45,6 +46,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() trail?: Trail;
   @Input() refreshMode: 'live' | 'snapshot' = 'snapshot';
   @Input() fromCollection = true;
+  @Input() trackSnapshot: TrackMetadataSnapshot | null | undefined;
 
   @Input() selectable = false;
   @Input() selected = false;
@@ -52,7 +54,7 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   id = IdGenerator.generateId();
   meta: Meta = new Meta();
-  track?: Track | TrackMetadataSnapshot;
+  track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
   tagsNames: string[] = [];
 
   constructor(
@@ -65,6 +67,8 @@ export class TrailOverviewComponent extends AbstractComponent {
     private auth: AuthService,
     private trailService: TrailService,
     private platform: Platform,
+    private assets: AssetsService,
+    private popoverController: PopoverController,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -73,12 +77,16 @@ export class TrailOverviewComponent extends AbstractComponent {
   protected override getComponentState() {
     return {
       trail: this.trail,
+      trackSnapshot: this.trackSnapshot,
       mode: this.refreshMode,
     }
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['selected']) this.changeDetector.detectChanges();
+  }
+
+  protected override initComponent(): void {
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
@@ -92,24 +100,23 @@ export class TrailOverviewComponent extends AbstractComponent {
           this.trail.name$,
           this.trail.location$,
           this.trail.loopType$,
-          this.trail.currentTrackUuid$.pipe(
-            switchMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
-            switchMap(track => {
-              if (!track) return of([undefined, undefined]);
-              if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
-              return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
-            })
-          ),
-          owner === this.auth.email ?
-            concat(of([]), this.tagService.getTrailTagsFullNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100))) :
-            of([]),
-        ]).pipe(debounceTime(1)),
-        ([i18nState, trailName, trailLocation, loopType, [track, startDate], tagsNames]) => {
+          this.trackSnapshot && this.refreshMode !== 'live' ?
+            of([this.trackSnapshot, this.trackSnapshot.startDate] as [TrackMetadataSnapshot, number | undefined]) :
+            this.trail.currentTrackUuid$.pipe(
+              switchMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
+              switchMap(track => {
+                if (!track) return of([undefined, undefined]);
+                if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
+                return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
+              })
+            ),
+        ]).pipe(debounceTimeExtended(0, 10)),
+        ([i18nState, trailName, trailLocation, loopType, [track, startDate]]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
-          if (track != this.track) {
-            this.track = track;
+          if (track != this.track$.value) {
+            this.track$.next(track);
             changed = true;
           }
           if (this.updateMeta(this.meta, 'name', trailName, undefined, force)) changed = true;
@@ -117,13 +124,21 @@ export class TrailOverviewComponent extends AbstractComponent {
           if (this.updateMeta(this.meta, 'date', startDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
           if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
           if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
-          if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
-            this.tagsNames = tagsNames;
-            changed = true;
-          }
           if (changed) this.changeDetector.detectChanges();
+          if (!this._trackMetadataInitialized) this.initTrackMetadata();
         }
       );
+      if (owner === this.auth.email) {
+        this.byStateAndVisible.subscribe(
+          this.tagService.getTrailTagsFullNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100)),
+          tagsNames => {
+            if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
+              this.tagsNames = tagsNames;
+              this.changeDetector.detectChanges();
+            }
+          }
+        );
+      }
     }
   }
 
@@ -141,8 +156,15 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   private reset(): void {
     this.meta = new Meta();
-    this.track = undefined;
+    this.track$.next(undefined);
     this.tagsNames = [];
+  }
+
+  private _trackMetadataInitialized = false;
+  private initTrackMetadata(): void {
+    this._trackMetadataInitialized = true;
+    const element = document.getElementById('track-metadata-' + this.id);
+    TrackMetadataComponent.init(element!, this.track$, of(undefined), false, this.assets, this.i18n, this.whenVisible);
   }
 
   setSelected(selected: boolean) {
@@ -151,19 +173,25 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.selectedChange.emit(selected);
   }
 
-  popoverOffsetY = '0px';
-  popoverMaxHeight = '90%';
-  triggerPopoverPosition(event: MouseEvent): void {
+  openMenu(event: MouseEvent): void {
     const y = event.pageY;
     const h = this.platform.height();
     const remaining = h - y - 15;
-    if (remaining < 300) {
-      this.popoverOffsetY = (-300 + remaining) + 'px';
-      this.popoverMaxHeight = '300px';
-    } else {
-      this.popoverOffsetY = '0px';
-      this.popoverMaxHeight = (h - y - 10) + 'px';
-    }
+
+    this.popoverController.create({
+      component: MenuContentComponent,
+      componentProps: {
+        menu: this.trailMenuService.getTrailsMenu([this.trail!], false, this.fromCollection ? this.trail!.collectionUuid : undefined)
+      },
+      event: event,
+      side: 'right',
+      dismissOnSelect: true,
+      arrow: true,
+    }).then(p => {
+      p.style.setProperty('--offset-y', remaining < 300 ? (-300 + remaining) + 'px' : '0px');
+      p.style.setProperty('--max-height', remaining < 300 ? '300px' : (h - y - 10) + 'px');
+      p.present();
+    });
   }
 
 }

@@ -23,7 +23,7 @@
     ></app-map>
   </div>
   <div class="tabs-container">
-    <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
+    <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())" *ngIf="isSmall">
       <ion-segment-button value="details" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.details}}</ion-segment-button>
       <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.map}}</ion-segment-button>
     </ion-segment>
@@ -32,7 +32,7 @@
     <div class="bottom-sheet-button" (click)="toggleBottomSheet()">
       <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'"></ion-icon>
     </div>
-    <div class="bottom-sheet-tabs">
+    <div class="bottom-sheet-tabs" *ngIf="isSmall">
       <div class="bottom-sheet-tab {{bottomSheetTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('info')">
         <ion-icon name="info"></ion-icon>
       </div>
@@ -47,7 +47,7 @@
     </ng-container>
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
-    <div class="trail-details" *ngIf="tracks[0]">
+    <div class="trail-details" *ngIf="tracks[0] && (!isSmall || tab === 'details')">
       <div class="trail-tags-row" *ngIf="tagsNames && trail1" (click)="trailMenuService.openTags([trail1], trail1.collectionUuid)">
         <span *ngIf="tagsNames.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
         <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
@@ -215,7 +215,7 @@
       </ion-button>
     </div>
     <div class="bottom-sheet-info-content">
-      <div class="metadata-container tiles">
+      <div class="metadata-container tiles" *ngIf="isSmall && bottomSheetTab === 'info'">
         <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>

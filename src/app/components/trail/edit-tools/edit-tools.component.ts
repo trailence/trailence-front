@@ -19,6 +19,7 @@ import { MapComponent } from '../../map/map.component';
 import { MapAnchor } from '../../map/markers/map-anchor';
 import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
 import { WayPoint } from 'src/app/model/way-point';
+import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 
 interface HistoryState {
   base: Track | undefined;
@@ -59,6 +60,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     private auth: AuthService,
     public prefs: PreferencesService,
     private geo: GeoService,
+    private editionService: TrackEditionService,
   ) { }
 
   private mapClickSubscription?: Subscription;
@@ -132,6 +134,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     track = track.copy(this.auth.email!);
     this.trackService.create(track);
     this.trail.currentTrackUuid = track.uuid;
+    this.editionService.computeFinalMetadata(this.trail, track);
     this.trailService.update(this.trail);
     this.history = [];
     this.undone = [];

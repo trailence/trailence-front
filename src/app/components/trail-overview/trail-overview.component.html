@@ -1,63 +1,52 @@
-<ng-container *ngIf="trail">
-  <div class="trail-name-row">
-    <ion-checkbox *ngIf="selectable" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
-    <div class="trail-name">{{ meta.name }}</div>
-    <ion-button size="small" fill="clear" color="dark" id="trail-menu-button-{{id}}" (click)="triggerPopoverPosition($event)">
-      <ion-icon name="item-menu" slot="icon-only"></ion-icon>
-    </ion-button>
+<div class="trail-name-row" *ngIf="trail">
+  <ion-checkbox *ngIf="selectable" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
+  <div class="trail-name">{{ meta.name }}</div>
+  <ion-button size="small" fill="clear" color="dark" (click)="openMenu($event)">
+    <ion-icon name="item-menu" slot="icon-only"></ion-icon>
+  </ion-button>
+</div>
+<div class="trail-tags-row">
+  <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
+</div>
 
-    <ion-popover trigger="trail-menu-button-{{id}}" [dismissOnSelect]="true" side="right" [arrow]="true" style="--offset-y: {{popoverOffsetY}}; --max-height: {{popoverMaxHeight}}">
-      <ng-template>
-        <ion-content>
-          <app-menu-content [menu]="trailMenuService.getTrailsMenu([trail], false, fromCollection ? trail.collectionUuid : undefined)"></app-menu-content>
-        </ion-content>
-      </ng-template>
-    </ion-popover>
+<div [ngStyle]="{display: track$.value ? 'block' : 'none'}">
+  <div class="metadata-item-container">
+    <div class="metadata-item">
+      <ion-icon name="date"></ion-icon>
+      <div class="metadata-content">
+        <div class="metadata-value">
+          <div>{{ meta.dateString }}</div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="trail-tags-row">
-    <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
+  <div class="metadata-item-container">
+    <div class="metadata-item nowrap">
+      <ion-icon name="location"></ion-icon>
+      <div class="metadata-content">
+        <div class="metadata-value">
+          <div>{{ meta.location }}</div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <ng-container *ngIf="track">
-    <div class="metadata-item-container">
-      <div class="metadata-item">
-        <ion-icon name="date"></ion-icon>
-        <div class="metadata-content">
-          <div class="metadata-value">
-            <div>{{ meta.dateString }}</div>
-          </div>
+  <div id="track-metadata-{{id}}"></div>
+  <div class="metadata-item-container" *ngIf="meta.loopTypeString">
+    <div class="metadata-item">
+      <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
+      <div class="metadata-content">
+        <div class="metadata-value">
+          <div>{{ meta.loopTypeString }}</div>
         </div>
       </div>
     </div>
-    <div class="metadata-item-container">
-      <div class="metadata-item nowrap">
-        <ion-icon name="location"></ion-icon>
-        <div class="metadata-content">
-          <div class="metadata-value">
-            <div>{{ meta.location }}</div>
-          </div>
-        </div>
-      </div>
+  </div>
+  <div class="metadata-item-container">
+    <div class="metadata-item">
+      <!-- Empty until another meta -->
     </div>
-    <app-track-metadata *ngIf="track" [track]="track"></app-track-metadata>
-    <div class="metadata-item-container" *ngIf="meta.loopTypeString">
-      <div class="metadata-item">
-        <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
-        <div class="metadata-content">
-          <div class="metadata-value">
-            <div>{{ meta.loopTypeString }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="metadata-item-container">
-      <div class="metadata-item">
-        <!-- Empty until another meta -->
-      </div>
-    </div>
-  </ng-container>
-  <ng-container *ngIf="!track">
-    <ion-spinner name="dots"></ion-spinner>
-  </ng-container>
-
+  </div>
+</div>
+<ng-container *ngIf="!track$.value">
+  <ion-spinner name="dots"></ion-spinner>
 </ng-container>
