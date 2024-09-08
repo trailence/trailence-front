@@ -86,13 +86,7 @@ export class UpdateService {
   public download(): void {
     const app = this.downloadApp || this.updateApp;
     if (!app) return;
-    const link = document.createElement('A') as HTMLAnchorElement;
-    link.href = app.url;
-    link.download = app.url.substring(app.url.lastIndexOf('/') + 1);
-    link.target = '_blank';
-    link.setAttribute('style', 'display: none');
-    document.documentElement.appendChild(link);
-    link.click();
+    window.open(app.url, '_blank');
   }
 
 }
