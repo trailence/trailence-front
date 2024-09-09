@@ -4,6 +4,7 @@ export class RequestLimiter {
 
   private requests: {request: () => Observable<any>, subscriber: Subscriber<any>}[] = [];
   private inProgress = 0;
+  private cancelled = false;
 
   constructor(
     private maxRequests: number
@@ -15,6 +16,10 @@ export class RequestLimiter {
     });
   }
 
+  public cancel(): void {
+    this.cancelled = true;
+  }
+
   private addRequest<T>(request: () => Observable<T>, subscriber: Subscriber<T>): void {
     this.requests.push({request, subscriber});
     this.process();
@@ -22,6 +27,14 @@ export class RequestLimiter {
 
   private process(): void {
     if (this.requests.length === 0 || this.inProgress >= this.maxRequests) {
+      return;
+    }
+    if (this.cancelled) {
+      while (this.requests.length > 0) {
+        const todo = this.requests[0];
+        this.requests.splice(0, 1);
+        todo.subscriber.complete();
+      }
       return;
     }
     const todo = this.requests[0];

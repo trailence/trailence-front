@@ -18,8 +18,20 @@
     .progress-title {
       font-size: 12px;
     }
-    .progress-sub-title {
+    .progress-footer {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
       font-size: 10px;
+
+      .progress-sub-title {
+        flex: 1 1 100%;
+      }
+
+      .cancel-button {
+        flex: none;
+        color: var(--ion-color-secondary);
+      }
     }
     .progress-bar {
       height: 10px;

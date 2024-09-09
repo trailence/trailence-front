@@ -86,7 +86,15 @@ export class OfflineMapService {
       }
     }
     if (coords.length === 0) return;
-    const progress = this.progressService.create(this.i18n.texts.downloading_map, coords.length);
+    let cancelled = false;
+    let limiter: RequestLimiter | undefined;
+    const progress = this.progressService.create(this.i18n.texts.downloading_map, coords.length, () => {
+      cancelled = true;
+      if (limiter) {
+        limiter.cancel();
+        progress.done();
+      }
+    });
     const db = this._db!;
     const metaTable = db.table<TileMetadata>(layer.name + '_meta');
     const tilesTables = db.table<TileBlob>(layer.name + '_tiles');
@@ -104,13 +112,13 @@ export class OfflineMapService {
           if (known && known.date > maxTime) continue;
           coordsToDl.push(coords[i]);
         }
-        if (coordsToDl.length === 0) {
+        if (coordsToDl.length === 0 || cancelled) {
           progress.done();
           return;
         }
         progress.subTitle = layer.displayName + ' 0/' + coordsToDl.length;
         progress.workAmount = coordsToDl.length;
-        const limiter = new RequestLimiter(layer.maxConcurrentRequests);
+        limiter = new RequestLimiter(layer.maxConcurrentRequests);
         let done = 0;
         for (const c of coordsToDl) {
           const request$ = limiter.add(() => this.getBlob(layer, layer.getTileUrl(tiles, c, crs)));
@@ -133,6 +141,7 @@ export class OfflineMapService {
               });
             },
             error: e => {
+              // TODO
               progress.workDone = ++done;
               progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
               if (done === coordsToDl.length) progress.done();
