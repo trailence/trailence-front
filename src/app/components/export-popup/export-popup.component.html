@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="export" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.trails.actions.export}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="message">
+    {{i18n.texts.pages.export_popup.which_tracks}}
+  </div>
+  <ion-radio-group (ionChange)="what = $event.detail.value">
+    <div>
+      <ion-radio value="original" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_original }}</ion-radio>
+    </div>
+    <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_original_explaination }}</div>
+    <div>
+      <ion-radio value="current" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_current }}</ion-radio>
+    </div>
+    <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_current_explaination }}</div>
+    <div>
+      <ion-radio value="both" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_both }}</ion-radio>
+    </div>
+    <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_both_explaination }}</div>
+  </ion-radio-group>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" [disabled]="!valid()" (click)="ok()">{{i18n.texts.buttons.ok}}</ion-button>
+      <ion-button (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

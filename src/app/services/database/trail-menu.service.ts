@@ -362,14 +362,26 @@ export class TrailMenuService {
       .then(modal => modal.present());
   }
 
-  public exportGpx(trails: Trail[]): void {
+  public async exportGpx(trails: Trail[]) {
     if (trails.length === 0) return;
+    const module = await import('../../components/export-popup/export-popup.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.ExportPopupComponent,
+      componentProps: {
+      }
+    });
+    await modal.present();
+    const modalResult = await modal.onWillDismiss();
+    if (!modalResult.data?.what) return;
+    console.log(modalResult);
+
     const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.export, trails.length + 1);
     const email = this.injector.get(AuthService).email!;
     const trailToData$ = (trail: Trail) => {
       const tracks: Observable<Track | null>[] = [];
-      tracks.push(this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
-      if (trail.currentTrackUuid !== trail.originalTrackUuid)
+      if (modalResult.data.what === 'original' || modalResult.data.what === 'both')
+        tracks.push(this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
+      if (modalResult.data.what === 'current' || (modalResult.data.what === 'both' && trail.currentTrackUuid !== trail.originalTrackUuid))
         tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
       return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
         map(tracks => ({trail, tracks: tracks.filter(track => !!track) as Track[]})),

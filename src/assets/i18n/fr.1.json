@@ -316,6 +316,15 @@
         "trail_name": "Nom du parcours",
         "collection": "Dans quelle collection"
       }
+    },
+    "export_popup": {
+      "which_tracks": "Quelle trace souhaitez-vous exporter ?",
+      "track_original": "La trace originale",
+      "track_original_explaination": "Uniquement la trace d'origine (soit importée, soit enregistrée par le GPS), sans amélioration ni modification",
+      "track_current": "La trace actuelle",
+      "track_current_explaination": "La trace actuelle dans Trailence, comportant les améliorations et modifications",
+      "track_both": "Les deux",
+      "track_both_explaination": "Les deux seront exportées dans le même fichier. Cela permettra de ré-importer dans Trailence les 2 traces en un seul parcours, idéal donc pour un backup. En revanche, cela risque de mal s'ouvrir si vous importez le fichier dans une autre application."
     }
   },
   "menu": {
@@ -348,6 +357,7 @@
     "download": "Télécharger",
     "edit": "Modifier",
     "next": "Continuer",
+    "ok": "Ok",
     "previous": "Revenir",
     "quit": "Quitter",
     "save": "Enregistrer",

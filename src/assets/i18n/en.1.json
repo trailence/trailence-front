@@ -307,6 +307,15 @@
         "trail_name": "Trail name",
         "collection": "In which collection"
       }
+    },
+    "export_popup": {
+      "which_tracks": "What trace do you want to export?",
+      "track_original": "The original one",
+      "track_original_explaination": "Only the original track (either imported or recorded by GPS), without improvement or modification",
+      "track_current": "The current one",
+      "track_current_explaination": "The current track in Trailence, including improvements and changes",
+      "track_both": "Both",
+      "track_both_explaination": "Both will be exported in the same file. This will allow you to re-import the 2 tracks into Trailence in a single trail, ideal for a backup. However, it may not open properly if you import the file into another application."
     }
   },
   "menu": {
@@ -339,6 +348,7 @@
     "download": "Download",
     "edit": "Edit",
     "next": "Continue",
+    "ok": "Ok",
     "previous": "Back",
     "quit": "Quit",
     "save": "Save",
