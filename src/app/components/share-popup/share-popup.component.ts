@@ -1,7 +1,7 @@
 import { Component, Injector, Input, OnInit } from '@angular/core';
 import { ShareElementType } from 'src/app/model/dto/share';
 import { Trail } from 'src/app/model/trail';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonInput, IonButton, IonFooter, IonButtons, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonInput, IonButton, IonFooter, IonButtons, ModalController, IonRadio, IonRadioGroup, IonCheckbox } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +24,7 @@ enum SharePage {
   templateUrl: './share-popup.component.html',
   styleUrls: ['./share-popup.component.scss'],
   standalone: true,
-  imports: [IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, TagsComponent ]
+  imports: [IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, TagsComponent ]
 })
 export class SharePopupComponent implements OnInit {
 
@@ -36,6 +36,7 @@ export class SharePopupComponent implements OnInit {
   name: string = '';
   to: string = '';
   toLanguage: string = 'en';
+  includePhotos = false;
 
   pages: SharePage[] = [SharePage.TYPE, SharePage.ELEMENTS, SharePage.NAME_WHO];
   pageIndex = 0;
@@ -104,7 +105,7 @@ export class SharePopupComponent implements OnInit {
   }
 
   save(): void {
-    this.injector.get(ShareService).create(this.elementType!, this.elements, this.name, this.to, this.toLanguage);
+    this.injector.get(ShareService).create(this.elementType!, this.elements, this.name, this.to, this.toLanguage, this.includePhotos);
     this.modalController.dismiss(null, 'ok');
   }
 

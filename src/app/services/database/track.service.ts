@@ -2,6 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { filter, first, Observable, timeout } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
+import Dexie from 'dexie';
 
 @Injectable({
   providedIn: 'root'
@@ -60,8 +61,8 @@ export class TrackService {
     return this.db.isSavedOnServerAndNotDeletedLocally$(uuid, owner);
   }
 
-  public cleanDatabase(email: string): Observable<any> {
-    return this.db.cleanDatabase(email);
+  public cleanDatabase(db: Dexie, email: string): Observable<any> {
+    return this.db.cleanDatabase(db, email);
   }
 
 }

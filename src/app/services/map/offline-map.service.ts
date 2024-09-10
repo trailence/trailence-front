@@ -246,21 +246,22 @@ export class OfflineMapService {
   private cleanExpired(db: Dexie): void {
     for (let i = 0; i < this.layers.layers.length; ++i) {
       const name = this.layers.layers[i].name;
-      setTimeout(() => this.cleanExpiredLayer(db, name), i * 60000);
+      setTimeout(() => this.cleanExpiredLayer(db, name), 60000 + i * 15000);
     }
     setTimeout(() => {
       if (this._db === db) {
         localStorage.setItem('trailence.map-offline.last-cleaning.' + this._openEmail, '' + Date.now());
         console.log('All offline maps cleaned, next cleaning in 24 hours');
       }
-    }, this.layers.layers.length * 60000);
+    }, 60000 + this.layers.layers.length * 15000 + 30000);
   }
 
   private cleanExpiredLayer(db: Dexie, layerName: string): void {
     if (db !== this._db) return;
     let count = 0;
     console.log('Cleaning offline maps: ' + layerName);
-    db.table<TileMetadata, string>(layerName + '_meta')
+    db.transaction('rw', [layerName + '_meta', layerName + '_tiles'], () => {
+      db.table<TileMetadata, string>(layerName + '_meta')
       .where('date')
       .below(Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000)
       .eachPrimaryKey(key => {
@@ -269,6 +270,7 @@ export class OfflineMapService {
       }).then(() => {
         console.log('Offline maps removed: ', layerName, count);
       });
+    });
   }
 
   private cleanExpiredTile(db: Dexie, layerName: string, key: string): void {

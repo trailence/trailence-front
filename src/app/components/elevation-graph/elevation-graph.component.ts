@@ -175,7 +175,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     this.chartData = {
       datasets: []
     }
-    this.buildDataSet(this.track1, this.primaryColor);
+    if (this.track1) this.buildDataSet(this.track1, this.primaryColor);
     if (this.track2) this.buildDataSet(this.track2, this.secondaryColor);
     this.updateMaxDistance();
     setTimeout(() => {

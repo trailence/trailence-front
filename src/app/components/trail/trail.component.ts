@@ -9,7 +9,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Platform } from '@ionic/angular';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -29,19 +29,25 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { WayPoint } from 'src/app/model/way-point';
 import { TagService } from 'src/app/services/database/tag.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { PhotoService } from 'src/app/services/database/photo.service';
+import { Photo } from 'src/app/model/photo';
+import { PhotoComponent } from '../photo/photo.component';
+import { PhotosPopupComponent } from '../photos-popup/photos-popup.component';
 
 @Component({
   selector: 'app-trail',
   templateUrl: './trail.component.html',
   styleUrls: ['./trail.component.scss'],
   standalone: true,
-  imports: [IonCheckbox, IonInput, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
+  imports: [IonSpinner, IonCheckbox, IonInput, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
     CommonModule,
     MapComponent,
     TrackMetadataComponent,
     ElevationGraphComponent,
     IconLabelButtonComponent,
     MapLayerSelectionComponent,
+    PhotoComponent,
+    PhotosPopupComponent,
   ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -51,7 +57,7 @@ export class TrailComponent extends AbstractComponent {
   @Input() recording$?: Observable<Recording | null>;
 
   showOriginal$ = new BehaviorSubject<boolean>(false);
-  showBreaks$ = new BehaviorSubject<boolean>(true);
+  showBreaks$ = new BehaviorSubject<boolean>(false);
 
   trail1: Trail | null = null;
   trail2: Trail | null = null;
@@ -64,6 +70,7 @@ export class TrailComponent extends AbstractComponent {
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
   tagsNames: string[] | undefined;
+  cover: Photo | null | undefined;
 
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
@@ -92,6 +99,7 @@ export class TrailComponent extends AbstractComponent {
     private geolocation: GeolocationService,
     public trailMenuService: TrailMenuService,
     private tagService: TagService,
+    private photoService: PhotoService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -117,6 +125,8 @@ export class TrailComponent extends AbstractComponent {
     this.trail1 = null;
     this.trail2 = null;
     this.recording = null;
+    this.tagsNames = undefined;
+    this.cover = undefined;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
@@ -217,7 +227,7 @@ export class TrailComponent extends AbstractComponent {
       }
     );
 
-    if (this.trail1$)
+    if (this.trail1$) {
       this.byStateAndVisible.subscribe(
         combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
           switchMap(([trail, trail2]) => !trail2 && trail && trail.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail.uuid).pipe(debounceTimeExtended(0, 100)) : of(undefined))
@@ -226,6 +236,26 @@ export class TrailComponent extends AbstractComponent {
           this.tagsNames = names;
         }
       );
+      this.byStateAndVisible.subscribe(
+        combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
+          switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos(trail1) : of(undefined))
+        ),
+        photos => {
+          if (photos === undefined)
+            this.cover = undefined;
+          else if (photos.length === 0)
+            this.cover = null;
+          else {
+            const c = photos.find(p => p.isCover);
+            if (c) this.cover = c;
+            else {
+              photos.sort((p1, p2) => p1.index - p2.index);
+              this.cover = photos[0];
+            }
+          }
+        }
+      );
+    }
 
     if (this.recording$)
       this.byStateAndVisible.subscribe(
@@ -342,6 +372,9 @@ export class TrailComponent extends AbstractComponent {
     // nothing so far
   }
 
+  openPhotos(): void {
+    this.photoService.openPopupForTrail(this.trail1!.owner, this.trail1!.uuid);
+  }
 
   goToDeparture(): void {
     if (this.trail1)
@@ -525,7 +558,7 @@ export class TrailComponent extends AbstractComponent {
   }
 
   openLocationDialog(): void {
-    if (this.trail2 || !this.trail1) return;
+    if (this.trail2 || !this.trail1 || !this.editable) return;
     this.trailMenuService.openLocationPopup(this.trail1);
   }
 

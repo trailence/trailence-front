@@ -44,7 +44,18 @@
         <div>{{i18n.texts.pages.share_popup.name_info}}</div>
       </div>
 
-      <div class="question"></div>
+      <div class="separator"></div>
+
+      <div>
+        <ion-checkbox [checked]="includePhotos" (ionChange)="includePhotos = $event.detail.checked" labelPlacement="end">{{i18n.texts.pages.share_popup.includePhotos}}</ion-checkbox>
+      </div>
+      <div class="info">
+        <ion-icon name="info"></ion-icon>
+        <div>{{i18n.texts.pages.share_popup.photos_info}}</div>
+      </div>
+
+      <div class="separator"></div>
+
       <div class="question">{{i18n.texts.pages.share_popup.who_question}}</div>
       <ion-input
         fill="outline"
@@ -58,7 +69,8 @@
         <div>{{i18n.texts.pages.share_popup.email_info}}</div>
       </div>
 
-      <div class="question"></div>
+      <div class="separator"></div>
+
       <div class="question">{{i18n.texts.pages.share_popup.language}}</div>
       <ion-radio-group [value]="toLanguage" (ionChange)="toLanguage = $event.detail.value">
         <div>

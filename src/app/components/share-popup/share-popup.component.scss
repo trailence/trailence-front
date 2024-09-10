@@ -18,3 +18,9 @@
     font-style: italic;
   }
 }
+
+.separator {
+  margin: 20px 5px;
+  height: 1px;
+  border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.25);
+}

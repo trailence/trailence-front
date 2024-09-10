@@ -8,7 +8,7 @@ import { TrailTag } from "src/app/model/trail-tag";
 import { EMPTY, Observable, combineLatest, filter, first, map, of, switchMap, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
-import { TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
+import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
 import { TrailCollectionService } from "./trail-collection.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { TrailService } from "./trail.service";
@@ -69,14 +69,14 @@ export class TagService {
     this._trailTagStore.deleteIf(trailTag => trailTag.trailUuid === trailUuid, ondone);
   }
 
-  public deleteAllTagsFromCollection(collectionUuid: string, owner: string, progress: Progress, progressWork: number): Observable<any> {
+  public deleteAllTagsFromCollection(collectionUuid: string, owner: string, progress: Progress | undefined, progressWork: number): Observable<any> {
     return this._tagStore.getAll$().pipe(
       first(),
       switchMap(tags$ => tags$.length === 0 ? of([]) : zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
       switchMap(tags => {
         const toRemove = tags.filter(tag => !!tag && tag.collectionUuid === collectionUuid && tag.owner === owner);
         if (toRemove.length === 0) {
-          progress.addWorkDone(progressWork)
+          progress?.addWorkDone(progressWork)
           return of(true);
         }
         return new Observable(observer => {
@@ -86,7 +86,7 @@ export class TagService {
             setTimeout(() => {
               done++;
               const newWorkDone = done * progressWork / toRemove.length;
-              progress.addWorkDone(newWorkDone - workDone);
+              progress?.addWorkDone(newWorkDone - workDone);
               workDone = newWorkDone;
               if (done === toRemove.length) {
                 observer.next(true);
@@ -157,9 +157,9 @@ export class TagService {
     );
   }
 
-  public cleanDatabase(email: string): Observable<any> {
-    return this._tagStore.cleanDatabase(email).pipe(
-      switchMap(() => this._trailTagStore.cleanDatabase(email))
+  public cleanDatabase(db: Dexie, email: string): Observable<any> {
+    return this._tagStore.cleanDatabase(db, email).pipe(
+      switchMap(() => this._trailTagStore.cleanDatabase(db, email))
     );
   }
 
@@ -221,7 +221,8 @@ class TagStore extends OwnedStore<TagDto, Tag> {
       first(),
       switchMap(([tags, collections]) => {
         return new Observable<any>(subscriber => {
-          if (this.injector.get(AuthService).email !== email) {
+          const dbService = this.injector.get(DatabaseService);
+          if (db !== dbService.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -239,6 +240,10 @@ class TagStore extends OwnedStore<TagDto, Tag> {
             if (collection) continue;
             const d = ondone.add();
             this.getLocalUpdate(tag).then(date => {
+              if (db !== dbService.db || email !== dbService.email) {
+                d();
+                return;
+              }
               if (!date || date > maxDate) {
                 d();
                 return;
@@ -314,7 +319,8 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
       first(),
       switchMap(([trailsTags, tags, trails]) => {
         return new Observable<any>(subscriber => {
-          if (this.injector.get(AuthService).email !== email) {
+          const dbService = this.injector.get(DatabaseService);
+          if (db !== dbService.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
             return;

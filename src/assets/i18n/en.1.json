@@ -94,7 +94,8 @@
       "title_compare_and": "and",
       "tabs": {
         "details": "Details",
-        "map": "Map"
+        "map": "Map",
+        "photos": "Photos"
       },
       "show_original": "Show original trace",
       "show_breaks": "Show breaks",
@@ -109,6 +110,7 @@
         "merged_trail_name": "Merged trail"
       },
       "no_tag_message": "No tag on this trail",
+      "no_photo_message": "No photo on this trail",
       "sections": {
         "description": {
           "title": "Description",
@@ -199,6 +201,8 @@
       "name": "Give a name to this share",
       "name_info": "This name will be visible by you and the person with who you are sharing",
       "who_question": "With who?",
+      "includePhotos": "Share photos with trails",
+      "photos_info": "Photos associated with shared trails will be visible to the person you are sharing with, but cannot be modified",
       "email": "Email",
       "email_info": "An e-mail will be sent to inform about this share",
       "language": "In which language should we send the e-mail?"
@@ -316,6 +320,13 @@
       "track_current_explaination": "The current track in Trailence, including improvements and changes",
       "track_both": "Both",
       "track_both_explaination": "Both will be exported in the same file. This will allow you to re-import the 2 tracks into Trailence in a single trail, ideal for a backup. However, it may not open properly if you import the file into another application."
+    },
+    "photos_popup": {
+      "title": "Photos",
+      "importing": "Import",
+      "add_photos_buttons": "Add photos",
+      "selected_plural": "selected photos",
+      "selected_single": "selected photo"
     }
   },
   "menu": {

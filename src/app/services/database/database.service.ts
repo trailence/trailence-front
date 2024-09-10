@@ -12,10 +12,12 @@ export const TAG_TABLE_NAME = 'tags';
 export const TRAIL_TAG_TABLE_NAME = 'trails_tags';
 export const EXTENSIONS_TABLE_NAME = 'extensions';
 export const SHARE_TABLE_NAME = 'shares';
+export const PHOTO_TABLE_NAME = 'photos';
 
 interface RegisteredStore {
   status: Observable<StoreSyncStatus | null>;
   syncNow: () => void;
+  loaded$: Observable<boolean>;
 }
 
 @Injectable({
@@ -71,6 +73,13 @@ export class DatabaseService {
     );
   }
 
+  public allLoaded(): Observable<boolean> {
+    return this._stores.pipe(
+      switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.loaded$))),
+      map(loaded => loaded.reduce((a,b) => a && b, true))
+    );
+  }
+
   public syncNow(): void {
     this._stores.value.forEach(s => s.syncNow());
   }
@@ -91,11 +100,12 @@ export class DatabaseService {
   }
 
   private close() {
-    if (this._db.value) {
+    const db = this._db.value;
+    if (db) {
       console.log('Close DB')
-      this._db.value.close();
       this._openEmail = undefined;
       this._db.next(undefined);
+      db.close();
     }
   }
 
@@ -113,6 +123,7 @@ export class DatabaseService {
     storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
     storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
     storesV1[SHARE_TABLE_NAME] = 'key';
+    storesV1[PHOTO_TABLE_NAME] = 'id_owner';
     db.version(1).stores(storesV1);
     this._db.next(db);
   }

@@ -1,0 +1,61 @@
+.photos {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 8px;
+
+  .photo-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    border: 1px solid var(--ion-color-light);
+    border-radius: 8px;
+    padding: 8px;
+    margin-right: 5px;
+
+    &.selected {
+      border-color: var(--ion-color-primary);
+    }
+
+    ion-checkbox {
+      margin-right: 8px;
+    }
+
+    .photo-and-description {
+      flex: 1 1 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+
+      ion-textarea {
+        align-self: stretch;
+      }
+    }
+
+    .description {
+      margin: 3px 0;
+      align-self: stretch;
+      text-align: center;
+    }
+
+    .metadata-container {
+      align-self: flex-start;
+    }
+  }
+
+}
+
+.selection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 52px;
+  margin-bottom: 5px;
+  background-color: var(--ion-color-light);
+  padding: 8px;
+}
+

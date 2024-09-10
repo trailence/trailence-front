@@ -12,6 +12,7 @@ export class Share {
     public elements: string[],
     public trails: string[],
     public toLanguage: string | null | undefined,
+    public includePhotos: boolean,
   ) {}
 
   public toDto(): ShareDto {
@@ -25,12 +26,13 @@ export class Share {
       elements: this.elements,
       trails: this.trails,
       toLanguage: this.toLanguage,
+      includePhotos: this.includePhotos,
     };
   }
 
   public static fromDto(dto: ShareDto): Share {
     return new Share(
-      dto.id, dto.name, dto.from, dto.to, dto.type, dto.createdAt, dto.elements || [], dto.trails || [], dto.toLanguage
+      dto.id, dto.name, dto.from, dto.to, dto.type, dto.createdAt, dto.elements || [], dto.trails || [], dto.toLanguage, dto.includePhotos ?? false
     );
   }
 }

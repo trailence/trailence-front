@@ -127,9 +127,9 @@ export class Segment {
     return time - start;
   }
 
-  public get duration(): number {
+  public get duration(): number | undefined {
     const start = this.startDate;
-    if (!start) return 0;
+    if (!start) return undefined;
     const end = this.endDate;
     return end! - start;
   }
@@ -221,7 +221,7 @@ export class SegmentPoint {
   public get nextPoint(): SegmentPoint | undefined { return this._next; }
 
   close(): void {
-    this.subscriptions.unsusbcribe();
+    this.subscriptions.unsubscribe();
   }
 
   private setPrevious(previous?: SegmentPoint): void {
@@ -303,7 +303,7 @@ export class SegmentMetadata {
   private _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
   private _highestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
   private _lowestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
-  private _duration = new BehaviorSubject<number>(0);
+  private _duration = new BehaviorSubject<number | undefined>(undefined);
   private _startPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
   private _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
   private _topLat: SegmentPoint | undefined = undefined;
@@ -330,8 +330,8 @@ export class SegmentMetadata {
   public get lowestAltitude(): number | undefined { return this._lowestPoint.value?.point.ele; }
   public get lowestAltitude$(): Observable<number | undefined> { return this._lowestPoint.pipe(map(pt => pt?.point.ele)); }
 
-  public get duration(): number { return this._duration.value; }
-  public get duration$(): Observable<number> { return this._duration; }
+  public get duration(): number | undefined { return this._duration.value; }
+  public get duration$(): Observable<number | undefined> { return this._duration; }
 
   public get startDate(): number | undefined { return this._startPoint.value?.point.time; }
   public get startDate$(): Observable<number | undefined> { return this._startPoint.pipe(map(pt => pt?.point.time)); }
@@ -368,7 +368,7 @@ export class SegmentMetadata {
 
   addDuration(d: number): void {
     if (d === 0) return;
-    this._duration.next(this._duration.value + d);
+    this._duration.next((this._duration.value ?? 0) + d);
   }
 
   pointAdded(point: SegmentPoint): void {

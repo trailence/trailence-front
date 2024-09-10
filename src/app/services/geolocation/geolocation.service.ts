@@ -82,6 +82,7 @@ export class GeolocationService implements IGeolocationService {
     });
     this.watchListeners.push({listener, onerror});
     if (!this.watchId) {
+      console.log('start watching geolocation');
       this.watchId = window.navigator.geolocation.watchPosition(pos => this.emitPosition(pos), err => this.emitError(err), this.options);
     }
   }
@@ -91,6 +92,7 @@ export class GeolocationService implements IGeolocationService {
     if (index >= 0) {
       this.watchListeners.splice(index, 1);
       if (this.watchListeners.length === 0) {
+        console.log('stop watching geolocation');
         window.navigator.geolocation.clearWatch(this.watchId!);
         this.watchId = undefined;
         this._waitingForGps$.next(false);

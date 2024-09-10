@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController } from '@ionic/angular/standalone';
+import { combineLatest, filter, first } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
+import { DatabaseService } from 'src/app/services/database/database.service';
 import { ApiError } from 'src/app/services/http/api-error';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
@@ -54,6 +56,7 @@ export class LoginPage {
     private captchaService: CaptchaService,
     private modalController: ModalController,
     public preferencesService: PreferencesService,
+    private database: DatabaseService,
   ) {
     route.queryParamMap.subscribe(params => {
       this.returnUrl = params.get('returnUrl') ?? '';
@@ -86,8 +89,25 @@ export class LoginPage {
     if (element) while (element.children.length > 0) element.removeChild(element.children.item(0)!);
     this.auth.login(this.email, this.password, token).subscribe({
       next: () => {
-        this.router.navigateByUrl(this.returnUrl);
-        this.inprogress = false;
+        combineLatest([
+          this.auth.auth$,
+          this.database.allLoaded()
+        ]).pipe(
+          filter(([a,l]) => !a || l),
+          first(),
+        ).subscribe(([a,l]) => {
+          if (a) {
+            this.router.events.pipe(
+              filter(e => e instanceof NavigationEnd),
+              first(),
+            ).subscribe(() => {
+              this.inprogress = false;
+            });
+            this.router.navigateByUrl(this.returnUrl);
+          } else {
+            this.inprogress = false;
+          }
+        });
       },
       error: error => {
         console.log(error);

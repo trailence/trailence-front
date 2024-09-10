@@ -1,5 +1,5 @@
 import { Injectable, Injector } from "@angular/core";
-import { Observable, combineLatest, filter, first, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, Observable, combineLatest, filter, first, map, of, switchMap } from "rxjs";
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
@@ -66,6 +66,12 @@ export class TrailCollectionService {
         progress.addWorkDone(1);
         progress.done();
       });
+    });
+  }
+
+  propagateDelete(collection: TrailCollection): void {
+    this.injector.get(TagService).deleteAllTagsFromCollection(collection.uuid, collection.owner, undefined, 100).subscribe(() => {
+      this.injector.get(TrailService).deleteAllTrailsFromCollection(collection.uuid, collection.owner, undefined, 1000).subscribe();
     });
   }
 
@@ -153,6 +159,10 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override deleteFromServer(uuids: string[]): Observable<void> {
       return this.http.post<void>(environment.apiBaseUrl + '/trail-collection/v1/_bulkDelete', uuids);
+    }
+
+    protected override deleted(item$: BehaviorSubject<TrailCollection | null> | undefined, item: TrailCollection): void {
+      this.injector.get(TrailCollectionService).propagateDelete(item);
     }
 
     protected override doCleaning(email: string, db: Dexie): Observable<any> {

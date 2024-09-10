@@ -13,13 +13,17 @@ export interface IFileService {
 export class OpenFileRequest<P, T> {
     constructor(
       public description: string,
-      public mimeType: string,
-      public extension: string,
+      public types: FileType[],
       public multiple: boolean,
       public onstartreading: (nbFiles: number) => Promise<P>,
-      public onfileread: (index: number, nbFiles: number, fromStartReading: P, fileContent: ArrayBuffer) => Promise<T>,
+      public onfileread: (index: number, nbFiles: number, fromStartReading: P, fileName: string, fileContent: ArrayBuffer) => Promise<T>,
       public onfilesloaded: (fromStartReading: P, results: T[]) => void,
       public onerror: (error: any, fromStartReading?: P) => void
     ) {
     }
+}
+
+export interface FileType {
+  mime: string;
+  extensions: string[];
 }

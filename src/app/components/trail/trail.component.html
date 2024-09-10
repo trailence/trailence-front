@@ -26,6 +26,7 @@
     <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())" *ngIf="isSmall">
       <ion-segment-button value="details" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.details}}</ion-segment-button>
       <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.map}}</ion-segment-button>
+      <ion-segment-button value="photos" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.photos}}</ion-segment-button>
     </ion-segment>
   </div>
   <div class="bottom-sheet-container">
@@ -47,13 +48,19 @@
     </ng-container>
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
-    <div class="trail-details" *ngIf="tracks[0] && (!isSmall || tab === 'details')">
+    <div class="trail-details" *ngIf="!isSmall || tab === 'details'">
+      <div class="trail-photos" *ngIf="cover !== undefined && !isSmall && (editable || cover)" (click)="openPhotos()">
+        <div *ngIf="cover === null" class="no-photo">{{i18n.texts.pages.trail.no_photo_message}}</div>
+        <div class="cover" *ngIf="cover">
+          <app-photo [photo]="cover" [maxWidth]="300" [maxHeight]="200"></app-photo>
+        </div>
+      </div>
       <div class="trail-tags-row" *ngIf="tagsNames && trail1" (click)="trailMenuService.openTags([trail1], trail1.collectionUuid)">
         <span *ngIf="tagsNames.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
         <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
       </div>
       <div class="metadata-container one-column with-title">
-        <div class="metadata-item-container">
+        <div class="metadata-item-container" *ngIf="tracks[0]">
           <div class="metadata-item">
             <ion-icon name="date"></ion-icon>
             <div class="metadata-content">
@@ -65,7 +72,7 @@
             </div>
           </div>
         </div>
-        <div class="metadata-item-container" [ngClass]="{'clickable': !trail2}" (click)="openLocationDialog()">
+        <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openLocationDialog()">
           <div class="metadata-item">
             <ion-icon name="location"></ion-icon>
             <div class="metadata-content">
@@ -78,7 +85,10 @@
           </div>
         </div>
       </div>
-      <div class="metadata-container two-columns with-title">
+      <div *ngIf="!tracks[0]">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
+      <div class="metadata-container two-columns with-title" *ngIf="tracks[0]">
         <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
         <div class="metadata-item">
           <ion-icon [name]="trailService.getLoopTypeIcon(trail1?.loopType)"></ion-icon>
@@ -95,13 +105,10 @@
         </div>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
-      <div *ngIf="!trail2 && !recording" style="padding: 10px 3px 5px 3px">
-        <ion-checkbox labelPlacement="end" [checked]="showBreaks$.value" (ionChange)="showBreaks$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
-      </div>
       <div *ngIf="!editToolsComponent" style="padding: 5px 3px 10px 3px">
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
       </div>
-      <div class="actions">
+      <div class="actions" *ngIf="tracks[0]">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
         <app-icon-label-button *ngIf="!trail2" icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
         <ng-container *ngIf="trail1 && !recording && !trail2">
@@ -114,91 +121,98 @@
         <app-icon-label-button *ngIf="canEdit()" icon="tool" [label]="i18n.texts.pages.trail.actions.edit_tools" [size]="28" [fontSize]="11" color="primary" (click)="enableEditTools()"></app-icon-label-button>
       </div>
       <ng-container *ngIf="trail1 && !trail2">
-        <div class="section-title">
-          <ion-icon name="text"></ion-icon>
-          <div>{{ i18n.texts.pages.trail.sections.description.title }}</div>
-        </div>
-        <div class="description-text" *ngIf="!editable">
-          {{ trail1.description }}
-        </div>
-        <ion-textarea class="description-text"
-          [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
-          [maxlength]="50000"
-          [autoGrow]="true"
-          [value]="trail1.description"
-          (ionInput)="descriptionChanged($event.detail.value)"
-        ></ion-textarea>
-        <ng-container *ngIf="wayPoints.length > 0">
+        <ng-container *ngIf="trail1.description || editable">
           <div class="section-title">
-            <ion-icon name="location"></ion-icon>
-            <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+            <ion-icon name="text"></ion-icon>
+            <div>{{ i18n.texts.pages.trail.sections.description.title }}</div>
           </div>
-          <ng-container *ngFor="let wp of wayPoints">
+          <div class="description-text" *ngIf="!editable">
+            {{ trail1.description }}
+          </div>
+          <ion-textarea class="description-text"
+            *ngIf="editable"
+            [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
+            [maxlength]="50000"
+            [autoGrow]="true"
+            [value]="trail1.description"
+            (ionInput)="descriptionChanged($event.detail.value)"
+          ></ion-textarea>
+        </ng-container>
+
+        <div class="section-title">
+          <ion-icon name="location"></ion-icon>
+          <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+        </div>
+        <div *ngIf="!trail2 && !recording" style="padding: 10px 3px 5px 3px">
+          <ion-checkbox labelPlacement="end" [checked]="showBreaks$.value" (ionChange)="showBreaks$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
+        </div>
+        <ng-container *ngFor="let wp of wayPoints">
+          <ng-container *ngIf="!wp.breakPoint || showBreaks$.value">
             <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture}"></ng-container>
           </ng-container>
-          <ng-container *ngIf="getDepartureAndArrival(wayPoints) as arrival">
-            <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: arrival, isArrival: true}"></ng-container>
-          </ng-container>
-          <ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival">
-            <div class="waypoint" (mouseover)="highlightWayPoint(wp, false)" (mouseenter)="highlightWayPoint(wp, false)" (mouseleave)="unhighlightWayPoint(wp, false)" (click)="toogleHighlightWayPoint(wp)" [ngClass]="{'highlighted': _highlightedWayPoint === wp}">
-              <div class="waypoint-anchor">
-                <img [src]="waypointImg(wp, arrival)" width="40" height="40">
-              </div>
-              <div class="waypoint-content">
-                <div class="waypoint-info-section">
-                  <div class="waypoint-info">
-                    <div class="waypoint-info-title">{{i18n.texts.way_points.position}}</div>
-                    <div class="waypoint-info-value small">{{i18n.coordToString(wp.wayPoint.point.pos.lat)}}<br/>{{i18n.coordToString(wp.wayPoint.point.pos.lng)}}</div>
-                  </div>
-                  <div class="waypoint-info">
-                    <div class="waypoint-info-title">{{i18n.texts.way_points.altitude}}</div>
-                    <div class="waypoint-info-value">{{wp.altitude !== undefined ? i18n.elevationToString(wp.altitude) : '?'}}</div>
-                  </div>
-                  <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
-                    <div class="waypoint-info-title">{{i18n.texts.way_points.distance}}</div>
-                    <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.distanceToString(tracks[0].metadata.distance) : (wp.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.distanceFromDeparture) : '?')}}</div>
-                  </div>
-                  <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
-                    <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
-                    <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.durationToString(tracks[0].metadata.duration) : (wp.timeSinceDeparture !== undefined ? i18n.durationToString(wp.timeSinceDeparture) : '?')}}</div>
-                  </div>
-                  <div class="waypoint-info" *ngIf="wp.breakPoint">
-                    <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
-                    <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
-                  </div>
+        </ng-container>
+        <ng-container *ngIf="getDepartureAndArrival(wayPoints) as arrival">
+          <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: arrival, isArrival: true}"></ng-container>
+        </ng-container>
+        <ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival">
+          <div class="waypoint" (mouseover)="highlightWayPoint(wp, false)" (mouseenter)="highlightWayPoint(wp, false)" (mouseleave)="unhighlightWayPoint(wp, false)" (click)="toogleHighlightWayPoint(wp)" [ngClass]="{'highlighted': _highlightedWayPoint === wp}">
+            <div class="waypoint-anchor">
+              <img [src]="waypointImg(wp, arrival)" width="40" height="40">
+            </div>
+            <div class="waypoint-content">
+              <div class="waypoint-info-section">
+                <div class="waypoint-info">
+                  <div class="waypoint-info-title">{{i18n.texts.way_points.position}}</div>
+                  <div class="waypoint-info-value small">{{i18n.coordToString(wp.wayPoint.point.pos.lat)}}<br/>{{i18n.coordToString(wp.wayPoint.point.pos.lng)}}</div>
                 </div>
-                <div class="waypoint-name" *ngIf="!wp.breakPoint">
-                  <span *ngIf="!editToolsComponent">{{wp.wayPoint.name}}</span>
-                  <ion-input *ngIf="editToolsComponent"
-                    [label]="i18n.texts.way_points.name_placeholder"
-                    labelPlacement="floating"
-                    color="tertiary"
-                    [maxlength]="100"
-                    [value]="wp.wayPoint.name"
-                    (ionChange)="wayPointNameChanged(wp.wayPoint, $event.detail.value || '')"
-                  ></ion-input>
+                <div class="waypoint-info">
+                  <div class="waypoint-info-title">{{i18n.texts.way_points.altitude}}</div>
+                  <div class="waypoint-info-value">{{wp.altitude !== undefined ? i18n.elevationToString(wp.altitude) : '?'}}</div>
                 </div>
-                <div class="waypoint-description" *ngIf="!wp.breakPoint">
-                  <span *ngIf="!editToolsComponent">{{wp.wayPoint.description}}</span>
-                  <ion-textarea *ngIf="editToolsComponent"
-                    [label]="i18n.texts.way_points.description_placeholder"
-                    labelPlacement="floating"
-                    color="medium"
-                    [maxlength]="1000"
-                    [autoGrow]="true"
-                    [value]="wp.wayPoint.description"
-                    (ionChange)="wayPointDescriptionChanged(wp.wayPoint, $event.detail.value || '')"
-                  ></ion-textarea>
+                <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
+                  <div class="waypoint-info-title">{{i18n.texts.way_points.distance}}</div>
+                  <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.distanceToString(tracks[0].metadata.distance) : (wp.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.distanceFromDeparture) : '?')}}</div>
+                </div>
+                <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
+                  <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
+                  <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.durationToString(tracks[0].metadata.duration) : (wp.timeSinceDeparture !== undefined ? i18n.durationToString(wp.timeSinceDeparture) : '?')}}</div>
+                </div>
+                <div class="waypoint-info" *ngIf="wp.breakPoint">
+                  <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
+                  <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
                 </div>
               </div>
-              <div class="waypoint-actions" *ngIf="editToolsComponent && !wp.isDeparture && !wp.isArrival">
-                <ion-button color="danger" fill="clear" size="small" (click)="removeWayPoint(wp)">
-                  <ion-icon slot="icon-only" name="trash"></ion-icon>
-                </ion-button>
+              <div class="waypoint-name" *ngIf="!wp.breakPoint">
+                <span *ngIf="!editToolsComponent">{{wp.wayPoint.name}}</span>
+                <ion-input *ngIf="editToolsComponent"
+                  [label]="i18n.texts.way_points.name_placeholder"
+                  labelPlacement="floating"
+                  color="tertiary"
+                  [maxlength]="100"
+                  [value]="wp.wayPoint.name"
+                  (ionChange)="wayPointNameChanged(wp.wayPoint, $event.detail.value || '')"
+                ></ion-input>
+              </div>
+              <div class="waypoint-description" *ngIf="!wp.breakPoint">
+                <span *ngIf="!editToolsComponent">{{wp.wayPoint.description}}</span>
+                <ion-textarea *ngIf="editToolsComponent"
+                  [label]="i18n.texts.way_points.description_placeholder"
+                  labelPlacement="floating"
+                  color="medium"
+                  [maxlength]="1000"
+                  [autoGrow]="true"
+                  [value]="wp.wayPoint.description"
+                  (ionChange)="wayPointDescriptionChanged(wp.wayPoint, $event.detail.value || '')"
+                ></ion-textarea>
               </div>
             </div>
-          </ng-template>
-        </ng-container>
+            <div class="waypoint-actions" *ngIf="editToolsComponent && !wp.isDeparture && !wp.isArrival">
+              <ion-button color="danger" fill="clear" size="small" (click)="removeWayPoint(wp)">
+                <ion-icon slot="icon-only" name="trash"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ng-template>
       </ng-container>
     </div>
     <div class="elevation-container">
@@ -215,12 +229,15 @@
       </ion-button>
     </div>
     <div class="bottom-sheet-info-content">
-      <div class="metadata-container tiles" *ngIf="isSmall && bottomSheetTab === 'info'">
+      <div class="metadata-container tiles" *ngIf="tracks[0] && isSmall && bottomSheetTab === 'info'">
         <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
     </div>
   </ng-container>
+  <div class="trail-photos-tab" *ngIf="cover !== undefined && isSmall && tab === 'photos'">
+    <app-photos-popup [owner]="trail1!.owner" [trailUuid]="trail1!.uuid" [popup]="false"></app-photos-popup>
+  </div>
 </div>
 
 <ng-template #recordingMeta let-tracks="tracks">

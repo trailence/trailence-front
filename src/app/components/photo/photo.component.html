@@ -1,0 +1,7 @@
+<ng-container *ngIf="!blob">
+  <ion-spinner name="dots" *ngIf="!error"></ion-spinner>
+  <ion-icon name="error" color="danger" *ngIf="error"></ion-icon>
+</ng-container>
+<ng-container *ngIf="blob">
+  <img [src]="blob" [ngStyle]="{ 'max-width': maxWidth + 'px', 'max-height': maxHeight + 'px' }"/>
+</ng-container>

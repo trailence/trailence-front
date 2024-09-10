@@ -62,10 +62,10 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   ngOnDestroy(): void {
     this._visible$.next(false);
     this._visible$.complete();
-    this.byState.unsusbcribe();
+    this.byState.unsubscribe();
     this.byStateAndVisible.stop();
     this.whenVisible.stop();
-    this.whenAlive.unsusbcribe();
+    this.whenAlive.unsubscribe();
     if (this._parent) {
       const index = this._parent._children$.value.indexOf(this);
       if (index >= 0) {
@@ -130,7 +130,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     }
 
     if (needRefresh) {
-      this.byState.unsusbcribe();
+      this.byState.unsubscribe();
       this.byStateAndVisible.stop();
       this.onComponentStateChanged(this._currentState, state);
       this._currentState = state;

@@ -3,6 +3,7 @@ import { Platform } from '@ionic/angular';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
 import * as JSZip from 'jszip';
+import { Arrays } from 'src/app/utils/arrays';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +33,9 @@ export class FileService implements IFileService {
       return false;
     }
     const accept: any = {};
-    accept[r.mimeType] = [r.extension];
+    for (const type of r.types) {
+      accept[type.mime] = type.extensions.map(ext => '.' + ext);
+    }
     try {
       (window as any).showOpenFilePicker({
         types: [{description: r.description, accept}],
@@ -44,7 +47,7 @@ export class FileService implements IFileService {
           const readNext = (index: number) => {
             files[index].getFile().then(file => {
               file.arrayBuffer().then(fileContent => {
-                r.onfileread(index, files.length, fromStartReading, fileContent)
+                r.onfileread(index, files.length, fromStartReading, files[index].name, fileContent)
                 .then(result => {
                   results.push(result);
                   if (index === files.length - 1) {
@@ -71,7 +74,7 @@ export class FileService implements IFileService {
     const input = document.createElement('INPUT') as HTMLInputElement;
     input.type = 'file';
     input.multiple = r.multiple;
-    input.accept = r.mimeType + ',' + r.extension;
+    input.accept = [...r.types.map(t => t.mime), ...Arrays.flatMap(r.types, t => t.extensions.map(ext => '.' + ext))].join(',');
     input.style.position = 'fixed';
     input.style.top = '-10000px';
     input.style.left = '-10000px';
@@ -81,7 +84,7 @@ export class FileService implements IFileService {
           const results: T[] = [];
           const readNext = (index: number) => {
             input.files![index].arrayBuffer().then(fileContent => {
-              r.onfileread(index, input.files!.length, fromStartReading, fileContent)
+              r.onfileread(index, input.files!.length, fromStartReading, input.files![index].name, fileContent)
               .then(result => {
                 results.push(result);
                 if (index === input.files!.length - 1) {

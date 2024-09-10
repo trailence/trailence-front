@@ -30,7 +30,7 @@ export interface TrackMetadataSnapshot {
   negativeElevation?: number;
   highestAltitude?: number;
   lowestAltitude?: number;
-  duration: number;
+  duration?: number;
   startDate?: number;
   bounds?: L.LatLngTuple[];
   breaksDuration: number;
@@ -75,7 +75,7 @@ export class TrackDatabase {
     private injector: Injector,
   ) {
     this.subjectService = injector.get(DatabaseSubjectService);
-    injector.get(DatabaseService).registerStore({status: this.syncStatus$, syncNow: () => this.syncNow()});
+    injector.get(DatabaseService).registerStore({status: this.syncStatus$, syncNow: () => this.syncNow(), loaded$: of(true)});
     injector.get(AuthService).auth$.subscribe(
       auth => {
         if (!auth) this.close();
@@ -184,13 +184,14 @@ export class TrackDatabase {
     );
   }
 
-  public cleanDatabase(email: string): Observable<any> {
+  public cleanDatabase(db: Dexie, email: string): Observable<any> {
     // remove all tracks not linked by any trail
     return this.injector.get(TrailService).getAll$().pipe(
       switchMap(trails$ => trails$.length === 0 ? of([]) : combineLatest(trails$)),
       first(),
       switchMap(trails => {
-        if (this.openEmail !== email) return of(false);
+        const dbService = this.injector.get(DatabaseService);
+        if (db !== dbService.db || email !== dbService.email) return of(false);
         const allKnownKeys: string[] = [];
         for (const trail of trails) {
           if (trail) {
@@ -201,6 +202,7 @@ export class TrackDatabase {
         }
         return from(this.metadataTable!.toCollection().primaryKeys()).pipe(
           map(keys => {
+            if (db !== dbService.db || email !== dbService.email) return [];
             const eligibleKeys: string[] = [];
             for (const key of keys) {
               if (allKnownKeys.indexOf(key) < 0) {
@@ -215,6 +217,7 @@ export class TrackDatabase {
             return from(this.metadataTable!.bulkGet(keys));
           }),
           map(items => {
+            if (db !== dbService.db || email !== dbService.email) return false;
             items = items.filter(i => i && i.localUpdate < Date.now() - 24 * 60 * 60 * 1000 && i.updatedAt < Date.now() - 24 * 60 * 60 * 1000);
             console.log('Tracks cleanup: ' + items.length + ' to delete');
             for (const item of items) {
@@ -574,6 +577,7 @@ export class TrackDatabase {
       this._lastSync = Date.now();
       if (this._syncTimeout) clearTimeout(this._syncTimeout);
       this._syncTimeout = undefined;
+      if (!this.db) return;
       this.sync();
     });
 
@@ -668,10 +672,11 @@ export class TrackDatabase {
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
-        console.log('' + items.length + ' tracks to be deleted on server');
-        const uuids = items.map(item => item.uuid);
-        const keys = items.map(item => item.uuid + '#' + this.openEmail!);
-        return this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids).pipe(
+        console.log('' + items.length + ' tracks deleted locally');
+        const keys = items.map(item => item.uuid + '#' + item.owner);
+        const uuids = items.filter(item => item.owner === this.openEmail!).map(item => item.uuid);
+        console.log('' + uuids.length + ' tracks to be deleted on server');
+        return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids) : EMPTY).pipe(
           defaultIfEmpty(true),
           switchMap(result => {
             if (this.db !== db) return EMPTY;
@@ -712,7 +717,10 @@ export class TrackDatabase {
                 const limiter = new RequestLimiter(3);
                 const requests = bunch
                 .map(item => () => {
-                  if (this.db !== db) return EMPTY;
+                  if (this.db !== db) {
+                    progress.done();
+                    return EMPTY;
+                  }
                   return this.injector.get(HttpService).get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
                 })
                 .map(request => limiter.add(request).pipe(

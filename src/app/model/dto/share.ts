@@ -9,7 +9,7 @@ export interface ShareDto {
   elements: string[] | null | undefined;
   trails: string[] | null | undefined;
   toLanguage: string | null | undefined;
-
+  includePhotos: boolean | null | undefined;
 }
 
 export enum ShareElementType {

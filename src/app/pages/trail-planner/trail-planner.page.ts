@@ -37,6 +37,7 @@ import { RouteCircuit } from 'src/app/services/geolocation/route';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 
 const MIN_ZOOM = 14;
 
@@ -182,6 +183,7 @@ export class TrailPlannerPage extends AbstractPage {
 
   save(): void {
     const trail = new Trail({owner: this.track!.owner, collectionUuid: this.collectionUuid!, name: this.trailName, originalTrackUuid: this.track!.uuid, currentTrackUuid: this.track!.uuid});
+    this.injector.get(TrackEditionService).computeFinalMetadata(trail, this.track!);
     this.injector.get(TrackService).create(this.track!);
     this.injector.get(TrailService).create(trail);
     this.reset();

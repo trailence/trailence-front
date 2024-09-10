@@ -72,3 +72,10 @@ ion-button a, a.inherit {
     text-decoration: inherit;
   }
 }
+
+.editable-text {
+  cursor: pointer;
+  &:hover {
+    background-color: rgba(var(--ion-text-color-rgb), 0.05);
+  }
+}

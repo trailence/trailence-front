@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { TrailService } from './trail.service';
-import { combineLatest, filter, first, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, EMPTY, filter, first, Observable, of, switchMap } from 'rxjs';
 import { TagService } from './tag.service';
 import { TrackService } from './track.service';
 import { DatabaseService } from './database.service';
@@ -28,8 +28,8 @@ export class DatabaseCleanupService {
           const lastCleanTime = lastCleanStr ? parseInt(lastCleanStr) : undefined;
           const nextCleanTime = lastCleanTime && !isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
           timeout = setTimeout(() => {
-            this.doCleaning(email!).subscribe(() => {
-              if (email === auth.email) {
+            this.doCleaning(email!).subscribe((done) => {
+              if (email === auth.email && done) {
                 console.log('Database cleaned, next cleaning in 24 hours');
                 localStorage.setItem('trailence.db-cleaning.last-time.' + email, '' + Date.now());
               }
@@ -40,21 +40,24 @@ export class DatabaseCleanupService {
     );
   }
 
-  private doCleaning(email: string): Observable<any> {
+  private doCleaning(email: string): Observable<boolean> {
     const dbService = this.injector.get(DatabaseService);
+    const db = dbService.db;
+    if (!db) return of(false);
     return combineLatest([dbService.hasLocalChanges, dbService.lastSync, dbService.syncStatus, this.injector.get(NetworkService).server$]).pipe(
       filter(([localChanges, lastSync, syncing, connected]) => !localChanges && !!lastSync && Date.now() - lastSync < 15 * 60 * 1000 && !syncing && connected),
       first(),
       switchMap(() => {
+        if (db !== dbService.db || email !== dbService.email) return of(false);
         console.log('Cleaning database...');
-        return this.injector.get(TrailService).cleanDatabase(email).pipe(
+        return this.injector.get(TrailService).cleanDatabase(db, email).pipe(
           switchMap(() => {
-            if (this.injector.get(AuthService).email !== email) return of(false);
-            return this.injector.get(TagService).cleanDatabase(email);
+            if (db !== dbService.db || email !== dbService.email) return of(false);
+            return this.injector.get(TagService).cleanDatabase(db, email);
           }),
           switchMap(() => {
-            if (this.injector.get(AuthService).email !== email) return of(false);
-            return this.injector.get(TrackService).cleanDatabase(email);
+            if (db !== dbService.db || email !== dbService.email) return of(false);
+            return this.injector.get(TrackService).cleanDatabase(db, email);
           }),
         );
       })

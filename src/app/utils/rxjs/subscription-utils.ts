@@ -8,7 +8,7 @@ export class Subscriptions {
     this.subscriptions.push(s);
   }
 
-  public unsusbcribe(): void {
+  public unsubscribe(): void {
     for (const s of this.subscriptions) s.unsubscribe();
     this.subscriptions = [];
   }

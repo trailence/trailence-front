@@ -103,7 +103,8 @@
       "title_compare_and": "et",
       "tabs": {
         "details": "Détails",
-        "map": "Carte"
+        "map": "Carte",
+        "photos": "Photos"
       },
       "show_original": "Afficher la trace d'origine",
       "show_breaks": "Afficher les pauses",
@@ -118,6 +119,7 @@
         "merged_trail_name": "Parcours fusionné"
       },
       "no_tag_message": "Aucun tag sur ce parcours",
+      "no_photo_message": "Aucune photo sur ce parcours",
       "sections": {
         "description": {
           "title": "Description du parcours",
@@ -208,6 +210,8 @@
       "name": "Donner un nom au partage",
       "name_info": "Ce nom sera visible par vous et la personne avec qui vous partagez",
       "who_question": "Avec qui ?",
+      "includePhotos": "Partager les photos avec les parcours",
+      "photos_info": "Les photos associées aux parcours partagés seront visibles par la personne avec qui vous partagez, mais non modifiables",
       "email": "Email",
       "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
       "language": "Dans quelle langue devons-nous envoyer le mail ?"
@@ -325,6 +329,13 @@
       "track_current_explaination": "La trace actuelle dans Trailence, comportant les améliorations et modifications",
       "track_both": "Les deux",
       "track_both_explaination": "Les deux seront exportées dans le même fichier. Cela permettra de ré-importer dans Trailence les 2 traces en un seul parcours, idéal donc pour un backup. En revanche, cela risque de mal s'ouvrir si vous importez le fichier dans une autre application."
+    },
+    "photos_popup": {
+      "title": "Photos",
+      "importing": "Import",
+      "add_photos_buttons": "Ajouter des photos",
+      "selected_plural": "photos sélectionnées",
+      "selected_single": "photo sélectionnée"
     }
   },
   "menu": {

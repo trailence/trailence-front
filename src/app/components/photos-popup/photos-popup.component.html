@@ -1,0 +1,112 @@
+<ion-header *ngIf="popup">
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="photos" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.photos_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<div style="flex: 1 1 100%; display:flex; flex-direction: column; overflow: hidden">
+
+  <div class="selection" *ngIf="canEdit && photos.length > 0">
+    <ion-checkbox [checked]="nbSelected === photos.length" [indeterminate]="nbSelected > 0 && nbSelected < photos.length" (ionChange)="setAllSelected($event.detail.checked)"></ion-checkbox>
+    <div style="margin-left: 8px">
+      {{nbSelected}} / {{photos.length}} {{nbSelected > 1 ? i18n.texts.pages.photos_popup.selected_plural : i18n.texts.pages.photos_popup.selected_single}}
+    </div>
+    <ng-container *ngIf="nbSelected > 0">
+      <div style="margin: 0 5px">:</div>
+      <ion-button size="small" color="danger" (click)="deleteSelected()">{{i18n.texts.buttons.delete}}</ion-button>
+    </ng-container>
+  </div>
+  <div class="photos" style="flex: 1 1 100%; overflow-y: auto;">
+    @for (photoWithInfo of photos; track photoWithInfo.photo.uuid + photoWithInfo.photo.owner) {
+      <div [ngStyle]="{'width': (maxWidth + 30) + 'px'}" class="photo-container" [ngClass]="{'selected': photoWithInfo.selected}">
+        <div style="display: flex; flex-direction: column; align-items: center; align-self: stretch;" *ngIf="canEdit">
+          <ion-checkbox [checked]="photoWithInfo.selected" (ionChange)="setSelected(photoWithInfo, $event.detail.checked)"></ion-checkbox>
+          <div style="flex: 1 1 100%; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <ion-button *ngIf="$index > 0" shape="round" size="small" fill="clear" color="dark" (click)="moveBack($index)">
+              <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
+            </ion-button>
+            <ion-button *ngIf="$index < photos.length - 1" shape="round" size="small" fill="clear" color="dark" (click)="moveForward($index)">
+              <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+        <div class="photo-and-description">
+          <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)"></app-photo>
+          <div class="description" (click)="editDescription(photoWithInfo)" *ngIf="!photoWithInfo.editing" [ngClass]="{'editable-text': canEdit}">
+            {{photoWithInfo.photo.description}}
+          </div>
+          <ion-textarea #descriptionEditor
+            *ngIf="photoWithInfo.editing"
+            [maxlength]="5000"
+            [autoGrow]="true"
+            [value]="photoWithInfo.editing"
+            (ionChange)="descriptionChanged(photoWithInfo, $event.detail.value)"
+            (ionInput)="descriptionChanging(photoWithInfo, $event.detail.value)"
+            (ionBlur)="exitEditDescription(photoWithInfo)"
+          ></ion-textarea>
+          <div class="metadata-container one-column">
+            <div class="metadata-item-container" *ngIf="photoWithInfo.photo.dateTaken">
+              <div class="metadata-item">
+                <ion-icon name="date"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div>{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metadata-item-container" *ngIf="photoWithInfo.photo.latitude">
+              <div class="metadata-item">
+                <ion-icon name="location"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div>{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="addPhotos()" *ngIf="canEdit">{{i18n.texts.pages.photos_popup.add_photos_buttons}}</ion-button>
+      <ion-button *ngIf="popup" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
+
+<ion-modal #modalSlider class="full-screen" style="--background: rgba(var(--ion-background-color-rgb), 0.8)">
+  <ng-template>
+    <div style="width: 100%; height: 100%; position: relative;">
+      <div style="position: absolute; top: 4px; right: 4px;">
+        <ion-button size="large" shape="round" fill="clear" color="dark" (click)="modalSlider.dismiss()">
+          <ion-icon slot="icon-only" name="cross"></ion-icon>
+        </ion-button>
+      </div>
+      <div style="width: 100%; height: calc(100% - 45px); display: flex; flex-direction: column; align-items: center; justify-content: center">
+        <app-photo style="display: inline-block;" [maxWidth]="width" [maxHeight]="height - 45" [photo]="photos[sliderIndex].photo"></app-photo>
+      </div>
+    </div>
+    <div *ngIf="sliderIndex > 0" style="position: absolute; left: 4px; top: calc(50% - 25px)">
+      <ion-button size="large" shape="round" fill="clear" color="dark" (click)="sliderIndex = sliderIndex - 1">
+        <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
+      </ion-button>
+    </div>
+    <div *ngIf="sliderIndex < photos.length - 1" style="position: absolute; right: 4px; top: calc(50% - 25px)">
+      <ion-button size="large" shape="round" fill="clear" color="dark" (click)="sliderIndex = sliderIndex + 1">
+        <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
+      </ion-button>
+    </div>
+    <div style="position: absolute; bottom: 0; left: 10px; right: 10px; display: flex; flex-direction: column; align-items: center">
+      <div>{{ photos[sliderIndex].photo.description }}</div>
+    </div>
+  </ng-template>
+</ion-modal>

@@ -162,7 +162,9 @@ export class Track extends Owned {
     if (segmentIndex === 0) return 0;
     let time = 0;
     for (let i = segmentIndex - 1; i >= 0; --i) {
-      time += this.segments[i].duration;
+      const sd = this.segments[i].duration;
+      if (sd)
+        time += sd;
     }
     return time;
   }
@@ -204,7 +206,7 @@ export class TrackMetadata {
   private _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
   private _highestAltitude = new BehaviorSubject<number | undefined>(undefined);
   private _lowestAltitude = new BehaviorSubject<number | undefined>(undefined);
-  private _duration = new BehaviorSubject<number>(0);
+  private _duration = new BehaviorSubject<number | undefined>(undefined);
   private _startDate = new BehaviorSubject<number | undefined>(undefined);
   private _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
 
@@ -214,7 +216,7 @@ export class TrackMetadata {
     this.addition(segments$, meta => meta.distance$, this._distance);
     this.addition2(segments$, meta => meta.positiveElevation$, this._positiveElevation);
     this.addition2(segments$, meta => meta.negativeElevation$, this._negativeElevation);
-    this.addition(segments$, meta => meta.duration$, this._duration);
+    this.addition2(segments$, meta => meta.duration$, this._duration);
     this.highest(segments$, meta => meta.highestAltitude$, this._highestAltitude);
     this.lowest(segments$, meta => meta.lowestAltitude$, this._lowestAltitude);
     this.lowest(segments$, meta => meta.startDate$, this._startDate);
@@ -240,8 +242,8 @@ export class TrackMetadata {
   public get lowestAltitude(): number | undefined { return this._lowestAltitude.value; }
   public get lowestAltitude$(): Observable<number | undefined> { return this._lowestAltitude; }
 
-  public get duration(): number { return this._duration.value; }
-  public get duration$(): Observable<number> { return this._duration; }
+  public get duration(): number | undefined { return this._duration.value; }
+  public get duration$(): Observable<number | undefined> { return this._duration; }
 
   public get startDate(): number | undefined { return this._startDate.value; }
   public get startDate$(): Observable<number | undefined> { return this._startDate; }

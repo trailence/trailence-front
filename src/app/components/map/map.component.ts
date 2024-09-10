@@ -64,7 +64,7 @@ export class MapComponent extends AbstractComponent {
     this.visible$.subscribe(visible => {
       if (visible) {
         setTimeout(() => {
-          if (!this._map$.value) this.createMap();
+          if (!this._map$.value) this.initMap();
           else this.invalidateSize();
         }, 0);
       }
@@ -76,6 +76,22 @@ export class MapComponent extends AbstractComponent {
       combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
       () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId)
     );
+  }
+
+  private _initMapTimeout: any;
+  private initMap(): void {
+    if (this._initMapTimeout) {
+      clearTimeout(this._initMapTimeout);
+      this._initMapTimeout = undefined;
+    }
+    if (!this.visible) return;
+    if (document.getElementById(this.id)?.clientHeight) {
+      this.createMap();
+      return;
+    }
+    this._initMapTimeout = setTimeout(() => {
+      this.initMap();
+    }, 250);
   }
 
   override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {

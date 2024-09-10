@@ -1,8 +1,8 @@
 import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
-import { TRAIL_TABLE_NAME } from './database.service';
+import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { Observable, combineLatest, filter, first, map, of, switchMap, zip } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, filter, first, map, of, switchMap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
@@ -21,6 +21,7 @@ import Trailence from '../trailence.service';
 import { TrailMenuService } from './trail-menu.service';
 import { Router } from '@angular/router';
 import { ModalController} from '@ionic/angular/standalone';
+import { PhotoService } from './photo.service';
 
 @Injectable({
   providedIn: 'root'
@@ -72,18 +73,28 @@ export class TrailService {
     if (trail.currentTrackUuid !== trail.originalTrackUuid)
       this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner, doneHandler.add());
     this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid, doneHandler.add());
+    this.injector.get(PhotoService).deleteForTrail(trail.owner, trail.uuid, doneHandler.add());
     this._store.delete(trail, doneHandler.add());
     doneHandler.start();
   }
 
-  public deleteAllTrailsFromCollection(collectionUuid: string, owner: string, progress: Progress, progressWork: number): Observable<any> {
+  propagateDelete(trail: Trail): void {
+    this.trackService.deleteByUuidAndOwner(trail.originalTrackUuid, trail.owner);
+    if (trail.currentTrackUuid !== trail.originalTrackUuid)
+      this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner);
+    if (trail.owner === this.injector.get(AuthService).email)
+      this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid);
+    this.injector.get(PhotoService).deleteForTrail(trail.owner, trail.uuid);
+  }
+
+  public deleteAllTrailsFromCollection(collectionUuid: string, owner: string, progress: Progress | undefined, progressWork: number): Observable<any> {
     return this._store.getAll$().pipe(
       first(),
       switchMap(trails$ => trails$.length === 0 ? of([]) : zip(trails$.map(trail$ => trail$.pipe(firstTimeout(t => !!t, 1000, () => null as Trail | null))))),
       switchMap(trail => {
         const toRemove = trail.filter(trail => !!trail && trail.collectionUuid === collectionUuid && trail.owner === owner);
         if (toRemove.length === 0) {
-          progress.addWorkDone(progressWork)
+          progress?.addWorkDone(progressWork)
           return of(true);
         }
         return new Observable(observer => {
@@ -93,7 +104,7 @@ export class TrailService {
             setTimeout(() => {
               done++;
               const newWorkDone = done * progressWork / toRemove.length;
-              progress.addWorkDone(newWorkDone - workDone);
+              progress?.addWorkDone(newWorkDone - workDone);
               workDone = newWorkDone;
               if (done === toRemove.length) {
                 observer.next(true);
@@ -107,7 +118,7 @@ export class TrailService {
     );
   }
 
-  getLoopTypeIcon(loopType: TrailLoopType | undefined): string {
+  public getLoopTypeIcon(loopType: TrailLoopType | undefined): string {
     if (loopType === undefined) return 'question';
     switch (loopType) {
       case TrailLoopType.ONE_WAY: return 'one-way';
@@ -118,8 +129,8 @@ export class TrailService {
     }
   }
 
-  public cleanDatabase(email: string): Observable<any> {
-    return this._store.cleanDatabase(email);
+  public cleanDatabase(db: Dexie, email: string): Observable<any> {
+    return this._store.cleanDatabase(db, email);
   }
 
   private listenToImportGpx(): void {
@@ -243,6 +254,10 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     return this.http.post<void>(environment.apiBaseUrl + '/trail/v1/_bulkDelete', uuids);
   }
 
+  protected override deleted(item$: BehaviorSubject<Trail | null> | undefined, item: Trail): void {
+    this.injector.get(TrailService).propagateDelete(item);
+  }
+
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
     return zip([
       this.getAll$().pipe(collection$items()),
@@ -252,7 +267,8 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
       first(),
       switchMap(([trails, collections, shares]) => {
         return new Observable<any>(subscriber => {
-          if (this.injector.get(AuthService).email !== email) {
+          const dbService = this.injector.get(DatabaseService);
+          if (db !== dbService.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -274,6 +290,10 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
             if (share) continue;
             const d = ondone.add();
             this.getLocalUpdate(trail).then(date => {
+              if (db !== dbService.db || email !== dbService.email) {
+                d();
+                return;
+              }
               if (!date || date > maxDate) {
                 d();
                 return;

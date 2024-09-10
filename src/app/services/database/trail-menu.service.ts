@@ -294,8 +294,12 @@ export class TrailMenuService {
     const i18n = this.injector.get(I18nService);
     const email = this.injector.get(AuthService).email!;
     this.injector.get(FileService).openFileDialog({
-      extension: '.gpx',
-      mimeType: 'application/gpx+xml',
+      types: [
+        {
+          mime: 'application/gpx+xml',
+          extensions: ['gpx']
+        }
+      ],
       multiple: true,
       description: i18n.texts.tools.import_gpx_description,
       onstartreading: (nbFiles: number) => {
@@ -303,7 +307,7 @@ export class TrailMenuService {
         progress.subTitle = '0/' + nbFiles;
         return Promise.resolve(progress);
       },
-      onfileread: (index: number, nbFiles: number, progress: Progress, file: ArrayBuffer) => {
+      onfileread: (index: number, nbFiles: number, progress: Progress, filename: string, file: ArrayBuffer) => {
         const imported = this.importGpx(file, email, collectionUuid);
         if (!imported) {
           // TODO show message
@@ -368,12 +372,12 @@ export class TrailMenuService {
     const modal = await this.injector.get(ModalController).create({
       component: module.ExportPopupComponent,
       componentProps: {
+        trails: trails
       }
     });
     await modal.present();
     const modalResult = await modal.onWillDismiss();
     if (!modalResult.data?.what) return;
-    console.log(modalResult);
 
     const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.export, trails.length + 1);
     const email = this.injector.get(AuthService).email!;

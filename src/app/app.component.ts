@@ -14,6 +14,8 @@ import { ShareService } from './services/database/share.service';
 import { DatabaseCleanupService } from './services/database/database-cleanup.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { combineLatest, filter, first } from 'rxjs';
+import { AuthService } from './services/auth/auth.service';
+import { DatabaseService } from './services/database/database.service';
 
 @Component({
   selector: 'app-root',
@@ -34,6 +36,8 @@ export class AppComponent {
     public i18n: I18nService,
     public geolocation: GeolocationService,
     router: Router,
+    auth: AuthService,
+    database: DatabaseService,
     // init assets
     assetsService: AssetsService,
     // depends on services with stores, so they can start synchronizing
@@ -53,11 +57,22 @@ export class AppComponent {
       i18n.texts$.pipe(
         filter(texts => !!texts),
         first(),
-      )
-    ]).subscribe(() => {
+      ),
+      auth.auth$.pipe(
+        filter(a => a !== undefined),
+        first(),
+      ),
+    ]).subscribe(([e, t, a]) => {
       const startup = document.getElementById('startup')!;
       document.getElementById('root')!.style.display = '';
-      this.ready(startup);
+      if (!a)
+        this.ready(startup);
+      else {
+        // authenticated => wait for databases to be open
+        combineLatest([auth.auth$, database.allLoaded()]).subscribe(([a, l]) => {
+          if (!a || l) this.ready(startup);
+        });
+      }
     });
   }
 

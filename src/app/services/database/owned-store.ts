@@ -163,6 +163,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       const item$ = this._store.value.find(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
       if (item$) {
         deletedItems.push(item$);
+        if (item$.value)
+          this.deleted(item$, item$.value);
       }
     });
     if (entitiesToAdd.length !== 0 || deletedItems.length !== 0) {
@@ -308,7 +310,15 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           switchMap(result => {
             if (!stillValid()) return of(false);
             console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server');
-            this._updatedLocally = [];
+            for (const entity of readyEntities) {
+              const updated = result.find(d => d.uuid === entity.uuid && d.owner === entity.owner);
+              if (!updated) {
+                // no update needed by the server: remove the updatedLocally from the DB
+                this._db!.table<StoredItem<DTO>>(this.tableName).put({id_owner: entity.uuid + '#' + entity.owner, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
+              }
+              const index = this._updatedLocally.indexOf(entity.uuid + '#' + entity.owner);
+              if (index >= 0) this._updatedLocally.splice(index, 1);
+            }
             return this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length));
           }),
           catchError(error => {

@@ -33,12 +33,12 @@ export class ShareService {
     return this._store.getAll$();
   }
 
-  public create(type: ShareElementType, elements: string[], name: string, to: string, toLanguage: string): Observable<Share | null> {
+  public create(type: ShareElementType, elements: string[], name: string, to: string, toLanguage: string, includePhotos: boolean): Observable<Share | null> {
     const from = this.injector.get(AuthService).email;
     if (!from) return of(null);
     const trails: string[] = [];
     return this._store.create(new Share(
-      window.crypto.randomUUID(), name, from, to, type, Date.now(), elements, trails, toLanguage
+      window.crypto.randomUUID(), name, from, to, type, Date.now(), elements, trails, toLanguage, includePhotos
     ));
   }
 

@@ -18,7 +18,7 @@ export class FileService implements IFileService {
 
   public openFileDialog<P,T>(request: OpenFileRequest<P,T>): void {
     FilePicker.pickFiles({
-      types: [request.mimeType],
+      types: request.types.map(t => t.mime),
       limit: request.multiple ? 0 : 1,
       readData: true
     }).then(pickedFiles => {
@@ -28,7 +28,7 @@ export class FileService implements IFileService {
           const results: T[] = [];
           const readNext = (index: number) => {
             const buffer = Uint8Array.from(atob(pickedFiles.files[index].data!), c => c.charCodeAt(0));
-            request.onfileread(index, pickedFiles.files.length, fromStartReading, buffer)
+            request.onfileread(index, pickedFiles.files.length, fromStartReading, pickedFiles.files[index].name, buffer)
             .then(result => {
               results.push(result);
               if (index === pickedFiles.files.length - 1) {

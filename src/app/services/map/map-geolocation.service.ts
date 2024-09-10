@@ -56,7 +56,14 @@ export class MapGeolocationService {
           if (pt) return ({lat: pt.pos.lat, lng: pt.pos.lng, active: !waiting && !recording.paused});
           return undefined;
         }
-        if (!show) return undefined;
+        if (!show) {
+          if (this.watching) {
+            this.watching = false;
+            this.geolocationService.stopWatching(this.watcher);
+            this.watch$.next(undefined);
+          }
+          return undefined;
+        }
         if (!this.watching) {
           this.watching = true;
           this.geolocationService.watchPosition(this.i18n.texts.trace_recorder.notif_message_map, this.watcher);

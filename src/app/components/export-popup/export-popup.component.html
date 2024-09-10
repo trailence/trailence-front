@@ -10,19 +10,19 @@
   <div class="message">
     {{i18n.texts.pages.export_popup.which_tracks}}
   </div>
-  <ion-radio-group (ionChange)="what = $event.detail.value">
+  <ion-radio-group [value]="what" (ionChange)="what = $event.detail.value">
     <div>
       <ion-radio value="original" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_original }}</ion-radio>
     </div>
     <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_original_explaination }}</div>
-    <div>
+    <div *ngIf="hasBoth">
       <ion-radio value="current" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_current }}</ion-radio>
     </div>
-    <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_current_explaination }}</div>
-    <div>
+    <div class="radio-explaination" *ngIf="hasBoth">{{ i18n.texts.pages.export_popup.track_current_explaination }}</div>
+    <div *ngIf="hasBoth">
       <ion-radio value="both" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_both }}</ion-radio>
     </div>
-    <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_both_explaination }}</div>
+    <div class="radio-explaination" *ngIf="hasBoth">{{ i18n.texts.pages.export_popup.track_both_explaination }}</div>
   </ion-radio-group>
 </ion-content>
 <ion-footer>

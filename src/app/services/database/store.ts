@@ -60,7 +60,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected _initStore(): void {
     const dbService = this.injector.get(DatabaseService);
-    dbService.registerStore({status: this.syncStatus$, syncNow: () => this.syncNow()});
+    dbService.registerStore({status: this.syncStatus$, syncNow: () => this.syncNow(), loaded$: this._storeLoaded$});
     // listen to database change (when authentication changed)
     dbService.db$.subscribe(db => {
       if (db) this.load(db);
@@ -94,6 +94,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this._lastSync = Date.now();
       if (this._syncTimeout) clearTimeout(this._syncTimeout);
       this._syncTimeout = undefined;
+      if (!this._db) return;
       this.sync();
     });
 
@@ -351,16 +352,17 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
   }
 
-  public cleanDatabase(email: string): Observable<any> {
+  public cleanDatabase(db: Dexie, email: string): Observable<any> {
     return new Observable(subscriber => {
-      if (this.injector.get(AuthService).email !== email) {
+      const dbService = this.injector.get(DatabaseService);
+      if (db !== dbService.db || email !== dbService.email) {
         subscriber.next(false);
         subscriber.complete();
         return;
       }
       this.performOperation(
         () => {},
-        db => this.doCleaning(email, db),
+        dbo => this.doCleaning(email, dbo),
         () => false,
         () => {
           subscriber.next(true);

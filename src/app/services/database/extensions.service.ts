@@ -20,6 +20,7 @@ export class ExtensionsService {
   private _lastSync = 0;
   private _syncTimeout?: any;
   private updateFromServerTimeout: any = undefined;
+  private _loaded$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     private databaseService: DatabaseService,
@@ -27,7 +28,7 @@ export class ExtensionsService {
     private ngZone: NgZone,
     private http: HttpService,
   ) {
-    databaseService.registerStore({status: this._syncStatus$, syncNow: () => this.syncNow()});
+    databaseService.registerStore({status: this._syncStatus$, syncNow: () => this.syncNow(), loaded$: this._loaded$});
     this.databaseService.db$.subscribe(db => {
       if (db) this.load(db);
       else this.close();
@@ -71,6 +72,7 @@ export class ExtensionsService {
 
   private close(): void {
     if (this._db) {
+      this._loaded$.next(false);
       this._extensions$.next([]);
       this._db = undefined;
       if (this.updateFromServerTimeout) clearTimeout(this.updateFromServerTimeout);
@@ -86,6 +88,7 @@ export class ExtensionsService {
     this._syncStatus$.next(this._syncStatus$.value);
     db.table<DbItem>(EXTENSIONS_TABLE_NAME).toArray().then(items => {
       this._extensions$.next(items.map(item => new Extension(item.version, item.extension, item.data)));
+      this._loaded$.next(true);
       combineLatest([
         this.network.server$,
         this._syncStatus$,
