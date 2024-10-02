@@ -26,23 +26,32 @@ export class FileService implements IFileService {
         request.onstartreading(pickedFiles.files.length)
         .then(fromStartReading => {
           const results: T[] = [];
+          const errors: any[] = [];
           const readNext = (index: number) => {
+            const onerror = (e: any) => {
+              errors.push(e);
+              if (index === pickedFiles.files.length - 1) {
+                setTimeout(() => request.ondone(fromStartReading, results, errors), 0);
+              } else {
+                setTimeout(() => readNext(index + 1), 0);
+              }
+            };
             const buffer = Uint8Array.from(atob(pickedFiles.files[index].data!), c => c.charCodeAt(0));
             request.onfileread(index, pickedFiles.files.length, fromStartReading, pickedFiles.files[index].name, buffer)
             .then(result => {
               results.push(result);
               if (index === pickedFiles.files.length - 1) {
-                setTimeout(() => request.onfilesloaded(fromStartReading, results), 0);
+                setTimeout(() => request.ondone(fromStartReading, results, errors), 0);
               } else {
                 setTimeout(() => readNext(index + 1), 0);
               }
             })
-            .catch(e => request.onerror(e, fromStartReading));
+            .catch(onerror);
           };
           setTimeout(() => readNext(0), 0);
-        }).catch(e => request.onerror(e, undefined));
+        }).catch(e => request.ondone(undefined, [], [e]));
       }
-    }).catch(e => request.onerror(e, undefined));
+    }).catch(e => request.ondone(undefined, [], []));
   }
 
   public saveBinaryData(filename: string, data: BinaryContent): Promise<boolean> {

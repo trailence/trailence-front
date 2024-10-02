@@ -243,7 +243,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       },
       error: error => {
         // should never happen
-        // TODO ?
         console.log(error);
       }
     });

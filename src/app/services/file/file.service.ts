@@ -22,7 +22,6 @@ export class FileService implements IFileService {
     if (this.tryWithHiddenInputFile(request)) {
       return;
     }
-    // TODO
   }
 
   private tryOpenFileWithBrowserMethod<P,T>(r: OpenFileRequest<P,T>): boolean {
@@ -44,26 +43,36 @@ export class FileService implements IFileService {
         r.onstartreading(files.length)
         .then(fromStartReading => {
           const results: T[] = [];
+          const errors: any[] = [];
           const readNext = (index: number) => {
-            files[index].getFile().then(file => {
+            const onerror = (e: any) => {
+              errors.push(e);
+              if (index === files.length - 1) {
+                setTimeout(() => r.ondone(fromStartReading, results, errors), 0);
+              } else {
+                setTimeout(() => readNext(index + 1), 0);
+              }
+            };
+            files[index].getFile()
+            .then(file => {
               file.arrayBuffer().then(fileContent => {
                 r.onfileread(index, files.length, fromStartReading, files[index].name, fileContent)
                 .then(result => {
                   results.push(result);
                   if (index === files.length - 1) {
-                    setTimeout(() => r.onfilesloaded(fromStartReading, results), 0);
+                    setTimeout(() => r.ondone(fromStartReading, results, errors), 0);
                   } else {
                     setTimeout(() => readNext(index + 1), 0);
                   }
                 })
-                .catch(e => r.onerror(e, fromStartReading));
-              }).catch(e => r.onerror(e, fromStartReading));
-            }).catch(e => r.onerror(e, fromStartReading));
+                .catch(onerror);
+              }).catch(onerror);
+            }).catch(onerror);
           };
           setTimeout(() => readNext(0), 0);
         })
       )
-      .catch((e: any) => r.onerror(e, undefined));
+      .catch((e: any) => r.ondone(undefined, [], [e]));
       return true;
     } catch (e) {
       return false;
@@ -82,25 +91,35 @@ export class FileService implements IFileService {
       if (input.files && input.files.length > 0) {
         r.onstartreading(input.files.length).then(fromStartReading => {
           const results: T[] = [];
+          const errors: any[] = [];
           const readNext = (index: number) => {
+            const onerror = (e: any) => {
+              document.documentElement.removeChild(input);
+              errors.push(e);
+              if (index === input.files!.length - 1) {
+                setTimeout(() => r.ondone(fromStartReading, results, errors), 0);
+              } else {
+                setTimeout(() => readNext(index + 1), 0);
+              }
+            };
             input.files![index].arrayBuffer().then(fileContent => {
               r.onfileread(index, input.files!.length, fromStartReading, input.files![index].name, fileContent)
               .then(result => {
                 results.push(result);
                 if (index === input.files!.length - 1) {
                   setTimeout(() => {
-                    r.onfilesloaded(fromStartReading, results);
+                    r.ondone(fromStartReading, results, errors);
                     document.documentElement.removeChild(input);
                   }, 0);
                 } else {
                   setTimeout(() => readNext(index + 1), 0);
                 }
               })
-              .catch(e => { document.documentElement.removeChild(input); r.onerror(e, fromStartReading); });
-            }).catch(e => { document.documentElement.removeChild(input); r.onerror(e, fromStartReading); });
+              .catch(onerror);
+            }).catch(onerror);
           };
           setTimeout(() => readNext(0), 0);
-        }).catch((e: any) => { document.documentElement.removeChild(input); r.onerror(e, undefined); });
+        }).catch((e: any) => { document.documentElement.removeChild(input); r.ondone(undefined, [], [e]); });
       }
     });
     document.documentElement.appendChild(input);

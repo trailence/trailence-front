@@ -21,6 +21,9 @@ import { TrailService } from './trail.service';
 import { TrailCollectionService } from './trail-collection.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { TagService } from './tag.service';
+import { I18nError } from '../i18n/i18n-string';
+import { ErrorService } from '../progress/error.service';
+import * as JSZip from 'jszip';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -293,11 +296,17 @@ export class TrailMenuService {
   public importGpxDialog(collectionUuid: string): void {
     const i18n = this.injector.get(I18nService);
     const email = this.injector.get(AuthService).email!;
+    let zipEntries = 0;
+    let zipErrors: any[] = [];
     this.injector.get(FileService).openFileDialog({
       types: [
         {
           mime: 'application/gpx+xml',
           extensions: ['gpx']
+        },
+        {
+          mime: 'application/zip',
+          extensions: ['zip']
         }
       ],
       multiple: true,
@@ -308,28 +317,74 @@ export class TrailMenuService {
         return Promise.resolve(progress);
       },
       onfileread: (index: number, nbFiles: number, progress: Progress, filename: string, file: ArrayBuffer) => {
-        const imported = this.importGpx(file, email, collectionUuid);
-        if (!imported) {
-          // TODO show message
+        try {
+          if (file.byteLength > 2) {
+            const first2bytes = new Uint8Array(file.slice(0, 2));
+            if (String.fromCharCode(first2bytes[0]) === 'P' &&
+                String.fromCharCode(first2bytes[1]) === 'K') {
+              // zip file
+              return JSZip.loadAsync(file).then(zip => {
+                const gpxFiles = zip.filter((path, entry) => !entry.dir && entry.name.toLowerCase().endsWith('.gpx'));
+                if (gpxFiles.length === 0) {
+                  progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
+                  progress.addWorkDone(1);
+                  return Promise.resolve([]);
+                }
+                return new Promise<({trailUuid: string, tags: string[][]})[]>((resolve, reject) => {
+                  const previousZipEntries = zipEntries;
+                  zipEntries += gpxFiles.length;
+                  progress.addWorkToDo(gpxFiles.length);
+                  progress.subTitle = '' + (index + 1 + previousZipEntries) + '/' + (nbFiles + zipEntries);
+                  progress.addWorkDone(1);
+                  const done: ({trailUuid: string, tags: string[][]})[] = [];
+                  const readNextZipEntry = (entryIndex: number) => {
+                    const gpxFile = gpxFiles[entryIndex];
+                    return gpxFile.async('arraybuffer')
+                    .then(arraybuffer => {
+                      try {
+                        done.push(this.importGpx(arraybuffer, email, collectionUuid));
+                      } catch (e) {
+                        zipErrors.push(new I18nError('errors.import.file_not_imported', [filename + '/' + gpxFile.name, e]));
+                      }
+                      progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
+                      progress.addWorkDone(1);
+                      if (entryIndex === gpxFiles.length - 1) {
+                        resolve(done);
+                      } else {
+                        readNextZipEntry(entryIndex + 1);
+                      }
+                    });
+                  };
+                  readNextZipEntry(0);
+                });
+              });
+            }
+          }
+          const imported = this.importGpx(file, email, collectionUuid);
+          progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
+          progress.addWorkDone(1);
+          return Promise.resolve([imported]);
+        } catch (error) {
+          progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
+          progress.addWorkDone(1);
+          return Promise.reject(new I18nError('errors.import.file_not_imported', [filename, error]));
         }
-        progress.subTitle = '' + (index + 1) + '/' + nbFiles;
-        progress.addWorkDone(1);
-        return Promise.resolve(imported);
       },
-      onfilesloaded: (progress: Progress, imported: ({trailUuid: string, tags: string[][]} | undefined)[]) => {
-        progress.done();
-        this.importTags(imported, collectionUuid);
-      },
-      onerror: (error, progress) => {
-        console.log(error);
+      ondone: (progress: Progress | undefined, imported: ({trailUuid: string, tags: string[][]})[][], errors: any[]) => {
         progress?.done();
+        if (errors.length > 0)
+          this.injector.get(ErrorService).addErrors(errors);
+        if (zipErrors.length > 0)
+          this.injector.get(ErrorService).addErrors(zipErrors);
+        const importedTrails = Arrays.flatMap(imported, a => a);
+        if (importedTrails.length > 0)
+          this.importTags(importedTrails, collectionUuid);
       }
     });
   }
 
-  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string): {trailUuid: string, tags: string[][]} | undefined {
+  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string): {trailUuid: string, tags: string[][]} {
     const imported = GpxFormat.importGpx(file, owner, collectionUuid, this.injector.get(PreferencesService));
-    if (!imported) return undefined;
     if (imported.tracks.length === 1) {
       const improved = this.injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
       imported.trail.currentTrackUuid = improved.uuid;

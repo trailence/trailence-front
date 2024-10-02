@@ -127,12 +127,9 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
           return true;
         });
       },
-      onfilesloaded: (progress: Progress) => {
-        progress.done();
-      },
-      onerror: (error, progress) => {
-        console.log(error);
+      ondone: (progress: Progress | undefined, result: boolean[], errors: any[]) => {
         progress?.done();
+        // TODO display errors
       }
     })
   }

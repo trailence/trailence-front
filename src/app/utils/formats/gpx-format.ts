@@ -7,13 +7,16 @@ import { WayPoint } from 'src/app/model/way-point';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { BinaryContent } from '../binary-content';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { I18nError } from 'src/app/services/i18n/i18n-string';
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): {trail: Trail, tracks: Track[], tags: string[][]} | undefined {
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): {trail: Trail, tracks: Track[], tags: string[][]} {
     const fileContent = new TextDecoder().decode(file);
     const parser = new DOMParser();
     const doc = parser.parseFromString(fileContent, "application/xml");
+    if (doc.documentElement.nodeName.toLowerCase() !== 'gpx')
+      throw new I18nError('errors.import.not_gpx');
 
     const trailDto = {owner: user, collectionUuid, name: '', description: ''} as TrailDto;
     const tracks: Track[] = [];
@@ -96,7 +99,7 @@ export class GpxFormat {
       }
     }
 
-    if (tracks.length === 0) return undefined;
+    if (tracks.length === 0) throw new I18nError('errors.import.not_gpx');
     const trail = new Trail({...trailDto, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks[tracks.length - 1].uuid});
 
     return { trail, tracks, tags: importedTags };

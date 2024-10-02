@@ -12,6 +12,8 @@ import { BinaryContent } from 'src/app/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { HttpClient } from '@angular/common/http';
+import { ErrorService } from '../progress/error.service';
+import { I18nError } from '../i18n/i18n-string';
 
 interface TileMetadata {
   key: string;
@@ -42,6 +44,7 @@ export class OfflineMapService {
     private preferencesService: PreferencesService,
     private traceRecorder: TraceRecorderService,
     private angularHttp: HttpClient,
+    private errorService: ErrorService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -120,6 +123,11 @@ export class OfflineMapService {
         progress.workAmount = coordsToDl.length;
         limiter = new RequestLimiter(layer.maxConcurrentRequests);
         let done = 0;
+        let errors = 0;
+        const ondone = () => {
+          progress.done();
+          if (errors > 0) this.errorService.addError(new I18nError('errors.download_offline_map', [errors]))
+        };
         for (const c of coordsToDl) {
           const request$ = limiter.add(() => this.getBlob(layer, layer.getTileUrl(tiles, c, crs)));
           request$.subscribe({
@@ -137,14 +145,15 @@ export class OfflineMapService {
               ]).subscribe(() => {
                 progress.workDone = ++done;
                 progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
-                if (done === coordsToDl.length) progress.done();
+                if (done === coordsToDl.length) ondone();
               });
             },
             error: e => {
-              // TODO
+              console.log(e);
+              errors++;
               progress.workDone = ++done;
               progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
-              if (done === coordsToDl.length) progress.done();
+              if (done === coordsToDl.length) ondone();
             }
           });
         }

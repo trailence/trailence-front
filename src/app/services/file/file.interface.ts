@@ -17,8 +17,7 @@ export class OpenFileRequest<P, T> {
       public multiple: boolean,
       public onstartreading: (nbFiles: number) => Promise<P>,
       public onfileread: (index: number, nbFiles: number, fromStartReading: P, fileName: string, fileContent: ArrayBuffer) => Promise<T>,
-      public onfilesloaded: (fromStartReading: P, results: T[]) => void,
-      public onerror: (error: any, fromStartReading?: P) => void
+      public ondone: (fromStartReading: P | undefined, results: T[], errors: any[]) => void,
     ) {
     }
 }

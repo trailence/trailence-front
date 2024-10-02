@@ -508,5 +508,14 @@
     "current_position": "Position actuelle",
     "current_altitude": "Altitude actuelle"
   },
-  "synchronizing_your_data": "Téléchargement de vos parcours"
+  "synchronizing_your_data": "Téléchargement de vos parcours",
+  "errors": {
+    "modal_title_singular": "Erreur",
+    "modal_title_plural": "Erreurs",
+    "import": {
+      "file_not_imported": "Le fichier '{{1}}' n'a pas pu être importé: {{2}}",
+      "not_gpx": "Le fichier n'est pas au format GPX ou est invalide"
+    },
+    "download_offline_map": "{{1}} erreur(s) rencontrées lors du téléchargement des cartes"
+  }
 }

@@ -499,5 +499,14 @@
     "current_position": "Current position",
     "current_altitude": "Current altitude"
   },
-  "synchronizing_your_data": "Downloading your trails"
+  "synchronizing_your_data": "Downloading your trails",
+  "errors": {
+    "modal_title_singular": "Error",
+    "modal_title_plural": "Errors",
+    "import": {
+      "file_not_imported": "File '{{1}}' cannot be imported: {{2}}",
+      "not_gpx": "File is not a valid GPX"
+    },
+    "download_offline_map": "{{1}} error(s) while downloading offline maps"
+  }
 }
