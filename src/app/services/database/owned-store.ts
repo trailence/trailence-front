@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, concat, defaultIfEmpty, from, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, concat, defaultIfEmpty, from, map, of, switchMap, tap } from 'rxjs';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
@@ -102,7 +102,15 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return true;
   }
 
-  public update(entity: ENTITY): void {
+  public lock(uuid: string, owner: string, onlocked: (locked: boolean) => void): void {
+    this._locks.lock(uuid + '#' + owner, onlocked);
+  }
+
+  public unlock(uuid: string, owner: string): void {
+    this._locks.unlock(uuid + '#' + owner);
+  }
+
+  public update(entity: ENTITY, ondone?: () => void): void {
     const key = entity.uuid + '#' + entity.owner;
     entity.updatedAt = Date.now();
     this.performOperation(
@@ -117,7 +125,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         if (status.localUpdates) return false;
         status.localUpdates = true;
         return true;
-      }
+      },
+      ondone
     );
   }
 
@@ -251,11 +260,13 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {
     this._createdLocally = this._createdLocally.filter($item => !!$item.value);
     if (this._createdLocally.length === 0) return of(true);
-    const toCreate = this._createdLocally.map(item$ => item$.value!);
+    const toCreate = this._createdLocally.map(item$ => item$.value!).filter(item => this._locks.startSync(item.uuid + '#' + item.owner));
     const ready = toCreate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
     return ready$.pipe(
       switchMap(readyEntities => {
+        const notReady = toCreate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
+        for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
           console.log('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
           return of(false);
@@ -270,6 +281,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             // TODO
             console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             return of(false);
+          }),
+          tap(() => {
+            for (const item of readyEntities) this._locks.syncDone(item.uuid + '#' + item.owner);
           })
         );
       }),
@@ -295,12 +309,20 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   private syncUpdateToServer(stillValid: () => boolean): Observable<boolean> {
     if (this._updatedLocally.length === 0) return of(true);
-    const toUpdate = this._store.value.map(item$ => item$.value).filter(item => !!item && this._updatedLocally.indexOf(item.uuid + '#' + item.owner) >= 0) as ENTITY[];
+    const toUpdate = this._store.value
+      .map(item$ => item$.value)
+      .filter(
+        item => !!item &&
+        this._updatedLocally.indexOf(item.uuid + '#' + item.owner) >= 0 &&
+        this._locks.startSync(item.uuid + '#' + item.owner)
+      ) as ENTITY[];
     if (toUpdate.length === 0) return of(true);
     const ready = toUpdate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate)
     return ready$.pipe(
       switchMap(readyEntities => {
+        const notReady = toUpdate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
+        for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
           console.log('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName);
           return of(false);
@@ -324,6 +346,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             // TODO
             console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             return of(false);
+          }),
+          tap(() => {
+            for (const item of readyEntities) this._locks.syncDone(item.uuid + '#' + item.owner);
           })
         );
       }),

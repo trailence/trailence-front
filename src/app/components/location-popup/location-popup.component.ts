@@ -70,8 +70,7 @@ export class LocationPopupComponent implements OnInit {
   save(): void {
     const value = this.location.trim();
     if (value !== this.trail.location) {
-      this.trail.location = value;
-      this.trailService.update(this.trail);
+      this.trailService.doUpdate(this.trail, t => t.location = value);
     }
     this.modalController.dismiss(null, 'ok');
   }

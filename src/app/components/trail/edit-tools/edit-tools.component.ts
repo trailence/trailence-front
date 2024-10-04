@@ -134,8 +134,10 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     track = track.copy(this.auth.email!);
     this.trackService.create(track);
     this.trail.currentTrackUuid = track.uuid;
-    this.editionService.computeFinalMetadata(this.trail, track);
-    this.trailService.update(this.trail);
+    this.trailService.doUpdate(this.trail, t => {
+      t.currentTrackUuid = track.uuid;
+      this.editionService.computeFinalMetadata(t, track);
+    });
     this.history = [];
     this.undone = [];
     this.inlineTool = undefined;

@@ -82,11 +82,14 @@ export class TrailComponent extends AbstractComponent {
   isSmall = false;
 
   editable = false;
-  edited$ = new Subject<boolean>();
 
   hover: TrailHoverCursor;
   pathSelection: TrailPathSelection;
   previousFocus: Track | undefined = undefined;
+
+  private _lockForDescription?: () => void;
+  editingDescription = false;
+  @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
 
   constructor(
     injector: Injector,
@@ -122,6 +125,11 @@ export class TrailComponent extends AbstractComponent {
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
+    if (this._lockForDescription) {
+      this._lockForDescription();
+      this._lockForDescription = undefined;
+    }
+    this.editingDescription = false;
     this.trail1 = null;
     this.trail2 = null;
     this.recording = null;
@@ -133,6 +141,13 @@ export class TrailComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.showBreaks$]).pipe(debounceTime(1)),
       ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, showBreaks]) => {
+        if (this.trail1 !== trail1[0]) {
+          if (this._lockForDescription) {
+            this._lockForDescription();
+            this._lockForDescription = undefined;
+            this.editingDescription = false;
+          }
+        }
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
@@ -270,14 +285,6 @@ export class TrailComponent extends AbstractComponent {
           }
         }
       );
-    this.byState.add(
-      this.edited$.pipe(
-        debounceTime(1000)
-      ).subscribe(() => {
-        if (this.editable)
-          this.saveTrail();
-      })
-    )
   }
 
   private trail$(trail$?: Observable<Trail | null>): Observable<[Trail | null, Track | undefined, MapTrack | undefined]> {
@@ -386,14 +393,6 @@ export class TrailComponent extends AbstractComponent {
       this.trailMenuService.openDownloadMap([this.trail1]);
   }
 
-  descriptionChanged(text: string | null | undefined): void {
-    text = text ?? '';
-    if (this.trail1?.description !== text) {
-      this.trail1!.description = text;
-      this.edited$.next(true);
-    }
-  }
-
   startTrail(): void {
     this.traceRecorder.start(this.trail1!);
   }
@@ -470,9 +469,34 @@ export class TrailComponent extends AbstractComponent {
     }
   }
 
-  saveTrail(): void {
-    if (this.trail1)
-      this.trailService.update(this.trail1);
+  startEditDescription(): void {
+    if (!this.trail1) return;
+    if (this._lockForDescription) {
+      this._lockForDescription();
+      this._lockForDescription = undefined;
+    }
+    this.trailService.lock(this.trail1.uuid, this.trail1.owner, (locked, unlock) => {
+      if (!locked) return;
+      this._lockForDescription = unlock;
+      this.editingDescription = true;
+      setTimeout(() => {
+        if (this.descriptionEditor) this.descriptionEditor.setFocus();
+      }, 0);
+    });
+  }
+
+  endEditDescription(text: string | null | undefined): void {
+    text = text ?? '';
+    this.editingDescription = false;
+    if (this.trail1 && this.trail1.description !== text && this._lockForDescription) {
+      this.trail1.description = text;
+      this.trailService.update(this.trail1, () => {
+        if (this._lockForDescription) {
+          this._lockForDescription();
+          this._lockForDescription = undefined;
+        }
+      });
+    }
   }
 
   getDepartureAndArrival(waypoints: ComputedWayPoint[]): ComputedWayPoint | undefined {

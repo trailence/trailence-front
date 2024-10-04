@@ -57,9 +57,32 @@ export class TrailService {
     return this._store.create(trail);
   }
 
-  public update(trail: Trail): void {
+  public lock(uuid: string, owner: string, onlocked: (locked: boolean, unlock: () => void) => void): void {
+    this._store.lock(uuid, owner, locked => {
+      onlocked(locked, () => {
+        this._store.unlock(uuid, owner);
+      });
+    });
+  }
+
+  public update(trail: Trail, ondone?: () => void): void {
     this.check(trail);
-    this._store.update(trail);
+    this._store.update(trail, ondone);
+  }
+
+  public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void): void {
+    this.lock(trail.uuid, trail.owner, (locked, unlock) => {
+      if (!locked) return;
+      const latestTrail = this.getTrail(trail.uuid, trail.owner);
+      if (latestTrail) {
+        updater(latestTrail);
+        this.update(latestTrail, () => {
+          unlock();
+        });
+      } else {
+        unlock();
+      }
+    });
   }
 
   private check(trail: Trail): void {

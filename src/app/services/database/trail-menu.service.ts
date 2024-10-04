@@ -133,8 +133,7 @@ export class TrailMenuService {
             new MenuItem().setIcon('collection-move').setI18nLabel('pages.trails.actions.move_to_collection')
             .setChildrenProvider(() => this.getCollectionsMenuItems([collectionUuid], (col) => {
               for (const trail of trails) {
-                trail.collectionUuid = col.uuid;
-                this.injector.get(TrailService).update(trail);
+                this.injector.get(TrailService).doUpdate(trail, t => t.collectionUuid = col.uuid);
               }
             }))
           );
@@ -201,8 +200,7 @@ export class TrailMenuService {
         handler: (result) => {
           alert.dismiss();
           if (trail.name !== result[0].trim()) {
-            trail.name = result[0].trim();
-            this.injector.get(TrailService).update(trail);
+            this.injector.get(TrailService).doUpdate(trail, t => t.name = result[0].trim());
           }
         }
       }, {

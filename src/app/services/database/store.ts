@@ -4,6 +4,7 @@ import Dexie, { Table } from "dexie";
 import { NetworkService } from "../network/network.service";
 import { Injector, NgZone } from "@angular/core";
 import { AuthService } from '../auth/auth.service';
+import { SynchronizationLocks } from './synchronization-locks';
 
 export interface StoreSyncStatus {
 
@@ -26,6 +27,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
   protected _createdLocally: BehaviorSubject<STORE_ITEM | null>[] = [];
   protected _deletedLocally: STORE_ITEM[] = [];
+  protected _locks = new SynchronizationLocks();
 
   private _storeLoaded$ = new BehaviorSubject<boolean>(false);
   private _lastSync = 0;
@@ -140,6 +142,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected close(): void {
     if (!this._db) return;
+    this._locks = new SynchronizationLocks();
     this._db = undefined;
     this._storeLoaded$.next(false);
     const items = this._store.value;
@@ -152,6 +155,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   private load(db: Dexie): void {
     if (this._db) this.close();
     this._db = db;
+    this._locks = new SynchronizationLocks();
     from(db.table<DB_ITEM>(this.tableName).toArray()).subscribe(
       items => {
         if (this._db !== db) return;

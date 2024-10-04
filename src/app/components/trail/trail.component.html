@@ -126,17 +126,33 @@
             <ion-icon name="text"></ion-icon>
             <div>{{ i18n.texts.pages.trail.sections.description.title }}</div>
           </div>
-          <div class="description-text" *ngIf="!editable">
-            {{ trail1.description }}
+          <div class="description-text">
+            <ng-container *ngIf="!editable">
+              <span>{{ trail1.description }}</span>
+            </ng-container>
+            <ng-container *ngIf="editable">
+              <ng-container *ngIf="!editingDescription">
+                <div (click)="startEditDescription()">
+                  <span *ngIf="trail1.description.trim().length === 0">
+                    {{ i18n.texts.pages.trail.sections.description.placeholder }}
+                  </span>
+                  <span *ngIf="trail1.description.trim().length > 0">
+                    {{ trail1.description }}
+                  </span>
+                </div>
+              </ng-container>
+              <ng-container *ngIf="editingDescription">
+                <ion-textarea class="description-text"
+                  #descriptionEditor
+                  [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
+                  [maxlength]="50000"
+                  [autoGrow]="true"
+                  [value]="trail1.description"
+                  (ionChange)="endEditDescription($event.detail.value)"
+                ></ion-textarea>
+              </ng-container>
+            </ng-container>
           </div>
-          <ion-textarea class="description-text"
-            *ngIf="editable"
-            [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
-            [maxlength]="50000"
-            [autoGrow]="true"
-            [value]="trail1.description"
-            (ionInput)="descriptionChanged($event.detail.value)"
-          ></ion-textarea>
         </ng-container>
 
         <div class="section-title">
