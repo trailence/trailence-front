@@ -34,6 +34,7 @@
       display: block !important;
     }
     #startup {
+      background-color: white;
       position: absolute;
       z-index: 50000;
       height: 100%;
@@ -77,16 +78,19 @@
         background-color: black;
         color: white;
       }
+      #startup {
+        background-color: black;
+      }
       .lds-dual-ring:after {
         border: 3px solid #fed;
         border-color: #fed transparent #fed transparent;
       }
     }
-    body.dark-theme startup {
+    body.dark-theme #startup {
       background: black;
       color: white;
     }
-    body.light-theme startup {
+    body.light-theme #startup {
       background: white;
       color: black;
     }

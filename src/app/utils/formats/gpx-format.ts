@@ -8,10 +8,20 @@ import { TrailDto } from 'src/app/model/dto/trail';
 import { BinaryContent } from '../binary-content';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { I18nError } from 'src/app/services/i18n/i18n-string';
+import { Photo } from 'src/app/model/photo';
+import { PhotoDto } from 'src/app/model/dto/photo';
+
+export interface ImportedTrail {
+  trail: Trail;
+  tracks: Track[];
+  tags: string[][];
+  photos: Partial<PhotoDto>[];
+  photosFilenames: Map<Partial<PhotoDto>, string>;
+}
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): {trail: Trail, tracks: Track[], tags: string[][]} {
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): ImportedTrail {
     const fileContent = new TextDecoder().decode(file);
     const parser = new DOMParser();
     const doc = parser.parseFromString(fileContent, "application/xml");
@@ -21,6 +31,8 @@ export class GpxFormat {
     const trailDto = {owner: user, collectionUuid, name: '', description: ''} as TrailDto;
     const tracks: Track[] = [];
     const importedTags: string[][] = [];
+    const photos: Partial<PhotoDto>[] = [];
+    const photosFilenames = new Map<Partial<PhotoDto>, string>();
 
     const metadata = XmlUtils.getChild(doc.documentElement, 'metadata');
     if (metadata) {
@@ -45,6 +57,21 @@ export class GpxFormat {
             if (tagResult.length > 0) {
               importedTags.push(tagResult);
             }
+          }
+        }
+        const photosNode = XmlUtils.getChild(extensions, 'photos');
+        if (photosNode) {
+          for (const photoNode of XmlUtils.getChildren(photosNode, 'photo')) {
+            const photo: Partial<PhotoDto> = {
+              description: photoNode.textContent ?? '',
+              dateTaken: TypeUtils.toInteger(photoNode.getAttribute('date')),
+              latitude: TypeUtils.toFloat(photoNode.getAttribute('lat')),
+              longitude: TypeUtils.toFloat(photoNode.getAttribute('lng')),
+              index: TypeUtils.toInteger(photoNode.getAttribute('index')) || 1,
+              isCover: photoNode.getAttribute('cover') === 'true',
+            };
+            photos.push(photo);
+            photosFilenames.set(photo, photoNode.getAttribute('filename') || '');
           }
         }
       }
@@ -102,7 +129,7 @@ export class GpxFormat {
     if (tracks.length === 0) throw new I18nError('errors.import.not_gpx');
     const trail = new Trail({...trailDto, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks[tracks.length - 1].uuid});
 
-    return { trail, tracks, tags: importedTags };
+    return { trail, tracks, tags: importedTags, photos, photosFilenames };
   }
 
   private static readPoint(point: Element): Point | undefined {
@@ -152,13 +179,13 @@ export class GpxFormat {
     return new WayPoint(pt, name, description);
   }
 
-  public static exportGpx(trail: Trail, tracks: Track[], tags: string[][]): BinaryContent {
+  public static exportGpx(trail: Trail, tracks: Track[], tags: string[][], photos: Photo[], photosFilenames: Map<Photo, string>): BinaryContent {
     let gpx = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n';
     gpx += '<gpx version="1.1" creator="Trailence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xmlns:ext="https://trailence.org/schemas/gpx_extension/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">\n';
     gpx += '<metadata>';
       gpx += '<name>' + XmlUtils.escapeHtml(trail.name) + '</name>';
       gpx += '<desc>' + XmlUtils.escapeHtml(trail.description) + '</desc>';
-      if (trail.location.length > 0 || tags.length > 0) {
+      if (trail.location.length > 0 || tags.length > 0 || photos.length > 0) {
         gpx += '<extensions>';
         if (trail.location.length > 0) {
           gpx += '<ext:location>' + XmlUtils.escapeHtml(trail.location) + '</ext:location>';
@@ -173,6 +200,22 @@ export class GpxFormat {
             gpx += '</ext:tag>';
           }
           gpx += '</ext:tags>';
+        }
+        if (photos.length > 0) {
+          gpx += '<ext:photos>';
+          for (const photo of photos) {
+            gpx += '<ext:photo';
+            gpx += ' filename="' + photosFilenames.get(photo)! + '"';
+            if (photo.dateTaken) gpx += ' date="' + photo.dateTaken + '"';
+            if (photo.latitude !== undefined) gpx += ' lat="' + photo.latitude + '"';
+            if (photo.longitude !== undefined) gpx += ' lng="' + photo.longitude + '"';
+            gpx += ' index="' + photo.index + '"';
+            gpx += ' cover="' + photo.isCover + '"';
+            gpx += '>';
+            gpx += XmlUtils.escapeHtml(photo.description);
+            gpx += '</ext:photo>';
+          }
+          gpx += '</ext:photos>';
         }
         gpx += '</extensions>';
       }

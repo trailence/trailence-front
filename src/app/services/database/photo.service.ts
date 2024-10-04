@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, EMPTY, filter, first, from, map, Observable, of, share, switchMap, tap, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, EMPTY, filter, first, from, map, Observable, of, share, switchMap, tap, timeout, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
 import { DatabaseService, PHOTO_TABLE_NAME } from './database.service';
@@ -17,6 +17,7 @@ import Dexie from 'dexie';
 import { Trail } from 'src/app/model/trail';
 import { ModalController } from '@ionic/angular/standalone';
 import { ImageInfo, ImageUtils } from 'src/app/utils/image-utils';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -40,6 +41,20 @@ export class PhotoService {
     );
   }
 
+  public getPhotosForTrailReady(owner: string, uuid: string): Observable<Photo[]> {
+    return this.store.getAll$().pipe(
+      switchMap(photos$ => zip(
+        photos$.map(item$ => item$.pipe(
+          filter(i => !!i),
+          timeout(10000),
+          first(),
+          catchError(() => EMPTY)
+        ))
+      )),
+      map(photos => photos.filter(p => p.owner === owner && p.trailUuid === uuid))
+    );
+  }
+
   private _retrievingFiles = new Map<string, Observable<Blob>>();
   public getFile$(owner: string, uuid: string): Observable<Blob> {
     return this.injector.get(StoredFilesService).getFile$(owner, 'photo', uuid).pipe(
@@ -57,13 +72,23 @@ export class PhotoService {
     );
   }
 
-  public addPhoto(owner: string, trailUuid: string, description: string, index: number, content: ArrayBuffer): Observable<Photo | null> {
+  public addPhoto(
+    owner: string, trailUuid: string,
+    description: string, index: number,
+    content: ArrayBuffer,
+    dateTaken?: number, latitude?: number, longitude?: number,
+    isCover?: boolean
+  ): Observable<Photo | null> {
     const arr = new Uint8Array(content);
     let info: ImageInfo | undefined;
     let blobPromise: Promise<Blob>;
     if (ImageUtils.isJpeg(arr)) {
-      info = ImageUtils.extractInfos(arr);
-      console.log('extracted info from image', info);
+      if (dateTaken && latitude !== undefined && longitude !== undefined)
+        info = {dateTaken, latitude, longitude};
+      else {
+        info = ImageUtils.extractInfos(arr);
+        console.log('extracted info from image', info);
+      }
       blobPromise = Promise.resolve(new Blob([content], { type: 'image/jpeg' }));
     } else {
       blobPromise = ImageUtils.convertToJpeg(arr);
@@ -76,9 +101,10 @@ export class PhotoService {
           description,
           index,
         });
-        photo.latitude = info?.latitude;
-        photo.longitude = info?.longitude;
-        photo.dateTaken = info?.dateTaken;
+        photo.latitude = latitude ?? info?.latitude;
+        photo.longitude = longitude ?? info?.longitude;
+        photo.dateTaken = dateTaken ?? info?.dateTaken;
+        photo.isCover = isCover ?? false;
         return this.injector.get(StoredFilesService).store(owner, 'photo', photo.uuid, blob).pipe(
           switchMap(result => {
             if (result === undefined) return of(null);
@@ -102,9 +128,7 @@ export class PhotoService {
   }
 
   public deleteForTrail(owner: string, trailUuid: string, ondone?: () => void): void {
-    this.getPhotosForTrail(owner, trailUuid).pipe(
-      first()
-    ).subscribe(photos => {
+    this.getPhotosForTrailReady(owner, trailUuid).subscribe(photos => {
       const done = new CompositeOnDone(ondone);
       photos.forEach(photo => this.delete(photo, done.add()));
       done.start()

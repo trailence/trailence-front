@@ -24,6 +24,10 @@
     </div>
     <div class="radio-explaination" *ngIf="hasBoth">{{ i18n.texts.pages.export_popup.track_both_explaination }}</div>
   </ion-radio-group>
+  <div *ngIf="trailsPhotos.length > 0" style="margin-top: 15px;">
+    <ion-checkbox [(ngModel)]="includePhotos" labelPlacement="end">{{i18n.texts.pages.export_popup.include_photos}}</ion-checkbox>
+    <div class="radio-explaination">{{ i18n.texts.pages.export_popup.include_photos_explaination }}</div>
+  </div>
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">

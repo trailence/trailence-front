@@ -319,7 +319,9 @@
       "track_current": "The current one",
       "track_current_explaination": "The current track in Trailence, including improvements and changes",
       "track_both": "Both",
-      "track_both_explaination": "Both will be exported in the same file. This will allow you to re-import the 2 tracks into Trailence in a single trail, ideal for a backup. However, it may not open properly if you import the file into another application."
+      "track_both_explaination": "Both will be exported in the same file. This will allow you to re-import the 2 tracks into Trailence in a single trail, ideal for a backup. However, it may not open properly if you import the file into another application.",
+      "include_photos": "Include photos",
+      "include_photos_explaination": "Photos will be included in a ZIP file, that can be imported in Trailence"
     },
     "photos_popup": {
       "title": "Photos",
@@ -508,5 +510,9 @@
       "not_gpx": "File is not a valid GPX"
     },
     "download_offline_map": "{{1}} error(s) while downloading offline maps"
+  },
+  "export": {
+    "trail": "Trail",
+    "photo": "Photo"
   }
 }

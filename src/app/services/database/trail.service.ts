@@ -188,11 +188,11 @@ export class TrailService {
         backdropDismiss: false,
         componentProps: {
           onDone: (collectionUuid: string) => {
-            const imported = menuService.importGpx(buffer, owner, collectionUuid);
-            if (imported) {
+            menuService.importGpx(buffer, owner, collectionUuid).then(imported => {
               menuService.importTags([imported], collectionUuid);
               this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid);
-            }
+            });
+            // TODO errors
           }
         }
       }))

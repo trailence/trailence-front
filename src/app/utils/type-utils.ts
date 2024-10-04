@@ -11,6 +11,17 @@ export class TypeUtils {
     return n;
   }
 
+  public static toInteger(s: string | null | undefined): number | undefined {
+    if (!s) {
+        return undefined;
+    }
+    const n = parseInt(s);
+    if (isNaN(n)) {
+        return undefined;
+    }
+    return n;
+  }
+
   public static toDate(s: string | null | undefined): Date | undefined {
     if (!s) {
         return undefined;

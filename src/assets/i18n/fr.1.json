@@ -328,7 +328,9 @@
       "track_current": "La trace actuelle",
       "track_current_explaination": "La trace actuelle dans Trailence, comportant les améliorations et modifications",
       "track_both": "Les deux",
-      "track_both_explaination": "Les deux seront exportées dans le même fichier. Cela permettra de ré-importer dans Trailence les 2 traces en un seul parcours, idéal donc pour un backup. En revanche, cela risque de mal s'ouvrir si vous importez le fichier dans une autre application."
+      "track_both_explaination": "Les deux seront exportées dans le même fichier. Cela permettra de ré-importer dans Trailence les 2 traces en un seul parcours, idéal donc pour un backup. En revanche, cela risque de mal s'ouvrir si vous importez le fichier dans une autre application.",
+      "include_photos": "Inclure les photos",
+      "include_photos_explaination": "Les photos seront inclues dans un fichier ZIP, qui pourra être importé dans Trailence"
     },
     "photos_popup": {
       "title": "Photos",
@@ -517,5 +519,9 @@
       "not_gpx": "Le fichier n'est pas au format GPX ou est invalide"
     },
     "download_offline_map": "{{1}} erreur(s) rencontrées lors du téléchargement des cartes"
+  },
+  "export": {
+    "trail": "Parcours",
+    "photo": "Photo"
   }
 }

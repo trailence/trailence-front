@@ -5,6 +5,7 @@ import { NetworkService } from '../network/network.service';
 import { catchError, EMPTY, first, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { trailenceAppVersionCode, trailenceAppVersionName } from 'src/app/trailence-version';
+import Trailence from 'src/app/services/trailence.service';
 
 export interface AppDownload {
   url: string;
@@ -86,7 +87,7 @@ export class UpdateService {
   public download(): void {
     const app = this.downloadApp || this.updateApp;
     if (!app) return;
-    window.open(app.url, '_blank');
+    Trailence.downloadUsingBrowser({url: app.url});
   }
 
 }

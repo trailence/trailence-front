@@ -16,7 +16,7 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { TrackService } from './track.service';
-import { catchError, combineLatest, debounceTime, filter, first, forkJoin, from, map, Observable, of, switchMap, timeout, zip } from 'rxjs';
+import { catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, first, firstValueFrom, forkJoin, map, Observable, of, switchMap, timeout, zip } from 'rxjs';
 import { TrailService } from './trail.service';
 import { TrailCollectionService } from './trail-collection.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -24,6 +24,8 @@ import { TagService } from './tag.service';
 import { I18nError } from '../i18n/i18n-string';
 import { ErrorService } from '../progress/error.service';
 import * as JSZip from 'jszip';
+import { PhotoService } from './photo.service';
+import { Photo } from 'src/app/model/photo';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -317,58 +319,65 @@ export class TrailMenuService {
         return Promise.resolve(progress);
       },
       onfileread: (index: number, nbFiles: number, progress: Progress, filename: string, file: ArrayBuffer) => {
-        try {
-          if (file.byteLength > 2) {
-            const first2bytes = new Uint8Array(file.slice(0, 2));
-            if (String.fromCharCode(first2bytes[0]) === 'P' &&
-                String.fromCharCode(first2bytes[1]) === 'K') {
-              // zip file
-              return JSZip.loadAsync(file).then(zip => {
-                const gpxFiles = zip.filter((path, entry) => !entry.dir && entry.name.toLowerCase().endsWith('.gpx'));
-                if (gpxFiles.length === 0) {
-                  progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
-                  progress.addWorkDone(1);
-                  return Promise.resolve([]);
-                }
-                return new Promise<({trailUuid: string, tags: string[][]})[]>((resolve, reject) => {
-                  const previousZipEntries = zipEntries;
-                  zipEntries += gpxFiles.length;
-                  progress.addWorkToDo(gpxFiles.length);
-                  progress.subTitle = '' + (index + 1 + previousZipEntries) + '/' + (nbFiles + zipEntries);
-                  progress.addWorkDone(1);
-                  const done: ({trailUuid: string, tags: string[][]})[] = [];
-                  const readNextZipEntry = (entryIndex: number) => {
-                    const gpxFile = gpxFiles[entryIndex];
-                    return gpxFile.async('arraybuffer')
-                    .then(arraybuffer => {
-                      try {
-                        done.push(this.importGpx(arraybuffer, email, collectionUuid));
-                      } catch (e) {
-                        zipErrors.push(new I18nError('errors.import.file_not_imported', [filename + '/' + gpxFile.name, e]));
-                      }
-                      progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
-                      progress.addWorkDone(1);
-                      if (entryIndex === gpxFiles.length - 1) {
-                        resolve(done);
-                      } else {
-                        readNextZipEntry(entryIndex + 1);
-                      }
-                    });
-                  };
-                  readNextZipEntry(0);
-                });
+        if (file.byteLength > 2) {
+          const first2bytes = new Uint8Array(file.slice(0, 2));
+          if (String.fromCharCode(first2bytes[0]) === 'P' &&
+              String.fromCharCode(first2bytes[1]) === 'K') {
+            // zip file
+            return JSZip.loadAsync(file).then(zip => {
+              const gpxFiles = zip.filter((path, entry) => !entry.dir && entry.name.toLowerCase().endsWith('.gpx'));
+              if (gpxFiles.length === 0) {
+                progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
+                progress.addWorkDone(1);
+                return Promise.resolve([]);
+              }
+              return new Promise<({trailUuid: string, tags: string[][]})[]>((resolve, reject) => {
+                const previousZipEntries = zipEntries;
+                zipEntries += gpxFiles.length;
+                progress.addWorkToDo(gpxFiles.length);
+                progress.subTitle = '' + (index + 1 + previousZipEntries) + '/' + (nbFiles + zipEntries);
+                progress.addWorkDone(1);
+                const done: ({trailUuid: string, tags: string[][]})[] = [];
+                const readNextZipEntry = (entryIndex: number) => {
+                  const gpxFile = gpxFiles[entryIndex];
+                  return gpxFile.async('arraybuffer')
+                  .then(arraybuffer => this.importGpx(arraybuffer, email, collectionUuid, zip))
+                  .then(result => {
+                    done.push(result);
+                    progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
+                    progress.addWorkDone(1);
+                    if (entryIndex === gpxFiles.length - 1) {
+                      resolve(done);
+                    } else {
+                      readNextZipEntry(entryIndex + 1);
+                    }
+                  })
+                  .catch((e) => {
+                    zipErrors.push(new I18nError('errors.import.file_not_imported', [filename + '/' + gpxFile.name, e]));
+                    progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
+                    progress.addWorkDone(1);
+                    if (entryIndex === gpxFiles.length - 1) {
+                      resolve(done);
+                    } else {
+                      readNextZipEntry(entryIndex + 1);
+                    }
+                  });
+                };
+                readNextZipEntry(0);
               });
-            }
+            });
           }
-          const imported = this.importGpx(file, email, collectionUuid);
-          progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
-          progress.addWorkDone(1);
-          return Promise.resolve([imported]);
-        } catch (error) {
-          progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
-          progress.addWorkDone(1);
-          return Promise.reject(new I18nError('errors.import.file_not_imported', [filename, error]));
         }
+        return this.importGpx(file, email, collectionUuid)
+        .then(result => {
+          progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
+          progress.addWorkDone(1);
+          return [result];
+        }).catch((e) => {
+          progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
+          progress.addWorkDone(1);
+          return Promise.reject(new I18nError('errors.import.file_not_imported', [filename, e]));
+        })
       },
       ondone: (progress: Progress | undefined, imported: ({trailUuid: string, tags: string[][]})[][], errors: any[]) => {
         progress?.done();
@@ -383,18 +392,50 @@ export class TrailMenuService {
     });
   }
 
-  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string): {trailUuid: string, tags: string[][]} {
-    const imported = GpxFormat.importGpx(file, owner, collectionUuid, this.injector.get(PreferencesService));
-    if (imported.tracks.length === 1) {
-      const improved = this.injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
-      imported.trail.currentTrackUuid = improved.uuid;
-      imported.tracks.push(improved);
+  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, zip?: JSZip): Promise<{trailUuid: string, tags: string[][]}> {
+    try {
+      const imported = GpxFormat.importGpx(file, owner, collectionUuid, this.injector.get(PreferencesService));
+      if (imported.tracks.length === 1) {
+        const improved = this.injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
+        imported.trail.currentTrackUuid = improved.uuid;
+        imported.tracks.push(improved);
+      }
+      this.injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
+      this.injector.get(TrackService).create(imported.tracks[0]);
+      this.injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1]);
+      this.injector.get(TrailService).create(imported.trail);
+      const result = {trailUuid: imported.trail.uuid, tags: imported.tags};
+      // photos
+      if (imported.photos.length === 0 || !zip) return Promise.resolve(result);
+      const photoService = this.injector.get(PhotoService);
+      let result$: Promise<any> = Promise.resolve(true);
+      for (const photoDto of imported.photos) {
+        const filename = imported.photosFilenames.get(photoDto);
+        if (filename) {
+          const zipEntry = zip.file(filename);
+          if (zipEntry) {
+            result$ = result$
+            .then(() => zipEntry.async('arraybuffer'))
+            .then(photoFile => firstValueFrom(
+              photoService.addPhoto(
+                imported.trail.owner,
+                imported.trail.uuid,
+                photoDto.description ?? '',
+                photoDto.index ?? 1,
+                photoFile,
+                photoDto.dateTaken,
+                photoDto.latitude,
+                photoDto.longitude,
+                photoDto.isCover,
+              )
+            ));
+          }
+        }
+      }
+      return result$.then(() => result);
+    } catch (e) {
+      return Promise.reject(e);
     }
-    this.injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
-    this.injector.get(TrackService).create(imported.tracks[0]);
-    this.injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1]);
-    this.injector.get(TrailService).create(imported.trail);
-    return {trailUuid: imported.trail.uuid, tags: imported.tags};
   }
 
   public importTags(imported: ({trailUuid: string, tags: string[][]} | undefined)[], collectionUuid: string): void {
@@ -423,18 +464,37 @@ export class TrailMenuService {
 
   public async exportGpx(trails: Trail[]) {
     if (trails.length === 0) return;
+    const photoService = this.injector.get(PhotoService);
+    const trailsPhotos$ = trails.map(trail => photoService.getPhotosForTrailReady(trail.owner, trail.uuid).pipe(map(photos => ({trail, photos}))));
+    const trailsPhotos = await firstValueFrom(zip(trailsPhotos$).pipe(map(tp => tp.filter(e => e.photos.length > 0))));
+
     const module = await import('../../components/export-popup/export-popup.component');
     const modal = await this.injector.get(ModalController).create({
       component: module.ExportPopupComponent,
       componentProps: {
-        trails: trails
+        trails: trails,
+        trailsPhotos,
       }
     });
     await modal.present();
     const modalResult = await modal.onWillDismiss();
     if (!modalResult.data?.what) return;
+    const photosToExport = modalResult.data.includePhotos ? Arrays.flatMap(trailsPhotos, e => e.photos) : [];
 
-    const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.export, trails.length + 1);
+    const existingJpgFilenames: string[] = [];
+    const photoFilenameMap = new Map<Photo, string>();
+    for (const photo of photosToExport) {
+      let filename = photo.uuid;
+      if (existingJpgFilenames.indexOf(filename.toLowerCase()) >= 0) {
+        let i = 2;
+        while (existingJpgFilenames.indexOf(filename.toLowerCase() + '_' + i) >= 0) i++;
+        filename = filename + '_' + i;
+      }
+      existingJpgFilenames.push(filename.toLowerCase());
+      photoFilenameMap.set(photo, filename + '.jpg');
+    }
+
+    const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.export, trails.length * 2 + photosToExport.length * 10 + 1);
     const email = this.injector.get(AuthService).email!;
     const trailToData$ = (trail: Trail) => {
       const tracks: Observable<Track | null>[] = [];
@@ -448,13 +508,22 @@ export class TrailMenuService {
           if (t.tracks.length === 0) return of(null);
           const tags$ = t.trail.owner !== email ? of([]) : this.injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true);
           return tags$.pipe(
-            map(tags => ({name: t.trail.name, gpx: GpxFormat.exportGpx(t.trail, t.tracks, tags)}))
+            map(tags => ({
+              name: t.trail.name,
+              gpx: GpxFormat.exportGpx(
+                t.trail,
+                t.tracks,
+                tags,
+                photosToExport.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid),
+                photoFilenameMap,
+              )
+            }))
           );
         }),
       );
     };
     const fileService = this.injector.get(FileService);
-    if (trails.length === 1) {
+    if (trails.length === 1 && photosToExport.length === 0) {
       trailToData$(trails[0]).subscribe(data => {
         if (!data) {
           progress.done();
@@ -465,28 +534,52 @@ export class TrailMenuService {
       });
       return;
     }
-    progress.subTitle = '0/' + trails.length;
-    let index = 0;
-    const existingFilenames: string[] = [];
-    const processNextTrail = (resolve: (result: { filename: string; data: BinaryContent; } | null) => void) => {
-      progress.subTitle = index + '/' + trails.length;
-      progress.workDone = index;
-      if (index === trails.length) {
+    const i18n = this.injector.get(I18nService);
+    progress.subTitle = i18n.texts.export.trail + ' 1/' + trails.length;
+    const existingGpxFilenames: string[] = [];
+    let photoIndex = 0;
+    const processNextPhoto = (resolve: (result: { filename: string; data: BinaryContent; } | null) => void) => {
+      progress.workDone = trails.length * 2 + photoIndex * 10;
+      if (photoIndex === photosToExport.length) {
+        progress.subTitle = '';
         resolve(null);
         return;
       }
-      trailToData$(trails[index++]).subscribe(data => {
+      progress.subTitle = i18n.texts.export.photo + ' ' + (photoIndex + 1) + '/' + photosToExport.length;
+      const photo = photosToExport[photoIndex++];
+      photoService.getFile$(photo.owner, photo.uuid)
+      .pipe(
+        catchError(e => EMPTY),
+        defaultIfEmpty(null)
+      )
+      .subscribe(blob => {
+        if (!blob) {
+          processNextPhoto(resolve);
+          return;
+        }
+        resolve({filename: photoFilenameMap.get(photo)!, data: new BinaryContent(blob)});
+      });
+    };
+    let trailIndex = 0;
+    const processNextTrail = (resolve: (result: { filename: string; data: BinaryContent; } | null) => void) => {
+      progress.subTitle = i18n.texts.export.trail + ' ' + (trailIndex + 1) + '/' + trails.length;
+      progress.workDone = trailIndex * 2;
+      if (trailIndex === trails.length) {
+        processNextPhoto(resolve);
+        return;
+      }
+      trailToData$(trails[trailIndex++]).subscribe(data => {
         if (!data) {
           processNextTrail(resolve);
           return;
         }
         let filename = StringUtils.toFilename(data.name);
-        if (existingFilenames.indexOf(filename.toLowerCase()) >= 0) {
+        if (existingGpxFilenames.indexOf(filename.toLowerCase()) >= 0) {
           let i = 2;
-          while (existingFilenames.indexOf(filename.toLowerCase() + '_' + i) >= 0) i++;
+          while (existingGpxFilenames.indexOf(filename.toLowerCase() + '_' + i) >= 0) i++;
           filename = filename + '_' + i;
         }
-        existingFilenames.push(filename.toLowerCase());
+        existingGpxFilenames.push(filename.toLowerCase());
         resolve({filename: filename + '.gpx', data: data.gpx});
       });
     };

@@ -3,6 +3,7 @@ package org.trailence;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.PowerManager;
 import android.provider.Settings;
 
@@ -183,6 +184,18 @@ public class TrailencePlugin extends Plugin {
     int index = 0;
     for (byte[] chunk : content) {
       this.importFilesListener.resolve(new JSObject().put("fileId", id).put("chunkIndex", index++).put("data", Base64.getEncoder().encodeToString(chunk)));
+    }
+  }
+
+  @PluginMethod()
+  public void downloadUsingBrowser(PluginCall call) {
+    try {
+      Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(call.getString("url")));
+      getContext().startActivity(intent);
+      call.resolve(new JSObject().put("success", true));
+    } catch (Exception e) {
+      e.printStackTrace();
+      call.reject("Cannot open URL", e);
     }
   }
 
