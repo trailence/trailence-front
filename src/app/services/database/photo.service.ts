@@ -205,7 +205,13 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
             if (dto.dateTaken) headers['X-DateTaken'] = dto.dateTaken;
             if (dto.latitude) headers['X-Latitude'] = dto.latitude;
             if (dto.longitude) headers['X-Longitude'] = dto.longitude;
-            return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid, blob, headers);
+            return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid, blob, headers).pipe(
+              catchError(e => {
+                console.log(e);
+                // TODO display
+                return EMPTY;
+              })
+            );
           })
         )
       };

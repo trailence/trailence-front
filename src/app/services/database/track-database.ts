@@ -651,6 +651,11 @@ export class TrackDatabase {
                   needsSync: 0,
                   track: result,
                 }));
+              }),
+              catchError(e => {
+                console.log(e);
+                // TODO display
+                return EMPTY;
               })
             );
           }
@@ -767,7 +772,13 @@ export class TrackDatabase {
         items.forEach(item => {
           const request = () => {
             if (this.db !== db) return EMPTY;
-            return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track);
+            return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
+              catchError(e => {
+                console.log(e);
+                // TODO display
+                return EMPTY;
+              })
+            );
           }
           requests.push(limiter.add(request));
         });
