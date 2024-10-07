@@ -9,7 +9,7 @@ import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, NavigationStart, Route
 import { ApiError } from '../http/api-error';
 import { LoginRequest } from './login-request';
 import { DeviceInfo } from './device-info';
-import { Platform } from '@ionic/angular/standalone';
+import { Platform, NavController } from '@ionic/angular/standalone';
 import { InitRenewRequest } from './init-renew-request';
 import { RenewRequest } from './renew-request';
 import { LoginShareRequest } from './login-share-request';
@@ -42,13 +42,14 @@ export class AuthService {
     private http: HttpService,
     private router: Router,
     private platform: Platform,
+    private navController: NavController,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {
       if (auth === null) {
         const url = window.location.pathname;
         if (!url.startsWith('/login') && !url.startsWith('/link')) {
-          router.navigate(['/login'], { queryParams: {returnUrl: url} });
+          navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
         }
       } else if (auth) {
         console.log('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete);

@@ -1,3 +1,4 @@
+import { NgZone } from '@angular/core';
 import { Observable, Observer, Subscription } from 'rxjs';
 
 export class Subscriptions {
@@ -19,18 +20,25 @@ export type Resubscribeable = {
   observable: Observable<any>,
   observer: Partial<Observer<any>> | ((value: any) => void),
   subscription?: Subscription,
+  outsideAngular: boolean,
 };
 
 export class Resubscribeables {
 
+  constructor(private ngZone: NgZone) {}
+
   private paused = false;
   private subscriptions: Resubscribeable[] = [];
 
-  public subscribe<T>(observable: Observable<T>, observer: Partial<Observer<T>> | ((value: T) => void)): void {
+  public get zone() { return this.ngZone; }
+  public get active() { return !this.paused; }
+
+  public subscribe<T>(observable: Observable<T>, observer: Partial<Observer<T>> | ((value: T) => void), outsideAngular: boolean = false): void {
     this.subscriptions.push({
       observable,
       observer,
-      subscription: this.paused ? undefined : observable.subscribe(observer)
+      subscription: this.paused ? undefined : outsideAngular ? this.ngZone.runOutsideAngular(() => observable.subscribe(observer)) : observable.subscribe(observer),
+      outsideAngular,
     });
   }
 
@@ -47,7 +55,7 @@ export class Resubscribeables {
     if (!this.paused) return;
     this.paused = false;
     for (const rs of this.subscriptions) {
-      if (!rs.subscription) rs.subscription = rs.observable.subscribe(rs.observer);
+      if (!rs.subscription) rs.subscription = rs.outsideAngular ? this.ngZone.runOutsideAngular(() => rs.observable.subscribe(rs.observer)) : rs.observable.subscribe(rs.observer);
     }
   }
 

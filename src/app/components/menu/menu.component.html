@@ -43,7 +43,7 @@
       <div class="section-title">{{ i18n.texts.menu.shared_with_me }}</div>
     </div>
     @if (sharedWithMeOpen) {
-      <ng-container *ngIf="sharedWithMe.length > 0">
+      <ng-container *ngIf="!sharedWithMe.isEmpty()">
         <div class="menu-item" *ngFor="let share of sharedWithMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); menuController.close();">
           <div class="item-title-container">
             <div class="item-title">{{share.name}}</div>
@@ -51,7 +51,7 @@
           </div>
         </div>
       </ng-container>
-      <ng-container *ngIf="sharedWithMe.length === 0">
+      <ng-container *ngIf="sharedWithMe.isEmpty()">
         <div class="menu-item no-item">{{i18n.texts.menu.nothing_shared_with_me}}</div>
       </ng-container>
     }
@@ -66,7 +66,7 @@
       <div class="section-title">{{ i18n.texts.menu.shared_by_me }}</div>
     </div>
     @if (sharedByMeOpen) {
-      <ng-container *ngIf="sharedByMe.length > 0">
+      <ng-container *ngIf="!sharedByMe.isEmpty()">
         <div class="menu-item" *ngFor="let share of sharedByMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); menuController.close();">
           <div class="item-title-container">
             <div class="item-title">{{share.name}}</div>
@@ -74,7 +74,7 @@
           </div>
         </div>
       </ng-container>
-      <ng-container *ngIf="sharedByMe.length === 0">
+      <ng-container *ngIf="sharedByMe.isEmpty()">
         <div class="menu-item no-item">{{i18n.texts.menu.nothing_shared_by_me}}</div>
       </ng-container>
     }

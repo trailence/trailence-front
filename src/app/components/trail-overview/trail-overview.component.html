@@ -10,42 +10,46 @@
 </div>
 
 <div [ngStyle]="{display: track$.value ? 'block' : 'none'}">
-  <div class="metadata-item-container">
-    <div class="metadata-item">
-      <ion-icon name="date"></ion-icon>
-      <div class="metadata-content">
-        <div class="metadata-value">
-          <div>{{ meta.dateString }}</div>
+  <ng-container *ngIf="meta.dateString || meta.location">
+    <div class="metadata-item-container">
+      <div class="metadata-item">
+        <ion-icon name="date"></ion-icon>
+        <div class="metadata-content">
+          <div class="metadata-value">
+            <div>{{ meta.dateString }}</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="metadata-item-container">
-    <div class="metadata-item nowrap">
-      <ion-icon name="location"></ion-icon>
-      <div class="metadata-content">
-        <div class="metadata-value">
-          <div>{{ meta.location }}</div>
+    <div class="metadata-item-container">
+      <div class="metadata-item nowrap">
+        <ion-icon name="location"></ion-icon>
+        <div class="metadata-content">
+          <div class="metadata-value">
+            <div>{{ meta.location }}</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </ng-container>
   <div id="track-metadata-{{id}}"></div>
-  <div class="metadata-item-container" *ngIf="meta.loopTypeString">
-    <div class="metadata-item">
-      <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
-      <div class="metadata-content">
-        <div class="metadata-value">
-          <div>{{ meta.loopTypeString }}</div>
+  <ng-container *ngIf="meta.loopTypeString">
+    <div class="metadata-item-container">
+      <div class="metadata-item">
+        <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
+        <div class="metadata-content">
+          <div class="metadata-value">
+            <div>{{ meta.loopTypeString }}</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="metadata-item-container">
-    <div class="metadata-item">
-      <!-- Empty until another meta -->
+    <div class="metadata-item-container">
+      <div class="metadata-item">
+        <!-- Empty until another meta -->
+      </div>
     </div>
-  </div>
+  </ng-container>
 </div>
 <ng-container *ngIf="!track$.value">
   <ion-spinner name="dots"></ion-spinner>

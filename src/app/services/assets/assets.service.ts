@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from "@angular/core";
+import { Injectable, NgZone } from "@angular/core";
 import { addIcons } from 'ionicons';
 import { Observable, Subscriber } from "rxjs";
 
@@ -10,7 +10,7 @@ export class AssetsService {
 
   public icons: {[name: string]: string};
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private ngZone: NgZone) {
     this.icons = {
       'account': 'assets/ionicons/person-circle-outline.svg',
       'add': 'assets/ionicons/add.svg',
@@ -111,45 +111,48 @@ export class AssetsService {
 
   public loadSvg(url: string): Observable<SVGSVGElement> {
     return new Observable<SVGSVGElement>(observer => {
-      const known = this._loadedSvg.get(url);
-      if (known) {
-        observer.next(known.cloneNode(true) as SVGSVGElement);
-        observer.complete();
-        return;
-      }
-      const loading = this._loadingSvg.get(url);
-      if (loading) {
-        loading.push(observer);
-        return;
-      }
-      this._loadingSvg.set(url, [observer]);
-      const error = (e: any) => {
-        console.error('Error loading SVG ' + url, e);
-        const subscribers = this._loadingSvg.get(url);
-        this._loadingSvg.delete(url);
-        subscribers?.forEach(s => {
-          s.error(e);
-        });
-      };
-      this.http.get(url, {responseType: 'text'}).subscribe({
-        next: svgText => {
-          const el = document.createElement('html');
-          el.innerHTML = svgText;
-          const svg = el.getElementsByTagName('svg').item(0);
-          if (!svg) {
-            error(new Error('Invalid SVG'));
-            return;
-          }
+      this.ngZone.runOutsideAngular(() => {
+        const known = this._loadedSvg.get(url);
+        if (known) {
+          observer.next(known.cloneNode(true) as SVGSVGElement);
+          observer.complete();
+          return;
+        }
+        const loading = this._loadingSvg.get(url);
+        if (loading) {
+          loading.push(observer);
+          return;
+        }
+        this._loadingSvg.set(url, [observer]);
+        const error = (e: any) => {
+          console.error('Error loading SVG ' + url, e);
           const subscribers = this._loadingSvg.get(url);
           this._loadingSvg.delete(url);
           subscribers?.forEach(s => {
-            s.next(svg.cloneNode(true) as SVGSVGElement);
-            s.complete();
+            s.error(e);
           });
-        },
-        error: e => {
-          error(e);
-        }
+        };
+        this.http.get(url, {responseType: 'text'}).subscribe({
+          next: svgText => {
+            const el = document.createElement('html');
+            el.innerHTML = svgText;
+            const svg = el.getElementsByTagName('svg').item(0);
+            if (!svg) {
+              error(new Error('Invalid SVG'));
+              return;
+            }
+            const subscribers = this._loadingSvg.get(url);
+            this._loadingSvg.delete(url);
+            this._loadedSvg.set(url, svg);
+            subscribers?.forEach(s => {
+              s.next(svg.cloneNode(true) as SVGSVGElement);
+              s.complete();
+            });
+          },
+          error: e => {
+            error(e);
+          }
+        });
       });
     });
   }

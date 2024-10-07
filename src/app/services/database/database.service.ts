@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
 import { BehaviorSubject, Observable, combineLatest, from, map, of, switchMap } from 'rxjs';
@@ -31,6 +31,7 @@ export class DatabaseService {
 
   constructor(
     auth: AuthService,
+    private ngZone: NgZone,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -114,18 +115,20 @@ export class DatabaseService {
     this.close();
     console.log('Open DB for user ' + email);
     this._openEmail = email;
-    const db = new Dexie(DB_PREFIX + email);
-    const storesV1: any = {};
-    storesV1[TRACK_TABLE_NAME] = 'id_owner';
-    storesV1[TRAIL_TABLE_NAME] = 'id_owner';
-    storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
-    storesV1[TAG_TABLE_NAME] = 'id_owner';
-    storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
-    storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
-    storesV1[SHARE_TABLE_NAME] = 'key';
-    storesV1[PHOTO_TABLE_NAME] = 'id_owner';
-    db.version(1).stores(storesV1);
-    this._db.next(db);
+    this.ngZone.runOutsideAngular(() => {
+      const db = new Dexie(DB_PREFIX + email);
+      const storesV1: any = {};
+      storesV1[TRACK_TABLE_NAME] = 'id_owner';
+      storesV1[TRAIL_TABLE_NAME] = 'id_owner';
+      storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
+      storesV1[TAG_TABLE_NAME] = 'id_owner';
+      storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
+      storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
+      storesV1[SHARE_TABLE_NAME] = 'key';
+      storesV1[PHOTO_TABLE_NAME] = 'id_owner';
+      db.version(1).stores(storesV1);
+      this._db.next(db);
+    });
   }
 
 }

@@ -17,6 +17,7 @@ import { ShareService } from 'src/app/services/database/share.service';
 import { ShareElementType } from 'src/app/model/dto/share';
 import { TagService } from 'src/app/services/database/tag.service';
 import { Share } from 'src/app/model/share';
+import { List } from 'immutable';
 
 @Component({
   selector: 'app-trails-page',
@@ -36,7 +37,7 @@ export class TrailsPage extends AbstractPage {
   @Input() trailsFrom?: string;
 
   title$ = new BehaviorSubject<string>('');
-  trails$ = new BehaviorSubject<Trail[]>([]);
+  trails$ = new BehaviorSubject<List<Trail>>(List());
   actions: MenuItem[] = [];
 
   viewId?: string;
@@ -92,7 +93,11 @@ export class TrailsPage extends AbstractPage {
         this.injector.get(TrailService).getAll$().pipe(
           collection$items(trail => trail.collectionUuid === newState.id)
         ),
-        trails => this.trails$.next(trails)
+        trails => {
+          const newList = List(trails);
+          if (!newList.equals(this.trails$.value))
+            this.trails$.next(newList);
+        }
       );
     } else if (newState.type === 'share') {
       this.byStateAndVisible.subscribe(
@@ -140,7 +145,9 @@ export class TrailsPage extends AbstractPage {
             return;
           }
           this.title$.next(result.share.name);
-          this.trails$.next(result.trails);
+          const newList = List(result.trails);
+          if (!newList.equals(this.trails$.value))
+            this.trails$.next(newList);
           this.viewId = "share-" + result.share.id + "-" + result.share.from;
           this.shown = result.share;
           this.actions = this.injector.get(ShareService).getShareMenu(result.share);
@@ -153,7 +160,7 @@ export class TrailsPage extends AbstractPage {
   private reset(): void {
     this.viewId = undefined;
     this.title$.next('');
-    this.trails$.next([]);
+    this.trails$.next(List());
     this.actions = [];
     this.shown = undefined;
   }

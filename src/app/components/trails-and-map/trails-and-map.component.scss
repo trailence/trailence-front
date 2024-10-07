@@ -12,10 +12,12 @@
 
   .map-container {
     position: absolute;
+    z-index: 0;
     background-color: var(--ion-background-color);
   }
   .list-container {
     position: absolute;
+    z-index: 0;
     background-color: var(--ion-background-color);
     app-trails-list {
       height: 100%;
@@ -92,19 +94,13 @@
 
     &.map {
       .list-container {
-        z-index: 0;
-      }
-      .map-container {
-        z-index: 1;
+        display: none;
       }
     }
 
     &.list {
-      .list-container {
-        z-index: 1000;
-      }
       .map-container {
-        z-index: 0;
+        display: none;
       }
     }
 
@@ -113,7 +109,7 @@
         top: 0;
         left: 0;
         right: 0;
-        bottom: 36px;
+        height: 36px;
       }
       .map-container, .list-container {
         top: 36px;

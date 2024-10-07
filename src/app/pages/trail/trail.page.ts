@@ -10,9 +10,9 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { MenuItem } from 'src/app/utils/menu-item';
-import { Platform } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
   selector: 'app-trail-page',
@@ -100,8 +100,8 @@ export class TrailPage extends AbstractPage {
         ([t1, t2]) => {
           this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, t1?.collectionUuid);
           if (!t2 && t1?.owner === this.injector.get(AuthService).email) {
-            const platform = this.injector.get(Platform);
-            if (platform.width() >= 1500 && platform.height() >= 500) {
+            const browser = this.injector.get(BrowserService);
+            if (browser.width >= 1500 && browser.height >= 500) {
               if (!this.injector.get(TraceRecorderService).recording) {
                 // eligible for edit tools
                 const sepIndex = this.menu.findIndex(item => !item.action && !item.icon && !item.label && !item.i18nLabel);
