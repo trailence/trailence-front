@@ -142,41 +142,45 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected close(): void {
     if (!this._db) return;
-    this._locks = new SynchronizationLocks();
-    this._db = undefined;
-    this._storeLoaded$.next(false);
-    const items = this._store.value;
-    this._store.next([]);
-    this._createdLocally = [];
-    this._deletedLocally = [];
-    items.forEach(item$ => item$.complete());
+    this.ngZone.runOutsideAngular(() => {
+      this._locks = new SynchronizationLocks();
+      this._db = undefined;
+      this._storeLoaded$.next(false);
+      const items = this._store.value;
+      this._store.next([]);
+      this._createdLocally = [];
+      this._deletedLocally = [];
+      items.forEach(item$ => item$.complete());
+    });
   }
 
   private load(db: Dexie): void {
     if (this._db) this.close();
-    this._db = db;
-    this._locks = new SynchronizationLocks();
-    from(db.table<DB_ITEM>(this.tableName).toArray()).subscribe(
-      items => {
-        if (this._db !== db) return;
-        if (this._syncTimeout) clearTimeout(this._syncTimeout);
-        this._syncTimeout = undefined;
-        this._lastSync = 0;
-        const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
-        items.forEach(dbItem => {
-          const item = this.itemFromDb(dbItem);
-          if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
-          else {
-            const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
-            if (this.isCreatedLocally(dbItem)) this._createdLocally.push(item$);
-            newStore.push(item$);
-          }
-        });
-        this._store.next(newStore);
-        this.beforeEmittingStoreLoaded();
-        this._storeLoaded$.next(true);
-      }
-    );
+    this.ngZone.runOutsideAngular(() => {
+      this._db = db;
+      this._locks = new SynchronizationLocks();
+      from(db.table<DB_ITEM>(this.tableName).toArray()).subscribe(
+        items => {
+          if (this._db !== db) return;
+          if (this._syncTimeout) clearTimeout(this._syncTimeout);
+          this._syncTimeout = undefined;
+          this._lastSync = 0;
+          const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
+          items.forEach(dbItem => {
+            const item = this.itemFromDb(dbItem);
+            if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
+            else {
+              const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
+              if (this.isCreatedLocally(dbItem)) this._createdLocally.push(item$);
+              newStore.push(item$);
+            }
+          });
+          this._store.next(newStore);
+          this.beforeEmittingStoreLoaded();
+          this._storeLoaded$.next(true);
+        }
+      );
+    });
   }
 
   protected beforeEmittingStoreLoaded(): void {

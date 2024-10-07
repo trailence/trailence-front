@@ -1,9 +1,8 @@
 import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractComponent } from 'src/app/utils/component-utils';
-import { Platform } from '@ionic/angular';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, combineLatest, filter, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, first, map, of, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -16,6 +15,8 @@ import { Router } from '@angular/router';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { CollectionMapper } from 'src/app/utils/arrays';
+import { List } from 'immutable';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
   selector: 'app-trails-and-map',
@@ -30,7 +31,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @Input() viewId!: string;
 
-  @Input() trails: Trail[] = [];
+  @Input() trails: List<Trail> = List();
   @Input() collectionUuid?: string;
 
   mode =  '';
@@ -42,7 +43,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   highlightedTrail?: Trail;
   mapTracksMapper = new CollectionMapper<{trail: Trail, track: SimplifiedTrackSnapshot}, MapTrack>(
-    trailAndTrack => new MapTrack(trailAndTrack.trail!, trailAndTrack.track!, 'red', 4, false, this.i18n),
+    trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.track, 'red', 4, false, this.i18n),
     (t1, t2) => t1.track === t2.track
   );
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
@@ -52,18 +53,45 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   constructor(
     injector: Injector,
-    private platform: Platform,
+    private browser: BrowserService,
     public i18n: I18nService,
     private trackService: TrackService,
     private router: Router,
   ) {
     super(injector);
-    this.whenVisible.subscribe(platform.resize, () => this.updateMode());
+    this.whenVisible.subscribe(browser.resize$, () => this.updateMode());
     this.visible$.subscribe(() => this.updateMode());
   }
 
   protected override initComponent(): void {
     this.updateMode();
+    let first = true;
+    this.whenVisible.subscribe(
+      this.mapTrails$.pipe(
+        switchMap(trails =>
+          trails.isEmpty() ? of([]) : combineLatest(
+            trails.map(
+              trail => trail.currentTrackUuid$.pipe(
+                switchMap(trackUuid => this.trackService.getSimplifiedTrack$(trackUuid, trail.owner)),
+                filter(track => !!track),
+                map(track => ({trail, track})),
+              )
+            ).toArray()
+          )
+        )
+      ),
+      trailsAndTracks => {
+        if (trailsAndTracks.length === 0) {
+          if (!first) {
+            this.mapTracks$.next([]);
+            first = true;
+          }
+        } else {
+          first = false;
+          this.mapTracks$.next(this.mapTracksMapper.update(trailsAndTracks));
+        }
+      }
+    );
   }
 
   protected override getComponentState() {
@@ -72,30 +100,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.mapTrails$.next(this.trails);
-    this.byStateAndVisible.subscribe(
-      this.mapTrails$.pipe(
-        switchMap(trails =>
-          trails.length === 0 ? of([]) : combineLatest(
-            trails.map(
-              trail => trail.currentTrackUuid$.pipe(
-                switchMap(trackUuid => this.trackService.getSimplifiedTrack$(trackUuid, trail.owner)),
-                filter(track => !!track),
-                map(track => ({trail, track: track!})),
-              )
-            )
-          )
-        ),
-        debounceTimeExtended(1, 250)
-      ),
-      trailsAndTracks => {
-        this.mapTracks$.next(this.mapTracksMapper.update(trailsAndTracks));
-      }
-    );
   }
 
-  private mapTrails$ = new BehaviorSubject<Trail[]>([]);
-  updateMapTracks(trailsAndTracks: {trail: Trail, track: TrackMetadataSnapshot | null}[]): void {
-    this.mapTrails$.next(trailsAndTracks.map(t => t.trail));
+  private mapTrails$ = new BehaviorSubject<List<Trail>>(List());
+  updateMapTracks(trails: Trail[]): void {
+    const newList = List(trails);
+    if (!newList.equals(this.mapTrails$.value))
+      this.mapTrails$.next(newList);
   }
 
   setTab(tab: string): void {
@@ -109,8 +120,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.updateVisibility(false, false, false);
       return;
     }
-    const w = this.platform.width();
-    const h = this.platform.height();
+    const w = this.browser.width;
+    const h = this.browser.height;
     if (w >= 750 + 350) {
       this.mode = 'large list-two-cols';
       this.listMetadataClass = 'two-columns';
@@ -159,10 +170,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   private updateVisibility(mapVisible: boolean, listVisible: boolean, trailSheetVisible: boolean): void {
     this._children$.value.forEach(child => {
-      if (child instanceof MapComponent) {
-        child.setVisible(mapVisible);
-        child.invalidateSize();
-      } else if (child instanceof TrailsListComponent) child.setVisible(listVisible);
+      if (child instanceof MapComponent) child.setVisible(mapVisible);
+      else if (child instanceof TrailsListComponent) child.setVisible(listVisible);
       else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
       else console.error('unexpected child', child);
     });

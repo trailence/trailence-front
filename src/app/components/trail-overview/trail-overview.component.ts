@@ -5,8 +5,8 @@ import { TrackMetadataComponent } from '../track-metadata/track-metadata.compone
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonIcon, IonCheckbox, IonButton, Platform, IonSpinner, PopoverController } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, debounceTime, of, switchMap } from 'rxjs';
+import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController } from "@ionic/angular/standalone";
+import { BehaviorSubject, combineLatest, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -17,6 +17,7 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { AssetsService } from 'src/app/services/assets/assets.service';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 class Meta {
   name?: string;
@@ -66,9 +67,10 @@ export class TrailOverviewComponent extends AbstractComponent {
     private tagService: TagService,
     private auth: AuthService,
     private trailService: TrailService,
-    private platform: Platform,
+    private browser: BrowserService,
     private assets: AssetsService,
     private popoverController: PopoverController,
+    private domController: DomController,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -125,8 +127,9 @@ export class TrailOverviewComponent extends AbstractComponent {
           if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
           if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
           if (changed) this.changeDetector.detectChanges();
-          if (!this._trackMetadataInitialized) this.initTrackMetadata();
-        }
+          if (!this._trackMetadataInitialized && track) this.initTrackMetadata();
+        },
+        true
       );
       if (owner === this.auth.email) {
         this.byStateAndVisible.subscribe(
@@ -136,7 +139,8 @@ export class TrailOverviewComponent extends AbstractComponent {
               this.tagsNames = tagsNames;
               this.changeDetector.detectChanges();
             }
-          }
+          },
+          true
         );
       }
     }
@@ -164,7 +168,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   private initTrackMetadata(): void {
     this._trackMetadataInitialized = true;
     const element = document.getElementById('track-metadata-' + this.id);
-    TrackMetadataComponent.init(element!, this.track$, of(undefined), false, this.assets, this.i18n, this.whenVisible);
+    TrackMetadataComponent.init(element!, this.track$, of(undefined), false, this.assets, this.i18n, this.whenVisible, this.domController);
   }
 
   setSelected(selected: boolean) {
@@ -175,7 +179,7 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   openMenu(event: MouseEvent): void {
     const y = event.pageY;
-    const h = this.platform.height();
+    const h = this.browser.height;
     const remaining = h - y - 15;
 
     this.popoverController.create({

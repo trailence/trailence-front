@@ -133,6 +133,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     }
 
     protected override sync(): void {
+      this.ngZone.runOutsideAngular(() => {
         const db = this._db;
         const stillValid = () => this._db === db;
 
@@ -174,6 +175,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             console.log(error);
           }
         });
+      });
     }
 
     private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {

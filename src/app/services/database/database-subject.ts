@@ -4,8 +4,9 @@ import { DatabaseSubjectService } from './database-subject-service';
 export class DatabaseSubject<T> {
 
   constructor(
-    private service: DatabaseSubjectService,
-    private loadItem: () => Promise<T | null>,
+    private readonly service: DatabaseSubjectService,
+    public readonly type: string,
+    private readonly loadItem: () => Promise<T | null>,
     initialValue: T | null | undefined = undefined,
   ) {
     if (initialValue !== undefined) {
@@ -60,7 +61,6 @@ export class DatabaseSubject<T> {
   }
 
   public clean(): boolean {
-    //console.log(this.observers);
     if (this.loading || this.observers.length > 0 || Date.now() - this.lastObserverSeen < 15000) return false;
     this.service.unregister(this);
     this.loaded = undefined;

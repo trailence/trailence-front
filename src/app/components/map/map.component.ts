@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { Platform } from '@ionic/angular';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -19,6 +18,7 @@ import { DownloadMapTool } from './tools/download-map-tool';
 import { DarkMapToggle } from './tools/dark-map-toggle';
 import { MapGeolocationService } from 'src/app/services/map/map-geolocation.service';
 import { MapShowPositionTool } from './tools/show-position-tool';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -50,7 +50,7 @@ export class MapComponent extends AbstractComponent {
 
   constructor(
     injector: Injector,
-    private platform: Platform,
+    private browser: BrowserService,
     private prefService: PreferencesService,
     private mapLayersService: MapLayersService,
     private mapGeolocation: MapGeolocationService,
@@ -60,38 +60,43 @@ export class MapComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
-    this.whenVisible.subscribe(this.platform.resize.pipe(debounceTime(500)), () => this.invalidateSize());
-    this.visible$.subscribe(visible => {
-      if (visible) {
-        setTimeout(() => {
-          if (!this._map$.value) this.initMap();
-          else this.invalidateSize();
-        }, 0);
-      }
-      this._mapState.live = visible;
+    this.whenVisible.subscribe(this.browser.resize$.pipe(debounceTime(500)), () => this.invalidateSize(), true);
+    this.ngZone.runOutsideAngular(() => {
+      this.visible$.subscribe(visible => {
+        if (visible) {
+          setTimeout(() => {
+            if (!this._map$.value) this.initMap();
+            else this.invalidateSize();
+          }, 0);
+        }
+        this._mapState.live = visible;
+      });
     });
     this.loadState();
     this.updateTracks();
     this.whenVisible.subscribe(
       combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
-      () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId)
+      () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId),
+      true
     );
   }
 
   private _initMapTimeout: any;
   private initMap(): void {
-    if (this._initMapTimeout) {
-      clearTimeout(this._initMapTimeout);
-      this._initMapTimeout = undefined;
-    }
-    if (!this.visible) return;
-    if (document.getElementById(this.id)?.clientHeight) {
-      this.createMap();
-      return;
-    }
-    this._initMapTimeout = setTimeout(() => {
-      this.initMap();
-    }, 250);
+    this.ngZone.runOutsideAngular(() => {
+      if (this._initMapTimeout) {
+        clearTimeout(this._initMapTimeout);
+        this._initMapTimeout = undefined;
+      }
+      if (!this.visible) return;
+      if (document.getElementById(this.id)?.clientHeight) {
+        this.createMap();
+        return;
+      }
+      this._initMapTimeout = setTimeout(() => {
+        this.initMap();
+      }, 250);
+    });
   }
 
   override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
@@ -141,11 +146,11 @@ export class MapComponent extends AbstractComponent {
   }
 
   public addToMap(element: L.Layer): void {
-    element.addTo(this._map$.value!);
+    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!));
   }
 
   public removeFromMap(element: L.Layer): void {
-    element.remove();
+    this.ngZone.runOutsideAngular(() => element.remove());
   }
 
   private loadState(): void {
@@ -161,7 +166,7 @@ export class MapComponent extends AbstractComponent {
   private _tracksSubscription?: Subscription;
   private updateTracks(): void {
     this._tracksSubscription?.unsubscribe();
-    this._tracksSubscription =
+    this._tracksSubscription = this.ngZone.runOutsideAngular(() =>
       combineLatest([this.tracks$, this._mapState.live$, this._map$]).subscribe(
       ([tracks, live, map]) => {
         if (!map || !live) return;
@@ -181,12 +186,12 @@ export class MapComponent extends AbstractComponent {
           this.fitTracksBounds(map, tracks);
         }
       }
-    );
+    ));
   }
 
   public addTrack(track: MapTrack): void {
     if (this._map$.value)
-      track.addTo(this._map$.value)
+      track.addTo(this._map$.value);
     this._currentTracks.push(track);
   }
 
@@ -198,12 +203,14 @@ export class MapComponent extends AbstractComponent {
   }
 
   public fitBounds(tracks: MapTrack[] | undefined): void {
-    if (!this._map$.value) return;
-    this.fitTracksBounds(this._map$.value, tracks || this._currentTracks);
+    this.ngZone.runOutsideAngular(() => {
+      if (!this._map$.value) return;
+      this.fitTracksBounds(this._map$.value, tracks || this._currentTracks);
+    });
   }
 
   public centerAndZoomOn(bounds: L.LatLngBounds): void {
-    this._map$.value?.fitBounds(bounds);
+    this.ngZone.runOutsideAngular(() => this._map$.value?.fitBounds(bounds));
   }
 
   private fitTracksBounds(map: L.Map, tracks: MapTrack[], padding: number = 0.05): void {
@@ -232,7 +239,7 @@ export class MapComponent extends AbstractComponent {
       const mapBounds = map.getBounds();
       if (mapBounds.contains(bounds)) return;
       const newBounds = mapBounds.extend(bounds);
-      map.flyToBounds(newBounds);
+      this.ngZone.runOutsideAngular(() => map.flyToBounds(newBounds));
     }
   }
 

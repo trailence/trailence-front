@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, Platform, IonCheckbox, IonReorderGroup, IonReorder, ModalController, IonModal, IonTextarea } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, IonReorderGroup, IonReorder, ModalController, IonModal, IonTextarea } from "@ionic/angular/standalone";
 import { firstValueFrom } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
@@ -10,6 +10,7 @@ import { Progress, ProgressService } from 'src/app/services/progress/progress.se
 import { PhotoComponent } from '../photo/photo.component';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -50,17 +51,17 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     private photoService: PhotoService,
     private fileService: FileService,
     private progressService: ProgressService,
-    platform: Platform,
+    browser: BrowserService,
     private auth: AuthService,
     private modalController: ModalController,
   ) {
-    this.updateSize(platform);
-    this.subscriptions.add(platform.resize.subscribe(() => this.updateSize(platform)));
+    this.updateSize(browser);
+    this.subscriptions.add(browser.resize$.subscribe(() => this.updateSize(browser)));
   }
 
-  private updateSize(platform: Platform): void {
-    this.width = platform.width();
-    this.height = platform.height();
+  private updateSize(browser: BrowserService): void {
+    this.width = browser.width;
+    this.height = browser.height;
     this.maxWidth = Math.min(Math.floor(this.width * 0.9) - 20, 300);
     this.maxHeight = Math.min(Math.floor(this.height * 0.4) - 50, 300);
   }

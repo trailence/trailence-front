@@ -8,7 +8,6 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { Platform } from '@ionic/angular';
 import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
@@ -33,6 +32,7 @@ import { PhotoService } from 'src/app/services/database/photo.service';
 import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { PhotosPopupComponent } from '../photos-popup/photos-popup.component';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
   selector: 'app-trail',
@@ -95,7 +95,7 @@ export class TrailComponent extends AbstractComponent {
     injector: Injector,
     private trackService: TrackService,
     public i18n: I18nService,
-    private platform: Platform,
+    private browser: BrowserService,
     private auth: AuthService,
     public trailService: TrailService,
     private traceRecorder: TraceRecorderService,
@@ -111,7 +111,7 @@ export class TrailComponent extends AbstractComponent {
 
   protected override initComponent(): void {
     this.updateDisplay();
-    this.whenVisible.subscribe(this.platform.resize, () => this.updateDisplay());
+    this.whenVisible.subscribe(this.browser.resize$, () => this.updateDisplay());
     this.visible$.subscribe(() => this.updateDisplay());
     setTimeout(() => this.updateDisplay(), 0);
   }
@@ -315,8 +315,8 @@ export class TrailComponent extends AbstractComponent {
       this.updateVisibility(false, false);
       return;
     }
-    const w = this.platform.width();
-    const h = this.platform.height();
+    const w = this.browser.width;
+    const h = this.browser.height;
     if (w >= 750 + 350) {
       this.displayMode = 'large';
       this.isSmall = false;
@@ -330,12 +330,9 @@ export class TrailComponent extends AbstractComponent {
 
   private updateVisibility(mapVisible: boolean, graphVisible: boolean): void {
     this._children$.value.forEach(child => {
-      if (child instanceof MapComponent) {
-        child.setVisible(mapVisible);
-        child.invalidateSize();
-      } else if (child instanceof ElevationGraphComponent) {
-        child.setVisible(graphVisible);
-      } else if (child instanceof TrackMetadataComponent) {
+      if (child instanceof MapComponent) child.setVisible(mapVisible);
+      else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
+      else if (child instanceof TrackMetadataComponent) {
         // nothing
       } else if (this.editToolsComponent && child instanceof this.editToolsComponent) {
         child.setVisible(true);
@@ -591,7 +588,7 @@ export class TrailComponent extends AbstractComponent {
     if (this.trail2) return false;
     if (this.trail1?.owner !== this.auth.email) return false;
     if (this.recording) return false;
-    return this.platform.width() >= 1500 && this.platform.height() >= 500;
+    return this.browser.width >= 1500 && this.browser.height >= 500;
   }
 
   editToolsComponent: any;

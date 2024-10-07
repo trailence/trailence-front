@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonButton, MenuController, Platform, IonBadge } from "@ionic/angular/standalone";
+import { IonIcon, IonButton, MenuController, IonBadge } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
 import { combineLatest, map } from 'rxjs';
@@ -12,6 +12,8 @@ import { Share } from 'src/app/model/share';
 import { ShareService } from 'src/app/services/database/share.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { UpdateService } from 'src/app/services/update/update.service';
+import { List } from 'immutable';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
   selector: 'app-menu',
@@ -25,9 +27,9 @@ import { UpdateService } from 'src/app/services/update/update.service';
 })
 export class MenuComponent {
 
-  collections: TrailCollection[] = [];
-  sharedWithMe: Share[] = [];
-  sharedByMe: Share[] = [];
+  collections: List<TrailCollection> = List();
+  sharedWithMe: List<Share> = List();
+  sharedByMe: List<Share> = List();
 
   collectionsOpen = true;
   sharedWithMeOpen = false;
@@ -43,26 +45,26 @@ export class MenuComponent {
     public traceRecorder: TraceRecorderService,
     shareService: ShareService,
     authService: AuthService,
-    platform: Platform,
+    browser: BrowserService,
     public update: UpdateService,
   ) {
 
-    this.updateSize(platform);
-    platform.resize.subscribe(() => this.updateSize(platform));
+    this.updateSize(browser);
+    browser.resize$.subscribe(() => this.updateSize(browser));
     collectionService.getAll$().pipe(
       collection$items(),
       map(list => list.sort((c1, c2) => this.compareCollections(c1, c2)))
     )
-    .subscribe(list => this.collections = list);
+    .subscribe(list => this.collections = List(list));
     combineLatest([authService.auth$, shareService.getAll$().pipe(collection$items())])
     .subscribe(([auth, shares]) => {
-      this.sharedByMe = shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
-      this.sharedWithMe = shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2));
+      this.sharedByMe = List(shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
+      this.sharedWithMe = List(shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
     });
   }
 
-  private updateSize(platform: Platform): void {
-    this.large = platform.width() > 600 && platform.height() > 400;
+  private updateSize(browser: BrowserService): void {
+    this.large = browser.width > 600 && browser.height > 400;
   }
 
   private compareCollections(c1: TrailCollection, c2: TrailCollection): number {

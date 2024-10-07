@@ -4,7 +4,7 @@
   </ion-menu>
   <ion-app>
     <ion-content id="content">
-      <ion-router-outlet></ion-router-outlet>
+      <ion-router-outlet [animated]="false"></ion-router-outlet>
     </ion-content>
   </ion-app>
   <div class="waiting-for-gps" *ngIf="geolocation.waitingForGps">

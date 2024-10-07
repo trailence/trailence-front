@@ -1,19 +1,7 @@
 <ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button">
-  <div slot="icon-only">{{auth.email?.substring(0, 1)}}</div>
+  <div slot="icon-only">{{userLetter}}</div>
 </ion-button>
-<div class="status">
-  @switch(status) {
-    @case('online') {
-      <ion-icon name="online"></ion-icon>
-    }
-    @case('offline') {
-      <ion-icon name="offline"></ion-icon>
-    }
-    @case('sync') {
-      <ion-icon name="sync"></ion-icon>
-    }
-  }
-</div>
+<div class="status"><ion-icon [name]="status"></ion-icon></div>
 
 <ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click">
   <ng-template>

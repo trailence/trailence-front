@@ -3,7 +3,7 @@
   flex-direction: row;
   align-items: center;
 
-  ion-checkbox {
+  ion-checkbox.trail-checkbox {
     padding-right: 8px;
     padding-top: 4px;
     padding-bottom: 8px;
@@ -15,7 +15,7 @@
     font-size: 15px;
   }
 
-  ion-button {
+  ion-button.trail-menu-button {
     margin: 0;
   }
 

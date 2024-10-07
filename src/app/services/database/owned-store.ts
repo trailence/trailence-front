@@ -217,43 +217,45 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override sync(): void {
-    const db = this._db;
-    const stillValid = () => this._db === db;
+    this.ngZone.runOutsideAngular(() => {
+      const db = this._db;
+      const stillValid = () => this._db === db;
 
-    this._syncStatus$.value.inProgress = true;
-    this._syncStatus$.next(this._syncStatus$.value);
+      this._syncStatus$.value.inProgress = true;
+      this._syncStatus$.next(this._syncStatus$.value);
 
-    this.syncCreateNewItems(stillValid)
-    .pipe(
-      switchMap(result => {
-        if (!stillValid()) return of(false);
-        return this.syncLocalDeleteToServer(stillValid);
-      }),
-      switchMap(result => {
-        if (!stillValid()) return of(false);
-        return this.syncUpdateFromServer(stillValid);
-      }),
-      switchMap(result => {
-        if (!stillValid()) return of(false);
-        return this.syncUpdateToServer(stillValid);
-      }),
-    ).subscribe({
-      next: result => {
-        if (stillValid()) {
-          const status = this._syncStatus$.value;
-          status.localCreates = this._createdLocally.length !== 0;
-          status.localDeletes = this._deletedLocally.length !== 0;
-          status.localUpdates = this._updatedLocally.length !== 0;
-          status.inProgress = false;
-          status.needsUpdateFromServer = false;
-          status.lastUpdateFromServer = Date.now();
-          this._syncStatus$.next(status);
+      this.syncCreateNewItems(stillValid)
+      .pipe(
+        switchMap(result => {
+          if (!stillValid()) return of(false);
+          return this.syncLocalDeleteToServer(stillValid);
+        }),
+        switchMap(result => {
+          if (!stillValid()) return of(false);
+          return this.syncUpdateFromServer(stillValid);
+        }),
+        switchMap(result => {
+          if (!stillValid()) return of(false);
+          return this.syncUpdateToServer(stillValid);
+        }),
+      ).subscribe({
+        next: result => {
+          if (stillValid()) {
+            const status = this._syncStatus$.value;
+            status.localCreates = this._createdLocally.length !== 0;
+            status.localDeletes = this._deletedLocally.length !== 0;
+            status.localUpdates = this._updatedLocally.length !== 0;
+            status.inProgress = false;
+            status.needsUpdateFromServer = false;
+            status.lastUpdateFromServer = Date.now();
+            this._syncStatus$.next(status);
+          }
+        },
+        error: error => {
+          // should never happen
+          console.log(error);
         }
-      },
-      error: error => {
-        // should never happen
-        console.log(error);
-      }
+      });
     });
   }
 

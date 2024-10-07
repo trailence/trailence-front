@@ -2,15 +2,17 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController } from '@ionic/angular/standalone';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController } from '@ionic/angular/standalone';
 import { combineLatest, filter, first } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { ApiError } from 'src/app/services/http/api-error';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Component({
   selector: 'app-login',
@@ -57,6 +59,8 @@ export class LoginPage {
     private modalController: ModalController,
     public preferencesService: PreferencesService,
     private database: DatabaseService,
+    private collectionService: TrailCollectionService,
+    private navController: NavController,
   ) {
     route.queryParamMap.subscribe(params => {
       this.returnUrl = params.get('returnUrl') ?? '';
@@ -91,11 +95,12 @@ export class LoginPage {
       next: () => {
         combineLatest([
           this.auth.auth$,
-          this.database.allLoaded()
+          this.database.allLoaded(),
+          this.collectionService.getAll$().pipe(collection$items())
         ]).pipe(
-          filter(([a,l]) => !a || l),
+          filter(([a,l,c]) => !a || (l && c.length > 0)),
           first(),
-        ).subscribe(([a,l]) => {
+        ).subscribe(([a,l,c]) => {
           if (a) {
             this.router.events.pipe(
               filter(e => e instanceof NavigationEnd),
@@ -103,7 +108,7 @@ export class LoginPage {
             ).subscribe(() => {
               this.inprogress = false;
             });
-            this.router.navigateByUrl(this.returnUrl);
+            this.navController.navigateRoot(this.returnUrl);
           } else {
             this.inprogress = false;
           }

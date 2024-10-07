@@ -41,13 +41,13 @@ export class TrailCollectionService {
     return this._store.getItem(uuid, owner);
   }
 
-  public getMyTrails$(): Observable<TrailCollection | null> {
+  public getMyTrails$(): Observable<TrailCollection> {
     return this.getAll$().pipe(
       switchMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
       map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
       filter(myTrails => !!myTrails),
       first()
-    ) as Observable<TrailCollection | null>;
+    );
   }
 
   public create(collection: TrailCollection): Observable<TrailCollection | null> {

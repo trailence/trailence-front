@@ -55,7 +55,7 @@ export class HeaderComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(of(true), () => {
       const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
       title.innerText = this.title + ' - Trailence';
-    });
+    }, true);
   }
 
 }
