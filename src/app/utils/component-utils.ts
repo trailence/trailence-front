@@ -1,4 +1,4 @@
-import { Component, Directive, ElementRef, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Directive, ElementRef, Injector, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Resubscribeables, Subscriptions } from './rxjs/subscription-utils';
 import { Arrays } from './arrays';
@@ -11,10 +11,11 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   protected _parent?: AbstractComponent;
   protected _children$ = new BehaviorSubject<AbstractComponent[]>([]);
   protected _visible$ = new BehaviorSubject<boolean>(false);
-  protected whenVisible = new Resubscribeables();
+  protected whenVisible: Resubscribeables;
   protected whenAlive = new Subscriptions();
   protected byState = new Subscriptions();
-  protected byStateAndVisible = new Resubscribeables();
+  protected byStateAndVisible: Resubscribeables;
+  protected ngZone: NgZone;
 
   private _isInit = false;
   private _currentState: any;
@@ -25,7 +26,10 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   constructor(
     protected injector: Injector,
   ) {
+    this.ngZone = injector.get(NgZone);
+    this.byStateAndVisible = new Resubscribeables(this.ngZone);
     this.byStateAndVisible.pause();
+    this.whenVisible = new Resubscribeables(this.ngZone);
     this.whenVisible.pause();
     injector.get(ElementRef).nativeElement['_abstractComponent'] = this;
     this._visible$.subscribe(visible => this._propagateVisible(visible));
@@ -60,12 +64,14 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   }
 
   ngOnDestroy(): void {
+    this.clearTimeouts();
     this._visible$.next(false);
     this._visible$.complete();
     this.byState.unsubscribe();
     this.byStateAndVisible.stop();
     this.whenVisible.stop();
     this.whenAlive.unsubscribe();
+    this.clearTimeouts();
     if (this._parent) {
       const index = this._parent._children$.value.indexOf(this);
       if (index >= 0) {
@@ -86,16 +92,53 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     // nothing by default
   }
 
+  private resumeStateAndVisibleTimeout: any;
+  private resumeVisibleTimeout: any;
+  private pauseVisibleTimeout: any;
+
+  private clearTimeouts(): void {
+    if (this.resumeVisibleTimeout) {
+      clearTimeout(this.resumeVisibleTimeout);
+      this.resumeVisibleTimeout = undefined;
+    }
+    if (this.resumeStateAndVisibleTimeout) {
+      clearTimeout(this.resumeStateAndVisibleTimeout);
+      this.resumeStateAndVisibleTimeout = undefined;
+    }
+    if (this.pauseVisibleTimeout) {
+      clearTimeout(this.pauseVisibleTimeout);
+      this.pauseVisibleTimeout = undefined;
+    }
+  }
+
   public setVisible(visible: boolean): void {
     if (visible === this._visible$.value) return;
+    this.clearTimeouts();
     this._visible$.next(visible);
     if (visible) {
-      this.whenVisible.resume();
-      this._checkComponentState();
-      this.byStateAndVisible.resume();
+      const onVisible = () => {
+        this.whenVisible.resume();
+        this._checkComponentState();
+        if (!this.byStateAndVisible.active) {
+          this.resumeStateAndVisibleTimeout = setTimeout(() => {
+            this.resumeStateAndVisibleTimeout = undefined;
+            this.byStateAndVisible.resume();
+          }, 0);
+        }
+      };
+      if (!this.whenVisible.active) {
+        this.resumeVisibleTimeout = setTimeout(() => {
+          this.resumeVisibleTimeout = undefined;
+          onVisible();
+        }, 0);
+      } else {
+        onVisible();
+      }
     } else {
-      this.whenVisible.pause();
-      this.byStateAndVisible.pause();
+      this.pauseVisibleTimeout = setTimeout(() => {
+        this.whenVisible.pause();
+        this.byStateAndVisible.pause();
+      }, 1000);
     }
   }
 

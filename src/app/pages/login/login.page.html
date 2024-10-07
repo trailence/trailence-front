@@ -10,10 +10,10 @@
       <form (ngSubmit)="onSubmit()">
         <ion-list>
           <ion-item>
-            <ion-input label="{{i18n.texts.pages.login.email}}" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" autocomplete="username"></ion-input>
+            <ion-input label="{{i18n.texts.pages.login.email}}" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" autocomplete="username" [disabled]="inprogress"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-input label="{{i18n.texts.pages.login.password}}" labelPlacement="floating" type="password" name="password" [(ngModel)]="password" autocomplete="current-password"></ion-input>
+            <ion-input label="{{i18n.texts.pages.login.password}}" labelPlacement="floating" type="password" name="password" [(ngModel)]="password" autocomplete="current-password" [disabled]="inprogress"></ion-input>
           </ion-item>
         </ion-list>
         <div *ngIf="incorrect">
@@ -35,8 +35,8 @@
             <ion-spinner *ngIf="inprogress"></ion-spinner>
           </ion-button>
         </div>
-        <div>
-          <ion-button fill="clear" color="tertiary" (click)="resetPassword()" [disabled]="inprogress">
+        <div *ngIf="!inprogress">
+          <ion-button fill="clear" color="tertiary" (click)="resetPassword()">
             {{i18n.texts.pages.login.forgot_password}}
           </ion-button>
         </div>
@@ -44,7 +44,7 @@
     </ng-container>
   </ion-card-content>
 </ion-card>
-<div class="languages">
+<div class="languages" *ngIf="!inprogress">
   <div (click)="preferencesService.setLanguage('en')" *ngIf="preferencesService.preferences.lang !== 'en'">
     <img src="/assets/i18n/en.1.png"/>
     English

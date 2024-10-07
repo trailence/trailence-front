@@ -17,3 +17,8 @@
     border-radius: 5px;
   }
 }
+
+ion-menu {
+  --min-width: var(--width);
+  --max-width: var(--width);
+}

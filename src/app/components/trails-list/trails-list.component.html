@@ -28,7 +28,6 @@
     <div class="trail metadata-container {{metadataClass}}"
       [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
       id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
-      (dblclick)="openTrail(trailWithInfo.trail)"
     >
       <app-trail-overview
         [trail]="trailWithInfo.trail"
@@ -39,8 +38,8 @@
         [fromCollection]="!!collectionUuid"
         [trackSnapshot]="trailWithInfo.track"
       ></app-trail-overview>
-      <div style="display:flex; flex-direction: row; align-items: center; justify-content: center;">
-        <ion-button *ngIf="highlighted === trailWithInfo.trail" (click)="openTrail(trailWithInfo.trail)" size="small">
+      <div style="display:flex; flex-direction: row; align-items: center; justify-content: center;" *ngIf="highlighted === trailWithInfo.trail">
+        <ion-button (click)="openTrail(trailWithInfo.trail)" size="small">
           <a href="{{'/trail/' + trailWithInfo.trail.owner + '/' + trailWithInfo.trail.uuid }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">{{ i18n.texts.pages.trails.open_trail }}</a>
         </ion-button>
       </div>

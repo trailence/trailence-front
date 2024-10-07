@@ -28,7 +28,7 @@
           flex-direction: row;
           align-items: center;
 
-          div {
+          div.metadata-primary, div.metadata-secondary {
             flex: 1 1 100%;
             font-size: 13px;
           }
@@ -37,7 +37,7 @@
 
       &.nowrap {
         .metadata-value {
-          div {
+          div.metadata-primary, div.metadata-secondary {
             text-wrap: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
@@ -122,7 +122,7 @@
             align-items: center;
             justify-content: center;
 
-            div {
+            div.metadata-primary, div.metadata-secondary {
               flex: 1 1 100%;
               font-size: 13px;
               text-align: center;

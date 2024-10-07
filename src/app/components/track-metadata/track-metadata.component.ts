@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
-import { IonIcon } from '@ionic/angular/standalone';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, map, of, switchMap } from 'rxjs';
+import { IonIcon, DomController } from '@ionic/angular/standalone';
+import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -71,13 +71,14 @@ export class TrackMetadataComponent extends AbstractComponent {
     private element: ElementRef,
     private assets: AssetsService,
     changeDetector: ChangeDetectorRef,
+    private domController: DomController,
   ) {
     super(injector);
     changeDetector.detach();
   }
 
   protected override initComponent(): void {
-    TrackMetadataComponent.init(this.element.nativeElement, this.track$, this.track2$, this.detailed, this.assets, this.i18n, this.whenVisible);
+    TrackMetadataComponent.init(this.element.nativeElement, this.track$, this.track2$, this.detailed, this.assets, this.i18n, this.whenVisible, this.domController);
   }
 
   public static init(
@@ -88,29 +89,36 @@ export class TrackMetadataComponent extends AbstractComponent {
     assets: AssetsService,
     i18n: I18nService,
     whenVisible: Resubscribeables,
+    domController: DomController,
   ): void {
-    const duration = TrackMetadataComponent.createItemElement(container, 'duration', assets, detailed);
-    const breaksDuration = detailed ? TrackMetadataComponent.createItemElement(container, 'hourglass', assets, detailed) : [undefined, undefined, undefined];
-    const estimatedDuration = detailed ? TrackMetadataComponent.createItemElement(container, 'chrono', assets, detailed) : [undefined, undefined, undefined];
-    const distance = TrackMetadataComponent.createItemElement(container, 'distance', assets, detailed);
-    const positiveElevation = TrackMetadataComponent.createItemElement(container, 'positive-elevation', assets, detailed);
-    const negativeElevation = TrackMetadataComponent.createItemElement(container, 'negative-elevation', assets, detailed);
-    const highestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, 'highest-point', assets, detailed) : [undefined, undefined, undefined];
-    const lowestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, 'lowest-point', assets, detailed) : [undefined, undefined, undefined];
-    const titles = new Titles(
-      duration[2],
-      breaksDuration[2],
-      estimatedDuration[2],
-      distance[2],
-      positiveElevation[2],
-      negativeElevation[2],
-      highestAltitudeDivs[2],
-      lowestAltitudeDivs[2]
-    );
-    const meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0]);
-    const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
-    TrackMetadataComponent.toMeta(track$, meta, detailed, whenVisible, i18n, titles);
-    TrackMetadataComponent.toMeta(track2$, meta2, detailed, whenVisible, i18n, titles);
+    domController.write(() => {
+      whenVisible.zone.runOutsideAngular(() => {
+        const duration = TrackMetadataComponent.createItemElement(container, 'duration', assets, detailed);
+        const breaksDuration = detailed ? TrackMetadataComponent.createItemElement(container, 'hourglass', assets, detailed) : [undefined, undefined, undefined];
+        const estimatedDuration = detailed ? TrackMetadataComponent.createItemElement(container, 'chrono', assets, detailed) : [undefined, undefined, undefined];
+        const distance = TrackMetadataComponent.createItemElement(container, 'distance', assets, detailed);
+        const positiveElevation = TrackMetadataComponent.createItemElement(container, 'positive-elevation', assets, detailed);
+        const negativeElevation = TrackMetadataComponent.createItemElement(container, 'negative-elevation', assets, detailed);
+        const highestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, 'highest-point', assets, detailed) : [undefined, undefined, undefined];
+        const lowestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, 'lowest-point', assets, detailed) : [undefined, undefined, undefined];
+        const titles = new Titles(
+          duration[2],
+          breaksDuration[2],
+          estimatedDuration[2],
+          distance[2],
+          positiveElevation[2],
+          negativeElevation[2],
+          highestAltitudeDivs[2],
+          lowestAltitudeDivs[2]
+        );
+        const meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0]);
+        TrackMetadataComponent.toMeta(track$, meta, detailed, whenVisible, i18n, titles, domController);
+        if (detailed) {
+          const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
+          TrackMetadataComponent.toMeta(track2$, meta2, detailed, whenVisible, i18n, titles, domController);
+        }
+      });
+    });
   }
 
   private static createItemElement(parent: HTMLElement, icon: string, assets: AssetsService, detailed: boolean): [HTMLDivElement, HTMLDivElement | undefined, HTMLDivElement] {
@@ -156,7 +164,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     return ([info1, info2, title]);
   }
 
-  private static toMeta(track$: Observable<Track | TrackMetadataSnapshot | undefined>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles): void {
+  private static toMeta(track$: Observable<Track | TrackMetadataSnapshot | undefined>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController): void {
     let previousState = 0;
     whenVisible.subscribe(track$.pipe(
       switchMap(track => {
@@ -188,20 +196,22 @@ export class TrackMetadataComponent extends AbstractComponent {
     ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, state]) => {
       const force = state !== previousState;
       let changed = force;
-      if (TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force)) changed = true;
-      if (TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force)) changed = true;
-      if (TrackMetadataComponent.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + i18n.elevationToString(v), force)) changed = true;
+      if (TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force, domController)) changed = true;
+      if (TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force, domController)) changed = true;
+      if (TrackMetadataComponent.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + i18n.elevationToString(v), force, domController)) changed = true;
+      TrackMetadataComponent.shown(meta.positiveElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
+      TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
       if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
       if (detailed) {
-        if (TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force)) changed = true;
+        if (TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController)) changed = true;
+        if (TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController)) changed = true;
+        if (TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController)) changed = true;
+        if (TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController)) changed = true;
+        if (TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController)) changed = true;
       } else {
         let d = i18n.durationToString(duration);
         if (estimatedDuration !== undefined) d += ' (≈ ' + i18n.durationToString(estimatedDuration) + ')';
-        if (TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force)) changed = true;
+        if (TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController)) changed = true;
       }
       if (force) {
         titles.durationTitle.innerText = i18n.texts.metadata.duration;
@@ -217,16 +227,20 @@ export class TrackMetadataComponent extends AbstractComponent {
       }
       previousState = state as number;
       //if (changed) this.changeDetector.detectChanges();
-    })
+    }, true);
   }
 
-  private static updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean): boolean {
+  private static updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean, domController: DomController): boolean {
     if (!forceChange && meta[key  + 'Value'] === value) return false;
     meta[key + 'Value'] = value;
     const div = (meta[key + 'Div'] as HTMLDivElement);
-    if (div)
-      div.innerText = value === undefined ? '' : toString(value);
+    if (div) domController.write(() => div.innerText = value === undefined ? '' : toString(value));
     return true;
+  }
+
+  private static shown(div: HTMLDivElement | undefined, shown: boolean): void {
+    const container = div?.parentElement?.parentElement?.parentElement?.parentElement;
+    if (container) container.style.display = shown ? '' : 'none';
   }
 
   protected override getComponentState(): any {

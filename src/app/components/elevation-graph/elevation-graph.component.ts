@@ -3,7 +3,6 @@ import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input
 import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
-import { Platform } from '@ionic/angular';
 import * as C from 'chart.js';
 import { getRelativePosition } from 'chart.js/helpers';
 import { _DeepPartialObject } from 'chart.js/dist/types/utils';
@@ -19,6 +18,7 @@ import { Point } from 'src/app/model/point';
 import { PathRange } from '../trail/path-selection';
 import { Segment } from 'src/app/model/segment';
 import { TrackUtils } from 'src/app/utils/track-utils';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -69,12 +69,12 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   constructor(
     injector: Injector,
-    platform: Platform,
+    browser: BrowserService,
     private i18n: I18nService,
     preferencesService: PreferencesService,
   ) {
     super(injector);
-    this.whenVisible.subscribe(platform.resize, () => this.resetChart());
+    this.whenVisible.subscribe(browser.resize$, () => this.resetChart());
     this.visible$.subscribe(() => this.resetChart());
     this.whenVisible.subscribe(preferencesService.preferences$, () => this.resetChart());
     injector.get(ElementRef).nativeElement.addEventListener('mouseout', () => this.pointHover.emit([]));

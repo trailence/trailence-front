@@ -16,6 +16,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { combineLatest, filter, first } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { DatabaseService } from './services/database/database.service';
+import { BrowserService } from './services/browser/browser.service';
 
 @Component({
   selector: 'app-root',
@@ -38,6 +39,8 @@ export class AppComponent {
     router: Router,
     auth: AuthService,
     database: DatabaseService,
+    // init browser
+    browserService: BrowserService,
     // init assets
     assetsService: AssetsService,
     // depends on services with stores, so they can start synchronizing

@@ -43,6 +43,7 @@
     "angular-code-input": "^2.0.0",
     "chart.js": "^4.4.4",
     "dexie": "^4.0.8",
+    "immutable": "^4.3.7",
     "ionicons": "^7.4.0",
     "jszip": "^3.10.1",
     "leaflet": "^1.9.4",
