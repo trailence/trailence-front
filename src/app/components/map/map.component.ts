@@ -252,14 +252,7 @@ export class MapComponent extends AbstractComponent {
       this._locationMarker.setStyle({color, fillColor: color});
       const map = this._map$.value;
       if (map && this._followingLocation$.value) {
-        let bounds = map.getBounds();
-        const sw = map.latLngToContainerPoint(bounds.getSouthWest());
-        const ne = map.latLngToContainerPoint(bounds.getNorthEast());
-        ne.y += 40;
-        sw.y -= 40;
-        ne.x -= 65;
-        sw.x += 65;
-        bounds = L.latLngBounds(map.containerPointToLatLng(sw), map.containerPointToLatLng(ne));
+        const bounds = this.getFollowLocationBounds(map);
         //L.rectangle(bounds).addTo(map);
         if (!bounds.contains(this._locationMarker.getLatLng())) {
           this.centerOnLocation();
@@ -289,6 +282,43 @@ export class MapComponent extends AbstractComponent {
         }
       }
     }
+  }
+
+  private getFollowLocationBounds(map: L.Map): L.LatLngBounds {
+    let bounds = map.getBounds();
+    const sw = map.latLngToContainerPoint(bounds.getSouthWest());
+    const ne = map.latLngToContainerPoint(bounds.getNorthEast());
+    ne.y += 40;
+    sw.y -= 40;
+    ne.x -= 65;
+    sw.x += 65;
+    if (sw.y - ne.y > 600) {
+      ne.y += 120;
+      sw.y -= 120;
+    } else if (sw.y - ne.y > 400) {
+      ne.y += 80;
+      sw.y -= 80;
+    } else if (sw.y - ne.y > 300) {
+      ne.y += 60;
+      sw.y -= 60;
+    } else if (sw.y - ne.y > 200) {
+      ne.y += 40;
+      sw.y -= 40;
+    }
+    if (ne.x - sw.x > 600) {
+      sw.x += 120;
+      ne.x -= 120;
+    } else if (ne.x - sw.x > 400) {
+      sw.x += 80;
+      ne.x -= 80;
+    } else if (ne.x - sw.x > 300) {
+      sw.x += 60;
+      ne.x -= 60;
+    } else if (ne.x - sw.x > 200) {
+      sw.x += 40;
+      ne.x -= 40;
+    }
+    return L.latLngBounds(map.containerPointToLatLng(sw), map.containerPointToLatLng(ne));
   }
 
   private centerOnLocation(): void {
