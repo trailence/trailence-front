@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, combineLatest, concat, of, skip, timeout } from 'rxjs';
+import { Injectable, NgZone } from '@angular/core';
+import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, of, skip, timeout } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -42,6 +42,7 @@ export class TraceRecorderService {
     private trailService: TrailService,
     private alertController: AlertController,
     private trackEdition: TrackEditionService,
+    private ngZone: NgZone,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -200,40 +201,44 @@ export class TraceRecorderService {
       } else {
         console.log('Start recording');
         this._recording$.next(recording);
-        this._changesSubscription = combineLatest([
-          concat(of(true), recording.trail.changes$),
-          concat(of(true), recording.track.changes$)
-        ])
-        .pipe(skip(1))
-        .subscribe(() => this.save(recording));
+        this._changesSubscription = this.ngZone.runOutsideAngular(() =>
+          combineLatest([
+            concat(of(true), recording.trail.changes$),
+            concat(of(true), recording.track.changes$)
+          ])
+          .pipe(skip(1), debounceTime(1000))
+          .subscribe(() => this.save(recording))
+        );
         this.latestDefinitivePoint = undefined;
         this.latestTemporaryPoint = undefined;
         this._geolocationListener = (position: PointDto) => {
-          // always keep latest position, but replace previous one if minimum distance or minimum time is not reached
-          if (this.latestDefinitivePoint === undefined) {
-            this.latestDefinitivePoint = this.addPoint(recording, position);
-          } else if (this.takePoint(this.latestDefinitivePoint[0], position)) {
-            if (this.latestTemporaryPoint === undefined) {
-              // if previous definitive point has low accuracy, replace it
-              if (position.pa &&
-                position.t && (this.latestDefinitivePoint[0].time === undefined || position.t - this.latestDefinitivePoint[0].time <= 5000) &&
-                (this.latestDefinitivePoint[0].posAccuracy === undefined || this.latestDefinitivePoint[0].posAccuracy >= position.pa * 2)) {
-                this.updatePoints(position, this.latestDefinitivePoint);
+          this.ngZone.runOutsideAngular(() => {
+            // always keep latest position, but replace previous one if minimum distance or minimum time is not reached
+            if (this.latestDefinitivePoint === undefined) {
+              this.latestDefinitivePoint = this.addPoint(recording, position);
+            } else if (this.takePoint(this.latestDefinitivePoint[0], position)) {
+              if (this.latestTemporaryPoint === undefined) {
+                // if previous definitive point has low accuracy, replace it
+                if (position.pa &&
+                  position.t && (this.latestDefinitivePoint[0].time === undefined || position.t - this.latestDefinitivePoint[0].time <= 5000) &&
+                  (this.latestDefinitivePoint[0].posAccuracy === undefined || this.latestDefinitivePoint[0].posAccuracy >= position.pa * 2)) {
+                  this.updatePoints(position, this.latestDefinitivePoint);
+                } else {
+                  this.latestDefinitivePoint = this.addPoint(recording, position);
+                }
               } else {
-                this.latestDefinitivePoint = this.addPoint(recording, position);
+                this.updatePoints(position, this.latestTemporaryPoint);
+                this.latestDefinitivePoint = this.latestTemporaryPoint;
+                this.latestTemporaryPoint = undefined;
               }
             } else {
-              this.updatePoints(position, this.latestTemporaryPoint);
-              this.latestDefinitivePoint = this.latestTemporaryPoint;
-              this.latestTemporaryPoint = undefined;
+              if (this.latestTemporaryPoint === undefined) {
+                this.latestTemporaryPoint = this.addPoint(recording, position);
+              } else {
+                this.updatePoints(position, this.latestTemporaryPoint);
+              }
             }
-          } else {
-            if (this.latestTemporaryPoint === undefined) {
-              this.latestTemporaryPoint = this.addPoint(recording, position);
-            } else {
-              this.updatePoints(position, this.latestTemporaryPoint);
-            }
-          }
+          });
         }
         this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
         return Promise.resolve(recording);
@@ -313,17 +318,18 @@ export class TraceRecorderService {
   }
 
   private save(recording: Recording): void {
-    this._saved = false;
-    if (this._saving) return;
-    if (!this._table) return;
-    const t = this._table;
-    this._saving = true;
-    this._saved = true;
-    const dto = recording.toDto();
-    this._table.put(recording.toDto(), 1).finally(() => {
-      if (this._table !== t) return;
-      this._saving = false;
-      if (!this._saved) this.save(recording);
+    this.ngZone.runOutsideAngular(() => {
+      this._saved = false;
+      if (this._saving) return;
+      if (!this._table) return;
+      const t = this._table;
+      this._saving = true;
+      this._saved = true;
+      this._table.put(recording.toDto(), 1).finally(() => {
+        if (this._table !== t) return;
+        this._saving = false;
+        if (!this._saved) this.save(recording);
+      });
     });
   }
 

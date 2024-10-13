@@ -22,7 +22,10 @@ export class MapCursors {
   public addCursor(position: L.LatLngExpression): void {
     const marker = new L.CircleMarker(position, { radius: 3 });
     this._cursors.push(marker);
-    if (this._map) marker.addTo(this._map);
+    if (this._map) {
+      marker.addTo(this._map);
+      marker.bringToFront();
+    }
   }
 
   public removeCursor(position: L.LatLngExpression): void {

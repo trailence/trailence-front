@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import * as L from 'leaflet';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
@@ -45,6 +45,7 @@ export class OfflineMapService {
     private traceRecorder: TraceRecorderService,
     private angularHttp: HttpClient,
     private errorService: ErrorService,
+    private ngZone: NgZone,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -202,14 +203,16 @@ export class OfflineMapService {
   }
 
   public getTile(layerName: string, coords: L.Coords): Observable<BinaryContent | undefined> {
-    if (!this._db) return of(undefined);
-    return from(this._db.table<TileBlob>(layerName + '_tiles').get('' + coords.z + '_' + coords.y + '_' + coords.x)).pipe(
-      map(result => {
-        const blob = result?.blob;
-        if (!blob) return undefined;
-        return new BinaryContent(blob);
-      })
-    );
+    return this.ngZone.runOutsideAngular(() => {
+      if (!this._db) return of(undefined);
+      return from(this._db.table<TileBlob>(layerName + '_tiles').get('' + coords.z + '_' + coords.y + '_' + coords.x)).pipe(
+        map(result => {
+          const blob = result?.blob;
+          if (!blob) return undefined;
+          return new BinaryContent(blob);
+        })
+      );
+    });
   }
 
   public computeContent(): Observable<{items: number, size: number}> {

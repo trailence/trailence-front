@@ -13,39 +13,41 @@ export function detectLoopType(track: Track): TrailLoopType | undefined {
   if (departureArrivalDistance > 5) points.push(points[0]);
   const trackDistance = track.metadata.distance;
   const useDistances =
-    trackDistance < 25000 ? ({closePoints: 10, maxDistance: 25}) :
-    trackDistance < 100000 ? ({closePoints: 40, maxDistance: 100}) :
-    trackDistance < 500000 ? ({closePoints: 200, maxDistance: 500}) :
-    ({closePoints: 500, maxDistance: 1000});
-  points = buildClosePoints(points, useDistances.closePoints);
+    trackDistance < 25000 ? ({closePoints: 10, maxDistance: 25, maxDiff: 0.00025}) :
+    trackDistance < 100000 ? ({closePoints: 40, maxDistance: 100, maxDiff: 0.001}) :
+    trackDistance < 500000 ? ({closePoints: 200, maxDistance: 500, maxDiff: 0.005}) :
+    ({closePoints: 500, maxDistance: 1000, maxDiff: 0.01});
+  const pointsWithDistance = buildClosePoints(points, useDistances.closePoints);
 
   let distanceOutAndBack = 0;
   let totalDistance = 0;
   const processed: number[] = [];
-  for (let i = 1; i < points.length; ++i) {
-    const p1 = points[i - 1];
-    const p2 = points[i];
-    const distance = p2.distanceTo(p1);
+  for (let i = 1; i < pointsWithDistance.length; ++i) {
+    const p1 = pointsWithDistance[i - 1];
+    const p2 = pointsWithDistance[i];
+    const distance = p2.distanceToPrevious;
     totalDistance += distance;
     if (processed.indexOf(i) >= 0) continue;
-    const angle = Math.atan2(p2.lat - p1.lat, p2.lng - p1.lng);
+    const angle = Math.atan2(p2.point.lat - p1.point.lat, p2.point.lng - p1.point.lng);
 
     let best = -1;
     let bestDistance = -1;
     let bestDistanceWithPoints = -1;
-    for (let j = points.length - 2; j > i; --j) {
+    for (let j = pointsWithDistance.length - 2; j > i; --j) {
       if (processed.indexOf(j) >= 0) continue;
-      const p3 = points[j];
-      const p4 = points[j + 1];
-      const d1 = p3.distanceTo(p2);
+      const p3 = pointsWithDistance[j];
+      if (Math.abs(p3.point.lat - p2.point.lat + p3.point.lng - p2.point.lng) > useDistances.maxDiff) continue;
+      const p4 = pointsWithDistance[j + 1];
+      if (Math.abs(p4.point.lat - p1.point.lat + p4.point.lng - p1.point.lng) > useDistances.maxDiff) continue;
+      const d1 = p3.point.distanceTo(p2.point);
       if (d1 > useDistances.maxDistance) continue;
-      const d2 = p4.distanceTo(p1);
+      const d2 = p4.point.distanceTo(p1.point);
       if (d2 > useDistances.maxDistance) continue;
       if (bestDistanceWithPoints !== -1 && d1 + d2 >= bestDistanceWithPoints) continue;
-      const angle2 = Math.atan2(p3.lat - p4.lat, p3.lng - p4.lng);
+      const angle2 = Math.atan2(p3.point.lat - p4.point.lat, p3.point.lng - p4.point.lng);
       if (Math.abs(angle - angle2) > 1) continue;
       bestDistanceWithPoints = d1 + d2;
-      bestDistance = p4.distanceTo(p3);
+      bestDistance = p4.distanceToPrevious;
       best = j;
       if (bestDistanceWithPoints < useDistances.closePoints) break;
     }

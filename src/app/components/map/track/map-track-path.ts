@@ -1,6 +1,6 @@
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
-import { Subscription, combineLatest, map, of, skip, switchMap } from 'rxjs';
+import { Subscription, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { Arrays } from 'src/app/utils/arrays';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 
@@ -18,21 +18,7 @@ export class MapTrackPath {
 
   public get path(): L.Polyline {
     if (!this._path) {
-      const polylines: L.LatLngExpression[][]  = [];
-      if (this._track instanceof Track) {
-        for (const segment of this._track.segments) {
-          const polyline: L.LatLng[] = [];
-          polylines.push(polyline);
-          const nb = segment.relativePoints.length;
-          for (let i = 0; i < nb; ++i) {
-            const relativePoint = segment.relativePoints[i];
-            const point = relativePoint.point;
-            polyline.push(point.pos);
-          }
-        }
-      } else {
-        polylines.push(this._track.points as L.LatLngLiteral[]);
-      }
+      const polylines: L.LatLngExpression[][] = this._track instanceof Track ? this.buildPolyLines(this._track) : [this._track.points as L.LatLngLiteral[]];
       this._path = L.polyline(polylines, {
         color: this._color,
         smoothFactor: this._smoothFactor,
@@ -44,16 +30,33 @@ export class MapTrackPath {
           map(points => Arrays.flatMap(points, pts => pts.map(pt => pt.pos$))),
           switchMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
           skip(1),
+          debounceTime(100),
         ).subscribe(() => {
-          if (this._path && this._map) this._path.removeFrom(this._map);
+          if (this._path && this._map) {
+            this._path.setLatLngs(this.buildPolyLines(this._track as Track));
+            return;
+          }
           this._path = undefined;
           if (this._map) this.path.addTo(this._map);
-          // TODO check if we can do a more optimized way
-          // at least for a recording track, we known that changes are only new points added at the end
         });
       }
     }
     return this._path;
+  }
+
+  private buildPolyLines(track: Track): L.LatLngExpression[][] {
+    const polylines: L.LatLngExpression[][] = [];
+    for (const segment of track.segments) {
+      const polyline: L.LatLng[] = [];
+      polylines.push(polyline);
+      const nb = segment.relativePoints.length;
+      for (let i = 0; i < nb; ++i) {
+        const relativePoint = segment.relativePoints[i];
+        const point = relativePoint.point;
+        polyline.push(point.pos);
+      }
+    }
+    return polylines;
   }
 
   public addTo(map: L.Map): void {

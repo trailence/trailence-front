@@ -1,5 +1,5 @@
-import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, Subject, combineLatest, concat, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
+import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -21,7 +21,6 @@ import { TrailHoverCursor } from './hover-cursor';
 import { TrailPathSelection } from './path-selection';
 import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
 import { Router } from '@angular/router';
-import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
@@ -33,6 +32,7 @@ import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { PhotosPopupComponent } from '../photos-popup/photos-popup.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { Arrays } from 'src/app/utils/arrays';
 
 @Component({
   selector: 'app-trail',
@@ -99,10 +99,10 @@ export class TrailComponent extends AbstractComponent {
     private auth: AuthService,
     public trailService: TrailService,
     private traceRecorder: TraceRecorderService,
-    private geolocation: GeolocationService,
     public trailMenuService: TrailMenuService,
     private tagService: TagService,
     private photoService: PhotoService,
+    private changesDetector: ChangeDetectorRef,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -228,7 +228,8 @@ export class TrailComponent extends AbstractComponent {
         this.editable = !this.trail2 && !!this.trail1 && this.trail1.owner === this.auth.email;
         if (toolsModifiedTrack)
           this.elevationGraph?.resetChart();
-      }
+        this.changesDetector.detectChanges();
+      }, true
     );
 
     this.byStateAndVisible.subscribe(
@@ -239,7 +240,8 @@ export class TrailComponent extends AbstractComponent {
       wayPoints => {
         if (this._highlightedWayPoint) this.unhighlightWayPoint(this._highlightedWayPoint, true);
         this.wayPoints = wayPoints;
-      }
+        this.changesDetector.detectChanges();
+      }, true
     );
 
     if (this.trail1$) {
@@ -248,8 +250,10 @@ export class TrailComponent extends AbstractComponent {
           switchMap(([trail, trail2]) => !trail2 && trail && trail.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail.uuid).pipe(debounceTimeExtended(0, 100)) : of(undefined))
         ),
         names => {
+          if (this.tagsNames && names && Arrays.sameContent(this.tagsNames, names)) return;
           this.tagsNames = names;
-        }
+          this.changesDetector.detectChanges();
+        }, true
       );
       this.byStateAndVisible.subscribe(
         combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
@@ -268,7 +272,8 @@ export class TrailComponent extends AbstractComponent {
               this.cover = photos[0];
             }
           }
-        }
+          this.changesDetector.detectChanges();
+        }, true
       );
     }
 
@@ -283,7 +288,7 @@ export class TrailComponent extends AbstractComponent {
           if (pt && this.elevationGraph) {
             this.elevationGraph.updateRecording(r.track);
           }
-        }
+        }, true
       );
   }
 
@@ -476,6 +481,7 @@ export class TrailComponent extends AbstractComponent {
       if (!locked) return;
       this._lockForDescription = unlock;
       this.editingDescription = true;
+      this.changesDetector.detectChanges();
       setTimeout(() => {
         if (this.descriptionEditor) this.descriptionEditor.setFocus();
       }, 0);
@@ -619,6 +625,7 @@ export class TrailComponent extends AbstractComponent {
         }, 0);
       }
     };
+    this.changesDetector.detectChanges();
     setTimeout(() => {
       this._children$.value.find(child => child instanceof MapComponent)?.invalidateSize();
       this._children$.value.find(child => child instanceof ElevationGraphComponent)?.resetChart();

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, NgZone, Output, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
@@ -41,6 +41,7 @@ export interface DataPoint {
   selector: 'app-elevation-graph',
   templateUrl: './elevation-graph.component.html',
   styleUrls: ['./elevation-graph.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports:[
     CommonModule,
@@ -72,8 +73,10 @@ export class ElevationGraphComponent extends AbstractComponent {
     browser: BrowserService,
     private i18n: I18nService,
     preferencesService: PreferencesService,
+    private changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
+    changeDetector.detach();
     this.whenVisible.subscribe(browser.resize$, () => this.resetChart());
     this.visible$.subscribe(() => this.resetChart());
     this.whenVisible.subscribe(preferencesService.preferences$, () => this.resetChart());
@@ -93,27 +96,31 @@ export class ElevationGraphComponent extends AbstractComponent {
   }
 
   public updateRecording(track: Track): void {
-    // when updating a recording track, the latest point may be updated, and new points may appeared
-    if (!this.chartData) return;
-    const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
-    if (datasetIndex < 0) return;
-    const ds = this.chartData.datasets[datasetIndex];
-    this.updateRecordingData(ds, track);
+    this.ngZone.runOutsideAngular(() => {
+      // when updating a recording track, the latest point may be updated, and new points may appeared
+      if (!this.chartData) return;
+      const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
+      if (datasetIndex < 0) return;
+      const ds = this.chartData.datasets[datasetIndex];
+      this.updateRecordingData(ds, track);
+    });
   }
 
   private checkSizeTimeout?: any;
 
   public resetChart(): void {
-    this.chartOptions = undefined;
-    this.chartData = undefined;
-    this.chartPlugins = [];
-    this.width = undefined;
-    this.height = undefined;
-    this.selectionRange = [];
-    if (!this.track1) return;
-    if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
-    if (this.visible)
-      this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
+    this.ngZone.runOutsideAngular(() => {
+      this.chartOptions = undefined;
+      this.chartData = undefined;
+      this.chartPlugins = [];
+      this.width = undefined;
+      this.height = undefined;
+      this.selectionRange = [];
+      if (!this.track1) return;
+      if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
+      if (this.visible)
+        this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
+    });
   }
 
   private backgroundColor = '';
@@ -137,6 +144,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
       this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
       this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
+      this.changeDetector.detectChanges();
       setTimeout(() => this.createChart(), 0);
     } else
       this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 100);
@@ -159,33 +167,35 @@ export class ElevationGraphComponent extends AbstractComponent {
   }
 
   private createChart(): void {
-    if (!this.chartOptions) this.buildOptions();
-    if (this.chartPlugins.length === 0)
-      this.chartPlugins.push(
-        new HoverVerticalLine(this.contrastColor),
-        new BackgroundPlugin(this.backgroundColor),
-        new RangeSelection(
-          this.selectingColor, this.selectionColor,
-          event => this.selecting.emit(this.rangeSelectionToEvent(event)),
-          event => this.selected.emit(this.rangeSelectionToEvent(event)),
-          () => this.selectable,
-        )
-      );
+    this.ngZone.runOutsideAngular(() => {
+      if (!this.chartOptions) this.buildOptions();
+      if (this.chartPlugins.length === 0)
+        this.chartPlugins.push(
+          new HoverVerticalLine(this.contrastColor),
+          new BackgroundPlugin(this.backgroundColor),
+          new RangeSelection(
+            this.selectingColor, this.selectionColor,
+            event => this.selecting.emit(this.rangeSelectionToEvent(event)),
+            event => this.selected.emit(this.rangeSelectionToEvent(event)),
+            () => this.selectable,
+          )
+        );
 
-    this.chartData = {
-      datasets: []
-    }
-    if (this.track1) this.buildDataSet(this.track1, this.primaryColor);
-    if (this.track2) this.buildDataSet(this.track2, this.secondaryColor);
-    this.updateMaxDistance();
-    setTimeout(() => {
-      this.injector.get(ChangeDetectorRef).detectChanges();
-      if (this.selectionRange) {
-        setTimeout(() => {
-          this.setSelection(this.selectionRange);
-        }, 0);
+      this.chartData = {
+        datasets: []
       }
-    }, 0);
+      if (this.track1) this.buildDataSet(this.track1, this.primaryColor);
+      if (this.track2) this.buildDataSet(this.track2, this.secondaryColor);
+      this.updateMaxDistance();
+      setTimeout(() => {
+        this.changeDetector.detectChanges();
+        if (this.selectionRange) {
+          setTimeout(() => {
+            this.setSelection(this.selectionRange);
+          }, 0);
+        }
+      }, 0);
+    });
   }
 
   private updateMaxDistance(): void {
@@ -336,7 +346,11 @@ export class ElevationGraphComponent extends AbstractComponent {
       },
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
       onHover: (event:any, elements: C.ActiveElement[], chart: any) => {
-        const references = elements.filter(element => !!(element?.element as any)?.$context).map(element => this.activeElementToPointReference(element));
+        const references = this.canvas!.chart!.getActiveElements().map(element => {
+          if ((element.element as any).$context)
+            return this.activeElementToPointReference(element);
+          return null;
+        }).filter(r => !!r);
         if (references.length === 0 && event.native.detail === -1) return;
         this.pointHover.emit(references);
       },
@@ -397,17 +411,19 @@ export class ElevationGraphComponent extends AbstractComponent {
   }
 
   public updateTrack(track: Track): void {
-    if (!this.chartData) return;
-    const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
-    if (datasetIndex < 0) return;
-    const ds = this.chartData.datasets[datasetIndex];
-    ds.data = [];
-    this.fillDataSet(ds, track);
-    this.updateMaxDistance();
-    if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
-      this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
-    }
-    this.canvas?.chart?.update();
+    this.ngZone.runOutsideAngular(() => {
+      if (!this.chartData) return;
+      const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
+      if (datasetIndex < 0) return;
+      const ds = this.chartData.datasets[datasetIndex];
+      ds.data = [];
+      this.fillDataSet(ds, track);
+      this.updateMaxDistance();
+      if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
+        this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
+      }
+      this.canvas?.chart?.update();
+    });
   }
 
   private createDataPoint(previous: DataPoint | undefined, segmentIndex: number, pointIndex: number, track: Track, segment: Segment, points: Point[]): DataPoint {
@@ -438,28 +454,32 @@ export class ElevationGraphComponent extends AbstractComponent {
   }
 
   public showCursorForPosition(lat: number, lng: number): void {
-    if (!this.canvas || !this.canvas.chart || !this.chartData) {
-      return;
-    }
-    const elements: C.ActiveElement[] = [];
-    for (let dsIndex = 0; dsIndex < this.chartData.datasets.length; dsIndex++) {
-      const pointIndex = this.chartData.datasets[dsIndex].data.findIndex((pt: any) => pt.lat === lat && pt.lng === lng);
-      if (pointIndex >= 0) {
-        elements.push({element: this.canvas?.chart.getDatasetMeta(dsIndex).data[pointIndex], datasetIndex: dsIndex, index: pointIndex});
+    this.ngZone.runOutsideAngular(() => {
+      if (!this.canvas || !this.canvas.chart || !this.chartData) {
+        return;
       }
-    }
-    this.canvas.chart.setActiveElements(elements);
-    if (elements.length > 0)
-      this.canvas.chart.tooltip!.setActiveElements(elements, elements[0].element);
-    this.canvas.chart.update();
+      const elements: C.ActiveElement[] = [];
+      for (let dsIndex = 0; dsIndex < this.chartData.datasets.length; dsIndex++) {
+        const pointIndex = this.chartData.datasets[dsIndex].data.findIndex((pt: any) => pt.lat === lat && pt.lng === lng);
+        if (pointIndex >= 0) {
+          elements.push({element: this.canvas?.chart.getDatasetMeta(dsIndex).data[pointIndex], datasetIndex: dsIndex, index: pointIndex});
+        }
+      }
+      this.canvas.chart.setActiveElements(elements);
+      if (elements.length > 0)
+        this.canvas.chart.tooltip!.setActiveElements(elements, elements[0].element);
+      this.canvas.chart.update();
+});
   }
 
   public hideCursor(): void {
-    if (this.canvas?.chart) {
-      this.canvas.chart.setActiveElements([]);
-      this.canvas.chart.tooltip!.setActiveElements([], {x: 0, y: 0});
-      this.canvas.chart.update();
-    }
+    this.ngZone.runOutsideAngular(() => {
+      if (this.canvas?.chart) {
+        this.canvas.chart.setActiveElements([]);
+        this.canvas.chart.tooltip!.setActiveElements([], {x: 0, y: 0});
+        this.canvas.chart.update();
+      }
+    });
   }
 
   private activeElementToPointReference(element: C.ActiveElement): ElevationGraphPointReference {

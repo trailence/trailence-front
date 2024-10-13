@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
@@ -45,7 +45,8 @@ export class I18nService {
     return latOrLng.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 6});
   }
 
-  public distanceToString(distance: number): string {
+  public distanceToString(distance: number | undefined): string {
+    if (distance === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS':
         if (distance < 1000) return distance.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';

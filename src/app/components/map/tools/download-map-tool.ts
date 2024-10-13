@@ -3,11 +3,13 @@ import * as L from 'leaflet';
 import { MapToolUtils } from './map-tool-utils';
 import { AssetsService } from 'src/app/services/assets/assets.service';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { Trail } from 'src/app/model/trail';
 
 export class DownloadMapTool extends L.Control {
 
   constructor(
     private injector: Injector,
+    private trail: Trail | undefined,
     options?: L.ControlOptions,
   ) {
     super(options);
@@ -30,7 +32,7 @@ export class DownloadMapTool extends L.Control {
     });
     button.onclick = () => {
       if (map.getZoom() < 12) return;
-      this.injector.get(TrailMenuService).openDownloadMap([], map.getBounds());
+      this.injector.get(TrailMenuService).openDownloadMap(this.trail ? [this.trail] : [], map.getBounds());
     };
     return button;
   }

@@ -19,6 +19,7 @@ import { DarkMapToggle } from './tools/dark-map-toggle';
 import { MapGeolocationService } from 'src/app/services/map/map-geolocation.service';
 import { MapShowPositionTool } from './tools/show-position-tool';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { Trail } from 'src/app/model/trail';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -35,6 +36,7 @@ export class MapComponent extends AbstractComponent {
   @Input() mapId!: string;
   @Input() tracks$!: Observable<MapTrack[]>;
   @Input() autoFollowLocation = false;
+  @Input() downloadMapTrail?: Trail;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
@@ -190,16 +192,20 @@ export class MapComponent extends AbstractComponent {
   }
 
   public addTrack(track: MapTrack): void {
-    if (this._map$.value)
-      track.addTo(this._map$.value);
-    this._currentTracks.push(track);
+    this.ngZone.runOutsideAngular(() => {
+      if (this._map$.value)
+        track.addTo(this._map$.value);
+      this._currentTracks.push(track);
+    });
   }
 
   public removeTrack(track: MapTrack): void {
-    track.remove();
-    const index = this._currentTracks.indexOf(track);
-    if (index >= 0)
-      this._currentTracks.splice(index, 1);
+    this.ngZone.runOutsideAngular(() => {
+      track.remove();
+      const index = this._currentTracks.indexOf(track);
+      if (index >= 0)
+        this._currentTracks.splice(index, 1);
+    });
   }
 
   public fitBounds(tracks: MapTrack[] | undefined): void {
@@ -247,41 +253,43 @@ export class MapComponent extends AbstractComponent {
   private _locationMarker?: L.CircleMarker;
   private _toolCenterOnPosition?: L.Control;
   private showLocation(lat: number, lng: number, color: string): void {
-    if (this._locationMarker) {
-      this._locationMarker.setLatLng({lat, lng});
-      this._locationMarker.setStyle({color, fillColor: color});
-      const map = this._map$.value;
-      if (map && this._followingLocation$.value) {
-        const bounds = this.getFollowLocationBounds(map);
-        //L.rectangle(bounds).addTo(map);
-        if (!bounds.contains(this._locationMarker.getLatLng())) {
-          this.centerOnLocation();
+    this.ngZone.runOutsideAngular(() => {
+      if (this._locationMarker) {
+        this._locationMarker.setLatLng({lat, lng});
+        this._locationMarker.setStyle({color, fillColor: color});
+        const map = this._map$.value;
+        if (map && this._followingLocation$.value) {
+          const bounds = this.getFollowLocationBounds(map);
+          //L.rectangle(bounds).addTo(map);
+          if (!bounds.contains(this._locationMarker.getLatLng())) {
+            this.centerOnLocation();
+          }
+        }
+      } else {
+        this._locationMarker = new L.CircleMarker({lat, lng}, {
+          radius: 7,
+          color: color,
+          opacity: 0.75,
+          fillColor: color,
+          fillOpacity: 0.33,
+          stroke: true,
+          className: 'leaflet-position-marker',
+        });
+        if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
+          this._followingLocation$.next(true);
+        if (this._map$.value) {
+          this._locationMarker.addTo(this._map$.value);
+          if (this._followingLocation$.value) {
+            this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+          } else {
+            this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
+          }
+          if (!this._toolCenterOnPosition) {
+            this.addToolCenterOnPosition(this._map$.value);
+          }
         }
       }
-    } else {
-      this._locationMarker = new L.CircleMarker({lat, lng}, {
-        radius: 7,
-        color: color,
-        opacity: 0.75,
-        fillColor: color,
-        fillOpacity: 0.33,
-        stroke: true,
-        className: 'leaflet-position-marker',
-      });
-      if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
-        this._followingLocation$.next(true);
-      if (this._map$.value) {
-        this._locationMarker.addTo(this._map$.value);
-        if (this._followingLocation$.value) {
-          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
-        } else {
-          this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
-        }
-        if (!this._toolCenterOnPosition) {
-          this.addToolCenterOnPosition(this._map$.value);
-        }
-      }
-    }
+    });
   }
 
   private getFollowLocationBounds(map: L.Map): L.LatLngBounds {
@@ -322,10 +330,12 @@ export class MapComponent extends AbstractComponent {
   }
 
   private centerOnLocation(): void {
-    if (this._map$.value && this._locationMarker) {
-      this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
-    }
-    this._followingLocation$.next(true);
+    this.ngZone.runOutsideAngular(() => {
+      if (this._map$.value && this._locationMarker) {
+        this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+      }
+      this._followingLocation$.next(true);
+    });
   }
 
   private toggleCenterOnLocation(): void {
@@ -337,21 +347,25 @@ export class MapComponent extends AbstractComponent {
   }
 
   private hideLocation(): void {
-    if (this._locationMarker) {
-      if (this._map$.value) {
-        this._locationMarker.removeFrom(this._map$.value);
+    this.ngZone.runOutsideAngular(() => {
+      if (this._locationMarker) {
+        if (this._map$.value) {
+          this._locationMarker.removeFrom(this._map$.value);
+        }
+        this._locationMarker = undefined;
       }
-      this._locationMarker = undefined;
-    }
-    this._followingLocation$.next(false);
-    if (this._toolCenterOnPosition) {
-      this._toolCenterOnPosition.remove();
-      this._toolCenterOnPosition = undefined;
-    }
+      this._followingLocation$.next(false);
+      if (this._toolCenterOnPosition) {
+        this._toolCenterOnPosition.remove();
+        this._toolCenterOnPosition = undefined;
+      }
+    });
   }
 
   private addToolCenterOnPosition(map: L.Map): void {
-    this._toolCenterOnPosition = new MapCenterOnPositionTool(this.injector, this._followingLocation$, { position: 'topleft' }).addTo(map);
+    this.ngZone.runOutsideAngular(() => {
+      this._toolCenterOnPosition = new MapCenterOnPositionTool(this.injector, this._followingLocation$, { position: 'topleft' }).addTo(map);
+    });
   }
 
   public get crs(): L.CRS {
@@ -372,7 +386,7 @@ export class MapComponent extends AbstractComponent {
     new ZoomLevelDisplayTool({position: 'topleft'}).addTo(map);
     new MapLayerSelectionTool(this.injector, this._mapState, {position: 'topright'}).addTo(map);
     new DarkMapToggle(this.injector, {position: 'topright'}).addTo(map);
-    new DownloadMapTool(this.injector, {position: 'topright'}).addTo(map);
+    new DownloadMapTool(this.injector, this.downloadMapTrail, {position: 'topright'}).addTo(map);
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {

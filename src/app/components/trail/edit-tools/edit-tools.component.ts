@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, first, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
@@ -61,6 +61,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     public prefs: PreferencesService,
     private geo: GeoService,
     private editionService: TrackEditionService,
+    private changesDetector: ChangeDetectorRef,
   ) { }
 
   private mapClickSubscription?: Subscription;
@@ -73,6 +74,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
           this.selectedPoint = undefined;
           this.map.removeFromMap(this.selectedPointAnchor.marker);
         }
+        this.changesDetector.detectChanges();
         return;
       }
       if (this.inlineTool) return;
@@ -90,12 +92,13 @@ export class EditToolsComponent implements OnInit, OnDestroy {
             this.map.addToMap(this.selectedPointAnchor.marker);
           this.selectedPoint = point;
         }
+        this.changesDetector.detectChanges();
       });
     });
     this.getMe(this);
   }
   ngOnDestroy(): void {
-    this;this.mapClickSubscription?.unsubscribe();
+    this.mapClickSubscription?.unsubscribe();
   }
 
   undo(): void {
@@ -391,6 +394,11 @@ export class EditToolsComponent implements OnInit, OnDestroy {
       case 'METERS': return 5;
       case 'MILES': return 0.005;
     }
+  }
+
+  setInlineTool(tool: any): void {
+    this.inlineTool = tool;
+    this.changesDetector.detectChanges();
   }
 
   longBreaksDetected: {segmentIndex: number; startIndex: number; endIndex: number}[] | undefined = undefined;

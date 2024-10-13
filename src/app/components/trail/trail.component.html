@@ -18,6 +18,7 @@
       mapId="trail-{{trail1?.owner || recording?.trail?.owner}}-{{trail1?.uuid || recording?.trail?.uuid}}{{trail2 ? '-' + trail2.owner + '-' + trail2.uuid : ''}}"
       [tracks$]="mapTracks$"
       [autoFollowLocation]="true"
+      [downloadMapTrail]="trail1 && !trail2 ? trail1 : undefined"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
       (mouseClickPoint)="mouseClickOnMap($event)"
     ></app-map>
@@ -187,11 +188,11 @@
                 </div>
                 <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
                   <div class="waypoint-info-title">{{i18n.texts.way_points.distance}}</div>
-                  <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.distanceToString(tracks[0].metadata.distance) : (wp.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.distanceFromDeparture) : '?')}}</div>
+                  <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.distanceToString(wayPointsTrack?.metadata?.distance) : (wp.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.distanceFromDeparture) : '?')}}</div>
                 </div>
                 <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
                   <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
-                  <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.durationToString(tracks[0].metadata.duration) : (wp.timeSinceDeparture !== undefined ? i18n.durationToString(wp.timeSinceDeparture) : '?')}}</div>
+                  <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.durationToString(wayPointsTrack?.metadata?.duration) : (wp.timeSinceDeparture !== undefined ? i18n.durationToString(wp.timeSinceDeparture) : '?')}}</div>
                 </div>
                 <div class="waypoint-info" *ngIf="wp.breakPoint">
                   <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
@@ -222,7 +223,7 @@
                 ></ion-textarea>
               </div>
             </div>
-            <div class="waypoint-actions" *ngIf="editToolsComponent && !wp.isDeparture && !wp.isArrival">
+            <div class="waypoint-actions" *ngIf="editToolsComponent && !wp.isDeparture && !wp.isArrival && !wp.breakpoint">
               <ion-button color="danger" fill="clear" size="small" (click)="removeWayPoint(wp)">
                 <ion-icon slot="icon-only" name="trash"></ion-icon>
               </ion-button>
