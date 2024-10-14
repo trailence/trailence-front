@@ -14,3 +14,10 @@ export interface FilterTags {
   onlyWithoutAnyTag: boolean;
   onlyWithAnyTag: boolean;
 }
+
+export interface NumericFilterConfig {
+  min: number;
+  max: number;
+  step: number;
+  formatter: (value: number) => string;
+}

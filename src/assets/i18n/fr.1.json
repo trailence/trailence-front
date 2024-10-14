@@ -227,11 +227,9 @@
         "system": "Préférence du système"
       },
       "distance_unit": "Unité de distance",
-      "elevation_unit": "Unité d'altitude",
-      "units": {
-        "meters": "Mètres",
-        "miles": "Miles",
-        "foot": "Pieds"
+      "distance_units": {
+        "meters": "Mètres / Kilomètres",
+        "imperial": "Pieds / Miles"
       },
       "date_format": "Format de date",
       "time_format": "Format d'heure",

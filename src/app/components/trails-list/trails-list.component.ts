@@ -7,13 +7,13 @@ import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, debounceTime, filter, map, of, skip, switchMap, timeout } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
-import { FilterEnum, FilterNumeric, FilterTags } from '../filters/filter';
+import { FilterEnum, FilterNumeric, FilterTags, NumericFilterConfig } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
@@ -130,8 +130,6 @@ export class TrailsListComponent extends AbstractComponent {
   listTrails: List<TrailWithInfo> = List();
 
   durationFormatter = (value: number) => this.i18n.hoursToString(value);
-  distanceFormatter = (value: number) => this.i18n.distanceInUserUnitToString(value);
-  elevationFormatter = (value: number) => this.i18n.elevationInUserUnitToString(value);
   isPositive = (value: any) => typeof value === 'number' && value > 0;
 
   loopTypes = Object.values(TrailLoopType);
@@ -143,7 +141,7 @@ export class TrailsListComponent extends AbstractComponent {
     public trailMenuService: TrailMenuService,
     private changeDetector: ChangeDetectorRef,
     private router: Router,
-    preferences: PreferencesService,
+    private preferences: PreferencesService,
     private tagService: TagService,
     private authService:AuthService,
     componentElement: ElementRef,
@@ -151,19 +149,15 @@ export class TrailsListComponent extends AbstractComponent {
     super(injector);
     changeDetector.detach();
     let currentDistanceUnit = preferences.preferences.distanceUnit;
-    let currentElevationUnit = preferences.preferences.elevationUnit;
     this.whenVisible.subscribe(preferences.preferences$,
       prefs => {
         let changed = false;
         if (currentDistanceUnit !== prefs.distanceUnit) {
           currentDistanceUnit = prefs.distanceUnit;
           this.state$.value.filters.distance = { from: undefined, to: undefined };
-          changed = true;
-        }
-        if (currentElevationUnit !== prefs.elevationUnit) {
-          currentElevationUnit = prefs.elevationUnit;
           this.state$.value.filters.positiveElevation = { from: undefined, to: undefined };
           this.state$.value.filters.negativeElevation = { from: undefined, to: undefined };
+          changed = true;
         }
         if (changed)
           this.state$.next({...this.state$.value, filters: {...this.state$.value.filters}});
@@ -466,6 +460,40 @@ export class TrailsListComponent extends AbstractComponent {
     filters.tags.exclude = false;
     filters.tags.tagsUuids = [];
     this.state$.next({...this.state$.value, filters: {...filters}});
+  }
+
+  getDistanceFilterConfig(): NumericFilterConfig {
+    switch (this.preferences.preferences.distanceUnit) {
+      case 'METERS': return {
+        min: 0,
+        max: 50,
+        step: 1,
+        formatter: (value: number) => value + ' km'
+      }
+      case 'IMPERIAL': return {
+        min: 0,
+        max: 30,
+        step: 1,
+        formatter: (value: number) => value + ' mi'
+      }
+    }
+  }
+
+  getElevationFilterConfig(): NumericFilterConfig {
+    switch (this.preferences.preferences.distanceUnit) {
+      case 'METERS': return {
+        min: 0,
+        max: 2000,
+        step: 50,
+        formatter: (value: number) => value + ' m'
+      }
+      case 'IMPERIAL': return {
+        min: 0,
+        max: 6600,
+        step: 150,
+        formatter: (value: number) => value + ' ft'
+      }
+    }
   }
 
   private trailClicked?: Trail;

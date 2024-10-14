@@ -13,7 +13,7 @@ const TEXTS_VERSION = '1';
 })
 export class I18nService {
 
-  private _texts$ = new BehaviorSubject<any>(undefined);
+  private readonly _texts$ = new BehaviorSubject<any>(undefined);
   private _textsLoading?: string;
   private _textsLoaded$ = new BehaviorSubject<string | undefined>(undefined);
 
@@ -26,7 +26,7 @@ export class I18nService {
     let state = '';
     prefService.preferences$.subscribe(p => {
       this.loadTexts(p.lang!);
-      const newState = '' + p.distanceUnit + p.elevationUnit + p.hourFormat + p.dateFormat;
+      const newState = '' + p.distanceUnit + p.hourFormat + p.dateFormat;
       if (newState !== state) {
         state = newState;
         this._stateChanged$.next(this._stateChanged$.value + 1);
@@ -48,50 +48,70 @@ export class I18nService {
   public distanceToString(distance: number | undefined): string {
     if (distance === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {
-      case 'METERS':
-        if (distance < 1000) return distance.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
-        return (distance / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 2}) + ' km';
-      case 'MILES':
-        return this.metersToMiles(distance).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 3}) + ' mi';
+      case 'METERS': return this.metersToMetersOrKilometers(distance);
+      case 'IMPERIAL': return this.footToFootOrMiles(this.metersToFoot(distance));
     }
   }
 
   public distanceInUserUnitToString(distance: number): string {
     switch (this.prefService.preferences.distanceUnit) {
-      case 'METERS':
-        if (distance < 1000) return distance.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
-        return (distance / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 2}) + ' km';
-      case 'MILES':
-        return distance.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 3}) + ' mi';
+      case 'METERS': return this.metersToMetersOrKilometers(distance);
+      case 'IMPERIAL': return this.footToFootOrMiles(distance);
     }
   }
 
+  private metersToMetersOrKilometers(meters: number): string {
+    if (meters < 1000) return meters.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
+    return (meters / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 2}) + ' km';
+  }
+
+  private footToFootOrMiles(foot: number): string {
+    if (foot >= 5280) return (foot / 5280).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 3}) + ' mi';
+    return foot.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' ft';
+  }
+
+  public metersToFoot(meters: number): number {
+    return meters * 3.2808398950131;
+  }
+
   public metersToMiles(meters: number): number {
-    return meters * 0.00062137119223733;
+    return this.footToMiles(this.metersToFoot(meters));
+  }
+
+  public footToMeters(foot: number): number {
+    return foot * 0.3048;
+  }
+
+  public footToMiles(foot: number): number {
+    return foot / 5280;
+  }
+
+  public milesToFoot(miles: number): number {
+    return miles * 5280;
   }
 
   public milesToMeters(miles: number): number {
-    return miles * 1609.344;
+    return this.footToMeters(this.milesToFoot(miles));
   }
 
   public distanceInUserUnit(meters: number): number {
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return meters;
-      case 'MILES': return this.metersToMiles(meters);
+      case 'IMPERIAL': return this.metersToFoot(meters);
     }
   }
 
   public distanceInMetersFromUserUnit(distance: number): number {
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return distance;
-      case 'MILES': return this.milesToMeters(distance);
+      case 'IMPERIAL': return this.footToMeters(distance);
     }
   }
 
   public shortDistanceUnit(unit: DistanceUnit): string {
     switch (unit) {
       case 'METERS': return 'm';
-      case 'MILES': return 'mi';
+      case 'IMPERIAL': return 'ft';
     }
   }
 
@@ -99,101 +119,61 @@ export class I18nService {
     return this.shortDistanceUnit(this.prefService.preferences.distanceUnit);
   }
 
-  public getMaxFilterDistance(): number {
-    switch (this.prefService.preferences.distanceUnit) {
-      case 'METERS': return 50000;
-      case 'MILES': return 30;
-      default: return 1;
-    }
-  }
-
-  public getFilterDistanceStep(): number {
-    switch (this.prefService.preferences.distanceUnit) {
-      case 'METERS': return 1000;
-      case 'MILES': return 1;
-      default: return 1;
-    }
-  }
-
   public getSpeedString(speed?: number): string {
     if (speed === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return (speed / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' km/h';
-      case 'MILES': return this.metersToMiles(speed).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' mi/h';
+      case 'IMPERIAL': return this.footToMiles(this.metersToFoot(speed)).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' mi/h';
     }
   }
 
   public elevationToString(elevation: number | undefined): string {
     if (elevation === undefined) return '';
-    switch (this.prefService.preferences.elevationUnit) {
+    switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
-      case 'FOOT': return this.metersToFoot(elevation).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';
+      case 'IMPERIAL': return this.metersToFoot(elevation).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';
     }
   }
 
   public elevationInUserUnitToString(elevation: number): string {
-    switch (this.prefService.preferences.elevationUnit) {
+    switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
-      case 'FOOT': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';
+      case 'IMPERIAL': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';
     }
   }
 
-  public metersToFoot(meters: number): number {
-    return meters * 3.2808398950131;
-  }
-
-  public footToMeters(foot: number): number {
-    return foot * 0.3048;
-  }
-
   public elevationInUserUnit(meters: number): number {
-    switch (this.prefService.preferences.elevationUnit) {
+    switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return meters;
-      case 'FOOT': return this.metersToFoot(meters);
+      case 'IMPERIAL': return this.metersToFoot(meters);
     }
   }
 
   public elevationInMetersFromUserUnit(elevation: number): number {
-    switch (this.prefService.preferences.elevationUnit) {
+    switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return elevation;
-      case 'FOOT': return this.footToMeters(elevation);
+      case 'IMPERIAL': return this.footToMeters(elevation);
     }
   }
 
   public shortUserElevationUnit(): string {
-    switch (this.prefService.preferences.elevationUnit) {
+    switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return 'm';
-      case 'FOOT': return 'ft';
+      case 'IMPERIAL': return 'ft';
     }
   }
 
   public shortUserElevationGraphDistanceUnit(): string {
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return 'km';
-      case 'MILES': return 'mi';
+      case 'IMPERIAL': return 'mi';
     }
   }
 
   public elevationGraphDistanceValue(value: number): number {
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return value / 1000;
-      case 'MILES': return value;
-    }
-  }
-
-  public getMaxFilterElevation(): number {
-    switch (this.prefService.preferences.elevationUnit) {
-      case 'METERS': return 2000;
-      case 'FOOT': return 6500;
-      default: return 1;
-    }
-  }
-
-  public getFilterElevationStep(): number {
-    switch (this.prefService.preferences.elevationUnit) {
-      case 'METERS': return 50;
-      case 'FOOT': return 150;
-      default: return 1;
+      case 'IMPERIAL': return this.footToMiles(value);
     }
   }
 

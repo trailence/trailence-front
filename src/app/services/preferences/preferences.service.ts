@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ComputedPreferences, DateFormat, DistanceUnit, ElevationUnit, HourFormat, Preferences, ThemeType } from './preferences';
+import { ComputedPreferences, DateFormat, DistanceUnit, HourFormat, Preferences, ThemeType } from './preferences';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { HttpService } from '../http/http.service';
@@ -10,14 +10,12 @@ import { StringUtils } from 'src/app/utils/string-utils';
 const defaultPreferences: {[key:string]: Preferences} = {
   'en': {
     lang: 'en',
-    elevationUnit: 'FOOT',
-    distanceUnit: 'MILES',
+    distanceUnit: 'IMPERIAL',
     hourFormat: 'H12',
     dateFormat: 'm/d/yyyy'
   },
   'fr': {
     lang: 'fr',
-    elevationUnit: 'METERS',
     distanceUnit: 'METERS',
     hourFormat: 'H24',
     dateFormat: 'dd/mm/yyyy'
@@ -56,7 +54,21 @@ export class PreferencesService {
     try {
       const stored = localStorage.getItem(LOCALSTORAGE_PREFERENCES_KEY);
       if (stored) {
-        prefs = JSON.parse(stored) as Preferences;
+        const parsed = JSON.parse(stored);
+        prefs = {
+          lang: parsed['lang'],
+          distanceUnit: parsed['distanceUnit'],
+          hourFormat: parsed['hourFormat'],
+          dateFormat: parsed['dateFormat'],
+          theme: parsed['theme'],
+          traceMinMeters: parsed['traceMinMeters'],
+          traceMinMillis: parsed['traceMinMillis'],
+          offlineMapMaxKeepDays: parsed['offlineMapMaxKeepDays'],
+          offlineMapMaxZoom: parsed['offlineMapMaxZoom'],
+          estimatedBaseSpeed: parsed['estimatedBaseSpeed'],
+          longBreakMinimumDuration: parsed['longBreakMinimumDuration'],
+          longBreakMaximumDistance: parsed['longBreakMaximumDistance'],
+        }
       }
     } catch (e) {}
     this._prefs$ = new BehaviorSubject<Preferences>(prefs);
@@ -98,10 +110,9 @@ export class PreferencesService {
 
   private complete(toComplete: Preferences, withPrefs: Preferences): void {
     if (!toComplete.lang) toComplete.lang = withPrefs.lang;
-    if (!toComplete.elevationUnit) toComplete.elevationUnit = withPrefs.elevationUnit;
-    if (!toComplete.distanceUnit) toComplete.distanceUnit = withPrefs.distanceUnit;
-    if (!toComplete.hourFormat) toComplete.hourFormat = withPrefs.hourFormat;
-    if (!toComplete.dateFormat) toComplete.dateFormat = withPrefs.dateFormat;
+    toComplete.distanceUnit = this.completeEnum(toComplete.distanceUnit, withPrefs.distanceUnit, ['METERS', 'IMPERIAL']);
+    toComplete.hourFormat = this.completeEnum(toComplete.hourFormat, withPrefs.hourFormat, ['H12', 'H24'])
+    toComplete.dateFormat = this.completeEnum(toComplete.dateFormat, withPrefs.dateFormat, ['m/d/yyyy', 'dd/mm/yyyy'])
     if (toComplete.traceMinMeters === undefined || toComplete.traceMinMeters === null) toComplete.traceMinMeters = DEFAULT_TRACE_MIN_METERS;
     if (toComplete.traceMinMillis === undefined || toComplete.traceMinMillis === null) toComplete.traceMinMillis = DEFAULT_TRACE_MIN_MILLIS;
     if (toComplete.offlineMapMaxKeepDays === undefined || toComplete.offlineMapMaxKeepDays === null) toComplete.offlineMapMaxKeepDays = DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS;
@@ -109,6 +120,12 @@ export class PreferencesService {
     if (toComplete.estimatedBaseSpeed === undefined || toComplete.estimatedBaseSpeed === null) toComplete.estimatedBaseSpeed = DEFAULT_ESTIMATED_BASE_SPEED;
     if (toComplete.longBreakMinimumDuration === undefined || toComplete.longBreakMinimumDuration === null) toComplete.longBreakMinimumDuration = DEFAULT_LONG_BREAK_MINIMUM_DURATION;
     if (toComplete.longBreakMaximumDistance === undefined || toComplete.longBreakMaximumDistance === null) toComplete.longBreakMaximumDistance = DEFAULT_LONG_BREAK_MAXIMUM_DISTANCE;
+  }
+
+  private completeEnum<T>(value: string | undefined, defaultValue: T, allowedValues: string[]): T {
+    if (value === undefined) return defaultValue;
+    if (allowedValues.indexOf(value) >= 0) return value as T;
+    return defaultValue;
   }
 
   private getDefaultLanguage(): string {
@@ -165,10 +182,6 @@ export class PreferencesService {
 
   public setDistanceUnit(unit?: DistanceUnit): void {
     this.setPreference('distanceUnit', unit);
-  }
-
-  public setElevationUnit(unit?: ElevationUnit): void {
-    this.setPreference('elevationUnit', unit);
   }
 
   public setDateFormat(format?: DateFormat): void {

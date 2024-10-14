@@ -439,7 +439,7 @@ export class MapComponent extends AbstractComponent {
             if (scale) scale.remove();
             scale = L.control.scale({
               metric: prefs.distanceUnit === 'METERS',
-              imperial: prefs.distanceUnit === 'MILES',
+              imperial: prefs.distanceUnit === 'IMPERIAL',
             });
             distanceUnit = prefs.distanceUnit;
             scale.addTo(map);

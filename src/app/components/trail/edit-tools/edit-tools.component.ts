@@ -49,9 +49,14 @@ export class EditToolsComponent implements OnInit, OnDestroy {
 
   inlineTool: any;
 
-  elevationFormatter = (value: number) => this.i18n.elevationInUserUnitToString(value);
-  distanceFormatter = (value: number) => this.i18n.distanceInUserUnitToString(value);
   millisToMinutesFormatter = (millis: number) => this.i18n.durationToString(millis, false);
+  elevationThresholdFormatter = (value: number) => this.i18n.elevationInUserUnitToString(value)
+  smallDistanceFormatter = (value: number) => {
+    switch (this.prefs.preferences.distanceUnit) {
+      case 'METERS': return value + 'm';
+      case 'IMPERIAL': return value + 'ft';
+    }
+  }
 
   constructor(
     public i18n: I18nService,
@@ -276,58 +281,58 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   }
 
   getMinElevationThreshold(): number {
-    switch (this.prefs.preferences.elevationUnit) {
+    switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 1;
-      case 'FOOT': return 5;
+      case 'IMPERIAL': return 5;
     }
   }
 
   getMaxElevationThreshold(): number {
-    switch (this.prefs.preferences.elevationUnit) {
+    switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 25;
-      case 'FOOT': return 80;
+      case 'IMPERIAL': return 80;
     }
   }
 
   getElevationThresholdStep(): number {
-    switch (this.prefs.preferences.elevationUnit) {
+    switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 1;
-      case 'FOOT': return 5;
+      case 'IMPERIAL': return 5;
     }
   }
 
   getInitialElevationThreshold(): number {
-    switch (this.prefs.preferences.elevationUnit) {
+    switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 10;
-      case 'FOOT': return 30;
+      case 'IMPERIAL': return 30;
     }
   }
 
   getMinElevationThresholdDistance(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 25;
-      case 'MILES': return 0.015;
+      case 'IMPERIAL': return 80;
     }
   }
 
   getMaxElevationThresholdDistance(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 1000;
-      case 'MILES': return 0.6;
+      case 'IMPERIAL': return 3280;
     }
   }
 
   getElevationThresholdDistanceStep(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 25;
-      case 'MILES': return 0.015;
+      case 'IMPERIAL': return 100;
     }
   }
 
   getInitialElevationThresholdDistance(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 250;
-      case 'MILES': return 0.15;
+      case 'IMPERIAL': return 780;
     }
   }
 
@@ -378,21 +383,32 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   getMinLongBreaksMovesDistance(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 15;
-      case 'MILES': return 0.01;
+      case 'IMPERIAL': return 50;
     }
   }
 
   getMaxLongBreaksMovesDistance(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 200;
-      case 'MILES': return 0.125;
+      case 'IMPERIAL': return 650;
     }
   }
 
   getLongBreaksMovesDistanceStep(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 5;
-      case 'MILES': return 0.005;
+      case 'IMPERIAL': return 10;
+    }
+  }
+
+  getMinLongBreaksMovesDistanceInitialValue(): number {
+    switch (this.prefs.preferences.distanceUnit) {
+      case 'METERS': return this.prefs.preferences.longBreakMaximumDistance;
+      case 'IMPERIAL':
+        const foot = this.i18n.metersToFoot(this.prefs.preferences.longBreakMaximumDistance);
+        if (foot < 50) return 50;
+        if (foot > 650) return 650;
+        return 50 + Math.round((foot - 50) / 10) * 10;
     }
   }
 

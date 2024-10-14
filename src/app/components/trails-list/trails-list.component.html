@@ -96,39 +96,41 @@
         <ion-icon name="distance"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.distance }}</div>
       </div>
-      <div class="filter-value">
+      <div class="filter-value" *ngIf="getDistanceFilterConfig() as config">
         <app-filter-numeric
-          [minValue]="0" [maxValue]="i18n.getMaxFilterDistance()" [step]="i18n.getFilterDistanceStep()"
-          [selectedMinValue]="state$.value.filters.distance.from || 0" [selectedMaxValue]="state$.value.filters.distance.to || i18n.getMaxFilterDistance()"
+          [minValue]="config.min" [maxValue]="config.max" [step]="config.step"
+          [selectedMinValue]="state$.value.filters.distance.from || config.min" [selectedMaxValue]="state$.value.filters.distance.to || config.max"
           (selectionChange)="updateNumericFilter(state$.value.filters.distance, $event)"
-          [valueFormatter]="distanceFormatter"
-          [maxValueLabel]="distanceFormatter(i18n.getMaxFilterDistance()) + '+'"></app-filter-numeric>
+          [valueFormatter]="config.formatter"
+          [maxValueLabel]="config.formatter(config.max) + '+'"></app-filter-numeric>
       </div>
 
-      <div class="filter-header">
-        <ion-icon name="positive-elevation"></ion-icon>
-        <div>{{ i18n.texts.pages.trails.filters.positive_elevation }}</div>
-      </div>
-      <div class="filter-value">
-        <app-filter-numeric
-          [minValue]="0" [maxValue]="i18n.getMaxFilterElevation()" [step]="i18n.getFilterElevationStep()"
-          [selectedMinValue]="state$.value.filters.positiveElevation.from || 0" [selectedMaxValue]="state$.value.filters.positiveElevation.to || i18n.getMaxFilterElevation()"
-          (selectionChange)="updateNumericFilter(state$.value.filters.positiveElevation, $event)"
-          [valueFormatter]="elevationFormatter"
-          [maxValueLabel]="elevationFormatter(i18n.getMaxFilterElevation()) + '+'"></app-filter-numeric>
-      </div>
-      <div class="filter-header">
-        <ion-icon name="negative-elevation"></ion-icon>
-        <div>{{ i18n.texts.pages.trails.filters.negative_elevation }}</div>
-      </div>
-      <div class="filter-value">
-        <app-filter-numeric
-          [minValue]="0" [maxValue]="i18n.getMaxFilterElevation()" [step]="i18n.getFilterElevationStep()"
-          [selectedMinValue]="state$.value.filters.negativeElevation.from || 0" [selectedMaxValue]="state$.value.filters.negativeElevation.to || i18n.getMaxFilterElevation()"
-          (selectionChange)="updateNumericFilter(state$.value.filters.negativeElevation, $event)"
-          [valueFormatter]="elevationFormatter"
-          [maxValueLabel]="elevationFormatter(i18n.getMaxFilterElevation()) + '+'"></app-filter-numeric>
-      </div>
+      <ng-container *ngIf="getElevationFilterConfig() as config">
+        <div class="filter-header">
+          <ion-icon name="positive-elevation"></ion-icon>
+          <div>{{ i18n.texts.pages.trails.filters.positive_elevation }}</div>
+        </div>
+        <div class="filter-value">
+          <app-filter-numeric
+            [minValue]="config.min" [maxValue]="config.max" [step]="config.step"
+            [selectedMinValue]="state$.value.filters.positiveElevation.from || config.min" [selectedMaxValue]="state$.value.filters.positiveElevation.to || config.max"
+            (selectionChange)="updateNumericFilter(state$.value.filters.positiveElevation, $event)"
+            [valueFormatter]="config.formatter"
+            [maxValueLabel]="config.formatter(config.max) + '+'"></app-filter-numeric>
+        </div>
+        <div class="filter-header">
+          <ion-icon name="negative-elevation"></ion-icon>
+          <div>{{ i18n.texts.pages.trails.filters.negative_elevation }}</div>
+        </div>
+        <div class="filter-value">
+          <app-filter-numeric
+            [minValue]="config.min" [maxValue]="config.max" [step]="config.step"
+            [selectedMinValue]="state$.value.filters.negativeElevation.from || config.min" [selectedMaxValue]="state$.value.filters.negativeElevation.to || config.max"
+            (selectionChange)="updateNumericFilter(state$.value.filters.negativeElevation, $event)"
+            [valueFormatter]="config.formatter"
+            [maxValueLabel]="config.formatter(config.max) + '+'"></app-filter-numeric>
+        </div>
+      </ng-container>
       <div class="filter-header">
         <ion-icon name="loop"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.loopType }}</div>

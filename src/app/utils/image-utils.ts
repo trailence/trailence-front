@@ -79,8 +79,8 @@ export class ImageUtils {
         canvas.width = width;
         canvas.height = height;
         canvas.style.position = 'fixed';
-        canvas.style.top = '-10000px';
-        canvas.style.left = '-10000px';
+        canvas.style.top = (-height - 1000) + 'px';
+        canvas.style.left = (-width - 1000) + 'px';
         document.documentElement.appendChild(canvas);
         const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
         ctx.drawImage(img, 0, 0);

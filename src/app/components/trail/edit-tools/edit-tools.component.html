@@ -137,11 +137,11 @@
       <ion-range #elevationThresholdElevation
         mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThreshold()" [max]="getMaxElevationThreshold()" [step]="getElevationThresholdStep()"
         [value]="getInitialElevationThreshold()"
-        [pin]="true" [pinFormatter]="elevationFormatter"
+        [pin]="true" [pinFormatter]="elevationThresholdFormatter"
         class="always-show-knob-pin"
       >
-        <ion-label slot="start">{{elevationFormatter(getMinElevationThreshold())}}</ion-label>
-        <ion-label slot="end">{{elevationFormatter(getMaxElevationThreshold())}}</ion-label>
+        <ion-label slot="start">{{elevationThresholdFormatter(getMinElevationThreshold())}}</ion-label>
+        <ion-label slot="end">{{elevationThresholdFormatter(getMaxElevationThreshold())}}</ion-label>
       </ion-range>
 
       <div class="page-section-sub-title">
@@ -151,11 +151,11 @@
       <ion-range #elevationThresholdDistance
         mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThresholdDistance()" [max]="getMaxElevationThresholdDistance()" [step]="getElevationThresholdDistanceStep()"
         [value]="getInitialElevationThresholdDistance()"
-        [pin]="true" [pinFormatter]="distanceFormatter"
+        [pin]="true" [pinFormatter]="smallDistanceFormatter"
         class="always-show-knob-pin"
       >
-        <ion-label slot="start">{{distanceFormatter(getMinElevationThresholdDistance())}}</ion-label>
-        <ion-label slot="end">{{distanceFormatter(getMaxElevationThresholdDistance())}}</ion-label>
+        <ion-label slot="start">{{smallDistanceFormatter(getMinElevationThresholdDistance())}}</ion-label>
+        <ion-label slot="end">{{smallDistanceFormatter(getMaxElevationThresholdDistance())}}</ion-label>
       </ion-range>
     </ion-content>
 
@@ -190,12 +190,12 @@
         <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.config_max_distance}}</div>
         <ion-range #removeLongBreaksMovesMaxDistance
           mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinLongBreaksMovesDistance()" [max]="getMaxLongBreaksMovesDistance()" [step]="getLongBreaksMovesDistanceStep()"
-          [pin]="true" [pinFormatter]="distanceFormatter"
-          [value]="prefs.preferences.longBreakMaximumDistance"
+          [pin]="true" [pinFormatter]="smallDistanceFormatter"
+          [value]="getMinLongBreaksMovesDistanceInitialValue()"
           class="always-show-knob-pin"
         >
-          <ion-label slot="start">{{distanceFormatter(getMinLongBreaksMovesDistance())}}</ion-label>
-          <ion-label slot="end">{{distanceFormatter(getMaxLongBreaksMovesDistance())}}</ion-label>
+          <ion-label slot="start">{{smallDistanceFormatter(getMinLongBreaksMovesDistance())}}</ion-label>
+          <ion-label slot="end">{{smallDistanceFormatter(getMaxLongBreaksMovesDistance())}}</ion-label>
         </ion-range>
 
         <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.detection}}</div>
