@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, of, skip, timeout } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, map, of, skip, switchMap, timeout, timer } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -18,6 +18,7 @@ import * as L from 'leaflet';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular/standalone';
 import { ImprovmentRecordingState, TrackEditionService } from '../track-edition/track-edition.service';
+import { ProgressService } from '../progress/progress.service';
 
 @Injectable({
   providedIn: 'root'
@@ -43,6 +44,7 @@ export class TraceRecorderService {
     private alertController: AlertController,
     private trackEdition: TrackEditionService,
     private ngZone: NgZone,
+    private progressService: ProgressService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -154,13 +156,35 @@ export class TraceRecorderService {
     this._recording$.next(null);
     if (this._table) this._table.delete(1);
     if (save && this._email) {
-      recording.rawTrack.removeEmptySegments();
-      recording.track.removeEmptySegments();
-      if (recording.rawTrack.segments.length === 0) return of(null);
-      this.trackEdition.computeFinalMetadata(recording.trail, recording.track);
-      this.trackService.create(recording.rawTrack);
-      this.trackService.create(recording.track);
-      return this.trailService.create(recording.trail)
+      const progress = this.progressService.create(this.i18n.texts.trace_recorder.saving, 5);
+      return timer(1).pipe(
+        switchMap(() => {
+          recording.rawTrack.removeEmptySegments();
+          recording.track.removeEmptySegments();
+          if (recording.rawTrack.segments.length === 0) return EMPTY;
+          progress.addWorkDone(1);
+          return of(1);
+        }),
+        switchMap(() => timer(1).pipe(
+          map(() => {
+            this.trackEdition.computeFinalMetadata(recording.trail, recording.track);
+            progress.addWorkDone(1);
+            return 2;
+          })
+        )),
+        switchMap(() => {
+          this.trackService.create(recording.rawTrack, () => progress.addWorkDone(1));
+          this.trackService.create(recording.track, () => progress.addWorkDone(1));
+          return this.trailService.create(recording.trail, () => progress.addWorkDone(1));
+        }),
+        catchError(e => {
+          console.log(e);
+          // TODO
+          progress.done();
+          return EMPTY;
+        }),
+        defaultIfEmpty(null),
+      );
     }
     return of(null);
   }

@@ -37,8 +37,8 @@ export class TrackService {
     );
   }
 
-  public create(track: Track): void {
-    this.db.create(track);
+  public create(track: Track, ondone?: () => void): void {
+    this.db.create(track, ondone);
   }
 
   public update(track: Track): void {

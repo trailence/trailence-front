@@ -423,7 +423,8 @@
       "resume_message": "Please confirm to resume the trail",
       "pause_message": "Please confirm to pause the trail",
       "stop_message": "Please confirm the end of the trail"
-    }
+    },
+    "saving": "Saving trail"
   },
   "waiting_for_gps": "Waiting for GPS signal...",
   "bytes": {

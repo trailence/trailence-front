@@ -19,6 +19,7 @@ import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
 import { ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
+import { CompositeOnDone } from 'src/app/utils/callback-utils';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -409,13 +410,15 @@ export class TrackDatabase {
     }
   }
 
-  public create(track: Track): void {
+  public create(track: Track, ondone?: () => void): void {
     this.ngZone.runOutsideAngular(() => {
       const key = track.uuid + '#' + track.owner;
       const dto = track.toDto();
       const simplified = this.simplify(track);
       const metadata = this.toMetadata(track);
+      const stepsDone = new CompositeOnDone(ondone);
       this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
+        const onDone1 = stepsDone.add();
         this.fullTrackTable?.add({
           key,
           uuid: dto.uuid,
@@ -424,15 +427,17 @@ export class TrackDatabase {
           updatedLocally: 0,
           needsSync: 1,
           track: dto,
-        });
+        }).then(onDone1);
+        const onDone2 = stepsDone.add();
         this.simplifiedTrackTable?.add({
           ...simplified,
           key,
-        });
+        }).then(onDone2);
+        const onDone3 = stepsDone.add();
         this.metadataTable?.add({
           ...metadata,
           key,
-        });
+        }).then(onDone3);
       });
       const full$ = this.fullTracks.get(key);
       if (full$) full$.newValue(track);
@@ -447,6 +452,9 @@ export class TrackDatabase {
         this.syncStatus$.value!.hasLocalChanges = true;
         this.syncStatus$.next(this.syncStatus$.value);
       }
+      const onDone4 = stepsDone.add();
+      stepsDone.start();
+      onDone4();
     });
   }
 

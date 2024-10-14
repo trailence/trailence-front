@@ -432,7 +432,8 @@
       "resume_message": "Veuillez confirmer la reprise du parcours",
       "pause_message": "Veuillez confirmer la mise en pause du parcours",
       "stop_message": "Veuillez confirmer la fin du parcours"
-    }
+    },
+    "saving": "Enregistrement du parcours"
   },
   "waiting_for_gps": "En attente du signal GPS...",
   "bytes": {

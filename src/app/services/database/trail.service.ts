@@ -52,9 +52,9 @@ export class TrailService {
     return this._store.getItem(uuid, owner);
   }
 
-  public create(trail: Trail): Observable<Trail | null> {
+  public create(trail: Trail, ondone?: () => void): Observable<Trail | null> {
     this.check(trail);
-    return this._store.create(trail);
+    return this._store.create(trail, ondone);
   }
 
   public lock(uuid: string, owner: string, onlocked: (locked: boolean, unlock: () => void) => void): void {
