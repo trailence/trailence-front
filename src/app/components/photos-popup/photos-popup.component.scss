@@ -44,6 +44,14 @@
 
     .metadata-container {
       align-self: flex-start;
+
+      .metadata-item {
+        margin: 3px 0;
+
+        div.metadata-primary {
+          color: var(--ion-color-medium);
+        }
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, IonReorderGroup, IonReorder, ModalController, IonModal, IonTextarea } from "@ionic/angular/standalone";
 import { firstValueFrom } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
@@ -11,11 +11,13 @@ import { PhotoComponent } from '../photo/photo.component';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { CompositeOnDone } from 'src/app/utils/callback-utils';
 
 interface PhotoWithInfo {
   photo: Photo;
   selected: boolean;
   editing: string | null;
+  blobSize: number | undefined;
 }
 
 @Component({
@@ -54,6 +56,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     browser: BrowserService,
     private auth: AuthService,
     private modalController: ModalController,
+    private changesDetector: ChangeDetectorRef,
   ) {
     this.updateSize(browser);
     this.subscriptions.add(browser.resize$.subscribe(() => this.updateSize(browser)));
@@ -75,9 +78,11 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
           photo: p,
           selected: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.selected ?? false,
           editing: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.editing ?? null,
+          blobSize: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.blobSize,
         } as PhotoWithInfo;
       });
       this.nbSelected = this.photos.reduce((p, pi) => p + (pi.selected ? 1 : 0), 0);
+      this.changesDetector.detectChanges();
     }));
   }
 
@@ -136,7 +141,11 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   }
 
   deleteSelected(): void {
-    this.getSelection().forEach(p => this.photoService.delete(p));
+    const photos = this.getSelection();
+    const progress = this.progressService.create(this.i18n.texts.pages.photos_popup.deleting, photos.length);
+    const done = new CompositeOnDone(() => progress.done());
+    photos.forEach(p => this.photoService.delete(p, done.add(() => progress.addWorkDone(1))));
+    done.start();
   }
 
   moveBack(index: number): void {

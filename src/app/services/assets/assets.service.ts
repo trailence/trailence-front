@@ -45,6 +45,7 @@ export class AssetsService {
       'elevation': 'assets/ionicons/analytics-outline.svg',
       'error': 'assets/ionicons/alert-circle-outline.svg',
       'export': 'assets/ionicons/download-outline.svg',
+      'file': 'assets/ionicons/document-outline.svg',
       'filters': 'assets/ionicons/funnel-outline.svg',
       'half-loop': 'assets/half-loop.1.svg',
       'highest-point': 'assets/highest-point.1.svg',

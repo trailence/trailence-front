@@ -33,7 +33,7 @@
           </div>
         </div>
         <div class="photo-and-description">
-          <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)"></app-photo>
+          <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)" (blobSize)="photoWithInfo.blobSize = $event"></app-photo>
           <div class="description" (click)="editDescription(photoWithInfo)" *ngIf="!photoWithInfo.editing" [ngClass]="{'editable-text': canEdit}">
             {{photoWithInfo.photo.description}}
           </div>
@@ -63,6 +63,16 @@
                 <div class="metadata-content">
                   <div class="metadata-value">
                     <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metadata-item-container" *ngIf="photoWithInfo.blobSize">
+              <div class="metadata-item">
+                <ion-icon name="file"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
                   </div>
                 </div>
               </div>

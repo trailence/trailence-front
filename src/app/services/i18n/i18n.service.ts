@@ -243,12 +243,12 @@ export class I18nService {
     return s;
   }
 
-  public sizeToString(size?: number): string {
+  public sizeToString(size?: number, kbFractionalDigits?: number, mbFractionalDigits?: number, gbFractionalDigits?: number): string {
     if (size === null || size === undefined) return '';
     if (size < 1024) return size + ' ' + this.texts.bytes.bytes;
-    if (size < 1024 * 1024) return Math.floor(size / 1024) + ' ' + this.texts.bytes.kb;
-    if (size < 1024 * 1024 * 1024) return Math.floor(size / (1024 * 1024)) + ' ' + this.texts.bytes.mb;
-    return Math.floor(size / (1024 * 1024 * 1024)) + ' ' + this.texts.bytes.gb;
+    if (size < 1024 * 1024) return (kbFractionalDigits ? (size / 1024).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: kbFractionalDigits}) : Math.floor(size / 1024)) + ' ' + this.texts.bytes.kb;
+    if (size < 1024 * 1024 * 1024) return (mbFractionalDigits ? (size / (1024 * 1024)).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: mbFractionalDigits}) : Math.floor(size / (1024 * 1024))) + ' ' + this.texts.bytes.mb;
+    return (gbFractionalDigits ? (size / (1024 * 1024 * 1024)).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: gbFractionalDigits}) : Math.floor(size / (1024 * 1024 * 1024))) + ' ' + this.texts.bytes.gb;
   }
 
   private loadTexts(lang: string): void {

@@ -33,7 +33,7 @@ export class StoredFilesService {
   public store(owner: string, type: string, uuid: string, blob: Blob): Observable<any> {
     if (!this.table) return of(undefined);
     const key = this.getKey(owner, type, uuid);
-    return from(this.table.add({key, blob}, key));
+    return from(this.table.add({key, blob, dateStored: Date.now()}, key));
   }
 
   public delete(owner: string, type: string, uuid: string): void {
@@ -42,6 +42,68 @@ export class StoredFilesService {
 
   private getKey(owner: string, type: string, uuid: string): string {
     return owner + '#' + type + '#' + uuid;
+  }
+
+  public getTotalSize(type: string, maxDateStored: number): Observable<[number,number]> {
+    if (!this.table) return of([0,0]);
+    const t = this.table;
+    return from(t.toCollection().primaryKeys()
+    .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
+    .then(keys => {
+      if (keys.length === 0 || t !== this.table) return Promise.resolve([0,0]) as Promise<[number,number]>;
+      const next: (i:number,total1:number,total2:number) => Promise<[number,number]> = (i, total1, total2) => {
+        if (t !== this.table) return Promise.resolve([total1, total2]);
+        let next$: Promise<[number,number]> = t.get(keys[i])
+        .then(dto => {
+          if (!dto) return [total1, total2];
+          const s = dto.blob.size;
+          const nt1 = total1 + s;
+          const nt2 = total2 + (!dto.dateStored || dto.dateStored < maxDateStored ? s : 0);
+          return [nt1, nt2];
+        });
+        if (i < keys.length - 1) next$ = next$.then(([t1,t2]) => next(i + 1, t1, t2));
+        return next$;
+      }
+      return next(0,0,0);
+    }));
+  }
+
+  public cleanExpired(type: string, maxDateStored: number): Observable<any> {
+    if (!this.table) return of(null);
+    const t = this.table;
+    return from(t.toCollection().primaryKeys()
+    .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
+    .then(keys => {
+      if (keys.length === 0 || t !== this.table) return Promise.resolve([]);
+      const next: (i:number,toRemove:string[]) => Promise<string[]> = (i,toRemove) => {
+        if (t !== this.table) return Promise.resolve([] as string[]);
+        let next$ = t.get(keys[i])
+        .then(dto => {
+          if (!dto) return toRemove;
+          if (!dto.dateStored || dto.dateStored < maxDateStored) return [...toRemove, keys[i]];
+          return toRemove;
+        });
+        if (i < keys.length - 1) next$ = next$.then(list => next(i + 1, list));
+        return next$;
+      }
+      return next(0,[]);
+    }).then(toRemove => {
+      if (t !== this.table) return;
+      console.log('Cleaning', type, toRemove.length);
+      return t.bulkDelete(toRemove);
+    }));
+  }
+
+  public removeAll(type: string): Observable<any> {
+    if (!this.table) return of(null);
+    const t = this.table;
+    return from(t.toCollection().primaryKeys()
+    .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
+    .then(toRemove => {
+      if (t !== this.table) return;
+      console.log('Removing files', type, toRemove.length);
+      return t.bulkDelete(toRemove);
+    }));
   }
 
   private db?: Dexie;
@@ -74,4 +136,5 @@ export class StoredFilesService {
 interface StoredFileDto {
   key: string;
   blob: Blob;
+  dateStored: number;
 }

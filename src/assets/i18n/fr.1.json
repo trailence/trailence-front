@@ -248,6 +248,20 @@
         "remove_all": "Tout supprimer"
       },
       "more_maps_layers": "Plus de fonds de carte",
+      "photos": "Photos",
+      "photos_max_pixels": "Largeur/Hauteur maximum des photos",
+      "photos_max_pixels_explaination": "Lorsque vous ajoutez une photo, si celle-ci est plus grande que la taille maximum, elle sera automatiquement réduite.",
+      "photos_max_quality": "Qualité des photos (%)",
+      "photos_max_quality_explaination": "Les photos sont automatiquement converties au format JPEG, ce paramètre indique la qualité pour la compression. 100% indique une qualité maximum, mais donc une compression faible. Nous recommendons 90% qui conserve une très bonne qualité tout en permettant une bonne compression.",
+      "photos_max_size_kb": "Taille maximum des fichiers de photo (Ko)",
+      "photos_max_size_kb_explaination": "Lorsque vous stockez une photo, la taille maximum en pixels ainsi que la qualité maximum sont appliquées. Si le résultat donne un fichier d'une taille supérieure à cette valeur, la taille et la qualité seront légèrement réduites jusqu'à atteindre une taille de fichier en dessous de ce seuil.",
+      "photos_cache": "Photos téléchargées",
+      "photos_cache_explaination": "Lorsqu'une photo est affichée, elle est téléchargée, puis conservée en cache sur votre appareil. Cela permet d'éviter de devoir télécharger une photo à chaque fois, et donc un affichage plus rapide. Cela permet également de pouvoir afficher les photos hors-ligne. Ainsi, si vous planifiez de suivre un parcours contenant des photos, et que vous souhaitez pouvoir afficher les photos hors-ligne pendant votre parcours, en affichant les photos avant votre parcours alors que vous avez du réseau, elle seront disponibles hors-ligne.",
+      "photos_cache_total": "Taille totale des fichiers",
+      "photos_cache_expired": "Taille fichiers expirés",
+      "photos_cache_remove_all": "Tout supprimer",
+      "photos_cache_remove_expired": "Supprimer les fichiers expirés",
+      "photos_cache_max_days": "Conservation des photos téléchargées (jours)",
       "thunderforest_explaination": "Vous pouvez ajouter les cartes de thunderforest.com si vous avez un compte chez eux (un compte gratuit est disponible). Pour cela, entrez votre clé d'API ci-dessous",
       "time_calculation": {
         "title": "Calcul des temps de parcours",
@@ -335,7 +349,8 @@
       "importing": "Import",
       "add_photos_buttons": "Ajouter des photos",
       "selected_plural": "photos sélectionnées",
-      "selected_single": "photo sélectionnée"
+      "selected_single": "photo sélectionnée",
+      "deleting": "Suppression des photos"
     }
   },
   "menu": {

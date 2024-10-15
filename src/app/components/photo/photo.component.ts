@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
@@ -17,6 +17,8 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   @Input() maxWidth?: number;
   @Input() maxHeight?: number;
   @Input() photo?: Photo;
+
+  @Output() blobSize = new EventEmitter<number>();
 
   blob?: string;
   error = false;
@@ -56,7 +58,10 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   private setBlob(blob: Blob | undefined) {
     if (this.blob) URL.revokeObjectURL(this.blob);
     if (!blob) this.blob = undefined;
-    else this.blob = URL.createObjectURL(blob);
+    else {
+      this.blob = URL.createObjectURL(blob);
+      this.blobSize.emit(blob.size);
+    }
   }
 
 }

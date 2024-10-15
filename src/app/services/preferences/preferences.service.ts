@@ -34,6 +34,11 @@ const DEFAULT_ESTIMATED_BASE_SPEED = 5000;
 const DEFAULT_LONG_BREAK_MINIMUM_DURATION = 5 * 60 * 1000;
 const DEFAULT_LONG_BREAK_MAXIMUM_DISTANCE = 50;
 
+const DEFAULT_PHOTO_MAX_PIXELS = 800;
+const DEFAULT_PHOTO_MAX_QUALITY = 90;
+const DEFAULT_PHOTO_MAX_SIZE = 750;
+const DEFAULT_PHOTO_CACHE_DAYS = 60;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -68,6 +73,10 @@ export class PreferencesService {
           estimatedBaseSpeed: parsed['estimatedBaseSpeed'],
           longBreakMinimumDuration: parsed['longBreakMinimumDuration'],
           longBreakMaximumDistance: parsed['longBreakMaximumDistance'],
+          photoMaxPixels: parsed['photoMaxPixels'],
+          photoMaxQuality: parsed['photoMaxQuality'],
+          photoMaxSizeKB: parsed['photoMaxSizeKB'],
+          photoCacheDays: parsed['photoCacheDays'],
         }
       }
     } catch (e) {}
@@ -120,6 +129,10 @@ export class PreferencesService {
     if (toComplete.estimatedBaseSpeed === undefined || toComplete.estimatedBaseSpeed === null) toComplete.estimatedBaseSpeed = DEFAULT_ESTIMATED_BASE_SPEED;
     if (toComplete.longBreakMinimumDuration === undefined || toComplete.longBreakMinimumDuration === null) toComplete.longBreakMinimumDuration = DEFAULT_LONG_BREAK_MINIMUM_DURATION;
     if (toComplete.longBreakMaximumDistance === undefined || toComplete.longBreakMaximumDistance === null) toComplete.longBreakMaximumDistance = DEFAULT_LONG_BREAK_MAXIMUM_DISTANCE;
+    if (toComplete.photoMaxPixels === undefined || toComplete.photoMaxPixels === null) toComplete.photoMaxPixels = DEFAULT_PHOTO_MAX_PIXELS;
+    if (toComplete.photoMaxQuality === undefined || toComplete.photoMaxQuality === null) toComplete.photoMaxQuality = DEFAULT_PHOTO_MAX_QUALITY;
+    if (toComplete.photoMaxSizeKB === undefined || toComplete.photoMaxSizeKB === null) toComplete.photoMaxSizeKB = DEFAULT_PHOTO_MAX_SIZE;
+    if (toComplete.photoCacheDays === undefined || toComplete.photoCacheDays === null) toComplete.photoCacheDays = DEFAULT_PHOTO_CACHE_DAYS;
   }
 
   private completeEnum<T>(value: string | undefined, defaultValue: T, allowedValues: string[]): T {
@@ -218,6 +231,22 @@ export class PreferencesService {
 
   public setLongBreakMaximumDistance(value: number): void {
     this.setPreference('longBreakMaximumDistance', value);
+  }
+
+  public setPhotoMaxPixels(value: number): void {
+    this.setPreference('photoMaxPixels', value);
+  }
+
+  public setPhotoMaxQuality(value: number): void {
+    this.setPreference('photoMaxQuality', value);
+  }
+
+  public setPhotoMaxSizeKB(value: number): void {
+    this.setPreference('photoMaxSizeKB', value);
+  }
+
+  public setPhotoCacheDays(value: number): void {
+    this.setPreference('photoCacheDays', value);
   }
 
   private setPreference(field: string, value: any): void {

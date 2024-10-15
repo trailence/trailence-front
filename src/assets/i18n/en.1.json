@@ -239,6 +239,20 @@
         "remove_all": "Remove all"
       },
       "more_maps_layers": "More Map Layers",
+      "photos": "Photos",
+      "photos_max_pixels": "Maximum width/height of photos",
+      "photos_max_pixels_explaination": "When you add a photo, if it is larger than the maximum size, it will be automatically reduced.",
+      "photos_max_quality": "Photo quality (%)",
+      "photos_max_quality_explaination": "Photos are automatically converted to JPEG format, this setting indicates the quality for compression. 100% indicates maximum quality, but therefore low compression. We recommend 90% which maintains very good quality while allowing good compression.",
+      "photos_max_size_kb": "Maximum photo file size (KB)",
+      "photos_max_size_kb_explaination": "When you store a photo, the maximum pixel size and quality are applied. If the result is a file size larger than this value, the size and quality will be slightly reduced until the file size is below this threshold.",
+      "photos_cache": "Downloaded photos",
+      "photos_cache_explaination": "When a photo is displayed, it is downloaded and then cached on your device. This avoids having to download a photo each time, and therefore makes the display faster. It also allows you to view photos offline. So, if you plan to follow a trail that contains photos, and you want to be able to view the photos offline during your trail, by viewing the photos before you start the trail while you have network access, they will be available offline.",
+      "photos_cache_total": "Total files size",
+      "photos_cache_expired": "Expired files size",
+      "photos_cache_remove_all": "Remove All",
+      "photos_cache_remove_expired": "Remove expired files",
+      "photos_cache_max_days": "Retention of downloaded photos (days)",
       "thunderforest_explaination": "You can add maps from thunderforest.com if you have an account on their web site (a free account is available). Enter your API key below",
       "time_calculation": {
         "title": "Calculation of trail duration",
@@ -326,7 +340,8 @@
       "importing": "Import",
       "add_photos_buttons": "Add photos",
       "selected_plural": "selected photos",
-      "selected_single": "selected photo"
+      "selected_single": "selected photo",
+      "deleting": "Deleting photos"
     }
   },
   "menu": {

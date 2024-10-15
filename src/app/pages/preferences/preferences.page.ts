@@ -11,6 +11,7 @@ import { ExtensionsService } from 'src/app/services/database/extensions.service'
 import { Extension } from 'src/app/model/extension';
 import { NumericFilterConfig } from 'src/app/components/filters/filter';
 import { CommonModule } from '@angular/common';
+import { PhotoService } from 'src/app/services/database/photo.service';
 
 @Component({
   selector: 'app-preferences',
@@ -24,9 +25,12 @@ export class PreferencesPage implements OnDestroy {
   timestamp = new Date(2001, 11, 27, 18, 36, 42).getTime();
   millisecondsFormatter = (value: number) => (value / 1000).toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits: 1}) + 's';
   minutesFormatter = (value: number) => (value / 60000).toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits:0}) + 'm';
+  fileSizeFormatter = (value: number) => this.i18n.sizeToString(value * 1024, 0, 2);
+  daysFormatter = (value: number) => value + ' ' + this.i18n.texts.duration.days;
 
   offlineMapCounters?: {items: number, size: number};
   tfoApiKey?: string;
+  photoCacheSize?: {total: number, expired: number};
 
   private extensionsSubscription: Subscription;
   private currentExtensions: Extension[] = [];
@@ -36,10 +40,10 @@ export class PreferencesPage implements OnDestroy {
     public preferences: PreferencesService,
     private offlineMaps: OfflineMapService,
     private extensions: ExtensionsService,
+    private photoService: PhotoService,
   ) {
-    offlineMaps.computeContent().subscribe(
-      counters => this.offlineMapCounters = counters
-    );
+    this.updateOfflineMapCounters();
+    this.updatePhotoCacheSize();
     this.extensionsSubscription = extensions.getExtensions$().subscribe(
       extensions => {
         const thunderforest = extensions.find(e => e.extension === 'thunderforest.com');
@@ -180,10 +184,14 @@ export class PreferencesPage implements OnDestroy {
 
   cleanOfflineMaps(): void {
     this.offlineMaps.removeAll().subscribe(() => {
-      this.offlineMaps.computeContent().subscribe(
-        counters => this.offlineMapCounters = counters
-      );
+      this.updateOfflineMapCounters();
     });
+  }
+
+  private updateOfflineMapCounters(): void {
+    this.offlineMaps.computeContent().subscribe(
+      counters => this.offlineMapCounters = counters
+    );
   }
 
   updateThunderforestApiKey(value?: string | null): void {
@@ -201,6 +209,26 @@ export class PreferencesPage implements OnDestroy {
         this.extensions.saveExtension(new Extension(0, 'thunderforest.com', {apikey: value!}));
       }
     }
+  }
+
+  setPhotoCacheDays(days: number): void {
+    this.preferences.setPhotoCacheDays(days);
+    this.photoCacheSize = undefined;
+    this.updatePhotoCacheSize();
+  }
+
+  removeAllCachedPhotos(): void {
+    this.photoCacheSize = undefined;
+    this.photoService.removeAllCached().subscribe(() => this.updatePhotoCacheSize());
+  }
+
+  removeExpiredPhotos(): void {
+    this.photoCacheSize = undefined;
+    this.photoService.removeExpired().subscribe(() => this.updatePhotoCacheSize());
+  }
+
+  private updatePhotoCacheSize(): void {
+    this.photoService.getTotalCacheSize(Date.now() - this.preferences.preferences.photoCacheDays * 24 * 60 * 60 * 1000).subscribe(([total, expired]) => this.photoCacheSize = {total, expired})
   }
 
 }

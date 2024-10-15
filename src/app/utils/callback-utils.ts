@@ -8,9 +8,12 @@ export class CompositeOnDone {
   private _done = 0;
   private _started = false;
 
-  public add(): () => void {
+  public add(callback?: () => void): () => void {
     this._nb++;
-    return () => this.stepDone();
+    return () => {
+      if (callback) callback();
+      this.stepDone();
+    };
   }
 
   private stepDone(): void {

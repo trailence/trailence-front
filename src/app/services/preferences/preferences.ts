@@ -21,6 +21,10 @@ export interface Preferences {
   longBreakMinimumDuration?: number;
   longBreakMaximumDistance?: number;
 
+  photoMaxPixels?: number;
+	photoMaxQuality?: number;
+	photoMaxSizeKB?: number;
+  photoCacheDays?: number;
 }
 
 export interface ComputedPreferences extends Preferences {
@@ -40,5 +44,10 @@ export interface ComputedPreferences extends Preferences {
   estimatedBaseSpeed: number;
   longBreakMinimumDuration: number;
   longBreakMaximumDistance: number;
+
+  photoMaxPixels: number;
+	photoMaxQuality: number;
+	photoMaxSizeKB: number;
+  photoCacheDays: number;
 
 }

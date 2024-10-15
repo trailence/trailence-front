@@ -282,4 +282,117 @@
     </div>
   </div>
 
+  <div class="page-section-title">
+    {{i18n.texts.pages.preferences.photos}}
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="photos"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.photos_max_pixels}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.photos_max_pixels_explaination"></div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="600" [max]="1200" [step]="100"
+          [pin]="true"
+          [ngModel]="preferences.preferences.photoMaxPixels" (ngModelChange)="preferences.setPhotoMaxPixels($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">600px</ion-label>
+          <ion-label slot="end">1200px</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.photos_max_quality}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.photos_max_quality_explaination"></div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="50" [max]="100" [step]="5"
+          [pin]="true"
+          [ngModel]="preferences.preferences.photoMaxQuality" (ngModelChange)="preferences.setPhotoMaxQuality($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">50%</ion-label>
+          <ion-label slot="end">100%</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.photos_max_size_kb}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.photos_max_size_kb_explaination"></div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="100" [max]="2050" [step]="50"
+          [pin]="true"
+          [pinFormatter]="fileSizeFormatter"
+          [ngModel]="preferences.preferences.photoMaxSizeKB" (ngModelChange)="preferences.setPhotoMaxSizeKB($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">{{fileSizeFormatter(100)}}</ion-label>
+          <ion-label slot="end">{{fileSizeFormatter(2050)}}</ion-label>
+        </ion-range>
+      </div>
+    </div>
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="database"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.photos_cache}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.photos_cache_explaination"></div>
+      <div style="margin-top: 10px">{{i18n.texts.pages.preferences.photos_cache_max_days}}</div>
+      <div class="value">
+        <ion-range
+          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="1" [max]="180" [step]="1"
+          [pin]="true"
+          [pinFormatter]="daysFormatter"
+          [ngModel]="preferences.preferences.photoCacheDays" (ngModelChange)="setPhotoCacheDays($event)"
+          class="always-show-knob-pin"
+        >
+          <ion-label slot="start">{{daysFormatter(1)}}</ion-label>
+          <ion-label slot="end">{{daysFormatter(180)}}</ion-label>
+        </ion-range>
+      </div>
+      <div class="value">
+        <table>
+          <tr>
+            <th>{{i18n.texts.pages.preferences.photos_cache_total}}</th>
+            <td>
+              {{i18n.sizeToString(photoCacheSize?.total)}}
+            </td>
+          </tr>
+          <tr>
+            <th>{{i18n.texts.pages.preferences.photos_cache_expired}}</th>
+            <td>
+              {{i18n.sizeToString(photoCacheSize?.expired)}}
+            </td>
+          </tr>
+        </table>
+        <ion-button (click)="removeAllCachedPhotos()" [disabled]="!photoCacheSize?.total">
+          <ion-icon name="trash" slot="start"></ion-icon>
+          <ion-label>{{i18n.texts.pages.preferences.photos_cache_remove_all}}</ion-label>
+        </ion-button>
+        <ion-button (click)="removeExpiredPhotos()" [disabled]="!photoCacheSize?.expired">
+          <ion-icon name="cleaning" slot="start"></ion-icon>
+          <ion-label>{{i18n.texts.pages.preferences.photos_cache_remove_expired}}</ion-label>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
 </div></div>

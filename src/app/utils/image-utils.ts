@@ -67,7 +67,7 @@ export class ImageUtils {
     });
   }
 
-  public static convertToJpeg(image: Uint8Array): Promise<Blob> {
+  public static convertToJpeg(image: Uint8Array, maxWidth?: number, maxHeight?: number, quality?: number): Promise<Blob> {
     return new Promise((resolve, reject) => {
       const blob = new Blob([image]);
       const img = new Image();
@@ -75,15 +75,29 @@ export class ImageUtils {
       img.onload = () => {
         const width = img.naturalWidth;
         const height = img.naturalHeight;
+        let dw = width;
+        let dh = height;
+        if (maxWidth && dw > maxWidth) {
+          dw = maxWidth;
+          dh = height * (maxWidth / width);
+        }
+        if (maxHeight && dh > maxHeight) {
+          const ratio = maxHeight / dh;
+          dh = maxHeight;
+          dw *= ratio;
+        }
+        dw = Math.floor(dw);
+        dh = Math.floor(dh);
+
         const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = dw;
+        canvas.height = dh;
         canvas.style.position = 'fixed';
-        canvas.style.top = (-height - 1000) + 'px';
-        canvas.style.left = (-width - 1000) + 'px';
+        canvas.style.top = (-dh - 1000) + 'px';
+        canvas.style.left = (-dw - 1000) + 'px';
         document.documentElement.appendChild(canvas);
         const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, width, height, 0, 0, dw, dh);
         urlCreator.revokeObjectURL(img.src);
         canvas.toBlob(
           blob => {
@@ -95,7 +109,7 @@ export class ImageUtils {
             }
           },
           "image/jpeg",
-          1
+          quality || 1
         )
       };
       img.onerror = err => {

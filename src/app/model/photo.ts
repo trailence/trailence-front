@@ -1,7 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import { PhotoDto } from './dto/photo';
 import { Owned } from './owned';
-import { OwnedDto } from './dto/owned';
 import { PointDtoMapper } from './point';
 
 export class Photo extends Owned {

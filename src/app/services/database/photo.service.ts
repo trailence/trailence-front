@@ -11,13 +11,12 @@ import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { StoredFilesService } from './stored-files.service';
 import { TrailService } from './trail.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { AuthService } from '../auth/auth.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import Dexie from 'dexie';
 import { Trail } from 'src/app/model/trail';
 import { ModalController } from '@ionic/angular/standalone';
 import { ImageInfo, ImageUtils } from 'src/app/utils/image-utils';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { PreferencesService } from '../preferences/preferences.service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -26,6 +25,7 @@ export class PhotoService {
 
   constructor(
     private injector: Injector,
+    private preferences: PreferencesService,
   ) {
     this.store = new PhotoStore(injector);
   }
@@ -81,7 +81,6 @@ export class PhotoService {
   ): Observable<Photo | null> {
     const arr = new Uint8Array(content);
     let info: ImageInfo | undefined;
-    let blobPromise: Promise<Blob>;
     if (ImageUtils.isJpeg(arr)) {
       if (dateTaken && latitude !== undefined && longitude !== undefined)
         info = {dateTaken, latitude, longitude};
@@ -89,10 +88,18 @@ export class PhotoService {
         info = ImageUtils.extractInfos(arr);
         console.log('extracted info from image', info);
       }
-      blobPromise = Promise.resolve(new Blob([content], { type: 'image/jpeg' }));
-    } else {
-      blobPromise = ImageUtils.convertToJpeg(arr);
     }
+    const nextConvert: (s:number,q:number) => Promise<Blob> = (currentMaxSize: number, currentMaxQuality: number) =>
+      ImageUtils.convertToJpeg(arr, currentMaxSize, currentMaxSize, currentMaxQuality)
+      .then(blob => {
+        if (blob.size <= this.preferences.preferences.photoMaxSizeKB * 1024) return Promise.resolve(blob);
+        if (currentMaxQuality > this.preferences.preferences.photoMaxQuality - 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
+        if (currentMaxSize > 400) return nextConvert(currentMaxSize - 100, this.preferences.preferences.photoMaxQuality);
+        if (currentMaxQuality > 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
+        if (currentMaxSize > 100) return nextConvert(currentMaxSize - 50, this.preferences.preferences.photoMaxQuality);
+        return Promise.resolve(blob);
+      });
+    const blobPromise = nextConvert(this.preferences.preferences.photoMaxPixels, this.preferences.preferences.photoMaxQuality);
     return from(blobPromise).pipe(
       switchMap(blob => {
         const photo = new Photo({
@@ -146,6 +153,18 @@ export class PhotoService {
       cssClass: 'large-modal',
     });
     modal.present();
+  }
+
+  public getTotalCacheSize(maxDateStored: number): Observable<[number,number]> {
+    return this.injector.get(StoredFilesService).getTotalSize('photo', maxDateStored);
+  }
+
+  public removeAllCached(): Observable<any> {
+    return this.injector.get(StoredFilesService).removeAll('photo');
+  }
+
+  public removeExpired(): Observable<any> {
+    return this.injector.get(StoredFilesService).cleanExpired('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays);
   }
 
 }
@@ -237,7 +256,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
   }
 
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
-    return zip([
+    const photosCleant$ = zip([
       this.getAll$().pipe(collection$items()),
       this.trails.getAll$().pipe(collection$items()),
     ]).pipe(
@@ -279,6 +298,10 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
         });
       })
     );
+
+    const filesCleant$ = this.injector.get(StoredFilesService).cleanExpired('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays);
+
+    return photosCleant$.pipe(switchMap(() => filesCleant$));
   }
 
 }
