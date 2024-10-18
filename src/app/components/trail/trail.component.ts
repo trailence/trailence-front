@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, from, map, of, switchMap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -33,6 +33,11 @@ import { PhotoComponent } from '../photo/photo.component';
 import { PhotosPopupComponent } from '../photos-popup/photos-popup.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { Arrays } from 'src/app/utils/arrays';
+import { MapPhoto } from '../map/markers/map-photo';
+import { BinaryContent } from 'src/app/utils/binary-content';
+import { TrackUtils } from 'src/app/utils/track-utils';
+import * as L from 'leaflet';
+import { ImageUtils } from 'src/app/utils/image-utils';
 
 @Component({
   selector: 'app-trail',
@@ -58,6 +63,7 @@ export class TrailComponent extends AbstractComponent {
 
   showOriginal$ = new BehaviorSubject<boolean>(false);
   showBreaks$ = new BehaviorSubject<boolean>(false);
+  showPhotos$ = new BehaviorSubject<boolean>(false);
 
   trail1: Trail | null = null;
   trail2: Trail | null = null;
@@ -70,7 +76,7 @@ export class TrailComponent extends AbstractComponent {
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
   tagsNames: string[] | undefined;
-  cover: Photo | null | undefined;
+  photos: Photo[] | undefined;
 
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
@@ -134,7 +140,7 @@ export class TrailComponent extends AbstractComponent {
     this.trail2 = null;
     this.recording = null;
     this.tagsNames = undefined;
-    this.cover = undefined;
+    this.photos = undefined;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
@@ -261,18 +267,117 @@ export class TrailComponent extends AbstractComponent {
         ),
         photos => {
           if (photos === undefined)
-            this.cover = undefined;
-          else if (photos.length === 0)
-            this.cover = null;
+            this.photos = undefined;
           else {
-            const c = photos.find(p => p.isCover);
-            if (c) this.cover = c;
-            else {
-              photos.sort((p1, p2) => p1.index - p2.index);
-              this.cover = photos[0];
-            }
+            this.photos = photos.sort((p1,p2) => {
+              if (p1.isCover) return -1;
+              if (p2.isCover) return 1;
+              return p1.index - p2.index;
+            });
           }
           this.changesDetector.detectChanges();
+        }, true
+      );
+      let photosOnMap = new Map<string, L.Marker>();
+      let photosByKey = new Map<string, Photo[]>();
+      let trackUuid: string | undefined = undefined;
+      let dateToPoint = new Map<number, L.LatLngExpression | null>();
+      this.byStateAndVisible.subscribe(
+        combineLatest([this.trail1$, this.trail2$ || of(null), this.showPhotos$]).pipe(
+          switchMap(([trail1, trail2, showPhotos]) => {
+            if (!trail1 || trail2 || !showPhotos) return of([]);
+            return this.photoService.getTrailPhotos(trail1).pipe(
+              switchMap(photos => {
+                const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
+                const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
+                if (withDateOnly.length > 0) {
+                  // we need the track to get a position
+                  return this.showOriginal$.pipe(
+                    switchMap(showOriginal => showOriginal ? trail1.originalTrackUuid$ : trail1.currentTrackUuid$),
+                    switchMap(trackUuid => this.trackService.getFullTrack$(trackUuid, trail1.owner)),
+                    map(track => {
+                      if (!track) return [];
+                      if (track.uuid !== trackUuid) {
+                        trackUuid = track.uuid;
+                        dateToPoint.clear();
+                      }
+                      return withDateOnly.map(photo => {
+                        const date = photo.dateTaken!;
+                        let point: L.LatLngExpression | null | undefined = dateToPoint.get(date);
+                        if (point === undefined) {
+                          const closest = TrackUtils.findClosestPointForTime(track, date);
+                          point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
+                          dateToPoint.set(date, point);
+                        }
+                        return {photo, point};
+                      })
+                      .filter(p => !!p.point) as {photo: Photo, point: L.LatLngExpression}[];
+                    }),
+                    map(result => [...result, ...withPos])
+                  );
+                }
+                return of(withPos);
+              }),
+              map(photos => {
+                // sort and keep only one if distance is < 15 meters
+                const photosWithPoint = photos.sort((p1,p2) => p1.photo.index - p2.photo.index).map(p => ({photos: [p.photo], point: p.point}));
+                for (let i = 1; i < photosWithPoint.length; ++i) {
+                  const point = photosWithPoint[i].point;
+                  let found = false;
+                  for (let j = 0; j < i; ++j) {
+                    const p = photosWithPoint[j].point;
+                    if (L.latLng(p).distanceTo(point) < 15) {
+                      photosWithPoint[j].photos.push(...photosWithPoint[i].photos);
+                      found = true;
+                      break;
+                    }
+                  }
+                  if (found) {
+                    photosWithPoint.splice(i, 1);
+                    i--;
+                  }
+                }
+                return photosWithPoint;
+              }),
+              switchMap(photosWithPoint => {
+                if (photosWithPoint.length === 0) return of([]);
+                const markers$: Observable<{key: string, marker: L.Marker, alreadyOnMap: boolean}>[] = [];
+                photosByKey.clear();
+                for (const p of photosWithPoint) {
+                  const key = p.photos[0].owner + '#' + p.photos[0].uuid + '#' + p.photos.length;
+                  photosByKey.set(key, p.photos);
+                  let marker = photosOnMap.get(key);
+                  if (marker) {
+                    markers$.push(of({key, marker, alreadyOnMap: true}));
+                    photosOnMap.delete(key);
+                  } else {
+                    markers$.push(this.photoService.getFile$(p.photos[0].owner, p.photos[0].uuid).pipe(
+                      switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 60, 0.7))),
+                      switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
+                        map(base64 => {
+                          const marker = MapPhoto.create(p.point, base64, jpeg.width, jpeg.height, p.photos.length > 1 ? '' + p.photos.length : undefined);
+                          marker.addEventListener('click', () => {
+                            this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
+                          });
+                          return {key, marker, alreadyOnMap: false};
+                        }),
+                      )),
+                    ));
+                  }
+                }
+                return combineLatest(markers$);
+              }),
+            );
+          }),
+        ),
+        result => {
+          if (!this.map) return;
+          for (const marker of photosOnMap.values()) this.map.removeFromMap(marker);
+          photosOnMap.clear();
+          for (const element of result) {
+            photosOnMap.set(element.key, element.marker);
+            if (!element.alreadyOnMap) this.map.addToMap(element.marker);
+          }
         }, true
       );
     }
@@ -383,6 +488,13 @@ export class TrailComponent extends AbstractComponent {
 
   openPhotos(): void {
     this.photoService.openPopupForTrail(this.trail1!.owner, this.trail1!.uuid);
+  }
+
+  openSlider(): void {
+    if (!this.photos || this.photos.length === 0)
+      this.openPhotos();
+    else
+      this.photoService.openSliderPopup(this.photos!, 0);
   }
 
   goToDeparture(): void {

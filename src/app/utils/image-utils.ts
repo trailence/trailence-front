@@ -67,9 +67,9 @@ export class ImageUtils {
     });
   }
 
-  public static convertToJpeg(image: Uint8Array, maxWidth?: number, maxHeight?: number, quality?: number): Promise<Blob> {
+  public static convertToJpeg(image: Uint8Array | Blob, maxWidth?: number, maxHeight?: number, quality?: number): Promise<{blob: Blob, width: number, height: number}> {
     return new Promise((resolve, reject) => {
-      const blob = new Blob([image]);
+      const blob = image instanceof Blob ? image : new Blob([image]);
       const img = new Image();
       const urlCreator = window.URL || window.webkitURL;
       img.onload = () => {
@@ -102,7 +102,7 @@ export class ImageUtils {
         canvas.toBlob(
           blob => {
             if (blob) {
-              resolve(blob);
+              resolve({blob, width: dw, height: dh});
               canvas.parentElement?.removeChild(canvas);
             } else {
               reject("Unable to generate JPEG");

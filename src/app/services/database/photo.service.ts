@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, EMPTY, filter, first, from, map, Observable, of, share, switchMap, tap, timeout, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, EMPTY, filter, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, timeout, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
 import { DatabaseService, PHOTO_TABLE_NAME } from './database.service';
@@ -17,6 +17,8 @@ import { Trail } from 'src/app/model/trail';
 import { ModalController } from '@ionic/angular/standalone';
 import { ImageInfo, ImageUtils } from 'src/app/utils/image-utils';
 import { PreferencesService } from '../preferences/preferences.service';
+import { DatabaseSubject } from './database-subject';
+import { DatabaseSubjectService } from './database-subject-service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -72,6 +74,24 @@ export class PhotoService {
     );
   }
 
+  private _blobUrls = new Map<string, DatabaseSubject<{url: string, blobSize: number}>>();
+  public getBlobUrl$(owner: string, uuid: string): Observable<{url: string, blobSize: number} | null> {
+    const key = owner + '#' + uuid;
+    const existing = this._blobUrls.get(key);
+    if (existing) return existing.asObservable();
+    const subject = new DatabaseSubject(
+      this.injector.get(DatabaseSubjectService),
+      'PhotoBlobUrl',
+      () => firstValueFrom(this.getFile$(owner, uuid).pipe(map(blob => ({url: URL.createObjectURL(blob), blobSize: blob.size})))),
+      item => {
+        URL.revokeObjectURL(item.url);
+        this._blobUrls.delete(key);
+      },
+    );
+    this._blobUrls.set(key, subject);
+    return subject.asObservable();
+  }
+
   public addPhoto(
     owner: string, trailUuid: string,
     description: string, index: number,
@@ -91,13 +111,13 @@ export class PhotoService {
     }
     const nextConvert: (s:number,q:number) => Promise<Blob> = (currentMaxSize: number, currentMaxQuality: number) =>
       ImageUtils.convertToJpeg(arr, currentMaxSize, currentMaxSize, currentMaxQuality)
-      .then(blob => {
-        if (blob.size <= this.preferences.preferences.photoMaxSizeKB * 1024) return Promise.resolve(blob);
+      .then(jpeg => {
+        if (jpeg.blob.size <= this.preferences.preferences.photoMaxSizeKB * 1024) return Promise.resolve(jpeg.blob);
         if (currentMaxQuality > this.preferences.preferences.photoMaxQuality - 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
         if (currentMaxSize > 400) return nextConvert(currentMaxSize - 100, this.preferences.preferences.photoMaxQuality);
         if (currentMaxQuality > 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
         if (currentMaxSize > 100) return nextConvert(currentMaxSize - 50, this.preferences.preferences.photoMaxQuality);
-        return Promise.resolve(blob);
+        return Promise.resolve(jpeg.blob);
       });
     const blobPromise = nextConvert(this.preferences.preferences.photoMaxPixels, this.preferences.preferences.photoMaxQuality);
     return from(blobPromise).pipe(
@@ -151,6 +171,19 @@ export class PhotoService {
         trailUuid: uuid,
       },
       cssClass: 'large-modal',
+    });
+    modal.present();
+  }
+
+  public async openSliderPopup(photos: Photo[], index: number) {
+    const module = await import('../../components/photos-slider-popup/photos-slider-popup.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.PhotosSliderPopupComponent,
+      componentProps: {
+        photos,
+        index,
+      },
+      cssClass: ['full-screen', 'semi-opaque'],
     });
     modal.present();
   }

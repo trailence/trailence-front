@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
@@ -26,6 +26,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
 
   constructor(
     private photoService: PhotoService,
+    private changesDetector: ChangeDetectorRef,
   ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -39,7 +40,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.error = false;
       this.setBlob(undefined);
       if (!this.photo) this.setBlob(undefined);
-      else this.subscription = this.photoService.getFile$(this.photo.owner, this.photo.uuid).subscribe({
+      else this.subscription = this.photoService.getBlobUrl$(this.photo.owner, this.photo.uuid).subscribe({
         next: blob => {
           this.setBlob(blob);
         },
@@ -52,16 +53,16 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.blob) URL.revokeObjectURL(this.blob);
+    this.subscription?.unsubscribe();
   }
 
-  private setBlob(blob: Blob | undefined) {
-    if (this.blob) URL.revokeObjectURL(this.blob);
+  private setBlob(blob: {url: string, blobSize: number} | undefined | null) {
     if (!blob) this.blob = undefined;
     else {
-      this.blob = URL.createObjectURL(blob);
-      this.blobSize.emit(blob.size);
+      this.blob = blob.url;
+      this.blobSize.emit(blob.blobSize);
     }
+    this.changesDetector.detectChanges();
   }
 
 }

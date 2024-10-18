@@ -441,13 +441,13 @@ export class TrackDatabase {
       });
       const full$ = this.fullTracks.get(key);
       if (full$) full$.newValue(track);
-      else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), track));
+      else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
       const simplified$ = this.simplifiedTracks.get(key);
       if (simplified$) simplified$.newValue(simplified);
-      else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), simplified));
+      else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
       const metadata$ = this.metadata.get(key);
       if (metadata$) metadata$.newValue(metadata);
-      else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), metadata));
+      else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
       if (!this.syncStatus$.value!.hasLocalChanges) {
         this.syncStatus$.value!.hasLocalChanges = true;
         this.syncStatus$.next(this.syncStatus$.value);
@@ -486,13 +486,13 @@ export class TrackDatabase {
       });
       const full$ = this.fullTracks.get(key);
       if (full$) full$.newValue(track);
-      else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), track));
+      else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
       const simplified$ = this.simplifiedTracks.get(key);
       if (simplified$) simplified$.newValue(simplified);
-      else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), simplified));
+      else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
       const metadata$ = this.metadata.get(key);
       if (metadata$) metadata$.newValue(metadata);
-      else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), metadata));
+      else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
       if (!this.syncStatus$.value!.hasLocalChanges) {
         this.syncStatus$.value!.hasLocalChanges = true;
         this.syncStatus$.next(this.syncStatus$.value);

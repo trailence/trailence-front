@@ -99,6 +99,7 @@
       },
       "show_original": "Show original trace",
       "show_breaks": "Show breaks",
+      "show_photos": "Show photos on map",
       "actions": {
         "go_to_departure": "Go to departure",
         "download_map": "Download map",

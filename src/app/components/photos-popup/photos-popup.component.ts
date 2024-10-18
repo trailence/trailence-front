@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, IonReorderGroup, IonReorder, ModalController, IonModal, IonTextarea } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, IonReorderGroup, IonReorder, ModalController, IonTextarea } from "@ionic/angular/standalone";
 import { firstValueFrom } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
@@ -25,7 +25,7 @@ interface PhotoWithInfo {
   templateUrl: './photos-popup.component.html',
   styleUrls: ['./photos-popup.component.scss'],
   standalone: true,
-  imports: [IonModal, IonReorder, IonReorderGroup, IonCheckbox, IonButtons, IonFooter, IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, PhotoComponent, IonTextarea]
+  imports: [IonReorder, IonReorderGroup, IonCheckbox, IonButtons, IonFooter, IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, PhotoComponent, IonTextarea]
 })
 export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
@@ -45,7 +45,6 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
   private subscriptions: Subscriptions = new Subscriptions();
 
-  @ViewChild('modalSlider') slider?: IonModal;
   @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
 
   constructor(
@@ -167,8 +166,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   }
 
   openSlider(index: number): void {
-    this.sliderIndex = index;
-    this.slider?.present();
+    this.photoService.openSliderPopup(this.photos.map(p => p.photo), index);
   }
 
   editDescription(photo: PhotoWithInfo): void {

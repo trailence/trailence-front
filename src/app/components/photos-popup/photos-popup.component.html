@@ -92,31 +92,3 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
-
-<ion-modal #modalSlider class="full-screen" style="--background: rgba(var(--ion-background-color-rgb), 0.8)">
-  <ng-template>
-    <div style="width: 100%; height: 100%; position: relative;">
-      <div style="position: absolute; top: 4px; right: 4px;">
-        <ion-button size="large" shape="round" fill="clear" color="dark" (click)="modalSlider.dismiss()">
-          <ion-icon slot="icon-only" name="cross"></ion-icon>
-        </ion-button>
-      </div>
-      <div style="width: 100%; height: calc(100% - 45px); display: flex; flex-direction: column; align-items: center; justify-content: center">
-        <app-photo style="display: inline-block;" [maxWidth]="width" [maxHeight]="height - 45" [photo]="photos[sliderIndex].photo"></app-photo>
-      </div>
-    </div>
-    <div *ngIf="sliderIndex > 0" style="position: absolute; left: 4px; top: calc(50% - 25px)">
-      <ion-button size="large" shape="round" fill="clear" color="dark" (click)="sliderIndex = sliderIndex - 1">
-        <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
-      </ion-button>
-    </div>
-    <div *ngIf="sliderIndex < photos.length - 1" style="position: absolute; right: 4px; top: calc(50% - 25px)">
-      <ion-button size="large" shape="round" fill="clear" color="dark" (click)="sliderIndex = sliderIndex + 1">
-        <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
-      </ion-button>
-    </div>
-    <div style="position: absolute; bottom: 0; left: 10px; right: 10px; display: flex; flex-direction: column; align-items: center">
-      <div>{{ photos[sliderIndex].photo.description }}</div>
-    </div>
-  </ng-template>
-</ion-modal>

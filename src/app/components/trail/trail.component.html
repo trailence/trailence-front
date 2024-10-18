@@ -50,11 +50,16 @@
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="!isSmall || tab === 'details'">
-      <div class="trail-photos" *ngIf="cover !== undefined && !isSmall && (editable || cover)" (click)="openPhotos()">
-        <div *ngIf="cover === null" class="no-photo">{{i18n.texts.pages.trail.no_photo_message}}</div>
-        <div class="cover" *ngIf="cover">
-          <app-photo [photo]="cover" [maxWidth]="300" [maxHeight]="200"></app-photo>
-        </div>
+      <div class="trail-photos" *ngIf="photos !== undefined && !isSmall && (editable || photos.length !== 0)" (click)="openSlider()">
+        <div *ngIf="photos.length === 0" class="no-photo">{{i18n.texts.pages.trail.no_photo_message}}</div>
+        <ng-container *ngIf="photos.length !== 0">
+          <div class="cover">
+            <app-photo [photo]="photos[0]" [maxWidth]="300" [maxHeight]="200"></app-photo>
+          </div>
+          <ion-button class="edit" fill="solid" shape="round" color="secondary" (click)="openPhotos(); $event.stopPropagation();">
+            <ion-icon name="edit" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ng-container>
       </div>
       <div class="trail-tags-row" *ngIf="tagsNames && trail1" (click)="trailMenuService.openTags([trail1], trail1.collectionUuid)">
         <span *ngIf="tagsNames.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
@@ -108,6 +113,7 @@
       </div>
       <div *ngIf="!editToolsComponent" style="padding: 5px 3px 10px 3px">
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
+        <ion-checkbox *ngIf="photos && photos.length > 0" labelPlacement="end" [checked]="showPhotos$.value" (ionChange)="showPhotos$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_photos}}</ion-checkbox>
       </div>
       <div class="actions" *ngIf="tracks[0]">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
@@ -252,7 +258,7 @@
       </div>
     </div>
   </ng-container>
-  <div class="trail-photos-tab" *ngIf="cover !== undefined && isSmall && tab === 'photos'">
+  <div class="trail-photos-tab" *ngIf="photos !== undefined && isSmall && tab === 'photos'">
     <app-photos-popup [owner]="trail1!.owner" [trailUuid]="trail1!.uuid" [popup]="false"></app-photos-popup>
   </div>
 </div>

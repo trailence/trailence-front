@@ -1,5 +1,6 @@
 import { Point } from '../model/point';
 import * as L from 'leaflet';
+import { Track } from '../model/track';
 
 export class TrackUtils {
 
@@ -82,6 +83,26 @@ export class TrackUtils {
       }
     }
     return closestIndex;
+  }
+
+  public static findClosestPointForTime(track: Track, time: number): Point | undefined {
+    let previous: Point | undefined = undefined;
+    for (const segment of track.segments) {
+      for (const point of segment.points) {
+        const ptime = point.time;
+        if (ptime === undefined) continue;
+        if (ptime === time) return point;
+        const diff = Math.abs(ptime - time);
+        if (ptime > time) {
+          if (diff > 15 * 60 * 1000) return previous;
+          if (previous === undefined) return point;
+          if (Math.abs(previous.time! - time) < diff) return previous;
+          return point;
+        }
+        previous = point;
+      }
+    }
+    return undefined;
   }
 
 }

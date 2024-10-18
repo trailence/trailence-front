@@ -108,6 +108,7 @@
       },
       "show_original": "Afficher la trace d'origine",
       "show_breaks": "Afficher les pauses",
+      "show_photos": "Afficher les photos sur la carte",
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",

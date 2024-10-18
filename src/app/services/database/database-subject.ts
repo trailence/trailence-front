@@ -7,6 +7,7 @@ export class DatabaseSubject<T> {
     private readonly service: DatabaseSubjectService,
     public readonly type: string,
     private readonly loadItem: () => Promise<T | null>,
+    private readonly unloadItem: ((item: T) => void) | undefined = undefined,
     initialValue: T | null | undefined = undefined,
   ) {
     if (initialValue !== undefined) {
@@ -45,6 +46,7 @@ export class DatabaseSubject<T> {
   private itemLoaded(item: T | null): void {
     if (!this.loading) return;
     this.loading = false;
+    if (this.loaded && this.unloadItem) this.unloadItem(this.loaded);
     this.loaded = item;
     this.service.register(this);
     const subscribers = [...this.observers];
@@ -53,6 +55,7 @@ export class DatabaseSubject<T> {
 
   public newValue(value: T | null): void {
     this.loading = false;
+    if (this.loaded && this.unloadItem) this.unloadItem(this.loaded);
     this.loaded = value;
     this.lastObserverSeen = Date.now();
     this.service.register(this);
@@ -63,12 +66,14 @@ export class DatabaseSubject<T> {
   public clean(): boolean {
     if (this.loading || this.observers.length > 0 || Date.now() - this.lastObserverSeen < 15000) return false;
     this.service.unregister(this);
+    if (this.loaded && this.unloadItem) this.unloadItem(this.loaded);
     this.loaded = undefined;
     return true;
   }
 
   public close(): void {
     this.service.unregister(this);
+    if (this.loaded && this.unloadItem) this.unloadItem(this.loaded);
     this.loaded = undefined;
     this.loading = false;
     while (this.observers.length > 0) {

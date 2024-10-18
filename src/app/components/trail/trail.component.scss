@@ -484,9 +484,14 @@
   padding-top: 5px;
   display: flex;
   flex-direction: column;
+  position: relative;
 
   &:hover {
     background-color: rgba(var(--ion-text-color-rgb), 0.05);
+
+    ion-button.edit {
+      opacity: 1;
+    }
   }
 
   .no-photo {
@@ -498,5 +503,15 @@
 
   .cover {
     align-self: center;
+    z-index: 1;
+  }
+
+  ion-button.edit {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.25s ease-in-out;
   }
 }
