@@ -275,7 +275,7 @@ export class ImageUtils {
                   const minute = parseInt(t[1]);
                   const second = parseInt(t[2]);
                   if (!isNaN(hour) && !isNaN(minute) && !isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
-                    date = new Date(year, month, day, hour, minute, second);
+                    date = new Date(year, month - 1, day, hour, minute, second);
                   }
                 }
               }

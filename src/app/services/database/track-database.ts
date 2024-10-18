@@ -675,7 +675,7 @@ export class TrackDatabase {
                 }));
               }),
               catchError(e => {
-                console.log(e);
+                console.log('error creating track on server', item.track, e);
                 // TODO display
                 return EMPTY;
               })
@@ -684,11 +684,11 @@ export class TrackDatabase {
           requests.push(limiter.add(request));
         });
         if (requests.length === 0) return of([]);
-        return zip(requests);
+        return zip(requests).pipe(defaultIfEmpty(false));
       }),
       catchError(error => {
         // TODO
-        console.error(error);
+        console.error('error creating tracks on server', error);
         return of(false);
       })
     );
@@ -775,7 +775,7 @@ export class TrackDatabase {
           }),
           catchError(error => {
             // TODO
-            console.error(error);
+            console.error('error getting track updates from server', error);
             return of(false);
           })
         );
@@ -796,7 +796,7 @@ export class TrackDatabase {
             if (this.db !== db) return EMPTY;
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
               catchError(e => {
-                console.log(e);
+                console.log('error sending update for track', item.track, e);
                 // TODO display
                 return EMPTY;
               })
@@ -805,12 +805,13 @@ export class TrackDatabase {
           requests.push(limiter.add(request));
         });
         return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-          switchMap(responses => this.updatesFromServer(db, responses, []))
+          switchMap(responses => this.updatesFromServer(db, responses, [])),
+          defaultIfEmpty(false),
         );
       }),
       catchError(error => {
         // TODO
-        console.error(error);
+        console.error('error sending tracks updates', error);
         return of(false);
       })
     );

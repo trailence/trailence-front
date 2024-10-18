@@ -28,7 +28,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
   id = IdGenerator.generateId();
 
   private browserSubscription?: Subscription;
-  private gesture!: Gesture;
+  private gesture?: Gesture;
 
   constructor(
     private browser: BrowserService,
@@ -37,13 +37,16 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
   ) {
   }
 
+  private destroyed = false;
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.browserSubscription?.unsubscribe();
-    this.gesture.destroy();
+    this.gesture?.destroy();
   }
 
   ngOnInit(): void {
     setTimeout(() => {
+      if (this.destroyed) return;
       let lastTimestamp = 0;
       const move = (detail: GestureDetail) => {
         this.scroll = this.index * this.screenWidth + detail.startX - detail.currentX;

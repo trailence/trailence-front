@@ -29,7 +29,7 @@ export class DatabaseSubject<T> {
         subscriber.next(this.loaded);
       } else if (!this.loading) {
         this.loading = true;
-        this.loadItem().then(item => this.itemLoaded(item));
+        this.loadItem().then(item => this.itemLoaded(item)).catch(error => this.itemError(error));
       }
       return () => {
         const index = this.observers.indexOf(subscriber);
@@ -51,6 +51,15 @@ export class DatabaseSubject<T> {
     this.service.register(this);
     const subscribers = [...this.observers];
     for (const s of subscribers) s.next(item);
+  }
+
+  private itemError(error: any): void {
+    if (!this.loading) return;
+    console.log('error loading', this.type, error);
+    this.loading = false;
+    const subscribers = [...this.observers];
+    this.observers = [];
+    for (const s of subscribers) s.error(error);
   }
 
   public newValue(value: T | null): void {

@@ -21,8 +21,8 @@ export class Photo extends Owned {
     this._trailUuid$ = new BehaviorSubject(dto.trailUuid);
     this._description$ = new BehaviorSubject(dto.description || '');
     this._dateTaken$ = new BehaviorSubject(dto.dateTaken);
-    this._latitude$ = new BehaviorSubject(dto.latitude === undefined ? undefined : PointDtoMapper.readCoordValue(dto.latitude));
-    this._longitude$ = new BehaviorSubject(dto.longitude === undefined ? undefined : PointDtoMapper.readCoordValue(dto.longitude));
+    this._latitude$ = new BehaviorSubject(dto.latitude === undefined || dto.latitude === null ? undefined : PointDtoMapper.readCoordValue(dto.latitude));
+    this._longitude$ = new BehaviorSubject(dto.longitude === undefined || dto.longitude === null ? undefined : PointDtoMapper.readCoordValue(dto.longitude));
     this._isCover$ = new BehaviorSubject(dto.isCover ?? false);
     this._index$ = new BehaviorSubject(dto.index ?? 1);
   }
