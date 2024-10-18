@@ -27,7 +27,7 @@ export class MapPhoto {
     badge: string | undefined,
   ): string {
     let svg = '<?xml version="1.0" encoding="utf-8"?>';
-    svg += '<svg width="' + width + 'px" height="' + (height + 15) + 'px" viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg">';
+    svg += '<svg width="' + width + 'px" height="' + (height + 15) + 'px" viewBox="0 0 ' + width + ' ' + (height + 15) + '" xmlns="http://www.w3.org/2000/svg">';
     svg += '<defs>';
     svg += '<clipPath id="bubble">';
     svg += '<rect x="0" y="0" width="' + width + '" height="' + height + '" rx="10"/>'

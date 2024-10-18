@@ -24,3 +24,17 @@
 .tag {
   margin-bottom: 3px;
 }
+
+div.photos {
+  float: left;
+  max-width: 125px;
+  max-height: 120px;
+  width: 125px;
+  height: 120px;
+  overflow: hidden;
+  margin-right: 5px;
+
+  app-photos-slider {
+    display: block;
+  }
+}

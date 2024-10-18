@@ -1,11 +1,11 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { CommonModule } from '@angular/common';
 import { IonButton, IonIcon, GestureController, Gesture, GestureDetail } from "@ionic/angular/standalone";
 import { IdGenerator } from 'src/app/utils/component-utils';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-photos-slider',
@@ -18,60 +18,90 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() photos: Photo[] = [];
   @Input() index: number = 0;
+  @Input() width?: number;
+  @Input() height?: number;
 
   items: Item[] = [];
-  screenWidth: number;
-  screenHeight: number;
+  screenWidth = 1;
+  screenHeight = 1;
   scroll: number = 0;
   id = IdGenerator.generateId();
 
-  private subscriptions = new Subscriptions();
+  private browserSubscription?: Subscription;
   private gesture!: Gesture;
 
   constructor(
-    browser: BrowserService,
+    private browser: BrowserService,
     private gestureController: GestureController,
+    private changesDetector: ChangeDetectorRef,
   ) {
-    this.screenWidth = browser.width;
-    this.screenHeight = browser.height;
-    this.subscriptions.add(browser.resize$.subscribe(size => {
-      this.scroll = this.scroll / this.screenWidth * size.width;
-      this.screenWidth = size.width;
-      this.screenHeight = size.height;
-    }));
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+    this.browserSubscription?.unsubscribe();
     this.gesture.destroy();
   }
 
   ngOnInit(): void {
     setTimeout(() => {
+      let lastTimestamp = 0;
       const move = (detail: GestureDetail) => {
         this.scroll = this.index * this.screenWidth + detail.startX - detail.currentX;
+        this.changesDetector.detectChanges();
+        detail.event.stopPropagation();
+        detail.event.preventDefault();
+        lastTimestamp = detail.event.timeStamp;
       };
       const end = (detail: GestureDetail) => {
-        this.scroll = this.index * this.screenWidth;
-        if (detail.currentX - detail.startX > 50) {
+        if (this.index > 0 && detail.currentX - detail.startX > (this.screenWidth > 300 ? 50 : 20)) {
           this.previous();
-        } else if (detail.startX - detail.currentX > 50) {
+        } else if (this.index < this.photos.length - 1 && detail.startX - detail.currentX > (this.screenWidth > 300 ? 50 : 20)) {
           this.next();
+        } else {
+          this.scroll = this.index * this.screenWidth;
+          this.changesDetector.detectChanges();
         }
+        detail.event.stopPropagation();
+        detail.event.preventDefault();
+        lastTimestamp = detail.event.timeStamp;
       };
+      const element = document.getElementById(this.id + '-photos-container')!;
       this.gesture = this.gestureController.create({
-        el: document.getElementById(this.id + '-photos-container')!,
-        threshold: 15,
+        el: element,
+        threshold: this.screenWidth > 300 ? 15 : 5,
         direction: 'x',
         gestureName: 'photos-slider',
         onMove: move,
         onEnd: end,
+        onStart: event => event.event.stopPropagation()
       }, true);
       this.gesture.enable();
+      element.addEventListener('click', event => {
+        if (event.timeStamp - lastTimestamp < 0.5) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      });
     }, 0);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (this.width && this.height) {
+      this.browserSubscription?.unsubscribe();
+      this.browserSubscription = undefined;
+      this.screenWidth = this.width;
+      this.screenHeight = this.height;
+    } else {
+      this.screenWidth = this.browser.width;
+      this.screenHeight = this.browser.height;
+      if (!this.browserSubscription) {
+        this.browserSubscription = this.browser.resize$.subscribe(size => {
+          this.scroll = this.scroll / this.screenWidth * size.width;
+          this.screenWidth = size.width;
+          this.screenHeight = size.height;
+        });
+      }
+    }
     this.items = this.photos.map((p, index) => ({
       photo: p,
       index,
@@ -98,9 +128,11 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
       clearTimeout(this.updateLoadedTimeout);
     }
     this.scroll = this.index * this.screenWidth;
+    this.changesDetector.detectChanges();
     this.updateLoadedTimeout = setTimeout(() => {
       this.updateLoadedTimeout = undefined;
-      for (const item of this.items) item.loaded = item.index === this.index || item.index === this.index - 1 || item.index === this.index + 1
+      for (const item of this.items) item.loaded = item.index === this.index || item.index === this.index - 1 || item.index === this.index + 1;
+      this.changesDetector.detectChanges();
     }, 500);
   }
 

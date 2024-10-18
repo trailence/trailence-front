@@ -18,6 +18,9 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { AssetsService } from 'src/app/services/assets/assets.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { PhotoService } from 'src/app/services/database/photo.service';
+import { Photo } from 'src/app/model/photo';
+import { PhotosSliderComponent } from "../photos-slider/photos-slider.component";
 
 class Meta {
   name?: string;
@@ -39,8 +42,7 @@ class Meta {
   imports: [IonSpinner, IonButton, IonCheckbox, IonIcon,
     CommonModule,
     TrackMetadataComponent,
-    MenuContentComponent,
-  ]
+    MenuContentComponent, PhotosSliderComponent]
 })
 export class TrailOverviewComponent extends AbstractComponent {
 
@@ -53,10 +55,13 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() selected = false;
   @Output() selectedChange = new EventEmitter<boolean>();
 
+  @Input() photoEnabled = true;
+
   id = IdGenerator.generateId();
   meta: Meta = new Meta();
   track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
   tagsNames: string[] = [];
+  photos: Photo[] = [];
 
   constructor(
     injector: Injector,
@@ -71,6 +76,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private assets: AssetsService,
     private popoverController: PopoverController,
     private domController: DomController,
+    private photoService: PhotoService,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -143,6 +149,18 @@ export class TrailOverviewComponent extends AbstractComponent {
           true
         );
       }
+      if (this.photoEnabled)
+        this.byStateAndVisible.subscribe(
+          this.photoService.getPhotosForTrail(this.trail.owner, this.trail.uuid),
+          photos => {
+            this.photos = photos.sort((p1, p2) => {
+              if (p1.isCover) return -1;
+              if (p2.isCover) return 1;
+              return p1.index - p2.index;
+            });
+            this.changeDetector.detectChanges();
+          }
+        );
     }
   }
 
@@ -162,6 +180,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.meta = new Meta();
     this.track$.next(undefined);
     this.tagsNames = [];
+    this.photos = [];
   }
 
   private _trackMetadataInitialized = false;
@@ -196,6 +215,10 @@ export class TrailOverviewComponent extends AbstractComponent {
       p.style.setProperty('--max-height', remaining < 300 ? '300px' : (h - y - 10) + 'px');
       p.present();
     });
+  }
+
+  openPhotos(slider: PhotosSliderComponent): void {
+    this.photoService.openSliderPopup(this.photos, slider.index);
   }
 
 }

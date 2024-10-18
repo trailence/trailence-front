@@ -32,6 +32,9 @@
       </div>
     </div>
   </ng-container>
+  <div class="photos" *ngIf="photos.length > 0">
+    <app-photos-slider #slider [photos]="photos" [width]="125" [height]="120" (click)="openPhotos(slider);"></app-photos-slider>
+  </div>
   <div id="track-metadata-{{id}}"></div>
   <ng-container *ngIf="meta.loopTypeString">
     <div class="metadata-item-container">
@@ -44,11 +47,13 @@
         </div>
       </div>
     </div>
-    <div class="metadata-item-container">
-      <div class="metadata-item">
-        <!-- Empty until another meta -->
+    <ng-container *ngIf="photos.length === 0">
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <!-- Empty until another meta -->
+        </div>
       </div>
-    </div>
+    </ng-container>
   </ng-container>
 </div>
 <ng-container *ngIf="!track$.value">

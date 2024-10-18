@@ -139,7 +139,7 @@ export class TrailsListComponent extends AbstractComponent {
     public i18n: I18nService,
     private trackService: TrackService,
     public trailMenuService: TrailMenuService,
-    private changeDetector: ChangeDetectorRef,
+    public changeDetector: ChangeDetectorRef,
     private router: Router,
     private preferences: PreferencesService,
     private tagService: TagService,

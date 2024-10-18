@@ -352,7 +352,7 @@ export class TrailComponent extends AbstractComponent {
                     photosOnMap.delete(key);
                   } else {
                     markers$.push(this.photoService.getFile$(p.photos[0].owner, p.photos[0].uuid).pipe(
-                      switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 60, 0.7))),
+                      switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 75, 0.7))),
                       switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
                         map(base64 => {
                           const marker = MapPhoto.create(p.point, base64, jpeg.width, jpeg.height, p.photos.length > 1 ? '' + p.photos.length : undefined);

@@ -35,6 +35,15 @@ div.photos-container {
   left: 0;
   right: 0;
   z-index: 1;
+
+  &.large {
+    div.photo-container {
+      height: calc(100% - 45px);
+    }
+    div.photo-description {
+      display: block;
+    }
+  }
 }
 
 div.photo-item {
@@ -52,7 +61,7 @@ div.photo-container {
   top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - 45px);
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -67,4 +76,5 @@ div.photo-description {
   display: flex;
   flex-direction: column;
   align-items: center;
+  display: none;
 }

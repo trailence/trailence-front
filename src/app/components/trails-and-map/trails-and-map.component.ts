@@ -171,8 +171,11 @@ export class TrailsAndMapComponent extends AbstractComponent {
   private updateVisibility(mapVisible: boolean, listVisible: boolean, trailSheetVisible: boolean): void {
     this._children$.value.forEach(child => {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
-      else if (child instanceof TrailsListComponent) child.setVisible(listVisible);
-      else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
+      else if (child instanceof TrailsListComponent) {
+        const needUpdate = listVisible && child.visible;
+        child.setVisible(listVisible);
+        child.changeDetector.detectChanges();
+      } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
       else console.error('unexpected child', child);
     });
   }
