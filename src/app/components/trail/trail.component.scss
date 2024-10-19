@@ -515,3 +515,12 @@
     transition: opacity 0.25s ease-in-out;
   }
 }
+
+div.trail-dates {
+  font-size: 12px;
+  padding: 0 8px;
+
+  span.trail-date-title {
+    color: var(--ion-color-secondary);
+  }
+}

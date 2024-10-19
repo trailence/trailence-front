@@ -115,6 +115,16 @@
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
         <ion-checkbox *ngIf="photos && photos.length > 0" labelPlacement="end" [checked]="showPhotos$.value" (ionChange)="showPhotos$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_photos}}</ion-checkbox>
       </div>
+      <div class="trail-dates" *ngIf="trail1 && !trail2">
+        <div>
+          <span class="trail-date-title">Créé dans Trailence le </span>
+          <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
+        </div>
+        <div *ngIf="trail1.createdAt !== trail1.updatedAt">
+          <span class="trail-date-title">Dernière mise à jour le </span>
+          <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.updatedAt)}}</span>
+        </div>
+      </div>
       <div class="actions" *ngIf="tracks[0]">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
         <app-icon-label-button *ngIf="!trail2" icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
