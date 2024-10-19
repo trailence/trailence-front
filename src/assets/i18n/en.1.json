@@ -524,7 +524,21 @@
       "file_not_imported": "File '{{1}}' cannot be imported: {{2}}",
       "not_gpx": "File is not a valid GPX"
     },
-    "download_offline_map": "{{1}} error(s) while downloading offline maps"
+    "download_offline_map": "{{1}} error(s) while downloading offline maps",
+    "stores": {
+      "save_photo": "Error sending photo {{1}} to the server",
+      "save_track": "Error sending track to the server",
+      "delete_tracks": "Error deleting tracks on the server",
+      "get_track": "Error downloading a track from the server",
+      "save_tracks": "Error saving tracks on your device",
+      "update_track": "Error updating a track on the server",
+      "create_items": "Error sending your data to the server (new {{1}})",
+      "get_updates": "Error requesting updates from the server ({{1}})",
+      "send_updates": "Error sending your updates to the server ({{1}})",
+      "delete_items": "Error deleting data on the server ({{1}})"
+    },
+    "import_photo": "Cannot import photo {{1}}",
+    "invalid_format": "Invalid format"
   },
   "export": {
     "trail": "Trail",

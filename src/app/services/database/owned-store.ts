@@ -5,6 +5,7 @@ import { Store, StoreSyncStatus } from './store';
 import { Table } from 'dexie';
 import { Injector } from '@angular/core';
 import { DatabaseService } from './database.service';
+import { ErrorService } from '../progress/error.service';
 
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
@@ -280,8 +281,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             return this.updatedDtosFromServer(result);
           }),
           catchError(error => {
-            // TODO
             console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.tableName]);
             return of(false);
           }),
           tap(() => {
@@ -302,8 +303,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         return this.updatedDtosFromServer([...result.updated, ...result.created], result.deleted);
       }),
       catchError(error => {
-        // TODO
         console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.tableName, error);
+        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
         return of(false);
       })
     );
@@ -345,8 +346,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             return this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length));
           }),
           catchError(error => {
-            // TODO
             console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.tableName]);
             return of(false);
           }),
           tap(() => {
@@ -368,8 +369,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         return this.updatedDtosFromServer([], toDelete.map(uuid => ({uuid, owner: this.injector.get(DatabaseService).email!})));
       }),
       catchError(error => {
-        // TODO
         console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server', error);
+        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
         return of(false);
       })
     );

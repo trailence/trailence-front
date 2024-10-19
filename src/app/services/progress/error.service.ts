@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { ModalController } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
-import { translate } from '../i18n/i18n-string';
+import { CompositeI18nString, translate, TranslatedString } from '../i18n/i18n-string';
+import { ApiError } from '../http/api-error';
 
 @Injectable({providedIn: 'root'})
 export class ErrorService {
@@ -13,6 +14,25 @@ export class ErrorService {
     private modalController: ModalController,
     private i18n: I18nService,
   ) {}
+
+  public addNetworkError(error: any, i18nText: string, args: any[]) {
+    let technicalMessage = '';
+    if (error instanceof ApiError) {
+      if (error.httpCode === 0) {
+        // no network, ignore it
+        return;
+      }
+      if (error.errorMessage) technicalMessage = error.errorMessage;
+    } else {
+      technicalMessage = translate(error, this.i18n);
+    }
+    this.addError(new CompositeI18nString([new TranslatedString(i18nText, args), technicalMessage.length > 0 ? ' [' + technicalMessage + ']' : '']));
+  }
+
+  public addTechnicalError(error: any, i18nText: string, args: any[]) {
+    const technicalMessage = translate(error, this.i18n);
+    this.addError(new CompositeI18nString([new TranslatedString(i18nText, args), technicalMessage.length > 0 ? ' [' + technicalMessage + ']' : '']));
+  }
 
   public addError(error: any): void {
     this.addErrors([error]);

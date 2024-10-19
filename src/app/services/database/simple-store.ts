@@ -2,6 +2,7 @@ import { BehaviorSubject, Observable, catchError, defaultIfEmpty, from, map, of,
 import { Store, StoreSyncStatus } from "./store";
 import { Table } from "dexie";
 import { Injector } from "@angular/core";
+import { ErrorService } from '../progress/error.service';
 
 interface SimpleStoreItem<T> {
     key: string;
@@ -171,7 +172,6 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           },
           error: error => {
             // should never happen
-            // TODO ?
             console.log(error);
           }
         });
@@ -203,8 +203,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 return this.saveStore().pipe(map(ok => ok && readyEntities.length === toCreate.length));
               }),
               catchError(error => {
-                // TODO
                 console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
+                this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.tableName]);
                 return of(false);
               })
             );
@@ -229,8 +229,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             return this.saveStore();
           }),
           catchError(error => {
-            // TODO
             console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
             return of(false);
           })
         );
@@ -285,8 +285,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 return of(true);
             }),
             catchError(error => {
-              // TODO
               console.error('Error getting updates from server for ' + this.tableName, error);
+              this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
               return of(false);
             })
         );

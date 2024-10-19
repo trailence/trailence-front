@@ -19,6 +19,7 @@ import { ImageInfo, ImageUtils } from 'src/app/utils/image-utils';
 import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
+import { ErrorService } from '../progress/error.service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -141,6 +142,7 @@ export class PhotoService {
       }),
       catchError(e => {
         console.log(e);
+        this.injector.get(ErrorService).addTechnicalError(e, 'errors.import_photo', [description]);
         return of(null);
       })
     );
@@ -259,8 +261,8 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
             if (dto.longitude) headers['X-Longitude'] = dto.longitude;
             return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid, blob, headers).pipe(
               catchError(e => {
-                console.log(e);
-                // TODO display
+                console.log('error saving photo on server', dto, e);
+                this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_photo', [dto.description]);
                 return EMPTY;
               })
             );

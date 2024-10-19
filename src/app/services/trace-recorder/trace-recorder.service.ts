@@ -19,6 +19,7 @@ import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular/standalone';
 import { ImprovmentRecordingState, TrackEditionService } from '../track-edition/track-edition.service';
 import { ProgressService } from '../progress/progress.service';
+import { ErrorService } from '../progress/error.service';
 
 @Injectable({
   providedIn: 'root'
@@ -45,6 +46,7 @@ export class TraceRecorderService {
     private trackEdition: TrackEditionService,
     private ngZone: NgZone,
     private progressService: ProgressService,
+    private errorService: ErrorService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -178,8 +180,8 @@ export class TraceRecorderService {
           return this.trailService.create(recording.trail, () => progress.addWorkDone(1));
         }),
         catchError(e => {
-          console.log(e);
-          // TODO
+          console.log('Error saving recorded trail', e);
+          this.errorService.addError(e);
           progress.done();
           return EMPTY;
         }),

@@ -1,3 +1,4 @@
+import { TranslatedString } from '../services/i18n/i18n-string';
 import { DataUtils } from './data-utils';
 import { TypeUtils } from './type-utils';
 
@@ -113,7 +114,7 @@ export class ImageUtils {
         )
       };
       img.onerror = err => {
-        reject(err);
+        reject(new TranslatedString('errors.invalid_format'));
       };
       img.src = urlCreator.createObjectURL(blob);
     });

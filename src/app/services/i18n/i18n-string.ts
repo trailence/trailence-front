@@ -44,3 +44,17 @@ export class I18nError extends Error implements I18nString {
   }
 
 }
+
+export class CompositeI18nString implements I18nString {
+
+  constructor(private parts: any[]) {}
+
+  translate(i18n: I18nService): string {
+    let result = '';
+    for (const part of this.parts) {
+      result += translate(part, i18n);
+    }
+    return result;
+  }
+
+}

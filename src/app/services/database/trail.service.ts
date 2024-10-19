@@ -22,6 +22,7 @@ import { TrailMenuService } from './trail-menu.service';
 import { Router } from '@angular/router';
 import { ModalController} from '@ionic/angular/standalone';
 import { PhotoService } from './photo.service';
+import { ErrorService } from '../progress/error.service';
 
 @Injectable({
   providedIn: 'root'
@@ -211,11 +212,14 @@ export class TrailService {
         backdropDismiss: false,
         componentProps: {
           onDone: (collectionUuid: string) => {
-            menuService.importGpx(buffer, owner, collectionUuid).then(imported => {
+            menuService.importGpx(buffer, owner, collectionUuid)
+            .then(imported => {
               menuService.importTags([imported], collectionUuid);
               this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid);
+            })
+            .catch(error => {
+              this.injector.get(ErrorService).addError(error);
             });
-            // TODO errors
           }
         }
       }))

@@ -533,7 +533,21 @@
       "file_not_imported": "Le fichier '{{1}}' n'a pas pu être importé: {{2}}",
       "not_gpx": "Le fichier n'est pas au format GPX ou est invalide"
     },
-    "download_offline_map": "{{1}} erreur(s) rencontrées lors du téléchargement des cartes"
+    "download_offline_map": "{{1}} erreur(s) rencontrées lors du téléchargement des cartes",
+    "stores": {
+      "save_photo": "Erreur lors de l'envoi de la photo {{1}} vers le serveur",
+      "save_track": "Erreur lors de l'envoi d'une trace vers le serveur",
+      "delete_tracks": "Erreur lors de la suppression de traces sur le serveur",
+      "get_track": "Erreur lors du téléchargement d'une trace depuis le serveur",
+      "save_tracks": "Erreur lors de la sauvegarde de traces sur votre appareil",
+      "update_track": "Erreur lors de la mise à jour d'une trace sur le serveur",
+      "create_items": "Erreur lors de la création sur le serveur ({{1}})",
+      "get_updates": "Erreur lors de la demande de mises à jour depuis le serveur ({{1}})",
+      "send_updates": "Erreur lors de l'envoi de vos mises à jour vers le serveur ({{1}})",
+      "delete_items": "Erreur lors de la suppression sur le serveur ({{1}})"
+    },
+    "import_photo": "Impossible de charger la photo {{1}}",
+    "invalid_format": "Format invalide/non supporté"
   },
   "export": {
     "trail": "Parcours",

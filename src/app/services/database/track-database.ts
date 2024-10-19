@@ -20,6 +20,7 @@ import { DatabaseSubjectService } from './database-subject-service';
 import { ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
+import { ErrorService } from '../progress/error.service';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -676,7 +677,7 @@ export class TrackDatabase {
               }),
               catchError(e => {
                 console.log('error creating track on server', item.track, e);
-                // TODO display
+                this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_track', []);
                 return EMPTY;
               })
             );
@@ -687,7 +688,7 @@ export class TrackDatabase {
         return zip(requests).pipe(defaultIfEmpty(false));
       }),
       catchError(error => {
-        // TODO
+        // should not happen
         console.error('error creating tracks on server', error);
         return of(false);
       })
@@ -710,7 +711,7 @@ export class TrackDatabase {
             return from(this.fullTrackTable!.bulkDelete(keys));
           }),
           catchError(error => {
-            // TODO
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
             console.error(error);
             return of(false);
           })
@@ -760,7 +761,7 @@ export class TrackDatabase {
                     done++;
                     progress.addWorkDone(1);
                     progress.subTitle = '' + done + '/' + toRetrieve.length;
-                    // TODO
+                    this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_track', []);
                     return of(null);
                   })
                 ));
@@ -774,7 +775,7 @@ export class TrackDatabase {
             return operations$;
           }),
           catchError(error => {
-            // TODO
+            // should never happen
             console.error('error getting track updates from server', error);
             return of(false);
           })
@@ -797,7 +798,7 @@ export class TrackDatabase {
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
               catchError(e => {
                 console.log('error sending update for track', item.track, e);
-                // TODO display
+                this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.update_track', []);
                 return EMPTY;
               })
             );
@@ -810,7 +811,7 @@ export class TrackDatabase {
         );
       }),
       catchError(error => {
-        // TODO
+        // should never happen
         console.error('error sending tracks updates', error);
         return of(false);
       })
@@ -865,7 +866,14 @@ export class TrackDatabase {
         if (this.db !== db) return;
         metadata.forEach(m => this.metadata.get(m.key)?.newValue(m));
       }
-    })).pipe(defaultIfEmpty(true));
+    })).pipe(
+      defaultIfEmpty(true),
+      catchError(error => {
+        console.log('Error saving tracks in database', error);
+        this.injector.get(ErrorService).addTechnicalError(error, 'errors.stores.save_tracks', []);
+        return of(true);
+      })
+    );
   }
 
   private hasLocalChanges(): Observable<boolean> {

@@ -12,6 +12,7 @@ import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
+import { ErrorService } from 'src/app/services/progress/error.service';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -56,6 +57,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     private auth: AuthService,
     private modalController: ModalController,
     private changesDetector: ChangeDetectorRef,
+    private errorService: ErrorService,
   ) {
     this.updateSize(browser);
     this.subscriptions.add(browser.resize$.subscribe(() => this.updateSize(browser)));
@@ -134,7 +136,10 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
       },
       ondone: (progress: Progress | undefined, result: boolean[], errors: any[]) => {
         progress?.done();
-        // TODO display errors
+        if (errors.length > 0) {
+          console.log('Errors reading photos', errors);
+          this.errorService.addErrors(errors);
+        };
       }
     })
   }
