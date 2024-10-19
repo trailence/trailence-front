@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController } from '@ionic/angular/standalone';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar, IonTitle, IonIcon } from '@ionic/angular/standalone';
 import { combineLatest, filter, first } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
@@ -19,7 +19,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonLabel, IonSpinner,
+  imports: [IonIcon, IonTitle, IonToolbar, IonLabel, IonSpinner,
     IonList,
     IonItem,
     IonInput,
@@ -38,6 +38,7 @@ export class LoginPage {
   password = '';
 
   inprogress = false;
+  progressMessage = '';
   error = false;
   incorrect = false;
   connected = false;
@@ -91,6 +92,7 @@ export class LoginPage {
     this.captchaToken = undefined;
     const element = document.getElementById('captcha-login');
     if (element) while (element.children.length > 0) element.removeChild(element.children.item(0)!);
+    this.progressMessage = this.i18n.texts.pages.login.signing_in;
     this.auth.login(this.email, this.password, token).subscribe({
       next: () => {
         combineLatest([
@@ -98,7 +100,10 @@ export class LoginPage {
           this.database.allLoaded(),
           this.collectionService.getAll$().pipe(collection$items())
         ]).pipe(
-          filter(([a,l,c]) => !a || (l && c.length > 0)),
+          filter(([a,l,c]) => {
+            if (a) this.progressMessage = this.i18n.texts.pages.login.downloading_data;
+            return !a || (l && c.length > 0);
+          }),
           first(),
         ).subscribe(([a,l,c]) => {
           if (a) {

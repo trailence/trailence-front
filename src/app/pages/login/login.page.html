@@ -1,4 +1,10 @@
 <ion-card>
+  <ion-toolbar color="primary">
+    <div style="font-size: 20px; display: flex; flex-direction: row; align-items: center; padding: 8px 16px;">
+      <ion-icon name="logo" style="margin-right: 10px" size="large"></ion-icon>
+      <ion-label>Trailence</ion-label>
+    </div>
+  </ion-toolbar>
   <ion-card-header>
     <ion-card-title>{{i18n.texts.pages.login.title}}</ion-card-title>
   </ion-card-header>
@@ -26,7 +32,7 @@
           <ion-label color="danger">{{i18n.texts.pages.login.locked_message}}</ion-label>
         </div>
         <div [ngStyle]="{'display': captchaNeeded ? 'block' : 'none'}">
-          <div>{{i18n.texts.pages.login.captcha_message}}</div>
+          <div *ngIf="captchaNeeded">{{i18n.texts.pages.login.captcha_message}}</div>
           <div id="captcha-login"></div>
         </div>
         <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; margin-top: 10px">
@@ -34,6 +40,9 @@
             <span *ngIf="!inprogress">{{i18n.texts.pages.login.signin_button}}</span>
             <ion-spinner *ngIf="inprogress"></ion-spinner>
           </ion-button>
+        </div>
+        <div style="text-align: center; font-size: 12px;" *ngIf="inprogress">
+          {{progressMessage}}
         </div>
         <div *ngIf="!inprogress">
           <ion-button fill="clear" color="tertiary" (click)="resetPassword()">

@@ -27,7 +27,9 @@
         "verification_code_explaination": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
         "in_progress": "Changement du mot de passe...",
         "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer"
-      }
+      },
+      "signing_in": "Connection...",
+      "downloading_data": "Chargement de vos données..."
     },
     "trails": {
       "edit_filters_popup_title": "Filtrer les Parcours",

@@ -18,7 +18,18 @@
       "error_message": "Autnetication error, please retry",
       "captcha_message": "Following several attempts, we need to check you are not a robot",
       "locked_message": "Your account has been locked, please use the forgot password button",
-      "forgot_password": "Forgot password?"
+      "forgot_password": "Forgot password?",
+      "reset_password": {
+        "title": "Reset password",
+        "email": "E-Mail",
+        "new_password1": "New password",
+        "new_password2": "Confirm your password",
+        "verification_code_explaination": "We have just sent a 6-digit code to your email address, please enter it below",
+        "in_progress": "Resetting password...",
+        "error": "An error occured, please go back and retry"
+      },
+      "signing_in": "Connection...",
+      "downloading_data": "Loading your data..."
     },
     "trails": {
       "edit_filters_popup_title": "Filter Trails",
