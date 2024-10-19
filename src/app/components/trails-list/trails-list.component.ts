@@ -23,8 +23,8 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { FilterTagsComponent } from '../filters/filter-tags/filter-tags.component';
-import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { List } from 'immutable';
+import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -207,7 +207,7 @@ export class TrailsListComponent extends AbstractComponent {
           trail => combineLatest([
             trail.currentTrackUuid$.pipe(
               switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
-              firstTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
+              filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
             ),
             trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([])
           ]).pipe(
