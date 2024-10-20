@@ -2,13 +2,13 @@
   <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="tags" style="margin-right: 10px"></ion-icon>
-      <ion-label>{{i18n.texts.pages.import_tags_popup.title}}</ion-label>
+      <ion-label>{{i18n.texts.pages.import_tags_popup['title_' + type]}}</ion-label>
     </ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
   <div class="message">
-    {{i18n.texts.pages.import_tags_popup.message}}
+    {{i18n.texts.pages.import_tags_popup['message_' + type]}}
   </div>
   <table *ngIf="resolvedTags">
     <tr>
@@ -33,10 +33,10 @@
     {{i18n.texts.pages.import_tags_popup.message2}}
   </div>
   <div class="buttons">
-    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, false)">{{i18n.texts.pages.import_tags_popup.import_existing_only}}</ion-button>
-    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, true)">{{i18n.texts.pages.import_tags_popup.import_and_create}}</ion-button>
-    <ion-button *ngIf="resolvedTags && !hasMissing && hasExisting" (click)="import(true, false)">{{i18n.texts.pages.import_tags_popup.import_all}}</ion-button>
-    <ion-button *ngIf="resolvedTags && hasMissing && !hasExisting" (click)="import(false, true)">{{i18n.texts.pages.import_tags_popup.import_all}}</ion-button>
-    <ion-button *ngIf="resolvedTags" (click)="cancel()">{{i18n.texts.pages.import_tags_popup.ignore_all}}</ion-button>
+    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, false)">{{i18n.texts.pages.import_tags_popup[type + '_existing_only']}}</ion-button>
+    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, true)">{{i18n.texts.pages.import_tags_popup[type + '_and_create']}}</ion-button>
+    <ion-button *ngIf="resolvedTags && !hasMissing && hasExisting" (click)="import(true, false)">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
+    <ion-button *ngIf="resolvedTags && hasMissing && !hasExisting" (click)="import(false, true)">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
+    <ion-button *ngIf="resolvedTags" (click)="cancel()">{{i18n.texts.pages.import_tags_popup['ignore_all_' + type]}}</ion-button>
   </div>
 </ion-content>

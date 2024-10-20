@@ -38,7 +38,7 @@
         <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; margin-top: 10px">
           <ion-button fill="clear" color="secondary" (click)="signin()" [disabled]="!canSignin() || inprogress" type="submit">
             <span *ngIf="!inprogress">{{i18n.texts.pages.login.signin_button}}</span>
-            <ion-spinner *ngIf="inprogress"></ion-spinner>
+            <ion-spinner *ngIf="inprogress" color="secondary"></ion-spinner>
           </ion-button>
         </div>
         <div style="text-align: center; font-size: 12px;" *ngIf="inprogress">

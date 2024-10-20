@@ -188,8 +188,10 @@
       "message": "Veuillez sélectionner la collection dans laquelle vous souhaitez que le fichier soit importé"
     },
     "import_tags_popup": {
-      "title": "Import des tags",
-      "message": "Les tags suivants ont été trouvés dans les fichiers importés",
+      "title_import": "Import des tags",
+      "title_copy": "Copie des tags",
+      "message_import": "Les tags suivants ont été trouvés dans les fichiers importés",
+      "message_copy": "Les tags suivants sont présents sur les parcours copiés",
       "tag": "Tag",
       "status": "Statut",
       "status_exists": "Existe",
@@ -198,7 +200,11 @@
       "import_existing_only": "Importer seulement les tags déjà existants",
       "import_and_create": "Importer tous les tags en créant les manquants",
       "import_all": "Tout importer",
-      "ignore_all": "Ne pas importer les tags"
+      "ignore_all_import": "Ne pas importer les tags",
+      "copy_existing_only": "Copier seulement les tags déjà existants",
+      "copy_and_create": "Copier tous les tags en créant les manquants",
+      "copy_all": "Tout copier",
+      "ignore_all_copy": "Ne pas copier les tags"
     },
     "share_popup": {
       "title": "Partager",

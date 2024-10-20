@@ -188,8 +188,10 @@
       "message": "Please select the collection you want the file to be imported into"
     },
     "import_tags_popup": {
-      "title": "Import tags",
-      "message": "The following tags were found in the imported filed",
+      "title_import": "Import tags",
+      "title_copy": "Copy tags",
+      "message_import": "The following tags were found in the imported filed",
+      "message_copy": "The following tags are present on the copied trails",
       "tag": "Tag",
       "status": "Status",
       "status_exists": "Exists",
@@ -198,7 +200,11 @@
       "import_existing_only": "Import only existing tags",
       "import_and_create": "Import all tags by creating the missing ones",
       "import_all": "Import all",
-      "ignore_all": "Do not import tags"
+      "ignore_all_import": "Do not import tags",
+      "copy_existing_only": "Copy only existing tags",
+      "copy_and_create": "Copy all tags by creating the missing ones",
+      "copy_all": "Copy all",
+      "ignore_all_copy": "Do not copy tags"
     },
     "share_popup": {
       "title": "Share",

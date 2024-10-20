@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { IonItem, IonIcon, IonLabel, IonPopover, IonContent, IonList, IonListHeader, IonButton } from "@ionic/angular/standalone";
 import { CommonModule } from '@angular/common';
@@ -21,6 +21,7 @@ export class MenuContentComponent implements OnInit {
 
   constructor(
     public i18n: I18nService,
+    private changesDetector: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -55,6 +56,7 @@ export class MenuContentComponent implements OnInit {
         this.compute(item.children);
       }
     }
+    this.changesDetector.detectChanges();
   }
 
   back($event: Event): void {
@@ -62,6 +64,7 @@ export class MenuContentComponent implements OnInit {
     $event.stopPropagation()
     const parent = this.parents.pop();
     this.computed = parent!.list;
+    this.changesDetector.detectChanges();
   }
 }
 

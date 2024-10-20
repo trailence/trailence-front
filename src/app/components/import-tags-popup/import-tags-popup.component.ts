@@ -30,6 +30,7 @@ export class ImportTagsPopupComponent  implements OnInit {
   @Input() collectionUuid!: string;
   @Input() tags!: string[][];
   @Input() toImport!: {trailUuid: string, tags: string[][]}[];
+  @Input() type = 'import';
 
   resolvedTags?: ResolvedTag[];
   hasExisting = false;
@@ -73,7 +74,7 @@ export class ImportTagsPopupComponent  implements OnInit {
   }
 
   import(existing: boolean, missing: boolean): void {
-    const progress = this.progressService.create(this.i18n.texts.pages.import_tags_popup.title, 1);
+    const progress = this.progressService.create(this.i18n.texts.pages.import_tags_popup['title_' + this.type], 1);
     if (existing) this.importExisting(progress);
     if (missing) this.importMissing(progress);
     this.modalController.dismiss(null, 'ok');

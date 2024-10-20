@@ -371,7 +371,10 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   selectAll(selected: boolean): void {
-    this.listTrails.forEach(t => t.selected = selected);
+    this.listTrails.forEach(t => {
+      t.selected = selected;
+      return true;
+    });
     this.changeDetector.detectChanges();
   }
 
