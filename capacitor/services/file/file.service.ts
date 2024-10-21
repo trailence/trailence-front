@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular';
+import { Platform } from '@ionic/angular/standalone';
 import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { IFileService, OpenFileRequest } from 'src/app/services/file/file.interface';
 import { BinaryContent } from 'src/app/utils/binary-content';

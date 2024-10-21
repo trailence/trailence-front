@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular';
+import { Platform } from '@ionic/angular/standalone';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
 import * as JSZip from 'jszip';

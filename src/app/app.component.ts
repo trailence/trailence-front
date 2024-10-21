@@ -1,21 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
-import { TrackService } from './services/database/track.service';
-import { TrailService } from './services/database/trail.service';
-import { TrailCollectionService } from './services/database/trail-collection.service';
-import { TagService } from './services/database/tag.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menu/menu.component';
 import { GeolocationService } from './services/geolocation/geolocation.service';
-import { ExtensionsService } from './services/database/extensions.service';
-import { ShareService } from './services/database/share.service';
-import { DatabaseCleanupService } from './services/database/database-cleanup.service';
 import { NavigationEnd, Router } from '@angular/router';
-import { combineLatest, filter, first } from 'rxjs';
+import { combineLatest, filter, first, from, Observable } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
-import { DatabaseService } from './services/database/database.service';
 import { BrowserService } from './services/browser/browser.service';
 
 @Component({
@@ -38,19 +30,11 @@ export class AppComponent {
     public geolocation: GeolocationService,
     router: Router,
     auth: AuthService,
-    database: DatabaseService,
+    private injector: Injector,
     // init browser
     browserService: BrowserService,
     // init assets
     assetsService: AssetsService,
-    // depends on services with stores, so they can start synchronizing
-    trackService: TrackService,
-    trailService: TrailService,
-    collectionService: TrailCollectionService,
-    tagService: TagService,
-    extensionsService: ExtensionsService,
-    shareService: ShareService,
-    databaseCleanup: DatabaseCleanupService,
   ) {
     combineLatest([
       router.events.pipe(
@@ -68,14 +52,42 @@ export class AppComponent {
     ]).subscribe(([e, t, a]) => {
       const startup = document.getElementById('startup')!;
       document.getElementById('root')!.style.display = '';
-      if (!a)
+      if (!a) {
         this.ready(startup);
-      else {
-        // authenticated => wait for databases to be open
-        combineLatest([auth.auth$, database.allLoaded()]).subscribe(([a, l]) => {
-          if (!a || l) this.ready(startup);
+        auth.auth$.pipe(
+          filter(a => !!a),
+          first(),
+        ).subscribe(() => this.loadServices().then(() => {}));
+      } else {
+        this.loadServices().then(allDatabasesLoaded => {
+          combineLatest([auth.auth$, allDatabasesLoaded()]).subscribe(([a, l]) => {
+            if (!a || l) this.ready(startup);
+          });
         });
       }
+    });
+  }
+
+  private loadServices(): Promise<() => Observable<boolean>> {
+    return Promise.all([
+      import('./services/database/database.service'),
+      import('./services/database/database-cleanup.service'),
+      import('./services/database/share.service'),
+      import('./services/database/extensions.service'),
+      import('./services/database/tag.service'),
+      import('./services/database/trail-collection.service'),
+      import('./services/database/trail.service'),
+      import('./services/database/track.service'),
+    ]).then(services => {
+      const database = this.injector.get(services[0].DatabaseService);
+      this.injector.get(services[1].DatabaseCleanupService);
+      this.injector.get(services[2].ShareService);
+      this.injector.get(services[3].ExtensionsService);
+      this.injector.get(services[4].TagService);
+      this.injector.get(services[5].TrailCollectionService);
+      this.injector.get(services[6].TrailService);
+      this.injector.get(services[7].TrackService);
+      return () => database.allLoaded();
     });
   }
 

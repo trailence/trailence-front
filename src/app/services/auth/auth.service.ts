@@ -42,7 +42,7 @@ export class AuthService {
     private http: HttpService,
     private router: Router,
     private platform: Platform,
-    private navController: NavController,
+    navController: NavController,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {

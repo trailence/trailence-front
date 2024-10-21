@@ -19,7 +19,7 @@
     "set-version": "node ./scripts/set-version.js %npm_config_newversion%",
     "check-i18n": "node ./scripts/check-i18n-keys.js",
     "check-assets-version": "node ./scripts/check-assets-version.js",
-    "release": "npm run check-i18n && npm run check-assets-version && npm run set-version"
+    "release": "npm run check-i18n && npm run check-assets-version && npm run set-version && ng build --configuration=production"
   },
   "license": "Apache-2.0",
   "private": true,
