@@ -50,4 +50,8 @@ export class WayPoint {
     return new WayPoint(this.point.copy(), this.name, this.description);
   }
 
+  public isEquals(other: WayPoint): boolean {
+    return this._name.value === other._name.value && this._description.value === other._description.value && this._point.isEquals(other._point);
+  }
+
 }

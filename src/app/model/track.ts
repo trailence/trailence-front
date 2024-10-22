@@ -197,6 +197,16 @@ export class Track extends Owned {
     }, this.preferencesService);
   }
 
+  public isEquals(other: Track): boolean {
+    if (this._wayPoints.value.length != other._wayPoints.value.length) return false;
+    for (let i = 0; i < this._wayPoints.value.length; ++i)
+      if (!this._wayPoints.value[i].isEquals(other._wayPoints.value[i])) return false;
+    if (this._segments.value.length != other._segments.value.length) return false;
+    for (let i = 0; i < this._segments.value.length; ++i)
+      if (!this._segments.value[i].isEquals(other._segments.value[i])) return false;
+    return true;
+  }
+
 }
 
 export class TrackMetadata {

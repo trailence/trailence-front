@@ -135,8 +135,11 @@
       "edit_tools": {
         "title": "Outils d'édition",
         "back_to_original": "Revenir à la trace d'origine",
+        "show_only_modified": "N'afficher que la trace modifiée (bleue)",
         "elevation": "Altitude",
-        "download_elevations": "Télécharger les altitudes",
+        "elevation_improvments": "Améliorations",
+        "from_download": "Utiliser un fournisseur d'altitude",
+        "download_elevations": "Remplacer les altitudes",
         "remove_unprobable_elevations": "Enlever les altitudes improbables",
         "apply_elevation_threshold": "Lisser avec un seuil de dénivelé",
         "elevation_threshold": "Seuil de dénivelé",
@@ -168,10 +171,15 @@
         "merge_segments": "Relier les points de pause et de reprise",
         "selected_point": {
           "title": "Point sélectionné",
+          "go_to_previous_point": "Aller au point précédent",
+          "go_to_next_point": "Aller au point suivant",
           "create_waypoint": "Créer un point de passage",
+          "remove_waypoint": "Supprimer le point de passage",
           "remove_all_next_points": "Supprimer tous les points après",
           "remove_all_previous_points": "Supprimer tous les points avants"
-        }
+        },
+        "no_modification": "Aucune modification n'a été apportée par cette fonction",
+        "actions": "Actions"
       }
     },
     "collection_form": {

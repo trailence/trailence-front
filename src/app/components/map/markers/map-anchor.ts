@@ -1,5 +1,4 @@
 import * as L from 'leaflet';
-import { XmlUtils } from 'src/app/utils/xml-utils';
 
 export class MapAnchor {
 
@@ -86,7 +85,7 @@ export class MapAnchor {
     if (!textColor) {
       textColor = borderColor;
     }
-    svg += '<text x="960" y="700" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="600px" font-weight="bold" fill="' + textColor + '" stroke="' + textColor + '">' + XmlUtils.escapeHtml(text) + '</text>';
+    svg += '<text x="960" y="700" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="600px" font-weight="bold" fill="' + textColor + '" stroke="' + textColor + '">' +text + '</text>';
     svg += '</svg>';
     return 'data:image/svg+xml;base64,' + btoa(svg);
   }

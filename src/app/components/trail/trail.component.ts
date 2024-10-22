@@ -72,6 +72,7 @@ export class TrailComponent extends AbstractComponent {
   toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsFocusTrack$ = new BehaviorSubject<Track | undefined>(undefined);
+  toolsHideBaseTrack$ = new BehaviorSubject<boolean>(false);
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
@@ -145,8 +146,8 @@ export class TrailComponent extends AbstractComponent {
     this.mapTracks$.next([]);
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.showBreaks$]).pipe(debounceTime(1)),
-      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, showBreaks]) => {
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(debounceTime(1)),
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, hideBaseTrack, showBreaks]) => {
         if (this.trail1 !== trail1[0]) {
           if (this._lockForDescription) {
             this._lockForDescription();
@@ -162,18 +163,20 @@ export class TrailComponent extends AbstractComponent {
 
         if (toolsBaseTrack && !recordingWithTrack && !trail2[0]) {
           tracks.push(toolsBaseTrack);
-          const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
-          mapTrack.showArrowPath();
-          if (!toolsModifiedTrack) {
-            mapTrack.showDepartureAndArrivalAnchors();
-            mapTrack.showWayPointsAnchors();
-            mapTrack.showBreaksAnchors(showBreaks);
+          if (!hideBaseTrack || !toolsModifiedTrack) {
+            const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
+            mapTrack.showArrowPath();
+            if (!toolsModifiedTrack) {
+              mapTrack.showDepartureAndArrivalAnchors();
+              mapTrack.showWayPointsAnchors();
+              mapTrack.showBreaksAnchors(showBreaks);
+            }
+            mapTracks.push(mapTrack);
           }
-          mapTracks.push(mapTrack);
         }
         if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
-          if (trail1[2]) {
+          if (trail1[2] && (!toolsModifiedTrack || !hideBaseTrack)) {
             mapTracks.push(trail1[2]);
             if (!toolsModifiedTrack) {
               trail1[2].showDepartureAndArrivalAnchors();
@@ -203,12 +206,12 @@ export class TrailComponent extends AbstractComponent {
 
         if (!recordingWithTrack && !trail2[0]) {
           if (toolsModifiedTrack) {
-            tracks.push(toolsModifiedTrack);
+            tracks.splice(0, 0, toolsModifiedTrack);
             const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n);
             mapTrack.showDepartureAndArrivalAnchors();
             mapTrack.showWayPointsAnchors();
             mapTrack.showBreaksAnchors(showBreaks);
-            mapTracks.push(mapTrack);
+            mapTracks.splice(0, 0, mapTrack);
           }
           if (toolsFocusTrack !== this.previousFocus) {
             this.previousFocus = toolsFocusTrack;
@@ -726,6 +729,7 @@ export class TrailComponent extends AbstractComponent {
       baseTrack$: this.toolsBaseTrack$,
       modifiedTrack$: this.toolsModifiedTrack$,
       focusTrack$: this.toolsFocusTrack$,
+      hideBaseTrack$: this.toolsHideBaseTrack$,
       map: this.map!,
       getMe: (me: any) => { this.editToolsComponentInstance = me; },
       close: () => {

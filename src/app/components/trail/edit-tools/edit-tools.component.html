@@ -16,6 +16,10 @@
       <ion-item button (click)="backToOriginalTrack()">
         {{i18n.texts.pages.trail.edit_tools.back_to_original}}
       </ion-item>
+      <ion-item *ngIf="modifiedTrack$.value" (click)="showOnlyModified(!hideBaseTrack$.value)">
+        <ion-checkbox slot="start" [checked]="hideBaseTrack$ | async"></ion-checkbox>
+        <div>{{i18n.texts.pages.trail.edit_tools.show_only_modified}}</div>
+      </ion-item>
     </ion-list>
 
     <div class="page-section-title">
@@ -23,15 +27,19 @@
       <span>{{i18n.texts.pages.trail.edit_tools.elevation}}</span>
     </div>
 
+    <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.elevation_improvments}}</div>
     <ion-list>
-      <ion-item button (click)="downloadElevations()">
-        {{i18n.texts.pages.trail.edit_tools.download_elevations}}
-      </ion-item>
       <ion-item button (click)="removeUnprobableElevations()">
         {{i18n.texts.pages.trail.edit_tools.remove_unprobable_elevations}}
       </ion-item>
       <ion-item button id="elevation-threshold-button-{{id}}">
         {{i18n.texts.pages.trail.edit_tools.apply_elevation_threshold}}
+      </ion-item>
+    </ion-list>
+    <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.from_download}}</div>
+    <ion-list>
+      <ion-item button (click)="downloadElevations()">
+        {{i18n.texts.pages.trail.edit_tools.download_elevations}}
       </ion-item>
     </ion-list>
 
@@ -110,12 +118,22 @@
       </div>
     </div>
   </div>
-  <div style="padding: 10px">
-    <ion-button color="primary" (click)="createWayPoint()">{{i18n.texts.pages.trail.edit_tools.selected_point.create_waypoint}}</ion-button>
-    <ion-button color="danger" (click)="removeSelectedPoint()">{{i18n.texts.buttons.delete}}</ion-button>
-    <ion-button color="danger" (click)="removeAllPointsBeforeSelected()">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_previous_points}}</ion-button>
-    <ion-button color="danger" (click)="removeAllPointsAfterSelected()">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_next_points}}</ion-button>
+  <ion-list>
+    <ion-item button *ngIf="canMoveSelectedPointBackward()" (click)="moveSelectedPointBackward()">{{i18n.texts.pages.trail.edit_tools.selected_point.go_to_previous_point}}</ion-item>
+    <ion-item button *ngIf="canMoveSelectedPointForward()" (click)="moveSelectedPointForward()">{{i18n.texts.pages.trail.edit_tools.selected_point.go_to_next_point}}</ion-item>
+  </ion-list>
+  <div class="page-section-sub-title">
+    {{i18n.texts.pages.trail.edit_tools.actions}}
   </div>
+  <ion-list>
+    <ng-container *ngIf="getWayPointFromSelectedPoint() | async as wp">
+      <ion-item *ngIf="!wp.waypoint" color="primary" button (click)="createWayPoint()">{{i18n.texts.pages.trail.edit_tools.selected_point.create_waypoint}}</ion-item>
+      <ion-item *ngIf="wp.waypoint" color="danger" button (click)="removeWayPoint(wp.waypoint)">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_waypoint}}</ion-item>
+    </ng-container>
+    <ion-item color="danger" button (click)="removeSelectedPoint()">{{i18n.texts.buttons.delete}}</ion-item>
+    <ion-item color="danger" button (click)="removeAllPointsBeforeSelected()">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_previous_points}}</ion-item>
+    <ion-item color="danger" button (click)="removeAllPointsAfterSelected()">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_next_points}}</ion-item>
+  </ion-list>
 </ng-template>
 
 <ion-modal #modalElevationThreshold trigger="elevation-threshold-button-{{id}}">
@@ -233,12 +251,10 @@
               </ion-buttons>
             </div>
             <div class="separator"></div>
-            <ion-button (click)="removeCurrentLongBreakMoves()">
-              {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.remove_moves}}
-            </ion-button>
-            <ion-button (click)="goToNextLongBreakMoves()">
-              {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.skip_moves}}
-            </ion-button>
+            <ion-list>
+              <ion-item button color="danger" (click)="removeCurrentLongBreakMoves()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.remove_moves}}</ion-item>
+              <ion-item button (click)="goToNextLongBreakMoves()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.skip_moves}}</ion-item>
+            </ion-list>
           </ng-container>
           <ng-container *ngIf="longBreaksDetected[0].startIndex === -1">
             <ion-button (click)="goToNextLongBreakMoves()">

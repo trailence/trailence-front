@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, first, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonList, IonItem, IonModal, IonRange } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonList, IonItem, IonModal, IonRange, IonCheckbox, ToastController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -31,7 +31,7 @@ interface HistoryState {
   templateUrl: './edit-tools.component.html',
   styleUrls: ['./edit-tools.component.scss'],
   standalone: true,
-  imports: [IonRange, IonModal, IonItem, IonList, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
+  imports: [IonCheckbox, IonRange, IonModal, IonItem, IonList, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
 })
 export class EditToolsComponent implements OnInit, OnDestroy {
 
@@ -39,6 +39,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   @Input() baseTrack$!: BehaviorSubject<Track | undefined>;
   @Input() modifiedTrack$!: BehaviorSubject<Track | undefined>;
   @Input() focusTrack$!: BehaviorSubject<Track | undefined>;
+  @Input() hideBaseTrack$!: BehaviorSubject<boolean>;
   @Input() map!: MapComponent;
   @Input() close!: () => void;
   @Input() getMe!: (me: EditToolsComponent) => void;
@@ -67,6 +68,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     private geo: GeoService,
     private editionService: TrackEditionService,
     private changesDetector: ChangeDetectorRef,
+    private toastController: ToastController,
   ) { }
 
   private mapClickSubscription?: Subscription;
@@ -164,6 +166,11 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     );
   }
 
+  showOnlyModified(value: boolean): void {
+    this.hideBaseTrack$.next(value);
+    this.changesDetector.detectChanges();
+  }
+
   private getTrack(): Observable<Track> {
     if (this.modifiedTrack$.value)
       return of(this.modifiedTrack$.value);
@@ -173,28 +180,48 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   }
 
   public modify(): Observable<Track> {
+    return this.getTrackForModification().pipe(
+      tap(track => {
+        this.pushHistory();
+        this.modifiedTrack$.next(track);
+      })
+    );
+  }
+
+  public mayModify(modification: (track: Track) => Observable<any>) {
+    this.getTrackForModification().subscribe(
+      track => {
+        const before = track.copy(this.auth.email!);
+        modification(track).pipe(defaultIfEmpty(true)).subscribe(() => {
+          if (before.isEquals(track)) {
+            this.toastController.create({
+              message: this.i18n.texts.pages.trail.edit_tools.no_modification,
+              duration: 2000,
+            })
+            .then(toast => toast.present());
+            return;
+          }
+          this.pushHistory();
+          this.modifiedTrack$.next(track);
+        });
+      }
+    );
+  }
+
+  private getTrackForModification(): Observable<Track> {
     return this.modifiedTrack$.pipe(
       first(),
       switchMap(previous => {
         if (previous) {
-          this.pushHistory();
-          const copy = previous.copy(this.auth.email!);
-          this.modifiedTrack$.next(copy);
-          return of(copy);
+          return of(previous.copy(this.auth.email!));
         }
         if (this.baseTrack$.value) {
-          this.pushHistory();
-          const copy = this.baseTrack$.value.copy(this.auth.email!);
-          this.modifiedTrack$.next(copy);
-          return of(copy);
+          return of(this.baseTrack$.value.copy(this.auth.email!));
         }
         return this.trackService.getFullTrackReady$(this.trail.currentTrackUuid, this.trail.owner).pipe(
           first(),
           map(track => {
-            this.pushHistory();
-            const copy = track.copy(this.auth.email!);
-            this.modifiedTrack$.next(copy);
-            return copy;
+            return track.copy(this.auth.email!);
           })
         );
       })
@@ -207,6 +234,65 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     for (let i = 0; i < this.selectedPoint.segmentIndex!; ++i) distance += (this.selectedPoint.track.track as Track).segments[i].computeTotalDistance();
     distance += (this.selectedPoint.track.track as Track).segments[this.selectedPoint.segmentIndex!].distanceFromSegmentStart(this.selectedPoint.pointIndex);
     return distance;
+  }
+
+  canMoveSelectedPointBackward(): boolean {
+    if (!this.selectedPoint) return false;
+    if (this.selectedPoint.pointIndex > 0) return true;
+    if (this.selectedPoint.segmentIndex !== undefined && this.selectedPoint.segmentIndex > 0) return true;
+    return false;
+  }
+
+  moveSelectedPointBackward(): void {
+    if (!this.selectedPoint) return;
+    const t = this.selectedPoint.track.track;
+    if (t instanceof Track) {
+      if (this.selectedPoint.pointIndex === 0) {
+        this.selectedPoint.segmentIndex = this.selectedPoint.segmentIndex! - 1;
+        this.selectedPoint.segment = t.segments[this.selectedPoint.segmentIndex];
+        this.selectedPoint.pointIndex = this.selectedPoint.segment.points.length - 1;
+        this.selectedPoint.point = this.selectedPoint.segment.points[this.selectedPoint.pointIndex];
+      } else {
+        this.selectedPoint.pointIndex--;
+        this.selectedPoint.point = this.selectedPoint.segment!.points[this.selectedPoint.pointIndex];
+      }
+    } else {
+      this.selectedPoint.pointIndex--;
+      this.selectedPoint.point = t.points[this.selectedPoint.pointIndex];
+    }
+    this.selectedPointAnchor.marker.setLatLng(this.selectedPoint.position);
+  }
+
+  canMoveSelectedPointForward(): boolean {
+    if (!this.selectedPoint) return false;
+    const t = this.selectedPoint.track.track;
+    if (t instanceof Track) {
+      if (this.selectedPoint.segmentIndex! < t.segments.length - 1) return true;
+      if (this.selectedPoint.pointIndex < t.segments[this.selectedPoint.segmentIndex!].points.length - 1) return true;
+    } else {
+      if (this.selectedPoint.pointIndex < t.points.length - 1) return true;
+    }
+    return false;
+  }
+
+  moveSelectedPointForward(): void {
+    if (!this.selectedPoint) return;
+    const t = this.selectedPoint.track.track;
+    if (t instanceof Track) {
+      if (this.selectedPoint.pointIndex === t.segments[this.selectedPoint.segmentIndex!].points.length - 1) {
+        this.selectedPoint.segmentIndex = this.selectedPoint.segmentIndex! + 1;
+        this.selectedPoint.pointIndex = 0;
+        this.selectedPoint.segment = t.segments[this.selectedPoint.segmentIndex! + 1];
+        this.selectedPoint.point = t.segments[this.selectedPoint.segmentIndex].points[0];
+      } else {
+        this.selectedPoint.pointIndex++;
+        this.selectedPoint.point = this.selectedPoint.segment!.points[this.selectedPoint.pointIndex];
+      }
+    } else {
+      this.selectedPoint.pointIndex++;
+      this.selectedPoint.point = t.points[this.selectedPoint.pointIndex];
+    }
+    this.selectedPointAnchor.marker.setLatLng(this.selectedPoint.position);
   }
 
   removeSelectedPoint(): void {
@@ -251,6 +337,20 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     });
   }
 
+  getWayPointFromSelectedPoint(): Observable<{waypoint: WayPoint | undefined}> {
+    if (!this.selectedPoint) return of({waypoint: undefined});
+    const pos = this.selectedPoint.position;
+    return this.getTrack().pipe(
+      switchMap(track => track.wayPoints$),
+      map(wayPoints => {
+        for (const wp of wayPoints) {
+          if (wp.point.pos.lat === pos.lat && wp.point.pos.lng === pos.lng) return {waypoint: wp};
+        }
+        return {waypoint: undefined};
+      })
+    );
+  }
+
   createWayPoint(): void {
     this.modify().subscribe(track => {
       track.appendWayPoint(new WayPoint(this.selectedPoint!.point as Point, '', ''));
@@ -259,25 +359,28 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     });
   }
 
+  removeWayPoint(wp: WayPoint): void {
+    this.modify().subscribe(track => {
+      const w = track.wayPoints.find(w => w.point.samePositionRound(wp.point.pos));
+      if (w) track.removeWayPoint(w);
+      this.selectedPoint = undefined;
+      this.map.removeFromMap(this.selectedPointAnchor.marker);
+    });
+  }
+
   downloadElevations(): void {
-    this.modify().subscribe(
-      track => {
-        for (const segment of track.segments)
-          for (const point of segment.points) {
-            point.ele = undefined;
-            point.eleAccuracy = undefined;
-          }
-        this.geo.fillTrackElevation(track).subscribe(() => this.modifiedTrack$.next(track));
-      }
-    );
+    this.mayModify(track => {
+      for (const segment of track.segments)
+        for (const point of segment.points) {
+          point.ele = undefined;
+          point.eleAccuracy = undefined;
+        }
+      return this.geo.fillTrackElevation(track);
+    });
   }
 
   removeUnprobableElevations(): void {
-    this.modify().subscribe(
-      track => {
-        adjustUnprobableElevationToTrack(track);
-      }
-    );
+    this.mayModify(track => of(adjustUnprobableElevationToTrack(track)));
   }
 
   getMinElevationThreshold(): number {
@@ -339,7 +442,10 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   applyElevationThreshold(elevation: any, distance: any): void {
     const threshold = this.i18n.elevationInMetersFromUserUnit(elevation);
     const maxDistance = this.i18n.distanceInMetersFromUserUnit(distance);
-    this.modify().subscribe(track => applyElevationThresholdToTrack(track, threshold, maxDistance));
+    this.mayModify(track => {
+      applyElevationThresholdToTrack(track, threshold, maxDistance);
+      return of(true);
+    })
   }
 
   canJoinArrivalAndDeparture$(): Observable<boolean> {

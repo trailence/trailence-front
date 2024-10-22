@@ -81,6 +81,14 @@ export class Point {
     return p.lat === other.lat && p.lng === other.lng;
   }
 
+  public samePositionRound(other: L.LatLngLiteral): boolean {
+    const lat1 = Math.floor(this._pos.value.lat * POSITION_FACTOR);
+    const lng1 = Math.floor(this._pos.value.lng * POSITION_FACTOR);
+    const lat2 = Math.floor(other.lat * POSITION_FACTOR);
+    const lng2 = Math.floor(other.lng * POSITION_FACTOR);
+    return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
+  }
+
   public copy(): Point {
     return new Point(
       this.pos.lat,
@@ -92,6 +100,17 @@ export class Point {
       this.heading,
       this.speed
     );
+  }
+
+  public isEquals(other: Point): boolean {
+    return this.pos.lat === other.pos.lat &&
+      this.pos.lng === other.pos.lng &&
+      this.ele === other.ele &&
+      this.time === other.time &&
+      this.posAccuracy === other.posAccuracy &&
+      this.eleAccuracy === other.eleAccuracy &&
+      this.heading === other.heading &&
+      this.speed === other.speed;
   }
 
 }

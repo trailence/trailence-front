@@ -169,6 +169,13 @@ export class Segment {
     return this.distanceFromSegmentStart(this.relativePoints.length - 1);
   }
 
+  public isEquals(other: Segment): boolean {
+    if (this._points.value.length !== other._points.value.length) return false;
+    for (let i = 0; i < this._points.value.length; ++i)
+      if (!this._points.value[i].isEquals(other._points.value[i])) return false;
+    return true;
+  }
+
 }
 
 export class SegmentPoint {

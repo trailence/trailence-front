@@ -4,9 +4,8 @@ import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menu/menu.component';
-import { GeolocationService } from './services/geolocation/geolocation.service';
 import { NavigationEnd, Router } from '@angular/router';
-import { combineLatest, filter, first, from, Observable } from 'rxjs';
+import { combineLatest, filter, first, Observable, tap } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 
@@ -25,9 +24,13 @@ import { BrowserService } from './services/browser/browser.service';
   ],
 })
 export class AppComponent {
+
+  loadMenu = false;
+  loadMenuContent = false;
+  waitingForGps = false;
+
   constructor(
     public i18n: I18nService,
-    public geolocation: GeolocationService,
     router: Router,
     auth: AuthService,
     private injector: Injector,
@@ -44,6 +47,7 @@ export class AppComponent {
       i18n.texts$.pipe(
         filter(texts => !!texts),
         first(),
+        tap(() => this.loadMenu = true)
       ),
       auth.auth$.pipe(
         filter(a => a !== undefined),
@@ -65,6 +69,8 @@ export class AppComponent {
           });
         });
       }
+      import('./services/geolocation/geolocation.service')
+      .then(module => injector.get(module.GeolocationService).waitingForGps$.subscribe(value => this.waitingForGps = value));
     });
   }
 
@@ -98,5 +104,6 @@ export class AppComponent {
     }
     startup.style.opacity = '0';
     setTimeout(() => startup.parentElement?.removeChild(startup), 500);
+    this.loadMenuContent = true;
   }
 }

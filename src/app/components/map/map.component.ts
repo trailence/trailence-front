@@ -177,6 +177,7 @@ export class MapComponent extends AbstractComponent {
           const index = toRemove.indexOf(track);
           if (index >= 0) {
             toRemove.splice(index, 1);
+            track.bringToFront();
           } else {
             track.addTo(map);
           }

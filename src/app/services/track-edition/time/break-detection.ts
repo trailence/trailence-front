@@ -74,11 +74,58 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
     }
 
     if (lastEligiblePointDuration > minDuration) {
-      breaks.push({startIndex, endIndex: lastEligiblePointIndex});
+      breaks.push(adjustLongBreakDetected(segment, maxDistance, startIndex, lastEligiblePointIndex));
       index = endIndex + 1;
     } else {
       index++;
     }
   }
   return breaks;
+}
+
+function adjustLongBreakDetected(segment: Segment, maxDistance: number, startIndex: number, endIndex: number): {startIndex: number, endIndex: number} {
+  // because we use maxDistance, we may have too much points at the beginning and at the end
+  // adjust startIndex
+  let distance = 0;
+  const startTime = segment.points[startIndex].time;
+  if (startTime) {
+    let index = startIndex + 1;
+    for (; index < endIndex; ++index) {
+      const point = segment.points[index];
+      const dist = point.distanceTo(segment.points[index - 1].pos);
+      distance += dist;
+      if (distance >= maxDistance) {
+        index--;
+        break;
+      }
+      const maxTimeDiff = distance * 1.0 * 60 * 60;
+      if (point.time && point.time - startTime > maxTimeDiff) {
+        index--;
+        break;
+      }
+    }
+    startIndex = index;
+  }
+  // adjust endIndex
+  distance = 0;
+  const endTime = segment.points[endIndex].time;
+  if (endTime) {
+    let index = endIndex - 1;
+    for (; index > startIndex; --index) {
+      const point = segment.points[index];
+      const dist = point.distanceTo(segment.points[index + 1].pos);
+      distance += dist;
+      if (distance >= maxDistance) {
+        index++;
+        break;
+      }
+      const maxTimeDiff = distance * 1.0 * 60 * 60;
+      if (point.time && endTime - point.time > maxTimeDiff) {
+        index++;
+        break;
+      }
+    }
+    endIndex = index;
+  }
+  return {startIndex, endIndex};
 }
