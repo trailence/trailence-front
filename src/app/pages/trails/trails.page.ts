@@ -1,4 +1,4 @@
-import { Component, Injector, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -60,7 +60,7 @@ export class TrailsPage extends AbstractPage {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState.type === 'collection' && newState.id === 'my_trails') {
       this.byStateAndVisible.subscribe(this.injector.get(TrailCollectionService).getMyTrails$(),
-        myTrails => this.injector.get(Router).navigateByUrl('/trails/collection/' + myTrails.uuid)
+        myTrails => this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/trails/collection/' + myTrails.uuid))
       );
       return;
     }
@@ -74,7 +74,7 @@ export class TrailsPage extends AbstractPage {
           if (!collection) {
             if (this.shown && this.shown instanceof TrailCollection) {
               // collection has been removed
-              this.injector.get(Router).navigateByUrl('/');
+              this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
             }
             return EMPTY;
           }
@@ -87,7 +87,7 @@ export class TrailsPage extends AbstractPage {
             return this.injector.get(I18nService).texts$.pipe(map(texts => texts.my_trails));
           return of('');
         })
-      ).subscribe(title => this.title$.next(title)));
+      ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
       // trails from collection
       this.byStateAndVisible.subscribe(
         this.injector.get(TrailService).getAll$().pipe(
@@ -96,7 +96,7 @@ export class TrailsPage extends AbstractPage {
         trails => {
           const newList = List(trails);
           if (!newList.equals(this.trails$.value))
-            this.trails$.next(newList);
+            this.ngZone.run(() => this.trails$.next(newList));
         }
       );
     } else if (newState.type === 'share') {
@@ -137,23 +137,25 @@ export class TrailsPage extends AbstractPage {
             }
           })
         ), (result: {share: Share | undefined, trails: Trail[]}) => {
-          if (!result.share) {
-            if (this.shown && this.shown instanceof Share) {
-              // share has been removed
-              this.injector.get(Router).navigateByUrl('/');
+          this.ngZone.run(() => {
+            if (!result.share) {
+              if (this.shown && this.shown instanceof Share) {
+                // share has been removed
+                this.injector.get(Router).navigateByUrl('/');
+              }
+              return;
             }
-            return;
-          }
-          this.title$.next(result.share.name);
-          const newList = List(result.trails);
-          if (!newList.equals(this.trails$.value))
-            this.trails$.next(newList);
-          this.viewId = "share-" + result.share.id + "-" + result.share.from;
-          this.shown = result.share;
-          this.actions = this.injector.get(ShareService).getShareMenu(result.share);
+              this.title$.next(result.share.name);
+            const newList = List(result.trails);
+            if (!newList.equals(this.trails$.value))
+              this.trails$.next(newList);
+            this.viewId = "share-" + result.share.id + "-" + result.share.from;
+            this.shown = result.share;
+            this.actions = this.injector.get(ShareService).getShareMenu(result.share);
+          });
         });
     } else {
-      this.injector.get(Router).navigateByUrl('/');
+      this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
   }
 
