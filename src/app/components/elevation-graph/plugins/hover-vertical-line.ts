@@ -9,8 +9,8 @@ export class HoverVerticalLine implements C.Plugin<"line"> {
   ) {}
 
   afterDraw(chart: C.Chart<"line">): void {
-    const activeElements = chart.getActiveElements();
-    if (activeElements?.length) {
+    const activeElements = chart.getActiveElements().filter(e => !(chart.data.datasets[e.datasetIndex] as any).isGrade);
+    if (activeElements.length) {
       let ctx = chart.ctx;
       ctx.save();
       ctx.lineWidth = 1;

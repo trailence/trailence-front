@@ -4,6 +4,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import * as C from 'chart.js';
+import * as L from 'leaflet';
 import { getRelativePosition } from 'chart.js/helpers';
 import { _DeepPartialObject } from 'chart.js/dist/types/utils';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -184,9 +185,13 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.chartData = {
         datasets: []
       }
-      if (this.track1) this.buildDataSet(this.track1, this.primaryColor);
-      if (this.track2) this.buildDataSet(this.track2, this.secondaryColor);
-      this.updateMaxDistance();
+      if (this.track1 && this.track2) {
+        this.buildDataSet(this.track1, this.primaryColor, 0.33, false);
+        this.buildDataSet(this.track2, this.secondaryColor, 1, false);
+      } else if (this.track1) {
+        this.buildDataSet(this.track1, this.primaryColor, 1, true);
+      }
+      this.updateMinMaxAxis(false);
       setTimeout(() => {
         this.changeDetector.detectChanges();
         if (this.selectionRange) {
@@ -198,14 +203,50 @@ export class ElevationGraphComponent extends AbstractComponent {
     });
   }
 
-  private updateMaxDistance(): void {
+  private updateMinMaxAxis(updateCurrent: boolean): void {
     let maxX = 0;
     for (const ds of this.chartData!.datasets) {
+      if ((ds as any).isGrade) continue;
       const pts = ds.data as any[];
       if (pts.length > 0)
         maxX = Math.max(maxX, pts[pts.length - 1].x);
     }
     this.chartOptions!.scales!['x']!.max = maxX;
+    let minY = undefined;
+    let maxY = undefined;
+    for (const ds of this.chartData!.datasets) {
+      if ((ds as any).isGrade) continue;
+      const pts = ds.data as any[];
+      if (pts.length > 0) {
+        let start;
+        if (minY === undefined) {
+          minY = pts[0].y;
+          maxY = minY;
+          start = 1;
+        } else {
+          start = 0;
+        }
+        for (let i = start; i < pts.length; ++i) {
+          minY = Math.min(minY, pts[i].y);
+          maxY = Math.max(maxY, pts[i].y);
+        }
+      }
+    }
+    minY = Math.floor(minY);
+    maxY = maxY === Math.floor(maxY) ? maxY : Math.floor(maxY) + 1;
+    this.chartOptions!.scales!['y']!.min = minY;
+    this.chartOptions!.scales!['y']!.max = maxY;
+    if (updateCurrent) {
+      if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
+        this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
+      }
+      if (this.canvas!.chart!.options!.scales!['y']!.min !== this.chartOptions!.scales!['y']!.min) {
+        this.canvas!.chart!.options!.scales!['y']!.min = this.chartOptions!.scales!['y']!.min;
+      }
+      if (this.canvas!.chart!.options!.scales!['y']!.max !== this.chartOptions!.scales!['y']!.max) {
+        this.canvas!.chart!.options!.scales!['y']!.max = this.chartOptions!.scales!['y']!.max;
+      }
+    }
   }
 
   private buildOptions(): void {
@@ -245,6 +286,8 @@ export class ElevationGraphComponent extends AbstractComponent {
         },
         y: {
           type: 'linear',
+          min: 0,
+          max: 0,
           title: {
             text: this.i18n.texts.elevationGraph.elevation + ' (' + this.i18n.shortUserElevationUnit() + ')',
             display: true,
@@ -282,7 +325,7 @@ export class ElevationGraphComponent extends AbstractComponent {
               container.style.display = 'none';
               return;
             }
-            const points: any[] = context.tooltip.dataPoints;
+            const points: any[] = context.tooltip.dataPoints.filter((p: any) => p.raw.lat !== undefined);
             container.style.display = 'block';
             let html = '<table>';
             if (points.length > 1) {
@@ -327,18 +370,18 @@ export class ElevationGraphComponent extends AbstractComponent {
             html += '</table>';
             container.innerHTML = html;
             const chartRect = context.chart.canvas.getBoundingClientRect();
-            if (context.tooltip.caretX < chartRect.width / 2) {
-              container.style.left = (context.tooltip.caretX + 15) + 'px';
+            if (context.tooltip._eventPosition.x < chartRect.width / 2) {
+              container.style.left = (context.tooltip._eventPosition.x + 15) + 'px';
               container.style.right = '';
             } else {
-              container.style.right = (chartRect.width - context.tooltip.caretX + 15) + 'px';
+              container.style.right = (chartRect.width - context.tooltip._eventPosition.x + 15) + 'px';
               container.style.left = '';
             }
-            if (context.tooltip.caretY < chartRect.height * 0.3) {
-              container.style.top = (context.tooltip.caretY + 5) + 'px';
+            if (context.tooltip._eventPosition.y < chartRect.height * 0.3) {
+              container.style.top = (context.tooltip._eventPosition.y + 5) + 'px';
               container.style.bottom = '';
             } else {
-              container.style.bottom = (chartRect.height - context.tooltip.caretY + 5) + 'px';
+              container.style.bottom = (chartRect.height - context.tooltip._eventPosition.y + 5) + 'px';
               container.style.top = '';
             }
           }
@@ -347,6 +390,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
       onHover: (event:any, elements: C.ActiveElement[], chart: any) => {
         const references = this.canvas!.chart!.getActiveElements().map(element => {
+          if ((this.chartData!.datasets[element.datasetIndex] as any).isGrade) return null;
           if ((element.element as any).$context)
             return this.activeElementToPointReference(element);
           return null;
@@ -357,20 +401,26 @@ export class ElevationGraphComponent extends AbstractComponent {
     };
   }
 
-  private buildDataSet(track: Track, color: string) {
+  private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean) {
+    const color = new Color(colorBase).setAlpha(lineAlpha).toString();
     const ds = {
-      fill: 'origin',
       borderColor: color,
-      backgroundColor: new Color(color).setAlpha(0.2).toString(),
       pointColor: color,
       strokeColor: color,
-      fillColor: color,
       pointStyle: false,
       parsing: false,
       data: []
-    };
+    } as any;
     this.fillDataSet(ds, track);
-    this.chartData!.datasets.push(ds as any);
+    if (withGradeFilling) {
+      this.chartData!.datasets.push(ds);
+      this.chartData!.datasets.push(...this.buildGradeDatasets(ds));
+    } else {
+      ds.fill = 'origin';
+      ds.backgroundColor = new Color(colorBase).setAlpha(0.2).toString();
+      ds.fillColor = color;
+      this.chartData!.datasets.push(ds);
+    }
   }
 
   private fillDataSet(ds: any, track: Track): void {
@@ -381,6 +431,105 @@ export class ElevationGraphComponent extends AbstractComponent {
         (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, segment, points));
       }
     }
+  }
+
+  private buildGradeDatasets(originalDs: any): any[] {
+    const points = originalDs.data.filter((d: any) => d.ele !== undefined);
+    if (points.length < 2) return [];
+    const ds: any[] = [];
+    let minY = originalDs.data[0].y;
+    for (let i = 1; i < originalDs.data.length; ++i)
+      minY = Math.min(minY, originalDs.data[i].y);
+
+    let previousIndex = 0;
+    let previousLevel = undefined;
+    for (let i = 1; i < points.length; ++i) {
+      const e = points[i].ele as number;
+      const l = new L.LatLng(points[i].lat, points[i].lng);
+      const d = new L.LatLng(points[previousIndex].lat, points[previousIndex].lng).distanceTo(l);
+      if (d > 25 && i > previousIndex) {
+        const direction = e - points[i - 1].ele >= 0;
+        const direction2 = e - points[previousIndex].ele >= 0;
+        if (direction !== direction2) {
+          previousLevel = this.addElevationGrade(ds, points, previousIndex, i - 1, minY);
+          previousIndex = i - 1;
+          i--;
+          continue;
+        }
+        if (previousLevel !== undefined) {
+          const grade = (points[i].ele - points[previousIndex].ele) / d;
+          const level = this.getGradeRange(grade);
+          if (level === previousLevel) {
+            // just add it to the current dataset
+            previousLevel = this.addElevationGrade(ds, points, previousIndex, i, minY);
+            previousIndex = i;
+          }
+        }
+      }
+      if (d >= 100) {
+        previousLevel = this.addElevationGrade(ds, points, previousIndex, i, minY);
+        previousIndex = i;
+      }
+    }
+    if (previousIndex < points.length - 1)
+      this.addElevationGrade(ds, points, previousIndex, points.length - 1, minY);
+    return ds;
+  }
+
+  private addElevationGrade(ds: any[], points: any[], startIndex: number, endIndex: number, minY: number): number {
+    const d = new L.LatLng(points[startIndex].lat, points[startIndex].lng).distanceTo(points[endIndex] as L.LatLngLiteral);
+    const grade = (points[endIndex].ele - points[startIndex].ele) / d;
+    const level = this.getGradeRange(grade);
+    const color = this.gradeColors[level] + 'A0';
+    if (ds.length === 0 || ds[ds.length - 1].backgroundColor !== color) {
+      ds.push({
+        isGrade: true,
+        backgroundColor: color,
+        borderColor: color,
+        pointColor: color,
+        strokeColor: color,
+        borderWidth: 0,
+        showLine: false,
+        spanGaps: false,
+        fill: 0,
+        radius: 0,
+        pointStyle: false,
+        parsing: false,
+        data: [{
+          x: points[startIndex].x,
+          y: minY,
+        }]
+      });
+    }
+    for (let i = startIndex + 1; i <= endIndex; ++i)
+      ds[ds.length - 1].data.push({
+        x: points[i].x,
+        y: minY,
+      });
+    return level;
+  }
+
+  private gradeColors = [
+    '#000070', // -15%-
+    '#1650C0', // -10% to -15%
+    '#40A0F0', // -7% to -10%
+    '#90D8FF', // -5% to -7%
+    '#D8D8D8', // 5% to -5%
+    '#FFD890', // 7% to 5%
+    '#F0A040', // 10% to 7%
+    '#C05016', // 15% to 10%
+    '#700000' // 15%+
+  ];
+  private getGradeRange(grade: number): number {
+    if (grade <= -0.15) return 0;
+    if (grade <= -0.1) return 1;
+    if (grade <= -0.07) return 2;
+    if (grade <= -0.05) return 3;
+    if (grade <= 0.05) return 4;
+    if (grade <= 0.07) return 5;
+    if (grade <= 0.1) return 6;
+    if (grade <= 0.15) return 7;
+    return 8;
   }
 
   private updateRecordingData(ds: any, track: Track): void {
@@ -403,10 +552,7 @@ export class ElevationGraphComponent extends AbstractComponent {
         pointCount++;
       }
     }
-    this.updateMaxDistance();
-    if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
-      this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
-    }
+    this.updateMinMaxAxis(true);
     this.canvas?.chart?.update();
   }
 
@@ -418,10 +564,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       const ds = this.chartData.datasets[datasetIndex];
       ds.data = [];
       this.fillDataSet(ds, track);
-      this.updateMaxDistance();
-      if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
-        this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
-      }
+      this.updateMinMaxAxis(true);
       this.canvas?.chart?.update();
     });
   }
@@ -504,6 +647,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     }
     const events = [];
     for (const ds of event.datasets) {
+      if ((this.chartData!.datasets[ds.datasetIndex] as any).isGrade) continue;
       events.push(new ElevationGraphRange(
         ds.datasetIndex === 0 ? this.track1 : this.track2!,
         this.activeElementToPointReference(ds.start),
