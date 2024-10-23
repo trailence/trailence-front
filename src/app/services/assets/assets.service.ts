@@ -12,91 +12,91 @@ export class AssetsService {
 
   constructor(private http: HttpClient, private ngZone: NgZone) {
     this.icons = {
-      'account': 'assets/ionicons/person-circle-outline.svg',
-      'add': 'assets/ionicons/add.svg',
-      'add-circle': 'assets/ionicons/add-circle-outline.svg',
+      'account': 'assets/account.1.svg', // person-circle-outline
+      'add': 'assets/add.1.svg', // add
+      'add-circle': 'assets/add-circle.1.svg', // add-circle-outline
       'altitude': 'assets/altitude.1.svg',
-      'android': 'assets/ionicons/logo-android.svg',
-      'arrow-back': 'assets/ionicons/arrow-back.svg',
-      'arrow-down': 'assets/ionicons/arrow-down.svg',
-      'arrow-forward': 'assets/ionicons/arrow-forward.svg',
-      'arrow-up': 'assets/ionicons/arrow-up.svg',
-      'car': 'assets/ionicons/car.svg',
-      'caret-down': 'assets/ionicons/caret-down.svg',
+      'android': 'assets/android.1.svg', // logo-android
+      'arrow-back': 'assets/arrow-back.1.svg', // arrow-back
+      'arrow-down': 'assets/arrow-down.1.svg', // arrow-down
+      'arrow-forward': 'assets/arrow-forward.1.svg', // arrow-forward
+      'arrow-up': 'assets/arrow-up.1.svg', // arrow-up
+      'car': 'assets/car.1.svg', // car
+      'caret-down': 'assets/caret-down.1.svg', // caret-down
       'center-on-location': 'assets/center-on-location.1.svg',
-      'checkmark': 'assets/ionicons/checkmark-outline.svg',
-      'chevron-down': 'assets/ionicons/chevron-down-outline.svg',
-      'chevron-left': 'assets/ionicons/chevron-back-outline.svg',
-      'chevron-right': 'assets/ionicons/chevron-forward-outline.svg',
-      'chevron-up': 'assets/ionicons/chevron-up-outline.svg',
-      'chrono': 'assets/ionicons/stopwatch-outline.svg',
+      'checkmark': 'assets/checkmark.1.svg', // checkmark-outline
+      'chevron-down': 'assets/chevron-down.1.svg', // chevron-down-outline
+      'chevron-left': 'assets/chevron-left.1.svg', // chevron-back-outline
+      'chevron-right': 'assets/chevron-right.1.svg', // chevron-forward-outline
+      'chevron-up': 'assets/chevron-up.1.svg', // chevron-up-outline
+      'chrono': 'assets/chrono.1.svg', // stopwatch-outline
       'cleaning': 'assets/cleaning.1.svg',
       'collection': 'assets/collection.1.svg',
       'collection-copy': 'assets/collection-copy.1.svg',
       'collection-move': 'assets/collection-move.1.svg',
-      'compare': 'assets/ionicons/swap-horizontal-outline.svg',
-      'cross': 'assets/ionicons/close-outline.svg',
-      'database': 'assets/ionicons/server-outline.svg',
-      'date': 'assets/ionicons/calendar-outline.svg',
+      'compare': 'assets/compare.1.svg', // swap-horizontal-outline
+      'cross': 'assets/cross.1.svg', // close-outline
+      'database': 'assets/database.1.svg', // server-outline
+      'date': 'assets/calendar-outline.1.svg', // calendar-outline
       'distance': 'assets/distance.1.svg',
-      'download': 'assets/ionicons/cloud-download.svg',
-      'duration': 'assets/ionicons/time-outline.svg',
-      'edit': 'assets/ionicons/create-outline.svg',
-      'elevation': 'assets/ionicons/analytics-outline.svg',
-      'error': 'assets/ionicons/alert-circle-outline.svg',
-      'export': 'assets/ionicons/download-outline.svg',
-      'file': 'assets/ionicons/document-outline.svg',
-      'filters': 'assets/ionicons/funnel-outline.svg',
+      'download': 'assets/download.1.svg', // cloud-download
+      'duration': 'assets/duration.1.svg', // time-outline
+      'edit': 'assets/edit.1.svg', // create-outline
+      'elevation': 'assets/elevation.1.svg', // analytics-outline
+      'error': 'assets/exclamation-circle.1.svg', // alert-circle-outline
+      'export': 'assets/export.1.svg', // download-outline
+      'file': 'assets/file.1.svg', // document-outline
+      'filters': 'assets/filters.1.svg', // funnel-outline
       'half-loop': 'assets/half-loop.1.svg',
       'highest-point': 'assets/highest-point.1.svg',
-      'hourglass': 'assets/ionicons/hourglass-outline.svg',
-      'i18n': 'assets/ionicons/language-outline.svg',
-      'info': 'assets/ionicons/information-circle-outline.svg',
-      'item-menu': 'assets/ionicons/ellipsis-vertical.svg',
-      'layers': 'assets/ionicons/layers-outline.svg',
-      'location': 'assets/ionicons/location.svg',
+      'hourglass': 'assets/hourglass.1.svg', // hourglass-outline
+      'i18n': 'assets/language.1.svg', // language-outline
+      'info': 'assets/info-circle.1.svg', // information-circle-outline
+      'item-menu': 'assets/item-menu.1.svg', // ellipsis-vertical
+      'layers': 'assets/layers.1.svg', // layers-outline
+      'location': 'assets/location.1.svg', // location
       'logo': 'assets/icon/trailence.1.svg',
-      'logout': 'assets/ionicons/log-out-outline.svg',
+      'logout': 'assets/logout.1.svg', // log-out-outline
       'loop': 'assets/loop.1.svg',
       'lowest-point': 'assets/lowest-point.1.svg',
-      'offline': 'assets/ionicons/alert-circle-outline.svg',
+      'offline': 'assets/exclamation-circle.1.svg', // alert-circle-outline
       'one-way': 'assets/point-to-point.1.svg',
-      'online': 'assets/ionicons/checkmark-circle-outline.svg',
+      'online': 'assets/online.1.svg', // checkmark-circle-outline
       'out-and-back': 'assets/out-and-back.1.svg',
       'pin': 'assets/pin.1.svg',
       'pin-off': 'assets/pin-off.1.svg',
-      'merge': 'assets/ionicons/git-merge-outline.svg',
+      'merge': 'assets/merge.1.svg', // git-merge-outline
       'negative-elevation': 'assets/negative-elevation.1.svg',
       'path': 'assets/path.1.svg',
-      'pause-circle': 'assets/ionicons/pause-circle-outline.svg',
-      'photos': 'assets/ionicons/images-outline.svg',
-      'planner': 'assets/ionicons/calendar-outline.svg',
-      'play': 'assets/ionicons/play-outline.svg',
-      'play-circle': 'assets/ionicons/play-circle-outline.svg',
+      'pause-circle': 'assets/pause-circle.1.svg', // pause-circle-outline
+      'photos': 'assets/photos.1.svg', // images-outline
+      'planner': 'assets/calendar-outline.1.svg', // calendar-outline
+      'play': 'assets/play.1.svg', // play-outline
+      'play-circle': 'assets/play-circle.1.svg', // play-circle-outline
       'points-distance': 'assets/points-distance.1.svg',
       'positive-elevation': 'assets/positive-elevation.1.svg',
-      'question': 'assets/ionicons/help-outline.svg',
-      'redo': 'assets/ionicons/arrow-redo-outline.svg',
-      'reset': 'assets/ionicons/refresh-outline.svg',
-      'save': 'assets/ionicons/save.svg',
-      'settings': 'assets/ionicons/settings.svg',
-      'share': 'assets/ionicons/share-social.svg',
-      'share-outline': 'assets/ionicons/share-social-outline.svg',
+      'question': 'assets/question.1.svg', // help-outline
+      'redo': 'assets/redo.1.svg', // arrow-redo-outline
+      'reset': 'assets/reset.1.svg', // refresh-outline
+      'save': 'assets/save.1.svg', // save
+      'settings': 'assets/settings.1.svg', // settings
+      'share': 'assets/share.1.svg', // share-social
+      'share-outline': 'assets/share-outline.1.svg',  // share-social-outline
       'small-loop': 'assets/small-loop.1.svg',
-      'speed': 'assets/ionicons/speedometer-outline.svg',
-      'sort': 'assets/ionicons/swap-vertical-outline.svg',
-      'stop': 'assets/ionicons/stop-outline.svg',
-      'stop-circle': 'assets/ionicons/stop-circle-outline.svg',
-      'sync': 'assets/ionicons/sync-circle-outline.svg',
-      'tags': 'assets/ionicons/pricetags-outline.svg',
-      'text': 'assets/ionicons/reader-outline.svg',
-      'tool': 'assets/ionicons/hammer-outline.svg',
-      'trash': 'assets/ionicons/trash.svg',
-      'theme': 'assets/ionicons/color-palette-outline.svg',
-      'theme-light': 'assets/ionicons/sunny-outline.svg',
-      'theme-dark': 'assets/ionicons/moon-outline.svg',
-      'theme-system': 'assets/ionicons/cog-outline.svg',
-      'undo': 'assets/ionicons/arrow-undo-outline.svg',
+      'speed': 'assets/speed.1.svg', // speedometer-outline
+      'sort': 'assets/sort.1.svg', // swap-vertical-outline
+      'stop': 'assets/stop.1.svg', // stop-outline
+      'stop-circle': 'assets/stop-circle.1.svg', // stop-circle-outline
+      'sync': 'assets/sync.1.svg', // sync-circle-outline
+      'tags': 'assets/tags.1.svg', // pricetags-outline
+      'text': 'assets/text.1.svg', // reader-outline
+      'tool': 'assets/tool.1.svg', // hammer-outline
+      'trash': 'assets/trash.1.svg', // trash
+      'theme': 'assets/theme.1.svg', // color-palette-outline
+      'theme-light': 'assets/theme-light.1.svg', // sunny-outline
+      'theme-dark': 'assets/theme-dark.1.svg', // moon-outline
+      'theme-system': 'assets/theme-system.1.svg', // cog-outline
+      'undo': 'assets/undo.1.svg', // arrow-undo-outline
       'zoom-in': 'assets/zoom-in.1.svg',
       'zoom-out': 'assets/zoom-out.1.svg',
     };
