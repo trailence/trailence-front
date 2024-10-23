@@ -6,7 +6,7 @@ import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences
 import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
 
-const TEXTS_VERSION = '1';
+const TEXTS_VERSION = '2';
 
 @Injectable({
   providedIn: 'root'
