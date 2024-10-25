@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
-import { catchError, map, Observable, of, zip } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, zip } from 'rxjs';
 import { I18nService } from '../i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import * as L from 'leaflet';
@@ -100,7 +100,25 @@ export class GeoService {
   public fillPointsElevation(points: Point[]): Observable<any> {
     const missing = points.filter(pt => pt.ele === undefined);
     if (missing.length === 0) return of(true);
+    /*
+    return this.getElevationFromIGN(missing).pipe(
+      switchMap(() => {
+        const missing2 = points.filter(pt => pt.ele === undefined);
+        if (missing2.length === 0) return of(true);
+        return this.getElevationFromOpenMeteo(missing2).pipe(
+          switchMap(() => {
+            const missing3 = points.filter(pt => pt.ele === undefined);
+            if (missing3.length === 0) return of(true);
+            return this.getElevationFromOpenElevation(missing3);
+          })
+        );
+      })
+    );*/
     return this.getElevationFromIGN(missing);
+    //return this.getElevationFromOpenElevation(missing);
+    //return this.getElevationFromOpenTopo(missing);
+    //return this.getElevationFromOpenTopo2(missing);
+    //return this.getElevationFromOpenMeteo(missing);
   }
 
   private getElevationFromIGN(points: Point[]): Observable<any> {
@@ -142,6 +160,130 @@ export class GeoService {
       })
     );
   }
+
+  private getElevationFromOpenElevation(points: Point[]): Observable<any> {
+    const body = {
+      locations: points.map(p => ({latitude: p.pos.lat, longitude: p.pos.lng}))
+    };
+    return this.http.post('https://api.open-elevation.com/api/v1/lookup', body).pipe(
+      map((response: any) => {
+        for (const result of response.results) {
+          const e = result['elevation'];
+          if (!e) continue;
+          const lat = result['latitude'] as number;
+          const lng = result['longitude'] as number;
+          for (const p of points) {
+            if (p.ele !== undefined) continue;
+            if (p.samePositionRound({lat, lng})) {
+              p.ele = e;
+            }
+          }
+        }
+      }),
+      catchError(e => of(false))
+    )
+  }
+
+  private getElevationFromOpenTopo(points: Point[]): Observable<any> {
+    const requests: Observable<any>[] = [];
+    for (let i = 0; i < points.length; i += 100) {
+      let locations = '';
+      for (let j = 0; j < 100 && i + j < points.length; ++j) {
+        const point = points[i + j];
+        if (locations.length > 0) locations += '|';
+        locations += point.pos.lat + ',' + point.pos.lng;
+      }
+      requests.push(this.http.post('https://api.opentopodata.org/v1/srtm30m', {locations}));
+    }
+    return (requests.length === 0 ? of([]) : zip(requests)).pipe(
+      map(responses => {
+        for (const response of responses) {
+          for (const result of response.results) {
+            const e = result['elevation'];
+            if (!e) continue;
+            const lat = result['location']['lat'];
+            const lng = result['location']['lng'];
+            for (const p of points) {
+              if (p.ele !== undefined) continue;
+              if (p.samePositionRound({lat, lng})) {
+                p.ele = e;
+              }
+            }
+          }
+        }
+      }),
+      catchError(e => of(false))
+    );
+  }
+
+  private getElevationFromOpenTopo2(points: Point[]): Observable<any> {
+    const requests: Observable<any>[] = [];
+    let locations = '';
+    for (const point of points) {
+      const newLoc = (Math.floor(point.pos.lat * 1000000) / 1000000).toFixed(6) + ',' + (Math.floor(point.pos.lng * 1000000) / 1000000).toFixed(6);
+      if (encodeURIComponent(locations + '|' + newLoc).length > 950) {
+        requests.push(this.http.get('https://api.opentopodata.org/v1/srtm30m?locations=' + encodeURIComponent(locations)));
+        locations = '';
+      }
+      if (locations.length > 0) locations += '|';
+      locations += newLoc;
+    }
+    if (locations.length > 0)
+      requests.push(this.http.get('https://api.opentopodata.org/v1/srtm30m?locations=' + encodeURIComponent(locations)));
+    return (requests.length === 0 ? of([]) : zip(requests)).pipe(
+      map(responses => {
+        for (const response of responses) {
+          for (const result of response.results) {
+            const e = result['elevation'];
+            if (!e) continue;
+            const lat = result['location']['lat'];
+            const lng = result['location']['lng'];
+            for (const p of points) {
+              if (p.ele !== undefined) continue;
+              if (p.samePositionRound({lat, lng})) {
+                p.ele = e;
+              }
+            }
+          }
+        }
+      }),
+      catchError(e => of(false))
+    );
+  }
+
+  private getElevationFromOpenMeteo(points: Point[]): Observable<any> {
+    const requests: Observable<any>[] = [];
+    for (let i = 0; i < points.length; i += 100) {
+      let lat = '';
+      let lon = '';
+      for (let j = 0; j < 100 && i + j < points.length; ++j) {
+        const point = points[i + j];
+        if (lat.length > 0) {
+          lat += ',';
+          lon += ',';
+        }
+        const plat = Math.floor(point.pos.lat * 1000000);
+        const plng = Math.floor(point.pos.lng * 1000000);
+        lat += (plat / 1000000).toFixed(6);
+        lon += (plng / 1000000).toFixed(6);
+      }
+      requests.push(this.http.get('https://api.open-meteo.com/v1/elevation?latitude=' + encodeURIComponent(lat) + '&longitude=' + encodeURIComponent(lon)).pipe(
+        catchError(e => of({elevation:[]}))
+      ));
+    }
+    return (requests.length === 0 ? of([]) : zip(requests)).pipe(
+      map(responses => {
+        for (let responseIndex = 0; responseIndex < responses.length; ++responseIndex) {
+          for (let i = 0; i < responses[responseIndex].elevation.length; ++i) {
+            const point = points[responseIndex * 100 + i];
+            point.ele = responses[responseIndex].elevation[i];
+          }
+        }
+      }),
+      catchError(e => of(false))
+    );
+  }
+
 
 }
 

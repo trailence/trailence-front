@@ -82,10 +82,10 @@ export class Point {
   }
 
   public samePositionRound(other: L.LatLngLiteral): boolean {
-    const lat1 = Math.floor(this._pos.value.lat * POSITION_FACTOR);
-    const lng1 = Math.floor(this._pos.value.lng * POSITION_FACTOR);
-    const lat2 = Math.floor(other.lat * POSITION_FACTOR);
-    const lng2 = Math.floor(other.lng * POSITION_FACTOR);
+    const lat1 = Math.floor(this._pos.value.lat * 1000000);
+    const lng1 = Math.floor(this._pos.value.lng * 1000000);
+    const lat2 = Math.floor(other.lat * 1000000);
+    const lng2 = Math.floor(other.lng * 1000000);
     return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
   }
 

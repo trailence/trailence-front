@@ -78,6 +78,8 @@ export class TrailComponent extends AbstractComponent {
   wayPointsTrack: Track | undefined;
   tagsNames: string[] | undefined;
   photos: Photo[] | undefined;
+  elevationTrack1?: Track;
+  elevationTrack2?: Track;
 
   @ViewChild(MapComponent) map?: MapComponent;
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
@@ -160,9 +162,12 @@ export class TrailComponent extends AbstractComponent {
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];
+        this.elevationTrack1 = undefined;
+        this.elevationTrack2 = undefined;
 
         if (toolsBaseTrack && !recordingWithTrack && !trail2[0]) {
           tracks.push(toolsBaseTrack);
+          this.elevationTrack1 = toolsBaseTrack;
           if (!hideBaseTrack || !toolsModifiedTrack) {
             const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
             mapTrack.showArrowPath();
@@ -176,6 +181,8 @@ export class TrailComponent extends AbstractComponent {
         }
         if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
+          if (!toolsModifiedTrack || !hideBaseTrack)
+            this.elevationTrack1 = trail1[1];
           if (trail1[2] && (!toolsModifiedTrack || !hideBaseTrack)) {
             mapTracks.push(trail1[2]);
             if (!toolsModifiedTrack) {
@@ -186,6 +193,7 @@ export class TrailComponent extends AbstractComponent {
           }
           if (trail2[1]) {
             tracks.push(trail2[1]);
+            this.elevationTrack2 = trail2[1];
             if (trail2[2]) {
               trail2[2].color = 'blue';
               mapTracks.push(trail2[2]);
@@ -198,6 +206,10 @@ export class TrailComponent extends AbstractComponent {
 
         if (recordingWithTrack && !trail2[0]) {
           tracks.push(recordingWithTrack.track);
+          if (trail1[1])
+            this.elevationTrack2 = recordingWithTrack.track;
+          else
+            this.elevationTrack1 = recordingWithTrack.track;
           const mapTrack = new MapTrack(recordingWithTrack.recording.trail, recordingWithTrack.track, 'blue', 1, true, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
           mapTrack.showArrowPath();
@@ -207,6 +219,10 @@ export class TrailComponent extends AbstractComponent {
         if (!recordingWithTrack && !trail2[0]) {
           if (toolsModifiedTrack) {
             tracks.splice(0, 0, toolsModifiedTrack);
+            if (this.elevationTrack1)
+              this.elevationTrack2 = toolsModifiedTrack;
+            else
+              this.elevationTrack1 = toolsModifiedTrack;
             const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n);
             mapTrack.showDepartureAndArrivalAnchors();
             mapTrack.showWayPointsAnchors();

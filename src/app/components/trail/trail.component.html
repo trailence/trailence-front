@@ -250,8 +250,8 @@
     </div>
     <div class="elevation-container">
       <app-elevation-graph
-        [track1]="pathSelection.zoomOnSelection ? pathSelection.selection[0] : tracks[0]"
-        [track2]="pathSelection.zoomOnSelection ? pathSelection.selection[1] : tracks[1] !== previousFocus ? tracks[1] : undefined"
+        [track1]="pathSelection.zoomOnSelection ? pathSelection.selection[0] : (elevationTrack1 || tracks[0])"
+        [track2]="pathSelection.zoomOnSelection ? pathSelection.selection[1] : elevationTrack2"
         (pointHover)="elevationGraphPointHover($event)"
         [selectable]="!pathSelection.zoomOnSelection"
         (selecting)="pathSelection.elevationGraphSelecting($event)"

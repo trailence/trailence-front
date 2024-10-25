@@ -199,8 +199,10 @@ export class TrackMetadataComponent extends AbstractComponent {
       if (TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force, domController)) changed = true;
       if (TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force, domController)) changed = true;
       if (TrackMetadataComponent.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + i18n.elevationToString(v), force, domController)) changed = true;
-      TrackMetadataComponent.shown(meta.positiveElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
-      TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
+      if (!detailed) {
+        TrackMetadataComponent.shown(meta.positiveElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
+        TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
+      }
       if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
       if (detailed) {
         if (TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController)) changed = true;
