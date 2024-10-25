@@ -233,7 +233,7 @@ export class TrackMetadata {
     this.reduce(segments$, meta => meta.bounds$, (a, b) => {
       if (a === undefined) return b;
       if (b === undefined) return a;
-      return L.latLngBounds(L.latLng(a.getSouth(), a.getWest()), L.latLng(a.getNorth(), a.getWest())).extend(b);
+      return L.latLngBounds(L.latLng(a.getSouth(), a.getWest()), L.latLng(a.getNorth(), a.getEast())).extend(b);
     }, undefined, this._bounds);
   }
 

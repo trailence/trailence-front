@@ -404,7 +404,7 @@ export class TrackDatabase {
       lowestAltitude: m.lowestAltitude,
       duration: m.duration,
       startDate: m.startDate,
-      bounds: b ? [[b.getNorth(), b.getWest()], [b.getSouth(), b.getWest()]] : undefined,
+      bounds: b ? [[b.getNorth(), b.getEast()], [b.getSouth(), b.getWest()]] : undefined,
       breaksDuration: track.computedMetadata.breakDurationSnapshot(),
       estimatedDuration: track.computedMetadata.estimatedDurationSnapshot(),
       localUpdate: Date.now(),

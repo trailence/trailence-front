@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, combineLatest, filter, first, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, of, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -13,10 +13,13 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/services/database/track-database';
-import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { CollectionMapper } from 'src/app/utils/arrays';
 import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import * as L from 'leaflet';
+import { MapBubble } from '../map/bubble/map-bubble';
+
+const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
 @Component({
   selector: 'app-trails-and-map',
@@ -42,11 +45,14 @@ export class TrailsAndMapComponent extends AbstractComponent {
   isSmall = false;
 
   highlightedTrail?: Trail;
-  mapTracksMapper = new CollectionMapper<{trail: Trail, track: SimplifiedTrackSnapshot}, MapTrack>(
-    trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.track, 'red', 4, false, this.i18n),
-    (t1, t2) => t1.track === t2.track
+  mapTracksMapper = new CollectionMapper<{trail: Trail, data: SimplifiedTrackSnapshot}, MapTrack>(
+    trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, 'red', 4, false, this.i18n),
+    (t1, t2) => t1.data === t2.data
   );
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
+  mapBubbles$ = new BehaviorSubject<MapBubble[]>([]);
+
+  showBubbles$ = new BehaviorSubject<boolean>(false);
 
   @ViewChild(TrailsListComponent) trailsList?: TrailsListComponent;
   @ViewChild(MapComponent) map?: MapComponent;
@@ -64,34 +70,72 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
-    this.updateMode();
-    let first = true;
-    this.whenVisible.subscribe(
-      this.mapTrails$.pipe(
-        switchMap(trails =>
-          trails.isEmpty() ? of([]) : combineLatest(
-            trails.map(
-              trail => trail.currentTrackUuid$.pipe(
-                switchMap(trackUuid => this.trackService.getSimplifiedTrack$(trackUuid, trail.owner)),
-                filter(track => !!track),
-                map(track => ({trail, track})),
-              )
-            ).toArray()
-          )
-        )
-      ),
-      trailsAndTracks => {
-        if (trailsAndTracks.length === 0) {
-          if (!first) {
-            this.mapTracks$.next([]);
-            first = true;
-          }
-        } else {
-          first = false;
-          this.mapTracks$.next(this.mapTracksMapper.update(trailsAndTracks));
-        }
+    const showBubblesState = localStorage.getItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId);
+    if (showBubblesState) {
+      try {
+        this.showBubbles$.next(!!JSON.parse(showBubblesState));
+      } catch (e) {
+        // ignore
       }
-    );
+    }
+    this.updateMode();
+    setTimeout(() => {
+      const mapZoom$ = this.showBubbles$.pipe(
+        switchMap(showBubbles => {
+          localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(showBubbles));
+          if (!showBubbles) return of(undefined);
+          return this.map!.getState().zoom$;
+        })
+      );
+      this.whenVisible.subscribe(
+        combineLatest([this.mapTrails$, mapZoom$]).pipe(
+          switchMap(([trails, zoom]) =>
+            trails.isEmpty() ? of({zoom, trails: []}) : combineLatest(
+              trails.map(
+                trail => trail.currentTrackUuid$.pipe(
+                  switchMap(trackUuid => {
+                    if (zoom === undefined) return this.trackService.getSimplifiedTrack$(trackUuid, trail.owner);
+                    return this.trackService.getMetadata$(trackUuid, trail.owner);
+                  }),
+                  filter(data => !!data),
+                  map(data => ({trail, data})),
+                )
+              ).toArray()
+            ).pipe(
+              map(trailsAndData => ({zoom, trails: trailsAndData}))
+            )
+          )
+        ),
+        result => {
+          if (result.zoom === undefined) {
+            if (this.mapBubbles$.value.length > 0)
+              this.mapBubbles$.next([]);
+            if (result.trails.length === 0) {
+              if (this.mapTracks$.value.length > 0)
+                this.mapTracks$.next([]);
+              return;
+            }
+            this.mapTracks$.next(this.mapTracksMapper.update(result.trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
+          } else {
+            if (this.mapTracks$.value.length > 0)
+              this.mapTracks$.next([]);
+            if (result.trails.length === 0) {
+              if (this.mapBubbles$.value.length > 0)
+                this.mapBubbles$.next([]);
+              return;
+            }
+            this.mapBubbles$.next(MapBubble.build(result.trails.map(
+              trail => {
+                const meta = trail.data as TrackMetadataSnapshot;
+                if (!meta.bounds) return undefined;
+                //[[north, east], [south, west]]
+                return L.latLng(meta.bounds[0][0] + (meta.bounds[1][0] - meta.bounds[0][0]) / 2, meta.bounds[0][1] + (meta.bounds[1][1] - meta.bounds[0][1]) / 2);
+              }
+            ).filter(p => !!p), result.zoom));
+          }
+        }
+      );
+    }, 0);
   }
 
   protected override getComponentState() {
@@ -103,7 +147,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private mapTrails$ = new BehaviorSubject<List<Trail>>(List());
-  updateMapTracks(trails: Trail[]): void {
+  updateMap(trails: Trail[]): void {
     const newList = List(trails);
     if (!newList.equals(this.mapTrails$.value))
       this.mapTrails$.next(newList);

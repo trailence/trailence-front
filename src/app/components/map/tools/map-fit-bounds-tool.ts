@@ -9,7 +9,7 @@ export const MapFitBoundsTool = L.Control.extend({
     img.src = environment.assetsUrl + '/zoom-fit.1.svg';
     img.style.width = '32px';
     img.style.marginBottom = '-4px';
-    return MapToolUtils.createButtonWithEvent(map, img, 'fitTrackBounds');
+    return MapToolUtils.createButtonWithEvent(map, img, 'fitBounds');
   },
   onRemove: (map: L.Map) => {}
 });

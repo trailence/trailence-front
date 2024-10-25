@@ -21,6 +21,7 @@ export class AssetsService {
       'arrow-down': 'assets/arrow-down.1.svg', // arrow-down
       'arrow-forward': 'assets/arrow-forward.1.svg', // arrow-forward
       'arrow-up': 'assets/arrow-up.1.svg', // arrow-up
+      'bubbles': 'assets/bubbles.1.svg',
       'car': 'assets/car.1.svg', // car
       'caret-down': 'assets/caret-down.1.svg', // caret-down
       'center-on-location': 'assets/center-on-location.1.svg',

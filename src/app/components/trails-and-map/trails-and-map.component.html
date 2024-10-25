@@ -3,6 +3,8 @@
     <app-map #map
       [mapId]="viewId"
       [tracks$]="mapTracks$"
+      [bubbles$]="mapBubbles$"
+      [showBubbles$]="showBubbles$"
       (mouseClickPoint)="onTrailClickOnMap($event)"
     ></app-map>
   </div>
@@ -14,7 +16,7 @@
       [collectionUuid]="collectionUuid"
       (trailClick)="onTrailClickOnList($event)"
       [map]="map"
-      (mapFilteredTrails)="updateMapTracks($event)"
+      (mapFilteredTrails)="updateMap($event)"
     ></app-trails-list>
   </div>
   <div class="tabs-container">

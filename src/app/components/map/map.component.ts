@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -20,6 +20,8 @@ import { MapGeolocationService } from 'src/app/services/map/map-geolocation.serv
 import { MapShowPositionTool } from './tools/show-position-tool';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { Trail } from 'src/app/model/trail';
+import { MapBubble } from './bubble/map-bubble';
+import { MapBubblesTool } from './tools/bubbles-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -37,6 +39,8 @@ export class MapComponent extends AbstractComponent {
   @Input() tracks$!: Observable<MapTrack[]>;
   @Input() autoFollowLocation = false;
   @Input() downloadMapTrail?: Trail;
+  @Input() bubbles$: Observable<MapBubble[]> = of([]);
+  @Input() showBubbles$?: BehaviorSubject<boolean>;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
@@ -76,6 +80,7 @@ export class MapComponent extends AbstractComponent {
     });
     this.loadState();
     this.updateTracks();
+    this.updateBubbles();
     this.whenVisible.subscribe(
       combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
       () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId),
@@ -104,6 +109,7 @@ export class MapComponent extends AbstractComponent {
   override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['mapId']) this.loadState();
     if (changes['tracks$']) this.updateTracks();
+    if (changes['bubbles$']) this.updateBubbles();
   }
 
   protected override destroyComponent(): void {
@@ -192,6 +198,33 @@ export class MapComponent extends AbstractComponent {
     ));
   }
 
+  private _currentBubbles: MapBubble[] = [];
+  private _bubblesSubscription?: Subscription;
+  private updateBubbles(): void {
+    this._bubblesSubscription?.unsubscribe();
+    this._bubblesSubscription = this.ngZone.runOutsideAngular(() =>
+      combineLatest([this.bubbles$, this._mapState.live$, this._map$]).subscribe(
+      ([bubbles, live, map]) => {
+        if (!map || !live) return;
+        const toRemove = [...this._currentBubbles];
+        bubbles.forEach(bubble => {
+          const index = toRemove.indexOf(bubble);
+          if (index >= 0) {
+            toRemove.splice(index, 1);
+          } else {
+            bubble.addTo(map);
+          }
+        });
+        toRemove.forEach(bubble => bubble.remove());
+        this._currentBubbles = [...bubbles];
+        // if the state of the map is the initial one, zoom on the tracks
+        if (bubbles.length > 0 && this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) {
+          this.fitTracksBubbles(map, bubbles);
+        }
+      }
+    ));
+  }
+
   public addTrack(track: MapTrack): void {
     this.ngZone.runOutsideAngular(() => {
       if (this._map$.value)
@@ -234,6 +267,46 @@ export class MapComponent extends AbstractComponent {
     }
     if (bounds) {
       bounds = bounds.pad(padding);
+      map.fitBounds(bounds);
+    }
+  }
+
+  private fitTracksBubbles(map: L.Map, bubbles: MapBubble[], padding: number = 0.05): void {
+    let bounds;
+    for (const t of bubbles) {
+      if (!bounds) {
+        bounds = L.latLngBounds(t.center, t.center);
+      } else {
+        bounds.extend(t.center);
+      }
+    }
+    if (bounds) {
+      bounds = bounds.pad(padding);
+      map.fitBounds(bounds);
+    }
+  }
+
+  private fitMapBounds(map: L.Map): void {
+    let bounds;
+    for (const t of this._currentTracks) {
+      if (!bounds) {
+        bounds = t.bounds;
+      } else {
+        const tb = t.bounds;
+        if (tb) {
+          bounds.extend(tb);
+        }
+      }
+    }
+    for (const t of this._currentBubbles) {
+      if (!bounds) {
+        bounds = L.latLngBounds(t.center, t.center);
+      } else {
+        bounds.extend(t.center);
+      }
+    }
+    if (bounds) {
+      bounds = bounds.pad(0.05);
       map.fitBounds(bounds);
     }
   }
@@ -387,6 +460,11 @@ export class MapComponent extends AbstractComponent {
     new ZoomLevelDisplayTool({position: 'topleft'}).addTo(map);
     new MapLayerSelectionTool(this.injector, this._mapState, {position: 'topright'}).addTo(map);
     new DarkMapToggle(this.injector, {position: 'topright'}).addTo(map);
+
+    if (this.showBubbles$) {
+      new MapBubblesTool(this.injector, this.showBubbles$, {position: 'topright'}).addTo(map);
+      map.on('toggleBubbles', () => this.showBubbles$!.next(!this.showBubbles$!.value));
+    }
     new DownloadMapTool(this.injector, this.downloadMapTrail, {position: 'topright'}).addTo(map);
 
     map.on('resize', () => this.mapChanged(map));
@@ -416,7 +494,7 @@ export class MapComponent extends AbstractComponent {
     });
 
     new MapFitBoundsTool({position: 'topleft'}).addTo(map)
-    map.on('fitTrackBounds', () => this.fitTracksBounds(map, this._currentTracks));
+    map.on('fitBounds', () => this.fitMapBounds(map));
 
     this.cursors.addTo(map);
 
