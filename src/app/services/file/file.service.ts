@@ -72,7 +72,14 @@ export class FileService implements IFileService {
           setTimeout(() => readNext(0), 0);
         })
       )
-      .catch((e: any) => r.ondone(undefined, [], [e]));
+      .catch((e: any) => {
+        if (e instanceof DOMException) {
+          // ignore error if user abort
+          console.log(e)
+        } else {
+          r.ondone(undefined, [], [e]);
+        }
+      });
       return true;
     } catch (e) {
       return false;

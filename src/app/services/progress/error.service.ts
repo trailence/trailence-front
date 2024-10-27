@@ -45,12 +45,12 @@ export class ErrorService {
     .then(module => this.modalController.create({
       initialBreakpoint: 0.25,
       breakpoints: [0, 0.25, 0.5, 0.75, 1],
+      canDismiss: true,
+      backdropDismiss: true,
       component: module.ErrorsModalComponent,
       componentProps: {
         errors: this._shownErrors
       },
-      canDismiss: true,
-      backdropDismiss: true,
       id: 'errors-modal',
     }).then(modal => {
       modal.present();
