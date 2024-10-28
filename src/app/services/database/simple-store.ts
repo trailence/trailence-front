@@ -12,8 +12,8 @@ interface SimpleStoreItem<T> {
 }
 
 export class SimpleStoreSyncStatus implements StoreSyncStatus {
-    public localCreates = true;
-    public localDeletes = true;
+    public localCreates = false;
+    public localDeletes = false;
     public needsUpdateFromServer = true;
     public lastUpdateFromServer?: number;
 

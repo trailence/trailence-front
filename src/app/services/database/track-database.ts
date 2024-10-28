@@ -132,7 +132,21 @@ export class TrackDatabase {
       this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks')
       this.fullTrackTable = db.table<TrackItem, string>('full_tracks')
       this.db = db;
-      this.syncStatus$.next(new TrackSyncStatus());
+      const status = new TrackSyncStatus();
+      from(this.fullTrackTable!.where('version').belowOrEqual(0).limit(1).toArray()).pipe(
+        switchMap(r1 => {
+          if (r1.length > 0) return of(true);
+          return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray()).pipe(
+            map(r2 => r2.length > 0)
+          );
+        }),
+        first(),
+      ).subscribe(hasLocalChanges => {
+        if (this.db === db) {
+          status.hasLocalChanges = hasLocalChanges;
+          this.syncStatus$.next(status);
+        }
+      });
       let previousBaseSpeed: number | undefined = undefined;
       let previousBreakDuration: number | undefined = undefined;
       let previousBreakDistance: number | undefined = undefined;
@@ -886,7 +900,7 @@ export class TrackDatabase {
 
 class TrackSyncStatus implements StoreSyncStatus {
 
-  hasLocalChanges = true;
+  hasLocalChanges = false;
   inProgress = false;
   needsUpdateFromServer = true;
   lastUpdateFromServer?: number;

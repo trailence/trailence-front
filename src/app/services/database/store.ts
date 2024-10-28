@@ -1,9 +1,8 @@
-import { BehaviorSubject, Observable, Subscription, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, from, map, of, timeout } from "rxjs";
+import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, from, map, of, timeout } from "rxjs";
 import { DatabaseService } from "./database.service";
 import Dexie, { Table } from "dexie";
 import { NetworkService } from "../network/network.service";
 import { Injector, NgZone } from "@angular/core";
-import { AuthService } from '../auth/auth.service';
 import { SynchronizationLocks } from './synchronization-locks';
 
 export interface StoreSyncStatus {

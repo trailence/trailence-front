@@ -3,6 +3,8 @@ ion-modal.small-modal {
   --height: auto;
   width: auto;
   height: auto;
+  --max-width: 95%;
+  --max-height: 95%;
 
   ion-content {
     flex: 1 1 100%;

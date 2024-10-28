@@ -481,9 +481,11 @@
   },
   "logout": {
     "title": "Sign out",
-    "text": "Do you also want to delete all your data on this device?<p>If you delete your data from this device, it will be kept on our server but the next time you log in all your data will need to be downloaded again. If you keep it, only the updates will need to be downloaded.</p><p>If you delete it, make sure that the synchronization of your data on our server is complete, otherwise unsynchronized changes will be lost.</p><p>If you are on a shared device, it is recommended to delete your data.</p>",
-    "button_delete": "Sign out and delete",
-    "button_keep": "Sign out without delete"
+    "text": "Do you also want to delete all your data on this device?",
+    "text_info": "Your data are stored on our servers and will be downloaded the next time you log in.",
+    "text_warning": "You have local data that will be lost if you delete!",
+    "button_delete": "Delete",
+    "button_keep": "Keep"
   },
   "synchro": {
     "in_progress": "Synchronization in progress",

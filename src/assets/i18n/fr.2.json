@@ -481,9 +481,11 @@
   },
   "logout": {
     "title": "Déconnexion",
-    "text": "Souhaitez-vous également supprimer toutes vos données sur ce périphérique ?<p>Si vous supprimer vos données de ce périphérique, elles seront conservées sur notre serveur mais lors de votre prochaine connexion toutes vos données devront être de nouveau téléchargées. Si vous les conservez, uniquement les mises à jour auront besoin d'être téléchargées.</p><p>Si vous les supprimer, assuez-vous que la synchronisation de vos données sur notre serveur est complète, sinon les modifications non synchronisées seront perdues.</p><p>Si vous êtes sur un périphérique partagé, il est recommendé de supprimer vos données.</p>",
-    "button_delete": "Déconnecter et supprimer",
-    "button_keep": "Déconnecter sans supprimer"
+    "text": "Souhaitez-vous également supprimer toutes vos données de ce périphérique ?",
+    "text_info": "Vos données sont conservées sur nos serveurs et seront téléchargées à votre prochaine connexion",
+    "text_warning": "Vous avez des données locales qui seront perdues si vous supprimez !",
+    "button_delete": "Supprimer",
+    "button_keep": "Conserver"
   },
   "synchro": {
     "in_progress": "Synchronisation en cours",
