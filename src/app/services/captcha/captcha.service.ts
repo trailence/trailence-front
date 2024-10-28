@@ -3,16 +3,17 @@ import { BehaviorSubject, combineLatest, filter, first, map, Observable } from '
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { IdGenerator } from 'src/app/utils/component-utils';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class CaptchaService {
 
-  private jsLoaded = new BehaviorSubject<boolean>(false);
-  private jsLoading = false;
+  private readonly jsLoaded = new BehaviorSubject<boolean>(false);
+  private readonly jsLoading = false;
   private node?: HTMLScriptElement;
-  private key = new BehaviorSubject<string>('');
+  private readonly key = new BehaviorSubject<string>('');
 
-  constructor(private http: HttpService) { }
+  constructor(private readonly http: HttpService) { }
 
   public displayOn(id: string, onsuccess: (token: string) => void, onexpired: () => void, onerror: (error: any) => void): void {
     const element = document.getElementById(id);
@@ -66,7 +67,7 @@ export class CaptchaService {
     this.node.async = true;
     this.node.defer = true;
     this.node.onerror = function(err: any) {
-      console.log(err);
+      Console.error('Error loading captcha', err);
     };
     document.getElementsByTagName('head')[0].appendChild(this.node);
   }
@@ -77,7 +78,7 @@ export class CaptchaService {
   }
 
   private loadKey(): void {
-    this.http.getString(environment.apiBaseUrl + '/auth/v1/captcha').subscribe(key => {console.log(key); this.key.next(key); });
+    this.http.getString(environment.apiBaseUrl + '/auth/v1/captcha').subscribe(key => {Console.info('Captcha key', key); this.key.next(key); });
   }
 
 }

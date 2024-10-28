@@ -11,6 +11,7 @@ import { ShareService } from 'src/app/services/database/share.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { map } from 'rxjs';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { Console } from 'src/app/utils/console';
 
 @Component({
   selector: 'app-link',
@@ -32,14 +33,14 @@ export class LinkPage {
   ionViewDidEnter() {
     let token = window.location.pathname;
     if (!token.startsWith('/link/')) {
-      console.log('Invalid link', token);
+      Console.warn('Invalid link', token);
       this.router.navigateByUrl('/');
       return;
     }
     token = decodeURIComponent(token.substring(6));
     const i = token.indexOf('.');
     if (i <= 0) {
-      console.log('Invalid token', token);
+      Console.warn('Invalid token', token);
       this.router.navigateByUrl('/');
       return;
     }
@@ -47,11 +48,11 @@ export class LinkPage {
       const json = atob(token.substring(0, i));
       const payload = JSON.parse(json);
       if (!payload) {
-        console.log('Invalid token payload', token);
+        Console.warn('Invalid token payload', token);
         this.router.navigateByUrl('/');
         return;
       }
-      console.log('payload', payload);
+      Console.info('payload', payload);
       if (payload.type === 'stop_change_password') {
         this.message = this.i18n.texts.pages.link.stop_change_password.in_progress;
         this.injector.get(HttpService).delete(environment.apiBaseUrl + '/user/v1/changePassword?token=' + encodeURIComponent(token)).subscribe(
@@ -74,7 +75,7 @@ export class LinkPage {
             ).subscribe(() => this.router.navigateByUrl('/trails/share/' + payload.data));
           },
           error: error => {
-            console.log(error);
+            Console.error(error);
             if (error instanceof ApiError && error.httpCode === 403) {
               this.router.navigateByUrl('/login?email=' + encodeURIComponent(payload.email));
             }
@@ -83,7 +84,7 @@ export class LinkPage {
         });
       }
     } catch (e) {
-      console.log('Error decoding token', token, e);
+      Console.error('Error decoding token', token, e);
       this.router.navigateByUrl('/');
       return;
     }

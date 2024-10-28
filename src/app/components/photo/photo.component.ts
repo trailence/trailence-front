@@ -4,6 +4,7 @@ import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
 import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
+import { Console } from 'src/app/utils/console';
 
 @Component({
   selector: 'app-photo',
@@ -45,7 +46,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
           this.setBlob(blob);
         },
         error: e => {
-          console.log('Error loading photo', e);
+          Console.error('Error loading photo', e);
           this.error = true;
         }
       });

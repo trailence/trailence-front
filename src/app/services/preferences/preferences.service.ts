@@ -6,6 +6,7 @@ import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/network.service';
 import { StringUtils } from 'src/app/utils/string-utils';
+import { Console } from 'src/app/utils/console';
 
 const defaultPreferences: {[key:string]: Preferences} = {
   'en': {
@@ -44,15 +45,15 @@ const DEFAULT_PHOTO_CACHE_DAYS = 60;
 })
 export class PreferencesService {
 
-  private _prefs$: BehaviorSubject<Preferences>;
-  private _computed$: BehaviorSubject<ComputedPreferences>;
-  private _systemTheme: ThemeType;
-  private _saveNeeded$ = new BehaviorSubject<string | undefined>(undefined);
+  private readonly _prefs$: BehaviorSubject<Preferences>;
+  private readonly _computed$: BehaviorSubject<ComputedPreferences>;
+  private readonly _systemTheme: ThemeType;
+  private readonly _saveNeeded$ = new BehaviorSubject<string | undefined>(undefined);
 
   constructor(
-    private authService: AuthService,
-    private httpService: HttpService,
-    private network: NetworkService,
+    private readonly authService: AuthService,
+    private readonly httpService: HttpService,
+    network: NetworkService,
   ) {
     this._systemTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'DARK' : 'LIGHT';
     let prefs: Preferences = {};
@@ -92,7 +93,7 @@ export class PreferencesService {
     this._prefs$.subscribe(p => {
       localStorage.setItem(LOCALSTORAGE_PREFERENCES_KEY, JSON.stringify(p));
       const computed = this.compute(p);
-      console.log('Preferences: ', computed);
+      Console.info('Preferences: ', computed);
       window.document.body.classList.remove('dark-theme');
       window.document.body.classList.remove('light-theme');
       const theme = computed.theme === 'SYSTEM' ? this._systemTheme : computed.theme;
@@ -252,8 +253,8 @@ export class PreferencesService {
   private setPreference(field: string, value: any): void {
     const auth = this.authService.auth;
     if (auth) {
-      const currentValue = auth && auth.preferences ? (auth.preferences as any)[field] : undefined;
-      if (auth && currentValue !== value) {
+      const currentValue = auth?.preferences ? (auth.preferences as any)[field] : undefined;
+      if (currentValue !== value) {
         if (!auth.preferences) {
           auth.preferences = {};
         }
@@ -261,7 +262,7 @@ export class PreferencesService {
         this.authService.preferencesUpdated();
         this._saveNeeded$.next(auth.email);
       }
-      }
+    }
     if ((this._prefs$.value as any)[field] !== value) {
       (this._prefs$.value as any)[field] = value;
       this._prefs$.next(this._prefs$.value);

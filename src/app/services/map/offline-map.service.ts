@@ -14,6 +14,7 @@ import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { HttpClient } from '@angular/common/http';
 import { ErrorService } from '../progress/error.service';
 import { I18nError } from '../i18n/i18n-string';
+import { Console } from 'src/app/utils/console';
 
 interface TileMetadata {
   key: string;
@@ -150,7 +151,7 @@ export class OfflineMapService {
               });
             },
             error: e => {
-              console.log(e);
+              Console.error('Error loading map tile', e);
               errors++;
               progress.workDone = ++done;
               progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
@@ -263,7 +264,7 @@ export class OfflineMapService {
     setTimeout(() => {
       if (this._db === db) {
         localStorage.setItem('trailence.map-offline.last-cleaning.' + this._openEmail, '' + Date.now());
-        console.log('All offline maps cleaned, next cleaning in 24 hours');
+        Console.info('All offline maps cleaned, next cleaning in 24 hours');
       }
     }, 60000 + this.layers.layers.length * 15000 + 30000);
   }
@@ -271,7 +272,7 @@ export class OfflineMapService {
   private cleanExpiredLayer(db: Dexie, layerName: string): void {
     if (db !== this._db) return;
     let count = 0;
-    console.log('Cleaning offline maps: ' + layerName);
+    Console.info('Cleaning offline maps: ' + layerName);
     db.transaction('rw', [layerName + '_meta', layerName + '_tiles'], () => {
       db.table<TileMetadata, string>(layerName + '_meta')
       .where('date')
@@ -280,7 +281,7 @@ export class OfflineMapService {
         this.cleanExpiredTile(db, layerName, key);
         count++;
       }).then(() => {
-        console.log('Offline maps removed: ', layerName, count);
+        Console.info('Offline maps removed: ', layerName, count);
       });
     });
   }

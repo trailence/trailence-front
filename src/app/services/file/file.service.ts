@@ -4,6 +4,7 @@ import { BinaryContent } from 'src/app/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
 import * as JSZip from 'jszip';
 import { Arrays } from 'src/app/utils/arrays';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
@@ -75,7 +76,7 @@ export class FileService implements IFileService {
       .catch((e: any) => {
         if (e instanceof DOMException) {
           // ignore error if user abort
-          console.log(e)
+          Console.info('Open file dialog: ', e)
         } else {
           r.ondone(undefined, [], [e]);
         }

@@ -5,6 +5,7 @@ import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocatio
 import { BackgroundGeolocationPlugin, Location } from "@capacitor-community/background-geolocation";
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
+import { Console } from 'src/app/utils/console';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("BackgroundGeolocation");
 
@@ -34,13 +35,13 @@ export class GeolocationService implements IGeolocationService {
     return Geolocation.checkPermissions()
     .then(result => this.handlePermissions(result))
     .catch(error => {
-      console.error('checkPermissions error', error);
+      Console.error('checkPermissions error', error);
       return Promise.resolve(GeolocationState.DISABLED);
     })
   }
 
   private handlePermissions(status: PermissionStatus): Promise<GeolocationState> {
-    console.log('checkPermissions status', status);
+    Console.info('checkPermissions status', status);
     if (status.location === 'prompt') {
       return new Promise((resolve, reject) => {
         Geolocation.requestPermissions().then(r => this.handlePermissions(r).then(resolve).catch(reject)).catch(reject);
@@ -68,7 +69,7 @@ export class GeolocationService implements IGeolocationService {
       listener(pos);
     })
     .catch(e => {
-      console.log('Geolocation error', e);
+      Console.info('Geolocation error', e);
       if (onerror) onerror(e);
     });
     this.watchListeners.push({listener, onerror});
@@ -80,7 +81,7 @@ export class GeolocationService implements IGeolocationService {
         backgroundTitle: notifMessage,
         distanceFilter: 1,
       }, (position, err) => {
-        console.log('background watcher', position, err);
+        Console.info('background watcher', position, err);
         if (position) {
           this.emitPosition(position);
         } else if (err) {
@@ -137,7 +138,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   private emitError(err: any): void {
-    console.log('Geolocation error', err);
+    Console.info('Geolocation error', err);
     this._waitingForGps$.next(true);
     for (const l of this.watchListeners)
       if (l.onerror) l.onerror(err);

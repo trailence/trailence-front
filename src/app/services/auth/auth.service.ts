@@ -13,6 +13,7 @@ import { Platform, NavController } from '@ionic/angular/standalone';
 import { InitRenewRequest } from './init-renew-request';
 import { RenewRequest } from './renew-request';
 import { LoginShareRequest } from './login-share-request';
+import { Console } from 'src/app/utils/console';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
@@ -34,14 +35,14 @@ When the token is expired, auto-renewal is done:
 })
 export class AuthService {
 
-  private _auth$ = new BehaviorSubject<AuthResponse | null | undefined>(undefined);
+  private readonly _auth$ = new BehaviorSubject<AuthResponse | null | undefined>(undefined);
   private db?: Dexie;
   private _currentAuth?: Observable<AuthResponse | null>;
 
   constructor(
-    private http: HttpService,
-    private router: Router,
-    private platform: Platform,
+    private readonly http: HttpService,
+    private readonly router: Router,
+    private readonly platform: Platform,
     navController: NavController,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
@@ -52,7 +53,7 @@ export class AuthService {
           navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
         }
       } else if (auth) {
-        console.log('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete);
+        Console.info('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete);
         localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
       }
     });
@@ -74,18 +75,18 @@ export class AuthService {
           if (!auth.expires) throw Error('No expires');
           if (!auth.email) throw Error('No email');
           if (!auth.keyId) throw Error('No keyId');
-          console.log('Found stored authentication for user', auth.email);
+          Console.info('Found stored authentication for user', auth.email);
           this.openDB(auth.email);
           this._auth$.next(auth);
         }
       } catch (error) {
-        console.error(error);
+        Console.error(error);
       }
       if (this._auth$.value === undefined) this._auth$.next(null);
     });
   }
 
-  public get auth$(): Observable<AuthResponse | null> { return this._auth$.pipe(filter(auth => auth !== undefined)) as Observable<AuthResponse | null>; }
+  public get auth$(): Observable<AuthResponse | null> { return this._auth$.pipe(filter(auth => auth !== undefined)); }
   public get auth(): AuthResponse | null { return this._auth$.value || null; }
 
   public get email(): string | undefined { return this.auth?.email; }
@@ -231,7 +232,7 @@ export class AuthService {
     return this._auth$.pipe(
       filter(auth => auth !== undefined),
       switchMap(auth => {
-        if (!auth || auth.expires - Date.now() - 60000 > 0) return of(auth as (AuthResponse | null));
+        if (!auth || auth.expires - Date.now() - 60000 > 0) return of(auth);
         return this.renewAuth();
       }),
       first()
@@ -242,7 +243,7 @@ export class AuthService {
     if (!this._currentAuth) {
       if (!this._auth$.value) return of(null);
       const email = this._auth$.value.email;
-      console.log('Authenticating ' + email);
+      Console.info('Authenticating ' + email);
       this._currentAuth =
         from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(email)))
         .pipe(
@@ -260,7 +261,7 @@ export class AuthService {
               catchError(error => {
                 if (error instanceof ApiError) {
                   if (error.httpCode === 403) {
-                    console.log('The server refused our authentication key');
+                   Console.warn('The server refused our authentication key');
                     this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(email);
                     this._auth$.next(null);
                     return of(null);

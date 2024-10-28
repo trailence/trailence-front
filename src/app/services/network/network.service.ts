@@ -4,23 +4,24 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClientService } from '../http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from '../http/http-request';
 import { environment } from 'src/environments/environment';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NetworkService implements INetworkService {
 
-  private _server$: BehaviorSubject<boolean>;
-  private _internet$: BehaviorSubject<boolean>;
+  private readonly _server$: BehaviorSubject<boolean>;
+  private readonly _internet$: BehaviorSubject<boolean>;
 
-  constructor(private http: HttpClientService) {
+  constructor(private readonly http: HttpClientService) {
     this._server$ = new BehaviorSubject<boolean>(false);
     this._internet$ = new BehaviorSubject<boolean>(false);
     this.updateStatus();
     window.addEventListener('online', () => this.updateStatus());
     window.addEventListener('offline', () => this.updateStatus());
-    this._server$.subscribe(connected => console.log("Server reachable = " + connected));
-    this._internet$.subscribe(connected => console.log("Network connection = " + connected));
+    this._server$.subscribe(connected => Console.info("Server reachable = " + connected));
+    this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
   }
 
   get server(): boolean { return this._server$.value; }
@@ -33,7 +34,7 @@ export class NetworkService implements INetworkService {
 
   private updateStatus(): void {
     const newStatus = window.navigator.onLine;
-    console.log('Network changed (' + newStatus + '), ping server');
+    Console.info('Network changed (' + newStatus + '), ping server');
     if (!newStatus) {
       if (this._internet$.value) {
         this._internet$.next(false);
@@ -52,10 +53,10 @@ export class NetworkService implements INetworkService {
       if (count !== this.count) return;
       let status: boolean;
       if (response.status === 200) {
-        console.log('Server ping response received: connected');
+        Console.info('Server ping response received: connected');
         status = true;
       } else {
-        console.log('Server ping response error (' + response.status + '): not connected');
+        Console.info('Server ping response error (' + response.status + '): not connected');
         status = false;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
       }

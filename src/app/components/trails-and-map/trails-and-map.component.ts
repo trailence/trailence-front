@@ -18,6 +18,7 @@ import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import * as L from 'leaflet';
 import { MapBubble } from '../map/bubble/map-bubble';
+import { Console } from 'src/app/utils/console';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -220,7 +221,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         child.setVisible(listVisible);
         child.changeDetector.detectChanges();
       } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
-      else console.error('unexpected child', child);
+      else Console.error('unexpected child', child);
     });
   }
 

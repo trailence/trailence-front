@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { filter, from, Observable, of, throwError, throwIfEmpty } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import Dexie, { Table } from 'dexie';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class StoredFilesService {
@@ -89,7 +90,7 @@ export class StoredFilesService {
       return next(0,[]);
     }).then(toRemove => {
       if (t !== this.table) return;
-      console.log('Cleaning', type, toRemove.length);
+      Console.info('Cleaning', type, toRemove.length);
       return t.bulkDelete(toRemove);
     }));
   }
@@ -101,7 +102,7 @@ export class StoredFilesService {
     .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
     .then(toRemove => {
       if (t !== this.table) return;
-      console.log('Removing files', type, toRemove.length);
+      Console.info('Removing files', type, toRemove.length);
       return t.bulkDelete(toRemove);
     }));
   }
@@ -112,7 +113,7 @@ export class StoredFilesService {
 
   private close() {
     if (this.db) {
-      console.log('Close files DB')
+      Console.info('Close files DB')
       this.db.close();
       this.openEmail = undefined;
       this.db = undefined;
@@ -122,7 +123,7 @@ export class StoredFilesService {
   private open(email: string): void {
     if (this.openEmail === email) return;
     this.close();
-    console.log('Open files DB for user ' + email);
+    Console.info('Open files DB for user ' + email);
     this.openEmail = email;
     const db = new Dexie('trailence_files_' + email);
     const schemaV1: any = {};

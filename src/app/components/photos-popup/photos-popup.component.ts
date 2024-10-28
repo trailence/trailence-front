@@ -13,6 +13,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from 'src/app/services/progress/error.service';
+import { Console } from 'src/app/utils/console';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -137,7 +138,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
       ondone: (progress: Progress | undefined, result: boolean[], errors: any[]) => {
         progress?.done();
         if (errors.length > 0) {
-          console.log('Errors reading photos', errors);
+          Console.error('Errors reading photos', errors);
           this.errorService.addErrors(errors);
         };
       }

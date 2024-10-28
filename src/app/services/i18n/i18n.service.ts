@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
+import { Console } from 'src/app/utils/console';
 
 const TEXTS_VERSION = '2';
 
@@ -257,7 +258,7 @@ export class I18nService {
     if (this._textsLoaded$.value === lang) return;
     this.assets.loadJson(environment.assetsUrl + '/i18n/' + lang + '.' + TEXTS_VERSION + '.json').subscribe(data => {
       this._texts$.next(data);
-      console.log('i18n texts loaded for language ', lang);
+      Console.info('i18n texts loaded for language ', lang);
       document.documentElement.lang = lang;
       this._textsLoaded$.next(lang);
       this._stateChanged$.next(this._stateChanged$.value + 1);

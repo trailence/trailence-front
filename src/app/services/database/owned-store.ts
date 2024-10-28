@@ -6,12 +6,13 @@ import { Table } from 'dexie';
 import { Injector } from '@angular/core';
 import { DatabaseService } from './database.service';
 import { ErrorService } from '../progress/error.service';
+import { Console } from 'src/app/utils/console';
 
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 
   private _updatedLocally: string[] = [];
-  private _syncStatus$ = new BehaviorSubject<OwnedStoreSyncStatus>(new OwnedStoreSyncStatus());
+  private readonly _syncStatus$ = new BehaviorSubject<OwnedStoreSyncStatus>(new OwnedStoreSyncStatus());
 
   constructor(
     tableName: string,
@@ -43,11 +44,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   protected override areSame(item1: ENTITY, item2: ENTITY): boolean {
     return item1.uuid === item2.uuid && item1.owner === item2.owner;
-  }
-
-  protected override fireSync(): void {
-    this._syncStatus$.value.needsUpdateFromServer = true;
-    this._syncStatus$.next(this._syncStatus$.value);
   }
 
   public getItem$(uuid: string, owner: string): Observable<ENTITY | null> {
@@ -254,7 +250,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         },
         error: error => {
           // should never happen
-          console.log(error);
+          Console.error(error);
         }
       });
     });
@@ -271,17 +267,17 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         const notReady = toCreate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
         for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
-          console.log('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
           return of(false);
         }
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
             if (!stillValid()) return of(false);
             return this.updatedDtosFromServer(result);
           }),
           catchError(error => {
-            console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
+            Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.tableName]);
             return of(false);
           }),
@@ -299,11 +295,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return this.getUpdatesFromServer(known).pipe(
       switchMap(result => {
         if (!stillValid()) return of(false);
-        console.log('Server updates for ' + this.tableName + ': sent ' + known.length + ' known element(s), received ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
+        Console.info('Server updates for ' + this.tableName + ': sent ' + known.length + ' known element(s), received ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
         return this.updatedDtosFromServer([...result.updated, ...result.created], result.deleted);
       }),
       catchError(error => {
-        console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.tableName, error);
+        Console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.tableName, error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
         return of(false);
       })
@@ -327,13 +323,13 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         const notReady = toUpdate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
         for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
-          console.log('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName);
           return of(false);
         }
         return this.sendUpdatesToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
             if (!stillValid()) return of(false);
-            console.log('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server');
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server');
             for (const entity of readyEntities) {
               const updated = result.find(d => d.uuid === entity.uuid && d.owner === entity.owner);
               if (!updated) {
@@ -346,7 +342,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             return this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length));
           }),
           catchError(error => {
-            console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
+            Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.tableName]);
             return of(false);
           }),
@@ -365,11 +361,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       defaultIfEmpty(true),
       switchMap(() => {
         if (!stillValid()) return of(false);
-        console.log('' + toDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
+        Console.info('' + toDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
         return this.updatedDtosFromServer([], toDelete.map(uuid => ({uuid, owner: this.injector.get(DatabaseService).email!})));
       }),
       catchError(error => {
-        console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server', error);
+        Console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server', error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
         return of(false);
       })

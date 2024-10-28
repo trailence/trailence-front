@@ -12,6 +12,7 @@ import { ApiError } from 'src/app/services/http/api-error';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { Console } from 'src/app/utils/console';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Component({
@@ -120,7 +121,7 @@ export class LoginPage {
         });
       },
       error: error => {
-        console.log(error);
+        Console.warn('Login error', error);
         if (error instanceof ApiError && error.httpCode === 403) {
           if (error.errorCode === 'captcha-needed') {
             this.captchaNeeded = true;
@@ -133,7 +134,7 @@ export class LoginPage {
               this.changeDetector.detectChanges();
             },
             error => {
-              console.log('error', error);
+              Console.error('Captcha error', error);
             });
           } else if (error.errorCode === 'locked') {
             this.locked = true;

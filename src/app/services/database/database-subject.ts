@@ -1,5 +1,6 @@
 import { Observable, Subscriber } from 'rxjs';
 import { DatabaseSubjectService } from './database-subject-service';
+import { Console } from 'src/app/utils/console';
 
 export class DatabaseSubject<T> {
 
@@ -55,7 +56,7 @@ export class DatabaseSubject<T> {
 
   private itemError(error: any): void {
     if (!this.loading) return;
-    console.log('error loading', this.type, error);
+    Console.warn('error loading', this.type, error);
     this.loading = false;
     const subscribers = [...this.observers];
     this.observers = [];

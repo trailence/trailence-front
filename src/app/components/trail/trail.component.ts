@@ -38,6 +38,7 @@ import { BinaryContent } from 'src/app/utils/binary-content';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import * as L from 'leaflet';
 import { ImageUtils } from 'src/app/utils/image-utils';
+import { Console } from 'src/app/utils/console';
 
 @Component({
   selector: 'app-trail',
@@ -309,7 +310,6 @@ export class TrailComponent extends AbstractComponent {
               switchMap(photos => {
                 const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
                 const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
-                console.log(withPos.length, withDateOnly.length, withPos, withDateOnly)
                 if (withDateOnly.length > 0) {
                   // we need the track to get a position
                   return this.showOriginal$.pipe(
@@ -326,7 +326,6 @@ export class TrailComponent extends AbstractComponent {
                         let point: L.LatLngExpression | null | undefined = dateToPoint.get(date);
                         if (point === undefined) {
                           const closest = TrackUtils.findClosestPointForTime(track, date);
-                          console.log('closest', closest, date);
                           point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
                           dateToPoint.set(date, point);
                         }
@@ -469,7 +468,7 @@ export class TrailComponent extends AbstractComponent {
       } else if (this.editToolsComponent && child instanceof this.editToolsComponent) {
         child.setVisible(true);
       }
-      else console.error('unexpected child', child);
+      else Console.error('unexpected child', child);
     })
   }
 

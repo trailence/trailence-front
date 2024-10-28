@@ -5,6 +5,7 @@ import { ConnectionStatus, ConnectionType, Network } from '@capacitor/network';
 import { HttpClientService } from 'src/app/services/http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from 'src/app/services/http/http-request';
 import { environment } from 'src/environments/environment';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,7 @@ export class NetworkService implements INetworkService {
       this.updateStatus(status);
     });
     Network.addListener('networkStatusChange', status => {
-      console.log('network status changed', status);
+      Console.info('network status changed', status);
       this.updateStatus(status);
     });
   }
@@ -36,7 +37,7 @@ export class NetworkService implements INetworkService {
   private countNet = 0;
 
   private updateStatus(status: ConnectionStatus): void {
-    console.log('Network changed', status, 'ping server');
+    Console.info('Network changed', status, 'ping server');
     this.checkServerConnection(++this.countPing, 1);
     const c2 = ++this.countNet;
     setTimeout(() => {
@@ -52,10 +53,10 @@ export class NetworkService implements INetworkService {
       if (count !== this.countPing) return;
       let status: boolean;
       if (response.status === 200) {
-        console.log('Server ping response received: connected');
+        Console.info('Server ping response received: connected');
         status = true;
       } else {
-        console.log('Server ping response error (' + response.status + '): not connected');
+        Console.info('Server ping response error (' + response.status + '): not connected');
         status = false;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
       }

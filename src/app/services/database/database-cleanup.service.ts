@@ -1,18 +1,19 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { TrailService } from './trail.service';
-import { combineLatest, EMPTY, filter, first, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, filter, first, Observable, of, switchMap } from 'rxjs';
 import { TagService } from './tag.service';
 import { TrackService } from './track.service';
 import { DatabaseService } from './database.service';
 import { NetworkService } from '../network/network.service';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DatabaseCleanupService {
 
-  constructor(private injector: Injector) {
+  constructor(private readonly injector: Injector) {
     let timeout: any = undefined;
     let email: string | undefined = undefined;
     injector.get(NgZone).runOutsideAngular(() => {
@@ -30,11 +31,11 @@ export class DatabaseCleanupService {
             const nextCleanTime = lastCleanTime && !isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
             if (timeout) clearTimeout(timeout);
             const nextTimeout = Math.max(nextCleanTime - Date.now(), 60000);
-            console.log('Next database cleaning at', new Date(Date.now() + nextTimeout));
+            Console.info('Next database cleaning at', new Date(Date.now() + nextTimeout));
             timeout = setTimeout(() => {
               this.doCleaning(email!).subscribe((done) => {
                 if (email === auth.email && done) {
-                  console.log('Database cleaned, next cleaning in 24 hours');
+                  Console.info('Database cleaned, next cleaning in 24 hours');
                   localStorage.setItem('trailence.db-cleaning.last-time.' + email, '' + Date.now());
                 }
               });
@@ -54,7 +55,7 @@ export class DatabaseCleanupService {
       first(),
       switchMap(() => {
         if (db !== dbService.db || email !== dbService.email) return of(false);
-        console.log('Cleaning database...');
+        Console.info('Cleaning database...');
         return this.injector.get(TrailService).cleanDatabase(db, email).pipe(
           switchMap(() => {
             if (db !== dbService.db || email !== dbService.email) return of(false);

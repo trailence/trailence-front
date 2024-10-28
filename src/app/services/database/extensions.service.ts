@@ -1,34 +1,37 @@
-import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, takeWhile } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, filter, first, Observable, of } from 'rxjs';
 import { Extension } from 'src/app/model/extension';
 import { DatabaseService, EXTENSIONS_TABLE_NAME } from './database.service';
 import { StoreSyncStatus } from './store';
 import Dexie from 'dexie';
-import { NetworkService } from '../network/network.service';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { Arrays } from 'src/app/utils/arrays';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExtensionsService {
 
-  private _extensions$ = new BehaviorSubject<Extension[]>([]);
-  private _syncStatus$ = new BehaviorSubject<ExtensionsSyncStatus>(new ExtensionsSyncStatus());
+  private readonly _extensions$ = new BehaviorSubject<Extension[]>([]);
+  private readonly _syncStatus$ = new BehaviorSubject<ExtensionsSyncStatus>(new ExtensionsSyncStatus());
   private _db?: Dexie;
-  private _lastSync = 0;
-  private _syncTimeout?: any;
   private updateFromServerTimeout: any = undefined;
-  private _loaded$ = new BehaviorSubject<boolean>(false);
+  private readonly _loaded$ = new BehaviorSubject<boolean>(false);
 
   constructor(
-    private databaseService: DatabaseService,
-    private network: NetworkService,
-    private ngZone: NgZone,
-    private http: HttpService,
+    private readonly databaseService: DatabaseService,
+    private readonly http: HttpService,
   ) {
-    databaseService.registerStore({status: this._syncStatus$, syncNow: () => this.syncNow(), loaded$: this._loaded$});
+    databaseService.registerStore({
+      status$: this._syncStatus$,
+      loaded$: this._loaded$,
+      canSync$: of(true),
+      fireSyncStatus: () => this._syncStatus$.next(this._syncStatus$.value),
+      syncFromServer: () => this.triggerUpdatesFromServer(),
+      doSync: () => this.sync(),
+    });
     this.databaseService.db$.subscribe(db => {
       if (db) this.load(db);
       else this.close();
@@ -83,65 +86,19 @@ export class ExtensionsService {
   private load(db: Dexie): void {
     if (this._db) this.close();
     this._db = db;
-    this._lastSync = 0;
     this._syncStatus$.value.needsUpdateFromServer = true;
     this._syncStatus$.next(this._syncStatus$.value);
     db.table<DbItem>(EXTENSIONS_TABLE_NAME).toArray().then(items => {
       this._extensions$.next(items.map(item => new Extension(item.version, item.extension, item.data)));
       this._loaded$.next(true);
-      combineLatest([
-        this.network.server$,
-        this._syncStatus$,
-      ]).pipe(
-        debounceTime(1000),
-        map(([networkConnected, syncStatus]) => networkConnected && syncStatus.needsSync && !syncStatus.inProgress),
-        filter(shouldSync => {
-          if (!shouldSync) return false;
-          if (Date.now() - this._lastSync < 30000) {
-            this.ngZone.runOutsideAngular(() => {
-              if (!this._syncTimeout) {
-                this._syncTimeout = setTimeout(() => this._syncStatus$.next(this._syncStatus$.value), Math.max(1000, 30000 - (Date.now() - this._lastSync)));
-              }
-            });
-            return false;
-          }
-          return true;
-        }),
-        debounceTime(1000),
-        takeWhile(() => this._db === db)
-      )
-      .subscribe(() => {
-        this._lastSync = Date.now();
-        if (this._syncTimeout) clearTimeout(this._syncTimeout);
-        this._syncTimeout = undefined;
-        this.sync();
-      });
-
-      // launch update from server every 30 minutes
-      let previousNeeded = false;
-      this._syncStatus$.subscribe(status => {
-        if (!previousNeeded && status.needsUpdateFromServer) {
-          previousNeeded = true;
-        } else if (previousNeeded && !status.needsUpdateFromServer) {
-          previousNeeded = false;
-          if (this.updateFromServerTimeout) clearTimeout(this.updateFromServerTimeout);
-          this.ngZone.runOutsideAngular(() => {
-            this.updateFromServerTimeout = setTimeout(() => {
-              this._syncStatus$.value.needsUpdateFromServer = true;
-              this._syncStatus$.next(this._syncStatus$.value);
-            }, 30 * 60 * 1000);
-          });
-        }
-      });
     });
   }
 
-  private syncNow(): void {
-    this._lastSync = 0;
-    if (this._syncTimeout) clearTimeout(this._syncTimeout);
-    this._syncTimeout = undefined;
-    this._syncStatus$.value.needsUpdateFromServer = true;
-    this._syncStatus$.next(this._syncStatus$.value);
+  private triggerUpdatesFromServer(): void {
+    if (!this._syncStatus$.value.needsUpdateFromServer) {
+      this._syncStatus$.value.needsUpdateFromServer = true;
+      this._syncStatus$.next(this._syncStatus$.value);
+    }
   }
 
   private sync(): void {
@@ -153,7 +110,7 @@ export class ExtensionsService {
       next: list => {
         if (this._db !== db) return;
         if (!Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
-          console.log('Extension(s) received from server: ', list.length);
+          Console.info('Extension(s) received from server: ', list.length);
           const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
           this._extensions$.next(extensions);
           this._db.transaction('rw', [EXTENSIONS_TABLE_NAME], () => {
@@ -167,7 +124,7 @@ export class ExtensionsService {
             }
           });
         } else {
-          console.log('Extensions sync without change', list.length);
+          Console.info('Extensions sync without change', list.length);
         }
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.value.needsUpdateFromServer = false;
@@ -177,7 +134,7 @@ export class ExtensionsService {
       },
       error: e => {
         if (this._db !== db) return;
-        console.error('Error loading extensions', e);
+        Console.error('Error loading extensions', e);
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.next(this._syncStatus$.value);
       }

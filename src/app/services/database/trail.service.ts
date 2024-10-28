@@ -23,19 +23,20 @@ import { Router } from '@angular/router';
 import { ModalController} from '@ionic/angular/standalone';
 import { PhotoService } from './photo.service';
 import { ErrorService } from '../progress/error.service';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TrailService {
 
-  private _store: TrailStore;
+  private readonly _store: TrailStore;
 
   constructor(
     http: HttpService,
-    private trackService: TrackService,
+    private readonly trackService: TrackService,
     collectionService: TrailCollectionService,
-    private injector: Injector,
+    private readonly injector: Injector,
   ) {
     this._store = new TrailStore(injector, http, trackService, collectionService);
     this.listenToImportGpx();
@@ -162,11 +163,11 @@ export class TrailService {
     Trailence.listenToImportedFiles((message) => {
       if (message.chunks !== undefined) {
         files.set(message.fileId, {nbChunks: message.chunks, chunks: new Array(message.chunks)});
-        console.log('Start receiving new file from device with ' + message.chunks + ' chunks');
+        Console.info('Start receiving new file from device with ' + message.chunks + ' chunks');
       } else if (message.chunkIndex !== undefined && message.data !== undefined) {
         const file = files.get(message.fileId);
         if (!file) {
-          console.error('Received a chunk of data from device for an unknown file id', message.fileId);
+          Console.error('Received a chunk of data from device for an unknown file id', message.fileId);
           return;
         }
         file.chunks[message.chunkIndex] = message.data;
@@ -177,7 +178,7 @@ export class TrailService {
             break;
           }
         }
-        console.log('new chunk of data received from device', file);
+        Console.info('new chunk of data received from device', file);
         if (done) {
           files.delete(message.fileId);
           this.importGpx(file.chunks);
@@ -187,7 +188,7 @@ export class TrailService {
   }
 
   private importGpx(chunks: string[]): void {
-    console.log('Received GPX data to import from device');
+    Console.info('Received GPX data to import from device');
     this.injector.get(AuthService).auth$.pipe(
       filter(auth => !!auth),
       first(),
@@ -233,9 +234,9 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
 
   constructor(
     injector: Injector,
-    private http: HttpService,
-    private trackService: TrackService,
-    private collectionService: TrailCollectionService,
+    private readonly http: HttpService,
+    private readonly trackService: TrackService,
+    private readonly collectionService: TrailCollectionService,
   ) {
     super(TRAIL_TABLE_NAME, injector);
   }
@@ -303,7 +304,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
           const maxDate = Date.now() - 24 * 60 * 60 * 1000;
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            console.log('Trails database cleaned: ' + count + ' removed');
+            Console.info('Trails database cleaned: ' + count + ' removed');
             subscriber.next(true);
             subscriber.complete();
           });

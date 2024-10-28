@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { IonHeader, IonContent, IonToolbar, IonTitle, IonIcon, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
 import { first } from 'rxjs';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
@@ -14,7 +14,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
   standalone: true,
   imports: [IonRadioGroup, IonRadio, IonButton, IonButtons, IonFooter, IonLabel, IonIcon, IonTitle, IonToolbar, IonContent, IonHeader, CommonModule ]
 })
-export class ImportGpxPopupComponent  implements OnInit {
+export class ImportGpxPopupComponent {
 
   @Input() onDone!: (collectionUuid: string) => void;
 
@@ -24,13 +24,10 @@ export class ImportGpxPopupComponent  implements OnInit {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
-    private collectionService: TrailCollectionService,
+    private readonly modalController: ModalController,
+    private readonly collectionService: TrailCollectionService,
   ) {
     this.collectionService.getAll$().pipe(collection$items(), first()).subscribe(collections => this.collections = collections);
-  }
-
-  ngOnInit() {
   }
 
   collectionName(collection: TrailCollection): string {

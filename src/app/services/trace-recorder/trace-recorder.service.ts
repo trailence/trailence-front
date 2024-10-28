@@ -20,13 +20,14 @@ import { AlertController } from '@ionic/angular/standalone';
 import { ImprovmentRecordingState, TrackEditionService } from '../track-edition/track-edition.service';
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TraceRecorderService {
 
-  private _recording$ = new BehaviorSubject<Recording | null | undefined>(undefined);
+  private readonly _recording$ = new BehaviorSubject<Recording | null | undefined>(undefined);
   private _db?: Dexie;
   private _table?: Dexie.Table<RecordingDto, number>;
   private _email?: string;
@@ -36,17 +37,17 @@ export class TraceRecorderService {
 
   constructor(
     auth: AuthService,
-    private i18n: I18nService,
-    private collectionService: TrailCollectionService,
-    private geolocation: GeolocationService,
-    private preferencesService: PreferencesService,
-    private trackService: TrackService,
-    private trailService: TrailService,
-    private alertController: AlertController,
-    private trackEdition: TrackEditionService,
-    private ngZone: NgZone,
-    private progressService: ProgressService,
-    private errorService: ErrorService,
+    private readonly i18n: I18nService,
+    private readonly collectionService: TrailCollectionService,
+    private readonly geolocation: GeolocationService,
+    private readonly preferencesService: PreferencesService,
+    private readonly trackService: TrackService,
+    private readonly trailService: TrailService,
+    private readonly alertController: AlertController,
+    private readonly trackEdition: TrackEditionService,
+    private readonly ngZone: NgZone,
+    private readonly progressService: ProgressService,
+    private readonly errorService: ErrorService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -94,7 +95,7 @@ export class TraceRecorderService {
       }
     })
     .catch(e => {
-      console.error(e);
+      Console.error('Error loading current trace', e);
       this._recording$.next(null);
     });
   }
@@ -154,7 +155,7 @@ export class TraceRecorderService {
     const recording = this._recording$.value;
     if (!recording) return of(null);
     this.stopRecording(recording);
-    console.log('Recording stopped');
+    Console.info('Recording stopped');
     this._recording$.next(null);
     if (this._table) this._table.delete(1);
     if (save && this._email) {
@@ -180,7 +181,7 @@ export class TraceRecorderService {
           return this.trailService.create(recording.trail, () => progress.addWorkDone(1));
         }),
         catchError(e => {
-          console.log('Error saving recorded trail', e);
+          Console.error('Error saving recorded trail', e);
           this.errorService.addError(e);
           progress.done();
           return EMPTY;
@@ -225,7 +226,7 @@ export class TraceRecorderService {
       } else if (state === GeolocationState.DENIED) {
         return Promise.reject('Geolocation access denied by user');
       } else {
-        console.log('Start recording');
+        Console.info('Start recording');
         this._recording$.next(recording);
         this._changesSubscription = this.ngZone.runOutsideAngular(() =>
           combineLatest([
@@ -280,7 +281,7 @@ export class TraceRecorderService {
   }
 
   private addPoint(recording: Recording, position: PointDto): Point[] {
-    console.log('new position', position);
+    Console.info('new position', position);
     const points = [
       this.addPointToTrack(position, recording.rawTrack),
       this.addPointToTrack(position, recording.track),
@@ -301,7 +302,7 @@ export class TraceRecorderService {
   }
 
   private updatePoints(position: PointDto, points: Point[]): void {
-    console.log('update position', position);
+    Console.info('update position', position);
     this.updatePoint(points[0], position);
     this.updatePoint(points[1], position);
   }
@@ -331,7 +332,7 @@ export class TraceRecorderService {
   }
 
   private stopRecording(recording: Recording): void {
-    console.log('Stop recording');
+    Console.info('Stop recording');
     this._changesSubscription?.unsubscribe();
     this._changesSubscription = undefined;
     if (this._geolocationListener) this.geolocation.stopWatching(this._geolocationListener);

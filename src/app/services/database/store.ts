@@ -1,9 +1,9 @@
 import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, from, map, of, timeout } from "rxjs";
 import { DatabaseService } from "./database.service";
 import Dexie, { Table } from "dexie";
-import { NetworkService } from "../network/network.service";
 import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
+import { Console } from 'src/app/utils/console';
 
 export interface StoreSyncStatus {
 
@@ -15,9 +15,6 @@ export interface StoreSyncStatus {
     lastUpdateFromServer?: number;
 }
 
-const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
-const MINIMUM_SYNC_INTERVAL = 30 * 1000;
-
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
   protected _db?: Dexie;
@@ -28,11 +25,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected _deletedLocally: STORE_ITEM[] = [];
   protected _locks = new SynchronizationLocks();
 
-  private _storeLoaded$ = new BehaviorSubject<boolean>(false);
-  private _lastSync = 0;
-  private _syncTimeout?: any;
+  private readonly _storeLoaded$ = new BehaviorSubject<boolean>(false);
 
-  private _operationInProgress$ = new BehaviorSubject<boolean>(false);
+  private readonly _operationInProgress$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     protected tableName: string,
@@ -47,86 +42,43 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract isDeletedLocally(item: DB_ITEM): boolean;
   protected abstract isCreatedLocally(item: DB_ITEM): boolean;
 
-  protected syncNow(): void {
-    this._lastSync = 0;
-    if (this._syncTimeout) clearTimeout(this._syncTimeout);
-    this._syncTimeout = undefined;
-    this.fireSync();
-  }
-  protected abstract fireSync(): void;
-
   public getAll$(): Observable<Observable<STORE_ITEM | null>[]> {
     return this._store;
   }
 
   protected _initStore(): void {
     const dbService = this.injector.get(DatabaseService);
-    dbService.registerStore({status: this.syncStatus$, syncNow: () => this.syncNow(), loaded$: this._storeLoaded$});
+    dbService.registerStore({
+      status$: this.syncStatus$,
+      loaded$: this._storeLoaded$,
+      canSync$: this._operationInProgress$.pipe(map(inProgress => !inProgress)),
+      syncFromServer: () => this.triggerSyncFromServer(),
+      fireSyncStatus: () => this.syncStatus = this.syncStatus,
+      doSync: () => this.sync(),
+    });
     // listen to database change (when authentication changed)
     dbService.db$.subscribe(db => {
       if (db) this.load(db);
       else this.close();
     });
+  }
 
-    // we need to sync when:
-    combineLatest([
-      this._storeLoaded$,         // local database is loaded
-      this.injector.get(NetworkService).server$,    // network is connected
-      this.syncStatus$,           // there is something to sync and we are not syncing
-      this._operationInProgress$, // and no operation in progress
-    ]).pipe(
-      debounceTime(5000),
-      map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus.needsSync && !syncStatus.inProgress),
-      filter(shouldSync => {
-        if (!shouldSync) return false;
-        if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
-          this.ngZone.runOutsideAngular(() => {
-            if (!this._syncTimeout) {
-              this._syncTimeout = setTimeout(() => this.syncStatus = this.syncStatus, Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
-            }
-          });
-          return false;
-        }
-        return true;
-      }),
-      debounceTime(3000),
-    )
-    .subscribe(() => {
-      this._lastSync = Date.now();
-      if (this._syncTimeout) clearTimeout(this._syncTimeout);
-      this._syncTimeout = undefined;
-      if (!this._db) return;
-      this.sync();
-    });
-
-    // launch update from server every 30 minutes
-    let updateFromServerTimeout: any = undefined;
-    this._storeLoaded$.subscribe(() => {
-      if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-      updateFromServerTimeout = undefined;
-    });
-    let previousNeeded = false;
-    this.syncStatus$.subscribe(status => {
-      if (!previousNeeded && status.needsUpdateFromServer) {
-        previousNeeded = true;
-      } else if (previousNeeded && !status.needsUpdateFromServer) {
-        previousNeeded = false;
-        if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-        this.ngZone.runOutsideAngular(() => {
-          updateFromServerTimeout = setTimeout(() =>
-            this.performOperation(
-              () => false,
-              () => of(true),
-              status => {
-                if (status.needsUpdateFromServer) return false;
-                status.needsUpdateFromServer = true;
-                return true;
-              }
-            ),
-            AUTO_UPDATE_FROM_SERVER_EVERY
-          );
-        });
-      }
+  private triggerSyncFromServer(): void {
+    const db = this._db;
+    this._storeLoaded$.pipe(
+      filter(l => !!l),
+      first()
+    ).subscribe(() => {
+      if (this._db === db && db)
+        this.performOperation(
+          () => false,
+          () => of(true),
+          status => {
+            if (status.needsUpdateFromServer) return false;
+            status.needsUpdateFromServer = true;
+            return true;
+          }
+        );
     });
   }
 
@@ -161,9 +113,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       from(db.table<DB_ITEM>(this.tableName).toArray()).subscribe(
         items => {
           if (this._db !== db) return;
-          if (this._syncTimeout) clearTimeout(this._syncTimeout);
-          this._syncTimeout = undefined;
-          this._lastSync = 0;
           const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
           items.forEach(dbItem => {
             const item = this.itemFromDb(dbItem);
@@ -186,7 +135,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     // nothing by default
   }
 
-  private operationsQueue: ((resolve: (done: boolean) => void) => void)[] = [];
+  private readonly operationsQueue: ((resolve: (done: boolean) => void) => void)[] = [];
 
   protected performOperation(
     storeUpdater: () => void,
@@ -207,23 +156,22 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         storeUpdater();
         tableUpdate = tableUpdater(db);
       } catch (e) {
-        console.error(e);
+        Console.error('Error updating store', e);
         if (ondone) ondone();
         resolve(true);
         return;
       }
       tableUpdate
-      .pipe(defaultIfEmpty(true), catchError(error => of(true)))
+      .pipe(defaultIfEmpty(true), catchError(() => of(true)))
       .subscribe(() => {
         const status = this.syncStatus;
         let statusUpdated = false;
         try {
           statusUpdated = statusUpdater(status);
         } catch (e) {
-          console.error(e);
+          Console.error('Error updating status', e);
         }
         if (statusUpdated) {
-          this._lastSync = 0;
           this.syncStatus = status;
         }
         if (ondone) ondone();

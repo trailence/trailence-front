@@ -18,21 +18,22 @@ import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import Dexie from 'dexie';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TagService {
 
-  private _tagStore: TagStore;
-  private _trailTagStore: TrailTagStore;
+  private readonly _tagStore: TagStore;
+  private readonly _trailTagStore: TrailTagStore;
 
   constructor(
     injector: Injector,
     http: HttpService,
     collectionService: TrailCollectionService,
     trailService: TrailService,
-    private auth: AuthService,
+    private readonly auth: AuthService,
   ) {
     this._tagStore = new TagStore(injector, http, collectionService);
     this._trailTagStore = new TrailTagStore(injector, http, this, trailService, auth);
@@ -169,8 +170,8 @@ class TagStore extends OwnedStore<TagDto, Tag> {
 
   constructor(
     injector: Injector,
-    private http: HttpService,
-    private collectionService: TrailCollectionService,
+    private readonly http: HttpService,
+    private readonly collectionService: TrailCollectionService,
   ) {
     super(TAG_TABLE_NAME, injector);
   }
@@ -230,7 +231,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
           const maxDate = Date.now() - 24 * 60 * 60 * 1000;
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            console.log('Tags database cleaned: ' + count + ' removed');
+            Console.info('Tags database cleaned: ' + count + ' removed');
             subscriber.next(true);
             subscriber.complete();
           });
@@ -264,10 +265,10 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
 
   constructor(
     injector: Injector,
-    private http: HttpService,
-    private tagService: TagService,
-    private trailService: TrailService,
-    private auth: AuthService,
+    private readonly http: HttpService,
+    private readonly tagService: TagService,
+    private readonly trailService: TrailService,
+    private readonly auth: AuthService,
   ) {
     super(TRAIL_TAG_TABLE_NAME, injector);
   }
@@ -325,10 +326,9 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
             subscriber.complete();
             return;
           }
-          const maxDate = Date.now() - 24 * 60 * 60 * 1000;
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            console.log('TrailTags database cleaned: ' + count + ' removed');
+            Console.info('TrailTags database cleaned: ' + count + ' removed');
             subscriber.next(true);
             subscriber.complete();
           });

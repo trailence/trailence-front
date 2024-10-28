@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, from, map, of, switchMap, tap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -9,7 +9,6 @@ import { RequestLimiter } from "src/app/utils/request-limiter";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { UpdatesResponse } from "./owned-store";
-import { NetworkService } from "../network/network.service";
 import { VersionDto } from "src/app/model/dto/owned";
 import { Injector, NgZone } from "@angular/core";
 import { TrailService } from './trail.service';
@@ -21,6 +20,7 @@ import { ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from '../progress/error.service';
+import { Console } from 'src/app/utils/console';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -68,36 +68,42 @@ interface TrackItem {
   track?: TrackDto;
 }
 
-const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 30 * 1000;
 
 export class TrackDatabase {
 
   constructor(
-    private injector: Injector,
+    private readonly injector: Injector,
   ) {
     this.ngZone = injector.get(NgZone);
     this.subjectService = injector.get(DatabaseSubjectService);
-    injector.get(DatabaseService).registerStore({status: this.syncStatus$, syncNow: () => this.syncNow(), loaded$: of(true)});
+    injector.get(DatabaseService).registerStore({
+      status$: this.syncStatus$,
+      loaded$: of(true),
+      canSync$: of(true),
+      fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
+      syncFromServer: () => this.triggerSyncFromServer(),
+      doSync: () => this.sync(),
+    });
     injector.get(AuthService).auth$.subscribe(
       auth => {
         if (!auth) this.close();
         else this.open(auth.email);
       }
     );
-    this.initSync();
   }
 
-  private subjectService: DatabaseSubjectService;
+  private readonly subjectService: DatabaseSubjectService;
   private db?: Dexie;
   private openEmail?: string;
   private preferencesSubscription?: Subscription;
-  private ngZone: NgZone;
+  private readonly ngZone: NgZone;
+  private readonly syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
 
   private close() {
     this.ngZone.runOutsideAngular(() => {
       if (this.db) {
-        console.log('Close track DB')
+        Console.info('Close track DB')
           this.db.close();
         this.openEmail = undefined;
         this.db = undefined;
@@ -120,7 +126,7 @@ export class TrackDatabase {
     if (this.openEmail === email) return;
     this.close();
     this.ngZone.runOutsideAngular(() => {
-      console.log('Open track DB for user ' + email);
+      Console.info('Open track DB for user ' + email);
       this.openEmail = email;
       const db = new Dexie('trailence_tracks_' + email);
       const schemaV1: any = {};
@@ -133,7 +139,7 @@ export class TrackDatabase {
       this.fullTrackTable = db.table<TrackItem, string>('full_tracks')
       this.db = db;
       const status = new TrackSyncStatus();
-      from(this.fullTrackTable!.where('version').belowOrEqual(0).limit(1).toArray()).pipe(
+      from(this.fullTrackTable.where('version').belowOrEqual(0).limit(1).toArray()).pipe(
         switchMap(r1 => {
           if (r1.length > 0) return of(true);
           return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray()).pipe(
@@ -183,7 +189,7 @@ export class TrackDatabase {
                 if (!trackItem.track || trackItem.version === -1) return;
                 const track = new Track(trackItem.track, this.injector.get(PreferencesService));
                 let meta$ = this.metadata.get(trackItem.key);
-                if (meta$ && meta$.loadedValue) {
+                if (meta$?.loadedValue) {
                   const meta = meta$.loadedValue;
                   if (speedChanged) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
                   if (breaksChanged) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
@@ -241,7 +247,7 @@ export class TrackDatabase {
           map(items => {
             if (db !== dbService.db || email !== dbService.email) return false;
             items = items.filter(i => i && i.localUpdate < Date.now() - 24 * 60 * 60 * 1000 && i.updatedAt < Date.now() - 24 * 60 * 60 * 1000);
-            console.log('Tracks cleanup: ' + items.length + ' to delete');
+            Console.info('Tracks cleanup: ' + items.length + ' to delete');
             for (const item of items) {
               this.injector.get(TrackService).deleteByUuidAndOwner(item!.uuid, item!.owner);
             }
@@ -253,7 +259,7 @@ export class TrackDatabase {
   }
 
   private metadataTable?: Table<MetadataItem, string>;
-  private metadata = new Map<string, DatabaseSubject<TrackMetadataSnapshot>>();
+  private readonly metadata = new Map<string, DatabaseSubject<TrackMetadataSnapshot>>();
 
   public getMetadata$(uuid: string, owner: string): Observable<TrackMetadataSnapshot | null> {
     const key = uuid + '#' + owner;
@@ -296,7 +302,7 @@ export class TrackDatabase {
   }
 
   private simplifiedTrackTable?: Table<SimplifiedTrackItem, string>;
-  private simplifiedTracks = new Map<string, DatabaseSubject<SimplifiedTrackSnapshot>>();
+  private readonly simplifiedTracks = new Map<string, DatabaseSubject<SimplifiedTrackSnapshot>>();
 
   public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
     const key = uuid + '#' + owner;
@@ -339,7 +345,7 @@ export class TrackDatabase {
   }
 
   private fullTrackTable?: Table<TrackItem, string>;
-  private fullTracks = new Map<string, DatabaseSubject<Track>>();
+  private readonly fullTracks = new Map<string, DatabaseSubject<Track>>();
 
   public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
     const key = uuid + '#' + owner;
@@ -359,8 +365,6 @@ export class TrackDatabase {
       return null;
     });
   }
-
-  private syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
 
   private simplify(track: Track): SimplifiedTrackSnapshot {
     const simplified: SimplifiedTrackSnapshot = { points: [] };
@@ -577,70 +581,11 @@ export class TrackDatabase {
     );
   }
 
-  private _lastSync = 0;
-  private _syncTimeout?: any;
-
-  private syncNow(): void {
-    this._lastSync = 0;
-    if (this._syncTimeout) clearTimeout(this._syncTimeout);
-    this._syncTimeout = undefined;
-    this.syncStatus$.value!.needsUpdateFromServer = true;
-    this.syncStatus$.next(this.syncStatus$.value);
-  }
-
-  private initSync(): void {
-    // we need to sync when:
-    combineLatest([
-      this.injector.get(NetworkService).server$,    // network is connected
-      this.syncStatus$,           // there is something to sync and we are not syncing
-    ]).pipe(
-      debounceTime(5000),
-      map(([networkConnected, syncStatus]) => networkConnected && syncStatus?.needsSync && !syncStatus?.inProgress),
-      filter(shouldSync => {
-        if (!shouldSync) return false;
-        if (Date.now() - this._lastSync < MINIMUM_SYNC_INTERVAL) {
-          if (!this._syncTimeout) {
-            this._syncTimeout = setTimeout(() => this.syncStatus$.next(this.syncStatus$.value), Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - this._lastSync)));
-          }
-          return false;
-        }
-        return true;
-      }),
-      debounceTime(1000),
-    )
-    .subscribe(() => {
-      this._lastSync = Date.now();
-      if (this._syncTimeout) clearTimeout(this._syncTimeout);
-      this._syncTimeout = undefined;
-      if (!this.db) return;
-      this.sync();
-    });
-
-    // launch update from server every 30 minutes
-    let updateFromServerTimeout: any = undefined;
-    let previousDb: Dexie | undefined = undefined;
-    this.syncStatus$.subscribe(s => {
-      const db = s ? this.db : undefined;
-      if (db === previousDb) return;
-      previousDb = db;
-      if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-      updateFromServerTimeout = undefined;
-    });
-    let previousNeeded = false;
-    this.syncStatus$.subscribe(status => {
-      if (!previousNeeded && status?.needsUpdateFromServer) {
-        previousNeeded = true;
-      } else if (previousNeeded && !status?.needsUpdateFromServer) {
-        previousNeeded = false;
-        if (updateFromServerTimeout) clearTimeout(updateFromServerTimeout);
-        updateFromServerTimeout = setTimeout(() => {
-          if (this.syncStatus$.value) {
-            this.syncStatus$.value.needsUpdateFromServer = true;
-            this.syncStatus$.next(this.syncStatus$.value);
-          }
-        }, AUTO_UPDATE_FROM_SERVER_EVERY);
-      }
-    });
+  private triggerSyncFromServer(): void {
+    if (this.syncStatus$.value && !this.syncStatus$.value.needsUpdateFromServer) {
+      this.syncStatus$.value.needsUpdateFromServer = true;
+      this.syncStatus$.next(this.syncStatus$.value);
+    }
   }
 
   private sync(): void {
@@ -670,7 +615,7 @@ export class TrackDatabase {
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
-        console.log('' + items.length + ' tracks to be created on server');
+        Console.info('' + items.length + ' tracks to be created on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<any>[] = [];
         items.forEach(item => {
@@ -690,7 +635,7 @@ export class TrackDatabase {
                 }));
               }),
               catchError(e => {
-                console.log('error creating track on server', item.track, e);
+                Console.error('error creating track on server', item.track, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_track', []);
                 return EMPTY;
               })
@@ -703,7 +648,7 @@ export class TrackDatabase {
       }),
       catchError(error => {
         // should not happen
-        console.error('error creating tracks on server', error);
+        Console.error('error creating tracks on server', error);
         return of(false);
       })
     );
@@ -714,10 +659,10 @@ export class TrackDatabase {
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
-        console.log('' + items.length + ' tracks deleted locally');
+        Console.info('' + items.length + ' tracks deleted locally');
         const keys = items.map(item => item.uuid + '#' + item.owner);
         const uuids = items.filter(item => item.owner === this.openEmail!).map(item => item.uuid);
-        console.log('' + uuids.length + ' tracks to be deleted on server');
+        Console.info('' + uuids.length + ' tracks to be deleted on server');
         return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids) : EMPTY).pipe(
           defaultIfEmpty(true),
           switchMap(result => {
@@ -726,7 +671,7 @@ export class TrackDatabase {
           }),
           catchError(error => {
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
-            console.error(error);
+            Console.error('Error deleting tracks from the server', error);
             return of(false);
           })
         );
@@ -742,7 +687,7 @@ export class TrackDatabase {
         return this.injector.get(HttpService).post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
           switchMap(response => {
             if (this.db !== db) return EMPTY;
-            console.log('Server updates for tracks: sent ' + known.length + ' known tracks, received ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
+            Console.info('Server updates for tracks: sent ' + known.length + ' known tracks, received ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
             let operations$: Observable<any>;
             if (response.deleted.length > 0) {
               operations$ = this.updatesFromServer(db, [], response.deleted);
@@ -781,7 +726,7 @@ export class TrackDatabase {
                 ));
                 operations$ = operations$.pipe(
                   switchMap(() => (requests.length === 0 ? of([]) : zip(requests)).pipe(
-                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t) as TrackDto[], []))
+                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), []))
                   ))
                 );
               }
@@ -790,7 +735,7 @@ export class TrackDatabase {
           }),
           catchError(error => {
             // should never happen
-            console.error('error getting track updates from server', error);
+            Console.error('error getting track updates from server', error);
             return of(false);
           })
         );
@@ -803,7 +748,7 @@ export class TrackDatabase {
       switchMap(items => {
         if (this.db !== db) return EMPTY;
         if (items.length === 0) return of(true);
-        console.log('' + items.length + ' tracks to be updated on server');
+        Console.info('' + items.length + ' tracks to be updated on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<TrackDto>[] = [];
         items.forEach(item => {
@@ -811,7 +756,7 @@ export class TrackDatabase {
             if (this.db !== db) return EMPTY;
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
               catchError(e => {
-                console.log('error sending update for track', item.track, e);
+                Console.error('error sending update for track', item.track, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.update_track', []);
                 return EMPTY;
               })
@@ -826,7 +771,7 @@ export class TrackDatabase {
       }),
       catchError(error => {
         // should never happen
-        console.error('error sending tracks updates', error);
+        Console.error('error sending tracks updates', error);
         return of(false);
       })
     );
@@ -883,7 +828,7 @@ export class TrackDatabase {
     })).pipe(
       defaultIfEmpty(true),
       catchError(error => {
-        console.log('Error saving tracks in database', error);
+        Console.error('Error saving tracks in database', error);
         this.injector.get(ErrorService).addTechnicalError(error, 'errors.stores.save_tracks', []);
         return of(true);
       })

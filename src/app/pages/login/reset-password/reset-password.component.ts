@@ -6,6 +6,7 @@ import { CodeInputModule } from 'angular-code-input';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Console } from 'src/app/utils/console';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -49,7 +50,7 @@ export class ResetPasswordComponent implements OnInit {
         this.changeDetector.detectChanges();
       },
       error => {
-        console.log('error', error);
+        Console.error('Captcha error', error);
       });
     }, 0);
   }

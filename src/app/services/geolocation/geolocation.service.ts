@@ -2,18 +2,19 @@ import { Injectable } from '@angular/core';
 import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from './geolocation.interface';
 import { PointDto } from 'src/app/model/dto/point';
 import { BehaviorSubject } from 'rxjs';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GeolocationService implements IGeolocationService {
 
-  private _waitingForGps$ = new BehaviorSubject<boolean>(false);
+  private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
 
   private watchId?: number;
-  private watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
+  private readonly watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
 
-  private options: PositionOptions = {
+  private readonly options: PositionOptions = {
     enableHighAccuracy: true,
     maximumAge: GEOLOCATION_MAX_AGE,
     timeout: GEOLOCATION_TIMEOUT
@@ -27,14 +28,14 @@ export class GeolocationService implements IGeolocationService {
   getState(): Promise<GeolocationState> {
     return window.navigator.permissions.query({name: 'geolocation'})
     .then(status => {
-      console.log('geolocation permission', status);
+      Console.info('geolocation permission', status);
       if (status.state === 'granted') {
         return Promise.resolve(GeolocationState.ENABLED);
       }
       if (status.state === 'prompt') {
         return new Promise((resolve, error) => {
           const listener = () => {
-            console.log('geolocation permission status changed', status);
+            Console.info('geolocation permission status changed', status);
             if (status.state === 'granted') {
               resolve(GeolocationState.ENABLED);
               status.removeEventListener('change', listener);
@@ -77,12 +78,12 @@ export class GeolocationService implements IGeolocationService {
       listener(pos);
     })
     .catch(e => {
-      console.log('Geolocation error', e);
+      Console.warn('Geolocation error', e);
       if (onerror) onerror(e);
     });
     this.watchListeners.push({listener, onerror});
     if (!this.watchId) {
-      console.log('start watching geolocation');
+      Console.info('start watching geolocation');
       this.watchId = window.navigator.geolocation.watchPosition(pos => this.emitPosition(pos), err => this.emitError(err), this.options);
     }
   }
@@ -92,7 +93,7 @@ export class GeolocationService implements IGeolocationService {
     if (index >= 0) {
       this.watchListeners.splice(index, 1);
       if (this.watchListeners.length === 0) {
-        console.log('stop watching geolocation');
+        Console.info('stop watching geolocation');
         window.navigator.geolocation.clearWatch(this.watchId!);
         this.watchId = undefined;
         this._waitingForGps$.next(false);
@@ -121,7 +122,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   private emitError(err: any): void {
-    console.log('Geolocation error', err);
+    Console.warn('Geolocation error', err);
     this._waitingForGps$.next(true);
     for (const l of this.watchListeners)
       if (l.onerror) l.onerror(err);

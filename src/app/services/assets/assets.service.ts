@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from "@angular/core";
 import { addIcons } from 'ionicons';
 import { Observable, Subscriber } from "rxjs";
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: "root"
@@ -128,12 +129,10 @@ export class AssetsService {
         }
         this._loadingSvg.set(url, [observer]);
         const error = (e: any) => {
-          console.error('Error loading SVG ' + url, e);
+          Console.error('Error loading SVG ' + url, e);
           const subscribers = this._loadingSvg.get(url);
           this._loadingSvg.delete(url);
-          subscribers?.forEach(s => {
-            s.error(e);
-          });
+          subscribers?.forEach(s => s.error(e));
         };
         this.http.get(url, {responseType: 'text'}).subscribe({
           next: svgText => {

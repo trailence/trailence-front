@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { DatabaseSubject } from './database-subject';
 import { Maps } from 'src/app/utils/maps';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class DatabaseSubjectService {
@@ -41,7 +42,7 @@ export class DatabaseSubjectService {
         msg += entry[1] + ' ' + (entry[0] ?? '?') + ';';
       }
       msg += ')';
-      console.log(msg);
+      Console.info(msg);
     }
   }
 

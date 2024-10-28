@@ -38,6 +38,7 @@ import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
+import { Console } from 'src/app/utils/console';
 
 const MIN_ZOOM = 14;
 
@@ -500,8 +501,7 @@ export class TrailPlannerPage extends AbstractPage {
           }
           this.updateCurrentMapTrack();
         } catch (e) {
-          console.log(e);
-          console.log(trackInStorage, pointsInStorage);
+          Console.warn('Error loading trail planner local storage', e, trackInStorage, pointsInStorage);
           // ignore
         }
       }

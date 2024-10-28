@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { IdGenerator } from 'src/app/utils/component-utils';
+import { Console } from 'src/app/utils/console';
 import { XmlUtils } from 'src/app/utils/xml-utils';
 
 @Injectable({providedIn: 'root'})
@@ -8,7 +9,7 @@ export class OsmcSymbolService {
   public generateSymbol(symbol: string): string {
     const elements = symbol.split(':');
     if (elements.length < 2) return '';
-    const waycolor = elements[0];
+    //const waycolor = elements[0];
     const background = elements[1];
     const foreground = elements.length > 2 ? elements[2] : undefined;
     let text: string | undefined;
@@ -90,7 +91,7 @@ export class OsmcSymbolService {
           };
         }
       }
-      console.log('unknown background', background);
+      Console.warn('unknown osmc background', background);
     }
     return undefined;
   }
@@ -112,9 +113,9 @@ export class OsmcSymbolService {
         case 'diamond': return '<rect x="10.5" y="-8" width="14" height="14" transform="rotate(45)" fill="' + color + '"></rect>';
         case 'frame': return '<rect x="3" y="3" width="18" height="18" stroke="' + color + '"></rect>';
       }
-      console.log('unknown type of foreground', foreground);
+      Console.warn('unknown oscm type of foreground', foreground);
     } else {
-      console.log('unknown foreground color', foreground);
+      Console.warn('unknown oscm foreground color', foreground);
     }
     return '<image x="0" y="0" width="24" height="24" preserveAspectRatio="" href="https://www.wanderreitkarte.de/symbols/icon_' + foreground + '.png" />';
   }
@@ -132,7 +133,7 @@ export class OsmcSymbolService {
       case 'yellow':
         return color;
     }
-    console.log('unknown color', color);
+    Console.warn('unknown oscm color', color);
     return undefined;
   }
 

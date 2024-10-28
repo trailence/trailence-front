@@ -20,15 +20,16 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
 import { ErrorService } from '../progress/error.service';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
 
-  private store: PhotoStore;
+  private readonly store: PhotoStore;
 
   constructor(
-    private injector: Injector,
-    private preferences: PreferencesService,
+    private readonly injector: Injector,
+    private readonly preferences: PreferencesService,
   ) {
     this.store = new PhotoStore(injector);
   }
@@ -58,7 +59,7 @@ export class PhotoService {
     );
   }
 
-  private _retrievingFiles = new Map<string, Observable<Blob>>();
+  private readonly _retrievingFiles = new Map<string, Observable<Blob>>();
   public getFile$(owner: string, uuid: string): Observable<Blob> {
     return this.injector.get(StoredFilesService).getFile$(owner, 'photo', uuid).pipe(
       catchError(e => {
@@ -75,7 +76,7 @@ export class PhotoService {
     );
   }
 
-  private _blobUrls = new Map<string, DatabaseSubject<{url: string, blobSize: number}>>();
+  private readonly _blobUrls = new Map<string, DatabaseSubject<{url: string, blobSize: number}>>();
   public getBlobUrl$(owner: string, uuid: string): Observable<{url: string, blobSize: number} | null> {
     const key = owner + '#' + uuid;
     const existing = this._blobUrls.get(key);
@@ -107,7 +108,7 @@ export class PhotoService {
         info = {dateTaken, latitude, longitude};
       else {
         info = ImageUtils.extractInfos(arr);
-        console.log('extracted info from image', info);
+        Console.info('extracted info from image', info);
       }
     }
     const nextConvert: (s:number,q:number) => Promise<Blob> = (currentMaxSize: number, currentMaxQuality: number) =>
@@ -141,7 +142,7 @@ export class PhotoService {
         );
       }),
       catchError(e => {
-        console.log(e);
+        Console.error('error storing photo', e);
         this.injector.get(ErrorService).addTechnicalError(e, 'errors.import_photo', [description]);
         return of(null);
       })
@@ -206,9 +207,9 @@ export class PhotoService {
 
 class PhotoStore extends OwnedStore<PhotoDto, Photo> {
 
-  private http: HttpService;
-  private files: StoredFilesService;
-  private trails: TrailService;
+  private readonly http: HttpService;
+  private readonly files: StoredFilesService;
+  private readonly trails: TrailService;
 
   constructor(
     injector: Injector,
@@ -261,7 +262,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
             if (dto.longitude) headers['X-Longitude'] = dto.longitude;
             return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid, blob, headers).pipe(
               catchError(e => {
-                console.log('error saving photo on server', dto, e);
+                Console.error('error saving photo on server', dto, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_photo', [dto.description]);
                 return EMPTY;
               })
@@ -307,7 +308,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
           const maxDate = Date.now() - 24 * 60 * 60 * 1000;
           let count = 0;
           const ondone = new CompositeOnDone(() => {
-            console.log('Photos database cleaned: ' + count + ' removed');
+            Console.info('Photos database cleaned: ' + count + ' removed');
             subscriber.next(true);
             subscriber.complete();
           });
