@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector } from '@angular/core';
-import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { MapState } from 'src/app/components/map/map-state';
 import { MapComponent } from 'src/app/components/map/map.component';
@@ -11,7 +11,7 @@ import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/services/datab
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
-import { IonButton, IonIcon, IonList, IonItem, IonToggle, IonLabel, IonCheckbox, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons, IonInput, IonSelect, IonSelectOption, ModalController } from "@ionic/angular/standalone";
+import { IonButton, IonIcon, IonList, IonItem, IonToggle, IonLabel, IonCheckbox, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons, IonInput, IonSelect, IonSelectOption, ModalController, IonSpinner } from "@ionic/angular/standalone";
 import { Track } from 'src/app/model/track';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
@@ -39,6 +39,8 @@ import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.serv
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 import { Console } from 'src/app/utils/console';
+import { ErrorService } from 'src/app/services/progress/error.service';
+import { ShareService } from 'src/app/services/database/share.service';
 
 const MIN_ZOOM = 14;
 
@@ -48,6 +50,8 @@ const WAY_MAPTRACK_FORBIDDEN_COLOR = '#B03030FF';
 const WAY_MAPTRACK_PERMISSIVE_COLOR = '#C08000FF';
 const ROUTE_MAPTRACK_DEFAULT_COLOR = '#FF00FF80';
 const ROUTE_MAPTRACK_HIGHLIGHTED_COLOR = '#A08000FF';
+const TRAIL_MAPTRACK_DEFAULT_COLOR = '#0000FF80';
+const TRAIL_MAPTRACK_HIGHLIGHTED_COLOR = '#FF00FFFF';
 
 const LOCALSTORAGE_KEY_PREFIX = 'trailence.trail-planner.';
 
@@ -58,19 +62,21 @@ const MATCHING_MAX_DISTANCE = 2.5;
   templateUrl: './trail-planner.page.html',
   styleUrls: ['./trail-planner.page.scss'],
   standalone: true,
-  imports: [IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader, IonModal, IonCheckbox, IonLabel, IonToggle, IonItem, IonList,
+  imports: [IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader, IonModal, IonCheckbox, IonLabel, IonToggle, IonItem, IonList,
     IonIcon, IonButton, HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, ElevationGraphComponent]
 })
 export class TrailPlannerPage extends AbstractPage {
 
   ways: Way[] = [];
   routes: RouteCircuit[] = [];
+  trails: {trail: Trail; track: Track; collectionName: string}[] = [];
 
   currentMapTrack$ = new BehaviorSubject<MapTrack | undefined>(undefined);
   possibleWaysFromCursor$ = new BehaviorSubject<MapTrack[]>([]);
   possibleWaysFromLastAnchor$ = new BehaviorSubject<MapTrack[]>([]);
 
   routesMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
+  trailsMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
 
   mapTracks$: Observable<MapTrack[]>;
 
@@ -84,12 +90,19 @@ export class TrailPlannerPage extends AbstractPage {
   track?: Track;
   putAnchors = false;
   showRoutes = false;
+  showMyTrails = false;
   estimatedTime = 0;
   putFreeAnchor = false;
 
   trailName = '';
   collectionUuid?: string;
   collections: TrailCollection[] = [];
+
+  private highlightedWays: MapTrack[] = [];
+  private highlightedRoutes: MapTrack[] = [];
+  private highlightedTrails: MapTrack[] = [];
+  highlightedRoute?: RouteCircuit;
+  highlightedTrail?: Trail;
 
   constructor(
     injector: Injector,
@@ -99,10 +112,10 @@ export class TrailPlannerPage extends AbstractPage {
     private geo: GeoService,
   ) {
     super(injector);
-    this.mapTracks$ = combineLatest([this.currentMapTrack$, this.possibleWaysFromLastAnchor$, this.possibleWaysFromCursor$, this.routesMapTracks$]).pipe(
+    this.mapTracks$ = combineLatest([this.currentMapTrack$, this.possibleWaysFromLastAnchor$, this.possibleWaysFromCursor$, this.routesMapTracks$, this.trailsMapTracks$]).pipe(
       debounceTime(10),
-      map(([currentTrack, list1, list2, list3]) => {
-        const all = [...list1, ...list2, ...list3];
+      map(([currentTrack, list1, list2, list3, list4]) => {
+        const all = [...list1, ...list2, ...list3, ...list4];
         if (currentTrack) all.push(currentTrack);
         this.updateLegend();
         return all;
@@ -128,6 +141,7 @@ export class TrailPlannerPage extends AbstractPage {
         () => {
           this.updateWays();
           this.updateRoutes();
+          this.updateTrails();
         }
       );
       this.map.ready$.subscribe(
@@ -192,10 +206,6 @@ export class TrailPlannerPage extends AbstractPage {
     this.injector.get(ModalController).dismiss(null, 'ok');
   }
 
-  private highlightedWays: MapTrack[] = [];
-  private highlightedRoutes: MapTrack[] = [];
-  highlightedRoute?: RouteCircuit;
-
   private getWayColor(way?: Way): string {
     if (way?.permission === WayPermission.FORBIDDEN)
       return WAY_MAPTRACK_FORBIDDEN_COLOR;
@@ -235,6 +245,11 @@ export class TrailPlannerPage extends AbstractPage {
       this.highlightedRoute = route;
       this.setHighlightedRoutes(this.routesMapTracks$.value.filter(t => t.data?.element === route));
     }
+  }
+
+  toggleShowMyTrails(enabled: boolean): void {
+    this.showMyTrails = enabled;
+    this.updateTrails();
   }
 
   private updateLegend(): void {
@@ -564,18 +579,35 @@ export class TrailPlannerPage extends AbstractPage {
     }
   }
 
+  searchingRoutes = false;
   private updateRoutes(): void {
     this.routes = [];
     this.routesMapTracks$.next([]);
+    const previousHighlightedId = this.highlightedRoute?.id;
+    this.highlightedRoute = undefined;
     this.highlightedRoutes = [];
     if (!this.showRoutes || !this.mapState || this.mapState.zoom < MIN_ZOOM) return;
-    this.geo.findRoutes(this.map!.getBounds()!).subscribe(routes => {
+    this.searchingRoutes = true;
+    this.geo.findRoutes(this.map!.getBounds()!)
+    .pipe(catchError(e => {
+      this.injector.get(ErrorService).addTechnicalError(e, 'errors.search_routes', []);
+      Console.error(e);
+      return of([]);
+    }))
+    .subscribe(routes => {
+      this.searchingRoutes = false;
       this.routes = routes;
       const tracks: MapTrack[] = [];
       for (const route of this.routes) {
-        tracks.push(...this.routeToMapTracks(route));
+        const mapTracks = this.routeToMapTracks(route);
+        tracks.push(...mapTracks);
+        if (previousHighlightedId && previousHighlightedId === route.id) {
+          this.highlightedRoute = route;
+          this.highlightedRoutes = mapTracks;
+        }
       }
       this.routesMapTracks$.next(tracks);
+      this.setHighlightedRoutes(this.highlightedRoutes);
     });
   }
 
@@ -647,6 +679,96 @@ export class TrailPlannerPage extends AbstractPage {
     const svg = this.injector.get(OsmcSymbolService).generateSymbol(route.oscmSymbol);
     (route as any)._symbol = this.injector.get(DomSanitizer).bypassSecurityTrustHtml(svg);
     return (route as any)._symbol;
+  }
+
+  searchingTrails = false;
+  private updateTrails(): void {
+    this.trails = [];
+    this.trailsMapTracks$.next([]);
+    const previouslyHighlighted = this.highlightedTrail;
+    this.highlightedTrail = undefined;
+    this.highlightedTrails = [];
+    if (!this.showMyTrails || !this.mapState) return;
+    this.searchingTrails = true;
+    const bounds = this.map!.getBounds()!;
+    this.injector.get(TrackService).getAllMetadata$().pipe(
+      collection$items(meta => !!meta.bounds && bounds.overlaps(meta.bounds)),
+      first(),
+      switchMap(metaList =>
+        this.injector.get(TrailService).getAll$().pipe(
+          collection$items(trail => !!metaList.find(meta => meta.uuid === trail.currentTrackUuid && meta.owner === trail.owner)),
+          first(),
+          switchMap(trails =>
+            combineLatest([
+              trails.length === 0 ? of([]) : this.injector.get(TrailCollectionService).getAll$().pipe(collection$items(), first()),
+              trails.length === 0 ? of([]) : this.injector.get(ShareService).getAll$().pipe(collection$items(), first()),
+              trails.length === 0 ? of([]) : combineLatest(trails.map(trail => this.injector.get(TrackService).getFullTrackReady$(trail.currentTrackUuid, trail.owner)))
+            ])
+            .pipe(
+              map(([collections, shares, tracks]) => {
+                const result: {trail: Trail; track: Track; collectionName: string}[] = [];
+                for (const track of tracks) {
+                  const trail = trails.find(trail => trail.currentTrackUuid === track.uuid && trail.owner === track.owner);
+                  if (trail) {
+                    const collection = collections.find(col => col.uuid === trail.collectionUuid && col.owner === trail.owner);
+                    if (collection) {
+                      const collectionName = collection.name.length === 0 && collection.type === TrailCollectionType.MY_TRAILS ? this.i18n.texts.my_trails : collection.name;
+                      result.push({trail, track, collectionName});
+                    } else {
+                      const share = shares.find(share => share.from === trail.owner && share.trails.indexOf(trail.uuid) >= 0);
+                      if (share) {
+                        result.push({trail, track, collectionName: share.name});
+                      }
+                    }
+                  }
+                }
+                return result;
+              })
+            )
+          ),
+        )
+      )
+    ).subscribe(list => {
+      this.searchingTrails = false;
+      this.trails = list.sort((e1, e2) => {
+        const d1 = e1.track.departurePoint;
+        const d2 = e2.track.departurePoint;
+        if (!d1) {
+          if (d2) return 1;
+          return 0;
+        }
+        if (!d2) return -1;
+        const l1 = d1.pos.lat - d2.pos.lat;
+        if (l1 > 0) return -1;
+        if (l1 < 0) return 1;
+        const l2 = d1.pos.lng - d2.pos.lng;
+        if (l2 < 0) return -1;
+        if (l2 > 0) return 1;
+        return 0;
+      });
+      this.trailsMapTracks$.next(list.map(t => new MapTrack(t.trail, t.track, TRAIL_MAPTRACK_DEFAULT_COLOR, 1, false, this.i18n)));
+      const hl = previouslyHighlighted ? list.find(e => e.trail.owner === previouslyHighlighted.owner && e.trail.uuid === previouslyHighlighted.uuid) : undefined;
+      if (hl) this.toggleHighlightTrail(hl.trail);
+    });
+  }
+
+  toggleHighlightTrail(trail: Trail): void {
+    if (this.highlightedTrail === trail) {
+      this.highlightedTrail = undefined;
+      this.setHighlightedTrails([]);
+    } else {
+      this.highlightedTrail = trail;
+      this.setHighlightedTrails(this.trailsMapTracks$.value.filter(t => t.trail === trail));
+    }
+  }
+
+  private setHighlightedTrails(tracks: MapTrack[]): void {
+    this.highlightedTrails.forEach(t => t.color = TRAIL_MAPTRACK_DEFAULT_COLOR);
+    this.highlightedTrails = tracks;
+    this.highlightedTrails.forEach(t => {
+      t.color = TRAIL_MAPTRACK_HIGHLIGHTED_COLOR;
+      t.bringToFront();
+    });
   }
 
 }

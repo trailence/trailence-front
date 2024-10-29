@@ -301,6 +301,29 @@ export class TrackDatabase {
     });
   }
 
+  public getAllMetadata$(): Observable<Observable<TrackMetadataSnapshot | null>[]> {
+    return this.ngZone.runOutsideAngular(() => {
+      if (!this.metadataTable) return of([]);
+      return from(this.metadataTable.toArray()).pipe(
+        map(items => {
+          const result = [];
+          for (const item of items) {
+            const key = item.uuid + '#' + item.owner;
+            let item$ = this.metadata.get(key);
+            if (item$) {
+              item$.newValue(item);
+            } else {
+              item$ = new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, item);
+              this.metadata.set(key, item$);
+            }
+            result.push(item$.asObservable());
+          }
+          return result;
+        })
+      )
+    });
+  }
+
   private simplifiedTrackTable?: Table<SimplifiedTrackItem, string>;
   private readonly simplifiedTracks = new Map<string, DatabaseSubject<SimplifiedTrackSnapshot>>();
 

@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { IonSearchbar, IonPopover, IonList, IonItem, IonLabel, IonSpinner } from "@ionic/angular/standalone";
-import { BehaviorSubject, debounceTime, filter, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, debounceTime, filter, map, of, switchMap, tap } from 'rxjs';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { Place } from 'src/app/services/geolocation/place';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonSearchbarCustomEvent, SearchbarChangeEventDetail } from '@ionic/core';
 import { IdGenerator } from 'src/app/utils/component-utils';
+import { ErrorService } from 'src/app/services/progress/error.service';
+import { Console } from 'src/app/utils/console';
 
 @Component({
   selector: 'app-search-place',
@@ -31,6 +33,7 @@ export class SearchPlaceComponent {
   constructor(
     public i18n: I18nService,
     geo: GeoService,
+    errorService: ErrorService,
   ) {
     this.name$.pipe(
       filter(event => !!event),
@@ -38,6 +41,11 @@ export class SearchPlaceComponent {
       filter(event => (event?.detail.value || '').trim().length > 2),
       tap(event => this.startSearching(event!)),
       switchMap(event => geo.findPlacesByName(event!.detail.value!)),
+      catchError(e => {
+        errorService.addTechnicalError(e, 'errors.search_places', []);
+        Console.error(e);
+        return of([]);
+      }),
     ).subscribe(places => this.setPlaces(places));
   }
 

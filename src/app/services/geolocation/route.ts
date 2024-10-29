@@ -2,6 +2,7 @@ export interface RouteCircuit {
 
   segments: L.LatLng[][];
 
+  id: string;
   name?: string;
   description?: string;
 

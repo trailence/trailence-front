@@ -83,8 +83,42 @@
 
     <div class="separator"></div>
 
+    <div>
+      <ion-toggle [checked]="showMyTrails" color="secondary" (ionChange)="toggleShowMyTrails($event.detail.checked)" labelPlacement="end">{{ i18n.texts.pages.trailplanner.show_trails }}</ion-toggle>
+      <ng-container *ngIf="searchingTrails">
+        <div>
+          <ion-spinner name="dots"></ion-spinner>
+        </div>
+      </ng-container>
+      <ion-list *ngIf="trails.length > 0" class="routes">
+        <ion-item *ngFor="let item of trails" (click)="toggleHighlightTrail(item.trail)" button>
+          <ion-checkbox [checked]="highlightedTrail === item.trail" slot="start" mode="ios"></ion-checkbox>
+          <ion-label>
+            <h1>{{ item.trail.name }}</h1>
+            <h2>{{ item.collectionName }}</h2>
+          </ion-label>
+          <div slot="end" class="meta" *ngIf="item.track.metadata.distance">
+            <ion-icon name="distance" color="secondary"></ion-icon>
+            <span>{{ i18n.distanceToString(item.track.metadata.distance) }}</span>
+          </div>
+          <div slot="end" class="meta" *ngIf="item.track.metadata.positiveElevation !== undefined && item.track.metadata.negativeElevation !== undefined">
+            <ion-icon name="elevation" color="secondary"></ion-icon>
+            <span>+ {{ i18n.elevationToString(item.track.metadata.positiveElevation) }}</span>
+            <span>- {{ i18n.elevationToString(item.track.metadata.negativeElevation) }}</span>
+          </div>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <div class="separator"></div>
+
     <ng-container *ngIf="mapState && mapState.zoom >= minZoom">
       <ion-toggle [checked]="showRoutes" color="secondary" (ionChange)="toggleShowRoutes($event.detail.checked)" labelPlacement="end">{{ i18n.texts.pages.trailplanner.show_routes }}</ion-toggle>
+      <ng-container *ngIf="searchingRoutes">
+        <div>
+          <ion-spinner name="dots"></ion-spinner>
+        </div>
+      </ng-container>
 
       <ion-list *ngIf="routes.length > 0" class="routes">
         <ion-item *ngFor="let route of routes" (click)="toggleHighlightRoute(route)" button>

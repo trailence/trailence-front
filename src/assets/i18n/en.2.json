@@ -335,6 +335,7 @@
       "resume": "Resume",
       "undo": "Undo last point",
       "show_routes": "Display circuits",
+      "show_trails": "Display my trails",
       "put_free_point": "Add a free point",
       "back_to_non_free_point": "Pick up points on paths",
       "meta": {
@@ -565,7 +566,9 @@
       "delete_items": "Error deleting data on the server ({{1}})"
     },
     "import_photo": "Cannot import photo {{1}}",
-    "invalid_format": "Invalid format"
+    "invalid_format": "Invalid format",
+    "search_places": "Error searching places",
+    "search_routes": "Error searching circuits"
   },
   "export": {
     "trail": "Trail",

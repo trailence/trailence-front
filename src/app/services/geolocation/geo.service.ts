@@ -42,7 +42,7 @@ export class GeoService {
   }
 
   public findPlacesByName(name: string): Observable<Place[]> {
-    return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name));
+    return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name) + '&lang=' + this.i18n.textsLanguage);
   }
 
   public findWays(bounds: L.LatLngBounds): Observable<Way[]> {
@@ -78,6 +78,7 @@ export class GeoService {
 
   private overpassElementToRoute(element: OverpassElement): RouteCircuit {
     return {
+      id: 'overpass-' + element.id,
       segments: element.members.map(m => m.geometry.map(g => L.latLng(g.lat, g.lon))),
       positiveElevation: parseInt(element.tags['ascent']) || undefined,
       negativeElevation: parseInt(element.tags['descent']) || undefined,
@@ -292,6 +293,7 @@ interface OverpassResponse {
 }
 
 interface OverpassElement {
+  id: string;
   geometry: OverpassGeometry[];
   tags: {[key:string]: any};
   members: OverpassElementMember[];

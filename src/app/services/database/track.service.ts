@@ -25,6 +25,10 @@ export class TrackService {
     return this.db.getMetadata$(uuid, owner);
   }
 
+  public getAllMetadata$(): Observable<Observable<TrackMetadataSnapshot | null>[]> {
+    return this.db.getAllMetadata$();
+  }
+
   public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
     return this.db.getFullTrack$(uuid, owner);
   }

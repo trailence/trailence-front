@@ -335,6 +335,7 @@
       "resume": "Reprendre",
       "undo": "Annuler le dernier point",
       "show_routes": "Afficher les circuits",
+      "show_trails": "Afficher mes parcours",
       "put_free_point": "Positionner un point libre",
       "back_to_non_free_point": "Reprendre des points sur les chemins",
       "meta": {
@@ -565,7 +566,9 @@
       "delete_items": "Erreur lors de la suppression sur le serveur ({{1}})"
     },
     "import_photo": "Impossible de charger la photo {{1}}",
-    "invalid_format": "Format invalide/non supporté"
+    "invalid_format": "Format invalide/non supporté",
+    "search_places": "Erreur lors de la recherche de lieux",
+    "search_routes": "Erreur lors de la recherche des circuits"
   },
   "export": {
     "trail": "Parcours",
