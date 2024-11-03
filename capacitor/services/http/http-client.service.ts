@@ -15,16 +15,37 @@ export class HttpClientService implements IHttpClient {
     return new Observable(subscriber => {
       const headers = {...request.headers};
       headers['User-Agent'] = window.navigator.userAgent;
-      if (request.body) headers['Content-Type'] = 'application/json';
-      CapacitorHttp.request({
-        method: request.method,
-        url: request.url,
-        headers: headers,
-        responseType: request.responseType,
-        readTimeout: 10000,
-        connectTimeout: 10000,
-        data: request.body,
-      })
+      let dataAndType: Promise<{data: any, dataType: 'file' | 'formData' | undefined}>;
+      if (request.body instanceof Blob) {
+        if (!headers['Content-Type']) headers['Content-Type'] = 'application/octet-stream';
+        dataAndType = new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            let url = reader.result as string;
+            if (url.startsWith('data:')) {
+              const i = url.indexOf(';base64,');
+              url = url.substring(i + 8);
+            }
+            resolve({data: url, dataType: 'file'});
+          };
+          reader.readAsDataURL(request.body);
+        });
+      } else {
+        if (!headers['Content-Type']) headers['Content-Type'] = 'application/json';
+        dataAndType = Promise.resolve({data: request.body, dataType: undefined});
+      }
+      dataAndType.then(d =>
+        CapacitorHttp.request({
+          method: request.method,
+          url: request.url,
+          headers: headers,
+          responseType: request.responseType,
+          readTimeout: 10000,
+          connectTimeout: 10000,
+          data: d.data,
+          dataType: d.dataType,
+        })
+      )
       .then(response => {
         this.toResponse(request, response).then(response => {
           subscriber.next(response);
