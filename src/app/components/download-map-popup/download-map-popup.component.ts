@@ -40,23 +40,27 @@ export class DownloadMapPopupComponent {
   launchDownloadMap(selection: {layer: MapLayer, tiles: L.TileLayer}[]): void {
     this.preferencesService.setOfflineMapMaxZoom(this.downloadMapMaxZoom!.value as number)
     const padding = ((this.downloadMapPadding!.value as number) - 100) / 100;
-    this.modalController.dismiss(null, 'cancel');
-    const allBounds: L.LatLngBounds[] = [];
-    if (this.bounds) {
-      allBounds.push(this.bounds);
-    }
-    if (this.tracks) {
-      for (const track of this.tracks) {
-        let bounds = track.metadata.bounds;
-        if (!bounds) continue;
-        if (padding > 0) bounds = bounds.pad(padding);
-        allBounds.push(bounds);
-      }
-    }
-    if (allBounds.length === 0) return;
-    for (const layer of selection) {
-      this.offlineMap.save(allBounds, layer.tiles, L.CRS.EPSG3857, layer.layer);
-    }
+    this.modalController.dismiss(null, 'cancel')
+    .then(() => {
+      setTimeout(() => {
+        const allBounds: L.LatLngBounds[] = [];
+        if (this.bounds) {
+          allBounds.push(this.bounds);
+        }
+        if (this.tracks) {
+          for (const track of this.tracks) {
+            let bounds = track.metadata.bounds;
+            if (!bounds) continue;
+            if (padding > 0) bounds = bounds.pad(padding);
+            allBounds.push(bounds);
+          }
+        }
+        if (allBounds.length === 0) return;
+        for (const layer of selection) {
+          this.offlineMap.save(allBounds, layer.tiles, L.CRS.EPSG3857, layer.layer);
+        }
+      }, 0);
+    });
   }
 
 }

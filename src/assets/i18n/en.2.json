@@ -437,6 +437,7 @@
     "speed": "Speed"
   },
   "downloading_map": "Downloading map",
+  "preparing_download": "Preparing for download...",
   "offline_map": {
     "download_trail": "Maps corresponding to the trail will be downloaded to be available offline",
     "download_map": "Maps of the currently displayed area will be downloaded to be available offline",

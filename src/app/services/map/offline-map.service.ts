@@ -3,7 +3,7 @@ import * as L from 'leaflet';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
 import { MapLayer, MapLayersService } from './map-layers.service';
-import { ProgressService } from '../progress/progress.service';
+import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { Observable, combineLatest, from, map, of, zip } from 'rxjs';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
@@ -82,85 +82,88 @@ export class OfflineMapService {
   }
 
   public save(bounds: L.LatLngBounds[], tiles: L.TileLayer, crs: L.CRS, layer: MapLayer): void {
-    const coords: L.Coords[] = [];
-    for (const b of bounds) {
-      const c = this.computeTilesCoords(b, tiles, crs);
-      for (const coord of c) {
-        const exists = coords.find(e => e.x === coord.x && e.y === coord.y && e.z === coord.z);
-        if (!exists) coords.push(coord);
-      }
-    }
-    if (coords.length === 0) return;
-    let cancelled = false;
+    const state = new SaveState(bounds, tiles, crs);
     let limiter: RequestLimiter | undefined;
-    const progress = this.progressService.create(this.i18n.texts.downloading_map, coords.length, () => {
-      cancelled = true;
+    const progress = this.progressService.create(this.i18n.texts.downloading_map, 1, () => {
+      state.cancelled = true;
       if (limiter) {
         limiter.cancel();
         progress.done();
       }
     });
-    const db = this._db!;
-    const metaTable = db.table<TileMetadata>(layer.name + '_meta');
-    const tilesTables = db.table<TileBlob>(layer.name + '_tiles');
-    const existing$: Observable<TileMetadata | undefined>[] = [];
-    for (const c of coords) {
-      const key = '' + c.z + '_' + c.y + '_' + c.x;
-      existing$.push(from(metaTable.get(key)));
-    }
-    const maxTime = Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000;
-    combineLatest(existing$).subscribe(
-      result => {
-        const coordsToDl = [];
-        for (let i = 0; i < coords.length; ++i) {
-          const known = result[i];
-          if (known && known.date > maxTime) continue;
-          coordsToDl.push(coords[i]);
-        }
-        if (coordsToDl.length === 0 || cancelled) {
-          progress.done();
-          return;
-        }
-        progress.subTitle = layer.displayName + ' 0/' + coordsToDl.length;
-        progress.workAmount = coordsToDl.length;
-        limiter = new RequestLimiter(layer.maxConcurrentRequests);
-        let done = 0;
-        let errors = 0;
-        const ondone = () => {
-          progress.done();
-          if (errors > 0) this.errorService.addError(new I18nError('errors.download_offline_map', [errors]))
-        };
-        for (const c of coordsToDl) {
-          const request$ = limiter.add(() => this.getBlob(layer, layer.getTileUrl(tiles, c, crs)));
-          request$.subscribe({
-            next: blob => {
-              zip([
-                from(metaTable.put({
-                  key: '' + c.z + '_' + c.y + '_' + c.x,
-                  size: blob.size,
-                  date: Date.now()
-                })),
-                from(tilesTables.put({
-                  key: '' + c.z + '_' + c.y + '_' + c.x,
-                  blob: blob
-                }))
-              ]).subscribe(() => {
+    progress.subTitle = this.i18n.texts.preparing_download;
+    this.computeTilesCoords$(state, progress)
+    .then(() => {
+      if (state.cancelled) return;
+      if (state.coords.length === 0) {
+        progress.done();
+        return;
+      }
+      progress.workDone = 0;
+      progress.workAmount = state.coords.length;
+      progress.subTitle = layer.displayName;
+      const db = this._db!;
+      const metaTable = db.table<TileMetadata>(layer.name + '_meta');
+      const tilesTables = db.table<TileBlob>(layer.name + '_tiles');
+      const existing$: Observable<TileMetadata | undefined>[] = [];
+      for (const c of state.coords) {
+        const key = '' + c.z + '_' + c.y + '_' + c.x;
+        existing$.push(this.ngZone.runOutsideAngular(() => from(metaTable.get(key))));
+      }
+      const maxTime = Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000;
+      combineLatest(existing$).subscribe(
+        result => {
+          const coordsToDl = [];
+          for (let i = 0; i < state.coords.length; ++i) {
+            const known = result[i];
+            if (known && known.date > maxTime) continue;
+            coordsToDl.push(state.coords[i]);
+          }
+          if (coordsToDl.length === 0 || state.cancelled) {
+            progress.done();
+            return;
+          }
+          progress.subTitle = layer.displayName + ' 0/' + coordsToDl.length;
+          progress.workAmount = coordsToDl.length;
+          limiter = new RequestLimiter(layer.maxConcurrentRequests);
+          let done = 0;
+          let errors = 0;
+          const ondone = () => {
+            progress.done();
+            if (errors > 0) this.errorService.addError(new I18nError('errors.download_offline_map', [errors]))
+          };
+          for (const c of coordsToDl) {
+            const request$ = limiter.add(() => this.getBlob(layer, layer.getTileUrl(tiles, c, crs)));
+            request$.subscribe({
+              next: blob => {
+                zip([
+                  from(metaTable.put({
+                    key: '' + c.z + '_' + c.y + '_' + c.x,
+                    size: blob.size,
+                    date: Date.now()
+                  })),
+                  from(tilesTables.put({
+                    key: '' + c.z + '_' + c.y + '_' + c.x,
+                    blob: blob
+                  }))
+                ]).subscribe(() => {
+                  progress.workDone = ++done;
+                  progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
+                  if (done === coordsToDl.length) ondone();
+                });
+              },
+              error: e => {
+                Console.error('Error loading map tile', e);
+                errors++;
                 progress.workDone = ++done;
                 progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
                 if (done === coordsToDl.length) ondone();
-              });
-            },
-            error: e => {
-              Console.error('Error loading map tile', e);
-              errors++;
-              progress.workDone = ++done;
-              progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
-              if (done === coordsToDl.length) ondone();
-            }
-          });
+              }
+            });
+          }
         }
-      }
-    );
+      );
+    });
   }
 
   private getBlob(layer: MapLayer, url: string): Observable<Blob> {
@@ -170,37 +173,76 @@ export class OfflineMapService {
     return this.http.getBlob(url);
   }
 
-  public computeTilesCoords(bounds: L.LatLngBounds, layer: L.TileLayer, crs: L.CRS): L.Coords[] {
-    const coords: L.Coords[] = [];
-    const maxZoom = this.preferencesService.preferences.offlineMapMaxZoom;
-    for (let zoom = 1; zoom <= Math.min(layer.options.maxZoom!, maxZoom); zoom++) {
-      const area = L.bounds(
-        crs.latLngToPoint(bounds.getNorthWest(), zoom),
-        crs.latLngToPoint(bounds.getSouthEast(), zoom)
-      );
-      const points = this.getTilesPoints(area, layer.getTileSize());
-      for (const point of points) {
-        (point as any)['z'] = zoom;
-        coords.push(point as L.Coords);
+  private computeTilesCoords$(state: SaveState, progress: Progress): Promise<boolean> {
+    const maxZoom = Math.min(state.layer.options.maxZoom!, this.preferencesService.preferences.offlineMapMaxZoom);
+    return new Promise<boolean>(resolve => {
+      for (const bounds of state.boundsList) {
+        for (let zoom = 1; zoom <= maxZoom; zoom++) {
+          const area = L.bounds(
+            state.crs.latLngToPoint(bounds.getNorthWest(), zoom),
+            state.crs.latLngToPoint(bounds.getSouthEast(), zoom)
+          );
+          if (!area.min || !area.max) continue;
+          const topLeftTile = area.min.divideBy(state.layer.getTileSize().x).floor();
+          const bottomRightTile = area.max.divideBy(state.layer.getTileSize().x).floor();
+          progress.addWorkToDo(bottomRightTile.y - topLeftTile.y + 1);
+        }
       }
-    }
-    return coords;
+      const computeNext = () => {
+        if (state.cancelled) return;
+        if (state.boundsIndex >= state.boundsList.length) {
+          resolve(true);
+          return;
+        }
+        const bounds = state.boundsList[state.boundsIndex];
+        const area = L.bounds(
+          state.crs.latLngToPoint(bounds.getNorthWest(), state.zoom),
+          state.crs.latLngToPoint(bounds.getSouthEast(), state.zoom)
+        );
+        this.getTilesPoints$(area, state.layer.getTileSize(), progress)
+        .then(points => {
+          for (const point of points) {
+            const exists = state.coords.find(e => e.x === point.x && e.y === point.y && e.z === state.zoom);
+            if (!exists) {
+              (point as any)['z'] = state.zoom;
+              state.coords.push(point as L.Coords);
+            }
+          }
+          if (state.zoom === maxZoom) {
+            state.boundsIndex++;
+            state.zoom = 1;
+          } else {
+            state.zoom++;
+          }
+          this.ngZone.runTask(() => setTimeout(() => computeNext(), 0));
+        });
+      };
+      this.ngZone.runTask(() => computeNext());
+    });
   }
 
-  public getTilesPoints(area: L.Bounds, tileSize: L.Point): L.Point[] {
+  private getTilesPoints$(area: L.Bounds, tileSize: L.Point, progress: Progress): Promise<L.Point[]> {
     const points: L.Point[] = [];
     if (!area.min || !area.max) {
-      return points;
+      return Promise.resolve(points);
     }
     const topLeftTile = area.min.divideBy(tileSize.x).floor();
     const bottomRightTile = area.max.divideBy(tileSize.x).floor();
 
-    for (let j = topLeftTile.y; j <= bottomRightTile.y; j += 1) {
-      for (let i = topLeftTile.x; i <= bottomRightTile.x; i += 1) {
-        points.push(new L.Point(i, j));
-      }
-    }
-    return points;
+    return new Promise<L.Point[]>(resolve => {
+      const computeNextRow = (j: number) => {
+        for (let i = topLeftTile.x; i <= bottomRightTile.x; i += 1) {
+          points.push(new L.Point(i, j));
+        }
+        progress.addWorkDone(1);
+        if (j == bottomRightTile.y) {
+          resolve(points);
+          return;
+        }
+        this.ngZone.runTask(() => setTimeout(() => computeNextRow(j + 1), 0));
+      };
+      this.ngZone.runTask(() => computeNextRow(topLeftTile.y));
+    });
   }
 
   public getTile(layerName: string, coords: L.Coords): Observable<BinaryContent | undefined> {
@@ -302,4 +344,16 @@ export class OfflineMapService {
     return zip(promises);
   }
 
+}
+
+class SaveState {
+  constructor(
+    public boundsList: L.LatLngBounds[],
+    public layer: L.TileLayer,
+    public crs: L.CRS,
+    public boundsIndex = 0,
+    public zoom = 1,
+    public cancelled = false,
+    public coords: L.Coords[] = [],
+  ) {}
 }

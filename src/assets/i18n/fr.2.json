@@ -437,6 +437,7 @@
     "speed": "Vitesse"
   },
   "downloading_map": "Téléchargement de la carte",
+  "preparing_download": "Préparation du téléchargement...",
   "offline_map": {
     "download_trail": "Les cartes correspondant au parcours vont être téléchargées pour être disponibles hors ligne",
     "download_map": "Les cartes de la zone affichée actuellement vont être téléchargées pour être disponibles hors ligne",
