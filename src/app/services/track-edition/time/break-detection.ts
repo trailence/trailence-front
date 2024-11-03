@@ -85,6 +85,7 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
 
 function adjustLongBreakDetected(segment: Segment, maxDistance: number, startIndex: number, endIndex: number): {startIndex: number, endIndex: number} {
   // because we use maxDistance, we may have too much points at the beginning and at the end
+  if (endIndex - startIndex <= 1) return {startIndex, endIndex};
   // adjust startIndex
   let distance = 0;
   const startTime = segment.points[startIndex].time;
@@ -127,5 +128,6 @@ function adjustLongBreakDetected(segment: Segment, maxDistance: number, startInd
     }
     endIndex = index;
   }
+  if (endIndex < startIndex) return {startIndex: endIndex, endIndex: startIndex};
   return {startIndex, endIndex};
 }
