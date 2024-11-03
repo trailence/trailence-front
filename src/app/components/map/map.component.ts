@@ -86,6 +86,21 @@ export class MapComponent extends AbstractComponent {
       () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId),
       true
     );
+    this.whenVisible.subscribe(
+      combineLatest([this._mapState.center$, this._mapState.zoom$]),
+      ([center, zoom]) => {
+        this.browser.setHashes(
+          'zoom', '' + zoom,
+          'center', '' + center.lat + ',' + center.lng,
+        );
+        const map = this._map$.value;
+        if (map) {
+          const bounds = map.getBounds();
+          this.browser.setHash('bounds', '' + bounds.getSouth() + ',' + bounds.getEast() + ',' + bounds.getNorth() + ',' + bounds.getWest());
+        }
+      },
+      true
+    )
   }
 
   private _initMapTimeout: any;
@@ -162,6 +177,22 @@ export class MapComponent extends AbstractComponent {
   }
 
   private loadState(): void {
+    const hash = this.browser.decodeHash(window.location.hash);
+    if (hash.has('zoom') && hash.has('center')) {
+      try {
+        const zoom = parseInt(hash.get('zoom')!);
+        const center = hash.get('center')!.split(',');
+        const lat = parseFloat(center[0]);
+        const lng = parseFloat(center[1]);
+        if (!isNaN(zoom) && zoom >= 0 && zoom <= 19 && !isNaN(lat) && !isNaN(lng)) {
+          this._mapState.zoom = zoom;
+          this._mapState.center = {lat, lng};
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
     this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
   }
 

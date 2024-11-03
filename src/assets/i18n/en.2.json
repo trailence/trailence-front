@@ -5,7 +5,8 @@
     "import_gpx_description": "Import GPX files",
     "importing": "Importing",
     "sort": "Sort",
-    "share": "Share"
+    "share": "Share",
+    "more": "More"
   },
   "pages": {
     "login": {

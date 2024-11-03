@@ -3,6 +3,7 @@
   <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button-{{id}}" [badge]="nbActiveFilters()" [showBadge]="isPositive"></app-icon-label-button>
   <app-icon-label-button *ngIf="collectionUuid" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
   <app-icon-label-button *ngIf="collectionUuid" icon="share" label="{{i18n.texts.tools.share}}" (click)="share()"></app-icon-label-button>
+  <app-icon-label-button icon="more-menu" label="{{i18n.texts.tools.more}}" (click)="moreMenu($event)"></app-icon-label-button>
 </div>
 <div class="selection">
   <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>

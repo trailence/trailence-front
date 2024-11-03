@@ -6,7 +6,7 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect } from "@ionic/angular/standalone";
+import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, PopoverController } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
@@ -545,6 +545,21 @@ export class TrailsListComponent extends AbstractComponent {
 
   share(): void {
     this.trailMenuService.openSharePopup(this.collectionUuid!, []);
+  }
+
+  moreMenu(event: any): void {
+    this.injector.get(PopoverController).create({
+      component: MenuContentComponent,
+      componentProps: {
+        menu: this.trailMenuService.getTrailsMenu(this.trails.toArray(), false, this.collectionUuid, true)
+      },
+      event: event,
+      side: 'bottom',
+      dismissOnSelect: true,
+      arrow: true,
+    }).then(p => {
+      p.present();
+    });
   }
 
 }
