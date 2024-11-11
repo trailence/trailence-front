@@ -1,6 +1,5 @@
 import * as C from 'chart.js';
 import { Color } from 'src/app/utils/color';
-import { PathRange } from '../../trail/path-selection';
 
 export class RangeEvent {
   constructor(
@@ -32,11 +31,11 @@ export class RangeSelection implements C.Plugin<"line"> {
   private selected?: SelectedRange;
 
   constructor(
-    private selectingColor: string,
-    private selectionColor: string,
-    private onSelecting: (event: RangeSelectionEvent | undefined) => void,
-    private onSelected: (event: RangeSelectionEvent | undefined) => void,
-    private isEnabled: () => boolean,
+    private readonly selectingColor: string,
+    private readonly selectionColor: string,
+    private readonly onSelecting: (event: RangeSelectionEvent | undefined) => void,
+    private readonly onSelected: (event: RangeSelectionEvent | undefined) => void,
+    private readonly isEnabled: () => boolean,
   ) {}
 
   public setSelection(selection: SelectedRange): void {

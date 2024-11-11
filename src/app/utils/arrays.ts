@@ -45,11 +45,11 @@ export class Arrays {
 
 export class CollectionMapper<S, T> {
 
-  private _current: {source: S, target: T}[] = [];
+  private readonly _current: {source: S, target: T}[] = [];
 
   constructor(
-    private mapper: (item: S) => T,
-    private matcher: (item1: S, item2: S) => boolean = (item1, item2) => { return item1 === item2; }
+    private readonly mapper: (item: S) => T,
+    private readonly matcher: (item1: S, item2: S) => boolean = (item1, item2) => { return item1 === item2; }
   ) {}
 
   public update(items: S[]): T[] {

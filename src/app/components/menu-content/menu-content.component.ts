@@ -21,7 +21,7 @@ export class MenuContentComponent implements OnInit {
 
   constructor(
     public i18n: I18nService,
-    private changesDetector: ChangeDetectorRef,
+    private readonly changesDetector: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {

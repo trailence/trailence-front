@@ -38,15 +38,15 @@ export class OfflineMapService {
 
   constructor(
     auth: AuthService,
-    private layers: MapLayersService,
-    private progressService: ProgressService,
-    private i18n: I18nService,
-    private http: HttpService,
-    private preferencesService: PreferencesService,
-    private traceRecorder: TraceRecorderService,
-    private angularHttp: HttpClient,
-    private errorService: ErrorService,
-    private ngZone: NgZone,
+    private readonly layers: MapLayersService,
+    private readonly progressService: ProgressService,
+    private readonly i18n: I18nService,
+    private readonly http: HttpService,
+    private readonly preferencesService: PreferencesService,
+    private readonly traceRecorder: TraceRecorderService,
+    private readonly angularHttp: HttpClient,
+    private readonly errorService: ErrorService,
+    private readonly ngZone: NgZone,
   ) {
     auth.auth$.subscribe(
       auth => {

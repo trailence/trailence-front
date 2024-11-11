@@ -55,7 +55,7 @@ export class MapAnchor {
     }
   }
 
-  public bindTooltip(content: string): MapAnchor {
+  public bindTooltip(content: string): this {
     this.tooltipContent = content;
     this.marker.bindTooltip(content);
     return this;

@@ -1,18 +1,16 @@
 import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
 import * as L from 'leaflet';
 import { PointDto } from './dto/point';
-import { IdGenerator } from '../utils/component-utils';
 
 export class Point {
 
-  private _pos: BehaviorSubject<L.LatLng>;
-  private _ele: BehaviorSubject<number | undefined>;
-  private _time: BehaviorSubject<number | undefined>;
-  private _posAccuracy: BehaviorSubject<number | undefined>;
-  private _eleAccuracy: BehaviorSubject<number | undefined>;
-  private _heading: BehaviorSubject<number | undefined>;
-  private _speed: BehaviorSubject<number | undefined>;
-  private _id = IdGenerator.generateId();
+  private readonly _pos: BehaviorSubject<L.LatLng>;
+  private readonly _ele: BehaviorSubject<number | undefined>;
+  private readonly _time: BehaviorSubject<number | undefined>;
+  private readonly _posAccuracy: BehaviorSubject<number | undefined>;
+  private readonly _eleAccuracy: BehaviorSubject<number | undefined>;
+  private readonly _heading: BehaviorSubject<number | undefined>;
+  private readonly _speed: BehaviorSubject<number | undefined>;
 
   constructor(
     lat: number,

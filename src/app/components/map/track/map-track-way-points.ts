@@ -8,7 +8,6 @@ import * as L from 'leaflet';
 export const anchorBorderColor = '#d00000';
 export const anchorFillColor = '#a00000';
 export const anchorTextColor = '#ffffff';
-const anchorBorderColorHighlighted = '#00d000';
 
 const anchorDABorderColor = 'rgba(64, 128, 0, 0.75)';
 const anchorDATextColor = anchorTextColor;
@@ -40,9 +39,9 @@ export class MapTrackWayPoints {
   private subscription?: Subscription;
 
   constructor(
-    private _track: Track | SimplifiedTrackSnapshot,
-    private _isRecording: boolean,
-    private i18n: I18nService,
+    private readonly _track: Track | SimplifiedTrackSnapshot,
+    private readonly _isRecording: boolean,
+    private readonly i18n: I18nService,
   ) {}
 
   public addTo(map: L.Map): void {
@@ -90,52 +89,59 @@ export class MapTrackWayPoints {
   private load(): void {
     if (this._anchors !== undefined) return;
     if (this._track instanceof Track) {
-      this.subscription = this._track.computedWayPoints$.subscribe(
-        list => {
-          if (this._map && this._showDA) this.removeDAFromMap();
-          if (this._map && this._showWP) this.removeWPFromMap();
-          if (this._map && this._showBreaks) this.removeBreaksFromMap();
-          this._anchors = [];
-          this._breaks = [];
-          for (const wp of list) {
-            if (wp.isDeparture) {
-              if (wp.isArrival && !this._isRecording) {
-                this._departureAndArrival = this.createDepartureAndArrival(wp.wayPoint.point.pos);
-              } else {
-                this._departure = this.createDeparture(wp.wayPoint.point.pos);
-              }
-            } else if (wp.isArrival) {
-              if (!this._isRecording)
-                this._arrival = this.createArrival(wp.wayPoint.point.pos);
-            } else if (wp.breakPoint) {
-              this._breaks.push(this.createBreakPoint(wp));
-            } else {
-              this._anchors.push(this.createWayPoint(wp));
-            }
-          }
-          if (this._map && this._showDA) this.addDAToMap();
-          if (this._map && this._showBreaks) this.addBreaksToMap();
-          if (this._map && this._showWP) this.addWPToMap();
-        }
-      );
+      this.subscription = this._track.computedWayPoints$.subscribe(list => this.loadFromTrack(list));
     } else {
-      if (this._map && this._showDA) this.removeDAFromMap();
-      this._anchors = [];
-      this._breaks = [];
-      const departurePoint = this._track.points[0];
-      const arrivalPoint = this._track.points[this._track.points.length - 1];
-      if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= 25) {
-        this._departureAndArrival = this.createDepartureAndArrival(departurePoint);
-      } else {
-        if (departurePoint) {
-          this._departure = this.createDeparture(departurePoint);
-        }
-        if (arrivalPoint) {
-          this._arrival = this.createArrival(arrivalPoint);
-        }
-      }
-      if (this._map && this._showDA) this.addDAToMap();
+      this.loadFromSimplifiedTrack(this._track);
     }
+  }
+
+  private loadFromTrack(list: ComputedWayPoint[]): void {
+    if (this._map && this._showDA) this.removeDAFromMap();
+    if (this._map && this._showWP) this.removeWPFromMap();
+    if (this._map && this._showBreaks) this.removeBreaksFromMap();
+    this._anchors = [];
+    this._breaks = [];
+    for (const wp of list) {
+      this.createFromWayPoint(wp);
+    }
+    if (this._map && this._showDA) this.addDAToMap();
+    if (this._map && this._showBreaks) this.addBreaksToMap();
+    if (this._map && this._showWP) this.addWPToMap();
+  }
+  private createFromWayPoint(wp: ComputedWayPoint): void {
+    if (wp.isDeparture) {
+      if (wp.isArrival && !this._isRecording) {
+        this._departureAndArrival = this.createDepartureAndArrival(wp.wayPoint.point.pos);
+      } else {
+        this._departure = this.createDeparture(wp.wayPoint.point.pos);
+      }
+    } else if (wp.isArrival) {
+      if (!this._isRecording)
+        this._arrival = this.createArrival(wp.wayPoint.point.pos);
+    } else if (wp.breakPoint) {
+      this._breaks!.push(this.createBreakPoint(wp));
+    } else {
+      this._anchors!.push(this.createWayPoint(wp));
+    }
+  }
+
+  private loadFromSimplifiedTrack(track: SimplifiedTrackSnapshot): void {
+    if (this._map && this._showDA) this.removeDAFromMap();
+    this._anchors = [];
+    this._breaks = [];
+    const departurePoint = track.points[0];
+    const arrivalPoint = track.points[track.points.length - 1];
+    if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= 25) {
+      this._departureAndArrival = this.createDepartureAndArrival(departurePoint);
+    } else {
+      if (departurePoint) {
+        this._departure = this.createDeparture(departurePoint);
+      }
+      if (arrivalPoint) {
+        this._arrival = this.createArrival(arrivalPoint);
+      }
+    }
+    if (this._map && this._showDA) this.addDAToMap();
   }
 
   private createDepartureAndArrival(point: L.LatLngLiteral): MapAnchor {

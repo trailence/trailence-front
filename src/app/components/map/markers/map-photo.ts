@@ -1,5 +1,4 @@
 import * as L from 'leaflet';
-import { MapComponent } from '../map.component';
 
 export class MapPhoto {
 
@@ -20,7 +19,7 @@ export class MapPhoto {
   }
 
   public static createDataIconWithImage(
-    borderColor: string = '#000000',
+    borderColor: string,
     image: string,
     width: number,
     height: number,

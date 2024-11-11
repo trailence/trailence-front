@@ -44,8 +44,8 @@ export class TrailPage extends AbstractPage {
   constructor(
     injector: Injector,
     route: ActivatedRoute,
-    private trailMenuService: TrailMenuService,
-    private trailService: TrailService,
+    private readonly trailMenuService: TrailMenuService,
+    private readonly trailService: TrailService,
     traceRecorder: TraceRecorderService,
   ) {
     super(injector);
@@ -58,7 +58,7 @@ export class TrailPage extends AbstractPage {
       )
     );
     this.whenVisible.subscribe(traceRecorder.current$, recording => {
-      this.recording$.next(recording ? recording : null);
+      this.recording$.next(recording ?? null);
     });
     this.whenVisible.subscribe(combineLatest([
       this.recording$.pipe(switchMap(t => t?.trail ? t.trail.name$ : of(undefined))),

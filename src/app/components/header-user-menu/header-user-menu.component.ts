@@ -39,9 +39,9 @@ export class HeaderUserMenuComponent extends AbstractComponent {
     public i18n: I18nService,
     public auth: AuthService,
     public preferences: PreferencesService,
-    private databaseService: DatabaseService,
-    private networkService: NetworkService,
-    private changeDetector: ChangeDetectorRef,
+    private readonly databaseService: DatabaseService,
+    private readonly networkService: NetworkService,
+    private readonly changeDetector: ChangeDetectorRef,
     public router: Router,
   ) {
     super(injector);

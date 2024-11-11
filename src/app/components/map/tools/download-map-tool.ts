@@ -8,8 +8,8 @@ import { Trail } from 'src/app/model/trail';
 export class DownloadMapTool extends L.Control {
 
   constructor(
-    private injector: Injector,
-    private trail: Trail | undefined,
+    private readonly injector: Injector,
+    private readonly trail: Trail | undefined,
     options?: L.ControlOptions,
   ) {
     super(options);

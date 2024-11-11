@@ -11,8 +11,8 @@ export class ErrorService {
   private _modal?: Promise<HTMLIonModalElement>;
 
   constructor(
-    private modalController: ModalController,
-    private i18n: I18nService,
+    private readonly modalController: ModalController,
+    private readonly i18n: I18nService,
   ) {}
 
   public addNetworkError(error: any, i18nText: string, args: any[]) {

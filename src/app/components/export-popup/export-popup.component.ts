@@ -24,7 +24,7 @@ export class ExportPopupComponent implements OnInit {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
+    private readonly modalController: ModalController,
   ) { }
 
   ngOnInit(): void {

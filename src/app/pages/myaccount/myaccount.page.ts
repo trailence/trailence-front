@@ -25,9 +25,9 @@ export class MyaccountPage implements OnDestroy {
 
   constructor(
     public i18n: I18nService,
-    private http: HttpService,
-    private auth: AuthService,
-    private modalController: ModalController,
+    private readonly http: HttpService,
+    private readonly auth: AuthService,
+    private readonly modalController: ModalController,
   ) {
     this.email = auth.email!;
     this.complete = auth.auth?.complete || false;

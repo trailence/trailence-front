@@ -6,10 +6,10 @@ const BUBBLE_MIN_PIXELS = 20;
 export class MapBubble {
 
   private _map?: L.Map;
-  private _marker: L.Marker;
+  private readonly _marker: L.Marker;
 
   constructor(
-    private _center: L.LatLng,
+    private readonly _center: L.LatLng,
     size: number,
     text: string,
   ) {
@@ -55,15 +55,9 @@ export class MapBubble {
   public static build(points: L.LatLng[], zoom: number): MapBubble[] {
     const bubbles: Bubble[] = [];
     const positions: Pos[] = [];
-    for (const p of points.sort((p1,p2) => {
-      // sort the points so we are deterministic
-      const d = p1.lat - p2.lat;
-      if (d !== 0) return d < 0 ? -1 : 1;
-      const d2 = p1.lng - p2.lng;
-      if (d2 < 0) return -1;
-      if (d2 > 0) return 1;
-      return 0;
-    })) {
+    // sort the points so we are deterministic
+    const sortedPoints = [...points].sort(MapBubble.pointsComparator);
+    for (const p of sortedPoints) {
       positions.push(new Pos(p, L.CRS.EPSG3857.latLngToPoint(p, zoom)));
     }
     while (positions.length > 0) {
@@ -72,29 +66,10 @@ export class MapBubble {
       bubbles.push(bubble);
       positions.splice(0, 1);
       do {
-        for (let i = 0; i < positions.length; ++i) {
-          if (this.addToBubble1(bubble, positions[i])) {
-            positions.splice(i, 1);
-            i--;
-          }
-        }
-        let extended = false;
-        for (let i = 0; i < positions.length; ++i) {
-          if (this.addToBubble2(bubble, positions[i], zoom)) {
-            positions.splice(i, 1);
-            extended = true;
-            break;
-          }
-        }
-        if (!extended) {
-          for (let i = 0; i < positions.length; ++i) {
-            if (this.addToBubble3(bubble, positions[i], zoom)) {
-              positions.splice(i, 1);
-              extended = true;
-              break;
-            }
-          }
-        }
+        this.addPositionsToBubbleWithoutMovingCenter(bubble, positions);
+        const extended =
+          this.addPositionsToBubbleBasedOnCurrentBoundsCenter(bubble, positions, zoom) ||
+          this.addPositionsToBubbleMovingCenter(bubble, positions, zoom);
         if (!extended) break;
       } while (true);
     }
@@ -117,7 +92,25 @@ export class MapBubble {
     });
   }
 
-  private static addToBubble1(bubble: Bubble, pos: Pos): boolean {
+  private static pointsComparator(p1: L.LatLng, p2: L.LatLng): number {
+    const d = p1.lat - p2.lat;
+    if (d !== 0) return d < 0 ? -1 : 1;
+    const d2 = p1.lng - p2.lng;
+    if (d2 < 0) return -1;
+    if (d2 > 0) return 1;
+    return 0;
+  }
+
+  private static addPositionsToBubbleWithoutMovingCenter(bubble: Bubble, positions: Pos[]): void {
+    for (let i = 0; i < positions.length; ++i) {
+      if (this.addToBubbleWithoutMovingCenter(bubble, positions[i])) {
+        positions.splice(i, 1);
+        i--;
+      }
+    }
+  }
+
+  private static addToBubbleWithoutMovingCenter(bubble: Bubble, pos: Pos): boolean {
     if (pos.pixel.distanceTo(bubble.pos.pixel) < (BUBBLE_MAX_PIXELS / 2 + 1)) {
       bubble.bounds.extend(pos.latLng);
       bubble.content.push(pos);
@@ -126,13 +119,33 @@ export class MapBubble {
     return false;
   }
 
-  private static addToBubble2(bubble: Bubble, pos: Pos, zoom: number): boolean {
+  private static addPositionsToBubbleBasedOnCurrentBoundsCenter(bubble: Bubble, positions: Pos[], zoom: number): boolean {
+    for (let i = 0; i < positions.length; ++i) {
+      if (this.addToBubbleBasedOnCurrentBoundsCenter(bubble, positions[i], zoom)) {
+        positions.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static addToBubbleBasedOnCurrentBoundsCenter(bubble: Bubble, pos: Pos, zoom: number): boolean {
     const center = L.CRS.EPSG3857.latLngToPoint(bubble.bounds.getCenter(), zoom);
     if (pos.pixel.distanceTo(center) < (BUBBLE_MAX_PIXELS / 2 + 1)) {
       bubble.bounds.extend(pos.latLng);
       bubble.content.push(pos);
       bubble.pos = new Pos(bubble.bounds.getCenter(), L.CRS.EPSG3857.latLngToPoint(bubble.bounds.getCenter(), zoom));
       return true;
+    }
+    return false;
+  }
+
+  private static addPositionsToBubbleMovingCenter(bubble: Bubble, positions: Pos[], zoom: number): boolean {
+    for (let i = 0; i < positions.length; ++i) {
+      if (this.addToBubble3(bubble, positions[i], zoom)) {
+        positions.splice(i, 1);
+        return true;
+      }
     }
     return false;
   }

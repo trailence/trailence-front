@@ -2,9 +2,9 @@ import { TrailTagDto } from "./dto/trail-tag";
 
 export class TrailTag {
 
-    private _tagUuid: string;
-    private _trailUuid: string;
-    private _createdAt: number;
+    private readonly _tagUuid: string;
+    private readonly _trailUuid: string;
+    private readonly _createdAt: number;
 
     constructor(
         dto: Partial<TrailTagDto>

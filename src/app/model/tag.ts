@@ -1,13 +1,12 @@
 import { BehaviorSubject, Observable } from "rxjs";
 import { Owned } from "./owned";
 import { TagDto } from "./dto/tag";
-import { OwnedDto } from "./dto/owned";
 
 export class Tag extends Owned {
 
-    private _name$: BehaviorSubject<string>;
-    private _collectionUuid: string;
-    private _parentUuid$: BehaviorSubject<string | null>;
+    private readonly _name$: BehaviorSubject<string>;
+    private readonly _collectionUuid: string;
+    private readonly _parentUuid$: BehaviorSubject<string | null>;
 
     constructor(
         dto: Partial<TagDto>,
@@ -20,7 +19,7 @@ export class Tag extends Owned {
     }
 
     public get name(): string { return this._name$.value; }
-    public get name$(): Observable<String> { return this._name$; }
+    public get name$(): Observable<string> { return this._name$; }
     public set name(value: string) { if (value !== this._name$.value) this._name$.next(value); }
 
     public get collectionUuid(): string { return this._collectionUuid; }
@@ -34,7 +33,7 @@ export class Tag extends Owned {
             ...super.toDto(),
             name: this._name$.value,
             collectionUuid: this._collectionUuid,
-            parentUuid: this._parentUuid$.value || undefined,
+            parentUuid: this._parentUuid$.value ?? undefined,
         };
     }
 

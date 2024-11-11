@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-download-map-popup',
   templateUrl: './download-map-popup.component.html',
-  styleUrls: ['./download-map-popup.component.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, MapLayerSelectionComponent, CommonModule ]
 })
@@ -29,8 +29,8 @@ export class DownloadMapPopupComponent {
   constructor(
     public i18n: I18nService,
     public preferencesService: PreferencesService,
-    private modalController: ModalController,
-    private offlineMap: OfflineMapService,
+    private readonly modalController: ModalController,
+    private readonly offlineMap: OfflineMapService,
   ) { }
 
   cancel(): void {

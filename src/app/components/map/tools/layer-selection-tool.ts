@@ -10,8 +10,8 @@ import { MapLayersService } from 'src/app/services/map/map-layers.service';
 export class MapLayerSelectionTool extends L.Control {
 
   constructor(
-    private injector: Injector,
-    private mapState: MapState,
+    private readonly injector: Injector,
+    private readonly mapState: MapState,
     options?: L.ControlOptions,
   ) {
     super(options);

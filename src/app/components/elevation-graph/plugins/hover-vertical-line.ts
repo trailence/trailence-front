@@ -5,7 +5,7 @@ export class HoverVerticalLine implements C.Plugin<"line"> {
   id = 'trailence-hover-vertical-line';
 
   constructor(
-    private contrastColor: string
+    private readonly contrastColor: string
   ) {}
 
   afterDraw(chart: C.Chart<"line">): void {

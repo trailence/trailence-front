@@ -10,7 +10,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 @Component({
   selector: 'app-import-gpx-popup',
   templateUrl: './import-gpx-popup.component.html',
-  styleUrls: ['./import-gpx-popup.component.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonRadioGroup, IonRadio, IonButton, IonButtons, IonFooter, IonLabel, IonIcon, IonTitle, IonToolbar, IonContent, IonHeader, CommonModule ]
 })

@@ -5,9 +5,9 @@ export const VERSION_CREATED_LOCALLY = 0;
 
 export class Versioned {
 
-  private _uuid: string;
+  private readonly _uuid: string;
   private _version: number;
-  private _createdAt: number;
+  private readonly _createdAt: number;
   private _updatedAt: number;
 
   constructor(

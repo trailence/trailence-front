@@ -3,10 +3,10 @@ import * as L from 'leaflet';
 
 export class MapState {
 
-  private _live$ = new BehaviorSubject<boolean>(false);
-  private _center$ = new BehaviorSubject<L.LatLngLiteral>({lat: 0, lng: 0});
-  private _zoom$ = new BehaviorSubject<number>(2);
-  private _tilesName$ = new BehaviorSubject<string>('osm');
+  private readonly _live$ = new BehaviorSubject<boolean>(false);
+  private readonly _center$ = new BehaviorSubject<L.LatLngLiteral>({lat: 0, lng: 0});
+  private readonly _zoom$ = new BehaviorSubject<number>(2);
+  private readonly _tilesName$ = new BehaviorSubject<string>('osm');
 
   public get live(): boolean { return this._live$.value; }
   public get live$(): Observable<boolean> { return this._live$; }

@@ -103,16 +103,16 @@ export class TrailComponent extends AbstractComponent {
 
   constructor(
     injector: Injector,
-    private trackService: TrackService,
+    private readonly trackService: TrackService,
     public i18n: I18nService,
-    private browser: BrowserService,
-    private auth: AuthService,
+    private readonly browser: BrowserService,
+    private readonly auth: AuthService,
     public trailService: TrailService,
-    private traceRecorder: TraceRecorderService,
+    private readonly traceRecorder: TraceRecorderService,
     public trailMenuService: TrailMenuService,
-    private tagService: TagService,
-    private photoService: PhotoService,
-    private changesDetector: ChangeDetectorRef,
+    private readonly tagService: TagService,
+    private readonly photoService: PhotoService,
+    private readonly changesDetector: ChangeDetectorRef,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(this);
@@ -289,11 +289,12 @@ export class TrailComponent extends AbstractComponent {
           if (photos === undefined)
             this.photos = undefined;
           else {
-            this.photos = photos.sort((p1,p2) => {
+            photos.sort((p1,p2) => {
               if (p1.isCover) return -1;
               if (p2.isCover) return 1;
               return p1.index - p2.index;
             });
+            this.photos = photos;
           }
           this.changesDetector.detectChanges();
         }, true
@@ -515,7 +516,7 @@ export class TrailComponent extends AbstractComponent {
     if (!this.photos || this.photos.length === 0)
       this.openPhotos();
     else
-      this.photoService.openSliderPopup(this.photos!, 0);
+      this.photoService.openSliderPopup(this.photos, 0);
   }
 
   goToDeparture(): void {
@@ -581,7 +582,7 @@ export class TrailComponent extends AbstractComponent {
             role: 'confirm',
             handler: () => {
               this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
-              .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail!.owner + '/' + trail!.uuid));
+              .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
               this.injector.get(AlertController).dismiss();
             }
           }, {
@@ -600,7 +601,7 @@ export class TrailComponent extends AbstractComponent {
       });
     } else {
       this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
-      .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail!.owner + '/' + trail!.uuid));
+      .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
     }
   }
 

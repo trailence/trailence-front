@@ -16,7 +16,7 @@ export class PhotosSliderPopupComponent {
   @Input() index!: number;
 
   constructor(
-    private modalController: ModalController,
+    private readonly modalController: ModalController,
   ) { }
 
   close(): void {

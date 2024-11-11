@@ -9,7 +9,7 @@ import { Console } from 'src/app/utils/console';
 @Component({
   selector: 'app-photo',
   templateUrl: './photo.component.html',
-  styleUrls: ['./photo.component.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonIcon, IonSpinner, CommonModule]
 })
@@ -26,8 +26,8 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   private subscription?: Subscription;
 
   constructor(
-    private photoService: PhotoService,
-    private changesDetector: ChangeDetectorRef,
+    private readonly photoService: PhotoService,
+    private readonly changesDetector: ChangeDetectorRef,
   ) { }
 
   ngOnChanges(changes: SimpleChanges): void {

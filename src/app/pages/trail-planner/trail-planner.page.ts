@@ -8,7 +8,6 @@ import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
 import { MapTrack } from 'src/app/components/map/track/map-track';
 import { Point } from 'src/app/model/point';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
-import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { IonButton, IonIcon, IonList, IonItem, IonToggle, IonLabel, IonCheckbox, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons, IonInput, IonSelect, IonSelectOption, ModalController, IonSpinner } from "@ionic/angular/standalone";
@@ -107,9 +106,8 @@ export class TrailPlannerPage extends AbstractPage {
   constructor(
     injector: Injector,
     public i18n: I18nService,
-    private http: HttpService,
     collectionService: TrailCollectionService,
-    private geo: GeoService,
+    private readonly geo: GeoService,
   ) {
     super(injector);
     this.mapTracks$ = combineLatest([this.currentMapTrack$, this.possibleWaysFromLastAnchor$, this.possibleWaysFromCursor$, this.routesMapTracks$, this.trailsMapTracks$]).pipe(
@@ -134,7 +132,7 @@ export class TrailPlannerPage extends AbstractPage {
       filter(map => !!map),
       first()
     ).subscribe(map => {
-      this.map = map! as MapComponent;
+      this.map = map as MapComponent;
       this.mapState = this.map.getState();
       this.whenVisible.subscribe(
         combineLatest([this.mapState.center$, this.mapState.zoom$]).pipe(debounceTime(200)),
@@ -333,7 +331,7 @@ export class TrailPlannerPage extends AbstractPage {
     this.cancelWays();
     this.putFreeAnchor = true;
     this._addAnchor = this.createAnchor({lat: 0, lng: 0}, '+', false);
-    this.map!.addToMap(this._addAnchor!.marker);
+    this.map!.addToMap(this._addAnchor.marker);
     this.anchorMapOverSubscription = this.map!.mouseOver.subscribe(pos => {
       this._addAnchor!.marker.setLatLng(pos);
     });
@@ -392,10 +390,8 @@ export class TrailPlannerPage extends AbstractPage {
         if (mt.track.getAllPositions().find(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
           matching.push(mt);
         }
-      } else {
-        if (mt.track.points.find(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
-          matching.push(mt);
-        }
+      } else if (mt.track.points.find(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
+        matching.push(mt);
       }
     }
     return matching;

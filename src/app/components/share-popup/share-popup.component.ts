@@ -45,8 +45,8 @@ export class SharePopupComponent implements OnInit {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
-    private injector: Injector,
+    private readonly modalController: ModalController,
+    private readonly injector: Injector,
   ) { }
 
   ngOnInit(): void {
@@ -60,10 +60,10 @@ export class SharePopupComponent implements OnInit {
         filter(col => !!col),
         first()
       ).subscribe(col => {
-        if (col!.name.length === 0 && col!.type === TrailCollectionType.MY_TRAILS)
+        if (col.name.length === 0 && col.type === TrailCollectionType.MY_TRAILS)
           this.collectionName = this.i18n.texts.my_trails;
         else
-          this.collectionName = col!.name;
+          this.collectionName = col.name;
       });
     }
     this.toLanguage = this.i18n.textsLanguage;

@@ -7,8 +7,8 @@ import { AssetsService } from 'src/app/services/assets/assets.service';
 export class MapCenterOnPositionTool extends L.Control {
 
   constructor(
-    private injector: Injector,
-    private following$: Observable<boolean>,
+    private readonly injector: Injector,
+    private readonly following$: Observable<boolean>,
     options?: L.ControlOptions,
   ) {
     super(options);

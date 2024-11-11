@@ -5,15 +5,15 @@ import { TypeUtils } from '../utils/type-utils';
 
 export class Trail extends Owned {
 
-  private _name$: BehaviorSubject<string>;
-  private _description$: BehaviorSubject<string>;
-  private _location$: BehaviorSubject<string>;
-  private _loopType$: BehaviorSubject<TrailLoopType | undefined>;
+  private readonly _name$: BehaviorSubject<string>;
+  private readonly _description$: BehaviorSubject<string>;
+  private readonly _location$: BehaviorSubject<string>;
+  private readonly _loopType$: BehaviorSubject<TrailLoopType | undefined>;
 
-  private _originalTrackUuid$: BehaviorSubject<string>;
-  private _currentTrackUuid$: BehaviorSubject<string>;
+  private readonly _originalTrackUuid$: BehaviorSubject<string>;
+  private readonly _currentTrackUuid$: BehaviorSubject<string>;
 
-  private _collectionUuid$: BehaviorSubject<string>;
+  private readonly _collectionUuid$: BehaviorSubject<string>;
 
   constructor(
     dto: Partial<TrailDto>

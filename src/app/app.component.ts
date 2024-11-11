@@ -33,7 +33,7 @@ export class AppComponent {
     public i18n: I18nService,
     router: Router,
     auth: AuthService,
-    private injector: Injector,
+    private readonly injector: Injector,
     // init browser
     browserService: BrowserService,
     // init assets

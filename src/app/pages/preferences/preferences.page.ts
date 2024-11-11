@@ -32,15 +32,15 @@ export class PreferencesPage implements OnDestroy {
   tfoApiKey?: string;
   photoCacheSize?: {total: number, expired: number};
 
-  private extensionsSubscription: Subscription;
+  private readonly extensionsSubscription: Subscription;
   private currentExtensions: Extension[] = [];
 
   constructor(
     public i18n: I18nService,
     public preferences: PreferencesService,
-    private offlineMaps: OfflineMapService,
-    private extensions: ExtensionsService,
-    private photoService: PhotoService,
+    private readonly offlineMaps: OfflineMapService,
+    private readonly extensions: ExtensionsService,
+    private readonly photoService: PhotoService,
   ) {
     this.updateOfflineMapCounters();
     this.updatePhotoCacheSize();
@@ -128,11 +128,12 @@ export class PreferencesPage implements OnDestroy {
   getEstimatedBaseSpeedValue(): number {
     switch (this.preferences.preferences.distanceUnit) {
       case 'METERS': return this.preferences.preferences.estimatedBaseSpeed;
-      case 'IMPERIAL':
+      case 'IMPERIAL': {
         const miles = this.i18n.metersToMiles(this.preferences.preferences.estimatedBaseSpeed);
         if (miles < 1) return 1;
         if (miles > 125) return 125;
         return 1 + Math.round((miles - 1) / 0.2) * 0.2;
+      }
     }
   }
 
@@ -167,11 +168,12 @@ export class PreferencesPage implements OnDestroy {
   getLongBreakMaximumDistanceValue(): number {
     switch (this.preferences.preferences.distanceUnit) {
       case 'METERS': return this.preferences.preferences.longBreakMaximumDistance;
-      case 'IMPERIAL':
+      case 'IMPERIAL': {
         const foot = this.i18n.metersToFoot(this.preferences.preferences.longBreakMaximumDistance);
         if (foot < 50) return 50;
         if (foot > 650) return 650;
         return 50 + Math.round((foot - 50) / 10) * 10;
+      }
     }
   }
 
@@ -203,10 +205,10 @@ export class PreferencesPage implements OnDestroy {
     } else {
       const thunderforest = this.currentExtensions.find(e => e.extension === 'thunderforest.com');
       if (thunderforest) {
-        thunderforest.data['apikey'] = value!.trim();
+        thunderforest.data['apikey'] = value.trim();
         this.extensions.saveExtension(thunderforest);
       } else {
-        this.extensions.saveExtension(new Extension(0, 'thunderforest.com', {apikey: value!}));
+        this.extensions.saveExtension(new Extension(0, 'thunderforest.com', {apikey: value}));
       }
     }
   }

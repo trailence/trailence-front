@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonRange, IonLabel } from "@ionic/angular/standalone";
 
@@ -12,7 +12,7 @@ export interface NumericFilterValueEvent {
 @Component({
   selector: 'app-filter-numeric',
   templateUrl: './filter-numeric.component.html',
-  styleUrls: ['./filter-numeric.component.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonLabel, IonRange, FormsModule ]
 })

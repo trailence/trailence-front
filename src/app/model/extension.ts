@@ -1,7 +1,7 @@
 export class Extension {
 
   private _version: number;
-  private _extension: string;
+  private readonly _extension: string;
   private _data: {[key: string]: string};
 
   constructor(

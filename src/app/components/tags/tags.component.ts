@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
-import { Subscription, combineLatest, debounceTime, of, switchMap } from 'rxjs';
+import { Subscription, combineLatest, debounceTime, of } from 'rxjs';
 import { Tag } from 'src/app/model/tag';
 import { Trail } from 'src/app/model/trail';
 import { TrailTag } from 'src/app/model/trail-tag';
@@ -51,10 +51,10 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
-    private alertController: AlertController,
-    private tagService: TagService,
-    private auth: AuthService,
+    private readonly modalController: ModalController,
+    private readonly alertController: AlertController,
+    private readonly tagService: TagService,
+    private readonly auth: AuthService,
   ) { }
 
   ngOnInit(): void {
@@ -92,7 +92,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   private buildTree(tags: Tag[], nodes: TagNode[], trailsTags: TrailTag[]): TagNode[] {
     const toRemove = this.flatten(nodes);
-    const newTree =  this.buildTreeNodes(toRemove, tags, trailsTags, null, undefined);
+    const newTree =  this.buildTreeNodes(toRemove, tags, trailsTags, null);
     return newTree;
   }
 
@@ -173,7 +173,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
       node.tag.name = node.newName;
       this.tagService.update(node.tag);
     }
-    if ((event$.detail.relatedTarget as any | null)?.nodeName === 'ION-BUTTON') {
+    if ((event$.detail.relatedTarget as any)?.nodeName === 'ION-BUTTON') {
       // give the time for the delete button to be taken into account
       setTimeout(() => node.editing = false, 1000);
     } else {

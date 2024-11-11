@@ -40,7 +40,7 @@ export class MenuComponent {
   constructor(
     public i18n: I18nService,
     public collectionService: TrailCollectionService,
-    private router: Router,
+    private readonly router: Router,
     public menuController: MenuController,
     public traceRecorder: TraceRecorderService,
     shareService: ShareService,
@@ -85,7 +85,7 @@ export class MenuComponent {
     const trace = this.traceRecorder.current;
     if (trace) {
       if (trace.followingTrailUuid) {
-        this.goTo('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid!);
+        this.goTo('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid);
       } else {
         this.goTo('/trail');
       }

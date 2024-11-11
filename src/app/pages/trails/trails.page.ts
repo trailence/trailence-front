@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';

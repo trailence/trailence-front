@@ -45,20 +45,20 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   nbSelected = 0;
   sliderIndex = 0;
 
-  private subscriptions: Subscriptions = new Subscriptions();
+  private readonly subscriptions: Subscriptions = new Subscriptions();
 
   @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
 
   constructor(
     public i18n: I18nService,
-    private photoService: PhotoService,
-    private fileService: FileService,
-    private progressService: ProgressService,
+    private readonly photoService: PhotoService,
+    private readonly fileService: FileService,
+    private readonly progressService: ProgressService,
     browser: BrowserService,
-    private auth: AuthService,
-    private modalController: ModalController,
-    private changesDetector: ChangeDetectorRef,
-    private errorService: ErrorService,
+    private readonly auth: AuthService,
+    private readonly modalController: ModalController,
+    private readonly changesDetector: ChangeDetectorRef,
+    private readonly errorService: ErrorService,
   ) {
     this.updateSize(browser);
     this.subscriptions.add(browser.resize$.subscribe(() => this.updateSize(browser)));

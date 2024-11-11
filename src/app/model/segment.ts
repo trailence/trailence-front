@@ -7,9 +7,9 @@ import * as L from 'leaflet';
 
 export class Segment {
 
-  private _points = new BehaviorSubject<Point[]>([]);
-  private _segmentPoints: SegmentPoint[] = [];
-  private _meta = new SegmentMetadata(this._segmentPoints);
+  private readonly _points = new BehaviorSubject<Point[]>([]);
+  private readonly _segmentPoints: SegmentPoint[] = [];
+  private readonly _meta = new SegmentMetadata(this._segmentPoints);
 
   public get points(): Point[] { return this._points.value; }
   public get points$(): Observable<Point[]> { return this._points; }
@@ -186,11 +186,11 @@ export class SegmentPoint {
   private time?: number;
   private durationFromPrevious = 0;
 
-  private subscriptions = new Subscriptions();
+  private readonly subscriptions = new Subscriptions();
 
   constructor(
     private meta: SegmentMetadata | undefined,
-    private _point: Point,
+    private readonly _point: Point,
     private _previous?: SegmentPoint,
     private _next?: SegmentPoint,
   ) {
@@ -305,14 +305,14 @@ export class SegmentPoint {
 
 export class SegmentMetadata {
 
-  private _distance = new BehaviorSubject<number>(0);
-  private _positiveElevation = new BehaviorSubject<number | undefined>(undefined);
-  private _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
-  private _highestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
-  private _lowestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
-  private _duration = new BehaviorSubject<number | undefined>(undefined);
-  private _startPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
-  private _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
+  private readonly _distance = new BehaviorSubject<number>(0);
+  private readonly _positiveElevation = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _highestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
+  private readonly _lowestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
+  private readonly _duration = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _startPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
+  private readonly _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
   private _topLat: SegmentPoint | undefined = undefined;
   private _bottomLat: SegmentPoint | undefined = undefined;
   private _leftLng: SegmentPoint | undefined = undefined;
@@ -521,7 +521,7 @@ export class SegmentMetadata {
           this._rightLng = pt;
           changed = true;
         }
-        if (changed) b = b!.extend(p);
+        if (changed) b = b.extend(p);
       }
     }
     const cb = this._bounds.value;
@@ -614,7 +614,7 @@ export class SegmentMetadata {
     }
     if (boundsChanged) {
       if (s === undefined) this._bounds.next(undefined);
-      else this._bounds.next(L.latLngBounds(L.latLng(s!, w!), L.latLng(n!, e!)));
+      else this._bounds.next(L.latLngBounds(L.latLng(s, w!), L.latLng(n!, e!)));
     }
   }
 

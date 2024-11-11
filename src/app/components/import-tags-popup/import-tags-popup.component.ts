@@ -38,10 +38,10 @@ export class ImportTagsPopupComponent  implements OnInit {
 
   constructor(
     public i18n: I18nService,
-    private tagService: TagService,
-    private modalController: ModalController,
-    private auth: AuthService,
-    private progressService: ProgressService,
+    private readonly tagService: TagService,
+    private readonly modalController: ModalController,
+    private readonly auth: AuthService,
+    private readonly progressService: ProgressService,
   ) { }
 
   ngOnInit() {
@@ -91,32 +91,30 @@ export class ImportTagsPopupComponent  implements OnInit {
   }
 
   private importMissingLevel(level: number, progress: Progress): void {
-    const created = new Map<string, string>();
     for (const resolved of this.resolvedTags!) {
-      if (!resolved.tree[level].uuid) {
-        const done = created.get(resolved.tree[level].name);
-        if (done) resolved.tree[level].uuid = done;
-        else {
-          const tag = new Tag({
-            collectionUuid: this.collectionUuid,
-            owner: this.auth.email,
-            name: resolved.tree[level].name,
-            parentUuid: level > 0 ? resolved.tree[level - 1].uuid! : undefined,
-          });
+      if (resolved.tree[level].uuid) continue;
+      const tag = new Tag({
+        collectionUuid: this.collectionUuid,
+        owner: this.auth.email,
+        name: resolved.tree[level].name,
+        parentUuid: level > 0 ? resolved.tree[level - 1].uuid! : undefined,
+      });
+      progress.addWorkToDo(1);
+      this.tagService.create(tag, () => progress.addWorkDone(1));
+      resolved.tree[level].uuid = tag.uuid;
+      if (resolved.tree.length === level + 1) {
+        const resolvedTags = resolved.tree.map(node => node.name);
+        this.addTrailTags(tag, resolvedTags, progress);
+      }
+    }
+  }
+
+  private addTrailTags(tag: Tag, resolvedTags: string[], progress: Progress): void {
+    for (const trail of this.toImport) {
+      for (const tags of trail.tags) {
+        if (Arrays.sameContent(tags, resolvedTags)) {
           progress.addWorkToDo(1);
-          this.tagService.create(tag, () => progress.addWorkDone(1));
-          resolved.tree[level].uuid = tag.uuid;
-          if (resolved.tree.length === level + 1) {
-            const resolvedTags = resolved.tree.map(node => node.name);
-            for (const trail of this.toImport) {
-              for (const tags of trail.tags) {
-                if (Arrays.sameContent(tags, resolvedTags)) {
-                  progress.addWorkToDo(1);
-                  this.tagService.addTrailTag(trail.trailUuid, tag.uuid, () => progress.addWorkDone(1));
-                }
-              }
-            }
-          }
+          this.tagService.addTrailTag(trail.trailUuid, tag.uuid, () => progress.addWorkDone(1));
         }
       }
     }

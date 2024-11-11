@@ -28,7 +28,7 @@ export class MapLayerSelectionComponent implements OnInit {
   assertsUrl = environment.assetsUrl;
 
   constructor(
-    private service: MapLayersService,
+    service: MapLayersService,
   ) {
     for (const l of service.layers) {
       this.layers.push({layer: l, tiles: l.create()});
@@ -63,12 +63,10 @@ export class MapLayerSelectionComponent implements OnInit {
       } else {
         this.selection.push(layer.layer.name);
       }
+    } else if (this.selection.length > 0 && this.selection[0] === layer.layer.name) {
+      this.selection = [];
     } else {
-      if (this.selection.length > 0 && this.selection[0] === layer.layer.name) {
-        this.selection = [];
-      } else {
-        this.selection = [layer.layer.name];
-      }
+      this.selection = [layer.layer.name];
     }
     this.selectionChange.emit(this.selection);
   }

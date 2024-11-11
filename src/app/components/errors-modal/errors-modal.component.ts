@@ -6,7 +6,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 @Component({
   selector: 'app-errors-modal',
   templateUrl: './errors-modal.component.html',
-  styleUrls: ['./errors-modal.component.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonButton, IonLabel, IonItem, IonList, IonIcon, IonTitle, IonContent, IonToolbar, IonHeader, CommonModule],
 })
@@ -16,7 +16,7 @@ export class ErrorsModalComponent {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
+    private readonly modalController: ModalController,
   ) { }
 
   removeError(index: number): void {

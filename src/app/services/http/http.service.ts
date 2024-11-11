@@ -18,11 +18,11 @@ export type ResponseInterceptor =
 })
 export class HttpService {
 
-  private requestInterceptors: RequestInterceptor[] = [];
-  private responseInterceptors: ResponseInterceptor[] = [];
+  private readonly requestInterceptors: RequestInterceptor[] = [];
+  private readonly responseInterceptors: ResponseInterceptor[] = [];
 
   constructor(
-    private httpClient: HttpClientService
+    private readonly httpClient: HttpClientService
   ) {}
 
   public addRequestInterceptor(interceptor: RequestInterceptor): void {

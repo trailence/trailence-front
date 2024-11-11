@@ -60,10 +60,10 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   constructor(
     injector: Injector,
-    private browser: BrowserService,
+    private readonly browser: BrowserService,
     public i18n: I18nService,
-    private trackService: TrackService,
-    private router: Router,
+    private readonly trackService: TrackService,
+    private readonly router: Router,
   ) {
     super(injector);
     this.whenVisible.subscribe(browser.resize$, () => this.updateMode());
@@ -147,7 +147,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     this.mapTrails$.next(this.trails);
   }
 
-  private mapTrails$ = new BehaviorSubject<List<Trail>>(List());
+  private readonly mapTrails$ = new BehaviorSubject<List<Trail>>(List());
   updateMap(trails: Trail[]): void {
     const newList = List(trails);
     if (!newList.equals(this.mapTrails$.value))
@@ -217,7 +217,6 @@ export class TrailsAndMapComponent extends AbstractComponent {
     this._children$.value.forEach(child => {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
       else if (child instanceof TrailsListComponent) {
-        const needUpdate = listVisible && child.visible;
         child.setVisible(listVisible);
         child.changeDetector.detectChanges();
       } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);

@@ -26,11 +26,11 @@ export class LocationPopupComponent implements OnInit {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
-    private geo: GeoService,
-    private trackService: TrackService,
-    private trailService: TrailService,
-    private changeDetector: ChangeDetectorRef,
+    private readonly modalController: ModalController,
+    private readonly geo: GeoService,
+    private readonly trackService: TrackService,
+    private readonly trailService: TrailService,
+    private readonly changeDetector: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
@@ -43,7 +43,7 @@ export class LocationPopupComponent implements OnInit {
       filter(t => !!t),
       timeout(10000),
       first(),
-      switchMap(t => this.geo.findNearestPlaces(t!.points[0].lat, t!.points[0].lng)),
+      switchMap(t => this.geo.findNearestPlaces(t.points[0].lat, t.points[0].lng)),
     ).subscribe({
       next: places => {
         this.proposedPlaces = [];

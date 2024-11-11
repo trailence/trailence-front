@@ -111,7 +111,7 @@ export class TraceRecorderService {
           const trail = new Trail({
             owner: this._email,
             name: this.i18n.texts.trace_recorder.trail_name_start + ' ' + this.i18n.timestampToDateTimeString(Date.now()),
-            collectionUuid: myTrails!.uuid,
+            collectionUuid: myTrails.uuid,
             originalTrackUuid: rawTrack.uuid,
             currentTrackUuid: track.uuid,
           });

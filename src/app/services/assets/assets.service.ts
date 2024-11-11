@@ -11,7 +11,7 @@ export class AssetsService {
 
   public icons: {[name: string]: string};
 
-  constructor(private http: HttpClient, private ngZone: NgZone) {
+  constructor(private readonly http: HttpClient, private readonly ngZone: NgZone) {
     this.icons = {
       'account': 'assets/account.1.svg', // person-circle-outline
       'add': 'assets/add.1.svg', // add
@@ -107,8 +107,8 @@ export class AssetsService {
     addIcons(this.icons);
   }
 
-  private _loadedSvg = new Map<string, SVGSVGElement>();
-  private _loadingSvg = new Map<string, Subscriber<SVGSVGElement>[]>();
+  private readonly _loadedSvg = new Map<string, SVGSVGElement>();
+  private readonly _loadingSvg = new Map<string, Subscriber<SVGSVGElement>[]>();
 
   public loadJson(url: string): Observable<any> {
     return this.http.get(url);

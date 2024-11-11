@@ -12,12 +12,12 @@ export class MapGeolocationService {
 
   constructor(
     public recorder: TraceRecorderService,
-    private geolocationService: GeolocationService,
-    private i18n: I18nService,
+    private readonly geolocationService: GeolocationService,
+    private readonly i18n: I18nService,
   ) {}
 
-  private watch$ = new BehaviorSubject<PointDto | undefined>(undefined);
-  private watcher = (position: PointDto) => {
+  private readonly watch$ = new BehaviorSubject<PointDto | undefined>(undefined);
+  private readonly watcher = (position: PointDto) => {
     this.watch$.next(position);
   };
   private watching = false;

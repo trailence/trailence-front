@@ -5,13 +5,13 @@ import { PointDtoMapper } from './point';
 
 export class Photo extends Owned {
 
-  private _trailUuid$: BehaviorSubject<string>;
-  private _description$: BehaviorSubject<string>;
-  private _dateTaken$: BehaviorSubject<number | undefined>;
-  private _latitude$: BehaviorSubject<number | undefined>;
-  private _longitude$: BehaviorSubject<number | undefined>;
-  private _isCover$: BehaviorSubject<boolean>;
-  private _index$: BehaviorSubject<number>;
+  private readonly _trailUuid$: BehaviorSubject<string>;
+  private readonly _description$: BehaviorSubject<string>;
+  private readonly _dateTaken$: BehaviorSubject<number | undefined>;
+  private readonly _latitude$: BehaviorSubject<number | undefined>;
+  private readonly _longitude$: BehaviorSubject<number | undefined>;
+  private readonly _isCover$: BehaviorSubject<boolean>;
+  private readonly _index$: BehaviorSubject<number>;
 
   constructor(
     dto: Partial<PhotoDto>
@@ -19,7 +19,7 @@ export class Photo extends Owned {
     super(dto);
     if (!dto.trailUuid) throw Error('Missing trail uuid');
     this._trailUuid$ = new BehaviorSubject(dto.trailUuid);
-    this._description$ = new BehaviorSubject(dto.description || '');
+    this._description$ = new BehaviorSubject(dto.description ?? '');
     this._dateTaken$ = new BehaviorSubject(dto.dateTaken);
     this._latitude$ = new BehaviorSubject(dto.latitude === undefined || dto.latitude === null ? undefined : PointDtoMapper.readCoordValue(dto.latitude));
     this._longitude$ = new BehaviorSubject(dto.longitude === undefined || dto.longitude === null ? undefined : PointDtoMapper.readCoordValue(dto.longitude));

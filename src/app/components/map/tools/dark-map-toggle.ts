@@ -7,7 +7,7 @@ import { MapLayersService } from 'src/app/services/map/map-layers.service';
 export class DarkMapToggle extends L.Control {
 
   constructor(
-    private injector: Injector,
+    private readonly injector: Injector,
     options?: L.ControlOptions,
   ) {
     super(options);

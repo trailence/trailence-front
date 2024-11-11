@@ -11,7 +11,7 @@ import { filter, first } from 'rxjs';
 @Component({
   selector: 'app-collection-form-popup',
   templateUrl: './collection-form-popup.component.html',
-  styleUrls: ['./collection-form-popup.component.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonInput, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonIcon, IonToolbar, IonHeader, FormsModule, ]
 })
@@ -24,10 +24,10 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
-    private collectionService: TrailCollectionService,
-    private authService: AuthService,
-    private router: Router,
+    private readonly modalController: ModalController,
+    private readonly collectionService: TrailCollectionService,
+    private readonly authService: AuthService,
+    private readonly router: Router,
   ) { }
 
   ngOnInit() {
@@ -40,7 +40,7 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
 
   private update() {
     this.uuid = this.collection?.uuid;
-    this.name = this.collection?.name || '';
+    this.name = this.collection?.name ?? '';
     if (this.collection?.type === TrailCollectionType.MY_TRAILS && this.collection?.name === '') this.name = this.i18n.texts.my_trails;
   }
 
@@ -59,12 +59,10 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
         filter(col => !!col),
         first()
       )
-      .subscribe(col => this.router.navigateByUrl('/trails/collection/' + col!.uuid));
-    else {
-      if (this.name !== this.collection!.name) {
-        this.collection!.name = this.name;
-        this.collectionService.update(this.collection!);
-      }
+      .subscribe(col => this.router.navigateByUrl('/trails/collection/' + col.uuid));
+    else if (this.name !== this.collection!.name) {
+      this.collection!.name = this.name;
+      this.collectionService.update(this.collection!);
     }
     this.modalController.dismiss(null, 'apply');
   }

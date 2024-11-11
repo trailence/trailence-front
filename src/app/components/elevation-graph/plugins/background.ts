@@ -1,12 +1,11 @@
 import * as C from 'chart.js';
-import { AnyObject } from 'chart.js/dist/types/basic';
 
 export class BackgroundPlugin implements C.Plugin<"line"> {
 
   id = 'trailence-background';
 
   constructor(
-    private backgroundColor: string
+    private readonly backgroundColor: string
   ) {}
 
   beforeDraw(chart: C.Chart<"line">): void {

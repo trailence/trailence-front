@@ -53,16 +53,16 @@ export class LoginPage {
   constructor(
     public i18n: I18nService,
     network: NetworkService,
-    private auth: AuthService,
+    private readonly auth: AuthService,
     route: ActivatedRoute,
-    private router: Router,
-    private changeDetector: ChangeDetectorRef,
-    private captchaService: CaptchaService,
-    private modalController: ModalController,
+    private readonly router: Router,
+    private readonly changeDetector: ChangeDetectorRef,
+    private readonly captchaService: CaptchaService,
+    private readonly modalController: ModalController,
     public preferencesService: PreferencesService,
-    private database: DatabaseService,
-    private collectionService: TrailCollectionService,
-    private navController: NavController,
+    private readonly database: DatabaseService,
+    private readonly collectionService: TrailCollectionService,
+    private readonly navController: NavController,
   ) {
     route.queryParamMap.subscribe(params => {
       this.returnUrl = params.get('returnUrl') ?? '';

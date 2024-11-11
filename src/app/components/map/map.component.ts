@@ -22,6 +22,7 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import { Trail } from 'src/app/model/trail';
 import { MapBubble } from './bubble/map-bubble';
 import { MapBubblesTool } from './tools/bubbles-tool';
+import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -51,15 +52,15 @@ export class MapComponent extends AbstractComponent {
   public eventPixelMaxDistance = 15;
 
   id: string;
-  private _mapState = new MapState();
-  private _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
+  private readonly _mapState = new MapState();
+  private readonly _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
 
   constructor(
     injector: Injector,
-    private browser: BrowserService,
-    private prefService: PreferencesService,
-    private mapLayersService: MapLayersService,
-    private mapGeolocation: MapGeolocationService,
+    private readonly browser: BrowserService,
+    private readonly prefService: PreferencesService,
+    private readonly mapLayersService: MapLayersService,
+    private readonly mapGeolocation: MapGeolocationService,
   ) {
     super(injector);
     this.id = IdGenerator.generateId('map-');
@@ -354,22 +355,13 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  private _followingLocation$ = new BehaviorSubject<boolean>(false);
+  private readonly _followingLocation$ = new BehaviorSubject<boolean>(false);
   private _locationMarker?: L.CircleMarker;
   private _toolCenterOnPosition?: L.Control;
   private showLocation(lat: number, lng: number, color: string): void {
     this.ngZone.runOutsideAngular(() => {
       if (this._locationMarker) {
-        this._locationMarker.setLatLng({lat, lng});
-        this._locationMarker.setStyle({color, fillColor: color});
-        const map = this._map$.value;
-        if (map && this._followingLocation$.value) {
-          const bounds = this.getFollowLocationBounds(map);
-          //L.rectangle(bounds).addTo(map);
-          if (!bounds.contains(this._locationMarker.getLatLng())) {
-            this.centerOnLocation();
-          }
-        }
+        this.updateLocation(this._locationMarker, lat, lng, color);
       } else {
         this._locationMarker = new L.CircleMarker({lat, lng}, {
           radius: 7,
@@ -395,6 +387,19 @@ export class MapComponent extends AbstractComponent {
         }
       }
     });
+  }
+
+  private updateLocation(marker: L.CircleMarker, lat: number, lng: number, color: string): void {
+    marker.setLatLng({lat, lng});
+    marker.setStyle({color, fillColor: color});
+    const map = this._map$.value;
+    if (map && this._followingLocation$.value) {
+      const bounds = this.getFollowLocationBounds(map);
+      //L.rectangle(bounds).addTo(map);
+      if (!bounds.contains(marker.getLatLng())) {
+        this.centerOnLocation();
+      }
+    }
   }
 
   private getFollowLocationBounds(map: L.Map): L.LatLngBounds {
@@ -572,10 +577,8 @@ export class MapComponent extends AbstractComponent {
               toolShowPosition.remove();
               toolShowPosition = undefined;
             }
-          } else {
-            if (!toolShowPosition) {
-              toolShowPosition = new MapShowPositionTool(this.injector, this.mapGeolocation.showPosition$, { position: 'topleft' }).addTo(map);
-            }
+          } else if (!toolShowPosition) {
+            toolShowPosition = new MapShowPositionTool(this.injector, this.mapGeolocation.showPosition$, { position: 'topleft' }).addTo(map);
           }
           // show position
           if (position) {
@@ -597,29 +600,37 @@ export class MapComponent extends AbstractComponent {
       }
       const track = mapTrack.track;
       if (track instanceof Track) {
-        for (let segmentIndex = 0; segmentIndex < track.segments.length; ++segmentIndex) {
-          const segment = track.segments[segmentIndex];
-          for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {
-            const pt = segment.points[pointIndex];
-            const pixel = map.latLngToLayerPoint(pt.pos);
-            const distance = mouse.distanceTo(pixel);
-            if (distance <= this.eventPixelMaxDistance) {
-              result.push(new MapTrackPointReference(mapTrack, segmentIndex, segment, pointIndex, pt, distance));
-            }
-          }
-        }
+        this.getEventTrack(track, map, mouse, mapTrack, result);
       } else {
-        for (let pointIndex = 0; pointIndex < track.points.length; ++pointIndex) {
-          const pt = track.points[pointIndex];
-          const pixel = map.latLngToLayerPoint(pt);
-          const distance = mouse.distanceTo(pixel);
-          if (distance <= this.eventPixelMaxDistance) {
-            result.push(new MapTrackPointReference(mapTrack, undefined, undefined, pointIndex, pt, distance));
-          }
-        }
+        this.getEventSimplifiedTrack(track, map, mouse, mapTrack, result);
       }
     }
     return result;
+  }
+
+  private getEventTrack(track: Track, map: L.Map, mouse: L.Point, mapTrack: MapTrack, result: MapTrackPointReference[]): void {
+    for (let segmentIndex = 0; segmentIndex < track.segments.length; ++segmentIndex) {
+      const segment = track.segments[segmentIndex];
+      for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {
+        const pt = segment.points[pointIndex];
+        const pixel = map.latLngToLayerPoint(pt.pos);
+        const distance = mouse.distanceTo(pixel);
+        if (distance <= this.eventPixelMaxDistance) {
+          result.push(new MapTrackPointReference(mapTrack, segmentIndex, segment, pointIndex, pt, distance));
+        }
+      }
+    }
+  }
+
+  private getEventSimplifiedTrack(track: SimplifiedTrackSnapshot, map: L.Map, mouse: L.Point, mapTrack: MapTrack, result: MapTrackPointReference[]): void {
+    for (let pointIndex = 0; pointIndex < track.points.length; ++pointIndex) {
+      const pt = track.points[pointIndex];
+      const pixel = map.latLngToLayerPoint(pt);
+      const distance = mouse.distanceTo(pixel);
+      if (distance <= this.eventPixelMaxDistance) {
+        result.push(new MapTrackPointReference(mapTrack, undefined, undefined, pointIndex, pt, distance));
+      }
+    }
   }
 
 }

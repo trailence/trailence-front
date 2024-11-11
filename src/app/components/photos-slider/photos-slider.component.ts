@@ -31,9 +31,9 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
   private gesture?: Gesture;
 
   constructor(
-    private browser: BrowserService,
-    private gestureController: GestureController,
-    private changesDetector: ChangeDetectorRef,
+    private readonly browser: BrowserService,
+    private readonly gestureController: GestureController,
+    private readonly changesDetector: ChangeDetectorRef,
   ) {
   }
 

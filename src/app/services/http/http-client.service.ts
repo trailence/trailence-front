@@ -10,7 +10,7 @@ import { IHttpClient } from './http-client.interface';
 })
 export class HttpClientService implements IHttpClient {
 
-  constructor(private client: HttpClient) {}
+  constructor(private readonly client: HttpClient) {}
 
   public send(request: TrailenceHttpRequest): Observable<TrailenceHttpResponse<any>> {
     return this.client.request(

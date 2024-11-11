@@ -137,13 +137,13 @@ export class TrailsListComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     public i18n: I18nService,
-    private trackService: TrackService,
+    private readonly trackService: TrackService,
     public trailMenuService: TrailMenuService,
     public changeDetector: ChangeDetectorRef,
-    private router: Router,
-    private preferences: PreferencesService,
-    private tagService: TagService,
-    private authService:AuthService,
+    private readonly router: Router,
+    private readonly preferences: PreferencesService,
+    private readonly tagService: TagService,
+    private readonly authService:AuthService,
     componentElement: ElementRef,
   ) {
     super(injector);

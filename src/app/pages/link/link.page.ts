@@ -16,7 +16,7 @@ import { Console } from 'src/app/utils/console';
 @Component({
   selector: 'app-link',
   templateUrl: './link.page.html',
-  styleUrls: ['./link.page.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonIcon, ]
 })
@@ -25,9 +25,9 @@ export class LinkPage {
   message = '';
 
   constructor(
-    private router: Router,
-    private i18n: I18nService,
-    private injector: Injector,
+    private readonly router: Router,
+    private readonly i18n: I18nService,
+    private readonly injector: Injector,
   ) { }
 
   ionViewDidEnter() {

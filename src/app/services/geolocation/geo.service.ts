@@ -18,8 +18,8 @@ import { Point } from 'src/app/model/point';
 export class GeoService {
 
   constructor(
-    private http: HttpService,
-    private i18n: I18nService,
+    private readonly http: HttpService,
+    private readonly i18n: I18nService,
   ) {}
 
   public findNearestPlaces(latitude: number, longitude: number): Observable<string[][]> {

@@ -7,9 +7,9 @@ import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-databas
 export class MapTrackPath {
 
   constructor(
-    private _track: Track | SimplifiedTrackSnapshot,
+    private readonly _track: Track | SimplifiedTrackSnapshot,
     private _color: string,
-    private _smoothFactor: number,
+    private readonly _smoothFactor: number,
   ) {}
 
   private _map?: L.Map;

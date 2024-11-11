@@ -3,7 +3,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPath } from './map-track-path';
 import { Trail } from 'src/app/model/trail';
 import { MapTrackWayPoints } from './map-track-way-points';
-import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { MapTrackArrowPath } from './map-track-arrows-path';
 import * as L from 'leaflet';
 
@@ -12,8 +12,8 @@ export class MapTrack {
   public data: any;
 
   constructor(
-    private _trail: Trail | undefined,
-    private _track: Track | SimplifiedTrackSnapshot,
+    private readonly _trail: Trail | undefined,
+    private readonly _track: Track | SimplifiedTrackSnapshot,
     color: string,
     smoothFactor: number,
     isRecording: boolean,
@@ -24,9 +24,9 @@ export class MapTrack {
     this._arrowPath = new MapTrackArrowPath(_track);
   }
 
-  private _path: MapTrackPath;
-  private _wayPoints: MapTrackWayPoints;
-  private _arrowPath: MapTrackArrowPath;
+  private readonly _path: MapTrackPath;
+  private readonly _wayPoints: MapTrackWayPoints;
+  private readonly _arrowPath: MapTrackArrowPath;
 
   public addTo(map: L.Map): void {
     this._path.addTo(map);
@@ -47,16 +47,20 @@ export class MapTrack {
     if (this._track instanceof Track) return this._track.metadata.bounds;
     const pathBounds = this._path.getBounds(false);
     if (pathBounds) return pathBounds;
+    return this.boundsFromSimplifiedPoints(this._track.points);
+  }
+  private boundsFromSimplifiedPoints(points: SimplifiedPoint[]): L.LatLngBounds | undefined {
     let minLat, maxLat, minLng, maxLng;
-    for (const pt of this._track.points) {
+    for (const pt of points) {
       if (minLat === undefined || pt.lat < minLat) minLat = pt.lat;
       if (maxLat === undefined || pt.lat > maxLat) maxLat = pt.lat;
       if (minLng === undefined || pt.lng < minLng) minLng = pt.lng;
       if (maxLng === undefined || pt.lng > maxLng) maxLng = pt.lng;
     }
     if (minLat === undefined) return undefined;
-    return L.latLngBounds({lat: minLat!, lng: minLng!}, {lat: maxLat!, lng: maxLng!});
+    return L.latLngBounds({lat: minLat, lng: minLng!}, {lat: maxLat!, lng: maxLng!}); // NOSONAR
   }
+
   public get color(): string { return this._path.color; }
   public set color(value: string) { this._path.color = value; }
 

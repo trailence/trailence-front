@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent } from 'src/app/utils/component-utils';
-import { IonIcon, DomController } from '@ionic/angular/standalone';
+import { DomController } from '@ionic/angular/standalone';
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
-import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { AssetsService } from 'src/app/services/assets/assets.service';
@@ -51,10 +50,7 @@ class Titles {
   styleUrls: ['./track-metadata.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    IonIcon,
-  ]
+  imports: []
 })
 export class TrackMetadataComponent extends AbstractComponent {
 
@@ -62,16 +58,16 @@ export class TrackMetadataComponent extends AbstractComponent {
   @Input() track2?: Track | TrackMetadataSnapshot;
   @Input() detailed = false;
 
-  private track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
-  private track2$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
+  private readonly track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
+  private readonly track2$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
 
   constructor(
     injector: Injector,
-    private i18n: I18nService,
-    private element: ElementRef,
-    private assets: AssetsService,
+    private readonly i18n: I18nService,
+    private readonly element: ElementRef,
+    private readonly assets: AssetsService,
     changeDetector: ChangeDetectorRef,
-    private domController: DomController,
+    private readonly domController: DomController,
   ) {
     super(injector);
     changeDetector.detach();
@@ -81,7 +77,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     TrackMetadataComponent.init(this.element.nativeElement, this.track$, this.track2$, this.detailed, this.assets, this.i18n, this.whenVisible, this.domController);
   }
 
-  public static init(
+  public static init( // NOSONAR
     container: HTMLElement,
     track$: Observable<Track | TrackMetadataSnapshot | undefined>,
     track2$: Observable<Track | TrackMetadataSnapshot | undefined>,
@@ -195,25 +191,24 @@ export class TrackMetadataComponent extends AbstractComponent {
       debounceTimeExtended(0, 10),
     ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, state]) => {
       const force = state !== previousState;
-      let changed = force;
-      if (TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force, domController)) changed = true;
-      if (TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force, domController)) changed = true;
-      if (TrackMetadataComponent.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + i18n.elevationToString(v), force, domController)) changed = true;
+      TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force, domController);
+      TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force, domController);
+      TrackMetadataComponent.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + i18n.elevationToString(v), force, domController);
       if (!detailed) {
         TrackMetadataComponent.shown(meta.positiveElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
         TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
       }
       if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
       if (detailed) {
-        if (TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController)) changed = true;
-        if (TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController)) changed = true;
+        TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController);
+        TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController);
+        TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController);
+        TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController);
+        TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController);
       } else {
         let d = i18n.durationToString(duration);
         if (estimatedDuration !== undefined) d += ' (≈ ' + i18n.durationToString(estimatedDuration) + ')';
-        if (TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController)) changed = true;
+        TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController);
       }
       if (force) {
         titles.durationTitle.innerText = i18n.texts.metadata.duration;

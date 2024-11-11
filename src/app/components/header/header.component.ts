@@ -37,7 +37,7 @@ export class HeaderComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     public auth: AuthService,
-    private router: Router,
+    private readonly router: Router,
     public update: UpdateService,
   ) {
     super(injector);

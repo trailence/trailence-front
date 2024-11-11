@@ -61,18 +61,18 @@ export class EditToolsComponent implements OnInit, OnDestroy {
 
   constructor(
     public i18n: I18nService,
-    private trackService: TrackService,
-    private trailService: TrailService,
-    private auth: AuthService,
+    private readonly trackService: TrackService,
+    private readonly trailService: TrailService,
+    private readonly auth: AuthService,
     public prefs: PreferencesService,
-    private geo: GeoService,
-    private editionService: TrackEditionService,
-    private changesDetector: ChangeDetectorRef,
-    private toastController: ToastController,
+    private readonly geo: GeoService,
+    private readonly editionService: TrackEditionService,
+    private readonly changesDetector: ChangeDetectorRef,
+    private readonly toastController: ToastController,
   ) { }
 
   private mapClickSubscription?: Subscription;
-  private selectedPointAnchor = new MapAnchor({lat: 0, lng: 0}, '#6060FFC0', undefined, undefined, undefined, '#6060FF80', undefined);
+  private readonly selectedPointAnchor = new MapAnchor({lat: 0, lng: 0}, '#6060FFC0', undefined, undefined, undefined, '#6060FF80', undefined);
   selectedPoint?: MapTrackPointReference;
   ngOnInit(): void {
     this.mapClickSubscription = this.map.mouseClickPoint.subscribe(event => {
@@ -269,9 +269,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     if (t instanceof Track) {
       if (this.selectedPoint.segmentIndex! < t.segments.length - 1) return true;
       if (this.selectedPoint.pointIndex < t.segments[this.selectedPoint.segmentIndex!].points.length - 1) return true;
-    } else {
-      if (this.selectedPoint.pointIndex < t.points.length - 1) return true;
-    }
+    } else if (this.selectedPoint.pointIndex < t.points.length - 1) return true;
     return false;
   }
 
@@ -282,7 +280,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
       if (this.selectedPoint.pointIndex === t.segments[this.selectedPoint.segmentIndex!].points.length - 1) {
         this.selectedPoint.segmentIndex = this.selectedPoint.segmentIndex! + 1;
         this.selectedPoint.pointIndex = 0;
-        this.selectedPoint.segment = t.segments[this.selectedPoint.segmentIndex! + 1];
+        this.selectedPoint.segment = t.segments[this.selectedPoint.segmentIndex + 1];
         this.selectedPoint.point = t.segments[this.selectedPoint.segmentIndex].points[0];
       } else {
         this.selectedPoint.pointIndex++;
@@ -449,7 +447,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   }
 
   canJoinArrivalAndDeparture$(): Observable<boolean> {
-    return this.getTrack().pipe(map(track => !!track.departurePoint && !!track.arrivalPoint && track.departurePoint.distanceTo(track.arrivalPoint!.pos) > 1 && track.departurePoint.distanceTo(track.arrivalPoint!.pos) < 100));
+    return this.getTrack().pipe(map(track => !!track.departurePoint && !!track.arrivalPoint && track.departurePoint.distanceTo(track.arrivalPoint.pos) > 1 && track.departurePoint.distanceTo(track.arrivalPoint!.pos) < 100));
   }
 
   joinArrivalToDeparture(): void {
@@ -510,11 +508,12 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   getMinLongBreaksMovesDistanceInitialValue(): number {
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return this.prefs.preferences.longBreakMaximumDistance;
-      case 'IMPERIAL':
+      case 'IMPERIAL': {
         const foot = this.i18n.metersToFoot(this.prefs.preferences.longBreakMaximumDistance);
         if (foot < 50) return 50;
         if (foot > 650) return 650;
         return 50 + Math.round((foot - 50) / 10) * 10;
+      }
     }
   }
 

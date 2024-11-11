@@ -4,9 +4,9 @@ import { WayPointDto } from './dto/way-point';
 
 export class WayPoint {
 
-  private _point: Point;
-  private _name: BehaviorSubject<string>;
-  private _description: BehaviorSubject<string>;
+  private readonly _point: Point;
+  private readonly _name: BehaviorSubject<string>;
+  private readonly _description: BehaviorSubject<string>;
 
   constructor(
     point: Point,

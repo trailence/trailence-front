@@ -27,8 +27,8 @@ export class ChangePasswordComponent {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
-    private http: HttpService,
+    private readonly modalController: ModalController,
+    private readonly http: HttpService,
     public auth: AuthService
   ) {
     this.hasPreviousPassword = auth.auth?.complete === false ? false : true;

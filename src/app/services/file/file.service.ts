@@ -12,7 +12,7 @@ import { Console } from 'src/app/utils/console';
 export class FileService implements IFileService {
 
   constructor(
-    private platform: Platform
+    private readonly platform: Platform
   ) {
   }
 

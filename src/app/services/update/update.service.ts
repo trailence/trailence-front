@@ -23,9 +23,9 @@ export class UpdateService {
   public updateApp?: AppDownload;
 
   constructor(
-    private platform: Platform,
-    private network: NetworkService,
-    private http: HttpService,
+    private readonly platform: Platform,
+    private readonly network: NetworkService,
+    private readonly http: HttpService,
   ) {
     this.downloadApp = this.getDownload();
     if (platform.is('capacitor')) {

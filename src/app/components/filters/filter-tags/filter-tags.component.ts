@@ -12,7 +12,7 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 @Component({
   selector: 'app-filter-tags',
   templateUrl: './filter-tags.component.html',
-  styleUrls: ['./filter-tags.component.scss'],
+  styleUrls: [],
   standalone: true,
   imports: [IonFooter, IonButtons, IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, IonIcon, IonModal, IonButton,  CommonModule ]
 })
@@ -30,8 +30,8 @@ export class FilterTagsComponent implements OnInit, OnDestroy {
 
   constructor(
     public i18n: I18nService,
-    private tagService: TagService,
-    private changeDetector: ChangeDetectorRef,
+    private readonly tagService: TagService,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {
   }
 
@@ -81,11 +81,9 @@ export class FilterTagsComponent implements OnInit, OnDestroy {
         this.filter.tagsUuids.push(tag.uuid);
         this.filterChange.emit(this.filter);
       }
-    } else {
-      if (index >= 0) {
-        this.filter.tagsUuids.splice(index, 1);
-        this.filterChange.emit(this.filter);
-      }
+    } else if (index >= 0) {
+      this.filter.tagsUuids.splice(index, 1);
+      this.filterChange.emit(this.filter);
     }
   }
 

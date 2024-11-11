@@ -7,7 +7,7 @@ export class BrowserService {
 
   private _width: number;
   private _height: number;
-  private _resize$ = new Subject<{width: number, height: number}>();
+  private readonly _resize$ = new Subject<{width: number, height: number}>();
 
   constructor(
     platform: Platform

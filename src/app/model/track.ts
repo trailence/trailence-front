@@ -16,10 +16,10 @@ import { TrackUtils } from '../utils/track-utils';
 
 export class Track extends Owned {
 
-  private _segments = new BehaviorSubject<Segment[]>([]);
-  private _wayPoints = new BehaviorSubject<WayPoint[]>([]);
-  private _meta = new TrackMetadata(this._segments);
-  private _computedMeta: TrackComputedMetadata;
+  private readonly _segments = new BehaviorSubject<Segment[]>([]);
+  private readonly _wayPoints = new BehaviorSubject<WayPoint[]>([]);
+  private readonly _meta = new TrackMetadata(this._segments);
+  private readonly _computedMeta: TrackComputedMetadata;
 
   public get segments(): Segment[] { return this._segments.value; }
   public get segments$(): Observable<Segment[]> { return this._segments; }
@@ -43,7 +43,7 @@ export class Track extends Owned {
     );
   }
 
-  private _computedWayPoints$ = new BehaviorSubjectOnDemand<ComputedWayPoint[]>(
+  private readonly _computedWayPoints$ = new BehaviorSubjectOnDemand<ComputedWayPoint[]>(
     () => ComputedWayPoint.compute(this, this.preferencesService.preferences),
     this.changes$.pipe(debounceTime(250)) // invalide on changes
   );
@@ -54,7 +54,7 @@ export class Track extends Owned {
 
   constructor(
     dto: Partial<TrackDto>,
-    private preferencesService: PreferencesService,
+    private readonly preferencesService: PreferencesService,
   ) {
     super(dto);
     dto.s?.forEach(s => {
@@ -141,8 +141,8 @@ export class Track extends Owned {
   }
 
   public get startDate(): number | undefined {
-    for (let i = 0; i < this._segments.value.length; ++i) {
-      const t = this._segments.value[i].startDate;
+    for (const segment of this._segments.value) {
+      const t = segment.startDate;
       if (t) return t;
     }
     return undefined;
@@ -211,14 +211,14 @@ export class Track extends Owned {
 
 export class TrackMetadata {
 
-  private _distance = new BehaviorSubject<number>(0);
-  private _positiveElevation = new BehaviorSubject<number | undefined>(undefined);
-  private _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
-  private _highestAltitude = new BehaviorSubject<number | undefined>(undefined);
-  private _lowestAltitude = new BehaviorSubject<number | undefined>(undefined);
-  private _duration = new BehaviorSubject<number | undefined>(undefined);
-  private _startDate = new BehaviorSubject<number | undefined>(undefined);
-  private _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
+  private readonly _distance = new BehaviorSubject<number>(0);
+  private readonly _positiveElevation = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _highestAltitude = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _lowestAltitude = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _duration = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _startDate = new BehaviorSubject<number | undefined>(undefined);
+  private readonly _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
 
   constructor(
     segments$: Observable<Segment[]>
@@ -316,8 +316,8 @@ export class TrackMetadata {
 
 export class TrackComputedMetadata {
 
-  private _breaksDuration$: BehaviorSubjectOnDemand<number>;
-  private _estimatedDuration$: BehaviorSubjectOnDemand<number>;
+  private readonly _breaksDuration$: BehaviorSubjectOnDemand<number>;
+  private readonly _estimatedDuration$: BehaviorSubjectOnDemand<number>;
 
   constructor(
     track: Track,
@@ -356,13 +356,13 @@ export interface BreakWayPoint {
 export class ComputedWayPoint {
 
   constructor(
-    private _wayPoint: WayPoint,
+    private readonly _wayPoint: WayPoint,
     private _isDeparture: boolean,
     private _isArrival: boolean,
-    private _break: BreakWayPoint | undefined,
+    private readonly _break: BreakWayPoint | undefined,
     private _index: number,
-    private _nearestSegmentIndex: number | undefined,
-    private _nearestPointIndex: number | undefined,
+    private readonly _nearestSegmentIndex: number | undefined,
+    private readonly _nearestPointIndex: number | undefined,
     track: Track
   ) {
     if (_nearestSegmentIndex !== undefined) {
@@ -389,9 +389,9 @@ export class ComputedWayPoint {
       this._altitude = track.segments[_nearestSegmentIndex].points[_nearestPointIndex!].ele;
   }
 
-  private _timeSinceDeparture: number | undefined;
-  private _distanceFromDeparture: number | undefined;
-  private _altitude: number | undefined;
+  private readonly _timeSinceDeparture: number | undefined;
+  private readonly _distanceFromDeparture: number | undefined;
+  private readonly _altitude: number | undefined;
 
   public get isDeparture(): boolean { return this._isDeparture; }
   public get isArrival(): boolean { return this._isArrival; }
@@ -511,7 +511,6 @@ export class ComputedWayPoint {
     if (!arrival) {
       if (track.departurePoint.distanceTo(track.arrivalPoint!.pos) <= 25) {
         departure._isArrival = true;
-        arrival = departure;
       } else {
         arrival = new ComputedWayPoint(
           new WayPoint(track.arrivalPoint!, '', ''),

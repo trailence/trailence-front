@@ -5,19 +5,19 @@ import * as L from 'leaflet';
 export class MapTrackArrowPath {
 
   constructor(
-    private _track: Track | SimplifiedTrackSnapshot,
+    private readonly _track: Track | SimplifiedTrackSnapshot,
   ) {}
 
   private _shown = false;
   private _map?: L.Map;
   private _arrowsByZoom: {[key:number]: L.Polyline[]} = {};
-  private _zoomStartHandler = () => {
+  private readonly _zoomStartHandler = () => {
     if (!this._shown) return;
     if (this._arrowsByZoom[this._currentZoomShown])
       for (const polyline of this._arrowsByZoom[this._currentZoomShown])
         polyline.removeFrom(this._map!);
   };
-  private _zoomEndHandler = () => {
+  private readonly _zoomEndHandler = () => {
     if (!this._shown) return;
     let z = this._map!.getZoom();
     if (z < 10) z = -1
@@ -99,17 +99,11 @@ export class MapTrackArrowPath {
       const point = points[i];
       const p = map.latLngToLayerPoint(point);
       const middle = L.point(previousPoint.x + (p.x - previousPoint.x) / 2, previousPoint.y + (p.y - previousPoint.y) / 2);
-      if ((arrows.length === 0 && middle.distanceTo(lastArrow) >= FIRST_ARROW_MINIMUM_PIXELS) ||
-          (arrows.length > 0 && middle.distanceTo(lastArrow) >= PIXELS_BETWEEN_ARROWS)) {
+      const middleDistance = middle.distanceTo(lastArrow);
+      if ((arrows.length === 0 && middleDistance >= FIRST_ARROW_MINIMUM_PIXELS) ||
+          (arrows.length > 0 && middleDistance >= PIXELS_BETWEEN_ARROWS)) {
         // it is eligible => check if another arrow is too closed
-        let tooClosed = false;
-        for (const arrow of arrows) {
-          if (middle.distanceTo(arrow) < MINIMUM_PIXELS_BETWEEN_ARROWS) {
-            tooClosed = true;
-            break;
-          }
-        }
-        if (!tooClosed) {
+        if (!this.isTooClosed(middle, arrows, MINIMUM_PIXELS_BETWEEN_ARROWS)) {
           // it's ok !
           result.push(
             this.drawArrow(middle, p, 5, map)
@@ -123,6 +117,15 @@ export class MapTrackArrowPath {
     }
 
     return result;
+  }
+
+  private isTooClosed(pos: L.Point, arrows: L.Point[], min: number): boolean {
+    for (const arrow of arrows) {
+      if (pos.distanceTo(arrow) < min) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private drawArrow(p: L.Point, p2: L.Point, d: number, map: L.Map): L.Polyline {

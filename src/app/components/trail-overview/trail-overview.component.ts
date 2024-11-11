@@ -65,18 +65,18 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   constructor(
     injector: Injector,
-    private trackService: TrackService,
-    private i18n: I18nService,
-    private changeDetector: ChangeDetectorRef,
+    private readonly trackService: TrackService,
+    private readonly i18n: I18nService,
+    private readonly changeDetector: ChangeDetectorRef,
     public trailMenuService: TrailMenuService,
-    private tagService: TagService,
-    private auth: AuthService,
-    private trailService: TrailService,
-    private browser: BrowserService,
-    private assets: AssetsService,
-    private popoverController: PopoverController,
-    private domController: DomController,
-    private photoService: PhotoService,
+    private readonly tagService: TagService,
+    private readonly auth: AuthService,
+    private readonly trailService: TrailService,
+    private readonly browser: BrowserService,
+    private readonly assets: AssetsService,
+    private readonly popoverController: PopoverController,
+    private readonly domController: DomController,
+    private readonly photoService: PhotoService,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -92,9 +92,6 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
     if (changes['selected']) this.changeDetector.detectChanges();
-  }
-
-  protected override initComponent(): void {
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
@@ -153,11 +150,12 @@ export class TrailOverviewComponent extends AbstractComponent {
         this.byStateAndVisible.subscribe(
           this.photoService.getPhotosForTrail(this.trail.owner, this.trail.uuid),
           photos => {
-            this.photos = photos.sort((p1, p2) => {
+            photos.sort((p1, p2) => {
               if (p1.isCover) return -1;
               if (p2.isCover) return 1;
               return p1.index - p2.index;
             });
+            this.photos = photos;
             this.changeDetector.detectChanges();
           }
         );

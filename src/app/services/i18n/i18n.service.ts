@@ -16,17 +16,17 @@ export class I18nService {
 
   private readonly _texts$ = new BehaviorSubject<any>(undefined);
   private _textsLoading?: string;
-  private _textsLoaded$ = new BehaviorSubject<string | undefined>(undefined);
+  private readonly _textsLoaded$ = new BehaviorSubject<string | undefined>(undefined);
 
-  private _stateChanged$ = new BehaviorSubject<number>(0);
+  private readonly _stateChanged$ = new BehaviorSubject<number>(0);
 
   constructor(
-    private prefService: PreferencesService,
-    private assets: AssetsService,
+    private readonly prefService: PreferencesService,
+    private readonly assets: AssetsService,
   ) {
     let state = '';
     prefService.preferences$.subscribe(p => {
-      this.loadTexts(p.lang!);
+      this.loadTexts(p.lang);
       const newState = '' + p.distanceUnit + p.hourFormat + p.dateFormat;
       if (newState !== state) {
         state = newState;

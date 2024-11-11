@@ -24,7 +24,7 @@
         <div class="menu-item" (click)="goTo('/trails/collection/' + collection.uuid); menuController.close();">
           <div class="item-title-container">
             <div class="item-title">
-              <a href="{{'/trails/collection/' + collection.uuid}}" target="_blank" class="inherit" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">{{ collection.name.length === 0 && collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collection.name }}</a>
+              <a href="/trails/collection/{{collection.uuid}}" target="_blank" class="inherit" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">{{ collection.name.length === 0 && collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collection.name }}</a>
             </div>
           </div>
         </div>

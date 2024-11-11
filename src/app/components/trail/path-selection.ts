@@ -17,8 +17,8 @@ export interface PathRange {
 export class TrailPathSelection {
 
   constructor(
-    private component: TrailComponent,
-    private injector: Injector,
+    private readonly component: TrailComponent,
+    private readonly injector: Injector,
   ) {}
 
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);

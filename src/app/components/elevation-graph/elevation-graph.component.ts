@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, NgZone, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
@@ -72,9 +72,9 @@ export class ElevationGraphComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     browser: BrowserService,
-    private i18n: I18nService,
+    private readonly i18n: I18nService,
     preferencesService: PreferencesService,
-    private changeDetector: ChangeDetectorRef,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
     changeDetector.detach();
@@ -159,7 +159,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       const selection = this.pathRangeToRangeSelection(ranges);
       if (selection) {
         this.selectionRange = [];
-        (plugin as RangeSelection).setSelection(selection);
+        plugin.setSelection(selection);
         this.canvas?.chart?.draw();
       }
     } else {
@@ -205,47 +205,32 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   private updateMinMaxAxis(updateCurrent: boolean): void {
     let maxX = 0;
-    for (const ds of this.chartData!.datasets) {
-      if ((ds as any).isGrade) continue;
-      const pts = ds.data as any[];
-      if (pts.length > 0)
-        maxX = Math.max(maxX, pts[pts.length - 1].x);
-    }
-    this.chartOptions!.scales!['x']!.max = maxX;
     let minY = undefined;
     let maxY = undefined;
     for (const ds of this.chartData!.datasets) {
-      if ((ds as any).isGrade) continue;
       const pts = ds.data as any[];
-      if (pts.length > 0) {
-        let start;
-        if (minY === undefined) {
-          minY = pts[0].y;
-          maxY = minY;
-          start = 1;
-        } else {
-          start = 0;
-        }
-        for (let i = start; i < pts.length; ++i) {
-          minY = Math.min(minY, pts[i].y);
-          maxY = Math.max(maxY, pts[i].y);
-        }
+      if ((ds as any).isGrade || pts.length === 0) continue;
+      maxX = Math.max(maxX, pts[pts.length - 1].x);
+      let start = 0;
+      if (minY === undefined) {
+        minY = pts[0].y;
+        maxY = minY;
+        start = 1;
+      }
+      for (let i = start; i < pts.length; ++i) {
+        minY = Math.min(minY, pts[i].y);
+        maxY = Math.max(maxY, pts[i].y);
       }
     }
     minY = Math.floor(minY);
     maxY = maxY === Math.floor(maxY) ? maxY : Math.floor(maxY) + 1;
+    this.chartOptions!.scales!['x']!.max = maxX;
     this.chartOptions!.scales!['y']!.min = minY;
     this.chartOptions!.scales!['y']!.max = maxY;
     if (updateCurrent) {
-      if (this.canvas!.chart!.options!.scales!['x']!.max !== this.chartOptions!.scales!['x']!.max) {
-        this.canvas!.chart!.options!.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
-      }
-      if (this.canvas!.chart!.options!.scales!['y']!.min !== this.chartOptions!.scales!['y']!.min) {
-        this.canvas!.chart!.options!.scales!['y']!.min = this.chartOptions!.scales!['y']!.min;
-      }
-      if (this.canvas!.chart!.options!.scales!['y']!.max !== this.chartOptions!.scales!['y']!.max) {
-        this.canvas!.chart!.options!.scales!['y']!.max = this.chartOptions!.scales!['y']!.max;
-      }
+      this.canvas!.chart!.options.scales!['x']!.max = this.chartOptions!.scales!['x']!.max;
+      this.canvas!.chart!.options.scales!['y']!.min = this.chartOptions!.scales!['y']!.min;
+      this.canvas!.chart!.options.scales!['y']!.max = this.chartOptions!.scales!['y']!.max;
     }
   }
 
@@ -336,13 +321,13 @@ export class ElevationGraphComponent extends AbstractComponent {
               html += '</tr>';
             }
             const addInfo = (title: string, text: (pt: any) => string) => {
-              const values: string[] = [];
               let hasValue = false;
               for (const point of points) {
                 const v = text(point);
-                if (v && v.length > 0) hasValue = true;
-                if (v === undefined || v === null) values.push('');
-                else values.push(v);
+                if (v && v.length > 0) {
+                  hasValue = true;
+                  break;
+                }
               }
               if (!hasValue) return;
               html += '<tr><th>' + title + '</th>';
@@ -433,7 +418,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     }
   }
 
-  private buildGradeDatasets(originalDs: any): any[] {
+  private buildGradeDatasets(originalDs: any): any[] { // NOSONAR
     const points = originalDs.data.filter((d: any) => d.ele !== undefined);
     if (points.length < 2) return [];
     const ds: any[] = [];
@@ -509,7 +494,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     return level;
   }
 
-  private gradeColors = [
+  private readonly gradeColors = [
     '#000070', // -15%-
     '#1650C0', // -10% to -15%
     '#40A0F0', // -7% to -10%
@@ -532,7 +517,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     return 8;
   }
 
-  private updateRecordingData(ds: any, track: Track): void {
+  private updateRecordingData(ds: any, track: Track): void { // NOSONAR
     if (!this.canvas?.chart) return;
     let pointCount = 0;
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
@@ -571,10 +556,10 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   private createDataPoint(previous: DataPoint | undefined, segmentIndex: number, pointIndex: number, track: Track, segment: Segment, points: Point[]): DataPoint {
     const point = points[pointIndex];
-    let distance = previous?.distanceMeters || 0;
+    let distance = previous?.distanceMeters ?? 0;
     if (pointIndex > 0) distance += point.distanceTo(previous!);
     let timeSinceStart = undefined;
-    if (previous && previous.timeSinceStart && previous.time && point.time)
+    if (previous?.timeSinceStart && previous.time && point.time)
       timeSinceStart = previous.timeSinceStart + (point.time - previous.time);
     else if (point.time) {
       const start = track.startDate;
@@ -598,7 +583,7 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   public showCursorForPosition(lat: number, lng: number): void {
     this.ngZone.runOutsideAngular(() => {
-      if (!this.canvas || !this.canvas.chart || !this.chartData) {
+      if (!this.canvas?.chart || !this.chartData) {
         return;
       }
       const elements: C.ActiveElement[] = [];
@@ -672,7 +657,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       if (startIndex >= 0) {
         const startData = this.chartData!.datasets[datasetIndex].data[startIndex] as DataPoint;
         if (selection.startX === -1) {
-          selection.startX = chart.scales['x'].getPixelForValue((startData as DataPoint).x);
+          selection.startX = chart.scales['x'].getPixelForValue(startData.x);
         }
         const element = new C.PointElement(chart.getDatasetMeta(datasetIndex).data[startIndex]);
         (element as any).$context = {
@@ -688,7 +673,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       if (endIndex >= 0) {
         const endData = this.chartData!.datasets[datasetIndex].data[endIndex] as DataPoint;
         if (selection.endX === -1) {
-          selection.endX = chart.scales['x'].getPixelForValue((endData as DataPoint).x);
+          selection.endX = chart.scales['x'].getPixelForValue(endData.x);
         }
         const element = new C.PointElement(chart.getDatasetMeta(datasetIndex).data[endIndex]);
         (element as any).$context = {

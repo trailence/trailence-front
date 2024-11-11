@@ -1,6 +1,6 @@
 export class BinaryContent {
 
-  private contentType: string;
+  private readonly contentType: string;
   private base64?: string;
   private blob?: Blob;
   private buffer?: ArrayBuffer;
@@ -14,13 +14,13 @@ export class BinaryContent {
       if (this.base64.indexOf('\n')) { // capacitor http plugin use Android Base64.encodeToString which includes \n every 75 characters...
         this.base64 = this.base64.replace(/\n/g, '');
       }
-      this.contentType = contentType ? contentType : '';
+      this.contentType = contentType ?? '';
     } else if (data instanceof Blob) {
       this.blob = data;
       this.contentType = data.type;
     } else if (data instanceof ArrayBuffer) {
       this.buffer = data;
-      this.contentType = contentType ? contentType : '';
+      this.contentType = contentType ?? '';
     } else {
       throw new Error('Unexpected binary data type: ' + (typeof data));
     }

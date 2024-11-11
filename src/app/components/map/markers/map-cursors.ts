@@ -2,7 +2,7 @@ import * as L from 'leaflet';
 
 export class MapCursors {
 
-  private _cursors: L.CircleMarker<any>[] = [];
+  private readonly _cursors: L.CircleMarker<any>[] = [];
   private _map?: L.Map;
 
   public get cursors(): L.CircleMarker<any>[] { return this._cursors; }

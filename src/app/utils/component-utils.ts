@@ -35,10 +35,10 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this._visible$.subscribe(visible => this._propagateVisible(visible));
   }
 
-  protected initComponent(): void {}
-  protected destroyComponent(): void {}
+  protected initComponent(): void {} // NOSONAR
+  protected destroyComponent(): void {} // NOSONAR
 
-  protected getComponentState(): any {}
+  protected getComponentState(): any {} // NOSONAR
   protected onComponentStateChanged(previousState: any, newState: any): void {};
 
 

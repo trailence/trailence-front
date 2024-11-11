@@ -41,7 +41,7 @@ export function applyElevationThresholdToSegment(segment: Segment, threshold: nu
   const points = segment.points;
   if (points.length < 3) return 0;
   const smoothOutsideThreshold = threshold * 0.75;
-  const start = lastIndexProcessed ? lastIndexProcessed : 0;
+  const start = lastIndexProcessed ?? 0;
   const cursor = new Cursor(points, start);
   const nb = finish ? points.length : points.length - 10;
   for (let i = start + 1; i < nb - 1; ++i) {

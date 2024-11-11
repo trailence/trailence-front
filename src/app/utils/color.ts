@@ -41,22 +41,22 @@ export class Color {
     return new Color(this.toString());
   }
 
-  public setRed(value: number): Color {
+  public setRed(value: number): this {
     this.r = value;
     return this;
   }
 
-  public setGreen(value: number): Color {
+  public setGreen(value: number): this {
     this.g = value;
     return this;
   }
 
-  public setBlue(value: number): Color {
+  public setBlue(value: number): this {
     this.b = value;
     return this;
   }
 
-  public setAlpha(value: number): Color {
+  public setAlpha(value: number): this {
     this.a = value;
     return this;
   }

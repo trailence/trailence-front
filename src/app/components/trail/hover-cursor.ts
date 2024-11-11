@@ -6,7 +6,7 @@ import { TrailComponent } from './trail.component';
 export class TrailHoverCursor {
 
   constructor(
-    private component: TrailComponent,
+    private readonly component: TrailComponent,
   ) {}
 
   private _hoverCursor: {pos: L.LatLngExpression}[] = [];

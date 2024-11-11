@@ -28,10 +28,10 @@ export class ResetPasswordComponent implements OnInit {
 
   constructor(
     public i18n: I18nService,
-    private modalController: ModalController,
-    private http: HttpService,
-    private captchaService: CaptchaService,
-    private changeDetector: ChangeDetectorRef,
+    private readonly modalController: ModalController,
+    private readonly http: HttpService,
+    private readonly captchaService: CaptchaService,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {
   }
 
