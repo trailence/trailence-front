@@ -1,29 +1,33 @@
 import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
+import { Photo } from 'src/app/model/photo';
 import { Point } from 'src/app/model/point';
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 
 describe('Test Gpx Format', () => {
 
   let http: HttpClient;
+  let preferencesService: PreferencesService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
+    preferencesService = TestBed.inject(PreferencesService);
   });
 
   it('Import gpx-001', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0');
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
     expect(imported).not.toBeNull();
-    const trail = imported!.trail;
+    const trail = imported.trail;
     expect(trail.name).toBe('Randonnée du 05/06/2023 à 08:58');
     expect(trail.description).toBe('');
-    const track = imported!.tracks[0];
+    const track = imported.tracks[0];
     expect(Math.floor(track.metadata.distance)).toBe(8585);
     expect(track.metadata.positiveElevation).toBe(409);
     expect(track.metadata.negativeElevation).toBe(384);
@@ -74,14 +78,14 @@ describe('Test Gpx Format', () => {
 
   it('Import gpx-001, then export, then import again', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0');
-    const exported = await GpxFormat.exportGpx(imported!.trail, imported!.tracks, []).toArrayBuffer();
-    const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0');
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
+    const exported = await GpxFormat.exportGpx(imported.trail, imported.tracks, [], [], new Map<Photo,string>()).toArrayBuffer();
+    const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0', preferencesService);
     expect(imported2).not.toBeNull();
-    compareTrails(imported!.trail, imported2!.trail);
-    expect(imported!.tracks.length).toBe(imported2!.tracks.length);
-    for (let i = 0; i < imported!.tracks.length; ++i)
-      compareTracks(imported!.tracks[i], imported2!.tracks[i]);
+    compareTrails(imported.trail, imported2.trail);
+    expect(imported.tracks.length).toBe(imported2.tracks.length);
+    for (let i = 0; i < imported.tracks.length; ++i)
+      compareTracks(imported.tracks[i], imported2.tracks[i]);
   });
 
 });

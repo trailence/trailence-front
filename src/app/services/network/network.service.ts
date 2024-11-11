@@ -59,6 +59,8 @@ export class NetworkService implements INetworkService {
         Console.info('Server ping response error (' + response.status + '): not connected');
         status = false;
         if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
+        else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 30000);
+        else setTimeout(() => this.checkServerConnection(count, trial + 1), 60000);
       }
       if (status !== this._server$.value) {
         this._server$.next(status);

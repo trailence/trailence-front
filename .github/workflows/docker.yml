@@ -1,0 +1,51 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - dev
+      - 'release/**'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            trailence/front
+          tags: |
+            type=ref,prefix=snapshot-,event=branch
+            type=ref,event=tag
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Trust store
+        uses: mobiledevops/secret-to-file-action@v1
+        with:
+          filename: 'trailence.jks'
+          working-directory: './docker'
+          base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
+      - name: Keys
+        uses: mobiledevops/secret-to-file-action@v1
+        with:
+          filename: 'keys.gradle'
+          working-directory: './docker'
+          base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}

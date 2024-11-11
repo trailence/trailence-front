@@ -226,7 +226,9 @@
           "configurations": {
             "ci": {
               "progress": false,
-              "watch": false
+              "watch": false,
+              "codeCoverage": true,
+              "browsers": "ChromeHeadless"
             }
           }
         },

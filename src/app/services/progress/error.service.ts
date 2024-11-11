@@ -23,6 +23,7 @@ export class ErrorService {
         return;
       }
       if (error.errorMessage) technicalMessage = error.errorMessage;
+      technicalMessage = 'Code ' + error.httpCode + (technicalMessage.length > 0 ? ': ' + technicalMessage : '');
     } else {
       technicalMessage = translate(error, this.i18n);
     }

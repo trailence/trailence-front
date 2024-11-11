@@ -5,25 +5,28 @@ import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { ImprovmentRecordingState, TrackEditionService } from './track-edition.service';
 import { Track } from 'src/app/model/track';
 import { Point } from 'src/app/model/point';
+import { PreferencesService } from '../preferences/preferences.service';
 
 describe('Test improvments while recording', () => {
 
   let http: HttpClient;
   let trackEdition: TrackEditionService;
+  let preferencesService: PreferencesService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
     trackEdition = TestBed.inject(TrackEditionService);
+    preferencesService = TestBed.inject(PreferencesService);
   });
 
   it('gpx-002 improvments are same when importing and while recording', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0');
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
 
-    const track = imported?.tracks[0]!;
+    const track = imported.tracks[0];
     const improved = trackEdition.applyDefaultImprovments(track);
-    const recording = new Track({owner: 'test@example.com'});
+    const recording = new Track({owner: 'test@example.com'}, preferencesService);
     for (const originalSegment of track.segments) {
       const segment = recording.newSegment();
       let state: ImprovmentRecordingState | undefined = undefined;

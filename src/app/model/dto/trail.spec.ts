@@ -5,18 +5,21 @@ import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { Trail } from '../trail';
 import { Track } from '../track';
 import { Point } from '../point';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 describe('Test Trail and Track DTOs', () => {
 
   let http: HttpClient;
+  let preferencesService: PreferencesService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [], providers: [provideHttpClient(withInterceptorsFromDi())] });
     http = TestBed.inject(HttpClient);
+    preferencesService = TestBed.inject(PreferencesService);
   });
 
   it('track to dto to track', async () => {
-    const track = new Track({owner: 'test@test.com'});
+    const track = new Track({owner: 'test@test.com'}, preferencesService);
     const segment = track.newSegment();
     segment.append(new Point(1, 2, 3, 4, 5, 6, 7, 8));
     segment.append(new Point(10, 20, 30, 40, 50, 60, 70, 80));
@@ -24,7 +27,7 @@ describe('Test Trail and Track DTOs', () => {
     segment.append(new Point(1, 2, 3, 4, 5, 6, 7, 8));
     segment.append(new Point(1, 2, 3, 4, 5, 6, 7, 8));
     const dto = track.toDto();
-    const track2 = new Track(dto);
+    const track2 = new Track(dto, preferencesService);
     expect(track2.segments.length).toBe(1);
     const segment2 = track2.segments[0];
     expect(segment2.points.length).toBe(5);
@@ -47,21 +50,21 @@ describe('Test Trail and Track DTOs', () => {
 
   it('gpx-001', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0');
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
     expect(imported).not.toBeNull();
-    expect(imported!.tracks.length).toBe(1);
-    const trailDto = imported!.trail.toDto();
-    const trackDto = imported!.tracks[0].toDto();
+    expect(imported.tracks.length).toBe(1);
+    const trailDto = imported.trail.toDto();
+    const trackDto = imported.tracks[0].toDto();
     const trail = new Trail(trailDto);
-    const track = new Track(trackDto);
-    expect(trail.name).toBe(imported!.trail.name);
-    expect(trail.description).toBe(imported!.trail.description);
-    expect(Math.floor(track.metadata.distance)).withContext('distance').toBe(Math.floor(imported!.tracks[0].metadata.distance));
-    expect(track.metadata.positiveElevation).withContext('positiveElevation').toBe(imported!.tracks[0].metadata.positiveElevation);
-    expect(track.metadata.negativeElevation).withContext('negativeElevation').toBe(imported!.tracks[0].metadata.negativeElevation);
-    expect(track.metadata.highestAltitude).withContext('highestAltitude').toBe(imported!.tracks[0].metadata.highestAltitude);
-    expect(track.metadata.lowestAltitude).withContext('lowestAltitude').toBe(imported!.tracks[0].metadata.lowestAltitude);
-    expect(track.metadata.duration).withContext('duration').toBe(imported!.tracks[0].metadata.duration);
+    const track = new Track(trackDto, preferencesService);
+    expect(trail.name).toBe(imported.trail.name);
+    expect(trail.description).toBe(imported.trail.description);
+    expect(Math.floor(track.metadata.distance)).withContext('distance').toBe(Math.floor(imported.tracks[0].metadata.distance));
+    expect(track.metadata.positiveElevation).withContext('positiveElevation').toBe(imported.tracks[0].metadata.positiveElevation);
+    expect(track.metadata.negativeElevation).withContext('negativeElevation').toBe(imported.tracks[0].metadata.negativeElevation);
+    expect(track.metadata.highestAltitude).withContext('highestAltitude').toBe(imported.tracks[0].metadata.highestAltitude);
+    expect(track.metadata.lowestAltitude).withContext('lowestAltitude').toBe(imported.tracks[0].metadata.lowestAltitude);
+    expect(track.metadata.duration).withContext('duration').toBe(imported.tracks[0].metadata.duration);
   });
 
 });
