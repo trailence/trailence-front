@@ -39,6 +39,21 @@ jobs:
           ./gradlew assembleDebug
       - name: Tests
         run: npm run test -- --configuration=ci
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            trailence/front
+          tags: |
+            type=ref,prefix=snapshot-,event=branch
+            type=ref,event=tag
+      - name: Tests End 2 End
+        run: |
+          cd e2e
+          chmod 777 ./launch-github-actions.sh
+          chmod 777 ./_launch.sh
+          ./launch-github-actions.sh
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

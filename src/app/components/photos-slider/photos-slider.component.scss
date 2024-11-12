@@ -41,7 +41,7 @@ div.photos-container {
       height: calc(100% - 45px);
     }
     div.photo-description {
-      display: block;
+      display: flex;
     }
   }
 }
@@ -73,7 +73,7 @@ div.photo-description {
   bottom: 0;
   left: 10px;
   right: 10px;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: center;
 }
