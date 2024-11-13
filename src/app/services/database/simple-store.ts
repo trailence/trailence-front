@@ -251,12 +251,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                         item$.next(entity);
                       }
                       dtos.splice(index, 1);
-                    } else {
+                    } else if (this._createdLocally.indexOf(item$) < 0) {
                       // not returned by the server
-                      if (this._createdLocally.indexOf(item$) < 0) {
-                        // not created locally => removed from server
-                        deleted.push(item$);
-                      }
+                      // not created locally => removed from server
+                      deleted.push(item$);
                     }
                   }
                 );

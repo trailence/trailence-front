@@ -319,7 +319,7 @@ export class SegmentMetadata {
   private _rightLng: SegmentPoint | undefined = undefined;
 
   constructor(
-    private segmentPoints: SegmentPoint[],
+    private readonly segmentPoints: SegmentPoint[],
   ) {}
 
   public get distance(): number { return this._distance.value; }
@@ -378,7 +378,7 @@ export class SegmentMetadata {
     this._duration.next((this._duration.value ?? 0) + d);
   }
 
-  pointAdded(point: SegmentPoint): void {
+  pointAdded(point: SegmentPoint): void { // NOSONAR
     if (point.point.time !== undefined) {
       if (this._startPoint.value === undefined || this._startPoint.value.point.time! > point.point.time) {
         this._startPoint.next(point);
@@ -438,7 +438,7 @@ export class SegmentMetadata {
       this._startPoint.next(point);
   }
 
-  positionChanged(point: SegmentPoint): void {
+  positionChanged(point: SegmentPoint): void { // NOSONAR
     const p = point.point.pos;
     const b = this._bounds.value!;
     if ((this._topLat === point && p.lat > b.getNorth()) ||
@@ -488,7 +488,7 @@ export class SegmentMetadata {
     if (this._lowestPoint.value !== lowest) this._lowestPoint.next(lowest);
   }
 
-  private computeBounds(): void {
+  private computeBounds(): void { // NOSONAR
     this._topLat = this._bottomLat = this._leftLng = this._rightLng = undefined;
     let n, s, e, w;
     let b: L.LatLngBounds | undefined = undefined;
@@ -529,7 +529,7 @@ export class SegmentMetadata {
       this._bounds.next(b);
   }
 
-  computeNewPoints(points: SegmentPoint[]): void {
+  computeNewPoints(points: SegmentPoint[]): void { // NOSONAR
     let distance = 0;
     let duration = 0;
     let positiveElevation: number | undefined = undefined;

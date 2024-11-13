@@ -21,10 +21,10 @@ import Dexie from 'dexie';
 })
 export class ShareService {
 
-  private _store: ShareStore;
+  private readonly _store: ShareStore;
 
   constructor(
-    private injector: Injector
+    private readonly injector: Injector
   ) {
     this._store = new ShareStore(injector);
   }

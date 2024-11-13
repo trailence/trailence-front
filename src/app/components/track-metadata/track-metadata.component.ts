@@ -44,6 +44,8 @@ class Titles {
   ) {}
 }
 
+type TrackType = Track | TrackMetadataSnapshot | undefined;
+
 @Component({
   selector: 'app-track-metadata',
   templateUrl: './track-metadata.component.html',
@@ -58,8 +60,8 @@ export class TrackMetadataComponent extends AbstractComponent {
   @Input() track2?: Track | TrackMetadataSnapshot;
   @Input() detailed = false;
 
-  private readonly track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
-  private readonly track2$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
+  private readonly track$ = new BehaviorSubject<TrackType>(undefined);
+  private readonly track2$ = new BehaviorSubject<TrackType>(undefined);
 
   constructor(
     injector: Injector,
@@ -79,8 +81,8 @@ export class TrackMetadataComponent extends AbstractComponent {
 
   public static init( // NOSONAR
     container: HTMLElement,
-    track$: Observable<Track | TrackMetadataSnapshot | undefined>,
-    track2$: Observable<Track | TrackMetadataSnapshot | undefined>,
+    track$: Observable<TrackType>,
+    track2$: Observable<TrackType>,
     detailed: boolean,
     assets: AssetsService,
     i18n: I18nService,
@@ -160,7 +162,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     return ([info1, info2, title]);
   }
 
-  private static toMeta(track$: Observable<Track | TrackMetadataSnapshot | undefined>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController): void {
+  private static toMeta(track$: Observable<TrackType>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController): void {
     let previousState = 0;
     whenVisible.subscribe(track$.pipe(
       switchMap(track => {

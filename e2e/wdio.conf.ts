@@ -9,6 +9,21 @@ caps['goog:chromeOptions'] = {
 };
 dynamicConfig.capabilities = [caps];
 
+dynamicConfig.trailence = {};
+if (process.env.TRAILENCE_INIT_USER) {
+  dynamicConfig.trailence['initUsername'] = process.env.TRAILENCE_INIT_USER;
+}
+if (process.env.TRAILENCE_INIT_PASSWORD) {
+  dynamicConfig.trailence['initUserpass'] = process.env.TRAILENCE_INIT_PASSWORD;
+}
+
+for (const arg of process.argv) {
+  if (arg.startsWith('--trailence-init-username='))
+    dynamicConfig.trailence['initUsername'] = arg.substring(26);
+  else if (arg.startsWith('--trailence-init-password='))
+    dynamicConfig.trailence['initUserpass'] = arg.substring(26);
+}
+
 if (process.env.IS_CI) {
   caps['goog:chromeOptions'].args.push(
     '--no-sandbox',

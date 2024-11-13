@@ -9,4 +9,5 @@ export TRAILENCE_INIT_PASSWORD="$(echo $RANDOM | md5sum | head -c 20)"
 
 docker compose down
 npm i
-docker compose up -d --wait && npm run wdio
+docker compose up -d --wait
+/bin/bash
