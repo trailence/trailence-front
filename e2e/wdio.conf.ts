@@ -8,14 +8,7 @@ caps['goog:chromeOptions'] = {
   ]
 };
 dynamicConfig.capabilities = [caps];
-
 dynamicConfig.trailence = {};
-if (process.env.TRAILENCE_INIT_USER) {
-  dynamicConfig.trailence['initUsername'] = process.env.TRAILENCE_INIT_USER;
-}
-if (process.env.TRAILENCE_INIT_PASSWORD) {
-  dynamicConfig.trailence['initUserpass'] = process.env.TRAILENCE_INIT_PASSWORD;
-}
 
 let specs = './test/specs/**/*.ts';
 
@@ -31,6 +24,7 @@ for (const arg of process.argv) {
 }
 
 if (process.env.IS_CI) {
+  dynamicConfig.baseUrl = "http://localhost:80";
   caps['goog:chromeOptions'].args.push(
     '--no-sandbox',
     '--disable-infobars',
