@@ -8,7 +8,7 @@ import { I18nService } from '../i18n/i18n.service';
 @Injectable({providedIn: 'root'})
 export class MapGeolocationService {
 
-  private _showPosition = new BehaviorSubject<boolean>(false);
+  private readonly _showPosition = new BehaviorSubject<boolean>(false);
 
   constructor(
     public recorder: TraceRecorderService,

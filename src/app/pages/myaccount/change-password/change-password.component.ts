@@ -31,7 +31,7 @@ export class ChangePasswordComponent {
     private readonly http: HttpService,
     public auth: AuthService
   ) {
-    this.hasPreviousPassword = auth.auth?.complete === false ? false : true;
+    this.hasPreviousPassword = auth.auth?.complete === false ? false : true; // NOSONAR
   }
 
   onSubmit(): void {

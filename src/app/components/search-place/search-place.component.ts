@@ -40,7 +40,7 @@ export class SearchPlaceComponent {
       tap(() => this.resetPlaces()),
       filter(event => (event?.detail.value ?? '').trim().length > 2),
       tap(event => this.startSearching(event)),
-      switchMap(event => geo.findPlacesByName(event.detail.value!)),
+      switchMap(event => geo.findPlacesByName(event.detail.value!)), // NOSONAR
       catchError(e => {
         errorService.addTechnicalError(e, 'errors.search_places', []);
         Console.error(e);

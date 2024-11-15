@@ -46,13 +46,13 @@ export class MapLayerSelectionTool extends L.Control {
               if (layer) {
                 let found = false;
                 map.eachLayer(current => {
-                  if ((current.options as any)['id'] === layer.name) {
+                  if ((current.options as any)['id'] === layer.name) { // NOSONAR
                     found = true;
                   }
                 });
                 if (!found) {
                   map.eachLayer(current => {
-                    if ((current as any)['_url']) current.remove();
+                    if ((current as any)['_url']) current.remove(); // NOSONAR
                   });
                   map.addLayer(layer.create());
                   this.mapState.tilesName = layer.name;

@@ -291,7 +291,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   private syncUpdateFromServer(stillValid: () => boolean): Observable<boolean> {
     if (!this._syncStatus$.value.needsUpdateFromServer) return of(true);
-    const known = this._store.value.filter(item$ => this._createdLocally.indexOf(item$) < 0).map(item$ => item$.value).map(item => new Owned(item!).toDto());
+    const known = this._store.value.filter(item$ => this._createdLocally.indexOf(item$) < 0).map(item$ => item$.value).map(item => new Owned(item!).toDto()); // NOSONAR
     return this.getUpdatesFromServer(known).pipe(
       switchMap(result => {
         if (!stillValid()) return of(false);

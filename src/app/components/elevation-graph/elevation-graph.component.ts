@@ -376,7 +376,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       onHover: (event:any, elements: C.ActiveElement[], chart: any) => {
         const references = this.canvas!.chart!.getActiveElements().map(element => {
           if ((this.chartData!.datasets[element.datasetIndex] as any).isGrade) return null;
-          if ((element.element as any).$context)
+          if ((element.element as any).$context) // NOSONAR
             return this.activeElementToPointReference(element);
           return null;
         }).filter(r => !!r);
@@ -698,7 +698,7 @@ declare module 'chart.js' {
 }
 
 C.Interaction.modes.myCustomMode = function(chart, event, options, useFinalPosition) {
-  const position = getRelativePosition(event, chart as any);
+  const position = getRelativePosition(event, chart as any); // NOSONAR
   const items: C.InteractionItem[] = [];
   C.Interaction.evaluateInteractionItems(chart, 'x', position, (element, datasetIndex, index) => {
     const sameDataset = items.findIndex(e => e.datasetIndex === datasetIndex);

@@ -19,7 +19,9 @@
     "set-version": "node ./scripts/set-version.js %npm_config_newversion%",
     "check-i18n": "node ./scripts/check-i18n-keys.js",
     "check-assets-version": "node ./scripts/check-assets-version.js",
-    "release": "npm run check-i18n && npm run check-assets-version && npm run set-version && ng build --configuration=production"
+    "release": "npm run check-i18n && npm run check-assets-version && npm run set-version && ng build --configuration=production",
+    "instrument": "nyc instrument www www --exclude-after-remap=false --complete-copy --in-place",
+    "coverage-report": "nyc report --reporter=lcov --report-dir=coverage/e2e"
   },
   "license": "Apache-2.0",
   "private": true,
@@ -82,6 +84,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "nyc": "^17.1.0",
     "typescript": "~5.5.4"
   },
   "description": "Trailence"

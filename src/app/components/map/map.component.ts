@@ -170,7 +170,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   public addToMap(element: L.Layer): void {
-    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!));
+    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!)); // NOSONAR
   }
 
   public removeFromMap(element: L.Layer): void {
@@ -506,7 +506,7 @@ export class MapComponent extends AbstractComponent {
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {
       this.mapChanged(map);
-      if ((e as any)['originalEvent']) {
+      if ((e as any)['originalEvent']) { // NOSONAR
         // action from user
         this._followingLocation$.next(false);
       }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClientService } from './http-client.service';
 import { HttpMethod, TrailenceHttpRequest, ResponseType } from './http-request';
-import { Observable, of, switchMap, throwError, timeout } from 'rxjs';
+import { Observable, of, switchMap, throwError } from 'rxjs';
 import { TrailenceHttpResponse } from './http-response';
 import { ApiError } from './api-error';
 

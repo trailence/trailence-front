@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, first
 import { StoreSyncStatus } from './store';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
@@ -148,8 +149,8 @@ export class DatabaseService {
       store.status$,         // there is something to sync and we are not syncing
       store.canSync$,        // and nothing prevent from synching
     ]).pipe(
-      map(([storeLoaded, networkConnected, syncStatus, canSync]) => storeLoaded && networkConnected && canSync && syncStatus && syncStatus.needsSync && !syncStatus.inProgress),
-      debounceTime(1000),
+      map(([storeLoaded, networkConnected, syncStatus, canSync]) => storeLoaded && networkConnected && canSync && syncStatus?.needsSync && !syncStatus.inProgress),
+      debounceTime(250),
       filter(shouldSync => {
         if (!shouldSync) return false;
         if (Date.now() - registered.lastSync < MINIMUM_SYNC_INTERVAL) {
@@ -162,7 +163,7 @@ export class DatabaseService {
         }
         return true;
       }),
-      debounceTime(500),
+      debounceTimeExtended(0, 500),
     )
     .subscribe(() => {
       if (!this._db.value) return;

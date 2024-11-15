@@ -44,7 +44,6 @@
       align-items: center;
       justify-content: center;
       font-size: 40px;
-      background: inherits;
       opacity: 1;
       transition: opacity 0.33s ease-in-out;
     }
@@ -153,7 +152,7 @@
     }
     function startNg() {
       var d = document.createElement('DIV');
-      d.innerHTML = window._ng_trailence.replace(/\&lt\;/g, "<").replace(/\&gt\;/g, ">");
+      d.innerHTML = window._ng_trailence.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
       loadNgElements(d);
     }
   </script>

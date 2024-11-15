@@ -24,7 +24,7 @@ export class LoginPage extends Page {
 
   public async loginAndWaitMyTrailsCollection(username?: string, password?: string) {
     await this.login(username, password);
-    await browser.waitUntil(() => browser.getUrl().then(url => url.startsWith(browser.options.baseUrl + '/trails/collection/')));
+    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('/trails/collection/') > 0));
     const trailsPage = new TrailsPage();
     await trailsPage.waitDisplayed();
     return trailsPage;

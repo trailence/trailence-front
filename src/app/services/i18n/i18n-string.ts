@@ -14,7 +14,7 @@ export function translate(value: any, i18n: I18nService): string {
 
 export class TranslatedString implements I18nString {
 
-  constructor(private i18nKey: string, private args: any[] = []) {}
+  constructor(private readonly i18nKey: string, private readonly args: any[] = []) {}
 
   translate(i18n: I18nService): string {
     const path = this.i18nKey.split('.');
@@ -32,7 +32,7 @@ export class TranslatedString implements I18nString {
 
 export class I18nError extends Error implements I18nString {
 
-  private _i18n: TranslatedString;
+  private readonly _i18n: TranslatedString;
 
   constructor(i18nKey: string, args: any[] = []) {
     super(i18nKey);
@@ -47,7 +47,7 @@ export class I18nError extends Error implements I18nString {
 
 export class CompositeI18nString implements I18nString {
 
-  constructor(private parts: any[]) {}
+  constructor(private readonly parts: any[]) {}
 
   translate(i18n: I18nService): string {
     let result = '';

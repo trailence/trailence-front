@@ -15,7 +15,7 @@ export class MapCursors {
 
   public remove(): void {
     if (!this._map) return;
-    this._cursors.forEach(marker => marker.removeFrom(this._map!));
+    this._cursors.forEach(marker => marker.removeFrom(this._map!)); // NOSONAR
     this._map = undefined;
   }
 

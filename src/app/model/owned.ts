@@ -2,7 +2,7 @@ import { OwnedDto } from "./dto/owned";
 import { Versioned } from "./versioned";
 
 export class Owned extends Versioned {
-    private _owner: string;
+    private readonly _owner: string;
 
     constructor(
         dto: Partial<OwnedDto>

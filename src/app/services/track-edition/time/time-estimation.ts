@@ -20,7 +20,7 @@ export function estimateTimeForSegment(segment: Segment, preferences: ComputedPr
     durationSincePeviousBreak += sp.durationFromPreviousPoint;
     const distance = sp.distanceFromPreviousPoint;
     if (distance === 0) continue;
-    const elevation = sp.elevationFromPreviousPoint !== undefined ? sp.elevationFromPreviousPoint : 0;
+    const elevation = sp.elevationFromPreviousPoint ?? 0;
     let baseSpeed = preferences.estimatedBaseSpeed;
     const hrs = Math.floor(duration / (60 * 60 * 1000)) - 2;
     if (hrs > 0) baseSpeed -= 100 * Math.min(hrs, 5);

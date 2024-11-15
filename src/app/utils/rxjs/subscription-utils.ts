@@ -25,7 +25,7 @@ export type Resubscribeable = {
 
 export class Resubscribeables {
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private readonly ngZone: NgZone) {}
 
   private paused = false;
   private subscriptions: Resubscribeable[] = [];

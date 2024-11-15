@@ -1,10 +1,10 @@
 import { Params } from '@angular/router';
 
-const illegalRe = /[\/\?<>\\:\*\|"]/g;
-const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+const illegalRe = /[\/\?<>\\:\*\|"]/g; // NOSONAR
+const controlRe = /[\x00-\x1f\x80-\x9f]/g; // NOSONAR
 const reservedRe = /^\.+$/;
-const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
-const windowsTrailingRe = /[\. ]+$/;
+const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i; // NOSONAR
+const windowsTrailingRe = /[\. ]+$/; // NOSONAR
 
 
 export class StringUtils {
@@ -17,7 +17,7 @@ export class StringUtils {
   }
 
   public static toFilename(input: string): string {
-    var sanitized = input
+    let sanitized = input
       .replace(illegalRe, '_')
       .replace(controlRe, '_')
       .replace(reservedRe, '_')

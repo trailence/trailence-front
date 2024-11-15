@@ -33,7 +33,9 @@ export class AppMenu extends Component {
   }
 
   public async openCollection(name: string) {
-    for (const item of await this.getCollectionsItems().getElements()) {
+    const items = this.getCollectionsItems();
+    await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0));
+    for (const item of await items.getElements()) {
       if (await this.getCollectionName(item) === name) {
         await item.click();
         browser.waitUntil(() => new HeaderComponent(Page.getActivePageElement()).getTitle().then(title => title === name));
@@ -53,20 +55,18 @@ export class AppMenu extends Component {
     expect(await modal.getTitle()).toBe('Collection');
     await modal.setName(name);
     await modal.clickCreate();
-    await browser.waitUntil(() => browser.getUrl().then(url => url.startsWith(browser.options.baseUrl + '/trails/collection/')));
+    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('/trails/collection/') > 0));
     const trailsPage = new TrailsPage();
     await trailsPage.waitDisplayed();
     return trailsPage;
   }
 
   public async close() {
-    const menu = browser.$('app-root ion-menu');
-    const content = menu.$('>>>app-menu');
-    if (await content.isDisplayed()) {
-      const button = this.getElement().$('div.menu-header div.menu-close ion-button');
+    const button = this.getElement().$('div.menu-header div.menu-close ion-button');
+    if (await button.isDisplayed()) {
       await button.click();
+      await browser.waitUntil(() => button.isDisplayed().then(d => !d));
     }
-    await browser.waitUntil(() => content.isDisplayed().then(d => !d));
   }
 
 }

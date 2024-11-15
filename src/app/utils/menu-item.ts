@@ -12,8 +12,6 @@ export class MenuItem {
   public children?: MenuItem[];
   public childrenProvider?: () => Observable<MenuItem[]>;
 
-  constructor() {}
-
   public setIcon(icon: string): this {
     this.icon = icon;
     return this;

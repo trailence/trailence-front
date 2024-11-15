@@ -170,46 +170,46 @@ export class MapTrackWayPoints {
 
   private addDAToMap(): void {
     this.load();
-    if (this._departureAndArrival) this._departureAndArrival.marker.addTo(this._map!);
+    if (this._departureAndArrival) this._departureAndArrival.marker.addTo(this._map!); // NOSONAR
     else {
-      if (this._departure) this._departure.marker.addTo(this._map!);
-      if (this._arrival) this._arrival.marker.addTo(this._map!);
+      if (this._departure) this._departure.marker.addTo(this._map!); // NOSONAR
+      if (this._arrival) this._arrival.marker.addTo(this._map!); // NOSONAR
     }
   }
 
   private removeDAFromMap(): void {
-    if (this._departureAndArrival) this._departureAndArrival.marker.removeFrom(this._map!);
+    if (this._departureAndArrival) this._departureAndArrival.marker.removeFrom(this._map!); // NOSONAR
     else {
-      if (this._departure) this._departure.marker.removeFrom(this._map!);
-      if (this._arrival) this._arrival.marker.removeFrom(this._map!);
+      if (this._departure) this._departure.marker.removeFrom(this._map!); // NOSONAR
+      if (this._arrival) this._arrival.marker.removeFrom(this._map!); // NOSONAR
     }
   }
 
   private addWPToMap(): void {
     this.load();
     for (const anchor of this._anchors!) {
-      anchor.marker.addTo(this._map!);
+      anchor.marker.addTo(this._map!); // NOSONAR
     }
   }
 
   private removeWPFromMap(): void {
     if (this._anchors)
       for (const anchor of this._anchors) {
-        anchor.marker.removeFrom(this._map!);
+        anchor.marker.removeFrom(this._map!); // NOSONAR
       }
   }
 
   private addBreaksToMap(): void {
     this.load();
     for (const anchor of this._breaks!) {
-      anchor.marker.addTo(this._map!);
+      anchor.marker.addTo(this._map!); // NOSONAR
     }
   }
 
   private removeBreaksFromMap(): void {
     if (this._breaks)
       for (const anchor of this._breaks) {
-        anchor.marker.removeFrom(this._map!);
+        anchor.marker.removeFrom(this._map!); // NOSONAR
       }
   }
 

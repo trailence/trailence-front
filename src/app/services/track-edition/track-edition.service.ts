@@ -13,7 +13,7 @@ import { detectLoopType } from './path-analysis/loop-type-detection';
 export class TrackEditionService {
 
   constructor(
-    private preferencesService: PreferencesService,
+    private readonly preferencesService: PreferencesService,
   ) {}
 
   public applyDefaultImprovments(track: Track): Track {

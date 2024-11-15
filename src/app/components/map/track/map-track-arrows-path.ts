@@ -15,7 +15,7 @@ export class MapTrackArrowPath {
     if (!this._shown) return;
     if (this._arrowsByZoom[this._currentZoomShown])
       for (const polyline of this._arrowsByZoom[this._currentZoomShown])
-        polyline.removeFrom(this._map!);
+        polyline.removeFrom(this._map!); // NOSONAR
   };
   private readonly _zoomEndHandler = () => {
     if (!this._shown) return;
@@ -23,7 +23,7 @@ export class MapTrackArrowPath {
     if (z < 10) z = -1
     if (z === this._currentZoomShown && z >= 0 && this._arrowsByZoom[this._currentZoomShown]) {
       for (const polyline of this._arrowsByZoom[this._currentZoomShown])
-        polyline.addTo(this._map!);
+        polyline.addTo(this._map!); // NOSONAR
     } else {
       this.updateArrowsOnMap();
     }

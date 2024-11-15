@@ -7,6 +7,9 @@ caps['goog:chromeOptions'] = {
     '--lang=en_US'
   ]
 };
+caps["goog:loggingPrefs"] = {
+  browser: "ALL",
+};
 dynamicConfig.capabilities = [caps];
 dynamicConfig.trailence = {};
 
@@ -130,10 +133,10 @@ export const config = Object.assign({}, {
     // - @wdio/sumologic-reporter
     // - @wdio/cli, @wdio/config, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
-    // logLevels: {
-    //     webdriver: 'info',
+    logLevels: {
+      webdriver: 'info',
     //     '@wdio/appium-service': 'info'
-    // },
+    },
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).

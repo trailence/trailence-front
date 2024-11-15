@@ -14,7 +14,7 @@ describe('Login and Logout', () => {
   it('When starting, the login page is displayed', async () => {
     await App.desktopMode();
     loginPage = await App.start();
-    browser.waitUntil(async () => await loginPage.loginInput.isDisplayed());
+    await browser.waitUntil(async () => await loginPage.loginInput.isDisplayed());
   });
 
   let myTrailsPage: TrailsPage;

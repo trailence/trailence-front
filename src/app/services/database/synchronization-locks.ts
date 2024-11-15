@@ -2,9 +2,9 @@ import { Maps } from 'src/app/utils/maps';
 
 export class SynchronizationLocks {
 
-  private syncing: string[] = [];
-  private locks = new Map<string, number>();
-  private locksRequest = new Map<string, (() => void)[]>();
+  private readonly syncing: string[] = [];
+  private readonly locks = new Map<string, number>();
+  private readonly locksRequest = new Map<string, (() => void)[]>();
 
   public lock(key: string, onlocked: (locked: boolean) => void): void {
     if (this.syncing.indexOf(key) >= 0) {
