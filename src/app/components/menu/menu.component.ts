@@ -95,4 +95,11 @@ export class MenuComponent {
     }
   }
 
+  async close() {
+    // TODO
+    console.log('Close app menu: ' + await this.menuController.isOpen());
+    console.log('Do close: ' + await this.menuController.close());
+    console.log('After close app menu: ' + await this.menuController.isOpen());
+  }
+
 }

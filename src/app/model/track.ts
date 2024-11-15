@@ -158,6 +158,22 @@ export class Track extends Owned {
     return result;
   }
 
+  public forEachPoint(callback: (p: Point) => void): void {
+    for (const segment of this.segments) {
+      for (const point of segment.points) {
+        callback(point);
+      }
+    }
+  }
+
+  public forEachPosition(callback: (p: L.LatLng) => void): void {
+    for (const segment of this.segments) {
+      for (const point of segment.points) {
+        callback(point.pos);
+      }
+    }
+  }
+
   public segmentTimeSinceDeparture(segmentIndex: number): number {
     if (segmentIndex === 0) return 0;
     let time = 0;

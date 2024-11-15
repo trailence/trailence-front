@@ -105,12 +105,12 @@ export class GeolocationService implements IGeolocationService {
     return {
       l: position.coords.latitude,
       n: position.coords.longitude,
-      e: position.coords.altitude == null ? undefined : position.coords.altitude,
+      e: position.coords.altitude ?? undefined,
       t: position.timestamp,
       pa: position.coords.accuracy,
-      ea: position.coords.altitudeAccuracy == null ? undefined : position.coords.altitudeAccuracy,
-      h: position.coords.heading == null ? undefined : position.coords.heading,
-      s: position.coords.speed == null ? undefined : position.coords.speed,
+      ea: position.coords.altitudeAccuracy ?? undefined,
+      h: position.coords.heading ?? undefined,
+      s: position.coords.speed ?? undefined,
     };
   }
 

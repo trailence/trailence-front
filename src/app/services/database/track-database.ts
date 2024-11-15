@@ -104,7 +104,7 @@ export class TrackDatabase {
     this.ngZone.runOutsideAngular(() => {
       if (this.db) {
         Console.info('Close track DB')
-          this.db.close();
+        this.db.close();
         this.openEmail = undefined;
         this.db = undefined;
         this.syncStatus$.next(null);
@@ -138,78 +138,87 @@ export class TrackDatabase {
       this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks')
       this.fullTrackTable = db.table<TrackItem, string>('full_tracks')
       this.db = db;
-      const status = new TrackSyncStatus();
-      from(this.fullTrackTable.where('version').belowOrEqual(0).limit(1).toArray()).pipe(
-        switchMap(r1 => {
-          if (r1.length > 0) return of(true);
-          return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray()).pipe(
-            map(r2 => r2.length > 0)
-          );
-        }),
-        first(),
-      ).subscribe(hasLocalChanges => {
-        if (this.db === db) {
-          status.hasLocalChanges = hasLocalChanges;
-          this.syncStatus$.next(status);
-        }
-      });
-      let previousBaseSpeed: number | undefined = undefined;
-      let previousBreakDuration: number | undefined = undefined;
-      let previousBreakDistance: number | undefined = undefined;
-      this.preferencesSubscription = this.injector.get(PreferencesService).preferences$.pipe(
-        debounceTime(5000),
-      ).subscribe(
-        prefs => {
-          let speedChanged = false;
-          if (previousBaseSpeed === undefined)
-            previousBaseSpeed = prefs.estimatedBaseSpeed;
-          else if (previousBaseSpeed !== prefs.estimatedBaseSpeed) {
-            speedChanged = true;
-            previousBaseSpeed = prefs.estimatedBaseSpeed;
-          }
-
-          let breaksChanged = false;
-          if (previousBreakDuration === undefined)
-            previousBreakDuration = prefs.longBreakMinimumDuration;
-          else if (previousBreakDuration !== prefs.longBreakMinimumDuration) {
-            breaksChanged = true;
-            previousBreakDuration = prefs.longBreakMinimumDuration;
-          }
-          if (previousBreakDistance === undefined)
-            previousBreakDistance = prefs.longBreakMaximumDistance;
-          else if (previousBreakDistance !== prefs.longBreakMaximumDistance) {
-            breaksChanged = true;
-            previousBreakDistance = prefs.longBreakMaximumDistance;
-          }
-
-          if (speedChanged || breaksChanged) {
-            if (!this.db || !this.metadataTable || !this.fullTrackTable) return;
-            this.db?.transaction('rw', [this.fullTrackTable, this.metadataTable], () => {
-              this.fullTrackTable?.each(trackItem => {
-                if (!trackItem.track || trackItem.version === -1) return;
-                const track = new Track(trackItem.track, this.injector.get(PreferencesService));
-                let meta$ = this.metadata.get(trackItem.key);
-                if (meta$?.loadedValue) {
-                  const meta = meta$.loadedValue;
-                  if (speedChanged) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
-                  if (breaksChanged) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
-                  meta$.newValue(meta);
-                  this.metadataTable?.put({
-                    key: trackItem.key,
-                    ...meta
-                  });
-                } else {
-                  this.metadataTable?.put({
-                    key: trackItem.key,
-                    ...this.toMetadata(track)
-                  });
-                }
-              });
-            })
-          }
-        }
-      );
+      this.initStatus();
+      this.listenPreferences();
     });
+  }
+
+  private initStatus(): void {
+    const status = new TrackSyncStatus();
+    const db = this.db;
+    from(this.fullTrackTable!.where('version').belowOrEqual(0).limit(1).toArray()).pipe(
+      switchMap(r1 => {
+        if (r1.length > 0) return of(true);
+        return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray()).pipe(
+          map(r2 => r2.length > 0)
+        );
+      }),
+      first(),
+    ).subscribe(hasLocalChanges => {
+      if (this.db === db) {
+        status.hasLocalChanges = hasLocalChanges;
+        this.syncStatus$.next(status);
+      }
+    });
+  }
+
+  private listenPreferences(): void {
+    let previousBaseSpeed: number | undefined = undefined;
+    let previousBreakDuration: number | undefined = undefined;
+    let previousBreakDistance: number | undefined = undefined;
+    this.preferencesSubscription = this.injector.get(PreferencesService).preferences$.pipe(
+      debounceTime(5000),
+    ).subscribe(
+      prefs => {
+        let speedChanged = false;
+        if (previousBaseSpeed === undefined)
+          previousBaseSpeed = prefs.estimatedBaseSpeed;
+        else if (previousBaseSpeed !== prefs.estimatedBaseSpeed) {
+          speedChanged = true;
+          previousBaseSpeed = prefs.estimatedBaseSpeed;
+        }
+
+        let breaksChanged = false;
+        if (previousBreakDuration === undefined)
+          previousBreakDuration = prefs.longBreakMinimumDuration;
+        else if (previousBreakDuration !== prefs.longBreakMinimumDuration) {
+          breaksChanged = true;
+          previousBreakDuration = prefs.longBreakMinimumDuration;
+        }
+        if (previousBreakDistance === undefined)
+          previousBreakDistance = prefs.longBreakMaximumDistance;
+        else if (previousBreakDistance !== prefs.longBreakMaximumDistance) {
+          breaksChanged = true;
+          previousBreakDistance = prefs.longBreakMaximumDistance;
+        }
+
+        if (speedChanged || breaksChanged) {
+          if (!this.db || !this.metadataTable || !this.fullTrackTable) return;
+          this.db?.transaction('rw', [this.fullTrackTable, this.metadataTable], () => {
+            this.fullTrackTable?.each(trackItem => {
+              if (!trackItem.track || trackItem.version === -1) return;
+              const track = new Track(trackItem.track, this.injector.get(PreferencesService));
+              let meta$ = this.metadata.get(trackItem.key);
+              if (meta$?.loadedValue) {
+                const meta = meta$.loadedValue;
+                if (speedChanged) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
+                if (breaksChanged) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
+                meta$.newValue(meta);
+                this.metadataTable?.put({
+                  key: trackItem.key,
+                  ...meta
+                });
+              } else {
+                this.metadataTable?.put({
+                  key: trackItem.key,
+                  ...this.toMetadata(track)
+                });
+              }
+            });
+          })
+        }
+      }
+    );
   }
 
   public cleanDatabase(db: Dexie, email: string): Observable<any> {
@@ -280,24 +289,25 @@ export class TrackDatabase {
       if (this.metadataLoadingTimeout) return;
       this.ngZone.runOutsideAngular(() => {
         if (!this.metadataLoadingTimeout)
-          this.metadataLoadingTimeout = setTimeout(() => {
-            this.metadataLoadingTimeout = undefined;
-            const map = this.metadataKeysToLoad;
-            this.metadataKeysToLoad = new Map();
-            let keys = [...map.keys()];
-            this.metadataTable?.bulkGet(keys)
-            .then(items => {
-              for (let i = items.length - 1; i >= 0; --i) {
-                const item = items[i];
-                if (item) {
-                  map.get(item.key)!(item);
-                } else {
-                  map.get(keys[i])!(null);
-                }
-              }
-            })
-          }, 0);
+          this.metadataLoadingTimeout = setTimeout(() => this.loadMetadataAsync(), 0);
       });
+    });
+  }
+  private loadMetadataAsync(): void {
+    this.metadataLoadingTimeout = undefined;
+    const map = this.metadataKeysToLoad;
+    this.metadataKeysToLoad = new Map();
+    let keys = [...map.keys()];
+    this.metadataTable?.bulkGet(keys)
+    .then(items => {
+      for (let i = items.length - 1; i >= 0; --i) {
+        const item = items[i];
+        if (item) {
+          map.get(item.key)!(item);
+        } else {
+          map.get(keys[i])!(null);
+        }
+      }
     });
   }
 
@@ -346,24 +356,25 @@ export class TrackDatabase {
       if (this.simplifiedLoadingTimeout) return;
       this.ngZone.runOutsideAngular(() => {
         if (!this.simplifiedLoadingTimeout)
-          this.simplifiedLoadingTimeout = setTimeout(() => {
-            this.simplifiedLoadingTimeout = undefined;
-            const map = this.simplifiedKeysToLoad;
-            this.simplifiedKeysToLoad = new Map();
-            let keys = [...map.keys()];
-            this.simplifiedTrackTable?.bulkGet(keys)
-            .then(items => {
-              for (let i = items.length - 1; i >= 0; --i) {
-                const item = items[i];
-                if (item) {
-                  map.get(item.key)!(item);
-                } else {
-                  map.get(keys[i])!(null)
-                }
-              }
-            })
-          }, 0);
+          this.simplifiedLoadingTimeout = setTimeout(() => this.loadSimplifiedTrackAsync(), 0);
       });
+    });
+  }
+  private loadSimplifiedTrackAsync(): void {
+    this.simplifiedLoadingTimeout = undefined;
+    const map = this.simplifiedKeysToLoad;
+    this.simplifiedKeysToLoad = new Map();
+    let keys = [...map.keys()];
+    this.simplifiedTrackTable?.bulkGet(keys)
+    .then(items => {
+      for (let i = items.length - 1; i >= 0; --i) {
+        const item = items[i];
+        if (item) {
+          map.get(item.key)!(item);
+        } else {
+          map.get(keys[i])!(null)
+        }
+      }
     });
   }
 
@@ -392,31 +403,29 @@ export class TrackDatabase {
   private simplify(track: Track): SimplifiedTrackSnapshot {
     const simplified: SimplifiedTrackSnapshot = { points: [] };
     let previous: L.LatLng | undefined;
-    for (const segment of track.segments) {
-      for (const point of segment.points) {
-        const p = point.pos;
-        if (!previous || p.distanceTo(previous) >= 25) {
-          const newPoint: SimplifiedPoint = {
-            lat: point.pos.lat,
-            lng: point.pos.lng,
-            ele: point.ele,
-            time: point.time,
-          };
-          if (previous && simplified.points.length > 1) {
-            const angle1 = Math.atan2(p.lat - previous.lat, p.lng - previous.lng);
-            const pprevious = simplified.points[simplified.points.length - 2];
-            const angle2 = Math.atan2(previous.lat - pprevious.lat, previous.lng - pprevious.lng);
-            if (Math.abs(angle1 - angle2) < 0.35) {
-              simplified.points[simplified.points.length - 1] = newPoint;
-              previous = p;
-              continue;
-            }
+    track.forEachPoint(point => {
+      const p = point.pos;
+      if (!previous || p.distanceTo(previous) >= 25) {
+        const newPoint: SimplifiedPoint = {
+          lat: p.lat,
+          lng: p.lng,
+          ele: point.ele,
+          time: point.time,
+        };
+        if (previous && simplified.points.length > 1) {
+          const angle1 = Math.atan2(p.lat - previous.lat, p.lng - previous.lng);
+          const pprevious = simplified.points[simplified.points.length - 2];
+          const angle2 = Math.atan2(previous.lat - pprevious.lat, previous.lng - pprevious.lng);
+          if (Math.abs(angle1 - angle2) < 0.35) {
+            simplified.points[simplified.points.length - 1] = newPoint;
+            previous = p;
+            return;
           }
-          simplified.points.push(newPoint);
-          previous = p;
         }
+        simplified.points.push(newPoint);
+        previous = p;
       }
-    }
+    });
     const lastSegment = track.segments[track.segments.length - 1];
     const lastPoint = lastSegment.points[lastSegment.points.length - 1];
     if (previous !== lastPoint.pos) {
@@ -642,28 +651,7 @@ export class TrackDatabase {
         const limiter = new RequestLimiter(2);
         const requests: Observable<any>[] = [];
         items.forEach(item => {
-          const request = () => {
-            if (this.db !== db) return EMPTY;
-            return this.injector.get(HttpService).post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
-              switchMap(result => {
-                if (this.db !== db) return EMPTY;
-                return from(this.fullTrackTable!.put({
-                  key: result.uuid + '#' + result.owner,
-                  uuid: result.uuid,
-                  owner: result.owner,
-                  version: result.version,
-                  updatedLocally: 0,
-                  needsSync: 0,
-                  track: result,
-                }));
-              }),
-              catchError(e => {
-                Console.error('error creating track on server', item.track, e);
-                this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_track', []);
-                return EMPTY;
-              })
-            );
-          }
+          const request = this.createItemRequest(db, item);
           requests.push(limiter.add(request));
         });
         if (requests.length === 0) return of([]);
@@ -675,6 +663,30 @@ export class TrackDatabase {
         return of(false);
       })
     );
+  }
+  private createItemRequest(db: Dexie, item: TrackItem): () => Observable<any> {
+    return () => {
+      if (this.db !== db) return EMPTY;
+      return this.injector.get(HttpService).post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
+        switchMap(result => {
+          if (this.db !== db) return EMPTY;
+          return from(this.fullTrackTable!.put({
+            key: result.uuid + '#' + result.owner,
+            uuid: result.uuid,
+            owner: result.owner,
+            version: result.version,
+            updatedLocally: 0,
+            needsSync: 0,
+            track: result,
+          }));
+        }),
+        catchError(e => {
+          Console.error('error creating track on server', item.track, e);
+          this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_track', []);
+          return EMPTY;
+        })
+      );
+    };
   }
 
   private syncDeletedLocally(db: Dexie): Observable<any> {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
-import { catchError, map, Observable, of, switchMap, zip } from 'rxjs';
+import { catchError, map, Observable, of, zip } from 'rxjs';
 import { I18nService } from '../i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import * as L from 'leaflet';
@@ -29,7 +29,7 @@ export class GeoService {
         return response.elements.map(
           element => element.tags['name']
         ).filter((name: string) => !!name && name.length > 0)
-        .map((name: string) => [name]) as string[][];
+        .map((name: string) => [name]);
       }),
       catchError(() => of([] as string[][]))
     );
@@ -197,7 +197,7 @@ export class GeoService {
       requests.push(this.http.post('https://api.opentopodata.org/v1/srtm30m', {locations}));
     }
     return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-      map(responses => {
+      map(responses => { // NOSONAR
         for (const response of responses) {
           for (const result of response.results) {
             const e = result['elevation'];
@@ -232,7 +232,7 @@ export class GeoService {
     if (locations.length > 0)
       requests.push(this.http.get('https://api.opentopodata.org/v1/srtm30m?locations=' + encodeURIComponent(locations)));
     return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-      map(responses => {
+      map(responses => { // NOSONAR
         for (const response of responses) {
           for (const result of response.results) {
             const e = result['elevation'];

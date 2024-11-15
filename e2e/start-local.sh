@@ -10,4 +10,6 @@ export TRAILENCE_INIT_PASSWORD="$(echo $RANDOM | md5sum | head -c 20)"
 docker compose down
 npm i
 docker compose up -d --wait
+echo "Database user is $DB_USERNAME with password $DB_PASSWORD"
+echo "Initial user is $TRAILENCE_INIT_USER with password $TRAILENCE_INIT_PASSWORD"
 /bin/bash

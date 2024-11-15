@@ -49,11 +49,19 @@ jobs:
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
       - name: Tests End 2 End
+        id: e2e
         run: |
           cd e2e
           chmod 777 ./launch-github-actions.sh
           chmod 777 ./_launch.sh
           ./launch-github-actions.sh
+      - name: Upload failure screenshot
+        if: ${{ failure() && steps.e2e.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: wdio_error_${{github.run_number}}.png
+          path: e2e/wdio_error.png
+          retention-days: 5
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

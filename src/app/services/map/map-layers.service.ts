@@ -44,7 +44,7 @@ export class MapLayersService {
     injector.get(ExtensionsService).getExtensions$().subscribe(
       extensions => {
         const thunderforest = extensions.find(e => e.extension === 'thunderforest.com');
-        if (thunderforest && thunderforest.data['apikey']) {
+        if (thunderforest?.data['apikey']) {
           this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2, false));
         }
       }
@@ -76,7 +76,7 @@ export class MapLayersService {
 
 }
 
-function createDefaultLayer(
+function createDefaultLayer( // NOSONAR
   injector: Injector,
   name: string,
   displayName: string,

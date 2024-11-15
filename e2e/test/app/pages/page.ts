@@ -1,5 +1,6 @@
 import { HeaderComponent } from '../../components/header.component';
 import { AppElement } from '../app-element';
+import { ChainablePromiseElement } from 'webdriverio';
 
 export abstract class Page extends AppElement {
 
@@ -11,13 +12,13 @@ export abstract class Page extends AppElement {
     super();
   }
 
-  public static async getActivePageElement() {
-    return $('.ion-page:not(.ion-page-hidden)');
+  public static getActivePageElement() {
+    return $('ion-app ion-router-outlet>.ion-page:not(.ion-page-hidden)');
   }
 
   public override getElement() {
     if (!this._displayedElement)
-      this._displayedElement = $('app-' + this._pageName + '.ion-page:not(.ion-page-hidden)');
+      this._displayedElement = $('ion-app ion-router-outlet>app-' + this._pageName + '.ion-page:not(.ion-page-hidden)');
     return this._displayedElement;
   }
 
@@ -25,15 +26,6 @@ export abstract class Page extends AppElement {
 
 export abstract class PageWithHeader extends Page {
 
-  private _header: HeaderComponent;
-
-  constructor(
-    pageName: string,
-  ) {
-    super(pageName);
-    this._header = new HeaderComponent(this);
-  }
-
-  public get header() { return this._header; }
+  public get header() { return new HeaderComponent(this); }
 
 }

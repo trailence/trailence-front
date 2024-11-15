@@ -3,6 +3,11 @@
     <ion-icon name="logo"></ion-icon>
     <span>Trailence</span>
   </div>
+  <div class="menu-close">
+    <ion-button fill="clear" color="dark" (click)="close();">
+      <ion-icon name="cross" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
 </div>
 <div class="menu-content">
 
@@ -14,14 +19,14 @@
       <ion-icon name="collection"></ion-icon>
       <div class="section-title">{{ i18n.texts.menu.collections }}</div>
       <div class="section-buttons">
-        <ion-button fill="clear" color="secondary" size="small" (click)="collectionService.collectionPopup(); menuController.close();">
+        <ion-button fill="clear" color="secondary" size="small" (click)="collectionService.collectionPopup(); close();">
           <ion-icon name="add" slot="icon-only"></ion-icon>
         </ion-button>
       </div>
     </div>
     @if (collectionsOpen) {
       @for (collection of collections; track collection.uuid) {
-        <div class="menu-item" (click)="goTo('/trails/collection/' + collection.uuid); menuController.close();">
+        <div class="menu-item" (click)="goTo('/trails/collection/' + collection.uuid); close();">
           <div class="item-title-container">
             <div class="item-title">
               <a href="/trails/collection/{{collection.uuid}}" target="_blank" class="inherit" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">{{ collection.name.length === 0 && collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collection.name }}</a>
@@ -44,7 +49,7 @@
     </div>
     @if (sharedWithMeOpen) {
       <ng-container *ngIf="!sharedWithMe.isEmpty()">
-        <div class="menu-item" *ngFor="let share of sharedWithMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); menuController.close();">
+        <div class="menu-item" *ngFor="let share of sharedWithMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); close();">
           <div class="item-title-container">
             <div class="item-title">{{share.name}}</div>
             <div class="item-sub-title">{{share.from}}</div>
@@ -67,7 +72,7 @@
     </div>
     @if (sharedByMeOpen) {
       <ng-container *ngIf="!sharedByMe.isEmpty()">
-        <div class="menu-item" *ngFor="let share of sharedByMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); menuController.close();">
+        <div class="menu-item" *ngFor="let share of sharedByMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); close();">
           <div class="item-title-container">
             <div class="item-title">{{share.name}}</div>
             <div class="item-sub-title">{{share.to}}</div>
@@ -82,7 +87,7 @@
 
   <div class="menu-separator"></div>
 
-  <div class="menu-item" (click)="goToRecordTrace(); menuController.close();">
+  <div class="menu-item" (click)="goToRecordTrace(); close();">
     <ion-icon name="play"></ion-icon>
     <div class="item-title-container">
       <div class="item-title">{{ i18n.texts.menu[traceRecorder.recording ? 'current_trace' : 'start_trace'] }}</div>
@@ -92,7 +97,7 @@
   <ng-container *ngIf="large">
     <div class="menu-separator"></div>
 
-    <div class="menu-item" (click)="goTo('/trail-planner'); menuController.close();">
+    <div class="menu-item" (click)="goTo('/trail-planner'); close();">
       <ion-icon name="planner"></ion-icon>
       <div class="item-title-container">
         <div class="item-title">{{ i18n.texts.menu.planner }}</div>

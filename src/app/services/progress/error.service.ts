@@ -3,6 +3,7 @@ import { ModalController } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
 import { CompositeI18nString, translate, TranslatedString } from '../i18n/i18n-string';
 import { ApiError } from '../http/api-error';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({providedIn: 'root'})
 export class ErrorService {
@@ -13,6 +14,7 @@ export class ErrorService {
   constructor(
     private readonly modalController: ModalController,
     private readonly i18n: I18nService,
+    private readonly auth: AuthService,
   ) {}
 
   public addNetworkError(error: any, i18nText: string, args: any[]) {
@@ -20,6 +22,10 @@ export class ErrorService {
     if (error instanceof ApiError) {
       if (error.httpCode === 0) {
         // no network, ignore it
+        return;
+      }
+      if (error.httpCode === 401) {
+        this.auth.logout(false).subscribe();
         return;
       }
       if (error.errorMessage) technicalMessage = error.errorMessage;

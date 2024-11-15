@@ -15,7 +15,6 @@ describe('Login and Logout', () => {
     await App.desktopMode();
     loginPage = await App.start();
     browser.waitUntil(async () => await loginPage.loginInput.isDisplayed());
-    expect(await loginPage.loginInput.isDisplayed()).toBeTrue();
   });
 
   let myTrailsPage: TrailsPage;

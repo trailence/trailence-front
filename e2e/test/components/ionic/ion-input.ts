@@ -5,14 +5,14 @@ export class IonicInput extends Component {
 
   constructor(
     parent: AppElement | ChainablePromiseElement,
-    selector: string
+    selector?: string
   ) {
-    super(parent, 'ion-input' + selector);
+    super(parent, selector);
   }
 
   public async setValue(value: string) {
     await this.waitDisplayed();
-    const input = await this.getElement().$('input');
+    const input = this.getElement().$('input');
     await input.setValue(value);
   }
 

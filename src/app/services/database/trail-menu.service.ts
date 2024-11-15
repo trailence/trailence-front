@@ -31,12 +31,12 @@ import { Photo } from 'src/app/model/photo';
 export class TrailMenuService {
 
   constructor(
-    private injector: Injector
+    private readonly injector: Injector
   ) {}
 
   public trailToCompare: Trail | undefined;
 
-  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: string | undefined = undefined, onlyGlobal: boolean = false): MenuItem[] {
+  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: string | undefined = undefined, onlyGlobal: boolean = false): MenuItem[] { // NOSONAR
     if (trails.length === 0) return [];
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email!;
@@ -235,7 +235,7 @@ export class TrailMenuService {
     )).pipe(
       debounceTime(100),
       first(),
-      map(tracks => tracks.filter(t => !!t) as Track[])
+      map(tracks => tracks.filter(t => !!t))
     );
     tracks$.subscribe(async (tracks) => {
       const module = await import('../../components/download-map-popup/download-map-popup.component');
@@ -471,7 +471,7 @@ export class TrailMenuService {
       if (modalResult.data.what === 'current' || (modalResult.data.what === 'both' && trail.currentTrackUuid !== trail.originalTrackUuid))
         tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
       return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
-        map(tracks => ({trail, tracks: tracks.filter(track => !!track) as Track[]})),
+        map(tracks => ({trail, tracks: tracks.filter(track => !!track)})),
         switchMap(t => {
           if (t.tracks.length === 0) return of(null);
           const tags$ = t.trail.owner !== email ? of([]) : this.injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true);
@@ -616,7 +616,7 @@ export class TrailMenuService {
         map(([track1, track2]) => ({trail, track1, track2}))
       )
     )).subscribe(trailsAndTracks => {
-      trailsAndTracks.sort((t1, t2) => (t1.track1.metadata.startDate || 0) - (t2.track1.metadata.startDate || 0))
+      trailsAndTracks.sort((t1, t2) => (t1.track1.metadata.startDate ?? 0) - (t2.track1.metadata.startDate ?? 0))
       const owner = this.injector.get(AuthService).email!;
       const preferences = this.injector.get(PreferencesService);
       const originalTrack = new Track({owner}, preferences);

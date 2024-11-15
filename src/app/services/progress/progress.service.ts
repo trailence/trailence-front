@@ -4,19 +4,18 @@ import { I18nService } from '../i18n/i18n.service';
 export class Progress {
 
   private _workDone: number = 0;
-  private _subTitle: string = '';
-  private _divTitle: HTMLDivElement;
-  private _divProgress: HTMLDivElement;
-  private _divInnerProgress: HTMLDivElement;
-  private _divSubTitle: HTMLDivElement;
+  private readonly _divTitle: HTMLDivElement;
+  private readonly _divProgress: HTMLDivElement;
+  private readonly _divInnerProgress: HTMLDivElement;
+  private readonly _divSubTitle: HTMLDivElement;
 
   constructor(
-    private _service: ProgressService,
-    private _container: HTMLDivElement,
-    private _title: string,
+    private readonly _service: ProgressService,
+    private readonly _container: HTMLDivElement,
+    _title: string,
     private _workAmount: number,
     i18n: I18nService,
-    private _oncancel?: () => void,
+    private readonly _oncancel?: () => void,
   ) {
     _container.className = 'progress-item';
     this._divTitle = document.createElement('DIV') as HTMLDivElement;
@@ -76,12 +75,10 @@ export class Progress {
   }
 
   public set title(value: string) {
-    this._title = value;
     this._divTitle.innerText = value;
   }
 
   public set subTitle(value: string) {
-    this._subTitle = value;
     this._divSubTitle.innerText = value;
   }
 
@@ -100,9 +97,9 @@ export class Progress {
 })
 export class ProgressService {
 
-  private _container: HTMLDivElement;
+  private readonly _container: HTMLDivElement;
 
-  constructor(private i18n: I18nService) {
+  constructor(private readonly i18n: I18nService) {
     this._container = document.createElement('DIV') as HTMLDivElement;
     this._container.className = 'progress-container';
     this._container.style.display = 'none';

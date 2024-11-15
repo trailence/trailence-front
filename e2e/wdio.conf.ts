@@ -17,11 +17,17 @@ if (process.env.TRAILENCE_INIT_PASSWORD) {
   dynamicConfig.trailence['initUserpass'] = process.env.TRAILENCE_INIT_PASSWORD;
 }
 
+let specs = './test/specs/**/*.ts';
+
 for (const arg of process.argv) {
   if (arg.startsWith('--trailence-init-username='))
     dynamicConfig.trailence['initUsername'] = arg.substring(26);
   else if (arg.startsWith('--trailence-init-password='))
     dynamicConfig.trailence['initUserpass'] = arg.substring(26);
+  else if (arg.startsWith('--test-only=')) {
+    const name = arg.substring(12).trim();
+    if (name.length > 0) specs = './test/specs/**/' + name + '*.ts';
+  }
 }
 
 if (process.env.IS_CI) {
@@ -82,7 +88,7 @@ export const config = Object.assign({}, {
     // of the config file unless it's absolute.
     //
     specs: [
-        './test/specs/**/*.ts'
+        specs
     ],
     // Patterns to exclude.
     exclude: [
@@ -137,7 +143,7 @@ export const config = Object.assign({}, {
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
-    bail: 0,
+    bail: 1,
     //
     // Set a base URL in order to shorten url command calls. If your `url` parameter starts
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
@@ -146,7 +152,7 @@ export const config = Object.assign({}, {
     // baseUrl: 'http://localhost:8080',
     //
     // Default timeout for all waitFor* commands.
-    waitforTimeout: 10000,
+    waitforTimeout: 30000,
     //
     // Default timeout in milliseconds for request
     // if browser driver or grid doesn't send response

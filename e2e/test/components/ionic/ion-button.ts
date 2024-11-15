@@ -7,7 +7,7 @@ export class IonicButton extends Component {
     parent: AppElement | ChainablePromiseElement,
     selector?: string
   ) {
-    super(parent, selector ? 'ion-button' + selector : undefined);
+    super(parent, selector);
   }
 
   public async click() {

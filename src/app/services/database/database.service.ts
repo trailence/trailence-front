@@ -165,7 +165,7 @@ export class DatabaseService {
       debounceTime(500),
     )
     .subscribe(() => {
-      if (!this._db) return;
+      if (!this._db.value) return;
       registered.lastSync = Date.now();
       if (registered.syncTimeout) clearTimeout(registered.syncTimeout);
       registered.syncTimeout = undefined;

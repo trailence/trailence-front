@@ -7,6 +7,8 @@ export abstract class ModalComponent extends Component {
     return await this.getElement().$('ion-header ion-label').getText();
   }
 
+  public get contentElement() { return this.getElement().$('ion-content'); }
+
   public getFooterButtons() {
     return this.getElement().$('ion-footer ion-buttons');
   }

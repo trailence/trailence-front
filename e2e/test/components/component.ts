@@ -1,4 +1,5 @@
 import { AppElement } from '../app/app-element';
+import { ChainablePromiseElement } from 'webdriverio';
 
 export abstract class Component extends AppElement {
 
@@ -16,7 +17,7 @@ export abstract class Component extends AppElement {
       const parentElement = this._parent instanceof AppElement ? this._parent.getElement()! : this._parent;
       this._element = this._selector ? parentElement.$(this._selector) : parentElement;
     }
-    return this._element;
+    return this._element!;
   }
 
 }
