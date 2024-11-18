@@ -23,7 +23,7 @@ export class App {
       specDone: (result => {
         browser.getLogs('browser').then(logs => {
           logs = logs.map(log => (log as any)?.message).filter(msg => msg?.indexOf('[WDIO]') < 0);
-          console.log(' **** Test ' + result.fullName + ' Console output ****');
+          console.log(' **** Test: ' + result.fullName + ' -- Console output ****');
           console.log(logs);
         });
         if (result.status === 'failed') {

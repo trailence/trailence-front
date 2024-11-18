@@ -47,7 +47,7 @@ export class PhotoService {
 
   public getPhotosForTrailReady(owner: string, uuid: string): Observable<Photo[]> {
     return this.store.getAll$().pipe(
-      switchMap(photos$ => zip(
+      switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
         photos$.map(item$ => item$.pipe(
           filter(i => !!i),
           timeout(10000),

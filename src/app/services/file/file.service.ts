@@ -32,6 +32,9 @@ export class FileService implements IFileService {
     if (typeof (window as any).showOpenFilePicker !== 'function') {
       return false;
     }
+    if (window.navigator.webdriver) {
+      return false;
+    }
     const accept: any = {};
     for (const type of r.types) {
       accept[type.mime] = type.extensions.map(ext => '.' + ext);
@@ -131,8 +134,10 @@ export class FileService implements IFileService {
       }
     });
     document.documentElement.appendChild(input);
-    const click = new MouseEvent('click');
-    input.dispatchEvent(click);
+    if (!window.navigator.webdriver) {
+      const click = new MouseEvent('click');
+      input.dispatchEvent(click);
+    }
     return true;
   }
 

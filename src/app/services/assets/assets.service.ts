@@ -129,34 +129,38 @@ export class AssetsService {
           return;
         }
         this._loadingSvg.set(url, [observer]);
-        const error = (e: any) => {
-          Console.error('Error loading SVG ' + url, e);
-          const subscribers = this._loadingSvg.get(url);
-          this._loadingSvg.delete(url);
-          subscribers?.forEach(s => s.error(e));
-        };
-        this.http.get(url, {responseType: 'text'}).subscribe({
-          next: svgText => {
-            const el = document.createElement('html');
-            el.innerHTML = svgText;
-            const svg = el.getElementsByTagName('svg').item(0);
-            if (!svg) {
-              error(new Error('Invalid SVG'));
-              return;
-            }
-            const subscribers = this._loadingSvg.get(url);
-            this._loadingSvg.delete(url);
-            this._loadedSvg.set(url, svg);
-            subscribers?.forEach(s => {
-              s.next(svg.cloneNode(true) as SVGSVGElement);
-              s.complete();
-            });
-          },
-          error: e => {
-            error(e);
-          }
-        });
+        this._loadSvg(url);
       });
+    });
+  }
+
+  private _loadSvg(url: string) {
+    const error = (e: any) => {
+      Console.error('Error loading SVG ' + url, e);
+      const subscribers = this._loadingSvg.get(url);
+      this._loadingSvg.delete(url);
+      subscribers?.forEach(s => s.error(e));
+    };
+    this.http.get(url, {responseType: 'text'}).subscribe({
+      next: svgText => {
+        const el = document.createElement('html');
+        el.innerHTML = svgText;
+        const svg = el.getElementsByTagName('svg').item(0);
+        if (!svg) {
+          error(new Error('Invalid SVG'));
+          return;
+        }
+        const subscribers = this._loadingSvg.get(url);
+        this._loadingSvg.delete(url);
+        this._loadedSvg.set(url, svg);
+        subscribers?.forEach(s => {
+          s.next(svg.cloneNode(true) as SVGSVGElement);
+          s.complete();
+        });
+      },
+      error: e => {
+        error(e);
+      }
     });
   }
 

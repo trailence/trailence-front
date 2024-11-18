@@ -40,6 +40,7 @@ import { TrackEditionService } from 'src/app/services/track-edition/track-editio
 import { Console } from 'src/app/utils/console';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { ShareService } from 'src/app/services/database/share.service';
+import { Share } from 'src/app/model/share';
 
 const MIN_ZOOM = 14;
 
@@ -132,7 +133,7 @@ export class TrailPlannerPage extends AbstractPage {
       filter(map => !!map),
       first()
     ).subscribe(map => {
-      this.map = map as MapComponent;
+      this.map = map;
       this.mapState = this.map.getState();
       this.whenVisible.subscribe(
         combineLatest([this.mapState.center$, this.mapState.zoom$]).pipe(debounceTime(200)),
@@ -491,31 +492,29 @@ export class TrailPlannerPage extends AbstractPage {
 
   private loadFromLocalStorage(): void {
     const trackInStorage = localStorage.getItem(LOCALSTORAGE_KEY_PREFIX + this.injector.get(AuthService).email + '.track');
-    if (trackInStorage) {
-      const pointsInStorage = localStorage.getItem(LOCALSTORAGE_KEY_PREFIX + this.injector.get(AuthService).email + '.points');
-      if (pointsInStorage) {
-        try {
-          const points = JSON.parse(pointsInStorage) as {s: number, p: number}[];
-          const dto = JSON.parse(trackInStorage) as Partial<TrackDto>;
-          this.track = new Track(dto, this.injector.get(PreferencesService));
-          for (let i = 0; i < points.length; ++i) {
-            const p = points[i];
-            const point = this.track.segments[p.s].points[p.p];
-            const a = this.createAnchor(point.pos, '' + (this.anchors.length + 1), true);
-            this.anchors.push(a);
-            this.map!.addToMap(a.marker);
-            if (i > 0) {
-              const prev = points[i - 1];
-              if (p.s != prev.s) this.anchorsPoints.push([]);
-              else this.anchorsPoints.push(this.track.segments[p.s].points.slice(prev.p + 1, p.p + 1));
-            }
-          }
-          this.updateCurrentMapTrack();
-        } catch (e) {
-          Console.warn('Error loading trail planner local storage', e, trackInStorage, pointsInStorage);
-          // ignore
+    if (!trackInStorage) return;
+    const pointsInStorage = localStorage.getItem(LOCALSTORAGE_KEY_PREFIX + this.injector.get(AuthService).email + '.points');
+    if (!pointsInStorage) return;
+    try {
+      const points = JSON.parse(pointsInStorage) as {s: number, p: number}[];
+      const dto = JSON.parse(trackInStorage) as Partial<TrackDto>;
+      this.track = new Track(dto, this.injector.get(PreferencesService));
+      for (let i = 0; i < points.length; ++i) {
+        const p = points[i];
+        const point = this.track.segments[p.s].points[p.p];
+        const a = this.createAnchor(point.pos, '' + (this.anchors.length + 1), true);
+        this.anchors.push(a);
+        this.map!.addToMap(a.marker);
+        if (i > 0) {
+          const prev = points[i - 1];
+          if (p.s != prev.s) this.anchorsPoints.push([]);
+          else this.anchorsPoints.push(this.track.segments[p.s].points.slice(prev.p + 1, p.p + 1));
         }
       }
+      this.updateCurrentMapTrack();
+    } catch (e) {
+      Console.warn('Error loading trail planner local storage', e, trackInStorage, pointsInStorage);
+      // ignore
     }
   }
 
@@ -528,8 +527,7 @@ export class TrailPlannerPage extends AbstractPage {
     const points: {s: number, p: number}[] = [{s: 0, p: 0}];
     let segmentIndex = 0;
     let pointIndex = 0;
-    for (let i = 0; i < this.anchorsPoints.length; ++i) {
-      const ap = this.anchorsPoints[i];
+    for (const ap of this.anchorsPoints) {
       if (ap.length === 0) {
         segmentIndex++;
         pointIndex = 0;
@@ -701,25 +699,7 @@ export class TrailPlannerPage extends AbstractPage {
               trails.length === 0 ? of([]) : combineLatest(trails.map(trail => this.injector.get(TrackService).getFullTrackReady$(trail.currentTrackUuid, trail.owner)))
             ])
             .pipe(
-              map(([collections, shares, tracks]) => {
-                const result: {trail: Trail; track: Track; collectionName: string}[] = [];
-                for (const track of tracks) {
-                  const trail = trails.find(trail => trail.currentTrackUuid === track.uuid && trail.owner === track.owner);
-                  if (trail) {
-                    const collection = collections.find(col => col.uuid === trail.collectionUuid && col.owner === trail.owner);
-                    if (collection) {
-                      const collectionName = collection.name.length === 0 && collection.type === TrailCollectionType.MY_TRAILS ? this.i18n.texts.my_trails : collection.name;
-                      result.push({trail, track, collectionName});
-                    } else {
-                      const share = shares.find(share => share.from === trail.owner && share.trails.indexOf(trail.uuid) >= 0);
-                      if (share) {
-                        result.push({trail, track, collectionName: share.name});
-                      }
-                    }
-                  }
-                }
-                return result;
-              })
+              map(([collections, shares, tracks]) => this.computeTrailsWithCollectionName(collections, shares, trails, tracks))
             )
           ),
         )
@@ -746,6 +726,25 @@ export class TrailPlannerPage extends AbstractPage {
       const hl = previouslyHighlighted ? list.find(e => e.trail.owner === previouslyHighlighted.owner && e.trail.uuid === previouslyHighlighted.uuid) : undefined;
       if (hl) this.toggleHighlightTrail(hl.trail);
     });
+  }
+
+  private computeTrailsWithCollectionName(collections: TrailCollection[], shares: Share[], trails: Trail[], tracks: Track[]): {trail: Trail; track: Track; collectionName: string}[] {
+    const result: {trail: Trail; track: Track; collectionName: string}[] = [];
+    for (const track of tracks) {
+      const trail = trails.find(trail => trail.currentTrackUuid === track.uuid && trail.owner === track.owner);
+      if (!trail)  continue;
+      const collection = collections.find(col => col.uuid === trail.collectionUuid && col.owner === trail.owner);
+      if (collection) {
+        const collectionName = collection.name.length === 0 && collection.type === TrailCollectionType.MY_TRAILS ? this.i18n.texts.my_trails : collection.name;
+        result.push({trail, track, collectionName});
+      } else {
+        const share = shares.find(share => share.from === trail.owner && share.trails.indexOf(trail.uuid) >= 0);
+        if (share) {
+          result.push({trail, track, collectionName: share.name});
+        }
+      }
+    }
+    return result;
   }
 
   toggleHighlightTrail(trail: Trail): void {

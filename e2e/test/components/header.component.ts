@@ -39,6 +39,7 @@ export class HeaderComponent extends Component {
     await button.click();
     const menu = $('app-root ion-menu app-menu');
     await menu.waitForDisplayed();
+    await browser.waitUntil(() => menu.getCSSProperty('width').then(w => w.value === '304px'));
     return new AppMenu(menu);
   }
 

@@ -1,15 +1,15 @@
 <div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }} {{editToolsComponent ? 'edit-tools-open' : ''}}">
   <div class="map-container">
     <div class="map-top-buttons" *ngIf="recording">
-      <ion-button shape="round" size="small" *ngIf="recording.paused" (click)="togglePauseRecording(true)">
+      <ion-button shape="round" size="small" *ngIf="recording.paused" (click)="togglePauseRecordingWithConfirmation()">
         <ion-icon slot="start" name="play-circle"></ion-icon>
         <span>{{i18n.texts.trace_recorder.resume}}</span>
       </ion-button>
-      <ion-button shape="round" size="small" *ngIf="!recording.paused" (click)="togglePauseRecording(true)" color="medium">
+      <ion-button shape="round" size="small" *ngIf="!recording.paused" (click)="togglePauseRecordingWithConfirmation()" color="medium">
         <ion-icon slot="start" name="pause-circle"></ion-icon>
         <span>{{i18n.texts.trace_recorder.pause}}</span>
       </ion-button>
-      <ion-button shape="round" size="small" *ngIf="!recording.paused" (click)="stopRecording(true)" color="danger">
+      <ion-button shape="round" size="small" *ngIf="!recording.paused" (click)="stopRecordingWithConfirmation()" color="danger">
         <ion-icon slot="start" name="stop-circle"></ion-icon>
         <span>{{i18n.texts.trace_recorder.stop}}</span>
       </ion-button>
@@ -132,8 +132,8 @@
           <app-icon-label-button icon="play-circle" [label]="i18n.texts.trace_recorder.start_this_trail" [size]="28" [fontSize]="11" color="primary" (click)="startTrail()"></app-icon-label-button>
         </ng-container>
         <ng-container *ngIf="recording">
-          <app-icon-label-button [icon]="recording.paused ? 'play-circle' : 'pause-circle'" [label]="i18n.texts.trace_recorder[recording.paused ? 'resume' : 'pause']" [size]="28" [fontSize]="11" color="primary" (click)="togglePauseRecording()"></app-icon-label-button>
-          <app-icon-label-button icon="stop-circle" [label]="i18n.texts.trace_recorder.stop" [size]="28" [fontSize]="11" color="primary" (click)="stopRecording()"></app-icon-label-button>
+          <app-icon-label-button [icon]="recording.paused ? 'play-circle' : 'pause-circle'" [label]="i18n.texts.trace_recorder[recording.paused ? 'resume' : 'pause']" [size]="28" [fontSize]="11" color="primary" (click)="togglePauseRecordingWithoutConfirmation()"></app-icon-label-button>
+          <app-icon-label-button icon="stop-circle" [label]="i18n.texts.trace_recorder.stop" [size]="28" [fontSize]="11" color="primary" (click)="stopRecordingWithoutConfirmation()"></app-icon-label-button>
         </ng-container>
         <app-icon-label-button *ngIf="canEdit()" icon="tool" [label]="i18n.texts.pages.trail.actions.edit_tools" [size]="28" [fontSize]="11" color="primary" (click)="enableEditTools()"></app-icon-label-button>
       </div>

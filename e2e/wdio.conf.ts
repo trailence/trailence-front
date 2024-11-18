@@ -13,7 +13,7 @@ caps["goog:loggingPrefs"] = {
 dynamicConfig.capabilities = [caps];
 dynamicConfig.trailence = {};
 
-let specs = './test/specs/**/*.ts';
+let specs = [ './test/specs/**/*.ts' ];
 
 for (const arg of process.argv) {
   if (arg.startsWith('--trailence-init-username='))
@@ -22,7 +22,10 @@ for (const arg of process.argv) {
     dynamicConfig.trailence['initUserpass'] = arg.substring(26);
   else if (arg.startsWith('--test-only=')) {
     const name = arg.substring(12).trim();
-    if (name.length > 0) specs = './test/specs/**/' + name + '*.ts';
+    if (name.length > 0) specs = [
+      './test/specs/**/' + name + '*.ts',
+      './test/specs/**/' + name + '*/*.ts'
+    ];
   }
 }
 
@@ -84,9 +87,7 @@ export const config = Object.assign({}, {
     // The path of the spec files will be resolved relative from the directory of
     // of the config file unless it's absolute.
     //
-    specs: [
-        specs
-    ],
+    specs: specs,
     // Patterns to exclude.
     exclude: [
         // 'path/to/excluded/files'
