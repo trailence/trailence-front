@@ -12,11 +12,7 @@ export class CollectionModal extends ModalComponent {
 
   public async clickCreate() {
     const button = await this.getFooterButtonWithText('Create');
-    try {
-      await button.click();
-    } catch (e) {
-      await browser.waitUntil(() => false, { timeout: 600000 }); // TODO to debug when app menu not closed
-    }
+    await button.click();
   }
 
   public async clickSave() {

@@ -3,7 +3,6 @@ import { MapToolUtils } from './map-tool-utils';
 import { AssetsService } from 'src/app/services/assets/assets.service';
 import { Injector } from '@angular/core';
 import { ModalController } from '@ionic/angular/standalone';
-import { MapLayerSelectionComponent } from '../../map-layer-selection/map-layer-selection.component';
 import { MapState } from '../map-state';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 
@@ -33,8 +32,9 @@ export class MapLayerSelectionTool extends L.Control {
       event.preventDefault();
       event.stopPropagation();
       const modalController = this.injector.get(ModalController);
+      const module = await import('../../map-layer-selection/map-layer-selection.component');
       const modal = await modalController.create({
-        component: MapLayerSelectionComponent,
+        component: module.MapLayerSelectionComponent,
         componentProps: {
           buttons: true,
           popup: true,
