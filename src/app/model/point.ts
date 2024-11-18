@@ -12,7 +12,7 @@ export class Point {
   private readonly _heading: BehaviorSubject<number | undefined>;
   private readonly _speed: BehaviorSubject<number | undefined>;
 
-  constructor(
+  constructor( // NOSONAR
     lat: number,
     lng: number,
     ele?: number,

@@ -32,6 +32,7 @@ describe('Login and Logout', () => {
     await logoutPopup.clickKeepData();
     loginPage = new LoginPage();
     await loginPage.waitDisplayed();
+    await App.end();
   });
 
 })

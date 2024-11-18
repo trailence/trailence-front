@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular/standalone';
 import { Subject } from 'rxjs';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class BrowserService {
@@ -12,6 +13,7 @@ export class BrowserService {
   constructor(
     platform: Platform
   ) {
+    Console.info('platform: ' + platform.platforms().join(','));
     platform.resize.subscribe(() => {
       this._width = platform.width();
       this._height = platform.height();

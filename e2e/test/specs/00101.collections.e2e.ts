@@ -62,6 +62,7 @@ describe('Collections', () => {
     const collections = await menu.getCollections();
     expect(collections.length).toBe(1);
     expect(collections).toContain('My Trails');
+    await App.end();
   });
 
 })
