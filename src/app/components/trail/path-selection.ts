@@ -83,7 +83,7 @@ export class TrailPathSelection {
     }, 0);
   }
 
-  updatedTracks(tracks: Track[]): void {
+  updatedTracks(tracks: Track[]): void { // NOSONAR
     if (this.selection.length === 0) return;
     let mapTracksChanged = false;
     for (let i = 0; i < this.selectionRange.length; ++i) {

@@ -65,7 +65,8 @@ describe('Collections', () => {
     expect(collections).toContain('My Trails');
     expect(collections).toContain('Test first Collection UPDATE 1');
     const page = await menu.openCollection('Test first Collection UPDATE 1');
-    expect(await page.header.getTitle()).toBe('Test first Collection UPDATE 1')
+    expect(await page.header.getTitle()).toBe('Test first Collection UPDATE 1');
+    await App.end();
   });
 
 })

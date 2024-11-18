@@ -20,27 +20,50 @@ export class App {
     expect(App.config.initUsername.length).toBeGreaterThan(0);
     expect(App.config.initUserpass.length).toBeGreaterThan(0);
     jasmine.getEnv().addReporter({
-      specDone: (result => {
-        browser.getLogs('browser').then(logs => {
+      specDone: (result) => {
+        return browser.getLogs('browser').then(logs => {
           logs = logs.map(log => (log as any)?.message).filter(msg => msg?.indexOf('[WDIO]') < 0);
-          console.log(' **** Test ' + result.fullName + ' Console output ****');
+          console.log(' **** Test: ' + result.fullName + ' -- Console output ****');
           console.log(logs);
+        }).then(() => {
+          if (result.status === 'failed') {
+            return browser.saveScreenshot('wdio_error.png').then();
+          }
         });
-        if (result.status === 'failed') {
-          return browser.saveScreenshot('wdio_error.png').then();
-        }
+      }/*,
+      suiteDone: (result) => {
+        console.log('Suite done: ' + result.fullName);
         return browser.execute(() => (window as any).__coverage__)
         .then(coverage =>
           import('fs')
           .then(fs => {
+            const name = 'cov_' + result.id + '_' + Date.now() + '.json';
+            console.log('Writing coverage to ' + name);
             fs.writeFileSync(
-              '../.nyc_output/coverage_' + result.id + '.json',
+              '../.nyc_output/' + name,
               JSON.stringify(coverage)
             );
+            console.log('Coverage file written: ' + name);
           })
         );
-      })
+      },*/
     });
+  }
+
+  public static async end() {
+    const coverage = await browser.execute(() => (window as any).__coverage__);
+    if (!coverage) {
+      console.log('No coverage !');
+      return;
+    }
+    const fs = await import('fs');
+    const name = 'cov_' + Date.now() + '.json';
+    console.log('Writing coverage to ' + name);
+    fs.writeFileSync(
+      '../.nyc_output/' + name,
+      JSON.stringify(coverage)
+    );
+    console.log('Coverage file written: ' + name);
   }
 
   public static async desktopMode() {
