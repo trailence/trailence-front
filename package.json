@@ -75,7 +75,7 @@
     "@types/jasmine": "~5.1.0",
     "@types/leaflet": "^1.9.12",
     "@typescript-eslint/eslint-plugin": "^8.8.1",
-    "@typescript-eslint/parser": "^8.8.1",
+    "@typescript-eslint/parser": "^8.14.0",
     "eslint": "^9.12.0",
     "jasmine-core": "~5.2.0",
     "jasmine-spec-reporter": "^7.0.0",
