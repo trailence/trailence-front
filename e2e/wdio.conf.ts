@@ -4,16 +4,17 @@ dynamicConfig.baseUrl = "http://localhost:8100";
 const caps = { browserName: 'chrome' } as any;
 caps['goog:chromeOptions'] = {
   args: [
-    '--lang=en_US'
+    '--lang=en_US',
+    '--disable-ipc-flooding-protection',
   ]
 };
 caps["goog:loggingPrefs"] = {
   browser: "ALL",
 };
 dynamicConfig.capabilities = [caps];
-dynamicConfig.trailence = {};
+dynamicConfig.trailence = {mode: 'desktop'};
 
-let specs = './test/specs/**/*.ts';
+let specs = [ './test/specs/**/*.ts' ];
 
 for (const arg of process.argv) {
   if (arg.startsWith('--trailence-init-username='))
@@ -22,11 +23,18 @@ for (const arg of process.argv) {
     dynamicConfig.trailence['initUserpass'] = arg.substring(26);
   else if (arg.startsWith('--test-only=')) {
     const name = arg.substring(12).trim();
-    if (name.length > 0) specs = './test/specs/**/' + name + '*.ts';
+    if (name.length > 0) specs = [
+      './test/specs/**/' + name + '*.ts',
+      './test/specs/**/' + name + '*/*.ts'
+    ];
+  } else if (arg.startsWith('--trailence-mode=')) {
+    dynamicConfig.trailence['mode'] = arg.substring(17);
   }
 }
 
+let isCi = false;
 if (process.env.IS_CI) {
+  isCi = true;
   dynamicConfig.baseUrl = "http://localhost:80";
   caps['goog:chromeOptions'].args.push(
     '--no-sandbox',
@@ -46,7 +54,6 @@ if (process.env.IS_CI) {
     // BlinkGenPropertyTrees disabled due to crbug.com/937609
     '--disable-features=TranslateUI,BlinkGenPropertyTrees',
     '--disable-hang-monitor',
-    '--disable-ipc-flooding-protection',
     '--disable-popup-blocking',
     '--disable-prompt-on-repost',
     '--disable-renderer-backgrounding',
@@ -59,6 +66,8 @@ if (process.env.IS_CI) {
     '--use-mock-keychain',
   );
 }
+
+let workerCounter = 0;
 
 export const config = Object.assign({}, {
     //
@@ -84,9 +93,7 @@ export const config = Object.assign({}, {
     // The path of the spec files will be resolved relative from the directory of
     // of the config file unless it's absolute.
     //
-    specs: [
-        specs
-    ],
+    specs: specs,
     // Patterns to exclude.
     exclude: [
         // 'path/to/excluded/files'
@@ -135,6 +142,7 @@ export const config = Object.assign({}, {
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevels: {
       webdriver: 'info',
+      webdriverio: 'error',
     //     '@wdio/appium-service': 'info'
     },
     //
@@ -192,7 +200,7 @@ export const config = Object.assign({}, {
     // Options to be passed to Jasmine.
     jasmineOpts: {
         // Jasmine default timeout
-        defaultTimeoutInterval: 60000,
+        defaultTimeoutInterval: 300000,
         random: false,
         //
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
@@ -237,8 +245,16 @@ export const config = Object.assign({}, {
      * @param  {object} specs    specs to be run in the worker process
      * @param  {number} retries  number of retries used
      */
-    // onWorkerEnd: function (cid, exitCode, specs, retries) {
-    // },
+    onWorkerEnd: async function (cid, exitCode, specs, retries) {
+      /*
+      if (++workerCounter > 1 && isCi) {
+        console.log('after ' + workerCounter + ' workers: merge coverage reports');
+        const childProcess = await import('child_process');
+        childProcess.execSync('npm run coverage-merge', {
+          cwd: '../'
+        });
+      }*/
+    },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.

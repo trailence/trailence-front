@@ -7,7 +7,6 @@ describe('Collections', () => {
 
   it('Login', async () => {
     App.init();
-    await App.desktopMode();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
@@ -65,7 +64,7 @@ describe('Collections', () => {
     expect(collections).toContain('My Trails');
     expect(collections).toContain('Test first Collection UPDATE 1');
     const page = await menu.openCollection('Test first Collection UPDATE 1');
-    expect(await page.header.getTitle()).toBe('Test first Collection UPDATE 1')
+    expect(await page.header.getTitle()).toBe('Test first Collection UPDATE 1');
   });
 
 })

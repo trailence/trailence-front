@@ -7,7 +7,6 @@ describe('Collections', () => {
 
   it('Login', async () => {
     App.init();
-    await App.desktopMode();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     expect(await myTrailsPage.header.getTitle()).toBe('My Trails');

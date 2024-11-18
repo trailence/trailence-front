@@ -13,41 +13,54 @@ export class App {
     const trailence = (browser.options as any)['trailence'];
     App.config = {
       initUsername: trailence.initUsername,
-      initUserpass: trailence.initUserpass
+      initUserpass: trailence.initUserpass,
+      mode: trailence.mode ?? 'desktop'
     };
     expect(App.config.initUsername).toBeDefined();
     expect(App.config.initUserpass).toBeDefined();
     expect(App.config.initUsername.length).toBeGreaterThan(0);
     expect(App.config.initUserpass.length).toBeGreaterThan(0);
     jasmine.getEnv().addReporter({
-      specDone: (result => {
-        browser.getLogs('browser').then(logs => {
+      specDone: (result) => {
+        return browser.getLogs('browser').then(logs => {
           logs = logs.map(log => (log as any)?.message).filter(msg => msg?.indexOf('[WDIO]') < 0);
-          console.log(' **** Test ' + result.fullName + ' Console output ****');
+          console.log(' **** Test: ' + result.fullName + ' -- Console output ****');
           console.log(logs);
+        }).then(() => {
+          if (result.status === 'failed') {
+            return browser.saveScreenshot('wdio_error.png').then();
+          }
         });
-        if (result.status === 'failed') {
-          return browser.saveScreenshot('wdio_error.png').then();
-        }
-        return browser.execute(() => (window as any).__coverage__)
-        .then(coverage =>
-          import('fs')
+      },
+      suiteDone: (result) => {
+        console.log('Suite done: ' + result.fullName);
+        const start = Date.now();
+        return browser.execute(() => JSON.stringify((window as any).__coverage__))
+        .then(coverage => {
+          console.log('Coverage retrieved in ' + (Date.now() - start) + ' ms.');
+          return import('fs')
           .then(fs => {
+            const name = 'cov_' + result.id + '_' + Date.now() + '.json';
+            console.log('Writing coverage to ' + name);
             fs.writeFileSync(
-              '../.nyc_output/coverage_' + result.id + '.json',
-              JSON.stringify(coverage)
+              '../.nyc_output/' + name,
+              coverage
             );
+            console.log('Coverage file written: ' + name);
           })
-        );
-      })
+        });
+      },
     });
   }
 
-  public static async desktopMode() {
-    return await browser.setWindowSize(1600, 900);
-  }
-
   public static async start() {
+    switch (App.config.mode) {
+      case 'mobile':
+        await browser.setWindowSize(300, 616);
+        break;
+      default:
+        await browser.setWindowSize(1600, 900);
+    }
     await browser.url(browser.options.baseUrl!);
     const loginPage = new LoginPage();
     await loginPage.waitDisplayed();
@@ -67,7 +80,7 @@ export class App {
   }
 
   public static getPopoverContent(popoverContainer: ChainablePromiseElement): ChainablePromiseElement {
-    return popoverContainer.$('>>>div.popover-viewport');
+    return popoverContainer.$('>>>.popover-viewport');
   }
 
   public static async waitModal() {
@@ -92,14 +105,14 @@ export class App {
       return new AppMenu(menu);
     }
 
-    const page = Page.getActivePageElement();
+    const page = await Page.getActivePageElement();
     const header = new HeaderComponent(page);
     await header.waitDisplayed();
     return await header.openAppMenu();
   }
 
   public static async synchronize() {
-    const page = Page.getActivePageElement();
+    const page = await Page.getActivePageElement();
     const header = new HeaderComponent(page);
     await header.waitDisplayed();
     const menu = await header.openUserMenu();
@@ -107,7 +120,7 @@ export class App {
   }
 
   public static async logout(withDelete: boolean = false) {
-    const page = Page.getActivePageElement();
+    const page = await Page.getActivePageElement();
     const header = new HeaderComponent(page);
     await header.waitDisplayed();
     const userMenu = await header.openUserMenu();
@@ -127,4 +140,5 @@ export class App {
 export interface AppConfig {
   initUsername: string;
   initUserpass: string;
+  mode: string;
 }

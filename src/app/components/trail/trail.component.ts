@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonText, IonTextarea, IonInput, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonInput, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -19,7 +19,6 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { TrailHoverCursor } from './hover-cursor';
 import { TrailPathSelection } from './path-selection';
-import { MapLayerSelectionComponent } from '../map-layer-selection/map-layer-selection.component';
 import { Router } from '@angular/router';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
@@ -45,13 +44,20 @@ import { Console } from 'src/app/utils/console';
   templateUrl: './trail.component.html',
   styleUrls: ['./trail.component.scss'],
   standalone: true,
-  imports: [IonSpinner, IonCheckbox, IonInput, IonTextarea, IonText, IonButton, IonIcon, IonSegmentButton, IonSegment,
+  imports: [
+    IonSpinner,
+    IonCheckbox,
+    IonInput,
+    IonTextarea,
+    IonButton,
+    IonIcon,
+    IonSegmentButton,
+    IonSegment,
     CommonModule,
     MapComponent,
     TrackMetadataComponent,
     ElevationGraphComponent,
     IconLabelButtonComponent,
-    MapLayerSelectionComponent,
     PhotoComponent,
     PhotosPopupComponent,
   ]
@@ -150,7 +156,7 @@ export class TrailComponent extends AbstractComponent {
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(debounceTime(1)),
-      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, hideBaseTrack, showBreaks]) => {
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, hideBaseTrack, showBreaks]) => { // NOSONAR
         if (this.trail1 !== trail1[0]) {
           if (this._lockForDescription) {
             this._lockForDescription();
@@ -533,76 +539,77 @@ export class TrailComponent extends AbstractComponent {
     this.traceRecorder.start(this.trail1!);
   }
 
-  togglePauseRecording(withConfirmation: boolean = false): void {
-    if (withConfirmation) {
-      this.injector.get(AlertController).create({
-        header: this.recording?.paused ? this.i18n.texts.trace_recorder.resume : this.i18n.texts.trace_recorder.pause,
-        message: this.recording?.paused ? this.i18n.texts.trace_recorder.confirm_popup.resume_message : this.i18n.texts.trace_recorder.confirm_popup.pause_message,
-        buttons: [
-          {
-            text: this.i18n.texts.buttons.confirm,
-            role: 'confirm',
-            handler: () => {
-              if (this.recording?.paused)
-                this.traceRecorder.resume();
-              else
-                this.traceRecorder.pause();
-              this.injector.get(AlertController).dismiss();
-            }
-          }, {
-            text: this.i18n.texts.buttons.cancel,
-            role: 'cancel',
-            handler: () => {
-              this.injector.get(AlertController).dismiss();
-            }
-          }
-        ]
-      }).then(p => {
-        p.present();
-        setTimeout(() => {
-          if ((p as any).presented) p.dismiss();
-        }, 10000);
-      });
+  togglePauseRecordingWithoutConfirmation(): void {
+    if (this.recording?.paused) {
+      this.traceRecorder.resume();
     } else {
-      if (this.recording?.paused)
-        this.traceRecorder.resume();
-      else
-        this.traceRecorder.pause();
+      this.traceRecorder.pause();
     }
   }
 
-  stopRecording(withConfirmation: boolean = false): void {
-    if (withConfirmation) {
-      this.injector.get(AlertController).create({
-        header: this.i18n.texts.trace_recorder.stop,
-        message: this.i18n.texts.trace_recorder.confirm_popup.stop_message,
-        buttons: [
-          {
-            text: this.i18n.texts.buttons.confirm,
-            role: 'confirm',
-            handler: () => {
-              this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
-              .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
-              this.injector.get(AlertController).dismiss();
-            }
-          }, {
-            text: this.i18n.texts.buttons.cancel,
-            role: 'cancel',
-            handler: () => {
-              this.injector.get(AlertController).dismiss();
-            }
+  togglePauseRecordingWithConfirmation(): void {
+    this.injector.get(AlertController).create({
+      header: this.recording?.paused ? this.i18n.texts.trace_recorder.resume : this.i18n.texts.trace_recorder.pause,
+      message: this.recording?.paused ? this.i18n.texts.trace_recorder.confirm_popup.resume_message : this.i18n.texts.trace_recorder.confirm_popup.pause_message,
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: () => {
+            if (this.recording?.paused)
+              this.traceRecorder.resume();
+            else
+              this.traceRecorder.pause();
+            this.injector.get(AlertController).dismiss();
           }
-        ]
-      }).then(p => {
-        p.present();
-        setTimeout(() => {
-          if ((p as any).presented) p.dismiss();
-        }, 10000);
-      });
-    } else {
-      this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
-      .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
-    }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss();
+          }
+        }
+      ]
+    }).then(p => {
+      p.present();
+      setTimeout(() => {
+        if ((p as any).presented) p.dismiss();
+      }, 10000);
+    });
+  }
+
+  stopRecordingWithoutConfirmation(): void {
+    this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
+    .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
+  }
+
+  stopRecordingWithConfirmation(): void {
+    this.injector.get(AlertController).create({
+      header: this.i18n.texts.trace_recorder.stop,
+      message: this.i18n.texts.trace_recorder.confirm_popup.stop_message,
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: () => {
+            this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
+            .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
+            this.injector.get(AlertController).dismiss();
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss();
+          }
+        }
+      ]
+    }).then(p => {
+      p.present();
+      setTimeout(() => {
+        if ((p as any).presented) p.dismiss();
+      }, 10000);
+    });
   }
 
   startEditDescription(): void {

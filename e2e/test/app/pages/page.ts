@@ -12,8 +12,13 @@ export abstract class Page extends AppElement {
     super();
   }
 
-  public static getActivePageElement() {
-    return $('ion-app ion-router-outlet>.ion-page:not(.ion-page-hidden)');
+  public static async getActivePageElement() {
+    const app = $('ion-app');
+    await browser.waitUntil(async () => {
+      const nb = await app.$$('>>>ion-router-outlet>.ion-page:not(.ion-page-hidden)').length;
+      return nb === 1;
+    });
+    return app.$('>>>ion-router-outlet>.ion-page:not(.ion-page-hidden)');
   }
 
   public override getElement() {

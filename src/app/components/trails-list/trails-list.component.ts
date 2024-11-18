@@ -275,7 +275,7 @@ export class TrailsListComponent extends AbstractComponent {
     const minNegEle = filters.negativeElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from);
     const maxNegEle = filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to);
     this.mapTrails = this.allTrails.filter(
-      t => {
+      t => { // NOSONAR
         if (filters.duration.from !== undefined || filters.duration.to !== undefined) {
           let duration = t.track?.duration;
           if (duration !== undefined && t.track?.breaksDuration !== undefined) duration -= t.track.breaksDuration;
@@ -299,9 +299,8 @@ export class TrailsListComponent extends AbstractComponent {
           const uuids = t.tags.map(tag => tag.tagUuid);
           if (filters.tags.exclude) {
             if (uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
-          } else {
+          } else
             if (!uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
-          }
         }
         return true;
       }
@@ -540,7 +539,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   openTrail(trail: Trail): void {
-    this.router.navigate(['/trail/' + trail.owner + '/' + trail.uuid], {queryParams: { from: this.router.url }});
+    this.router.navigate(['trail', trail.owner, trail.uuid], {queryParams: { from: this.router.url }});
   }
 
   share(): void {

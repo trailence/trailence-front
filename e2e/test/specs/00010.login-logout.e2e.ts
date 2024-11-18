@@ -12,7 +12,6 @@ describe('Login and Logout', () => {
   let loginPage: LoginPage;
 
   it('When starting, the login page is displayed', async () => {
-    await App.desktopMode();
     loginPage = await App.start();
     await browser.waitUntil(async () => await loginPage.loginInput.isDisplayed());
   });

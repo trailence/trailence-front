@@ -38,7 +38,7 @@ export class AppMenu extends Component {
     for (const item of await items.getElements()) {
       if (await this.getCollectionName(item) === name) {
         await item.click();
-        browser.waitUntil(() => new HeaderComponent(Page.getActivePageElement()).getTitle().then(title => title === name));
+        browser.waitUntil(() => Page.getActivePageElement().then(page => new HeaderComponent(page).getTitle()).then(title => title === name));
         return new TrailsPage();
       }
     }

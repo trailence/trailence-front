@@ -26,7 +26,7 @@ export class HeaderComponent extends Component {
         return new UserMenu(popover, 'ion-list');
       }
     }
-    const menu = this.getElement().$('ion-buttons[slot=end] app-header-user-menu');
+    const menu = new IonicButton(this.getElement().$('ion-buttons[slot=end] app-header-user-menu ion-button.user-button'));
     await menu.click();
     const popover = await App.waitPopover();
     const userMenu = new UserMenu(popover, 'ion-list');
@@ -39,6 +39,7 @@ export class HeaderComponent extends Component {
     await button.click();
     const menu = $('app-root ion-menu app-menu');
     await menu.waitForDisplayed();
+    await browser.waitUntil(() => menu.getCSSProperty('width').then(w => w.value === '304px'));
     return new AppMenu(menu);
   }
 
@@ -49,6 +50,11 @@ export class HeaderComponent extends Component {
     const menu = new MenuContent(popover, '>>>app-menu-content');
     await menu.waitDisplayed();
     return menu;
+  }
+
+  public async goBack() {
+    const button = new IonicButton(this, '.header-title .back-button ion-button');
+    await button.click();
   }
 
 }
@@ -92,7 +98,7 @@ export class UserMenu extends Component {
           await syncItem.waitForDisplayed();
           await syncItem.click();
           await browser.waitUntil(() => App.getPopoverContainer().isDisplayed().then(d => !d));
-          const page = Page.getActivePageElement();
+          const page = await Page.getActivePageElement();
           const header = new HeaderComponent(page);
           await header.waitDisplayed();
           const menu = await header.openUserMenu();
