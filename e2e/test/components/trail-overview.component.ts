@@ -20,6 +20,10 @@ export class TrailOverview extends Component {
     return tags;
   }
 
+  public getPhotosSliderElement() {
+    return this.getElement().$('div.photos app-photos-slider');
+  }
+
   public async clickMenuItem(item: string) {
     const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
     await button.click();

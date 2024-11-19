@@ -10,6 +10,10 @@ export class LoginPage extends Page {
     super('login');
   }
 
+  protected getExpectedUrl(): string {
+    return '/login';
+  }
+
   public get loginInput() { return new IonicInput(this, 'ion-input[name=email]'); }
   public get passwordInput() { return new IonicInput(this, 'ion-input[name=password]'); }
   public get loginButton() { return new IonicButton(this, 'ion-button[type=submit]'); }
@@ -24,7 +28,6 @@ export class LoginPage extends Page {
 
   public async loginAndWaitMyTrailsCollection(username?: string, password?: string) {
     await this.login(username, password);
-    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('/trails/collection/') > 0));
     const trailsPage = new TrailsPage();
     await trailsPage.waitDisplayed();
     return trailsPage;

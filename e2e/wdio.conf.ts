@@ -23,10 +23,21 @@ for (const arg of process.argv) {
     dynamicConfig.trailence['initUserpass'] = arg.substring(26);
   else if (arg.startsWith('--test-only=')) {
     const name = arg.substring(12).trim();
-    if (name.length > 0) specs = [
-      './test/specs/**/' + name + '*.ts',
-      './test/specs/**/' + name + '*/*.ts'
-    ];
+    if (name.length > 0) {
+      const i = name.indexOf('/');
+      if (i > 0) {
+        const folder = name.substring(0, i);
+        const specName = name.substring(i + 1);
+        specs = [
+          './test/specs/**/' + folder + '*/**/' + specName + '*.ts'
+        ];
+      } else {
+        specs = [
+          './test/specs/**/' + name + '*.ts',
+          './test/specs/**/' + name + '*/*.ts'
+        ];
+      }
+    }
   } else if (arg.startsWith('--trailence-mode=')) {
     dynamicConfig.trailence['mode'] = arg.substring(17);
   }

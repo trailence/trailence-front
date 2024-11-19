@@ -54,6 +54,65 @@ describe('Trails list - Import GPX with 2 non existing tags', () => {
       const tags = await trail.getTags();
       return tags.length === 2 && tags.indexOf('Tag 1') >= 0 && tags.indexOf('Tag 2') >= 0;
     });
+    await trailPage.header.goBack();
+  });
+
+  it('Import a GPX file with Tag 2 and Tag 3', async () => {
+    const page = new TrailsPage();
+    const trailsList = await page.trailsAndMap.openTrailsList();
+    const importButton = await trailsList.getToolbarButton('add-circle');
+    await importButton.click();
+    await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/gpx-003.gpx'));
+    const popup = new ImportTagsPopup(await App.waitModal());
+    expect(await popup.getTitle()).toBe('Import tags');
+    const tags = await popup.getTags();
+    expect(tags.size).toBe(2);
+    expect(tags.get('Tag 2')).toBe('Exists');
+    expect(tags.get('Tag 3')).toBe('Does not exist');
+    await popup.importAllWithExistingAndMissing();
+    const trail = await trailsList.findItemByTrailName('Roquefraîche');
+    expect(trail).toBeDefined();
+    await browser.waitUntil(async () => {
+      const tags = await trail!.getTags();
+      return tags.length === 2 && tags.indexOf('Tag 2') >= 0 && tags.indexOf('Tag 3') >= 0;
+    });
+    await trail!.clickMenuItem('Tags');
+    const tagsPopup = new TagsPopup(await App.waitModal());
+    const allTags = await tagsPopup.getAllTags();
+    expect(allTags.length).toBe(3);
+    expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
+    expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
+    expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();
+    await tagsPopup.cancel();
+  });
+
+  it('Import a GPX file with Tag 1 and Tag 4, but do not import Tag 4', async () => {
+    const page = new TrailsPage();
+    const trailsList = await page.trailsAndMap.openTrailsList();
+    const importButton = await trailsList.getToolbarButton('add-circle');
+    await importButton.click();
+    await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/gpx-004.gpx'));
+    const popup = new ImportTagsPopup(await App.waitModal());
+    expect(await popup.getTitle()).toBe('Import tags');
+    const tags = await popup.getTags();
+    expect(tags.size).toBe(2);
+    expect(tags.get('Tag 1')).toBe('Exists');
+    expect(tags.get('Tag 4')).toBe('Does not exist');
+    await popup.importOnlyExisting();
+    const trail = await trailsList.findItemByTrailName('Au dessus de Montclar');
+    expect(trail).toBeDefined();
+    await browser.waitUntil(async () => {
+      const tags = await trail!.getTags();
+      return tags.length === 1 && tags.indexOf('Tag 1') >= 0;
+    });
+    await trail!.clickMenuItem('Tags');
+    const tagsPopup = new TagsPopup(await App.waitModal());
+    const allTags = await tagsPopup.getAllTags();
+    expect(allTags.length).toBe(3);
+    expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
+    expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
+    expect(allTags.indexOf('Tag 3') >= 0).toBeTrue();
+    await tagsPopup.cancel();
   });
 
   it('Synchronize', async () => {

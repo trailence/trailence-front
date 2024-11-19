@@ -50,8 +50,7 @@ export class TrailsList extends Component {
     const openButton = openButtonContainer.$('ion-button');
     await openButton.waitForDisplayed();
     await openButton.click();
-    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('/trail/' + owner + '/' + uuid) > 0));
-    const trailPage = new TrailPage();
+    const trailPage = new TrailPage(owner, uuid);
     await trailPage.waitDisplayed();
     return trailPage;
   }

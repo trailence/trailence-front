@@ -1,7 +1,13 @@
+import { App } from '../app/app';
 import { Component } from './component';
 import { IonicSegment } from './ionic/ion-segment';
+import { PhotosPopup } from './photos-popup.component';
 
 export class TrailComponent extends Component {
+
+  public async hasTabs() {
+    return await this.getElement().$('div.top-container div.tabs-container ion-segment').isExisting();
+  }
 
   public async openTab(tab: string) {
     const segment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
@@ -65,6 +71,26 @@ export class TrailComponent extends Component {
       }
     }
     throw new Error('Checkbox "Show original trace" not found');
+  }
+
+  public async openPhotos() {
+    // mobile mode
+    if (await this.hasTabs()) {
+      await this.openTab('photos');
+      const element = this.getElement().$('div.trail-photos-tab app-photos-popup');
+      await element.waitForDisplayed();
+      return new PhotosPopup(element, false);
+    }
+
+    // desktop mode
+    const buttonElement = this.getElement().$('div.top-container div.trail-details div.trail-photos ion-button.edit');
+    await buttonElement.waitForExist();
+    await browser.action('pointer', { parameters: { pointerType: 'mouse' }})
+      .move({origin: buttonElement})
+      .pause(100)
+      .down(0).pause(10).up(0)
+      .perform();
+    return new PhotosPopup(await App.waitModal(), true);
   }
 
 }

@@ -55,7 +55,6 @@ export class AppMenu extends Component {
     expect(await modal.getTitle()).toBe('Collection');
     await modal.setName(name);
     await modal.clickCreate();
-    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('/trails/collection/') > 0));
     const trailsPage = new TrailsPage();
     await trailsPage.waitDisplayed();
     return trailsPage;

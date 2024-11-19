@@ -3,10 +3,14 @@ import { PageWithHeader } from './page';
 
 export class TrailsPage extends PageWithHeader {
 
-  constructor() {
+  constructor(private isShare: boolean = false) {
     super('trails-page');
   }
 
   public get trailsAndMap() { return new TrailsAndMapComponent(this.getElement().$('app-trails-and-map')); }
+
+  protected getExpectedUrl(): string {
+    return '/trails/collection/';
+  }
 
 }
