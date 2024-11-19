@@ -56,7 +56,11 @@ export class App {
   public static async start() {
     switch (App.config.mode) {
       case 'mobile':
-        await browser.setWindowSize(300, 616);
+        await browser.setWindowSize(800, 800);
+        await browser.setViewport({
+          width: 300,
+          height: 616
+        })
         break;
       default:
         await browser.setWindowSize(1600, 900);

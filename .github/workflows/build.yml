@@ -76,8 +76,8 @@ jobs:
           path: ./coverage/app/lcov.info
           if-no-files-found: error
           retention-days: 5
-  e2e-tests-web-app:
-    name: E2E Tests - Web App
+  e2e-tests-web-app-desktop:
+    name: E2E Tests - Web App - Desktop
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -111,7 +111,7 @@ jobs:
         run: |
           cd e2e/github
           chmod 777 ./run.sh
-          ./run.sh
+          ./run.sh --trailence-mode=desktop
       - name: Build coverage report
         run: |
           ls -l .nyc_output
@@ -129,7 +129,64 @@ jobs:
       - name: Store coverage results
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-tests-web-app-coverage-report
+          name: e2e-tests-web-app-desktop-coverage-report
+          path: ./coverage/e2e/lcov.info
+          if-no-files-found: error
+          retention-days: 5
+  e2e-tests-web-app-mobile:
+    name: E2E Tests - Web App - Mobile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: |
+          npm install -g @ionic/cli @angular/cli cpy-cli rimraf mkdirp
+          npm ci
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            trailence/front
+          tags: |
+            type=ref,prefix=snapshot-,event=branch
+            type=ref,event=tag
+      - name: Instrument
+        run: |
+          npm run build -- --configuration=development
+          npm run instrument
+          mkdir .nyc_output
+      - name: Tests End 2 End
+        id: e2e
+        run: |
+          cd e2e/github
+          chmod 777 ./run.sh
+          ./run.sh --trailence-mode=mobile
+      - name: Build coverage report
+        run: |
+          ls -l .nyc_output
+          npm run coverage-report
+          ls -l coverage/e2e
+          sed -i -e 's!www/webpack:/!!' coverage/e2e/lcov.info
+          ls -l coverage/e2e
+      - name: Upload failure screenshot
+        if: ${{ failure() && steps.e2e.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: wdio_error_${{github.run_number}}.png
+          path: e2e/wdio_error.png
+          retention-days: 5
+      - name: Store coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-tests-web-app-mobile-coverage-report
           path: ./coverage/e2e/lcov.info
           if-no-files-found: error
           retention-days: 5
@@ -138,7 +195,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - unit-tests-web-app
-      - e2e-tests-web-app
+      - e2e-tests-web-app-desktop
+      - e2e-tests-web-app-mobile
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -150,11 +208,16 @@ jobs:
         with:
           name: unit-tests-web-app-coverage-report
           path: coverage/app
-      - name: Retrieve web app e2e tests coverage results
+      - name: Retrieve web app e2e tests desktop coverage results
         uses: actions/download-artifact@v4
         with:
-          name: e2e-tests-web-app-coverage-report
-          path: coverage/e2e
+          name: e2e-tests-web-app-desktop-coverage-report
+          path: coverage/e2e/desktop
+      - name: Retrieve web app e2e tests mobile coverage results
+        uses: actions/download-artifact@v4
+        with:
+          name: e2e-tests-web-app-mobile-coverage-report
+          path: coverage/e2e/mobile
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
