@@ -12,7 +12,12 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: '**/package-lock.json'
+      - name: Cache Global NPM packages
+        uses: actions/cache@v3
+        with:
+          key: npm-global-packages
+          path: ~/.npm
       - name: Install dependencies
         run: |
           npm install -g @ionic/cli @angular/cli cpy-cli rimraf
@@ -30,12 +35,17 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: '**/package-lock.json'
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+      - name: Cache Global NPM packages
+        uses: actions/cache@v3
+        with:
+          key: npm-global-packages
+          path: ~/.npm
       - name: Install dependencies
         run: |
           npm install -g @ionic/cli @angular/cli cpy-cli rimraf
@@ -62,7 +72,12 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: '**/package-lock.json'
+      - name: Cache Global NPM packages
+        uses: actions/cache@v3
+        with:
+          key: npm-global-packages
+          path: ~/.npm
       - name: Install dependencies
         run: |
           npm install -g @ionic/cli @angular/cli cpy-cli rimraf
@@ -76,8 +91,13 @@ jobs:
           path: ./coverage/app/lcov.info
           if-no-files-found: error
           retention-days: 5
-  e2e-tests-web-app-desktop:
-    name: E2E Tests - Web App - Desktop
+  e2e-tests-web-app:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [desktop,mobile]
+        test-set: ["00000","00100","00200"]
+    name: E2E Web App - ${{matrix.mode}} ${{matrix.test-set}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -87,7 +107,12 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: '**/package-lock.json'
+      - name: Cache Global NPM packages
+        uses: actions/cache@v3
+        with:
+          key: npm-global-packages
+          path: ~/.npm
       - name: Install dependencies
         run: |
           npm install -g @ionic/cli @angular/cli cpy-cli rimraf mkdirp
@@ -101,7 +126,7 @@ jobs:
           tags: |
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
-      - name: Instrument
+      - name: Build and Instrument
         run: |
           npm run build -- --configuration=development
           npm run instrument
@@ -111,83 +136,27 @@ jobs:
         run: |
           cd e2e/github
           chmod 777 ./run.sh
-          ./run.sh --trailence-mode=desktop
+          ./run.sh --trailence-mode=${{matrix.mode}} --test-only=${{matrix.test-set}}/
       - name: Build coverage report
         run: |
           ls -l .nyc_output
           npm run coverage-report
           ls -l coverage/e2e
           sed -i -e 's!www/webpack:/!!' coverage/e2e/lcov.info
+          mv coverage/e2e/lcov.info coverage/e2e/${{matrix.mode}}_${{matrix.test-set}}.info
           ls -l coverage/e2e
       - name: Upload failure screenshot
         if: ${{ failure() && steps.e2e.conclusion == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: wdio_error_${{github.run_number}}.png
+          name: wdio_error_${{github.run_number}}_${{matrix.mode}}_${{matrix.test-set}}.png
           path: e2e/wdio_error.png
           retention-days: 5
       - name: Store coverage results
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-tests-web-app-desktop-coverage-report
-          path: ./coverage/e2e/lcov.info
-          if-no-files-found: error
-          retention-days: 5
-  e2e-tests-web-app-mobile:
-    name: E2E Tests - Web App - Mobile
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - name: Install dependencies
-        run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf mkdirp
-          npm ci
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            trailence/front
-          tags: |
-            type=ref,prefix=snapshot-,event=branch
-            type=ref,event=tag
-      - name: Instrument
-        run: |
-          npm run build -- --configuration=development
-          npm run instrument
-          mkdir .nyc_output
-      - name: Tests End 2 End
-        id: e2e
-        run: |
-          cd e2e/github
-          chmod 777 ./run.sh
-          ./run.sh --trailence-mode=mobile
-      - name: Build coverage report
-        run: |
-          ls -l .nyc_output
-          npm run coverage-report
-          ls -l coverage/e2e
-          sed -i -e 's!www/webpack:/!!' coverage/e2e/lcov.info
-          ls -l coverage/e2e
-      - name: Upload failure screenshot
-        if: ${{ failure() && steps.e2e.conclusion == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: wdio_error_${{github.run_number}}.png
-          path: e2e/wdio_error.png
-          retention-days: 5
-      - name: Store coverage results
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-tests-web-app-mobile-coverage-report
-          path: ./coverage/e2e/lcov.info
+          name: e2e-tests-web-app-${{matrix.mode}}-${{matrix.test-set}}-coverage-report
+          path: ./coverage/e2e/${{matrix.mode}}_${{matrix.test-set}}.info
           if-no-files-found: error
           retention-days: 5
   sonar:
@@ -195,8 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - unit-tests-web-app
-      - e2e-tests-web-app-desktop
-      - e2e-tests-web-app-mobile
+      - e2e-tests-web-app
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -208,16 +176,12 @@ jobs:
         with:
           name: unit-tests-web-app-coverage-report
           path: coverage/app
-      - name: Retrieve web app e2e tests desktop coverage results
+      - name: Retrieve web app e2e tests coverage results
         uses: actions/download-artifact@v4
         with:
-          name: e2e-tests-web-app-desktop-coverage-report
-          path: coverage/e2e/desktop
-      - name: Retrieve web app e2e tests mobile coverage results
-        uses: actions/download-artifact@v4
-        with:
-          name: e2e-tests-web-app-mobile-coverage-report
-          path: coverage/e2e/mobile
+          path: coverage/e2e
+          pattern: e2e-tests-web-app-*-coverage-report
+          merge-multiple: true
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

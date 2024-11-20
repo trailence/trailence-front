@@ -1,7 +1,7 @@
 import { expect } from '@wdio/globals'
-import { App } from '../app/app';
-import { TrailsPage } from '../app/pages/trails-page';
-import { CollectionModal } from '../components/collection.modal';
+import { App } from '../../app/app';
+import { TrailsPage } from '../../app/pages/trails-page';
+import { CollectionModal } from '../../components/collection.modal';
 
 describe('Collections', () => {
 

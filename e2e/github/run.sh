@@ -20,4 +20,4 @@ export TRAILENCE_INIT_PASSWORD="$(echo $RANDOM | md5sum | head -c 20)"
 
 docker compose down
 cd .. && npm i && cd github
-docker compose up -d --wait && npm run wdio -- --trailence-init-username=$TRAILENCE_INIT_USER --trailence-init-password=$TRAILENCE_INIT_PASSWORD $@ && docker compose down
+docker compose up -d --wait && npm run wdio -- --trailence-init-username=$TRAILENCE_INIT_USER --trailence-init-password=$TRAILENCE_INIT_PASSWORD $@ | grep -v "BIDI COMMAND" && docker compose down

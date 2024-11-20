@@ -1,7 +1,7 @@
 import { expect } from '@wdio/globals'
-import { App } from '../app/app';
-import { LoginPage } from '../app/pages/login-page';
-import { TrailsPage } from '../app/pages/trails-page';
+import { App } from '../../app/app';
+import { LoginPage } from '../../app/pages/login-page';
+import { TrailsPage } from '../../app/pages/trails-page';
 
 describe('Login and Logout', () => {
 
