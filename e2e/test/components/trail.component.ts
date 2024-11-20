@@ -1,7 +1,10 @@
 import { App } from '../app/app';
 import { Component } from './component';
+import { IonicButton } from './ionic/ion-button';
 import { IonicSegment } from './ionic/ion-segment';
+import { IonicTextArea } from './ionic/ion-textarea';
 import { PhotosPopup } from './photos-popup.component';
+import { TagsPopup } from './tags-popup';
 
 export class TrailComponent extends Component {
 
@@ -59,6 +62,13 @@ export class TrailComponent extends Component {
     return tags;
   }
 
+  public async openTags() {
+    const details = await this.openDetails();
+    const row = details.$('.trail-tags-row');
+    await row.click();
+    return new TagsPopup(await App.waitModal());
+  }
+
   public async toggleShowOriginalTrace() {
     const details = await this.openDetails();
     const checkboxes = details.$$('ion-checkbox');
@@ -91,6 +101,48 @@ export class TrailComponent extends Component {
       .down(0).pause(10).up(0)
       .perform();
     return new PhotosPopup(await App.waitModal(), true);
+  }
+
+  public async getDescription() {
+    const details = await this.openDetails();
+    const element = details.$('div.description-text');
+    await element.scrollIntoView({block: 'center', inline: 'center'});
+    const span = element.$('span');
+    const text = await span.getText();
+    if (text === 'Enter the description of the trail here') return '';
+    return text;
+  }
+
+  public async setDescription(text: string) {
+    const details = await this.openDetails();
+    const element = details.$('div.description-text');
+    await element.scrollIntoView({block: 'center', inline: 'center'});
+    await element.click();
+    const textArea = new IonicTextArea(element.$('ion-textarea'));
+    await textArea.waitDisplayed();
+    await textArea.setValue(text);
+    await browser.action('pointer').move({origin: element.previousElement()}).down().up().perform();
+    await browser.waitUntil(() => textArea.isDisplayed().then(d => !d));
+  }
+
+  public async getLocation() {
+    return this.getMetadataValueByTitle('Location', true);
+  }
+
+  public async setLocation() {
+    const element = await this.getMetadataContentByTitle('Location');
+    await element!.click();
+    const modal = await App.waitModal();
+    const button = new IonicButton(modal.$('ion-content').$('>>>ion-button'));
+    await button.click();
+    const ul = modal.$('ion-content').$('>>>ul');
+    await ul.waitForDisplayed();
+    const link = ul.$('li:first-child').$('a');
+    await link.waitForDisplayed();
+    await link.click();
+    const save = new IonicButton(modal.$('ion-footer').$('>>>ion-buttons').$('ion-button=Save'));
+    await save.click();
+    await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
   }
 
 }

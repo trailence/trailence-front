@@ -675,7 +675,7 @@ export class ComputedWayPoint {
       const pointIndex = Math.floor(b.startIndex + (b.endIndex - b.startIndex) / 2);
       const segment = track.segments[b.segmentIndex];
       const point = segment.points[pointIndex];
-      const duration = TrackUtils.durationBetween(segment.points[b.startIndex], segment.points[b.endIndex]);
+      const duration = TrackUtils.durationBetween(segment.points[Math.max(0, b.startIndex - 1)], segment.points[Math.min(segment.points.length - 1, b.endIndex + 1)]);
       result.push(new ComputedWayPoint(
         new WayPoint(point, '', ''),
         false, false,
