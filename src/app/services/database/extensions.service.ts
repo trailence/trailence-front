@@ -25,9 +25,11 @@ export class ExtensionsService {
     private readonly http: HttpService,
   ) {
     databaseService.registerStore({
+      name: 'extensions',
       status$: this._syncStatus$,
       loaded$: this._loaded$,
       canSync$: of(true),
+      hasPendingOperations$: of(false),
       fireSyncStatus: () => this._syncStatus$.next(this._syncStatus$.value),
       syncFromServer: () => this.triggerUpdatesFromServer(),
       doSync: () => this.sync(),

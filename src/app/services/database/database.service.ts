@@ -21,9 +21,11 @@ const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 15 * 1000;
 
 export interface StoreRegistration {
+  name: string;
   status$: Observable<StoreSyncStatus | null>;
   loaded$: Observable<boolean>;
   canSync$: Observable<boolean>;
+  hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
   doSync: () => void;
@@ -31,9 +33,11 @@ export interface StoreRegistration {
 
 class RegisteredStore implements StoreRegistration {
 
+  name: string;
   status$: Observable<StoreSyncStatus | null>;
   loaded$: Observable<boolean>;
   canSync$: Observable<boolean>;
+  hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
   doSync: () => void;
@@ -44,9 +48,11 @@ class RegisteredStore implements StoreRegistration {
   constructor(
     registration: StoreRegistration
   ) {
+    this.name = registration.name;
     this.status$ = registration.status$;
     this.loaded$ = registration.loaded$;
     this.canSync$ = registration.canSync$;
+    this.hasPendingOperations$ = registration.hasPendingOperations$;
     this.syncFromServer = registration.syncFromServer;
     this.fireSyncStatus = registration.fireSyncStatus;
     this.doSync = registration.doSync;
@@ -89,8 +95,18 @@ export class DatabaseService {
 
   public get hasLocalChanges(): Observable<boolean> {
     return this._stores.pipe(
-      switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.status$))),
-      map(status => status.map(s => !!s?.hasLocalChanges).reduce((a,b) => a || b, false))
+      switchMap(stores => {
+        if (stores.length === 0) return of(false);
+        return combineLatest(stores.map(s => s.status$)).pipe(
+          map(status => status.map(s => !!s?.hasLocalChanges).reduce((a,b) => a || b, false)),
+          switchMap(hasChanges => {
+            if (hasChanges) return of(true);
+            return combineLatest(stores.map(s => s.hasPendingOperations$)).pipe(
+              map(pending => pending.reduce((a,b) => a || b, false)),
+            )
+          })
+        );
+      })
     );
   }
 
@@ -171,6 +187,13 @@ export class DatabaseService {
       if (registered.syncTimeout) clearTimeout(registered.syncTimeout);
       registered.syncTimeout = undefined;
       store.doSync();
+    });
+    store.status$.pipe(
+      map(s => !!(s?.inProgress)),
+      debounceTime(60000),
+      filter(progress => progress)
+    ).subscribe(() => {
+      Console.warn('Store ' + store.name + ' is in progress since more than 1 minute !');
     });
   }
 

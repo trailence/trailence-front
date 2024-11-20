@@ -19,7 +19,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     injector: Injector,
   ) {
     super(tableName, injector);
-    this._initStore();
+    this._initStore(tableName);
   }
 
   protected abstract fromDTO(dto: DTO): ENTITY;

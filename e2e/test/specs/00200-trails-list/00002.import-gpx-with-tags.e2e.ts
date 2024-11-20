@@ -5,7 +5,7 @@ import { ImportTagsPopup } from '../../components/import-tags-popup.component';
 import { TagsPopup } from '../../components/tags-popup';
 import { OpenFile } from '../../utils/open-file';
 
-describe('Trails list - Import GPX with 2 non existing tags', () => {
+describe('Trails list - Import GPX with tags', () => {
 
   it('Login and go to Test import collection', async () => {
     App.init();

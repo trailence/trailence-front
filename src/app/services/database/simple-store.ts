@@ -33,7 +33,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       injector: Injector,
     ) {
       super(tableName, injector);
-      this._initStore();
+      this._initStore(tableName);
     }
 
     public override get syncStatus$() { return this._syncStatus$; }

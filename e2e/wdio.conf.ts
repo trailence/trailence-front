@@ -14,7 +14,7 @@ caps["goog:loggingPrefs"] = {
 dynamicConfig.capabilities = [caps];
 dynamicConfig.trailence = {mode: 'desktop'};
 
-let specs = [ './test/specs/**/*.ts' ];
+let specs = [ './test/specs/**/*.e2e.ts' ];
 
 for (const arg of process.argv) {
   if (arg.startsWith('--trailence-init-username='))
@@ -29,12 +29,12 @@ for (const arg of process.argv) {
         const folder = name.substring(0, i);
         const specName = name.substring(i + 1);
         specs = [
-          './test/specs/**/' + folder + '*/**/' + specName + '*.ts'
+          './test/specs/**/' + folder + '*/**/' + specName + '*.e2e.ts'
         ];
       } else {
         specs = [
-          './test/specs/**/' + name + '*.ts',
-          './test/specs/**/' + name + '*/*.ts'
+          './test/specs/**/' + name + '*.e2e.ts',
+          './test/specs/**/' + name + '*/*.e2e.ts'
         ];
       }
     }

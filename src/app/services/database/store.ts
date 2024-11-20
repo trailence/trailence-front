@@ -46,12 +46,14 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     return this._store;
   }
 
-  protected _initStore(): void {
+  protected _initStore(name: string): void {
     const dbService = this.injector.get(DatabaseService);
     dbService.registerStore({
+      name,
       status$: this.syncStatus$,
       loaded$: this._storeLoaded$,
       canSync$: this._operationInProgress$.pipe(map(inProgress => !inProgress)),
+      hasPendingOperations$: combineLatest([this._operationInProgress$, this.operationsQueue$]).pipe(map(([progress, queue]) => progress || queue.length > 0)),
       syncFromServer: () => this.triggerSyncFromServer(),
       fireSyncStatus: () => this.syncStatus = this.syncStatus,
       doSync: () => this.sync(),
@@ -135,7 +137,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     // nothing by default
   }
 
-  private readonly operationsQueue: ((resolve: (done: boolean) => void) => void)[] = [];
+  private readonly operationsQueue$ = new BehaviorSubject<((resolve: (done: boolean) => void) => void)[]>([]);
 
   protected performOperation(
     storeUpdater: () => void,
@@ -178,13 +180,14 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         resolve(true);
       });
     };
-    this.operationsQueue.push(operationExecution);
+    this.operationsQueue$.value.push(operationExecution);
     if (this._operationInProgress$.value) return;
     if (this._storeLoaded$.value) {
       this.launchOperationQueue();
       return;
     }
-    if (this.operationsQueue.length === 1)
+    if (this.operationsQueue$.value.length === 1)
+      this.operationsQueue$.next(this.operationsQueue$.value);
       this._storeLoaded$.pipe(
         filter(loaded => loaded),
         first()
@@ -193,19 +196,24 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   private launchOperationQueue(): void {
     this._operationInProgress$.next(true);
+    this.operationsQueue$.next(this.operationsQueue$.value);
     this.ngZone.runOutsideAngular(() => {
-      setTimeout(() => this.executeNextOperation(), 0);
+      this.syncStatus$.pipe(
+        filter(s => !s.inProgress),
+        first(),
+      ).subscribe(() => setTimeout(() => this.executeNextOperation(), 0));
     });
   }
 
   private executeNextOperation(): void {
-    if (this.operationsQueue.length === 0) {
+    if (this.operationsQueue$.value.length === 0) {
       this._operationInProgress$.next(false);
       return;
     }
-    const operation = this.operationsQueue.splice(0, 1)[0];
+    const operation = this.operationsQueue$.value.splice(0, 1)[0];
     operation(() => {
       this.ngZone.runOutsideAngular(() => {
+        this.operationsQueue$.next(this.operationsQueue$.value);
         setTimeout(() => this.executeNextOperation(), 0);
       });
     });

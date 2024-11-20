@@ -78,9 +78,11 @@ export class TrackDatabase {
     this.ngZone = injector.get(NgZone);
     this.subjectService = injector.get(DatabaseSubjectService);
     injector.get(DatabaseService).registerStore({
+      name: 'tracks',
       status$: this.syncStatus$,
       loaded$: of(true),
       canSync$: of(true),
+      hasPendingOperations$: of(false),
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
       syncFromServer: () => this.triggerSyncFromServer(),
       doSync: () => this.sync(),
