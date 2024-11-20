@@ -26,7 +26,7 @@ export function debounceTimeReduce<T>(
         activeTask = executeSchedule(
           destination,
           scheduler,
-          () => {
+          () => { // NOSONAR
             activeTask = undefined;
             const v = currentValue;
             currentValue = undefined;

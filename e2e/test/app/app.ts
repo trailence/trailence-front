@@ -87,8 +87,12 @@ export class App {
     return popoverContainer.$('>>>.popover-viewport');
   }
 
-  public static async waitModal() {
-    const modal = $('ion-app>ion-modal:not(.overlay-hidden)');
+  public static async waitModal(index: number = 1) {
+    try { await browser.waitUntil(() => $$('ion-app>ion-modal:not(.overlay-hidden)').getElements().then(elements => elements.length >= index)); }
+    catch (e) {
+      expect((await $$('ion-app>ion-modal:not(.overlay-hidden)').getElements()).length).toBeGreaterThanOrEqual(index);
+    }
+    const modal = $$('ion-app>ion-modal:not(.overlay-hidden)')[index - 1];
     await modal.waitForDisplayed();
     const page = modal.$('>>>.ion-page');
     await page.waitForExist();

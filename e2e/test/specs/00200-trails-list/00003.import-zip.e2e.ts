@@ -29,14 +29,14 @@ describe('Trails list - Import Zip files', () => {
     expect(tags.get('Tag 1')).toBe('Exists');
     expect(tags.get('Tag 4')).toBe('Does not exist');
     await popup.importAllWithExistingAndMissing();
-    const trail1 = await trailsList.findItemByTrailName('Randonnée du 20/02/2022 à 09:55');
+    const trail1 = await trailsList.waitTrail('Randonnée du 20/02/2022 à 09:55');
     expect(trail1).toBeDefined();
     await browser.waitUntil(async () => {
       const tags = await trail1!.getTags();
       return tags.length === 1 && tags.indexOf('Tag 1') >= 0;
     });
 
-    const trail2 = await trailsList.findItemByTrailName('Près de Tourves');
+    const trail2 = await trailsList.waitTrail('Près de Tourves');
     expect(trail2).toBeDefined();
     await browser.waitUntil(async () => {
       const tags = await trail2!.getTags();
@@ -68,7 +68,7 @@ describe('Trails list - Import Zip files', () => {
     expect(tags.size).toBe(1);
     expect(tags.get('Tag 2')).toBe('Exists');
     await popup.importAll();
-    const trail = await trailsList.findItemByTrailName('Col et lacs de la Cayolle');
+    const trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
       const tags = await trail!.getTags();

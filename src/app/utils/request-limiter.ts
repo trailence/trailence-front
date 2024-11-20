@@ -2,12 +2,12 @@ import { Observable, Subscriber } from 'rxjs';
 
 export class RequestLimiter {
 
-  private requests: {request: () => Observable<any>, subscriber: Subscriber<any>}[] = [];
+  private readonly requests: {request: () => Observable<any>, subscriber: Subscriber<any>}[] = [];
   private inProgress = 0;
   private cancelled = false;
 
   constructor(
-    private maxRequests: number
+    private readonly maxRequests: number
   ) {}
 
   public add<T>(request: () => Observable<T>): Observable<T> {

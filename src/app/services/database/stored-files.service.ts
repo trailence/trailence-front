@@ -51,7 +51,7 @@ export class StoredFilesService {
     return from(t.toCollection().primaryKeys()
     .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
     .then(keys => {
-      if (keys.length === 0 || t !== this.table) return Promise.resolve([0,0]) as Promise<[number,number]>;
+      if (keys.length === 0 || t !== this.table) return Promise.resolve([0,0]) as Promise<[number,number]>; // NOSONAR
       const next: (i:number,total1:number,total2:number) => Promise<[number,number]> = (i, total1, total2) => {
         if (t !== this.table) return Promise.resolve([total1, total2]);
         let next$: Promise<[number,number]> = t.get(keys[i])

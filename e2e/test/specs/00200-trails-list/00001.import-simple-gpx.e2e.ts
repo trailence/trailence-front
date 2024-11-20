@@ -26,7 +26,7 @@ describe('Trails list - Import Simple GPX', () => {
     const importButton = await trailsList.getToolbarButton('add-circle');
     await importButton.click();
     await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/gpx-001.gpx'));
-    const trail = await trailsList.findItemByTrailName('Randonnée du 05/06/2023 à 08:58');
+    const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     trailPage = await trailsList.openTrail(trail!);
   });

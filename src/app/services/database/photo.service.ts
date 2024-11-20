@@ -94,7 +94,7 @@ export class PhotoService {
     return subject.asObservable();
   }
 
-  public addPhoto(
+  public addPhoto( // NOSONAR
     owner: string, trailUuid: string,
     description: string, index: number,
     content: ArrayBuffer,

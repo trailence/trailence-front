@@ -42,7 +42,7 @@ export class FilterTagsComponent implements OnInit, OnDestroy {
         this.tags = allTags.filter(t => t.collectionUuid === this.collectionUuid);
         this.tagsByUuid.clear();
         for (const tag of this.tags) this.tagsByUuid.set(tag.uuid, tag);
-        this.changeDetector.markForCheck();
+        this.changeDetector.detectChanges();
       }
     );
   }
@@ -52,26 +52,11 @@ export class FilterTagsComponent implements OnInit, OnDestroy {
   }
 
   updateType(value: any): void {
-    if (value === 'onlyWithAnyTag') {
-      this.filter.onlyWithAnyTag = true;
-      this.filter.onlyWithoutAnyTag = false;
-      this.filter.exclude = false;
+    this.filter.type = value;
+    if (value === 'onlyWithAnyTag' || value === 'onlyWithoutAnyTag')
       this.filter.tagsUuids = [];
-    } else if (value === 'onlyWithoutAnyTag') {
-      this.filter.onlyWithAnyTag = false;
-      this.filter.onlyWithoutAnyTag = true;
-      this.filter.exclude = false;
-      this.filter.tagsUuids = [];
-    } else if (value === 'include') {
-      this.filter.onlyWithAnyTag = false;
-      this.filter.onlyWithoutAnyTag = false;
-      this.filter.exclude = false;
-    } else if (value === 'exclude') {
-      this.filter.onlyWithAnyTag = false;
-      this.filter.onlyWithoutAnyTag = false;
-      this.filter.exclude = true;
-    }
     this.filterChange.emit(this.filter);
+    this.changeDetector.detectChanges();
   }
 
   updateTagSelection(tag: Tag, selected: boolean): void {
@@ -80,10 +65,12 @@ export class FilterTagsComponent implements OnInit, OnDestroy {
       if (index < 0) {
         this.filter.tagsUuids.push(tag.uuid);
         this.filterChange.emit(this.filter);
+        this.changeDetector.detectChanges();
       }
     } else if (index >= 0) {
       this.filter.tagsUuids.splice(index, 1);
       this.filterChange.emit(this.filter);
+      this.changeDetector.detectChanges();
     }
   }
 

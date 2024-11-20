@@ -32,6 +32,19 @@ export class TrailsList extends Component {
     return undefined;
   }
 
+  public async waitTrail(trailName: string) {
+    let trail: TrailOverview | undefined;
+    try {
+      await browser.waitUntil(async () => {
+        trail = await this.findItemByTrailName(trailName);
+        return trail !== undefined;
+      });
+      return trail!;
+    } catch (e) {
+      throw new Error('Trail not found in list: ' + trailName);
+    }
+  }
+
   public async openTrail(trail: TrailOverview) {
     const parent = await trail.getElement().parentElement();
     let id = await parent.getAttribute('id');

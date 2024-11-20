@@ -34,7 +34,7 @@ export function debounceTimeExtended<T>(
         activeTask = executeSchedule(
           destination,
           scheduler,
-          () => {
+          () => { // NOSONAR
             activeTask = undefined;
             const v = lastValue;
             lastValue = null!;

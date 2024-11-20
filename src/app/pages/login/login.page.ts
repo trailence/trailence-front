@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar, IonTitle, IonIcon } from '@ionic/angular/standalone';
@@ -20,7 +20,11 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonIcon, IonTitle, IonToolbar, IonLabel, IonSpinner,
+  imports: [
+    IonIcon,
+    IonToolbar,
+    IonLabel,
+    IonSpinner,
     IonList,
     IonItem,
     IonInput,
@@ -33,7 +37,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
     CommonModule,
   ]
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
 
   email = '';
   password = '';
@@ -72,6 +76,11 @@ export class LoginPage {
       this.connected = connected;
       changeDetector.markForCheck();
     });
+  }
+
+  ngOnInit(): void {
+    const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
+    title.innerText = 'Sign in - Trailence';
   }
 
   onSubmit(): void {

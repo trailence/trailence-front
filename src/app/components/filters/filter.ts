@@ -9,10 +9,7 @@ export interface FilterEnum<T> {
 
 export interface FilterTags {
   tagsUuids: string[];
-  exclude: boolean;
-
-  onlyWithoutAnyTag: boolean;
-  onlyWithAnyTag: boolean;
+  type: 'onlyWithAnyTag' | 'onlyWithoutAnyTag' | 'include_and' | 'include_or' | 'exclude';
 }
 
 export interface NumericFilterConfig {

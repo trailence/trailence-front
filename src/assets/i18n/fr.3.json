@@ -518,10 +518,9 @@
   "tags_filter": {
     "onlyWithAnyTag": "Parcours ayant au moins un tag",
     "onlyWithoutAnyTag": "Parcours n'ayant aucun tag",
-    "include_singular": "Parcours ayant le tag",
-    "include_plural": "Parcours ayant les tags",
-    "exclude_singular": "Parcours n'ayant pas le tag",
-    "exclude_plural": "Parcours n'ayant pas les tags",
+    "include_and": "Parcours ayant tous les tags suivants",
+    "include_or": "Parcours ayant au moins un des tags suivants",
+    "exclude": "Parcours n'ayant aucun des tags suivants",
     "click_to_select": "Cliquez pour sélectionner",
     "popup": {
       "title": "Filtre sur les tags"

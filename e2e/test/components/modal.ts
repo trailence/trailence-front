@@ -1,7 +1,7 @@
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 
-export abstract class ModalComponent extends Component {
+export class ModalComponent extends Component {
 
   public async getTitle() {
     return await this.getElement().$('ion-header ion-label').getText();

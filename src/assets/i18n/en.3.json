@@ -518,10 +518,9 @@
   "tags_filter": {
     "onlyWithAnyTag": "Trails having at least one tag",
     "onlyWithoutAnyTag": "Trails having no tag",
-    "include_singular": "Trails having tag",
-    "include_plural": "Trails having tags",
-    "exclude_singular": "Trails without tag",
-    "exclude_plural": "Trails without tags",
+    "include_and": "Trails having all the following tags",
+    "include_or": "Trails having at least one of the following tags",
+    "exclude": "Trails having none of the following tags",
     "click_to_select": "Click to select",
     "popup": {
       "title": "Filter on tags"

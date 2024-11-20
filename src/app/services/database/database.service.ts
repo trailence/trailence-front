@@ -102,7 +102,7 @@ export class DatabaseService {
           switchMap(hasChanges => {
             if (hasChanges) return of(true);
             return combineLatest(stores.map(s => s.hasPendingOperations$)).pipe(
-              map(pending => pending.reduce((a,b) => a || b, false)),
+              map(pending => pending.reduce((a,b) => a || b, false)), // NOSONAR
             )
           })
         );

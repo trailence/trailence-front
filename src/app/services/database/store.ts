@@ -55,7 +55,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       canSync$: this._operationInProgress$.pipe(map(inProgress => !inProgress)),
       hasPendingOperations$: combineLatest([this._operationInProgress$, this.operationsQueue$]).pipe(map(([progress, queue]) => progress || queue.length > 0)),
       syncFromServer: () => this.triggerSyncFromServer(),
-      fireSyncStatus: () => this.syncStatus = this.syncStatus,
+      fireSyncStatus: () => this.syncStatus = this.syncStatus, // NOSONAR
       doSync: () => this.sync(),
     });
     // listen to database change (when authentication changed)
@@ -186,12 +186,13 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this.launchOperationQueue();
       return;
     }
-    if (this.operationsQueue$.value.length === 1)
+    if (this.operationsQueue$.value.length === 1) {
       this.operationsQueue$.next(this.operationsQueue$.value);
       this._storeLoaded$.pipe(
         filter(loaded => loaded),
         first()
       ).subscribe(() => this.launchOperationQueue());
+    }
   }
 
   private launchOperationQueue(): void {

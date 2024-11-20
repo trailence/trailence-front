@@ -31,7 +31,7 @@ describe('Trails list - Import GPX with tags', () => {
     expect(tags.get('Tag 1')).toBe('Does not exist');
     expect(tags.get('Tag 2')).toBe('Does not exist');
     await popup.importAll();
-    const trail = await trailsList.findItemByTrailName('Tour de Port-Cros');
+    const trail = await trailsList.waitTrail('Tour de Port-Cros');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
       const tags = await trail!.getTags();
@@ -70,7 +70,7 @@ describe('Trails list - Import GPX with tags', () => {
     expect(tags.get('Tag 2')).toBe('Exists');
     expect(tags.get('Tag 3')).toBe('Does not exist');
     await popup.importAllWithExistingAndMissing();
-    const trail = await trailsList.findItemByTrailName('Roquefraîche');
+    const trail = await trailsList.waitTrail('Roquefraîche');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
       const tags = await trail!.getTags();
@@ -99,7 +99,7 @@ describe('Trails list - Import GPX with tags', () => {
     expect(tags.get('Tag 1')).toBe('Exists');
     expect(tags.get('Tag 4')).toBe('Does not exist');
     await popup.importOnlyExisting();
-    const trail = await trailsList.findItemByTrailName('Au dessus de Montclar');
+    const trail = await trailsList.waitTrail('Au dessus de Montclar');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
       const tags = await trail!.getTags();

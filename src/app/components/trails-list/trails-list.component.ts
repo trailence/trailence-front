@@ -75,9 +75,7 @@ const defaultState: State = {
     onlyVisibleOnMap: false,
     tags: {
       tagsUuids: [],
-      exclude: false,
-      onlyWithoutAnyTag: false,
-      onlyWithAnyTag: false,
+      type: 'include_and',
     }
   }
 }
@@ -291,16 +289,23 @@ export class TrailsListComponent extends AbstractComponent {
         if (minNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < minNegEle)) return false;
         if (maxNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > maxNegEle)) return false;
         if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || filters.loopTypes.selected.indexOf(t.trail.loopType) < 0)) return false;
-        if (filters.tags.onlyWithAnyTag) {
+        if (filters.tags.type === 'onlyWithAnyTag') {
           if (t.tags.length === 0) return false;
-        } else if (filters.tags.onlyWithoutAnyTag) {
+        } else if (filters.tags.type === 'onlyWithoutAnyTag') {
           if (t.tags.length !== 0) return false;
         } else if (filters.tags.tagsUuids.length > 0) {
           const uuids = t.tags.map(tag => tag.tagUuid);
-          if (filters.tags.exclude) {
-            if (uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
-          } else
-            if (!uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
+          switch (filters.tags.type) {
+            case 'include_and':
+              for (const uuid of filters.tags.tagsUuids) if (uuids.indexOf(uuid) < 0) return false;
+              break;
+            case 'include_or':
+              if (!uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
+              break;
+            case 'exclude':
+              if (uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
+              break;
+          }
         }
         return true;
       }
@@ -441,7 +446,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
     if (filters.loopTypes.selected) nb++;
     if (filters.onlyVisibleOnMap) nb++;
-    if (filters.tags.onlyWithAnyTag || filters.tags.onlyWithoutAnyTag || filters.tags.tagsUuids.length !== 0) nb++;
+    if (filters.tags.type === 'onlyWithAnyTag' || filters.tags.type === 'onlyWithoutAnyTag' || filters.tags.tagsUuids.length !== 0) nb++;
     return nb;
   }
 
@@ -457,9 +462,7 @@ export class TrailsListComponent extends AbstractComponent {
     filters.negativeElevation.to = undefined;
     filters.loopTypes.selected = undefined;
     filters.onlyVisibleOnMap = false;
-    filters.tags.onlyWithAnyTag = false;
-    filters.tags.onlyWithoutAnyTag = false;
-    filters.tags.exclude = false;
+    filters.tags.type = 'include_and';
     filters.tags.tagsUuids = [];
     this.state$.next({...this.state$.value, filters: {...filters}});
   }

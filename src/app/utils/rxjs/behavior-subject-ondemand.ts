@@ -3,13 +3,13 @@ import { Observable, Subscriber, Subscription } from 'rxjs';
 export class BehaviorSubjectOnDemand<T> {
 
   constructor(
-    private valueProvider: () => T,
-    private invalidateValueEvent$: Observable<any>
+    private readonly valueProvider: () => T,
+    private readonly invalidateValueEvent$: Observable<any>
   ) {}
 
   private lastValue?: T;
   private subscription?: Subscription;
-  private observers: Subscriber<T>[] = [];
+  private readonly observers: Subscriber<T>[] = [];
 
   public asObservable(): Observable<T> {
     return new Observable(observer => {
