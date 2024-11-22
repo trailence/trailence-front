@@ -1,3 +1,4 @@
+import { ChainablePromiseElement } from 'webdriverio';
 import { App } from '../app/app';
 import { Page } from '../app/pages/page';
 import { TrailsPage } from '../app/pages/trails-page';
@@ -16,7 +17,7 @@ export class AppMenu extends Component {
     return this.getCollectionsSection().$$('div.menu-item');
   }
 
-  public async getCollectionName(item: ChainablePromiseElement) {
+  public async getCollectionName(item: WebdriverIO.Element | ChainablePromiseElement) {
     const title = item.$('.item-title a');
     await title.waitForDisplayed();
     return await title.getText();
@@ -58,6 +59,30 @@ export class AppMenu extends Component {
     const trailsPage = new TrailsPage();
     await trailsPage.waitDisplayed();
     return trailsPage;
+  }
+
+  public getSharedWithMeSection() {
+    return this.getElement().$('div.menu-content div.menu-section#section-shared-with-me');
+  }
+
+  public getSharedByMeSection() {
+    return this.getElement().$('div.menu-content div.menu-section#section-shared-by-me');
+  }
+
+  public async getShares(section: ChainablePromiseElement) {
+    const openButton = section.$('.menu-section-header ion-button');
+    const iconName = await openButton.$('>>>ion-icon').getAttribute('name');
+    if (iconName === 'chevron-right') {
+      await openButton.click();
+    }
+    const items = section.$$('.menu-item');
+    const shares: string[][] = [];
+    for (const item of await items.getElements()) {
+      const name = await item.$('.item-title').getText();
+      const email = await item.$('.item-sub-title').getText();
+      shares.push([name, email]);
+    }
+    return shares;
   }
 
   public async close() {

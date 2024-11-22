@@ -18,6 +18,7 @@ import { ShareElementType } from 'src/app/model/dto/share';
 import { TagService } from 'src/app/services/database/tag.service';
 import { Share } from 'src/app/model/share';
 import { List } from 'immutable';
+import { Console } from 'src/app/utils/console';
 
 @Component({
   selector: 'app-trails-page',
@@ -65,6 +66,7 @@ export class TrailsPage extends AbstractPage {
       return;
     }
     this.reset();
+    if (!newState.type) return;
     if (newState.type === 'collection') {
       // title is collection name, or default
       this.byState.add(this.injector.get(AuthService).auth$.pipe(
@@ -139,13 +141,14 @@ export class TrailsPage extends AbstractPage {
         ), (result: {share: Share | undefined, trails: Trail[]}) => {
           this.ngZone.run(() => {
             if (!result.share) {
+              Console.warn('Share not found, redirecting to home');
               if (this.shown && this.shown instanceof Share) {
                 // share has been removed
                 this.injector.get(Router).navigateByUrl('/');
               }
               return;
             }
-              this.title$.next(result.share.name);
+            this.title$.next(result.share.name);
             const newList = List(result.trails);
             if (!newList.equals(this.trails$.value))
               this.trails$.next(newList);

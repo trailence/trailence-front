@@ -71,6 +71,15 @@ export class UserMenu extends Component {
     return logoutModal;
   }
 
+  public async getUser() {
+    const item = this.getElement().$('>>>ion-item#item-user');
+    return (await item.getText()).trim();
+  }
+
+  public async close() {
+    await browser.action('pointer').move({x: 1, y: 1}).down().pause(10).up().perform();
+  }
+
   public async synchronizeLocalChanges(trial: number = 0, alreadyClickOnSynchronizeNow: boolean = false) {
     const item = this.getElement().$('>>>ion-item#item-synchro');
     const localChanges = item.$('>>>.synchro>.value:last-child');

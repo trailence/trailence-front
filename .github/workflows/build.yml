@@ -96,7 +96,7 @@ jobs:
       fail-fast: false
       matrix:
         mode: [desktop,mobile]
-        test-set: ["00000","00100","00200","00300"]
+        test-set: ["00000","00100","00200","00300","00500"]
     name: E2E Web App - ${{matrix.mode}} ${{matrix.test-set}}
     runs-on: ubuntu-latest
     steps:

@@ -1,5 +1,7 @@
+import { App } from '../app/app';
 import { TrailPage } from '../app/pages/trail-page';
 import { Component } from './component';
+import { MenuContent } from './menu-content.component';
 import { TrailOverview } from './trail-overview.component';
 
 export class TrailsList extends Component {
@@ -72,6 +74,16 @@ export class TrailsList extends Component {
     const item = await this.findItemByTrailName(trailName);
     expect(item).toBeDefined();
     return await this.openTrail(item!);
+  }
+
+  public async openSelectionMenu() {
+    await this.getElement().$('div.selection ion-button').click();
+    const popover = await App.waitPopover();
+    return new MenuContent(popover.$('>>>app-menu-content'));
+  }
+
+  public async selectionMenu(itemName: string) {
+    await (await this.openSelectionMenu()).clickItemWithText(itemName);
   }
 
 }

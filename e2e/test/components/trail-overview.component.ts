@@ -1,6 +1,7 @@
 import { App } from '../app/app';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
+import { IonicCheckbox } from './ionic/ion-checkbox';
 import { MenuContent } from './menu-content.component';
 
 export class TrailOverview extends Component {
@@ -29,6 +30,11 @@ export class TrailOverview extends Component {
     await button.click();
     const menu = new MenuContent(await App.waitPopover());
     await menu.clickItemWithText(item);
+  }
+
+  public async selectTrail() {
+    const cb = new IonicCheckbox(this.getElement().$('div.trail-name-row ion-checkbox'));
+    await cb.setSelected(true);
   }
 
 }

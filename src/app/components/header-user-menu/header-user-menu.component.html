@@ -7,7 +7,7 @@
   <ng-template>
     <ion-content>
       <ion-list>
-        <ion-item>
+        <ion-item id="item-user">
           {{ auth.email }}
         </ion-item>
         <ion-item button [detail]="true" id="item-synchro" [disabled]="status !== 'online'">

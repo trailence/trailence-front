@@ -4,6 +4,7 @@ import { IonicAlert } from '../components/ionic/ion-alert';
 import { LoginPage } from './pages/login-page';
 import { Page } from './pages/page';
 import { ChainablePromiseElement } from 'webdriverio';
+import { TrailsPage } from './pages/trails-page';
 
 export class App {
 
@@ -53,7 +54,7 @@ export class App {
     });
   }
 
-  public static async start() {
+  private static async startMode() {
     switch (App.config.mode) {
       case 'mobile':
         await browser.setWindowSize(800, 800);
@@ -65,10 +66,23 @@ export class App {
       default:
         await browser.setWindowSize(1600, 900);
     }
+  }
+
+  public static async start() {
+    await App.startMode();
     await browser.url(browser.options.baseUrl!);
     const loginPage = new LoginPage();
     await loginPage.waitDisplayed();
     return loginPage;
+  }
+
+  public static async startLink(link: string) {
+    await App.startMode();
+    const url = browser.options.baseUrl!;
+    await browser.url(url + '/link/' + link);
+    const trailsPage = new TrailsPage(true);
+    await trailsPage.waitDisplayed();
+    return trailsPage;
   }
 
   public static async waitPopover() {
@@ -87,7 +101,7 @@ export class App {
     return popoverContainer.$('>>>.popover-viewport');
   }
 
-  public static async waitModal(index: number | undefined, byElementName: string | undefined) {
+  public static async waitModal(index?: number, byElementName?: string) {
     if (index === undefined && byElementName === undefined)
       index = 1;
     if (index !== undefined) {
@@ -118,6 +132,7 @@ export class App {
       expect(page).withContext('Modal with element ' + byElementName).toBeDefined();
       return page!;
     }
+    throw new Error('Unexepcted');
   }
 
   public static async waitAlert() {

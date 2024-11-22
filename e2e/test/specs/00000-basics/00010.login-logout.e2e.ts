@@ -26,6 +26,7 @@ describe('Login and Logout', () => {
   it('Logout', async () => {
     const userMenu = await myTrailsPage.header.openUserMenu();
     expect(await userMenu.isDisplayed()).toBeTrue();
+    expect(await userMenu.getUser()).toBe(App.config.initUsername);
     const logoutPopup = await userMenu.clickLogout();
     expect(await logoutPopup.getTitle()).toBe('Sign out');
     await logoutPopup.clickKeepData();

@@ -11,7 +11,7 @@
 </div>
 <div class="menu-content">
 
-  <div class="menu-section">
+  <div class="menu-section" id="section-collections">
     <div class="menu-section-header">
       <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="collectionsOpen = !collectionsOpen">
         <ion-icon slot="icon-only" [name]="collectionsOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
@@ -39,7 +39,7 @@
 
   <div class="menu-separator"></div>
 
-  <div class="menu-section">
+  <div class="menu-section" id="section-shared-with-me">
     <div class="menu-section-header">
       <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="sharedWithMeOpen = !sharedWithMeOpen">
         <ion-icon slot="icon-only" [name]="sharedWithMeOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
@@ -62,7 +62,7 @@
     }
   </div>
 
-  <div class="menu-section">
+  <div class="menu-section" id="section-shared-by-me">
     <div class="menu-section-header">
       <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="sharedByMeOpen = !sharedByMeOpen">
         <ion-icon slot="icon-only" [name]="sharedByMeOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>

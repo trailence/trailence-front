@@ -10,7 +10,7 @@ export class TrailsPage extends PageWithHeader {
   public get trailsAndMap() { return new TrailsAndMapComponent(this.getElement().$('app-trails-and-map')); }
 
   protected getExpectedUrl(): string {
-    return '/trails/collection/';
+    return this.isShare ? '/trails/share/' : '/trails/collection/';
   }
 
 }

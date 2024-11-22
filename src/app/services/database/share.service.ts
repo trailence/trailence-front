@@ -105,6 +105,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
           type: item.type,
           elements: item.elements,
           toLanguage: item.toLanguage,
+          includePhotos: item.includePhotos,
         }).pipe(
           map(result => {
             result.trails = item.trails;

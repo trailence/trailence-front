@@ -32,6 +32,7 @@
 
     @case ('name_who') {
       <ion-input
+        name="name"
         fill="outline"
         label="{{i18n.texts.pages.share_popup.name}}"
         label-placement="floating"
@@ -47,7 +48,7 @@
       <div class="separator"></div>
 
       <div>
-        <ion-checkbox [checked]="includePhotos" (ionChange)="includePhotos = $event.detail.checked" labelPlacement="end">{{i18n.texts.pages.share_popup.includePhotos}}</ion-checkbox>
+        <ion-checkbox name="photos" [checked]="includePhotos" (ionChange)="includePhotos = $event.detail.checked" labelPlacement="end">{{i18n.texts.pages.share_popup.includePhotos}}</ion-checkbox>
       </div>
       <div class="info">
         <ion-icon name="info"></ion-icon>
@@ -58,6 +59,7 @@
 
       <div class="question">{{i18n.texts.pages.share_popup.who_question}}</div>
       <ion-input
+        name="email"
         fill="outline"
         label="{{i18n.texts.pages.share_popup.email}}"
         label-placement="floating"
@@ -72,7 +74,7 @@
       <div class="separator"></div>
 
       <div class="question">{{i18n.texts.pages.share_popup.language}}</div>
-      <ion-radio-group [value]="toLanguage" (ionChange)="toLanguage = $event.detail.value">
+      <ion-radio-group name="lang" [value]="toLanguage" (ionChange)="toLanguage = $event.detail.value">
         <div>
           <ion-radio value="en" labelPlacement="end">English</ion-radio>
         </div>
