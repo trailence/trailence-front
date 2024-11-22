@@ -2,7 +2,7 @@ import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { OpenFile } from '../../utils/open-file';
 
-describe('Trails list - Import Simple GPX', () => {
+describe('Trail - Edit infos', () => {
 
   let trailPage: TrailPage;
 

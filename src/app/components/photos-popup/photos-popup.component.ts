@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, IonReorderGroup, IonReorder, ModalController, IonTextarea } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea } from "@ionic/angular/standalone";
 import { firstValueFrom } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
@@ -27,7 +27,20 @@ interface PhotoWithInfo {
   templateUrl: './photos-popup.component.html',
   styleUrls: ['./photos-popup.component.scss'],
   standalone: true,
-  imports: [IonReorder, IonReorderGroup, IonCheckbox, IonButtons, IonFooter, IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, PhotoComponent, IonTextarea]
+  imports: [
+    IonCheckbox,
+    IonButtons,
+    IonFooter,
+    IonButton,
+    IonLabel,
+    IonIcon,
+    IonTitle,
+    IonToolbar,
+    IonHeader,
+    CommonModule,
+    PhotoComponent,
+    IonTextarea
+  ]
 })
 export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
@@ -100,6 +113,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     if (p.selected === selected) return;
     p.selected = selected;
     if (selected) this.nbSelected++; else this.nbSelected--;
+    this.changesDetector.detectChanges();
   }
 
   setAllSelected(selected: boolean): void {
@@ -178,6 +192,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   editDescription(photo: PhotoWithInfo): void {
     if (!this.canEdit) return;
     photo.editing = photo.photo.description;
+    this.changesDetector.detectChanges();
     setTimeout(() => {
       if (this.descriptionEditor) this.descriptionEditor.setFocus();
     }, 0);
@@ -189,15 +204,17 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
   descriptionChanged(photo: PhotoWithInfo, text: string | null | undefined): void {
     if (!photo.editing || !text) return;
-    if (photo.photo.description !== photo.editing) {
-      photo.photo.description = photo.editing;
+    if (photo.photo.description !== text) {
+      photo.photo.description = text;
       this.photoService.update(photo.photo);
     }
-    photo.editing = null;
+    this.exitEditDescription(photo);
   }
 
   exitEditDescription(photo: PhotoWithInfo): void {
+    if (photo.editing === null) return;
     photo.editing = null;
+    this.changesDetector.detectChanges();
   }
 
 }

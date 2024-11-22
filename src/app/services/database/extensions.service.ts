@@ -17,7 +17,6 @@ export class ExtensionsService {
   private readonly _extensions$ = new BehaviorSubject<Extension[]>([]);
   private readonly _syncStatus$ = new BehaviorSubject<ExtensionsSyncStatus>(new ExtensionsSyncStatus());
   private _db?: Dexie;
-  private updateFromServerTimeout: any = undefined;
   private readonly _loaded$ = new BehaviorSubject<boolean>(false);
 
   constructor(
@@ -80,8 +79,7 @@ export class ExtensionsService {
       this._loaded$.next(false);
       this._extensions$.next([]);
       this._db = undefined;
-      if (this.updateFromServerTimeout) clearTimeout(this.updateFromServerTimeout);
-      this.updateFromServerTimeout = undefined;
+      this._syncStatus$.next(new ExtensionsSyncStatus());
     }
   }
 
@@ -109,16 +107,16 @@ export class ExtensionsService {
     this._syncStatus$.value.inProgress = true;
     this._syncStatus$.next(this._syncStatus$.value);
     this.http.post<DbItem[]>(environment.apiBaseUrl + '/extensions/v1', this._extensions$.value.map(e => ({version: e.version, extension: e.extension, data: e.data}))).subscribe({
-      next: list => {
+      next: async list => {
         if (this._db !== db) return;
         if (!Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
           Console.info('Extension(s) received from server: ', list.length);
           const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
           this._extensions$.next(extensions);
-          this._db.transaction('rw', [EXTENSIONS_TABLE_NAME], () => {
-            db.table<DbItem>(EXTENSIONS_TABLE_NAME).clear();
+          await this._db.transaction('rw', [EXTENSIONS_TABLE_NAME], async () => {
+            await db.table<DbItem>(EXTENSIONS_TABLE_NAME).clear();
             for (const extension of extensions) {
-              db.table<DbItem>(EXTENSIONS_TABLE_NAME).put({
+              await db.table<DbItem>(EXTENSIONS_TABLE_NAME).put({
                 version: extension.version,
                 extension: extension.extension,
                 data: extension.data

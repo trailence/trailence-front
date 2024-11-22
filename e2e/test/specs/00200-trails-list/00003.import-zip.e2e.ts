@@ -83,7 +83,7 @@ describe('Trails list - Import Zip files', () => {
 
   it('Trail page contains the photo', async () => {
     const photosPopup = await trailPage.trailComponent.openPhotos();
-    const photos = photosPopup.getPhotosCntainers();
+    const photos = photosPopup.getPhotosContainers();
     expect(await photos.length).toBe(1);
     await photosPopup.close();
   });

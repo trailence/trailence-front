@@ -104,6 +104,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this._createdLocally = [];
       this._deletedLocally = [];
       items.forEach(item$ => item$.complete());
+      this.afterClosed();
     });
   }
 
@@ -136,6 +137,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected beforeEmittingStoreLoaded(): void {
     // nothing by default
   }
+
+  protected abstract afterClosed(): void;
 
   private readonly operationsQueue$ = new BehaviorSubject<((resolve: (done: boolean) => void) => void)[]>([]);
 

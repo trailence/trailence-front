@@ -11,7 +11,7 @@ export class IonicTextArea extends Component {
   }
 
   public async setValue(value: string) {
-    await this.waitDisplayed();
+    await this.waitDisplayed({timeout: 10000});
     const input = this.getElement().$('textarea');
     await input.setValue(value);
   }

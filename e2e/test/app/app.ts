@@ -87,16 +87,37 @@ export class App {
     return popoverContainer.$('>>>.popover-viewport');
   }
 
-  public static async waitModal(index: number = 1) {
-    try { await browser.waitUntil(() => $$('ion-app>ion-modal:not(.overlay-hidden)').getElements().then(elements => elements.length >= index)); }
-    catch (e) {
-      expect((await $$('ion-app>ion-modal:not(.overlay-hidden)').getElements()).length).toBeGreaterThanOrEqual(index);
+  public static async waitModal(index: number | undefined, byElementName: string | undefined) {
+    if (index === undefined && byElementName === undefined)
+      index = 1;
+    if (index !== undefined) {
+      try { await browser.waitUntil(() => $$('ion-app>ion-modal:not(.overlay-hidden)').getElements().then(elements => elements.length >= index)); }
+      catch (e) {
+        expect((await $$('ion-app>ion-modal:not(.overlay-hidden)').getElements()).length).toBeGreaterThanOrEqual(index);
+      }
+      const modal = $$('ion-app>ion-modal:not(.overlay-hidden)')[index - 1];
+      await modal.waitForDisplayed();
+      const page = modal.$('>>>.ion-page');
+      await page.waitForExist();
+      return page;
     }
-    const modal = $$('ion-app>ion-modal:not(.overlay-hidden)')[index - 1];
-    await modal.waitForDisplayed();
-    const page = modal.$('>>>.ion-page');
-    await page.waitForExist();
-    return page;
+    if (byElementName !== undefined) {
+      let page: ChainablePromiseElement | undefined = undefined;
+      await browser.waitUntil(async () => {
+        let i = 0;
+        for (const modal of await browser.$$('ion-app>ion-modal:not(.overlay-hidden)').getElements()) {
+          const modalPage = modal.$('>>>' + byElementName + '.ion-page');
+          if (await modalPage.isExisting()) {
+            page = browser.$$('ion-app>ion-modal:not(.overlay-hidden)')[i].$('>>>' + byElementName + '.ion-page');
+            return true;
+          }
+          i++;
+        }
+        return false;
+      });
+      expect(page).withContext('Modal with element ' + byElementName).toBeDefined();
+      return page!;
+    }
   }
 
   public static async waitAlert() {

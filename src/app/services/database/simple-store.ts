@@ -104,6 +104,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       this._syncStatus$.next(this._syncStatus$.value);
     }
 
+    protected override afterClosed(): void {
+      this._syncStatus$.next(new SimpleStoreSyncStatus());
+    }
+
     protected override dbItemCreatedLocally(item: ENTITY): SimpleStoreItem<DTO> {
       return {
         key: this.getKey(item),

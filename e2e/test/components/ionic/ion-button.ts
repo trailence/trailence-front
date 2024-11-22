@@ -15,4 +15,9 @@ export class IonicButton extends Component {
     return this.getElement().click();
   }
 
+  public async isEnabled() {
+    await this.waitDisplayed();
+    return await this.getElement().$('>>>button').isEnabled();
+  }
+
 }

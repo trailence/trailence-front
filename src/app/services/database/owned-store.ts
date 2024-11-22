@@ -213,6 +213,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     this._syncStatus$.next(this._syncStatus$.value);
   }
 
+  protected override afterClosed(): void {
+    this._syncStatus$.next(new OwnedStoreSyncStatus());
+  }
+
   protected override sync(): void {
     this.ngZone.runOutsideAngular(() => {
       const db = this._db;

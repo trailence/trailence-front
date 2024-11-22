@@ -3,6 +3,7 @@ import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicSegment } from './ionic/ion-segment';
 import { IonicTextArea } from './ionic/ion-textarea';
+import { MapComponent } from './map.component';
 import { PhotosPopup } from './photos-popup.component';
 import { TagsPopup } from './tags-popup';
 
@@ -83,6 +84,20 @@ export class TrailComponent extends Component {
     throw new Error('Checkbox "Show original trace" not found');
   }
 
+  public async toggleShowPhotosOnMap() {
+    const details = await this.openDetails();
+    const checkboxes = details.$$('ion-checkbox');
+    for (const cb of await checkboxes.getElements()) {
+      await cb.scrollIntoView({block: 'center', inline: 'center'});
+      const text = await cb.getText();
+      if (text === 'Show photos on map') {
+        await cb.click();
+        return;
+      }
+    }
+    throw new Error('Checkbox "Show photos on map" not found');
+  }
+
   public async openPhotos() {
     // mobile mode
     if (await this.hasTabs()) {
@@ -93,13 +108,24 @@ export class TrailComponent extends Component {
     }
 
     // desktop mode
-    const buttonElement = this.getElement().$('div.top-container div.trail-details div.trail-photos ion-button.edit');
-    await buttonElement.waitForExist();
-    await browser.action('pointer', { parameters: { pointerType: 'mouse' }})
-      .move({origin: buttonElement})
-      .pause(100)
-      .down(0).pause(10).up(0)
-      .perform();
+    const section = this.getElement().$('div.top-container div.trail-details div.trail-photos');
+    const noPhoto = section.$('.no-photo');
+    const editButton = section.$('ion-button.edit');
+    await browser.waitUntil(async () => {
+      if (await editButton.isExisting()) {
+        await browser.action('pointer', { parameters: { pointerType: 'mouse' }})
+          .move({origin: editButton})
+          .pause(100)
+          .down(0).pause(10).up(0)
+          .perform();
+        return true;
+      }
+      if (await noPhoto.isExisting()) {
+        await noPhoto.click();
+        return true;
+      }
+      return false;
+    });
     return new PhotosPopup(await App.waitModal(), true);
   }
 
@@ -143,6 +169,16 @@ export class TrailComponent extends Component {
     const save = new IonicButton(modal.$('ion-footer').$('>>>ion-buttons').$('ion-button=Save'));
     await save.click();
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
+  }
+
+  public async openMap() {
+    if (await this.hasTabs()) {
+      // mobile mode
+      await this.openTab('map');
+    }
+    const element = this.getElement().$('app-map');
+    await element.waitForDisplayed();
+    return new MapComponent(element);
   }
 
 }
