@@ -23,13 +23,12 @@ import { Console } from 'src/app/utils/console';
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
 @Component({
-  selector: 'app-trails-and-map',
-  templateUrl: './trails-and-map.component.html',
-  styleUrls: ['./trails-and-map.component.scss'],
-  standalone: true,
-  imports: [IonButton, IonSegmentButton, IonSegment,
-    TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule,
-  ]
+    selector: 'app-trails-and-map',
+    templateUrl: './trails-and-map.component.html',
+    styleUrls: ['./trails-and-map.component.scss'],
+    imports: [IonButton, IonSegmentButton, IonSegment,
+        TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule,
+    ]
 })
 export class TrailsAndMapComponent extends AbstractComponent {
 

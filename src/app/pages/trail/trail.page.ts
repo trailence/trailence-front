@@ -15,15 +15,14 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
-  selector: 'app-trail-page',
-  templateUrl: './trail.page.html',
-  styleUrls: ['./trail.page.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    HeaderComponent,
-    TrailComponent,
-  ]
+    selector: 'app-trail-page',
+    templateUrl: './trail.page.html',
+    styleUrls: ['./trail.page.scss'],
+    imports: [
+        CommonModule,
+        HeaderComponent,
+        TrailComponent,
+    ]
 })
 export class TrailPage extends AbstractPage {
 

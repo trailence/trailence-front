@@ -142,7 +142,7 @@ jobs:
           ls -l .nyc_output
           npm run coverage-report
           ls -l coverage/e2e
-          sed -i -e 's!www/webpack:/!!' coverage/e2e/lcov.info
+          sed -i -e 's!www/browser/!!' coverage/e2e/lcov.info
           mv coverage/e2e/lcov.info coverage/e2e/${{matrix.mode}}_${{matrix.test-set}}.info
           ls -l coverage/e2e
       - name: Upload failure screenshot

@@ -8,11 +8,10 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-photos-slider',
-  templateUrl: './photos-slider.component.html',
-  styleUrls: ['./photos-slider.component.scss'],
-  standalone: true,
-  imports: [IonIcon, IonButton, PhotoComponent, CommonModule]
+    selector: 'app-photos-slider',
+    templateUrl: './photos-slider.component.html',
+    styleUrls: ['./photos-slider.component.scss'],
+    imports: [IonIcon, IonButton, PhotoComponent, CommonModule]
 })
 export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
 

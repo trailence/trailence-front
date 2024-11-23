@@ -14,11 +14,10 @@ import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
 
 @Component({
-  selector: 'app-preferences',
-  templateUrl: './preferences.page.html',
-  styleUrls: ['./preferences.page.scss'],
-  standalone: true,
-  imports: [IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon, HeaderComponent, FormsModule, CommonModule]
+    selector: 'app-preferences',
+    templateUrl: './preferences.page.html',
+    styleUrls: ['./preferences.page.scss'],
+    imports: [IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon, HeaderComponent, FormsModule, CommonModule]
 })
 export class PreferencesPage implements OnDestroy {
 

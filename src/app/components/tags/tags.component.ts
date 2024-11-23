@@ -27,11 +27,10 @@ class TagNode {
 }
 
 @Component({
-  selector: 'app-tags',
-  templateUrl: './tags.component.html',
-  styleUrls: ['./tags.component.scss'],
-  standalone: true,
-  imports: [IonCheckbox, IonInput, IonButtons, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonFooter, IonContent, IonHeader, CommonModule, FormsModule, ]
+    selector: 'app-tags',
+    templateUrl: './tags.component.html',
+    styleUrls: ['./tags.component.scss'],
+    imports: [IonCheckbox, IonInput, IonButtons, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonFooter, IonContent, IonHeader, CommonModule, FormsModule,]
 })
 export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 

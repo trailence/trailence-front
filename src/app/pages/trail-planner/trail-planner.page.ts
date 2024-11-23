@@ -58,12 +58,11 @@ const LOCALSTORAGE_KEY_PREFIX = 'trailence.trail-planner.';
 const MATCHING_MAX_DISTANCE = 2.5;
 
 @Component({
-  selector: 'app-trail-planner',
-  templateUrl: './trail-planner.page.html',
-  styleUrls: ['./trail-planner.page.scss'],
-  standalone: true,
-  imports: [IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader, IonModal, IonCheckbox, IonLabel, IonToggle, IonItem, IonList,
-    IonIcon, IonButton, HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, ElevationGraphComponent]
+    selector: 'app-trail-planner',
+    templateUrl: './trail-planner.page.html',
+    styleUrls: ['./trail-planner.page.scss'],
+    imports: [IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader, IonModal, IonCheckbox, IonLabel, IonToggle, IonItem, IonList,
+        IonIcon, IonButton, HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, ElevationGraphComponent]
 })
 export class TrailPlannerPage extends AbstractPage {
 

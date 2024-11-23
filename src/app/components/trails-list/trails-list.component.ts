@@ -88,22 +88,21 @@ interface TrailWithInfo {
 }
 
 @Component({
-  selector: 'app-trails-list',
-  templateUrl: './trails-list.component.html',
-  styleUrls: ['./trails-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [IonList, IonSelect, IonSelectOption,
-    IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
-    IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
-    CommonModule,
-    TrailOverviewComponent,
-    IconLabelButtonComponent,
-    ToggleChoiceComponent,
-    MenuContentComponent,
-    FilterNumericComponent,
-    FilterTagsComponent,
-  ]
+    selector: 'app-trails-list',
+    templateUrl: './trails-list.component.html',
+    styleUrls: ['./trails-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [IonList, IonSelect, IonSelectOption,
+        IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
+        IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
+        CommonModule,
+        TrailOverviewComponent,
+        IconLabelButtonComponent,
+        ToggleChoiceComponent,
+        MenuContentComponent,
+        FilterNumericComponent,
+        FilterTagsComponent,
+    ]
 })
 export class TrailsListComponent extends AbstractComponent {
 

@@ -47,12 +47,11 @@ class Titles {
 type TrackType = Track | TrackMetadataSnapshot | undefined;
 
 @Component({
-  selector: 'app-track-metadata',
-  templateUrl: './track-metadata.component.html',
-  styleUrls: ['./track-metadata.component.scss'],
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: []
+    selector: 'app-track-metadata',
+    templateUrl: './track-metadata.component.html',
+    styleUrls: ['./track-metadata.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: []
 })
 export class TrackMetadataComponent extends AbstractComponent {
 

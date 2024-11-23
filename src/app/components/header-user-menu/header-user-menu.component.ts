@@ -11,16 +11,15 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 
 @Component({
-  selector: 'app-header-user-menu',
-  templateUrl: './header-user-menu.component.html',
-  styleUrls: ['./header-user-menu.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList,
-    IonButton,
-    IonPopover,
-    CommonModule,
-  ]
+    selector: 'app-header-user-menu',
+    templateUrl: './header-user-menu.component.html',
+    styleUrls: ['./header-user-menu.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList,
+        IonButton,
+        IonPopover,
+        CommonModule,
+    ]
 })
 export class HeaderUserMenuComponent extends AbstractComponent {
 

@@ -123,40 +123,9 @@
     </div>
     <div>Trailence</div>
     <div class="lds-dual-ring"></div>
-    <div id="trailence-version"></div>
+    <div id="trailence-version">0.8.1</div>
   </div>
   <app-root id="root" style="display: none;"></app-root>
-  <script>
-    function displayAppVersionOnStartupScreen() {
-      if (typeof window['trailenceAppVersionName'] !== 'string') {
-        setTimeout(displayAppVersionOnStartupScreen, 10);
-        return;
-      }
-      var e = document.getElementById('trailence-version');
-      e.innerText = window['trailenceAppVersionName'];
-    }
-    displayAppVersionOnStartupScreen();
-    function loadNgElements(d) {
-      if (d.children.length === 0) return;
-      var s = d.removeChild(d.children.item(0));
-      if (s.nodeName.toLowerCase() == 'link') {
-        document.head.appendChild(s);
-        loadNgElements(d);
-        return;
-      }
-      var script = document.createElement('SCRIPT');
-      script.onload = function() { loadNgElements(d); };
-      script.src = s.src;
-      script.type = s.type;
-      document.body.appendChild(script);
-    }
-    function startNg() {
-      var d = document.createElement('DIV');
-      d.innerHTML = window._ng_trailence.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-      loadNgElements(d);
-    }
-  </script>
-  <!-- trailence -->
 </body>
 
 </html>

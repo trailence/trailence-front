@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'org.trailence',
   appName: 'Trailence',
-  webDir: 'www',
+  webDir: 'www/browser',
   server: {
     hostname: 'trailence.org',
     androidScheme: 'https',

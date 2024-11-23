@@ -4,11 +4,10 @@ import { Photo } from 'src/app/model/photo';
 import { IonButton, IonIcon, ModalController } from "@ionic/angular/standalone";
 
 @Component({
-  selector: 'app-photos-slider-popup',
-  templateUrl: './photos-slider-popup.component.html',
-  styleUrls: ['./photos-slider-popup.component.scss'],
-  standalone: true,
-  imports: [IonIcon, IonButton, PhotosSliderComponent]
+    selector: 'app-photos-slider-popup',
+    templateUrl: './photos-slider-popup.component.html',
+    styleUrls: ['./photos-slider-popup.component.scss'],
+    imports: [IonIcon, IonButton, PhotosSliderComponent]
 })
 export class PhotosSliderPopupComponent {
 

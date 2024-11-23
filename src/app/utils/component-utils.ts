@@ -4,7 +4,7 @@ import { Resubscribeables, Subscriptions } from './rxjs/subscription-utils';
 import { Arrays } from './arrays';
 
 @Component({
-  template: ''
+    template: '',
 })
 export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges {
 

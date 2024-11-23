@@ -7,11 +7,10 @@ import { PhotoService } from 'src/app/services/database/photo.service';
 import { Console } from 'src/app/utils/console';
 
 @Component({
-  selector: 'app-photo',
-  templateUrl: './photo.component.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [IonIcon, IonSpinner, CommonModule]
+    selector: 'app-photo',
+    templateUrl: './photo.component.html',
+    styleUrls: [],
+    imports: [IonIcon, IonSpinner, CommonModule]
 })
 export class PhotoComponent implements OnChanges, OnDestroy {
 

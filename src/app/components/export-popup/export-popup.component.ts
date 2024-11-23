@@ -7,11 +7,10 @@ import { Trail } from 'src/app/model/trail';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Component({
-  selector: 'app-export-popup',
-  templateUrl: './export-popup.component.html',
-  styleUrls: ['./export-popup.component.scss'],
-  standalone: true,
-  imports: [IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonButtons, IonButton, IonFooter, IonLabel, IonTitle, IonToolbar, IonIcon, IonHeader, CommonModule, FormsModule ]
+    selector: 'app-export-popup',
+    templateUrl: './export-popup.component.html',
+    styleUrls: ['./export-popup.component.scss'],
+    imports: [IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonButtons, IonButton, IonFooter, IonLabel, IonTitle, IonToolbar, IonIcon, IonHeader, CommonModule, FormsModule]
 })
 export class ExportPopupComponent implements OnInit {
 

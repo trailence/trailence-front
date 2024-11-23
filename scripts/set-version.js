@@ -43,4 +43,11 @@ fs.writeFileSync(
   '}\n'
 );
 
+console.log('Updating version in index.html');
+let index = fs.readFileSync('src/index.html', {encoding: 'utf-8'});
+let i = index.indexOf('<div id="trailence-version">');
+let j = index.indexOf('</div>', i);
+index = index.substring(0, i + 28) + versionStr + index.substring(j);
+fs.writeFileSync('src/index.html', index);
+
 console.log('Successfully updated version to ', versionStr);

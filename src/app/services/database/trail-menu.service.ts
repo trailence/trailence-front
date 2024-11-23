@@ -23,7 +23,7 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { TagService } from './tag.service';
 import { I18nError } from '../i18n/i18n-string';
 import { ErrorService } from '../progress/error.service';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { PhotoService } from './photo.service';
 import { Photo } from 'src/app/model/photo';
 

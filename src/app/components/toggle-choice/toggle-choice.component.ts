@@ -3,11 +3,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonToggle } from "@ionic/angular/standalone";
 
 @Component({
-  selector: 'app-toggle-choice',
-  templateUrl: './toggle-choice.component.html',
-  styleUrls: ['./toggle-choice.component.scss'],
-  standalone: true,
-  imports: [IonToggle, CommonModule]
+    selector: 'app-toggle-choice',
+    templateUrl: './toggle-choice.component.html',
+    styleUrls: ['./toggle-choice.component.scss'],
+    imports: [IonToggle, CommonModule]
 })
 export class ToggleChoiceComponent<T> {
 

@@ -14,11 +14,10 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { Console } from 'src/app/utils/console';
 
 @Component({
-  selector: 'app-link',
-  templateUrl: './link.page.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [IonIcon, ]
+    selector: 'app-link',
+    templateUrl: './link.page.html',
+    styleUrls: [],
+    imports: [IonIcon,]
 })
 export class LinkPage {
 

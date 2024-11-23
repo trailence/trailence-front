@@ -10,11 +10,10 @@ import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Component({
-  selector: 'app-location-popup',
-  templateUrl: './location-popup.component.html',
-  styleUrls: ['./location-popup.component.scss'],
-  standalone: true,
-  imports: [IonSpinner, IonButton, IonButtons, IonFooter, IonContent, IonInput, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, FormsModule, CommonModule ]
+    selector: 'app-location-popup',
+    templateUrl: './location-popup.component.html',
+    styleUrls: ['./location-popup.component.scss'],
+    imports: [IonSpinner, IonButton, IonButtons, IonFooter, IonContent, IonInput, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, FormsModule, CommonModule]
 })
 export class LocationPopupComponent implements OnInit {
 

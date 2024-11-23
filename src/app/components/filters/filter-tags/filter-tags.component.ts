@@ -10,11 +10,10 @@ import { IonButton, IonModal, IonIcon, IonHeader, IonToolbar, IonTitle, IonLabel
 import { IdGenerator } from 'src/app/utils/component-utils';
 
 @Component({
-  selector: 'app-filter-tags',
-  templateUrl: './filter-tags.component.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [IonFooter, IonButtons, IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, IonIcon, IonModal, IonButton,  CommonModule ]
+    selector: 'app-filter-tags',
+    templateUrl: './filter-tags.component.html',
+    styleUrls: [],
+    imports: [IonFooter, IonButtons, IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, IonIcon, IonModal, IonButton, CommonModule]
 })
 export class FilterTagsComponent implements OnInit, OnDestroy {
 

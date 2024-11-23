@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { IonHeader, IonContent, IonToolbar, IonTitle, IonIcon, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
+import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
 import { first } from 'rxjs';
 import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
@@ -8,11 +8,10 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Component({
-  selector: 'app-import-gpx-popup',
-  templateUrl: './import-gpx-popup.component.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [IonRadioGroup, IonRadio, IonButton, IonButtons, IonFooter, IonLabel, IonIcon, IonTitle, IonToolbar, IonContent, IonHeader, CommonModule ]
+    selector: 'app-import-gpx-popup',
+    templateUrl: './import-gpx-popup.component.html',
+    styleUrls: [],
+    imports: [IonRadioGroup, IonRadio, IonButton, IonButtons, IonFooter, IonLabel, IonTitle, IonToolbar, IonContent, IonHeader, CommonModule]
 })
 export class ImportGpxPopupComponent {
 

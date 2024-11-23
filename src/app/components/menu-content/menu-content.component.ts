@@ -1,16 +1,15 @@
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { MenuItem } from 'src/app/utils/menu-item';
-import { IonItem, IonIcon, IonLabel, IonPopover, IonContent, IonList, IonListHeader, IonButton } from "@ionic/angular/standalone";
+import { IonItem, IonIcon, IonLabel, IonList, IonListHeader, IonButton } from "@ionic/angular/standalone";
 import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { first } from 'rxjs';
 
 @Component({
-  selector: 'app-menu-content',
-  templateUrl: './menu-content.component.html',
-  styleUrls: ['./menu-content.component.scss'],
-  standalone: true,
-  imports: [IonButton, IonListHeader, IonList, IonContent, IonPopover, IonLabel, IonIcon, IonItem, CommonModule]
+    selector: 'app-menu-content',
+    templateUrl: './menu-content.component.html',
+    styleUrls: ['./menu-content.component.scss'],
+    imports: [IonButton, IonListHeader, IonList, IonLabel, IonIcon, IonItem, CommonModule]
 })
 export class MenuContentComponent implements OnInit {
 

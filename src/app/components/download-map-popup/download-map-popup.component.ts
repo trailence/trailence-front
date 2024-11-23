@@ -10,11 +10,10 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-download-map-popup',
-  templateUrl: './download-map-popup.component.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, MapLayerSelectionComponent, CommonModule ]
+    selector: 'app-download-map-popup',
+    templateUrl: './download-map-popup.component.html',
+    styleUrls: [],
+    imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, MapLayerSelectionComponent, CommonModule]
 })
 export class DownloadMapPopupComponent {
 

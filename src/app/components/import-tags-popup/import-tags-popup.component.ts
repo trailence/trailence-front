@@ -19,11 +19,10 @@ class ResolvedTag {
 }
 
 @Component({
-  selector: 'app-import-tags-popup',
-  templateUrl: './import-tags-popup.component.html',
-  styleUrls: ['./import-tags-popup.component.scss'],
-  standalone: true,
-  imports: [IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule ]
+    selector: 'app-import-tags-popup',
+    templateUrl: './import-tags-popup.component.html',
+    styleUrls: ['./import-tags-popup.component.scss'],
+    imports: [IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
 })
 export class ImportTagsPopupComponent  implements OnInit {
 

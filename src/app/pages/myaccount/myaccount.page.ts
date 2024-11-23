@@ -9,11 +9,10 @@ import { IonButton, ModalController } from "@ionic/angular/standalone";
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-myaccount',
-  templateUrl: './myaccount.page.html',
-  styleUrls: ['./myaccount.page.scss'],
-  standalone: true,
-  imports: [IonButton, HeaderComponent, CommonModule]
+    selector: 'app-myaccount',
+    templateUrl: './myaccount.page.html',
+    styleUrls: ['./myaccount.page.scss'],
+    imports: [IonButton, HeaderComponent, CommonModule]
 })
 export class MyaccountPage implements OnDestroy {
 

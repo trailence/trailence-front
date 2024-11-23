@@ -16,26 +16,25 @@ import { Console } from 'src/app/utils/console';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.page.html',
-  styleUrls: ['./login.page.scss'],
-  standalone: true,
-  imports: [
-    IonIcon,
-    IonToolbar,
-    IonLabel,
-    IonSpinner,
-    IonList,
-    IonItem,
-    IonInput,
-    IonCardContent,
-    IonCardTitle,
-    IonCardHeader,
-    IonCard,
-    IonButton,
-    FormsModule,
-    CommonModule,
-  ]
+    selector: 'app-login',
+    templateUrl: './login.page.html',
+    styleUrls: ['./login.page.scss'],
+    imports: [
+        IonIcon,
+        IonToolbar,
+        IonLabel,
+        IonSpinner,
+        IonList,
+        IonItem,
+        IonInput,
+        IonCardContent,
+        IonCardTitle,
+        IonCardHeader,
+        IonCard,
+        IonButton,
+        FormsModule,
+        CommonModule,
+    ]
 })
 export class LoginPage implements OnInit {
 

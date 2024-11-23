@@ -16,14 +16,13 @@ import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
-  selector: 'app-menu',
-  templateUrl: './menu.component.html',
-  styleUrls: ['./menu.component.scss'],
-  standalone: true,
-  imports: [IonBadge, IonButton,
-    CommonModule,
-    IonIcon,
-  ]
+    selector: 'app-menu',
+    templateUrl: './menu.component.html',
+    styleUrls: ['./menu.component.scss'],
+    imports: [IonBadge, IonButton,
+        CommonModule,
+        IonIcon,
+    ]
 })
 export class MenuComponent {
 

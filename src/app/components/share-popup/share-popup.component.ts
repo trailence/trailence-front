@@ -20,11 +20,10 @@ enum SharePage {
 }
 
 @Component({
-  selector: 'app-share-popup',
-  templateUrl: './share-popup.component.html',
-  styleUrls: ['./share-popup.component.scss'],
-  standalone: true,
-  imports: [IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, TagsComponent ]
+    selector: 'app-share-popup',
+    templateUrl: './share-popup.component.html',
+    styleUrls: ['./share-popup.component.scss'],
+    imports: [IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, TagsComponent]
 })
 export class SharePopupComponent implements OnInit {
 

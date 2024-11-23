@@ -6,11 +6,10 @@ import { IonRadio, IonRadioGroup, IonCheckbox } from "@ionic/angular/standalone"
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-map-layer-selection',
-  templateUrl: './map-layer-selection.component.html',
-  styleUrls: ['./map-layer-selection.component.scss'],
-  standalone: true,
-  imports: [IonCheckbox, IonRadioGroup, IonRadio, CommonModule, ]
+    selector: 'app-map-layer-selection',
+    templateUrl: './map-layer-selection.component.html',
+    styleUrls: ['./map-layer-selection.component.scss'],
+    imports: [IonCheckbox, IonRadioGroup, IonRadio, CommonModule,]
 })
 export class MapLayerSelectionComponent implements OnInit {
 

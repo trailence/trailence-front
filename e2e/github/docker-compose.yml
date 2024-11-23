@@ -47,7 +47,7 @@ services:
     ports:
       - 80:80
     volumes:
-      - ../../www:/usr/share/nginx/html/:ro
+      - ../../www/browser:/usr/share/nginx/html/:ro
     environment:
       - TRAILENCE_BACK_NAME=back
       - TRAILENCE_BACK_PORT=8080

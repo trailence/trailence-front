@@ -27,11 +27,10 @@ interface HistoryState {
 }
 
 @Component({
-  selector: 'app-edit-tools',
-  templateUrl: './edit-tools.component.html',
-  styleUrls: ['./edit-tools.component.scss'],
-  standalone: true,
-  imports: [IonCheckbox, IonRange, IonModal, IonItem, IonList, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
+    selector: 'app-edit-tools',
+    templateUrl: './edit-tools.component.html',
+    styleUrls: ['./edit-tools.component.scss'],
+    imports: [IonCheckbox, IonRange, IonModal, IonItem, IonList, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
 })
 export class EditToolsComponent implements OnInit, OnDestroy {
 

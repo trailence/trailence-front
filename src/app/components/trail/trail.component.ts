@@ -40,27 +40,26 @@ import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 
 @Component({
-  selector: 'app-trail',
-  templateUrl: './trail.component.html',
-  styleUrls: ['./trail.component.scss'],
-  standalone: true,
-  imports: [
-    IonSpinner,
-    IonCheckbox,
-    IonInput,
-    IonTextarea,
-    IonButton,
-    IonIcon,
-    IonSegmentButton,
-    IonSegment,
-    CommonModule,
-    MapComponent,
-    TrackMetadataComponent,
-    ElevationGraphComponent,
-    IconLabelButtonComponent,
-    PhotoComponent,
-    PhotosPopupComponent,
-  ]
+    selector: 'app-trail',
+    templateUrl: './trail.component.html',
+    styleUrls: ['./trail.component.scss'],
+    imports: [
+        IonSpinner,
+        IonCheckbox,
+        IonInput,
+        IonTextarea,
+        IonButton,
+        IonIcon,
+        IonSegmentButton,
+        IonSegment,
+        CommonModule,
+        MapComponent,
+        TrackMetadataComponent,
+        ElevationGraphComponent,
+        IconLabelButtonComponent,
+        PhotoComponent,
+        PhotosPopupComponent,
+    ]
 })
 export class TrailComponent extends AbstractComponent {
 

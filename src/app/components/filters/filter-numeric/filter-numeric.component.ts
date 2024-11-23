@@ -10,11 +10,10 @@ export interface NumericFilterValueEvent {
 }
 
 @Component({
-  selector: 'app-filter-numeric',
-  templateUrl: './filter-numeric.component.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [IonLabel, IonRange, FormsModule ]
+    selector: 'app-filter-numeric',
+    templateUrl: './filter-numeric.component.html',
+    styleUrls: [],
+    imports: [IonLabel, IonRange, FormsModule]
 })
 export class FilterNumericComponent {
 

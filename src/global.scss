@@ -10,28 +10,28 @@
  */
 
 /* Core CSS required for Ionic components to work properly */
-@import "@ionic/angular/css/core.css";
+@use "@ionic/angular/css/core.css";
 
 /* Basic CSS for apps built with Ionic */
-@import "@ionic/angular/css/normalize.css";
-@import "@ionic/angular/css/structure.css";
-@import "@ionic/angular/css/typography.css";
-@import "@ionic/angular/css/display.css";
+@use "@ionic/angular/css/normalize.css";
+@use "@ionic/angular/css/structure.css";
+@use "@ionic/angular/css/typography.css";
+@use "@ionic/angular/css/display.css";
 
 /* Optional CSS utils that can be commented out */
-@import "@ionic/angular/css/padding.css";
+@use "@ionic/angular/css/padding.css";
 //@import "@ionic/angular/css/float-elements.css";
 //@import "@ionic/angular/css/text-alignment.css";
 //@import "@ionic/angular/css/text-transformation.css";
 //@import "@ionic/angular/css/flex-utils.css";
 
-@import "style/ionic.scss";
-@import "style/metadata.scss";
-@import "style/progress.scss";
-@import "style/alerts.scss";
-@import "style/modals.scss";
-@import "style/sections.scss";
-@import "style/map.scss";
+@use "style/ionic.scss";
+@use "style/metadata.scss";
+@use "style/progress.scss";
+@use "style/alerts.scss";
+@use "style/modals.scss";
+@use "style/sections.scss";
+@use "style/map.scss";
 
 :root {
   --header-height: 56px;

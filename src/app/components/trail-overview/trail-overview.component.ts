@@ -34,15 +34,13 @@ class Meta {
 }
 
 @Component({
-  selector: 'app-trail-overview',
-  templateUrl: './trail-overview.component.html',
-  styleUrls: ['./trail-overview.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [IonSpinner, IonButton, IonCheckbox, IonIcon,
-    CommonModule,
-    TrackMetadataComponent,
-    MenuContentComponent, PhotosSliderComponent]
+    selector: 'app-trail-overview',
+    templateUrl: './trail-overview.component.html',
+    styleUrls: ['./trail-overview.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [IonSpinner, IonButton, IonCheckbox, IonIcon,
+        CommonModule,
+        PhotosSliderComponent]
 })
 export class TrailOverviewComponent extends AbstractComponent {
 

@@ -10,18 +10,17 @@ import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss'],
-  standalone: true,
-  imports: [
-    IonApp,
-    IonMenu,
-    IonContent,
-    IonRouterOutlet,
-    CommonModule,
-    MenuComponent,
-  ],
+    selector: 'app-root',
+    templateUrl: 'app.component.html',
+    styleUrls: ['app.component.scss'],
+    imports: [
+        IonApp,
+        IonMenu,
+        IonContent,
+        IonRouterOutlet,
+        CommonModule,
+        MenuComponent,
+    ]
 })
 export class AppComponent {
 

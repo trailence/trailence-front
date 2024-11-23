@@ -11,20 +11,19 @@ import { UpdateService } from 'src/app/services/update/update.service';
 import { of } from 'rxjs';
 
 @Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss'],
-  standalone: true,
-  imports: [IonBadge, IonContent, IonPopover, IonButton,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonIcon,
-    IonMenuButton,
-    HeaderUserMenuComponent,
-    CommonModule,
-    MenuContentComponent,
-  ]
+    selector: 'app-header',
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss'],
+    imports: [IonBadge, IonContent, IonPopover, IonButton,
+        IonHeader,
+        IonToolbar,
+        IonButtons,
+        IonIcon,
+        IonMenuButton,
+        HeaderUserMenuComponent,
+        CommonModule,
+        MenuContentComponent,
+    ]
 })
 export class HeaderComponent extends AbstractComponent {
 

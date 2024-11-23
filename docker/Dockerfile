@@ -19,6 +19,6 @@ RUN chmod 777 ./gradlew && ./gradlew assembleRelease
 
 FROM nginx:stable-alpine AS build-image
 COPY ./docker/nginx.conf /etc/nginx/templates/default.conf.template
-COPY --from=build-app /build/www /usr/share/nginx/html
+COPY --from=build-app /build/www/browser /usr/share/nginx/html
 COPY --from=build-apk /build-apk/android/app/build/outputs/apk/release/app-release.apk /usr/share/nginx/html/assets/apk/trailence.apk
 COPY --from=build-apk /build-apk/android/app/build/outputs/apk/release/output-metadata.json /usr/share/nginx/html/assets/apk/metadata.json

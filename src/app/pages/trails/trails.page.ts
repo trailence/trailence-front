@@ -21,15 +21,14 @@ import { List } from 'immutable';
 import { Console } from 'src/app/utils/console';
 
 @Component({
-  selector: 'app-trails-page',
-  templateUrl: './trails.page.html',
-  styleUrls: ['./trails.page.scss'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    HeaderComponent,
-    TrailsAndMapComponent,
-  ]
+    selector: 'app-trails-page',
+    templateUrl: './trails.page.html',
+    styleUrls: ['./trails.page.scss'],
+    imports: [
+        CommonModule,
+        HeaderComponent,
+        TrailsAndMapComponent,
+    ]
 })
 export class TrailsPage extends AbstractPage {
 

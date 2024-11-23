@@ -11,11 +11,10 @@ import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
 
 @Component({
-  selector: 'app-search-place',
-  templateUrl: './search-place.component.html',
-  styleUrls: ['./search-place.component.scss'],
-  standalone: true,
-  imports: [IonSpinner, IonLabel, IonItem, IonList, IonPopover, IonSearchbar, CommonModule]
+    selector: 'app-search-place',
+    templateUrl: './search-place.component.html',
+    styleUrls: ['./search-place.component.scss'],
+    imports: [IonSpinner, IonLabel, IonItem, IonList, IonPopover, IonSearchbar, CommonModule]
 })
 export class SearchPlaceComponent {
 

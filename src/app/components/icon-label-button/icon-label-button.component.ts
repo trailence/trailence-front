@@ -3,11 +3,10 @@ import { Component, Input } from '@angular/core';
 import { IonIcon, IonBadge } from '@ionic/angular/standalone';
 
 @Component({
-  selector: 'app-icon-label-button',
-  templateUrl: './icon-label-button.component.html',
-  styleUrls: ['./icon-label-button.component.scss'],
-  standalone: true,
-  imports: [CommonModule, IonIcon, IonBadge]
+    selector: 'app-icon-label-button',
+    templateUrl: './icon-label-button.component.html',
+    styleUrls: ['./icon-label-button.component.scss'],
+    imports: [CommonModule, IonIcon, IonBadge]
 })
 export class IconLabelButtonComponent {
 

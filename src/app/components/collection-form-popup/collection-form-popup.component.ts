@@ -9,11 +9,10 @@ import { Router } from '@angular/router';
 import { filter, first } from 'rxjs';
 
 @Component({
-  selector: 'app-collection-form-popup',
-  templateUrl: './collection-form-popup.component.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [IonInput, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonIcon, IonToolbar, IonHeader, FormsModule, ]
+    selector: 'app-collection-form-popup',
+    templateUrl: './collection-form-popup.component.html',
+    styleUrls: [],
+    imports: [IonInput, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonIcon, IonToolbar, IonHeader, FormsModule,]
 })
 export class CollectionFormPopupComponent implements OnInit, OnChanges {
 

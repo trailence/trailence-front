@@ -23,24 +23,23 @@ interface PhotoWithInfo {
 }
 
 @Component({
-  selector: 'app-photos-popup',
-  templateUrl: './photos-popup.component.html',
-  styleUrls: ['./photos-popup.component.scss'],
-  standalone: true,
-  imports: [
-    IonCheckbox,
-    IonButtons,
-    IonFooter,
-    IonButton,
-    IonLabel,
-    IonIcon,
-    IonTitle,
-    IonToolbar,
-    IonHeader,
-    CommonModule,
-    PhotoComponent,
-    IonTextarea
-  ]
+    selector: 'app-photos-popup',
+    templateUrl: './photos-popup.component.html',
+    styleUrls: ['./photos-popup.component.scss'],
+    imports: [
+        IonCheckbox,
+        IonButtons,
+        IonFooter,
+        IonButton,
+        IonLabel,
+        IonIcon,
+        IonTitle,
+        IonToolbar,
+        IonHeader,
+        CommonModule,
+        PhotoComponent,
+        IonTextarea
+    ]
 })
 export class PhotosPopupComponent  implements OnInit, OnDestroy {
 

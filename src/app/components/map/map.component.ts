@@ -27,12 +27,11 @@ import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-databas
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
 @Component({
-  selector: 'app-map',
-  templateUrl: './map.component.html',
-  styleUrls: ['./map.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: []
+    selector: 'app-map',
+    templateUrl: './map.component.html',
+    styleUrls: ['./map.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: []
 })
 export class MapComponent extends AbstractComponent {
 

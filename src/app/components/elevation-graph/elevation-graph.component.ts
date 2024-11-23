@@ -39,15 +39,14 @@ export interface DataPoint {
 }
 
 @Component({
-  selector: 'app-elevation-graph',
-  templateUrl: './elevation-graph.component.html',
-  styleUrls: ['./elevation-graph.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports:[
-    CommonModule,
-    BaseChartDirective
-  ]
+    selector: 'app-elevation-graph',
+    templateUrl: './elevation-graph.component.html',
+    styleUrls: ['./elevation-graph.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        CommonModule,
+        BaseChartDirective
+    ]
 })
 export class ElevationGraphComponent extends AbstractComponent {
 
