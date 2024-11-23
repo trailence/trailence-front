@@ -12,6 +12,10 @@ export interface TrailencePlugin {
 
   downloadUsingBrowser(call: {url: string}): Promise<{success: boolean}>;
 
+  canInstallUpdate(call: {}): Promise<{allowed: boolean}>;
+  requestInstallPermission(call: {}): Promise<{allowed: boolean}>;
+  downloadAndInstall(call: {url: string}, callback: (status: {done: boolean, error: string | null, i18n: string | null, progress: number | null}) => void): void;
+
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');

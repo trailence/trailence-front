@@ -528,7 +528,12 @@
   },
   "update": {
     "download_android": "Télécharger l'application Android",
-    "update_android": "Télécharger la mise à jour Android"
+    "update_android": "Télécharger la mise à jour",
+    "not_allowed": "Si vous ne souhaitez pas autoriser la mise à jour automatique, vous pouvez télécharger la mise à jour puis l'installer manuellement.",
+    "download_manually": "Télécharger manuellement",
+    "updating": "Mise à jour",
+    "downloading": "Téléchargement",
+    "installing": "Installation de la mise à jour"
   },
   "metadata": {
     "trail_date": "Date du parcours",

@@ -113,7 +113,7 @@
       <div class="item-title">{{i18n.texts.update[update.downloadApp.i18nText]}}</div>
     </div>
   </div>
-  <div class="menu-item" (click)="update.download()" *ngIf="update.updateApp">
+  <div class="menu-item" (click)="update.downloadAndUpdate(); close();" *ngIf="update.updateApp">
     <div class="icon-badge">
       <ion-icon [name]="update.updateApp.icon"></ion-icon>
       <ion-badge>⟳</ion-badge>

@@ -528,7 +528,12 @@
   },
   "update": {
     "download_android": "Download Android application",
-    "update_android": "Download Android update"
+    "update_android": "Download update",
+    "not_allowed": "If you don't want to allow automatic update, you can still download it and install it manually.",
+    "download_manually": "Download manually",
+    "updating": "Updating",
+    "downloading": "Downloading",
+    "installing": "Installing update"
   },
   "metadata": {
     "trail_date": "Trail date",
