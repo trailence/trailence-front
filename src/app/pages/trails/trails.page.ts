@@ -2,9 +2,9 @@ import { Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, filter, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, filter, map, of, switchMap, combineLatest, Observable } from 'rxjs';
 import { Router } from '@angular/router';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { Trail } from 'src/app/model/trail';
@@ -19,6 +19,9 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { Share } from 'src/app/model/share';
 import { List } from 'immutable';
 import { Console } from 'src/app/utils/console';
+import { NetworkService } from 'src/app/services/network/network.service';
+import { AuthResponse } from 'src/app/services/auth/auth-response';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 
 @Component({
     selector: 'app-trails-page',
@@ -41,7 +44,6 @@ export class TrailsPage extends AbstractPage {
   actions: MenuItem[] = [];
 
   viewId?: string;
-  shown: any;
 
   constructor(
     injector: Injector,
@@ -72,14 +74,10 @@ export class TrailsPage extends AbstractPage {
         filter(auth => !!auth),
         switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth.email)),
         switchMap(collection => {
-          if (!collection) {
-            if (this.shown && this.shown instanceof TrailCollection) {
-              // collection has been removed
-              this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
-            }
-            return EMPTY;
-          }
-          this.shown = collection;
+          if (!collection) return this.onItemEmpty<string>(
+            () => this.injector.get(TrailCollectionService).storeLoadedAndServerUpdates$(),
+            auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth.email)
+          );
           this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
           // menu
           this.actions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
@@ -102,11 +100,12 @@ export class TrailsPage extends AbstractPage {
       );
     } else if (newState.type === 'share') {
       this.byStateAndVisible.subscribe(
-        this.injector.get(ShareService).getAll$().pipe(
-          collection$items(),
-          map(shares => shares.find(share => share.id === newState.id && share.from === newState.from)),
+        this.injector.get(ShareService).getShare$(newState.id, newState.from).pipe(
           switchMap(share => {
-            if (!share) return of({share, trails: [] as Trail[]});
+            if (!share) return this.onItemEmpty<{share: Share, trails: Trail[]}>(
+              () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
+              () => this.injector.get(ShareService).getShare$(newState.id, newState.from),
+            );
             if (share.from === this.injector.get(AuthService).email) {
               if (share.type === ShareElementType.TRAIL)
                 return this.injector.get(TrailService).getAll$().pipe(
@@ -125,7 +124,7 @@ export class TrailsPage extends AbstractPage {
                 map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
                 switchMap(uuids => this.injector.get(TrailService).getAll$().pipe(
                   collection$items(),
-                  map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)),
+                  map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)), // NOSONAR
                   map(trails => ({share, trails}))
                 ))
               )
@@ -137,22 +136,13 @@ export class TrailsPage extends AbstractPage {
               );
             }
           })
-        ), (result: {share: Share | undefined, trails: Trail[]}) => {
+        ), (result: {share: Share, trails: Trail[]}) => {
           this.ngZone.run(() => {
-            if (!result.share) {
-              Console.warn('Share not found, redirecting to home');
-              if (this.shown && this.shown instanceof Share) {
-                // share has been removed
-                this.injector.get(Router).navigateByUrl('/');
-              }
-              return;
-            }
             this.title$.next(result.share.name);
             const newList = List(result.trails);
             if (!newList.equals(this.trails$.value))
               this.trails$.next(newList);
             this.viewId = "share-" + result.share.id + "-" + result.share.from;
-            this.shown = result.share;
             this.actions = this.injector.get(ShareService).getShareMenu(result.share);
           });
         });
@@ -161,12 +151,33 @@ export class TrailsPage extends AbstractPage {
     }
   }
 
+  private onItemEmpty<T>(storeReady$: () => Observable<boolean>, getItem$: (auth: AuthResponse) => Observable<any>): Observable<T> {
+    return this.injector.get(AuthService).auth$.pipe(
+      switchMap(auth => !auth ? EMPTY : combineLatest([
+        storeReady$(),
+        this.visible$,
+        this.injector.get(NetworkService).server$,
+        getItem$(auth).pipe(
+          firstTimeout(item => !!item, 5000, () => null),
+        ),
+      ]).pipe(
+        switchMap(([loaded, visible, connected, item]) => {
+          if (item === null && (!connected || (loaded && visible))) {
+            // collection does not exist
+            Console.warn('Item not found, redirecting to home');
+            this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
+          }
+          return EMPTY;
+        })
+      ))
+    );
+  }
+
   private reset(): void {
     this.viewId = undefined;
     this.title$.next('');
     this.trails$.next(List());
     this.actions = [];
-    this.shown = undefined;
   }
 
 }

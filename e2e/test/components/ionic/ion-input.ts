@@ -13,7 +13,14 @@ export class IonicInput extends Component {
   public async setValue(value: string) {
     await this.waitDisplayed();
     const input = this.getElement().$('input');
+    await input.waitForEnabled();
     await input.setValue(value);
+  }
+
+  public async getValue() {
+    await this.waitDisplayed();
+    const input = this.getElement().$('input');
+    return await input.getValue();
   }
 
 }

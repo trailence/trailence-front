@@ -10,7 +10,7 @@ describe('Trail - Photos', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
     const menu = await App.openMenu();
     const collectionPage = await menu.openCollection('Test Trail');
     expect(await collectionPage.header.getTitle()).toBe('Test Trail');

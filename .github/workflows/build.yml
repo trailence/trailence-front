@@ -1,6 +1,29 @@
 name: Build
 on: [push, pull_request]
 jobs:
+  prepare-e2e-web-app:
+    name: Prepare web app for E2E
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Build and Instrument
+        run: |
+          npm ci
+          npm run build -- --configuration=development
+          npm run instrument
+      - name: Store web app
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepare-e2e-web-app
+          path: www
+          retention-days: 1
   build-web-app:
     name: Build - Web App
     runs-on: ubuntu-latest
@@ -14,16 +37,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Cache Global NPM packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: npm-global-packages
           path: ~/.npm
-      - name: Install dependencies
-        run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
-          npm ci
       - name: Build Production
-        run: npm run build -- --configuration=production
+        run: |
+          npm ci
+          npm run build -- --configuration=production
   build-android:
     name: Build - Android App
     runs-on: ubuntu-latest
@@ -42,7 +63,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Cache Global NPM packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -73,14 +94,8 @@ jobs:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-      - name: Cache Global NPM packages
-        uses: actions/cache@v3
-        with:
-          key: npm-global-packages
-          path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
           npm ci
       - name: Unit Tests
         run: npm run test -- --configuration=ci
@@ -92,12 +107,15 @@ jobs:
           if-no-files-found: error
           retention-days: 5
   e2e-tests-web-app:
+    needs:
+      - prepare-e2e-web-app
     strategy:
       fail-fast: false
       matrix:
-        mode: [desktop,mobile]
-        test-set: ["00000","00100","00200","00300","00500"]
-    name: E2E Web App - ${{matrix.mode}} ${{matrix.test-set}}
+        browser: ["chrome","firefox"]
+        mode: ["desktop","mobile"]
+        test-set: ["00000+00100","00200", "00300+00500"]
+    name: E2E ${{matrix.browser}} ${{matrix.mode}} ${{matrix.test-set}}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -108,15 +126,11 @@ jobs:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
-      - name: Cache Global NPM packages
-        uses: actions/cache@v3
+      - name: Retrieve web app
+        uses: actions/download-artifact@v4
         with:
-          key: npm-global-packages
-          path: ~/.npm
-      - name: Install dependencies
-        run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf mkdirp
-          npm ci
+          name: prepare-e2e-web-app
+          path: www
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -126,37 +140,36 @@ jobs:
           tags: |
             type=ref,prefix=snapshot-,event=branch
             type=ref,event=tag
-      - name: Build and Instrument
-        run: |
-          npm run build -- --configuration=development
-          npm run instrument
-          mkdir .nyc_output
       - name: Tests End 2 End
         id: e2e
         run: |
-          cd e2e/github
+          mkdir .nyc_output
+          cd e2e
+          npm ci
+          cd github
           chmod 777 ./run.sh
-          ./run.sh --trailence-mode=${{matrix.mode}} --test-only=${{matrix.test-set}}/
+          ./run.sh --trailence-mode=${{matrix.mode}} --test-browser=${{matrix.browser}} --test-only=${{matrix.test-set}}/
       - name: Build coverage report
         run: |
+          npm ci
           ls -l .nyc_output
           npm run coverage-report
           ls -l coverage/e2e
           sed -i -e 's!www/browser/!!' coverage/e2e/lcov.info
-          mv coverage/e2e/lcov.info coverage/e2e/${{matrix.mode}}_${{matrix.test-set}}.info
+          mv coverage/e2e/lcov.info coverage/e2e/${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}.info
           ls -l coverage/e2e
       - name: Upload failure screenshot
         if: ${{ failure() && steps.e2e.conclusion == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
-          name: wdio_error_${{github.run_number}}_${{matrix.mode}}_${{matrix.test-set}}.png
+          name: wdio_error_${{github.run_number}}_${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}.png
           path: e2e/wdio_error.png
           retention-days: 5
       - name: Store coverage results
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-tests-web-app-${{matrix.mode}}-${{matrix.test-set}}-coverage-report
-          path: ./coverage/e2e/${{matrix.mode}}_${{matrix.test-set}}.info
+          name: e2e-tests-web-app-${{matrix.browser}}-${{matrix.mode}}-${{matrix.test-set}}-coverage-report
+          path: ./coverage/e2e/${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}.info
           if-no-files-found: error
           retention-days: 5
   sonar:

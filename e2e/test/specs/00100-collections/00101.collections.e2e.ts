@@ -9,7 +9,7 @@ describe('Collections', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
   });
 
   it('Update collection name 2', async () => {
@@ -40,6 +40,7 @@ describe('Collections', () => {
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
     const newPage = new TrailsPage();
+    await newPage.waitDisplayed();
     await newPage.header.getElement().waitForDisplayed();
     expect(await newPage.header.getTitle()).toBe('My Trails');
   });

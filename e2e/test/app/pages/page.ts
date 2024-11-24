@@ -12,7 +12,7 @@ export abstract class Page extends AppElement {
     super();
   }
 
-  protected abstract getExpectedUrl(): string;
+  protected abstract expectedUrl(url: string): boolean;
 
   public static async getActivePageElement() {
     const app = $('ion-app');
@@ -23,15 +23,15 @@ export abstract class Page extends AppElement {
     return app.$('>>>ion-router-outlet>.ion-page:not(.ion-page-hidden)');
   }
 
-  public override getElement() {
-    if (!this._displayedElement)
-      this._displayedElement = $('ion-app ion-router-outlet>app-' + this._pageName + '.ion-page:not(.ion-page-hidden)');
+  public override _getElement(resetGetElement: boolean) {
+    if (!this._displayedElement || resetGetElement)
+      this._displayedElement = $('ion-app').$('>>>ion-router-outlet>app-' + this._pageName + '.ion-page:not(.ion-page-hidden)');
     return this._displayedElement;
   }
 
   public async waitDisplayed() {
-    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf(this.getExpectedUrl()) > 0));
-    await super.waitDisplayed();
+    await browser.waitUntil(() => browser.getUrl().then(url => this.expectedUrl(url)));
+    await super.waitDisplayed(true);
   }
 
 }

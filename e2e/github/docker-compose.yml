@@ -9,12 +9,12 @@ services:
       - POSTGRES_DB=trailence
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
-      interval: 30s
+      interval: 5s
       timeout: 60s
-      retries: 5
+      retries: 20
       start_period: 80s
   smtp:
-    image: mailhog/mailhog
+    image: mailhog/mailhog:v1.0.1
     ports:
       - 8025:8025
   back:

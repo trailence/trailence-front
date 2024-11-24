@@ -24,7 +24,6 @@ export interface StoreRegistration {
   name: string;
   status$: Observable<StoreSyncStatus | null>;
   loaded$: Observable<boolean>;
-  canSync$: Observable<boolean>;
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
@@ -36,7 +35,6 @@ class RegisteredStore implements StoreRegistration {
   name: string;
   status$: Observable<StoreSyncStatus | null>;
   loaded$: Observable<boolean>;
-  canSync$: Observable<boolean>;
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
@@ -51,7 +49,6 @@ class RegisteredStore implements StoreRegistration {
     this.name = registration.name;
     this.status$ = registration.status$;
     this.loaded$ = registration.loaded$;
-    this.canSync$ = registration.canSync$;
     this.hasPendingOperations$ = registration.hasPendingOperations$;
     this.syncFromServer = registration.syncFromServer;
     this.fireSyncStatus = registration.fireSyncStatus;
@@ -97,14 +94,19 @@ export class DatabaseService {
     return this._stores.pipe(
       switchMap(stores => {
         if (stores.length === 0) return of(false);
-        return combineLatest(stores.map(s => s.status$)).pipe(
-          map(status => status.map(s => !!s?.hasLocalChanges).reduce((a,b) => a || b, false)),
-          switchMap(hasChanges => {
-            if (hasChanges) return of(true);
-            return combineLatest(stores.map(s => s.hasPendingOperations$)).pipe(
-              map(pending => pending.reduce((a,b) => a || b, false)), // NOSONAR
-            )
-          })
+        return combineLatest(
+          [
+            combineLatest(stores.map(s => s.status$)),
+            combineLatest(stores.map(s => s.hasPendingOperations$)),
+          ]
+        ).pipe(
+          map(([statuses, operations]) => {
+            let hasChanges = statuses.map(s => !!s?.hasLocalChanges).reduce((a,b) => a || b, false);
+            if (hasChanges) return true;
+            hasChanges = operations.reduce((a,b) => a || b, false);
+            return hasChanges;
+          }),
+          debounceTimeExtended(100, 100, undefined, (p, n) => n === true)
         );
       })
     );
@@ -133,15 +135,10 @@ export class DatabaseService {
 
   public syncNow(): void {
     this._stores.value.forEach(s => {
-      s.canSync$.pipe(
-        filter(can => !!can),
-        first(),
-      ).subscribe(() => {
-        s.lastSync = 0;
-        if (s.syncTimeout) clearTimeout(s.syncTimeout);
-        s.syncTimeout = undefined;
-        s.syncFromServer();
-      });
+      s.lastSync = 0;
+      if (s.syncTimeout) clearTimeout(s.syncTimeout);
+      s.syncTimeout = undefined;
+      s.syncFromServer();
     });
   }
 
@@ -163,9 +160,8 @@ export class DatabaseService {
       store.loaded$,         // local database is loaded
       this.network.server$,  // network is connected
       store.status$,         // there is something to sync and we are not syncing
-      store.canSync$,        // and nothing prevent from synching
     ]).pipe(
-      map(([storeLoaded, networkConnected, syncStatus, canSync]) => storeLoaded && networkConnected && canSync && syncStatus?.needsSync && !syncStatus.inProgress),
+      map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress),
       debounceTime(250),
       filter(shouldSync => {
         if (!shouldSync) return false;

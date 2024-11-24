@@ -7,7 +7,7 @@ export class IonicToggle extends Component {
     const value = await input.isSelected();
     if (value === value1) {
       await input.scrollIntoView({block: 'center', inline: 'center'});
-      await browser.action('pointer').move({origin: input}).down().pause(10).up().perform();
+      await browser.action('pointer').move({origin: input}).pause(100).down().pause(100).up().perform();
     }
   }
 

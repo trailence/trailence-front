@@ -3,12 +3,12 @@ import { PageWithHeader } from './page';
 
 export class TrailPage extends PageWithHeader {
 
-  constructor(private owner: string, private uuid: string) {
+  constructor(private readonly owner: string, private readonly uuid: string) {
     super('trail-page');
   }
 
-  protected getExpectedUrl(): string {
-    return '/trail/' + this.owner + '/' + this.uuid;
+  protected override expectedUrl(url: string): boolean {
+    return url.indexOf('/trail/' + this.owner + '/' + this.uuid) > 0;
   }
 
   public get trailComponent() { return new TrailComponent(this.getElement().$('app-trail')); }

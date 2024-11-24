@@ -61,6 +61,7 @@ export class AssetsService {
       'logout': 'assets/logout.1.svg', // log-out-outline
       'loop': 'assets/loop.1.svg',
       'lowest-point': 'assets/lowest-point.1.svg',
+      'map': 'assets/map.1.svg', // map
       'more-menu': 'assets/more-menu.1.svg', // ellipsis-horizontal
       'offline': 'assets/exclamation-circle.1.svg', // alert-circle-outline
       'one-way': 'assets/point-to-point.1.svg',

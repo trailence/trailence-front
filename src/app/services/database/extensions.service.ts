@@ -27,7 +27,6 @@ export class ExtensionsService {
       name: 'extensions',
       status$: this._syncStatus$,
       loaded$: this._loaded$,
-      canSync$: of(true),
       hasPendingOperations$: of(false),
       fireSyncStatus: () => this._syncStatus$.next(this._syncStatus$.value),
       syncFromServer: () => this.triggerUpdatesFromServer(),
@@ -107,7 +106,7 @@ export class ExtensionsService {
     this._syncStatus$.value.inProgress = true;
     this._syncStatus$.next(this._syncStatus$.value);
     this.http.post<DbItem[]>(environment.apiBaseUrl + '/extensions/v1', this._extensions$.value.map(e => ({version: e.version, extension: e.extension, data: e.data}))).subscribe({
-      next: async list => {
+      next: async list => { // NOSONAR
         if (this._db !== db) return;
         if (!Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
           Console.info('Extension(s) received from server: ', list.length);

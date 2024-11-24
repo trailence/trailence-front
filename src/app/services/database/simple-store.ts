@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, catchError, defaultIfEmpty, from, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap } from "rxjs";
 import { Store, StoreSyncStatus } from "./store";
 import { Table } from "dexie";
 import { Injector } from "@angular/core";
@@ -69,30 +69,30 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     }
 
     private saveStore(): Observable<boolean> {
-        return from(this._db!.transaction('rw', this.tableName, async tx => {
-            const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
-            await table.clear();
-            const dbItems: SimpleStoreItem<DTO>[] = [];
-            this._store.value.forEach(item$ => {
-              if (item$.value) {
-                dbItems.push({
-                  key: this.getKey(item$.value),
-                  item: this.toDTO(item$.value),
-                  createdLocally: this._createdLocally.indexOf(item$) >= 0,
-                  deletedLocally: false,
-                });
-              }
+      return from(this._db!.transaction('rw', this.tableName, async tx => {
+        const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
+        await table.clear();
+        const dbItems: SimpleStoreItem<DTO>[] = [];
+        this._store.value.forEach(item$ => {
+          if (item$.value) {
+            dbItems.push({
+              key: this.getKey(item$.value),
+              item: this.toDTO(item$.value),
+              createdLocally: this._createdLocally.indexOf(item$) >= 0,
+              deletedLocally: false,
             });
-            this._deletedLocally.forEach(item => {
-              dbItems.push({
-                key: this.getKey(item),
-                item: this.toDTO(item),
-                createdLocally: false,
-                deletedLocally: true,
-              })
-            });
-            await table.bulkAdd(dbItems);
-          })).pipe(defaultIfEmpty(true), map(() => true));
+          }
+        });
+        this._deletedLocally.forEach(item => {
+          dbItems.push({
+            key: this.getKey(item),
+            item: this.toDTO(item),
+            createdLocally: false,
+            deletedLocally: true,
+          })
+        });
+        await table.bulkAdd(dbItems);
+      })).pipe(defaultIfEmpty(true), map(() => true));
     }
 
     protected override beforeEmittingStoreLoaded(): void {
@@ -134,6 +134,13 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     }
 
     protected override sync(): void {
+      this._operationInProgress$.pipe(
+        filter(p => !p),
+        first()
+      ).subscribe(() => this._sync());
+    }
+
+    private _sync(): void {
       this.ngZone.runOutsideAngular(() => {
         const db = this._db;
         const stillValid = () => this._db === db;
@@ -192,7 +199,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             }
             return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
               switchMap(result => {
-                Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
+                Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server, ' + (toCreate.length - readyEntities.length) + ' additional pending');
                 if (!stillValid()) return of(false);
                 result.forEach(created => {
                   const entity = this.fromDTO(created);

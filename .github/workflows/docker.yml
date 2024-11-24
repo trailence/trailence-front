@@ -31,13 +31,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Trust store
-        uses: mobiledevops/secret-to-file-action@v1
+        uses: Acohen-work/secret-to-file-action@v1
         with:
           filename: 'trailence.jks'
           working-directory: './docker'
           base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
       - name: Keys
-        uses: mobiledevops/secret-to-file-action@v1
+        uses: Acohen-work/secret-to-file-action@v1
         with:
           filename: 'keys.gradle'
           working-directory: './docker'

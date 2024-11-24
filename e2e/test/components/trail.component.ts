@@ -1,6 +1,7 @@
 import { App } from '../app/app';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
+import { IonicInput } from './ionic/ion-input';
 import { IonicSegment } from './ionic/ion-segment';
 import { IonicTextArea } from './ionic/ion-textarea';
 import { MapComponent } from './map.component';
@@ -147,7 +148,7 @@ export class TrailComponent extends Component {
     const textArea = new IonicTextArea(element.$('ion-textarea'));
     await textArea.waitDisplayed();
     await textArea.setValue(text);
-    await browser.action('pointer').move({origin: element.previousElement()}).down().up().perform();
+    await browser.action('pointer').move({origin: element.previousElement()}).pause(100).down().pause(100).up().perform();
     await browser.waitUntil(() => textArea.isDisplayed().then(d => !d));
   }
 
@@ -166,6 +167,7 @@ export class TrailComponent extends Component {
     const link = ul.$('li:first-child').$('a');
     await link.waitForDisplayed();
     await link.click();
+    await browser.waitUntil(() => new IonicInput(modal.$('ion-content').$('>>>ion-input')).getValue().then(value => value === 'Bonifacio'));
     const save = new IonicButton(modal.$('ion-footer').$('>>>ion-buttons').$('ion-button=Save'));
     await save.click();
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));

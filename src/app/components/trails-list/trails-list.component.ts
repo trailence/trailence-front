@@ -226,6 +226,11 @@ export class TrailsListComponent extends AbstractComponent {
         }
         this.allTrails = trailsWithInfo;
         this.applySort(this.applyFilters());
+        if (this.highlighted) {
+          const h = this.highlighted;
+          const ti = this.listTrails.find(t => t.trail.uuid === h.uuid && t.trail.owner === h.owner);
+          this.highlighted = ti?.trail;
+        }
         this.changeDetector.detectChanges();
       },
       true

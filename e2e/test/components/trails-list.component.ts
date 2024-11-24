@@ -48,7 +48,7 @@ export class TrailsList extends Component {
   }
 
   public async openTrail(trail: TrailOverview) {
-    const parent = await trail.getElement().parentElement();
+    const parent = trail.getElement().parentElement();
     let id = await parent.getAttribute('id');
     expect(id.startsWith('trail-list-id-')).toBeTrue();
     id = id.substring(14);
@@ -58,11 +58,16 @@ export class TrailsList extends Component {
     expect(id.length).toBeGreaterThan(36);
     const uuid = id.substring(0, 36)
     const owner = id.substring(37);
-    const openButtonContainer = trail.getElement().nextElement();
+    let openButtonContainer = trail.getElement().nextElement();
     if (!await openButtonContainer.isExisting()) {
-      await trail.getElement().click();
+      const trailName = trail.getElement().$('div.trail-name');
+      await trailName.scrollIntoView({block: 'center', inline: 'center'});
+      await trailName.click();
+      await browser.waitUntil(() => trail.getElement().nextElement().isExisting());
+      openButtonContainer = trail.getElement().nextElement();
     }
     const openButton = openButtonContainer.$('ion-button');
+    await openButton.scrollIntoView({block: 'center', inline: 'center'});
     await openButton.waitForDisplayed();
     await openButton.click();
     const trailPage = new TrailPage(owner, uuid);

@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, concat, defaultIfEmpty, from, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, concat, defaultIfEmpty, filter, first, from, map, of, switchMap, tap } from 'rxjs';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
@@ -218,6 +218,13 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override sync(): void {
+    this._operationInProgress$.pipe(
+      filter(p => !p),
+      first()
+    ).subscribe(() => this._sync());
+  }
+
+  private _sync(): void {
     this.ngZone.runOutsideAngular(() => {
       const db = this._db;
       const stillValid = () => this._db === db;

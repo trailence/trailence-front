@@ -1,18 +1,18 @@
-<div class="left-side" (click)="previous()" *ngIf="screenWidth > 300 && screenHeight > 300">
+<div class="left-side" (click)="previous()">
   <ion-button size="large" shape="round" fill="clear" color="dark" [disabled]="scroll <= 0">
     <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
   </ion-button>
 </div>
-<div class="right-side" (click)="next()" *ngIf="screenWidth > 300 && screenHeight > 300">
+<div class="right-side" (click)="next()">
   <ion-button size="large" shape="round" fill="clear" color="dark" [disabled]="scroll >= (items.length - 1) * screenWidth">
     <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
   </ion-button>
 </div>
-<div class="photos-container" id="{{id}}-photos-container" [ngClass]="{'large': screenWidth > 300 && screenHeight > 300}">
+<div class="photos-container" id="{{id}}-photos-container" [ngClass]="{'large': screenHeight > 300}">
   @for (item of items; track item.index) {
     <div class="photo-item" [ngStyle]="{'left': (item.index * screenWidth - scroll) + 'px'}">
       <div class="photo-container">
-        <app-photo [maxWidth]="screenWidth" [maxHeight]="screenWidth > 300 && screenHeight > 300 ? screenHeight - 45 : screenHeight" [photo]="item.loaded ? item.photo : undefined"></app-photo>
+        <app-photo [maxWidth]="screenWidth" [maxHeight]="screenHeight > 300 ? screenHeight - 45 : screenHeight" [photo]="item.loaded ? item.photo : undefined"></app-photo>
       </div>
       <div class="photo-description">
         <div>{{ item.photo.description }}</div>

@@ -14,17 +14,18 @@ import { TagService } from './tag.service';
 import { TrailService } from './trail.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import Dexie from 'dexie';
+import { Router } from '@angular/router';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TrailCollectionService {
 
-  private _store: TrailCollectionStore;
+  private readonly _store: TrailCollectionStore;
 
   constructor(
     http: HttpService,
-    private injector: Injector,
+    private readonly injector: Injector,
   ) {
     this._store = new TrailCollectionStore(injector, http);
   }
@@ -108,6 +109,7 @@ export class TrailCollectionService {
             const progress = this.injector.get(ProgressService).create(i18n.texts.collection_menu.deleting, 1);
             this.delete(collection, progress);
             alert.dismiss();
+            this.injector.get(Router).navigateByUrl('/');
           }
         }, {
           text: i18n.texts.collection_menu.delete_confirm.no,
@@ -118,13 +120,19 @@ export class TrailCollectionService {
     await alert.present();
   }
 
+  public storeLoadedAndServerUpdates$(): Observable<boolean> {
+    return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
+      map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
+    );
+  }
+
 }
 
 class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollection> {
 
     constructor(
       injector: Injector,
-      private http: HttpService,
+      private readonly http: HttpService,
     ) {
       super(TRAIL_COLLECTION_TABLE_NAME, injector);
     }

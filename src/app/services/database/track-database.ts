@@ -81,7 +81,6 @@ export class TrackDatabase {
       name: 'tracks',
       status$: this.syncStatus$,
       loaded$: of(true),
-      canSync$: of(true),
       hasPendingOperations$: of(false),
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
       syncFromServer: () => this.triggerSyncFromServer(),
@@ -740,7 +739,7 @@ export class TrackDatabase {
                 const bunch = toRetrieve.slice(i, Math.min(toRetrieve.length, i + 20));
                 const limiter = new RequestLimiter(3);
                 const requests = bunch
-                .map(item => () => {
+                .map(item => () => { // NOSONAR
                   if (this.db !== db) {
                     progress.done();
                     return EMPTY;
@@ -748,12 +747,12 @@ export class TrackDatabase {
                   return this.injector.get(HttpService).get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
                 })
                 .map(request => limiter.add(request).pipe(
-                  tap(() => {
+                  tap(() => { // NOSONAR
                     done++;
                     progress.addWorkDone(1);
                     progress.subTitle = '' + done + '/' + toRetrieve.length;
                   }),
-                  catchError(error => {
+                  catchError(error => { // NOSONAR
                     done++;
                     progress.addWorkDone(1);
                     progress.subTitle = '' + done + '/' + toRetrieve.length;
@@ -763,7 +762,7 @@ export class TrackDatabase {
                 ));
                 operations$ = operations$.pipe(
                   switchMap(() => (requests.length === 0 ? of([]) : zip(requests)).pipe(
-                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), []))
+                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), [])) // NOSONAR
                   ))
                 );
               }
@@ -792,7 +791,7 @@ export class TrackDatabase {
           const request = () => {
             if (this.db !== db) return EMPTY;
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
-              catchError(e => {
+              catchError(e => { // NOSONAR
                 Console.error('error sending update for track', item.track, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.update_track', []);
                 return EMPTY;
@@ -817,7 +816,7 @@ export class TrackDatabase {
   private updatesFromServer(db: Dexie, tracks: TrackDto[], deleted: { uuid: string, owner: string }[]): Observable<any> {
     if (this.db !== db) return EMPTY;
     if (tracks.length === 0 && deleted.length === 0) return of(true);
-    return from(this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
+    return from(this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => { // NOSONAR
       if (deleted.length > 0) {
         const keys = deleted.map(item => item.uuid + '#' + item.owner);
         if (this.db !== db) return;

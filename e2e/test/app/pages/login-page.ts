@@ -10,8 +10,8 @@ export class LoginPage extends Page {
     super('login');
   }
 
-  protected getExpectedUrl(): string {
-    return '/login';
+  protected override expectedUrl(url: string): boolean {
+    return url.indexOf('/login') > 0;
   }
 
   public get loginInput() { return new IonicInput(this, 'ion-input[name=email]'); }

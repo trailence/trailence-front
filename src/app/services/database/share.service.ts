@@ -15,6 +15,7 @@ import { MenuItem } from 'src/app/utils/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController } from '@ionic/angular/standalone';
 import Dexie from 'dexie';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,13 @@ export class ShareService {
 
   public getAll$(): Observable<Observable<Share | null>[]> {
     return this._store.getAll$();
+  }
+
+  public getShare$(id: string, from: string): Observable<Share | null> {
+    return this.getAll$().pipe(
+      collection$items(),
+      map(shares => shares.find(share => share.id === id && share.from === from) ?? null)
+    );
   }
 
   public create(type: ShareElementType, elements: string[], name: string, to: string, toLanguage: string, includePhotos: boolean): Observable<Share | null> {
@@ -73,6 +81,12 @@ export class ShareService {
       ]
     });
     await alert.present();
+  }
+
+  public storeLoadedAndServerUpdates$(): Observable<boolean> {
+    return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
+      map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
+    );
   }
 
 }

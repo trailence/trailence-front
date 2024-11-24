@@ -27,7 +27,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   private readonly _storeLoaded$ = new BehaviorSubject<boolean>(false);
 
-  private readonly _operationInProgress$ = new BehaviorSubject<boolean>(false);
+  protected readonly _operationInProgress$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     protected tableName: string,
@@ -35,6 +35,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   ) {
     this.ngZone = injector.get(NgZone);
   }
+
+  public get loaded$() { return this._storeLoaded$; }
 
   protected abstract readyToSave(entity: STORE_ITEM): boolean;
   protected abstract readyToSave$(entity: STORE_ITEM): Observable<boolean>;
@@ -52,7 +54,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       name,
       status$: this.syncStatus$,
       loaded$: this._storeLoaded$,
-      canSync$: this._operationInProgress$.pipe(map(inProgress => !inProgress)),
       hasPendingOperations$: combineLatest([this._operationInProgress$, this.operationsQueue$]).pipe(map(([progress, queue]) => progress || queue.length > 0)),
       syncFromServer: () => this.triggerSyncFromServer(),
       fireSyncStatus: () => this.syncStatus = this.syncStatus, // NOSONAR

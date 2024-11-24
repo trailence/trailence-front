@@ -12,6 +12,7 @@ export class MenuContent extends Component {
 
   public async clickItemWithText(text: string) {
     for (const item of await this.items.getElements()) {
+      await item.scrollIntoView({block: 'center', inline: 'center'});
       if (await this.getItemText(item) === text) {
         await item.click();
         return;

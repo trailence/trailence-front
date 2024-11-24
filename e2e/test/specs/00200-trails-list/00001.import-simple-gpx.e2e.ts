@@ -9,7 +9,7 @@ describe('Trails list - Import Simple GPX', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
   });
 
   it('Create collection', async () => {
@@ -22,6 +22,7 @@ describe('Trails list - Import Simple GPX', () => {
 
   it('Import a simple GPX file', async () => {
     const page = new TrailsPage();
+    await page.waitDisplayed();
     const trailsList = await page.trailsAndMap.openTrailsList();
     const importButton = await trailsList.getToolbarButton('add-circle');
     await importButton.click();

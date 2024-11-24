@@ -11,7 +11,7 @@ describe('Shares - Create', () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
     const menu = await App.openMenu();
     collectionPage = await menu.addCollection('Test Shares');
     expect(await collectionPage.header.getTitle()).toBe('Test Shares');

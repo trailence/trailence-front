@@ -2,6 +2,8 @@ import { expect } from '@wdio/globals'
 import { App } from '../../app/app';
 import { LoginPage } from '../../app/pages/login-page';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { Page } from '../../app/pages/page';
+import { HeaderComponent } from '../../components/header.component';
 
 describe('Login and Logout', () => {
 
@@ -20,7 +22,10 @@ describe('Login and Logout', () => {
 
   it('Login as init user', async () => {
     myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    const userMenu = await myTrailsPage.header.openUserMenu();
+    expect(await userMenu.getUser()).toBe(App.config.initUsername);
+    await userMenu.close();
   });
 
   it('Logout', async () => {
@@ -34,4 +39,15 @@ describe('Login and Logout', () => {
     await loginPage.waitDisplayed();
   });
 
-})
+  it('Login again, go somewhere else, come back, still logged in', async () => {
+    myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
+    expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
+    await browser.url('https://github.com/trailence');
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'trailence · GitHub'));
+    await browser.url(browser.options.baseUrl!);
+    myTrailsPage = new TrailsPage();
+    await myTrailsPage.waitDisplayed();
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+  });
+
+});

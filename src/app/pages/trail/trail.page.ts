@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector, Input, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, of, switchMap } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { TrailComponent } from 'src/app/components/trail/trail.component';
@@ -13,6 +13,9 @@ import { MenuItem } from 'src/app/utils/menu-item';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { NetworkService } from 'src/app/services/network/network.service';
+import { Console } from 'src/app/utils/console';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 
 @Component({
     selector: 'app-trail-page',
@@ -95,7 +98,28 @@ export class TrailPage extends AbstractPage {
         combineLatest([
           this.trailService.getTrail$(newState.uuid, newState.owner),
           newState.owner2 && newState.uuid2 ? this.trailService.getTrail$(newState.uuid2, newState.owner2) : of(null)
-        ]),
+        ]).pipe(
+          switchMap(([t1, t2]) => {
+            if (t1) return of([t1, t2]);
+            return combineLatest([
+              this.trailService.storeLoadedAndServerUpdates$(),
+              this.visible$,
+              this.injector.get(NetworkService).server$,
+              this.trailService.getTrail$(newState.uuid, newState.owner).pipe(
+                firstTimeout<Trail | null>(item => !!item, 5000, () => null),
+              ),
+            ]).pipe(
+              switchMap(([loaded, visible, connected, item]) => {
+                if (item === null && (!connected || (loaded && visible))) {
+                  // trail does not exist
+                  Console.warn('Trail not found, redirecting to home');
+                  this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
+                }
+                return of([null, null]);
+              })
+            )
+          })
+        ),
         ([t1, t2]) => {
           this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, t1?.collectionUuid);
           if (!t2 && t1?.owner === this.injector.get(AuthService).email) {

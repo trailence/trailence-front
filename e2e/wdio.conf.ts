@@ -1,20 +1,10 @@
 const dynamicConfig = {} as any;
 
 dynamicConfig.baseUrl = "http://localhost:8100";
-const caps = { browserName: 'chrome' } as any;
-caps['goog:chromeOptions'] = {
-  args: [
-    '--lang=en_US',
-    '--disable-ipc-flooding-protection',
-  ]
-};
-caps["goog:loggingPrefs"] = {
-  browser: "ALL",
-};
-dynamicConfig.capabilities = [caps];
 dynamicConfig.trailence = {mode: 'desktop'};
 
 let specs = [ './test/specs/**/*.e2e.ts' ];
+let browser = 'chrome';
 
 for (const arg of process.argv) {
   if (arg.startsWith('--trailence-init-username='))
@@ -24,22 +14,33 @@ for (const arg of process.argv) {
   else if (arg.startsWith('--test-only=')) {
     const name = arg.substring(12).trim();
     if (name.length > 0) {
-      const i = name.indexOf('/');
-      if (i > 0) {
-        const folder = name.substring(0, i);
-        const specName = name.substring(i + 1);
-        specs = [
-          './test/specs/**/' + folder + '*/**/' + specName + '*.e2e.ts'
-        ];
+      if (name.indexOf('+') > 0) {
+        const folders = name.split('+');
+        specs = [];
+        for (const folder of folders) {
+          let name = folder.endsWith('/') ? folder.substring(0, folder.length - 1) : folder;
+          specs.push('./test/specs/**/' + name + '*/**/*.e2e.ts');
+        }
       } else {
-        specs = [
-          './test/specs/**/' + name + '*.e2e.ts',
-          './test/specs/**/' + name + '*/*.e2e.ts'
-        ];
+        const i = name.indexOf('/');
+        if (i > 0) {
+          const folder = name.substring(0, i);
+          const specName = name.substring(i + 1);
+          specs = [
+            './test/specs/**/' + folder + '*/**/' + specName + '*.e2e.ts'
+          ];
+        } else {
+          specs = [
+            './test/specs/**/' + name + '*.e2e.ts',
+            './test/specs/**/' + name + '*/*.e2e.ts'
+          ];
+        }
       }
     }
   } else if (arg.startsWith('--trailence-mode=')) {
     dynamicConfig.trailence['mode'] = arg.substring(17);
+  } else if (arg.startsWith('--test-browser=')) {
+    browser = arg.substring(15);
   }
 }
 
@@ -47,38 +48,105 @@ let isCi = false;
 if (process.env.IS_CI) {
   isCi = true;
   dynamicConfig.baseUrl = "http://localhost:80";
-  caps['goog:chromeOptions'].args.push(
-    '--no-sandbox',
-    '--disable-infobars',
-    '--headless',
-    '--disable-gpu',
-    '--disable-background-networking',
-    '--enable-features=NetworkService,NetworkServiceInProcess',
-    '--disable-background-timer-throttling',
-    '--disable-backgrounding-occluded-windows',
-    '--disable-breakpad',
-    '--disable-client-side-phishing-detection',
-    '--disable-component-extensions-with-background-pages',
-    '--disable-default-apps',
-    '--disable-dev-shm-usage',
-    '--disable-extensions',
-    // BlinkGenPropertyTrees disabled due to crbug.com/937609
-    '--disable-features=TranslateUI,BlinkGenPropertyTrees',
-    '--disable-hang-monitor',
-    '--disable-popup-blocking',
-    '--disable-prompt-on-repost',
-    '--disable-renderer-backgrounding',
-    '--disable-sync',
-    '--force-color-profile=srgb',
-    '--metrics-recording-only',
-    '--no-first-run',
-    '--enable-automation',
-    '--password-store=basic',
-    '--use-mock-keychain',
-  );
 }
 
-let workerCounter = 0;
+const caps = { browserName: browser } as any;
+dynamicConfig.capabilities = [caps];
+
+if (browser === 'chrome') {
+  caps['goog:chromeOptions'] = {
+    args: [
+      '--lang=en_US',
+      '--disable-ipc-flooding-protection',
+    ]
+  };
+  caps["goog:loggingPrefs"] = {
+    browser: "ALL",
+  };
+  if (isCi) {
+    caps['goog:chromeOptions'].args.push(
+      '--no-sandbox',
+      '--disable-infobars',
+      '--headless',
+      '--disable-gpu',
+      '--disable-background-networking',
+      '--enable-features=NetworkService,NetworkServiceInProcess',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-breakpad',
+      '--disable-client-side-phishing-detection',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-default-apps',
+      '--disable-dev-shm-usage',
+      '--disable-extensions',
+      // BlinkGenPropertyTrees disabled due to crbug.com/937609
+      '--disable-features=TranslateUI,BlinkGenPropertyTrees',
+      '--disable-hang-monitor',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-renderer-backgrounding',
+      '--disable-sync',
+      '--force-color-profile=srgb',
+      '--metrics-recording-only',
+      '--no-first-run',
+      '--enable-automation',
+      '--password-store=basic',
+      '--use-mock-keychain',
+    );
+  }
+
+} else if (browser === 'firefox') {
+  caps['moz:firefoxOptions'] = {
+    args: [
+    ]
+  };
+  if (isCi) {
+    caps['moz:firefoxOptions'].args.push(
+      '-headless'
+    );
+  }
+} else if (browser === 'edge') {
+  caps.browserName = 'msedge';
+  caps['ms:edgeOptions'] = {
+    args: [
+      '--lang=en_US',
+      '--disable-ipc-flooding-protection',
+    ]
+  };
+  if (isCi) {
+    caps['ms:edgeOptions'].args.push(
+      '--no-sandbox',
+      '--disable-infobars',
+      '--headless',
+      '--disable-gpu',
+      '--disable-background-networking',
+      '--enable-features=NetworkService,NetworkServiceInProcess',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-breakpad',
+      '--disable-client-side-phishing-detection',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-default-apps',
+      '--disable-dev-shm-usage',
+      '--disable-extensions',
+      // BlinkGenPropertyTrees disabled due to crbug.com/937609
+      '--disable-features=TranslateUI,BlinkGenPropertyTrees',
+      '--disable-hang-monitor',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-renderer-backgrounding',
+      '--disable-sync',
+      '--force-color-profile=srgb',
+      '--metrics-recording-only',
+      '--no-first-run',
+      '--enable-automation',
+      '--password-store=basic',
+      '--use-mock-keychain',
+    );
+  }
+} else {
+  throw new Error('Unknown browser: ' + browser);
+}
 
 export const config = Object.assign({}, {
     //

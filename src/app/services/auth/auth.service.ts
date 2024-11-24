@@ -5,7 +5,7 @@ import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, filter,
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
-import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, NavigationStart, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, NavigationEnd, NavigationStart, Router, RouterStateSnapshot } from '@angular/router';
 import { ApiError } from '../http/api-error';
 import { LoginRequest } from './login-request';
 import { DeviceInfo } from './device-info';
@@ -55,6 +55,13 @@ export class AuthService {
       } else if (auth) {
         Console.info('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete);
         localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
+      }
+    });
+    router.events.subscribe(e => {
+      if (e instanceof NavigationStart) {
+        Console.debug('Navigate to ' + e.url);
+      } else if (e instanceof NavigationEnd) {
+        Console.debug('Navigation done to ' + e.url);
       }
     });
     router.events.pipe(

@@ -228,6 +228,11 @@ export class TrailService {
     });
   }
 
+  public storeLoadedAndServerUpdates$(): Observable<boolean> {
+    return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
+      map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
+    );
+  }
 }
 
 class TrailStore extends OwnedStore<TrailDto, Trail> {

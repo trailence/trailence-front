@@ -23,15 +23,17 @@ export class App {
     expect(App.config.initUserpass.length).toBeGreaterThan(0);
     jasmine.getEnv().addReporter({
       specDone: (result) => {
-        return browser.getLogs('browser').then(logs => {
+        let promise: Promise<any> = Promise.resolve();
+        if (result.status === 'failed') {
+          console.log('Test error: take a screen shot');
+          promise = promise.then(() => browser.saveScreenshot('wdio_error.png').then().catch(e => Promise.resolve()));
+        }
+        promise = promise.then(() => browser.getLogs('browser').then(logs => {
           logs = logs.map(log => (log as any)?.message).filter(msg => msg?.indexOf('[WDIO]') < 0);
           console.log(' **** Test: ' + result.fullName + ' -- Console output ****');
           console.log(logs);
-        }).then(() => {
-          if (result.status === 'failed') {
-            return browser.saveScreenshot('wdio_error.png').then();
-          }
-        });
+        }).catch(e => Promise.resolve()));
+        return promise;
       },
       suiteDone: (result) => {
         console.log('Suite done: ' + result.fullName);
@@ -59,8 +61,8 @@ export class App {
       case 'mobile':
         await browser.setWindowSize(800, 800);
         await browser.setViewport({
-          width: 300,
-          height: 616
+          width: 350,
+          height: 600
         })
         break;
       default:
@@ -68,9 +70,13 @@ export class App {
     }
   }
 
-  public static async start() {
+  public static async start(redirectUrl?: string) {
     await App.startMode();
-    await browser.url(browser.options.baseUrl!);
+    let url = browser.options.baseUrl!;
+    if (redirectUrl) {
+      url += '/login?returnUrl=' + encodeURIComponent(redirectUrl);
+    }
+    await browser.url(url);
     const loginPage = new LoginPage();
     await loginPage.waitDisplayed();
     return loginPage;
@@ -144,9 +150,10 @@ export class App {
   }
 
   public static async openMenu() {
-    const menu = $('app-root ion-menu app-menu');
+    const menu = $('app-root ion-menu').$('>>>app-menu').$('div.menu-content');
     if (await menu.isDisplayed()) {
-      return new AppMenu(menu);
+      await browser.waitUntil(() => $('app-root ion-menu').$('>>>app-menu').getCSSProperty('width').then(w => w.value === '304px'));
+      return new AppMenu($('app-root ion-menu').$('>>>app-menu'));
     }
 
     const page = await Page.getActivePageElement();

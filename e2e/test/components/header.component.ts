@@ -37,7 +37,7 @@ export class HeaderComponent extends Component {
   public async openAppMenu() {
     const button = new IonicButton(this, 'ion-menu-button');
     await button.click();
-    const menu = $('app-root ion-menu app-menu');
+    const menu = $('app-root ion-menu').$('>>>app-menu');
     await menu.waitForDisplayed();
     await browser.waitUntil(() => menu.getCSSProperty('width').then(w => w.value === '304px'));
     return new AppMenu(menu);
@@ -77,7 +77,8 @@ export class UserMenu extends Component {
   }
 
   public async close() {
-    await browser.action('pointer').move({x: 1, y: 1}).down().pause(10).up().perform();
+    await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(100).down().pause(100).up().perform();
+    await browser.waitUntil(() => this.getElement().isExisting().then(e => !e), { timeout: 10000 });
   }
 
   public async synchronizeLocalChanges(trial: number = 0, alreadyClickOnSynchronizeNow: boolean = false) {
@@ -94,7 +95,7 @@ export class UserMenu extends Component {
         if (text === 'Yes') {
           if (i === 9) throw new Error('Still has local changes after 10 trials');
           if (alreadyClickOnSynchronizeNow) {
-            browser.waitUntil(() => localChanges.getText().then(text => text === 'No'));
+            await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'));
             result = true;
             break;
           }
