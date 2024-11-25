@@ -17,9 +17,11 @@ import { filter, first } from 'rxjs';
 export class CollectionFormPopupComponent implements OnInit, OnChanges {
 
   @Input() collection?: TrailCollection;
+  @Input() redirectOnApplied = false;
 
   uuid?: string;
   name = '';
+  applying = false;
 
   constructor(
     public i18n: I18nService,
@@ -48,7 +50,8 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
   }
 
   apply(): void {
-    if (!this.uuid)
+    this.applying = true;
+    if (!this.uuid) {
       this.collectionService.create(new TrailCollection({
         name: this.name,
         type: TrailCollectionType.CUSTOM,
@@ -58,12 +61,18 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
         filter(col => !!col),
         first()
       )
-      .subscribe(col => this.router.navigateByUrl('/trails/collection/' + col.uuid));
-    else if (this.name !== this.collection!.name) {
+      .subscribe(col => {
+        this.modalController.dismiss(col, 'apply');
+        if (this.redirectOnApplied)
+          this.router.navigateByUrl('/trails/collection/' + col.uuid);
+      });
+    } else if (this.name !== this.collection!.name) {
       this.collection!.name = this.name;
       this.collectionService.update(this.collection!);
+      this.modalController.dismiss(this.collection, 'apply');
+    } else {
+      this.modalController.dismiss(null, 'apply');
     }
-    this.modalController.dismiss(null, 'apply');
   }
 
   cancel(): void {

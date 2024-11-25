@@ -11,6 +11,10 @@ button.alert-button.alert-button-role-ok {
   color: var(--ion-color-secondary);
 }
 
+button.alert-button.alert-button-role-success {
+  color: var(--ion-color-success);
+}
+
 .alert-wrapper .alert-button-group {
   flex-wrap: nowrap;
 

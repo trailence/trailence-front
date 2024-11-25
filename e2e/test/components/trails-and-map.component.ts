@@ -5,7 +5,7 @@ import { TrailsList } from './trails-list.component';
 export class TrailsAndMapComponent extends Component {
 
   public async waitReady() {
-    await this.getElement().waitForDisplayed();
+    await browser.waitUntil(() => this.getElement(true).isDisplayed());
     await this.getElement().$('div.top-container').waitForDisplayed();
   }
 

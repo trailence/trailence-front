@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
 import { Subscription, combineLatest, debounceTime, of } from 'rxjs';
@@ -54,6 +54,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     private readonly alertController: AlertController,
     private readonly tagService: TagService,
     private readonly auth: AuthService,
+    private readonly changeDetector: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
@@ -85,6 +86,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     ).subscribe(
       ([tags, trailsTags]) => {
         this.tree = this.buildTree(tags, this.tree, trailsTags);
+        this.changeDetector.detectChanges();
       }
     );
   }

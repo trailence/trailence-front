@@ -1,9 +1,9 @@
-<div class="left-side" (click)="previous()">
+<div class="left-side" (click)="previous()" *ngIf="screenWidth > 200">
   <ion-button size="large" shape="round" fill="clear" color="dark" [disabled]="scroll <= 0">
     <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
   </ion-button>
 </div>
-<div class="right-side" (click)="next()">
+<div class="right-side" (click)="next()" *ngIf="screenWidth > 200">
   <ion-button size="large" shape="round" fill="clear" color="dark" [disabled]="scroll >= (items.length - 1) * screenWidth">
     <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
   </ion-button>

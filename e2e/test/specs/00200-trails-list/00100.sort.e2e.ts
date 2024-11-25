@@ -2,7 +2,7 @@ import { App } from '../../app/app';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { SortTrailsPopup } from '../../components/sort-trails-popup';
 import { TrailsList } from '../../components/trails-list.component';
-import { EXPECTED_TRAILS } from './00099.list';
+import { EXPECTED_TRAILS, expectListContains } from './00099.list';
 
 describe('Trails list - Sort', () => {
 
@@ -20,24 +20,7 @@ describe('Trails list - Sort', () => {
   it('List contains expected trails', async () => {
     const page = new TrailsPage();
     list = await page.trailsAndMap.openTrailsList();
-    try { await browser.waitUntil(() => list.items.length.then(nb => nb > 0)); } catch (e) {}
-    expect(await list.items.length).toBe(EXPECTED_TRAILS.length);
-    for (const expected of EXPECTED_TRAILS) {
-      const trail = await list.findItemByTrailName(expected.name);
-      expect(trail).withContext('Expected trail ' + expected.name).toBeDefined();
-      if (expected.tags.length > 0)
-        try { await browser.waitUntil(() => trail!.getTags().then(t => t.length > 0)); } catch (e) {}
-      const tags = await trail!.getTags();
-      expect(tags.length).withContext('Trails tags ' + expected.name).toBe(expected.tags.length);
-      for (const expectedTag of expected.tags) {
-        expect(tags).withContext('Trails tags ' + expected.name).toContain(expectedTag);
-      }
-      if (expected.photos > 0)
-        await browser.waitUntil(async () => {
-          const slider = trail!.getPhotosSliderElement();
-          return await slider.isExisting() && await slider.isDisplayed();
-        }, { timeoutMsg: 'Trails expected photos: ' + expected.name });
-    }
+    await expectListContains(list, EXPECTED_TRAILS);
   });
 
   const testSort = async (

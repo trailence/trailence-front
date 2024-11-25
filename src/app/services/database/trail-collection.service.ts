@@ -51,8 +51,8 @@ export class TrailCollectionService {
     );
   }
 
-  public create(collection: TrailCollection): Observable<TrailCollection | null> {
-    return this._store.create(collection);
+  public create(collection: TrailCollection, ondone?: () => void): Observable<TrailCollection | null> {
+    return this._store.create(collection, ondone);
   }
 
   public update(collection: TrailCollection): void {
@@ -85,15 +85,19 @@ export class TrailCollectionService {
     return menu;
   }
 
-  public async collectionPopup(collection?: TrailCollection) {
+  public async collectionPopup(collection?: TrailCollection, redirectOnApplied?: boolean) {
     const module = await import('../../components/collection-form-popup/collection-form-popup.component');
     const modal = await this.injector.get(ModalController).create({
       component: module.CollectionFormPopupComponent,
-      componentProps: { collection },
+      componentProps: {
+        collection,
+        redirectOnApplied: redirectOnApplied ?? true,
+      },
       backdropDismiss: false,
       cssClass: 'small-modal',
     });
-    modal.present();
+    await modal.present();
+    return await modal.onWillDismiss();
   }
 
   public async confirmDelete(collection: TrailCollection) {

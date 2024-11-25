@@ -83,6 +83,7 @@
         "deleting_trails": "Suppression",
         "move_to_collection": "Déplacer vers...",
         "copy_to_collection": "Copier dans...",
+        "new_collection": "Nouvelle collection...",
         "copying": "Copie",
         "export": "Exporter",
         "rename": "Renommer",
@@ -90,7 +91,14 @@
           "title": "Renommer le parcours",
           "name": "Nom"
         },
-        "edit_location": "Modifier l'emplacement"
+        "edit_location": "Modifier l'emplacement",
+        "copy_photos_alert": {
+          "title": "Copie des photos",
+          "message_singular": "Le parcours copié contient des photos. Souhaitez-vous également faire une copie des photos ?",
+          "message_plural": "Les parcours copiés contiennent des photos. Souhaitez-vous également faire une copie des photos ?"
+        },
+        "copying_photos": "Copie des photos",
+        "copy_photo_error": "Erreur lors de la copie de la photo {{1}}"
       },
       "tags": {
         "menu_item": "Tags",
@@ -418,7 +426,9 @@
     "save": "Enregistrer",
     "retry": "Réessayer",
     "undo": "Revenir",
-    "redo": "Refaire"
+    "redo": "Refaire",
+    "yes": "Oui",
+    "no": "Non"
   },
   "order_way": "Par ordre",
   "order_asc": "Croissant",

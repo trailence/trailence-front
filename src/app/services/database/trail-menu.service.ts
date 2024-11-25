@@ -130,7 +130,21 @@ export class TrailMenuService {
           item.setAction(() => action(col));
           return item;
         }
-      ))
+      )),
+      map(items => {
+        items.splice(0, 0, new MenuItem()
+          .setI18nLabel('pages.trails.actions.new_collection')
+          .setIcon('add')
+          .setAction(() => {
+            this.injector.get(TrailCollectionService).collectionPopup(undefined, false)
+            .then(result => {
+              if (result.role !== 'apply' || !result.data) return;
+              action(result.data as TrailCollection);
+            });
+          })
+        );
+        return items;
+      })
     );
   }
 
@@ -654,8 +668,10 @@ export class TrailMenuService {
     const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.copying, 1);
     const trackService = this.injector.get(TrackService);
     const tagService = this.injector.get(TagService);
+    const photoService = this.injector.get(PhotoService);
     const trailsCopy$: Observable<{originalTrail: Trail, newTrail: Trail}>[] = [];
     const originalTags$: Observable<{originalTrail: Trail, tags: string[][]}>[] = [];
+    const originalPhotos$: Observable<{originalTrail: Trail, photos: Photo[]}>[] = [];
     for (const trail of trails) {
       progress.addWorkToDo(1);
       const originalTrack$ = trackService.getFullTrackReady$(trail.originalTrackUuid, trail.owner);
@@ -719,46 +735,131 @@ export class TrailMenuService {
           return {originalTrail: trail, tags};
         })));
       }
+      progress.addWorkToDo(1);
+      originalPhotos$.push(photoService.getPhotosForTrailReady(trail.owner, trail.uuid).pipe(map(photos => {
+        progress.addWorkDone(1);
+        return {originalTrail: trail, photos};
+      })));
     }
 
     combineLatest([
       zip(trailsCopy$),
-      originalTags$.length > 0 ? zip(originalTags$) : of([])
-    ]).subscribe(
-      ([trails, tags]) => {
+      originalTags$.length > 0 ? zip(originalTags$) : of([]),
+      originalPhotos$.length > 0 ? zip(originalPhotos$) : of([]),
+    ]).pipe(first()).subscribe(
+      ([trails, tags, photos]) => {
         tags = tags.filter(t => t.tags.length > 0);
-        if (tags.length === 0) {
+        photos = photos.filter(t => t.photos.length > 0);
+        this.handleImportTags(trails, tags, toCollection.uuid)
+        .then(() => this.handleImportPhotos(trails, photos))
+        .then(() => {
           if (fromTrail) this.injector.get(Router).navigateByUrl('/trail/' + email + '/' + trails[0].newTrail.uuid);
-          progress.done();
-          return;
-        }
-        const allTags: string[][] = [];
-        for (const trail of tags) {
-          for (const tag of trail.tags) {
-            const exists = allTags.find(t => Arrays.sameContent(t, tag));
-            if (!exists) allTags.push(tag);
-          }
-        }
-        import('../../components/import-tags-popup/import-tags-popup.component')
-        .then(module => this.injector.get(ModalController).create({
-          component: module.ImportTagsPopupComponent,
-          backdropDismiss: false,
-          componentProps: {
-            collectionUuid: toCollection.uuid,
-            tags: allTags,
-            toImport: tags.map(t => ({trailUuid: trails.find(trail => trail.originalTrail === t.originalTrail)!.newTrail.uuid, tags: t.tags})),
-            type: 'copy'
-          }
-        }))
-        .then(modal => {
-          modal.present();
-          progress.done();
-          modal.onDidDismiss().then(() => {
-            if (fromTrail) this.injector.get(Router).navigateByUrl('/trail/' + email + '/' + trails[0].newTrail.uuid);
-          });
         });
+        progress.done();
       }
     );
+  }
+
+  private handleImportTags(
+    trails: {originalTrail: Trail, newTrail: Trail}[],
+    tags: {originalTrail: Trail, tags: string[][]}[],
+    collectionUuid: string
+  ): Promise<any> {
+    if (tags.length === 0) return Promise.resolve();
+    const allTags: string[][] = [];
+    for (const trail of tags) {
+      for (const tag of trail.tags) {
+        const exists = allTags.find(t => Arrays.sameContent(t, tag));
+        if (!exists) allTags.push(tag);
+      }
+    }
+    return import('../../components/import-tags-popup/import-tags-popup.component')
+    .then(module => this.injector.get(ModalController).create({
+      component: module.ImportTagsPopupComponent,
+      backdropDismiss: false,
+      componentProps: {
+        collectionUuid,
+        tags: allTags,
+        toImport: tags.map(t => ({trailUuid: trails.find(trail => trail.originalTrail === t.originalTrail)!.newTrail.uuid, tags: t.tags})),
+        type: 'copy'
+      }
+    }))
+    .then(modal => {
+      return modal.present()
+      .then(() => modal.onDidDismiss());
+    });
+  }
+
+  private handleImportPhotos(
+    trails: {originalTrail: Trail, newTrail: Trail}[],
+    photos: {originalTrail: Trail, photos: Photo[]}[],
+  ): Promise<any> {
+    if (photos.length === 0) return Promise.resolve();
+    const i18n = this.injector.get(I18nService);
+    return this.injector.get(AlertController).create({
+      header: i18n.texts.pages.trails.actions.copy_photos_alert.title,
+      message: i18n.texts.pages.trails.actions.copy_photos_alert[trails.length > 1 ? 'message_plural' : 'message_singular'],
+      buttons: [
+        {
+          text: i18n.texts.buttons.yes,
+          role: 'success',
+          handler: () => {
+            const allPhotos = Arrays.flatMap(photos, p => p.photos);
+            const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.copying_photos, allPhotos.length);
+            progress.subTitle = '0/' + allPhotos.length;
+            let index = 0;
+            const photoService = this.injector.get(PhotoService);
+            const copyNext = () => {
+              photoService.getFile$(allPhotos[index].owner, allPhotos[index].uuid).subscribe({
+                next: blob => {
+                  blob.arrayBuffer().then(buffer => {
+                    const originalPhoto = allPhotos[index];
+                    const originalTrail = photos.find(p => p.photos.indexOf(originalPhoto) >= 0)!.originalTrail;
+                    const trail = trails.find(t => t.originalTrail === originalTrail)!;
+                    photoService.addPhoto(
+                      trail.newTrail.owner,
+                      trail.newTrail.uuid,
+                      originalPhoto.description,
+                      originalPhoto.index,
+                      buffer,
+                      originalPhoto.dateTaken,
+                      originalPhoto.latitude,
+                      originalPhoto.longitude,
+                      originalPhoto.isCover
+                    ).subscribe({
+                      next: p => {
+                        progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
+                        progress.addWorkDone(1);
+                        if (++index < allPhotos.length) setTimeout(copyNext, 0);
+                      },
+                      error: err => {
+                        this.injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
+                        progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
+                        progress.addWorkDone(1);
+                        if (++index < allPhotos.length) setTimeout(copyNext, 0);
+                      }
+                    });
+                  });
+                },
+                error: err => {
+                  this.injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
+                  progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
+                  progress.addWorkDone(1);
+                  if (++index < allPhotos.length) setTimeout(copyNext, 0);
+                }
+              });
+            };
+            copyNext();
+            return true;
+          }
+        }, {
+          text: i18n.texts.buttons.no,
+          role: 'cancel'
+        }
+      ]
+    }).then(alert => {
+      return alert.present().then(() => alert.onDidDismiss());
+    });
   }
 
   public moveTrailsTo(trails: Trail[], toCollection: TrailCollection): void {

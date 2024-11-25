@@ -24,6 +24,13 @@ export class ImportTagsPopup extends ModalComponent {
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }
 
+  public async copyAll() {
+    const buttons = this.contentElement.$('>>>div.buttons');
+    const button = buttons.$('ion-button=Copy all');
+    await new IonicButton(button).click();
+    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+  }
+
   public async importAllWithExistingAndMissing() {
     const buttons = this.contentElement.$('>>>div.buttons');
     const button = buttons.$('ion-button=Import all tags by creating the missing ones');

@@ -1,3 +1,5 @@
+import { TrailsList } from '../../components/trails-list.component';
+
 export interface ExpectedTrail {
   importIndex: number;
   name: string;
@@ -75,3 +77,24 @@ export const EXPECTED_TRAILS: ExpectedTrail[] = [
     photos: 1,
   }
 ];
+
+export async function expectListContains(list: TrailsList, expectedTrails: ExpectedTrail[]) {
+  try { await browser.waitUntil(() => list.items.length.then(nb => nb > 0)); } catch (e) {}
+  expect(await list.items.length).toBe(expectedTrails.length);
+  for (const expected of expectedTrails) {
+    const trail = await list.findItemByTrailName(expected.name);
+    expect(trail).withContext('Expected trail ' + expected.name).toBeDefined();
+    if (expected.tags.length > 0)
+      try { await browser.waitUntil(() => trail!.getTags().then(t => t.length > 0)); } catch (e) {}
+    const tags = await trail!.getTags();
+    expect(tags.length).withContext('Trails tags ' + expected.name).toBe(expected.tags.length);
+    for (const expectedTag of expected.tags) {
+      expect(tags).withContext('Trails tags ' + expected.name).toContain(expectedTag);
+    }
+    if (expected.photos > 0)
+      await browser.waitUntil(async () => {
+        const slider = trail!.getPhotosSliderElement();
+        return await slider.isExisting() && await slider.isDisplayed();
+      }, { timeoutMsg: 'Trails expected photos: ' + expected.name });
+  }
+}

@@ -83,6 +83,7 @@
         "deleting_trails": "Deleting",
         "move_to_collection": "Move to...",
         "copy_to_collection": "Copy into...",
+        "new_collection": "New collection...",
         "copying": "Copying",
         "export": "Export",
         "rename": "Rename",
@@ -90,7 +91,14 @@
           "title": "Rename trail",
           "name": "Name"
         },
-        "edit_location": "Edit location"
+        "edit_location": "Edit location",
+        "copy_photos_alert": {
+          "title": "Copy photos",
+          "message_singular": "The copied trail contains photos. Would you like to make a copy of the photos as well?",
+          "message_plural": "The copied trails contain photos. Would you like to make a copy of the photos as well?"
+        },
+        "copying_photos": "Copying photos",
+        "copy_photo_error": "Error copying photo {{1}}"
       },
       "tags": {
         "menu_item": "Tags",
@@ -418,7 +426,9 @@
     "save": "Save",
     "retry": "Retry",
     "undo": "Undo",
-    "redo": "Redo"
+    "redo": "Redo",
+    "yes": "Yes",
+    "no": "No"
   },
   "order_way": "Order",
   "order_asc": "Ascending",
