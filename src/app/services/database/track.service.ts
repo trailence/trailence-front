@@ -9,7 +9,7 @@ import Dexie from 'dexie';
 })
 export class TrackService {
 
-  private db: TrackDatabase;
+  private readonly db: TrackDatabase;
 
   constructor(
     injector: Injector,
