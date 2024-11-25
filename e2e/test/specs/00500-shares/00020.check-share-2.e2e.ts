@@ -10,10 +10,10 @@ describe('Shares - Share 2', () => {
     await mh.open();
     const msg = await mh.openMessageTo('friend2@trailence.org');
     expect(msg).toBeDefined();
-    let i = msg.indexOf('<a href="');
+    let i = msg!.indexOf('<a href="');
     expect(i).toBeGreaterThan(0);
-    let j = msg.indexOf('"', i + 9);
-    const link = msg.substring(i + 9, j);
+    let j = msg!.indexOf('"', i + 9);
+    const link = msg!.substring(i + 9, j);
     expect(link.startsWith('https://trailence.org/link/')).toBeTrue();
     linkUrl = link.substring(27);
     await mh.deleteMessage();

@@ -35,11 +35,12 @@ describe('Reset password', () => {
     const mh = new MailHog();
     await mh.open(true);
     const mailContent = await mh.openMessageTo(App.config.initUsername);
+    expect(mailContent).toBeDefined();
     await mh.deleteMessage();
     await mh.closeTab();
-    let i = mailContent.indexOf('<h1>');
-    let j = mailContent.indexOf('</h1>', i);
-    const code = mailContent.substring(i + 4, j);
+    let i = mailContent!.indexOf('<h1>');
+    let j = mailContent!.indexOf('</h1>', i);
+    const code = mailContent!.substring(i + 4, j);
     await modal.codeInput.setValue(code);
     await (await modal.getFooterButtonWithText('Continue')).click();
     await browser.waitUntil(() => modal.notDisplayed());

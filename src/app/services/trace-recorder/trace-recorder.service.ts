@@ -260,7 +260,14 @@ export class TraceRecorderService {
               }
             } else {
               if (this.latestTemporaryPoint === undefined) {
-                this.latestTemporaryPoint = this.addPoint(recording, position);
+                // if previous definitive point has low accuracy, replace it
+                if (position.pa &&
+                  position.t && (this.latestDefinitivePoint[0].time === undefined || position.t - this.latestDefinitivePoint[0].time <= 5000) &&
+                  (this.latestDefinitivePoint[0].posAccuracy === undefined || this.latestDefinitivePoint[0].posAccuracy >= position.pa * 2)) {
+                  this.updatePoints(position, this.latestDefinitivePoint);
+                } else {
+                  this.latestTemporaryPoint = this.addPoint(recording, position);
+                }
               } else {
                 this.updatePoints(position, this.latestTemporaryPoint);
               }
