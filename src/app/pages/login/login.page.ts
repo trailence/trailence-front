@@ -159,7 +159,10 @@ export class LoginPage implements OnInit {
   async resetPassword() {
     const module = await import('./reset-password/reset-password.component');
     const modal = await this.modalController.create({
-      component: module.ResetPasswordComponent
+      component: module.ResetPasswordComponent,
+      componentProps: {
+        email: this.email
+      }
     });
     modal.present();
   }

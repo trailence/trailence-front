@@ -40,4 +40,9 @@ export abstract class PageWithHeader extends Page {
 
   public get header() { return new HeaderComponent(this); }
 
+  public override async waitDisplayed() {
+    await super.waitDisplayed();
+    await browser.waitUntil(() => new HeaderComponent(this.getElement(true)).getElement(true).isDisplayed());
+  }
+
 }

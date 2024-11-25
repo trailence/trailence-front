@@ -18,8 +18,11 @@ export class LoginPage extends Page {
   public get passwordInput() { return new IonicInput(this, 'ion-input[name=password]'); }
   public get loginButton() { return new IonicButton(this, 'ion-button[type=submit]'); }
 
+  public get errorMessage() { return this.getElement().$('div ion-label[color=danger]'); }
+  public get forgotPasswordButton() { return new IonicButton(this, 'ion-button[color=tertiary]'); }
+
   public async login(username?: string, password?: string) {
-    browser.waitUntil(() => this.loginInput.isDisplayed());
+    await browser.waitUntil(() => this.loginInput.isDisplayed());
     await this.loginInput.setValue(username ?? App.config.initUsername);
     await this.passwordInput.setValue(password ?? App.config.initUserpass);
     await this.loginButton.click();

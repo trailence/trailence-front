@@ -148,6 +148,11 @@ if (browser === 'chrome') {
   throw new Error('Unknown browser: ' + browser);
 }
 
+console.log('Launching tests with browser ' + browser + ', mode ' + dynamicConfig.trailence['mode'] + ' and spec files:');
+for (const spec of specs) {
+  console.log(' - ' + spec);
+}
+
 export const config = Object.assign({}, {
     //
     // ====================

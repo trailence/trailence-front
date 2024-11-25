@@ -5,6 +5,7 @@ import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { MenuContent } from './menu-content.component';
 import { ModalComponent } from './modal';
+import { ChainablePromiseElement } from 'webdriverio';
 
 export class HeaderComponent extends Component {
 
@@ -28,8 +29,18 @@ export class HeaderComponent extends Component {
     }
     const menu = new IonicButton(this.getElement().$('ion-buttons[slot=end] app-header-user-menu ion-button.user-button'));
     await menu.click();
-    const popover = await App.waitPopover();
-    const userMenu = new UserMenu(popover, 'ion-list');
+    let popover: ChainablePromiseElement | undefined = undefined;
+    for (let i = 0; i < 3; ++i) {
+      try {
+        popover = await App.waitPopover(10000);
+        break;
+      } catch (e) {
+        if (i < 2)
+          await new IonicButton(this.getElement(true).$('ion-buttons[slot=end] app-header-user-menu ion-button.user-button')).click();
+      }
+    }
+    expect(popover).toBeDefined();
+    const userMenu = new UserMenu(popover!, 'ion-list');
     await userMenu.waitDisplayed();
     return userMenu;
   }
@@ -69,6 +80,12 @@ export class UserMenu extends Component {
     const logoutModal = new LogoutModal(modal);
     await logoutModal.getElement().waitForDisplayed();
     return logoutModal;
+  }
+
+  public async clickMyAccount() {
+    const label = this.getElement().$('ion-label=My Account');
+    await label.waitForDisplayed();
+    await label.click();
   }
 
   public async getUser() {

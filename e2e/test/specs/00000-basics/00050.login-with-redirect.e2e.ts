@@ -2,7 +2,7 @@ import { App } from '../../app/app';
 import { Page } from '../../app/pages/page';
 import { HeaderComponent } from '../../components/header.component';
 
-describe('Collections', () => {
+describe('Login with redirects', () => {
 
   it('Login with redirect on preferences', async () => {
     App.init();

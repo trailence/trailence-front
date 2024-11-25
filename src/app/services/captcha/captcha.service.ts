@@ -9,9 +9,9 @@ import { Console } from 'src/app/utils/console';
 export class CaptchaService {
 
   private readonly jsLoaded = new BehaviorSubject<boolean>(false);
-  private readonly jsLoading = false;
+  private jsLoading = false;
   private node?: HTMLScriptElement;
-  private readonly key = new BehaviorSubject<string>('');
+  private readonly key = new BehaviorSubject<string | undefined>(undefined);
 
   constructor(private readonly http: HttpService) { }
 
@@ -24,6 +24,10 @@ export class CaptchaService {
     element.appendChild(container);
     this.prepare();
     this.ready$().subscribe(() => {
+      if (this.key.value?.length === 0) {
+        onsuccess('disabled');
+        return;
+      }
       (window as any).grecaptcha.render(elementId, {
         'sitekey' : this.key.value,
         'callback': onsuccess,
@@ -40,45 +44,55 @@ export class CaptchaService {
 
   private ready$(): Observable<boolean> {
     return combineLatest([this.jsLoaded, this.key]).pipe(
-      filter(([js, key]) => !!js && key.length > 0),
+      filter(([js, key]) => !!js && key !== undefined),
       first(),
       map(() => true)
     );
   }
 
   public prepare(): void {
-    this.ensureJS();
     this.ensureKey();
+    this.ensureJS();
   }
 
   private ensureJS(): void {
     if (!this.jsLoading) {
+      this.jsLoading = true;
       this.loadJS();
     }
   }
 
   private loadJS(): void {
-    (window as any).grecaptcha_onloadCallback = () => {
-      this.jsLoaded.next(true);
-    };
-    this.node = document.createElement('script');
-    this.node.src = 'https://www.google.com/recaptcha/api.js?onload=grecaptcha_onloadCallback&render=explicit';
-    this.node.type = 'text/javascript';
-    this.node.async = true;
-    this.node.defer = true;
-    this.node.onerror = function(err: any) {
-      Console.error('Error loading captcha', err);
-    };
-    document.getElementsByTagName('head')[0].appendChild(this.node);
+    this.key.pipe(
+      filter(k => k !== undefined),
+      first()
+    ).subscribe(() => {
+      if (this.key.value?.length === 0) {
+        this.jsLoaded.next(true);
+        return;
+      }
+      (window as any).grecaptcha_onloadCallback = () => {
+        this.jsLoaded.next(true);
+      };
+      this.node = document.createElement('script');
+      this.node.src = 'https://www.google.com/recaptcha/api.js?onload=grecaptcha_onloadCallback&render=explicit';
+      this.node.type = 'text/javascript';
+      this.node.async = true;
+      this.node.defer = true;
+      this.node.onerror = function(err: any) {
+        Console.error('Error loading captcha', err);
+      };
+      document.getElementsByTagName('head')[0].appendChild(this.node);
+    });
   }
 
   private ensureKey(): void {
-    if (this.key.value.length > 0) return;
+    if (this.key.value !== undefined) return;
     this.loadKey();
   }
 
   private loadKey(): void {
-    this.http.getString(environment.apiBaseUrl + '/auth/v1/captcha').subscribe(key => {Console.info('Captcha key', key); this.key.next(key); });
+    this.http.getString(environment.apiBaseUrl + '/auth/v1/captcha').subscribe(key => {Console.info('Captcha key: <' + key + '>'); this.key.next(key); });
   }
 
 }

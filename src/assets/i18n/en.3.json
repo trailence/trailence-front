@@ -27,7 +27,12 @@
         "new_password2": "Confirm your password",
         "verification_code_explaination": "We have just sent a 6-digit code to your email address, please enter it below",
         "in_progress": "Resetting password...",
-        "error": "An error occured, please go back and retry"
+        "error": "An error occured, please go back and retry",
+        "errors": {
+          "email": "Please enter a valid e-mail",
+          "password": "Must contain at least 8 characters",
+          "passwordsDontMatch": "Passwords don't match"
+        }
       },
       "signing_in": "Connection...",
       "downloading_data": "Loading your data..."
@@ -314,7 +319,12 @@
         "new_password2_new": "Confirm your password",
         "verification_code_explaination": "We have just sent a 6-digit code to your email address, please enter it below",
         "in_progress": "Changing your password...",
-        "error": "An error occured, please go back and try again"
+        "error": "An error occured, please go back and try again",
+        "errors": {
+          "current_password": "Please enter your current password",
+          "new_password": "Must contain at least 8 characters",
+          "passwordsDontMatch": "The 2 passwords don't match"
+        }
       }
     },
     "link": {

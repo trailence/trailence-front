@@ -24,6 +24,8 @@ export class ChangePasswordComponent {
   code = '';
   changeResult: any = undefined;
 
+  passwordsDontMatch = false;
+
   constructor(
     public i18n: I18nService,
     private readonly modalController: ModalController,
@@ -38,7 +40,10 @@ export class ChangePasswordComponent {
   }
 
   canGoNext(): boolean {
-    if (this.page === 1) return (!this.hasPreviousPassword || this.previousPassword.length > 0) && this.newPassword1.length >= 8 && this.newPassword1 === this.newPassword2;
+    if (this.page === 1) {
+      this.passwordsDontMatch = this.newPassword1.length >= 8 && this.newPassword2.length >= 8 && this.newPassword1 !== this.newPassword2;
+      return (!this.hasPreviousPassword || this.previousPassword.length > 0) && this.newPassword1.length >= 8 && this.newPassword1 === this.newPassword2;
+    }
     if (this.page === 2) return this.code.length === 6;
     return false;
   }
@@ -69,6 +74,7 @@ export class ChangePasswordComponent {
     this.previousPassword = '';
     this.newPassword1 = '';
     this.newPassword2 = '';
+    this.passwordsDontMatch = false;
     this.code = '';
     this.changeResult = undefined;
     this.page = 1;

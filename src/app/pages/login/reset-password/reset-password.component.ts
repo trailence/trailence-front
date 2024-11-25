@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonButtons, IonFooter, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
 import { CodeInputModule } from 'angular-code-input';
@@ -17,13 +17,16 @@ import { environment } from 'src/environments/environment';
 })
 export class ResetPasswordComponent implements OnInit {
 
+  @Input() email = '';
+
   page = 1;
-  email = '';
   newPassword1 = '';
   newPassword2  ='';
   captchaToken?: string;
   code = '';
   changeResult: any = undefined;
+
+  passwordsDontMatch = false;
 
   constructor(
     public i18n: I18nService,
@@ -55,7 +58,10 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   canGoNext(): boolean {
-    if (this.page === 1) return this.email.length > 0 && this.newPassword1.length >= 8 && this.newPassword1 === this.newPassword2 && !!this.captchaToken;
+    if (this.page === 1) {
+      this.passwordsDontMatch = this.newPassword1.length >= 8 && this.newPassword2.length >= 8 && this.newPassword1 !== this.newPassword2;
+      return this.email.length > 0 && this.newPassword1.length >= 8 && this.newPassword1 === this.newPassword2 && !!this.captchaToken;
+    }
     if (this.page === 2) return this.code.length === 6;
     return false;
   }
@@ -89,6 +95,7 @@ export class ResetPasswordComponent implements OnInit {
     this.email = '';
     this.newPassword1 = '';
     this.newPassword2 = '';
+    this.passwordsDontMatch = false;
     this.captchaToken = undefined;
     this.code = '';
     this.changeResult = undefined;

@@ -91,11 +91,11 @@ export class App {
     return trailsPage;
   }
 
-  public static async waitPopover() {
+  public static async waitPopover(timeout?: number) {
     const popover = this.getPopoverContainer();
-    await popover.waitForDisplayed();
+    await popover.waitForDisplayed({timeout});
     const content = this.getPopoverContent(popover);
-    await content.waitForExist();
+    await content.waitForExist({timeout});
     return content;
   }
 

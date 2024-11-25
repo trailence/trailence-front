@@ -27,7 +27,12 @@
         "new_password2": "Confirmez le nouveau mot de passe",
         "verification_code_explaination": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
         "in_progress": "Changement du mot de passe...",
-        "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer"
+        "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer",
+        "errors": {
+          "email": "Veuillez entrer un e-mail valide",
+          "password": "Doit comporter au moins 8 caractères",
+          "passwordsDontMatch": "Les mots de passe ne correspondent pas"
+        }
       },
       "signing_in": "Connection...",
       "downloading_data": "Chargement de vos données..."
@@ -314,7 +319,12 @@
         "new_password2_new": "Confirmez votre mot de passe",
         "verification_code_explaination": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
         "in_progress": "Changement du mot de passe...",
-        "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer"
+        "error": "Une erreur est survenue, veuillez revenir en arrière et réessayer",
+        "errors": {
+          "current_password": "Veuillez entrer votre mot de passe actuel",
+          "new_password": "Doit contenir au moins 8 caractères",
+          "passwordsDontMatch": "Les 2 mots de passe ne correspondent pas"
+        }
       }
     },
     "link": {
