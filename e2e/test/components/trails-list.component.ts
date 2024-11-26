@@ -26,10 +26,14 @@ export class TrailsList extends Component {
   }
 
   public async findItemByTrailName(trailName: string) {
-    for (const item of await this.items.getElements()) {
-      const overview = await this.getItemTrailOverview(item);
-      const name = await overview.getTrailName();
-      if (name === trailName) return overview;
+    try {
+      for (const item of await this.items.getElements()) {
+        const overview = await this.getItemTrailOverview(item);
+        const name = await overview.getTrailName();
+        if (name === trailName) return overview;
+      }
+    } catch (e) {
+      console.info('Unable to search for trail in the list', e);
     }
     return undefined;
   }
@@ -43,7 +47,7 @@ export class TrailsList extends Component {
       });
       return trail!;
     } catch (e) {
-      throw new Error('Trail not found in list: ' + trailName);
+      throw new Error('Trail not found in list: ' + trailName + ' (' + e + ')', {cause: e});
     }
   }
 

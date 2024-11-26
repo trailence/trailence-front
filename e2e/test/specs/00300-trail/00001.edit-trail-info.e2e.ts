@@ -44,7 +44,7 @@ describe('Trail - Edit infos', () => {
   it('Edit location', async () => {
     expect(await trailPage.trailComponent.getLocation()).toBe('');
     await trailPage.trailComponent.setLocation();
-    expect(await trailPage.trailComponent.getLocation()).toBe('Bonifacio');
+    await browser.waitUntil(() => trailPage.trailComponent.getLocation().then(l => l === 'Bonifacio'));
   });
 
   it('Edit tags', async () => {

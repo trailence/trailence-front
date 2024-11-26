@@ -98,7 +98,10 @@ if (browser === 'chrome') {
 } else if (browser === 'firefox') {
   caps['moz:firefoxOptions'] = {
     args: [
-    ]
+    ],
+    "prefs": {
+      "devtools.console.stdout.content": false,
+    }
   };
   if (isCi) {
     caps['moz:firefoxOptions'].args.push(

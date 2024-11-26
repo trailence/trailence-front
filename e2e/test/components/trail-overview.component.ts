@@ -37,4 +37,26 @@ export class TrailOverview extends Component {
     await cb.setSelected(true);
   }
 
+  public async getTrailMetadata(icon: string, scroll: boolean = true) {
+    if (scroll) await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    const iconElement = this.getElement().$('div.metadata-item-container div.metadata-item ion-icon[name=' + icon + ']');
+    if (!(await iconElement.isExisting())) return undefined;
+    return await iconElement.nextElement().$('div.metadata-primary').getText();
+  }
+
+  public async getTrackMetadata(scroll: boolean = true) {
+    if (scroll) await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    const titles = await this.getElement().$$('div.metadata-item-container div.metadata-item div.metadata-content div.metadata-title').getElements();
+    const meta = new Map<string, string>();
+    for (const titleElement of titles) {
+      const titleHtml = await titleElement.getHTML();
+      const i = titleHtml.indexOf('>');
+      const j = titleHtml.indexOf('<', i + 1);
+      const titleText = titleHtml.substring(i + 1, j).trim();
+      const value = await titleElement.nextElement().$('div.metadata-primary').getText();
+      meta.set(titleText, value);
+    }
+    return meta;
+  }
+
 }

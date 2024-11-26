@@ -232,4 +232,8 @@ export class PreferencesPage implements OnDestroy {
     this.photoService.getTotalCacheSize(Date.now() - this.preferences.preferences.photoCacheDays * 24 * 60 * 60 * 1000).subscribe(([total, expired]) => this.photoCacheSize = {total, expired})
   }
 
+  resetAll(): void {
+    this.preferences.resetAll();
+  }
+
 }

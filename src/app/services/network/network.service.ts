@@ -42,7 +42,7 @@ export class NetworkService implements INetworkService {
     } else if (!this._internet$.value) {
       setTimeout(() => {
         if (window.navigator.onLine && !this._internet$.value) this._internet$.next(true);
-      }, 2000);
+      }, 1000);
     }
     this.checkServerConnection(++this.count, 1);
   }
@@ -58,8 +58,10 @@ export class NetworkService implements INetworkService {
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');
         status = false;
-        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
-        else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 30000);
+        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 500);
+        else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);
+        else if (trial < 20) setTimeout(() => this.checkServerConnection(count, trial + 1), 15000);
+        else if (trial < 30) setTimeout(() => this.checkServerConnection(count, trial + 1), 30000);
         else setTimeout(() => this.checkServerConnection(count, trial + 1), 60000);
       }
       if (status !== this._server$.value) {

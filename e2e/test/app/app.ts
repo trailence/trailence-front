@@ -28,11 +28,24 @@ export class App {
           console.log('Test error: take a screen shot');
           promise = promise.then(() => browser.saveScreenshot('wdio_error.png').then().catch(e => Promise.resolve()));
         }
+        /*
         promise = promise.then(() => browser.getLogs('browser').then(logs => {
           logs = logs.map(log => (log as any)?.message).filter(msg => msg?.indexOf('[WDIO]') < 0);
           console.log(' **** Test: ' + result.fullName + ' -- Console output ****');
           console.log(logs);
-        }).catch(e => Promise.resolve()));
+        }).catch(e => {
+          console.log('Cannot get logs console logs', e);
+          return Promise.resolve();
+        }));*/
+        promise = promise.then(() => browser.execute(() => (window as any)['_consoleHistory'])
+        .then(logs => {
+          console.log(' **** Test: ' + result.fullName + ' -- Console output ****');
+          console.log(logs);
+        })
+        .catch(e => {
+          console.log('Cannot get console history', e);
+          return Promise.resolve();
+        }));
         return promise;
       },
       suiteDone: (result) => {

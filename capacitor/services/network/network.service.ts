@@ -44,7 +44,7 @@ export class NetworkService implements INetworkService {
       if (c2 === this.countNet && status.connected !== this._internet$.value) {
         this._internet$.next(status.connected);
       }
-    }, 2500);
+    }, 1000);
   }
 
   private checkServerConnection(count: number, trial: number): void {
@@ -58,7 +58,11 @@ export class NetworkService implements INetworkService {
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');
         status = false;
-        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
+        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 500);
+        else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);
+        else if (trial < 20) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
+        else if (trial < 30) setTimeout(() => this.checkServerConnection(count, trial + 1), 15000);
+        else setTimeout(() => this.checkServerConnection(count, trial + 1), 60000);
       }
       if (status !== this._server$.value) {
         this._server$.next(status);

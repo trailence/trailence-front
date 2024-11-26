@@ -34,6 +34,22 @@ export class Console {
       default:
           console.info(Console.header(level), ...args); break;
     }
+    if (navigator.webdriver) {
+      const w = window as any;
+      if (!w._consoleHistory) w._consoleHistory = [];
+      w._consoleHistory.push(Console.header(level) + args.map(a => {
+        if (typeof a === 'object') {
+          let s = '{';
+          for (const key of Object.getOwnPropertyNames(a)) {
+            let v = typeof a[key] === 'function' ? 'function' : '' + a[key];
+            s += key + ': ' + v + ',';
+          }
+          s += '}';
+          return s;
+        }
+        return '' + a;
+      }).join(' - '));
+    }
   }
 
   private static header(level: ConsoleLevel): string {

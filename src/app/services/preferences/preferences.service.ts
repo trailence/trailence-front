@@ -103,7 +103,10 @@ export class PreferencesService {
     combineLatest([network.server$, authService.auth$, this._saveNeeded$]).subscribe(
       ([connected, auth, saveNeeded]) => {
         if (connected && auth?.preferences && saveNeeded === auth?.email) {
-          this.httpService.put(environment.apiBaseUrl + '/preferences/v1', auth.preferences).subscribe();
+          const body = {...auth.preferences};
+          this.httpService.put(environment.apiBaseUrl + '/preferences/v1', body).subscribe(() => {
+            Console.info('Preferences saved for user', body);
+          });
         }
       }
     );
@@ -267,6 +270,16 @@ export class PreferencesService {
       (this._prefs$.value as any)[field] = value;
       this._prefs$.next(this._prefs$.value);
     }
+  }
+
+  public resetAll(): void {
+    const auth = this.authService.auth;
+    if (auth) {
+      auth.preferences = {};
+      this.authService.preferencesUpdated();
+      this._saveNeeded$.next(auth.email);
+    }
+    this._prefs$.next({});
   }
 
 }

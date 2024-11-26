@@ -267,7 +267,11 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     const currentrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.currentTrackUuid, entity.owner);
     const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
     return combineLatest([originalTrackReady$, currentrackReady$, collectionReady$]).pipe(
-      map(readiness => readiness.indexOf(false) < 0)
+      map(readiness => {
+        const ready = readiness.indexOf(false) < 0;
+        if (!ready) Console.info('Trail ' + entity.uuid + ' cannot be saved: originalTrack = ' + readiness[0] + ', currentTrack = ' + readiness[1] + ', collection = ' + readiness[2]);
+        return ready;
+      })
     );
   }
 

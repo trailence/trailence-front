@@ -36,9 +36,10 @@ export class HttpClientService implements IHttpClient {
 
   private toHeaders(headers: HttpHeaders): { [header: string]: string } {
     const result: { [header: string]: string } = {};
-    for (const key of headers.keys()) {
-      result[key] = headers.get(key)!;
-    }
+    if (headers)
+      for (const key of headers.keys()) {
+        result[key] = headers.get(key)!;
+      }
     return result;
   }
 }

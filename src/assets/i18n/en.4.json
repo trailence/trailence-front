@@ -302,7 +302,8 @@
         "long_break_explaination": "A stop is considered long when you have stayed within the configured perimeter for more than the minimum stop time. When a long stop is detected, we keep the minimum time in the normal trail duration, the rest is considered as stop time outside the normal trail duration.",
         "long_break_minimum_duration": "Minimum stop time",
         "long_break_maximum_distance": "Maximum perimeter"
-      }
+      },
+      "reset_all": "Reset all to default values"
     },
     "myaccount": {
       "title": "My Account",

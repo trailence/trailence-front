@@ -11,7 +11,7 @@ export class IonicButton extends Component {
   }
 
   public async click() {
-    await this.waitDisplayed();
+    await this.waitDisplayed(true);
     await browser.waitUntil(() => this.getElement().getCSSProperty('height').then(p => p.value && parseInt(p.value) > 0));
     await this.getElement().$('>>>button').waitForEnabled();
     return await this.getElement().click();

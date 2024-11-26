@@ -11,4 +11,11 @@ export class IonicRange extends Component {
     }, await this.getElement().getElement(), lowerValue, upperValue);
   }
 
+  public async setValue(value: number) {
+    await browser.execute((el, v) => {
+      (el as any).value = v;
+      (el as any).ionInput.emit({value: v});
+    }, await this.getElement().getElement(), value);
+  }
+
 }

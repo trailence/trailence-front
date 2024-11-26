@@ -1,5 +1,6 @@
 import { App } from '../app/app';
 import { Page, PageWithHeader } from '../app/pages/page';
+import { TestUtils } from '../utils/test-utils';
 import { AppMenu } from './app-menu.component';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
@@ -27,18 +28,11 @@ export class HeaderComponent extends Component {
         return new UserMenu(popover, 'ion-list');
       }
     }
-    const menu = new IonicButton(this.getElement().$('ion-buttons[slot=end] app-header-user-menu ion-button.user-button'));
-    await menu.click();
-    let popover: ChainablePromiseElement | undefined = undefined;
-    for (let i = 0; i < 3; ++i) {
-      try {
-        popover = await App.waitPopover(10000);
-        break;
-      } catch (e) {
-        if (i < 2)
-          await new IonicButton(this.getElement(true).$('ion-buttons[slot=end] app-header-user-menu ion-button.user-button')).click();
-      }
-    }
+    const popover = await TestUtils.retry(async () => {
+      const menu = new IonicButton(this.getElement().$('ion-buttons[slot=end] app-header-user-menu ion-button.user-button'));
+      await menu.click();
+      return await App.waitPopover(10000);
+    }, 3, 100);
     expect(popover).toBeDefined();
     const userMenu = new UserMenu(popover!, 'ion-list');
     await userMenu.waitDisplayed();
@@ -73,9 +67,7 @@ export class HeaderComponent extends Component {
 export class UserMenu extends Component {
 
   public async clickLogout() {
-    const label = this.getElement().$('ion-label=Sign out');
-    await label.waitForDisplayed();
-    await label.click();
+    await this.clickByLabel('Sign out');
     const modal = await App.waitModal();
     const logoutModal = new LogoutModal(modal);
     await logoutModal.getElement().waitForDisplayed();
@@ -83,7 +75,11 @@ export class UserMenu extends Component {
   }
 
   public async clickMyAccount() {
-    const label = this.getElement().$('ion-label=My Account');
+    return await this.clickByLabel('My Account');
+  }
+
+  public async clickByLabel(text: string) {
+    const label = this.getElement().$('ion-label=' + text);
     await label.waitForDisplayed();
     await label.click();
   }

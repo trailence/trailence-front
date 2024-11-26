@@ -6,6 +6,7 @@ import { CollectionModal } from './collection.modal';
 import { Component } from './component';
 import { HeaderComponent } from './header.component';
 import { IonicButton } from './ionic/ion-button';
+import { TestUtils } from '../utils/test-utils';
 
 export class AppMenu extends Component {
 
@@ -34,16 +35,18 @@ export class AppMenu extends Component {
   }
 
   public async openCollection(name: string) {
-    const items = this.getCollectionsItems();
-    await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0));
-    for (const item of await items.getElements()) {
-      if (await this.getCollectionName(item) === name) {
-        await item.click();
-        browser.waitUntil(() => Page.getActivePageElement().then(page => new HeaderComponent(page).getTitle()).then(title => title === name));
-        return new TrailsPage();
+    return await TestUtils.retry(async () => {
+      const items = this.getCollectionsItems();
+      await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0));
+      for (const item of await items.getElements()) {
+        if (await this.getCollectionName(item) === name) {
+          await item.click();
+          browser.waitUntil(() => Page.getActivePageElement().then(page => new HeaderComponent(page).getTitle()).then(title => title === name));
+          return new TrailsPage();
+        }
       }
-    }
-    throw new Error('Collection not found in app menu: ' + name);
+      throw new Error('Collection not found in app menu: ' + name);
+    }, 3, 1000);
   }
 
   public getAddCollectionButton() {

@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, from, map, of, switchMap, tap, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, distinctUntilChanged, first, from, map, of, switchMap, tap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -21,6 +21,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -80,7 +81,7 @@ export class TrackDatabase {
     injector.get(DatabaseService).registerStore({
       name: 'tracks',
       status$: this.syncStatus$,
-      loaded$: of(true),
+      loaded$: this.syncStatus$.pipe(map(s => !!s), distinctUntilChanged()),
       hasPendingOperations$: of(false),
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
       syncFromServer: () => this.triggerSyncFromServer(),
@@ -168,7 +169,7 @@ export class TrackDatabase {
     let previousBreakDuration: number | undefined = undefined;
     let previousBreakDistance: number | undefined = undefined;
     this.preferencesSubscription = this.injector.get(PreferencesService).preferences$.pipe(
-      debounceTime(5000),
+      debounceTimeExtended(0, 5000),
     ).subscribe(
       prefs => {
         let speedChanged = false;
@@ -195,16 +196,21 @@ export class TrackDatabase {
 
         if (speedChanged || breaksChanged) {
           if (!this.db || !this.metadataTable || !this.fullTrackTable) return;
+          Console.info('Preferences changed, recompute estimated time/breaks duration of trails', speedChanged, breaksChanged);
           this.db?.transaction('rw', [this.fullTrackTable, this.metadataTable], () => {
-            this.fullTrackTable?.each(trackItem => {
+            let count = 0;
+            let countInMemory = 0;
+            return this.fullTrackTable?.each(trackItem => {
               if (!trackItem.track || trackItem.version === -1) return;
+              count++;
               const track = new Track(trackItem.track, this.injector.get(PreferencesService));
               let meta$ = this.metadata.get(trackItem.key);
               if (meta$?.loadedValue) {
+                countInMemory++;
                 const meta = meta$.loadedValue;
                 if (speedChanged) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
                 if (breaksChanged) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
-                meta$.newValue(meta);
+                meta$.newValue({...meta});
                 this.metadataTable?.put({
                   key: trackItem.key,
                   ...meta
@@ -215,6 +221,8 @@ export class TrackDatabase {
                   ...this.toMetadata(track)
                 });
               }
+            }).then(() => {
+              Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
             });
           })
         }
@@ -671,6 +679,7 @@ export class TrackDatabase {
       return this.injector.get(HttpService).post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
         switchMap(result => {
           if (this.db !== db) return EMPTY;
+          Console.info("track created on server", result.uuid);
           return from(this.fullTrackTable!.put({
             key: result.uuid + '#' + result.owner,
             uuid: result.uuid,

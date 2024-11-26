@@ -302,7 +302,8 @@
         "long_break_explaination": "Un arrêt est considéré comme long lorsque vous êtes resté dans le périmètre configuré pendant plus du temps minimum d'arrêt. Lorsqu'un arrêt long est détecté, nous conservons le temps minimum dans le temps normal de parcours, le reste est considéré comme un temps d'arrêt en dehors du temps normal de parcours.",
         "long_break_minimum_duration": "Temps minimum d'arrêt",
         "long_break_maximum_distance": "Périmètre maximum"
-      }
+      },
+      "reset_all": "Réinitialiser tout aux valeurs par défaut"
     },
     "myaccount": {
       "title": "Mon Compte",

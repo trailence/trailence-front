@@ -51,9 +51,7 @@ describe('Test Trace Recorder', () => {
       geoListener = undefined;
     });
 
-    await firstValueFrom(TestBed.inject(I18nService).texts$.pipe(
-      filter(t => !!t)
-    ));
+    await firstValueFrom(TestBed.inject(I18nService).texts$.pipe(filter(t => !!t)));
     await firstValueFrom(TestBed.inject(DatabaseService).allLoaded().pipe(filter(l => !!l)));
   });
 
