@@ -1,13 +1,14 @@
 import { App } from '../app/app';
 import { TrailsPage } from '../app/pages/trails-page';
 import { ImportTagsPopup } from '../components/import-tags-popup.component';
+import { FilesUtils } from './files-utils';
 import { OpenFile } from './open-file';
 
 export async function importTrail(collectionPage: TrailsPage, filename: string, expected: string[], tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
   const trailsList = await collectionPage.trailsAndMap.openTrailsList();
   const importButton = await trailsList.getToolbarButton('add-circle');
   await importButton.click();
-  await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/' + filename));
+  await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/' + filename));
   if (tagsPopup) {
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');

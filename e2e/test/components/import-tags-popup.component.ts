@@ -45,4 +45,11 @@ export class ImportTagsPopup extends ModalComponent {
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }
 
+  public async doNotImportTags() {
+    const buttons = this.contentElement.$('>>>div.buttons');
+    const button = buttons.$('ion-button=Do not import tags');
+    await new IonicButton(button).click();
+    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+  }
+
 }

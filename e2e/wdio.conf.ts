@@ -1,3 +1,10 @@
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory
+const downloadPath = path.join(__dirname, 'downloads');
+
 const dynamicConfig = {} as any;
 
 dynamicConfig.baseUrl = "http://localhost:8100";
@@ -58,7 +65,10 @@ if (browser === 'chrome') {
     args: [
       '--lang=en_US',
       '--disable-ipc-flooding-protection',
-    ]
+    ],
+    prefs: {
+      "download.default_directory": downloadPath,
+    }
   };
   caps["goog:loggingPrefs"] = {
     browser: "ALL",
@@ -101,6 +111,10 @@ if (browser === 'chrome') {
     ],
     "prefs": {
       "devtools.console.stdout.content": false,
+      "browser.download.dir": downloadPath,
+      "browser.download.folderList": 2,
+      "browser.download.manager.showWhenStarting": false,
+      "browser.helperApps.neverAsk.saveToDisk": "*/*"
     }
   };
   if (isCi) {
@@ -114,7 +128,10 @@ if (browser === 'chrome') {
     args: [
       '--lang=en_US',
       '--disable-ipc-flooding-protection',
-    ]
+    ],
+    prefs: {
+      "download.default_directory": downloadPath
+    }
   };
   if (isCi) {
     caps['ms:edgeOptions'].args.push(

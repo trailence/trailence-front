@@ -248,7 +248,7 @@ export class TraceRecorderService {
     });
   }
 
-  private newPositionReceived(position: PointDto, recording: Recording): void {
+  private newPositionReceived(position: PointDto, recording: Recording): void { // NOSONAR
     const status = this.recordingStatus!;
     if (status.latestRawPoint === undefined) {
       // no first point yet => take it
@@ -258,7 +258,7 @@ export class TraceRecorderService {
       return;
     }
     // raw point
-    if (this.takePoint(status.latestRawPoint, position)) {
+    if (this.takeRawPoint(status.latestRawPoint, position)) {
       status.latestRawPoint = this.addRawPoint(recording, position, 'enough time/distance');
     } else {
       this.updatePoint(status.latestRawPoint, position, 'raw', 'short time/distance');
@@ -284,9 +284,9 @@ export class TraceRecorderService {
         this.updatePoint(status.temporaryImprovedPoint, position, 'improved', 'accuracy far better for second point');
         return;
       }
-      if (this.takePoint(status.latestDefinitiveImprovedPoint!, position)) {
+      if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position)) {
         // enough time/distance from first point => fix the second point
-        if (this.takePoint(status.temporaryImprovedPoint, position)) {
+        if (this.takeImprovedPoint(status.temporaryImprovedPoint, position)) {
           // enough time/distance from second point => do not update it
           status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
           status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'third point');
@@ -309,7 +309,7 @@ export class TraceRecorderService {
       return;
     }
     // at least third point, normal way
-    if (this.takePoint(status.latestDefinitiveImprovedPoint!, position)) {
+    if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position)) {
       // enough time/distance from previous definitive point => take a new point
       status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
       status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'enough time/distance');
@@ -332,7 +332,14 @@ export class TraceRecorderService {
     return false;
   }
 
-  private takePoint(previous: Point, pos: PointDto): boolean {
+  private takeRawPoint(previous: Point, pos: PointDto): boolean {
+    const prefs = this.preferencesService.preferences;
+    if (prefs.traceMinMeters > 0 && previous.distanceTo({lat: pos.l!, lng: pos.n!}) < Math.min(prefs.traceMinMeters / 2, 1)) return false;
+    if (prefs.traceMinMillis > 0 && pos.t && previous.time && pos.t - previous.time < Math.min(prefs.traceMinMillis / 2, 2000)) return false;
+    return true;
+  }
+
+  private takeImprovedPoint(previous: Point, pos: PointDto): boolean {
     const prefs = this.preferencesService.preferences;
     if (prefs.traceMinMeters > 0 && previous.distanceTo({lat: pos.l!, lng: pos.n!}) < prefs.traceMinMeters) return false;
     if (prefs.traceMinMillis > 0 && pos.t && previous.time && pos.t - previous.time < prefs.traceMinMillis) return false;

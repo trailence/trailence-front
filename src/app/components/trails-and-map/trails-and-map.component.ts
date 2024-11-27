@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, combineLatest, filter, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, of, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -19,6 +19,7 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import * as L from 'leaflet';
 import { MapBubble } from '../map/bubble/map-bubble';
 import { Console } from 'src/app/utils/console';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -79,63 +80,65 @@ export class TrailsAndMapComponent extends AbstractComponent {
       }
     }
     this.updateMode();
-    setTimeout(() => {
-      const mapZoom$ = this.showBubbles$.pipe(
-        switchMap(showBubbles => {
-          localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(showBubbles));
-          if (!showBubbles) return of(undefined);
-          return this.map!.getState().zoom$;
-        })
-      );
-      this.whenVisible.subscribe(
-        combineLatest([this.mapTrails$, mapZoom$]).pipe(
-          switchMap(([trails, zoom]) =>
-            trails.isEmpty() ? of({zoom, trails: []}) : combineLatest(
-              trails.map(
-                trail => trail.currentTrackUuid$.pipe(
-                  switchMap(trackUuid => {
-                    if (zoom === undefined) return this.trackService.getSimplifiedTrack$(trackUuid, trail.owner);
-                    return this.trackService.getMetadata$(trackUuid, trail.owner);
-                  }),
-                  filter(data => !!data),
-                  map(data => ({trail, data})),
-                )
-              ).toArray()
-            ).pipe(
-              map(trailsAndData => ({zoom, trails: trailsAndData}))
-            )
+    setTimeout(() => this.initDelayed(), 0);
+  }
+
+  private initDelayed(): void {
+    const mapZoom$ = this.showBubbles$.pipe(
+      switchMap(showBubbles => {
+        localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(showBubbles));
+        if (!showBubbles) return of(undefined);
+        return this.map!.getState().zoom$;
+      })
+    );
+    this.whenVisible.subscribe(
+      combineLatest([this.mapTrails$, mapZoom$]).pipe(
+        switchMap(([trails, zoom]) =>
+          trails.isEmpty() ? of({zoom, trails: []}) : combineLatest(
+            trails.map(
+              trail => trail.currentTrackUuid$.pipe(
+                switchMap(trackUuid => {
+                  if (zoom === undefined) return this.trackService.getSimplifiedTrack$(trackUuid, trail.owner);
+                  return this.trackService.getMetadata$(trackUuid, trail.owner);
+                }),
+                filterDefined(),
+                map(data => ({trail, data})),
+              )
+            ).toArray()
+          ).pipe(
+            map(trailsAndData => ({zoom, trails: trailsAndData}))
           )
-        ),
-        result => {
-          if (result.zoom === undefined) {
-            if (this.mapBubbles$.value.length > 0)
-              this.mapBubbles$.next([]);
-            if (result.trails.length === 0) {
-              if (this.mapTracks$.value.length > 0)
-                this.mapTracks$.next([]);
-              return;
-            }
-            this.mapTracks$.next(this.mapTracksMapper.update(result.trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
-          } else {
+        )
+      ),
+      result => {
+        if (result.zoom === undefined) {
+          if (this.mapBubbles$.value.length > 0)
+            this.mapBubbles$.next([]);
+          if (result.trails.length === 0) {
             if (this.mapTracks$.value.length > 0)
               this.mapTracks$.next([]);
-            if (result.trails.length === 0) {
-              if (this.mapBubbles$.value.length > 0)
-                this.mapBubbles$.next([]);
-              return;
-            }
-            this.mapBubbles$.next(MapBubble.build(result.trails.map(
-              trail => {
-                const meta = trail.data as TrackMetadataSnapshot;
-                if (!meta.bounds) return undefined;
-                //[[north, east], [south, west]]
-                return L.latLng(meta.bounds[0][0] + (meta.bounds[1][0] - meta.bounds[0][0]) / 2, meta.bounds[0][1] + (meta.bounds[1][1] - meta.bounds[0][1]) / 2);
-              }
-            ).filter(p => !!p), result.zoom));
+            return;
           }
+          this.mapTracks$.next(this.mapTracksMapper.update(result.trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
+          return;
         }
-      );
-    }, 0);
+        if (this.mapTracks$.value.length > 0)
+          this.mapTracks$.next([]);
+        if (result.trails.length === 0) {
+          if (this.mapBubbles$.value.length > 0)
+            this.mapBubbles$.next([]);
+          return;
+        }
+        this.mapBubbles$.next(MapBubble.build(result.trails.map(
+          trail => {
+            const meta = trail.data as TrackMetadataSnapshot;
+            if (!meta.bounds) return undefined;
+            //[[north, east], [south, west]]
+            return L.latLng(meta.bounds[0][0] + (meta.bounds[1][0] - meta.bounds[0][0]) / 2, meta.bounds[0][1] + (meta.bounds[1][1] - meta.bounds[0][1]) / 2);
+          }
+        ).filter(p => !!p), result.zoom));
+      }
+    );
   }
 
   protected override getComponentState() {
@@ -159,7 +162,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     this.updateMode();
   }
 
-  private updateMode(): void {
+  private updateMode(): void { // NOSONAR
     if (!this.visible) {
       this.updateVisibility(false, false, false);
       return;

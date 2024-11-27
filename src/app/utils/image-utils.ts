@@ -47,10 +47,10 @@ export class ImageUtils {
         canvas.toBlob(
           blob => {
             if (blob) {
-              blob.arrayBuffer().then(buffer => {
+              blob.arrayBuffer().then(buffer => { // NOSONAR
                 resolve(buffer);
                 canvas.parentElement?.removeChild(canvas);
-              }).catch(e => {
+              }).catch(e => { // NOSONAR
                 reject(e);
                 canvas.parentElement?.removeChild(canvas);
               });
@@ -111,7 +111,7 @@ export class ImageUtils {
             }
           },
           "image/jpeg",
-          quality || 1
+          quality ?? 1
         )
       };
       img.onerror = err => {
@@ -242,7 +242,8 @@ export class ImageUtils {
     for (let i = 0; i < nbEntries; i++) {
       const tag = DataUtils.readUint16(data, offset, littleEndian);
       offset += 2;
-      const format = DataUtils.readUint16(data, offset, littleEndian);
+      // format
+      DataUtils.readUint16(data, offset, littleEndian);
       offset += 2;
       const nbComponents = DataUtils.readUint32(data, offset, littleEndian);
       offset += 4;
@@ -261,32 +262,33 @@ export class ImageUtils {
       if (tag === 0x9003) {
         // date/time original
         const str = this.readExifString(data, start + addressOrValue, nbComponents);
-        let date;
-        if (str.length > 0) {
-          const datetime = str.split(' ');
-          if (datetime.length === 2) {
-            const d = datetime[0].split(':');
-            if (d.length === 3) {
-              const year = parseInt(d[0]);
-              const month = parseInt(d[1]);
-              const day = parseInt(d[2]);
-              if (!isNaN(year) && !isNaN(month) && !isNaN(day) && month > 0 && month < 13 && day > 0 && day < 32) {
-                const t = datetime[1].split(':');
-                if (t.length === 3) {
-                  const hour = parseInt(t[0]);
-                  const minute = parseInt(t[1]);
-                  const second = parseInt(t[2]);
-                  if (!isNaN(hour) && !isNaN(minute) && !isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
-                    date = new Date(year, month - 1, day, hour, minute, second);
-                  }
-                }
-              }
-            }
-          }
-        }
+        const date = ImageUtils.toDate(str);
         info.dateTaken = date?.getTime();
       }
     }
+  }
+
+  private static toDate(str: string): Date | undefined {
+    if (str.length === 0) return;
+    const datetime = str.split(' ');
+    if (datetime.length !== 2) return;
+    const d = datetime[0].split(':');
+    if (d.length !== 3) return;
+    const year = parseInt(d[0]);
+    const month = parseInt(d[1]);
+    const day = parseInt(d[2]);
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day) && month > 0 && month < 13 && day > 0 && day < 32) {
+      const t = datetime[1].split(':');
+      if (t.length === 3) {
+        const hour = parseInt(t[0]);
+        const minute = parseInt(t[1]);
+        const second = parseInt(t[2]);
+        if (!isNaN(hour) && !isNaN(minute) && !isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
+          return new Date(year, month - 1, day, hour, minute, second);
+        }
+      }
+    }
+    return undefined;
   }
 
   private static readExifString(data: Uint8Array, offset: number, size: number): string {

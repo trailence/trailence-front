@@ -1,6 +1,7 @@
 import { App } from '../app/app';
 import { TrailPage } from '../app/pages/trail-page';
 import { Component } from './component';
+import { IonicCheckbox } from './ionic/ion-checkbox';
 import { MenuContent } from './menu-content.component';
 import { TrailOverview } from './trail-overview.component';
 
@@ -17,6 +18,8 @@ export class TrailsList extends Component {
   }
 
   public get items() { return this.getElement().$('div.trails').$$('div.metadata-container.trail'); }
+
+  public get selectAllCheckbox() { return new IonicCheckbox(this.getElement().$('div.selection').$('ion-checkbox')); }
 
   public async getItemTrailOverview(item: WebdriverIO.Element) {
     if (!await item.isDisplayed()) {

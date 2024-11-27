@@ -42,7 +42,7 @@ export function detectLongBreaksFromTrack(track: Track, minDuration: number, max
   return result;
 }
 
-export function detectLongBreaksFromSegment(segment: Segment, minDuration: number, maxDistance: number): {startIndex: number; endIndex: number}[] {
+export function detectLongBreaksFromSegment(segment: Segment, minDuration: number, maxDistance: number): {startIndex: number; endIndex: number}[] { // NOSONAR
   const points = segment.relativePoints;
   if (points.length < 2) return [];
   let index = 0;
@@ -83,7 +83,7 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
   return breaks;
 }
 
-function adjustLongBreakDetected(segment: Segment, maxDistance: number, startIndex: number, endIndex: number): {startIndex: number, endIndex: number} {
+function adjustLongBreakDetected(segment: Segment, maxDistance: number, startIndex: number, endIndex: number): {startIndex: number, endIndex: number} { // NOSONAR
   // because we use maxDistance, we may have too much points at the beginning and at the end
   if (endIndex - startIndex <= 1) return {startIndex, endIndex};
   // adjust startIndex

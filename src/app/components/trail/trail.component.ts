@@ -152,6 +152,15 @@ export class TrailComponent extends AbstractComponent {
     this.photos = undefined;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
+    this.listenForTracks();
+    this.listenForWayPoints();
+    this.listenForTags();
+    this.listenForPhotos();
+    this.listenForPhotosOnMap();
+    this.listenForRecordingElevationGraphUpdates();
+  }
+
+  private listenForTracks(): void {
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(debounceTime(1)),
@@ -262,165 +271,6 @@ export class TrailComponent extends AbstractComponent {
         this.changesDetector.detectChanges();
       }, true
     );
-
-    this.byStateAndVisible.subscribe(
-      combineLatest([this.toolsModifiedTrack$, this.tracks$]).pipe(
-        map(([modified, tracks]) => modified || (tracks.length > 0 ? tracks[0] : undefined)),
-        switchMap(track => { this.wayPointsTrack = track; return track ? track.computedWayPoints$ : of([]); })
-      ),
-      wayPoints => {
-        if (this._highlightedWayPoint) this.unhighlightWayPoint(this._highlightedWayPoint, true);
-        this.wayPoints = wayPoints;
-        this.changesDetector.detectChanges();
-      }, true
-    );
-
-    if (this.trail1$) {
-      this.byStateAndVisible.subscribe(
-        combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
-          switchMap(([trail, trail2]) => !trail2 && trail && trail.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail.uuid).pipe(debounceTimeExtended(0, 100)) : of(undefined))
-        ),
-        names => {
-          if (this.tagsNames && names && Arrays.sameContent(this.tagsNames, names)) return;
-          this.tagsNames = names;
-          this.changesDetector.detectChanges();
-        }, true
-      );
-      this.byStateAndVisible.subscribe(
-        combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
-          switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos(trail1) : of(undefined))
-        ),
-        photos => {
-          if (photos === undefined)
-            this.photos = undefined;
-          else {
-            photos.sort((p1,p2) => {
-              if (p1.isCover) return -1;
-              if (p2.isCover) return 1;
-              return p1.index - p2.index;
-            });
-            this.photos = photos;
-          }
-          this.changesDetector.detectChanges();
-        }, true
-      );
-      let photosOnMap = new Map<string, L.Marker>();
-      let photosByKey = new Map<string, Photo[]>();
-      let trackUuid: string | undefined = undefined;
-      let dateToPoint = new Map<number, L.LatLngExpression | null>();
-      this.byStateAndVisible.subscribe(
-        combineLatest([this.trail1$, this.trail2$ || of(null), this.showPhotos$]).pipe(
-          switchMap(([trail1, trail2, showPhotos]) => {
-            if (!trail1 || trail2 || !showPhotos) return of([]);
-            return this.photoService.getTrailPhotos(trail1).pipe(
-              switchMap(photos => {
-                const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
-                const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
-                if (withDateOnly.length > 0) {
-                  // we need the track to get a position
-                  return this.showOriginal$.pipe(
-                    switchMap(showOriginal => showOriginal ? trail1.originalTrackUuid$ : trail1.currentTrackUuid$),
-                    switchMap(trackUuid => this.trackService.getFullTrack$(trackUuid, trail1.owner)),
-                    map(track => {
-                      if (!track) return [];
-                      if (track.uuid !== trackUuid) {
-                        trackUuid = track.uuid;
-                        dateToPoint.clear();
-                      }
-                      return withDateOnly.map(photo => {
-                        const date = photo.dateTaken!;
-                        let point: L.LatLngExpression | null | undefined = dateToPoint.get(date);
-                        if (point === undefined) {
-                          const closest = TrackUtils.findClosestPointForTime(track, date);
-                          point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
-                          dateToPoint.set(date, point);
-                        }
-                        return {photo, point};
-                      })
-                      .filter(p => !!p.point) as {photo: Photo, point: L.LatLngExpression}[];
-                    }),
-                    map(result => [...result, ...withPos])
-                  );
-                }
-                return of(withPos);
-              }),
-              map(photos => {
-                // sort and keep only one if distance is < 15 meters
-                const photosWithPoint = photos.sort((p1,p2) => p1.photo.index - p2.photo.index).map(p => ({photos: [p.photo], point: p.point}));
-                for (let i = 1; i < photosWithPoint.length; ++i) {
-                  const point = photosWithPoint[i].point;
-                  let found = false;
-                  for (let j = 0; j < i; ++j) {
-                    const p = photosWithPoint[j].point;
-                    if (L.latLng(p).distanceTo(point) < 15) {
-                      photosWithPoint[j].photos.push(...photosWithPoint[i].photos);
-                      found = true;
-                      break;
-                    }
-                  }
-                  if (found) {
-                    photosWithPoint.splice(i, 1);
-                    i--;
-                  }
-                }
-                return photosWithPoint;
-              }),
-              switchMap(photosWithPoint => {
-                if (photosWithPoint.length === 0) return of([]);
-                const markers$: Observable<{key: string, marker: L.Marker, alreadyOnMap: boolean}>[] = [];
-                photosByKey.clear();
-                for (const p of photosWithPoint) {
-                  const key = p.photos[0].owner + '#' + p.photos[0].uuid + '#' + p.photos.length;
-                  photosByKey.set(key, p.photos);
-                  let marker = photosOnMap.get(key);
-                  if (marker) {
-                    markers$.push(of({key, marker, alreadyOnMap: true}));
-                    photosOnMap.delete(key);
-                  } else {
-                    markers$.push(this.photoService.getFile$(p.photos[0].owner, p.photos[0].uuid).pipe(
-                      switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 75, 0.7))),
-                      switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
-                        map(base64 => {
-                          const marker = MapPhoto.create(p.point, base64, jpeg.width, jpeg.height, p.photos.length > 1 ? '' + p.photos.length : undefined);
-                          marker.addEventListener('click', () => {
-                            this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
-                          });
-                          return {key, marker, alreadyOnMap: false};
-                        }),
-                      )),
-                    ));
-                  }
-                }
-                return combineLatest(markers$);
-              }),
-            );
-          }),
-        ),
-        result => {
-          if (!this.map) return;
-          for (const marker of photosOnMap.values()) this.map.removeFromMap(marker);
-          photosOnMap.clear();
-          for (const element of result) {
-            photosOnMap.set(element.key, element.marker);
-            if (!element.alreadyOnMap) this.map.addToMap(element.marker);
-          }
-        }, true
-      );
-    }
-
-    if (this.recording$)
-      this.byStateAndVisible.subscribe(
-        this.recording$.pipe(
-          switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
-          debounceTime(10),
-        ),
-        r => {
-          const pt = r?.track.arrivalPoint;
-          if (pt && this.elevationGraph) {
-            this.elevationGraph.updateRecording(r.track);
-          }
-        }, true
-      );
   }
 
   private trail$(trail$?: Observable<Trail | null>): Observable<[Trail | null, Track | undefined, MapTrack | undefined]> {
@@ -443,6 +293,181 @@ export class TrailComponent extends AbstractComponent {
           })
         )
       })
+    );
+  }
+
+  private listenForWayPoints(): void {
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.toolsModifiedTrack$, this.tracks$]).pipe(
+        map(([modified, tracks]) => modified || (tracks.length > 0 ? tracks[0] : undefined)),
+        switchMap(track => { this.wayPointsTrack = track; return track ? track.computedWayPoints$ : of([]); })
+      ),
+      wayPoints => {
+        if (this._highlightedWayPoint) this.unhighlightWayPoint(this._highlightedWayPoint, true);
+        this.wayPoints = wayPoints;
+        this.changesDetector.detectChanges();
+      }, true
+    );
+  }
+
+  private listenForTags(): void {
+    if (!this.trail1$) return;
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
+        switchMap(([trail, trail2]) => !trail2 && trail && trail.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail.uuid).pipe(debounceTimeExtended(0, 100)) : of(undefined))
+      ),
+      names => {
+        if (this.tagsNames && names && Arrays.sameContent(this.tagsNames, names)) return;
+        this.tagsNames = names;
+        this.changesDetector.detectChanges();
+      }, true
+    );
+  }
+
+  private listenForPhotos(): void {
+    if (!this.trail1$) return;
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
+        switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos(trail1) : of(undefined))
+      ),
+      photos => {
+        if (photos === undefined)
+          this.photos = undefined;
+        else {
+          photos.sort((p1,p2) => {
+            if (p1.isCover) return -1;
+            if (p2.isCover) return 1;
+            return p1.index - p2.index;
+          });
+          this.photos = photos;
+        }
+        this.changesDetector.detectChanges();
+      }, true
+    );
+  }
+
+  private listenForPhotosOnMap(): void {
+    if (!this.trail1$) return;
+    let photosOnMap = new Map<string, L.Marker>();
+    const photosByKey = new Map<string, Photo[]>();
+    const dateToPoint = { trackUuid: undefined as string | undefined, cache: new Map<number, L.LatLngExpression | null>() };
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.trail1$, this.trail2$ || of(null), this.showPhotos$]).pipe(
+        switchMap(([trail1, trail2, showPhotos]) => {
+          if (!trail1 || trail2 || !showPhotos) return of([]);
+          return this.photoService.getTrailPhotos(trail1).pipe(
+            switchMap(photos => {
+              const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
+              const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
+              if (withDateOnly.length === 0) return of(withPos);
+              return this.getPhotoPositionFromDate(trail1, withDateOnly, dateToPoint).pipe(map(result => [...result, ...withPos]));
+            }),
+            map(photos => {
+              // sort and keep only one if distance is < 15 meters
+              const photosWithPoint = photos.sort((p1,p2) => p1.photo.index - p2.photo.index).map(p => ({photos: [p.photo], point: p.point}));
+              for (let i = 1; i < photosWithPoint.length; ++i) {
+                const point = photosWithPoint[i].point;
+                let found = false;
+                for (let j = 0; j < i; ++j) {
+                  const p = photosWithPoint[j].point;
+                  if (L.latLng(p).distanceTo(point) < 15) {
+                    photosWithPoint[j].photos.push(...photosWithPoint[i].photos);
+                    found = true;
+                    break;
+                  }
+                }
+                if (found) {
+                  photosWithPoint.splice(i, 1);
+                  i--;
+                }
+              }
+              return photosWithPoint;
+            }),
+            switchMap(photosWithPoint => {
+              if (photosWithPoint.length === 0) return of([]);
+              const markers$: Observable<{key: string, marker: L.Marker, alreadyOnMap: boolean}>[] = [];
+              photosByKey.clear();
+              for (const p of photosWithPoint) {
+                const key = p.photos[0].owner + '#' + p.photos[0].uuid + '#' + p.photos.length;
+                photosByKey.set(key, p.photos);
+                let marker = photosOnMap.get(key);
+                if (marker) {
+                  markers$.push(of({key, marker, alreadyOnMap: true}));
+                  photosOnMap.delete(key);
+                } else {
+                  markers$.push(this.createPhotoMarker(p.point, p.photos, photosByKey, key));
+                }
+              }
+              return combineLatest(markers$);
+            }),
+          );
+        }),
+      ),
+      result => {
+        if (!this.map) return;
+        for (const marker of photosOnMap.values()) this.map.removeFromMap(marker);
+        photosOnMap.clear();
+        for (const element of result) {
+          photosOnMap.set(element.key, element.marker);
+          if (!element.alreadyOnMap) this.map.addToMap(element.marker);
+        }
+      }, true
+    );
+  }
+
+  private getPhotoPositionFromDate(trail1: Trail, photos: Photo[], dateToPoint: { trackUuid: string | undefined, cache: Map<number, L.LatLngExpression | null> }) {
+    return this.showOriginal$.pipe(
+      switchMap(showOriginal => showOriginal ? trail1.originalTrackUuid$ : trail1.currentTrackUuid$),
+      switchMap(trackUuid => this.trackService.getFullTrack$(trackUuid, trail1.owner)),
+      map(track => {
+        if (!track) return [];
+        if (track.uuid !== dateToPoint.trackUuid) {
+          dateToPoint.trackUuid = track.uuid;
+          dateToPoint.cache.clear();
+        }
+        return photos.map(photo => {
+          const date = photo.dateTaken!;
+          let point: L.LatLngExpression | null | undefined = dateToPoint.cache.get(date);
+          if (point === undefined) {
+            const closest = TrackUtils.findClosestPointForTime(track, date);
+            point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
+            dateToPoint.cache.set(date, point);
+          }
+          return {photo, point};
+        })
+        .filter(p => !!p.point) as {photo: Photo, point: L.LatLngExpression}[];
+      })
+    );
+  }
+
+  private createPhotoMarker(point: L.LatLngExpression, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string) {
+    return this.photoService.getFile$(photos[0].owner, photos[0].uuid).pipe(
+      switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 75, 0.7))),
+      switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
+        map(base64 => {
+          const marker = MapPhoto.create(point, base64, jpeg.width, jpeg.height, photos.length > 1 ? '' + photos.length : undefined);
+          marker.addEventListener('click', () => {
+            this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
+          });
+          return {key, marker, alreadyOnMap: false};
+        }),
+      )),
+    );
+  }
+
+  private listenForRecordingElevationGraphUpdates(): void {
+    if (!this.recording$) return;
+    this.byStateAndVisible.subscribe(
+      this.recording$.pipe(
+        switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
+        debounceTime(10),
+      ),
+      r => {
+        const pt = r?.track.arrivalPoint;
+        if (pt && this.elevationGraph) {
+          this.elevationGraph.updateRecording(r.track);
+        }
+      }, true
     );
   }
 

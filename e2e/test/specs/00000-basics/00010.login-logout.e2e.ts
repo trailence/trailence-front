@@ -2,8 +2,6 @@ import { expect } from '@wdio/globals'
 import { App } from '../../app/app';
 import { LoginPage } from '../../app/pages/login-page';
 import { TrailsPage } from '../../app/pages/trails-page';
-import { Page } from '../../app/pages/page';
-import { HeaderComponent } from '../../components/header.component';
 
 describe('Login and Logout', () => {
 

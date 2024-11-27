@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, map, of, switchMap } from 'rxjs';
 import { StoreSyncStatus } from './store';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';

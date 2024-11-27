@@ -3,6 +3,7 @@ import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { ImportTagsPopup } from '../../components/import-tags-popup.component';
 import { TagsPopup } from '../../components/tags-popup';
+import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
 
 describe('Trails list - Import Zip files', () => {
@@ -21,7 +22,7 @@ describe('Trails list - Import Zip files', () => {
     const trailsList = await page.trailsAndMap.openTrailsList();
     const importButton = await trailsList.getToolbarButton('add-circle');
     await importButton.click();
-    await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/gpx-zip-001.zip'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-zip-001.zip'));
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');
     const tags = await popup.getTags();
@@ -61,7 +62,7 @@ describe('Trails list - Import Zip files', () => {
     const trailsList = await page.trailsAndMap.openTrailsList();
     const importButton = await trailsList.getToolbarButton('add-circle');
     await importButton.click();
-    await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/gpx-zip-002.zip'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-zip-002.zip'));
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');
     const tags = await popup.getTags();

@@ -37,7 +37,7 @@ class Cursor {
   }
 }
 
-export function applyElevationThresholdToSegment(segment: Segment, threshold: number, maxDistance: number, lastIndexProcessed: number | undefined, finish: boolean): number {
+export function applyElevationThresholdToSegment(segment: Segment, threshold: number, maxDistance: number, lastIndexProcessed: number | undefined, finish: boolean): number { // NOSONAR
   const points = segment.points;
   if (points.length < 3) return 0;
   const smoothOutsideThreshold = threshold * 0.75;
@@ -48,16 +48,15 @@ export function applyElevationThresholdToSegment(segment: Segment, threshold: nu
     const ele = points[i].ele;
     const pos = points[i].pos;
     cursor.newPoint(pos, i);
-    if (ele !== undefined) {
-      if (cursor.previousEle === undefined) {
-        cursor.reset(ele, pos, i);
-        continue;
-      }
-      const diff = ele - cursor.previousEle;
-      if (diff >= threshold || -diff >= threshold || cursor.currentDistance >= maxDistance) {
-        i = smoothElevation(points, cursor.previousIndex, cursor.previousEle, i, diff, cursor.currentDistance, smoothOutsideThreshold);
-        cursor.resetWithIndex(points, i);
-      }
+    if (ele === undefined) continue;
+    if (cursor.previousEle === undefined) {
+      cursor.reset(ele, pos, i);
+      continue;
+    }
+    const diff = ele - cursor.previousEle;
+    if (diff >= threshold || -diff >= threshold || cursor.currentDistance >= maxDistance) {
+      i = smoothElevation(points, cursor.previousIndex, cursor.previousEle, i, diff, cursor.currentDistance, smoothOutsideThreshold);
+      cursor.resetWithIndex(points, i);
     }
   }
   if (!finish) return cursor.previousIndex;
@@ -100,18 +99,17 @@ function outsideFromSmoothElevation(points: Point[], previousIndex: number, prev
     const dist = points[j].distanceTo(points[j - 1].pos);
     currentDistance += dist;
     const ele = points[j].ele;
-    if (ele !== undefined) {
-      const smoothEle = previousEle + (diff * currentDistance / totalDistance);
-      const smoothDiff = ele - smoothEle;
-      if (smoothDiff > threshold / 10) distanceAbove += dist;
-      else if (smoothDiff < -(threshold / 10)) distanceBelow += dist;
-      const stop = (currentDistance > totalDistance / 3 && currentDistance > 100 && (distanceAbove > currentDistance * 0.4 || distanceBelow > currentDistance * 0.4)) ||
-        (Math.abs(smoothDiff) > threshold);
-      if (stop) {
-        const newOutside = outsideFromSmoothElevation(points, previousIndex, previousEle, j, points[j].ele! - previousEle, currentDistance, threshold);
-        if (newOutside) return newOutside;
-        return {index: j, distance: currentDistance};
-      }
+    if (ele === undefined) continue;
+    const smoothEle = previousEle + (diff * currentDistance / totalDistance);
+    const smoothDiff = ele - smoothEle;
+    if (smoothDiff > threshold / 10) distanceAbove += dist;
+    else if (smoothDiff < -(threshold / 10)) distanceBelow += dist;
+    const stop = (currentDistance > totalDistance / 3 && currentDistance > 100 && (distanceAbove > currentDistance * 0.4 || distanceBelow > currentDistance * 0.4)) ||
+      (Math.abs(smoothDiff) > threshold);
+    if (stop) {
+      const newOutside = outsideFromSmoothElevation(points, previousIndex, previousEle, j, points[j].ele! - previousEle, currentDistance, threshold);
+      if (newOutside) return newOutside;
+      return {index: j, distance: currentDistance};
     }
   }
   return null;
@@ -120,18 +118,16 @@ function outsideFromSmoothElevation(points: Point[], previousIndex: number, prev
 function applySmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number): number {
   if (previousIndex > 0) {
     const ppEle = points[previousIndex - 1].ele;
-    if (ppEle !== undefined) {
-      if ((previousEle - ppEle > 0 && diff < 0) || (previousEle - ppEle < 0 && diff > 0)) {
-        // change of elevation way
-        if (totalDistance > 50 && toIndex - previousIndex > 3) {
-          // let's take a middle point first
-          const middle = Math.floor(previousIndex + (toIndex - previousIndex) / 2);
-          const middleEle = points[middle].ele;
-          if (middleEle !== undefined) {
-            applyFinalSmoothElevation(points, previousIndex, previousEle, middle, middleEle - previousEle, TrackUtils.distanceBetween(points, previousIndex, middle));
-            return middle;
-          }
-        }
+    if (ppEle !== undefined &&
+      ((previousEle - ppEle > 0 && diff < 0) || (previousEle - ppEle < 0 && diff > 0)) && // change of elevation way
+      (totalDistance > 50 && toIndex - previousIndex > 3)
+    ) {
+      // let's take a middle point first
+      const middle = Math.floor(previousIndex + (toIndex - previousIndex) / 2);
+      const middleEle = points[middle].ele;
+      if (middleEle !== undefined) {
+        applyFinalSmoothElevation(points, previousIndex, previousEle, middle, middleEle - previousEle, TrackUtils.distanceBetween(points, previousIndex, middle));
+        return middle;
       }
     }
   }

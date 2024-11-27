@@ -6,6 +6,7 @@ import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicTextArea } from './ionic/ion-textarea';
 import { App } from '../app/app';
 import { PhotosSliderPopup } from './photos-slider-popup';
+import { FilesUtils } from '../utils/files-utils';
 
 export class PhotosPopup extends Component {
 
@@ -119,7 +120,7 @@ export class PhotosPopup extends Component {
 
   public async addPhoto(file: string) {
     await new IonicButton(this.getElement().$('ion-footer ion-buttons').$('ion-button=Add photos')).click();
-    await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/' + file));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/' + file));
   }
 
 }

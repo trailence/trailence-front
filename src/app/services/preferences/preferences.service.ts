@@ -121,7 +121,7 @@ export class PreferencesService {
     return result as ComputedPreferences;
   }
 
-  private complete(toComplete: Preferences, withPrefs: Preferences): void {
+  private complete(toComplete: Preferences, withPrefs: Preferences): void { // NOSONAR
     if (!toComplete.lang) toComplete.lang = withPrefs.lang;
     toComplete.distanceUnit = this.completeEnum(toComplete.distanceUnit, withPrefs.distanceUnit, ['METERS', 'IMPERIAL']);
     toComplete.hourFormat = this.completeEnum(toComplete.hourFormat, withPrefs.hourFormat, ['H12', 'H24'])
@@ -149,10 +149,8 @@ export class PreferencesService {
     let s = window.location.search;
     if (s.length > 0) {
       const params = StringUtils.parseQueryParams(s);
-      if (params['lang']) {
-        if (defaultPreferences[params['lang']]) {
-          return params['lang'];
-        }
+      if (params['lang'] && defaultPreferences[params['lang']]) {
+        return params['lang'];
       }
     }
     s = window.navigator.language;

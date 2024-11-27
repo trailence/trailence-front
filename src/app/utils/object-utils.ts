@@ -1,6 +1,6 @@
 export class ObjectUtils {
 
-  public static compare(a: any, b: any): number {
+  public static compare(a: any, b: any): number { // NOSONAR
     if (a === undefined || a === null) return b === undefined || b === null ? 0 : -1;
     if (b === undefined || b === null) return 1;
     if (typeof a === 'number') {

@@ -3,6 +3,7 @@ import { Page } from '../../app/pages/page';
 import { PreferencesPage } from '../../app/pages/preferences-page';
 import { HeaderComponent } from '../../components/header.component';
 import { TrailsList } from '../../components/trails-list.component';
+import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
 import { TestUtils } from '../../utils/test-utils';
 
@@ -43,7 +44,7 @@ describe('Preferences', () => {
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
     const importButton = await trailsList.getToolbarButton('add-circle');
     await importButton.click();
-    await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/gpx-001.gpx'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     await checkTrail(trailsList, expectedDateEn, 'Duration', '3h07 (≈ 2h40)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft');
   });
 

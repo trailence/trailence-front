@@ -565,7 +565,8 @@ export class TrailMenuService {
         resolve({filename: filename + '.gpx', data: data.gpx});
       });
     };
-    fileService.saveZip('trailence-export.zip', () => {
+    const zipName = trails.length === 1 ? StringUtils.toFilename(trails[0].name) : 'trailence-export';
+    fileService.saveZip(zipName + '.zip', () => {
       return new Promise<{ filename: string; data: BinaryContent; } | null>((resolve) => {
         processNextTrail(resolve);
       });

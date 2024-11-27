@@ -418,7 +418,7 @@ export class ComputedWayPoint {
   public get distanceFromDeparture(): number | undefined { return this._distanceFromDeparture; }
   public get altitude(): number | undefined { return this._altitude; }
 
-  public static compute(track: Track, preferences: ComputedPreferences): ComputedWayPoint[] {
+  public static compute(track: Track, preferences: ComputedPreferences): ComputedWayPoint[] { // NOSONAR
     if (!track.departurePoint) return [];
     const wayPoints = track.wayPoints;
     if (wayPoints.length === 0) {
@@ -550,7 +550,7 @@ export class ComputedWayPoint {
     return true;
   }
 
-  private static removeUnordered(eligibles: {segmentIndex: number; pointIndex: number}[][]): boolean {
+  private static removeUnordered(eligibles: {segmentIndex: number; pointIndex: number}[][]): boolean { // NOSONAR
     let changed = false;
     for (let i = 0; i < eligibles.length; ++i) {
       const points = eligibles[i];
@@ -602,7 +602,7 @@ export class ComputedWayPoint {
     return changed;
   }
 
-  private static findEligiblePoints(point: Point, track: Track): {segmentIndex: number; pointIndex: number}[] {
+  private static findEligiblePoints(point: Point, track: Track): {segmentIndex: number; pointIndex: number}[] { // NOSONAR
     const result: {segmentIndex: number; pointIndex: number}[] = [];
     const p = point.pos;
     const t = point.time;

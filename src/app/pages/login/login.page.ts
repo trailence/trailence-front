@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar, IonTitle, IonIcon } from '@ionic/angular/standalone';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar, IonIcon } from '@ionic/angular/standalone';
 import { combineLatest, filter, first } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';

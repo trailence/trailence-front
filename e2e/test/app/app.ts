@@ -162,6 +162,10 @@ export class App {
     return new IonicAlert(content);
   }
 
+  public static async waitNoProgress() {
+    await browser.waitUntil(() => $('div.progress-container').$$('div').length.then(nb => nb === 0));
+  }
+
   public static async openMenu() {
     const menu = $('app-root ion-menu').$('>>>app-menu').$('div.menu-content');
     if (await menu.isDisplayed()) {

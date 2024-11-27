@@ -3,7 +3,8 @@ import { Component } from '../component';
 export class IonicCheckbox extends Component {
 
   public async isSelected() {
-    const value = await this.getElement().getAttribute("ng-reflect-checked");
+    let value = await this.getElement().getAttribute("ng-reflect-checked");
+    if (value === null) value = await this.getElement().getAttribute("aria-checked");
     if (value === 'true') return true;
     if (value === 'false') return false;
     throw new Error('Cannot determine checkbox status: ' + value);

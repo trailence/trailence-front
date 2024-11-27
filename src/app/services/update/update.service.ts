@@ -8,7 +8,6 @@ import { trailenceAppVersionCode, trailenceAppVersionName } from 'src/app/traile
 import Trailence from 'src/app/services/trailence.service';
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';
-import { Console } from 'src/app/utils/console';
 import { I18nService } from '../i18n/i18n.service';
 
 export interface AppDownload {
@@ -60,7 +59,7 @@ export class UpdateService {
   private checkUpdateApk(): Observable<AppDownload | null> {
     return this.http.get(environment.baseUrl + '/assets/apk/metadata.json').pipe(
       map((metadata: any) => {
-        if (metadata.elements && metadata.elements[0].versionCode && metadata.elements[0].versionCode > this.versionCode) {
+        if (metadata.elements && metadata.elements[0].versionCode && metadata.elements[0].versionCode > this.versionCode) { // NOSONAR
           return {
             url: this.apkUrl(),
             icon: this.apkIcon(),

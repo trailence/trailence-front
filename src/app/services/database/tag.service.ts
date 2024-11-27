@@ -84,7 +84,7 @@ export class TagService {
           let done = 0;
           let workDone = 0;
           const ondone = () => {
-            setTimeout(() => {
+            setTimeout(() => { // NOSONAR
               done++;
               const newWorkDone = done * progressWork / toRemove.length;
               progress?.addWorkDone(newWorkDone - workDone);

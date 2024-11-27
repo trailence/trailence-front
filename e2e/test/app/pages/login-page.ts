@@ -33,6 +33,7 @@ export class LoginPage extends Page {
     await this.login(username, password);
     const trailsPage = new TrailsPage();
     await trailsPage.waitDisplayed();
+    await App.waitNoProgress();
     return trailsPage;
   }
 

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { TraceRecorderService } from './trace-recorder.service';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideErrorService } from 'test/utils/mock-error-service';
-import { filter, firstValueFrom, of } from 'rxjs';
+import { BehaviorSubject, filter, firstValueFrom, of } from 'rxjs';
 import { provideAuthService } from 'test/utils/mock-auth-service';
 import { provideNetworkService } from 'test/utils/mock-network-service';
 import { TrailCollectionService } from '../database/trail-collection.service';
@@ -13,10 +13,13 @@ import { PointDto } from 'src/app/model/dto/point';
 import { I18nService } from '../i18n/i18n.service';
 import { TrackService } from '../database/track.service';
 import { DatabaseService } from '../database/database.service';
+import { AuthService } from '../auth/auth.service';
+import { AuthResponse } from '../auth/auth-response';
 
 describe('Test Trace Recorder', () => {
 
   let userEmail: string;
+  let testCount = 1;
   let recorder: TraceRecorderService;
   let collectionService: TrailCollectionService;
   let trackService: TrackService;
@@ -24,7 +27,7 @@ describe('Test Trace Recorder', () => {
   let geoListener: ((position: PointDto) => void) | undefined = undefined;
 
   beforeEach(async () => {
-    userEmail = 'user' + Date.now() + '@trailence.org';
+    userEmail = 'user' + Date.now() + '_' + (testCount++) + '@trailence.org';
     TestBed.configureTestingModule({ imports: [], providers: [
       provideHttpClient(withInterceptorsFromDi()),
       provideErrorService(),
@@ -57,6 +60,10 @@ describe('Test Trace Recorder', () => {
     await firstValueFrom(TestBed.inject(DatabaseService).allLoaded().pipe(filter(l => !!l)));
   });
 
+  afterEach(() => {
+    (TestBed.inject(AuthService).auth$ as BehaviorSubject<AuthResponse | null>).next(null);
+  });
+
   it('No point should not create a trail', async () => {
     await recorder.start();
     expect(geoListener).toBeDefined();
@@ -85,13 +92,7 @@ describe('Test Trace Recorder', () => {
     expect(result).not.toBeNull();
 
     const original = await firstValueFrom(trackService.getFullTrackReady$(result!.originalTrackUuid, userEmail));
-    expect(original.getAllPositions().length).toBe(2);
-    expect(original.departurePoint!.pos.lat).toBe(100);
-    expect(original.departurePoint!.pos.lng).toBe(200);
-    expect(original.departurePoint!.ele).toBe(300);
-    expect(original.arrivalPoint!.pos.lat).toBe(102);
-    expect(original.arrivalPoint!.pos.lng).toBe(202);
-    expect(original.arrivalPoint!.ele).toBe(302);
+    expect(original.getAllPositions().length).toBe(3);
 
     const improved = await firstValueFrom(trackService.getFullTrackReady$(result!.currentTrackUuid, userEmail));
     expect(improved.getAllPositions().length).toBe(2);

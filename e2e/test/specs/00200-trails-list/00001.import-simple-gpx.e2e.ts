@@ -1,6 +1,7 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
 
 describe('Trails list - Import Simple GPX', () => {
@@ -26,7 +27,7 @@ describe('Trails list - Import Simple GPX', () => {
     const trailsList = await page.trailsAndMap.openTrailsList();
     const importButton = await trailsList.getToolbarButton('add-circle');
     await importButton.click();
-    await OpenFile.openFile((await import('fs')).realpathSync('./test/assets/gpx-001.gpx'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     trailPage = await trailsList.openTrail(trail!);

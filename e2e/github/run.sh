@@ -25,6 +25,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 cd ..
+rm ./downloads/* || true
+rmdir ./downloads || true
+mkdir ./downloads
 npm run wdio -- --trailence-init-username=$TRAILENCE_INIT_USER --trailence-init-password=$TRAILENCE_INIT_PASSWORD $@ | grep -v "BIDI COMMAND" | grep -v "BIDI RESULT"
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
   echo "Error during tests"
