@@ -36,6 +36,7 @@ export interface DataPoint {
   distanceMeters: number;
   grade: {gradeBefore: number | undefined; gradeAfter: number | undefined};
   eleAccuracy?: number;
+  posAccuracy?: number;
 }
 
 @Component({
@@ -333,7 +334,13 @@ export class ElevationGraphComponent extends AbstractComponent {
               for (const point of points) html += '<td>' + text(point) + '</td>';
               html += '</tr>';
             };
-            addInfo(this.i18n.texts.elevationGraph.elevation, pt => this.i18n.elevationToString(pt.raw.ele));
+            addInfo(this.i18n.texts.elevationGraph.elevation, pt => {
+              let s = this.i18n.elevationToString(pt.raw.ele);
+              if (pt.raw.eleAccuracy !== undefined) {
+                s += '<br/>(± ' + this.i18n.elevationToString(pt.raw.eleAccuracy) + ')';
+              }
+              return s;
+            });
             addInfo(this.i18n.texts.elevationGraph.elevation_grade, pt => {
               let s = '';
               if (pt.raw.grade.gradeBefore !== undefined) s = Math.floor(pt.raw.grade.gradeBefore * 100) + '%';
@@ -343,12 +350,17 @@ export class ElevationGraphComponent extends AbstractComponent {
               }
               return s;
             });
-            addInfo(this.i18n.texts.elevationGraph.precision, pt => pt.raw.eleAccuracy !== undefined ? ('+/- ' + this.i18n.elevationToString(pt.raw.eleAccuracy)) : '');
+            //addInfo(this.i18n.texts.elevationGraph.precision, pt => pt.raw.eleAccuracy !== undefined ? ('+/- ' + this.i18n.elevationToString(pt.raw.eleAccuracy)) : '');
             addInfo(this.i18n.texts.elevationGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters))
             addInfo(this.i18n.texts.elevationGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
             html += '<tr><th>' + this.i18n.texts.elevationGraph.location + '</th>';
             for (const point of points) {
-              html += '<td>' + this.i18n.coordToString(point.raw.lat) + '<br/>' + this.i18n.coordToString(point.raw.lng) + '</td>';
+              html += '<td>';
+              html += this.i18n.coordToString(point.raw.lat) + '<br/>' + this.i18n.coordToString(point.raw.lng)
+              if (point.raw.posAccuracy !== undefined) {
+                html += '<br/>(± ' + this.i18n.distanceToString(point.raw.posAccuracy) + ')';
+              }
+              html += '</td>';
             }
             html += '</tr>';
             html += '</table>';
@@ -577,6 +589,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       distanceMeters: distance,
       grade: TrackUtils.elevationGrade(points, pointIndex),
       eleAccuracy: point.eleAccuracy,
+      posAccuracy: point.posAccuracy,
     };
   }
 
