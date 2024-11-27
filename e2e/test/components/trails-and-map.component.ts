@@ -1,5 +1,6 @@
 import { Component } from './component';
 import { IonicSegment } from './ionic/ion-segment';
+import { MapComponent } from './map.component';
 import { TrailsList } from './trails-list.component';
 
 export class TrailsAndMapComponent extends Component {
@@ -22,6 +23,16 @@ export class TrailsAndMapComponent extends Component {
       await browser.waitUntil(() => list.isDisplayed());
     }
     return new TrailsList(list);
+  }
+
+  public async openMap() {
+    await this.waitReady();
+    const map = this.getElement().$('div.map-container app-map');
+    if (!await map.isDisplayed()) {
+      await this.openTab('map');
+      await browser.waitUntil(() => map.isDisplayed());
+    }
+    return new MapComponent(this, 'div.map-container app-map');
   }
 
 }

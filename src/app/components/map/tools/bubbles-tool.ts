@@ -17,7 +17,7 @@ export class MapBubblesTool extends L.Control {
   private subscription?: Subscription;
 
   override onAdd(map: L.Map) {
-    const button = MapToolUtils.createButton();
+    const button = MapToolUtils.createButton('bubbles-tool');
     button.style.color = 'black';
     const assets = this.injector.get(AssetsService);
     let svgOn: SVGSVGElement, svgOff: SVGSVGElement;

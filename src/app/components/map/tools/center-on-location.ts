@@ -17,7 +17,7 @@ export class MapCenterOnPositionTool extends L.Control {
   private subscription?: Subscription;
 
   override onAdd(map: L.Map) {
-    const button = MapToolUtils.createButton();
+    const button = MapToolUtils.createButton('center-on-location-tool');
     button.style.color = 'black';
     const assets = this.injector.get(AssetsService);
     assets.loadSvg(assets.icons['center-on-location']).subscribe(

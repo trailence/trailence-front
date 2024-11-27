@@ -17,7 +17,7 @@ export class MapLayerSelectionTool extends L.Control {
   }
 
   public override onAdd(map: L.Map) {
-    const button = MapToolUtils.createButton();
+    const button = MapToolUtils.createButton('layer-tool');
     button.style.color = 'black';
     const assets = this.injector.get(AssetsService);
     assets.loadSvg(assets.icons['layers']).subscribe(

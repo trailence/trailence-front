@@ -10,6 +10,7 @@ export class MapBubble {
 
   constructor(
     private readonly _center: L.LatLng,
+    private readonly _bounds: L.LatLngBounds,
     size: number,
     text: string,
   ) {
@@ -30,6 +31,7 @@ export class MapBubble {
   }
 
   public get center(): L.LatLng { return this._center; }
+  public get bounds(): L.LatLngBounds { return this._bounds; }
 
   addTo(map: L.Map): void {
     if (this._map) return;
@@ -88,7 +90,7 @@ export class MapBubble {
             size = Math.min(d * 2, BUBBLE_MAX_PIXELS);
         }
       }
-      return new MapBubble(b.bounds.getCenter(), size, '' + b.content.length);
+      return new MapBubble(b.bounds.getCenter(), b.bounds, size, '' + b.content.length);
     });
   }
 

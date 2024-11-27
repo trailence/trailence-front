@@ -331,9 +331,9 @@ export class MapComponent extends AbstractComponent {
     }
     for (const t of this._currentBubbles) {
       if (!bounds) {
-        bounds = L.latLngBounds(t.center, t.center);
+        bounds = L.latLngBounds(t.bounds.getSouthWest(), t.bounds.getNorthEast());
       } else {
-        bounds.extend(t.center);
+        bounds.extend(L.latLngBounds(t.bounds.getSouthWest(), t.bounds.getNorthEast()));
       }
     }
     if (bounds) {

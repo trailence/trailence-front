@@ -14,7 +14,7 @@ export class DarkMapToggle extends L.Control {
   }
 
   override onAdd(map: L.Map): HTMLElement {
-    const button = MapToolUtils.createButton();
+    const button = MapToolUtils.createButton('dark-map-tool');
     button.style.color = '#000';
     const assets = this.injector.get(AssetsService);
     let iconDark: any, iconLight: any;

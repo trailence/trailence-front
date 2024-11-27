@@ -17,7 +17,7 @@ export class MapShowPositionTool extends L.Control {
   private subscription?: Subscription;
 
   override onAdd(map: L.Map) {
-    const button = MapToolUtils.createButton();
+    const button = MapToolUtils.createButton('show-position-tool');
     button.style.color = 'black';
     const assets = this.injector.get(AssetsService);
     let svgOn: SVGSVGElement, svgOff: SVGSVGElement;

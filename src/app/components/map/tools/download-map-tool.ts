@@ -16,7 +16,7 @@ export class DownloadMapTool extends L.Control {
   }
 
   override onAdd(map: L.Map): HTMLElement {
-    const button = MapToolUtils.createButton();
+    const button = MapToolUtils.createButton('download-map-tool');
     button.style.color = map.getZoom() < 12 ? '#A0A0A0' : '#000000';
     const assets = this.injector.get(AssetsService);
     assets.loadSvg(assets.icons['download']).subscribe(
