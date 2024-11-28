@@ -19,6 +19,7 @@ export class BehaviorSubjectOnDemand<T> {
         observer.next(this.lastValue);
         this.subscription = this.invalidateValueEvent$.subscribe(() => {
           const value = this.valueProvider();
+          if (value === this.lastValue) return;
           this.lastValue = value;
           const list = [...this.observers];
           for (const o of list) o.next(value);

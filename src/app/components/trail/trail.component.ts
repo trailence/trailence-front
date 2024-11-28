@@ -460,7 +460,7 @@ export class TrailComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       this.recording$.pipe(
         switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
-        debounceTime(10),
+        debounceTimeExtended(100, 100, 100),
       ),
       r => {
         const pt = r?.track.arrivalPoint;

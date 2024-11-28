@@ -162,8 +162,8 @@ export class App {
     return new IonicAlert(content);
   }
 
-  public static async waitNoProgress() {
-    await browser.waitUntil(() => $('div.progress-container').$$('div').length.then(nb => nb === 0));
+  public static async waitNoProgress(timeout?: number) {
+    await browser.waitUntil(() => $('div.progress-container').$$('div').length.then(nb => nb === 0), { timeout });
   }
 
   public static async openMenu() {

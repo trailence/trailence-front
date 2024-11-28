@@ -92,7 +92,13 @@ describe('Test Trace Recorder', () => {
     expect(result).not.toBeNull();
 
     const original = await firstValueFrom(trackService.getFullTrackReady$(result!.originalTrackUuid, userEmail));
-    expect(original.getAllPositions().length).toBe(3);
+    expect(original.getAllPositions().length).toBe(2);
+    expect(original.departurePoint!.pos.lat).toBe(100);
+    expect(original.departurePoint!.pos.lng).toBe(200);
+    expect(original.departurePoint!.ele).toBe(300);
+    expect(original.arrivalPoint!.pos.lat).toBe(102);
+    expect(original.arrivalPoint!.pos.lng).toBe(202);
+    expect(original.arrivalPoint!.ele).toBe(302);
 
     const improved = await firstValueFrom(trackService.getFullTrackReady$(result!.currentTrackUuid, userEmail));
     expect(improved.getAllPositions().length).toBe(2);

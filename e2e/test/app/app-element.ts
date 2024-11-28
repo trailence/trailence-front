@@ -1,4 +1,4 @@
-import { ChainablePromiseElement, WaitForOptions } from 'webdriverio';
+import { ChainablePromiseElement } from 'webdriverio';
 
 export abstract class AppElement {
 

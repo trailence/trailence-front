@@ -534,11 +534,13 @@ export class ElevationGraphComponent extends AbstractComponent {
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const segment = track.segments[segmentIndex];
       const points = segment.points;
-      for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
-        if (pointCount < ds.data.length - 1) {
-          pointCount++;
-          continue;
-        }
+      let pointIndex = Math.max(0, (ds.data.length - 1) - pointCount);
+      if (pointIndex >= points.length) {
+        pointCount += points.length;
+        continue;
+      }
+      pointCount += pointIndex;
+      for (; pointIndex < points.length; pointIndex++) {
         if (pointCount === ds.data.length - 1) {
           // latest known point => update it
           ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, segment, points);
@@ -549,7 +551,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       }
     }
     this.updateMinMaxAxis(true);
-    this.canvas?.chart?.update();
+    this.canvas?.chart?.update('none');
   }
 
   public updateTrack(track: Track): void {

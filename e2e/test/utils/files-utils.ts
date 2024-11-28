@@ -1,10 +1,16 @@
 export class FilesUtils {
 
   private static _fs: any;
+  private static _fsPromises: any;
 
   public static async fs() {
     if (!this._fs) this._fs = await import('fs');
     return this._fs;
+  }
+
+  public static async fsPromises() {
+    if (!this._fsPromises) this._fsPromises = await import('fs/promises');
+    return this._fsPromises;
   }
 
   public static async waitFileDownloaded(filename: string) {

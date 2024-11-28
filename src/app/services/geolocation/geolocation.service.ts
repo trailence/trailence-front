@@ -28,14 +28,15 @@ export class GeolocationService implements IGeolocationService {
   getState(): Promise<GeolocationState> {
     return window.navigator.permissions.query({name: 'geolocation'})
     .then(status => {
-      Console.info('geolocation permission', status);
+      Console.info('geolocation permission', status, status.state);
       if (status.state === 'granted') {
         return Promise.resolve(GeolocationState.ENABLED);
       }
       if (status.state === 'prompt') {
+        Console.info('geolocation permission must be prompt');
         return new Promise((resolve, error) => {
           const listener = () => {
-            Console.info('geolocation permission status changed', status);
+            Console.info('geolocation permission status changed', status, status.state);
             if (status.state === 'granted') {
               resolve(GeolocationState.ENABLED);
               status.removeEventListener('change', listener);

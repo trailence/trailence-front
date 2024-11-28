@@ -1,8 +1,9 @@
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
-import { Subscription, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
+import { Subscription, combineLatest, map, of, skip, switchMap } from 'rxjs';
 import { Arrays } from 'src/app/utils/arrays';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 export class MapTrackPath {
 
@@ -30,7 +31,7 @@ export class MapTrackPath {
           map(points => Arrays.flatMap(points, pts => pts.map(pt => pt.pos$))),
           switchMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
           skip(1),
-          debounceTime(100),
+          debounceTimeExtended(100, 100, 100),
         ).subscribe(() => {
           if (this._path && this._map) {
             this._path.setLatLngs(this.buildPolyLines(this._track as Track));

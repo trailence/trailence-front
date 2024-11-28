@@ -189,7 +189,7 @@ export class TrackMetadataComponent extends AbstractComponent {
           state
         ])));
       }),
-      debounceTimeExtended(0, 10),
+      debounceTimeExtended(0, 10, 100),
     ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, state]) => {
       const force = state !== previousState;
       TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force, domController);

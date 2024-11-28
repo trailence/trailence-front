@@ -10,22 +10,27 @@ import { TagsPopup } from './tags-popup';
 
 export class TrailComponent extends Component {
 
+  private _hasTabs: boolean | undefined = undefined;
+  private _tabsSegment: IonicSegment | undefined = undefined;
+
   public async hasTabs() {
-    return await this.getElement().$('div.top-container div.tabs-container ion-segment').isExisting();
+    if (this._hasTabs === undefined)
+      this._hasTabs = await this.getElement().$('div.top-container div.tabs-container ion-segment').isExisting();
+    return this._hasTabs;
   }
 
   public async openTab(tab: string) {
-    const segment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
-    await segment.setSelected(tab);
+    if (this._tabsSegment === undefined)
+      this._tabsSegment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
+    await this._tabsSegment.setSelected(tab);
   }
 
   public async openDetails() {
-    const details = this.getElement().$('div.top-container div.trail-details');
-    if (!await details.isExisting()) {
+    if (await this.hasTabs()) {
       await this.openTab('details');
-      await browser.waitUntil(() => this.getElement().$('div.top-container div.trail-details').isDisplayed());
     }
-    return this.getElement().$('div.top-container div.trail-details');
+    await browser.waitUntil(() => this.getElement().$('div.top-container>div.trail-details').isDisplayed());
+    return this.getElement().$('div.top-container>div.trail-details');
   }
 
   public async getMetadataItems() {
@@ -103,13 +108,13 @@ export class TrailComponent extends Component {
     // mobile mode
     if (await this.hasTabs()) {
       await this.openTab('photos');
-      const element = this.getElement().$('div.trail-photos-tab app-photos-popup');
+      const element = this.getElement().$('div.top-container>div.trail-photos-tab>app-photos-popup');
       await element.waitForDisplayed();
       return new PhotosPopup(element, false);
     }
 
     // desktop mode
-    const section = this.getElement().$('div.top-container div.trail-details div.trail-photos');
+    const section = this.getElement().$('div.top-container>div.trail-details>div.trail-photos');
     const noPhoto = section.$('.no-photo');
     const editButton = section.$('ion-button.edit');
     await browser.waitUntil(async () => {
@@ -178,9 +183,42 @@ export class TrailComponent extends Component {
       // mobile mode
       await this.openTab('map');
     }
-    const element = this.getElement().$('app-map');
+    const element = this.getElement().$('div.top-container>div.map-container>app-map');
     await element.waitForDisplayed();
     return new MapComponent(element);
+  }
+
+  public async startTrail() {
+    const details = await (await this.openDetails()).getElement();
+    const button = details.$('app-icon-label-button[icon=play-circle]');
+    await button.waitForExist();
+    await button.scrollIntoView({block: 'center', inline: 'center'});
+    await button.click();
+    return await this.openMap();
+  }
+
+  public async pauseRecordingFromMap() {
+    await this.openMap();
+    const button = new IonicButton(this.getElement().$('div.map-container div.map-top-buttons ion-button[color=medium]'));
+    await button.click();
+    const alert = await App.waitAlert();
+    await alert.clickButtonWithRole('confirm');
+  }
+
+  public async resumeRecordingFromMap() {
+    await this.openMap();
+    const button = new IonicButton(this.getElement().$('div.map-container div.map-top-buttons ion-button'));
+    await button.click();
+    const alert = await App.waitAlert();
+    await alert.clickButtonWithRole('confirm');
+  }
+
+  public async stopRecordingFromMap() {
+    await this.openMap();
+    const button = new IonicButton(this.getElement().$('div.map-container div.map-top-buttons ion-button[color=danger]'));
+    await button.click();
+    const alert = await App.waitAlert();
+    await alert.clickButtonWithRole('confirm');
   }
 
 }

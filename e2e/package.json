@@ -11,5 +11,8 @@
   },
   "scripts": {
     "wdio": "wdio run ./wdio.conf.ts"
+  },
+  "dependencies": {
+    "jsdom": "^25.0.1"
   }
 }

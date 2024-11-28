@@ -114,7 +114,8 @@ if (browser === 'chrome') {
       "browser.download.dir": downloadPath,
       "browser.download.folderList": 2,
       "browser.download.manager.showWhenStarting": false,
-      "browser.helperApps.neverAsk.saveToDisk": "*/*"
+      "browser.helperApps.neverAsk.saveToDisk": "*/*",
+      "permissions.default.geo": 1,
     }
   };
   if (isCi) {

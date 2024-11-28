@@ -333,10 +333,12 @@ export class TraceRecorderService {
   }
 
   private takeRawPoint(previous: Point, pos: PointDto): boolean {
+    return this.takeImprovedPoint(previous, pos);
+    /*
     const prefs = this.preferencesService.preferences;
     if (prefs.traceMinMeters > 0 && previous.distanceTo({lat: pos.l!, lng: pos.n!}) < Math.min(prefs.traceMinMeters / 2, 1)) return false;
     if (prefs.traceMinMillis > 0 && pos.t && previous.time && pos.t - previous.time < Math.min(prefs.traceMinMillis / 2, 2000)) return false;
-    return true;
+    return true;*/
   }
 
   private takeImprovedPoint(previous: Point, pos: PointDto): boolean {

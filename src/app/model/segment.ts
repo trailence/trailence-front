@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
 import { Point, PointDtoMapper } from './point';
 import { Arrays } from '../utils/arrays';
 import { Subscriptions } from '../utils/rxjs/subscription-utils';
@@ -19,10 +19,17 @@ export class Segment {
   public get relativePoints(): SegmentPoint[] { return this._segmentPoints; }
 
   public get changes$(): Observable<any> {
+    let first = true;
     return this.points$.pipe(
-      switchMap(points => points.length === 0 ? of([]) : combineLatest(points.map(point => concat(of(true), point.changes$)))),
-      skip(1),
-    )
+      switchMap(points => {
+        if (first) {
+          first = false;
+          if (points.length === 0) return EMPTY;
+          return combineLatest(points.map(point => concat(of(true), point.changes$))).pipe(skip(1));
+        }
+        return points.length === 0 ? of([]) : combineLatest(points.map(point => concat(of(true), point.changes$)))
+      }),
+    );
   }
 
   public append(point: Point): this {

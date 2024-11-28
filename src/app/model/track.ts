@@ -13,6 +13,7 @@ import { PreferencesService } from '../services/preferences/preferences.service'
 import { estimateTimeForTrack } from '../services/track-edition/time/time-estimation';
 import { ComputedPreferences } from '../services/preferences/preferences';
 import { TrackUtils } from '../utils/track-utils';
+import { debounceTimeExtended } from '../utils/rxjs/debounce-time-extended';
 
 export class Track extends Owned {
 
@@ -340,8 +341,9 @@ export class TrackComputedMetadata {
     preferencesService: PreferencesService,
   ) {
     const changes$ = combineLatest([preferencesService.preferences$, track.segments$.pipe(
-      switchMap(segments => segments.length === 0 ? of([]) : concat(of([]), combineLatest(segments.map(s => s.changes$)))),
-      debounceTime(250),
+      switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(s => concat(of(true), s.changes$)))),
+      skip(1),
+      debounceTimeExtended(250, 250, 100),
     )]);
     this._breaksDuration$ = new BehaviorSubjectOnDemand<number>(
       () => calculateLongBreaksFromTrack(track, preferencesService.preferences),
