@@ -17,9 +17,9 @@ export class NetworkService implements INetworkService {
   constructor(private readonly http: HttpClientService) {
     this._server$ = new BehaviorSubject<boolean>(false);
     this._internet$ = new BehaviorSubject<boolean>(false);
-    this.updateStatus();
-    window.addEventListener('online', () => this.updateStatus());
-    window.addEventListener('offline', () => this.updateStatus());
+    this.updateStatus(true);
+    window.addEventListener('online', () => this.updateStatus(false));
+    window.addEventListener('offline', () => this.updateStatus(false));
     this._server$.subscribe(connected => Console.info("Server reachable = " + connected));
     this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
   }
@@ -32,7 +32,7 @@ export class NetworkService implements INetworkService {
 
   private count = 0;
 
-  private updateStatus(): void {
+  private updateStatus(firstCall: boolean): void {
     const newStatus = window.navigator.onLine;
     Console.info('Network changed (' + newStatus + '), ping server');
     if (!newStatus) {
@@ -42,18 +42,19 @@ export class NetworkService implements INetworkService {
     } else if (!this._internet$.value) {
       setTimeout(() => {
         if (window.navigator.onLine && !this._internet$.value) this._internet$.next(true);
-      }, 1000);
+      }, firstCall ? 100 : 1000);
     }
     this.checkServerConnection(++this.count, 1);
   }
 
   private checkServerConnection(count: number, trial: number): void {
+    const start = Date.now();
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
       if (count !== this.count) return;
       let status: boolean;
       if (response.status === 200) {
-        Console.info('Server ping response received: connected');
+        Console.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)');
         status = true;
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');

@@ -53,12 +53,12 @@
     </ng-container>
   </ion-card-content>
 </ion-card>
-<div class="languages" *ngIf="!inprogress">
-  <div (click)="preferencesService.setLanguage('en')" *ngIf="preferencesService.preferences.lang !== 'en'">
+<div class="languages" *ngIf="!inprogress && currentLanguage">
+  <div (click)="setLanguage('en')" *ngIf="currentLanguage !== 'en'">
     <img src="/assets/i18n/en.1.png"/>
     English
   </div>
-  <div (click)="preferencesService.setLanguage('fr')" *ngIf="preferencesService.preferences.lang !== 'fr'">
+  <div (click)="setLanguage('fr')" *ngIf="currentLanguage !== 'fr'">
     <img src="/assets/i18n/fr.1.png"/>
     Français
   </div>

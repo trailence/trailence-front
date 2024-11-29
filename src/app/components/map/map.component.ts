@@ -87,7 +87,7 @@ export class MapComponent extends AbstractComponent {
       true
     );
     this.whenVisible.subscribe(
-      combineLatest([this._mapState.center$, this._mapState.zoom$]),
+      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(debounceTime(250)),
       ([center, zoom]) => {
         this.browser.setHashes(
           'zoom', '' + zoom,
@@ -100,7 +100,15 @@ export class MapComponent extends AbstractComponent {
         }
       },
       true
-    )
+    );
+    this.whenVisible.subscribe(this.browser.hash$.pipe(debounceTime(500)), h => {
+      if (h.has('zoom') && h.has('center')) {
+        const currentZoom = '' + this._mapState.zoom;
+        const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
+        if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
+          this.updateStateFromHash(h.get('zoom')!, h.get('center')!);
+      }
+    }, true);
   }
 
   private _initMapTimeout: any;
@@ -178,22 +186,30 @@ export class MapComponent extends AbstractComponent {
 
   private loadState(): void {
     const hash = this.browser.decodeHash(window.location.hash);
-    if (hash.has('zoom') && hash.has('center')) {
-      try {
-        const zoom = parseInt(hash.get('zoom')!);
-        const center = hash.get('center')!.split(',');
-        const lat = parseFloat(center[0]);
-        const lng = parseFloat(center[1]);
-        if (!isNaN(zoom) && zoom >= 0 && zoom <= 19 && !isNaN(lat) && !isNaN(lng)) {
-          this._mapState.zoom = zoom;
-          this._mapState.center = {lat, lng};
-          return;
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
+    if (hash.has('zoom') && hash.has('center') && this.updateStateFromHash(hash.get('zoom')!, hash.get('center')!)) return;
     this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
+  }
+
+  private updateStateFromHash(zoom: string, center: string): boolean {
+    try {
+      const zoomValue = parseInt(zoom);
+      const coords = center.split(',');
+      const lat = parseFloat(coords[0]);
+      const lng = parseFloat(coords[1]);
+      if (!isNaN(zoomValue) && zoomValue >= 0 && zoomValue <= 19 && !isNaN(lat) && !isNaN(lng)) {
+        if (this._mapState.zoom !== zoomValue || this._mapState.center.lat !== lat || this._mapState.center.lng !== lng) {
+          this._mapState.zoom = zoomValue;
+          this._mapState.center = {lat, lng};
+          if (this._map$.value) {
+            this._map$.value.setView(this._mapState.center, zoomValue);
+          }
+        }
+        return true;
+      }
+    } catch (e) {
+      // ignore
+    }
+    return false;
   }
 
   private mapChanged(map: L.Map): void {

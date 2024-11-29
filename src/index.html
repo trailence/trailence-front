@@ -127,5 +127,10 @@
   </div>
   <app-root id="root" style="display: none;"></app-root>
 </body>
+<script>
+  var d = new Date();
+  window._trailenceStart = d.getTime();
+  console.log('starting at ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ':' + d.getMilliseconds());
+</script>
 
 </html>

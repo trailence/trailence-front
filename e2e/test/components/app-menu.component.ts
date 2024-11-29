@@ -7,6 +7,7 @@ import { Component } from './component';
 import { HeaderComponent } from './header.component';
 import { IonicButton } from './ionic/ion-button';
 import { TestUtils } from '../utils/test-utils';
+import { TrailPlannerPage } from '../app/pages/trail-planner-page';
 
 export class AppMenu extends Component {
 
@@ -86,6 +87,13 @@ export class AppMenu extends Component {
       shares.push([name, email]);
     }
     return shares;
+  }
+
+  public async openTrailPlanner() {
+    await this.getElement().$('ion-icon[name=planner]').parentElement().click();
+    const page = new TrailPlannerPage();
+    await page.waitDisplayed();
+    return page;
   }
 
   public async close() {

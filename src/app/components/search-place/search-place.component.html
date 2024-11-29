@@ -1,14 +1,17 @@
 <ion-searchbar #searchBar
   id="{{id}}"
-  placeholder="{{i18n.texts.search_place_placeholder}}"
+  placeholder="{{i18n.texts.search_place.placeholder}}"
   show-clear-button="always"
   (ionChange)="inputChanged($event)"
+  (ionFocus)="focus = true"
+  (ionBlur)="focus = false"
 >
 </ion-searchbar>
+<div class="tip" *ngIf="!searching && !searched && focus">{{i18n.texts.search_place.tap_enter}}</div>
 <ion-popover #dropdown size="cover" side="bottom" reference="trigger" trigger="{{id}}" triggerAction="context-menu" [showBackdrop]="false">
   <ng-template>
     <ion-spinner *ngIf="searching" name="dots"></ion-spinner>
-    <ion-list *ngIf="!searching">
+    <ion-list *ngIf="!searching && places.length > 0">
       <ion-item *ngFor="let place of places" button (click)="placeSelected.emit(place); dropdown.dismiss()">
         <ion-label>
           <h1>{{place.names[0]}}</h1>
@@ -16,5 +19,6 @@
         </ion-label>
       </ion-item>
     </ion-list>
+    <ion-label color="medium" style="font-style: italic;" *ngIf="!searching && places.length === 0">{{i18n.texts.search_place.no_result}}</ion-label>
   </ng-template>
 </ion-popover>

@@ -8,6 +8,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { combineLatest, filter, first, Observable, tap } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
+import { Console } from './utils/console';
 
 @Component({
     selector: 'app-root',
@@ -61,6 +62,7 @@ export class AppComponent {
           filter(a => !!a),
           first(),
         ).subscribe(() => this.loadServices().then(() => {}));
+        setTimeout(() => this.loadServices(), 1000);
       } else {
         this.loadServices().then(allDatabasesLoaded => {
           combineLatest([auth.auth$, allDatabasesLoaded()]).subscribe(([a, l]) => {
@@ -101,6 +103,7 @@ export class AppComponent {
       setTimeout(() => this.ready(startup), 10);
       return;
     }
+    Console.info('Starting app: ready in ' + (Date.now() - (window as any)._trailenceStart) + 'ms.');
     startup.style.opacity = '0';
     setTimeout(() => startup.parentElement?.removeChild(startup), 500);
     this.loadMenuContent = true;

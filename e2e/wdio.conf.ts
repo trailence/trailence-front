@@ -11,6 +11,7 @@ dynamicConfig.baseUrl = "http://localhost:8100";
 dynamicConfig.trailence = {mode: 'desktop'};
 
 let specs = [ './test/specs/**/*.e2e.ts' ];
+let excludeSpecs: string[] = [];
 let browser = 'chrome';
 
 for (const arg of process.argv) {
@@ -169,8 +170,22 @@ if (browser === 'chrome') {
   throw new Error('Unknown browser: ' + browser);
 }
 
-console.log('Launching tests with browser ' + browser + ', mode ' + dynamicConfig.trailence['mode'] + ' and spec files:');
+switch (dynamicConfig.trailence['mode']) {
+  case 'desktop':
+    excludeSpecs.push('./test/specs/**/*.mobile.e2e.ts');
+    break;
+  case 'mobile':
+    excludeSpecs.push('./test/specs/**/*.desktop.e2e.ts');
+    break;
+}
+
+console.log('Launching tests with browser ' + browser + ', mode ' + dynamicConfig.trailence['mode']);
+console.log('Spec files included:');
 for (const spec of specs) {
+  console.log(' - ' + spec);
+}
+console.log('Excluding:');
+for (const spec of excludeSpecs) {
   console.log(' - ' + spec);
 }
 
@@ -200,9 +215,7 @@ export const config = Object.assign({}, {
     //
     specs: specs,
     // Patterns to exclude.
-    exclude: [
-        // 'path/to/excluded/files'
-    ],
+    exclude: excludeSpecs,
     //
     // ============
     // Capabilities

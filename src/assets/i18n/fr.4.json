@@ -528,7 +528,11 @@
     "yes": "Oui, supprimer",
     "no": "Annuler, garder"
   },
-  "search_place_placeholder": "Rechercher un lieu",
+  "search_place": {
+    "placeholder": "Rechercher un lieu",
+    "tap_enter": "Touche entrée ↵ pour lancer la recherche",
+    "no_result": "Aucun résultat"
+  },
   "loopType": {
     "ow": "Aller simple",
     "lp": "Boucle",

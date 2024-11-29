@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { MapState } from 'src/app/components/map/map-state';
@@ -108,6 +108,7 @@ export class TrailPlannerPage extends AbstractPage {
     public i18n: I18nService,
     collectionService: TrailCollectionService,
     private readonly geo: GeoService,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
     this.mapTracks$ = combineLatest([this.currentMapTrack$, this.possibleWaysFromLastAnchor$, this.possibleWaysFromCursor$, this.routesMapTracks$, this.trailsMapTracks$]).pipe(
@@ -228,6 +229,7 @@ export class TrailPlannerPage extends AbstractPage {
       t.color = ROUTE_MAPTRACK_HIGHLIGHTED_COLOR;
       t.bringToFront();
     });
+    this.changeDetector.detectChanges();
   }
 
   toggleShowRoutes(enabled: boolean): void {
@@ -263,6 +265,7 @@ export class TrailPlannerPage extends AbstractPage {
     if (hasForbidden)
       html += '<div style="display: flex; flex-direction: row; align-items: center; padding: 4px"><div style="height: 0; width: 25px; margin-right: 10px; border-bottom: 3px solid ' + WAY_MAPTRACK_FORBIDDEN_COLOR + '"></div><div>' + this.i18n.texts.pages.trailplanner.legend.forbidden + '</div></div>';
     legend.innerHTML = html;
+    this.changeDetector.detectChanges();
   }
 
   private anchorMapOverSubscription?: Subscription;
@@ -278,6 +281,7 @@ export class TrailPlannerPage extends AbstractPage {
         this.possibleWaysFromCursor$.next([]);
         this.possibleWaysFromLastAnchor$.next([]);
         this.map!.removeFromMap(this._addAnchor!.marker);
+        this.changeDetector.detectChanges();
         return;
       }
       this.setHighlightedWays([]);
@@ -302,6 +306,7 @@ export class TrailPlannerPage extends AbstractPage {
 
         this.setHighlightedWays(matchingMapTracks.filter(t => newPossibleWaysFromCursor.indexOf(t) < 0));
       }
+      this.changeDetector.detectChanges();
     });
     this.anchorMapClickSubscription = this.map!.mouseClickPoint.subscribe(refs => {
       if (this.mapState!.zoom < MIN_ZOOM) {
@@ -434,6 +439,7 @@ export class TrailPlannerPage extends AbstractPage {
     this.updateMapTracks(matching);
     this.updateCurrentMapTrack();
     this.saveToLocalStorage();
+    this.changeDetector.detectChanges();
   }
 
   private updateElevationGraph(): void {
@@ -471,6 +477,7 @@ export class TrailPlannerPage extends AbstractPage {
       const matching = this.getMatchingWays(this.anchors[this.anchors.length - 1].point);
       this.updateMapTracks(matching);
     }
+    this.changeDetector.detectChanges();
   }
 
   private updateCurrentMapTrack(): void {
@@ -601,6 +608,7 @@ export class TrailPlannerPage extends AbstractPage {
       }
       this.routesMapTracks$.next(tracks);
       this.setHighlightedRoutes(this.highlightedRoutes);
+      this.changeDetector.detectChanges();
     });
   }
 
@@ -724,6 +732,7 @@ export class TrailPlannerPage extends AbstractPage {
       this.trailsMapTracks$.next(list.map(t => new MapTrack(t.trail, t.track, TRAIL_MAPTRACK_DEFAULT_COLOR, 1, false, this.i18n)));
       const hl = previouslyHighlighted ? list.find(e => e.trail.owner === previouslyHighlighted.owner && e.trail.uuid === previouslyHighlighted.uuid) : undefined;
       if (hl) this.toggleHighlightTrail(hl.trail);
+      this.changeDetector.detectChanges();
     });
   }
 

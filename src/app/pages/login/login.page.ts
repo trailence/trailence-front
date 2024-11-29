@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar, IonIcon } from '@ionic/angular/standalone';
-import { combineLatest, filter, first } from 'rxjs';
+import { combineLatest, filter, first, Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
@@ -36,7 +36,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
         CommonModule,
     ]
 })
-export class LoginPage implements OnInit {
+export class LoginPage implements OnInit, OnDestroy {
 
   email = '';
   password = '';
@@ -48,8 +48,13 @@ export class LoginPage implements OnInit {
   connected = false;
   locked = false;
 
+  catpchaInitialized = false;
   captchaNeeded = false;
   captchaToken?: string;
+
+  destroyed = false;
+  preferencesSubscription?: Subscription;
+  currentLanguage?: string;
 
   private returnUrl = '';
 
@@ -60,12 +65,7 @@ export class LoginPage implements OnInit {
     route: ActivatedRoute,
     private readonly router: Router,
     private readonly changeDetector: ChangeDetectorRef,
-    private readonly captchaService: CaptchaService,
-    private readonly modalController: ModalController,
-    public preferencesService: PreferencesService,
-    private readonly database: DatabaseService,
-    private readonly collectionService: TrailCollectionService,
-    private readonly navController: NavController,
+    private readonly injector: Injector,
   ) {
     route.queryParamMap.subscribe(params => {
       this.returnUrl = params.get('returnUrl') ?? '';
@@ -80,6 +80,15 @@ export class LoginPage implements OnInit {
   ngOnInit(): void {
     const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
     title.innerText = 'Sign in - Trailence';
+    setTimeout(() => {
+      if (this.destroyed) return;
+      this.preferencesSubscription = this.injector.get(PreferencesService).preferences$.subscribe(p => this.currentLanguage = p.lang);
+    }, 100);
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.preferencesSubscription?.unsubscribe();
   }
 
   onSubmit(): void {
@@ -91,7 +100,10 @@ export class LoginPage implements OnInit {
   }
 
   signin(): void {
-    this.captchaService.unload('captcha-login');
+    if (this.catpchaInitialized) {
+      this.injector.get(CaptchaService).unload('captcha-login');
+      this.catpchaInitialized = false;
+    }
     this.inprogress = true;
     this.error = false;
     this.incorrect = false;
@@ -106,8 +118,8 @@ export class LoginPage implements OnInit {
       next: () => {
         combineLatest([
           this.auth.auth$,
-          this.database.allLoaded(),
-          this.collectionService.getAll$().pipe(collection$items())
+          this.injector.get(DatabaseService).allLoaded(),
+          this.injector.get(TrailCollectionService).getAll$().pipe(collection$items())
         ]).pipe(
           filter(([a,l,c]) => {
             if (a) this.progressMessage = this.i18n.texts.pages.login.downloading_data;
@@ -122,7 +134,7 @@ export class LoginPage implements OnInit {
             ).subscribe(() => {
               this.inprogress = false;
             });
-            this.navController.navigateRoot(this.returnUrl);
+            this.injector.get(NavController).navigateRoot(this.returnUrl);
           } else {
             this.inprogress = false;
           }
@@ -133,7 +145,8 @@ export class LoginPage implements OnInit {
         if (error instanceof ApiError && error.httpCode === 403) {
           if (error.errorCode === 'captcha-needed') {
             this.captchaNeeded = true;
-            this.captchaService.displayOn('captcha-login', token => {
+            this.catpchaInitialized = true;
+            this.injector.get(CaptchaService).displayOn('captcha-login', token => {
               this.captchaToken = token;
               this.changeDetector.detectChanges();
             },
@@ -154,11 +167,19 @@ export class LoginPage implements OnInit {
         this.inprogress = false;
       }
     });
+    // loading services in parallel
+    this.injector.get(DatabaseService);
+    this.injector.get(TrailCollectionService);
+    this.injector.get(NavController);
+  }
+
+  setLanguage(lang: string): void {
+    this.injector.get(PreferencesService).setLanguage(lang);
   }
 
   async resetPassword() {
     const module = await import('./reset-password/reset-password.component');
-    const modal = await this.modalController.create({
+    const modal = await this.injector.get(ModalController).create({
       component: module.ResetPasswordComponent,
       componentProps: {
         email: this.email

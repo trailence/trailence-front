@@ -256,9 +256,10 @@ export class I18nService {
     if (this._textsLoading === lang) return;
     this._textsLoading = lang;
     if (this._textsLoaded$.value === lang) return;
+    Console.info('Start loading texts ', lang);
     this.assets.loadJson(environment.assetsUrl + '/i18n/' + lang + '.' + TEXTS_VERSION + '.json').subscribe(data => {
-      this._texts$.next(data);
       Console.info('i18n texts loaded for language ', lang);
+      this._texts$.next(data);
       document.documentElement.lang = lang;
       this._textsLoaded$.next(lang);
       this._stateChanged$.next(this._stateChanged$.value + 1);

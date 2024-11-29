@@ -23,6 +23,8 @@ export class SearchPlaceComponent {
   id = IdGenerator.generateId();
   places: Place[] = [];
   searching = false;
+  searched = false;
+  focus = false;
 
   private readonly name$ = new BehaviorSubject<IonSearchbarCustomEvent<SearchbarChangeEventDetail> | undefined>(undefined);
 
@@ -54,12 +56,14 @@ export class SearchPlaceComponent {
 
   private resetPlaces(): void {
     this.searching = false;
+    this.searched = false;
     this.places = [];
     this.dropdown.dismiss();
   }
 
   private startSearching(event: IonSearchbarCustomEvent<SearchbarChangeEventDetail>): void {
     this.searching = true;
+    this.searched = true;
     this.dropdown.present(event);
   }
 

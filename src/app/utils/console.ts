@@ -26,13 +26,14 @@ export class Console {
   }
 
   public static log(level: ConsoleLevel, ...args: any[]): void {
+
     switch (level) {
       case ConsoleLevel.DEBUG: console.debug(Console.header(level), ...args); break;
       case ConsoleLevel.WARN: console.warn(Console.header(level), ...args); break;
       case ConsoleLevel.ERROR: console.error(Console.header(level), ...args); break;
       case ConsoleLevel.INFO:
       default:
-          console.info(Console.header(level), ...args); break;
+        console.info(Console.header(level), ...args); break;
     }
     if (navigator.webdriver) {
       const w = window as any;

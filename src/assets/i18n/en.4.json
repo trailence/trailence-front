@@ -528,7 +528,11 @@
     "yes": "Yes, delete",
     "no": "Cancel, keep"
   },
-  "search_place_placeholder": "Search a place",
+  "search_place": {
+    "placeholder": "Search a place",
+    "tap_enter": "Enter key ↵ to start the search",
+    "no_result": "No result"
+  },
   "loopType": {
     "ow": "Point to point",
     "lp": "Loop",

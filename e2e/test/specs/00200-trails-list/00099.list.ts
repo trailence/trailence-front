@@ -79,7 +79,7 @@ export const EXPECTED_TRAILS: ExpectedTrail[] = [
 ];
 
 export async function expectListContains(list: TrailsList, expectedTrails: ExpectedTrail[]) {
-  try { await browser.waitUntil(() => list.items.length.then(nb => nb > 0)); } catch (e) {}
+  try { await browser.waitUntil(() => list.items.length.then(nb => nb === expectedTrails.length)); } catch (e) {}
   expect(await list.items.length).toBe(expectedTrails.length);
   for (const expected of expectedTrails) {
     const trail = await list.findItemByTrailName(expected.name);
