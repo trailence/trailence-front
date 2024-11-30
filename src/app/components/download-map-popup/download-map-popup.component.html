@@ -26,6 +26,7 @@
       [step]="1"
       [value]="preferencesService.preferences.offlineMapMaxZoom"
       class="always-show-knob-pin"
+      name="max-zoom"
     >
     </ion-range>
     <div class="page-section-sub-title">{{i18n.texts.offline_map.padding}}</div>
@@ -42,6 +43,7 @@
       [step]="25"
       [value]="tracks && tracks.length > 0 ? 150 : 100"
       class="always-show-knob-pin"
+      name="padding"
     >
     </ion-range>
   </div>

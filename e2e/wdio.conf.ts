@@ -66,6 +66,8 @@ if (browser === 'chrome') {
     args: [
       '--lang=en_US',
       '--disable-ipc-flooding-protection',
+      '--disk-cache-size=1',
+      '--aggressive-cache-discard',
     ],
     prefs: {
       "download.default_directory": downloadPath,
@@ -119,11 +121,13 @@ if (browser === 'chrome') {
       "permissions.default.geo": 1,
     }
   };
+  caps['moz:debuggerAddress'] = true;
   if (isCi) {
     caps['moz:firefoxOptions'].args.push(
       '-headless'
     );
   }
+  excludeSpecs.push('./test/specs/**/*.no-firefox.e2e.ts');
 } else if (browser === 'edge') {
   caps.browserName = 'msedge';
   caps['ms:edgeOptions'] = {

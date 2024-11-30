@@ -1,4 +1,5 @@
 import { TrailsList } from '../../components/trails-list.component';
+import { TestUtils } from '../../utils/test-utils';
 
 export interface ExpectedTrail {
   importIndex: number;

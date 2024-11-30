@@ -6,7 +6,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
 export function handleMapOffline(name: string, tiles: L.TileLayer, network: NetworkService, offlineMap: OfflineMapService): L.TileLayer {
   const originalCreateTile = (tiles as any)['createTile'];
   (tiles as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {
-    const loadOffline = (img: any) => {
+    const loadOffline = (img: any, trial: number) => {
       const originalSrc = img.src;
       img.src = '';
       img._offlineLoaded = true;
@@ -24,47 +24,63 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
               img.onload = undefined;
               img.src = '';
               cancelFallback(img);
+              img.classList.add('map-tile-loading');
+              img.classList.remove('map-tile-error');
               setTimeout(() => {
                 img.onerror = function() {
-                  loadOffline(img);
+                  if (!network.internet)
+                    loadOffline(img, 1);
+                  else if (trial < 3)
+                    loadOffline(img, trial + 1);
+                  else
+                    done(new Error(), img);
                 };
                 img.onload = function() {
+                  img.classList.remove('map-tile-loading');
                   done(undefined, img);
                 };
                 img.src = originalSrc;
               }, 0);
             });
-            fallbackTile(img, coords, name, tiles, network, offlineMap, done);
+            fallbackTile(img, coords, tiles, done);
           } else {
             binary.toBase64().then(url => {
               img.src = url;
               img._loaded = true;
+              img.classList.add('map-tile-offline');
+              img.classList.remove('map-tile-loading');
               done(undefined, img);
             });
           }
         },
         error: e => {
+          img.classList.add('map-tile-error');
+          img.classList.remove('map-tile-loading');
           done(e, img);
         },
       });
     };
     const img = originalCreateTile.call(tiles, coords, function(error: Error | undefined, tile: HTMLElement | undefined) {
       if (!error) {
+        tile?.classList.remove('map-tile-loading');
         done(undefined, tile);
         return;
       }
-      if (!img._offlineLoaded) {
-        loadOffline(img || tile);
+      if (!img?._offlineLoaded) {
+        loadOffline(img || tile, 1);
       }
     });
+    img.classList.add('map-tile-loading');
     img.crossOrigin = 'anonymous';
     return img;
   }
   return tiles;
 }
 
-function fallbackTile(img: any, coords: L.Coords, name: string, tiles: L.TileLayer, network: NetworkService, offlineMap: OfflineMapService, done: L.DoneCallback) {
+function fallbackTile(img: any, coords: L.Coords, tiles: L.TileLayer, done: L.DoneCallback) {
   if (coords.z === 0) {
+    img.classList.remove('map-tile-loading');
+    img.classList.add('map-tile-error');
     done(new Error(), img);
     return;
   }
@@ -72,6 +88,8 @@ function fallbackTile(img: any, coords: L.Coords, name: string, tiles: L.TileLay
   newCoords.z = coords.z - 1;
   (tiles as any)['createTile'](newCoords, function(error: Error | undefined, tile: HTMLElement | undefined) {
     if (error) {
+      img.classList.remove('map-tile-loading');
+      img.classList.add('map-tile-error');
       done(error, tile);
       return;
     }
@@ -98,17 +116,22 @@ function fallbackTile(img: any, coords: L.Coords, name: string, tiles: L.TileLay
     img.fallback = true;
     img._tileCoords = tileCoords;
     img._scale = scale;
+    img.classList.remove('map-tile-loading');
+    img.classList.add('map-tile-fallback', 'map-tile-fallback-' + scale);
     done(undefined, img);
   });
 }
 
 function cancelFallback(img: any) {
   if (img.fallback) {
+    img.classList.remove('map-tile-fallback');
+    img.classList.remove('map-tile-fallback-' + img._scale);
     img.style.width = '';
     img.style.height = '';
     img.style.marginTop = '';
     img.style.marginLeft = '';
     img.style.clip = '';
     img.fallback = false;
+    img.classList.remove('map-tile-fallback');
   }
 }

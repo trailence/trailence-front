@@ -12,7 +12,7 @@ export class TrailOverview extends Component {
   }
 
   public async getTags() {
-    const row = this.getElement().$('div.trail-tags-row');
+    const row = this.getElement(true).$('div.trail-tags-row');
     const elements = row.$$('div.tag');
     const tags = [];
     for (const element of await elements.getElements()) {

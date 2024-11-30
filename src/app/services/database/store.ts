@@ -114,8 +114,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     this.ngZone.runOutsideAngular(() => {
       this._db = db;
       this._locks = new SynchronizationLocks();
-      from(db.table<DB_ITEM>(this.tableName).toArray()).subscribe(
-        items => {
+      from(db.table<DB_ITEM>(this.tableName).toArray()).subscribe({
+        next: items => {
           if (this._db !== db) return;
           const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
           items.forEach(dbItem => {
@@ -130,8 +130,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           this._store.next(newStore);
           this.beforeEmittingStoreLoaded();
           this._storeLoaded$.next(true);
+        },
+        error: e => {
+          Console.error('Error loading store ' + this.tableName, e);
         }
-      );
+      });
     });
   }
 

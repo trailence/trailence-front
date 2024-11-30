@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, combineLatest, debounceTime, filter, map, of, switchMap, tap, timeout } from 'rxjs';
 import { StoreSyncStatus } from './store';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
@@ -184,13 +184,13 @@ export class DatabaseService {
       registered.syncTimeout = undefined;
       store.doSync();
     });
-    store.status$.pipe(
-      map(s => !!(s?.inProgress)),
-      debounceTime(60000),
-      filter(progress => progress)
-    ).subscribe(() => {
+    // monitoring
+    store.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {
       Console.warn('Store ' + store.name + ' is in progress since more than 1 minute !');
     });
+    this.db$.pipe(switchMap(db => !db ? of(true) : store.loaded$), filter(l => l), timeout({first: 30000})).subscribe({error: e => {
+      Console.warn('Store ' + store.name + ' is still not loaded after 30 seconds !', e);
+    }});
   }
 
   private updateFromServerInterval: any = undefined;

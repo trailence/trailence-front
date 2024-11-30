@@ -1,6 +1,6 @@
 <div [ngClass]="{'popup': popup}">
 <ion-radio-group (ionChange)="select($event.detail.value, true, true)" [value]="selection.length > 0 ? selection[0] : undefined">
-<div class="layer" *ngFor="let layer of layers" [ngClass]="{'as-button': buttons, 'selected': selection.indexOf(layer.layer.name) >= 0}" (click)="layerClick(layer)">
+<div class="layer layer-{{layer.layer.name}}" *ngFor="let layer of layers" [ngClass]="{'as-button': buttons, 'selected': selection.indexOf(layer.layer.name) >= 0}" (click)="layerClick(layer)">
   <div class="header">
     <ion-radio *ngIf="!multiple" [value]="layer.layer.name"></ion-radio>
     <ion-checkbox *ngIf="multiple" [checked]="selection.indexOf(layer.layer.name) >= 0" (click)="$event.stopPropagation()" (ionChange)="select(layer.layer.name, $event.detail.checked, false); $event.stopPropagation()"></ion-checkbox>

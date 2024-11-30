@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, skip, switchMap } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -87,7 +87,7 @@ export class MapComponent extends AbstractComponent {
       true
     );
     this.whenVisible.subscribe(
-      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(debounceTime(250)),
+      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(debounceTime(10)),
       ([center, zoom]) => {
         this.browser.setHashes(
           'zoom', '' + zoom,
@@ -101,7 +101,11 @@ export class MapComponent extends AbstractComponent {
       },
       true
     );
-    this.whenVisible.subscribe(this.browser.hash$.pipe(debounceTime(500)), h => {
+    this.whenVisible.subscribe(
+      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(
+        switchMap(() => this.browser.hash$),
+        debounceTime(500),
+      ), h => {
       if (h.has('zoom') && h.has('center')) {
         const currentZoom = '' + this._mapState.zoom;
         const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;

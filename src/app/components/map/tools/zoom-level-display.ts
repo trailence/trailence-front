@@ -11,6 +11,7 @@ export class ZoomLevelDisplayTool extends L.Control {
     const text1 = document.createElement('SPAN');
     const text2 = document.createElement('SPAN');
     text1.innerText = 'Zoom: ';
+    text2.className = 'zoom-level';
     text2.innerText = map.getZoom().toLocaleString('en', {maximumFractionDigits: 1});
     span.appendChild(text1);
     span.appendChild(text2);
