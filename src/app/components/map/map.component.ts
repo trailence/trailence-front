@@ -23,6 +23,7 @@ import { Trail } from 'src/app/model/trail';
 import { MapBubble } from './bubble/map-bubble';
 import { MapBubblesTool } from './tools/bubbles-tool';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { Console } from 'src/app/utils/console';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -87,8 +88,9 @@ export class MapComponent extends AbstractComponent {
       true
     );
     this.whenVisible.subscribe(
-      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(debounceTime(10)),
+      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(debounceTime(1)),
       ([center, zoom]) => {
+        Console.info('Update hash from map: ' + zoom + ',' + center.lat + ',' + center.lng);
         this.browser.setHashes(
           'zoom', '' + zoom,
           'center', '' + center.lat + ',' + center.lng,
@@ -103,10 +105,10 @@ export class MapComponent extends AbstractComponent {
     );
     this.whenVisible.subscribe(
       combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(
-        switchMap(() => this.browser.hash$),
+        switchMap(([c,z]) => this.browser.hash$.pipe(map(h => ([c,z,h] as [L.LatLngLiteral, number, Map<string,string>])))),
         debounceTime(500),
-      ), h => {
-      if (h.has('zoom') && h.has('center')) {
+      ), ([c,z,h]) => {
+      if (h.has('zoom') && h.has('center') && c.lat === this._mapState.center.lat && c.lng === this._mapState.center.lng && z === this._mapState.zoom) {
         const currentZoom = '' + this._mapState.zoom;
         const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
         if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
@@ -202,6 +204,7 @@ export class MapComponent extends AbstractComponent {
       const lng = parseFloat(coords[1]);
       if (!isNaN(zoomValue) && zoomValue >= 0 && zoomValue <= 19 && !isNaN(lat) && !isNaN(lng)) {
         if (this._mapState.zoom !== zoomValue || this._mapState.center.lat !== lat || this._mapState.center.lng !== lng) {
+          Console.info('Update map from hash: zoom from ' + this._mapState.zoom + ' to ' + zoomValue + ' and center from ' + this._mapState.center.lat + ',' + this._mapState.center.lng + ' to ' + lat + ',' + lng);
           this._mapState.zoom = zoomValue;
           this._mapState.center = {lat, lng};
           if (this._map$.value) {
@@ -547,6 +550,7 @@ export class MapComponent extends AbstractComponent {
         this.mouseOver.emit(e.latlng);
       }
     });
+    map.on('zoomanim', e => this._mapState.zoom = e.zoom);
 
     new MapFitBoundsTool({position: 'topleft'}).addTo(map)
     map.on('fitBounds', () => this.fitMapBounds(map));

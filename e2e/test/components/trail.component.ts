@@ -1,5 +1,7 @@
 import { App } from '../app/app';
 import { Component } from './component';
+import { EditTools } from './edit-tools.component';
+import { ElevationGraph } from './elevation-graph.component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicInput } from './ionic/ion-input';
 import { IonicSegment } from './ionic/ion-segment';
@@ -188,6 +190,21 @@ export class TrailComponent extends Component {
     return new MapComponent(element);
   }
 
+  public async hasEditTools() {
+    const details = await (await this.openDetails()).getElement();
+    return await details.$('app-icon-label-button[icon=tool]').isExisting();
+  }
+
+  public async openEditTools() {
+    const details = await (await this.openDetails()).getElement();
+    const button = details.$('app-icon-label-button[icon=tool]');
+    await button.waitForExist();
+    await button.scrollIntoView({block: 'center', inline: 'center'});
+    await button.click();
+    await browser.waitUntil(() => this.getElement().$('div.edit-tools-container app-edit-tools').isDisplayed());
+    return new EditTools(this.getElement().$('div.edit-tools-container app-edit-tools'));
+  }
+
   public async startTrail() {
     const details = await (await this.openDetails()).getElement();
     const button = details.$('app-icon-label-button[icon=play-circle]');
@@ -219,6 +236,34 @@ export class TrailComponent extends Component {
     await button.click();
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('confirm');
+  }
+
+  public async isBottomSheetOpen() {
+    const top = await this.getElement().$('div.top-container').getAttribute('class');
+    return top.indexOf('bottom-sheet-closed') < 0;
+  }
+
+  public async openBottomSheet() {
+    if (await this.isBottomSheetOpen()) return;
+    await this.getElement().$('div.bottom-sheet-button').click();
+    await browser.pause(1000); // wait for animation
+  }
+
+  public async openBottomSheetTab(icon: string) {
+    await this.getElement().$('div.bottom-sheet-tabs ion-icon[name=' + icon + ']').parentElement().click();
+  }
+
+  public async showElevationGraph() {
+    if (await this.hasTabs()) {
+      await this.openMap();
+      await this.openBottomSheet();
+      await this.openBottomSheetTab('elevation');
+    } else {
+      await this.openBottomSheet();
+    }
+    const graph = new ElevationGraph(this.getElement().$('div.elevation-container app-elevation-graph'));
+    await graph.waitDisplayed(true);
+    return graph;
   }
 
 }

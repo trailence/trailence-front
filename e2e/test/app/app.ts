@@ -26,7 +26,9 @@ export class App {
         let promise: Promise<any> = Promise.resolve();
         if (result.status === 'failed') {
           console.log('Test error: take a screen shot');
-          promise = promise.then(() => browser.saveScreenshot('wdio_error.png').then().catch(e => Promise.resolve()));
+          promise = promise
+            .then(() => browser.saveScreenshot('wdio_error.png').then().catch(e => Promise.resolve()))
+            .then(() => browser.getUrl()).catch(e => Promise.resolve('error')).then(url => console.log('Browser URL was: ' + url));
         }
         promise = promise.then(() => browser.execute(() => {
           const history = (window as any)['_consoleHistory'];

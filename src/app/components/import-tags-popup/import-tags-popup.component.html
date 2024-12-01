@@ -37,6 +37,6 @@
     <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, true)">{{i18n.texts.pages.import_tags_popup[type + '_and_create']}}</ion-button>
     <ion-button *ngIf="resolvedTags && !hasMissing && hasExisting" (click)="import(true, false)">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
     <ion-button *ngIf="resolvedTags && hasMissing && !hasExisting" (click)="import(false, true)">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
-    <ion-button *ngIf="resolvedTags" (click)="cancel()">{{i18n.texts.pages.import_tags_popup['ignore_all_' + type]}}</ion-button>
+    <ion-button *ngIf="resolvedTags" (click)="close('cancel')">{{i18n.texts.pages.import_tags_popup['ignore_all_' + type]}}</ion-button>
   </div>
 </ion-content>

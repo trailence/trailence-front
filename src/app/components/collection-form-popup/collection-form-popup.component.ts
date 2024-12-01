@@ -62,21 +62,21 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
         first()
       )
       .subscribe(col => {
-        this.modalController.dismiss(col, 'apply');
+        this.close(col);
         if (this.redirectOnApplied)
           this.router.navigateByUrl('/trails/collection/' + col.uuid);
       });
     } else if (this.name !== this.collection!.name) {
       this.collection!.name = this.name;
       this.collectionService.update(this.collection!);
-      this.modalController.dismiss(this.collection, 'apply');
+      this.close(this.collection!);
     } else {
-      this.modalController.dismiss(null, 'apply');
+      this.close(null);
     }
   }
 
-  cancel(): void {
-    this.modalController.dismiss(null, 'cancel');
+  close(collection: TrailCollection | null) {
+    this.modalController.dismiss(collection, collection ? 'apply' : 'cancel');
   }
 
 }

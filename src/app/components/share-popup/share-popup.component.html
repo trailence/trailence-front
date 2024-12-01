@@ -92,7 +92,7 @@
       <ion-button color="secondary" *ngIf="pageIndex > 0" (click)="previous()">{{i18n.texts.buttons.previous}}</ion-button>
       <ion-button color="success" *ngIf="pageIndex < pages.length - 1" (click)="next()" [disabled]="!canGoNext()">{{i18n.texts.buttons.next}}</ion-button>
       <ion-button color="success" *ngIf="pageIndex === pages.length - 1" (click)="save()" [disabled]="!canSave()">{{i18n.texts.buttons.save}}</ion-button>
-      <ion-button color="medium" (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
+      <ion-button color="medium" (click)="close('cancel')">{{i18n.texts.buttons.cancel}}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>

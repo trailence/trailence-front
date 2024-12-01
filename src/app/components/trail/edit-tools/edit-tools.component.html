@@ -13,7 +13,7 @@
 
   <div [ngStyle]="{'display': !inlineTool && !selectedPoint ? 'block': 'none'}">
     <ion-list>
-      <ion-item button (click)="backToOriginalTrack()">
+      <ion-item button (click)="backToOriginalTrack()" class="button-back-to-original-track">
         {{i18n.texts.pages.trail.edit_tools.back_to_original}}
       </ion-item>
       <ion-item *ngIf="modifiedTrack$.value" (click)="showOnlyModified(!hideBaseTrack$.value)">
@@ -55,10 +55,10 @@
 
     <ng-container *ngIf="(canJoinArrivalAndDeparture$() | async)">
       <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.join_departure_and_arrival.title}}</div>
-      <ion-item button (click)="joinArrivalToDeparture()">
+      <ion-item button (click)="joinArrivalToDeparture()" class="button-join-arrival-to-departure">
         {{i18n.texts.pages.trail.edit_tools.join_departure_and_arrival.join_arrival}}
       </ion-item>
-      <ion-item button (click)="joinDepartureToArrival()">
+      <ion-item button (click)="joinDepartureToArrival()" class="button-join-departure-to-arrival">
         {{i18n.texts.pages.trail.edit_tools.join_departure_and_arrival.join_departure}}
       </ion-item>
     </ng-container>

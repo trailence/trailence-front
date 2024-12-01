@@ -32,14 +32,14 @@ export class DownloadMapPopupComponent {
     private readonly offlineMap: OfflineMapService,
   ) { }
 
-  cancel(): void {
-    this.modalController.dismiss(null, 'cancel');
+  close(): Promise<boolean> {
+    return this.modalController.dismiss(null, 'cancel');
   }
 
   launchDownloadMap(selection: {layer: MapLayer, tiles: L.TileLayer}[]): void {
     this.preferencesService.setOfflineMapMaxZoom(this.downloadMapMaxZoom!.value as number)
     const padding = ((this.downloadMapPadding!.value as number) - 100) / 100;
-    this.modalController.dismiss(null, 'cancel')
+    this.close()
     .then(() => {
       setTimeout(() => {
         const allBounds: L.LatLngBounds[] = [];

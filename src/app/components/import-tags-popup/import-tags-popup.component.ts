@@ -76,7 +76,7 @@ export class ImportTagsPopupComponent  implements OnInit {
     const progress = this.progressService.create(this.i18n.texts.pages.import_tags_popup['title_' + this.type], 1);
     if (existing) this.importExisting(progress);
     if (missing) this.importMissing(progress);
-    this.modalController.dismiss(null, 'ok');
+    this.close('ok');
     progress.addWorkDone(1);
   }
 
@@ -135,8 +135,8 @@ export class ImportTagsPopupComponent  implements OnInit {
     }
   }
 
-  cancel(): void {
-    this.modalController.dismiss(null, 'cancel');
+  close(role: string): void {
+    this.modalController.dismiss(null, role);
   }
 
 }

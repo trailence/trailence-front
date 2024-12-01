@@ -105,11 +105,11 @@ export class SharePopupComponent implements OnInit {
 
   save(): void {
     this.injector.get(ShareService).create(this.elementType!, this.elements, this.name, this.to, this.toLanguage, this.includePhotos);
-    this.modalController.dismiss(null, 'ok');
+    this.close('ok');
   }
 
-  cancel(): void {
-    this.modalController.dismiss(null, 'cancel');
+  close(role: string): void {
+    this.modalController.dismiss(null, role);
   }
 
 }
