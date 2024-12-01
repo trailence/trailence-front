@@ -50,15 +50,23 @@ describe('Trail - Edit infos', () => {
 
   it('Edit tags', async () => {
     expect((await trailPage.trailComponent.getTags()).length).toBe(0);
-    const tagsPopup = await trailPage.trailComponent.openTags();
+    let tagsPopup = await trailPage.trailComponent.openTags();
     expect((await tagsPopup.getAllTags()).length).toBe(0);
     await tagsPopup.createTag('My Tag');
     await tagsPopup.createTag('Beautiful');
     await tagsPopup.selectTags(['My Tag', 'Beautiful']);
     await tagsPopup.apply();
-    const tags = await trailPage.trailComponent.getTags();
+    let tags = await trailPage.trailComponent.getTags();
     expect(tags.length).toBe(2);
     expect(tags.indexOf('My Tag') >= 0).toBeTrue();
+    expect(tags.indexOf('Beautiful') >= 0).toBeTrue();
+
+    tagsPopup = await trailPage.trailComponent.openTags();
+    await tagsPopup.selectTags(['Beautiful']);
+    await tagsPopup.apply();
+    await browser.waitUntil(() => trailPage.trailComponent.getTags().then(tags => tags.length === 1));
+    tags = await trailPage.trailComponent.getTags();
+    expect(tags.length).toBe(1);
     expect(tags.indexOf('Beautiful') >= 0).toBeTrue();
   });
 

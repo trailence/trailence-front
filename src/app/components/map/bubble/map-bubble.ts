@@ -20,7 +20,8 @@ export class MapBubble {
         icon: L.icon({
           iconUrl: MapBubble.createDataIcon(size, text),
           iconSize: [size, size],
-          iconAnchor: [size / 2, size / 2]
+          iconAnchor: [size / 2, size / 2],
+          className: 'bubble',
         })
       }
     );

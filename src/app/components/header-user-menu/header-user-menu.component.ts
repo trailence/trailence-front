@@ -74,13 +74,13 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   }
 
   logout(): void {
-    this.logoutModal?.present();
+    this.logoutModal!.present();
   }
 
   doLogout(withDelete: boolean): void {
     this.loggingOut = true;
     this.auth.logout(withDelete).subscribe(() => {
-      this.logoutModal?.dismiss();
+      this.logoutModal!.dismiss();
       this.loggingOut = false;
       this.router.navigateByUrl('/');
     });

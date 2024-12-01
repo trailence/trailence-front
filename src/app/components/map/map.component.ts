@@ -112,7 +112,7 @@ export class MapComponent extends AbstractComponent {
         const currentZoom = '' + this._mapState.zoom;
         const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
         if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
-          this.updateStateFromHash(h.get('zoom')!, h.get('center')!);
+          this.updateStateFromHash(h.get('zoom')!, h.get('center')!); // NOSONAR
       }
     }, true);
   }
@@ -150,14 +150,6 @@ export class MapComponent extends AbstractComponent {
       this._map$.value.remove();
       this._map$.next(undefined);
     }
-  }
-
-  public pause() {
-    this._mapState.live = false;
-  }
-
-  public resume() {
-    this._mapState.live = true;
   }
 
   public invalidateSize(): void {

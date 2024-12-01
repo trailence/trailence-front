@@ -59,6 +59,10 @@ export class MapComponent extends Component {
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
   }
 
+  public async toggleBubbles() {
+    await this.getControl('bubbles-tool').click();
+  }
+
   public async downloadMapOffline(layers: string[], zoomLevel: number) {
     await this.getControl('download-map-tool').click();
     let modal = undefined;
