@@ -128,7 +128,7 @@
       <div class="actions" *ngIf="tracks[0]">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
         <app-icon-label-button *ngIf="!trail2" icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
-        <ng-container *ngIf="trail1 && !recording && !trail2">
+        <ng-container *ngIf="trail1 && !recording && !trail2 && !editToolsComponent">
           <app-icon-label-button icon="play-circle" [label]="i18n.texts.trace_recorder.start_this_trail" [size]="28" [fontSize]="11" color="primary" (click)="startTrail()"></app-icon-label-button>
         </ng-container>
         <ng-container *ngIf="recording">
@@ -300,5 +300,55 @@
         </div>
       </div>
     </div>
+    <ng-container *ngIf="remaining">
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <ion-icon name="duration"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-title">{{ i18n.texts.metadata.remaining_time }}</div>
+            <div class="metadata-value">
+              <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">
+                <span *ngIf="remaining.originalTime !== undefined">≈ {{i18n.durationToString(remaining.originalTime)}}</span>
+                <span> / </span>
+                <span>≈ {{i18n.durationToString(remaining.estimatedTime)}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <ion-icon name="distance"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-title">{{ i18n.texts.metadata.remaining_distance }}</div>
+            <div class="metadata-value">
+              <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">≈ {{i18n.distanceToString(remaining.distance)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-item-container" *ngIf="remaining.ascent !== undefined">
+        <div class="metadata-item">
+          <ion-icon name="positive-elevation"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-title">{{ i18n.texts.metadata.remaining_ascent }}</div>
+            <div class="metadata-value">
+              <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">≈ + {{i18n.elevationToString(remaining.ascent)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-item-container" *ngIf="remaining.descent !== undefined">
+        <div class="metadata-item">
+          <ion-icon name="positive-elevation"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-title">{{ i18n.texts.metadata.remaining_descent }}</div>
+            <div class="metadata-value">
+              <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">≈ - {{i18n.elevationToString(remaining.descent)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
   </ng-container>
 </ng-template>

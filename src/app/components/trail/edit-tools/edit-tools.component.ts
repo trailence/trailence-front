@@ -20,6 +20,7 @@ import { MapAnchor } from '../../map/markers/map-anchor';
 import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
 import { WayPoint } from 'src/app/model/way-point';
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
+import { IconLabelButtonComponent } from '../../icon-label-button/icon-label-button.component';
 
 interface HistoryState {
   base: Track | undefined;
@@ -30,7 +31,7 @@ interface HistoryState {
     selector: 'app-edit-tools',
     templateUrl: './edit-tools.component.html',
     styleUrls: ['./edit-tools.component.scss'],
-    imports: [IonCheckbox, IonRange, IonModal, IonItem, IonList, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
+    imports: [IonCheckbox, IonRange, IonModal, IonItem, IonList, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, IconLabelButtonComponent]
 })
 export class EditToolsComponent implements OnInit, OnDestroy {
 

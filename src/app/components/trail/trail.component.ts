@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, from, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, from, map, of, skip, switchMap, take } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -159,7 +159,8 @@ export class TrailComponent extends AbstractComponent {
     this.listenForTags();
     this.listenForPhotos();
     this.listenForPhotosOnMap();
-    this.listenForRecordingElevationGraphUpdates();
+    this.listenForRecordingUpdates();
+    this.listenForLanguageChange();
   }
 
   private listenForTracks(): void {
@@ -457,19 +458,60 @@ export class TrailComponent extends AbstractComponent {
     );
   }
 
-  private listenForRecordingElevationGraphUpdates(): void {
+  remaining?: {
+    originalTime: number | undefined,
+    estimatedTime: number,
+    distance: number,
+    ascent: number | undefined,
+    descent: number | undefined,
+  };
+
+  private listenForRecordingUpdates(): void {
     if (!this.recording$) return;
+    const trackChanges$ = this.recording$.pipe(switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)));
     this.byStateAndVisible.subscribe(
-      this.recording$.pipe(
-        switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)),
-        debounceTimeExtended(100, 100, 100),
-      ),
+      trackChanges$.pipe(debounceTimeExtended(100, 100, 100),),
       r => {
         const pt = r?.track.arrivalPoint;
         if (pt && this.elevationGraph) {
           this.elevationGraph.updateRecording(r.track);
         }
       }, true
+    );
+    this.byStateAndVisible.subscribe(
+      trackChanges$.pipe(debounceTimeExtended(1000, 10000, 100)),
+      r => {
+        let remaining: Track | undefined = undefined;
+        const pt = r?.track.arrivalPoint;
+        if (pt && this.tracks$.value.length > 1) {
+          const track = this.tracks$.value[0];
+          const closestPoint = TrackUtils.findLastClosePointInTrack(pt.pos, track, 50);
+          if (closestPoint) {
+            remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments[track.segments.length - 1].points.length - 1);
+          }
+        }
+        if (remaining) {
+          this.remaining = {
+            originalTime: remaining.metadata.duration,
+            estimatedTime: remaining.computedMetadata.estimatedDurationSnapshot(),
+            distance: remaining.metadata.distance,
+            ascent: remaining.metadata.positiveElevation,
+            descent: remaining.metadata.negativeElevation,
+          };
+          this.changesDetector.detectChanges();
+        } else if (this.remaining) {
+          this.remaining = undefined;
+          this.changesDetector.detectChanges();
+        }
+      }
+    )
+  }
+
+  private listenForLanguageChange(): void {
+    this.whenVisible.subscribe(
+      this.injector.get(I18nService).texts$.pipe(skip(1)),
+      () => this.changesDetector.detectChanges(),
+      true
     );
   }
 
@@ -605,7 +647,7 @@ export class TrailComponent extends AbstractComponent {
   }
 
   stopRecordingWithoutConfirmation(): void {
-    this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
+    this.traceRecorder.stop(true).pipe(filter(trail => !!trail), take(1))
     .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
   }
 
@@ -618,7 +660,7 @@ export class TrailComponent extends AbstractComponent {
           text: this.i18n.texts.buttons.confirm,
           role: 'confirm',
           handler: () => {
-            this.traceRecorder.stop(true).pipe(filter(trail => !!trail), first())
+            this.traceRecorder.stop(true).pipe(filter(trail => !!trail), take(1))
             .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
             this.injector.get(AlertController).dismiss();
           }

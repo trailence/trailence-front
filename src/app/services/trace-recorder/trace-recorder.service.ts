@@ -167,7 +167,18 @@ export class TraceRecorderService {
         switchMap(() => {
           recording.rawTrack.removeEmptySegments();
           recording.track.removeEmptySegments();
-          if (recording.rawTrack.segments.length === 0) return EMPTY;
+          if (recording.rawTrack.segments.length === 0) {
+            progress.done();
+            this.alertController.create({
+              header: this.i18n.texts.trace_recorder.saving,
+              message: this.i18n.texts.trace_recorder.empty_trail,
+              buttons: [{
+                text: this.i18n.texts.buttons.ok,
+                role: 'cancel'
+              }]
+            }).then(a => a.present());
+            return EMPTY;
+          }
           progress.addWorkDone(1);
           return of(1);
         }),

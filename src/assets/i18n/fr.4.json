@@ -162,8 +162,8 @@
         "path": "Parcours",
         "join_departure_and_arrival": {
           "title": "Relier le départ à l'arrivée",
-          "join_departure": "En faisant démarrer le parcours au même endroit que l'arrivée",
-          "join_arrival": "En faisant terminer le parcours au même endroit que le départ"
+          "join_departure": "Démarrer au même endroit que l'arrivée",
+          "join_arrival": "Terminer au même endroit que le départ"
         },
         "breaks": "Pauses",
         "remove_long_breaks_moves": {
@@ -489,7 +489,8 @@
       "pause_message": "Veuillez confirmer la mise en pause du parcours",
       "stop_message": "Veuillez confirmer la fin du parcours"
     },
-    "saving": "Enregistrement du parcours"
+    "saving": "Enregistrement du parcours",
+    "empty_trail": "Votre parcours étant vide, il n'a pas été sauvegardé"
   },
   "waiting_for_gps": "En attente du signal GPS...",
   "bytes": {
@@ -573,7 +574,11 @@
     "highestAltitude": "Point haut",
     "lowestAltitude": "Point bas",
     "current_position": "Position actuelle",
-    "current_altitude": "Altitude actuelle"
+    "current_altitude": "Altitude actuelle",
+    "remaining_time": "Temps restant",
+    "remaining_distance": "Distance restante",
+    "remaining_ascent": "Dénivelé + restant",
+    "remaining_descent": "Dénivelé - restant"
   },
   "synchronizing_your_data": "Téléchargement de vos parcours",
   "errors": {

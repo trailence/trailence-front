@@ -22,4 +22,6 @@ export class IconLabelButtonComponent {
   @Input() badge?: any;
   @Input() showBadge?: (badge: any) => boolean;
 
+  @Input() disabled = false;
+
 }

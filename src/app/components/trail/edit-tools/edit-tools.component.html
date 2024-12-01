@@ -82,25 +82,11 @@
 </ion-content>
 <ion-footer *ngIf="!inlineTool">
   <ion-toolbar color="footer">
-    <div>
-      <ion-buttons slot="end">
-        <ion-button (click)="undo()" [disabled]="history.length === 0">
-          <ion-icon name="undo" slot="start"></ion-icon>
-          {{i18n.texts.buttons.undo}}
-        </ion-button>
-        <ion-button (click)="redo()" [disabled]="undone.length === 0">
-          <ion-icon name="redo" slot="start"></ion-icon>
-          {{i18n.texts.buttons.redo}}
-        </ion-button>
-      </ion-buttons>
-    </div>
-    <div>
-      <ion-buttons slot="end">
-        <ion-button color="success" [disabled]="!canSave()" (click)="save()">
-          <ion-icon name="save" slot="start"></ion-icon>
-          {{i18n.texts.buttons.save}}
-        </ion-button>
-      </ion-buttons>
+    <div style="display: flex; flex-direction: row; align-items: center;">
+      <app-icon-label-button icon="undo" [label]="i18n.texts.buttons.undo" [disabled]="history.length === 0" (click)="undo()"></app-icon-label-button>
+      <app-icon-label-button icon="redo" [label]="i18n.texts.buttons.redo" [disabled]="undone.length === 0" (click)="redo()"></app-icon-label-button>
+      <div style="width: 15px;"></div>
+      <app-icon-label-button icon="save" [label]="i18n.texts.buttons.save" [disabled]="!canSave()" (click)="save()" color="success-clear"></app-icon-label-button>
     </div>
   </ion-toolbar>
 </ion-footer>

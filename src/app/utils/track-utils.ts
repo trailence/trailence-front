@@ -85,6 +85,26 @@ export class TrackUtils {
     return closestIndex;
   }
 
+  public static findLastClosePointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number): {segmentIndex: number, pointIndex: number} | undefined {
+    let closestIndex: {segmentIndex: number, pointIndex: number} | undefined = undefined;
+    let closestDistance = -1;
+    const p = L.latLng(pos);
+    let segmentIndex = 0;
+    for (const segment of track.segments) {
+      let pointIndex = 0;
+      for (const point of segment.points) {
+        const d = p.distanceTo(point.pos);
+        if (d <= maxDistance && (closestDistance === -1 || d < closestDistance || segmentIndex > closestIndex!.segmentIndex || pointIndex > closestIndex!.pointIndex + 25)) {
+          closestIndex = {segmentIndex, pointIndex};
+          closestDistance = d;
+        }
+        pointIndex++;
+      }
+      segmentIndex++;
+    }
+    return closestIndex;
+  }
+
   public static findClosestPointForTime(track: Track, time: number): Point | undefined {
     let previous: Point | undefined = undefined;
     for (const segment of track.segments) {

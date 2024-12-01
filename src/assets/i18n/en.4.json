@@ -162,8 +162,8 @@
         "path": "Trail path",
         "join_departure_and_arrival": {
           "title": "Join departure and arrival",
-          "join_departure": "By starting the trail at the same place as the arrival",
-          "join_arrival": "By finishing the trail at the same place as the departure"
+          "join_departure": "Start at the arrival point",
+          "join_arrival": "Finish at the departure point"
         },
         "breaks": "Breaks",
         "remove_long_breaks_moves": {
@@ -489,7 +489,8 @@
       "pause_message": "Please confirm to pause the trail",
       "stop_message": "Please confirm the end of the trail"
     },
-    "saving": "Saving trail"
+    "saving": "Saving trail",
+    "empty_trail": "Your trail being empty, it has not been saved"
   },
   "waiting_for_gps": "Waiting for GPS signal...",
   "bytes": {
@@ -573,7 +574,11 @@
     "highestAltitude": "Highest altitude",
     "lowestAltitude": "Lowest altitude",
     "current_position": "Current position",
-    "current_altitude": "Current altitude"
+    "current_altitude": "Current altitude",
+    "remaining_time": "Remaining time",
+    "remaining_distance": "Remaining distance",
+    "remaining_ascent": "Remaining ascent",
+    "remaining_descent": "Remaining descent"
   },
   "synchronizing_your_data": "Downloading your trails",
   "errors": {

@@ -5,7 +5,7 @@
   cursor: pointer;
   position: relative;
 
-  &:hover {
+  &:hover:not(.disabled) {
     background-color: rgba(var(--ion-color-dark-rgb), 0.1);
   }
 
@@ -14,13 +14,21 @@
     max-height: 50%;
   }
 
+    &.disabled {
+    opacity: 0.6;
+  }
+
   &.color-primary {
     background-color: var(--ion-color-primary);
     color: var(--ion-color-primary-contrast);
 
-    &:hover {
+    &:hover:not(.disabled) {
       background-color: var(--ion-color-primary-shade);
     }
+  }
+
+  &.color-success-clear {
+    color: var(--ion-color-success);
   }
 
   ion-badge {
