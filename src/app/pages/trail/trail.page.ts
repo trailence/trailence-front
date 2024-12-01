@@ -136,12 +136,8 @@ export class TrailPage extends AbstractPage {
               }
             }
           }
-          if (this.trail$.value !== t1) {
-            this.trail$.next(t1);
-          }
-          if (this.trail2$.value !== t2) {
-            this.trail2$.next(t2);
-          }
+          this.trail$.next(t1);
+          this.trail2$.next(t2);
         }
       );
     } else {

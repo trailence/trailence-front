@@ -29,16 +29,19 @@ export class TrailsList extends Component {
   }
 
   public async findItemByTrailName(trailName: string) {
+    const overview = new TrailOverview(this.getElement().$('div.trail-name=' + trailName).parentElement().parentElement());
     try {
-      for (const item of await this.items.getElements()) {
-        const overview = await this.getItemTrailOverview(item);
-        const name = await overview.getTrailName();
-        if (name === trailName) return overview;
+      if (!await overview.getElement().isExisting()) {
+        return undefined;
       }
+      return overview;
     } catch (e) {
-      console.info('Unable to search for trail in the list', e);
+      return undefined;
     }
-    return undefined;
+  }
+
+  public async getTrailsNames() {
+    return await this.getElement().$('div.trails').$$('div.metadata-container.trail div.trail-name').map(e => e.getText());
   }
 
   public async waitTrail(trailName: string) {

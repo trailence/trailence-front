@@ -80,13 +80,14 @@ export const EXPECTED_TRAILS: ExpectedTrail[] = [
 ];
 
 export async function expectListContains(list: TrailsList, expectedTrails: ExpectedTrail[]) {
-  try { await browser.waitUntil(() => list.items.length.then(nb => nb === expectedTrails.length)); } catch (e) {}
-  expect(await list.items.length).toBe(expectedTrails.length);
+  let nbFound = 0;
+  try { await browser.waitUntil(() => list.items.length.then(nb => { nbFound = nb; return nb === expectedTrails.length; })); } catch (e) {}
+  expect(nbFound).toBe(expectedTrails.length);
   for (const expected of expectedTrails) {
     const trail = await list.findItemByTrailName(expected.name);
     expect(trail).withContext('Expected trail ' + expected.name).toBeDefined();
     if (expected.tags.length > 0)
-      try { await browser.waitUntil(() => trail!.getTags().then(t => t.length > 0)); } catch (e) {}
+      try { await browser.waitUntil(() => trail!.getTagsElements().length.then(nb => nb > 0)); } catch (e) {}
     const tags = await trail!.getTags();
     expect(tags.length).withContext('Trails tags ' + expected.name).toBe(expected.tags.length);
     for (const expectedTag of expected.tags) {

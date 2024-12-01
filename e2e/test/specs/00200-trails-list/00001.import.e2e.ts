@@ -218,7 +218,6 @@ describe('Trails list - Import Simple GPX', () => {
     await photosPopup.close();
   });
 
-
   it('Synchronize', async () => {
     await App.synchronize();
   });

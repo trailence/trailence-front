@@ -166,6 +166,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
       }
       if (Date.now() - startTime < 15000) setTimeout(autofocus, 25);
     };
+    this.changeDetector.detectChanges();
     setTimeout(autofocus, 0);
   }
 
@@ -176,9 +177,10 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     }
     if ((event$.detail.relatedTarget as any)?.nodeName === 'ION-BUTTON') {
       // give the time for the delete button to be taken into account
-      setTimeout(() => node.editing = false, 1000);
+      setTimeout(() => { node.editing = false; this.changeDetector.detectChanges(); }, 1000);
     } else {
       node.editing = false;
+      this.changeDetector.detectChanges();
     }
   }
 
@@ -241,6 +243,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   selectionChanged(): void {
     this.selectionChange.emit(this.getSelection());
+    this.changeDetector.detectChanges();
   }
 
   private getSelection(): Tag[] {

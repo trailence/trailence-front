@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from "@angular/core";
 import { addIcons } from 'ionicons';
-import { Observable, Subscriber } from "rxjs";
+import { firstValueFrom, Observable, Subscriber } from "rxjs";
 import { Console } from 'src/app/utils/console';
 
 @Injectable({
@@ -106,6 +106,20 @@ export class AssetsService {
       'zoom-out': 'assets/zoom-out.1.svg',
     };
     addIcons(this.icons);
+    // override fetch to intercept ion icons calls, and use our cache
+    const originalFetch: (input: string | URL | globalThis.Request, init?: RequestInit) => Promise<Response> = window.fetch;
+    window.fetch = (input, init) => {
+      if (typeof input === 'string' && input.startsWith('assets/') && input.endsWith('.svg')) {
+        return firstValueFrom(this.loadSvg(input, false)).then(svg => {
+          const text = svg.outerHTML;
+          return {
+            ok: true,
+            text: () => Promise.resolve(text),
+          } as Response;
+        });
+      }
+      return originalFetch(input, init);
+    };
   }
 
   private readonly _loadedSvg = new Map<string, SVGSVGElement>();
@@ -115,12 +129,12 @@ export class AssetsService {
     return this.http.get(url);
   }
 
-  public loadSvg(url: string): Observable<SVGSVGElement> {
+  public loadSvg(url: string, clone: boolean = true): Observable<SVGSVGElement> {
     return new Observable<SVGSVGElement>(observer => {
       this.ngZone.runOutsideAngular(() => {
         const known = this._loadedSvg.get(url);
         if (known) {
-          observer.next(known.cloneNode(true) as SVGSVGElement);
+          observer.next(clone ? known.cloneNode(true) as SVGSVGElement : known);
           observer.complete();
           return;
         }
@@ -130,12 +144,12 @@ export class AssetsService {
           return;
         }
         this._loadingSvg.set(url, [observer]);
-        this._loadSvg(url);
+        this._loadSvg(url, clone);
       });
     });
   }
 
-  private _loadSvg(url: string) {
+  private _loadSvg(url: string, clone: boolean) {
     const error = (e: any) => {
       Console.error('Error loading SVG ' + url, e);
       const subscribers = this._loadingSvg.get(url);
@@ -155,7 +169,7 @@ export class AssetsService {
         this._loadingSvg.delete(url);
         this._loadedSvg.set(url, svg);
         subscribers?.forEach(s => {
-          s.next(svg.cloneNode(true) as SVGSVGElement);
+          s.next(clone ? svg.cloneNode(true) as SVGSVGElement : svg);
           s.complete();
         });
       },

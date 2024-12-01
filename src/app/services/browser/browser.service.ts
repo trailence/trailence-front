@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular/standalone';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Console } from 'src/app/utils/console';
@@ -12,7 +12,8 @@ export class BrowserService {
   private readonly _hash$ = new BehaviorSubject<Map<string,string>>(new Map<string, string>());
 
   constructor(
-    platform: Platform
+    platform: Platform,
+    ngZone: NgZone,
   ) {
     Console.info('platform: ' + platform.platforms().join(','));
     platform.resize.subscribe(() => {
@@ -23,8 +24,10 @@ export class BrowserService {
     this._width = platform.width();
     this._height = platform.height();
     this._hash$.next(this.decodeHash(window.location.hash));
-    window.addEventListener('hashchange', () => {
-      this._hash$.next(this.decodeHash(window.location.hash));
+    ngZone.runOutsideAngular(() => {
+      window.addEventListener('hashchange', () => {
+        this._hash$.next(this.decodeHash(window.location.hash));
+      });
     });
   }
 

@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, from, map, of, switchMap } from 'rxjs';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, from, map, of, switchMap, tap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -43,6 +43,7 @@ import { Console } from 'src/app/utils/console';
     selector: 'app-trail',
     templateUrl: './trail.component.html',
     styleUrls: ['./trail.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         IonSpinner,
         IonCheckbox,
@@ -120,6 +121,7 @@ export class TrailComponent extends AbstractComponent {
     private readonly changesDetector: ChangeDetectorRef,
   ) {
     super(injector);
+    changesDetector.detach();
     this.hover = new TrailHoverCursor(this);
     this.pathSelection = new TrailPathSelection(this, injector);
   }

@@ -19,11 +19,11 @@ describe('Trails list - Sort', () => {
 
   const checkList = async (expectedList: ExpectedTrail[]) => {
     try { await browser.waitUntil(() => list.items.length.then(nb => nb === expectedList.length)); } catch (e) {}
+    const names = await list.getTrailsNames();
     for (const expected of expectedList) {
-      const trail = await list.findItemByTrailName(expected.name);
-      expect(trail).withContext('Expected trail ' + expected.name).toBeDefined();
+      expect(names).toContain(expected.name);
     }
-    expect(await list.items.length).toBe(expectedList.length);
+    expect(names.length).toBe(expectedList.length);
   };
 
   it('List contains expected trails', async () => {

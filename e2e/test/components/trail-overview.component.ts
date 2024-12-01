@@ -21,6 +21,10 @@ export class TrailOverview extends Component {
     return tags;
   }
 
+  public getTagsElements(reset: boolean = false) {
+    return this.getElement(reset).$('div.trail-tags-row').$$('div.tag');
+  }
+
   public getPhotosSliderElement() {
     return this.getElement().$('div.photos app-photos-slider');
   }

@@ -33,12 +33,7 @@ describe('Trails list - Sort', () => {
     await popup.setAscending(ascending);
     await popup.selectField(field);
     await popup.close();
-    const found: string[] = [];
-    for (const item of await list.items.getElements()) {
-      const trailOverview = await list.getItemTrailOverview(item);
-      const name = await trailOverview.getTrailName();
-      found.push(name);
-    }
+    const found = await list.getTrailsNames();
     checkSort(found);
   };
 
