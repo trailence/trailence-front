@@ -3,7 +3,7 @@
     <ion-title>
       <div style="display: flex; flex-direction: row; align-items: center;">
         <ion-icon name="error" style="font-size: 18px;"></ion-icon>
-        <div style="margin-left: 5px; font-size: 16px;">{{errors.length > 1 ? i18n.texts.errors.modal_title_plural : i18n.texts.errors.modal_title_singular}}</div>
+        <div class="error-title" style="margin-left: 5px; font-size: 16px;">{{errors.length > 1 ? i18n.texts.errors.modal_title_plural : i18n.texts.errors.modal_title_singular}}</div>
       </div>
     </ion-title>
   </ion-toolbar>
@@ -11,7 +11,7 @@
 <ion-content class="ion-padding">
   <ion-list>
     <ion-item *ngFor="let error of errors; let index = index" [detail]="false" [lines]="index < errors.length - 1 ? 'full' : 'none'">
-      <span style="font-size: 12px;">{{error}}</span>
+      <span class="error-item" style="font-size: 12px;">{{error}}</span>
       <ion-button slot="end" size="small" fill="clear" color="dark" (click)="removeError(index)">
         <ion-icon slot="icon-only" name="trash"></ion-icon>
       </ion-button>

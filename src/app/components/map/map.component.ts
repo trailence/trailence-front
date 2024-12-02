@@ -108,13 +108,15 @@ export class MapComponent extends AbstractComponent {
         switchMap(([c,z]) => this.browser.hash$.pipe(map(h => ([c,z,h] as [L.LatLngLiteral, number, Map<string,string>])))),
         debounceTime(500),
       ), ([c,z,h]) => {
-      if (h.has('zoom') && h.has('center') && c.lat === this._mapState.center.lat && c.lng === this._mapState.center.lng && z === this._mapState.zoom) {
-        const currentZoom = '' + this._mapState.zoom;
-        const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
-        if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
-          this.updateStateFromHash(h.get('zoom')!, h.get('center')!); // NOSONAR
-      }
-    }, true);
+        h = this.browser.getHashes();
+        if (h.has('zoom') && h.has('center') && c.lat === this._mapState.center.lat && c.lng === this._mapState.center.lng && z === this._mapState.zoom) {
+          const currentZoom = '' + this._mapState.zoom;
+          const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
+          if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
+            this.updateStateFromHash(h.get('zoom')!, h.get('center')!); // NOSONAR
+        }
+      }, true
+    );
   }
 
   private _initMapTimeout: any;

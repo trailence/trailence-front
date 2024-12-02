@@ -108,9 +108,19 @@ export class UserMenu extends Component {
         if (text === 'Yes') {
           if (i === 9) throw new Error('Still has local changes after 10 trials');
           if (alreadyClickOnSynchronizeNow) {
-            await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'));
-            result = true;
-            break;
+            try {
+              await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'), { timeout: 10000});
+              result = true;
+              break;
+            } catch (e) {
+              await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
+              const page = await Page.getActivePageElement();
+              const header = new HeaderComponent(page);
+              await header.waitDisplayed();
+              const menu = await header.openUserMenu();
+              await menu.synchronizeLocalChanges(i + 1, false);
+              return;
+            }
           }
           await item.click();
           const popover = $('ion-app>ion-popover:not(.overlay-hidden).popover-nested');

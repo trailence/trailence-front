@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, filter, first, Observable, of } from 'rxjs';
+import { BehaviorSubject, filter, first, map, Observable, of } from 'rxjs';
 import { Extension } from 'src/app/model/extension';
 import { DatabaseService, EXTENSIONS_TABLE_NAME } from './database.service';
 import { StoreSyncStatus } from './store';
@@ -39,7 +39,7 @@ export class ExtensionsService {
   }
 
   public getExtensions$(): Observable<Extension[]> {
-    return this._extensions$;
+    return this._extensions$.pipe(map(list => list.filter(e => e.version >= 0)));
   }
 
   public saveExtension(extension: Extension): void {
@@ -69,6 +69,7 @@ export class ExtensionsService {
   }
 
   public removeExtension(extension: Extension): void {
+    Console.info('Extension ' + extension.extension + ' marked as deleted');
     extension.markAsDeleted();
     this.saveExtension(extension);
   }
