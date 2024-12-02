@@ -41,12 +41,22 @@ export class MapLayersService {
       createIgnLayer(injector, 'ign-sat', 'IGN Satellite (France)', 'ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg', 19, 2),
       //createDefaultLayer('stadia-sat', 'Stadia Satellite', 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg', 20, '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', 2),
     ];
+    let previousTfoKey: string | undefined = undefined;
     injector.get(ExtensionsService).getExtensions$().subscribe(
       extensions => {
         const thunderforest = extensions.find(e => e.extension === 'thunderforest.com');
+        let index = this.layers.findIndex(l => l.name === 'tfo');
         if (thunderforest?.data['apikey']) {
-          this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2, false));
+          if (thunderforest?.data['apikey'] !== previousTfoKey) {
+            if (index >= 0) {
+              this.layers.splice(index, 1);
+            }
+            this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2, false));
+          }
+        } else if (index >= 0) {
+          this.layers.splice(index, 1);
         }
+        previousTfoKey = thunderforest?.data['apikey'];
       }
     );
     this.possibleLayers = [

@@ -1,6 +1,7 @@
 import { App } from '../../app/app';
 import { Page } from '../../app/pages/page';
 import { PreferencesPage } from '../../app/pages/preferences-page';
+import { TrailsPage } from '../../app/pages/trails-page';
 import { HeaderComponent } from '../../components/header.component';
 import { TrailsList } from '../../components/trails-list.component';
 import { FilesUtils } from '../../utils/files-utils';
@@ -91,6 +92,24 @@ describe('Preferences', () => {
       async () => await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h07 (≈ 1h00)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft'),
       20, 1000
     );
+  });
+
+  it('Enter a Thunderforest API key', async () => {
+    let collection = new TrailsPage();
+    let map = await collection.trailsAndMap.openMap();
+    expect(await map.isLayerAvailable('tfo')).toBeFalse();
+    let preferences = await goToPreferences('Preferences');
+    let input = await preferences.getInputByTitle('Thunderforest');
+    await input.setValue('1234');
+    collection = await goToCollection('My Trails');
+    map = await collection.trailsAndMap.openMap();
+    expect(await map.isLayerAvailable('tfo')).toBeTrue();
+    preferences = await goToPreferences('Preferences');
+    input = await preferences.getInputByTitle('Thunderforest');
+    await input.setValue('');
+    collection = await goToCollection('My Trails');
+    map = await collection.trailsAndMap.openMap();
+    await browser.waitUntil(() => map.isLayerAvailable('tfo').then(a => !a));
   });
 
   it('Reset all, delete trail, and synchronize', async () => {

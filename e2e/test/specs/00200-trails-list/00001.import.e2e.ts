@@ -1,6 +1,7 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { ErrorsModal } from '../../components/errors.modal';
 import { ImportTagsPopup } from '../../components/import-tags-popup.component';
 import { TagsPopup } from '../../components/tags-popup';
 import { FilesUtils } from '../../utils/files-utils';
@@ -22,6 +23,19 @@ describe('Trails list - Import Simple GPX', () => {
     const menu = await App.openMenu();
     collectionPage = await menu.addCollection('Test Import');
     expect(await collectionPage.header.getTitle()).toBe('Test Import');
+  });
+
+  it('Import an invalid file', async () => {
+    const trailsList = await collectionPage.trailsAndMap.openTrailsList();
+    const importButton = await trailsList.getToolbarButton('add-circle');
+    await importButton.click();
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/app/app.ts'));
+    const modal = new ErrorsModal(await App.waitModal());
+    expect(await modal.getTitle()).toBe('Error');
+    const errors = await modal.getErrors();
+    expect(errors).toContain('File \'app.ts\' cannot be imported: File is not a valid GPX');
+    expect(errors.length).toBe(1);
+    await modal.deleteAll();
   });
 
   it('Import a simple GPX file', async () => {

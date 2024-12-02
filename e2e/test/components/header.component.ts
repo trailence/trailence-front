@@ -98,7 +98,7 @@ export class UserMenu extends Component {
     const item = this.getElement().$('>>>ion-item#item-synchro');
     const localChanges = item.$('>>>.synchro>.value:last-child');
     let result = false;
-    for (let i = trial; i < 10; ++i) {
+    for (let i = trial; i <= 5; ++i) {
       try {
         const text = await localChanges.getText();
         if (text === 'No') {
@@ -106,11 +106,21 @@ export class UserMenu extends Component {
           break;
         }
         if (text === 'Yes') {
-          if (i === 9) throw new Error('Still has local changes after 10 trials');
+          if (i > 5) throw new Error('Still has local changes');
           if (alreadyClickOnSynchronizeNow) {
-            await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'));
-            result = true;
-            break;
+            try {
+              await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'), { timeout: 10000 });
+              result = true;
+              break;
+            } catch (e) {
+              await this.close();
+              const page = await Page.getActivePageElement();
+              const header = new HeaderComponent(page);
+              await header.waitDisplayed();
+              const menu = await header.openUserMenu();
+              await menu.synchronizeLocalChanges(i + 1, false);
+              return;
+            }
           }
           await item.click();
           const popover = $('ion-app>ion-popover:not(.overlay-hidden).popover-nested');
@@ -129,7 +139,7 @@ export class UserMenu extends Component {
           return;
         }
       } catch (e) {
-        if (i === 9) throw e;
+        if (i > 5) throw e;
       }
     }
     expect(result).toBeTrue();

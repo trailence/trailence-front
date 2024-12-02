@@ -1,4 +1,5 @@
 import { IonicButton } from '../../components/ionic/ion-button';
+import { IonicInput } from '../../components/ionic/ion-input';
 import { IonicRange } from '../../components/ionic/ion-range';
 import { IonicSegment } from '../../components/ionic/ion-segment';
 import { PageWithHeader } from './page';
@@ -21,6 +22,12 @@ export class PreferencesPage extends PageWithHeader {
     const range = new IonicRange(this.getElement().$('div.title=' + title).parentElement().$('div.value'), 'ion-range');
     await range.getElement().scrollIntoView({block: 'center', inline: 'center'});
     return range;
+  }
+
+  public async getInputByTitle(title: string) {
+    const input = new IonicInput(this.getElement().$('div.title=' + title).parentElement().$('div.value'), 'ion-input');
+    await input.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    return input;
   }
 
   public async resetAll() {

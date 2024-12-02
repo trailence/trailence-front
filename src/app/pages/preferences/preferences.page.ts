@@ -197,18 +197,9 @@ export class PreferencesPage implements OnDestroy {
 
   updateThunderforestApiKey(value?: string | null): void {
     if (!value || value.trim().length === 0) {
-      const thunderforest = this.currentExtensions.find(e => e.extension === 'thunderforest.com');
-      if (thunderforest) {
-        this.extensions.removeExtension(thunderforest);
-      }
+      this.extensions.removeExtension('thunderforest.com');
     } else {
-      const thunderforest = this.currentExtensions.find(e => e.extension === 'thunderforest.com');
-      if (thunderforest) {
-        thunderforest.data['apikey'] = value.trim();
-        this.extensions.saveExtension(thunderforest);
-      } else {
-        this.extensions.saveExtension(new Extension(0, 'thunderforest.com', {apikey: value}));
-      }
+      this.extensions.saveExtension('thunderforest.com', true, e => e.data['apikey'] = value.trim());
     }
   }
 

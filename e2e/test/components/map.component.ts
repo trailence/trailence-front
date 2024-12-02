@@ -59,6 +59,16 @@ export class MapComponent extends Component {
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
   }
 
+  public async isLayerAvailable(name: string) {
+    await this.getControl('layer-tool').click();
+    const modal = await App.waitModal();
+    await modal.$('div.layer').isDisplayed();
+    const result = await modal.$('div.layer.layer-' + name).isExisting();
+    await modal.$('ion-radio-group div.layer.selected').click();
+    await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
+    return result;
+  }
+
   public async toggleBubbles() {
     await this.getControl('bubbles-tool').click();
   }

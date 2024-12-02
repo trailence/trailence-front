@@ -36,6 +36,10 @@ export class BrowserService {
   public get resize$() { return this._resize$; }
   public get hash$() { return this._hash$; }
 
+  public getHashes(): Map<string,string> {
+    return this.decodeHash(window.location.hash);
+  }
+
   public setHash(name: string, value: string): void {
     const map = this.decodeHash(window.location.hash);
     if (map.get(name) === value) return;

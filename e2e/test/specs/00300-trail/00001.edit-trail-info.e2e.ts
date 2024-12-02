@@ -33,19 +33,22 @@ describe('Trail - Edit infos', () => {
     await alert.setInputValue('My test trail')
     await alert.clickButtonWithRole('ok');
     await browser.waitUntil(() => alert.isDisplayed().then(d => !d));
-    await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'My test trail'));
+    await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).header.getTitle().then(title => title === 'My test trail'));
+    trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
   });
 
   it('Edit description', async () => {
     expect(await trailPage.trailComponent.getDescription()).toBe('');
     await trailPage.trailComponent.setDescription('This is a good trail');
-    expect(await trailPage.trailComponent.getDescription()).toBe('This is a good trail');
+    await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).trailComponent.getDescription().then(d => d === 'This is a good trail'));
+    trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
   });
 
   it('Edit location', async () => {
     expect(await trailPage.trailComponent.getLocation()).toBe('');
     await trailPage.trailComponent.setLocation();
-    await browser.waitUntil(() => trailPage.trailComponent.getLocation().then(l => l === 'Bonifacio'));
+    await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).trailComponent.getLocation().then(l => l === 'Bonifacio'));
+    trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
   });
 
   it('Edit tags', async () => {
@@ -56,6 +59,8 @@ describe('Trail - Edit infos', () => {
     await tagsPopup.createTag('Beautiful');
     await tagsPopup.selectTags(['My Tag', 'Beautiful']);
     await tagsPopup.apply();
+    try { await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).trailComponent.getTags().then(tags => tags.length === 2)); } catch (e) {}
+    trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
     let tags = await trailPage.trailComponent.getTags();
     expect(tags.length).toBe(2);
     expect(tags.indexOf('My Tag') >= 0).toBeTrue();
@@ -64,7 +69,8 @@ describe('Trail - Edit infos', () => {
     tagsPopup = await trailPage.trailComponent.openTags();
     await tagsPopup.selectTags(['Beautiful']);
     await tagsPopup.apply();
-    await browser.waitUntil(() => trailPage.trailComponent.getTags().then(tags => tags.length === 1));
+    try { await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).trailComponent.getTags().then(tags => tags.length === 1)); } catch (e) {}
+    trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
     tags = await trailPage.trailComponent.getTags();
     expect(tags.length).toBe(1);
     expect(tags.indexOf('Beautiful') >= 0).toBeTrue();

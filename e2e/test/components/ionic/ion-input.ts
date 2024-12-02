@@ -15,6 +15,9 @@ export class IonicInput extends Component {
     const input = this.getElement().$('input');
     await input.waitForEnabled();
     await input.setValue(value);
+    await browser.execute((e, v) => {
+      (e as any).ionChange.emit({value: v});
+    }, await this.getElement().getElement(), value);
   }
 
   public async getValue() {

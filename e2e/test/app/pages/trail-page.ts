@@ -3,7 +3,7 @@ import { PageWithHeader } from './page';
 
 export class TrailPage extends PageWithHeader {
 
-  constructor(private readonly owner: string, private readonly uuid: string) {
+  constructor(public readonly owner: string, public readonly uuid: string) {
     super('trail-page');
   }
 

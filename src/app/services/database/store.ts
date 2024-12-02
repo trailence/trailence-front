@@ -77,7 +77,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           () => false,
           () => of(true),
           status => {
-            if (status.needsUpdateFromServer) return false;
             status.needsUpdateFromServer = true;
             return true;
           }

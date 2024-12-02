@@ -38,18 +38,32 @@ export class Console {
     if (navigator.webdriver) {
       const w = window as any;
       if (!w._consoleHistory) w._consoleHistory = [];
-      w._consoleHistory.push(Console.header(level) + args.map(a => {
-        if (typeof a === 'object') {
-          let s = '{';
-          for (const key of Object.getOwnPropertyNames(a)) {
-            let v = typeof a[key] === 'function' ? 'function' : '' + a[key];
-            s += key + ': ' + v + ',';
+      const convert = (a: any, done: any[], deep: number) => {
+        try {
+          if (deep > 5) return '<too deep>';
+          if (Array.isArray(a)) {
+            if (done.indexOf(a)) return '<duplicate>';
+            let s = '[';
+            for (const element of a) {
+              s += convert(element, [...done, a], deep + 1) + ',';
+            }
+            return s + ']';
           }
-          s += '}';
-          return s;
+          if (a && typeof a === 'object') {
+            if (done.indexOf(a)) return '<duplicate>';
+            let s = '{';
+            for (const key of Object.getOwnPropertyNames(a)) {
+              let v = typeof a[key] === 'function' ? 'function' : a[key];
+              s += key + ': ' + convert(v, [...done, a], deep + 1) + ',';
+            }
+            return s + '}';
+          }
+          return '' + a;
+        } catch (e) {
+          return '<cannot convert: ' + e + '>';
         }
-        return '' + a;
-      }).join(' - '));
+      };
+      w._consoleHistory.push(Console.header(level) + args.map(a => convert(a, [], 0)).join(' - '));
     }
   }
 

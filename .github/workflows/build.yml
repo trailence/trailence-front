@@ -114,7 +114,7 @@ jobs:
       matrix:
         browser: ["chrome","firefox"]
         mode: ["desktop","mobile"]
-        test-set: ["00000+00100","00200", "00400+00500", "00300+00800+01000"]
+        test-set: ["00000+00100", "00200", "00400+00500", "00300+00800+01000"]
     name: E2E ${{matrix.browser}} ${{matrix.mode}} ${{matrix.test-set}}
     runs-on: ubuntu-latest
     steps:

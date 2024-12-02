@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, EMPTY, Observable, combineLatest, debounceTime, filter, map, of, switchMap, tap, timeout } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, map, of, switchMap, timeout } from 'rxjs';
 import { StoreSyncStatus } from './store';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
@@ -133,7 +133,9 @@ export class DatabaseService {
     );
   }
 
+  private _syncNowRequestedAt = 0;
   public syncNow(): void {
+    this._syncNowRequestedAt = Date.now();
     this._stores.value.forEach(s => {
       s.lastSync = 0;
       if (s.syncTimeout) clearTimeout(s.syncTimeout);
@@ -162,20 +164,19 @@ export class DatabaseService {
       store.status$,         // there is something to sync and we are not syncing
     ]).pipe(
       map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress),
-      debounceTime(250),
+      debounceTimeExtended(250, 250, 100),
       filter(shouldSync => {
         if (!shouldSync) return false;
-        if (Date.now() - registered.lastSync < MINIMUM_SYNC_INTERVAL) {
-          this.ngZone.runOutsideAngular(() => {
-            if (!registered.syncTimeout) {
-              registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync)));
-            }
-          });
-          return false;
-        }
-        return true;
+        if (Date.now() - registered.lastSync > MINIMUM_SYNC_INTERVAL) return true;
+        if (this._syncNowRequestedAt >= registered.lastSync) return true;
+        this.ngZone.runOutsideAngular(() => {
+          if (!registered.syncTimeout) {
+            registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync)));
+          }
+        });
+        return false;
       }),
-      debounceTimeExtended(0, 500),
+      debounceTimeExtended(0, 500, 10),
     )
     .subscribe(() => {
       if (!this._db.value) return;
