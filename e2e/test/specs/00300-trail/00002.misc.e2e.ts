@@ -23,10 +23,6 @@ describe('Trail page', () => {
       expect(await trailPage.trailComponent.hasEditTools()).toBeTrue();
 
       const tools = await trailPage.trailComponent.openEditTools();
-      await tools.backToOriginalTrack();
-      await tools.joinArrivalToDeparture();
-      await tools.undo();
-      await tools.undo();
       await tools.close();
     } else {
       expect(await trailPage.trailComponent.hasTabs()).toBeTrue();

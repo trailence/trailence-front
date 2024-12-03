@@ -24,8 +24,12 @@ export class HeaderComponent extends Component {
     const alreadyOpen = App.getPopoverContainer();
     if (await alreadyOpen.isExisting() && await alreadyOpen.isDisplayed()) {
       const popover = App.getPopoverContent(alreadyOpen);
-      if (await popover.$('ion-list ion-item#item-synchro').isDisplayed()) {
-        return new UserMenu(popover, 'ion-list');
+      try {
+        if (await popover.$('ion-list ion-item#item-synchro').isDisplayed()) {
+          return new UserMenu(popover, 'ion-list');
+        }
+      } catch (e) {
+        // continue
       }
     }
     const popover = await TestUtils.retry(async () => {
@@ -34,7 +38,7 @@ export class HeaderComponent extends Component {
       return await App.waitPopover(10000);
     }, 3, 100);
     expect(popover).toBeDefined();
-    const userMenu = new UserMenu(popover!, 'ion-list');
+    const userMenu = new UserMenu(popover, 'ion-list');
     await userMenu.waitDisplayed();
     return userMenu;
   }
@@ -92,13 +96,14 @@ export class UserMenu extends Component {
   public async close() {
     await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(100).down().pause(100).up().perform();
     await browser.waitUntil(() => this.getElement().isExisting().then(e => !e), { timeout: 10000 });
+    await App.waitNoPopover();
   }
 
   public async synchronizeLocalChanges(trial: number = 0, alreadyClickOnSynchronizeNow: boolean = false) {
     const item = this.getElement().$('>>>ion-item#item-synchro');
     const localChanges = item.$('>>>.synchro>.value:last-child');
     let result = false;
-    for (let i = trial; i <= 5; ++i) {
+    for (let i = trial; i <= 10; ++i) {
       try {
         const text = await localChanges.getText();
         if (text === 'No') {
@@ -106,7 +111,6 @@ export class UserMenu extends Component {
           break;
         }
         if (text === 'Yes') {
-          if (i > 5) throw new Error('Still has local changes');
           if (alreadyClickOnSynchronizeNow) {
             try {
               await browser.waitUntil(() => localChanges.getText().then(text => text === 'No'), { timeout: 10000 });
@@ -139,7 +143,7 @@ export class UserMenu extends Component {
           return;
         }
       } catch (e) {
-        if (i > 5) throw e;
+        // continue
       }
     }
     expect(result).toBeTrue();

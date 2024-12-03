@@ -89,6 +89,24 @@ export class App {
     await browser.url(url);
     const loginPage = new LoginPage();
     await loginPage.waitDisplayed();
+    await browser.execute(() => {
+      const d = document.createElement('DIV');
+      d.style.pointerEvents = 'none';
+      d.style.position = 'fixed';
+      d.style.background = 'rgba(255, 0, 0, 0.75)';
+      d.style.top = '0px';
+      d.style.left = '0px';
+      d.style.width = '10px';
+      d.style.height = '10px';
+      d.style.zIndex = '10000';
+      d.style.borderRadius = '10px';
+      d.style.border = '2px solid black';
+      document.body.appendChild(d);
+      window.addEventListener('mousemove', e => {
+        d.style.top = e.pageY + 'px';
+        d.style.left = e.pageX + 'px';
+      });
+    });
     return loginPage;
   }
 
@@ -115,6 +133,10 @@ export class App {
 
   public static getPopoverContent(popoverContainer: ChainablePromiseElement): ChainablePromiseElement {
     return popoverContainer.$('>>>.popover-viewport');
+  }
+
+  public static async waitNoPopover() {
+    await browser.waitUntil(() => App.getPopoverContainer().isExisting().then(e => !e));
   }
 
   public static async waitModal(index?: number, byElementName?: string) {
@@ -182,6 +204,7 @@ export class App {
     await header.waitDisplayed();
     const menu = await header.openUserMenu();
     await menu.synchronizeLocalChanges();
+    await menu.close();
   }
 
   public static async logout(withDelete: boolean = false) {

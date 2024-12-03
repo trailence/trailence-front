@@ -1,6 +1,8 @@
 import { App } from '../../app/app';
+import { PreferencesPage } from '../../app/pages/preferences-page';
 import { TrailPage } from '../../app/pages/trail-page';
 import { PhotosPopup } from '../../components/photos-popup.component';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Trail - Photos', () => {
 
@@ -17,7 +19,7 @@ describe('Trail - Photos', () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
     const trail = await trailsList.waitTrail('My test trail');
     expect(trail).toBeDefined();
-    trailPage = await trailsList.openTrail(trail!);
+    trailPage = await trailsList.openTrail(trail);
   });
 
   let photosPopup: PhotosPopup;
@@ -34,10 +36,13 @@ describe('Trail - Photos', () => {
   it('Import JPEG with date', async () => {
     await photosPopup.addPhoto('20230605_101849.jpg');
     await browser.waitUntil(() => photosPopup.getPhotosContainers().length.then(nb => nb === 2));
-    let photos = await photosPopup.collectPhotosInfos();
-    expect(photos.size).toBe(2);
-    expect(photos.get('20230605_101849.jpg')).toBeDefined();
-    expect(photos.get('20230605_101849.jpg')?.metadata.get('date')).toBe('6/5/2023 10:18 AM');
+    await browser.waitUntil(async () => {
+      let photos = await photosPopup.collectPhotosInfos();
+      return photos.size === 2 &&
+        photos.get('20230605_101849.jpg') &&
+        photos.get('20230605_101849.jpg')!.metadata.get('date') === '6/5/2023 10:18 AM' &&
+        (photos.get('20230605_101849.jpg')!.metadata.get('file')?.indexOf('KB') ?? -1) > 0;
+    });
   });
 
   it('Import JPEG with date and geolocation', async () => {
@@ -104,6 +109,31 @@ describe('Trail - Photos', () => {
     await trailPage.trailComponent.toggleShowPhotosOnMap();
     map = await trailPage.trailComponent.openMap();
     await browser.waitUntil(() => map.markers.length.then(nb => nb === 1));
+  });
+
+  it('Clear files on preferences page', async () => {
+    await (await trailPage.header.openUserMenu()).clickByLabel('Preferences');
+    const prefs = new PreferencesPage();
+    await prefs.waitDisplayed();
+    const sizes = await prefs.getPhotosSizes();
+    expect(sizes.length).toBe(2);
+    expect(sizes[0]).not.toBe('0 Bytes');
+    expect(sizes[1]).toBe('0 Bytes');
+    await TestUtils.retry(async () => {
+      await prefs.removeAllPhotos();
+      await browser.waitUntil(() => prefs.getPhotosSizes().then(s => {
+        if (s.length === 2 && s[0] === '0 Bytes' && s[1] === '0 Bytes') return true;
+        return false;
+      }), { timeout: 5000 });
+    }, 5, 5000);
+
+    const menu = await App.openMenu();
+    const collectionPage = await menu.openCollection('Test Trail');
+    const trailsList = await collectionPage.trailsAndMap.openTrailsList();
+    trailPage = await trailsList.openTrailByName('My test trail');
+    photosPopup = await trailPage.trailComponent.openPhotos();
+    await browser.waitUntil(() => photosPopup.getPhotosContainers().length.then(nb => nb === 2));
+    await photosPopup.close();
   });
 
   it('Synchronize', async () => {

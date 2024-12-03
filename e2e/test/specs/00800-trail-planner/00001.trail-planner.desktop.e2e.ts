@@ -35,22 +35,6 @@ describe('Trail Planner', () => {
     await page.start();
     await browser.waitUntil(() => map.paths.getElements().then(elements => elements.find(e => e.getAttribute('stroke').then(s => s === '#0000FF80')).then(result => !!result)));
     const mapRect = await map.getMapPosition();
-    await browser.execute(() => {
-      const d = document.createElement('DIV');
-      d.style.pointerEvents = 'none';
-      d.style.position = 'fixed';
-      d.style.background = 'red';
-      d.style.top = '0px';
-      d.style.left = '0px';
-      d.style.width = '10px';
-      d.style.height = '10px';
-      d.style.zIndex = '10000';
-      document.body.appendChild(d);
-      window.addEventListener('mousemove', e => {
-        d.style.top = e.pageY + 'px';
-        d.style.left = e.pageX + 'px';
-      });
-    });
     let found = false;
     for (let x = Math.floor(mapRect.x) + 200; x < mapRect.x + mapRect.w - 200; x += 10) {
       for (let y = Math.floor(mapRect.y) + 200; y < mapRect.y + mapRect.h - 200; y += 5) {

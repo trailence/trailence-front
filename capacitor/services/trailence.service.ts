@@ -8,7 +8,7 @@ export interface TrailencePlugin {
 
   startZipFile(call: {id: number, filename: string}): Promise<{success: boolean}>;
 
-  listenToImportedFiles(callback: (message: {fileId: number, chunks?: number, chunkIndex?: number, data?: string}) => void): void;
+  listenToImportedFiles(callback: (message: {fileId: number, chunks?: number, filename?: string, chunkIndex?: number, data?: string}) => void): void;
 
   downloadUsingBrowser(call: {url: string}): Promise<{success: boolean}>;
 

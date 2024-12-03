@@ -42,6 +42,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return item.item.version < 0;
   }
 
+  public isUpdatedLocally(owner: string, uuid: string): boolean {
+    return this._updatedLocally.indexOf(uuid + '#' + owner) >= 0;
+  }
+
   protected override areSame(item1: ENTITY, item2: ENTITY): boolean {
     return item1.uuid === item2.uuid && item1.owner === item2.owner;
   }

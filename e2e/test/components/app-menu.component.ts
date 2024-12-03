@@ -55,8 +55,10 @@ export class AppMenu extends Component {
   }
 
   public async addCollection(name: string) {
-    await this.getAddCollectionButton().click();
-    const modal = new CollectionModal(await App.waitModal());
+    const modal = await TestUtils.retry(async () => {
+      await this.getAddCollectionButton().click();
+      return new CollectionModal(await App.waitModal());
+    }, 2, 1000);
     expect(await modal.getTitle()).toBe('Collection');
     await modal.setName(name);
     await modal.clickCreate();

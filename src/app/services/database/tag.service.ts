@@ -95,7 +95,7 @@ export class TagService {
               }
             });
           };
-          for (const tag of toRemove) setTimeout(() => this.delete(tag!, ondone), 0);
+          for (const tag of toRemove) setTimeout(() => this.delete(tag!, ondone), 0); // NOSONAR
         });
       })
     );

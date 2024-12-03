@@ -236,7 +236,7 @@ export class TrailComponent extends AbstractComponent {
 
         if (!recordingWithTrack && !trail2[0]) {
           if (toolsModifiedTrack) {
-            tracks.splice(0, 0, toolsModifiedTrack);
+            tracks.push(toolsModifiedTrack);
             if (this.elevationTrack1)
               this.elevationTrack2 = toolsModifiedTrack;
             else
@@ -245,7 +245,7 @@ export class TrailComponent extends AbstractComponent {
             mapTrack.showDepartureAndArrivalAnchors();
             mapTrack.showWayPointsAnchors();
             mapTrack.showBreaksAnchors(showBreaks);
-            mapTracks.splice(0, 0, mapTrack);
+            mapTracks.push(mapTrack);
           }
           if (toolsFocusTrack !== this.previousFocus) {
             this.previousFocus = toolsFocusTrack;
@@ -641,7 +641,7 @@ export class TrailComponent extends AbstractComponent {
     }).then(p => {
       p.present();
       setTimeout(() => {
-        if ((p as any).presented) p.dismiss();
+        if ((p as any).presented) p.dismiss(); // NOSONAR
       }, 10000);
     });
   }
@@ -675,7 +675,7 @@ export class TrailComponent extends AbstractComponent {
     }).then(p => {
       p.present();
       setTimeout(() => {
-        if ((p as any).presented) p.dismiss();
+        if ((p as any).presented) p.dismiss(); // NOSONAR
       }, 10000);
     });
   }

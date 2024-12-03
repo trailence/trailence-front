@@ -14,6 +14,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { UpdateService } from 'src/app/services/update/update.service';
 import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { trailenceAppVersionName } from 'src/app/trailence-version';
 
 @Component({
     selector: 'app-menu',
@@ -25,6 +26,8 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
     ]
 })
 export class MenuComponent {
+
+  versionName = trailenceAppVersionName;
 
   collections: List<TrailCollection> = List();
   sharedWithMe: List<Share> = List();

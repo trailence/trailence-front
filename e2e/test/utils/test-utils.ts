@@ -25,4 +25,13 @@ export class TestUtils {
     });
   }
 
+  public static async waitFor<T>(operation: () => Promise<T>, predicate: (result: T) => boolean): Promise<T> {
+    let result: T;
+    await browser.waitUntil(async () => {
+      result = await operation();
+      return predicate(result);
+    });
+    return result!;
+  }
+
 }

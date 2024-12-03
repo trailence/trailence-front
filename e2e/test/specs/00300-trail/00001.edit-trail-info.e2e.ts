@@ -44,6 +44,10 @@ describe('Trail - Edit infos', () => {
     trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
   });
 
+  it('Synchronize', async () => {
+    await App.synchronize();
+  });
+
   it('Edit location', async () => {
     expect(await trailPage.trailComponent.getLocation()).toBe('');
     await trailPage.trailComponent.setLocation();

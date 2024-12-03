@@ -1,7 +1,8 @@
 import * as L from 'leaflet';
-import { filter, first } from 'rxjs';
+import { first } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 export function handleMapOffline(name: string, tiles: L.TileLayer, network: NetworkService, offlineMap: OfflineMapService): L.TileLayer {
   const originalCreateTile = (tiles as any)['createTile'];
@@ -15,9 +16,9 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
         next: binary => {
           if (!binary) {
             network.internet$.pipe(
-              filter(c => !!c),
+              filterDefined(),
               first()
-            ).subscribe(() => {
+            ).subscribe(() => { // NOSONAR
               if (!img.parentElement) return;
               img._loaded = true;
               img.onerror = undefined;
@@ -44,7 +45,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
             });
             fallbackTile(img, coords, tiles, done);
           } else {
-            binary.toBase64().then(url => {
+            binary.toBase64().then(url => { // NOSONAR
               img.src = url;
               img._loaded = true;
               img.classList.add('map-tile-offline');

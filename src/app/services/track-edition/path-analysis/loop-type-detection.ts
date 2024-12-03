@@ -2,7 +2,7 @@ import { Track } from 'src/app/model/track';
 import { TrailLoopType } from 'src/app/model/trail';
 import { buildClosePoints } from './build-close-points';
 
-export function detectLoopType(track: Track): TrailLoopType | undefined {
+export function detectLoopType(track: Track): TrailLoopType | undefined { // NOSONAR
   const arrival = track.arrivalPoint;
   if (!arrival) return undefined;
   const departure = track.departurePoint;

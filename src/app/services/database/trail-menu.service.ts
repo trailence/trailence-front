@@ -320,7 +320,7 @@ export class TrailMenuService {
                 progress.subTitle = '' + (index + 1 + previousZipEntries) + '/' + (nbFiles + zipEntries);
                 progress.addWorkDone(1);
                 const done: ({trailUuid: string, tags: string[][]})[] = [];
-                const readNextZipEntry = (entryIndex: number) => {
+                const readNextZipEntry = (entryIndex: number) => { // NOSONAR
                   const gpxFile = gpxFiles[entryIndex];
                   return gpxFile.async('arraybuffer')
                   .then(arraybuffer => this.importGpx(arraybuffer, email, collectionUuid, zip))
@@ -496,7 +496,7 @@ export class TrailMenuService {
                 t.trail,
                 t.tracks,
                 tags,
-                photosToExport.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid),
+                photosToExport.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid), // NOSONAR
                 photoFilenameMap,
               )
             }))
@@ -813,7 +813,7 @@ export class TrailMenuService {
             const copyNext = () => {
               photoService.getFile$(allPhotos[index].owner, allPhotos[index].uuid).subscribe({
                 next: blob => {
-                  blob.arrayBuffer().then(buffer => {
+                  blob.arrayBuffer().then(buffer => { // NOSONAR
                     const originalPhoto = allPhotos[index];
                     const originalTrail = photos.find(p => p.photos.indexOf(originalPhoto) >= 0)!.originalTrail;
                     const trail = trails.find(t => t.originalTrail === originalTrail)!;

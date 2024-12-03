@@ -395,7 +395,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getElevationThresholdStep(): number {
+  getElevationThresholdStep(): number { // NOSONAR
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 1;
       case 'IMPERIAL': return 5;
@@ -409,7 +409,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getMinElevationThresholdDistance(): number {
+  getMinElevationThresholdDistance(): number { // NOSONAR
     switch (this.prefs.preferences.distanceUnit) {
       case 'METERS': return 25;
       case 'IMPERIAL': return 80;
@@ -447,7 +447,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   }
 
   canJoinArrivalAndDeparture$(): Observable<boolean> {
-    return this.getTrack().pipe(map(track => !!track.departurePoint && !!track.arrivalPoint && track.departurePoint.distanceTo(track.arrivalPoint.pos) > 1 && track.departurePoint.distanceTo(track.arrivalPoint!.pos) < 100));
+    return this.getTrack().pipe(map(track => !!track.departurePoint && !!track.arrivalPoint && track.departurePoint.distanceTo(track.arrivalPoint.pos) > 1 && track.departurePoint.distanceTo(track.arrivalPoint.pos) < 100));
   }
 
   joinArrivalToDeparture(): void {

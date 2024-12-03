@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, Observable, combineLatest, filter, first, map, of, switchMap, zip } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
@@ -17,12 +17,7 @@ import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { ShareService } from './share.service';
 import { AuthService } from '../auth/auth.service';
-import Trailence from '../trailence.service';
-import { TrailMenuService } from './trail-menu.service';
-import { Router } from '@angular/router';
-import { ModalController} from '@ionic/angular/standalone';
 import { PhotoService } from './photo.service';
-import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 
 @Injectable({
@@ -39,7 +34,6 @@ export class TrailService {
     private readonly injector: Injector,
   ) {
     this._store = new TrailStore(injector, http, trackService, collectionService);
-    this.listenToImportGpx();
   }
 
   public getAll$(): Observable<Observable<Trail | null>[]> {
@@ -126,7 +120,7 @@ export class TrailService {
           let done = 0;
           let workDone = 0;
           const ondone = () => {
-            setTimeout(() => {
+            setTimeout(() => { // NOSONAR
               done++;
               const newWorkDone = done * progressWork / toRemove.length;
               progress?.addWorkDone(newWorkDone - workDone);
@@ -137,7 +131,7 @@ export class TrailService {
               }
             }, 0);
           };
-          for (const trail of toRemove) setTimeout(() => this.delete(trail!, ondone), 0);
+          for (const trail of toRemove) setTimeout(() => this.delete(trail!, ondone), 0); // NOSONAR
         });
       })
     );
@@ -156,76 +150,6 @@ export class TrailService {
 
   public cleanDatabase(db: Dexie, email: string): Observable<any> {
     return this._store.cleanDatabase(db, email);
-  }
-
-  private listenToImportGpx(): void {
-    const files = new Map<number, {nbChunks: number, chunks: string[]}>();
-    Trailence.listenToImportedFiles((message) => {
-      if (message.chunks !== undefined) {
-        files.set(message.fileId, {nbChunks: message.chunks, chunks: new Array(message.chunks)});
-        Console.info('Start receiving new file from device with ' + message.chunks + ' chunks');
-      } else if (message.chunkIndex !== undefined && message.data !== undefined) {
-        const file = files.get(message.fileId);
-        if (!file) {
-          Console.error('Received a chunk of data from device for an unknown file id', message.fileId);
-          return;
-        }
-        file.chunks[message.chunkIndex] = message.data;
-        let done = true;
-        for (const chunk of file.chunks) {
-          if (chunk === undefined || chunk === null) {
-            done = false;
-            break;
-          }
-        }
-        Console.info('new chunk of data received from device', file);
-        if (done) {
-          files.delete(message.fileId);
-          this.importGpx(file.chunks);
-        }
-      }
-    });
-  }
-
-  private importGpx(chunks: string[]): void {
-    Console.info('Received GPX data to import from device');
-    this.injector.get(AuthService).auth$.pipe(
-      filter(auth => !!auth),
-      first(),
-    ).subscribe(auth => {
-      const owner = auth.email;
-      const binaryChunks = chunks.map(c => atob(c));
-      let size = 0;
-      for (const c of binaryChunks) size += c.length;
-      const bytes = new Uint8Array(size);
-      let pos = 0;
-      for (const c of binaryChunks) {
-        for (let i = 0; i < c.length; ++i)
-          bytes[pos + i] = c.charCodeAt(i);
-        pos += c.length;
-      }
-      const buffer = bytes.buffer;
-
-      const menuService = this.injector.get(TrailMenuService);
-      import('../../components/import-gpx-popup/import-gpx-popup.component')
-      .then(module => this.injector.get(ModalController).create({
-        component: module.ImportGpxPopupComponent,
-        backdropDismiss: false,
-        componentProps: {
-          onDone: (collectionUuid: string) => {
-            menuService.importGpx(buffer, owner, collectionUuid)
-            .then(imported => {
-              menuService.importTags([imported], collectionUuid);
-              this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid);
-            })
-            .catch(error => {
-              this.injector.get(ErrorService).addError(error);
-            });
-          }
-        }
-      }))
-      .then(modal => modal.present());
-    });
   }
 
   public storeLoadedAndServerUpdates$(): Observable<boolean> {

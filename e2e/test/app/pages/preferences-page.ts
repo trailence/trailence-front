@@ -30,6 +30,19 @@ export class PreferencesPage extends PageWithHeader {
     return input;
   }
 
+  public async getPhotosSizes() {
+    const cells = await this.getElement().$('div.title=Downloaded photos').parentElement().$$('table tr td').getElements();
+    const sizes: string[] = [];
+    for (const cell of cells) {
+      sizes.push((await cell.getText()).trim());
+    }
+    return sizes;
+  }
+
+  public async removeAllPhotos() {
+    await new IonicButton(this.getElement().$('ion-button#button-remove-all-photos')).click();
+  }
+
   public async resetAll() {
     await new IonicButton(this.getElement(), 'ion-button=Reset all to default values').click();
   }

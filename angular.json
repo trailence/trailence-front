@@ -104,6 +104,14 @@
                   "with": "capacitor/services/network/network.service.ts"
                 },
                 {
+                  "replace": "src/app/services/platform/platform.service.ts",
+                  "with": "capacitor/services/platform/platform.service.ts"
+                },
+                {
+                  "replace": "src/app/services/update/update.service.ts",
+                  "with": "capacitor/services/update/update.service.ts"
+                },
+                {
                   "replace": "src/app/services/trailence.service.ts",
                   "with": "capacitor/services/trailence.service.ts"
                 },
@@ -132,6 +140,14 @@
                   "with": "capacitor/services/network/network.service.ts"
                 },
                 {
+                  "replace": "src/app/services/platform/platform.service.ts",
+                  "with": "capacitor/services/platform/platform.service.ts"
+                },
+                {
+                  "replace": "src/app/services/update/update.service.ts",
+                  "with": "capacitor/services/update/update.service.ts"
+                },
+                {
                   "replace": "src/app/services/trailence.service.ts",
                   "with": "capacitor/services/trailence.service.ts"
                 },
@@ -158,6 +174,14 @@
                 {
                   "replace": "src/app/services/network/network.service.ts",
                   "with": "capacitor/services/network/network.service.ts"
+                },
+                {
+                  "replace": "src/app/services/platform/platform.service.ts",
+                  "with": "capacitor/services/platform/platform.service.ts"
+                },
+                {
+                  "replace": "src/app/services/update/update.service.ts",
+                  "with": "capacitor/services/update/update.service.ts"
                 },
                 {
                   "replace": "src/app/services/trailence.service.ts",

@@ -143,7 +143,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     }
   }
 
-  private _checkComponentState(): void {
+  private _checkComponentState(): void { // NOSONAR
     const state = this.getComponentState();
     let needRefresh = false;
     if (!this._currentState) {

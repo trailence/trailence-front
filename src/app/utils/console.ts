@@ -38,11 +38,11 @@ export class Console {
     if (navigator.webdriver) {
       const w = window as any;
       if (!w._consoleHistory) w._consoleHistory = [];
-      const convert = (a: any, done: any[], deep: number) => {
+      const convert = (a: any, done: any[], deep: number) => { // NOSONAR
         try {
-          if (deep > 5) return '<too deep>';
+          if (deep > 3) return '<too deep>';
           if (Array.isArray(a)) {
-            if (done.indexOf(a)) return '<duplicate>';
+            if (done.indexOf(a) >= 0) return '<duplicate>';
             let s = '[';
             for (const element of a) {
               s += convert(element, [...done, a], deep + 1) + ',';
@@ -50,7 +50,7 @@ export class Console {
             return s + ']';
           }
           if (a && typeof a === 'object') {
-            if (done.indexOf(a)) return '<duplicate>';
+            if (done.indexOf(a) >= 0) return '<duplicate>';
             let s = '{';
             for (const key of Object.getOwnPropertyNames(a)) {
               let v = typeof a[key] === 'function' ? 'function' : a[key];

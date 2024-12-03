@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, filter, first, map, Observable, of } from 'rxjs';
+import { BehaviorSubject, filter, first, map, Observable } from 'rxjs';
 import { Extension } from 'src/app/model/extension';
 import { DatabaseService, EXTENSIONS_TABLE_NAME } from './database.service';
 import { StoreSyncStatus } from './store';
@@ -18,7 +18,7 @@ export class ExtensionsService {
   private readonly _syncStatus$ = new BehaviorSubject<ExtensionsSyncStatus>(new ExtensionsSyncStatus());
   private _db?: Dexie;
   private readonly _loaded$ = new BehaviorSubject<boolean>(false);
-  private _pendingOperation$ = new BehaviorSubject<number>(0);
+  private readonly _pendingOperation$ = new BehaviorSubject<number>(0);
 
   constructor(
     private readonly databaseService: DatabaseService,

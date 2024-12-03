@@ -12,63 +12,6 @@ export class ImageUtils {
       image[2] === 0xFF;
   }
 
-  public static reduceSize(image: ArrayBuffer, maxWidth: number, maxHeight: number, quality: number): Promise<ArrayBuffer> {
-    return new Promise((resolve, reject) => {
-      const blob = new Blob([image], { type: "image/jpeg" });
-      const img = new Image();
-      const urlCreator = window.URL || window.webkitURL;
-      img.onload = () => {
-        const width = img.naturalWidth;
-        const height = img.naturalHeight;
-        let dw = width;
-        let dh = height;
-        if (dw > maxWidth) {
-          dw = maxWidth;
-          dh = height * (maxWidth / width);
-        }
-        if (dh > maxHeight) {
-          const ratio = maxHeight / dh;
-          dh = maxHeight;
-          dw *= ratio;
-        }
-        dw = Math.floor(dw);
-        dh = Math.floor(dh);
-
-        const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
-        canvas.width = dw;
-        canvas.height = dh;
-        canvas.style.position = 'fixed';
-        canvas.style.top = '-10000px';
-        canvas.style.left = '-10000px';
-        document.documentElement.appendChild(canvas);
-        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-        ctx.drawImage(img, 0, 0, width, height, 0, 0, dw, dh);
-        urlCreator.revokeObjectURL(img.src);
-        canvas.toBlob(
-          blob => {
-            if (blob) {
-              blob.arrayBuffer().then(buffer => { // NOSONAR
-                resolve(buffer);
-                canvas.parentElement?.removeChild(canvas);
-              }).catch(e => { // NOSONAR
-                reject(e);
-                canvas.parentElement?.removeChild(canvas);
-              });
-            } else {
-              reject("Unable to generate JPEG");
-            }
-          },
-          "image/jpeg",
-          quality
-        )
-      };
-      img.onerror = err => {
-        reject(err);
-      };
-      img.src = urlCreator.createObjectURL(blob);
-    });
-  }
-
   public static convertToJpeg(image: Uint8Array | Blob, maxWidth?: number, maxHeight?: number, quality?: number): Promise<{blob: Blob, width: number, height: number}> {
     return new Promise((resolve, reject) => {
       const blob = image instanceof Blob ? image : new Blob([image]);

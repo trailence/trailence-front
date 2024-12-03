@@ -51,7 +51,7 @@ describe('Collections', () => {
     expect(collections.length).toBe(2);
     expect(collections).toContain('My Trails');
     expect(collections).toContain('Test first Collection UPDATE 1');
-    menu.close();
+    await menu.close();
   });
 
   it('Synchronize, logout with delete, login again, the collection is still there', async () => {

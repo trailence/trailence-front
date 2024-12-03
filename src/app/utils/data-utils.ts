@@ -9,7 +9,7 @@ export class DataUtils {
   }
 
   public static readUint16(data: Uint8Array, offset: number, littleEndian: boolean): number {
-    return littleEndian ? DataUtils.readUint16LittleEndian(data, offset) : DataUtils.readUint16BigEndian(data, offset);
+    return littleEndian ? DataUtils.readUint16LittleEndian(data, offset) : DataUtils.readUint16BigEndian(data, offset); // NOSONAR
   }
 
   public static readUint32BigEndian(data: Uint8Array, offset: number): number {
@@ -21,7 +21,7 @@ export class DataUtils {
   }
 
   public static readUint32(data: Uint8Array, offset: number, littleEndian: boolean): number {
-    return littleEndian ? DataUtils.readUint32LittleEndian(data, offset) : DataUtils.readUint32BigEndian(data, offset);
+    return littleEndian ? DataUtils.readUint32LittleEndian(data, offset) : DataUtils.readUint32BigEndian(data, offset); // NOSONAR
   }
 
 }

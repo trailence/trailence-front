@@ -7,7 +7,7 @@ export function adjustUnprobableElevationToTrack(track: Track) {
     adjustUnprobableElevationToSegment(segment, undefined, true);
 }
 
-export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: number | undefined, finish: boolean): number {
+export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: number | undefined, finish: boolean): number { // NOSONAR
   const points = segment.points;
   const nb = finish ? points.length : points.length - 10;
   let isBack = -1;
@@ -101,7 +101,6 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
         }
 
         const average = nbNext === 0 ? previousTotalEle / nbPrevious : (nbPrevious === 0 ? nextTotalEle / nbNext : (previousTotalEle + nextTotalEle) / (nbPrevious + nbNext));
-        //console.log(i, ele, points[i].pos.lat, points[i].pos.lng, diffEle, distance, nbPrevious, previousTotalEle, previousTotalDist, nbNext, nextTotalEle, nextTotalDist, average);
         if (Math.abs(previousEle - average) < Math.abs(ele - average) && Math.abs(previousEle - average) < diffEle / 2 && Math.abs(ele - average) > diffEle / 2) {
           // looks like the previous point is better
           if (nbPrevious === 0 || nbNext === 0 || Math.abs(previousEle - (nextTotalEle / nbNext)) < Math.abs(ele - (nextTotalEle / nbNext))) {
@@ -127,48 +126,7 @@ export function adjustUnprobableElevationToSegment(segment: Segment, lastIndex: 
           continue;
         }
       }
-      /*
-      if (eleAccuracy !== undefined && eleAccuracy < 25 && previousEleAccuracy !== undefined && previousEleAccuracy < 25) continue;
-      const diff = Math.abs(ele - previousEle);
-      const diffByMeter = diff / distance;
-      if (diffByMeter > 1 && diff > 10) {
-        let mostProbable;
-        if (previousEleAccuracy !== undefined || eleAccuracy !== undefined)
-          mostProbable = bestAccuracy(previousEleAccuracy, eleAccuracy);
-        else {
-          const next = TrackUtils.nextPointIndexWithElevation(points, i);
-          if (next < 0) continue;
-          const nextEle = points[next].ele!;
-          const nextDistance = TrackUtils.distanceBetween(points, i, next);
-          const nextDiffByMeter = Math.abs(nextEle - ele) / nextDistance;
-          if (nextDiffByMeter < diffByMeter)
-            mostProbable = 1;
-          else
-            mostProbable = -1;
-        }
-        if (mostProbable <= 0) {
-          points[i].ele = previousEle;
-          points[i].eleAccuracy = previousEleAccuracy;
-        } else {
-          points[previous].ele = ele;
-          points[previous].eleAccuracy = eleAccuracy;
-          i = previous - 1;
-          if (i < 0) i = 0;
-        }
-      }*/
     }
   }
   return Math.max(nb, 0);
 }
-
-/*
-function bestAccuracy(a1: number | undefined, a2: number | undefined): number {
-  if (a1 === undefined) {
-    if (a2 === undefined) {
-      return 0;
-    }
-    return 1;
-  }
-  if (a2 === undefined) return -1;
-  return a1 < a2 ? -1 : (a1 > a2 ? 1 : 0);
-}*/

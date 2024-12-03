@@ -6,6 +6,7 @@ import { ImportTagsPopup } from '../../components/import-tags-popup.component';
 import { TagsPopup } from '../../components/tags-popup';
 import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Trails list - Import Simple GPX', () => {
 
@@ -45,7 +46,7 @@ describe('Trails list - Import Simple GPX', () => {
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
-    trailPage = await trailsList.openTrail(trail!);
+    trailPage = await trailsList.openTrail(trail);
   });
 
   it('Open trail, it has the original track and an improved track', async () => {
@@ -82,17 +83,17 @@ describe('Trails list - Import Simple GPX', () => {
     const trail = await trailsList.waitTrail('Tour de Port-Cros');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
-      const tags = await trail!.getTags();
+      const tags = await trail.getTags();
       return tags.length === 2 && tags.indexOf('Tag 1') >= 0 && tags.indexOf('Tag 2') >= 0;
     });
-    await trail!.clickMenuItem('Tags');
+    await trail.clickMenuItem('Tags');
     const tagsPopup = new TagsPopup(await App.waitModal());
-    const allTags = await tagsPopup.getAllTags();
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 2);
     expect(allTags.length).toBe(2);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
     await tagsPopup.cancel();
-    trailPage = await trailsList.openTrail(trail!);
+    trailPage = await trailsList.openTrail(trail);
   });
 
   it('Open trail, it has the 2 tags', async () => {
@@ -122,12 +123,12 @@ describe('Trails list - Import Simple GPX', () => {
     const trail = await trailsList.waitTrail('Roquefraîche');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
-      const tags = await trail!.getTags();
+      const tags = await trail.getTags();
       return tags.length === 2 && tags.indexOf('Tag 2') >= 0 && tags.indexOf('Tag 3') >= 0;
     });
-    await trail!.clickMenuItem('Tags');
+    await trail.clickMenuItem('Tags');
     const tagsPopup = new TagsPopup(await App.waitModal());
-    const allTags = await tagsPopup.getAllTags();
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 3);
     expect(allTags.length).toBe(3);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
@@ -150,12 +151,12 @@ describe('Trails list - Import Simple GPX', () => {
     const trail = await trailsList.waitTrail('Au dessus de Montclar');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
-      const tags = await trail!.getTags();
+      const tags = await trail.getTags();
       return tags.length === 1 && tags.indexOf('Tag 1') >= 0;
     });
-    await trail!.clickMenuItem('Tags');
+    await trail.clickMenuItem('Tags');
     const tagsPopup = new TagsPopup(await App.waitModal());
-    const allTags = await tagsPopup.getAllTags();
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 3);
     expect(allTags.length).toBe(3);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
@@ -179,20 +180,20 @@ describe('Trails list - Import Simple GPX', () => {
     const trail1 = await trailsList.waitTrail('Randonnée du 20/02/2022 à 09:55');
     expect(trail1).toBeDefined();
     await browser.waitUntil(async () => {
-      const tags = await trail1!.getTags();
+      const tags = await trail1.getTags();
       return tags.length === 1 && tags.indexOf('Tag 1') >= 0;
     });
 
     const trail2 = await trailsList.waitTrail('Près de Tourves');
     expect(trail2).toBeDefined();
     await browser.waitUntil(async () => {
-      const tags = await trail2!.getTags();
+      const tags = await trail2.getTags();
       return tags.length === 1 && tags.indexOf('Tag 4') >= 0;
     });
 
-    await trail1!.clickMenuItem('Tags');
+    await trail1.clickMenuItem('Tags');
     const tagsPopup = new TagsPopup(await App.waitModal());
-    const allTags = await tagsPopup.getAllTags();
+    const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 4);
     expect(allTags.length).toBe(4);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
     expect(allTags.indexOf('Tag 2') >= 0).toBeTrue();
@@ -215,14 +216,14 @@ describe('Trails list - Import Simple GPX', () => {
     const trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
-      const tags = await trail!.getTags();
+      const tags = await trail.getTags();
       return tags.length === 1 && tags.indexOf('Tag 2') >= 0;
     });
     await browser.waitUntil(async () => {
-      const slider = trail!.getPhotosSliderElement();
+      const slider = trail.getPhotosSliderElement();
       return await slider.isExisting() && await slider.isDisplayed();
     });
-    trailPage = await trailsList.openTrail(trail!);
+    trailPage = await trailsList.openTrail(trail);
   });
 
   it('Trail page contains the photo', async () => {

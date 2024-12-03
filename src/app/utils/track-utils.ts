@@ -105,7 +105,7 @@ export class TrackUtils {
     return closestIndex;
   }
 
-  public static findClosestPointForTime(track: Track, time: number): Point | undefined {
+  public static findClosestPointForTime(track: Track, time: number): Point | undefined { // NOSONAR
     let previous: Point | undefined = undefined;
     for (const segment of track.segments) {
       for (const point of segment.points) {

@@ -144,10 +144,7 @@ export class I18nService {
   }
 
   public elevationInUserUnit(meters: number): number {
-    switch (this.prefService.preferences.distanceUnit) {
-      case 'METERS': return meters;
-      case 'IMPERIAL': return this.metersToFoot(meters);
-    }
+    return this.distanceInUserUnit(meters);
   }
 
   public elevationInMetersFromUserUnit(elevation: number): number {

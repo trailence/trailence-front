@@ -6,10 +6,9 @@ import { XmlUtils } from 'src/app/utils/xml-utils';
 @Injectable({providedIn: 'root'})
 export class OsmcSymbolService {
 
-  public generateSymbol(symbol: string): string {
+  public generateSymbol(symbol: string): string { // NOSONAR
     const elements = symbol.split(':');
     if (elements.length < 2) return '';
-    //const waycolor = elements[0];
     const background = elements[1];
     const foreground = elements.length > 2 ? elements[2] : undefined;
     let text: string | undefined;
@@ -27,7 +26,6 @@ export class OsmcSymbolService {
       textcolor = elements.length > index + 1 ? elements[index + 1] : undefined;
     }
 
-    //console.log(elements, waycolor, background, foreground, foreground2, text, textcolor);
     let svg = '<svg width="24px" height="24px" viewBox="0 0 24 24" fill="none">';
     const back = this.oscmDrawBackground(background);
     if (back) {

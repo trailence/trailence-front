@@ -31,7 +31,7 @@ mkdir ./downloads
 
 export MOZ_REMOTE_SETTINGS_DEVTOOLS=1
 
-npm run wdio -- --trailence-init-username=$TRAILENCE_INIT_USER --trailence-init-password=$TRAILENCE_INIT_PASSWORD $@ | grep -v "BIDI COMMAND" | grep -v "BIDI RESULT"
+npm run wdio -- --trailence-init-username=$TRAILENCE_INIT_USER --trailence-init-password=$TRAILENCE_INIT_PASSWORD $@ | grep -v "BIDI COMMAND" | grep -v "BIDI RESULT" | grep -v "INFO webdriver: RESULT {\"/home"
 if [ ${PIPESTATUS[0]} -ne 0 ]; then
   echo "Error during tests"
   exit 1

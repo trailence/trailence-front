@@ -154,7 +154,15 @@ export class PhotoService {
   }
 
   public delete(photo: Photo, ondone?: () => void): void {
-    this.store.delete(photo, ondone);
+    this.store.delete(photo, () => {
+      const key = photo.owner + '#' + photo.uuid;
+      const blob = this._blobUrls.get(key);
+      if (blob) {
+        this._blobUrls.delete(key);
+        blob.close();
+      }
+      if (ondone) ondone();
+    });
   }
 
   public deleteForTrail(owner: string, trailUuid: string, ondone?: () => void): void {
@@ -196,7 +204,14 @@ export class PhotoService {
   }
 
   public removeAllCached(): Observable<any> {
-    return this.injector.get(StoredFilesService).removeAll('photo');
+    return this.store.getAll$().pipe(
+      collection$items(),
+      switchMap(items => this.injector.get(StoredFilesService).removeAll('photo', (owner, uuid) => {
+        const item = items.find(p => p.owner === owner && p.uuid === uuid);
+        if (!item) return false;
+        return !item.isSavedOnServerAndNotDeletedLocally() || this.store.isUpdatedLocally(owner, uuid);
+      }))
+    );
   }
 
   public removeExpired(): Observable<any> {

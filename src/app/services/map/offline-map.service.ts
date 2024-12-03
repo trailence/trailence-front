@@ -146,7 +146,7 @@ export class OfflineMapService {
                     key: '' + c.z + '_' + c.y + '_' + c.x,
                     blob: blob
                   }))
-                ]).subscribe(() => {
+                ]).subscribe(() => { // NOSONAR
                   progress.workDone = ++done;
                   progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
                   if (done === coordsToDl.length) ondone();
@@ -174,7 +174,7 @@ export class OfflineMapService {
   }
 
   private computeTilesCoords$(state: SaveState, progress: Progress): Promise<boolean> {
-    const maxZoom = Math.min(state.layer.options.maxZoom!, this.preferencesService.preferences.offlineMapMaxZoom);
+    const maxZoom = Math.min(state.layer.options.maxZoom!, this.preferencesService.preferences.offlineMapMaxZoom); // NOSONAR
     return new Promise<boolean>(resolve => {
       for (const bounds of state.boundsList) {
         for (let zoom = 1; zoom <= maxZoom; zoom++) {
@@ -202,7 +202,7 @@ export class OfflineMapService {
         this.getTilesPoints$(area, state.layer.getTileSize(), progress)
         .then(points => {
           for (const point of points) {
-            const exists = state.coords.find(e => e.x === point.x && e.y === point.y && e.z === state.zoom);
+            const exists = state.coords.find(e => e.x === point.x && e.y === point.y && e.z === state.zoom); // NOSONAR
             if (!exists) {
               (point as any)['z'] = state.zoom;
               state.coords.push(point as L.Coords);
@@ -214,7 +214,7 @@ export class OfflineMapService {
           } else {
             state.zoom++;
           }
-          this.ngZone.runTask(() => setTimeout(() => computeNext(), 0));
+          this.ngZone.runTask(() => setTimeout(() => computeNext(), 0)); // NOSONAR
         });
       };
       this.ngZone.runTask(() => computeNext());
@@ -239,7 +239,7 @@ export class OfflineMapService {
           resolve(points);
           return;
         }
-        this.ngZone.runTask(() => setTimeout(() => computeNextRow(j + 1), 0));
+        this.ngZone.runTask(() => setTimeout(() => computeNextRow(j + 1), 0)); // NOSONAR
       };
       this.ngZone.runTask(() => computeNextRow(topLeftTile.y));
     });

@@ -9,6 +9,7 @@ import { combineLatest, filter, first, Observable, tap } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';
+import { PlatformService } from './services/platform/platform.service';
 
 @Component({
     selector: 'app-root',
@@ -34,11 +35,14 @@ export class AppComponent {
     router: Router,
     auth: AuthService,
     private readonly injector: Injector,
-    // init browser
-    browserService: BrowserService,
-    // init assets
-    assetsService: AssetsService,
   ) {
+    // init browser
+    injector.get(BrowserService);
+    // init assets
+    injector.get(AssetsService);
+    // init platform specificities
+    injector.get(PlatformService);
+
     combineLatest([
       router.events.pipe(
         filter(e => e instanceof NavigationEnd),

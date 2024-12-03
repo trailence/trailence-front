@@ -95,11 +95,18 @@ export class StoredFilesService {
     }));
   }
 
-  public removeAll(type: string): Observable<any> {
+  public removeAll(type: string, filterExclude: (owner: string, uuid: string) => boolean): Observable<any> {
     if (!this.table) return of(null);
     const t = this.table;
     return from(t.toCollection().primaryKeys()
-    .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
+    .then(keys => keys.filter(k => {
+      const i = k.indexOf('#' + type + '#');
+      if (i < 0) return false;
+      const owner = k.substring(0, i);
+      const uuid = k.substring(i + type.length + 2);
+      if (filterExclude(owner, uuid)) return false;
+      return true;
+    }))
     .then(toRemove => {
       if (t !== this.table) return;
       Console.info('Removing files', type, toRemove.length);

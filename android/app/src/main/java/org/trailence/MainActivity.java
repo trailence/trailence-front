@@ -1,8 +1,10 @@
 package org.trailence;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Logger;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebView;
@@ -29,6 +31,7 @@ public class MainActivity extends BridgeActivity {
   private void checkForOpenFile(Intent intent) {
     Uri fileUri = intent.getData();
     if (fileUri != null) {
+      String filename = this.getFileName(fileUri);
       List<byte[]> content = new LinkedList<>();
       try (InputStream in = this.getContentResolver().openInputStream(fileUri)) {
         do {
@@ -53,8 +56,38 @@ public class MainActivity extends BridgeActivity {
         e.printStackTrace();
       }
       if (!content.isEmpty()) {
-        ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).addFileToImport(content);
+        ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).addFileToImport(filename, content);
       }
     }
   }
+
+  private String getFileName(Uri uri) {
+    try {
+      Cursor c = this.getContentResolver().query(uri, new String[]{"_data", "title", "_display_name"}, null, null, null);
+      c.moveToFirst();
+      int i = c.getColumnIndex("_display_name");
+      if (i >= 0) {
+        String filename = c.getString(i);
+        if (filename != null && filename.length() > 0) return filename;
+      }
+      i = c.getColumnIndex("_data");
+      if (i >= 0) {
+        String path = c.getString(i);
+        if (path != null && path.length() > 0) {
+          int j = path.lastIndexOf('/');
+          if (j >= 0) path = path.substring(j + 1);
+          if (path.length() > 0) return path;
+        }
+      }
+      i = c.getColumnIndex("title");
+      if (i >= 0) {
+        String filename = c.getString(i);
+        if (filename != null && filename.length() > 0) return filename;
+      }
+    } catch (Exception e) {
+      // ignore
+    }
+    return null;
+  }
+
 }

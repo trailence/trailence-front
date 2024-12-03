@@ -162,6 +162,7 @@ export class GeoService {
     );
   }
 
+  /*
   private getElevationFromOpenElevation(points: Point[]): Observable<any> {
     const body = {
       locations: points.map(p => ({latitude: p.pos.lat, longitude: p.pos.lng}))
@@ -284,7 +285,7 @@ export class GeoService {
       catchError(e => of(false))
     );
   }
-
+  */
 
 }
 

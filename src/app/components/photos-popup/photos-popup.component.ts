@@ -108,6 +108,11 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     this.modalController.dismiss(null, 'close');
   }
 
+  setBlobSize(p: PhotoWithInfo, size: number): void {
+    p.blobSize = size;
+    this.changesDetector.detectChanges();
+  }
+
   setSelected(p: PhotoWithInfo, selected: boolean): void {
     if (p.selected === selected) return;
     p.selected = selected;

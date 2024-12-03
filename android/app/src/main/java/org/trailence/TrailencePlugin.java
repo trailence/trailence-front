@@ -11,6 +11,7 @@ import android.os.PowerManager;
 import android.provider.Settings;
 
 import androidx.activity.result.ActivityResult;
+import androidx.core.util.Pair;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Logger;
@@ -169,14 +170,14 @@ public class TrailencePlugin extends Plugin {
     }
   }
 
-  private final LinkedList<List<byte[]>> filesToImport = new LinkedList<>();
+  private final LinkedList<Pair<String, List<byte[]>>> filesToImport = new LinkedList<>();
   private PluginCall importFilesListener = null;
 
-  public void addFileToImport(List<byte[]> content) {
+  public void addFileToImport(String filename, List<byte[]> content) {
     if (importFilesListener == null)
-      this.filesToImport.add(content);
+      this.filesToImport.add(new Pair(filename, content));
     else
-      this.pushFileToImport(content);
+      this.pushFileToImport(filename, content);
   }
 
   @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
@@ -184,15 +185,15 @@ public class TrailencePlugin extends Plugin {
     call.setKeepAlive(true);
     this.importFilesListener = call;
     while (!filesToImport.isEmpty()) {
-      List<byte[]> content = filesToImport.removeFirst();
-      this.pushFileToImport(content);
+      Pair<String, List<byte[]>> content = filesToImport.removeFirst();
+      this.pushFileToImport(content.first, content.second);
     }
   }
 
   private int pushFileIdCounter = 1;
-  private void pushFileToImport(List<byte[]> content) {
+  private void pushFileToImport(String filename, List<byte[]> content) {
     int id = pushFileIdCounter++;
-    this.importFilesListener.resolve(new JSObject().put("fileId", id).put("chunks", content.size()));
+    this.importFilesListener.resolve(new JSObject().put("fileId", id).put("chunks", content.size()).put("filename", filename));
     int index = 0;
     for (byte[] chunk : content) {
       this.importFilesListener.resolve(new JSObject().put("fileId", id).put("chunkIndex", index++).put("data", Base64.getEncoder().encodeToString(chunk)));

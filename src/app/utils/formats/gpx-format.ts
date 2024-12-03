@@ -21,7 +21,7 @@ export interface ImportedTrail {
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): ImportedTrail {
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): ImportedTrail { // NOSONAR
     const fileContent = new TextDecoder().decode(file);
     const parser = new DOMParser();
     const doc = parser.parseFromString(fileContent, "application/xml");
@@ -67,11 +67,11 @@ export class GpxFormat {
               dateTaken: TypeUtils.toInteger(photoNode.getAttribute('date')),
               latitude: TypeUtils.toFloat(photoNode.getAttribute('lat')),
               longitude: TypeUtils.toFloat(photoNode.getAttribute('lng')),
-              index: TypeUtils.toInteger(photoNode.getAttribute('index')) || 1,
+              index: TypeUtils.toInteger(photoNode.getAttribute('index')) ?? 1,
               isCover: photoNode.getAttribute('cover') === 'true',
             };
             photos.push(photo);
-            photosFilenames.set(photo, photoNode.getAttribute('filename') || '');
+            photosFilenames.set(photo, photoNode.getAttribute('filename') ?? '');
           }
         }
       }
@@ -179,7 +179,7 @@ export class GpxFormat {
     return new WayPoint(pt, name, description);
   }
 
-  public static exportGpx(trail: Trail, tracks: Track[], tags: string[][], photos: Photo[], photosFilenames: Map<Photo, string>): BinaryContent {
+  public static exportGpx(trail: Trail, tracks: Track[], tags: string[][], photos: Photo[], photosFilenames: Map<Photo, string>): BinaryContent { // NOSONAR
     let gpx = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n';
     gpx += '<gpx version="1.1" creator="Trailence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" xmlns:ext="https://trailence.org/schemas/gpx_extension/1" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">\n';
     gpx += '<metadata>';
@@ -248,7 +248,7 @@ export class GpxFormat {
     return result;
   }
 
-  private static writePoint(point: Point | WayPoint, elementName: string): string {
+  private static writePoint(point: Point | WayPoint, elementName: string): string { // NOSONAR
     const pt = point instanceof Point ? point : point.point;
     const wp = point instanceof WayPoint ? point : undefined;
     let gpx = '<' + elementName;

@@ -383,7 +383,7 @@
             </td>
           </tr>
         </table>
-        <ion-button (click)="removeAllCachedPhotos()" [disabled]="!photoCacheSize?.total">
+        <ion-button (click)="removeAllCachedPhotos()" [disabled]="!photoCacheSize?.total" id="button-remove-all-photos">
           <ion-icon name="trash" slot="start"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.photos_cache_remove_all}}</ion-label>
         </ion-button>

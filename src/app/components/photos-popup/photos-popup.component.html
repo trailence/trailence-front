@@ -33,7 +33,7 @@
           </div>
         </div>
         <div class="photo-and-description">
-          <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)" (blobSize)="photoWithInfo.blobSize = $event"></app-photo>
+          <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)" (blobSize)="setBlobSize(photoWithInfo, $event)"></app-photo>
           <div class="description" (click)="editDescription(photoWithInfo)" *ngIf="!photoWithInfo.editing" [ngClass]="{'editable-text': canEdit}">
             {{photoWithInfo.photo.description}}
           </div>

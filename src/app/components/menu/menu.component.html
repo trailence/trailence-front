@@ -107,20 +107,16 @@
 
 </div>
 <div class="menu-footer">
-  <div class="menu-item" (click)="update.download()" *ngIf="update.downloadApp">
-    <ion-icon [name]="update.downloadApp.icon"></ion-icon>
+  <div class="menu-item" (click)="update.availableDownload.launch(); close();" *ngIf="update.availableDownload">
+    <div class="icon-badge" *ngIf="update.availableDownload.badge">
+      <ion-icon [name]="update.availableDownload.icon"></ion-icon>
+      <ion-badge>{{update.availableDownload.badge}}</ion-badge>
+    </div>
+    <ion-icon [name]="update.availableDownload.icon" *ngIf="!update.availableDownload.badge"></ion-icon>
     <div class="item-title-container">
-      <div class="item-title">{{i18n.texts.update[update.downloadApp.i18nText]}}</div>
+      <div class="item-title">{{i18n.texts.update[update.availableDownload.i18nText]}}</div>
     </div>
   </div>
-  <div class="menu-item" (click)="update.downloadAndUpdate(); close();" *ngIf="update.updateApp">
-    <div class="icon-badge">
-      <ion-icon [name]="update.updateApp.icon"></ion-icon>
-      <ion-badge>⟳</ion-badge>
-    </div>
-    <div class="item-title-container">
-      <div class="item-title">{{i18n.texts.update[update.updateApp.i18nText]}}</div>
-    </div>
-  </div>
-  <div class="version">Trailence {{update.versionName}}</div>
+
+  <div class="version">Trailence {{versionName}}</div>
 </div>

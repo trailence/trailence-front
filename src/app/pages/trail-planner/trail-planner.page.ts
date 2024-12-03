@@ -556,7 +556,7 @@ export class TrailPlannerPage extends AbstractPage {
       this.cancelWays();
       return;
     }
-    this.geo.findWays(this.map!.getBounds()!).subscribe(ways => this.updateWaysFromService(ways));
+    this.geo.findWays(this.map!.getBounds()!).subscribe(ways => this.updateWaysFromService(ways)); // NOSONAR
   }
 
   private cancelWays(): void {
@@ -588,7 +588,7 @@ export class TrailPlannerPage extends AbstractPage {
     this.highlightedRoutes = [];
     if (!this.showRoutes || !this.mapState || this.mapState.zoom < MIN_ZOOM) return;
     this.searchingRoutes = true;
-    this.geo.findRoutes(this.map!.getBounds()!)
+    this.geo.findRoutes(this.map!.getBounds()!) // NOSONAR
     .pipe(catchError(e => {
       this.injector.get(ErrorService).addTechnicalError(e, 'errors.search_routes', []);
       Console.error(e);

@@ -45,23 +45,6 @@ describe('Collection map', () => {
     const map = await collectionPage.trailsAndMap.openMap();
     await browser.execute(() => window.location.hash = '#zoom=16&center=43.01415572012757,6.39906406402588');
 
-    await browser.execute(() => {
-      const d = document.createElement('DIV');
-      d.style.pointerEvents = 'none';
-      d.style.position = 'fixed';
-      d.style.background = 'red';
-      d.style.top = '0px';
-      d.style.left = '0px';
-      d.style.width = '10px';
-      d.style.height = '10px';
-      d.style.zIndex = '10000';
-      document.body.appendChild(d);
-      window.addEventListener('mousemove', e => {
-        d.style.top = e.pageY + 'px';
-        d.style.left = e.pageX + 'px';
-      });
-    });
-
     const mapRect = await map.getMapPosition();
     let found = false;
     const startX = Math.floor(mapRect.x + (mapRect.w / 2) - 15);

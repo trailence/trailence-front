@@ -207,7 +207,7 @@
     },
     "import_gpx_popup": {
       "title": "Import d'un nouveau parcours",
-      "message": "Veuillez sélectionner la collection dans laquelle vous souhaitez que le fichier soit importé"
+      "message": "Veuillez sélectionner la collection dans laquelle vous souhaitez que le fichier{{1}}soit importé"
     },
     "import_tags_popup": {
       "title_import": "Import des tags",

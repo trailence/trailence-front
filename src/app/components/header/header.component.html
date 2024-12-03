@@ -3,9 +3,9 @@
     @if (auth.email) {
       <ion-buttons slot="start">
         <ion-menu-button></ion-menu-button>
-        @if (update.updateApp) {
+        @if (update.availableDownload?.badge) {
           <div class="update-app-badge">
-            <ion-badge>⟳</ion-badge>
+            <ion-badge>{{update.availableDownload!.badge}}</ion-badge>
           </div>
         }
       </ion-buttons>

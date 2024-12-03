@@ -13,12 +13,6 @@ export class MapCursors {
     this._cursors.forEach(marker => marker.addTo(map));
   }
 
-  public remove(): void {
-    if (!this._map) return;
-    this._cursors.forEach(marker => marker.removeFrom(this._map!)); // NOSONAR
-    this._map = undefined;
-  }
-
   public addCursor(position: L.LatLngExpression): void {
     const marker = new L.CircleMarker(position, { radius: 3 });
     this._cursors.push(marker);
