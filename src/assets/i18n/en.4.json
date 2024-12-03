@@ -85,6 +85,7 @@
         "copy_to_collection": "Copy into...",
         "new_collection": "New collection...",
         "copying": "Copying",
+        "moving": "Moving",
         "export": "Export",
         "rename": "Rename",
         "rename_popup": {

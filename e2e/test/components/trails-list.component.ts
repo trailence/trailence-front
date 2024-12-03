@@ -101,4 +101,10 @@ export class TrailsList extends Component {
     await (await this.openSelectionMenu()).clickItemWithText(itemName);
   }
 
+  public async selectTrails(names: string[]) {
+    for (const name of names) {
+      await (await this.findItemByTrailName(name))!.selectTrail();
+    }
+  }
+
 }

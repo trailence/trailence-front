@@ -124,7 +124,24 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     }
 
     protected override markDeletedInDb(table: Table<SimpleStoreItem<DTO>, any, SimpleStoreItem<DTO>>, item: ENTITY): Observable<any> {
-      return from(table.where({key: this.getKey(item)}).delete());
+      const key = this.getKey(item);
+      return from(this._db!.transaction('rw', table, () => {
+        table.get(key).then(dbItem => {
+          if (!dbItem) return Promise.resolve(true);
+          if (dbItem.createdLocally) return table.delete(key);
+          return table.put({...dbItem, deletedLocally: true}, key);
+        });
+      }));
+    }
+
+    protected override markUndeletedInDb(table: Table<SimpleStoreItem<DTO>, any, SimpleStoreItem<DTO>>, item: ENTITY): Observable<any> {
+      const key = this.getKey(item);
+      return from(this._db!.transaction('rw', table, () => {
+        table.get(key).then(dbItem => {
+          if (!dbItem) return Promise.resolve(true);
+          return table.put({...dbItem, deletedLocally: false}, key);
+        });
+      }));
     }
 
     protected override updateStatusWithLocalDelete(status: SimpleStoreSyncStatus): boolean {

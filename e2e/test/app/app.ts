@@ -28,16 +28,27 @@ export class App {
           console.log('Test error: take a screen shot');
           promise = promise
             .then(() => browser.saveScreenshot('wdio_error.png').then().catch(e => Promise.resolve()))
-            .then(() => browser.getUrl()).catch(e => Promise.resolve('error')).then(url => console.log('Browser URL was: ' + url));
+            .then(() => browser.getUrl()).catch(e => Promise.resolve('error')).then(url => { console.log('Browser URL was: ' + url); return true; });
         }
-        promise = promise.then(() => browser.execute(() => {
-          const history = (window as any)['_consoleHistory'];
-          (window as any)['_consoleHistory'] = [];
+        promise = promise.then(() => browser.execute(name => {
+          const history = [...(window as any)['_consoleHistory']];
+          (window as any)['_consoleHistory'].push(' *** End of ' + name + ' ***');
           return history;
-        })
+        }, result.fullName)
         .then(logs => {
           console.log(' **** Test: ' + result.fullName + ' -- Console output ****');
-          console.log(logs);
+          const chunks: string[][] = [];
+          let currentChunk: string[] = [];
+          for (const log of logs) {
+            currentChunk.push(log);
+            if (currentChunk.length >= 30) {
+              chunks.push(currentChunk);
+              currentChunk = [];
+            }
+          }
+          if (currentChunk.length > 0) chunks.push(currentChunk);
+          for (const chunk of chunks)
+            console.log(chunk);
         })
         .catch(e => {
           console.log('Cannot get console history', e);

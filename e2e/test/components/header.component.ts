@@ -103,7 +103,7 @@ export class UserMenu extends Component {
     const item = this.getElement().$('>>>ion-item#item-synchro');
     const localChanges = item.$('>>>.synchro>.value:last-child');
     let result = false;
-    for (let i = trial; i <= 10; ++i) {
+    for (; trial <= 10; ++trial) {
       try {
         const text = await localChanges.getText();
         if (text === 'No') {
@@ -122,7 +122,7 @@ export class UserMenu extends Component {
               const header = new HeaderComponent(page);
               await header.waitDisplayed();
               const menu = await header.openUserMenu();
-              await menu.synchronizeLocalChanges(i + 1, false);
+              await menu.synchronizeLocalChanges(trial + 1, false);
               return;
             }
           }
@@ -139,14 +139,14 @@ export class UserMenu extends Component {
           const header = new HeaderComponent(page);
           await header.waitDisplayed();
           const menu = await header.openUserMenu();
-          await menu.synchronizeLocalChanges(i + 1, true);
+          await menu.synchronizeLocalChanges(trial + 1, true);
           return;
         }
       } catch (e) {
         // continue
       }
     }
-    expect(result).toBeTrue();
+    expect(result).withContext('Synchro after ' + trial + ' trials').toBeTrue();
   }
 
 }

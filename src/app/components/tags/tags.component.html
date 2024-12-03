@@ -26,8 +26,8 @@
   </div>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
-      <ion-button color="success" (click)="apply()" [disabled]="!canApply()">{{i18n.texts.buttons.apply}}</ion-button>
-      <ion-button color="medium" (click)="cancel()">{{i18n.texts.buttons.cancel}}</ion-button>
+      <ion-button color="success" (click)="apply()" [disabled]="!canApply()" *ngIf="trails">{{i18n.texts.buttons.apply}}</ion-button>
+      <ion-button color="medium" (click)="cancel()">{{ trails ? i18n.texts.buttons.cancel : i18n.texts.buttons.close }}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
@@ -46,6 +46,7 @@
 <ng-template #tagNode let-node="node">
   <div class="tag-node">
     <ion-checkbox
+      *ngIf="selectable"
       [indeterminate]="node.userSelected === undefined && node.existing > 0 && node.existing !== trails?.length"
       [checked]="node.userSelected === true || (node.userSelected !== false && node.existing > 0 && node.existing === trails?.length)"
       (ionChange)="node.userSelected = $event.detail.checked; selectionChanged();"

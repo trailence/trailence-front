@@ -288,12 +288,15 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
   protected override readyToSave(entity: TrailTag): boolean {
     if (!this.tagService.getTag(entity.tagUuid)?.isSavedOnServerAndNotDeletedLocally()) return false;
     if (!this.trailService.getTrail(entity.trailUuid, this.auth.email!)?.isSavedOnServerAndNotDeletedLocally()) return false;
+    if (this.trailService.isUpdatedLocally(this.auth.email!, entity.trailUuid)) return false;
     return true;
   }
 
   protected override readyToSave$(entity: TrailTag): Observable<boolean> {
     const tagReady$ = this.tagService.getTag$(entity.tagUuid).pipe(map(tag => !!tag?.isSavedOnServerAndNotDeletedLocally()));
-    const trailReady$ = this.trailService.getTrail$(entity.trailUuid, this.auth.email!).pipe(map(track => !!track?.isSavedOnServerAndNotDeletedLocally()));
+    const trailReady$ = this.trailService.getTrail$(entity.trailUuid, this.auth.email!).pipe(map(trail => {
+      return !!trail?.isSavedOnServerAndNotDeletedLocally() && !this.trailService.isUpdatedLocally(trail.owner, trail.uuid);
+    }));
     return combineLatest([tagReady$, trailReady$]).pipe(
       map(readiness => readiness.indexOf(false) < 0)
     );

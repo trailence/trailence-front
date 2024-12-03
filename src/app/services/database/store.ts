@@ -245,18 +245,29 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   public create(item: STORE_ITEM, ondone?: () => void): Observable<STORE_ITEM | null> {
     const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
     let existing = false;
+    let recovered = false;
     this.performOperation(
       () => {
         existing = !!this._store.value.find(value => value.value && this.areSame(value.value, item));
         if (!existing) {
-          this._createdLocally.push(item$);
-          this._store.value.push(item$);
-          this._store.next(this._store.value);
+          const deleted = this._deletedLocally.findIndex(value => this.areSame(value, item));
+          if (deleted < 0) {
+            this._createdLocally.push(item$);
+            this._store.value.push(item$);
+            this._store.next(this._store.value);
+          } else {
+            this._deletedLocally.splice(deleted, 1);
+            this._store.value.push(item$);
+            this._store.next(this._store.value);
+            recovered = true;
+          }
         }
       },
-      db => existing ? of(true) : from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item))),
+      db => existing ? of(true)
+        : recovered ? this.markUndeletedInDb(db.table<DB_ITEM>(this.tableName), item)
+        : from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item))),
       status => {
-        if (existing) return false;
+        if (existing || recovered) return false;
         return this.updateStatusWithLocalCreate(status);
       },
       ondone
@@ -269,6 +280,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected abstract markDeletedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
+  protected abstract markUndeletedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
 
   protected abstract updateStatusWithLocalDelete(status: SYNCSTATUS): boolean;
 

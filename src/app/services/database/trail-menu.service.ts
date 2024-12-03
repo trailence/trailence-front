@@ -16,7 +16,7 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { TrackService } from './track.service';
-import { catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, first, firstValueFrom, forkJoin, map, Observable, of, switchMap, timeout, zip } from 'rxjs';
+import { catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, first, firstValueFrom, forkJoin, from, map, Observable, of, switchMap, timeout, zip } from 'rxjs';
 import { TrailService } from './trail.service';
 import { TrailCollectionService } from './trail-collection.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -26,6 +26,7 @@ import { ErrorService } from '../progress/error.service';
 import JSZip from 'jszip';
 import { PhotoService } from './photo.service';
 import { Photo } from 'src/app/model/photo';
+import { DependenciesService } from './dependencies.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -37,11 +38,10 @@ export class TrailMenuService {
   public trailToCompare: Trail | undefined;
 
   public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: string | undefined = undefined, onlyGlobal: boolean = false): MenuItem[] { // NOSONAR
-    if (trails.length === 0) return [];
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email!;
 
-    if (!onlyGlobal) {
+    if (!onlyGlobal && trails.length > 0) {
       menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map').setAction(() => this.openDownloadMap(trails)));
       if (trails.length === 1)
         menu.push(new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure').setAction(() => this.goToDeparture(trails[0])));
@@ -89,23 +89,29 @@ export class TrailMenuService {
         menu.push(new MenuItem().setIcon('merge').setI18nLabel('pages.trail.actions.merge_trails').setAction(() => this.mergeTrails(trails, fromCollection)))
       }
     }
+    if (onlyGlobal && fromCollection) {
+      menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(null, fromCollection)));
+    }
 
-    if (menu.length > 0)
+    if (trails.length > 0) {
+      if (menu.length > 0)
+        menu.push(new MenuItem());
+      menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export').setAction(() => this.exportGpx(trails)));
+
       menu.push(new MenuItem());
-    menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export').setAction(() => this.exportGpx(trails)));
+      menu.push(
+        new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
+        .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email), (col) => this.copyTrailsTo(trails, col, email, fromTrail)))
+      );
+    }
 
-    menu.push(new MenuItem());
-    menu.push(
-      new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
-      .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email), (col) => this.copyTrailsTo(trails, col, email, fromTrail)))
-    );
-    if (fromCollection !== undefined && !onlyGlobal) {
+    if (fromCollection !== undefined && !onlyGlobal && trails.length > 0) {
       if (trails.every(t => t.owner === email)) {
         const collectionUuid = this.getUniqueCollectionUuid(trails);
         if (fromCollection === collectionUuid) {
           menu.push(
             new MenuItem().setIcon('collection-move').setI18nLabel('pages.trails.actions.move_to_collection')
-            .setChildrenProvider(() => this.getCollectionsMenuItems([collectionUuid], (col) => this.moveTrailsTo(trails, col)))
+            .setChildrenProvider(() => this.getCollectionsMenuItems([collectionUuid], (col) => this.moveTrailsTo(trails, col, email)))
           );
           menu.push(new MenuItem());
           menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share').setAction(() => this.openSharePopup(collectionUuid, trails)))
@@ -230,7 +236,7 @@ export class TrailMenuService {
     await alert.present();
   }
 
-  public async openTags(trails: Trail[], collectionUuid: string) {
+  public async openTags(trails: Trail[] | null, collectionUuid: string) {
     const module = await import('../../components/tags/tags.component');
     const modal = await this.injector.get(ModalController).create({
       component: module.TagsComponent,
@@ -238,6 +244,7 @@ export class TrailMenuService {
       componentProps: {
         trails,
         collectionUuid,
+        selectable: !!trails,
       }
     });
     modal.present();
@@ -863,10 +870,44 @@ export class TrailMenuService {
     });
   }
 
-  public moveTrailsTo(trails: Trail[], toCollection: TrailCollection): void {
+  public moveTrailsTo(trails: Trail[], toCollection: TrailCollection, email: string): void {
+    const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.moving, trails.length);
+    const originalTags$: Observable<{originalTrail: Trail, tags: string[][]}>[] = [];
+    const moves$: Observable<any>[] = [];
+    let done = 0;
+    const tagService = this.injector.get(TagService);
+    progress.subTitle = '0/' + trails.length;
+    const trailsPresentOnServer = trails.filter(t => t.version > 0);
+    if (trailsPresentOnServer.length > 0)
+      moves$.push(this.injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailsNotSync(trailsPresentOnServer));
     for (const trail of trails) {
-      this.injector.get(TrailService).doUpdate(trail, t => t.collectionUuid = toCollection.uuid);
+      if (trail.owner === email) {
+        progress.addWorkToDo(1);
+        originalTags$.push(tagService.getTrailTagsNames$(trail.uuid, true).pipe(map(tags => {
+          progress.addWorkDone(1);
+          return {originalTrail: trail, tags};
+        })));
+      }
+      moves$.push(from(new Promise(resolve => {
+        this.injector.get(TrailService).doUpdate(trail, t => t.collectionUuid = toCollection.uuid, () => {
+          tagService.deleteTrailTagsForTrail(trail.uuid, () => {
+            progress.addWorkDone(1);
+            progress.subTitle = (++done) + '/' + trails.length;
+            resolve(true);
+          });
+        });
+      })));
     }
+
+    (originalTags$.length > 0 ? zip(originalTags$) : of([])).pipe(
+      switchMap(tags => zip(moves$).pipe(map(() => tags))),
+      first(),
+    ).subscribe(tags => {
+      const trailTags = tags.filter(t => t.tags.length > 0);
+      const trails = trailTags.map(t => ({originalTrail: t.originalTrail, newTrail: t.originalTrail}));
+      this.handleImportTags(trails, trailTags, toCollection.uuid);
+      progress.done();
+    });
   }
 
 }

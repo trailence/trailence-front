@@ -39,6 +39,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() collectionUuid?: string;
   @Input() trails?: Trail[];
 
+  @Input() selectable = true;
   @Input() selection?: string[];
   @Output() selectionChange = new EventEmitter<Tag[]>();
 

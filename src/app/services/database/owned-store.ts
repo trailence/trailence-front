@@ -7,6 +7,7 @@ import { Injector } from '@angular/core';
 import { DatabaseService } from './database.service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
+import { DependenciesService } from './dependencies.service';
 
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
@@ -97,6 +98,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return from(table.put({id_owner: key, item: dto, updatedLocally: false, localUpdate: Date.now()}));
   }
 
+  protected override markUndeletedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
+    return of(true); // not possible to create again exactly the same as an item deleted locally
+  }
+
   protected override updateStatusWithLocalDelete(status: OwnedStoreSyncStatus): boolean {
     if (status.localDeletes) return false;
     status.localDeletes = true;
@@ -158,6 +163,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         item$.next(entity);
       }
     });
+    this.injector.get(DependenciesService).operationDone(this.tableName, 'delete', deleted.map(d => d.uuid + '#' + d.owner));
+    this.injector.get(DependenciesService).operationDone(this.tableName, 'update', dtosToUpdate.map(d => d.id_owner));
     const deletedKeys: string[] = [];
     const deletedItems: BehaviorSubject<ENTITY | null>[] = [];
     deleted.forEach(deletedItem => {
@@ -345,16 +352,27 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           switchMap(result => {
             if (!stillValid()) return of(false);
             Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server');
+            const promises: Promise<any>[] = [];
+            let notUpdated: string[] = [];
             for (const entity of readyEntities) {
               const updated = result.find(d => d.uuid === entity.uuid && d.owner === entity.owner);
               if (!updated) {
                 // no update needed by the server: remove the updatedLocally from the DB
-                this._db!.table<StoredItem<DTO>>(this.tableName).put({id_owner: entity.uuid + '#' + entity.owner, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
+                notUpdated.push(entity.uuid + '#' + entity.owner);
+                promises.push(this._db!.table<StoredItem<DTO>>(this.tableName).put({
+                  id_owner: entity.uuid + '#' + entity.owner,
+                  item: this.toDTO(entity),
+                  updatedLocally: false,
+                  localUpdate: Date.now(),
+                }));
               }
               const index = this._updatedLocally.indexOf(entity.uuid + '#' + entity.owner);
               if (index >= 0) this._updatedLocally.splice(index, 1);
             }
-            return this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length));
+            this.injector.get(DependenciesService).operationDone(this.tableName, 'update', notUpdated);
+            return from(Promise.all(promises)).pipe(
+              switchMap(() => this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length)))
+            );
           }),
           catchError(error => {
             Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
@@ -371,16 +389,25 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
     if (this._deletedLocally.length === 0) return of(true);
-    const toDelete = this._deletedLocally.map(item => item.uuid);
-    return this.deleteFromServer(toDelete).pipe(
-      defaultIfEmpty(true),
-      switchMap(() => {
-        if (!stillValid()) return of(false);
-        Console.info('' + toDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
-        return this.updatedDtosFromServer([], toDelete.map(uuid => ({uuid, owner: this.injector.get(DatabaseService).email!})));
+    return from(this.injector.get(DependenciesService).canDo(this.tableName, 'delete', this._deletedLocally.map(item => item.uuid + '#' + item.owner))).pipe(
+      switchMap(canDelete => {
+        if (canDelete.length === 0) {
+          Console.info('Nothing ready to be deleted among ' + this._deletedLocally.length + ' element(s) of ' + this.tableName);
+          return of(false);
+        }
+        Console.info(canDelete.length + ' element(s) of ' + this.tableName + ' ready to be deleted on server');
+        const uuids = canDelete.map(key => key.substring(0, key.indexOf('#')));
+        return this.deleteFromServer(uuids).pipe(
+          defaultIfEmpty(true),
+          switchMap(() => {
+            if (!stillValid()) return of(false);
+            Console.info('' + canDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
+            return this.updatedDtosFromServer([], canDelete.map(e => ({uuid: e.substring(0, e.indexOf('#')), owner: e.substring(e.indexOf('#') + 1)})));
+          }),
+        );
       }),
       catchError(error => {
-        Console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server', error);
+        Console.error('Error deleting element(s) of ' + this.tableName + ' on server', error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
         return of(false);
       })

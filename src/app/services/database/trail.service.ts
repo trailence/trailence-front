@@ -66,17 +66,22 @@ export class TrailService {
     this._store.update(trail, ondone);
   }
 
-  public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void): void {
+  public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void, ondone?: () => void): void {
     this.lock(trail.uuid, trail.owner, (locked, unlock) => {
-      if (!locked) return;
+      if (!locked) {
+        if (ondone) ondone();
+        return;
+      }
       const latestTrail = this.getTrail(trail.uuid, trail.owner);
       if (latestTrail) {
         updater(latestTrail);
         this.update(latestTrail, () => {
           unlock();
+          if (ondone) ondone();
         });
       } else {
         unlock();
+        if (ondone) ondone();
       }
     });
   }
@@ -84,6 +89,10 @@ export class TrailService {
   private check(trail: Trail): void {
     if (trail.name.length > 200) trail.name = trail.name.substring(0, 200);
     if (trail.description.length > 50000) trail.description = trail.description.substring(0, 50000);
+  }
+
+  public isUpdatedLocally(owner: string, uuid: string): boolean {
+    return this._store.isUpdatedLocally(owner, uuid);
   }
 
   public delete(trail: Trail, ondone?: () => void): void {

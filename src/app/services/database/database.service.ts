@@ -16,6 +16,7 @@ export const TRAIL_TAG_TABLE_NAME = 'trails_tags';
 export const EXTENSIONS_TABLE_NAME = 'extensions';
 export const SHARE_TABLE_NAME = 'shares';
 export const PHOTO_TABLE_NAME = 'photos';
+export const DEPENDENCIES_TABLE_NAME = 'dependencies';
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 15 * 1000;
@@ -224,6 +225,7 @@ export class DatabaseService {
       storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
       storesV1[SHARE_TABLE_NAME] = 'key';
       storesV1[PHOTO_TABLE_NAME] = 'id_owner';
+      storesV1[DEPENDENCIES_TABLE_NAME] = 'key';
       db.version(1).stores(storesV1);
       this._db.next(db);
       this.initAutoUpdateFromServer();

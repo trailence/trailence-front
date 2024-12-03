@@ -42,7 +42,7 @@ export class AppMenu extends Component {
       for (const item of await items.getElements()) {
         if (await this.getCollectionName(item) === name) {
           await item.click();
-          browser.waitUntil(() => Page.getActivePageElement().then(page => new HeaderComponent(page).getTitle()).then(title => title === name));
+          await browser.waitUntil(() => Page.getActivePageElement().then(page => new HeaderComponent(page).getTitle()).then(title => title === name), {timeout: 10000});
           return new TrailsPage();
         }
       }

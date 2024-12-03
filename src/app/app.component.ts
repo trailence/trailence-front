@@ -89,6 +89,7 @@ export class AppComponent {
       import('./services/database/trail-collection.service'),
       import('./services/database/trail.service'),
       import('./services/database/track.service'),
+      import('./services/database/dependencies.service'),
     ]).then(services => {
       const database = this.injector.get(services[0].DatabaseService);
       this.injector.get(services[1].DatabaseCleanupService);
@@ -98,6 +99,7 @@ export class AppComponent {
       this.injector.get(services[5].TrailCollectionService);
       this.injector.get(services[6].TrailService);
       this.injector.get(services[7].TrackService);
+      this.injector.get(services[8].DependenciesService);
       return () => database.allLoaded();
     });
   }

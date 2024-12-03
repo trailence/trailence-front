@@ -1,9 +1,9 @@
 import { Injectable, Injector } from "@angular/core";
-import { BehaviorSubject, Observable, combineLatest, filter, first, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, Observable, combineLatest, filter, first, from, map, of, switchMap } from "rxjs";
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
-import { TRAIL_COLLECTION_TABLE_NAME } from "./database.service";
+import { TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./database.service";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
@@ -15,6 +15,8 @@ import { TrailService } from './trail.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import Dexie from 'dexie';
 import { Router } from '@angular/router';
+import { Trail } from 'src/app/model/trail';
+import { DependenciesService } from './dependencies.service';
 
 @Injectable({
     providedIn: 'root'
@@ -128,6 +130,31 @@ export class TrailCollectionService {
     return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
       map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
     );
+  }
+
+  public doNotDeleteCollectionWhileTrailsNotSync(trails: Trail[]): Observable<any> {
+    const map = new Map<string, string[]>();
+    for (const trail of trails) {
+      const collectionKey = trail.collectionUuid + '#' + trail.owner;
+      let trailsKeys = map.get(collectionKey);
+      if (!trailsKeys) trailsKeys = [];
+      trailsKeys.push(trail.uuid + '#' + trail.owner);
+      map.set(collectionKey, trailsKeys);
+    }
+    const promises: Promise<any>[] = [];
+    for (const entry of map.entries()) {
+      promises.push(this.injector.get(DependenciesService).addDependencies(
+        TRAIL_COLLECTION_TABLE_NAME,
+        entry[0], // collection ket
+        'delete',
+        entry[1].map(trailKey => ({
+          storeName: TRAIL_TABLE_NAME,
+          itemKey: trailKey,
+          operation: 'update'
+        }))
+      ));
+    }
+    return from(Promise.all(promises));
   }
 
 }
