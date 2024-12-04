@@ -26,7 +26,6 @@ import { ErrorService } from '../progress/error.service';
 import JSZip from 'jszip';
 import { PhotoService } from './photo.service';
 import { Photo } from 'src/app/model/photo';
-import { DependenciesService } from './dependencies.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {

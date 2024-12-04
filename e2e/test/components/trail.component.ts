@@ -21,6 +21,12 @@ export class TrailComponent extends Component {
     return this._hasTabs;
   }
 
+  public async hasTab(name: string) {
+    if (this._tabsSegment === undefined)
+      this._tabsSegment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
+    return await this._tabsSegment.hasOption(name);
+  }
+
   public async openTab(tab: string) {
     if (this._tabsSegment === undefined)
       this._tabsSegment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
@@ -190,6 +196,11 @@ export class TrailComponent extends Component {
     return new MapComponent(element);
   }
 
+  public async goToDeparture() {
+    const details = await (await this.openDetails()).getElement();
+    await details.$('app-icon-label-button[icon=car]').click();
+  }
+
   public async hasEditTools() {
     const details = await (await this.openDetails()).getElement();
     return await details.$('app-icon-label-button[icon=tool]').isExisting();
@@ -205,13 +216,12 @@ export class TrailComponent extends Component {
     return new EditTools(this.getElement().$('div.edit-tools-container app-edit-tools'));
   }
 
-  public async startTrail() {
+  public async getStartTrailButton() {
     const details = await (await this.openDetails()).getElement();
     const button = details.$('app-icon-label-button[icon=play-circle]');
     await button.waitForExist();
     await button.scrollIntoView({block: 'center', inline: 'center'});
-    await button.click();
-    return await this.openMap();
+    return await button.getElement();
   }
 
   public async pauseRecordingFromMap() {

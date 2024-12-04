@@ -102,3 +102,12 @@ export async function expectListContains(list: TrailsList, expectedTrails: Expec
       }, { timeoutMsg: 'Trails expected photos: ' + expected.name });
   }
 }
+
+export async function expectListContainsByName(list: TrailsList, expectedTrails: ExpectedTrail[]) {
+  try { await browser.waitUntil(() => list.items.length.then(nb => nb === expectedTrails.length)); } catch (e) {}
+  const names = await list.getTrailsNames();
+  for (const expected of expectedTrails) {
+    expect(names).toContain(expected.name);
+  }
+  expect(names.length).toBe(expectedTrails.length);
+}

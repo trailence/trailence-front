@@ -28,4 +28,8 @@ export class IonicSegment extends Component {
     throw Error('ion-segment-button not found for value: ' + value + ', found was: ' + found.join(','));
   }
 
+  public async hasOption(value: string) {
+    return this.getElement().$('>>>ion-segment-button[value=' + value + ']').isExisting();
+  }
+
 }

@@ -78,4 +78,20 @@ describe('Trail page', () => {
     await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('rgba(0,0,255,1)') < 0));
   });
 
+  it('Go to departure', async () => {
+    const currentWin = await browser.getWindowHandle();
+    const wins = await browser.getWindowHandles();
+    await trailPage.trailComponent.goToDeparture();
+    await browser.waitUntil(() => browser.getWindowHandles().then(h => h.length === wins.length + 1));
+    const newWins = await browser.getWindowHandles();
+    await browser.switchToWindow(newWins[newWins.length - 1]);
+    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('google') > 0 && url.indexOf('maps') > 0));
+    const url = await browser.getUrl();
+    expect(url).toContain('google');
+    expect(url).toContain('maps');
+    await browser.closeWindow();
+    await browser.waitUntil(() => browser.getWindowHandles().then(h => h.length === wins.length));
+    await browser.switchToWindow(currentWin);
+  });
+
 });

@@ -470,7 +470,7 @@ export class TrailComponent extends AbstractComponent {
     if (!this.recording$) return;
     const trackChanges$ = this.recording$.pipe(switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)));
     this.byStateAndVisible.subscribe(
-      trackChanges$.pipe(debounceTimeExtended(100, 100, 100),),
+      trackChanges$.pipe(debounceTimeExtended(1000, 5000, 250),),
       r => {
         const pt = r?.track.arrivalPoint;
         if (pt && this.elevationGraph) {
@@ -479,7 +479,7 @@ export class TrailComponent extends AbstractComponent {
       }, true
     );
     this.byStateAndVisible.subscribe(
-      trackChanges$.pipe(debounceTimeExtended(1000, 10000, 100)),
+      trackChanges$.pipe(debounceTimeExtended(5000, 10000, 250)),
       r => {
         let remaining: Track | undefined = undefined;
         const pt = r?.track.arrivalPoint;

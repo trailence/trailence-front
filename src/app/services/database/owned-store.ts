@@ -4,7 +4,6 @@ import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
 import { Table } from 'dexie';
 import { Injector } from '@angular/core';
-import { DatabaseService } from './database.service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { DependenciesService } from './dependencies.service';

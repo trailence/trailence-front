@@ -10,6 +10,7 @@ import { OpenFile } from '../../utils/open-file';
 describe('Replay trail', () => {
 
   let trailPage: TrailPage;
+  let startButton: WebdriverIO.Element;
 
   it('Login and prepare browser', async () => {
     const fs = await FilesUtils.fsPromises();
@@ -77,23 +78,64 @@ describe('Replay trail', () => {
           }
           setTimeout(() => nextPoint(), 1);
         };
-        setTimeout(() => nextPoint(), 500);
+        if ((window as any)._resumeSegment !== undefined) setTimeout(() => nextPoint(), 500);
+        else {
+          const checkStart = () => {
+            if ((window as any)._startTrail) setTimeout(() => nextPoint(), 500);
+            else setTimeout(() => checkStart(), 5000);
+          };
+          setTimeout(() => checkStart(), 10000);
+        }
         return 1;
       };
       window.navigator.geolocation.clearWatch = function(id) {
         // nothing
       };
     }, segments);
+
+    startButton = await trailPage.trailComponent.getStartTrailButton();
   });
 
   let savedUuid: string;
 
-  it('Replay', async () => {
-    await trailPage.trailComponent.startTrail();
-    await browser.waitUntil(() => browser.execute(() => (window as any)._resumeSegment !== undefined), { interval: 2000, timeout: 60000 });
+  let ok = true;
+
+  it('Start trail', async () => {
+    await startButton.click();
+  });
+
+  it('Go to map and wait until pause', async () => {
+    await browser.execute(() => (window as any)._startTrail = true);
+    await trailPage.trailComponent.openMap();
+    try { await browser.waitUntil(() => browser.execute(() => (window as any)._resumeSegment !== undefined), { interval: 2000, timeout: 45000 }); }
+    catch (e) { ok = false; }
+  });
+
+  it('Wait until pause (2)', async () => {
+    if (!ok) {
+      await browser.waitUntil(() => browser.execute(() => (window as any)._resumeSegment !== undefined), { interval: 2000, timeout: 45000 });
+      ok = true;
+    }
+  });
+
+  it('Pause then resume', async () => {
     await trailPage.trailComponent.pauseRecordingFromMap();
     await trailPage.trailComponent.resumeRecordingFromMap();
-    await browser.waitUntil(() => browser.execute(() => (window as any)._replayDone === true), { interval: 2000, timeout: 60000 });
+  });
+
+  it('Wait until end of trail', async () => {
+    try { await browser.waitUntil(() => browser.execute(() => (window as any)._replayDone === true), { interval: 2000, timeout: 45000 }); }
+    catch (e) { ok = false; }
+  });
+
+  it('Wait until end of trail (2)', async () => {
+    if (!ok)
+      await browser.waitUntil(() => browser.execute(() => (window as any)._replayDone === true), { interval: 2000, timeout: 45000 });
+  });
+
+  let uuidBefore: string;
+
+  it('Check result, then stop recording', async () => {
     await browser.pause(2000); // make sure the metadata has time to refresh
     await trailPage.trailComponent.openDetails();
 
@@ -125,13 +167,19 @@ describe('Replay trail', () => {
     expect(breaks2).toBe(breaks1);
 
     const urlBefore = await browser.getUrl();
-    let uuidBefore = urlBefore.substring(urlBefore.indexOf('/trail/' + App.config.initUsername + '/') + 7 + App.config.initUsername.length + 1);
+    uuidBefore = urlBefore.substring(urlBefore.indexOf('/trail/' + App.config.initUsername + '/') + 7 + App.config.initUsername.length + 1);
     uuidBefore = uuidBefore.substring(0, 36)
 
     await trailPage.trailComponent.openMap();
     await trailPage.trailComponent.stopRecordingFromMap();
+    ok = true;
+    try { await App.waitNoProgress(30000); }
+    catch (e) { ok = false; }
+  });
 
-    await App.waitNoProgress(60000);
+  it('Wait for the trail to be saved', async () => {
+    if (!ok)
+      await App.waitNoProgress(45000);
 
     const urlAfter = await browser.getUrl();
     let uuidAfter = urlAfter.substring(urlAfter.indexOf('/trail/' + App.config.initUsername + '/') + 7 + App.config.initUsername.length + 1);

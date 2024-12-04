@@ -2,12 +2,11 @@ import { Component } from '../component';
 
 export class IonicCheckbox extends Component {
 
-  public async isSelected() {
-    let value = await this.getElement().getAttribute("ng-reflect-checked");
-    if (value === null) value = await this.getElement().getAttribute("aria-checked");
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    throw new Error('Cannot determine checkbox status: ' + value);
+  public async getStatus() {
+    const c = await this.getElement().getAttribute('class');
+    if (c.indexOf('checkbox-checked') >= 0) return true;
+    if (c.indexOf('checkbox-indeterminate') >= 0) return undefined;
+    return false;
   }
 
   public async toggle() {
@@ -15,8 +14,13 @@ export class IonicCheckbox extends Component {
   }
 
   public async setSelected(selected: boolean) {
-    if ((await this.isSelected()) !== selected)
+    const current = await this.getStatus();
+    if (current === selected) return;
+    await this.toggle();
+    if (current === undefined) {
+      if (selected) return;
       await this.toggle();
+    }
   }
 
 }

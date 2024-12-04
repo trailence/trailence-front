@@ -57,7 +57,7 @@ export class TrailsList extends Component {
     }
   }
 
-  public async openTrail(trail: TrailOverview) {
+  public async getTrailId(trail: TrailOverview) {
     const parent = trail.getElement().parentElement();
     let id = await parent.getAttribute('id');
     expect(id.startsWith('trail-list-id-')).toBeTrue();
@@ -68,6 +68,11 @@ export class TrailsList extends Component {
     expect(id.length).toBeGreaterThan(36);
     const uuid = id.substring(0, 36)
     const owner = id.substring(37);
+    return {uuid, owner};
+  }
+
+  public async openTrail(trail: TrailOverview) {
+    const {uuid, owner} = await this.getTrailId(trail);
     let openButtonContainer = trail.getElement().nextElement();
     if (!await openButtonContainer.isExisting()) {
       const trailName = trail.getElement().$('div.trail-name');
