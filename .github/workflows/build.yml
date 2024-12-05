@@ -143,21 +143,21 @@ jobs:
       - name: Tests End 2 End
         id: e2e
         run: |
-          mkdir .nyc_output
           cd e2e
           npm ci
+          mkdir .nyc_output
           cd github
           chmod 777 ./run.sh
           ./run.sh --trailence-mode=${{matrix.mode}} --test-browser=${{matrix.browser}} --test-only=${{matrix.test-set}}/
       - name: Build coverage report
         run: |
-          npm ci
+          cd e2e
           ls -l .nyc_output
           npm run coverage-report
-          ls -l coverage/e2e
-          sed -i -e 's!www/browser/!!' coverage/e2e/lcov.info
-          mv coverage/e2e/lcov.info coverage/e2e/${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}.info
-          ls -l coverage/e2e
+          ls -l ../coverage/e2e
+          sed -i -e 's!www/browser/!!' ../coverage/e2e/lcov.info
+          mv ../coverage/e2e/lcov.info ../coverage/e2e/${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}.info
+          ls -l ../coverage/e2e
       - name: Upload failure screenshot
         if: ${{ failure() && steps.e2e.conclusion == 'failure' }}
         uses: actions/upload-artifact@v4

@@ -20,9 +20,7 @@
     "check-i18n": "node ./scripts/check-i18n-keys.js",
     "check-assets-version": "node ./scripts/check-assets-version.js",
     "release": "npm run check-i18n && npm run check-assets-version && npm run set-version && ng build --configuration=production",
-    "instrument": "nyc instrument www/browser www/browser --exclude-after-remap=false --complete-copy --in-place",
-    "coverage-report": "nyc report --reporter=lcovonly --report-dir=coverage/e2e",
-    "coverage-merge": "nyc merge .nyc_output coverage.json && rimraf .nyc_output && mkdirp .nyc_output && cpy ./coverage.json ./.nyc_output"
+    "instrument": "nyc instrument www/browser www/browser --exclude-after-remap=false --complete-copy --in-place"
   },
   "license": "Apache-2.0",
   "private": true,

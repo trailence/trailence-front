@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular/standalone';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
-import JSZip from 'jszip';
 import { Arrays } from 'src/app/utils/arrays';
 import { Console } from 'src/app/utils/console';
 
@@ -163,7 +162,8 @@ export class FileService implements IFileService {
   }
 
   private async internalSaveZip(filename: string, contentProvider: () => Promise<{ filename: string; data: BinaryContent; } | null>) {
-    const zip = new JSZip();
+    const JSZip = await import('jszip');
+    const zip = new JSZip.default();
     let nextFile: { filename: string; data: BinaryContent; } | null;
     while ((nextFile = await contentProvider()) !== null) {
       const data = nextFile.data.toRaw();

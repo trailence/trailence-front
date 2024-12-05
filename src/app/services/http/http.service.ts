@@ -5,13 +5,9 @@ import { Observable, of, switchMap, throwError } from 'rxjs';
 import { TrailenceHttpResponse } from './http-response';
 import { ApiError } from './api-error';
 
-export type RequestInterceptor =
-  ((request: TrailenceHttpRequest) => TrailenceHttpRequest) |
-  ((request: TrailenceHttpRequest) => Observable<TrailenceHttpRequest>);
+export type RequestInterceptor = (request: TrailenceHttpRequest) => TrailenceHttpRequest | Observable<TrailenceHttpRequest>;
 
-export type ResponseInterceptor =
-  ((response: TrailenceHttpResponse<any>) => TrailenceHttpResponse<any>) |
-  ((response: TrailenceHttpResponse<any>) => Observable<TrailenceHttpResponse<any>>);
+export type ResponseInterceptor = (response: TrailenceHttpResponse<any>) => TrailenceHttpResponse<any> | Observable<TrailenceHttpResponse<any>>;
 
 @Injectable({
   providedIn: 'root'
@@ -58,27 +54,34 @@ export class HttpService {
   }
 
   public sendRaw(request: TrailenceHttpRequest): Observable<TrailenceHttpResponse<any>> {
-    let interceptedRequest = of(request);
-    for (const interceptor of this.requestInterceptors) {
-      interceptedRequest = interceptedRequest.pipe(
-        switchMap(previous => {
-          const step = interceptor(previous);
-          if (step instanceof TrailenceHttpRequest) return of(step);
-          return step;
-        })
-      );
-    }
-    let interceptedResponse = interceptedRequest.pipe(switchMap(request => this.httpClient.send(request)));
-    for (const interceptor of this.responseInterceptors) {
-      interceptedResponse = interceptedResponse.pipe(
-        switchMap(previous => {
-          const step = interceptor(previous);
-          if (step instanceof TrailenceHttpResponse) return of(step);
-          return step;
-        })
-      );
-    }
-    return interceptedResponse;
+    return this.interceptRequest(request, [...this.requestInterceptors], 0);
+  }
+
+  private interceptRequest(request: TrailenceHttpRequest, interceptors: RequestInterceptor[], interceptorIndex: number): Observable<TrailenceHttpResponse<any>> {
+    let r = request;
+    do {
+      if (interceptorIndex >= interceptors.length) {
+        if (this.responseInterceptors.length === 0) return this.httpClient.send(r);
+        return this.httpClient.send(r).pipe(switchMap(resp => this.interceptResponse(resp, [...this.responseInterceptors], 0)));
+      }
+      let nr = interceptors[interceptorIndex++](r);
+      if (!(nr instanceof TrailenceHttpRequest)) {
+        return nr.pipe(switchMap(req => this.interceptRequest(req, interceptors, interceptorIndex)));
+      }
+      r = nr;
+    } while (true);
+  }
+
+  private interceptResponse(response: TrailenceHttpResponse<any>, interceptors: ResponseInterceptor[], interceptorIndex: number): Observable<TrailenceHttpResponse<any>> {
+    let r = response;
+    do {
+      if (interceptorIndex >= interceptors.length) return of(r);
+      let nr = interceptors[interceptorIndex++](r);
+      if (!(nr instanceof TrailenceHttpResponse)) {
+        return nr.pipe(switchMap(resp => this.interceptResponse(resp, interceptors, interceptorIndex)));
+      }
+      r = nr;
+    } while (true);
   }
 
   public send<T>(request: TrailenceHttpRequest): Observable<T> {
