@@ -42,7 +42,7 @@ export class NetworkService implements INetworkService {
     } else if (!this._internet$.value) {
       setTimeout(() => {
         if (window.navigator.onLine && !this._internet$.value) this._internet$.next(true);
-      }, firstCall ? 100 : 1000);
+      }, firstCall ? 0 : 1000);
     }
     this.checkServerConnection(++this.count, 1);
   }

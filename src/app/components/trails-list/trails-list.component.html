@@ -15,7 +15,7 @@
       </ion-label>
       <ion-icon slot="end" name="caret-down"></ion-icon>
     </ion-button>
-    <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true">
+    <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true" class="tight-menu">
       <ng-template>
         <ion-content>
           <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collectionUuid)"></app-menu-content>

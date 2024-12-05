@@ -67,7 +67,7 @@ export class App {
             const name = 'cov_' + result.id + '_' + Date.now() + '.json';
             console.log('Writing coverage to ' + name);
             fs.writeFileSync(
-              '../.nyc_output/' + name,
+              './.nyc_output/' + name,
               coverage
             );
             console.log('Coverage file written: ' + name);
