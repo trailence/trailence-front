@@ -89,7 +89,10 @@ export class AuthService {
       } catch (error) {
         Console.error(error);
       }
-      if (this._auth$.value === undefined) this._auth$.next(null);
+      if (this._auth$.value === undefined) {
+        Console.info('Not authenticated');
+        this._auth$.next(null);
+      }
     });
   }
 
@@ -307,7 +310,7 @@ export class AuthService {
     return db;
   }
 
-  private addBearerToken(request: TrailenceHttpRequest): Observable<TrailenceHttpRequest> {
+  private addBearerToken(request: TrailenceHttpRequest): Observable<TrailenceHttpRequest> | TrailenceHttpRequest {
     if (!request.url.startsWith(environment.apiBaseUrl + '/') ||
       request.url === environment.apiBaseUrl + '/auth/v1/login' ||
       request.url === environment.apiBaseUrl + '/auth/v1/init_renew' ||
@@ -317,17 +320,15 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/auth/v1/forgot' ||
       request.url === environment.apiBaseUrl + '/user/v1/resetPassword' ||
       (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE')) {
-        return of(request);
+        return request;
       }
     return this.requireAuth().pipe(
-      switchMap(auth => {
-        if (!auth) {
-          return EMPTY; // cancel the request
-        }
-        if (auth?.accessToken && auth.expires > Date.now()) {
+      filter(auth => !!auth), // cancel request if not authenticated
+      map(auth => {
+        if (auth.accessToken && auth.expires > Date.now()) {
           request.headers['Authorization'] = 'Bearer ' + auth.accessToken;
         }
-        return of(request);
+        return request;
       })
     );
   }

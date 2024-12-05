@@ -165,9 +165,9 @@ export class DatabaseService {
       store.status$,         // there is something to sync and we are not syncing
     ]).pipe(
       map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress),
-      debounceTimeExtended(250, 250, 100),
-      filter(shouldSync => {
-        if (!shouldSync) return false;
+      filter(shouldSync => !!shouldSync),
+      debounceTimeExtended(0, 250),
+      filter(() => {
         if (Date.now() - registered.lastSync > MINIMUM_SYNC_INTERVAL) return true;
         if (this._syncNowRequestedAt >= registered.lastSync) return true;
         this.ngZone.runOutsideAngular(() => {
@@ -177,7 +177,7 @@ export class DatabaseService {
         });
         return false;
       }),
-      debounceTimeExtended(0, 500, 10),
+      debounceTimeExtended(0, 500, 3),
     )
     .subscribe(() => {
       if (!this._db.value) return;

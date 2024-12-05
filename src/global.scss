@@ -39,6 +39,17 @@
   }
 }
 
+@media (min-height: 600px) and (min-width: 600px) {
+  .tight-menu app-menu-content ion-list ion-item {
+    --min-height: 34px;
+
+    ::slotted(ion-label) {
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+  }
+}
+
 .graph-tooltip {
   font-size: 12px;
   background-color: rgba(var(--ion-background-color-rgb), 0.8);

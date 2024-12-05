@@ -327,9 +327,9 @@ export const config = Object.assign({}, {
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
         // or website depending on the result. For example, it is pretty handy to take a screenshot every time
         // an assertion fails.
-        expectationResultHandler: function(passed, assertion) {
+        //expectationResultHandler: function(passed, assertion) {
             // do something
-        },
+        //},
         stopOnSpecFailure: true
     },
 
@@ -366,16 +366,8 @@ export const config = Object.assign({}, {
      * @param  {object} specs    specs to be run in the worker process
      * @param  {number} retries  number of retries used
      */
-    onWorkerEnd: async function (cid, exitCode, specs, retries) {
-      /*
-      if (++workerCounter > 1 && isCi) {
-        console.log('after ' + workerCounter + ' workers: merge coverage reports');
-        const childProcess = await import('child_process');
-        childProcess.execSync('npm run coverage-merge', {
-          cwd: '../'
-        });
-      }*/
-    },
+    //onWorkerEnd: async function (cid, exitCode, specs, retries) {
+    //},
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.

@@ -202,6 +202,7 @@ export class TrailOverviewComponent extends AbstractComponent {
       componentProps: {
         menu: this.trailMenuService.getTrailsMenu([this.trail!], false, this.fromCollection ? this.trail!.collectionUuid : undefined)
       },
+      cssClass: 'tight-menu',
       event: event,
       side: 'right',
       dismissOnSelect: true,

@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, distinctUntilChanged, first, from, map, of, switchMap, tap, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, switchMap, tap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -82,7 +82,7 @@ export class TrackDatabase {
       name: 'tracks',
       status$: this.syncStatus$,
       loaded$: this.syncStatus$.pipe(map(s => !!s), distinctUntilChanged()),
-      hasPendingOperations$: of(false),
+      hasPendingOperations$: this._pendingOperation$.pipe(map(nb => nb > 0)),
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
       syncFromServer: () => this.triggerSyncFromServer(),
       doSync: () => this.sync(),
@@ -101,6 +101,7 @@ export class TrackDatabase {
   private preferencesSubscription?: Subscription;
   private readonly ngZone: NgZone;
   private readonly syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
+  private readonly _pendingOperation$ = new BehaviorSubject<number>(0);
 
   private close() {
     this.ngZone.runOutsideAngular(() => {
@@ -110,6 +111,7 @@ export class TrackDatabase {
         this.openEmail = undefined;
         this.db = undefined;
         this.syncStatus$.next(null);
+        this._pendingOperation$.next(0);
         this.preferencesSubscription?.unsubscribe();
         this.preferencesSubscription = undefined;
         this.metadataKeysToLoad.clear();
@@ -137,8 +139,9 @@ export class TrackDatabase {
       schemaV1['full_tracks'] = 'key, version, updatedLocally, owner, needsSync';
       db.version(1).stores(schemaV1);
       this.metadataTable = db.table<MetadataItem, string>('metadata');
-      this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks')
-      this.fullTrackTable = db.table<TrackItem, string>('full_tracks')
+      this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks');
+      this.fullTrackTable = db.table<TrackItem, string>('full_tracks');
+      this._pendingOperation$.next(0);
       this.db = db;
       this.initStatus();
       this.listenPreferences();
@@ -197,7 +200,7 @@ export class TrackDatabase {
         if (speedChanged || breaksChanged) {
           if (!this.db || !this.metadataTable || !this.fullTrackTable) return;
           Console.info('Preferences changed, recompute estimated time/breaks duration of trails', speedChanged, breaksChanged);
-          this.db?.transaction('rw', [this.fullTrackTable, this.metadataTable], () => {
+          this.operation(() => this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
             let count = 0;
             let countInMemory = 0;
             return this.fullTrackTable?.each(trackItem => {
@@ -224,7 +227,7 @@ export class TrackDatabase {
             }).then(() => {
               Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
             });
-          })
+          }));
         }
       }
     );
@@ -477,44 +480,48 @@ export class TrackDatabase {
       const simplified = this.simplify(track);
       const metadata = this.toMetadata(track);
       const stepsDone = new CompositeOnDone(ondone);
-      this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
-        const onDone1 = stepsDone.add();
-        this.fullTrackTable?.add({
-          key,
-          uuid: dto.uuid,
-          owner: dto.owner,
-          version: dto.version,
-          updatedLocally: 0,
-          needsSync: 1,
-          track: dto,
-        }).then(onDone1);
-        const onDone2 = stepsDone.add();
-        this.simplifiedTrackTable?.add({
-          ...simplified,
-          key,
-        }).then(onDone2);
-        const onDone3 = stepsDone.add();
-        this.metadataTable?.add({
-          ...metadata,
-          key,
-        }).then(onDone3);
+      this.operation(() => {
+        if (!this.db) return Promise.reject();
+        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
+          const onDone1 = stepsDone.add();
+          this.fullTrackTable?.add({
+            key,
+            uuid: dto.uuid,
+            owner: dto.owner,
+            version: dto.version,
+            updatedLocally: 0,
+            needsSync: 1,
+            track: dto,
+          }).then(onDone1);
+          const onDone2 = stepsDone.add();
+          this.simplifiedTrackTable?.add({
+            ...simplified,
+            key,
+          }).then(onDone2);
+          const onDone3 = stepsDone.add();
+          this.metadataTable?.add({
+            ...metadata,
+            key,
+          }).then(onDone3);
+        });
+        const full$ = this.fullTracks.get(key);
+        if (full$) full$.newValue(track);
+        else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
+        const simplified$ = this.simplifiedTracks.get(key);
+        if (simplified$) simplified$.newValue(simplified);
+        else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        const metadata$ = this.metadata.get(key);
+        if (metadata$) metadata$.newValue(metadata);
+        else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
+        if (!this.syncStatus$.value!.hasLocalChanges) {
+          this.syncStatus$.value!.hasLocalChanges = true;
+          this.syncStatus$.next(this.syncStatus$.value);
+        }
+        const onDone4 = stepsDone.add();
+        stepsDone.start();
+        onDone4();
+        return tx;
       });
-      const full$ = this.fullTracks.get(key);
-      if (full$) full$.newValue(track);
-      else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
-      const simplified$ = this.simplifiedTracks.get(key);
-      if (simplified$) simplified$.newValue(simplified);
-      else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
-      const metadata$ = this.metadata.get(key);
-      if (metadata$) metadata$.newValue(metadata);
-      else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-      if (!this.syncStatus$.value!.hasLocalChanges) {
-        this.syncStatus$.value!.hasLocalChanges = true;
-        this.syncStatus$.next(this.syncStatus$.value);
-      }
-      const onDone4 = stepsDone.add();
-      stepsDone.start();
-      onDone4();
     });
   }
 
@@ -525,38 +532,42 @@ export class TrackDatabase {
       const dto = track.toDto();
       const simplified = this.simplify(track);
       const metadata = this.toMetadata(track);
-      this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
-        this.fullTrackTable?.put({
-          key,
-          uuid: dto.uuid,
-          owner: dto.owner,
-          version: dto.version,
-          updatedLocally: 1,
-          needsSync: 1,
-          track: dto,
+      this.operation(() => {
+        if (!this.db) return Promise.reject();
+        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
+          this.fullTrackTable?.put({
+            key,
+            uuid: dto.uuid,
+            owner: dto.owner,
+            version: dto.version,
+            updatedLocally: 1,
+            needsSync: 1,
+            track: dto,
+          });
+          this.simplifiedTrackTable?.put({
+            ...simplified,
+            key,
+          });
+          this.metadataTable?.put({
+            ...metadata,
+            key,
+          });
         });
-        this.simplifiedTrackTable?.put({
-          ...simplified,
-          key,
-        });
-        this.metadataTable?.put({
-          ...metadata,
-          key,
-        });
+        const full$ = this.fullTracks.get(key);
+        if (full$) full$.newValue(track);
+        else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
+        const simplified$ = this.simplifiedTracks.get(key);
+        if (simplified$) simplified$.newValue(simplified);
+        else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        const metadata$ = this.metadata.get(key);
+        if (metadata$) metadata$.newValue(metadata);
+        else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
+        if (!this.syncStatus$.value!.hasLocalChanges) {
+          this.syncStatus$.value!.hasLocalChanges = true;
+          this.syncStatus$.next(this.syncStatus$.value);
+        }
+        return tx;
       });
-      const full$ = this.fullTracks.get(key);
-      if (full$) full$.newValue(track);
-      else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
-      const simplified$ = this.simplifiedTracks.get(key);
-      if (simplified$) simplified$.newValue(simplified);
-      else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
-      const metadata$ = this.metadata.get(key);
-      if (metadata$) metadata$.newValue(metadata);
-      else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-      if (!this.syncStatus$.value!.hasLocalChanges) {
-        this.syncStatus$.value!.hasLocalChanges = true;
-        this.syncStatus$.next(this.syncStatus$.value);
-      }
     });
   }
 
@@ -583,7 +594,7 @@ export class TrackDatabase {
       const metadata$ = this.metadata.get(key);
       if (metadata$) metadata$.newValue(null);
       if (!dbUpdated) dbUpdated = Promise.resolve();
-      dbUpdated.then(() => {
+      return dbUpdated.then(() => {
         if (!this.syncStatus$.value!.hasLocalChanges) {
           this.syncStatus$.value!.hasLocalChanges = true;
           this.syncStatus$.next(this.syncStatus$.value);
@@ -629,7 +640,32 @@ export class TrackDatabase {
     }
   }
 
+  private operation<T>(op: () => Promise<T>): Promise<T> {
+    const db = this.db;
+    this._pendingOperation$.next(this._pendingOperation$.value + 1);
+    return firstValueFrom(this.syncStatus$.pipe(filter(s => !s?.inProgress)))
+    .then(() => {
+      if (db != this.db) return Promise.reject();
+      return op().then(r => {
+        this._pendingOperation$.next(this._pendingOperation$.value - 1);
+        return r;
+      }).catch(e => {
+        this._pendingOperation$.next(this._pendingOperation$.value - 1);
+        return Promise.reject(e);
+      });
+    });
+  }
+
   private sync(): void {
+    if (!this.db) return;
+    const db = this.db;
+    this._pendingOperation$.pipe(
+      filter(nb => nb === 0),
+      first(),
+    ).subscribe(() => { if (this.db === db) this.doSync(); });
+  }
+
+  private doSync(): void {
     this.ngZone.runOutsideAngular(() => {
       const db = this.db!;
       this.syncStatus$.value!.inProgress = true;
@@ -766,6 +802,7 @@ export class TrackDatabase {
                     progress.addWorkDone(1);
                     progress.subTitle = '' + done + '/' + toRetrieve.length;
                     this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_track', []);
+                    Console.error('Error retrieving tracks', error);
                     return of(null);
                   })
                 ));

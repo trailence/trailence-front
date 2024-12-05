@@ -23,7 +23,6 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { TagService } from './tag.service';
 import { I18nError } from '../i18n/i18n-string';
 import { ErrorService } from '../progress/error.service';
-import JSZip from 'jszip';
 import { PhotoService } from './photo.service';
 import { Photo } from 'src/app/model/photo';
 
@@ -312,7 +311,7 @@ export class TrailMenuService {
           if (String.fromCharCode(first2bytes[0]) === 'P' &&
               String.fromCharCode(first2bytes[1]) === 'K') {
             // zip file
-            return JSZip.loadAsync(file).then(zip => {
+            return import('jszip').then(JSZip => JSZip.default.loadAsync(file)).then(zip => {
               const gpxFiles = zip.filter((path, entry) => !entry.dir && entry.name.toLowerCase().endsWith('.gpx'));
               if (gpxFiles.length === 0) {
                 progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
@@ -380,7 +379,7 @@ export class TrailMenuService {
     });
   }
 
-  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, zip?: JSZip): Promise<{trailUuid: string, tags: string[][]}> {
+  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, zip?: any): Promise<{trailUuid: string, tags: string[][]}> {
     try {
       const imported = GpxFormat.importGpx(file, owner, collectionUuid, this.injector.get(PreferencesService));
       if (imported.tracks.length === 1) {
