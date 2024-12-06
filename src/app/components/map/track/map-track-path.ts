@@ -1,7 +1,6 @@
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
-import { Subscription, combineLatest, map, of, skip, switchMap } from 'rxjs';
-import { Arrays } from 'src/app/utils/arrays';
+import { Subscription } from 'rxjs';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
@@ -26,11 +25,7 @@ export class MapTrackPath {
         interactive: false
       });
       if (!this._subscription && this._track instanceof Track) {
-        this._subscription = this._track.segments$.pipe(
-          switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(segment => segment.points$))),
-          map(points => Arrays.flatMap(points, pts => pts.map(pt => pt.pos$))),
-          switchMap(changes$ => changes$.length === 0 ? of([]) : combineLatest(changes$)),
-          skip(1),
+        this._subscription = this._track.segmentChanges$.pipe(
           debounceTimeExtended(100, 100, 100),
         ).subscribe(() => {
           if (this._path && this._map) {
@@ -50,10 +45,9 @@ export class MapTrackPath {
     for (const segment of track.segments) {
       const polyline: L.LatLng[] = [];
       polylines.push(polyline);
-      const nb = segment.relativePoints.length;
+      const nb = segment.points.length;
       for (let i = 0; i < nb; ++i) {
-        const relativePoint = segment.relativePoints[i];
-        const point = relativePoint.point;
+        const point = segment.points[i];
         polyline.push(point.pos);
       }
     }

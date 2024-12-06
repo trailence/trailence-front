@@ -1,80 +1,74 @@
-import { BehaviorSubject, EMPTY, Observable, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
-import { Point, PointDtoMapper } from './point';
+import { BehaviorSubject, EMPTY, Observable, Subject, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
+import { Point, PointDescriptor, PointDtoMapper, pointsAreEqual } from './point';
 import { Arrays } from '../utils/arrays';
-import { Subscriptions } from '../utils/rxjs/subscription-utils';
 import { SegmentDto } from './dto/segment';
 import * as L from 'leaflet';
 
 export class Segment {
 
-  private readonly _points = new BehaviorSubject<Point[]>([]);
-  private readonly _segmentPoints: SegmentPoint[] = [];
-  private readonly _meta = new SegmentMetadata(this._segmentPoints);
+  private readonly _points = new BehaviorSubject<PointImpl[]>([]);
+  private readonly _meta = new SegmentMetadata(this._points.value);
+  private readonly _pointsChanges$ = new Subject<any>();
 
   public get points(): Point[] { return this._points.value; }
   public get points$(): Observable<Point[]> { return this._points; }
 
   public get metadata(): SegmentMetadata {return this._meta; }
 
-  public get relativePoints(): SegmentPoint[] { return this._segmentPoints; }
-
   public get changes$(): Observable<any> {
     let first = true;
-    return this.points$.pipe(
-      switchMap(points => {
+    return this._points.pipe(
+      switchMap(() => {
         if (first) {
           first = false;
-          if (points.length === 0) return EMPTY;
-          return combineLatest(points.map(point => concat(of(true), point.changes$))).pipe(skip(1));
+          return this._pointsChanges$;
         }
-        return points.length === 0 ? of([]) : combineLatest(points.map(point => concat(of(true), point.changes$)))
+        return concat(of(true), this._pointsChanges$);
       }),
     );
   }
 
-  public append(point: Point): this {
-    this._points.value.push(point)
-    this._segmentPoints.push(new SegmentPoint(this._meta, point, Arrays.last(this._segmentPoints), undefined));
+  public append(point: PointDescriptor): Point {
+    const p = new PointImpl(this._meta, point, Arrays.last(this._points.value), undefined, this._pointsChanges$);
+    this._points.value.push(p);
     this._points.next(this._points.value);
-    return this;
+    return p;
   }
 
-  public appendMany(points: Point[]): this {
-    this._points.value.push(...points)
-    let previous = Arrays.last(this._segmentPoints);
+  public appendMany(points: PointDescriptor[]): Point[] {
+    let previous = Arrays.last(this._points.value);
     const nb = points.length;
-    const newPoints: SegmentPoint[] = new Array(nb);
+    const newPoints: PointImpl[] = new Array(nb);
     for (let i = 0; i < nb; ++i) {
-      const sp = new SegmentPoint(undefined, points[i], previous, undefined);
+      const sp = new PointImpl(undefined, points[i], previous, undefined, this._pointsChanges$);
       previous = sp;
       newPoints[i] = sp;
     }
     this._meta.computeNewPoints(newPoints);
     for (let i = 0; i < nb; ++i) newPoints[i].setMeta(this._meta);
-    this._segmentPoints.push(...newPoints);
+    this._points.value.push(...newPoints);
     this._points.next(this._points.value);
-    return this;
+    return newPoints;
   }
 
-  public insert(index: number, point: Point): this {
+  public insert(index: number, point: PointDescriptor): Point {
     if (index < 0 || index >= this._points.value.length) return this.append(point);
-    this._points.value.splice(index, 0, point)
-    const prev = index > 0 ? this._segmentPoints[index - 1] : undefined;
-    const next = this._segmentPoints[index];
-    this._segmentPoints.splice(index, 0, new SegmentPoint(this._meta, point, prev, next));
+    const prev = index > 0 ? this._points.value[index - 1] : undefined;
+    const next = this._points.value[index];
+    const p = new PointImpl(this._meta, point, prev, next, this._pointsChanges$);
+    this._points.value.splice(index, 0, p);
     this._points.next(this._points.value);
-    return this;
+    return p;
   }
 
   public removePoint(point: Point): this {
-    const index = this._points.value.indexOf(point);
+    const index = this._points.value.indexOf(point as PointImpl);
     if (index < 0) return this;
     return this.removePointAt(index);
   }
 
   public removePointAt(index: number): this {
-    this._points.value.splice(index, 1);
-    const sp = this._segmentPoints.splice(index, 1)[0];
+    const sp = this._points.value.splice(index, 1)[0];
     sp.removed();
     this._points.next(this._points.value);
     return this;
@@ -162,7 +156,7 @@ export class Segment {
 
   public distanceFromSegmentStart(pointIndex: number): number {
     if (pointIndex === 0) return 0;
-    let p: SegmentPoint | undefined = this.relativePoints[pointIndex];
+    let p: Point | undefined = this._points.value[pointIndex];
     let total = 0;
     do {
       total += p.distanceFromPreviousPoint;
@@ -172,79 +166,125 @@ export class Segment {
   }
 
   public computeTotalDistance(): number {
-    if (this.relativePoints.length < 2) return 0;
-    return this.distanceFromSegmentStart(this.relativePoints.length - 1);
+    if (this._points.value.length < 2) return 0;
+    return this.distanceFromSegmentStart(this._points.value.length - 1);
   }
 
   public isEquals(other: Segment): boolean {
     if (this._points.value.length !== other._points.value.length) return false;
     for (let i = 0; i < this._points.value.length; ++i)
-      if (!this._points.value[i].isEquals(other._points.value[i])) return false;
+      if (!pointsAreEqual(this._points.value[i], other._points.value[i])) return false;
     return true;
   }
 
 }
 
-export class SegmentPoint {
+export class PointImpl implements Point {
 
-  private distanceFromPrevious = 0;
-  private elevationFromPrevious?: number;
-  private elevation?: number;
-  private time?: number;
-  private durationFromPrevious = 0;
+  private _pos: L.LatLng;
+  private _ele?: number;
+  private _time?: number;
+  private _posAccuracy?: number;
+  private _eleAccuracy?: number;
+  private _heading?: number;
+  private _speed?: number;
 
-  private readonly subscriptions = new Subscriptions();
+  private _distanceFromPrevious = 0;
+  private _elevationFromPrevious?: number;
+  private _currentElevation?: number;
+  private _currentTime?: number;
+  private _durationFromPrevious = 0;
 
   constructor(
     private meta: SegmentMetadata | undefined,
-    private readonly _point: Point,
-    private _previous?: SegmentPoint,
-    private _next?: SegmentPoint,
+    descriptor: PointDescriptor,
+    private _previous: PointImpl | undefined,
+    private _next: PointImpl | undefined,
+    private readonly _changes$: Subject<any>,
   ) {
+    this._pos = L.latLng(descriptor.pos.lat, descriptor.pos.lng);
+    this._ele = descriptor.ele;
+    this._time = descriptor.time;
+    this._posAccuracy = descriptor.posAccuracy;
+    this._eleAccuracy = descriptor.eleAccuracy;
+    this._heading = descriptor.heading;
+    this._speed = descriptor.speed;
     if (_previous) _previous.setNext(this);
     if (_next) _next.setPrevious(this);
     meta?.pointAdded(this);
-    let init = false;
-    this.subscriptions.add(_point.pos$.subscribe(() => {
-      if (!init) return;
-      this.updateDistance();
-      this._next?.updateDistance();
-      this.meta?.positionChanged(this);
-    }));
-    this.subscriptions.add(_point.ele$.subscribe(() => {
-      if (!init) return;
-      this.updateElevation();
-      this._next?.updateElevation();
-    }));
-    this.subscriptions.add(_point.time$.subscribe(() => {
-      if (!init) return;
-      this.updateDuration();
-      this._next?.updateDuration();
-    }));
     this.update(true);
-    init = true;
   }
 
-  public get point(): Point {return this._point; }
-
-  public get distanceFromPreviousPoint(): number { return this.distanceFromPrevious; }
-  public get durationFromPreviousPoint(): number { return this.durationFromPrevious; }
-  public get elevationFromPreviousPoint(): number | undefined { return this.elevationFromPrevious; }
-
-  public get previousPoint(): SegmentPoint | undefined { return this._previous; }
-  public get nextPoint(): SegmentPoint | undefined { return this._next; }
-
-  close(): void {
-    this.subscriptions.unsubscribe();
+  public get pos(): L.LatLng { return this._pos; }
+  public set pos(value: L.LatLng) {
+    if (this._pos.lat === value.lat && this._pos.lng === value.lng) return;
+    this._pos = value;
+    this.updateDistance();
+    this._next?.updateDistance();
+    this.meta?.positionChanged(this);
+    this._changes$.next(true);
   }
 
-  private setPrevious(previous?: SegmentPoint): void {
+  public get ele(): number | undefined { return this._ele; }
+  public set ele(value: number | undefined) {
+    if (this._ele === value) return;
+    this._ele = value;
+    this.updateElevation();
+    this._next?.updateElevation();
+    this._changes$.next(true);
+  }
+
+  public get time(): number | undefined { return this._time; }
+  public set time(value: number | undefined) {
+    if (this._time === value) return;
+    this._time = value;
+    this.updateDuration();
+    this._next?.updateDuration();
+    this._changes$.next(true);
+  }
+
+  public get posAccuracy(): number | undefined { return this._posAccuracy; }
+  public set posAccuracy(value: number | undefined) {
+    if (this._posAccuracy === value) return;
+    this._posAccuracy = value;
+    this._changes$.next(true);
+  }
+
+  public get eleAccuracy(): number | undefined { return this._eleAccuracy; }
+  public set eleAccuracy(value: number | undefined) {
+    if (this._eleAccuracy === value) return;
+    this._eleAccuracy = value;
+    this._changes$.next(true);
+  }
+
+  public get heading(): number | undefined { return this._heading; }
+  public set heading(value: number | undefined) {
+    if (this._heading === value) return;
+    this._heading = value;
+    this._changes$.next(true);
+  }
+
+  public get speed(): number | undefined { return this._speed; }
+  public set speed(value: number | undefined) {
+    if (this._speed === value) return;
+    this._speed = value;
+    this._changes$.next(true);
+  }
+
+  public get distanceFromPreviousPoint(): number { return this._distanceFromPrevious; }
+  public get durationFromPreviousPoint(): number { return this._durationFromPrevious; }
+  public get elevationFromPreviousPoint(): number | undefined { return this._elevationFromPrevious; }
+
+  public get previousPoint(): Point | undefined { return this._previous; }
+  public get nextPoint(): Point | undefined { return this._next; }
+
+  private setPrevious(previous?: PointImpl): void {
     this._previous?.setNext();
     this._previous = previous;
     this.update();
   }
 
-  private setNext(next?: SegmentPoint): void {
+  private setNext(next?: PointImpl): void {
     this._next?.setPrevious();
     this._next = next;
   }
@@ -256,37 +296,37 @@ export class SegmentPoint {
   }
 
   private updateDistance(init: boolean = false): void {
-    const newDistanceFromPrevious = this._previous ? this._point.pos.distanceTo(this._previous._point.pos) : 0;
-    this.meta?.addDistance(newDistanceFromPrevious - this.distanceFromPrevious);
-    this.distanceFromPrevious = newDistanceFromPrevious;
+    const newDistanceFromPrevious = this._previous ? this._pos.distanceTo(this._previous._pos) : 0;
+    this.meta?.addDistance(newDistanceFromPrevious - this._distanceFromPrevious);
+    this._distanceFromPrevious = newDistanceFromPrevious;
   }
 
   private updateElevation(init: boolean = false): void {
     let p = this._previous;
-    while (p && p._point.ele === undefined) p = p._previous;
-    const previousEle = p?._point.ele;
-    const pointEle = this._point.ele;
+    while (p && p._ele === undefined) p = p._previous;
+    const previousEle = p?._ele;
+    const pointEle = this._ele;
     const newElevationFromPrevious = previousEle !== undefined && pointEle !== undefined ? (pointEle - previousEle) : undefined;
     if (newElevationFromPrevious !== undefined) {
-      if (this.elevationFromPrevious !== undefined)
-        this.meta?.cancelElevation(this.elevationFromPrevious);
+      if (this._elevationFromPrevious !== undefined)
+        this.meta?.cancelElevation(this._elevationFromPrevious);
       this.meta?.addElevation(newElevationFromPrevious);
     }
-    this.elevationFromPrevious = newElevationFromPrevious;
-    if (!init && this.elevation !== pointEle) {
-      this.elevation = pointEle;
+    this._elevationFromPrevious = newElevationFromPrevious;
+    if (!init && this._currentElevation !== pointEle) {
+      this._currentElevation = pointEle;
       this.meta?.elevationChanged(this);
     }
   }
 
   private updateDuration(init: boolean = false): void {
     let p = this._previous;
-    while (p && !p._point.time) p = p._previous;
-    const newDurationFromPrevious = p && this._point.time !== undefined ? (this._point.time - p._point.time!) : 0;
-    this.meta?.addDuration(newDurationFromPrevious - this.durationFromPrevious);
-    this.durationFromPrevious = newDurationFromPrevious;
-    if (!init && this.time !== this._point.time) {
-      this.time = this._point.time;
+    while (p && !p._time) p = p._previous;
+    const newDurationFromPrevious = p && this._time !== undefined ? (this._time - p._time!) : 0;
+    this.meta?.addDuration(newDurationFromPrevious - this._durationFromPrevious);
+    this._durationFromPrevious = newDurationFromPrevious;
+    if (!init && this._currentTime !== this._time) {
+      this._currentTime = this._time;
       this.meta?.timeChanged(this);
     }
   }
@@ -298,35 +338,42 @@ export class SegmentPoint {
   removed(): void {
     if (this._previous)
       this._previous._next = this._next;
-    if (this.elevationFromPrevious)
-      this.meta?.cancelElevation(this.elevationFromPrevious);
-    if (this.distanceFromPrevious)
-      this.meta?.addDistance(-this.distanceFromPrevious);
+    if (this._elevationFromPrevious)
+      this.meta?.cancelElevation(this._elevationFromPrevious);
+    if (this._distanceFromPrevious)
+      this.meta?.addDistance(-this._distanceFromPrevious);
     if (this._next) {
       this._next._previous = this._previous;
       this._next.update();
     }
   }
 
+  public distanceTo(other: L.LatLngExpression): number {
+    return L.CRS.Earth.distance(this._pos, other);
+  }
+
 }
+
+
+
 
 export class SegmentMetadata {
 
   private readonly _distance = new BehaviorSubject<number>(0);
   private readonly _positiveElevation = new BehaviorSubject<number | undefined>(undefined);
   private readonly _negativeElevation = new BehaviorSubject<number | undefined>(undefined);
-  private readonly _highestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
-  private readonly _lowestPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
+  private readonly _highestPoint = new BehaviorSubject<PointImpl | undefined>(undefined);
+  private readonly _lowestPoint = new BehaviorSubject<PointImpl | undefined>(undefined);
   private readonly _duration = new BehaviorSubject<number | undefined>(undefined);
-  private readonly _startPoint = new BehaviorSubject<SegmentPoint | undefined>(undefined);
+  private readonly _startPoint = new BehaviorSubject<PointImpl | undefined>(undefined);
   private readonly _bounds = new BehaviorSubject<L.LatLngBounds | undefined>(undefined);
-  private _topLat: SegmentPoint | undefined = undefined;
-  private _bottomLat: SegmentPoint | undefined = undefined;
-  private _leftLng: SegmentPoint | undefined = undefined;
-  private _rightLng: SegmentPoint | undefined = undefined;
+  private _topLat: PointImpl | undefined = undefined;
+  private _bottomLat: PointImpl | undefined = undefined;
+  private _leftLng: PointImpl | undefined = undefined;
+  private _rightLng: PointImpl | undefined = undefined;
 
   constructor(
-    private readonly segmentPoints: SegmentPoint[],
+    private readonly segmentPoints: PointImpl[],
   ) {}
 
   public get distance(): number { return this._distance.value; }
@@ -338,17 +385,17 @@ export class SegmentMetadata {
   public get negativeElevation(): number | undefined { return this._negativeElevation.value; }
   public get negativeElevation$(): Observable<number | undefined> { return this._negativeElevation; }
 
-  public get highestAltitude(): number | undefined { return this._highestPoint.value?.point.ele; }
-  public get highestAltitude$(): Observable<number | undefined> { return this._highestPoint.pipe(map(pt => pt?.point.ele)); }
+  public get highestAltitude(): number | undefined { return this._highestPoint.value?.ele; }
+  public get highestAltitude$(): Observable<number | undefined> { return this._highestPoint.pipe(map(pt => pt?.ele)); }
 
-  public get lowestAltitude(): number | undefined { return this._lowestPoint.value?.point.ele; }
-  public get lowestAltitude$(): Observable<number | undefined> { return this._lowestPoint.pipe(map(pt => pt?.point.ele)); }
+  public get lowestAltitude(): number | undefined { return this._lowestPoint.value?.ele; }
+  public get lowestAltitude$(): Observable<number | undefined> { return this._lowestPoint.pipe(map(pt => pt?.ele)); }
 
   public get duration(): number | undefined { return this._duration.value; }
   public get duration$(): Observable<number | undefined> { return this._duration; }
 
-  public get startDate(): number | undefined { return this._startPoint.value?.point.time; }
-  public get startDate$(): Observable<number | undefined> { return this._startPoint.pipe(map(pt => pt?.point.time)); }
+  public get startDate(): number | undefined { return this._startPoint.value?.time; }
+  public get startDate$(): Observable<number | undefined> { return this._startPoint.pipe(map(pt => pt?.time)); }
 
   public get bounds(): L.LatLngBounds | undefined { return this._bounds.value; }
   public get bounds$(): Observable<L.LatLngBounds | undefined> { return this._bounds; }
@@ -385,21 +432,21 @@ export class SegmentMetadata {
     this._duration.next((this._duration.value ?? 0) + d);
   }
 
-  pointAdded(point: SegmentPoint): void { // NOSONAR
-    if (point.point.time !== undefined) {
-      if (this._startPoint.value === undefined || this._startPoint.value.point.time! > point.point.time) {
+  pointAdded(point: PointImpl): void { // NOSONAR
+    if (point.time !== undefined) {
+      if (this._startPoint.value === undefined || this._startPoint.value.time! > point.time) {
         this._startPoint.next(point);
       }
     }
-    if (point.point.ele !== undefined) {
-      if (this._highestPoint.value === undefined || this._highestPoint.value.point.ele! < point.point.ele) {
+    if (point.ele !== undefined) {
+      if (this._highestPoint.value === undefined || this._highestPoint.value.ele! < point.ele) {
         this._highestPoint.next(point);
       }
-      if (this._lowestPoint.value === undefined || this._lowestPoint.value.point.ele! > point.point.ele) {
+      if (this._lowestPoint.value === undefined || this._lowestPoint.value.ele! > point.ele) {
         this._lowestPoint.next(point);
       }
     }
-    const p = point.point.pos;
+    const p = point.pos;
     if (this._bounds.value === undefined) {
       this._bounds.next(L.latLngBounds(p, p));
       this._topLat = this._bottomLat = this._leftLng = this._rightLng = point;
@@ -428,25 +475,25 @@ export class SegmentMetadata {
     }
   }
 
-  elevationChanged(point: SegmentPoint): void {
-    const pointEle = point.point.ele;
+  elevationChanged(point: PointImpl): void {
+    const pointEle = point.ele;
     if (this._highestPoint.value === point || this._lowestPoint.value === point ||
       (pointEle !== undefined &&
         (this._highestPoint.value === undefined ||
         this._lowestPoint.value === undefined ||
-        this._highestPoint.value.point.ele! < pointEle ||
-        this._lowestPoint.value.point.ele! > pointEle))) {
+        this._highestPoint.value.ele! < pointEle ||
+        this._lowestPoint.value.ele! > pointEle))) {
           this.computeHighestAndLowest();
       }
   }
 
-  timeChanged(point: SegmentPoint): void {
-    if (this._startPoint.value === point || (point.point.time !== undefined && (this._startPoint.value === undefined || this._startPoint.value.point.time! > point.point.time)))
+  timeChanged(point: PointImpl): void {
+    if (this._startPoint.value === point || (point.time !== undefined && (this._startPoint.value === undefined || this._startPoint.value.time! > point.time)))
       this._startPoint.next(point);
   }
 
-  positionChanged(point: SegmentPoint): void { // NOSONAR
-    const p = point.point.pos;
+  positionChanged(point: PointImpl): void { // NOSONAR
+    const p = point.pos;
     const b = this._bounds.value!;
     if ((this._topLat === point && p.lat > b.getNorth()) ||
         (this._bottomLat === point && p.lat < b.getSouth()) ||
@@ -478,15 +525,15 @@ export class SegmentMetadata {
   }
 
   private computeHighestAndLowest(): void {
-    let highest: SegmentPoint | undefined = undefined;
-    let lowest: SegmentPoint | undefined = undefined;
+    let highest: PointImpl | undefined = undefined;
+    let lowest: PointImpl | undefined = undefined;
     for (const pt of this.segmentPoints) {
-      if (pt.point.ele !== undefined) {
+      if (pt.ele !== undefined) {
         if (highest === undefined) {
           highest = lowest = pt;
-        } else if (highest.point.ele! < pt.point.ele) {
+        } else if (highest.ele! < pt.ele) {
           highest = pt;
-        } else if (lowest!.point.ele! > pt.point.ele) {
+        } else if (lowest!.ele! > pt.ele) {
           lowest = pt;
         }
       }
@@ -500,7 +547,7 @@ export class SegmentMetadata {
     let n, s, e, w;
     let b: L.LatLngBounds | undefined = undefined;
     for (const pt of this.segmentPoints) {
-      const p = pt.point.pos;
+      const p = pt.pos;
       if (b === undefined) {
         this._topLat = this._bottomLat = this._leftLng = this._rightLng = pt;
         n = s = p.lat;
@@ -536,22 +583,22 @@ export class SegmentMetadata {
       this._bounds.next(b);
   }
 
-  computeNewPoints(points: SegmentPoint[]): void { // NOSONAR
+  computeNewPoints(points: PointImpl[]): void { // NOSONAR
     let distance = 0;
     let duration = 0;
     let positiveElevation: number | undefined = undefined;
     let negativeElevation: number | undefined = undefined;
-    let highestPoint: SegmentPoint | undefined = this._highestPoint.value;
-    let lowestPoint: SegmentPoint | undefined = this._lowestPoint.value;
+    let highestPoint: PointImpl | undefined = this._highestPoint.value;
+    let lowestPoint: PointImpl | undefined = this._lowestPoint.value;
     let startPoint = this._startPoint.value;
-    let northPoint: SegmentPoint | undefined = this._topLat;
-    let southPoint: SegmentPoint | undefined = this._bottomLat;
-    let westPoint: SegmentPoint | undefined = this._leftLng;
-    let eastPoint: SegmentPoint | undefined = this._rightLng;
-    let n: number | undefined = northPoint?.point.pos.lat;
-    let s: number | undefined = southPoint?.point.pos.lat;
-    let w: number | undefined = westPoint?.point.pos.lng;
-    let e: number | undefined = eastPoint?.point.pos.lng;
+    let northPoint: PointImpl | undefined = this._topLat;
+    let southPoint: PointImpl | undefined = this._bottomLat;
+    let westPoint: PointImpl | undefined = this._leftLng;
+    let eastPoint: PointImpl | undefined = this._rightLng;
+    let n: number | undefined = northPoint?.pos.lat;
+    let s: number | undefined = southPoint?.pos.lat;
+    let w: number | undefined = westPoint?.pos.lng;
+    let e: number | undefined = eastPoint?.pos.lng;
     for (const pt of points) {
       distance += pt.distanceFromPreviousPoint;
       duration += pt.durationFromPreviousPoint;
@@ -561,21 +608,21 @@ export class SegmentMetadata {
         else
           negativeElevation = negativeElevation ? negativeElevation - pt.elevationFromPreviousPoint : -pt.elevationFromPreviousPoint;
       }
-      if (pt.point.time !== undefined) {
-        if (startPoint === undefined || startPoint.point.time! > pt.point.time) {
+      if (pt.time !== undefined) {
+        if (startPoint === undefined || startPoint.time! > pt.time) {
           startPoint = pt;
         }
       }
-      const ele = pt.point.ele;
+      const ele = pt.ele;
       if (ele !== undefined) {
-        if (highestPoint === undefined || highestPoint.point.ele! < ele) {
+        if (highestPoint === undefined || highestPoint.ele! < ele) {
           highestPoint = pt;
         }
-        if (lowestPoint === undefined || lowestPoint.point.ele! > ele) {
+        if (lowestPoint === undefined || lowestPoint.ele! > ele) {
           lowestPoint = pt;
         }
       }
-      const p = pt.point.pos;
+      const p = pt.pos;
       if (n === undefined || p.lat < n) {
         n = p.lat;
         northPoint = pt;

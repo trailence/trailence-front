@@ -15,7 +15,8 @@ export class MapTrackPointReference {
   ) {}
 
   public get position(): L.LatLngLiteral {
-    return this.point instanceof Point ? this.point.pos : this.point;
+    if ((this.point as any)['pos']) return (this.point as Point).pos;
+    return this.point as SimplifiedPoint;
   }
 
   public static closest(event: MapTrackPointReference[]): MapTrackPointReference | undefined {

@@ -25,6 +25,7 @@ import { I18nError } from '../i18n/i18n-string';
 import { ErrorService } from '../progress/error.service';
 import { PhotoService } from './photo.service';
 import { Photo } from 'src/app/model/photo';
+import { copyPoint } from 'src/app/model/point';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -663,7 +664,7 @@ export class TrailMenuService {
   private mergeTrack(source: Track, target: Track) {
     for (const segment of source.segments) {
       const st = target.newSegment();
-      st.appendMany(segment.points.map(pt => pt.copy()));
+      st.appendMany(segment.points.map(pt => copyPoint(pt)));
     }
     for (const wp of source.wayPoints) {
       target.appendWayPoint(wp.copy());

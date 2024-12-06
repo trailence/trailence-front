@@ -57,7 +57,7 @@ export class TrackUtils {
   public static distanceBetween(points: Point[], startIndex: number, endIndex: number): number {
     let total = 0;
     for (let i = startIndex + 1; i <= endIndex; ++i) {
-      total += points[i].distanceTo(points[i - 1].pos);
+      total += points[i].distanceFromPreviousPoint;
     }
     return total;
   }

@@ -288,6 +288,7 @@ export class TraceRecorderService {
       // temporary point is the second point
       if (this.mustReplace(position, status.latestDefinitiveImprovedPoint!)) {
         this.updatePoint(status.latestDefinitiveImprovedPoint!, position, 'improved', 'accuracy far better for first point');
+        recording.track.lastSegment.removePoint(status.temporaryImprovedPoint);
         status.temporaryImprovedPoint = undefined;
         return;
       }
@@ -374,12 +375,13 @@ export class TraceRecorderService {
   }
 
   private addPointToTrack(position: PointDto, track: Track): Point {
-    const point = new Point(
-      position.l!, position.n!, position.e, position.t, position.pa, position.ea, position.h, position.s
-    );
+    const point = {
+      pos: { lat: position.l!, lng: position.n! },
+      ele: position.e, time: position.t, posAccuracy: position.pa, eleAccuracy: position.ea,
+      heading: position.h, speed: position.s
+    };
     const segment = track.segments.length === 0 ? track.newSegment() : track.segments[track.segments.length - 1];
-    segment.append(point);
-    return point;
+    return segment.append(point);
   }
 
   private updatePoint(point: Point, position: PointDto, pointType: string, reason: string): void {

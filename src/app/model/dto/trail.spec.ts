@@ -21,11 +21,11 @@ describe('Test Trail and Track DTOs', () => {
   it('track to dto to track', async () => {
     const track = new Track({owner: 'test@test.com'}, preferencesService);
     const segment = track.newSegment();
-    segment.append(new Point(1, 2, 3, 4, 5, 6, 7, 8));
-    segment.append(new Point(10, 20, 30, 40, 50, 60, 70, 80));
-    segment.append(new Point(10, 20, 30, 40, 50, 60, 70, 80));
-    segment.append(new Point(1, 2, 3, 4, 5, 6, 7, 8));
-    segment.append(new Point(1, 2, 3, 4, 5, 6, 7, 8));
+    segment.append({pos: { lat: 1, lng: 2 }, ele: 3, time: 4, posAccuracy: 5, eleAccuracy: 6, heading: 7, speed: 8});
+    segment.append({pos: { lat: 10, lng: 20 }, ele: 30, time: 40, posAccuracy: 50, eleAccuracy: 60, heading: 70, speed: 80});
+    segment.append({pos: { lat: 10, lng: 20 }, ele: 30, time: 40, posAccuracy: 50, eleAccuracy: 60, heading: 70, speed: 80});
+    segment.append({pos: { lat: 1, lng: 2 }, ele: 3, time: 4, posAccuracy: 5, eleAccuracy: 6, heading: 7, speed: 8});
+    segment.append({pos: { lat: 1, lng: 2 }, ele: 3, time: 4, posAccuracy: 5, eleAccuracy: 6, heading: 7, speed: 8});
     const dto = track.toDto();
     const track2 = new Track(dto, preferencesService);
     expect(track2.segments.length).toBe(1);

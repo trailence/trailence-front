@@ -6,7 +6,7 @@ import { MapState } from 'src/app/components/map/map-state';
 import { MapComponent } from 'src/app/components/map/map.component';
 import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
 import { MapTrack } from 'src/app/components/map/track/map-track';
-import { Point } from 'src/app/model/point';
+import { Point, PointDescriptor } from 'src/app/model/point';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
@@ -422,16 +422,14 @@ export class TrailPlannerPage extends AbstractPage {
     if (this.anchors.length === 0) {
       // first point
       const segment = this.track!.newSegment();
-      segment.append(new Point(pos.lat, pos.lng));
+      segment.append({pos});
     } else if (using) {
       const previousPos = this.anchors[this.anchors.length - 1].point;
       const points = (using.track as SimplifiedTrackSnapshot).points;
       this.goTo(previousPos, pos, points);
     } else {
       // free point
-      const point = new Point(pos.lat, pos.lng);
-      this.anchorsPoints.push([point]);
-      this.track!.lastSegment.append(point);
+      this.anchorsPoints.push([ this.track!.lastSegment.append({pos}) ]);
     }
     this.anchors.push(anchor);
     this.map!.addToMap(anchor.marker);
@@ -455,12 +453,11 @@ export class TrailPlannerPage extends AbstractPage {
     const toIndex = TrackUtils.findClosestPoint(to, points, MATCHING_MAX_DISTANCE);
     if (toIndex < 0) return;
     const increment = fromIndex < toIndex ? 1 : -1;
-    const result: Point[] = [];
+    const result: PointDescriptor[] = [];
     for (let i = fromIndex + increment; i != toIndex + increment; i = i + increment) {
-      result.push(new Point(points[i].lat, points[i].lng));
+      result.push({pos: { lat: points[i].lat, lng: points[i].lng } });
     }
-    this.anchorsPoints.push(result);
-    this.track!.lastSegment.appendMany(result);
+    this.anchorsPoints.push( this.track!.lastSegment.appendMany(result) );
   }
 
   undo(): void {

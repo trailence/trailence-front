@@ -1,4 +1,4 @@
-<ng-container *ngIf="i18n.textsLanguage$ | async">
+<ng-container *ngIf="i18nLoaded">
   @defer(when loadMenu) {
     <ion-menu contentId="content" #appMenu [maxEdgeStart]="0">
       @defer(when loadMenuContent) {
@@ -12,6 +12,6 @@
     </ion-content>
   </ion-app>
   <div class="waiting-for-gps" *ngIf="waitingForGps">
-    <div>{{ i18n.texts.waiting_for_gps }}</div>
+    <div>{{ waitingForGpsText }}</div>
   </div>
 </ng-container>

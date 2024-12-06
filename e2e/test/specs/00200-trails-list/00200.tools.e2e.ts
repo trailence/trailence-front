@@ -127,4 +127,8 @@ describe('Trails Tools', () => {
     await collectionPage.waitDisplayed();
   });
 
+  it('Synchronize', async () => {
+    await App.synchronize();
+  });
+
 });

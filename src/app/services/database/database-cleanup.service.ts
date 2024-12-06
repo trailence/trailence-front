@@ -17,32 +17,34 @@ export class DatabaseCleanupService {
     let timeout: any = undefined;
     let email: string | undefined = undefined;
     injector.get(NgZone).runOutsideAngular(() => {
-      injector.get(AuthService).auth$.subscribe(
-        auth => {
-          if (!auth || auth.email !== email) {
-            if (timeout) clearTimeout(timeout);
-            timeout = undefined;
-            email = undefined;
+      setTimeout(() => {
+        injector.get(AuthService).auth$.subscribe(
+          auth => {
+            if (!auth || auth.email !== email) {
+              if (timeout) clearTimeout(timeout);
+              timeout = undefined;
+              email = undefined;
+            }
+            if (auth) {
+              email = auth.email;
+              const lastCleanStr = localStorage.getItem('trailence.db-cleaning.last-time.' + email);
+              const lastCleanTime = lastCleanStr ? parseInt(lastCleanStr) : undefined;
+              const nextCleanTime = lastCleanTime && !isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
+              if (timeout) clearTimeout(timeout);
+              const nextTimeout = Math.max(nextCleanTime - Date.now(), 60000);
+              Console.info('Next database cleaning at', new Date(Date.now() + nextTimeout));
+              timeout = setTimeout(() => {
+                this.doCleaning(email!).subscribe((done) => { // NOSONAR
+                  if (email === auth.email && done) {
+                    Console.info('Database cleaned, next cleaning in 24 hours');
+                    localStorage.setItem('trailence.db-cleaning.last-time.' + email, '' + Date.now());
+                  }
+                });
+              }, nextTimeout);
+            }
           }
-          if (auth) {
-            email = auth.email;
-            const lastCleanStr = localStorage.getItem('trailence.db-cleaning.last-time.' + email);
-            const lastCleanTime = lastCleanStr ? parseInt(lastCleanStr) : undefined;
-            const nextCleanTime = lastCleanTime && !isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
-            if (timeout) clearTimeout(timeout);
-            const nextTimeout = Math.max(nextCleanTime - Date.now(), 60000);
-            Console.info('Next database cleaning at', new Date(Date.now() + nextTimeout));
-            timeout = setTimeout(() => {
-              this.doCleaning(email!).subscribe((done) => { // NOSONAR
-                if (email === auth.email && done) {
-                  Console.info('Database cleaned, next cleaning in 24 hours');
-                  localStorage.setItem('trailence.db-cleaning.last-time.' + email, '' + Date.now());
-                }
-              });
-            }, nextTimeout);
-          }
-        }
-      );
+        );
+      }, 5000);
     });
   }
 

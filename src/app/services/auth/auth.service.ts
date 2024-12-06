@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, share, switchMap, tap, throwError, zip } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, share, switchMap, tap, throwError, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -136,16 +136,16 @@ export class AuthService {
           captchaToken,
         } as LoginRequest)
         .pipe(
-          switchMap(response =>
-            from(this.openDB(response.email)
-              .transaction('rw', DB_SECURITY_TABLE, tx => {
-                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
-              })
-            ).pipe(map(() => response))
-          ),
           tap(response => {
             this._auth$.next(response);
-          })
+          }),
+          switchMap(response =>
+            from(this.openDB(response.email)
+              .transaction('rw', DB_SECURITY_TABLE, tx =>
+                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
+              )
+            ).pipe(map(() => response))
+          )
         )
       ),
     );
@@ -160,16 +160,16 @@ export class AuthService {
           deviceInfo: new DeviceInfo(this.platform)
         } as LoginShareRequest)
         .pipe(
-          switchMap(response =>
-            from(this.openDB(response.email)
-              .transaction('rw', DB_SECURITY_TABLE, tx => {
-                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
-              })
-            ).pipe(map(() => response))
-          ),
           tap(response => {
             this._auth$.next(response);
-          })
+          }),
+          switchMap(response =>
+            from(this.openDB(response.email)
+              .transaction('rw', DB_SECURITY_TABLE, tx =>
+                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
+              )
+            ).pipe(map(() => response))
+          )
         )
       ),
     );

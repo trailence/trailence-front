@@ -1,15 +1,15 @@
 import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
-import { Point, PointDtoMapper } from './point';
+import { copyPoint, PointDescriptor, PointDtoMapper, pointsAreEqual } from './point';
 import { WayPointDto } from './dto/way-point';
 
 export class WayPoint {
 
-  private readonly _point: Point;
+  private readonly _point: PointDescriptor;
   private readonly _name: BehaviorSubject<string>;
   private readonly _description: BehaviorSubject<string>;
 
   constructor(
-    point: Point,
+    point: PointDescriptor,
     name: string,
     description: string,
   ) {
@@ -18,7 +18,7 @@ export class WayPoint {
     this._description = new BehaviorSubject<string>(description);
   }
 
-  public get point(): Point { return this._point; }
+  public get point(): PointDescriptor { return this._point; }
 
   public get name(): string { return this._name.value; }
   public get name$(): Observable<string> { return this._name; }
@@ -47,11 +47,11 @@ export class WayPoint {
   }
 
   public copy(): WayPoint {
-    return new WayPoint(this.point.copy(), this.name, this.description);
+    return new WayPoint(copyPoint(this.point), this.name, this.description);
   }
 
   public isEquals(other: WayPoint): boolean {
-    return this._name.value === other._name.value && this._description.value === other._description.value && this._point.isEquals(other._point);
+    return this._name.value === other._name.value && this._description.value === other._description.value && pointsAreEqual(this._point, other._point);
   }
 
 }

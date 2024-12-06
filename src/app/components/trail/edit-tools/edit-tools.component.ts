@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { applyElevationThresholdToTrack } from 'src/app/services/track-edition/elevation/elevation-threshold';
 import { detectLongBreaksFromTrack } from 'src/app/services/track-edition/time/break-detection';
-import { Point } from 'src/app/model/point';
+import { Point, samePositionRound } from 'src/app/model/point';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { MapComponent } from '../../map/map.component';
@@ -359,7 +359,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
 
   removeWayPoint(wp: WayPoint): void {
     this.modify().subscribe(track => {
-      const w = track.wayPoints.find(w => w.point.samePositionRound(wp.point.pos));
+      const w = track.wayPoints.find(w => samePositionRound(w.point.pos, wp.point.pos));
       if (w) track.removeWayPoint(w);
       this.selectedPoint = undefined;
       this.map.removeFromMap(this.selectedPointAnchor.marker);
@@ -455,15 +455,16 @@ export class EditToolsComponent implements OnInit, OnDestroy {
       const segment = track.segments[track.segments.length - 1];
       const departure = track.departurePoint;
       if (!departure) return;
-      segment.append(new Point(
-        departure.pos.lat,
-        departure.pos.lng,
-        departure.ele,
-        track.arrivalPoint!.time,
-        departure.posAccuracy,
-        departure.eleAccuracy,
-        undefined, undefined
-      ));
+      segment.append({
+        pos: {
+          lat: departure.pos.lat,
+          lng: departure.pos.lng,
+        },
+        ele: departure.ele,
+        time: track.arrivalPoint!.time,
+        posAccuracy: departure.posAccuracy,
+        eleAccuracy: departure.eleAccuracy
+      });
     });
   }
 
@@ -472,15 +473,16 @@ export class EditToolsComponent implements OnInit, OnDestroy {
       const segment = track.segments[0];
       const arrival = track.arrivalPoint;
       if (!arrival) return;
-      segment.insert(0, new Point(
-        arrival.pos.lat,
-        arrival.pos.lng,
-        arrival.ele,
-        track.departurePoint!.time,
-        arrival.posAccuracy,
-        arrival.eleAccuracy,
-        undefined, undefined
-      ));
+      segment.insert(0, {
+        pos : {
+          lat: arrival.pos.lat,
+          lng: arrival.pos.lng,
+        },
+        ele: arrival.ele,
+        time: track.departurePoint!.time,
+        posAccuracy: arrival.posAccuracy,
+        eleAccuracy: arrival.eleAccuracy,
+      });
     });
   }
 

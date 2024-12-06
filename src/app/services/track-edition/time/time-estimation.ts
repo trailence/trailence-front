@@ -13,9 +13,9 @@ export function estimateTimeForSegment(segment: Segment, preferences: ComputedPr
   let total = 0;
   let duration = 0;
   let durationSincePeviousBreak = 0;
-  const nb = segment.relativePoints.length;
+  const nb = segment.points.length;
   for (let i = 1; i < nb; ++i) {
-    const sp = segment.relativePoints[i];
+    const sp = segment.points[i];
     duration += sp.durationFromPreviousPoint;
     durationSincePeviousBreak += sp.durationFromPreviousPoint;
     const distance = sp.distanceFromPreviousPoint;

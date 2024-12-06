@@ -82,9 +82,9 @@ describe('Replay trail', () => {
         else {
           const checkStart = () => {
             if ((window as any)._startTrail) setTimeout(() => nextPoint(), 500);
-            else setTimeout(() => checkStart(), 5000);
+            else setTimeout(() => checkStart(), 2500);
           };
-          setTimeout(() => checkStart(), 10000);
+          setTimeout(() => checkStart(), 5000);
         }
         return 1;
       };
@@ -107,15 +107,7 @@ describe('Replay trail', () => {
   it('Go to map and wait until pause', async () => {
     await browser.execute(() => (window as any)._startTrail = true);
     await trailPage.trailComponent.openMap();
-    try { await browser.waitUntil(() => browser.execute(() => (window as any)._resumeSegment !== undefined), { interval: 2000, timeout: 45000 }); }
-    catch (e) { ok = false; }
-  });
-
-  it('Wait until pause (2)', async () => {
-    if (!ok) {
-      await browser.waitUntil(() => browser.execute(() => (window as any)._resumeSegment !== undefined), { interval: 2000, timeout: 45000 });
-      ok = true;
-    }
+    await browser.waitUntil(() => browser.execute(() => (window as any)._resumeSegment !== undefined), { interval: 2000, timeout: 45000 });
   });
 
   it('Pause then resume', async () => {
@@ -124,13 +116,7 @@ describe('Replay trail', () => {
   });
 
   it('Wait until end of trail', async () => {
-    try { await browser.waitUntil(() => browser.execute(() => (window as any)._replayDone === true), { interval: 2000, timeout: 45000 }); }
-    catch (e) { ok = false; }
-  });
-
-  it('Wait until end of trail (2)', async () => {
-    if (!ok)
-      await browser.waitUntil(() => browser.execute(() => (window as any)._replayDone === true), { interval: 2000, timeout: 45000 });
+    await browser.waitUntil(() => browser.execute(() => (window as any)._replayDone === true), { interval: 2000, timeout: 45000 });
   });
 
   let uuidBefore: string;

@@ -13,6 +13,7 @@ export class NetworkService implements INetworkService {
 
   private readonly _server$: BehaviorSubject<boolean>;
   private readonly _internet$: BehaviorSubject<boolean>;
+  private destroyed = false;
 
   constructor(private readonly http: HttpClientService) {
     this._server$ = new BehaviorSubject<boolean>(false);
@@ -24,6 +25,10 @@ export class NetworkService implements INetworkService {
     this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
   }
 
+  ngOnDestroy(): void {
+    this.destroyed = true;
+  }
+
   get server(): boolean { return this._server$.value; }
   get server$(): Observable<boolean> { return this._server$; }
 
@@ -33,6 +38,7 @@ export class NetworkService implements INetworkService {
   private count = 0;
 
   private updateStatus(firstCall: boolean): void {
+    if (this.destroyed) return;
     const newStatus = window.navigator.onLine;
     Console.info('Network changed (' + newStatus + '), ping server');
     if (!newStatus) {
@@ -40,9 +46,10 @@ export class NetworkService implements INetworkService {
         this._internet$.next(false);
       }
     } else if (!this._internet$.value) {
-      setTimeout(() => {
+      if (firstCall) this._internet$.next(true);
+      else setTimeout(() => {
         if (window.navigator.onLine && !this._internet$.value) this._internet$.next(true);
-      }, firstCall ? 0 : 1000);
+      }, 1000);
     }
     this.checkServerConnection(++this.count, 1);
   }
@@ -51,7 +58,7 @@ export class NetworkService implements INetworkService {
     const start = Date.now();
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
-      if (count !== this.count) return;
+      if (count !== this.count || this.destroyed) return;
       let status: boolean;
       if (response.status === 200) {
         Console.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)');

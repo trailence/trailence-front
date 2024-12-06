@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { ImprovmentRecordingState, TrackEditionService } from './track-edition.service';
 import { Track } from 'src/app/model/track';
-import { Point } from 'src/app/model/point';
+import { copyPoint, Point } from 'src/app/model/point';
 import { PreferencesService } from '../preferences/preferences.service';
 
 describe('Test improvments while recording', () => {
@@ -31,17 +31,7 @@ describe('Test improvments while recording', () => {
       const segment = recording.newSegment();
       let state: ImprovmentRecordingState | undefined = undefined;
       for (const originalPoint of originalSegment.points) {
-        const point = new Point(
-          originalPoint.pos.lat,
-          originalPoint.pos.lng,
-          originalPoint.ele,
-          originalPoint.time,
-          originalPoint.posAccuracy,
-          originalPoint.eleAccuracy,
-          originalPoint.heading,
-          originalPoint.speed
-        );
-        segment.append(point);
+        segment.append(copyPoint(originalPoint));
         state = trackEdition.applyDefaultImprovmentsForRecordingSegment(segment, state, segment.points.length === originalSegment.points.length);
       }
     }

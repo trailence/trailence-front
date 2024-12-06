@@ -10,6 +10,7 @@ import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';
 import { PlatformService } from './services/platform/platform.service';
+import { NetworkService } from './services/network/network.service';
 
 @Component({
     selector: 'app-root',
@@ -30,34 +31,44 @@ export class AppComponent {
   loadMenuContent = false;
   waitingForGps = false;
 
+  i18nLoaded = false;
+  waitingForGpsText = '';
+
   constructor(
-    public i18n: I18nService,
-    router: Router,
-    auth: AuthService,
     private readonly injector: Injector,
   ) {
+    // start network service as soon as possible
+    injector.get(NetworkService);
+    // then I18nService
+    const i18n = injector.get(I18nService);
     // init browser
     injector.get(BrowserService);
     // init assets
     injector.get(AssetsService);
     // init platform specificities
     injector.get(PlatformService);
+    // init auth
+    const auth = injector.get(AuthService);
 
     combineLatest([
-      router.events.pipe(
+      injector.get(Router).events.pipe(
         filter(e => e instanceof NavigationEnd),
         first(),
       ),
       i18n.texts$.pipe(
         filter(texts => !!texts),
+        tap(texts => {
+          this.i18nLoaded = true;
+          this.waitingForGpsText = texts.waiting_for_gps;
+        }),
         first(),
-        tap(() => this.loadMenu = true)
       ),
       auth.auth$.pipe(
         filter(a => a !== undefined),
         first(),
       ),
     ]).subscribe(([e, t, a]) => {
+      this.loadMenu = true;
       const startup = document.getElementById('startup')!;
       document.getElementById('root')!.style.display = '';
       if (!a) {
@@ -77,6 +88,7 @@ export class AppComponent {
       import('./services/geolocation/geolocation.service')
       .then(module => injector.get(module.GeolocationService).waitingForGps$.subscribe(value => this.waitingForGps = value));
     });
+    i18n.texts$.subscribe(texts => this.waitingForGpsText = texts?.waiting_for_gps);
   }
 
   private loadServices(): Promise<() => Observable<boolean>> {

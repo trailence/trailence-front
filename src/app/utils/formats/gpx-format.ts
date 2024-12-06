@@ -1,6 +1,6 @@
 import { Trail } from '../../model/trail';
 import { Track } from '../../model/track';
-import { Point } from '../../model/point';
+import { Point, PointDescriptor } from '../../model/point';
 import { XmlUtils } from '../xml-utils';
 import { TypeUtils } from '../type-utils';
 import { WayPoint } from 'src/app/model/way-point';
@@ -132,7 +132,7 @@ export class GpxFormat {
     return { trail, tracks, tags: importedTags, photos, photosFilenames };
   }
 
-  private static readPoint(point: Element): Point | undefined {
+  private static readPoint(point: Element): PointDescriptor | undefined {
     const lat = TypeUtils.toFloat(point.getAttribute('lat'));
     const lng = TypeUtils.toFloat(point.getAttribute('lon'));
     if (lat === undefined || lng === undefined) {
@@ -163,7 +163,7 @@ export class GpxFormat {
         speed = speedNode ? TypeUtils.toFloat(speedNode.textContent) : undefined;
       }
 
-    return new Point(lat, lng, elevation, time?.getTime(), hdop, vdop, heading, speed);
+    return { pos: {lat, lng}, ele: elevation, time: time?.getTime(), posAccuracy: hdop, eleAccuracy: vdop, heading, speed };
   }
 
   private static readWayPoint(wayPoint: Element): WayPoint | undefined {
@@ -249,7 +249,7 @@ export class GpxFormat {
   }
 
   private static writePoint(point: Point | WayPoint, elementName: string): string { // NOSONAR
-    const pt = point instanceof Point ? point : point.point;
+    const pt = point instanceof WayPoint ? point.point : point;
     const wp = point instanceof WayPoint ? point : undefined;
     let gpx = '<' + elementName;
     gpx += ' lat="' + pt.pos.lat.toFixed(7) + '" lon="' + pt.pos.lng.toFixed(7) + '">';

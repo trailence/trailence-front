@@ -50,4 +50,11 @@ let j = index.indexOf('</div>', i);
 index = index.substring(0, i + 28) + versionStr + index.substring(j);
 fs.writeFileSync('src/index.html', index);
 
+console.log('Updating version in sonar properties');
+let sonar = fs.readFileSync('sonar-project.properties', {encoding: 'utf-8'});
+i = sonar.indexOf('sonar.version=');
+j = sonar.indexOf('\n', i);
+sonar = sonar.substring(0, i + 14) + versionStr + index.substring(j);
+fs.writeFileSync('sonar-project.properties', index);
+
 console.log('Successfully updated version to ', versionStr);

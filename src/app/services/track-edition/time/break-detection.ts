@@ -16,7 +16,7 @@ export function calculateLongBreaksFromTrack(track: Track, preferences: Computed
 export function calculateLongBreaksFromSegment(segment: Segment, preferences: ComputedPreferences): number {
   const breaks = detectLongBreaksFromSegment(segment, preferences.longBreakMinimumDuration, preferences.longBreakMaximumDistance);
   if (breaks.length === 0) return 0;
-  const points = segment.relativePoints;
+  const points = segment.points;
   let duration = 0;
   for (const b of breaks) {
     for (let i = b.startIndex + 1; i <= b.endIndex; ++i)
@@ -36,14 +36,14 @@ export function detectLongBreaksFromTrack(track: Track, minDuration: number, max
 }
 
 export function detectLongBreaksFromSegment(segment: Segment, minDuration: number, maxDistance: number): {startIndex: number; endIndex: number}[] { // NOSONAR
-  const points = segment.relativePoints;
+  const points = segment.points;
   if (points.length < 2) return [];
   let index = 0;
   const breaks: {startIndex: number; endIndex: number}[] = [];
   while (index < points.length - 1) {
     let startIndex = index;
     let startPoint = points[startIndex];
-    while (startPoint.point.time === undefined && startIndex < points.length - 1)  {
+    while (startPoint.time === undefined && startIndex < points.length - 1)  {
       startIndex++;
       startPoint = points[startIndex];
     }
@@ -51,14 +51,14 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
 
     let endIndex = startIndex + 1;
     let endPoint = points[endIndex];
-    let distance = startPoint.point.distanceTo(endPoint.point.pos);
+    let distance = startPoint.distanceTo(endPoint.pos);
     let duration = endPoint.durationFromPreviousPoint;
     let lastEligiblePointIndex = endIndex;
     let lastEligiblePointDuration = duration;
-    while (endIndex < points.length - 1 && (endPoint.point.time === undefined || distance < maxDistance)) {
+    while (endIndex < points.length - 1 && (endPoint.time === undefined || distance < maxDistance)) {
       endIndex++;
       endPoint = points[endIndex];
-      distance = startPoint.point.distanceTo(endPoint.point.pos);
+      distance = startPoint.distanceTo(endPoint.pos);
       duration += endPoint.durationFromPreviousPoint;
       if (distance <= 15) {
         lastEligiblePointIndex = endIndex;
@@ -86,7 +86,7 @@ function adjustLongBreakDetected(segment: Segment, maxDistance: number, startInd
     let index = startIndex + 1;
     for (; index < endIndex; ++index) {
       const point = segment.points[index];
-      const dist = point.distanceTo(segment.points[index - 1].pos);
+      const dist = point.distanceFromPreviousPoint;
       distance += dist;
       if (distance >= maxDistance) {
         index--;
@@ -107,7 +107,7 @@ function adjustLongBreakDetected(segment: Segment, maxDistance: number, startInd
     let index = endIndex - 1;
     for (; index > startIndex; --index) {
       const point = segment.points[index];
-      const dist = point.distanceTo(segment.points[index + 1].pos);
+      const dist = point.nextPoint!.distanceFromPreviousPoint;
       distance += dist;
       if (distance >= maxDistance) {
         index++;

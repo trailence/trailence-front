@@ -1,115 +1,75 @@
-import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
-import * as L from 'leaflet';
 import { PointDto } from './dto/point';
 
-export class Point {
+export interface Point extends PointDescriptor {
 
-  private readonly _pos: BehaviorSubject<L.LatLng>;
-  private readonly _ele: BehaviorSubject<number | undefined>;
-  private readonly _time: BehaviorSubject<number | undefined>;
-  private readonly _posAccuracy: BehaviorSubject<number | undefined>;
-  private readonly _eleAccuracy: BehaviorSubject<number | undefined>;
-  private readonly _heading: BehaviorSubject<number | undefined>;
-  private readonly _speed: BehaviorSubject<number | undefined>;
+  pos: L.LatLng;
+  ele: number | undefined;
+  time: number | undefined;
+  posAccuracy: number | undefined;
+  eleAccuracy: number | undefined;
+  heading: number | undefined;
+  speed: number | undefined;
 
-  constructor( // NOSONAR
-    lat: number,
-    lng: number,
-    ele?: number,
-    time?: number,
-    posAccuracy?: number,
-    eleAccuracy?: number,
-    heading?: number,
-    speed?: number,
-  ) {
-    this._pos = new BehaviorSubject<L.LatLng>(new L.LatLng(lat, lng));
-    this._ele = new BehaviorSubject<number | undefined>(ele);
-    this._time = new BehaviorSubject<number | undefined>(time);
-    this._posAccuracy = new BehaviorSubject<number | undefined>(posAccuracy);
-    this._eleAccuracy = new BehaviorSubject<number | undefined>(eleAccuracy);
-    this._heading = new BehaviorSubject<number | undefined>(heading);
-    this._speed = new BehaviorSubject<number | undefined>(speed);
+  readonly distanceFromPreviousPoint: number;
+  readonly durationFromPreviousPoint: number;
+  readonly elevationFromPreviousPoint: number | undefined;
+
+  readonly previousPoint: Point | undefined;
+  readonly nextPoint: Point | undefined;
+
+  distanceTo(other: L.LatLngExpression): number;
+
+}
+
+export interface PointDescriptor {
+  pos: L.LatLngLiteral;
+  ele?: number;
+  time?: number;
+  posAccuracy?: number;
+  eleAccuracy?: number;
+  heading?: number;
+  speed?: number;
+}
+
+export function copyPoint(p: PointDescriptor): PointDescriptor {
+  return {
+    pos: {
+      lat: p.pos.lat,
+      lng: p.pos.lng,
+    },
+    ele: p.ele,
+    time: p.time,
+    posAccuracy: p.posAccuracy,
+    eleAccuracy: p.eleAccuracy,
+    heading: p.heading,
+    speed: p.speed,
   }
+}
 
-  public get pos(): L.LatLng { return this._pos.value; }
-  public get pos$(): Observable<L.LatLng> { return this._pos; }
-  public set pos(p: L.LatLng) {
-    const current = this._pos.value;
-    if (current.lat === p.lat && current.lng === p.lng) return;
-    this._pos.next(p);
-  }
+export function pointsAreEqual(p1: PointDescriptor, p2: PointDescriptor): boolean {
+  return p1.pos.lat === p2.pos.lat &&
+    p1.pos.lng === p2.pos.lng &&
+    p1.ele === p2.ele &&
+    p1.time === p2.time &&
+    p1.posAccuracy === p2.posAccuracy &&
+    p1.eleAccuracy === p2.eleAccuracy &&
+    p1.heading === p2.heading &&
+    p1.speed === p2.speed;
+}
 
-  public get ele(): number | undefined { return this._ele.value; }
-  public get ele$(): Observable<number | undefined> { return this._ele; }
-  public set ele(e: number | undefined) { if (this._ele.value !== e) this._ele.next(e); }
+export function samePosition(p1?: L.LatLngLiteral, p2?: L.LatLngLiteral): boolean {
+  if (!p1) return !p2;
+  if (!p2) return false;
+  return p1.lat === p2.lat && p1.lng === p2.lng;
 
-  public get time(): number | undefined { return this._time.value; }
-  public get time$(): Observable<number | undefined> { return this._time; }
-  public set time(t: number | undefined) { if (this._time.value !== t) this._time.next(t); }
+}
 
-  public get posAccuracy(): number | undefined { return this._posAccuracy.value; }
-  public get posAccuracy$(): Observable<number | undefined> { return this._posAccuracy; }
-  public set posAccuracy(pa: number | undefined) { if (this._posAccuracy.value !== pa) this._posAccuracy.next(pa); }
-
-  public get eleAccuracy(): number | undefined { return this._eleAccuracy.value; }
-  public get eleAccuracy$(): Observable<number | undefined> { return this._eleAccuracy; }
-  public set eleAccuracy(ea: number | undefined) { if (this._eleAccuracy.value !== ea) this._eleAccuracy.next(ea); }
-
-  public get heading(): number | undefined { return this._heading.value; }
-  public get heading$(): Observable<number | undefined> { return this._heading; }
-  public set heading(h: number | undefined) { if (this._heading.value !== h) this._heading.next(h); }
-
-  public get speed(): number | undefined { return this._speed.value; }
-  public get speed$(): Observable<number | undefined> { return this._speed; }
-  public set speed(s: number | undefined) { if (this._speed.value !== s) this._speed.next(s); }
-
-  public get changes$(): Observable<any> {
-    return combineLatest([this.pos$, this.ele$, this.time$, this.posAccuracy$, this.eleAccuracy$, this.heading$, this.speed$]).pipe(
-      skip(1),
-    );
-  }
-
-  public distanceTo(other: L.LatLngExpression): number {
-    return L.CRS.Earth.distance(this._pos.value, other);
-  }
-
-  public samePosition(other?: L.LatLngLiteral): boolean {
-    if (!other) return false;
-    const p = this._pos.value;
-    return p.lat === other.lat && p.lng === other.lng;
-  }
-
-  public samePositionRound(other: L.LatLngLiteral): boolean {
-    const lat1 = Math.floor(this._pos.value.lat * 1000000);
-    const lng1 = Math.floor(this._pos.value.lng * 1000000);
-    const lat2 = Math.floor(other.lat * 1000000);
-    const lng2 = Math.floor(other.lng * 1000000);
-    return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
-  }
-
-  public copy(): Point {
-    return new Point(
-      this.pos.lat,
-      this.pos.lng,
-      this.ele,
-      this.time,
-      this.posAccuracy,
-      this.eleAccuracy,
-      this.heading,
-      this.speed
-    );
-  }
-
-  public isEquals(other: Point): boolean {
-    return this.pos.lat === other.pos.lat &&
-      this.pos.lng === other.pos.lng &&
-      this.ele === other.ele &&
-      this.time === other.time &&
-      this.posAccuracy === other.posAccuracy &&
-      this.eleAccuracy === other.eleAccuracy &&
-      this.heading === other.heading &&
-      this.speed === other.speed;
-  }
+export function samePositionRound(p1: L.LatLngLiteral, p2: L.LatLngLiteral): boolean {
+  const lat1 = Math.floor(p1.lat * 1000000);
+  const lng1 = Math.floor(p1.lng * 1000000);
+  const lat2 = Math.floor(p2.lat * 1000000);
+  const lng2 = Math.floor(p2.lng * 1000000);
+  return Math.abs(lat1 - lat2) <= 1 && Math.abs(lng1 - lng2) <= 1;
 
 }
 
@@ -122,9 +82,9 @@ const SPEED_FACTOR = 100;
 
 export class PointDtoMapper {
 
-  public static toPoints(dtos: PointDto[]): Point[] {
-    const points: Point[] = new Array(dtos.length);
-    let previousPoint: Point | undefined = undefined;
+  public static toPoints(dtos: PointDto[]): PointDescriptor[] {
+    const points: PointDescriptor[] = new Array(dtos.length);
+    let previousPoint: PointDescriptor | undefined = undefined;
     const nb = dtos.length;
     for (let i = 0; i < nb; ++i) {
       const nextPoint = this.toPoint(dtos[i], previousPoint);
@@ -135,18 +95,19 @@ export class PointDtoMapper {
   }
 
 
-  private static toPoint(dto: PointDto, previous?: Point): Point {
-    const p = previous?.pos;
-    return new Point(
-      this.toCoord(dto.l, p?.lat),
-      this.toCoord(dto.n, p?.lng),
-      this.toValue(dto.e, previous?.ele, ELEVATION_FACTOR),
-      this.toValue(dto.t, previous?.time, 1),
-      this.toValue(dto.pa, previous?.posAccuracy, POSITION_ACCURACY_FACTOR),
-      this.toValue(dto.ea, previous?.eleAccuracy, ELEVATION_ACCURACY_FACTOR),
-      this.toValue(dto.h, previous?.heading, HEADING_FACTOR),
-      this.toValue(dto.s, previous?.speed, SPEED_FACTOR),
-    );
+  private static toPoint(dto: PointDto, previous?: PointDescriptor): PointDescriptor {
+    return {
+      pos: {
+        lat: this.toCoord(dto.l, previous?.pos.lat),
+        lng: this.toCoord(dto.n, previous?.pos.lng),
+      },
+      ele: this.toValue(dto.e, previous?.ele, ELEVATION_FACTOR),
+      time: this.toValue(dto.t, previous?.time, 1),
+      posAccuracy: this.toValue(dto.pa, previous?.posAccuracy, POSITION_ACCURACY_FACTOR),
+      eleAccuracy: this.toValue(dto.ea, previous?.eleAccuracy, ELEVATION_ACCURACY_FACTOR),
+      heading: this.toValue(dto.h, previous?.heading, HEADING_FACTOR),
+      speed: this.toValue(dto.s, previous?.speed, SPEED_FACTOR),
+    };
   }
 
   private static toCoord(value: number | undefined, previous: number | undefined): number {

@@ -96,7 +96,7 @@ function outsideFromSmoothElevation(points: Point[], previousIndex: number, prev
   let distanceAbove = 0;
   let distanceBelow = 0;
   for (let j = previousIndex + 1; j < toIndex; ++j) {
-    const dist = points[j].distanceTo(points[j - 1].pos);
+    const dist = points[j].distanceFromPreviousPoint;
     currentDistance += dist;
     const ele = points[j].ele;
     if (ele === undefined) continue;
@@ -138,7 +138,7 @@ function applySmoothElevation(points: Point[], previousIndex: number, previousEl
 function applyFinalSmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number) {
   let currentDistance = 0;
   for (let j = previousIndex + 1; j < toIndex; ++j) {
-    currentDistance += points[j].distanceTo(points[j - 1].pos);
+    currentDistance += points[j].distanceFromPreviousPoint;
     points[j].ele = previousEle + (diff * currentDistance / totalDistance);
   }
 }

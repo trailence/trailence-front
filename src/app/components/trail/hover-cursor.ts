@@ -1,4 +1,3 @@
-import { Point } from 'src/app/model/point';
 import { ElevationGraphPointReference } from '../elevation-graph/elevation-graph-events';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailComponent } from './trail.component';
@@ -22,8 +21,7 @@ export class TrailHoverCursor {
     this.resetHover();
     this.component.elevationGraph?.hideCursor();
     if (event) {
-      const pt = event.point;
-      const pos = pt instanceof Point ? pt.pos : pt;
+      const pos = event.position;
       this.component.map?.cursors.addCursor(pos);
       this.component.elevationGraph?.showCursorForPosition(pos.lat, pos.lng);
       this._hoverCursor.push({pos});

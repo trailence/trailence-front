@@ -1,6 +1,6 @@
 import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
-import { Point, PointDtoMapper } from './point';
+import { copyPoint, Point, PointDescriptor, PointDtoMapper } from './point';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 import { WayPoint } from './way-point';
@@ -30,6 +30,13 @@ export class Track extends Owned {
 
   public get metadata(): TrackMetadata { return this._meta };
   public get computedMetadata(): TrackComputedMetadata { return this._computedMeta; }
+
+  public get segmentChanges$(): Observable<any> {
+    return this.segments$.pipe(
+      switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(s => concat(of([]), s.changes$)))),
+      skip(1),
+    );
+  }
 
   public get changes$(): Observable<any> {
     return combineLatest([
@@ -65,13 +72,14 @@ export class Track extends Owned {
       }
     });
     dto.wp?.forEach(wp => {
-      const pt = new Point(
-        PointDtoMapper.readCoordValue(wp.l),
-        PointDtoMapper.readCoordValue(wp.n),
-        wp.e !== undefined ? PointDtoMapper.readElevationValue(wp.e) : undefined,
-        wp.t
-      );
-      this.appendWayPoint(new WayPoint(pt, wp.na ?? '', wp.de ?? ''));
+      this.appendWayPoint(new WayPoint({
+        pos: {
+          lat: PointDtoMapper.readCoordValue(wp.l),
+          lng: PointDtoMapper.readCoordValue(wp.n),
+        },
+        ele: wp.e !== undefined ? PointDtoMapper.readElevationValue(wp.e) : undefined,
+        time: wp.t,
+      }, wp.na ?? '', wp.de ?? ''));
     });
     this._computedMeta = new TrackComputedMetadata(this, preferencesService);
   }
@@ -188,14 +196,14 @@ export class Track extends Owned {
 
   public subTrack(startSegment: number, startPoint: number, endSegment: number, endPoint: number): Track {
     const sub = new Track({owner: 'nobody'}, this.preferencesService);
-    const newPoints: Point[] = [];
+    const newPoints: PointDescriptor[] = [];
     for (let si = startSegment; si <= endSegment; si++) {
       const s = this._segments.value[si];
       const pts = s.points;
       const endi = si === endSegment ? endPoint : pts.length - 1;
       for (let pi = si === startSegment ? startPoint : 0; pi <= endi; pi++) {
         const p = pts[pi];
-        newPoints.push(new Point(p.pos.lat, p.pos.lng, p.ele, p.time, p.posAccuracy, p.eleAccuracy, p.heading, p.speed));
+        newPoints.push(copyPoint(p));
       }
     }
     const newSegment = sub.newSegment();
@@ -483,7 +491,7 @@ export class ComputedWayPoint {
     if (firstKnownIndex >= 0) {
       const firstKnown = computed[firstKnownIndex];
       if ((firstKnown._nearestSegmentIndex === 0 && firstKnown._nearestPointIndex === 0) ||
-          (track.departurePoint && firstKnown._wayPoint.point.distanceTo(track.departurePoint.pos) < 25)) {
+          (track.departurePoint && track.departurePoint.pos.distanceTo(firstKnown._wayPoint.point.pos) < 25)) {
         // match the departure
         firstKnown._isDeparture = true;
         if (firstKnownIndex > 0) {
@@ -497,7 +505,7 @@ export class ComputedWayPoint {
     if (lastKnownIndex >= 0) {
       const lastKnown = computed[lastKnownIndex];
       if ((lastKnown._nearestSegmentIndex === track.segments.length - 1 && lastKnown._nearestPointIndex === track.segments[track.segments.length - 1].points.length - 1) ||
-          (track.arrivalPoint && lastKnown._wayPoint.point.distanceTo(track.arrivalPoint.pos) < 25)) {
+          (track.arrivalPoint && track.arrivalPoint.pos.distanceTo(lastKnown._wayPoint.point.pos) < 25)) {
         // match the arrival
         lastKnown._isArrival = true;
         if (lastKnownIndex < computed.length - 1) {
@@ -508,7 +516,7 @@ export class ComputedWayPoint {
       }
     }
     if (!departure) {
-      if (arrival && arrival._wayPoint.point.distanceTo(track.departurePoint.pos) <= 25) {
+      if (arrival && track.departurePoint.pos.distanceTo(arrival._wayPoint.point.pos) <= 25) {
         arrival._isDeparture = true;
         const index = computed.indexOf(arrival);
         if (index > 0) {
@@ -604,7 +612,7 @@ export class ComputedWayPoint {
     return changed;
   }
 
-  private static findEligiblePoints(point: Point, track: Track): {segmentIndex: number; pointIndex: number}[] { // NOSONAR
+  private static findEligiblePoints(point: PointDescriptor, track: Track): {segmentIndex: number; pointIndex: number}[] { // NOSONAR
     const result: {segmentIndex: number; pointIndex: number}[] = [];
     const p = point.pos;
     const t = point.time;

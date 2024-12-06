@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { ComputedPreferences, DateFormat, DistanceUnit, HourFormat, Preferences, ThemeType } from './preferences';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
@@ -49,11 +49,11 @@ export class PreferencesService {
   private readonly _computed$: BehaviorSubject<ComputedPreferences>;
   private readonly _systemTheme: ThemeType;
   private readonly _saveNeeded$ = new BehaviorSubject<string | undefined>(undefined);
+  private destroyed = false;
+  private subscription?: Subscription;
 
   constructor(
-    private readonly authService: AuthService,
-    private readonly httpService: HttpService,
-    network: NetworkService,
+    private readonly injector: Injector,
   ) {
     this._systemTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'DARK' : 'LIGHT';
     let prefs: Preferences = {};
@@ -82,15 +82,19 @@ export class PreferencesService {
       }
     } catch (e) {}
     this._prefs$ = new BehaviorSubject<Preferences>(prefs);
-    authService.auth$.subscribe(auth => {
-      if (auth?.preferences) {
-        const prefs = {...auth.preferences};
-        this.complete(prefs, this._prefs$.value);
-        this._prefs$.next(prefs);
-      }
-    });
     this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
-    this._prefs$.subscribe(p => {
+    Console.info('Initial preferences: ', this._computed$.value);
+    setTimeout(() => this.init(), 1);
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.subscription?.unsubscribe();
+  }
+
+  private init(): void {
+    if (this.destroyed) return;
+    this._prefs$.pipe(debounceTime(10)).subscribe(p => {
       localStorage.setItem(LOCALSTORAGE_PREFERENCES_KEY, JSON.stringify(p));
       const computed = this.compute(p);
       Console.info('Preferences: ', computed);
@@ -100,11 +104,18 @@ export class PreferencesService {
       window.document.body.classList.add(theme.toLowerCase() + '-theme');
       this._computed$.next(computed);
     });
-    combineLatest([network.server$, authService.auth$, this._saveNeeded$]).subscribe(
+    this.injector.get(AuthService).auth$.subscribe(auth => {
+      if (auth?.preferences) {
+        const prefs = {...auth.preferences};
+        this.complete(prefs, this._prefs$.value);
+        this._prefs$.next(prefs);
+      }
+    });
+    this.subscription = combineLatest([this.injector.get(NetworkService).server$, this.injector.get(AuthService).auth$, this._saveNeeded$]).subscribe(
       ([connected, auth, saveNeeded]) => {
         if (connected && auth?.preferences && saveNeeded === auth?.email) {
           const body = {...auth.preferences};
-          this.httpService.put(environment.apiBaseUrl + '/preferences/v1', body).subscribe(() => {
+          this.injector.get(HttpService).put(environment.apiBaseUrl + '/preferences/v1', body).subscribe(() => {
             Console.info('Preferences saved for user', body);
           });
         }
@@ -176,13 +187,14 @@ export class PreferencesService {
 
   public setLanguage(lang: string): void {
     if (!defaultPreferences[lang]) return;
-    const auth = this.authService.auth;
+    const authService = this.injector.get(AuthService);
+    const auth = authService.auth;
     if (auth && auth.preferences?.lang !== lang) {
       if (!auth.preferences) {
         auth.preferences = {};
       }
       auth.preferences.lang = lang;
-      this.authService.preferencesUpdated();
+      authService.preferencesUpdated();
       this._saveNeeded$.next(auth.email);
     }
     if (this._prefs$.value.lang !== lang) {
@@ -252,7 +264,8 @@ export class PreferencesService {
   }
 
   private setPreference(field: string, value: any): void {
-    const auth = this.authService.auth;
+    const authService = this.injector.get(AuthService);
+    const auth = authService.auth;
     if (auth) {
       const currentValue = auth?.preferences ? (auth.preferences as any)[field] : undefined;
       if (currentValue !== value) {
@@ -260,7 +273,7 @@ export class PreferencesService {
           auth.preferences = {};
         }
         (auth.preferences as any)[field] = value;
-        this.authService.preferencesUpdated();
+        authService.preferencesUpdated();
         this._saveNeeded$.next(auth.email);
       }
     }
@@ -271,10 +284,11 @@ export class PreferencesService {
   }
 
   public resetAll(): void {
-    const auth = this.authService.auth;
+    const authService = this.injector.get(AuthService);
+    const auth = authService.auth;
     if (auth) {
       auth.preferences = {};
-      this.authService.preferencesUpdated();
+      authService.preferencesUpdated();
       this._saveNeeded$.next(auth.email);
     }
     this._prefs$.next({});
