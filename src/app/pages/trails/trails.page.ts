@@ -158,12 +158,11 @@ export class TrailsPage extends AbstractPage {
         this.visible$,
         this.injector.get(NetworkService).server$,
         getItem$(auth).pipe(
-          firstTimeout(item => !!item, 5000, () => null),
+          firstTimeout(item => !!item, 2000, () => null),
         ),
       ]).pipe(
         switchMap(([loaded, visible, connected, item]) => {
           if (item === null && (!connected || (loaded && visible))) {
-            // collection does not exist
             Console.warn('Item not found, redirecting to home');
             this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
           }

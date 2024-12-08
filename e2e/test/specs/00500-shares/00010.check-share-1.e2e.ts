@@ -1,4 +1,5 @@
 import { App } from '../../app/app';
+import { FilesUtils } from '../../utils/files-utils';
 import { MailHog } from '../../utils/mailhog';
 
 describe('Shares - Share 1', () => {
@@ -17,6 +18,9 @@ describe('Shares - Share 1', () => {
     expect(link.startsWith('https://trailence.org/link/')).toBeTrue();
     linkUrl = link.substring(27);
     await mh.deleteMessage();
+    await FilesUtils.fs().then(fs => {
+      fs.writeFileSync('./downloads/share1.link', linkUrl);
+    });
   });
 
   it('Open link', async () => {
@@ -28,10 +32,14 @@ describe('Shares - Share 1', () => {
     await menu.close();
     const list = await page.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb === 5));
-    expect(await list.findItemByTrailName('Tour de Port-Cros')).toBeDefined();
-    expect(await list.findItemByTrailName('Roquefraîche')).toBeDefined();
-    expect(await list.findItemByTrailName('Randonnée du 05/06/2023 à 08:58')).toBeDefined();
-    expect(await list.findItemByTrailName('Au dessus de Montclar')).toBeDefined();
+    const trails = await list.getTrailsNames();
+    expect(trails).toContain('Tour de Port-Cros');
+    expect(trails).toContain('Roquefraîche');
+    expect(trails).toContain('Au dessus de Montclar');
+    expect(trails).toContain('Col et lacs de la Cayolle');
+    expect(trails).toContain('Randonnée du 05/06/2023 à 08:58');
+    expect(trails.length).toBe(5);
+
     const trail = await list.findItemByTrailName('Col et lacs de la Cayolle');
     expect(trail).toBeDefined();
     expect(await trail!.getPhotosSliderElement().isExisting()).toBeFalse();

@@ -16,10 +16,11 @@ describe('Trails list - Sort and filter', () => {
     expect(await page.header.getTitle()).toBe('Test Import');
   });
 
+  let page: TrailsPage;
   let list: TrailsList;
 
   it('List contains expected trails', async () => {
-    const page = new TrailsPage();
+    page = new TrailsPage();
     list = await page.trailsAndMap.openTrailsList();
     await expectListContains(list, EXPECTED_TRAILS);
   });
@@ -162,6 +163,18 @@ describe('Trails list - Sort and filter', () => {
     await popup.setTagsFilter('onlyWithoutAnyTag', []);
     await popup.close();
     await expectListContainsByName(list, [...EXPECTED_TRAILS].filter(t => t.tags.length === 0));
+  });
+
+  it('Filter visible on map', async () => {
+    await (await list.getToolbarButton('filters')).click();
+    const popup = new FilterTrailsPopup(await App.waitModal());
+    await popup.resetFilters();
+    await popup.showOnlyVisibleCheckbox.setSelected(true);
+    await popup.close();
+    const map = await page.trailsAndMap.openMap();
+    await map.goTo(43.388583, 6.023254, 11);
+    list = await page.trailsAndMap.openTrailsList();
+    await expectListContainsByName(list, [...EXPECTED_TRAILS].filter(t => t.name === 'Près de Tourves' || t.name === 'Randonnée du 20/02/2022 à 09:55'));
   });
 
 });

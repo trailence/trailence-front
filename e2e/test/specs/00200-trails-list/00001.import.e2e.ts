@@ -52,13 +52,11 @@ describe('Trails list - Import Simple GPX', () => {
   it('Open trail, it has the original track and an improved track', async () => {
     await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Randonnée du 05/06/2023 à 08:58'));
     const trail = trailPage.trailComponent;
-    await browser.waitUntil(() => trail.getMetadataValueByTitle('Ascent', true).then(value => !!value && value.length > 0));
-    const improvedAscent = await trail.getMetadataValueByTitle('Ascent', true);
+    const improvedAscent = await TestUtils.waitFor(() => trail.getMetadataValueByTitle('Ascent', true), value => !!value && value.length > 0);
     expect(improvedAscent).toBeDefined();
     expect(improvedAscent!.indexOf('+ ')).toBe(0);
     await trail.toggleShowOriginalTrace();
-    await browser.waitUntil(() => trail.getMetadataValueByTitle('Ascent', true).then(value => !!value && value.length > 0 && value !== improvedAscent));
-    const originalAscent = await trail.getMetadataValueByTitle('Ascent', true);
+    const originalAscent = await TestUtils.waitFor(() => trail.getMetadataValueByTitle('Ascent', true), value => !!value && value.length > 0 && value !== improvedAscent);
     expect(originalAscent).toBeDefined();
     expect(originalAscent!.indexOf('+ ')).toBe(0);
     expect(parseInt(originalAscent!.substring(2).replaceAll(',', ''))).toBeGreaterThan(parseInt(improvedAscent!.substring(2).replaceAll(',', '')));

@@ -224,7 +224,6 @@ export class TrackMetadataComponent extends AbstractComponent {
         }
       }
       previousState = state as number;
-      //if (changed) this.changeDetector.detectChanges();
     }, true);
   }
 

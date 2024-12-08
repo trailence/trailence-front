@@ -1,10 +1,13 @@
 import { App } from '../app/app';
 import { FilterNumeric } from './filter-numeric.component';
 import { IonicButton } from './ionic/ion-button';
+import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicRadioGroup } from './ionic/ion-radio-group';
 import { ModalComponent } from './modal'
 
 export class FilterTrailsPopup extends ModalComponent {
+
+  public get showOnlyVisibleCheckbox() { return new IonicCheckbox(this.getElement().$('>>>ion-checkbox.filter-map')); }
 
   public async setNumericFilter(filterName: string, minValue: number | undefined, maxValue: number | undefined) {
     const headers = this.getElement().$$('>>>div.filter-header>div');

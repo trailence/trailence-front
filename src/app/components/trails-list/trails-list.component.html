@@ -60,7 +60,7 @@
     </ion-header>
     <ion-content class="ion-padding">
       <div class="filter-value">
-        <ion-checkbox
+        <ion-checkbox class="filter-map"
           [checked]="state$.value.filters.onlyVisibleOnMap"
           (ionChange)="updateFilterOnlyVisibleOnMap($event.detail.checked)"
           labelPlacement="end"

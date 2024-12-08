@@ -20,7 +20,7 @@
     "check-i18n": "node ./scripts/check-i18n-keys.js",
     "check-assets-version": "node ./scripts/check-assets-version.js",
     "release": "npm run check-i18n && npm run check-assets-version && npm run set-version && ng build --configuration=production",
-    "instrument": "nyc instrument www/browser www/browser --exclude-after-remap=false --complete-copy --in-place"
+    "instrument": "nyc instrument www/browser www/browser --exclude-after-remap=false --complete-copy --in-place --exclude=**/polyfills*.js --exclude=**/scripts*.js --exclude=**/swipe-back*.js --exclude=**/shadow-css*.js --exclude=**/jszip*.js --exclude=**/ios.transition*.js --exclude=**/input-shims*.js --exclude=**/hardward-back-button*.js --exclude=**/focus-visible*.js"
   },
   "license": "Apache-2.0",
   "private": true,

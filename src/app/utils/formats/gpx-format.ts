@@ -86,12 +86,12 @@ export class GpxFormat {
       const track = new Track({owner: user}, preferencesService);
       for (const trkseg of XmlUtils.getChildren(trk, 'trkseg')) {
         const segment = track.newSegment();
+        const points: PointDescriptor[] = [];
         for (const trkpt of XmlUtils.getChildren(trkseg, 'trkpt')) {
           const pt = this.readPoint(trkpt);
-          if (pt) {
-              segment.append(pt);
-          }
+          if (pt) points.push(pt);
         }
+        segment.appendMany(points);
       }
       const extensions = XmlUtils.getChild(trk, 'extensions');
       if (extensions) {
@@ -109,12 +109,12 @@ export class GpxFormat {
         trailDto.description = XmlUtils.getChildText(rte, 'desc') ?? '';
       const track = new Track({owner: user}, preferencesService);
       const segment = track.newSegment();
+      const points: PointDescriptor[] = [];
       for (const rtept of XmlUtils.getChildren(rte, 'rtept')) {
         const pt = this.readPoint(rtept);
-        if (pt) {
-            segment.append(pt);
-        }
+        if (pt) points.push(pt);
       }
+      segment.appendMany(points);
       tracks.push(track);
     }
 

@@ -411,7 +411,6 @@ export class MapComponent extends AbstractComponent {
     const map = this._map$.value;
     if (map && this._followingLocation$.value) {
       const bounds = this.getFollowLocationBounds(map);
-      //L.rectangle(bounds).addTo(map);
       if (!bounds.contains(marker.getLatLng())) {
         this.centerOnLocation();
       }

@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subject, combineLatest, concat, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, concat, map, of, switchMap } from 'rxjs';
 import { Point, PointDescriptor, PointDtoMapper, pointsAreEqual } from './point';
 import { Arrays } from '../utils/arrays';
 import { SegmentDto } from './dto/segment';

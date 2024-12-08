@@ -203,7 +203,7 @@ export class TrackDatabase {
           this.operation(() => this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
             let count = 0;
             let countInMemory = 0;
-            return this.fullTrackTable?.each(trackItem => {
+            return this.fullTrackTable?.each(trackItem => { // NOSONAR
               if (!trackItem.track || trackItem.version === -1) return;
               count++;
               const track = new Track(trackItem.track, this.injector.get(PreferencesService));
@@ -224,7 +224,7 @@ export class TrackDatabase {
                   ...this.toMetadata(track)
                 });
               }
-            }).then(() => {
+            }).then(() => { // NOSONAR
               Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
             });
           }));

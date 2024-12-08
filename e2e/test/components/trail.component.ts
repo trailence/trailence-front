@@ -14,6 +14,7 @@ export class TrailComponent extends Component {
 
   private _hasTabs: boolean | undefined = undefined;
   private _tabsSegment: IonicSegment | undefined = undefined;
+  private _currentTab: string | undefined = undefined;
 
   public async hasTabs() {
     if (this._hasTabs === undefined)
@@ -28,16 +29,19 @@ export class TrailComponent extends Component {
   }
 
   public async openTab(tab: string) {
+    if (this._currentTab === tab) return false;
     if (this._tabsSegment === undefined)
       this._tabsSegment = new IonicSegment(this.getElement().$('div.top-container div.tabs-container ion-segment'));
     await this._tabsSegment.setSelected(tab);
+    this._currentTab = tab;
+    return true;
   }
 
   public async openDetails() {
     if (await this.hasTabs()) {
-      await this.openTab('details');
+      if (await this.openTab('details'))
+        await browser.waitUntil(() => this.getElement().$('div.top-container>div.trail-details').isDisplayed());
     }
-    await browser.waitUntil(() => this.getElement().$('div.top-container>div.trail-details').isDisplayed());
     return this.getElement().$('div.top-container>div.trail-details');
   }
 
@@ -52,17 +56,13 @@ export class TrailComponent extends Component {
   }
 
   public async getMetadataContentByTitle(title: string) {
-    const items = await this.getMetadataItems();
-    for (const item of await items.getElements()) {
-      const itemTitle = await this.getMetadataTitle(item);
-      if (itemTitle === title) return item;
-    }
-    return undefined;
+    const details = await this.openDetails();
+    const itemTitle = details.$('div.metadata-title=' + title);
+    return itemTitle.parentElement();
   }
 
   public async getMetadataValueByTitle(title: string, primary: boolean) {
     const item = await this.getMetadataContentByTitle(title);
-    if (!item) return undefined;
     return item.$('.metadata-' + (primary ? 'primary' : 'secondary')).getText();
   }
 
@@ -115,9 +115,10 @@ export class TrailComponent extends Component {
   public async openPhotos() {
     // mobile mode
     if (await this.hasTabs()) {
-      await this.openTab('photos');
+      const wait = await this.openTab('photos')
       const element = this.getElement().$('div.top-container>div.trail-photos-tab>app-photos-popup');
-      await element.waitForDisplayed();
+      if (wait)
+        await element.waitForDisplayed();
       return new PhotosPopup(element, false);
     }
 
@@ -189,10 +190,10 @@ export class TrailComponent extends Component {
   public async openMap() {
     if (await this.hasTabs()) {
       // mobile mode
-      await this.openTab('map');
+      if (await this.openTab('map'))
+        await this.getElement().$('div.top-container>div.map-container>app-map').waitForDisplayed();
     }
     const element = this.getElement().$('div.top-container>div.map-container>app-map');
-    await element.waitForDisplayed();
     return new MapComponent(element);
   }
 

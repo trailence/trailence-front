@@ -39,6 +39,10 @@ export class MapComponent extends Component {
     expect(zoom).toBe(level);
   }
 
+  public async goTo(lat: number, lng: number, zoom: number) {
+    await browser.execute(u => window.location.hash = u, '#zoom=' + zoom + '&center=' + lat + ',' + lng);
+  }
+
   public async toggleGeolocation() {
     await this.getControl('show-position-tool').click();
   }

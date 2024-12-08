@@ -80,7 +80,10 @@ export class ElevationGraphComponent extends AbstractComponent {
     changeDetector.detach();
     this.whenVisible.subscribe(browser.resize$, () => this.resetChart());
     this.visible$.subscribe(() => this.resetChart());
-    this.whenVisible.subscribe(preferencesService.preferences$, () => this.resetChart());
+    this.whenVisible.subscribe(preferencesService.preferences$, () => {
+      this.backgroundColor = '';
+      this.resetChart();
+    });
     injector.get(ElementRef).nativeElement.addEventListener('mouseout', () => this.pointHover.emit([]));
   }
 
@@ -107,7 +110,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     });
   }
 
-  private checkSizeTimeout?: any;
+  private _visibilityObserver?: IntersectionObserver;
 
   public resetChart(): void {
     this.ngZone.runOutsideAngular(() => {
@@ -117,10 +120,25 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.width = undefined;
       this.height = undefined;
       this.selectionRange = [];
+      if (this._visibilityObserver) {
+        this._visibilityObserver.disconnect();
+        this._visibilityObserver = undefined;
+      }
       if (!this.track1) return;
-      if (this.checkSizeTimeout) clearTimeout(this.checkSizeTimeout);
-      if (this.visible)
-        this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 25);
+      if (this.visible) {
+        this._visibilityObserver = new IntersectionObserver(entries => {
+          if (entries[0].isIntersecting) {
+            const w = entries[0].boundingClientRect.width;
+            const h = entries[0].boundingClientRect.height;
+            if (w > 0 && h > 0) {
+              this._visibilityObserver!.disconnect();
+              this._visibilityObserver = undefined;
+              this.startChart(w, h, entries[0].target as HTMLElement);
+            }
+          }
+        });
+        this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement);
+      }
     });
   }
 
@@ -131,13 +149,11 @@ export class ElevationGraphComponent extends AbstractComponent {
   private selectingColor = '';
   private selectionColor = '';
 
-  private checkElementSizeThenCreateChart(): void {
-    this.checkSizeTimeout = undefined;
+  private startChart(width: number, height: number, element: HTMLElement): void {
     if (!this.visible || !this.track1) return;
-    const element = this.injector.get(ElementRef).nativeElement;
-    this.width = element.offsetWidth;
-    this.height = element.offsetHeight;
-    if (this.width! > 0 && this.height! > 0) {
+    this.width = width;
+    this.height = height;
+    if (this.backgroundColor === '') {
       const styles = getComputedStyle(element);
       this.backgroundColor = String(styles.getPropertyValue('--ion-background-color')).trim();
       this.contrastColor = String(styles.getPropertyValue('--ion-text-color')).trim();
@@ -145,10 +161,8 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
       this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
       this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
-      this.changeDetector.detectChanges();
-      setTimeout(() => this.createChart(), 0);
-    } else
-      this.checkSizeTimeout = setTimeout(() => this.checkElementSizeThenCreateChart(), 100);
+    }
+    this.createChart();
   }
 
   private selectionRange: PathRange[] = [];
@@ -350,7 +364,6 @@ export class ElevationGraphComponent extends AbstractComponent {
               }
               return s;
             });
-            //addInfo(this.i18n.texts.elevationGraph.precision, pt => pt.raw.eleAccuracy !== undefined ? ('+/- ' + this.i18n.elevationToString(pt.raw.eleAccuracy)) : '');
             addInfo(this.i18n.texts.elevationGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters))
             addInfo(this.i18n.texts.elevationGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
             html += '<tr><th>' + this.i18n.texts.elevationGraph.location + '</th>';
@@ -421,10 +434,9 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   private fillDataSet(ds: any, track: Track): void {
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
-      const segment = track.segments[segmentIndex];
-      const points = segment.points;
+      const points = track.segments[segmentIndex].points;
       for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
-        (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, segment, points));
+        (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, points));
       }
     }
   }
@@ -532,8 +544,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     if (!this.canvas?.chart) return;
     let pointCount = 0;
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
-      const segment = track.segments[segmentIndex];
-      const points = segment.points;
+      const points = track.segments[segmentIndex].points;
       let pointIndex = Math.max(0, (ds.data.length - 1) - pointCount);
       if (pointIndex >= points.length) {
         pointCount += points.length;
@@ -543,9 +554,9 @@ export class ElevationGraphComponent extends AbstractComponent {
       for (; pointIndex < points.length; pointIndex++) {
         if (pointCount === ds.data.length - 1) {
           // latest known point => update it
-          ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, segment, points);
+          ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points);
         } else {
-          ds.data.push(this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, segment, points));
+          ds.data.push(this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points));
         }
         pointCount++;
       }
@@ -567,10 +578,10 @@ export class ElevationGraphComponent extends AbstractComponent {
     });
   }
 
-  private createDataPoint(previous: DataPoint | undefined, segmentIndex: number, pointIndex: number, track: Track, segment: Segment, points: Point[]): DataPoint {
+  private createDataPoint(previous: DataPoint | undefined, segmentIndex: number, pointIndex: number, track: Track, points: Point[]): DataPoint {
     const point = points[pointIndex];
     let distance = previous?.distanceMeters ?? 0;
-    if (pointIndex > 0) distance += point.distanceTo(previous!);
+    if (pointIndex > 0) distance += point.distanceFromPreviousPoint;
     let timeSinceStart = undefined;
     if (previous?.timeSinceStart && previous.time && point.time)
       timeSinceStart = previous.timeSinceStart + (point.time - previous.time);

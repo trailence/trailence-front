@@ -16,7 +16,7 @@ export class DependenciesService {
     const itemsToDelete = operation === 'delete' ? items.map(i => storeName + ';' + i) : [];
     db.transaction('rw', DEPENDENCIES_TABLE_NAME, () => {
       const table = db.table<Dependency>(DEPENDENCIES_TABLE_NAME);
-      return table.toArray().then(dbItems => {
+      return table.toArray().then(dbItems => { // NOSONAR
         const itemsToSave: Dependency[] = [];
         const itemsToRemove: Dependency[] = [];
         for (const dbItem of dbItems) {
@@ -55,7 +55,7 @@ export class DependenciesService {
           }
         }
         let result: Promise<any> = Promise.resolve(true);
-        if (itemsToRemove.length > 0) result = result.then(() => table.bulkDelete(itemsToRemove.map(i => i.key)));
+        if (itemsToRemove.length > 0) result = result.then(() => table.bulkDelete(itemsToRemove.map(i => i.key))); // NOSONAR
         if (itemsToSave.length > 0) result = result.then(() => table.bulkPut(itemsToSave));
         return result;
       });
