@@ -94,8 +94,10 @@ export class UserMenu extends Component {
   }
 
   public async close() {
-    await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(100).down().pause(100).up().perform();
-    await browser.waitUntil(() => this.getElement().isExisting().then(e => !e), { timeout: 10000 });
+    await TestUtils.retry(async () => {
+      await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(100).down().pause(100).up().perform();
+      await browser.waitUntil(() => this.getElement().isExisting().then(e => !e), { timeout: 5000 });
+    }, 3, 500);
     await App.waitNoPopover();
   }
 
