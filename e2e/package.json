@@ -2,11 +2,11 @@
   "name": "e2e",
   "type": "module",
   "devDependencies": {
-    "@badisi/wdio-harness": "^4.0.3",
-    "@types/jasmine": "^5.1.4",
-    "@wdio/cli": "^9.3.1",
-    "@wdio/jasmine-framework": "^9.3.1",
-    "@wdio/local-runner": "^9.3.1",
+    "@badisi/wdio-harness": "^4.1.0",
+    "@types/jasmine": "^5.1.5",
+    "@wdio/cli": "^9.4.1",
+    "@wdio/jasmine-framework": "^9.4.1",
+    "@wdio/local-runner": "^9.4.1",
     "@wdio/spec-reporter": "^9.2.14",
     "nyc": "^17.1.0"
   },
