@@ -200,12 +200,17 @@ export class TrackMetadataComponent extends AbstractComponent {
         TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
       }
       if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
+      if (duration === undefined) breaksDuration = undefined;
       if (detailed) {
         TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController);
         TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController);
-        TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController);
-        TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController);
         TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController);
+        TrackMetadataComponent.shown(meta.durationDiv, duration !== undefined);
+        TrackMetadataComponent.shown(meta.breaksDurationDiv, duration !== undefined);
+        if (duration !== undefined) {
+          TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController);
+          TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController);
+        }
       } else {
         let d = i18n.durationToString(duration);
         if (estimatedDuration !== undefined) d += ' (≈ ' + i18n.durationToString(estimatedDuration) + ')';

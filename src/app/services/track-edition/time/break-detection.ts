@@ -19,8 +19,11 @@ export function calculateLongBreaksFromSegment(segment: Segment, preferences: Co
   const points = segment.points;
   let duration = 0;
   for (const b of breaks) {
-    for (let i = b.startIndex + 1; i <= b.endIndex; ++i)
-      duration += points[i].durationFromPreviousPoint;
+    for (let i = b.startIndex + 1; i <= b.endIndex; ++i) {
+      const d = points[i].durationFromPreviousPoint;
+      if (d !== undefined)
+        duration += d;
+    }
   }
   return duration;
 }
@@ -52,14 +55,15 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
     let endIndex = startIndex + 1;
     let endPoint = points[endIndex];
     let distance = startPoint.distanceTo(endPoint.pos);
-    let duration = endPoint.durationFromPreviousPoint;
+    let duration = endPoint.durationFromPreviousPoint ?? 0;
     let lastEligiblePointIndex = endIndex;
     let lastEligiblePointDuration = duration;
     while (endIndex < points.length - 1 && (endPoint.time === undefined || distance < maxDistance)) {
       endIndex++;
       endPoint = points[endIndex];
       distance = startPoint.distanceTo(endPoint.pos);
-      duration += endPoint.durationFromPreviousPoint;
+      if (endPoint.durationFromPreviousPoint !== undefined)
+        duration += endPoint.durationFromPreviousPoint!;
       if (distance <= 15) {
         lastEligiblePointIndex = endIndex;
         lastEligiblePointDuration = duration;
