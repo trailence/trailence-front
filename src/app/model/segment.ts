@@ -2,7 +2,7 @@ import { BehaviorSubject, Observable, Subject, concat, map, of, switchMap } from
 import { Point, PointDescriptor, PointDtoMapper, pointsAreEqual } from './point';
 import { Arrays } from '../utils/arrays';
 import { SegmentDto } from './dto/segment';
-import * as L from 'leaflet';
+import L from 'leaflet';
 
 export class Segment {
 

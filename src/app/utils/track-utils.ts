@@ -1,5 +1,5 @@
 import { Point } from '../model/point';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { Track } from '../model/track';
 
 export class TrackUtils {

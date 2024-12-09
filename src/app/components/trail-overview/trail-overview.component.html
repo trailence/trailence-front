@@ -9,7 +9,7 @@
   <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
 </div>
 
-<div [ngStyle]="{display: track$.value ? 'block' : 'none'}">
+<div [ngStyle]="{display: track$.value ? 'block' : 'none', 'min-height': photos.length > 0 ? '145px': ''}">
   <ng-container *ngIf="meta.dateString || meta.location">
     <div class="metadata-item-container">
       <div class="metadata-item">

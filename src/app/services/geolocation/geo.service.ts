@@ -3,7 +3,7 @@ import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, zip } from 'rxjs';
 import { I18nService } from '../i18n/i18n.service';
 import { environment } from 'src/environments/environment';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { Arrays } from 'src/app/utils/arrays';
 import { Place } from './place';
 import { Way, WayPermission } from './way';

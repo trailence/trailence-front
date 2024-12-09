@@ -1,4 +1,4 @@
-import * as L from 'leaflet';
+import L from 'leaflet';
 
 const BUBBLE_MAX_PIXELS = 50;
 const BUBBLE_MIN_PIXELS = 20;

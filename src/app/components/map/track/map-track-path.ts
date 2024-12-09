@@ -1,5 +1,5 @@
 import { Track } from 'src/app/model/track';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { Subscription } from 'rxjs';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';

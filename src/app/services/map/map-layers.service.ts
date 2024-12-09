@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { handleMapOffline } from './map-tiles-layer-offline';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';

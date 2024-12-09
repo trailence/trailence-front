@@ -35,7 +35,7 @@ import { Arrays } from 'src/app/utils/arrays';
 import { MapPhoto } from '../map/markers/map-photo';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 

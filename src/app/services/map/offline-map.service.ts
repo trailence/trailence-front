@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
 import { MapLayer, MapLayersService } from './map-layers.service';

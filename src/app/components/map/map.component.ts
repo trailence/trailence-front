@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Outp
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
 import { MapTrack } from './track/map-track';

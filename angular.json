@@ -38,9 +38,6 @@
               "src/global.scss",
               "./node_modules/leaflet/dist/leaflet.css"
             ],
-            "scripts": [
-              "./node_modules/leaflet/dist/leaflet.js"
-            ],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -240,9 +237,6 @@
             "styles": [
               "src/global.scss",
               "./node_modules/leaflet/dist/leaflet.css"
-            ],
-            "scripts": [
-              "./node_modules/leaflet/dist/leaflet.js"
             ]
           },
           "configurations": {

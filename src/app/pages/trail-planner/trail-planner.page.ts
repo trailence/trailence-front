@@ -17,7 +17,7 @@ import { MapTrackPointReference } from 'src/app/components/map/track/map-track-p
 import { Arrays } from 'src/app/utils/arrays';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { estimateTimeForTrack } from 'src/app/services/track-edition/time/time-estimation';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SearchPlaceComponent } from 'src/app/components/search-place/search-place.component';

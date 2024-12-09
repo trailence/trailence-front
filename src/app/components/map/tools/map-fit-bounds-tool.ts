@@ -1,4 +1,4 @@
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { environment } from 'src/environments/environment';
 import { MapToolUtils } from './map-tool-utils';
 

@@ -370,7 +370,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             }
             this.injector.get(DependenciesService).operationDone(this.tableName, 'update', notUpdated);
             return from(Promise.all(promises)).pipe(
-              switchMap(() => this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length)))
+              switchMap(() => this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length))) // NOSONAR
             );
           }),
           catchError(error => {

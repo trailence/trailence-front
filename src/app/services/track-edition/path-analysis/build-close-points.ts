@@ -1,5 +1,5 @@
 import { Track } from 'src/app/model/track';
-import * as L from 'leaflet';
+import L from 'leaflet';
 
 export function buildClosePointsFromTrack(track: Track, maxDistance: number): {point: L.LatLng, distanceToPrevious: number}[] {
   return buildClosePoints(track.getAllPositions(), maxDistance);

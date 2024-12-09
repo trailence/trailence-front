@@ -1,4 +1,4 @@
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { MapToolUtils } from './map-tool-utils';
 import { AssetsService } from 'src/app/services/assets/assets.service';
 import { Injector } from '@angular/core';

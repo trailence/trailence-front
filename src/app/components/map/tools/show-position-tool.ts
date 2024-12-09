@@ -1,4 +1,4 @@
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { MapToolUtils } from './map-tool-utils';
 import { Observable, Subscription } from 'rxjs';
 import { Injector } from '@angular/core';

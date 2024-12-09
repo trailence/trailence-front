@@ -4,7 +4,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import * as C from 'chart.js';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { getRelativePosition } from 'chart.js/helpers';
 import { _DeepPartialObject } from 'chart.js/dist/types/utils';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -17,7 +17,6 @@ import { BackgroundPlugin } from './plugins/background';
 import { RangeSelection, RangeSelectionEvent, SelectedRange } from './plugins/range-selection';
 import { Point } from 'src/app/model/point';
 import { PathRange } from '../trail/path-selection';
-import { Segment } from 'src/app/model/segment';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 

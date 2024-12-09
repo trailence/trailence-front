@@ -5,7 +5,7 @@ import { Trail } from 'src/app/model/trail';
 import { MapTrackWayPoints } from './map-track-way-points';
 import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { MapTrackArrowPath } from './map-track-arrows-path';
-import * as L from 'leaflet';
+import L from 'leaflet';
 
 export class MapTrack {
 

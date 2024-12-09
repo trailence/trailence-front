@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import * as L from 'leaflet';
+import L from 'leaflet';
 
 export class MapState {
 

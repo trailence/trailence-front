@@ -14,7 +14,7 @@ import { Point } from 'src/app/model/point';
 import { PreferencesService } from '../preferences/preferences.service';
 import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular/standalone';
 import { ImprovmentRecordingState, TrackEditionService } from '../track-edition/track-edition.service';
