@@ -391,16 +391,19 @@ export class ComputedWayPoint {
     private readonly _nearestPointIndex: number | undefined,
     track: Track
   ) {
+    const hasDuration = track.metadata.duration !== undefined;
     if (_nearestSegmentIndex !== undefined) {
       const segment = track.segments[_nearestSegmentIndex];
-      if (_wayPoint.point.time)
-        this._timeSinceDeparture = TypeUtils.addOrUndefined(segment.timeSinceSegmentStart(_wayPoint.point.time), track.segmentTimeSinceDeparture(_nearestSegmentIndex));
-      else {
-        const point = segment.points[_nearestPointIndex!];
-        if (point.time)
-          this._timeSinceDeparture = TypeUtils.addOrUndefined(segment.timeSinceSegmentStart(point.time), track.segmentTimeSinceDeparture(_nearestSegmentIndex));
-        else
-          this._timeSinceDeparture = TypeUtils.addOrUndefined(segment.timeSinceSegmentStart(segment.nearestPoint(point.pos, p => !!p.time)?.time), track.segmentTimeSinceDeparture(_nearestSegmentIndex));
+      if (hasDuration) {
+        if (_wayPoint.point.time)
+          this._timeSinceDeparture = TypeUtils.addOrUndefined(segment.timeSinceSegmentStart(_wayPoint.point.time), track.segmentTimeSinceDeparture(_nearestSegmentIndex));
+        else {
+          const point = segment.points[_nearestPointIndex!];
+          if (point.time)
+            this._timeSinceDeparture = TypeUtils.addOrUndefined(segment.timeSinceSegmentStart(point.time), track.segmentTimeSinceDeparture(_nearestSegmentIndex));
+          else
+            this._timeSinceDeparture = TypeUtils.addOrUndefined(segment.timeSinceSegmentStart(segment.nearestPoint(point.pos, p => !!p.time)?.time), track.segmentTimeSinceDeparture(_nearestSegmentIndex));
+        }
       }
       let distance = segment.distanceFromSegmentStart(_nearestPointIndex!);
       for (let i = _nearestSegmentIndex - 1; i >= 0; --i)

@@ -109,10 +109,10 @@ export class TrackMetadataComponent extends AbstractComponent {
           lowestAltitudeDivs[2]
         );
         const meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0]);
-        TrackMetadataComponent.toMeta(track$, meta, detailed, whenVisible, i18n, titles, domController);
+        const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
+        TrackMetadataComponent.toMeta(track$, meta, detailed, whenVisible, i18n, titles, domController, meta2);
         if (detailed) {
-          const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
-          TrackMetadataComponent.toMeta(track2$, meta2, detailed, whenVisible, i18n, titles, domController);
+          TrackMetadataComponent.toMeta(track2$, meta2, detailed, whenVisible, i18n, titles, domController, meta);
         }
       });
     });
@@ -161,7 +161,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     return ([info1, info2, title]);
   }
 
-  private static toMeta(track$: Observable<TrackType>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController): void {
+  private static toMeta(track$: Observable<TrackType>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController, meta2: Meta): void {
     let previousState = 0;
     whenVisible.subscribe(track$.pipe(
       switchMap(track => {
@@ -200,12 +200,15 @@ export class TrackMetadataComponent extends AbstractComponent {
         TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
       }
       if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
+      if (duration === undefined) breaksDuration = undefined;
       if (detailed) {
         TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController);
         TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController);
+        TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController);
         TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController);
         TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController);
-        TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController);
+        TrackMetadataComponent.shown(meta.durationDiv, duration !== undefined || meta2.durationValue !== undefined);
+        TrackMetadataComponent.shown(meta.breaksDurationDiv, duration !== undefined || meta2.durationValue !== undefined);
       } else {
         let d = i18n.durationToString(duration);
         if (estimatedDuration !== undefined) d += ' (≈ ' + i18n.durationToString(estimatedDuration) + ')';

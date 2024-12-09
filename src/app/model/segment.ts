@@ -193,7 +193,7 @@ export class PointImpl implements Point {
   private _elevationFromPrevious?: number;
   private _currentElevation?: number;
   private _currentTime?: number;
-  private _durationFromPrevious = 0;
+  private _durationFromPrevious?: number;
 
   constructor(
     private meta: SegmentMetadata | undefined,
@@ -272,7 +272,7 @@ export class PointImpl implements Point {
   }
 
   public get distanceFromPreviousPoint(): number { return this._distanceFromPrevious; }
-  public get durationFromPreviousPoint(): number { return this._durationFromPrevious; }
+  public get durationFromPreviousPoint(): number | undefined { return this._durationFromPrevious; }
   public get elevationFromPreviousPoint(): number | undefined { return this._elevationFromPrevious; }
 
   public get previousPoint(): Point | undefined { return this._previous; }
@@ -322,8 +322,9 @@ export class PointImpl implements Point {
   private updateDuration(init: boolean = false): void {
     let p = this._previous;
     while (p && !p._time) p = p._previous;
-    const newDurationFromPrevious = p && this._time !== undefined ? (this._time - p._time!) : 0;
-    this.meta?.addDuration(newDurationFromPrevious - this._durationFromPrevious);
+    const newDurationFromPrevious = p && this._time !== undefined ? (this._time - p._time!) : undefined;
+    if (newDurationFromPrevious !== undefined)
+      this.meta?.addDuration(newDurationFromPrevious - (this._durationFromPrevious ?? 0));
     this._durationFromPrevious = newDurationFromPrevious;
     if (!init && this._currentTime !== this._time) {
       this._currentTime = this._time;
@@ -353,9 +354,6 @@ export class PointImpl implements Point {
   }
 
 }
-
-
-
 
 export class SegmentMetadata {
 
@@ -601,7 +599,8 @@ export class SegmentMetadata {
     let e: number | undefined = eastPoint?.pos.lng;
     for (const pt of points) {
       distance += pt.distanceFromPreviousPoint;
-      duration += pt.durationFromPreviousPoint;
+      if (pt.durationFromPreviousPoint !== undefined)
+        duration += pt.durationFromPreviousPoint;
       if (pt.elevationFromPreviousPoint !== undefined) {
         if (pt.elevationFromPreviousPoint > 0)
           positiveElevation = positiveElevation ? positiveElevation + pt.elevationFromPreviousPoint : pt.elevationFromPreviousPoint;

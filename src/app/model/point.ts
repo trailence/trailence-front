@@ -11,7 +11,7 @@ export interface Point extends PointDescriptor {
   speed: number | undefined;
 
   readonly distanceFromPreviousPoint: number;
-  readonly durationFromPreviousPoint: number;
+  readonly durationFromPreviousPoint: number | undefined;
   readonly elevationFromPreviousPoint: number | undefined;
 
   readonly previousPoint: Point | undefined;
