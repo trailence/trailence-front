@@ -83,6 +83,7 @@ export class AssetsService {
       'redo': 'assets/redo.1.svg', // arrow-redo-outline
       'reset': 'assets/reset.1.svg', // refresh-outline
       'save': 'assets/save.1.svg', // save
+      'search': 'assets/search.1.svg', // search-outline
       'settings': 'assets/settings.1.svg', // settings
       'share': 'assets/share.1.svg', // share-social
       'share-outline': 'assets/share-outline.1.svg',  // share-social-outline

@@ -103,6 +103,8 @@ export class TrailComponent extends AbstractComponent {
   pathSelection: TrailPathSelection;
   previousFocus: Track | undefined = undefined;
 
+  isExternal = false;
+
   private _lockForDescription?: () => void;
   editingDescription = false;
   @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
@@ -149,6 +151,7 @@ export class TrailComponent extends AbstractComponent {
     this.editingDescription = false;
     this.trail1 = null;
     this.trail2 = null;
+    this.isExternal = false;
     this.recording = null;
     this.tagsNames = undefined;
     this.photos = undefined;
@@ -177,6 +180,7 @@ export class TrailComponent extends AbstractComponent {
         }
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
+        this.isExternal = !!this.trail1 && this.trail1.owner.indexOf('@') < 0;
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];

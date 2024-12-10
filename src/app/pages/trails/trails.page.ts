@@ -2,7 +2,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, filter, map, of, switchMap, combineLatest, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, filter, map, of, switchMap, combineLatest, Observable, debounceTime, concat } from 'rxjs';
 import { Router } from '@angular/router';
 import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -22,6 +22,9 @@ import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AuthResponse } from 'src/app/services/auth/auth-response';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { BrowserService } from 'src/app/services/browser/browser.service';
+import L from 'leaflet';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 
 @Component({
     selector: 'app-trails-page',
@@ -146,6 +149,40 @@ export class TrailsPage extends AbstractPage {
             this.actions = this.injector.get(ShareService).getShareMenu(result.share);
           });
         });
+    } else if (newState.type === 'search') {
+      // title
+      this.byStateAndVisible.subscribe(
+        this.injector.get(I18nService).texts$,
+        i18n => this.title$.next(i18n.menu.search_trail)
+      );
+      this.viewId = 'search-trails';
+      // search trails
+      this.byStateAndVisible.subscribe(
+        this.injector.get(BrowserService).hash$.pipe(
+          debounceTime(1000),
+          switchMap(hash => {
+            const search = () => {
+              if (!hash.has('bounds')) return of([] as Trail[]);
+              const coords = hash.get('bounds')!.split(',');
+              if (coords.length !== 4) return of([] as Trail[]);
+              const bounds = L.latLngBounds(
+                {lat: parseFloat(coords[0]), lng: parseFloat(coords[3])},
+                {lat: parseFloat(coords[2]), lng: parseFloat(coords[1])}
+              );
+              if (bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 &&
+                  bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000) return of([] as Trail[]);
+              return this.injector.get(FetchSourceService).searchByArea(bounds);
+            };
+            return concat(of([] as Trail[]), search());
+          })
+        ),
+        trails => {
+          const newList = List(trails);
+          if (!newList.equals(this.trails$.value))
+            this.ngZone.run(() => this.trails$.next(newList));
+        }
+      )
+
     } else {
       this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
