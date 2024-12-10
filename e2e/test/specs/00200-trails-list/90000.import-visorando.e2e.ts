@@ -38,6 +38,8 @@ describe('Import data from Visorando', () => {
     const waypoints = await trailPage.trailComponent.getWayPoints();
     expect(waypoints[0].name).toBe('Parking Caussols');
     expect(waypoints[0].description).toBe('Traversez au rond-point et prenez à droite puis à gauche pour se diriger vers le parking de l\'école et de la mairie.');
+    const location = await trailPage.trailComponent.getLocation();
+    expect(location).toBe('Caussols');
     const photos = await trailPage.trailComponent.openPhotos();
     const photosInfos = await photos.collectPhotosInfos();
     expect(photosInfos.has('Station Radar')).toBeTrue();

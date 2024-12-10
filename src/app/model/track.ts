@@ -381,7 +381,7 @@ export interface BreakWayPoint {
 
 export class ComputedWayPoint {
 
-  constructor(
+  constructor( // NOSONAR
     private readonly _wayPoint: WayPoint,
     private _isDeparture: boolean,
     private _isArrival: boolean,

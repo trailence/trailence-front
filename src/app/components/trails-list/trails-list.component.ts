@@ -270,8 +270,9 @@ export class TrailsListComponent extends AbstractComponent {
 
   private applyFilters(): TrailWithInfo[] {
     const filters = this.state$.value.filters;
-    const minDistance = filters.distance.from === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.from);
-    const maxDistance = filters.distance.to === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.to);
+    const distanceConverter = this.preferences.preferences.distanceUnit === 'METERS' ? 1000 : 5280;
+    const minDistance = filters.distance.from === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.from * distanceConverter);
+    const maxDistance = filters.distance.to === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.to * distanceConverter);
     const minPosEle = filters.positiveElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.from);
     const maxPosEle = filters.positiveElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.to);
     const minNegEle = filters.negativeElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from);

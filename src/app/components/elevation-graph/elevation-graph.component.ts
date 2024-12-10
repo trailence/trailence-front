@@ -123,21 +123,23 @@ export class ElevationGraphComponent extends AbstractComponent {
         this._visibilityObserver.disconnect();
         this._visibilityObserver = undefined;
       }
+      this.changeDetector.detectChanges();
       if (!this.track1) return;
-      if (this.visible) {
-        this._visibilityObserver = new IntersectionObserver(entries => {
-          if (entries[0].isIntersecting) {
-            const w = entries[0].boundingClientRect.width;
-            const h = entries[0].boundingClientRect.height;
-            if (w > 0 && h > 0) {
-              this._visibilityObserver!.disconnect();
-              this._visibilityObserver = undefined;
-              this.startChart(w, h, entries[0].target as HTMLElement);
+      if (this.visible)
+        setTimeout(() => {
+          this._visibilityObserver = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting) {
+              const w = entries[0].boundingClientRect.width;
+              const h = entries[0].boundingClientRect.height;
+              if (w > 0 && h > 0) {
+                this._visibilityObserver!.disconnect();
+                this._visibilityObserver = undefined;
+                this.startChart(w, h, entries[0].target as HTMLElement);
+              }
             }
-          }
-        });
-        this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement);
-      }
+          });
+          this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement);
+        }, 0);
     });
   }
 

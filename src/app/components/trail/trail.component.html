@@ -115,7 +115,10 @@
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
         <ion-checkbox *ngIf="photos && photos.length > 0" labelPlacement="end" [checked]="showPhotos$.value" (ionChange)="showPhotos$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_photos}}</ion-checkbox>
       </div>
-      <div class="trail-dates" *ngIf="trail1 && !trail2">
+      <div *ngIf="externalUrl" class="external-link">
+        <a href="{{externalUrl}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{externalAppName}}</a>
+      </div>
+      <div class="trail-dates" *ngIf="trail1 && !trail2 && !isExternal">
         <div>
           <span class="trail-date-title">Créé dans Trailence le </span>
           <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
@@ -166,6 +169,7 @@
                   [autoGrow]="true"
                   [value]="trail1.description"
                   (ionChange)="endEditDescription($event.detail.value)"
+                  (ionBlur)="endEditDescription(undefined)"
                 ></ion-textarea>
               </ng-container>
             </ng-container>

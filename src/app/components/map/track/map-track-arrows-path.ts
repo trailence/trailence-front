@@ -147,4 +147,10 @@ export class MapTrackArrowPath {
       this._arrowsByZoom[this._currentZoomShown].every(p => p.bringToFront());
   }
 
+  public bringToBack(): void {
+    if (!this._shown || !this._map || this._currentZoomShown < 0) return;
+    if (this._arrowsByZoom[this._currentZoomShown])
+      this._arrowsByZoom[this._currentZoomShown].every(p => p.bringToBack());
+  }
+
 }

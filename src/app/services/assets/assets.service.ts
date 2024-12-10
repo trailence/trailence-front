@@ -45,6 +45,7 @@ export class AssetsService {
       'duration': 'assets/duration.1.svg', // time-outline
       'edit': 'assets/edit.1.svg', // create-outline
       'elevation': 'assets/elevation.1.svg', // analytics-outline
+      'enter': 'assets/enter.1.svg', // enter-outline
       'error': 'assets/exclamation-circle.1.svg', // alert-circle-outline
       'export': 'assets/export.1.svg', // download-outline
       'file': 'assets/file.1.svg', // document-outline
@@ -83,6 +84,7 @@ export class AssetsService {
       'redo': 'assets/redo.1.svg', // arrow-redo-outline
       'reset': 'assets/reset.1.svg', // refresh-outline
       'save': 'assets/save.1.svg', // save
+      'search': 'assets/search.1.svg', // search-outline
       'settings': 'assets/settings.1.svg', // settings
       'share': 'assets/share.1.svg', // share-social
       'share-outline': 'assets/share-outline.1.svg',  // share-social-outline

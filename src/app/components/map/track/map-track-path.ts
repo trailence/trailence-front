@@ -1,13 +1,13 @@
 import { Track } from 'src/app/model/track';
 import L from 'leaflet';
 import { Subscription } from 'rxjs';
-import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { MapTrack } from './map-track';
 
 export class MapTrackPath {
 
   constructor(
-    private readonly _track: Track | SimplifiedTrackSnapshot,
+    private readonly _track: MapTrack,
     private _color: string,
     private readonly _smoothFactor: number,
   ) {}
@@ -18,18 +18,21 @@ export class MapTrackPath {
 
   public get path(): L.Polyline {
     if (!this._path) {
-      const polylines: L.LatLngExpression[][] = this._track instanceof Track ? this.buildPolyLines(this._track) : [this._track.points as L.LatLngLiteral[]];
+      const polylines: L.LatLngExpression[][] = this._track.track instanceof Track ? this.buildPolyLines(this._track.track) : [this._track.track.points as L.LatLngLiteral[]];
       this._path = L.polyline(polylines, {
         color: this._color,
         smoothFactor: this._smoothFactor,
-        interactive: false
+        interactive: true
       });
-      if (!this._subscription && this._track instanceof Track) {
-        this._subscription = this._track.segmentChanges$.pipe(
+      this._path.on('click', e => {
+        (e.originalEvent as any).fromTrack = this._track; // NOSONAR
+      });
+      if (!this._subscription && this._track.track instanceof Track) {
+        this._subscription = this._track.track.segmentChanges$.pipe(
           debounceTimeExtended(100, 100, 100),
         ).subscribe(() => {
           if (this._path && this._map) {
-            this._path.setLatLngs(this.buildPolyLines(this._track as Track));
+            this._path.setLatLngs(this.buildPolyLines(this._track.track as Track));
             return;
           }
           this._path = undefined;
@@ -93,6 +96,10 @@ export class MapTrackPath {
 
   public bringToFront(): void {
     if (this._map) this.path.bringToFront();
+  }
+
+  public bringToBack(): void {
+    if (this._map) this.path.bringToBack();
   }
 
 }

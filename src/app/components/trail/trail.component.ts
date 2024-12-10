@@ -38,6 +38,7 @@ import { TrackUtils } from 'src/app/utils/track-utils';
 import L from 'leaflet';
 import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 
 @Component({
     selector: 'app-trail',
@@ -103,6 +104,10 @@ export class TrailComponent extends AbstractComponent {
   pathSelection: TrailPathSelection;
   previousFocus: Track | undefined = undefined;
 
+  isExternal = false;
+  externalUrl?: string;
+  externalAppName?: string;
+
   private _lockForDescription?: () => void;
   editingDescription = false;
   @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
@@ -149,6 +154,9 @@ export class TrailComponent extends AbstractComponent {
     this.editingDescription = false;
     this.trail1 = null;
     this.trail2 = null;
+    this.isExternal = false;
+    this.externalUrl = undefined;
+    this.externalAppName = undefined;
     this.recording = null;
     this.tagsNames = undefined;
     this.photos = undefined;
@@ -166,7 +174,9 @@ export class TrailComponent extends AbstractComponent {
   private listenForTracks(): void {
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(debounceTime(1)),
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(
+        debounceTime(1)
+      ),
       ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, hideBaseTrack, showBreaks]) => { // NOSONAR
         if (this.trail1 !== trail1[0]) {
           if (this._lockForDescription) {
@@ -177,6 +187,12 @@ export class TrailComponent extends AbstractComponent {
         }
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
+        this.isExternal = !!this.trail1 && this.trail1.owner.indexOf('@') < 0;
+        if (this.isExternal) this.injector.get(FetchSourceService).getExternalUrl$(this.trail1!.owner, this.trail1!.uuid).subscribe(url => {
+          this.externalUrl = url ?? undefined;
+          this.changesDetector.detectChanges();
+        });
+        this.externalAppName = this.isExternal ? this.injector.get(FetchSourceService).getName(this.trail1!.owner) : undefined;
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];
@@ -698,17 +714,20 @@ export class TrailComponent extends AbstractComponent {
   }
 
   endEditDescription(text: string | null | undefined): void {
-    text = text ?? '';
     this.editingDescription = false;
-    if (this.trail1 && this.trail1.description !== text && this._lockForDescription) {
-      this.trail1.description = text;
-      this.trailService.update(this.trail1, () => {
-        if (this._lockForDescription) {
-          this._lockForDescription();
-          this._lockForDescription = undefined;
-        }
-      });
+    if (text && this.trail1) {
+      text = text.trim();
+      if (this.trail1.description !== text && this._lockForDescription) {
+        this.trail1.description = text;
+        this.trailService.update(this.trail1, () => {
+          if (this._lockForDescription) {
+            this._lockForDescription();
+            this._lockForDescription = undefined;
+          }
+        });
+      }
     }
+    this.changesDetector.detectChanges();
   }
 
   getDepartureAndArrival(waypoints: ComputedWayPoint[]): ComputedWayPoint | undefined {

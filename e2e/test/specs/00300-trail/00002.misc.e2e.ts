@@ -54,22 +54,16 @@ describe('Trail page', () => {
     await browser.waitUntil(() => graph.zoomButton.isDisplayed());
     // map should contain the selection
     await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('rgba(0,0,255,1)') >= 0));
-    let zoom = await browser.getUrl();
-    zoom = zoom.substring(zoom.indexOf('zoom=') + 5);
-    zoom = zoom.substring(0, zoom.indexOf('&'));
+    let zoom = await map.getZoom();
     // zoom on selection
     await graph.zoomButton.click();
-    await browser.waitUntil(() => browser.getUrl().then(url => {
-      let zoom2 = url.substring(url.indexOf('zoom=') + 5);
-      zoom2 = zoom2.substring(0, zoom2.indexOf('&'));
-      return zoom2 !== zoom;
+    await browser.waitUntil(() => map.getZoom().then(z => {
+      return z !== zoom;
     }));
     // unzoom
     await graph.zoomButton.click();
-    await browser.waitUntil(() => browser.getUrl().then(url => {
-      let zoom2 = url.substring(url.indexOf('zoom=') + 5);
-      zoom2 = zoom2.substring(0, zoom2.indexOf('&'));
-      return zoom2 === zoom;
+    await browser.waitUntil(() => map.getZoom().then(z => {
+      return z === zoom;
     }));
     // click on graph to remove selection
     await browser.action('pointer').move({x: 40, y: 25, origin: await graph.getElement().$('canvas').getElement()}).pause(10).down().pause(10).up().perform();

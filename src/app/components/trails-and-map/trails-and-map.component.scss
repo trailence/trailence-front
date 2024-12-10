@@ -1,6 +1,6 @@
 :host {
   position: relative;
-  overflow: hidden;
+  overflow: unset;
 }
 
 .top-container {
@@ -45,7 +45,7 @@
         height: 0;
       }
       &.two-rows:not(.none) {
-        height: 200px;
+        height: 130px;
       }
     }
     &.left {

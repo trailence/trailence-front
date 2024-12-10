@@ -56,7 +56,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
-  private setBlob(blob: {url: string, blobSize: number} | undefined | null) {
+  private setBlob(blob: {url: string, blobSize?: number} | undefined | null) {
     if (!blob) this.blob = undefined;
     else {
       this.blob = blob.url;

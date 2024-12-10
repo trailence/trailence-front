@@ -11,6 +11,7 @@ else
     export TRAILENCE_BACK_VERSION="snapshot-dev"
   fi
 fi
+echo "Run with backend version $TRAILENCE_BACK_VERSION"
 export IS_CI=1
 export DB_USERNAME="postgres"
 export DB_PASSWORD="$(echo $RANDOM | md5sum | head -c 20)"

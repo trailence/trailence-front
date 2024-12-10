@@ -21,6 +21,7 @@ import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
+import { FetchSourceService } from '../fetch-source/fetch-source.service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -39,6 +40,7 @@ export class PhotoService {
   }
 
   public getPhotosForTrail(owner: string, uuid: string): Observable<Photo[]> {
+    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(owner, uuid);
     return this.store.getAll$().pipe(
       collection$items(),
       map(photos => photos.filter(p => p.owner === owner && p.trailUuid === uuid))
@@ -77,7 +79,8 @@ export class PhotoService {
   }
 
   private readonly _blobUrls = new Map<string, DatabaseSubject<{url: string, blobSize: number}>>();
-  public getBlobUrl$(owner: string, uuid: string): Observable<{url: string, blobSize: number} | null> {
+  public getBlobUrl$(owner: string, uuid: string): Observable<{url: string, blobSize?: number} | null> {
+    if (owner.indexOf('@') < 0) return of({url: uuid});
     const key = owner + '#' + uuid;
     const existing = this._blobUrls.get(key);
     if (existing) return existing.asObservable();

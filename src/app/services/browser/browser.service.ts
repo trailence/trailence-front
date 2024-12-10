@@ -1,4 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
+import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { Platform } from '@ionic/angular/standalone';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Console } from 'src/app/utils/console';
@@ -14,6 +15,7 @@ export class BrowserService {
   constructor(
     platform: Platform,
     ngZone: NgZone,
+    router: Router,
   ) {
     Console.info('platform: ' + platform.platforms().join(','));
     platform.resize.subscribe(() => {
@@ -25,9 +27,12 @@ export class BrowserService {
     this._height = platform.height();
     this._hash$.next(this.decodeHash(window.location.hash));
     ngZone.runOutsideAngular(() => {
-      window.addEventListener('hashchange', () => {
-        this._hash$.next(this.decodeHash(window.location.hash));
+      router.events.subscribe(e => {
+        if (e instanceof NavigationEnd || e instanceof NavigationStart) {
+          this.updateHash(e.url);
+        }
       });
+      window.addEventListener('hashchange', e => this.updateHash(e.newURL));
     });
   }
 
@@ -35,6 +40,22 @@ export class BrowserService {
   public get height() { return this._height; }
   public get resize$() { return this._resize$; }
   public get hash$() { return this._hash$; }
+
+  private updateHash(url: string): void {
+    const i = url.indexOf('#');
+    const newHash = i > 0 ? this.decodeHash(url.substring(i)) : new Map<string, string>();
+    const currentHash = this._hash$.value;
+    if (newHash.size !== currentHash.size)
+      this._hash$.next(newHash);
+    else {
+      for (const key of currentHash.keys()) {
+        if (newHash.get(key) !== currentHash.get(key)) {
+          this._hash$.next(newHash);
+          break;
+        }
+      }
+    }
+  }
 
   public getHashes(): Map<string,string> {
     return this.decodeHash(window.location.hash);

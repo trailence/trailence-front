@@ -39,11 +39,6 @@
         [fromCollection]="!!collectionUuid"
         [trackSnapshot]="trailWithInfo.track"
       ></app-trail-overview>
-      <div style="display:flex; flex-direction: row; align-items: center; justify-content: center;" *ngIf="highlighted === trailWithInfo.trail">
-        <ion-button (click)="openTrail(trailWithInfo.trail)" size="small">
-          <a href="/trail/{{trailWithInfo.trail.owner + '/' + trailWithInfo.trail.uuid }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">{{ i18n.texts.pages.trails.open_trail }}</a>
-        </ion-button>
-      </div>
     </div>
   }
 </div>

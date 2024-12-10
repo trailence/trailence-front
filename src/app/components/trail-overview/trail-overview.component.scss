@@ -1,3 +1,8 @@
+:host {
+  position: relative;
+  display: block;
+}
+
 .trail-name-row {
   display: flex;
   flex-direction: row;
@@ -6,7 +11,7 @@
   ion-checkbox.trail-checkbox {
     padding-right: 8px;
     padding-top: 4px;
-    padding-bottom: 8px;
+    padding-bottom: 2px;
   }
 
   .trail-name {
@@ -25,16 +30,48 @@
   margin-bottom: 3px;
 }
 
-div.photos {
-  float: left;
-  max-width: 125px;
-  max-height: 120px;
-  width: 125px;
-  height: 120px;
-  overflow: hidden;
-  margin-right: 5px;
+div.metadata-with-photos {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
 
-  app-photos-slider {
-    display: block;
+  div.photos {
+    flex: none;
+    max-width: 100px;
+    max-height: 80px;
+    width: 100px;
+    height: 80px;
+    overflow: hidden;
+    margin-right: 5px;
+
+    app-photos-slider {
+      display: block;
+    }
+  }
+
+  div.metadata {
+    flex: 1 1 100%;
+
+    &.with-photos {
+      --metadata-font-size: 9pt;
+      --metadata-icon-size: 18px;
+      --metadata-icon-margin: 3px;
+
+      ::ng-deep div.metadata-item-container {
+        margin-bottom: 3px;
+      }
+    }
+  }
+
+}
+
+.open-trail {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+
+  ion-icon {
+    width: 20px;
+    height: 20px;
   }
 }

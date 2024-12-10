@@ -11,11 +11,13 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { combineLatest, firstValueFrom } from 'rxjs';
 import { PhotoService } from 'src/app/services/database/photo.service';
+import { populateWayPointInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
   selector: 'app-fetch-source-popup',
   templateUrl: './fetch-source-popup.component.html',
-  styleUrls: ['./fetch-source-popup.component.scss'],
+  styleUrls: [],
   imports: [IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, IonIcon, IonFooter, IonButtons, IonButton, CommonModule]
 })
 export class FetchSourcePopupComponent implements OnInit {
@@ -34,6 +36,7 @@ export class FetchSourcePopupComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly trackService: TrackService,
     private readonly photoService: PhotoService,
+    private readonly preferences: PreferencesService,
   ) { }
 
   ngOnInit(): void {
@@ -61,28 +64,22 @@ export class FetchSourcePopupComponent implements OnInit {
       this.fetchSourceService.fetchTrailInfo(t.source).then(info => {
         if (!info) return true;
         let r$: Promise<any> = Promise.resolve(true);
-        if (info.description && trail.description.length === 0) {
-          r$ = r$.then(() => new Promise(resolve => this.trailService.doUpdate(trail, t => t.description = info.description!, () => resolve(true))));
+        const updateDescription = info.description && info.description.trim().length > 0 && trail.description.trim().length === 0;
+        const updateLocation = info.location && info.location.trim().length > 0 && trail.location.trim().length === 0;
+        if (updateDescription || updateLocation) {
+          r$ = r$.then(() => new Promise(resolve => this.trailService.doUpdate(trail, t => { // NOSONAR
+            if (updateDescription)
+              t.description = info.description!.trim();
+            if (updateLocation)
+              t.location = info.location!.trim();
+          }, () => resolve(true)))); // NOSONAR
         }
         if (info.wayPoints && info.wayPoints.length > 0) {
           r$ = r$
           .then(() => firstValueFrom(combineLatest([this.trackService.getFullTrackReady$(trail.originalTrackUuid, email), this.trackService.getFullTrackReady$(trail.currentTrackUuid, email)])))
           .then(([track1, track2]) => {
-            let track1Updated = false;
-            let track2Updated = false;
-            for (let i = 0; i < info.wayPoints!.length; ++i) {
-              const wp = info.wayPoints![i];
-              if (wp.description) {
-                if (track1.wayPoints.length > i) {
-                  track1.wayPoints[i].description = wp.description;
-                  track1Updated = true;
-                }
-                if (track2.uuid !== track1.uuid && track2.wayPoints.length > i) {
-                  track2.wayPoints[i].description = wp.description;
-                  track2Updated = true;
-                }
-              }
-            }
+            let track1Updated = populateWayPointInfo(track1, info.wayPoints!, this.preferences.preferences);
+            let track2Updated = track2.uuid !== track1.uuid ? populateWayPointInfo(track2, info.wayPoints!, this.preferences.preferences) : false;
             if (track1Updated) this.trackService.update(track1);
             if (track2Updated) this.trackService.update(track2);
             return true;
@@ -104,60 +101,6 @@ export class FetchSourcePopupComponent implements OnInit {
         return r$;
       }).catch(e => true).then(() => progress.addWorkDone(1));
     }
-    /*
-        // fetch additional info from source
-        let fetchPhotos: PhotoInfo[] | undefined;
-        if (imported.source) {
-          const fetchService = this.injector.get(FetchSourceService);
-          if (fetchService.canFetchTrailInfo(imported.source)) {
-            result$ = result$.then(() =>
-              fetchService.fetchTrailInfo(imported.source!).catch(e => null).then(info => {
-                if (!info) return true;
-                if (info.description && imported.trail.description.length === 0) {
-                  imported.trail.description = info.description;
-                }
-                console.log(info.wayPoints, imported.tracks[0].wayPoints, imported.tracks[1].wayPoints);
-                if (info.wayPoints && info.wayPoints.length > 0) {
-                  for (let i = 0; i < info.wayPoints.length; ++i) {
-                    const wp = info.wayPoints[i];
-                    if (wp.description) {
-                      if (imported.tracks[0].wayPoints.length > i) {
-                        imported.tracks[0].wayPoints[i].description = wp.description;
-                      }
-                      if (imported.tracks[1].wayPoints.length > i) {
-                        imported.tracks[1].wayPoints[i].description = wp.description;
-                      }
-                    }
-                  }
-                }
-                if (info.photos && info.photos.length > 0) {
-                  fetchPhotos = info.photos;
-                }
-                return true;
-              })
-            );
-          }
-        }
-
-
-        result$ = result$.then(() => {
-          if (!fetchPhotos || fetchPhotos.length === 0) return true;
-          const photoService = this.injector.get(PhotoService);
-          let r$: Promise<any> = Promise.resolve(true);
-          for (const p of fetchPhotos) {
-            r$ = r$.then(() => window.fetch(p.url)).then(r => r.arrayBuffer()).then(b => firstValueFrom(
-              photoService.addPhoto(
-                imported.trail.owner,
-                imported.trail.uuid,
-                p.description ?? '',
-                100,
-                b
-              )
-            ))
-          }
-          return r$;
-        });
-*/
   }
 
   close(): void {

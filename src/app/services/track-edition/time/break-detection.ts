@@ -63,7 +63,7 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
       endPoint = points[endIndex];
       distance = startPoint.distanceTo(endPoint.pos);
       if (endPoint.durationFromPreviousPoint !== undefined)
-        duration += endPoint.durationFromPreviousPoint!;
+        duration += endPoint.durationFromPreviousPoint;
       if (distance <= 15) {
         lastEligiblePointIndex = endIndex;
         lastEligiblePointDuration = duration;

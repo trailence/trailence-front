@@ -1,7 +1,7 @@
 import { ChainablePromiseElement } from 'webdriverio';
 import { App } from '../app/app';
 import { Page } from '../app/pages/page';
-import { TrailsPage } from '../app/pages/trails-page';
+import { TrailsPage, TrailsPageType } from '../app/pages/trails-page';
 import { CollectionModal } from './collection.modal';
 import { Component } from './component';
 import { HeaderComponent } from './header.component';
@@ -94,6 +94,13 @@ export class AppMenu extends Component {
   public async openTrailPlanner() {
     await this.getElement().$('ion-icon[name=planner]').parentElement().click();
     const page = new TrailPlannerPage();
+    await page.waitDisplayed();
+    return page;
+  }
+
+  public async openTrailFinder() {
+    await this.getElement().$('ion-icon[name=search]').parentElement().click();
+    const page = new TrailsPage(TrailsPageType.SEARCH);
     await page.waitDisplayed();
     return page;
   }

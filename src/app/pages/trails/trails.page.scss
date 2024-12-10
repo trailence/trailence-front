@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  overflow: hidden;
+  overflow: unset;
 }
 
 app-header {
@@ -11,4 +11,20 @@ app-header {
 
 app-trails-and-map {
   flex: 1 1 100%;
+}
+
+.searching {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: fixed;
+  top: 100px;
+  left: calc(50vw - 70px);
+  background-color: rgba(18, 18, 18, 0.3);
+  border-radius: 10px;
+  padding: 0 5px;
+
+  ion-spinner {
+    margin-left: 5px;
+  }
 }

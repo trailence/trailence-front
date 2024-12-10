@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, skip, switchMap } from 'rxjs';
 import L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -88,26 +88,18 @@ export class MapComponent extends AbstractComponent {
       true
     );
     this.whenVisible.subscribe(
-      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(debounceTime(1)),
-      ([center, zoom]) => {
-        Console.info('Update hash from map: ' + zoom + ',' + center.lat + ',' + center.lng);
-        this.browser.setHashes(
-          'zoom', '' + zoom,
-          'center', '' + center.lat + ',' + center.lng,
-        );
-        const map = this._map$.value;
-        if (map) {
-          const bounds = map.getBounds();
-          this.browser.setHash('bounds', '' + bounds.getSouth() + ',' + bounds.getEast() + ',' + bounds.getNorth() + ',' + bounds.getWest());
-        }
-      },
-      true
-    );
+      combineLatest([this._mapState.center$, this._mapState.zoom$])
+      .pipe(debounceTime(10)),
+      () => {
+        if (!this._mapState.live) return;
+        this.updateHashFromMap();
+      }, true);
     this.whenVisible.subscribe(
       combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(
         switchMap(([c,z]) => this.browser.hash$.pipe(map(h => ([c,z,h] as [L.LatLngLiteral, number, Map<string,string>])))),
         debounceTime(500),
       ), ([c,z,hash]) => {
+        if (!this._mapState.live) return;
         const h = this.browser.getHashes();
         if (h.has('zoom') && h.has('center') && c.lat === this._mapState.center.lat && c.lng === this._mapState.center.lng && z === this._mapState.zoom) {
           const currentZoom = '' + this._mapState.zoom;
@@ -190,6 +182,21 @@ export class MapComponent extends AbstractComponent {
     this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
   }
 
+  private updateHashFromMap(): void {
+    const zoom = this._mapState.zoom;
+    const center = this._mapState.center;
+    Console.info('Update hash from map ' + this.mapId + ': ' + zoom + ',' + center.lat + ',' + center.lng);
+    this.browser.setHashes(
+      'zoom', '' + zoom,
+      'center', '' + center.lat + ',' + center.lng,
+    );
+    const map = this._map$.value;
+    if (map) {
+      const bounds = map.getBounds();
+      this.browser.setHash('bounds', '' + bounds.getSouth() + ',' + bounds.getEast() + ',' + bounds.getNorth() + ',' + bounds.getWest());
+    }
+  }
+
   private updateStateFromHash(zoom: string, center: string): boolean {
     try {
       const zoomValue = parseInt(zoom);
@@ -198,7 +205,7 @@ export class MapComponent extends AbstractComponent {
       const lng = parseFloat(coords[1]);
       if (!isNaN(zoomValue) && zoomValue >= 0 && zoomValue <= 19 && !isNaN(lat) && !isNaN(lng)) {
         if (this._mapState.zoom !== zoomValue || this._mapState.center.lat !== lat || this._mapState.center.lng !== lng) {
-          Console.info('Update map from hash: zoom from ' + this._mapState.zoom + ' to ' + zoomValue + ' and center from ' + this._mapState.center.lat + ',' + this._mapState.center.lng + ' to ' + lat + ',' + lng);
+          Console.info('Update map ' + this.mapId + ' from hash: zoom from ' + this._mapState.zoom + ' to ' + zoomValue + ' and center from ' + this._mapState.center.lat + ',' + this._mapState.center.lng + ' to ' + lat + ',' + lng);
           this._mapState.zoom = zoomValue;
           this._mapState.center = {lat, lng};
           if (this._map$.value) {
@@ -559,6 +566,7 @@ export class MapComponent extends AbstractComponent {
     map.on('toggleShowPosition', () => this.mapGeolocation.toggleShowPosition());
 
     this._map$.next(map);
+    this.updateHashFromMap();
 
     let distanceUnit: DistanceUnit | undefined = undefined;
     let scale: L.Control.Scale | undefined = undefined;
@@ -610,6 +618,10 @@ export class MapComponent extends AbstractComponent {
   private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] {
     const mouse = e.layerPoint;
     const result: MapTrackPointReference[] = [];
+    const fromTrack = (e.originalEvent as any).fromTrack as MapTrack | undefined;
+    if (fromTrack) {
+      result.push(new MapTrackPointReference(fromTrack, undefined, undefined, undefined, undefined, undefined))
+    }
     for (const mapTrack of this._currentTracks) {
       if (!mapTrack.bounds?.pad(1).contains(e.latlng)) {
         continue;

@@ -113,7 +113,9 @@
             "no": "Annuler, garder"
           }
         }
-      }
+      },
+      "searching": "Recherche",
+      "search_error": "Erreur lors de la recherche"
     },
     "trail": {
       "title_compare": "Comparaison de",
@@ -126,6 +128,7 @@
       "show_original": "Afficher la trace d'origine",
       "show_breaks": "Afficher les pauses",
       "show_photos": "Afficher les photos sur la carte",
+      "open_in_app": "Ouvrir dans",
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",
@@ -406,7 +409,8 @@
     "nothing_shared_by_me": "Vous ne partagez aucun parcours",
     "start_trace": "Démarrer une trace",
     "current_trace": "Trace en cours",
-    "planner": "Plannifier un parcours"
+    "planner": "Plannifier un parcours",
+    "search_trail": "Trouver un parcours"
   },
   "collection_menu": {
     "delete_confirm": {

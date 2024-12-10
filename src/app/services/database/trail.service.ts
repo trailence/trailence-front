@@ -19,6 +19,7 @@ import { ShareService } from './share.service';
 import { AuthService } from '../auth/auth.service';
 import { PhotoService } from './photo.service';
 import { Console } from 'src/app/utils/console';
+import { FetchSourceService } from '../fetch-source/fetch-source.service';
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +42,7 @@ export class TrailService {
   }
 
   public getTrail$(uuid: string, owner: string): Observable<Trail | null> {
+    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getTrail$(owner, uuid);
     return this._store.getItem$(uuid, owner);
   }
 

@@ -15,17 +15,21 @@ export class MapComponent extends Component {
     return this.getElement().$('div.leaflet-control-container .' + className);
   }
 
-  public async zoomTo(level: number) {
+  public async getZoom() {
     const levelTool = this.getControl('zoom-level-tool');
     const levelSpan = levelTool.$('span.zoom-level');
-    let zoom = parseInt(await levelSpan.getText());
+    return parseInt(await levelSpan.getText());
+  }
+
+  public async zoomTo(level: number) {
+    let zoom = await this.getZoom();
     if (zoom === level) return;
     const zoomTool = this.getControl('leaflet-control-zoom');
     if (zoom > level) {
       while (zoom > level) {
         await zoomTool.$('.leaflet-control-zoom-out').click();
         await browser.pause(2000); // wait for the animation to be done
-        zoom = parseInt(await levelSpan.getText());
+        zoom = await this.getZoom();
       }
       expect(zoom).toBe(level);
       return;
@@ -33,13 +37,14 @@ export class MapComponent extends Component {
     while (zoom < level) {
       await zoomTool.$('.leaflet-control-zoom-in').click();
       await browser.pause(2000); // wait for the animation to be done
-      zoom = parseInt(await levelSpan.getText());
+      zoom = await this.getZoom();
     }
     expect(zoom).toBe(level);
   }
 
   public async goTo(lat: number, lng: number, zoom: number) {
     await browser.execute(u => window.location.hash = u, '#zoom=' + zoom + '&center=' + lat + ',' + lng);
+    await browser.pause(1500); // wait for the hash to be taken into account
   }
 
   public async toggleGeolocation() {

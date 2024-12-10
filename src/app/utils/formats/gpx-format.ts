@@ -190,7 +190,7 @@ export class GpxFormat {
     return new WayPoint(pt, name, description);
   }
 
-  private static fixPoints(points: PointDescriptor[]): void {
+  private static fixPoints(points: PointDescriptor[]): void { // NOSONAR
     let previousTime: number | undefined = undefined;
     for (let i = 1; i < points.length; ++i) {
       // fix time going to the past
@@ -207,6 +207,15 @@ export class GpxFormat {
         } else {
           previousTime = points[i].time;
         }
+      }
+    }
+    let firstTimeIndex = points.findIndex(p => p.time !== undefined);
+    if (firstTimeIndex >= 0) {
+      let lastTimeIndex = points.length - 1;
+      while (lastTimeIndex > firstTimeIndex && points[lastTimeIndex].time === undefined) lastTimeIndex--;
+      if (lastTimeIndex > firstTimeIndex && points[firstTimeIndex].time === points[lastTimeIndex].time) {
+        // all points seems to have the same date => put all to undefined
+        points.forEach(p => p.time = undefined);
       }
     }
   }

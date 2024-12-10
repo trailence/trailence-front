@@ -4,7 +4,7 @@ import { IonicAlert } from '../components/ionic/ion-alert';
 import { LoginPage } from './pages/login-page';
 import { Page } from './pages/page';
 import { ChainablePromiseElement } from 'webdriverio';
-import { TrailsPage } from './pages/trails-page';
+import { TrailsPage, TrailsPageType } from './pages/trails-page';
 
 export class App {
 
@@ -27,7 +27,7 @@ export class App {
         if (result.status === 'failed') {
           console.log('Test error: take a screen shot');
           promise = promise
-            .then(() => browser.saveScreenshot('wdio_error.png').then().catch(e => Promise.resolve()))
+            .then(() => browser.saveScreenshot('wdio_error.png').then().catch(() => Promise.resolve()))
             .then(() => browser.getUrl()).catch(e => Promise.resolve('error')).then(url => { console.log('Browser URL was: ' + url); return true; });
         }
         promise = promise.then(() => browser.execute(name => {
@@ -125,7 +125,7 @@ export class App {
     await App.startMode();
     const url = browser.options.baseUrl!;
     await browser.url(url + '/link/' + link);
-    const trailsPage = new TrailsPage(true);
+    const trailsPage = new TrailsPage(TrailsPageType.SHARE);
     await trailsPage.waitDisplayed();
     return trailsPage;
   }

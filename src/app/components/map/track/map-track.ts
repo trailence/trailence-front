@@ -19,7 +19,7 @@ export class MapTrack {
     isRecording: boolean,
     i18n: I18nService,
   ) {
-    this._path = new MapTrackPath(_track, color, smoothFactor);
+    this._path = new MapTrackPath(this, color, smoothFactor);
     this._wayPoints = new MapTrackWayPoints(_track, isRecording, i18n);
     this._arrowPath = new MapTrackArrowPath(_track);
   }
@@ -83,6 +83,11 @@ export class MapTrack {
   public bringToFront(): void {
     this._path.bringToFront();
     this._arrowPath.bringToFront();
+  }
+
+  public bringToBack(): void {
+    this._path.bringToBack();
+    this._arrowPath.bringToBack();
   }
 
   public highlightWayPoint(wp: ComputedWayPoint): void {

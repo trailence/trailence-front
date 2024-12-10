@@ -1,9 +1,9 @@
-import { Component, Injector, Input, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, map, of, switchMap } from 'rxjs';
-import { IonSegment, IonSegmentButton, IonButton } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
@@ -27,7 +27,7 @@ const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
     selector: 'app-trails-and-map',
     templateUrl: './trails-and-map.component.html',
     styleUrls: ['./trails-and-map.component.scss'],
-    imports: [IonButton, IonSegmentButton, IonSegment,
+    imports: [IonSegmentButton, IonSegment,
         TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule,
     ]
 })
@@ -64,6 +64,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     public i18n: I18nService,
     private readonly trackService: TrackService,
     private readonly router: Router,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
     this.whenVisible.subscribe(browser.resize$, () => this.updateMode());
@@ -239,6 +240,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.highlightedTrail = trail;
       this.highlight(trail, true);
     }
+    this.changeDetector.detectChanges();
   }
 
   private highlight(trail: Trail, highlight: boolean): void {
@@ -246,13 +248,12 @@ export class TrailsAndMapComponent extends AbstractComponent {
     if (mapTrack) {
       mapTrack.color = highlight ? '#4040FF' : 'red';
       mapTrack.showDepartureAndArrivalAnchors(highlight);
+      if (highlight)
+        mapTrack.bringToFront();
+      else
+        mapTrack.bringToBack();
     }
     this.trailsList?.setHighlighted(highlight ? trail : undefined);
-    if (highlight && this.map) {
-      if (mapTrack) {
-        this.map.ensureVisible(mapTrack);
-      }
-    }
   }
 
   onTrailClickOnList(trail: Trail): void {

@@ -92,11 +92,11 @@
     <div class="metadata-container one-column">
       <div class="metadata-item">
         <ion-icon name="center-on-location"></ion-icon>
-        <div>{{i18n.coordToString(selectedPoint!.position.lat)}}, {{i18n.coordToString(selectedPoint!.position.lng)}}</div>
+        <div>{{i18n.coordToString(selectedPoint!.position!.lat)}}, {{i18n.coordToString(selectedPoint!.position!.lng)}}</div>
       </div>
       <div class="metadata-item">
         <ion-icon name="altitude"></ion-icon>
-        <div>{{i18n.elevationToString(selectedPoint!.point.ele)}}</div>
+        <div>{{i18n.elevationToString(selectedPoint!.point!.ele)}}</div>
       </div>
       <div class="metadata-item">
         <ion-icon name="distance"></ion-icon>

@@ -86,7 +86,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
       }
       if (this.inlineTool) return;
       this.getTrack().subscribe(track => {
-        const points = event.filter(p => p.track.track === track).sort((p1,p2) => p1.distanceToEvent - p2.distanceToEvent);
+        const points = event.filter(p => p.track.track === track && p.point !== undefined).sort(MapTrackPointReference.distanceComparator);
         const point = points.length > 0 ? points[0] : undefined;
         if (!point) {
           if (this.selectedPoint) {
@@ -94,7 +94,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
             this.map.removeFromMap(this.selectedPointAnchor.marker);
           }
         } else {
-          this.selectedPointAnchor.marker.setLatLng(point.position);
+          this.selectedPointAnchor.marker.setLatLng(point.position!); // NOSONAR
           if (!this.selectedPoint)
             this.map.addToMap(this.selectedPointAnchor.marker);
           this.selectedPoint = point;
@@ -232,13 +232,13 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     if (!this.selectedPoint) return 0;
     let distance = 0;
     for (let i = 0; i < this.selectedPoint.segmentIndex!; ++i) distance += (this.selectedPoint.track.track as Track).segments[i].computeTotalDistance();
-    distance += (this.selectedPoint.track.track as Track).segments[this.selectedPoint.segmentIndex!].distanceFromSegmentStart(this.selectedPoint.pointIndex);
+    distance += (this.selectedPoint.track.track as Track).segments[this.selectedPoint.segmentIndex!].distanceFromSegmentStart(this.selectedPoint.pointIndex!);
     return distance;
   }
 
   canMoveSelectedPointBackward(): boolean {
     if (!this.selectedPoint) return false;
-    if (this.selectedPoint.pointIndex > 0) return true;
+    if (this.selectedPoint.pointIndex! > 0) return true;
     if (this.selectedPoint.segmentIndex !== undefined && this.selectedPoint.segmentIndex > 0) return true;
     return false;
   }
@@ -253,14 +253,14 @@ export class EditToolsComponent implements OnInit, OnDestroy {
         this.selectedPoint.pointIndex = this.selectedPoint.segment.points.length - 1;
         this.selectedPoint.point = this.selectedPoint.segment.points[this.selectedPoint.pointIndex];
       } else {
-        this.selectedPoint.pointIndex--;
-        this.selectedPoint.point = this.selectedPoint.segment!.points[this.selectedPoint.pointIndex];
+        this.selectedPoint.pointIndex!--;
+        this.selectedPoint.point = this.selectedPoint.segment!.points[this.selectedPoint.pointIndex!];
       }
     } else {
-      this.selectedPoint.pointIndex--;
-      this.selectedPoint.point = t.points[this.selectedPoint.pointIndex];
+      this.selectedPoint.pointIndex!--;
+      this.selectedPoint.point = t.points[this.selectedPoint.pointIndex!];
     }
-    this.selectedPointAnchor.marker.setLatLng(this.selectedPoint.position);
+    this.selectedPointAnchor.marker.setLatLng(this.selectedPoint.position!); // NOSONAR
   }
 
   canMoveSelectedPointForward(): boolean {
@@ -268,8 +268,8 @@ export class EditToolsComponent implements OnInit, OnDestroy {
     const t = this.selectedPoint.track.track;
     if (t instanceof Track) {
       if (this.selectedPoint.segmentIndex! < t.segments.length - 1) return true;
-      if (this.selectedPoint.pointIndex < t.segments[this.selectedPoint.segmentIndex!].points.length - 1) return true;
-    } else if (this.selectedPoint.pointIndex < t.points.length - 1) return true;
+      if (this.selectedPoint.pointIndex! < t.segments[this.selectedPoint.segmentIndex!].points.length - 1) return true;
+    } else if (this.selectedPoint.pointIndex! < t.points.length - 1) return true;
     return false;
   }
 
@@ -283,20 +283,20 @@ export class EditToolsComponent implements OnInit, OnDestroy {
         this.selectedPoint.segment = t.segments[this.selectedPoint.segmentIndex + 1];
         this.selectedPoint.point = t.segments[this.selectedPoint.segmentIndex].points[0];
       } else {
-        this.selectedPoint.pointIndex++;
-        this.selectedPoint.point = this.selectedPoint.segment!.points[this.selectedPoint.pointIndex];
+        this.selectedPoint.pointIndex!++;
+        this.selectedPoint.point = this.selectedPoint.segment!.points[this.selectedPoint.pointIndex!];
       }
     } else {
-      this.selectedPoint.pointIndex++;
-      this.selectedPoint.point = t.points[this.selectedPoint.pointIndex];
+      this.selectedPoint.pointIndex!++;
+      this.selectedPoint.point = t.points[this.selectedPoint.pointIndex!];
     }
-    this.selectedPointAnchor.marker.setLatLng(this.selectedPoint.position);
+    this.selectedPointAnchor.marker.setLatLng(this.selectedPoint.position!); // NOSONAR
   }
 
   removeSelectedPoint(): void {
     this.modify().subscribe(track => {
       if (this.selectedPoint?.segmentIndex === undefined) return;
-      track.segments[this.selectedPoint.segmentIndex].removePointAt(this.selectedPoint.pointIndex);
+      track.segments[this.selectedPoint.segmentIndex].removePointAt(this.selectedPoint.pointIndex!);
       this.selectedPoint = undefined;
       this.map.removeFromMap(this.selectedPointAnchor.marker);
     });
@@ -337,7 +337,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
 
   getWayPointFromSelectedPoint(): Observable<{waypoint: WayPoint | undefined}> {
     if (!this.selectedPoint) return of({waypoint: undefined});
-    const pos = this.selectedPoint.position;
+    const pos = this.selectedPoint.position!;
     return this.getTrack().pipe(
       switchMap(track => track.wayPoints$),
       map(wayPoints => {

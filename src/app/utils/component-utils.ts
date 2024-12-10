@@ -2,7 +2,6 @@ import { Component, ElementRef, Injector, NgZone, OnChanges, OnDestroy, OnInit, 
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Resubscribeables, Subscriptions } from './rxjs/subscription-utils';
 import { Arrays } from './arrays';
-import { Console } from './console';
 
 @Component({
     template: '',
@@ -174,8 +173,6 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     }
 
     if (needRefresh) {
-      if (this._currentState)
-        Console.debug('Component state changed', this.constructor.name, this._currentState, state);
       this.byState.unsubscribe();
       this.byStateAndVisible.stop();
       this.onComponentStateChanged(this._currentState, state);

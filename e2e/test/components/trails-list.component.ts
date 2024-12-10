@@ -1,6 +1,7 @@
 import { App } from '../app/app';
 import { TrailPage } from '../app/pages/trail-page';
 import { Component } from './component';
+import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
 import { MenuContent } from './menu-content.component';
 import { TrailOverview } from './trail-overview.component';
@@ -65,25 +66,16 @@ export class TrailsList extends Component {
     let i = id.indexOf('-trail-');
     expect(i).toBeGreaterThan(0);
     id = id.substring(i + 7);
-    expect(id.length).toBeGreaterThan(36);
-    const uuid = id.substring(0, 36)
-    const owner = id.substring(37);
+    i = id.lastIndexOf('-');
+    const uuid = id.substring(0, i)
+    const owner = id.substring(i + 1);
     return {uuid, owner};
   }
 
   public async openTrail(trail: TrailOverview) {
     const {uuid, owner} = await this.getTrailId(trail);
-    let openButtonContainer = trail.getElement().nextElement();
-    if (!await openButtonContainer.isExisting()) {
-      const trailName = trail.getElement().$('div.trail-name');
-      await trailName.scrollIntoView({block: 'center', inline: 'center'});
-      await trailName.click();
-      await browser.waitUntil(() => trail.getElement().nextElement().isExisting());
-      openButtonContainer = trail.getElement().nextElement();
-    }
-    const openButton = openButtonContainer.$('ion-button');
-    await openButton.scrollIntoView({block: 'center', inline: 'center'});
-    await openButton.waitForDisplayed();
+    const openButton = new IonicButton(trail.getElement().$('div.open-trail ion-button'));
+    await openButton.getElement().scrollIntoView({block: 'center', inline: 'center'});
     await openButton.click();
     const trailPage = new TrailPage(owner, uuid);
     await trailPage.waitDisplayed();

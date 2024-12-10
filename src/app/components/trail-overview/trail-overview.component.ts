@@ -21,6 +21,7 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { Photo } from 'src/app/model/photo';
 import { PhotosSliderComponent } from "../photos-slider/photos-slider.component";
+import { Router } from '@angular/router';
 
 class Meta {
   name?: string;
@@ -75,6 +76,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly popoverController: PopoverController,
     private readonly domController: DomController,
     private readonly photoService: PhotoService,
+    private readonly router: Router,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -183,7 +185,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   private initTrackMetadata(): void {
     this._trackMetadataInitialized = true;
     const element = document.getElementById('track-metadata-' + this.id);
-    TrackMetadataComponent.init(element!, this.track$, of(undefined), false, this.assets, this.i18n, this.whenVisible, this.domController);
+    TrackMetadataComponent.init(element!.parentElement!, element!, this.track$, of(undefined), false, this.assets, this.i18n, this.whenVisible, this.domController);
   }
 
   setSelected(selected: boolean) {
@@ -216,6 +218,10 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   openPhotos(slider: PhotosSliderComponent): void {
     this.photoService.openSliderPopup(this.photos, slider.index);
+  }
+
+  openTrail(): void {
+    this.router.navigate(['trail', this.trail!.owner, this.trail!.uuid], {queryParams: { from: this.router.url }});
   }
 
 }

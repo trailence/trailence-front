@@ -2,7 +2,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, filter, map, of, switchMap, combineLatest, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, filter, map, of, switchMap, combineLatest, Observable, debounceTime, catchError, timer } from 'rxjs';
 import { Router } from '@angular/router';
 import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -22,6 +22,11 @@ import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AuthResponse } from 'src/app/services/auth/auth-response';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { BrowserService } from 'src/app/services/browser/browser.service';
+import L from 'leaflet';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { IonSpinner } from '@ionic/angular/standalone';
+import { ErrorService } from 'src/app/services/progress/error.service';
 
 @Component({
     selector: 'app-trails-page',
@@ -31,6 +36,7 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
         CommonModule,
         HeaderComponent,
         TrailsAndMapComponent,
+        IonSpinner,
     ]
 })
 export class TrailsPage extends AbstractPage {
@@ -45,8 +51,11 @@ export class TrailsPage extends AbstractPage {
 
   viewId?: string;
 
+  searching = false;
+
   constructor(
     injector: Injector,
+    public readonly i18n: I18nService,
   ) {
     super(injector);
   }
@@ -83,7 +92,7 @@ export class TrailsPage extends AbstractPage {
           this.actions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
           if (collection.name.length > 0) return of(collection.name);
           if (collection.type === TrailCollectionType.MY_TRAILS)
-            return this.injector.get(I18nService).texts$.pipe(map(texts => texts.my_trails));
+            return this.i18n.texts$.pipe(map(texts => texts.my_trails));
           return of('');
         })
       ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
@@ -146,6 +155,59 @@ export class TrailsPage extends AbstractPage {
             this.actions = this.injector.get(ShareService).getShareMenu(result.share);
           });
         });
+    } else if (newState.type === 'search') {
+      // title
+      this.byStateAndVisible.subscribe(
+        this.i18n.texts$,
+        i18n => this.title$.next(i18n.menu.search_trail)
+      );
+      this.viewId = 'search-trails';
+      // search trails
+      let previousSearch: L.LatLngBounds | undefined = undefined;
+      this.byStateAndVisible.subscribe(
+        timer(1000).pipe(
+          switchMap(() => this.injector.get(BrowserService).hash$),
+          debounceTime(1000),
+          switchMap(hash => {
+            this.ngZone.run(() => this.searching = true);
+            const coords = hash.get('bounds')?.split(',');
+            if (coords?.length !== 4) {
+              previousSearch = undefined;
+              return of([] as Trail[]);
+            }
+            const bounds = L.latLngBounds(
+              {lat: parseFloat(coords[0]), lng: parseFloat(coords[3])},
+              {lat: parseFloat(coords[2]), lng: parseFloat(coords[1])}
+            );
+            if (previousSearch && previousSearch.equals(bounds)) {
+              this.ngZone.run(() => this.searching = false);
+              return EMPTY;
+            }
+            if (bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
+                bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000) {
+                  previousSearch = undefined;
+                  return of([] as Trail[]);
+                }
+            previousSearch = bounds;
+            return this.injector.get(FetchSourceService).searchByArea(bounds);
+          }),
+          catchError(e => {
+            Console.error('Error searching trails', e);
+            this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search_error', []);
+            this.searching = false;
+            return EMPTY;
+          })
+        ),
+        trails => {
+          const newList = List(trails);
+          this.ngZone.run(() => {
+            if (!newList.equals(this.trails$.value))
+              this.trails$.next(newList);
+            this.searching = false;
+          });
+        }
+      )
+
     } else {
       this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
@@ -177,6 +239,7 @@ export class TrailsPage extends AbstractPage {
     this.title$.next('');
     this.trails$.next(List());
     this.actions = [];
+    this.searching = false;
   }
 
 }

@@ -75,11 +75,12 @@ export class TrackMetadataComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
-    TrackMetadataComponent.init(this.element.nativeElement, this.track$, this.track2$, this.detailed, this.assets, this.i18n, this.whenVisible, this.domController);
+    TrackMetadataComponent.init(this.element.nativeElement, undefined, this.track$, this.track2$, this.detailed, this.assets, this.i18n, this.whenVisible, this.domController);
   }
 
   public static init( // NOSONAR
     container: HTMLElement,
+    insertBefore: HTMLElement | undefined,
     track$: Observable<TrackType>,
     track2$: Observable<TrackType>,
     detailed: boolean,
@@ -90,14 +91,14 @@ export class TrackMetadataComponent extends AbstractComponent {
   ): void {
     domController.write(() => {
       whenVisible.zone.runOutsideAngular(() => {
-        const duration = TrackMetadataComponent.createItemElement(container, 'duration', assets, detailed);
-        const breaksDuration = detailed ? TrackMetadataComponent.createItemElement(container, 'hourglass', assets, detailed) : [undefined, undefined, undefined];
-        const estimatedDuration = detailed ? TrackMetadataComponent.createItemElement(container, 'chrono', assets, detailed) : [undefined, undefined, undefined];
-        const distance = TrackMetadataComponent.createItemElement(container, 'distance', assets, detailed);
-        const positiveElevation = TrackMetadataComponent.createItemElement(container, 'positive-elevation', assets, detailed);
-        const negativeElevation = TrackMetadataComponent.createItemElement(container, 'negative-elevation', assets, detailed);
-        const highestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, 'highest-point', assets, detailed) : [undefined, undefined, undefined];
-        const lowestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, 'lowest-point', assets, detailed) : [undefined, undefined, undefined];
+        const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, detailed);
+        const breaksDuration = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, detailed) : [undefined, undefined, undefined];
+        const estimatedDuration = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, detailed) : [undefined, undefined, undefined];
+        const distance = TrackMetadataComponent.createItemElement(container, insertBefore, 'distance', assets, detailed);
+        const positiveElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'positive-elevation', assets, detailed);
+        const negativeElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'negative-elevation', assets, detailed);
+        const highestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'highest-point', assets, detailed) : [undefined, undefined, undefined];
+        const lowestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'lowest-point', assets, detailed) : [undefined, undefined, undefined];
         const titles = new Titles(
           duration[2],
           breaksDuration[2],
@@ -112,13 +113,13 @@ export class TrackMetadataComponent extends AbstractComponent {
         const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
         TrackMetadataComponent.toMeta(track$, meta, detailed, whenVisible, i18n, titles, domController, meta2);
         if (detailed) {
-          TrackMetadataComponent.toMeta(track2$, meta2, detailed, whenVisible, i18n, titles, domController, meta);
+          TrackMetadataComponent.toMeta(track2$, meta2, detailed, whenVisible, i18n, titles, domController, meta); // NOSONAR
         }
       });
     });
   }
 
-  private static createItemElement(parent: HTMLElement, icon: string, assets: AssetsService, detailed: boolean): [HTMLDivElement, HTMLDivElement | undefined, HTMLDivElement] {
+  private static createItemElement(parent: HTMLElement, insertBefore: HTMLElement | undefined, icon: string, assets: AssetsService, detailed: boolean): [HTMLDivElement, HTMLDivElement | undefined, HTMLDivElement] {
     const container = document.createElement('DIV');
     container.className = 'metadata-item-container';
 
@@ -157,11 +158,14 @@ export class TrackMetadataComponent extends AbstractComponent {
       value.appendChild(info2);
     }
 
-    parent.appendChild(container);
+    if (insertBefore)
+      parent.insertBefore(container, insertBefore);
+    else
+      parent.appendChild(container);
     return ([info1, info2, title]);
   }
 
-  private static toMeta(track$: Observable<TrackType>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController, meta2: Meta): void {
+  private static toMeta(track$: Observable<TrackType>, meta: Meta, detailed: boolean, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController, meta2: Meta): void { // NOSONAR
     let previousState = 0;
     whenVisible.subscribe(track$.pipe(
       switchMap(track => {
@@ -211,8 +215,8 @@ export class TrackMetadataComponent extends AbstractComponent {
         TrackMetadataComponent.shown(meta.breaksDurationDiv, duration !== undefined || meta2.durationValue !== undefined);
       } else {
         let d = i18n.durationToString(duration);
-        if (estimatedDuration !== undefined) d += ' (≈ ' + i18n.durationToString(estimatedDuration) + ')';
-        TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController);
+        if (estimatedDuration !== undefined) d += ' <span style="white-space: nowrap">(≈ ' + i18n.durationToString(estimatedDuration) + ')</span>';
+        TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController, true);
       }
       if (force) {
         titles.durationTitle.innerText = i18n.texts.metadata.duration;
@@ -230,11 +234,15 @@ export class TrackMetadataComponent extends AbstractComponent {
     }, true);
   }
 
-  private static updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean, domController: DomController): boolean {
+  private static updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean, domController: DomController, isHtml: boolean = false): boolean {
     if (!forceChange && meta[key  + 'Value'] === value) return false;
     meta[key + 'Value'] = value;
     const div = (meta[key + 'Div'] as HTMLDivElement);
-    if (div) domController.write(() => div.innerText = value === undefined ? '' : toString(value));
+    if (div) domController.write(() => {
+      const s = value === undefined ? '' : toString(value);
+      if (isHtml) div.innerHTML = s;
+      else div.innerText = s;
+    });
     return true;
   }
 

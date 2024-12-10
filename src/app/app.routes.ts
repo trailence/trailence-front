@@ -17,6 +17,10 @@ export const routes: Routes = [
     canActivateChild: [(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => inject(AuthService).guardAuthenticated(route, state)],
     children: [
       {
+        path: 'trails/:trailsType',
+        loadComponent: () => import('./pages/trails/trails.page').then( m => m.TrailsPage)
+      },
+      {
         path: 'trails/:trailsType/:trailsId',
         loadComponent: () => import('./pages/trails/trails.page').then( m => m.TrailsPage)
       },
