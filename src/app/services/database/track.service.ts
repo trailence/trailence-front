@@ -3,6 +3,7 @@ import { Track } from 'src/app/model/track';
 import { filter, first, Observable, timeout } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
 import Dexie from 'dexie';
+import { FetchSourceService } from '../fetch-source/fetch-source.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,16 +13,18 @@ export class TrackService {
   private readonly db: TrackDatabase;
 
   constructor(
-    injector: Injector,
+    private readonly injector: Injector,
   ) {
     this.db = new TrackDatabase(injector);
   }
 
   public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
+    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getSimplifiedTrack$(owner, uuid);
     return this.db.getSimplifiedTrack$(uuid, owner);
   }
 
   public getMetadata$(uuid: string, owner: string): Observable<TrackMetadataSnapshot | null> {
+    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getMetadata$(owner, uuid);
     return this.db.getMetadata$(uuid, owner);
   }
 
@@ -30,6 +33,7 @@ export class TrackService {
   }
 
   public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
+    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getFullTrack$(owner, uuid);
     return this.db.getFullTrack$(uuid, owner);
   }
 

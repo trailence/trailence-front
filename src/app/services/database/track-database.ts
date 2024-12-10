@@ -221,7 +221,7 @@ export class TrackDatabase {
               } else {
                 this.metadataTable?.put({
                   key: trackItem.key,
-                  ...this.toMetadata(track)
+                  ...TrackDatabase.toMetadata(track)
                 });
               }
             }).then(() => { // NOSONAR
@@ -412,7 +412,7 @@ export class TrackDatabase {
     });
   }
 
-  private simplify(track: Track): SimplifiedTrackSnapshot {
+  public static simplify(track: Track): SimplifiedTrackSnapshot {
     const simplified: SimplifiedTrackSnapshot = { points: [] };
     let previous: L.LatLng | undefined;
     track.forEachPoint(point => {
@@ -451,7 +451,7 @@ export class TrackDatabase {
     return simplified;
   }
 
-  private toMetadata(track: Track): TrackMetadataSnapshot {
+  public static toMetadata(track: Track): TrackMetadataSnapshot {
     const m = track.metadata;
     const b = m.bounds;
     return {
@@ -477,8 +477,8 @@ export class TrackDatabase {
     this.ngZone.runOutsideAngular(() => {
       const key = track.uuid + '#' + track.owner;
       const dto = track.toDto();
-      const simplified = this.simplify(track);
-      const metadata = this.toMetadata(track);
+      const simplified = TrackDatabase.simplify(track);
+      const metadata = TrackDatabase.toMetadata(track);
       const stepsDone = new CompositeOnDone(ondone);
       this.operation(() => {
         if (!this.db) return Promise.reject();
@@ -530,8 +530,8 @@ export class TrackDatabase {
       const key = track.uuid + '#' + track.owner;
       track.updatedAt = Date.now();
       const dto = track.toDto();
-      const simplified = this.simplify(track);
-      const metadata = this.toMetadata(track);
+      const simplified = TrackDatabase.simplify(track);
+      const metadata = TrackDatabase.toMetadata(track);
       this.operation(() => {
         if (!this.db) return Promise.reject();
         const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
@@ -896,12 +896,12 @@ export class TrackDatabase {
         entities.forEach(entity => {
           this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
         })
-        const simplified = entities.map(track => ({...this.simplify(track), key: track.uuid + '#' + track.owner}));
+        const simplified = entities.map(track => ({...TrackDatabase.simplify(track), key: track.uuid + '#' + track.owner}));
         if (this.db !== db) return;
         await this.simplifiedTrackTable!.bulkPut(simplified);
         if (this.db !== db) return;
         simplified.forEach(s => this.simplifiedTracks.get(s.key)?.newValue(s));
-        const metadata = entities.map(track => ({...this.toMetadata(track), key: track.uuid + '#' + track.owner}));
+        const metadata = entities.map(track => ({...TrackDatabase.toMetadata(track), key: track.uuid + '#' + track.owner}));
         if (this.db !== db) return;
         await this.metadataTable!.bulkPut(metadata);
         if (this.db !== db) return;

@@ -1,19 +1,35 @@
 import { DomSanitizer } from '@angular/platform-browser';
+import L from 'leaflet';
+import { Trail } from 'src/app/model/trail';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
+import { Track } from 'src/app/model/track';
 
 export interface FetchSourcePlugin {
 
   name: string;
+  owner: string;
 
   canFetchTrailInfo(url: string): boolean;
+  fetchTrailInfo(url: string): Promise<TrailInfo | null>;
 
-  fetchTrailInfo(url: string, sanitizer: DomSanitizer): Promise<TrailInfo>;
+  canSearchByArea(): boolean;
+  searchByArea(bounds: L.LatLngBounds): Promise<Trail[]>;
+
+  getInfo(uuid: string): Promise<TrailInfo | null>;
+  getTrail(uuid: string): Promise<Trail | null>;
+  getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null>;
+  getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null>;
+  getFullTrack(uuid: string): Promise<Track | null>;
 }
 
 export interface TrailInfo {
 
   description?: string;
+  location?: string;
   wayPoints?: WayPointInfo[];
   photos?: PhotoInfo[];
+  key?: string;
+  externalUrl?: string;
 
 }
 

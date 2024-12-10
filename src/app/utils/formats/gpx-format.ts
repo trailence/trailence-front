@@ -209,6 +209,15 @@ export class GpxFormat {
         }
       }
     }
+    let firstTimeIndex = points.findIndex(p => p.time !== undefined);
+    if (firstTimeIndex >= 0) {
+      let lastTimeIndex = points.length - 1;
+      while (lastTimeIndex > firstTimeIndex && points[lastTimeIndex].time === undefined) lastTimeIndex--;
+      if (lastTimeIndex > firstTimeIndex && points[firstTimeIndex].time === points[lastTimeIndex].time) {
+        // all points seems to have the same date => put all to undefined
+        points.forEach(p => p.time = undefined);
+      }
+    }
   }
 
   public static exportGpx(trail: Trail, tracks: Track[], tags: string[][], photos: Photo[], photosFilenames: Map<Photo, string>): BinaryContent { // NOSONAR

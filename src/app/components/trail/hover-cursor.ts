@@ -22,9 +22,11 @@ export class TrailHoverCursor {
     this.component.elevationGraph?.hideCursor();
     if (event) {
       const pos = event.position;
-      this.component.map?.cursors.addCursor(pos);
-      this.component.elevationGraph?.showCursorForPosition(pos.lat, pos.lng);
-      this._hoverCursor.push({pos});
+      if (pos) {
+        this.component.map?.cursors.addCursor(pos);
+        this.component.elevationGraph?.showCursorForPosition(pos.lat, pos.lng);
+        this._hoverCursor.push({pos});
+      }
     }
   }
 

@@ -395,11 +395,22 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    color: var(--ion-color-tertiary);
-    background-color: var(--ion-color-light);
-    padding: 8px;
-    margin-top: 5px;
-    border-bottom: 1px solid var(--ion-color-medium);
+    background: linear-gradient(140deg, rgba(var(--ion-color-tertiary-rgb), 1) 0%, rgba(var(--ion-color-tertiary-rgb), 1) 33%, rgba(var(--ion-color-tertiary-rgb), 0.66) 70%, rgba(var(--ion-color-tertiary-rgb), 0.01) 100%);
+    color: var(--ion-background-color);
+    padding: 6px 8px;
+    margin-top: 8px;
+
+    position: relative;
+    margin-left: 6px;
+
+    &:before {
+      content: '';
+      position: absolute;
+      left: -5px;
+      width: 3px;
+      height: 100%;
+      background-color: var(--ion-color-tertiary);
+    }
 
     ion-icon {
       width: 24px;
@@ -407,18 +418,21 @@
     }
     div {
       font-size: 16px;
+      font-weight: bold;
       margin-left: 5px;
     }
   }
 
   div.description-text {
     padding: 5px 8px;
-    color: var(--ion-color-medium);
+    color: rgba(var(--ion-color-dark-rgb), 0.9);
+    font-size: 11pt;
+    line-height: 1.5em;
   }
   ion-textarea.description-text {
     --padding-start: 8px;
     --padding-end: 8px;
-    color: var(--ion-color-medium);
+    color: var(--ion-color-dark);
   }
 }
 
@@ -427,7 +441,7 @@
   flex-direction: row;
   align-items: center;
   margin-top: 3px;
-  padding-bottom: 2px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--ion-color-light);
 
   &.highlighted {
@@ -436,6 +450,7 @@
 
   .waypoint-anchor {
     flex: none;
+    align-self: flex-start;
   }
 
   .waypoint-content {
@@ -524,4 +539,12 @@ div.trail-dates {
   span.trail-date-title {
     color: var(--ion-color-secondary);
   }
+}
+
+a, a:active {
+  color: var(--ion-color-tertiary);
+}
+
+.external-link {
+  padding: 2px 8px;
 }

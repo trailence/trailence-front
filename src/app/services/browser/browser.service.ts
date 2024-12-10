@@ -25,8 +25,13 @@ export class BrowserService {
     this._height = platform.height();
     this._hash$.next(this.decodeHash(window.location.hash));
     ngZone.runOutsideAngular(() => {
-      window.addEventListener('hashchange', () => {
-        this._hash$.next(this.decodeHash(window.location.hash));
+      window.addEventListener('hashchange', e => {
+        const url = e.newURL;
+        const i = url.indexOf('#');
+        if (i > 0)
+          this._hash$.next(this.decodeHash(url.substring(i)));
+        else
+          this._hash$.next(new Map<string, string>());
       });
     });
   }

@@ -61,8 +61,15 @@ export class FetchSourcePopupComponent implements OnInit {
       this.fetchSourceService.fetchTrailInfo(t.source).then(info => {
         if (!info) return true;
         let r$: Promise<any> = Promise.resolve(true);
-        if (info.description && trail.description.length === 0) {
-          r$ = r$.then(() => new Promise(resolve => this.trailService.doUpdate(trail, t => t.description = info.description!, () => resolve(true))));
+        const updateDescription = info.description && info.description.trim().length > 0 && trail.description.trim().length === 0;
+        const updateLocation = info.location && info.location.trim().length > 0 && trail.location.trim().length === 0;
+        if (updateDescription || updateLocation) {
+          r$ = r$.then(() => new Promise(resolve => this.trailService.doUpdate(trail, t => {
+            if (updateDescription)
+              t.description = info.description!.trim();
+            if (updateLocation)
+              t.location = info.location!.trim();
+          }, () => resolve(true))));
         }
         if (info.wayPoints && info.wayPoints.length > 0) {
           r$ = r$

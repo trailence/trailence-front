@@ -286,11 +286,11 @@ export class TrailPlannerPage extends AbstractPage {
       }
       this.setHighlightedWays([]);
       const ref = this.getEligiblePoint(refs);
-      if (!ref?.ref) {
+      if (!ref?.ref?.point) {
         this.map!.removeFromMap(this._addAnchor!.marker);
         this.possibleWaysFromCursor$.next([]);
       } else {
-        const pos = ref.ref.position;
+        const pos = ref.ref.position!;
         this._addAnchor!.marker.setLatLng(pos);
         this.map!.addToMap(this._addAnchor!.marker);
 
@@ -313,8 +313,8 @@ export class TrailPlannerPage extends AbstractPage {
         return;
       }
       const ref = this.getEligiblePoint(refs);
-      if (!ref?.ref) return;
-      this.newPoint(ref.ref.position, ref.using);
+      if (!ref?.ref?.point) return;
+      this.newPoint(ref.ref.position!, ref.using);
     });
   }
 
@@ -367,13 +367,13 @@ export class TrailPlannerPage extends AbstractPage {
     if (this.anchors.length === 0) return {ref: MapTrackPointReference.closest(refs), using: undefined};
     const previousPos = this.anchors[this.anchors.length - 1].point;
     const previousPosMapTracks = this.getMatchingMapTracksIn(previousPos, this.possibleWaysFromLastAnchor$.value);
-    const linkToPrevious = refs.filter(r => previousPosMapTracks.indexOf(r.track) >= 0).sort((r1, r2) => r1.distanceToEvent - r2.distanceToEvent);
+    const linkToPrevious = refs.filter(r => r.point !== undefined && previousPosMapTracks.indexOf(r.track) >= 0).sort(MapTrackPointReference.distanceComparator);
     let best: {ref: MapTrackPointReference, using: MapTrack | undefined} | undefined = undefined;
     let bestWays: Way[] = [];
     for (const ref of linkToPrevious) {
-      const matching = this.getMatchingMapTracksIn(ref.position, previousPosMapTracks);
+      const matching = this.getMatchingMapTracksIn(ref.position!, previousPosMapTracks);
       if (matching.length === 1) {
-        const ways = this.getMatchingWays(ref.position);
+        const ways = this.getMatchingWays(ref.position!);
         if (best === undefined || (ways.length > bestWays.length && Arrays.containsAll(ways, bestWays))) {
           best = {ref, using: matching[0]};
           bestWays = ways;

@@ -19,7 +19,7 @@ export class MapTrack {
     isRecording: boolean,
     i18n: I18nService,
   ) {
-    this._path = new MapTrackPath(_track, color, smoothFactor);
+    this._path = new MapTrackPath(this, color, smoothFactor);
     this._wayPoints = new MapTrackWayPoints(_track, isRecording, i18n);
     this._arrowPath = new MapTrackArrowPath(_track);
   }

@@ -174,8 +174,6 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     }
 
     if (needRefresh) {
-      if (this._currentState)
-        Console.debug('Component state changed', this.constructor.name, this._currentState, state);
       this.byState.unsubscribe();
       this.byStateAndVisible.stop();
       this.onComponentStateChanged(this._currentState, state);
