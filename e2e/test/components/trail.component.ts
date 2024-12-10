@@ -126,6 +126,7 @@ export class TrailComponent extends Component {
     const section = this.getElement().$('div.top-container>div.trail-details>div.trail-photos');
     const noPhoto = section.$('.no-photo');
     const editButton = section.$('ion-button.edit');
+    await section.scrollIntoView({block: 'center', inline: 'center'});
     await browser.waitUntil(async () => {
       if (await editButton.isExisting()) {
         await browser.action('pointer', { parameters: { pointerType: 'mouse' }})
@@ -275,6 +276,19 @@ export class TrailComponent extends Component {
     const graph = new ElevationGraph(this.getElement().$('div.elevation-container app-elevation-graph'));
     await graph.waitDisplayed(true);
     return graph;
+  }
+
+  public async getWayPoints() {
+    const details = await this.openDetails();
+    const elements = await details.$$('div.waypoint div.waypoint-content').getElements();
+    const result = [];
+    for (const element of elements) {
+      result.push({
+        name: await element.$('div.waypoint-name span').getText(),
+        description: await element.$('div.waypoint-description span').getText(),
+      });
+    }
+    return result;
   }
 
 }

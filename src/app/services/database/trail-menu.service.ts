@@ -26,6 +26,8 @@ import { ErrorService } from '../progress/error.service';
 import { PhotoService } from './photo.service';
 import { Photo } from 'src/app/model/photo';
 import { copyPoint } from 'src/app/model/point';
+import { FetchSourceService } from '../fetch-source/fetch-source.service';
+import { CompositeOnDone } from 'src/app/utils/callback-utils';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -325,7 +327,7 @@ export class TrailMenuService {
                 progress.addWorkToDo(gpxFiles.length);
                 progress.subTitle = '' + (index + 1 + previousZipEntries) + '/' + (nbFiles + zipEntries);
                 progress.addWorkDone(1);
-                const done: ({trailUuid: string, tags: string[][]})[] = [];
+                const done: ({trailUuid: string, tags: string[][], source?: string})[] = [];
                 const readNextZipEntry = (entryIndex: number) => { // NOSONAR
                   const gpxFile = gpxFiles[entryIndex];
                   return gpxFile.async('arraybuffer')
@@ -367,20 +369,19 @@ export class TrailMenuService {
           return Promise.reject(new I18nError('errors.import.file_not_imported', [filename, e]));
         })
       },
-      ondone: (progress: Progress | undefined, imported: ({trailUuid: string, tags: string[][]})[][], errors: any[]) => {
+      ondone: (progress: Progress | undefined, imported: ({trailUuid: string, tags: string[][], source?: string})[][], errors: any[]) => {
         progress?.done();
         if (errors.length > 0)
           this.injector.get(ErrorService).addErrors(errors);
         if (zipErrors.length > 0)
           this.injector.get(ErrorService).addErrors(zipErrors);
         const importedTrails = Arrays.flatMap(imported, a => a);
-        if (importedTrails.length > 0)
-          this.importTags(importedTrails, collectionUuid);
+        this.finishImport(importedTrails, collectionUuid);
       }
     });
   }
 
-  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, zip?: any): Promise<{trailUuid: string, tags: string[][]}> {
+  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, zip?: any): Promise<{trailUuid: string, tags: string[][], source?: string}> {
     try {
       const imported = GpxFormat.importGpx(file, owner, collectionUuid, this.injector.get(PreferencesService));
       if (imported.tracks.length === 1) {
@@ -388,35 +389,40 @@ export class TrailMenuService {
         imported.trail.currentTrackUuid = improved.uuid;
         imported.tracks.push(improved);
       }
-      this.injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
-      this.injector.get(TrackService).create(imported.tracks[0]);
-      this.injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1]);
-      this.injector.get(TrailService).create(imported.trail);
-      const result = {trailUuid: imported.trail.uuid, tags: imported.tags};
-      // photos
-      if (imported.photos.length === 0 || !zip) return Promise.resolve(result);
-      const photoService = this.injector.get(PhotoService);
       let result$: Promise<any> = Promise.resolve(true);
-      for (const photoDto of imported.photos) {
-        const filename = imported.photosFilenames.get(photoDto);
-        if (filename) {
-          const zipEntry = zip.file(filename);
-          if (zipEntry) {
-            result$ = result$
-            .then(() => zipEntry.async('arraybuffer'))
-            .then(photoFile => firstValueFrom(
-              photoService.addPhoto(
-                imported.trail.owner,
-                imported.trail.uuid,
-                photoDto.description ?? '',
-                photoDto.index ?? 1,
-                photoFile,
-                photoDto.dateTaken,
-                photoDto.latitude,
-                photoDto.longitude,
-                photoDto.isCover,
-              )
-            ));
+      result$ = result$.then(() => new Promise(resolve => {
+        const done = new CompositeOnDone(() => resolve(true));
+        this.injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
+        this.injector.get(TrackService).create(imported.tracks[0], done.add());
+        this.injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1], done.add());
+        this.injector.get(TrailService).create(imported.trail, done.add());
+        done.start();
+      }));
+      const result = {trailUuid: imported.trail.uuid, tags: imported.tags, source: imported.source};
+      // photos
+      if (imported.photos.length > 0 && zip) {
+        const photoService = this.injector.get(PhotoService);
+        for (const photoDto of imported.photos) {
+          const filename = imported.photosFilenames.get(photoDto);
+          if (filename) {
+            const zipEntry = zip.file(filename);
+            if (zipEntry) {
+              result$ = result$
+              .then(() => zipEntry.async('arraybuffer'))
+              .then(photoFile => firstValueFrom(
+                photoService.addPhoto(
+                  imported.trail.owner,
+                  imported.trail.uuid,
+                  photoDto.description ?? '',
+                  photoDto.index ?? 1,
+                  photoFile,
+                  photoDto.dateTaken,
+                  photoDto.latitude,
+                  photoDto.longitude,
+                  photoDto.isCover,
+                )
+              ));
+            }
           }
         }
       }
@@ -426,7 +432,13 @@ export class TrailMenuService {
     }
   }
 
-  public importTags(imported: ({trailUuid: string, tags: string[][]} | undefined)[], collectionUuid: string): void {
+  public finishImport(imported: {trailUuid: string, tags: string[][], source?: string}[], collectionUuid: string): Promise<any> {
+    if (imported.length === 0) return Promise.resolve(true);
+    return this.importTags(imported, collectionUuid)
+    .then(() => this.importFromSources(imported));
+  }
+
+  public importTags(imported: ({trailUuid: string, tags: string[][]} | undefined)[], collectionUuid: string): Promise<any> {
     const allTags: string[][] = [];
     for (const trail of imported) {
       if (trail && trail.tags.length > 0) {
@@ -436,18 +448,41 @@ export class TrailMenuService {
         }
       }
     }
-    if (allTags.length > 0)
-      import('../../components/import-tags-popup/import-tags-popup.component')
-      .then(module => this.injector.get(ModalController).create({
-        component: module.ImportTagsPopupComponent,
-        backdropDismiss: false,
-        componentProps: {
-          collectionUuid,
-          tags: allTags,
-          toImport: imported.filter(i => !!i) as {trailUuid: string, tags: string[][]}[],
-        }
-      }))
-      .then(modal => modal.present());
+    if (allTags.length === 0) return Promise.resolve(true);
+    return import('../../components/import-tags-popup/import-tags-popup.component')
+    .then(module => this.injector.get(ModalController).create({
+      component: module.ImportTagsPopupComponent,
+      backdropDismiss: false,
+      componentProps: {
+        collectionUuid,
+        tags: allTags,
+        toImport: imported.filter(i => !!i) as {trailUuid: string, tags: string[][]}[],
+      }
+    }))
+    .then(modal => {
+      modal.present();
+      return modal.onDidDismiss();
+    });
+  }
+
+  public importFromSources(imported: {trailUuid: string, tags: string[][], source?: string}[]): Promise<any> {
+    let toImport = imported.filter(t => !!t.source);
+    if (toImport.length === 0) return Promise.resolve(true);
+    const fetchService = this.injector.get(FetchSourceService);
+    toImport = toImport.filter(t => fetchService.canFetchTrailInfo(t.source!));
+    if (toImport.length === 0) return Promise.resolve(true);
+    return import('../../components/fetch-source-popup/fetch-source-popup.component')
+    .then(module => this.injector.get(ModalController).create({
+      component: module.FetchSourcePopupComponent,
+      backdropDismiss: false,
+      componentProps: {
+        trails: toImport.map(t => ({trailUuid: t.trailUuid, source: t.source!})),
+      }
+    }))
+    .then(modal => {
+      modal.present();
+      return modal.onDidDismiss();
+    });
   }
 
   public async exportGpx(trails: Trail[]) {

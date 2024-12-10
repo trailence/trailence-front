@@ -1,5 +1,4 @@
 import { App } from '../app/app';
-import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicRange } from './ionic/ion-range';

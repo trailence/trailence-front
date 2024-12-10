@@ -84,8 +84,9 @@ export class PlatformService {
             menuService.importGpx(buffer, owner, collectionUuid)
             .then(imported => {
               progress.done();
-              menuService.importTags([imported], collectionUuid);
-              this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid);
+              menuService.finishImport([imported], collectionUuid).then(
+                () => this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid)
+              );
             })
             .catch(error => {
               this.injector.get(ErrorService).addError(error);

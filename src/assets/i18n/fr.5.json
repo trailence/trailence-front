@@ -229,6 +229,12 @@
       "copy_all": "Tout copier",
       "ignore_all_copy": "Ne pas copier les tags"
     },
+    "import_from_sources": {
+      "title": "Import de données",
+      "message1": "Nous avons trouvé les sources suivantes:",
+      "message2": "Souhaitez-vous tenter d'importer des données supplémentaires depuis ces sources ?",
+      "message_internet": "Vous devez vous connecter à Internet afin que pouvoir importer deuis ces sources"
+    },
     "share_popup": {
       "title": "Partager",
       "type": {

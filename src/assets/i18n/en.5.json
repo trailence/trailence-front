@@ -229,6 +229,12 @@
       "copy_all": "Copy all",
       "ignore_all_copy": "Do not copy tags"
     },
+    "import_from_sources": {
+      "title": "Import data",
+      "message1": "We found the following sources:",
+      "message2": "Would you like to try importing additional data from these sources?",
+      "message_internet": "You must be connected to the Internet in order to import from these sources"
+    },
     "share_popup": {
       "title": "Share",
       "type": {

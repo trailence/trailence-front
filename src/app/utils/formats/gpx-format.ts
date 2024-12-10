@@ -17,6 +17,7 @@ export interface ImportedTrail {
   tags: string[][];
   photos: Partial<PhotoDto>[];
   photosFilenames: Map<Partial<PhotoDto>, string>;
+  source?: string;
 }
 
 export class GpxFormat {
@@ -33,6 +34,7 @@ export class GpxFormat {
     const importedTags: string[][] = [];
     const photos: Partial<PhotoDto>[] = [];
     const photosFilenames = new Map<Partial<PhotoDto>, string>();
+    let source: string | undefined;
 
     const metadata = XmlUtils.getChild(doc.documentElement, 'metadata');
     if (metadata) {
@@ -75,6 +77,13 @@ export class GpxFormat {
           }
         }
       }
+      const link = XmlUtils.getChild(metadata, 'link');
+      if (link) {
+        const href = link.getAttribute('href');
+        if (href) {
+          source = href;
+        }
+      }
     }
 
     for (const trk of XmlUtils.getChildren(doc.documentElement, 'trk')) {
@@ -91,6 +100,7 @@ export class GpxFormat {
           const pt = this.readPoint(trkpt);
           if (pt) points.push(pt);
         }
+        this.fixPoints(points);
         segment.appendMany(points);
       }
       const extensions = XmlUtils.getChild(trk, 'extensions');
@@ -114,6 +124,7 @@ export class GpxFormat {
         const pt = this.readPoint(rtept);
         if (pt) points.push(pt);
       }
+      this.fixPoints(points);
       segment.appendMany(points);
       tracks.push(track);
     }
@@ -129,7 +140,7 @@ export class GpxFormat {
     if (tracks.length === 0) throw new I18nError('errors.import.not_gpx');
     const trail = new Trail({...trailDto, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks[tracks.length - 1].uuid});
 
-    return { trail, tracks, tags: importedTags, photos, photosFilenames };
+    return { trail, tracks, tags: importedTags, photos, photosFilenames, source };
   }
 
   private static readPoint(point: Element): PointDescriptor | undefined {
@@ -177,6 +188,27 @@ export class GpxFormat {
     const description = descNode?.textContent ?? '';
 
     return new WayPoint(pt, name, description);
+  }
+
+  private static fixPoints(points: PointDescriptor[]): void {
+    let previousTime: number | undefined = undefined;
+    for (let i = 1; i < points.length; ++i) {
+      // fix time going to the past
+      if (points[i].time !== undefined) {
+        if (previousTime !== undefined && points[i].time! < previousTime) {
+          // go to the past => find the valid previous time and remove all invalid times
+          for (let j = i - 1; j >= 0; --j) {
+            if (points[j].time !== undefined && points[j].time! <= points[i].time!) {
+              for (let k = j + 1; k <= i; k++) points[k].time = undefined;
+              previousTime = points[i].time;
+              break;
+            }
+          }
+        } else {
+          previousTime = points[i].time;
+        }
+      }
+    }
   }
 
   public static exportGpx(trail: Trail, tracks: Track[], tags: string[][], photos: Photo[], photosFilenames: Map<Photo, string>): BinaryContent { // NOSONAR

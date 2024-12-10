@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="tags" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.import_from_sources.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="message">{{i18n.texts.pages.import_from_sources.message1}}</div>
+  <ul>
+    <li *ngFor="let trail of trailsSources">{{trail.name}} ➛ {{trail.source}}</li>
+  </ul>
+  <div class="message">{{i18n.texts.pages.import_from_sources.message2}}</div>
+  <div class="internet" *ngIf="!(network.internet$ | async)">{{i18n.texts.pages.import_from_sources.message_internet}}</div>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" [disabled]="!(network.internet$ | async)" (click)="doImport(); close();">{{i18n.texts.buttons.yes}}</ion-button>
+      <ion-button (click)="close()">{{i18n.texts.buttons.no}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

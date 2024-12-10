@@ -3,7 +3,6 @@ import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { OpenFile } from '../utils/open-file';
 import { IonicCheckbox } from './ionic/ion-checkbox';
-import { IonicTextArea } from './ionic/ion-textarea';
 import { App } from '../app/app';
 import { PhotosSliderPopup } from './photos-slider-popup';
 import { FilesUtils } from '../utils/files-utils';
