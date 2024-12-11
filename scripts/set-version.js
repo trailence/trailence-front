@@ -54,7 +54,7 @@ console.log('Updating version in sonar properties');
 let sonar = fs.readFileSync('sonar-project.properties', {encoding: 'utf-8'});
 i = sonar.indexOf('sonar.version=');
 j = sonar.indexOf('\n', i);
-sonar = sonar.substring(0, i + 14) + versionStr + index.substring(j);
-fs.writeFileSync('sonar-project.properties', index);
+sonar = sonar.substring(0, i + 14) + versionStr + sonar.substring(j);
+fs.writeFileSync('sonar-project.properties', sonar);
 
 console.log('Successfully updated version to ', versionStr);
