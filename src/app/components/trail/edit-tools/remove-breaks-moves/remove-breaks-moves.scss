@@ -1,0 +1,14 @@
+:host {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.remove-breaks-content {
+  flex: 1 1 100%;
+  overflow-y: auto;
+}
+
+ion-footer {
+  flex: none;
+}

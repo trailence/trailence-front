@@ -20,6 +20,9 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   private _isInit = false;
   private _currentState: any;
 
+  private _initializing = true;
+  public get initializing() { return this._initializing; }
+
   public get visible$(): Observable<boolean> { return this._visible$; }
   public get visible(): boolean { return this._visible$.value; }
 
@@ -61,6 +64,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this._isInit = true;
     this.setVisible(!this._parent || this._parent.visible);
     this._checkComponentState();
+    this._initializing = false;
   }
 
   ngOnDestroy(): void {

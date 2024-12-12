@@ -4,6 +4,7 @@ import { EditTools } from '../../components/edit-tools.component';
 import { IonicButton } from '../../components/ionic/ion-button';
 import { MapComponent } from '../../components/map.component';
 import { ChainablePromiseElement} from 'webdriverio';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Edit tools', () => {
 
@@ -31,21 +32,23 @@ describe('Edit tools', () => {
     const arrow = (await map.paths.filter(e => e.getAttribute('stroke').then(s => s === 'black'))).at(arrowIndex)
     const pos = await map.getPathPosition(arrow!);
     await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
-    await browser.waitUntil(() => tools.isPointSelected());
+    return await tools.waitSelectionTool();
   }
 
   it('Add and remove a way point', async () => {
-    await selectPoint(5);
-    await tools.createWayPoint();
+    let selectionTool = await selectPoint(5);
+    await selectionTool.createWayPoint();
     await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 3));
-    await new IonicButton(details.$$('div.waypoint')[1].$('ion-button[color=danger]')).click();
-    await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 2));
+    TestUtils.retry(async () => {
+      await new IonicButton(() => details.$$('div.waypoint')[1].$('div.waypoint-actions ion-button[color=danger]')).click();
+      await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 2), {timeout: 5000});
+    }, 2, 500);
 
-    await selectPoint(5);
-    await tools.createWayPoint();
+    selectionTool = await selectPoint(5);
+    await selectionTool.createWayPoint();
     await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 3));
-    await selectPoint(5);
-    await tools.removeWayPoint();
+    selectionTool = await selectPoint(5);
+    await selectionTool.removeWayPoint();
     await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 2));
   });
 
@@ -61,18 +64,67 @@ describe('Edit tools', () => {
   });
 
   it('Keep a small slice, then undo', async () => {
-    await selectPoint(10);
-    await tools.goToNextPoint();
-    await tools.goToNextPoint();
-    await tools.removePointsAfter();
-    await selectPoint(2);
-    await tools.goToPreviousPoint();
-    await tools.removePointsBefore()
+    let selectionTool = await selectPoint(10);
+    await selectionTool.goToNextPoint();
+    await selectionTool.goToNextPoint();
+    await selectionTool.removePointsAfter();
+    selectionTool = await selectPoint(2);
+    await selectionTool.goToPreviousPoint();
+    await selectionTool.removePointsBefore()
     const d1 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
     const d2 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', false);
     expect(parseInt(d1!.replace('.',''))).toBeGreaterThan(parseInt(d2!.replace('.','')));
     await tools.undo();
     await tools.undo();
+  });
+
+  it('Select range, delete it, then undo', async () => {
+    let selectionTool = await selectPoint(10);
+    await selectionTool.extendSelection();
+    await selectPoint(11);
+    await selectionTool.remove();
+    const d1 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
+    const d2 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', false);
+    expect(parseInt(d1!.replace('.',''))).toBeGreaterThan(parseInt(d2!.replace('.','')));
+    await tools.undo();
+  });
+
+  it('Select from elevation graph, then zoom, set it is selection', async () => {
+    const graph = await trailPage.trailComponent.showElevationGraph();
+    // selection on graph
+    await browser.action('pointer')
+      .move({x: 50, y: 25, origin: await graph.getElement().$('canvas').getElement()})
+      .pause(10)
+      .down()
+      .pause(10)
+      .move({x: 100, y: 25, origin: await graph.getElement().$('canvas').getElement()})
+      .pause(10)
+      .up()
+      .perform();
+    // zoom button should be displayed
+    await browser.waitUntil(() => graph.zoomButton.isDisplayed());
+    // zoom on selection
+    await graph.zoomButton.click();
+    let selectionTool = await tools.waitSelectionTool();
+    await selectionTool.remove();
+    await tools.undo();
+    await (await trailPage.trailComponent.openMap()).fitBounds();
+    await browser.pause(1000); // wait for zoom animation to end
+  });
+
+  it('Change elevation from selected point', async () => {
+    let selectionTool = await selectPoint(10);
+    const valueBefore = await selectionTool.getElevation();
+    await selectionTool.setElevation(500);
+    const expectDiff = Math.abs(500 - parseFloat(valueBefore));
+    const ascent1 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true))!.replace(',','').replace('+','').trim();
+    const ascent2 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', false))!.replace(',','').replace('+','').trim();
+    const diff = Math.abs(parseFloat(ascent1) - parseFloat(ascent2));
+    expect(diff).withContext('Ascent before ' + ascent1 + ' (' + valueBefore + '), after ' + ascent2 + ' (500)').toBeLessThanOrEqual(expectDiff + 1);
+    await tools.undo();
+    const pos = await (await trailPage.trailComponent.openMap()).getMapPosition();
+    await browser.action('pointer').move({x: Math.floor(pos.x + 1), y: Math.floor(pos.y + 1), origin: 'viewport'}).pause(100).down().pause(10).up().perform();
+    await browser.waitUntil(() =>tools.isSelectionTool().then(d => !d));
   });
 
   it('Join departure and arrival, then undo', async () => {
@@ -96,6 +148,16 @@ describe('Edit tools', () => {
     const ascent3 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true))!.replace(',','').replace('+','').trim();
     expect(parseInt(ascent2)).toBeGreaterThan(parseInt(ascent1));
     expect(ascent3).toBe(ascent1);
+  });
+
+  it('Remove moves during breaks', async () => {
+    const tool = await tools.openRemoveBreaksMoves();
+    await tool.start();
+    await tool.expectMoves();
+    await tool.removeMoves();
+    await tool.continue();
+    await tool.expectEnd();
+    await tool.quit();
   });
 
   it('Close edit tools', async () => {

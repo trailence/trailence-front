@@ -165,6 +165,30 @@ export class Segment {
     return total;
   }
 
+  public distanceBetween(startPoint: number, endPoint: number): number {
+    if (endPoint === startPoint) return 0;
+    let total = 0;
+    let p = this._points.value[endPoint];
+    let end = this._points.value[startPoint];
+    while (p !== end) {
+      total += p.distanceFromPreviousPoint;
+      p = p.previousPoint as PointImpl;
+    }
+    return total;
+  }
+
+  public distanceToSegmentEnd(pointIndex: number): number {
+    if (pointIndex >= this._points.value.length - 1) return 0;
+    let total = 0;
+    let p = this._points.value[this._points.value.length - 1];
+    let end = this._points.value[pointIndex];
+    while (p !== end) {
+      total += p.distanceFromPreviousPoint;
+      p = p.previousPoint as PointImpl;
+    }
+    return total;
+  }
+
   public computeTotalDistance(): number {
     if (this._points.value.length < 2) return 0;
     return this.distanceFromSegmentStart(this._points.value.length - 1);

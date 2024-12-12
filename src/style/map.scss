@@ -32,6 +32,9 @@ body.dark-map {
       fill: #888;
     }
   }
+  path[stroke=black] {
+    stroke: white;
+  }
 
 }
 .leaflet-legend {

@@ -108,6 +108,25 @@ export class TrailService {
     doneHandler.start();
   }
 
+  public deleteMany(trails: Trail[], progress: Progress | undefined, progressWork: number, ondone?: () => void): void {
+    const doneHandler = new CompositeOnDone(ondone);
+    const tracks: {uuid: string, owner: string}[] = [];
+    for (const trail of trails) {
+      tracks.push({uuid: trail.originalTrackUuid, owner: trail.owner});
+      if (trail.currentTrackUuid !== trail.originalTrackUuid)
+        tracks.push({uuid: trail.currentTrackUuid, owner: trail.owner});
+    }
+    this.trackService.deleteMany(tracks, progress, progressWork * 2 / 3, doneHandler.add());
+    const remainingProgress = progressWork - (progressWork * 2 / 3);
+    let tagsWork = remainingProgress / 10;
+    this.injector.get(TagService).deleteTrailTagsForTrails(trails.map(t => t.uuid), doneHandler.add(() => progress?.addWorkDone(tagsWork)));
+    let photosWork = remainingProgress / 2;
+    this.injector.get(PhotoService).deleteForTrails(trails, doneHandler.add(() => progress?.addWorkDone(photosWork)));
+    const trailWork = remainingProgress - tagsWork - photosWork;
+    this._store.deleteIf(trail => !!trails.find(t => t.uuid === trail.uuid && t.owner === trail.owner), doneHandler.add(() => progress?.addWorkDone(trailWork)));
+    doneHandler.start();
+  }
+
   propagateDelete(trail: Trail): void {
     this.trackService.deleteByUuidAndOwner(trail.originalTrackUuid, trail.owner);
     if (trail.currentTrackUuid !== trail.originalTrackUuid)
@@ -122,27 +141,16 @@ export class TrailService {
       first(),
       switchMap(trails$ => trails$.length === 0 ? of([]) : zip(trails$.map(trail$ => trail$.pipe(firstTimeout(t => !!t, 1000, () => null as Trail | null))))),
       switchMap(trail => {
-        const toRemove = trail.filter(trail => !!trail && trail.collectionUuid === collectionUuid && trail.owner === owner);
+        const toRemove = trail.filter(trail => !!trail && trail.collectionUuid === collectionUuid && trail.owner === owner) as Trail[];
         if (toRemove.length === 0) {
-          progress?.addWorkDone(progressWork)
+          progress?.addWorkDone(progressWork);
           return of(true);
         }
         return new Observable(observer => {
-          let done = 0;
-          let workDone = 0;
-          const ondone = () => {
-            setTimeout(() => { // NOSONAR
-              done++;
-              const newWorkDone = done * progressWork / toRemove.length;
-              progress?.addWorkDone(newWorkDone - workDone);
-              workDone = newWorkDone;
-              if (done === toRemove.length) {
-                observer.next(true);
-                observer.complete();
-              }
-            }, 0);
-          };
-          for (const trail of toRemove) setTimeout(() => this.delete(trail!, ondone), 0); // NOSONAR
+          this.deleteMany(toRemove, progress, progressWork, () => {
+            observer.next(true);
+            observer.complete();
+          });
         });
       })
     );

@@ -222,8 +222,7 @@
               <div class="waypoint-name" *ngIf="!wp.breakPoint">
                 <span *ngIf="!editToolsComponent">{{wp.wayPoint.name}}</span>
                 <ion-input *ngIf="editToolsComponent"
-                  [label]="i18n.texts.way_points.name_placeholder"
-                  labelPlacement="floating"
+                  [placeholder]="i18n.texts.way_points.name_placeholder"
                   color="tertiary"
                   [maxlength]="100"
                   [value]="wp.wayPoint.name"
@@ -233,8 +232,7 @@
               <div class="waypoint-description" *ngIf="!wp.breakPoint">
                 <span *ngIf="!editToolsComponent">{{wp.wayPoint.description}}</span>
                 <ion-textarea *ngIf="editToolsComponent"
-                  [label]="i18n.texts.way_points.description_placeholder"
-                  labelPlacement="floating"
+                  [placeholder]="i18n.texts.way_points.description_placeholder"
                   color="medium"
                   [maxlength]="1000"
                   [autoGrow]="true"
@@ -260,6 +258,7 @@
         [selectable]="!pathSelection.zoomOnSelection"
         (selecting)="pathSelection.elevationGraphSelecting($event)"
         (selected)="pathSelection.elevationGraphSelected($event)"
+        [selection]="pathSelection.selectionRange"
       ></app-elevation-graph>
       <ion-button class="zoom-button" *ngIf="pathSelection.selection.length > 0" (click)="pathSelection.toggleZoom()">
         <ion-icon [name]="pathSelection.zoomOnSelection ? 'zoom-out' : 'zoom-in'" slot="icon-only"></ion-icon>

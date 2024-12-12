@@ -9,7 +9,7 @@ ion-toolbar {
   --min-height: 48px;
 }
 
-.page-section-title {
+::ng-deep .page-section-title {
   padding: 5px 10px;
   display: flex;
   flex-direction: row;
@@ -20,18 +20,8 @@ ion-toolbar {
   }
 }
 
-.page-section-sub-title {
+::ng-deep .page-section-sub-title {
   padding: 5px 5px 5px 20px;
-}
-
-.inline-tool {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-
-  > div:first-child {
-    flex: 1 1 100%;
-  }
 }
 
 ion-footer {
@@ -53,7 +43,7 @@ ion-footer {
   width: 100%;
 }
 
-ion-item {
+::ng-deep ion-item {
   font-size: 14px;
   --min-height: 36px;
 }

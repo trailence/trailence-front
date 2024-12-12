@@ -12,6 +12,10 @@ export abstract class AppElement {
     await browser.waitUntil(() => this.getElement(resetGetElement).isDisplayed());
   }
 
+  public async waitExist(resetGetElement: boolean = false) {
+    await browser.waitUntil(() => this.getElement(resetGetElement).isExisting());
+  }
+
   public isDisplayed(): Promise<boolean> {
     return this.getElement(true).isDisplayed();
   }

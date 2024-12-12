@@ -1,48 +1,65 @@
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../../preferences/preferences';
+import { TrackUtils } from 'src/app/utils/track-utils';
 
 export function calculateLongBreaksFromTrack(track: Track, preferences: ComputedPreferences): number {
   const segments = track.segments;
   if (segments.length === 0) return 0;
-  let breaks = calculateLongBreaksFromSegment(segments[0], preferences);
+  let breaks = calculateLongBreaksFromSegment(segments[0], 0, preferences);
   for (let i = 1; i < segments.length; ++i) {
     const segment = segments[i];
-    breaks += calculateLongBreaksFromSegment(segment, preferences);
+    breaks += calculateLongBreaksFromSegment(segment, i, preferences);
   }
   return breaks;
 }
 
-export function calculateLongBreaksFromSegment(segment: Segment, preferences: ComputedPreferences): number {
-  const breaks = detectLongBreaksFromSegment(segment, preferences.longBreakMinimumDuration, preferences.longBreakMaximumDistance);
+export function calculateLongBreaksFromSegment(segment: Segment, segmentIndex: number, preferences: ComputedPreferences): number {
+  const breaks = detectLongBreaksFromSegment(segment, segmentIndex, preferences.longBreakMinimumDuration, preferences.longBreakMaximumDistance);
   if (breaks.length === 0) return 0;
   const points = segment.points;
   let duration = 0;
   for (const b of breaks) {
-    for (let i = b.startIndex + 1; i <= b.endIndex; ++i) {
-      const d = points[i].durationFromPreviousPoint;
-      if (d !== undefined)
-        duration += d;
+    let startTime = points[b.startIndex].time;
+    let i = b.startIndex;
+    while (startTime === undefined && i < b.endIndex) {
+      startTime = points[++i].time;
     }
+    if (startTime === undefined) continue;
+    let endIndex = b.endIndex;
+    if (endIndex < points.length - 1) endIndex++;
+    let endTime = points[endIndex].time;
+    while (endTime === undefined && endIndex < points.length - 1) {
+      endTime = points[++endIndex].time;
+    }
+    if (endTime === undefined) continue;
+    duration += (endTime - startTime);
   }
   return duration;
 }
 
-export function detectLongBreaksFromTrack(track: Track, minDuration: number, maxDistance: number): {segmentIndex: number; startIndex: number; endIndex: number}[] {
-  const result: {segmentIndex: number; startIndex: number; endIndex: number}[] = [];
+export interface BreakPointSection {
+  segmentIndex: number;
+  startIndex: number;
+  endIndex: number;
+  pointIndex: number;
+}
+
+export function detectLongBreaksFromTrack(track: Track, minDuration: number, maxDistance: number): BreakPointSection[] {
+  const result: BreakPointSection[] = [];
   for (let i = 0; i < track.segments.length; ++i) {
-    for (const b of detectLongBreaksFromSegment(track.segments[i], minDuration, maxDistance)) {
-      result.push({segmentIndex: i, startIndex: b.startIndex, endIndex: b.endIndex});
+    for (const b of detectLongBreaksFromSegment(track.segments[i], i, minDuration, maxDistance)) {
+      result.push(b);
     }
   }
   return result;
 }
 
-export function detectLongBreaksFromSegment(segment: Segment, minDuration: number, maxDistance: number): {startIndex: number; endIndex: number}[] { // NOSONAR
+export function detectLongBreaksFromSegment(segment: Segment, segmentIndex: number, minDuration: number, maxDistance: number): BreakPointSection[] { // NOSONAR
   const points = segment.points;
   if (points.length < 2) return [];
   let index = 0;
-  const breaks: {startIndex: number; endIndex: number}[] = [];
+  const breaks: BreakPointSection[] = [];
   while (index < points.length - 1) {
     let startIndex = index;
     let startPoint = points[startIndex];
@@ -71,7 +88,7 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
     }
 
     if (lastEligiblePointDuration > minDuration) {
-      breaks.push(adjustLongBreakDetected(segment, maxDistance, startIndex, lastEligiblePointIndex));
+      breaks.push(adjustLongBreakDetected(segment, segmentIndex, maxDistance, startIndex, lastEligiblePointIndex));
       index = endIndex + 1;
     } else {
       index++;
@@ -80,51 +97,57 @@ export function detectLongBreaksFromSegment(segment: Segment, minDuration: numbe
   return breaks;
 }
 
-function adjustLongBreakDetected(segment: Segment, maxDistance: number, startIndex: number, endIndex: number): {startIndex: number, endIndex: number} { // NOSONAR
+function adjustLongBreakDetected(segment: Segment, segmentIndex: number, maxDistance: number, startIndex: number, endIndex: number): BreakPointSection { // NOSONAR
   // because we use maxDistance, we may have too much points at the beginning and at the end
-  if (endIndex - startIndex <= 1) return {startIndex, endIndex};
+  if (endIndex - startIndex <= 1) return {segmentIndex, startIndex, endIndex, pointIndex: startIndex};
+  let bestPoint = startIndex;
+  let bestDiff = segment.points[startIndex].durationFromPreviousPoint;
+  for (let i = startIndex + 1; i <= endIndex; ++i) {
+    const diff = segment.points[i].durationFromPreviousPoint;
+    if (diff !== undefined && (bestDiff === undefined || diff > bestDiff)) {
+      bestPoint = i;
+      bestDiff = diff;
+    }
+  }
+  if (bestDiff === undefined) bestPoint = startIndex + Math.floor((endIndex - startIndex) / 2);
+  else {
+    if (bestPoint > startIndex) bestPoint--;
+  }
+
+  let angle, i;
   // adjust startIndex
-  let distance = 0;
-  const startTime = segment.points[startIndex].time;
-  if (startTime) {
-    let index = startIndex + 1;
-    for (; index < endIndex; ++index) {
-      const point = segment.points[index];
-      const dist = point.distanceFromPreviousPoint;
-      distance += dist;
-      if (distance >= maxDistance) {
-        index--;
-        break;
-      }
-      const maxTimeDiff = distance * 1.0 * 60 * 60;
-      if (point.time && point.time - startTime > maxTimeDiff) {
-        index--;
-        break;
-      }
-    }
-    startIndex = index;
+  if (startIndex === 0) {
+    i = 1;
+    angle = Math.atan2(segment.points[1].pos.lat - segment.points[0].pos.lat, segment.points[1].pos.lng - segment.points[0].pos.lng);
+  } else {
+    i = startIndex;
+    angle = Math.atan2(segment.points[startIndex].pos.lat - segment.points[startIndex - 1].pos.lat, segment.points[startIndex].pos.lng - segment.points[startIndex - 1].pos.lng);
   }
+  while (i < bestPoint) {
+    const newAngle = Math.atan2(segment.points[i + 1].pos.lat - segment.points[i].pos.lat, segment.points[i + 1].pos.lng - segment.points[i].pos.lng);
+    const toBreakAngle = Math.atan2(segment.points[bestPoint].pos.lat - segment.points[i].pos.lat, segment.points[bestPoint].pos.lng - segment.points[i].pos.lng);
+    if (Math.abs(newAngle - angle) > 0.3 && Math.abs(toBreakAngle - newAngle) > 0.3) break;
+    i++;
+    angle = newAngle;
+  }
+  if (i <= bestPoint) startIndex = i;
+
   // adjust endIndex
-  distance = 0;
-  const endTime = segment.points[endIndex].time;
-  if (endTime) {
-    let index = endIndex - 1;
-    for (; index > startIndex; --index) {
-      const point = segment.points[index];
-      const dist = point.nextPoint!.distanceFromPreviousPoint;
-      distance += dist;
-      if (distance >= maxDistance) {
-        index++;
-        break;
-      }
-      const maxTimeDiff = distance * 1.0 * 60 * 60;
-      if (point.time && endTime - point.time > maxTimeDiff) {
-        index++;
-        break;
-      }
-    }
-    endIndex = index;
+  if (endIndex === segment.points.length - 1) {
+    i = endIndex - 1;
+    angle = Math.atan2(segment.points[endIndex - 1].pos.lat - segment.points[endIndex].pos.lat, segment.points[endIndex - 1].pos.lng - segment.points[endIndex].pos.lng);
+  } else {
+    i = endIndex;
+    angle = Math.atan2(segment.points[endIndex].pos.lat - segment.points[endIndex + 1].pos.lat, segment.points[endIndex].pos.lng - segment.points[endIndex + 1].pos.lng);
   }
-  if (endIndex < startIndex) return {startIndex: endIndex, endIndex: startIndex};
-  return {startIndex, endIndex};
+  while (i > bestPoint) {
+    const newAngle = Math.atan2(segment.points[i - 1].pos.lat - segment.points[i].pos.lat, segment.points[i - 1].pos.lng - segment.points[i].pos.lng);
+    const fromBreakAngle = Math.atan2(segment.points[i].pos.lat - segment.points[bestPoint].pos.lat, segment.points[i].pos.lng - segment.points[bestPoint].pos.lng);
+    if (Math.abs(newAngle - angle) > 0.3 && Math.abs(fromBreakAngle - newAngle) > 0.3) break;
+    i--;
+    angle = newAngle;
+  }
+  if (i >= bestPoint) endIndex = i;
+
+  return {segmentIndex, startIndex, endIndex, pointIndex: bestPoint};
 }

@@ -1,0 +1,40 @@
+.selection {
+
+  .metadata-container {
+    padding: 0 8px;
+
+    &:not(:first-child) {
+      margin-top: 5px;
+    }
+
+    ion-input {
+      font-size: 13px;
+    }
+  }
+
+  .points-moves {
+    margin-top: 8px;
+
+    .point-carets {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+
+      ion-button:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
+
+    &.two-columns {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+
+      .point-carets {
+        flex: 1 1 50%;
+      }
+    }
+  }
+
+}

@@ -10,6 +10,19 @@
   --bottom-sheet-tab-icon-size: 24px;
   --bottom-sheet-tab-content-height: 150px;
   --edit-tools-width: 0px;
+  --edit-tools-open-width: 300px;
+}
+
+@media (min-width: 1600px) {
+  .top-container {
+    --edit-tools-open-width: 350px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .top-container {
+    --edit-tools-open-width: 400px;
+  }
 }
 
 .top-container {
@@ -104,7 +117,7 @@
     width: var(--edit-tools-width);
   }
   &.edit-tools-open {
-    --edit-tools-width: 300px;
+    --edit-tools-width: var(--edit-tools-open-width);
     .edit-tools-container {
       display: block;
     }
@@ -486,10 +499,18 @@
     .waypoint-name {
       font-size: 14px;
       color: var(--ion-color-tertiary);
+      ion-input {
+        min-height: 30px;
+      }
     }
     .waypoint-description {
       color: var(--ion-color-medium);
       font-size: 13px;
+      ion-textarea {
+        --padding-top: 0px;
+        --padding-bottom: 0px;
+        min-height: 30px;
+      }
     }
   }
 }

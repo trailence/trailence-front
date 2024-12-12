@@ -19,7 +19,7 @@ describe('Find Trail', () => {
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('a=Open in Visorando').isExisting());
     expect(await trailPage.trailComponent.getDescription())
-    .toBe("Une magnifique balade sur la plus petite des deux îles de Lérins.Vous ferez le tour de cette charmante île sous les pins en longeant la mer par un chemin très agréable. Le clou du spectacle vient lorsque l'on pénètre au sein du fort et que l'on surplombe l'abbaye avec les montagnes du Mercantour en arrière plan.");
+    .toBe("Une magnifique balade sur la plus petite des deux îles de Lérins. Vous ferez le tour de cette charmante île sous les pins en longeant la mer par un chemin très agréable. Le clou du spectacle vient lorsque l'on pénètre au sein du fort et que l'on surplombe l'abbaye avec les montagnes du Mercantour en arrière plan.");
     const wayPoints = await trailPage.trailComponent.getWayPoints();
     expect(wayPoints.length).toBe(6);
     expect(wayPoints[0].name).toBe('Débarcadère');

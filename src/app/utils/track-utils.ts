@@ -1,6 +1,7 @@
 import { Point } from '../model/point';
 import L from 'leaflet';
 import { Track } from '../model/track';
+import { Segment } from '../model/segment';
 
 export class TrackUtils {
 
@@ -60,6 +61,16 @@ export class TrackUtils {
       total += points[i].distanceFromPreviousPoint;
     }
     return total;
+  }
+
+  public static distanceBetweenPoints(segments: Segment[], startSegment: number, startPoint: number, endSegment: number, endPoint: number): number {
+    let total = 0;
+    for (let i = startSegment + 1; i < endSegment; ++i) total += segments[i].computeTotalDistance();
+    if (startSegment < endSegment) {
+      return segments[startSegment].distanceToSegmentEnd(startPoint) + segments[endSegment].distanceFromSegmentStart(endPoint);
+    } else {
+      return segments[startSegment].distanceBetween(startPoint, endPoint);
+    }
   }
 
   public static durationBetween(startPoint: Point, endPoint: Point): number {

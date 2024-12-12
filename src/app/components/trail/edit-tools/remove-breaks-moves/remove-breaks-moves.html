@@ -1,0 +1,81 @@
+<div class="remove-breaks-content ion-padding">
+  <ng-container *ngIf="longBreaksDetected === undefined">
+    <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.configuration}}</div>
+
+    <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.config_min_duration}}</div>
+    <ion-range #removeLongBreaksMovesMinDuration
+      mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="180000" [max]="900000" [step]="60000"
+      [pin]="true" [pinFormatter]="millisToMinutesFormatter"
+      [value]="prefs.preferences.longBreakMinimumDuration"
+      class="always-show-knob-pin"
+    >
+      <ion-label slot="start">{{millisToMinutesFormatter(180000)}}</ion-label>
+      <ion-label slot="end">{{millisToMinutesFormatter(900000)}}</ion-label>
+    </ion-range>
+
+    <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.config_max_distance}}</div>
+    <ion-range #removeLongBreaksMovesMaxDistance
+      mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinLongBreaksMovesDistance()" [max]="getMaxLongBreaksMovesDistance()" [step]="getLongBreaksMovesDistanceStep()"
+      [pin]="true" [pinFormatter]="smallDistanceFormatter"
+      [value]="getMinLongBreaksMovesDistanceInitialValue()"
+      class="always-show-knob-pin"
+    >
+      <ion-label slot="start">{{smallDistanceFormatter(getMinLongBreaksMovesDistance())}}</ion-label>
+      <ion-label slot="end">{{smallDistanceFormatter(getMaxLongBreaksMovesDistance())}}</ion-label>
+    </ion-range>
+
+    <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.detection}}</div>
+
+    <ion-button *ngIf="longBreaksDetected === undefined" (click)="detectLongBreaks(removeLongBreaksMovesMinDuration.value, removeLongBreaksMovesMaxDistance.value)" class="button-start">
+      {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.start}}
+    </ion-button>
+  </ng-container>
+
+  <ng-container *ngIf="longBreaksDetected !== undefined">
+    <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.detection}}</div>
+
+    <div *ngIf="longBreaksDetected.length === 0" class="no-more-breaks">
+      {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.no_more_break}}
+    </div>
+    <ng-container *ngIf="longBreaksDetected.length > 0">
+      <ng-container *ngIf="longBreaksDetected[0].startIndex >= 0">
+        <div>
+          {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.duration}}:
+          {{i18n.durationToString(longBreakDetectedDuration(), false)}}
+        </div>
+        <div class="separator"></div>
+        <div>
+          <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.adjust_start}}</div>
+          <ion-buttons>
+            <ion-button [disabled]="longBreaksDetected[0].startIndex === 0" (click)="longBreakStartBefore()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.before}}</ion-button>
+            <ion-button [disabled]="longBreaksDetected[0].startIndex === longBreaksDetected[0].endIndex" (click)="longBreakStartAfter()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.after}}</ion-button>
+          </ion-buttons>
+        </div>
+        <div>
+          <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.adjust_end}}</div>
+          <ion-buttons>
+            <ion-button [disabled]="longBreaksDetected[0].endIndex === longBreaksDetected[0].startIndex" (click)="longBreakEndBefore()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.before}}</ion-button>
+            <ion-button [disabled]="!longBreakEndCanGoAfter()" (click)="longBreakEndAfter()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.after}}</ion-button>
+          </ion-buttons>
+        </div>
+        <div class="separator"></div>
+        <ion-list>
+          <ion-item button color="danger" (click)="removeCurrentLongBreakMoves()" class="button-remove-moves">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.remove_moves}}</ion-item>
+          <ion-item button (click)="goToNextLongBreakMoves()" class="button-skip-moves">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.skip_moves}}</ion-item>
+        </ion-list>
+      </ng-container>
+      <ng-container *ngIf="longBreaksDetected[0].startIndex === -1">
+        <ion-button (click)="goToNextLongBreakMoves()" class="button-continue">
+          {{i18n.texts.buttons.next}}
+        </ion-button>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+</div>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button (click)="exit()">{{i18n.texts.buttons.quit}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

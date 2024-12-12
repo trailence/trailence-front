@@ -188,9 +188,10 @@
         },
         "merge_segments": "Connect pause and resume points",
         "selected_point": {
-          "title": "Selected point",
-          "go_to_previous_point": "Go to previous point",
-          "go_to_next_point": "Go to next point",
+          "title_singular": "Selected point",
+          "title_plural": "Selected points",
+          "extend_selection": "Expand selection to...",
+          "select_target_point": "Select a point to extend the selection",
           "create_waypoint": "Create a way point",
           "remove_waypoint": "Remove the way point",
           "remove_all_next_points": "Remove all points after this one",

@@ -47,6 +47,10 @@ export class MapComponent extends Component {
     await browser.pause(1500); // wait for the hash to be taken into account
   }
 
+  public async fitBounds() {
+    await this.getControl('fit-bounds-tool').click();
+  }
+
   public async toggleGeolocation() {
     await this.getControl('show-position-tool').click();
   }

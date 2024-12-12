@@ -179,7 +179,7 @@ export class TrailsPage extends AbstractPage {
               {lat: parseFloat(coords[0]), lng: parseFloat(coords[3])},
               {lat: parseFloat(coords[2]), lng: parseFloat(coords[1])}
             );
-            if (previousSearch && previousSearch.equals(bounds)) {
+            if (previousSearch?.equals(bounds)) {
               this.ngZone.run(() => this.searching = false);
               return EMPTY;
             }

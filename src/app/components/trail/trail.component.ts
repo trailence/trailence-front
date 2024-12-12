@@ -275,7 +275,10 @@ export class TrailComponent extends AbstractComponent {
           }
           if (toolsFocusTrack) {
             tracks.push(toolsFocusTrack);
-            mapTracks.push(new MapTrack(undefined, toolsFocusTrack, '#A08000C0', 1, false, this.i18n));
+            mapTracks.push(new MapTrack(undefined, toolsFocusTrack, '#E0E000C0', 1, false, this.i18n));
+            this.pathSelection.clear();
+            this.elevationTrack1 = toolsFocusTrack;
+            this.elevationTrack2 = undefined;
           }
         }
 
@@ -796,6 +799,7 @@ export class TrailComponent extends AbstractComponent {
     this._highlightedWayPointFromClick = click;
     const mapTrack = this.mapTracks$.value.find(mt => mt.track === this.wayPointsTrack);
     mapTrack?.highlightWayPoint(wp);
+    this.changesDetector.detectChanges();
   }
 
   unhighlightWayPoint(wp: ComputedWayPoint, force: boolean): void {
@@ -804,6 +808,7 @@ export class TrailComponent extends AbstractComponent {
       this._highlightedWayPointFromClick = false;
       const mapTrack = this.mapTracks$.value.find(mt => mt.track === this.wayPointsTrack);
       mapTrack?.unhighlightWayPoint(wp);
+      this.changesDetector.detectChanges();
     }
   }
 
@@ -841,10 +846,12 @@ export class TrailComponent extends AbstractComponent {
       focusTrack$: this.toolsFocusTrack$,
       hideBaseTrack$: this.toolsHideBaseTrack$,
       map: this.map!,
+      trailComponent: this,
       getMe: (me: any) => { this.editToolsComponentInstance = me; },
       close: () => {
         this.editToolsComponent = undefined;
         this.editToolsInputs = undefined;
+        this.editToolsComponentInstance = undefined;
         this.toolsModifiedTrack$.next(undefined);
         this.toolsBaseTrack$.next(undefined);
         this.toolsFocusTrack$.next(undefined);

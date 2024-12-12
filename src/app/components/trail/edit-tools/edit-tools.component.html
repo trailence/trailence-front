@@ -10,8 +10,7 @@
   </ion-toolbar>
 </ion-header>
 <ion-content>
-
-  <div [ngStyle]="{'display': !inlineTool && !selectedPoint ? 'block': 'none'}">
+  <div [ngStyle]="{'display': !inlineToolType ? 'block': 'none'}">
     <ion-list>
       <ion-item button (click)="backToOriginalTrack()" class="button-back-to-original-track">
         {{i18n.texts.pages.trail.edit_tools.back_to_original}}
@@ -32,7 +31,7 @@
       <ion-item button (click)="removeUnprobableElevations()">
         {{i18n.texts.pages.trail.edit_tools.remove_unprobable_elevations}}
       </ion-item>
-      <ion-item button id="elevation-threshold-button-{{id}}">
+      <ion-item button (click)="openElevationThresholdModal()">
         {{i18n.texts.pages.trail.edit_tools.apply_elevation_threshold}}
       </ion-item>
     </ion-list>
@@ -59,23 +58,18 @@
     </ng-container>
 
     <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.breaks}}</div>
-    <ion-item button (click)="setInlineTool(removeLongBreaksMoves)">
+    <ion-item button (click)="setInlineToolRemoveBreaksMoves()" class="button-remove-breaks-moves">
       {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.title}}
     </ion-item>
     <ion-item button (click)="mergeSegments()" *ngIf="canMergeSegments() | async">
       {{i18n.texts.pages.trail.edit_tools.merge_segments}}
     </ion-item>
   </div>
-
-  <ng-container *ngIf="inlineTool">
-    <ng-container *ngTemplateOutlet="inlineTool"></ng-container>
-  </ng-container>
-
-  <ng-container *ngIf="!inlineTool && selectedPoint">
-    <ng-container *ngTemplateOutlet="selectedPointTools"></ng-container>
+  <ng-container *ngIf="inlineToolType">
+    <app-edit-tool-inline-renderer #inlineToolRenderer [type]="inlineToolType" [editTools]="that" [callback]="inlineToolCallback"></app-edit-tool-inline-renderer>
   </ng-container>
 </ion-content>
-<ion-footer *ngIf="!inlineTool">
+<ion-footer *ngIf="!inlineToolRenderer?.tool?.hasOwnFooter">
   <ion-toolbar color="footer">
     <div style="display: flex; flex-direction: row; align-items: center;">
       <app-icon-label-button icon="undo" [label]="i18n.texts.buttons.undo" [disabled]="history.length === 0" (click)="undo()"></app-icon-label-button>
@@ -85,177 +79,3 @@
     </div>
   </ion-toolbar>
 </ion-footer>
-
-<ng-template #selectedPointTools>
-  <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.selected_point.title}}</div>
-  <div style="padding: 2px 5px">
-    <div class="metadata-container one-column">
-      <div class="metadata-item">
-        <ion-icon name="center-on-location"></ion-icon>
-        <div>{{i18n.coordToString(selectedPoint!.position!.lat)}}, {{i18n.coordToString(selectedPoint!.position!.lng)}}</div>
-      </div>
-      <div class="metadata-item">
-        <ion-icon name="altitude"></ion-icon>
-        <div>{{i18n.elevationToString(selectedPoint!.point!.ele)}}</div>
-      </div>
-      <div class="metadata-item">
-        <ion-icon name="distance"></ion-icon>
-        <div>{{i18n.distanceToString(getSelectedPointDistance())}}</div>
-      </div>
-    </div>
-  </div>
-  <ion-list>
-    <ion-item button *ngIf="canMoveSelectedPointBackward()" (click)="moveSelectedPointBackward()" class="button-go-to-previous-point">{{i18n.texts.pages.trail.edit_tools.selected_point.go_to_previous_point}}</ion-item>
-    <ion-item button *ngIf="canMoveSelectedPointForward()" (click)="moveSelectedPointForward()" class="button-go-to-next-point">{{i18n.texts.pages.trail.edit_tools.selected_point.go_to_next_point}}</ion-item>
-  </ion-list>
-  <div class="page-section-sub-title">
-    {{i18n.texts.pages.trail.edit_tools.actions}}
-  </div>
-  <ion-list>
-    <ng-container *ngIf="getWayPointFromSelectedPoint() | async as wp">
-      <ion-item *ngIf="!wp.waypoint" color="primary" button (click)="createWayPoint()" class="button-create-way-point">{{i18n.texts.pages.trail.edit_tools.selected_point.create_waypoint}}</ion-item>
-      <ion-item *ngIf="wp.waypoint" color="danger" button (click)="removeWayPoint(wp.waypoint)" class="button-remove-way-point">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_waypoint}}</ion-item>
-    </ng-container>
-    <ion-item color="danger" button (click)="removeSelectedPoint()" class="button-remove-point">{{i18n.texts.buttons.delete}}</ion-item>
-    <ion-item color="danger" button (click)="removeAllPointsBeforeSelected()" class="button-remove-points-before">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_previous_points}}</ion-item>
-    <ion-item color="danger" button (click)="removeAllPointsAfterSelected()" class="button-remove-points-after">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_next_points}}</ion-item>
-  </ion-list>
-</ng-template>
-
-<ion-modal #modalElevationThreshold trigger="elevation-threshold-button-{{id}}">
-  <ng-template>
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>
-          <ion-label>{{i18n.texts.pages.trail.edit_tools.apply_elevation_threshold}}</ion-label>
-        </ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-
-      <div class="page-section-text" [innerHTML]="i18n.texts.pages.trail.edit_tools.elevation_threshold_explaination"></div>
-
-      <div class="page-section-sub-title">
-        {{i18n.texts.pages.trail.edit_tools.elevation_threshold}}
-      </div>
-      <ion-range #elevationThresholdElevation
-        mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThreshold()" [max]="getMaxElevationThreshold()" [step]="getElevationThresholdStep()"
-        [value]="getInitialElevationThreshold()"
-        [pin]="true" [pinFormatter]="elevationThresholdFormatter"
-        class="always-show-knob-pin"
-      >
-        <ion-label slot="start">{{elevationThresholdFormatter(getMinElevationThreshold())}}</ion-label>
-        <ion-label slot="end">{{elevationThresholdFormatter(getMaxElevationThreshold())}}</ion-label>
-      </ion-range>
-
-      <div class="page-section-sub-title">
-        {{i18n.texts.pages.trail.edit_tools.elevation_threshold_distance}}
-      </div>
-
-      <ion-range #elevationThresholdDistance
-        mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThresholdDistance()" [max]="getMaxElevationThresholdDistance()" [step]="getElevationThresholdDistanceStep()"
-        [value]="getInitialElevationThresholdDistance()"
-        [pin]="true" [pinFormatter]="smallDistanceFormatter"
-        class="always-show-knob-pin"
-      >
-        <ion-label slot="start">{{smallDistanceFormatter(getMinElevationThresholdDistance())}}</ion-label>
-        <ion-label slot="end">{{smallDistanceFormatter(getMaxElevationThresholdDistance())}}</ion-label>
-      </ion-range>
-    </ion-content>
-
-    <ion-footer>
-      <ion-toolbar color="footer">
-        <ion-buttons slot="end">
-          <ion-button color="success" (click)="applyElevationThreshold(elevationThresholdElevation.value, elevationThresholdDistance.value); modalElevationThreshold.dismiss()">{{i18n.texts.buttons.apply}}</ion-button>
-          <ion-button color="medium" (click)="modalElevationThreshold.dismiss()">{{i18n.texts.buttons.cancel}}</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-footer>
-  </ng-template>
-</ion-modal>
-
-<ng-template #removeLongBreaksMoves>
-  <div class="inline-tool">
-    <div class="ion-padding">
-      <ng-container *ngIf="longBreaksDetected === undefined">
-        <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.configuration}}</div>
-
-        <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.config_min_duration}}</div>
-        <ion-range #removeLongBreaksMovesMinDuration
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="180000" [max]="900000" [step]="60000"
-          [pin]="true" [pinFormatter]="millisToMinutesFormatter"
-          [value]="prefs.preferences.longBreakMinimumDuration"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">{{millisToMinutesFormatter(180000)}}</ion-label>
-          <ion-label slot="end">{{millisToMinutesFormatter(900000)}}</ion-label>
-        </ion-range>
-
-        <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.config_max_distance}}</div>
-        <ion-range #removeLongBreaksMovesMaxDistance
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinLongBreaksMovesDistance()" [max]="getMaxLongBreaksMovesDistance()" [step]="getLongBreaksMovesDistanceStep()"
-          [pin]="true" [pinFormatter]="smallDistanceFormatter"
-          [value]="getMinLongBreaksMovesDistanceInitialValue()"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">{{smallDistanceFormatter(getMinLongBreaksMovesDistance())}}</ion-label>
-          <ion-label slot="end">{{smallDistanceFormatter(getMaxLongBreaksMovesDistance())}}</ion-label>
-        </ion-range>
-
-        <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.detection}}</div>
-
-        <ion-button *ngIf="longBreaksDetected === undefined" (click)="detectLongBreaks(removeLongBreaksMovesMinDuration.value, removeLongBreaksMovesMaxDistance.value)">
-          {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.start}}
-        </ion-button>
-      </ng-container>
-
-      <ng-container *ngIf="longBreaksDetected !== undefined">
-        <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.detection}}</div>
-
-        <div *ngIf="longBreaksDetected.length === 0">
-          {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.no_more_break}}
-        </div>
-        <ng-container *ngIf="longBreaksDetected.length > 0">
-          <ng-container *ngIf="longBreaksDetected[0].startIndex >= 0">
-            <div>
-              {{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.duration}}:
-              {{i18n.durationToString(longBreakDetectedDuration(), false)}}
-            </div>
-            <div class="separator"></div>
-            <div>
-              <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.adjust_start}}</div>
-              <ion-buttons>
-                <ion-button [disabled]="longBreaksDetected[0].startIndex === 0" (click)="longBreakStartBefore()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.before}}</ion-button>
-                <ion-button [disabled]="longBreaksDetected[0].startIndex === longBreaksDetected[0].endIndex" (click)="longBreakStartAfter()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.after}}</ion-button>
-              </ion-buttons>
-            </div>
-            <div>
-              <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.adjust_end}}</div>
-              <ion-buttons>
-                <ion-button [disabled]="longBreaksDetected[0].endIndex === longBreaksDetected[0].startIndex" (click)="longBreakEndBefore()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.before}}</ion-button>
-                <ion-button [disabled]="!longBreakEndCanGoAfter()" (click)="longBreakEndAfter()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.after}}</ion-button>
-              </ion-buttons>
-            </div>
-            <div class="separator"></div>
-            <ion-list>
-              <ion-item button color="danger" (click)="removeCurrentLongBreakMoves()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.remove_moves}}</ion-item>
-              <ion-item button (click)="goToNextLongBreakMoves()">{{i18n.texts.pages.trail.edit_tools.remove_long_breaks_moves.skip_moves}}</ion-item>
-            </ion-list>
-          </ng-container>
-          <ng-container *ngIf="longBreaksDetected[0].startIndex === -1">
-            <ion-button (click)="goToNextLongBreakMoves()">
-              {{i18n.texts.buttons.next}}
-            </ion-button>
-          </ng-container>
-        </ng-container>
-      </ng-container>
-    </div>
-    <ion-footer>
-      <ion-toolbar color="footer">
-        <ion-buttons slot="end">
-          <ion-button (click)="exitLongBreaksMovesDetection()">{{i18n.texts.buttons.quit}}</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-footer>
-  </div>
-</ng-template>

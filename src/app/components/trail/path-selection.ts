@@ -67,6 +67,15 @@ export class TrailPathSelection {
 
   toggleZoom(): void {
     if (!this.zoomOnSelection) {
+      if (this.component.editToolsComponentInstance) {
+        const track =
+          this.component.toolsFocusTrack$.value ||
+          this.component.toolsModifiedTrack$.value ||
+          this.component.toolsBaseTrack$.value ||
+          this.component.tracks$.value[0];
+        const range = this.selectionRange.find(r => r.track === track);
+        if (range && this.component.editToolsComponentInstance.setSelection(range)) return;
+      }
       this.zoomOnSelection = true;
       this.component.map?.fitBounds(this.mapTracks$.value);
     } else {
@@ -81,6 +90,18 @@ export class TrailPathSelection {
         }, 0);
       }
     }, 0);
+  }
+
+  clear(): void {
+    this.selection = [];
+    this.selectionRange = [];
+    this.zoomOnSelection = false;
+    if (this.mapTracks$.value.length > 0) {
+      for (const mt of this.mapTracks$.value) {
+        this.component.map?.removeTrack(mt);
+      }
+      this.mapTracks$.next([]);
+    }
   }
 
   updatedTracks(tracks: Track[]): void { // NOSONAR

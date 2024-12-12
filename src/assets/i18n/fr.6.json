@@ -188,9 +188,10 @@
         },
         "merge_segments": "Relier les points de pause et de reprise",
         "selected_point": {
-          "title": "Point sélectionné",
-          "go_to_previous_point": "Aller au point précédent",
-          "go_to_next_point": "Aller au point suivant",
+          "title_singular": "Point sélectionné",
+          "title_plural": "Points sélectionnés",
+          "extend_selection": "Étendre la sélection jusqu'à...",
+          "select_target_point": "Sélectionnez un point pour étendre la sélection",
           "create_waypoint": "Créer un point de passage",
           "remove_waypoint": "Supprimer le point de passage",
           "remove_all_next_points": "Supprimer tous les points après",

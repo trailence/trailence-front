@@ -16,7 +16,7 @@ import { TrackService } from './track.service';
 import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
-import { ProgressService } from '../progress/progress.service';
+import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from '../progress/error.service';
@@ -595,6 +595,49 @@ export class TrackDatabase {
       if (metadata$) metadata$.newValue(null);
       if (!dbUpdated) dbUpdated = Promise.resolve();
       return dbUpdated.then(() => {
+        if (!this.syncStatus$.value!.hasLocalChanges) {
+          this.syncStatus$.value!.hasLocalChanges = true;
+          this.syncStatus$.next(this.syncStatus$.value);
+        }
+        if (ondone) ondone();
+      });
+    });
+  }
+
+  public deleteMany(ids: {uuid: string, owner: string}[], progress: Progress | undefined, progressWork: number, ondone?: () => void): void {
+    this.ngZone.runOutsideAngular(() => {
+      const keys = ids.map(id => id.uuid + '#' + id.owner);
+      let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
+        await this.fullTrackTable?.bulkPut(ids.map(id => ({
+          key: id.uuid + '#' + id.owner,
+          uuid: id.uuid,
+          owner: id.owner,
+          version: -1,
+          updatedLocally: 0,
+          needsSync: 1,
+          track: undefined,
+        })));
+        await this.simplifiedTrackTable?.bulkDelete(keys);
+        await this.metadataTable?.bulkDelete(keys);
+      });
+      const progressDb = progressWork / 3;
+      let progress2 = progressWork - progressDb;
+      let remaining = keys.length;
+      for (const key of keys) {
+        const full$ = this.fullTracks.get(key);
+        if (full$) full$.newValue(null);
+        const simplified$ = this.simplifiedTracks.get(key);
+        if (simplified$) simplified$.newValue(null);
+        const metadata$ = this.metadata.get(key);
+        if (metadata$) metadata$.newValue(null);
+        let work = progress2 / remaining;
+        progress2 -= work;
+        remaining--;
+        progress?.addWorkDone(work);
+      }
+      if (!dbUpdated) dbUpdated = Promise.resolve();
+      return dbUpdated.then(() => {
+        progress?.addWorkDone(progressDb);
         if (!this.syncStatus$.value!.hasLocalChanges) {
           this.syncStatus$.value!.hasLocalChanges = true;
           this.syncStatus$.next(this.syncStatus$.value);

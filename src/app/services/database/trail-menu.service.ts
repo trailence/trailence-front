@@ -214,19 +214,10 @@ export class TrailMenuService {
           role: 'danger',
           handler: () => {
             alert.dismiss();
-            const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.deleting_trails, trails.length);
-            progress.subTitle = '0/' + trails.length;
-            let index = 0;
-            const deleteNext = () => {
-              this.injector.get(TrailService).delete(trails[index], () => {
-                progress.subTitle = '' + (index + 1) + '/' + trails.length;
-                progress.addWorkDone(1);
-                index++;
-                if (index < trails.length) setTimeout(deleteNext, 0);
-                else if (fromTrail) this.injector.get(Router).navigateByUrl('/trails/collection/' + trails[0].collectionUuid);
-              });
-            };
-            deleteNext();
+            const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.deleting_trails, trails.length * 100);
+            this.injector.get(TrailService).deleteMany(trails, progress, trails.length * 100, () => {
+              if (fromTrail) this.injector.get(Router).navigateByUrl('/trails/collection/' + trails[0].collectionUuid);
+            });
           }
         }, {
           text: texts.no,

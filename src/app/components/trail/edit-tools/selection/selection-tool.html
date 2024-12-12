@@ -1,0 +1,96 @@
+<ng-container *ngIf="point1 && !selectingPoint2">
+  <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.selected_point[point2 ? 'title_plural' : 'title_singular']}}</div>
+  <div class="selection">
+    <div class="metadata-container one-column">
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <ion-icon name="distance"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{i18n.distanceToString(getDistance())}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-item-container">
+        <div class="metadata-item" *ngIf="!point2">
+          <ion-icon name="altitude"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary" *ngIf="point2">
+                {{i18n.elevationToString(point1.point!.ele)}}
+              </div>
+              <div *ngIf="!point2 && point1.point!.ele !== undefined">
+                <ion-input
+                  type="number"
+                  [value]="elevationInputValue(point1.point!.ele)"
+                  style="margin-bottom: 1px"
+                  (ionChange)="setElevation(point1, $event.detail.value)"
+                >
+                </ion-input>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="metadata-container" [ngClass]="{'one-column': !point2, 'two-columns': !!point2}">
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <ion-icon name="center-on-location"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{i18n.coordToString(point1.point.pos.lat)}}, {{i18n.coordToString(point1.point.pos.lng)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-item-container" *ngIf="point2">
+        <div class="metadata-item">
+          <ion-icon name="center-on-location"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{i18n.coordToString(point2.point.pos.lat)}}, {{i18n.coordToString(point2.point.pos.lng)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="points-moves" [ngClass]="{'one-column': !point2, 'two-columns': !!point2}">
+      <ng-container *ngTemplateOutlet="pointMoves; context: {point: point1}"></ng-container>
+      <ng-container *ngIf="point2">
+        <ng-container *ngTemplateOutlet="pointMoves; context: {point: point2}"></ng-container>
+      </ng-container>
+    </div>
+    <ng-template #pointMoves let-point="point">
+      <div class="point-carets">
+        <ion-button shape="round" color="dark" size="small" fill="clear" [disabled]="!canMoveBackward(point)" (click)="moveBackward(point)" class="go-to-previous">
+          <ion-icon slot="icon-only" name="caret-back"></ion-icon>
+        </ion-button>
+        <ion-button shape="round" color="dark" size="small" fill="clear" [disabled]="!canMoveForward(point)" (click)="moveForward(point)" class="go-to-next">
+          <ion-icon slot="icon-only" name="caret-forward"></ion-icon>
+        </ion-button>
+      </div>
+    </ng-template>
+  </div>
+  <div *ngIf="!point2">
+    <ion-item button lines="none" (click)="extendSelection()" class="extend-selection">{{i18n.texts.pages.trail.edit_tools.selected_point.extend_selection}}</ion-item>
+  </div>
+  <div class="page-section-sub-title">
+    {{i18n.texts.pages.trail.edit_tools.actions}}
+  </div>
+  <ion-list>
+    <ng-container *ngIf="getWayPointFromSelectedPoint() | async as wp">
+      <ion-item *ngIf="!wp.waypoint && !point2" color="primary" button (click)="createWayPoint()" class="button-create-way-point">{{i18n.texts.pages.trail.edit_tools.selected_point.create_waypoint}}</ion-item>
+      <ion-item *ngIf="wp.waypoint" color="danger" button (click)="removeWayPoint(wp.waypoint)" class="button-remove-way-point">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_waypoint}}</ion-item>
+    </ng-container>
+    <ion-item color="danger" button (click)="remove()" class="button-remove-selection">{{i18n.texts.buttons.delete}}</ion-item>
+    <ng-container *ngIf="!point2">
+      <ion-item color="danger" button (click)="removeAllPointsBefore()" class="button-remove-points-before">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_previous_points}}</ion-item>
+      <ion-item color="danger" button (click)="removeAllPointsAfter()" class="button-remove-points-after">{{i18n.texts.pages.trail.edit_tools.selected_point.remove_all_next_points}}</ion-item>
+    </ng-container>
+  </ion-list>
+</ng-container>
+<div *ngIf="selectingPoint2" class="wait-for-extend-selection">
+  {{i18n.texts.pages.trail.edit_tools.selected_point.select_target_point}}
+</div>

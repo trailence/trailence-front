@@ -24,7 +24,9 @@ export class AssetsService {
       'arrow-up': 'assets/arrow-up.1.svg', // arrow-up
       'bubbles': 'assets/bubbles.1.svg',
       'car': 'assets/car.1.svg', // car
+      'caret-back': 'assets/caret-back.1.svg', // caret-back
       'caret-down': 'assets/caret-down.1.svg', // caret-down
+      'caret-forward': 'assets/caret-forward.1.svg', // caret-forward
       'center-on-location': 'assets/center-on-location.1.svg',
       'checkmark': 'assets/checkmark.1.svg', // checkmark-outline
       'chevron-down': 'assets/chevron-down.1.svg', // chevron-down-outline

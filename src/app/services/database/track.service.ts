@@ -4,6 +4,7 @@ import { filter, first, Observable, timeout } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
 import Dexie from 'dexie';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
+import { Progress } from '../progress/progress.service';
 
 @Injectable({
   providedIn: 'root'
@@ -59,6 +60,10 @@ export class TrackService {
 
   public deleteByUuidAndOwner(uuid: string, owner: string, ondone?: () => void): void {
     this.db.delete(uuid, owner, ondone);
+  }
+
+  public deleteMany(ids: {uuid: string, owner: string}[], progress: Progress | undefined, progressWork: number, ondone?: () => void) {
+    this.db.deleteMany(ids, progress, progressWork, ondone);
   }
 
   public isSavedOnServerAndNotDeletedLocally(uuid: string, owner: string): boolean {

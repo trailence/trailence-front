@@ -53,6 +53,7 @@ export class ElevationGraphComponent extends AbstractComponent {
   @Input() track1!: Track
   @Input() track2?: Track;
   @Input() selectable = false;
+  @Input() selection?: PathRange[];
 
   @Output() pointHover = new EventEmitter<ElevationGraphPointReference[]>();
 
@@ -118,21 +119,23 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.chartPlugins = [];
       this.width = undefined;
       this.height = undefined;
-      this.selectionRange = [];
+      this.selectionRange = this.selection || [];
       if (this._visibilityObserver) {
         this._visibilityObserver.disconnect();
         this._visibilityObserver = undefined;
       }
-      this.changeDetector.detectChanges();
+      if (!this.initializing)
+        this.ngZone.run(() => this.changeDetector.detectChanges());
       if (!this.track1) return;
       if (this.visible)
         setTimeout(() => {
           this._visibilityObserver = new IntersectionObserver(entries => {
+            if (!this._visibilityObserver) return;
             if (entries[0].isIntersecting) {
               const w = entries[0].boundingClientRect.width;
               const h = entries[0].boundingClientRect.height;
               if (w > 0 && h > 0) {
-                this._visibilityObserver!.disconnect();
+                this._visibilityObserver.disconnect();
                 this._visibilityObserver = undefined;
                 this.startChart(w, h, entries[0].target as HTMLElement);
               }

@@ -173,7 +173,7 @@ export class VisorandoPlugin implements FetchSourcePlugin {
 
   private sanitize(content: string | null | undefined): string | null {
     if (!content) return null;
-    return this.sanitizer.sanitize(SecurityContext.NONE, content.trim().replace('\r', '').replace('\n', ''));
+    return this.sanitizer.sanitize(SecurityContext.NONE, content.replace(/\r/g, '').replace(/\n/g, ' ').trim());
   }
 
   public canSearchByArea(): boolean {

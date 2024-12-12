@@ -5,7 +5,7 @@ import { Tag } from "src/app/model/tag";
 import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, filter, first, map, of, switchMap, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, defer, filter, first, map, of, switchMap, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
@@ -61,8 +61,13 @@ export class TagService {
 
   public delete(tag: Tag, ondone?: () => void): void {
     this._trailTagStore.deleteIf(trailTag => trailTag.tagUuid === tag.uuid, () => {
-      this._tagStore.delete(tag);
-      if (ondone) ondone();
+      this._tagStore.delete(tag, ondone);
+    });
+  }
+
+  public deleteMany(tags: Tag[], ondone?: () => void): void {
+    this._trailTagStore.deleteIf(trailTag => !!tags.find(t => trailTag.tagUuid === t.uuid), () => {
+      this._tagStore.deleteIf(tag => !!tags.find(t => tag.uuid === t.uuid), ondone);
     });
   }
 
@@ -70,32 +75,26 @@ export class TagService {
     this._trailTagStore.deleteIf(trailTag => trailTag.trailUuid === trailUuid, ondone);
   }
 
+  public deleteTrailTagsForTrails(trailUuids: string[], ondone?: () => void): void {
+    this._trailTagStore.deleteIf(trailTag => !!trailUuids.find(u => u === trailTag.trailUuid), ondone);
+  }
+
   public deleteAllTagsFromCollection(collectionUuid: string, owner: string, progress: Progress | undefined, progressWork: number): Observable<any> {
     return this._tagStore.getAll$().pipe(
       first(),
       switchMap(tags$ => tags$.length === 0 ? of([]) : zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
       switchMap(tags => {
-        const toRemove = tags.filter(tag => !!tag && tag.collectionUuid === collectionUuid && tag.owner === owner);
+        const toRemove = tags.filter(tag => !!tag && tag.collectionUuid === collectionUuid && tag.owner === owner) as Tag[];
         if (toRemove.length === 0) {
           progress?.addWorkDone(progressWork)
           return of(true);
         }
         return new Observable(observer => {
-          let done = 0;
-          let workDone = 0;
-          const ondone = () => {
-            setTimeout(() => { // NOSONAR
-              done++;
-              const newWorkDone = done * progressWork / toRemove.length;
-              progress?.addWorkDone(newWorkDone - workDone);
-              workDone = newWorkDone;
-              if (done === toRemove.length) {
-                observer.next(true);
-                observer.complete();
-              }
-            });
-          };
-          for (const tag of toRemove) setTimeout(() => this.delete(tag!, ondone), 0); // NOSONAR
+          this.deleteMany(toRemove, () => {
+            progress?.addWorkDone(progressWork);
+            observer.next(true);
+            observer.complete();
+          });
         });
       })
     );

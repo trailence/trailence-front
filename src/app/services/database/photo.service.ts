@@ -61,6 +61,20 @@ export class PhotoService {
     );
   }
 
+  public getPhotosForTrailsReady(ids: {owner: string, uuid: string}[]): Observable<Photo[]> {
+    return this.store.getAll$().pipe(
+      switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
+        photos$.map(item$ => item$.pipe(
+          filter(i => !!i),
+          timeout(10000),
+          first(),
+          catchError(() => EMPTY)
+        ))
+      )),
+      map(photos => photos.filter(p => !!ids.find(i => i.owner === p.owner && i.uuid === p.trailUuid)))
+    );
+  }
+
   private readonly _retrievingFiles = new Map<string, Observable<Blob>>();
   public getFile$(owner: string, uuid: string): Observable<Blob> {
     return this.injector.get(StoredFilesService).getFile$(owner, 'photo', uuid).pipe(
@@ -168,12 +182,16 @@ export class PhotoService {
     });
   }
 
+  public deleteMany(photos: Photo[], ondone?: () => void): void {
+    this.store.deleteIf(item => !!photos.find(p => p.uuid === item.uuid), ondone);
+  }
+
   public deleteForTrail(owner: string, trailUuid: string, ondone?: () => void): void {
-    this.getPhotosForTrailReady(owner, trailUuid).subscribe(photos => {
-      const done = new CompositeOnDone(ondone);
-      photos.forEach(photo => this.delete(photo, done.add()));
-      done.start()
-    });
+    this.getPhotosForTrailReady(owner, trailUuid).subscribe(photos => this.deleteMany(photos, ondone));
+  }
+
+  public deleteForTrails(trails: Trail[], ondone?: () => void): void {
+    this.getPhotosForTrailsReady(trails.map(t => ({owner: t.owner, uuid: t.uuid}))).subscribe(photos => this.deleteMany(photos, ondone));
   }
 
   public async openPopupForTrail(owner: string, uuid: string) {

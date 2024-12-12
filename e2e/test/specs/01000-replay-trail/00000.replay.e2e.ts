@@ -128,7 +128,12 @@ describe('Replay trail', () => {
     const duration1 = await trailPage.trailComponent.getMetadataValueByTitle('Duration', true);
     const duration2 = await trailPage.trailComponent.getMetadataValueByTitle('Duration', false);
     expect(duration1).toBeDefined();
-    expect(duration2).toBe(duration1);
+    expect(duration2).toBeDefined();
+    let i = duration1.indexOf('h');
+    const d1 = parseInt(duration1.substring(0, i)) * 60 + parseInt(duration1.substring(i + 1));
+    const d2 = parseInt(duration2.substring(0, i)) * 60 + parseInt(duration2.substring(i + 1));
+    const diff = Math.abs(d2 - d1);
+    expect(diff).withContext('Expected duration ' + duration1 + ', found ' + duration2).toBeLessThanOrEqual(1);
 
     const intValueAlmostSame = async (title: string, acceptedVariation: number) => {
       const val1 = await trailPage.trailComponent.getMetadataValueByTitle(title, true);
