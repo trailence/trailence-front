@@ -91,7 +91,7 @@ export class SelectionTool implements EditTool {
     }
     if (this.point2) {
       this.editTools.map.removeFromMap(this.selectedPointAnchor.marker);
-      this.editTools.focusOn(this.point2!.track, this.point1!.segmentIndex, this.point1!.pointIndex, this.point2!.segmentIndex, this.point2!.pointIndex);
+      this.editTools.focusOn(this.point2.track, this.point1!.segmentIndex, this.point1!.pointIndex, this.point2.segmentIndex, this.point2.pointIndex);
     } else {
       this.selectedPointAnchor.marker.setLatLng(this.point1!.point.pos); // NOSONAR
       this.editTools.map.addToMap(this.selectedPointAnchor.marker);
@@ -148,7 +148,7 @@ export class SelectionTool implements EditTool {
     if (isNaN(e)) return;
     e = this.i18n.elevationInMetersFromUserUnit(e);
     this.editTools.modify().subscribe(track => {
-      track.segments[point.segmentIndex!].points[point.pointIndex!].ele = e;
+      track.segments[point.segmentIndex].points[point.pointIndex].ele = e;
       this.updateTrack(track);
     });
   }
@@ -181,13 +181,13 @@ export class SelectionTool implements EditTool {
       point.point = point.track.segments[point.segmentIndex].points[0];
     } else {
       point.pointIndex++;
-      point.point = point.track.segments[point.segmentIndex].points[point.pointIndex!];
+      point.point = point.track.segments[point.segmentIndex].points[point.pointIndex];
     }
     this.updateSelection();
   }
 
   remove(): void {
-    this.editTools.modify().subscribe(track => {
+    this.editTools.modify().subscribe(track => { // NOSONAR
       if (this.point1?.segmentIndex === undefined) return;
       if (this.point2?.segmentIndex === undefined) {
         const wp = this.findWayPoints(track, this.point1.segmentIndex, this.point1.pointIndex, this.point1.segmentIndex, this.point1.pointIndex);

@@ -1,7 +1,6 @@
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../../preferences/preferences';
-import { TrackUtils } from 'src/app/utils/track-utils';
 
 export function calculateLongBreaksFromTrack(track: Track, preferences: ComputedPreferences): number {
   const segments = track.segments;
@@ -110,9 +109,7 @@ function adjustLongBreakDetected(segment: Segment, segmentIndex: number, maxDist
     }
   }
   if (bestDiff === undefined) bestPoint = startIndex + Math.floor((endIndex - startIndex) / 2);
-  else {
-    if (bestPoint > startIndex) bestPoint--;
-  }
+  else if (bestPoint > startIndex) bestPoint--;
 
   let angle, i;
   // adjust startIndex

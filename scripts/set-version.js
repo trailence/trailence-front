@@ -52,9 +52,9 @@ fs.writeFileSync('src/index.html', index);
 
 console.log('Updating version in sonar properties');
 let sonar = fs.readFileSync('sonar-project.properties', {encoding: 'utf-8'});
-i = sonar.indexOf('sonar.version=');
+i = sonar.indexOf('sonar.projectVersion=');
 j = sonar.indexOf('\n', i);
-sonar = sonar.substring(0, i + 14) + versionStr + sonar.substring(j);
+sonar = sonar.substring(0, i + 21) + versionStr + sonar.substring(j);
 fs.writeFileSync('sonar-project.properties', sonar);
 
 console.log('Successfully updated version to ', versionStr);
