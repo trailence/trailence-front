@@ -19,6 +19,7 @@ import { Point } from 'src/app/model/point';
 import { PathRange } from '../trail/path-selection';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { LegendPlugin } from './plugins/elevation-legend';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -208,6 +209,8 @@ export class ElevationGraphComponent extends AbstractComponent {
         this.buildDataSet(this.track2, this.secondaryColor, 1, false);
       } else if (this.track1) {
         this.buildDataSet(this.track1, this.primaryColor, 1, true);
+        if (!this.chartPlugins.find(p => p instanceof LegendPlugin))
+          this.chartPlugins.push(new LegendPlugin(this.gradeColors, this.gradeLegend));
       }
       this.updateMinMaxAxis(false);
       setTimeout(() => {
@@ -276,6 +279,7 @@ export class ElevationGraphComponent extends AbstractComponent {
             display: true,
             color: this.contrastColor,
             padding: { top: -5, bottom: 0, y: 0 },
+            align: 'start'
           },
           grid: {
             color: new Color(this.contrastColor).setAlpha(0.33).toString()
@@ -531,6 +535,17 @@ export class ElevationGraphComponent extends AbstractComponent {
     '#F0A040', // 10% to 7%
     '#C05016', // 15% to 10%
     '#700000' // 15%+
+  ];
+  private readonly gradeLegend = [
+    '< -15%',
+    '< -10%',
+    '< -7%',
+    '< -5%',
+    '± 5%',
+    '> 5%',
+    '> 7%',
+    '> 10%',
+    '> 15%'
   ];
   private getGradeRange(grade: number): number {
     if (grade <= -0.15) return 0;
