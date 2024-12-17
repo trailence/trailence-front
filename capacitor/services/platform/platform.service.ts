@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Injectable, Injector, Input } from '@angu
 import Trailence from '../trailence.service';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { filter, first } from 'rxjs';
+import { first } from 'rxjs';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
 import { Router } from '@angular/router';
@@ -14,6 +14,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { CommonModule } from '@angular/common';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -56,7 +57,7 @@ export class PlatformService {
   private importGpx(chunks: string[], filename?: string): void {
     Console.info('Received GPX data to import from device');
     this.injector.get(AuthService).auth$.pipe(
-      filter(auth => !!auth),
+      filterDefined(),
       first(),
     ).subscribe(auth => {
       const owner = auth.email;

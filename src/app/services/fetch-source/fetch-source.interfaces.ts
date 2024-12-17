@@ -9,8 +9,23 @@ export interface FetchSourcePlugin {
   name: string;
   owner: string;
 
-  canFetchTrailInfo(url: string): boolean;
-  fetchTrailInfo(url: string): Promise<TrailInfo | null>;
+  canFetchTrailInfoByUrl(url: string): boolean;
+  fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null>;
+
+  canFetchTrailInfoByContent(html: Document): boolean;
+  fetchTrailInfoByContent(html: Document): Promise<TrailInfo | null>;
+
+  canFetchTrailByUrl(url: string): boolean;
+  fetchTrailByUrl(url: string): Promise<Trail | null>;
+
+  canFetchTrailsByUrl(url: string): boolean;
+  fetchTrailsByUrl(url: string): Promise<Trail[]>;
+
+  canFetchTrailByContent(html: Document): boolean;
+  fetchTrailByContent(html: Document): Promise<Trail | null>;
+
+  canFetchTrailsByContent(html: Document): boolean;
+  fetchTrailsByContent(html: Document): Promise<Trail[]>;
 
   canSearchByArea(): boolean;
   searchByArea(bounds: L.LatLngBounds): Promise<Trail[]>;

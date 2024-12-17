@@ -14,6 +14,7 @@ import { InitRenewRequest } from './init-renew-request';
 import { RenewRequest } from './renew-request';
 import { LoginShareRequest } from './login-share-request';
 import { Console } from 'src/app/utils/console';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
@@ -323,7 +324,7 @@ export class AuthService {
         return request;
       }
     return this.requireAuth().pipe(
-      filter(auth => !!auth), // cancel request if not authenticated
+      filterDefined(), // cancel request if not authenticated
       map(auth => {
         if (auth.accessToken && auth.expires > Date.now()) {
           request.headers['Authorization'] = 'Bearer ' + auth.accessToken;

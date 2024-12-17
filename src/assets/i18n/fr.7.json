@@ -400,6 +400,16 @@
       "selected_plural": "photos sélectionnées",
       "selected_single": "photo sélectionnée",
       "deleting": "Suppression des photos"
+    },
+    "import_from_url": {
+      "title": "Importer depuis une URL",
+      "url_placeholder": "URL",
+      "unknown_source": "Aucune source supportée ne correspond à cette URL",
+      "fetch_error": "Le parcours n'a pas pu être récupéré correctement",
+      "or": "Ou",
+      "from_clipboard": "Depuis le presse-papier",
+      "nothing_found_in_clipboard": "Aucun parcours trouvé dans le presse papier",
+      "button_import": "Importer depuis {{1}}"
     }
   },
   "menu": {

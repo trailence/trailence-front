@@ -11,6 +11,7 @@ import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';
 import { PlatformService } from './services/platform/platform.service';
 import { NetworkService } from './services/network/network.service';
+import { filterDefined } from './utils/rxjs/filter-defined';
 
 @Component({
     selector: 'app-root',
@@ -74,7 +75,7 @@ export class AppComponent {
       if (!a) {
         this.ready(startup);
         auth.auth$.pipe(
-          filter(a => !!a),
+          filterDefined(),
           first(),
         ).subscribe(() => this.loadServices().then(() => {}));
         setTimeout(() => this.loadServices(), 1000);

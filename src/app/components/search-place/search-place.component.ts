@@ -9,6 +9,7 @@ import { IonSearchbarCustomEvent, SearchbarChangeEventDetail } from '@ionic/core
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Component({
     selector: 'app-search-place',
@@ -37,7 +38,7 @@ export class SearchPlaceComponent {
     errorService: ErrorService,
   ) {
     this.name$.pipe(
-      filter(event => !!event),
+      filterDefined(),
       tap(() => this.resetPlaces()),
       filter(event => (event?.detail.value ?? '').trim().length > 2),
       tap(event => this.startSearching(event)),

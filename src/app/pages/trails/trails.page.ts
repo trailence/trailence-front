@@ -2,7 +2,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, filter, map, of, switchMap, combineLatest, Observable, debounceTime, catchError, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, catchError, timer } from 'rxjs';
 import { Router } from '@angular/router';
 import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -27,6 +27,7 @@ import L from 'leaflet';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { IonSpinner } from '@ionic/angular/standalone';
 import { ErrorService } from 'src/app/services/progress/error.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Component({
     selector: 'app-trails-page',
@@ -80,7 +81,7 @@ export class TrailsPage extends AbstractPage {
     if (newState.type === 'collection') {
       // title is collection name, or default
       this.byState.add(this.injector.get(AuthService).auth$.pipe(
-        filter(auth => !!auth),
+        filterDefined(),
         switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth.email)),
         switchMap(collection => {
           if (!collection) return this.onItemEmpty<string>(

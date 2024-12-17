@@ -4,6 +4,7 @@ import Dexie, { Table } from "dexie";
 import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
 import { Console } from 'src/app/utils/console';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 export interface StoreSyncStatus {
 
@@ -69,7 +70,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   private triggerSyncFromServer(): void {
     const db = this._db;
     this._storeLoaded$.pipe(
-      filter(l => !!l),
+      filterDefined(),
       first()
     ).subscribe(() => {
       if (this._db === db && db)

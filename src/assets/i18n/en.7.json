@@ -400,6 +400,16 @@
       "selected_plural": "selected photos",
       "selected_single": "selected photo",
       "deleting": "Deleting photos"
+    },
+    "import_from_url": {
+      "title": "Import from URL",
+      "url_placeholder": "URL",
+      "unknown_source": "No supported source matches this URL",
+      "fetch_error": "The trail could not be retrieved correctly",
+      "or": "Or",
+      "from_clipboard": "From clipboard",
+      "nothing_found_in_clipboard": "No trail found in the clipboard",
+      "button_import": "Import from {{1}}"
     }
   },
   "menu": {

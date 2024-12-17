@@ -16,6 +16,7 @@ import { environment } from 'src/environments/environment';
 import { Track } from 'src/app/model/track';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { Console } from 'src/app/utils/console';
+import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 
 interface TrailInfoDto {
   keyNumber: string;
@@ -62,113 +63,140 @@ export class VisorandoPlugin implements FetchSourcePlugin {
       this.tableMetadata = db.table<TrackMetadataSnapshot, string>('metadata');
   }
 
-  public canFetchTrailInfo(url: string): boolean {
-    return url.startsWith('https://www.visorando.com/');
+  public canFetchTrailInfoByUrl(url: string): boolean {
+    return url.startsWith('https://www.visorando.com/') && !url.startsWith('https://www.visorando.com/page-');
   }
 
-  public fetchTrailInfo(url: string): Promise<TrailInfo | null> {
+  public fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
     if (!url.endsWith('/')) url += '/';
     const fromDb = this.tableInfos.where('url').equalsIgnoreCase(url).first();
     return fromDb.then(info => info?.info ?? window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => { // NOSONAR
-      const result: TrailInfo = {};
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
+      return this.fetchTrailInfoByContent(doc);
+    }).catch(e => {
+      Console.warn('Error parsing Visorando page', e);
+      return Promise.reject(e);
+    }));
+  }
 
-      // description
-      const metaDescription = doc.querySelector('main header meta[itemprop=mainEntityOfPage');
-      const descriptionDivs = metaDescription?.parentElement?.querySelectorAll('div');
-      if (descriptionDivs && descriptionDivs.length > 1) {
-        const content = descriptionDivs.item(descriptionDivs.length - 1).textContent;
-        if (content) result.description = this.sanitize(content) ?? undefined;
+  public canFetchTrailInfoByContent(doc: Document): boolean {
+    return !!doc.querySelector('div.vr-walk-datasheet');
+  }
+
+  public fetchTrailInfoByContent(doc: Document, fromUrl?: string): Promise<TrailInfo | null> { // NOSONAR
+    const result: TrailInfo = {};
+
+    // description
+    const metaDescription = doc.querySelector('main header meta[itemprop=mainEntityOfPage');
+    const descriptionDivs = metaDescription?.parentElement?.querySelectorAll('div');
+    if (descriptionDivs && descriptionDivs.length > 1) {
+      const content = descriptionDivs.item(descriptionDivs.length - 1).textContent;
+      if (content) result.description = this.sanitize(content) ?? undefined;
+    }
+
+    // location
+    const images = doc.querySelectorAll('img');
+    for (let imageIndex = 0; imageIndex < images.length; imageIndex++) {
+      const img = images.item(imageIndex)!; // NOSONAR
+      if (img.src?.endsWith('municipality.svg')) {
+        const link = img.parentElement?.querySelector('a');
+        if (link) result.location = this.sanitize(link.textContent) ?? undefined;
       }
+    }
 
-      // location
-      const images = doc.querySelectorAll('img');
-      for (let imageIndex = 0; imageIndex < images.length; imageIndex++) {
-        const img = images.item(imageIndex)!; // NOSONAR
-        if (img.src?.endsWith('municipality.svg')) {
-          const link = img.parentElement?.querySelector('a');
-          if (link) result.location = this.sanitize(link.textContent) ?? undefined;
-        }
-      }
+    // way points
+    const sections = doc.querySelectorAll('main section');
+    for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+      const section = sections.item(sectionIndex)!; // NOSONAR
+      const article = XmlUtils.getChild(section, 'article');
+      if (article) {
+        const paragraphs = XmlUtils.getChildren(article, 'p');
+        for (let pIndex = 0; pIndex < paragraphs.length; pIndex++) {
+          const strongs = paragraphs.at(pIndex)!.querySelectorAll('strong'); // NOSONAR
+          for (let strongIndex = 0; strongIndex < strongs.length; strongIndex++) {
+            const strong = strongs.item(strongIndex)!; // NOSONAR
+            const n = strong.textContent!; // NOSONAR
+            let text = '';
+            let node = strong.nextSibling;
+            while (node && (strongIndex === strongs.length - 1 || node != strongs.item(strongIndex + 1))) {
+              text += node.textContent;
+              node = node.nextSibling;
+            }
+            text = text.trim();
+            if (text.startsWith(')')) text = text.substring(1).trim();
+            if (text.endsWith('(')) text = text.substring(0, text.length - 1).trim();
 
-      // way points
-      const sections = doc.querySelectorAll('main section');
-      for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
-        const section = sections.item(sectionIndex)!; // NOSONAR
-        const article = XmlUtils.getChild(section, 'article');
-        if (article) {
-          const paragraphs = XmlUtils.getChildren(article, 'p');
-          for (let pIndex = 0; pIndex < paragraphs.length; pIndex++) {
-            const strongs = paragraphs.at(pIndex)!.querySelectorAll('strong'); // NOSONAR
-            for (let strongIndex = 0; strongIndex < strongs.length; strongIndex++) {
-              const strong = strongs.item(strongIndex)!; // NOSONAR
-              const n = strong.textContent!; // NOSONAR
-              let text = '';
-              let node = strong.nextSibling;
-              while (node && (strongIndex === strongs.length - 1 || node != strongs.item(strongIndex + 1))) {
-                text += node.textContent;
-                node = node.nextSibling;
-              }
-              text = text.trim();
-              if (text.startsWith(')')) text = text.substring(1).trim();
-              if (text.endsWith('(')) text = text.substring(0, text.length - 1).trim();
-
-              if (!result.wayPoints) result.wayPoints = [];
-              if (n === 'D/A') {
-                if (!result.wayPoints.find(w => w.isDeparture && w.isArrival))
-                  result.wayPoints.push({isDeparture: true, isArrival: true, description: text});
-              } else {
-                let num = parseInt(n);
-                if (!isNaN(num)) {
-                  if (!result.wayPoints.find(w => w.number === num))
-                    result.wayPoints.push({number: num, description: text});
-                }
+            if (!result.wayPoints) result.wayPoints = [];
+            if (n === 'D/A') {
+              if (!result.wayPoints.find(w => w.isDeparture && w.isArrival))
+                result.wayPoints.push({isDeparture: true, isArrival: true, description: text});
+            } else {
+              let num = parseInt(n);
+              if (!isNaN(num)) {
+                if (!result.wayPoints.find(w => w.number === num))
+                  result.wayPoints.push({number: num, description: text});
               }
             }
           }
         }
       }
+    }
 
-      // photos
-      const photos = doc.querySelectorAll('a.thumbnail img');
-      if (photos.length > 0) {
-        result.photos = [];
-        for (let i = 0; i < photos.length; ++i) {
-          const photo = photos.item(i)! as HTMLImageElement; // NOSONAR
-          result.photos.push({
-            url: photo.src.replace('/thumbnail/t-', '/inter/m-'),
-            description: photo.alt
-          })
+    // photos
+    const photos = doc.querySelectorAll('a.thumbnail img');
+    if (photos.length > 0) {
+      result.photos = [];
+      for (let i = 0; i < photos.length; ++i) {
+        const photo = photos.item(i)! as HTMLImageElement; // NOSONAR
+        result.photos.push({
+          url: photo.src.replace('/thumbnail/t-', '/inter/m-'),
+          description: photo.alt
+        })
+      }
+    }
+
+    // ids
+    const buttons = doc.querySelectorAll('a.btn');
+    let keyGpx = '';
+    let keyNumber = '';
+    for (let i = 0; i < buttons.length; ++i) {
+      const button = buttons.item(i)! as HTMLAnchorElement; // NOSONAR
+      const data = button.getAttribute('data');
+      if (data && data.indexOf('task=gpxRando') > 0) {
+        const j = data.lastIndexOf('=');
+        keyGpx = data.substring(j + 1);
+      } else if (data && data.indexOf('task=pdfRando') > 0) {
+        const j = data.lastIndexOf('=');
+        keyNumber = data.substring(j + 1);
+      } else if (button.href.indexOf('task=gpxRando') > 0) {
+        const j = button.href.lastIndexOf('=');
+        keyGpx = button.href.substring(j + 1);
+      } else if (button.href.indexOf('task=pdfRando') > 0) {
+        const j = button.href.lastIndexOf('=');
+        keyNumber = button.href.substring(j + 1);
+      }
+    }
+    result.key = keyNumber + '-' + keyGpx;
+    let url = fromUrl;
+    if (!url) {
+      const links = doc.querySelectorAll('link');
+      for (let i = 0; i < links.length; ++i) {
+        const link = links.item(i);
+        if (link.rel === 'canonical') {
+          url = link.href;
+          break;
         }
       }
+    }
+    if (!url && keyNumber) url = 'https://www.visorando.com/randonnee-' + keyNumber;
+    result.externalUrl = url;
+    Console.info('Trail fetch from Visorando', url, result);
 
-      // ids
-      const buttons = doc.querySelectorAll('a.btn');
-      let keyGpx = '';
-      let keyNumber = '';
-      for (let i = 0; i < buttons.length; ++i) {
-        const button = buttons.item(i)!; // NOSONAR
-        const data = button.getAttribute('data');
-        if (data && data.indexOf('task=gpxRando') > 0) {
-          const j = data.lastIndexOf('=');
-          keyGpx = data.substring(j + 1);
-        } else if (data && data.indexOf('task=pdfRando') > 0) {
-          const j = data.lastIndexOf('=');
-          keyNumber = data.substring(j + 1);
-        }
-      }
-      result.key = keyNumber + '-' + keyGpx;
-      result.externalUrl = url;
+    if (keyNumber.length === 0) return Promise.resolve(null);
 
-      if (keyNumber.length === 0) return null;
-
-      this.tableInfos.put({info: result, keyNumber, keyGpx, url, fetchDate: Date.now()}, keyNumber);
-      return result;
-    }).catch(e => {
-      Console.warn('Error parsing Visorando page', e);
-      return Promise.reject(e);
-    }));
+    this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()}, keyNumber);
+    return Promise.resolve(result);
   }
 
   private sanitize(content: string | null | undefined): string | null {
@@ -187,26 +215,42 @@ export class VisorandoPlugin implements FetchSourcePlugin {
       const nextItems = (found: Trail[], items: {id: number, url: string}[], startIndex: number): Promise<Trail[]> => {
         if (found.length >= 200 || startIndex >= items.length) return Promise.resolve(found);
         const toFetch = items.slice(startIndex, Math.min(items.length, startIndex + 200 - found.length));
-        const trails$: Promise<TrailDto | undefined>[] = [];
-        for (const item of toFetch) trails$.push(this.fetchTrailByIdAndUrl('' + item.id, item.url).catch(e => undefined));
-        return Promise.all(trails$).then(trails => trails.filter(trail => !!trail).map(dto => new Trail(dto))) // NOSONAR
+        const trails$: Promise<Trail | null>[] = [];
+        for (const item of toFetch) trails$.push(this.fetchTrailByUrl(item.url).catch(e => null));
+        return Promise.all(trails$).then(trails => filterItemsDefined(trails))
         .then(newFound => nextItems([...found, ...newFound], items, startIndex + toFetch.length)); // NOSONAR
       };
       return nextItems([], items, 0);
     });
   }
 
-  private fetchTrailByIdAndUrl(id: string, url: string) {
-    return this.fetchTrailInfo(url)
-    .then(info => {
-      if (!info?.key) return undefined;
-      const i = info.key.indexOf('-');
-      if (i <= 0) return undefined;
-      const keyNumber = info.key.substring(0, i);
-      const keyGpx = info.key.substring(i + 1);
-      return this.tableTrails.get(keyNumber)
-      .then(trail => trail ?? this.fetchTrailByGpx(keyNumber, keyGpx, info));
-    });
+  canFetchTrailByUrl(url: string): boolean {
+    return url.startsWith('https://www.visorando.com/') && !url.startsWith('https://www.visorando.com/page-');
+  }
+
+  fetchTrailByUrl(url: string) {
+    return this.fetchTrailInfoByUrl(url)
+    .then(info => info ? this.fetchTrailFromInfo(info) : null);
+  }
+
+  canFetchTrailByContent(html: Document): boolean {
+    return this.canFetchTrailInfoByContent(html);
+  }
+
+  fetchTrailByContent(html: Document): Promise<Trail | null> {
+    return this.fetchTrailInfoByContent(html)
+    .then(info => info ? this.fetchTrailFromInfo(info) : null);
+  }
+
+  private fetchTrailFromInfo(info: TrailInfo): Promise<Trail | null> {
+    if (!info?.key) return Promise.resolve(null);
+    const i = info.key.indexOf('-');
+    if (i <= 0) return Promise.resolve(null);
+    const keyNumber = info.key.substring(0, i);
+    const keyGpx = info.key.substring(i + 1);
+    return this.tableTrails.get(keyNumber)
+    .then(trail => trail ?? this.fetchTrailByGpx(keyNumber, keyGpx, info))
+    .then(dto => dto ? new Trail(dto) : null);
   }
 
   private fetchTrailByGpx(idTrail: string, idGpx: string, info: TrailInfo) {
@@ -252,6 +296,70 @@ export class VisorandoPlugin implements FetchSourcePlugin {
       this.tableMetadata.put({...TrackDatabase.toMetadata(improved), uuid: track2Dto.uuid}, track2Dto.uuid);
       return trailDto;
     })
+  }
+
+  canFetchTrailsByUrl(url: string): boolean {
+    return url.startsWith('https://www.visorando.com/page-');
+  }
+
+  fetchTrailsByUrl(url: string): Promise<Trail[]> {
+    return window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => { // NOSONAR
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, "text/html");
+      return this.fetchTrailsByContent(doc);
+    }).catch(e => {
+      Console.warn('Error parsing Visorando page', e);
+      return Promise.resolve([]);
+    });
+  }
+
+  canFetchTrailsByContent(doc: Document): boolean { // NOSONAR
+    if (doc.querySelector('div.vr-walk-datasheet')) return false; // single trail case
+    const links = doc.querySelectorAll('a');
+    for (let i = 0; i < links.length; ++i) {
+      const link = links.item(i);
+      if (link.href.startsWith('https://www.visorando.com/randonnee-')) {
+        const innerLinks = link.parentElement!.querySelectorAll('a');
+        for (let j = 0; j < innerLinks.length; ++j) {
+          const link2 = innerLinks.item(j);
+          const data = link2.getAttribute('data');
+          if (data && data.indexOf('task=gpxRandoPre') > 0) {
+            return true;
+          }
+          if (link2.href.indexOf('task=gpxRandoPre') > 0) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  fetchTrailsByContent(doc: Document): Promise<Trail[]> { // NOSONAR
+    const links = doc.querySelectorAll('a');
+    const validLinks = [];
+    for (let i = 0; i < links.length; ++i) {
+      const link = links.item(i);
+      if (link.href.startsWith('https://www.visorando.com/randonnee-')) {
+        const innerLinks = link.parentElement!.querySelectorAll('a.btn');
+        for (let j = 0; j < innerLinks.length; ++j) {
+          const link2 = innerLinks.item(j) as HTMLAnchorElement;
+          const data = link2.getAttribute('data');
+          if (data && data.indexOf('task=gpxRandoPre') > 0) {
+            validLinks.push(link.href);
+            break;
+          }
+          if (link2.href.indexOf('task=gpxRandoPre') > 0) {
+            validLinks.push(link.href);
+            break;
+          }
+        }
+      }
+    }
+    Console.info('Found links on Visorando page', validLinks);
+    const promises = [];
+    for (const link of validLinks) promises.push(this.fetchTrailByUrl(link));
+    return Promise.all(promises).then(list => filterItemsDefined(list));
   }
 
   public getTrail(uuid: string): Promise<Trail | null> {

@@ -1,3 +1,4 @@
+import { Pipe, PipeTransform } from '@angular/core';
 import { I18nService } from './i18n.service';
 
 export interface I18nString {
@@ -55,6 +56,19 @@ export class CompositeI18nString implements I18nString {
       result += translate(part, i18n);
     }
     return result;
+  }
+
+}
+
+@Pipe({
+  name: 'i18nString'
+})
+export class I18nPipe implements PipeTransform {
+
+  constructor(private readonly service: I18nService) {}
+
+  transform(value: any, ...args: any[]): string {
+    return new TranslatedString(value, args).translate(this.service);
   }
 
 }

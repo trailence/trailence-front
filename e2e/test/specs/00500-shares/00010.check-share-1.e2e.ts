@@ -42,7 +42,7 @@ describe('Shares - Share 1', () => {
 
     const trail = await list.findItemByTrailName('Col et lacs de la Cayolle');
     expect(trail).toBeDefined();
-    expect(await trail!.getPhotosSliderElement().isExisting()).toBeFalse();
+    await trail!.expectNoPhotos();
   });
 
 });

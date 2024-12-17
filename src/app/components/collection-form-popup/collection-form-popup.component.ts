@@ -6,7 +6,8 @@ import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Router } from '@angular/router';
-import { filter, first } from 'rxjs';
+import { first } from 'rxjs';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Component({
     selector: 'app-collection-form-popup',
@@ -58,7 +59,7 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
         owner: this.authService.email,
       }))
       .pipe(
-        filter(col => !!col),
+        filterDefined(),
         first()
       )
       .subscribe(col => {

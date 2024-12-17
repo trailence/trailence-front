@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { filter, from, Observable, of, throwError, throwIfEmpty } from 'rxjs';
+import { from, Observable, of, throwError, throwIfEmpty } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import Dexie, { Table } from 'dexie';
 import { Console } from 'src/app/utils/console';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({providedIn: 'root'})
 export class StoredFilesService {
@@ -21,7 +22,7 @@ export class StoredFilesService {
   public getFile$(owner: string, type: string, uuid: string): Observable<Blob> {
     if (!this.table) return throwError(() => new Error('File database not open'));
     return from(this.table.where('key').equals(this.getKey(owner, type, uuid)).first().then(entry => entry?.blob)).pipe(
-      filter(blob => !!blob),
+      filterDefined(),
       throwIfEmpty(() => new Error('File ' + this.getKey(owner, type, uuid) + ' not found'))
     );
   }

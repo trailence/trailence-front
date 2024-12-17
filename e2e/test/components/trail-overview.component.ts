@@ -29,11 +29,30 @@ export class TrailOverview extends Component {
     return this.getElement().$('div.photos app-photos-slider');
   }
 
+  public async expectPhotos() {
+    await browser.waitUntil(async () => {
+      const slider = this.getPhotosSliderElement();
+      return await slider.isExisting() && await slider.isDisplayed();
+    });
+  }
+
+  public async expectNoPhotos() {
+    expect(await this.getPhotosSliderElement().isExisting()).toBeFalse();
+  }
+
   public async clickMenuItem(item: string) {
     const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
     await button.click();
     const menu = new MenuContent(await App.waitPopover());
     await menu.clickItemWithText(item);
+  }
+
+  public async delete() {
+    await this.clickMenuItem('Delete');
+    const alert = await App.waitAlert();
+    await alert.clickButtonWithRole('danger');
+    await alert.waitNotDisplayed();
+    await App.waitNoProgress();
   }
 
   public async selectTrail() {

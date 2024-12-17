@@ -119,6 +119,9 @@ if (browser === 'chrome') {
       "browser.download.manager.showWhenStarting": false,
       "browser.helperApps.neverAsk.saveToDisk": "*/*",
       "permissions.default.geo": 1,
+      'dom.events.asyncClipboard.readText': true,
+      'dom.events.asyncClipboard.clipboardItem': true,
+      'dom.events.testing.asyncClipboard': true,
     }
   };
   caps['moz:debuggerAddress'] = true;

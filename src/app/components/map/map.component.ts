@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, first, map, of, switchMap } from 'rxjs';
 import L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -24,6 +24,7 @@ import { MapBubble } from './bubble/map-bubble';
 import { MapBubblesTool } from './tools/bubbles-tool';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { Console } from 'src/app/utils/console';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -165,7 +166,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   public get ready$(): Observable<boolean> {
-    return this._map$.pipe(filter(m => !!m), first(), map(m => true));
+    return this._map$.pipe(filterDefined(), first(), map(() => true));
   }
 
   public addToMap(element: L.Layer): void {

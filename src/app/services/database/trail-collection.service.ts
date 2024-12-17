@@ -1,5 +1,5 @@
 import { Injectable, Injector } from "@angular/core";
-import { BehaviorSubject, Observable, combineLatest, filter, first, from, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, Observable, combineLatest, first, from, map, of, switchMap } from "rxjs";
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
@@ -17,6 +17,7 @@ import Dexie from 'dexie';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
 import { DependenciesService } from './dependencies.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({
     providedIn: 'root'
@@ -48,7 +49,7 @@ export class TrailCollectionService {
     return this.getAll$().pipe(
       switchMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
       map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
-      filter(myTrails => !!myTrails),
+      filterDefined(),
       first()
     );
   }

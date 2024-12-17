@@ -7,11 +7,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { filter, first } from 'rxjs';
+import { first } from 'rxjs';
 import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { TagsComponent } from '../tags/tags.component';
 import { Tag } from 'src/app/model/tag';
 import { ShareService } from 'src/app/services/database/share.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 enum SharePage {
   TYPE = 'type',
@@ -56,7 +57,7 @@ export class SharePopupComponent implements OnInit {
     } else {
       const email = this.injector.get(AuthService).email!;
       this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid, email).pipe(
-        filter(col => !!col),
+        filterDefined(),
         first()
       ).subscribe(col => {
         if (col.name.length === 0 && col.type === TrailCollectionType.MY_TRAILS)

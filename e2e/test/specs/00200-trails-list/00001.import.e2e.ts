@@ -217,10 +217,7 @@ describe('Trails list - Import Simple GPX', () => {
       const tags = await trail.getTags();
       return tags.length === 1 && tags.indexOf('Tag 2') >= 0;
     });
-    await browser.waitUntil(async () => {
-      const slider = trail.getPhotosSliderElement();
-      return await slider.isExisting() && await slider.isDisplayed();
-    });
+    await trail.expectPhotos();
     trailPage = await trailsList.openTrail(trail);
   });
 

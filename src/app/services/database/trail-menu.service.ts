@@ -16,7 +16,7 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { TrackService } from './track.service';
-import { catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, first, firstValueFrom, forkJoin, from, map, Observable, of, switchMap, timeout, zip } from 'rxjs';
+import { catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, first, firstValueFrom, forkJoin, from, map, Observable, of, switchMap, timeout, zip } from 'rxjs';
 import { TrailService } from './trail.service';
 import { TrailCollectionService } from './trail-collection.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -28,6 +28,7 @@ import { Photo } from 'src/app/model/photo';
 import { copyPoint } from 'src/app/model/point';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
+import { filterDefined, filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -90,12 +91,18 @@ export class TrailMenuService {
         menu.push(new MenuItem().setIcon('merge').setI18nLabel('pages.trail.actions.merge_trails').setAction(() => this.mergeTrails(trails, fromCollection)))
       }
     }
+
+    let inImportExportSection = false;
+
     if (onlyGlobal && fromCollection) {
       menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(null, fromCollection)));
+      menu.push(new MenuItem());
+      inImportExportSection = true;
+      menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title').setAction(() => this.importFromUrl(fromCollection)));
     }
 
     if (trails.length > 0) {
-      if (menu.length > 0)
+      if (menu.length > 0 && !inImportExportSection)
         menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export').setAction(() => this.exportGpx(trails)));
 
@@ -216,6 +223,7 @@ export class TrailMenuService {
             alert.dismiss();
             const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.deleting_trails, trails.length * 100);
             this.injector.get(TrailService).deleteMany(trails, progress, trails.length * 100, () => {
+              progress.done();
               if (fromTrail) this.injector.get(Router).navigateByUrl('/trails/collection/' + trails[0].collectionUuid);
             });
           }
@@ -248,7 +256,7 @@ export class TrailMenuService {
     )).pipe(
       debounceTime(100),
       first(),
-      map(tracks => tracks.filter(t => !!t))
+      map(tracks => filterItemsDefined(tracks))
     );
     tracks$.subscribe(async (tracks) => {
       const module = await import('../../components/download-map-popup/download-map-popup.component');
@@ -272,6 +280,18 @@ export class TrailMenuService {
       componentProps: {
         trail,
       }
+    });
+    modal.present();
+  }
+
+  public async importFromUrl(collectionUuid: string) {
+    const module = await import('../../components/import-from-url/import-from-url.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.ImportFromUrlComponent,
+      componentProps: {
+        collectionUuid,
+      },
+      backdropDismiss: true,
     });
     modal.present();
   }
@@ -447,7 +467,7 @@ export class TrailMenuService {
       componentProps: {
         collectionUuid,
         tags: allTags,
-        toImport: imported.filter(i => !!i) as {trailUuid: string, tags: string[][]}[],
+        toImport: filterItemsDefined(imported),
       }
     }))
     .then(modal => {
@@ -517,7 +537,7 @@ export class TrailMenuService {
       if (modalResult.data.what === 'current' || (modalResult.data.what === 'both' && trail.currentTrackUuid !== trail.originalTrackUuid))
         tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
       return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
-        map(tracks => ({trail, tracks: tracks.filter(track => !!track)})),
+        map(tracks => ({trail, tracks: filterItemsDefined(tracks)})),
         switchMap(t => {
           if (t.tracks.length === 0) return of(null);
           const tags$ = t.trail.owner !== email ? of([]) : this.injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true);
@@ -619,7 +639,7 @@ export class TrailMenuService {
 
   goToDeparture(trail: Trail): void {
     this.injector.get(TrackService).getSimplifiedTrack$(trail.currentTrackUuid, trail.owner).pipe(
-      filter(track => !!track),
+      filterDefined(),
       timeout({
         first: 10000,
         with: () => of(null)
@@ -697,7 +717,7 @@ export class TrailMenuService {
     }
   }
 
-  public copyTrailsTo(trails: Trail[], toCollection: TrailCollection, email: string, fromTrail: boolean): void {
+  public copyTrailsTo(trails: Trail[], toCollection: TrailCollection, email: string, fromTrail: boolean, autoImportPhotos?: boolean): void {
     const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.copying, 1);
     const trackService = this.injector.get(TrackService);
     const tagService = this.injector.get(TagService);
@@ -784,7 +804,7 @@ export class TrailMenuService {
         tags = tags.filter(t => t.tags.length > 0);
         photos = photos.filter(t => t.photos.length > 0);
         this.handleImportTags(trails, tags, toCollection.uuid)
-        .then(() => this.handleImportPhotos(trails, photos))
+        .then(() => this.handleImportPhotos(trails, photos, autoImportPhotos))
         .then(() => {
           if (fromTrail) this.injector.get(Router).navigateByUrl('/trail/' + email + '/' + trails[0].newTrail.uuid);
         });
@@ -826,8 +846,13 @@ export class TrailMenuService {
   private handleImportPhotos(
     trails: {originalTrail: Trail, newTrail: Trail}[],
     photos: {originalTrail: Trail, photos: Photo[]}[],
+    autoImport?: boolean,
   ): Promise<any> {
-    if (photos.length === 0) return Promise.resolve();
+    if (photos.length === 0 || autoImport === false) return Promise.resolve();
+    if (autoImport === true) {
+      this.doImportPhotos(trails, photos);
+      return Promise.resolve(true);
+    }
     const i18n = this.injector.get(I18nService);
     return this.injector.get(AlertController).create({
       header: i18n.texts.pages.trails.actions.copy_photos_alert.title,
@@ -837,52 +862,7 @@ export class TrailMenuService {
           text: i18n.texts.buttons.yes,
           role: 'success',
           handler: () => {
-            const allPhotos = Arrays.flatMap(photos, p => p.photos);
-            const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.copying_photos, allPhotos.length);
-            progress.subTitle = '0/' + allPhotos.length;
-            let index = 0;
-            const photoService = this.injector.get(PhotoService);
-            const copyNext = () => {
-              photoService.getFile$(allPhotos[index].owner, allPhotos[index].uuid).subscribe({
-                next: blob => {
-                  blob.arrayBuffer().then(buffer => { // NOSONAR
-                    const originalPhoto = allPhotos[index];
-                    const originalTrail = photos.find(p => p.photos.indexOf(originalPhoto) >= 0)!.originalTrail;
-                    const trail = trails.find(t => t.originalTrail === originalTrail)!;
-                    photoService.addPhoto(
-                      trail.newTrail.owner,
-                      trail.newTrail.uuid,
-                      originalPhoto.description,
-                      originalPhoto.index,
-                      buffer,
-                      originalPhoto.dateTaken,
-                      originalPhoto.latitude,
-                      originalPhoto.longitude,
-                      originalPhoto.isCover
-                    ).subscribe({
-                      next: p => {
-                        progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
-                        progress.addWorkDone(1);
-                        if (++index < allPhotos.length) setTimeout(copyNext, 0);
-                      },
-                      error: err => {
-                        this.injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
-                        progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
-                        progress.addWorkDone(1);
-                        if (++index < allPhotos.length) setTimeout(copyNext, 0);
-                      }
-                    });
-                  });
-                },
-                error: err => {
-                  this.injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
-                  progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
-                  progress.addWorkDone(1);
-                  if (++index < allPhotos.length) setTimeout(copyNext, 0);
-                }
-              });
-            };
-            copyNext();
+            this.doImportPhotos(trails, photos);
             return true;
           }
         }, {
@@ -893,6 +873,58 @@ export class TrailMenuService {
     }).then(alert => {
       return alert.present().then(() => alert.onDidDismiss());
     });
+  }
+
+  private doImportPhotos(
+    trails: {originalTrail: Trail, newTrail: Trail}[],
+    photos: {originalTrail: Trail, photos: Photo[]}[]
+  ): void {
+    const allPhotos = Arrays.flatMap(photos, p => p.photos);
+    const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.pages.trails.actions.copying_photos, allPhotos.length);
+    progress.subTitle = '0/' + allPhotos.length;
+    let index = 0;
+    const photoService = this.injector.get(PhotoService);
+    const copyNext = () => {
+      photoService.getFile$(allPhotos[index].owner, allPhotos[index].uuid).subscribe({
+        next: blob => {
+          blob.arrayBuffer().then(buffer => {
+            const originalPhoto = allPhotos[index];
+            const originalTrail = photos.find(p => p.photos.indexOf(originalPhoto) >= 0)!.originalTrail; // NOSONAR
+            const trail = trails.find(t => t.originalTrail === originalTrail)!; // NOSONAR
+            photoService.addPhoto(
+              trail.newTrail.owner,
+              trail.newTrail.uuid,
+              originalPhoto.description,
+              originalPhoto.index,
+              buffer,
+              originalPhoto.dateTaken,
+              originalPhoto.latitude,
+              originalPhoto.longitude,
+              originalPhoto.isCover
+            ).subscribe({
+              next: () => { // NOSONAR
+                progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
+                progress.addWorkDone(1);
+                if (++index < allPhotos.length) setTimeout(copyNext, 0);
+              },
+              error: err => { // NOSONAR
+                this.injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
+                progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
+                progress.addWorkDone(1);
+                if (++index < allPhotos.length) setTimeout(copyNext, 0);
+              }
+            });
+          });
+        },
+        error: err => {
+          this.injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
+          progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
+          progress.addWorkDone(1);
+          if (++index < allPhotos.length) setTimeout(copyNext, 0);
+        }
+      });
+    };
+    copyNext();
   }
 
   public moveTrailsTo(trails: Trail[], toCollection: TrailCollection, email: string): void {

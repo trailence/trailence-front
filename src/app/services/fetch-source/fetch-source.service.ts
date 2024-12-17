@@ -19,26 +19,97 @@ export class FetchSourceService {
     this.plugins.push(new VisorandoPlugin(injector));
   }
 
-  public canFetchTrailInfo(url: string): boolean {
+  public getSource(url: string): FetchSourcePlugin | undefined {
     for (const plugin of this.plugins) {
-      if (plugin.canFetchTrailInfo(url)) return true;
+      if (plugin.canFetchTrailInfoByUrl(url) || plugin.canFetchTrailByUrl(url)) return plugin;
     }
-    return false;
+    return undefined;
   }
 
-  public getSourceName(url: string): string | undefined {
+  public canFetchTrailInfo(url: string): FetchSourcePlugin | undefined {
     for (const plugin of this.plugins) {
-      if (plugin.canFetchTrailInfo(url)) return plugin.name;
+      if (plugin.canFetchTrailInfoByUrl(url)) return plugin;
     }
     return undefined;
   }
 
   public fetchTrailInfo(url: string): Promise<TrailInfo | null> {
     for (const plugin of this.plugins) {
-      if (plugin.canFetchTrailInfo(url))
-        return plugin.fetchTrailInfo(url);
+      if (plugin.canFetchTrailInfoByUrl(url))
+        return plugin.fetchTrailInfoByUrl(url);
     }
     return Promise.reject();
+  }
+
+  public canFetchTrailByUrl(url: string): FetchSourcePlugin | undefined {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailByUrl(url)) return plugin;
+    }
+    return undefined;
+  }
+
+  public fetchTrailByUrl(url: string): Promise<Trail | null> {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailByUrl(url)) return plugin.fetchTrailByUrl(url);
+    }
+    return Promise.resolve(null);
+  }
+
+  public canFetchTrailsByUrl(url: string): FetchSourcePlugin | undefined {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailsByUrl(url)) return plugin;
+    }
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailByUrl(url)) return plugin;
+    }
+    return undefined;
+  }
+
+  public fetchTrailsByUrl(url: string): Promise<Trail[]> {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailsByUrl(url)) {
+        return plugin.fetchTrailsByUrl(url)
+        .then(trails => {
+          if (trails.length > 0) return trails;
+          return plugin.fetchTrailByUrl(url).then(trail => trail ? [trail] : []);
+        });
+      }
+      if (plugin.canFetchTrailByUrl(url))
+        return plugin.fetchTrailByUrl(url).then(trail => trail ? [trail] : []);
+    }
+    return Promise.resolve([]);
+  }
+
+  public canFetchTrailByContent(html: Document): FetchSourcePlugin | undefined {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailByContent(html)) return plugin;
+    }
+    return undefined;
+  }
+
+  public canFetchTrailsByContent(html: Document): FetchSourcePlugin | undefined {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailsByContent(html)) return plugin;
+      if (plugin.canFetchTrailByContent(html)) return plugin;
+    }
+    return undefined;
+  }
+
+  public fetchTrailByContent(html: Document): Promise<Trail | null> {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailByContent(html)) return plugin.fetchTrailByContent(html);
+    }
+    return Promise.resolve(null);
+  }
+
+  public fetchTrailsByContent(html: Document): Promise<Trail[]> {
+    for (const plugin of this.plugins) {
+      if (plugin.canFetchTrailsByContent(html))
+        return plugin.fetchTrailsByContent(html);
+      if (plugin.canFetchTrailByContent(html))
+        return plugin.fetchTrailByContent(html).then(trail => trail ? [trail] : []);
+    }
+    return Promise.resolve([]);
   }
 
   public searchByArea(bounds: L.LatLngBounds): Promise<Trail[]> {

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { TraceRecorderService } from './trace-recorder.service';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideErrorService } from 'test/utils/mock-error-service';
-import { BehaviorSubject, filter, firstValueFrom, of } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, of } from 'rxjs';
 import { provideAuthService } from 'test/utils/mock-auth-service';
 import { provideNetworkService } from 'test/utils/mock-network-service';
 import { TrailCollectionService } from '../database/trail-collection.service';
@@ -15,6 +15,7 @@ import { TrackService } from '../database/track.service';
 import { DatabaseService } from '../database/database.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthResponse } from '../auth/auth-response';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 describe('Test Trace Recorder', () => {
 
@@ -56,8 +57,8 @@ describe('Test Trace Recorder', () => {
       geoListener = undefined;
     });
 
-    await firstValueFrom(TestBed.inject(I18nService).texts$.pipe(filter(t => !!t)));
-    await firstValueFrom(TestBed.inject(DatabaseService).allLoaded().pipe(filter(l => !!l)));
+    await firstValueFrom(TestBed.inject(I18nService).texts$.pipe(filterDefined()));
+    await firstValueFrom(TestBed.inject(DatabaseService).allLoaded().pipe(filterDefined()));
   });
 
   afterEach(() => {

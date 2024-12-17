@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, EMPTY, filter, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, timeout, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, timeout, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
 import { DatabaseService, PHOTO_TABLE_NAME } from './database.service';
@@ -22,6 +22,8 @@ import { DatabaseSubjectService } from './database-subject-service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
+import { Arrays } from 'src/app/utils/arrays';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -48,10 +50,11 @@ export class PhotoService {
   }
 
   public getPhotosForTrailReady(owner: string, uuid: string): Observable<Photo[]> {
+    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(owner, uuid);
     return this.store.getAll$().pipe(
       switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
         photos$.map(item$ => item$.pipe(
-          filter(i => !!i),
+          filterDefined(),
           timeout(10000),
           first(),
           catchError(() => EMPTY)
@@ -62,10 +65,13 @@ export class PhotoService {
   }
 
   public getPhotosForTrailsReady(ids: {owner: string, uuid: string}[]): Observable<Photo[]> {
-    return this.store.getAll$().pipe(
+    const external = ids.filter(id => id.owner.indexOf('@') < 0);
+    const internal = ids.filter(id => id.owner.indexOf('@') >= 0);
+    const external$ = external.length === 0 ? of([]) : zip(external.map(id => this.injector.get(FetchSourceService).getPhotos$(id.owner, id.uuid)));
+    const internal$ = internal.length === 0 ? of([]) : this.store.getAll$().pipe(
       switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
         photos$.map(item$ => item$.pipe(
-          filter(i => !!i),
+          filterDefined(),
           timeout(10000),
           first(),
           catchError(() => EMPTY)
@@ -73,10 +79,15 @@ export class PhotoService {
       )),
       map(photos => photos.filter(p => !!ids.find(i => i.owner === p.owner && i.uuid === p.trailUuid)))
     );
+    return zip(external$, internal$).pipe(
+      map(([list1, list2]) => ([...Arrays.flatMap(list1, e => e), ...list2]))
+    );
   }
 
   private readonly _retrievingFiles = new Map<string, Observable<Blob>>();
   public getFile$(owner: string, uuid: string): Observable<Blob> {
+    if (owner.indexOf('@') < 0)
+      return from(window.fetch(uuid).then(response => response.blob()));
     return this.injector.get(StoredFilesService).getFile$(owner, 'photo', uuid).pipe(
       catchError(e => {
         const doing = this._retrievingFiles.get(owner + '#' + uuid);

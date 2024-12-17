@@ -1,10 +1,11 @@
 import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
-import { filter, first, Observable, timeout } from 'rxjs';
+import { first, Observable, timeout } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
 import Dexie from 'dexie';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Progress } from '../progress/progress.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({
   providedIn: 'root'
@@ -40,7 +41,7 @@ export class TrackService {
 
   public getFullTrackReady$(uuid: string, owner: string): Observable<Track> {
     return this.getFullTrack$(uuid, owner).pipe(
-      filter(t => !!t),
+      filterDefined(),
       timeout(10000),
       first()
     );

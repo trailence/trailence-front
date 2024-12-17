@@ -18,6 +18,14 @@ export class TrailsList extends Component {
     throw new Error('Toolbar button not found: ' + icon);
   }
 
+  public async moreMenu() {
+    await (await this.getToolbarButton('more-menu')).click();
+    const popover = await App.waitPopover();
+    const menu = new MenuContent(popover);
+    await menu.waitDisplayed();
+    return menu;
+  }
+
   public get items() { return this.getElement().$('div.trails').$$('div.metadata-container.trail'); }
 
   public get selectAllCheckbox() { return new IonicCheckbox(this.getElement().$('div.selection').$('ion-checkbox')); }

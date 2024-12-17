@@ -5,7 +5,7 @@ import { Tag } from "src/app/model/tag";
 import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, filter, first, map, of, switchMap, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, first, map, of, switchMap, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
@@ -19,6 +19,7 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import Dexie from 'dexie';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { Console } from 'src/app/utils/console';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({
     providedIn: 'root'
@@ -44,7 +45,7 @@ export class TagService {
   }
 
   public getTag$(uuid: string): Observable<Tag | null> {
-    return this.auth.auth$.pipe(filter(auth => !!auth),switchMap(auth => this._tagStore.getItem$(uuid, auth.email)))
+    return this.auth.auth$.pipe(filterDefined(),switchMap(auth => this._tagStore.getItem$(uuid, auth.email)))
   }
 
   public getTag(uuid: string): Tag | null {

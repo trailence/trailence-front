@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
-import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { MapState } from 'src/app/components/map/map-state';
 import { MapComponent } from 'src/app/components/map/map.component';
@@ -41,6 +41,7 @@ import { Console } from 'src/app/utils/console';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { ShareService } from 'src/app/services/database/share.service';
 import { Share } from 'src/app/model/share';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 const MIN_ZOOM = 14;
 
@@ -130,7 +131,7 @@ export class TrailPlannerPage extends AbstractPage {
   protected override initComponent(): void {
     this._children$.pipe(
       map(children => children.find(child => child instanceof MapComponent)),
-      filter(map => !!map),
+      filterDefined(),
       first()
     ).subscribe(map => {
       this.map = map;

@@ -45,7 +45,7 @@ export class FetchSourcePopupComponent implements OnInit {
         this.trailsSources = [];
         for (const t of this.trails) {
           const trail = trails.find(tr => tr.uuid === t.trailUuid);
-          if (trail) this.trailsSources.push({name: trail.name, source: this.fetchSourceService.getSourceName(t.source)! });
+          if (trail) this.trailsSources.push({name: trail.name, source: this.fetchSourceService.getSource(t.source)!.name });
         }
       }
     );
