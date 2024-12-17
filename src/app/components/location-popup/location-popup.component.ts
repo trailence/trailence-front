@@ -2,13 +2,14 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonInput, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular/standalone";
-import { first, switchMap, timeout } from 'rxjs';
+import { switchMap, throwError } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
+import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 
 @Component({
     selector: 'app-location-popup',
@@ -40,10 +41,8 @@ export class LocationPopupComponent implements OnInit {
   searchPlaces(): void {
     this.searchingPlaces = true;
     this.trackService.getSimplifiedTrack$(this.trail.currentTrackUuid, this.trail.owner).pipe(
-      filterDefined(),
-      timeout(10000),
-      first(),
-      switchMap(t => this.geo.findNearestPlaces(t.points[0].lat, t.points[0].lng)),
+      firstTimeout(t => !!t, 10000, () => null as SimplifiedTrackSnapshot | null),
+      switchMap(t => t ? this.geo.findNearestPlaces(t.points[0].lat, t.points[0].lng) : throwError(() => new Error())),
     ).subscribe({
       next: places => {
         this.proposedPlaces = [];

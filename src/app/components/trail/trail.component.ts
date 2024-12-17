@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, from, map, of, skip, switchMap, take } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, from, map, of, skip, switchMap, take } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -39,6 +39,10 @@ import L from 'leaflet';
 import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
+import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollectionType } from 'src/app/model/trail-collection';
 
 @Component({
     selector: 'app-trail',
@@ -61,6 +65,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
         IconLabelButtonComponent,
         PhotoComponent,
         PhotosPopupComponent,
+        I18nPipe,
     ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -68,6 +73,7 @@ export class TrailComponent extends AbstractComponent {
   @Input() trail1$?: Observable<Trail | null>;
   @Input() trail2$?: Observable<Trail | null>;
   @Input() recording$?: Observable<Recording | null>;
+  @Input() tab = 'map';
 
   showOriginal$ = new BehaviorSubject<boolean>(false);
   showBreaks$ = new BehaviorSubject<boolean>(false);
@@ -84,7 +90,8 @@ export class TrailComponent extends AbstractComponent {
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
-  tagsNames: string[] | undefined;
+  tagsNames1: string[] | undefined;
+  tagsNames2: string[] | undefined;
   photos: Photo[] | undefined;
   elevationTrack1?: Track;
   elevationTrack2?: Track;
@@ -93,7 +100,6 @@ export class TrailComponent extends AbstractComponent {
   @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
 
   displayMode = 'loading';
-  tab = 'map';
   bottomSheetOpen = true;
   bottomSheetTab = 'info';
   isSmall = false;
@@ -107,6 +113,10 @@ export class TrailComponent extends AbstractComponent {
   isExternal = false;
   externalUrl?: string;
   externalAppName?: string;
+
+  comparison: number | undefined = undefined;
+  trail1CollectionName?: string;
+  trail2CollectionName?: string;
 
   private _lockForDescription?: () => void;
   editingDescription = false;
@@ -158,8 +168,10 @@ export class TrailComponent extends AbstractComponent {
     this.externalUrl = undefined;
     this.externalAppName = undefined;
     this.recording = null;
-    this.tagsNames = undefined;
+    this.tagsNames1 = undefined;
+    this.tagsNames2 = undefined;
     this.photos = undefined;
+    this.comparison = undefined;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     this.listenForTracks();
@@ -169,6 +181,7 @@ export class TrailComponent extends AbstractComponent {
     this.listenForPhotosOnMap();
     this.listenForRecordingUpdates();
     this.listenForLanguageChange();
+    this.listenForCollections();
   }
 
   private listenForTracks(): void {
@@ -187,17 +200,25 @@ export class TrailComponent extends AbstractComponent {
         }
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
-        this.isExternal = !!this.trail1 && this.trail1.owner.indexOf('@') < 0;
-        if (this.isExternal) this.injector.get(FetchSourceService).getExternalUrl$(this.trail1!.owner, this.trail1!.uuid).subscribe(url => {
-          this.externalUrl = url ?? undefined;
-          this.changesDetector.detectChanges();
-        });
+        this.isExternal = !!this.trail1 && this.trail1.owner.indexOf('@') < 0 && !this.trail2;
+        if (this.isExternal)
+          this.injector.get(FetchSourceService).getExternalUrl$(this.trail1!.owner, this.trail1!.uuid)
+          .pipe(first())
+          .subscribe(url => {
+            if (this.trail1 !== trail1[0]) return; // already changed
+            this.externalUrl = url ?? undefined;
+            this.changesDetector.detectChanges();
+          });
         this.externalAppName = this.isExternal ? this.injector.get(FetchSourceService).getName(this.trail1!.owner) : undefined;
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];
         this.elevationTrack1 = undefined;
         this.elevationTrack2 = undefined;
+        if (trail1[1] && trail2[1])
+          this.comparison = Math.floor(estimateSimilarity(trail1[1], trail2[1]) * 100);
+        else
+          this.comparison = undefined;
 
         if (toolsBaseTrack && !recordingWithTrack && !trail2[0]) {
           tracks.push(toolsBaseTrack);
@@ -336,11 +357,21 @@ export class TrailComponent extends AbstractComponent {
     if (!this.trail1$) return;
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
-        switchMap(([trail, trail2]) => !trail2 && trail && trail.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail.uuid).pipe(debounceTimeExtended(0, 100)) : of(undefined))
+        switchMap(([trail1, trail2]) =>
+          combineLatest([
+            trail1 && trail1.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail1.uuid) : of(undefined),
+            trail2 && trail2.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail2.uuid) : of(undefined),
+          ])
+        ),
+        debounceTimeExtended(0, 100)
       ),
-      names => {
-        if (this.tagsNames && names && Arrays.sameContent(this.tagsNames, names)) return;
-        this.tagsNames = names;
+      ([names1, names2]) => {
+        const same = (n1: string[] | undefined, n2: string[] | undefined) =>
+          (n1 === undefined && n2 === undefined) ||
+          (n1 !== undefined && n2 !== undefined && Arrays.sameContent(n1, n2));
+        if (same(this.tagsNames1, names1) && same(this.tagsNames2, names2)) return;
+        this.tagsNames1 = names1;
+        this.tagsNames2 = names2;
         this.changesDetector.detectChanges();
       }, true
     );
@@ -531,6 +562,37 @@ export class TrailComponent extends AbstractComponent {
       this.injector.get(I18nService).texts$.pipe(skip(1)),
       () => this.changesDetector.detectChanges(),
       true
+    );
+  }
+
+  private listenForCollections(): void {
+    this.whenVisible.subscribe(
+      combineLatest([this.trail1$ || of(null), this.trail2$ || of(null), this.auth.auth$, this.i18n.texts$]).pipe(
+        switchMap(([trail1, trail2, auth]) => {
+          if (!trail1 || !trail2 || trail1.collectionUuid === trail2.collectionUuid || !auth || trail1.owner !== auth.email || trail2.owner !== auth.email) return of([null, null]);
+          return combineLatest([
+            this.injector.get(TrailCollectionService).getCollection$(trail1.collectionUuid, trail1.owner),
+            this.injector.get(TrailCollectionService).getCollection$(trail2.collectionUuid, trail2.owner)
+          ]);
+        })
+      ),
+      ([col1, col2]) => {
+        if (!col1 || !col2) {
+          if (this.trail1CollectionName || this.trail2CollectionName) {
+            this.trail1CollectionName = undefined;
+            this.trail2CollectionName = undefined;
+            this.changesDetector.detectChanges();
+          }
+          return;
+        }
+        const name1 = col1.type === TrailCollectionType.MY_TRAILS && col1.name.length === 0 ? this.i18n.texts.my_trails : col1.name;
+        const name2 = col2.type === TrailCollectionType.MY_TRAILS && col2.name.length === 0 ? this.i18n.texts.my_trails : col2.name;
+        if (this.trail1CollectionName !== name1 || this.trail2CollectionName !== name2) {
+          this.trail1CollectionName = name1;
+          this.trail2CollectionName = name2;
+          this.changesDetector.detectChanges();
+      }
+      }
     );
   }
 

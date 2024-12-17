@@ -4,6 +4,8 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { Subscription } from 'rxjs';
 import L from 'leaflet';
+import { MapTrack } from './map-track';
+import { Color } from 'src/app/utils/color';
 
 export const anchorBorderColor = '#d00000';
 export const anchorFillColor = '#a00000';
@@ -39,7 +41,7 @@ export class MapTrackWayPoints {
   private subscription?: Subscription;
 
   constructor(
-    private readonly _track: Track | SimplifiedTrackSnapshot,
+    private readonly track: MapTrack,
     private readonly _isRecording: boolean,
     private readonly i18n: I18nService,
   ) {}
@@ -60,6 +62,18 @@ export class MapTrackWayPoints {
     this._map = undefined;
     this.subscription?.unsubscribe();
     this.subscription = undefined;
+  }
+
+  public reset(): void {
+    if (!this._map) return;
+    const map = this._map;
+    this.remove();
+    this._anchors = undefined;
+    this._breaks = undefined;
+    this._departure = undefined;
+    this._arrival = undefined;
+    this._departureAndArrival = undefined;
+    this.addTo(map);
   }
 
   public showDepartureAndArrival(show: boolean): void {
@@ -88,10 +102,10 @@ export class MapTrackWayPoints {
 
   private load(): void {
     if (this._anchors !== undefined) return;
-    if (this._track instanceof Track) {
-      this.subscription = this._track.computedWayPoints$.subscribe(list => this.loadFromTrack(list));
+    if (this.track.track instanceof Track) {
+      this.subscription = this.track.track.computedWayPoints$.subscribe(list => this.loadFromTrack(list));
     } else {
-      this.loadFromSimplifiedTrack(this._track);
+      this.loadFromSimplifiedTrack(this.track.track);
     }
   }
 
@@ -157,7 +171,7 @@ export class MapTrackWayPoints {
   }
 
   private createWayPoint(wp: ComputedWayPoint): MapAnchor {
-    return new MapAnchor(wp.wayPoint.point.pos, anchorBorderColor, '' + wp.index, undefined, anchorTextColor, anchorFillColor, undefined, true, wp);
+    return new MapAnchor(wp.wayPoint.point.pos, this.track.color, '' + wp.index, undefined, anchorTextColor, new Color(this.track.color).setAlpha(0.8).darker(48).toString(), undefined, true, wp);
   }
 
   private createBreakPoint(wp: ComputedWayPoint): MapAnchor {

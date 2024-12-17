@@ -66,6 +66,18 @@ export class TrailComponent extends Component {
     return item.$('.metadata-' + (primary ? 'primary' : 'secondary')).getText();
   }
 
+  public async getCollectionsNames() {
+    const name1 = await this.getElement().$('>>>div.metadata-item-container.collection1').$('div.metadata-primary').getText();
+    const name2 = await this.getElement().$('>>>div.metadata-item-container.collection2').$('div.metadata-secondary').getText();
+    return [name1, name2];
+  }
+
+  public async getTrailsNames() {
+    const name1 = await this.getElement().$('>>>div.metadata-item-container.trail1name').$('div.metadata-primary').getText();
+    const name2 = await this.getElement().$('>>>div.metadata-item-container.trail2name').$('div.metadata-secondary').getText();
+    return [name1, name2];
+  }
+
   public async getTags() {
     const details = await this.openDetails();
     const elements = details.$('.trail-tags-row').$$('.tag');

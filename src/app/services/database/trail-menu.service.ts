@@ -128,6 +128,11 @@ export class TrailMenuService {
         menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(trails, fromTrail)));
       }
     }
+
+    if (fromCollection && onlyGlobal && trails.length > 0) {
+      menu.push(new MenuItem());
+      menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.title').setAction(() => this.findDuplicates(fromCollection)));
+    }
     return menu;
   }
 
@@ -220,7 +225,7 @@ export class TrailMenuService {
           text: texts.yes,
           role: 'danger',
           handler: () => {
-            alert.dismiss();
+            alert.dismiss(true);
             const progress = this.injector.get(ProgressService).create(i18n.texts.pages.trails.actions.deleting_trails, trails.length * 100);
             this.injector.get(TrailService).deleteMany(trails, progress, trails.length * 100, () => {
               progress.done();
@@ -234,6 +239,7 @@ export class TrailMenuService {
       ]
     });
     await alert.present();
+    return (await alert.onDidDismiss()).data === true;
   }
 
   public async openTags(trails: Trail[] | null, collectionUuid: string) {
@@ -496,24 +502,30 @@ export class TrailMenuService {
     });
   }
 
-  public async exportGpx(trails: Trail[]) {
+  public exportGpx(trails: Trail[]) {
     if (trails.length === 0) return;
-    const photoService = this.injector.get(PhotoService);
-    const trailsPhotos$ = trails.map(trail => photoService.getPhotosForTrailReady(trail.owner, trail.uuid).pipe(map(photos => ({trail, photos}))));
-    const trailsPhotos = await firstValueFrom(zip(trailsPhotos$).pipe(map(tp => tp.filter(e => e.photos.length > 0))));
-
-    const module = await import('../../components/export-popup/export-popup.component');
-    const modal = await this.injector.get(ModalController).create({
-      component: module.ExportPopupComponent,
-      componentProps: {
-        trails: trails,
-        trailsPhotos,
-      }
+    zip(trails.map(trail => this.injector.get(PhotoService).getPhotosForTrailReady(trail.owner, trail.uuid).pipe(map(photos => ({trail, photos})))))
+    .pipe(first(), map(tp => tp.filter(e => e.photos.length > 0)))
+    .subscribe(trailsPhotos => {
+      import('../../components/export-popup/export-popup.component').then(module => {
+        this.injector.get(ModalController).create({
+          component: module.ExportPopupComponent,
+          componentProps: {
+            trails: trails,
+            trailsPhotos,
+          }
+        })
+        .then(modal => modal.present().then(() => modal.onWillDismiss())) // NOSONAR
+        .then(modalResult => {
+          if (!modalResult.data?.what) return;
+          this.doExport(trails, modalResult.data.what, modalResult.data.includePhotos, trailsPhotos);
+        })
+      })
     });
-    await modal.present();
-    const modalResult = await modal.onWillDismiss();
-    if (!modalResult.data?.what) return;
-    const photosToExport = modalResult.data.includePhotos ? Arrays.flatMap(trailsPhotos, e => e.photos) : [];
+  }
+
+  private doExport(trails: Trail[], what: 'original' | 'current' | 'both', includePhotos: boolean, trailsPhotos: {trail: Trail, photos: Photo[]}[]): void {
+    const photosToExport = includePhotos ? Arrays.flatMap(trailsPhotos, e => e.photos) : [];
 
     const existingJpgFilenames: string[] = [];
     const photoFilenameMap = new Map<Photo, string>();
@@ -532,9 +544,9 @@ export class TrailMenuService {
     const email = this.injector.get(AuthService).email!;
     const trailToData$ = (trail: Trail) => {
       const tracks: Observable<Track | null>[] = [];
-      if (modalResult.data.what === 'original' || modalResult.data.what === 'both')
+      if (what === 'original' || what === 'both')
         tracks.push(this.injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
-      if (modalResult.data.what === 'current' || (modalResult.data.what === 'both' && trail.currentTrackUuid !== trail.originalTrackUuid))
+      if (what === 'current' || (what === 'both' && trail.currentTrackUuid !== trail.originalTrackUuid))
         tracks.push(this.injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
       return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
         map(tracks => ({trail, tracks: filterItemsDefined(tracks)})),
@@ -572,6 +584,7 @@ export class TrailMenuService {
     progress.subTitle = i18n.texts.export.trail + ' 1/' + trails.length;
     const existingGpxFilenames: string[] = [];
     let photoIndex = 0;
+    const photoService = this.injector.get(PhotoService);
     const processNextPhoto = (resolve: (result: { filename: string; data: BinaryContent; } | null) => void) => {
       progress.workDone = trails.length * 2 + photoIndex * 10;
       if (photoIndex === photosToExport.length) {
@@ -965,6 +978,19 @@ export class TrailMenuService {
       this.handleImportTags(trails, trailTags, toCollection.uuid);
       progress.done();
     });
+  }
+
+  public findDuplicates(fromCollection: string): void {
+    import('../../components/find-duplicates/find-duplicates.component')
+    .then(module => this.injector.get(ModalController).create({
+      component: module.FindDuplicatesComponent,
+      backdropDismiss: false,
+      cssClass: 'large-modal',
+      componentProps: {
+        collectionUuid: fromCollection,
+      }
+    }))
+    .then(modal => modal.present());
   }
 
 }

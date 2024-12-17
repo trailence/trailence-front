@@ -11,6 +11,12 @@ export class IonicAlert extends Component {
     await button.click();
   }
 
+  public async clickButtonWithText(text: string) {
+    const button = this.getElement().$('.alert-button-group').$('span.alert-button-inner='+text);
+    await button.waitForDisplayed();
+    await button.click();
+  }
+
   public async getInputValue() {
     await this.input.waitForDisplayed();
     return await this.input.getValue();

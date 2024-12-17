@@ -26,7 +26,11 @@ export class Color {
       this.b = parseInt(elements[2], 10);
       this.a = parseFloat(elements[3]);
     } else {
-      throw new Error('Unexpected color format: ' + s);
+      switch (s) {
+        case 'red': this.r = 255; this.g = 0; this.b = 0; this.a = 1; break;
+        case 'blue': this.r = 0; this.g = 0; this.b = 255; this.a = 1; break;
+        default: throw new Error('Unexpected color format: ' + s);
+      }
     }
   }
 
@@ -58,6 +62,13 @@ export class Color {
 
   public setAlpha(value: number): this {
     this.a = value;
+    return this;
+  }
+
+  public darker(value: number): this {
+    this.r = Math.max(0, this.r - value);
+    this.g = Math.max(0, this.g - value);
+    this.b = Math.max(0, this.b - value);
     return this;
   }
 

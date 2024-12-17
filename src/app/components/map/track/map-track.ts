@@ -20,7 +20,7 @@ export class MapTrack {
     i18n: I18nService,
   ) {
     this._path = new MapTrackPath(this, color, smoothFactor);
-    this._wayPoints = new MapTrackWayPoints(_track, isRecording, i18n);
+    this._wayPoints = new MapTrackWayPoints(this, isRecording, i18n);
     this._arrowPath = new MapTrackArrowPath(_track);
   }
 
@@ -62,7 +62,11 @@ export class MapTrack {
   }
 
   public get color(): string { return this._path.color; }
-  public set color(value: string) { this._path.color = value; }
+  public set color(value: string) {
+    if (this._path.color === value) return;
+    this._path.color = value;
+    this._wayPoints.reset();
+  }
 
   public showDepartureAndArrivalAnchors(show: boolean = true): void {
     this._wayPoints.showDepartureAndArrival(show);

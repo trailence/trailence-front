@@ -5,6 +5,7 @@ import { HttpClientService } from '../http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from '../http/http-request';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
+import { HttpService } from '../http/http.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class NetworkService implements INetworkService {
   private readonly _internet$: BehaviorSubject<boolean>;
   private destroyed = false;
 
-  constructor(private readonly http: HttpClientService) {
+  constructor(private readonly http: HttpClientService, httpService: HttpService) {
     this._server$ = new BehaviorSubject<boolean>(false);
     this._internet$ = new BehaviorSubject<boolean>(false);
     this.updateStatus(true);
@@ -23,6 +24,15 @@ export class NetworkService implements INetworkService {
     window.addEventListener('offline', () => this.updateStatus(false));
     this._server$.subscribe(connected => Console.info("Server reachable = " + connected));
     this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
+    httpService.addResponseInterceptor(response => {
+      if (response.status === 0) {
+        if (this._server$.value) {
+          this._server$.next(false);
+          this.checkServerConnection(++this.count, 1);
+        }
+      }
+      return response;
+    });
   }
 
   ngOnDestroy(): void {

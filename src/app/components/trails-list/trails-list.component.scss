@@ -59,3 +59,17 @@
 .filter-value {
   margin-bottom: 5px;
 }
+
+@media (max-height: 600px) {
+  ion-radio-group {
+    ion-item {
+      --min-height: 40px;
+    }
+  }
+}
+@media (max-width: 550px) {
+  .filter-value ion-checkbox::part(label) {
+    text-overflow: unset;
+    white-space: unset;
+  }
+}

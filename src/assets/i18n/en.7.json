@@ -141,6 +141,7 @@
       },
       "no_tag_message": "No tag on this trail",
       "no_photo_message": "No photo on this trail",
+      "comparison_message": "These paths are {{1}}% similar",
       "sections": {
         "description": {
           "title": "Description",
@@ -257,6 +258,14 @@
       "email": "Email",
       "email_info": "An e-mail will be sent to inform about this share",
       "language": "In which language should we send the e-mail?"
+    },
+    "find_duplicates": {
+      "title": "Search for similar trails",
+      "option_inside_collection": "Inside collection {{1}}",
+      "option_between_collections": "Between trails of collection {{1}} and collection",
+      "option_all": "Between all trails of all collections",
+      "threshold": "With a similarity of at least",
+      "end_message": "End of search"
     },
     "preferences": {
       "title": "Preferences",
@@ -447,6 +456,7 @@
     "previous": "Back",
     "quit": "Quit",
     "save": "Save",
+    "start": "Start",
     "retry": "Retry",
     "undo": "Undo",
     "redo": "Redo",

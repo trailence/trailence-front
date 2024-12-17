@@ -50,6 +50,94 @@
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="!isSmall || tab === 'details'">
+      <div *ngIf="trail1 && trail2">
+        <div class="metadata-container two-columns comparison">
+
+          <ng-container *ngIf="trail1CollectionName && trail2CollectionName">
+            <div class="metadata-item-container collection1" style="padding-right: 2px">
+              <div class="metadata-item">
+                <ion-icon name="collection"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="metadata-primary">{{ trail1CollectionName }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metadata-item-container collection2" style="padding-left: 2px">
+              <div class="metadata-item">
+                <ion-icon name="collection"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="metadata-secondary">{{ trail2CollectionName }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="metadata-item-container trail1name" style="padding-right: 2px">
+            <div class="metadata-item">
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{ trail1.name }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="metadata-item-container trail2name" style="padding-left: 2px">
+            <div class="metadata-item">
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-secondary">{{ trail2.name }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-container *ngIf="tagsNames1 !== undefined || tagsNames2 !== undefined">
+            <div class="metadata-item-container" style="padding-right: 2px">
+              <div class="metadata-item">
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="trail-tags-row" *ngIf="tagsNames1">
+                      <span *ngIf="tagsNames1.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
+                      <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="metadata-item-container" style="padding-right: 2px">
+              <div class="metadata-item">
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="trail-tags-row" *ngIf="tagsNames2">
+                      <span *ngIf="tagsNames2.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
+                      <div class="tag" *ngFor="let tag of tagsNames2">{{tag}}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+        </div>
+
+        <div class="metadata-container one-column comparison-message" *ngIf="comparison !== undefined">
+          <div class="metadata-item-container">
+            <div class="metadata-item">
+              <ion-icon name="compare"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{ 'pages.trail.comparison_message' | i18nString:comparison }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
       <div class="trail-photos" *ngIf="photos !== undefined && !isSmall && (editable || photos.length !== 0)" (click)="openSlider()">
         <div *ngIf="photos.length === 0" class="no-photo">{{i18n.texts.pages.trail.no_photo_message}}</div>
         <ng-container *ngIf="photos.length !== 0">
@@ -61,9 +149,9 @@
           </ion-button>
         </ng-container>
       </div>
-      <div class="trail-tags-row" *ngIf="tagsNames && trail1" (click)="trailMenuService.openTags([trail1], trail1.collectionUuid)">
-        <span *ngIf="tagsNames.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
-        <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
+      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="trailMenuService.openTags([trail1], trail1.collectionUuid)">
+        <span *ngIf="tagsNames1.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
+        <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
       </div>
       <div class="metadata-container one-column with-title">
         <div class="metadata-item-container" *ngIf="tracks[0]">
@@ -128,10 +216,10 @@
           <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.updatedAt)}}</span>
         </div>
       </div>
-      <div class="actions" *ngIf="tracks[0]">
+      <div class="actions" *ngIf="tracks[0] && !trail2">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
-        <app-icon-label-button *ngIf="!trail2" icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
-        <ng-container *ngIf="trail1 && !recording && !trail2 && !editToolsComponent">
+        <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
+        <ng-container *ngIf="trail1 && !recording && !editToolsComponent">
           <app-icon-label-button icon="play-circle" [label]="i18n.texts.trace_recorder.start_this_trail" [size]="28" [fontSize]="11" color="primary" (click)="startTrail()"></app-icon-label-button>
         </ng-container>
         <ng-container *ngIf="recording">

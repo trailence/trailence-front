@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonButton, MenuController, IonBadge } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { combineLatest, map } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -55,7 +55,7 @@ export class MenuComponent {
     browser.resize$.subscribe(() => this.updateSize(browser));
     collectionService.getAll$().pipe(
       collection$items(),
-      map(list => list.sort((c1, c2) => this.compareCollections(c1, c2)))
+      map(list => collectionService.sort(list))
     )
     .subscribe(list => this.collections = List(list));
     combineLatest([authService.auth$, shareService.getAll$().pipe(collection$items())])
@@ -67,12 +67,6 @@ export class MenuComponent {
 
   private updateSize(browser: BrowserService): void {
     this.large = browser.width > 600 && browser.height > 400;
-  }
-
-  private compareCollections(c1: TrailCollection, c2: TrailCollection): number {
-    if (c1.type === TrailCollectionType.MY_TRAILS) return -1;
-    if (c2.type === TrailCollectionType.MY_TRAILS) return 1;
-    return c1.name.localeCompare(c2.name, this.i18n.textsLanguage);
   }
 
   private compareShares(s1: Share, s2: Share): number {

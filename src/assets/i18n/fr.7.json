@@ -141,6 +141,7 @@
       },
       "no_tag_message": "Aucun tag sur ce parcours",
       "no_photo_message": "Aucune photo sur ce parcours",
+      "comparison_message": "Ces parcours sont similaires à {{1}}%",
       "sections": {
         "description": {
           "title": "Description du parcours",
@@ -257,6 +258,14 @@
       "email": "Email",
       "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
       "language": "Dans quelle langue devons-nous envoyer le mail ?"
+    },
+    "find_duplicates": {
+      "title": "Rechercher les parcours similaires",
+      "option_inside_collection": "A l'intérieur de la collection {{1}}",
+      "option_between_collections": "Entre les parcours de la collection {{1}} et ceux de la collection",
+      "option_all": "Entre tous les parcours de toutes les collections",
+      "threshold": "Avec une similarité d'au moins",
+      "end_message": "Fin de la recherche"
     },
     "preferences": {
       "title": "Préférences",
@@ -447,6 +456,7 @@
     "previous": "Revenir",
     "quit": "Quitter",
     "save": "Enregistrer",
+    "start": "Démarrer",
     "retry": "Réessayer",
     "undo": "Revenir",
     "redo": "Refaire",

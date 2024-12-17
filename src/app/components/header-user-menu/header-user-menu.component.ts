@@ -32,6 +32,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   userLetter = '';
 
   @ViewChild('logoutModal') logoutModal?: IonModal;
+  @ViewChild('accountPopover') accountPopover?: IonPopover;
 
   constructor(
     injector: Injector,
@@ -71,6 +72,9 @@ export class HeaderUserMenuComponent extends AbstractComponent {
         this.changeDetector.detectChanges();
       }
     );
+    this.visible$.subscribe(v => {
+      if (!v && this.accountPopover) this.accountPopover.dismiss();
+    });
   }
 
   logout(): void {

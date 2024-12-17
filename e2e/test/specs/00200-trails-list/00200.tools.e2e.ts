@@ -34,7 +34,6 @@ describe('Trails Tools', () => {
       expect(await trailPage.trailComponent.hasTab('photos')).toBeFalse();
     const details = await trailPage.trailComponent.openDetails();
     expect(await details.$('.trail-photos').isExisting()).toBeFalse();
-    expect(await details.$('.trail-tags-row').isExisting()).toBeFalse();
     expect(await details.$('.description-text').isExisting()).toBeFalse();
     expect(await details.$('.waypoint').isExisting()).toBeFalse();
 

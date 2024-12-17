@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, map, of, switchMap, timeout } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, map, of, switchMap, tap, timeout } from 'rxjs';
 import { StoreSyncStatus } from './store';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
@@ -163,10 +163,17 @@ export class DatabaseService {
       store.loaded$,         // local database is loaded
       this.network.server$,  // network is connected
       store.status$,         // there is something to sync and we are not syncing
+      this.db$,
     ]).pipe(
-      map(([storeLoaded, networkConnected, syncStatus]) => storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress),
-      filter(shouldSync => !!shouldSync),
-      debounceTimeExtended(0, 250),
+      map(([storeLoaded, networkConnected, syncStatus, db]) => [storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress, syncStatus?.needsUpdateFromServer, db]),
+      tap(r => {
+        if (!r[2]) {
+          if (registered.syncTimeout) clearTimeout(registered.syncTimeout);
+          registered.syncTimeout = undefined;
+          registered.lastSync = 0;
+        }
+      }),
+      filter(r => !!r[0] && !!r[2]), // should sync and database loaded
       filter(() => {
         if (Date.now() - registered.lastSync > MINIMUM_SYNC_INTERVAL) return true;
         if (this._syncNowRequestedAt >= registered.lastSync) return true;
@@ -177,10 +184,9 @@ export class DatabaseService {
         });
         return false;
       }),
-      debounceTimeExtended(0, 500, 3),
+      debounceTimeExtended(0, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2]), // sync requested or db changed
     )
     .subscribe(() => {
-      if (!this._db.value) return;
       registered.lastSync = Date.now();
       if (registered.syncTimeout) clearTimeout(registered.syncTimeout);
       registered.syncTimeout = undefined;
@@ -190,9 +196,10 @@ export class DatabaseService {
     store.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {
       Console.warn('Store ' + store.name + ' is in progress since more than 1 minute !');
     });
-    this.db$.pipe(switchMap(db => !db ? of(true) : store.loaded$), filter(l => l), timeout({first: 30000})).subscribe({error: e => {
-      Console.warn('Store ' + store.name + ' is still not loaded after 30 seconds !', e);
-    }});
+    this.db$.pipe(switchMap(db => !db ? of(10) : store.loaded$.pipe(filter(l => l), timeout({first: 20000})))).subscribe({
+      error: e => Console.warn('Store ' + store.name + ' is still not loaded after 20 seconds !', e),
+      next: n => { if (n === true) Console.info("Store loaded: " + store.name); }
+    });
   }
 
   private updateFromServerInterval: any = undefined;

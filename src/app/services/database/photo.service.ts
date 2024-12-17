@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, timeout, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
 import { DatabaseService, PHOTO_TABLE_NAME } from './database.service';
@@ -23,7 +23,7 @@ import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Arrays } from 'src/app/utils/arrays';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -54,10 +54,8 @@ export class PhotoService {
     return this.store.getAll$().pipe(
       switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
         photos$.map(item$ => item$.pipe(
-          filterDefined(),
-          timeout(10000),
-          first(),
-          catchError(() => EMPTY)
+          firstTimeout(p => !!p, 10000, () => null as Photo | null),
+          switchMap(p => p ? of(p) : EMPTY),
         ))
       )),
       map(photos => photos.filter(p => p.owner === owner && p.trailUuid === uuid))
@@ -71,10 +69,8 @@ export class PhotoService {
     const internal$ = internal.length === 0 ? of([]) : this.store.getAll$().pipe(
       switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
         photos$.map(item$ => item$.pipe(
-          filterDefined(),
-          timeout(10000),
-          first(),
-          catchError(() => EMPTY)
+          firstTimeout(p => !!p, 10000, () => null as Photo | null),
+          switchMap(p => p ? of(p) : EMPTY),
         ))
       )),
       map(photos => photos.filter(p => !!ids.find(i => i.owner === p.owner && i.uuid === p.trailUuid)))

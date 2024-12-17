@@ -109,17 +109,22 @@ export class ImportTagsPopupComponent  implements OnInit {
   }
 
   private addTrailTags(tag: Tag, resolvedTags: string[], progress: Progress): void {
+    const toCreate: {trailUuid: string, tagUuid: string}[] = [];
     for (const trail of this.toImport) {
       for (const tags of trail.tags) {
         if (Arrays.sameContent(tags, resolvedTags)) {
-          progress.addWorkToDo(1);
-          this.tagService.addTrailTag(trail.trailUuid, tag.uuid, () => progress.addWorkDone(1));
+          if (toCreate.length === 0)
+            progress.addWorkToDo(1);
+          toCreate.push({trailUuid: trail.trailUuid, tagUuid: tag.uuid});
         }
       }
     }
+    if (toCreate.length > 0)
+      this.tagService.addTrailTags(toCreate, () => progress.addWorkDone(1));
   }
 
-  private importExisting(progress: Progress): void {
+  private importExisting(progress: Progress): void { // NOSONAR
+    const toCreate: {trailUuid: string, tagUuid: string}[] = [];
     for (const resolved of this.resolvedTags!) {
       const uuid = resolved.tree[resolved.tree.length - 1].uuid;
       if (!uuid) continue;
@@ -127,12 +132,15 @@ export class ImportTagsPopupComponent  implements OnInit {
       for (const trail of this.toImport) {
         for (const tags of trail.tags) {
           if (Arrays.sameContent(tags, resolvedTags)) {
-            progress.addWorkToDo(1);
-            this.tagService.addTrailTag(trail.trailUuid, uuid, () => progress.addWorkDone(1));
+            if (toCreate.length === 0)
+              progress.addWorkToDo(1);
+            toCreate.push({trailUuid: trail.trailUuid, tagUuid: uuid});
           }
         }
       }
     }
+    if (toCreate.length > 0)
+      this.tagService.addTrailTags(toCreate, () => progress.addWorkDone(1));
   }
 
   close(role: string): void {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, first, map, of, switchMap } from 'rxjs';
@@ -51,6 +51,7 @@ export class MapComponent extends AbstractComponent {
 
   public cursors = new MapCursors();
   public eventPixelMaxDistance = 15;
+  public isEmbedded = false;
 
   id: string;
   private readonly _mapState = new MapState();
@@ -80,36 +81,48 @@ export class MapComponent extends AbstractComponent {
         this._mapState.live = visible;
       });
     });
-    this.loadState();
+    this.isEmbedded = false;
+    let e = this.injector.get(ElementRef).nativeElement.parentElement;
+    while (e) {
+      if (e.nodeName.toUpperCase() === 'ION-MODAL') {
+        this.isEmbedded = true;
+        break;
+      }
+      e = e.parentElement;
+    }
+    if (!this.isEmbedded)
+      this.loadState();
     this.updateTracks();
     this.updateBubbles();
-    this.whenVisible.subscribe(
-      combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
-      () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId),
-      true
-    );
-    this.whenVisible.subscribe(
-      combineLatest([this._mapState.center$, this._mapState.zoom$])
-      .pipe(debounceTime(10)),
-      () => {
-        if (!this._mapState.live) return;
-        this.updateHashFromMap();
-      }, true);
-    this.whenVisible.subscribe(
-      combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(
-        switchMap(([c,z]) => this.browser.hash$.pipe(map(h => ([c,z,h] as [L.LatLngLiteral, number, Map<string,string>])))),
-        debounceTime(500),
-      ), ([c,z,hash]) => {
-        if (!this._mapState.live) return;
-        const h = this.browser.getHashes();
-        if (h.has('zoom') && h.has('center') && c.lat === this._mapState.center.lat && c.lng === this._mapState.center.lng && z === this._mapState.zoom) {
-          const currentZoom = '' + this._mapState.zoom;
-          const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
-          if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
-            this.updateStateFromHash(h.get('zoom')!, h.get('center')!); // NOSONAR
-        }
-      }, true
-    );
+    if (!this.isEmbedded) {
+      this.whenVisible.subscribe(
+        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
+        () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId),
+        true
+      );
+      this.whenVisible.subscribe(
+        combineLatest([this._mapState.center$, this._mapState.zoom$])
+        .pipe(debounceTime(10)),
+        () => {
+          if (!this._mapState.live) return;
+          this.updateHashFromMap();
+        }, true);
+      this.whenVisible.subscribe(
+        combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(
+          switchMap(([c,z]) => this.browser.hash$.pipe(map(h => ([c,z,h] as [L.LatLngLiteral, number, Map<string,string>])))),
+          debounceTime(500),
+        ), ([c,z,hash]) => {
+          if (!this._mapState.live) return;
+          const h = this.browser.getHashes();
+          if (h.has('zoom') && h.has('center') && c.lat === this._mapState.center.lat && c.lng === this._mapState.center.lng && z === this._mapState.zoom) {
+            const currentZoom = '' + this._mapState.zoom;
+            const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
+            if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
+              this.updateStateFromHash(h.get('zoom')!, h.get('center')!); // NOSONAR
+          }
+        }, true
+      );
+    }
   }
 
   private _initMapTimeout: any;
@@ -567,7 +580,8 @@ export class MapComponent extends AbstractComponent {
     map.on('toggleShowPosition', () => this.mapGeolocation.toggleShowPosition());
 
     this._map$.next(map);
-    this.updateHashFromMap();
+    if (!this.isEmbedded)
+      this.updateHashFromMap();
 
     let distanceUnit: DistanceUnit | undefined = undefined;
     let scale: L.Control.Scale | undefined = undefined;

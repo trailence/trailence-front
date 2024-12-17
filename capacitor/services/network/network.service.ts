@@ -6,6 +6,7 @@ import { HttpClientService } from 'src/app/services/http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from 'src/app/services/http/http-request';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
+import { HttpService } from 'src/app/services/http/http.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class NetworkService implements INetworkService {
   private _server$ = new BehaviorSubject<boolean>(false);
   private _internet$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private http: HttpClientService) {
+  constructor(private http: HttpClientService, httpService: HttpService) {
     this._server$ = new BehaviorSubject<boolean>(false);
     this._internet$ = new BehaviorSubject<boolean>(false);
     Network.getStatus().then(status => {
@@ -24,6 +25,15 @@ export class NetworkService implements INetworkService {
     Network.addListener('networkStatusChange', status => {
       Console.info('network status changed', status);
       this.updateStatus(status);
+    });
+    httpService.addResponseInterceptor(response => {
+      if (response.status === 0) {
+        if (this._server$.value) {
+          this._server$.next(false);
+          this.checkServerConnection(++this.countPing, 1);
+        }
+      }
+      return response;
     });
   }
 

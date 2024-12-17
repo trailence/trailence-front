@@ -7,6 +7,7 @@ import { IonicButton } from './ionic/ion-button';
 import { MenuContent } from './menu-content.component';
 import { ModalComponent } from './modal';
 import { ChainablePromiseElement } from 'webdriverio';
+import { Key } from 'webdriverio';
 
 export class HeaderComponent extends Component {
 
@@ -94,11 +95,14 @@ export class UserMenu extends Component {
   }
 
   public async close() {
-    await TestUtils.retry(async () => {
-      await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(100).down().pause(100).up().perform();
-      await browser.waitUntil(() => this.getElement().isExisting().then(e => !e), { timeout: 5000 });
-    }, 3, 500);
-    await App.waitNoPopover();
+    await TestUtils.retry(async (trial) => {
+      if ((trial % 2) === 1)
+        await browser.action('pointer').move({x: trial, y: trial, origin: 'viewport'}).pause(100).down().pause(100).up().perform();
+      else
+        await browser.action('key').down(Key.Escape).pause(50).up(Key.Escape).perform();
+      await browser.waitUntil(() => this.getElement().isDisplayed().then(e => !e), { timeout: 2000 });
+      await App.waitNoPopover({ timeout: 2000 });
+    }, 10, 500);
   }
 
   public async synchronizeLocalChanges(trial: number = 0, alreadyClickOnSynchronizeNow: boolean = false) {

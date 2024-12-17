@@ -89,7 +89,6 @@ export class MapTrackPath {
 
   public get color(): string { return this._color; }
   public set color(value: string) {
-    if (value === this._color) return;
     this._color = value;
     if (this._path) this._path.setStyle({color: value});
   }

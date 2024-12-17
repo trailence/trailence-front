@@ -158,6 +158,16 @@ export class TrailCollectionService {
     return from(Promise.all(promises));
   }
 
+  public sort(list: TrailCollection[]): TrailCollection[] {
+    const i18n = this.injector.get(I18nService);
+    return list.sort((c1, c2) => this.compareCollections(c1, c2, i18n));
+  }
+
+  public compareCollections(c1: TrailCollection, c2: TrailCollection, i18n: I18nService): number {
+    if (c1.type === TrailCollectionType.MY_TRAILS) return -1;
+    if (c2.type === TrailCollectionType.MY_TRAILS) return 1;
+    return c1.name.localeCompare(c2.name, i18n.textsLanguage);
+  }
 }
 
 class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollection> {

@@ -119,6 +119,7 @@ describe('Trail - Photos', () => {
     expect(sizes.length).toBe(2);
     expect(sizes[0]).not.toBe('0 Bytes');
     expect(sizes[1]).toBe('0 Bytes');
+    await App.synchronize();
     await TestUtils.retry(async () => {
       await prefs.removeAllPhotos();
       await browser.waitUntil(() => prefs.getPhotosSizes().then(s => {

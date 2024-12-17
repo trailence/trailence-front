@@ -1,6 +1,14 @@
 import { Track } from 'src/app/model/track';
 import L from 'leaflet';
 
+export function getDistancesForAnalysis(track: Track) {
+  const trackDistance = track.metadata.distance;
+  return trackDistance < 25000 ? ({closePoints: 10, maxDistance: 25, maxDiff: 0.00025}) :
+    trackDistance < 100000 ? ({closePoints: 40, maxDistance: 100, maxDiff: 0.001}) :
+    trackDistance < 500000 ? ({closePoints: 200, maxDistance: 500, maxDiff: 0.005}) :
+    ({closePoints: 500, maxDistance: 1000, maxDiff: 0.01});
+}
+
 export function buildClosePointsFromTrack(track: Track, maxDistance: number): {point: L.LatLng, distanceToPrevious: number}[] {
   return buildClosePoints(track.getAllPositions(), maxDistance);
 }

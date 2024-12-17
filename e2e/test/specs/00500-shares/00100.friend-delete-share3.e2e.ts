@@ -1,6 +1,8 @@
 import { App } from '../../app/app';
 import { LoginPage } from '../../app/pages/login-page';
+import { Page, PageWithHeader } from '../../app/pages/page';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { HeaderComponent } from '../../components/header.component';
 import { FilesUtils } from '../../utils/files-utils';
 
 describe('Shares - delete by friend', () => {
@@ -27,6 +29,7 @@ describe('Shares - delete by friend', () => {
     await shareMenu.clickItemWithText('Delete');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(t => t === 'My Trails'));
     await App.synchronize();
     loginPage = await App.logout();
   });

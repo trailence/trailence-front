@@ -31,3 +31,29 @@ ion-modal.full-screen {
 ion-modal.semi-opaque {
   --background: rgba(var(--ion-background-color-rgb), 0.8);
 }
+
+@media (max-height: 600px) or (max-width: 600px) {
+  ion-modal {
+    ion-toolbar {
+      --min-height: 40px;
+
+      ion-title {
+        ion-icon {
+          font-size: 1.25rem;
+          margin-bottom: -3px;
+        }
+        ion-label {
+          font-size: 1rem;
+        }
+      }
+
+      ion-button {
+        font-size: 12px;
+
+        ion-icon[slot=end] {
+          font-size: 12px !important;
+        }
+      }
+    }
+  }
+}

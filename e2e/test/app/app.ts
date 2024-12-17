@@ -3,7 +3,7 @@ import { HeaderComponent } from '../components/header.component';
 import { IonicAlert } from '../components/ionic/ion-alert';
 import { LoginPage } from './pages/login-page';
 import { Page } from './pages/page';
-import { ChainablePromiseElement } from 'webdriverio';
+import { ChainablePromiseElement, WaitUntilOptions } from 'webdriverio';
 import { TrailsPage, TrailsPageType } from './pages/trails-page';
 
 export class App {
@@ -146,8 +146,8 @@ export class App {
     return popoverContainer.$('>>>.popover-viewport');
   }
 
-  public static async waitNoPopover() {
-    await browser.waitUntil(() => App.getPopoverContainer().isExisting().then(e => !e));
+  public static async waitNoPopover(opts?: WaitUntilOptions) {
+    await browser.waitUntil(() => App.getPopoverContainer().isExisting().then(e => !e), opts);
   }
 
   public static async waitModal(index?: number, byElementName?: string) {

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, IonIcon, ModalController, IonFooter, IonButtons, IonButton } from '@ionic/angular/standalone'
+import { IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, ModalController, IonFooter, IonButtons, IonButton } from '@ionic/angular/standalone'
 import { TrailService } from 'src/app/services/database/trail.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
@@ -18,7 +18,7 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
   selector: 'app-fetch-source-popup',
   templateUrl: './fetch-source-popup.component.html',
   styleUrls: [],
-  imports: [IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, IonIcon, IonFooter, IonButtons, IonButton, CommonModule]
+  imports: [IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, CommonModule]
 })
 export class FetchSourcePopupComponent implements OnInit {
 

@@ -20,4 +20,11 @@ export class ModalComponent extends Component {
     return button;
   }
 
+  public async getFooterButtonWithColor(color: string) {
+    const element = await this.getFooterButtons().$('ion-button[color=' + color + ']');
+    await element.waitForDisplayed();
+    const button = new IonicButton(element);
+    return button;
+  }
+
 }
