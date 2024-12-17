@@ -128,6 +128,11 @@ export class TrailMenuService {
         menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(trails, fromTrail)));
       }
     }
+
+    if (fromCollection && onlyGlobal && trails.length > 0) {
+      menu.push(new MenuItem());
+      menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.title').setAction(() => this.findDuplicates(fromCollection)));
+    }
     return menu;
   }
 
@@ -965,6 +970,19 @@ export class TrailMenuService {
       this.handleImportTags(trails, trailTags, toCollection.uuid);
       progress.done();
     });
+  }
+
+  public findDuplicates(fromCollection: string): void {
+    import('../../components/find-duplicates/find-duplicates.component')
+    .then(module => this.injector.get(ModalController).create({
+      component: module.FindDuplicatesComponent,
+      backdropDismiss: false,
+      cssClass: 'large-modal',
+      componentProps: {
+        collectionUuid: fromCollection,
+      }
+    }))
+    .then(modal => modal.present());
   }
 
 }

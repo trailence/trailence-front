@@ -2,6 +2,7 @@ import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Trail - Edit infos', () => {
 
@@ -75,7 +76,7 @@ describe('Trail - Edit infos', () => {
     await tagsPopup.apply();
     try { await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).trailComponent.getTags().then(tags => tags.length === 1)); } catch (e) {}
     trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
-    tags = await trailPage.trailComponent.getTags();
+    tags = await TestUtils.waitFor(() => trailPage.trailComponent.getTags(), tags => tags.length === 1);
     expect(tags.length).toBe(1);
     expect(tags.indexOf('Beautiful') >= 0).toBeTrue();
   });

@@ -121,6 +121,10 @@ export class TagService {
     this._trailTagStore.create(new TrailTag({trailUuid, tagUuid}), ondone);
   }
 
+  public addTrailTags(trailTags: {trailUuid: string, tagUuid: string}[], ondone?: () => void) {
+    this._trailTagStore.createMany(trailTags.map(t => new TrailTag({trailUuid: t.trailUuid, tagUuid: t.tagUuid})), ondone);
+  }
+
   public deleteTrailTag(trailUuid: string, tagUuid: string) {
     this._trailTagStore.delete(new TrailTag({trailUuid, tagUuid}));
   }

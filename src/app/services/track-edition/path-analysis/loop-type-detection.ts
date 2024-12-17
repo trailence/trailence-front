@@ -1,6 +1,6 @@
 import { Track } from 'src/app/model/track';
 import { TrailLoopType } from 'src/app/model/trail';
-import { buildClosePoints } from './build-close-points';
+import { buildClosePoints, getDistancesForAnalysis } from './build-close-points';
 
 export function detectLoopType(track: Track): TrailLoopType | undefined { // NOSONAR
   const arrival = track.arrivalPoint;
@@ -11,12 +11,7 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
   if (departureArrivalDistance > 250) return TrailLoopType.ONE_WAY;
   let points = track.getAllPositions();
   if (departureArrivalDistance > 5) points.push(points[0]);
-  const trackDistance = track.metadata.distance;
-  const useDistances =
-    trackDistance < 25000 ? ({closePoints: 10, maxDistance: 25, maxDiff: 0.00025}) :
-    trackDistance < 100000 ? ({closePoints: 40, maxDistance: 100, maxDiff: 0.001}) :
-    trackDistance < 500000 ? ({closePoints: 200, maxDistance: 500, maxDiff: 0.005}) :
-    ({closePoints: 500, maxDistance: 1000, maxDiff: 0.01});
+  const useDistances = getDistancesForAnalysis(track);
   const pointsWithDistance = buildClosePoints(points, useDistances.closePoints);
 
   let distanceOutAndBack = 0;

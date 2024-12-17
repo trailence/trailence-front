@@ -365,10 +365,13 @@
 
   .trail-tags-row {
     padding: 5px;
-    cursor: pointer;
 
-    &:hover {
-      background-color: rgba(var(--ion-text-color-rgb), 0.05);
+    &.editable {
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba(var(--ion-text-color-rgb), 0.05);
+      }
     }
 
     .no-tag {
@@ -568,4 +571,10 @@ a, a:active {
 
 .external-link {
   padding: 2px 8px;
+}
+
+.comparison-message {
+  padding: 2px 8px;
+  font-size: 14px;
+  text-align: center;
 }

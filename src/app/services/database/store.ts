@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, from, map, of, timeout } from "rxjs";
+import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, timeout } from "rxjs";
 import { DatabaseService } from "./database.service";
 import Dexie, { Table } from "dexie";
 import { Injector, NgZone } from "@angular/core";
@@ -274,6 +274,57 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       ondone
     );
     return item$;
+  }
+
+  public createMany(items: STORE_ITEM[], ondone?: () => void): void {
+    let existingList: STORE_ITEM[] = [];
+    let recoveredList: STORE_ITEM[] = [];
+    let nbNew = 0;
+    this.performOperation(
+      () => {
+        let storeChanged = false;
+        for (const item of items) {
+          const existing = !!this._store.value.find(value => value.value && this.areSame(value.value, item));
+          let recovered = false;
+          if (!existing) {
+            const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
+            const deleted = this._deletedLocally.findIndex(value => this.areSame(value, item));
+            if (deleted < 0) {
+              this._createdLocally.push(item$);
+              this._store.value.push(item$);
+              storeChanged = true;
+            } else {
+              this._deletedLocally.splice(deleted, 1);
+              this._store.value.push(item$);
+              storeChanged = true;
+              recovered = true;
+            }
+          }
+          if (existing) existingList.push(item);
+          else if (recovered) recoveredList.push(item);
+          else nbNew++;
+        }
+        if (storeChanged) this._store.next(this._store.value);
+      },
+      db => {
+        return from(db.transaction('rw', this.tableName, async () => {
+          const table = db.table<DB_ITEM>(this.tableName);
+          const toAdd: DB_ITEM[] = [];
+          for (const item of items) {
+            if (existingList.indexOf(item) >= 0) continue;
+            if (recoveredList.indexOf(item) >= 0) await firstValueFrom(this.markUndeletedInDb(table, item));
+            toAdd.push(this.dbItemCreatedLocally(item));
+          }
+          if (toAdd.length > 0)
+            await table.bulkAdd(toAdd);
+        }));
+      },
+      status => {
+        if (nbNew === 0) return false;
+        return this.updateStatusWithLocalCreate(status);
+      },
+      ondone
+    );
   }
 
   protected deleted(item$: BehaviorSubject<STORE_ITEM | null> | undefined, item: STORE_ITEM): void {

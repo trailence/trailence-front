@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, from, map, of, skip, switchMap, take } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, from, map, of, skip, switchMap, take, zip } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -39,6 +39,8 @@ import L from 'leaflet';
 import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
+import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 
 @Component({
     selector: 'app-trail',
@@ -61,6 +63,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
         IconLabelButtonComponent,
         PhotoComponent,
         PhotosPopupComponent,
+        I18nPipe,
     ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -84,7 +87,8 @@ export class TrailComponent extends AbstractComponent {
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
-  tagsNames: string[] | undefined;
+  tagsNames1: string[] | undefined;
+  tagsNames2: string[] | undefined;
   photos: Photo[] | undefined;
   elevationTrack1?: Track;
   elevationTrack2?: Track;
@@ -107,6 +111,8 @@ export class TrailComponent extends AbstractComponent {
   isExternal = false;
   externalUrl?: string;
   externalAppName?: string;
+
+  comparison: number | undefined = undefined;
 
   private _lockForDescription?: () => void;
   editingDescription = false;
@@ -158,8 +164,10 @@ export class TrailComponent extends AbstractComponent {
     this.externalUrl = undefined;
     this.externalAppName = undefined;
     this.recording = null;
-    this.tagsNames = undefined;
+    this.tagsNames1 = undefined;
+    this.tagsNames2 = undefined;
     this.photos = undefined;
+    this.comparison = undefined;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     this.listenForTracks();
@@ -198,6 +206,10 @@ export class TrailComponent extends AbstractComponent {
         const mapTracks: MapTrack[] = [];
         this.elevationTrack1 = undefined;
         this.elevationTrack2 = undefined;
+        if (trail1[1] && trail2[1])
+          this.comparison = Math.floor(estimateSimilarity(trail1[1], trail2[1]) * 100);
+        else
+          this.comparison = undefined;
 
         if (toolsBaseTrack && !recordingWithTrack && !trail2[0]) {
           tracks.push(toolsBaseTrack);
@@ -336,11 +348,21 @@ export class TrailComponent extends AbstractComponent {
     if (!this.trail1$) return;
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
-        switchMap(([trail, trail2]) => !trail2 && trail && trail.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail.uuid).pipe(debounceTimeExtended(0, 100)) : of(undefined))
+        switchMap(([trail1, trail2]) =>
+          combineLatest([
+            trail1 && trail1.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail1.uuid) : of(undefined),
+            trail2 && trail2.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail2.uuid) : of(undefined),
+          ])
+        ),
+        debounceTimeExtended(0, 100)
       ),
-      names => {
-        if (this.tagsNames && names && Arrays.sameContent(this.tagsNames, names)) return;
-        this.tagsNames = names;
+      ([names1, names2]) => {
+        const same = (n1: string[] | undefined, n2: string[] | undefined) =>
+          (n1 === undefined && n2 === undefined) ||
+          (n1 !== undefined && n2 !== undefined && Arrays.sameContent(n1, n2));
+        if (same(this.tagsNames1, names1) && same(this.tagsNames2, names2)) return;
+        this.tagsNames1 = names1;
+        this.tagsNames2 = names2;
         this.changesDetector.detectChanges();
       }, true
     );
