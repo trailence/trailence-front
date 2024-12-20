@@ -1,5 +1,5 @@
 import { Injectable, Injector } from "@angular/core";
-import { BehaviorSubject, Observable, combineLatest, first, from, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap } from "rxjs";
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
@@ -133,29 +133,30 @@ export class TrailCollectionService {
     );
   }
 
-  public doNotDeleteCollectionWhileTrailsNotSync(trails: Trail[]): Observable<any> {
-    const map = new Map<string, string[]>();
-    for (const trail of trails) {
-      const collectionKey = trail.collectionUuid + '#' + trail.owner;
-      let trailsKeys = map.get(collectionKey);
-      if (!trailsKeys) trailsKeys = [];
-      trailsKeys.push(trail.uuid + '#' + trail.owner);
-      map.set(collectionKey, trailsKeys);
-    }
-    const promises: Promise<any>[] = [];
-    for (const entry of map.entries()) {
-      promises.push(this.injector.get(DependenciesService).addDependencies(
-        TRAIL_COLLECTION_TABLE_NAME,
-        entry[0], // collection ket
-        'delete',
-        entry[1].map(trailKey => ({
+  public doNotDeleteCollectionWhileTrailNotSync(collectionUuid: string, trail: Trail): Promise<any> {
+    const collectionKey = collectionUuid + '#' + trail.owner;
+    const trailKey = trail.uuid + '#' + trail.owner;
+    return this.injector.get(DependenciesService).addDependencies(
+      TRAIL_COLLECTION_TABLE_NAME,
+      collectionKey,
+      'delete',
+      [
+        {
           storeName: TRAIL_TABLE_NAME,
           itemKey: trailKey,
           operation: 'update'
-        }))
-      ));
-    }
-    return from(Promise.all(promises));
+        }
+      ]
+    );
+  }
+
+  public doNotDeleteCollectionUntilEvent(collectionUuid: string, collectionOwner: string, eventId: string): void {
+    this.injector.get(DependenciesService).addEventDependency(
+      TRAIL_COLLECTION_TABLE_NAME,
+      collectionUuid + '#' + collectionOwner,
+      'delete',
+      eventId
+    );
   }
 
   public sort(list: TrailCollection[]): TrailCollection[] {

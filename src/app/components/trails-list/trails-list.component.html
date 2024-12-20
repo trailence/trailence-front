@@ -38,6 +38,7 @@
         (click)="onTrailClick(trailWithInfo.trail)"
         [fromCollection]="!!collectionUuid"
         [trackSnapshot]="trailWithInfo.track"
+        [delayLoading]="$index >= 10"
       ></app-trail-overview>
     </div>
   }

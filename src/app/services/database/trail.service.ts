@@ -68,10 +68,10 @@ export class TrailService {
     this._store.update(trail, ondone);
   }
 
-  public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void, ondone?: () => void): void {
+  public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void, ondone?: (trail: Trail) => void): void {
     this.lock(trail.uuid, trail.owner, (locked, unlock) => {
       if (!locked) {
-        if (ondone) ondone();
+        if (ondone) ondone(trail);
         return;
       }
       const latestTrail = this.getTrail(trail.uuid, trail.owner);
@@ -79,11 +79,11 @@ export class TrailService {
         updater(latestTrail);
         this.update(latestTrail, () => {
           unlock();
-          if (ondone) ondone();
+          if (ondone) ondone(latestTrail);
         });
       } else {
         unlock();
-        if (ondone) ondone();
+        if (ondone) ondone(trail);
       }
     });
   }
@@ -210,11 +210,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     const currentrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.currentTrackUuid, entity.owner);
     const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
     return combineLatest([originalTrackReady$, currentrackReady$, collectionReady$]).pipe(
-      map(readiness => {
-        const ready = readiness.indexOf(false) < 0;
-        if (!ready) Console.info('Trail ' + entity.uuid + ' cannot be saved: originalTrack = ' + readiness[0] + ', currentTrack = ' + readiness[1] + ', collection = ' + readiness[2]);
-        return ready;
-      })
+      map(readiness => readiness.indexOf(false) < 0)
     );
   }
 

@@ -81,9 +81,11 @@ export class AppComponent {
         setTimeout(() => this.loadServices(), 1000);
       } else {
         this.loadServices().then(allDatabasesLoaded => {
-          combineLatest([auth.auth$, allDatabasesLoaded()]).subscribe(([a, l]) => {
-            if (!a || l) this.ready(startup);
-          });
+          combineLatest([auth.auth$, allDatabasesLoaded()]).pipe(
+            filter(([a, l]) => !a || l),
+            first(),
+          )
+          .subscribe(() => this.ready(startup));
         });
       }
       import('./services/geolocation/geolocation.service')

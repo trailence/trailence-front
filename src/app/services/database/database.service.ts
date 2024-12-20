@@ -28,7 +28,7 @@ export interface StoreRegistration {
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
-  doSync: () => void;
+  doSync: () => Observable<boolean>;
 }
 
 class RegisteredStore implements StoreRegistration {
@@ -39,10 +39,12 @@ class RegisteredStore implements StoreRegistration {
   hasPendingOperations$: Observable<boolean>;
   syncFromServer: () => void;
   fireSyncStatus: () => void;
-  doSync: () => void;
+  doSync: () => Observable<boolean>;
 
   lastSync = 0;
   syncTimeout?: any;
+  syncTimeoutDate = 0;
+  syncAgain = false;
 
   constructor(
     registration: StoreRegistration
@@ -141,6 +143,7 @@ export class DatabaseService {
       s.lastSync = 0;
       if (s.syncTimeout) clearTimeout(s.syncTimeout);
       s.syncTimeout = undefined;
+      s.syncTimeoutDate = 0;
       s.syncFromServer();
     });
   }
@@ -170,6 +173,7 @@ export class DatabaseService {
         if (!r[2]) {
           if (registered.syncTimeout) clearTimeout(registered.syncTimeout);
           registered.syncTimeout = undefined;
+          registered.syncTimeoutDate = 0;
           registered.lastSync = 0;
         }
       }),
@@ -178,19 +182,35 @@ export class DatabaseService {
         if (Date.now() - registered.lastSync > MINIMUM_SYNC_INTERVAL) return true;
         if (this._syncNowRequestedAt >= registered.lastSync) return true;
         this.ngZone.runOutsideAngular(() => {
+          const nextDate = Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync));
+          if (registered.syncTimeout && registered.syncTimeoutDate > nextDate) {
+            clearTimeout(registered.syncTimeout);
+            registered.syncTimeout = undefined;
+          }
           if (!registered.syncTimeout) {
-            registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync)));
+            registered.syncTimeoutDate = nextDate;
+            registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), nextDate);
           }
         });
         return false;
       }),
-      debounceTimeExtended(0, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2]), // sync requested or db changed
+      map(value => [...value, registered.syncAgain] as [boolean | undefined, boolean | undefined, Dexie | undefined, boolean]),
+      debounceTimeExtended(0, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2] || n[3]), // sync requested or db changed or syncAgain requested
     )
     .subscribe(() => {
+      registered.syncAgain = false;
       registered.lastSync = Date.now();
       if (registered.syncTimeout) clearTimeout(registered.syncTimeout);
       registered.syncTimeout = undefined;
-      store.doSync();
+      registered.syncTimeoutDate = 0;
+      store.doSync().subscribe(syncAgain => {
+        registered.syncAgain = syncAgain;
+        if (syncAgain) {
+          Console.info(store.name + ' needs to sync again to complete');
+          registered.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
+          store.fireSyncStatus();
+        }
+      });
     });
     // monitoring
     store.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {

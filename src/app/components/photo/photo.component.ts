@@ -39,16 +39,16 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.subscription = undefined;
       this.error = false;
       this.setBlob(undefined);
-      if (!this.photo) this.setBlob(undefined);
-      else this.subscription = this.photoService.getBlobUrl$(this.photo.owner, this.photo.uuid).subscribe({
-        next: blob => {
-          this.setBlob(blob);
-        },
-        error: e => {
-          Console.error('Error loading photo', e);
-          this.error = true;
-        }
-      });
+      if (this.photo)
+        this.subscription = this.photoService.getBlobUrl$(this.photo.owner, this.photo.uuid).subscribe({
+          next: blob => {
+            this.setBlob(blob);
+          },
+          error: e => {
+            Console.error('Error loading photo', e);
+            this.error = true;
+          }
+        });
     }
   }
 

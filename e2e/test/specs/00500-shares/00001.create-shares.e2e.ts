@@ -79,7 +79,7 @@ describe('Shares - Create', () => {
     if (ok) {
       for (let i = 0; i < shares.length; ++i) {
         let found = false;
-        for (let j = 0; j < expected.length; ++i) {
+        for (let j = 0; j < expected.length; ++j) {
           if (shares[i][0] === expected[j][0] && shares[i][1] === expected[j][1]) {
             expected.splice(j, 1);
             found = true;

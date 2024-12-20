@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
@@ -6,7 +6,7 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -22,6 +22,7 @@ import { PhotoService } from 'src/app/services/database/photo.service';
 import { Photo } from 'src/app/model/photo';
 import { PhotosSliderComponent } from "../photos-slider/photos-slider.component";
 import { Router } from '@angular/router';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 class Meta {
   name?: string;
@@ -56,11 +57,15 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() photoEnabled = true;
 
+  @Input() delayLoading = false;
+
   id = IdGenerator.generateId();
   meta: Meta = new Meta();
   track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
   tagsNames: string[] = [];
   photos: Photo[] = [];
+  load$ = new BehaviorSubject<boolean>(false);
+  observer?: IntersectionObserver;
 
   constructor(
     injector: Injector,
@@ -100,22 +105,19 @@ export class TrailOverviewComponent extends AbstractComponent {
       let previousI18nState = 0;
       const owner = this.trail.owner;
       this.byStateAndVisible.subscribe(
-        combineLatest([
-          this.i18n.stateChanged$,
-          this.trail.name$,
-          this.trail.location$,
-          this.trail.loopType$,
-          this.trackSnapshot && this.refreshMode !== 'live' ?
-            of([this.trackSnapshot, this.trackSnapshot.startDate] as [TrackMetadataSnapshot, number | undefined]) :
-            this.trail.currentTrackUuid$.pipe(
-              switchMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
-              switchMap(track => {
-                if (!track) return of([undefined, undefined]);
-                if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
-                return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
-              })
-            ),
-        ]).pipe(debounceTimeExtended(0, 10)),
+        this.load$.pipe(
+          filterDefined(),
+          switchMap(() =>
+            combineLatest([
+              this.i18n.stateChanged$,
+              this.trail!.name$,
+              this.trail!.location$,
+              this.trail!.loopType$,
+              this.trackData$(this.trail!, owner),
+            ])
+          ),
+          debounceTimeExtended(0, 10)
+        ),
         ([i18nState, trailName, trailLocation, loopType, [track, startDate]]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
@@ -136,7 +138,10 @@ export class TrailOverviewComponent extends AbstractComponent {
       );
       if (owner === this.auth.email) {
         this.byStateAndVisible.subscribe(
-          this.tagService.getTrailTagsFullNames$(this.trail.uuid).pipe(debounceTimeExtended(0, 100)),
+          this.load$.pipe(
+            filterDefined(),
+            switchMap(() => this.tagService.getTrailTagsFullNames$(this.trail!.uuid).pipe(debounceTimeExtended(0, 100)))
+          ),
           tagsNames => {
             if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
               this.tagsNames = tagsNames;
@@ -146,9 +151,12 @@ export class TrailOverviewComponent extends AbstractComponent {
           true
         );
       }
-      if (this.photoEnabled)
+      if (this.photoEnabled) {
         this.byStateAndVisible.subscribe(
-          this.photoService.getPhotosForTrail(this.trail.owner, this.trail.uuid),
+          this.load$.pipe(
+            filterDefined(),
+            switchMap(() => this.photoService.getPhotosForTrail(this.trail!.owner, this.trail!.uuid))
+          ),
           photos => {
             photos.sort((p1, p2) => {
               if (p1.isCover) return -1;
@@ -159,7 +167,32 @@ export class TrailOverviewComponent extends AbstractComponent {
             this.changeDetector.detectChanges();
           }
         );
+      }
+      if (this.delayLoading && !this.load$.value && !this.observer) {
+        this.observer = new IntersectionObserver(entries => {
+          if (this.observer && entries[0].isIntersecting) {
+            this.observer.disconnect();
+            this.observer = undefined;
+            this.load$.next(true);
+          }
+        });
+        this.observer.observe(this.injector.get(ElementRef).nativeElement);
+      }
+      if (!this.load$.value) this.changeDetector.detectChanges();
     }
+  }
+
+  private trackData$(trail: Trail, owner: string): Observable<[TrackMetadataSnapshot | Track | undefined, number | undefined]> {
+    if (this.trackSnapshot && this.refreshMode !== 'live')
+      return of([this.trackSnapshot, this.trackSnapshot.startDate]);
+    return trail.currentTrackUuid$.pipe(
+      switchMap(uuid => this.refreshMode === 'live' ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
+      switchMap(track => {
+        if (!track) return of([undefined, undefined] as [undefined, undefined]);
+        if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
+        return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
+      })
+    );
   }
 
   private updateMeta(meta: any, key: string, value: any, toString: ((value: any) => string) | undefined, forceChange: boolean): boolean {
@@ -179,6 +212,13 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.track$.next(undefined);
     this.tagsNames = [];
     this.photos = [];
+    if (!this.delayLoading && !this.load$.value)
+      this.load$.next(true);
+  }
+
+  protected override destroyComponent(): void {
+    this.observer?.disconnect();
+    this.observer = undefined;
   }
 
   private _trackMetadataInitialized = false;

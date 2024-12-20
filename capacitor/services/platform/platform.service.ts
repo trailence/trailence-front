@@ -82,7 +82,7 @@ export class PlatformService {
           onDone: (collectionUuid: string) => {
             const i18n = this.injector.get(I18nService);
             const progress = this.injector.get(ProgressService).create(i18n.texts.tools.importing, 1);
-            menuService.importGpx(buffer, owner, collectionUuid)
+            menuService.importGpx(buffer, owner, collectionUuid).allDone
             .then(imported => {
               progress.done();
               menuService.finishImport([imported], collectionUuid).then(

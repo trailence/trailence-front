@@ -685,48 +685,56 @@ export class TrackDatabase {
 
   private operation<T>(op: () => Promise<T>): Promise<T> {
     const db = this.db;
-    this._pendingOperation$.next(this._pendingOperation$.value + 1);
-    return firstValueFrom(this.syncStatus$.pipe(filter(s => !s?.inProgress)))
-    .then(() => {
-      if (db != this.db) return Promise.reject();
-      return op().then(r => {
-        this._pendingOperation$.next(this._pendingOperation$.value - 1);
-        return r;
-      }).catch(e => {
-        this._pendingOperation$.next(this._pendingOperation$.value - 1);
-        return Promise.reject(e);
-      });
+    return new Promise<T>((resolve, reject) => {
+      setTimeout(() => {
+        this._pendingOperation$.next(this._pendingOperation$.value + 1);
+        firstValueFrom(this.syncStatus$.pipe(filter(s => !s?.inProgress)))
+        .then(() => {
+          if (db != this.db) return Promise.reject();
+          return op().then(r => { // NOSONAR
+            this._pendingOperation$.next(this._pendingOperation$.value - 1);
+            return r;
+          }).catch(e => { // NOSONAR
+            this._pendingOperation$.next(this._pendingOperation$.value - 1);
+            return Promise.reject(e);
+          });
+        })
+        .then(resolve).catch(reject);
+      }, 0);
     });
   }
 
-  private sync(): void {
-    if (!this.db) return;
+  private sync(): Observable<boolean> {
+    if (!this.db) return EMPTY;
     const db = this.db;
-    this._pendingOperation$.pipe(
+    return this._pendingOperation$.pipe(
       filter(nb => nb === 0),
       first(),
-    ).subscribe(() => { if (this.db === db) this.doSync(); });
+      switchMap(() => this.db === db ? this.doSync() : EMPTY),
+    );
   }
 
-  private doSync(): void {
-    this.ngZone.runOutsideAngular(() => {
+  private doSync(): Observable<boolean> {
+    return this.ngZone.runOutsideAngular(() => {
       const db = this.db!;
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
-      this.syncCreatedLocally(db).pipe(
-        switchMap(() => this.db === db ? this.syncDeletedLocally(db) : EMPTY),
-        switchMap(() => this.db === db ? this.syncUpdatesFromServer(db) : EMPTY),
-        switchMap(() => this.db === db ? this.syncUpdatesToServer(db) : EMPTY),
-        switchMap(() => this.db === db ? this.hasLocalChanges() : EMPTY)
-      ).subscribe(hasLocalChanges => {
-        if (this.db !== db) return;
-        const status = this.syncStatus$.value!;
-        status.hasLocalChanges = hasLocalChanges;
-        status.inProgress = false;
-        status.needsUpdateFromServer = false;
-        status.lastUpdateFromServer = Date.now();
-        this.syncStatus$.next(status);
-      });
+      return this.syncCreatedLocally(db).pipe(
+        switchMap(r => r ? (this.db === db ? this.syncDeletedLocally(db) : EMPTY) : of(false)),
+        switchMap(r => r ? (this.db === db ? this.syncUpdatesFromServer(db) : EMPTY) : of(false)),
+        switchMap(r => r ? (this.db === db ? this.syncUpdatesToServer(db) : EMPTY) : of(false)),
+        switchMap(r => this.db === db ? this.hasLocalChanges().pipe(map(l => ([l, r] as [boolean, boolean]))) : EMPTY),
+        map(([hasLocalChanges, syncComplete]) => {
+          if (this.db !== db) return false;
+          const status = this.syncStatus$.value!;
+          status.hasLocalChanges = hasLocalChanges;
+          status.inProgress = false;
+          status.needsUpdateFromServer = !syncComplete;
+          status.lastUpdateFromServer = syncComplete ? Date.now() : 0;
+          this.syncStatus$.next(status);
+          return !syncComplete;
+        })
+      );
     });
   }
 
@@ -743,12 +751,12 @@ export class TrackDatabase {
           requests.push(limiter.add(request));
         });
         if (requests.length === 0) return of([]);
-        return zip(requests).pipe(defaultIfEmpty(false));
+        return zip(requests).pipe(map(() => items.length < 50), defaultIfEmpty(true));
       }),
       catchError(error => {
         // should not happen
         Console.error('error creating tracks on server', error);
-        return of(false);
+        return of(true);
       })
     );
   }
@@ -789,14 +797,14 @@ export class TrackDatabase {
         Console.info('' + uuids.length + ' tracks to be deleted on server');
         return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids) : EMPTY).pipe(
           defaultIfEmpty(true),
-          switchMap(result => {
+          switchMap(() => {
             if (this.db !== db) return EMPTY;
-            return from(this.fullTrackTable!.bulkDelete(keys));
+            return from(this.fullTrackTable!.bulkDelete(keys)).pipe(map(() => uuids.length < 50));
           }),
           catchError(error => {
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
             Console.error('Error deleting tracks from the server', error);
-            return of(false);
+            return of(true);
           })
         );
       })
@@ -851,7 +859,8 @@ export class TrackDatabase {
                 ));
                 operations$ = operations$.pipe(
                   switchMap(() => (requests.length === 0 ? of([]) : zip(requests)).pipe(
-                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), [])) // NOSONAR
+                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), [])), // NOSONAR
+                    map(() => true), // NOSONAR
                   ))
                 );
               }
@@ -861,7 +870,7 @@ export class TrackDatabase {
           catchError(error => {
             // should never happen
             Console.error('error getting track updates from server', error);
-            return of(false);
+            return of(true);
           })
         );
       })
@@ -891,13 +900,14 @@ export class TrackDatabase {
         });
         return (requests.length === 0 ? of([]) : zip(requests)).pipe(
           switchMap(responses => this.updatesFromServer(db, responses, [])),
-          defaultIfEmpty(false),
+          map(() => items.length < 50),
+          defaultIfEmpty(true),
         );
       }),
       catchError(error => {
         // should never happen
         Console.error('error sending tracks updates', error);
-        return of(false);
+        return of(true);
       })
     );
   }

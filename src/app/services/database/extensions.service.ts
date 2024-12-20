@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, filter, first, map, Observable } from 'rxjs';
+import { BehaviorSubject, catchError, EMPTY, filter, first, from, map, Observable, of, switchMap } from 'rxjs';
 import { Extension } from 'src/app/model/extension';
 import { DatabaseService, EXTENSIONS_TABLE_NAME } from './database.service';
 import { StoreSyncStatus } from './store';
@@ -125,58 +125,69 @@ export class ExtensionsService {
     this._syncStatus$.next(this._syncStatus$.value);
   }
 
-  private sync(): void {
-    if (!this._db) return;
+  private sync(): Observable<boolean> {
+    if (!this._db) return EMPTY;
     const db = this._db;
-    this._pendingOperation$.pipe(
+    return this._pendingOperation$.pipe(
       filter(nb => nb === 0),
       first(),
-    ).subscribe(() => { if (this._db === db) this.doSync(); });
+      switchMap(() => this._db === db ? this.doSync() : EMPTY),
+    );
   }
 
-  private doSync(): void {
-    if (!this._db) return;
+  private doSync(): Observable<boolean> {
+    if (!this._db) return EMPTY;
     const db = this._db;
     this._syncStatus$.value.inProgress = true;
     this._syncStatus$.next(this._syncStatus$.value);
     Console.info('Sending updates for extensions:', this._extensions$.value.length);
-    this.http.post<DbItem[]>(environment.apiBaseUrl + '/extensions/v1', this._extensions$.value.map(e => ({version: e.version, extension: e.extension, data: e.data}))).subscribe({
-      next: async list => { // NOSONAR
-        if (this._db !== db) return;
-        try {
-          if (!Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
-            Console.info('Extension(s) received from server: ', list.length);
-            const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
-            this._extensions$.next(extensions);
-            await this._db.transaction('rw', [EXTENSIONS_TABLE_NAME], async () => {
-              await db.table<DbItem>(EXTENSIONS_TABLE_NAME).clear();
-              for (const extension of extensions) {
-                await db.table<DbItem>(EXTENSIONS_TABLE_NAME).put({
-                  version: extension.version,
-                  extension: extension.extension,
-                  data: extension.data
-                });
-              }
-            });
-          } else {
-            Console.info('Extensions sync without change', list.length);
-          }
-        } catch (e) {
-          Console.error('Error computing extensions received from server', e);
+    return this.http.post<DbItem[]>(environment.apiBaseUrl + '/extensions/v1', this._extensions$.value.map(e => ({version: e.version, extension: e.extension, data: e.data})))
+    .pipe(
+      switchMap(list => {
+        if (this._db !== db) return EMPTY;
+        if (Arrays.sameContent(list, this._extensions$.value, (i1, i2) => i1.extension === i2.extension && i1.version === i2.version)) {
+          Console.info('Extensions sync without change', list.length);
+          return of(true);
         }
+        Console.info('Extension(s) received from server: ', list.length);
+        const extensions = list.map(item => new Extension(item.version, item.extension, item.data));
+        this._extensions$.next(extensions);
+        return from(
+          this._db.transaction('rw', [EXTENSIONS_TABLE_NAME], async () => {
+            await db.table<DbItem>(EXTENSIONS_TABLE_NAME).clear();
+            for (const extension of extensions) {
+              await db.table<DbItem>(EXTENSIONS_TABLE_NAME).put({
+                version: extension.version,
+                extension: extension.extension,
+                data: extension.data
+              });
+            }
+          })
+        ).pipe(
+          map(() => true),
+          catchError(e => {
+            Console.error('Error computing extensions received from server', e);
+            return of(true);
+          })
+        );
+      }),
+      map(() => { // NOSONAR
+        if (this._db !== db) return false;
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.value.needsUpdateFromServer = false;
         this._syncStatus$.value.lastUpdateFromServer = Date.now();
         this._syncStatus$.value.hasLocalChanges = false;
         this._syncStatus$.next(this._syncStatus$.value);
-      },
-      error: e => {
-        if (this._db !== db) return;
+        return false;
+      }),
+      catchError(e => {
+        if (this._db !== db) return EMPTY;
         Console.error('Error loading extensions', e);
         this._syncStatus$.value.inProgress = false;
         this._syncStatus$.next(this._syncStatus$.value);
-      }
-    });
+        return of(false);
+      })
+    );
   }
 
 }

@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap } from "rxjs";
 import { Store, StoreSyncStatus } from "./store";
 import { Table } from "dexie";
 import { Injector } from "@angular/core";
@@ -150,22 +150,24 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       return true;
     }
 
-    protected override sync(): void {
-      this._operationInProgress$.pipe(
+    protected override sync(): Observable<boolean> {
+      const db = this._db;
+      return this._operationInProgress$.pipe(
         filter(p => !p),
-        first()
-      ).subscribe(() => this._sync());
+        first(),
+        switchMap(() => this._db === db ? this._sync() : EMPTY),
+      );
     }
 
-    private _sync(): void {
-      this.ngZone.runOutsideAngular(() => {
+    private _sync(): Observable<boolean> {
+      return this.ngZone.runOutsideAngular(() => {
         const db = this._db;
         const stillValid = () => this._db === db;
 
         this._syncStatus$.value.inProgress = true;
         this._syncStatus$.next(this._syncStatus$.value);
 
-        this.syncCreateNewItems(stillValid)
+        return this.syncCreateNewItems(stillValid)
         .pipe(
           switchMap(result => {
             if (!stillValid()) return of(false);
@@ -183,22 +185,22 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             }
             return this.syncGetAllFromServer(stillValid);
           }),
-        ).subscribe({
-          next: result => {
-            if (stillValid()) {
-              if (result) {
-                this._syncStatus$.value.needsUpdateFromServer = false;
-                this._syncStatus$.value.lastUpdateFromServer = Date.now();
-              }
-              this._syncStatus$.value.inProgress = false;
-              this._syncStatus$.next(this._syncStatus$.value);
+          switchMap(result => {
+            if (!stillValid()) return EMPTY;
+            if (result) {
+              this._syncStatus$.value.needsUpdateFromServer = false;
+              this._syncStatus$.value.lastUpdateFromServer = Date.now();
             }
-          },
-          error: error => {
+            this._syncStatus$.value.inProgress = false;
+            this._syncStatus$.next(this._syncStatus$.value);
+            return of(this._syncStatus$.value.hasLocalChanges);
+          }),
+          catchError(error => {
             // should never happen
             Console.error(error);
-          }
-        });
+            return of(false);
+          }),
+        );
       });
     }
 

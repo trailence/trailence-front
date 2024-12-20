@@ -92,7 +92,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
   protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
 
-  protected abstract sync(): void;
+  protected abstract sync(): Observable<boolean>;
 
   protected close(): void {
     if (!this._db) return;
@@ -144,7 +144,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract afterClosed(): void;
 
-  private readonly operationsQueue$ = new BehaviorSubject<((resolve: (done: boolean) => void) => void)[]>([]);
+  protected readonly operationsQueue$ = new BehaviorSubject<((resolve: (done: boolean) => void) => void)[]>([]);
 
   protected performOperation(
     storeUpdater: () => void,
@@ -209,11 +209,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this.syncStatus$.pipe(
         filter(s => !s.inProgress),
         first(),
-      ).subscribe(() => setTimeout(() => this.executeNextOperation(), 0));
+      ).subscribe(() => setTimeout(() => this.executeNextOperation(Date.now(), 0), 0));
     });
   }
 
-  private executeNextOperation(): void {
+  private executeNextOperation(startTime: number, deep: number): void {
     if (this.operationsQueue$.value.length === 0) {
       this._operationInProgress$.next(false);
       return;
@@ -222,7 +222,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     operation(() => {
       this.ngZone.runOutsideAngular(() => {
         this.operationsQueue$.next(this.operationsQueue$.value);
-        setTimeout(() => this.executeNextOperation(), 0);
+        if (Date.now() - startTime > 1000 || deep > 100) {
+          Console.info('Store ' + this.tableName + ': still ' + this.operationsQueue$.value.length + ' operations pending');
+          setTimeout(() => this.executeNextOperation(Date.now(), 0), 0);
+        } else
+          this.executeNextOperation(startTime, deep + 1);
       });
     });
   }

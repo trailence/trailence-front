@@ -16,7 +16,7 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { TrackService } from './track.service';
-import { catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, first, firstValueFrom, forkJoin, from, map, Observable, of, switchMap, timeout, zip } from 'rxjs';
+import { catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, first, firstValueFrom, forkJoin, from, map, Observable, of, switchMap, tap, timeout, zip } from 'rxjs';
 import { TrailService } from './trail.service';
 import { TrailCollectionService } from './trail-collection.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -29,6 +29,8 @@ import { copyPoint } from 'src/app/model/point';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { filterDefined, filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
+import { IdGenerator } from 'src/app/utils/component-utils';
+import { DependenciesService } from './dependencies.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -307,6 +309,7 @@ export class TrailMenuService {
     const email = this.injector.get(AuthService).email!;
     let zipEntries = 0;
     let zipErrors: any[] = [];
+    const allDone: Promise<any>[] = [];
     this.injector.get(FileService).openFileDialog({
       types: [
         {
@@ -348,11 +351,17 @@ export class TrailMenuService {
                 const readNextZipEntry = (entryIndex: number) => { // NOSONAR
                   const gpxFile = gpxFiles[entryIndex];
                   return gpxFile.async('arraybuffer')
-                  .then(arraybuffer => this.importGpx(arraybuffer, email, collectionUuid, zip))
+                  .then(arraybuffer => {
+                    const r = this.importGpx(arraybuffer, email, collectionUuid, zip);
+                    allDone.push(r.allDone.catch(e => null));
+                    r.allDone.then(() => {
+                      progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
+                      progress.addWorkDone(1);
+                    });
+                    return r.imported;
+                  })
                   .then(result => {
                     done.push(result);
-                    progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
-                    progress.addWorkDone(1);
                     if (entryIndex === gpxFiles.length - 1) {
                       resolve(done);
                     } else {
@@ -375,8 +384,9 @@ export class TrailMenuService {
             });
           }
         }
-        return this.importGpx(file, email, collectionUuid)
+        return this.importGpx(file, email, collectionUuid).allDone
         .then(result => {
+          allDone.push(Promise.resolve(result));
           progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
           progress.addWorkDone(1);
           return [result];
@@ -387,18 +397,23 @@ export class TrailMenuService {
         })
       },
       ondone: (progress: Progress | undefined, imported: ({trailUuid: string, tags: string[][], source?: string})[][], errors: any[]) => {
-        progress?.done();
-        if (errors.length > 0)
-          this.injector.get(ErrorService).addErrors(errors);
-        if (zipErrors.length > 0)
-          this.injector.get(ErrorService).addErrors(zipErrors);
-        const importedTrails = Arrays.flatMap(imported, a => a);
-        this.finishImport(importedTrails, collectionUuid);
+        Promise.all(allDone).then(() => {
+          progress?.done();
+          if (errors.length > 0)
+            this.injector.get(ErrorService).addErrors(errors);
+          if (zipErrors.length > 0)
+            this.injector.get(ErrorService).addErrors(zipErrors);
+          const importedTrails = Arrays.flatMap(imported, a => a);
+          this.finishImport(importedTrails, collectionUuid);
+        });
       }
     });
   }
 
-  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, zip?: any): Promise<{trailUuid: string, tags: string[][], source?: string}> {
+  public importGpx(file: ArrayBuffer, owner: string, collectionUuid: string, zip?: any): {
+    imported: Promise<{trailUuid: string, tags: string[][], source?: string}>,
+    allDone: Promise<{trailUuid: string, tags: string[][], source?: string}>
+   } {
     try {
       const imported = GpxFormat.importGpx(file, owner, collectionUuid, this.injector.get(PreferencesService));
       if (imported.tracks.length === 1) {
@@ -407,14 +422,14 @@ export class TrailMenuService {
         imported.tracks.push(improved);
       }
       let result$: Promise<any> = Promise.resolve(true);
-      result$ = result$.then(() => new Promise(resolve => {
+      this.injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
+      const dbDone = new Promise<any>(resolve => {
         const done = new CompositeOnDone(() => resolve(true));
-        this.injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
         this.injector.get(TrackService).create(imported.tracks[0], done.add());
         this.injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1], done.add());
         this.injector.get(TrailService).create(imported.trail, done.add());
         done.start();
-      }));
+      });
       const result = {trailUuid: imported.trail.uuid, tags: imported.tags, source: imported.source};
       // photos
       if (imported.photos.length > 0 && zip) {
@@ -443,9 +458,9 @@ export class TrailMenuService {
           }
         }
       }
-      return result$.then(() => result);
+      return { imported: result$.then(() => result), allDone: result$.then(() => dbDone.then(() => result)) };
     } catch (e) {
-      return Promise.reject(e);
+      return { imported: Promise.reject(e), allDone: Promise.reject(e) };
     }
   }
 
@@ -947,9 +962,8 @@ export class TrailMenuService {
     let done = 0;
     const tagService = this.injector.get(TagService);
     progress.subTitle = '0/' + trails.length;
-    const trailsPresentOnServer = trails.filter(t => t.version > 0);
-    if (trailsPresentOnServer.length > 0)
-      moves$.push(this.injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailsNotSync(trailsPresentOnServer));
+    const eventId = IdGenerator.generateId();
+    this.injector.get(TrailCollectionService).doNotDeleteCollectionUntilEvent(trails[0].collectionUuid, trails[0].owner, eventId);
     for (const trail of trails) {
       if (trail.owner === email) {
         progress.addWorkToDo(1);
@@ -958,19 +972,32 @@ export class TrailMenuService {
           return {originalTrail: trail, tags};
         })));
       }
+      const originalCollection = trail.collectionUuid;
       moves$.push(from(new Promise(resolve => {
-        this.injector.get(TrailService).doUpdate(trail, t => t.collectionUuid = toCollection.uuid, () => {
-          tagService.deleteTrailTagsForTrail(trail.uuid, () => {
-            progress.addWorkDone(1);
-            progress.subTitle = (++done) + '/' + trails.length;
-            resolve(true);
-          });
+        tagService.deleteTrailTagsForTrail(trail.uuid, () => {
+          this.injector.get(TrailService).doUpdate(
+            trail,
+            t => {
+              t.collectionUuid = toCollection.uuid;
+            },
+            t => {
+              (t.version > 0 ? this.injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailNotSync(originalCollection, t) : Promise.resolve())
+              .then(() => { // NOSONAR
+                progress.addWorkDone(1);
+                progress.subTitle = (++done) + '/' + trails.length;
+                resolve(true);
+              });
+            }
+          );
         });
       })));
     }
+    const movesDone$ = zip(moves$).pipe(
+      tap(() => this.injector.get(DependenciesService).fireEvent(eventId))
+    );
 
     (originalTags$.length > 0 ? zip(originalTags$) : of([])).pipe(
-      switchMap(tags => zip(moves$).pipe(map(() => tags))),
+      switchMap(tags => movesDone$.pipe(map(() => tags))),
       first(),
     ).subscribe(tags => {
       const trailTags = tags.filter(t => t.tags.length > 0);

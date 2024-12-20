@@ -1,7 +1,9 @@
 import { App } from '../../app/app';
+import { Page } from '../../app/pages/page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { CollectionModal } from '../../components/collection.modal';
 import { FindDuplicatesModal } from '../../components/find-duplicates.modal';
+import { HeaderComponent } from '../../components/header.component';
 import { TrailsList } from '../../components/trails-list.component';
 import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
@@ -104,6 +106,7 @@ describe('Find Duplicates', () => {
     expect(await list.items.length).toBe(1);
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My Trails'));
     await App.synchronize();
   });
 

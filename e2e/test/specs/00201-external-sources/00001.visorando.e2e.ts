@@ -90,7 +90,7 @@ describe('Import data from Visorando', () => {
   it('Import from clipboard', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
     (await list.moreMenu()).clickItemWithText('Import from URL');
-    const modal = new ImportFromURLModal(await App.waitModal());
+    let modal = new ImportFromURLModal(await App.waitModal());
 
     try { await browser.setPermissions({name: 'clipboard-read'}, 'granted'); }
     catch (e) {} // firefox does not support it
@@ -104,17 +104,38 @@ describe('Import data from Visorando', () => {
     await browser.waitUntil(() => browser.$('h2=Photos').isExisting());
     await browser.action('key').down(Key.Ctrl).down('a').up('a').down('c').up('c').up(Key.Ctrl).perform();
     await browser.closeWindow();
-    const handles = await browser.getWindowHandles();
+    let handles = await browser.getWindowHandles();
     await browser.switchToWindow(handles[handles.length - 1]);
 
     await modal.fromClipboardButton.click();
     await modal.importFrom('Visorando');
 
-    const trail = await list.waitTrail(hautMontetName);
+    let trail = await list.waitTrail(hautMontetName);
     expect(await trail.getTrailMetadata('location')).toBe(hautMontetLocation);
     await trail.expectPhotos();
     await trail.delete();
     expect(await list.items.length).toBe(0);
+
+
+    await browser.newWindow('https://www.visorando.com/page-ggpolice/', { type: 'tab' });
+    await browser.waitUntil(() => browser.$('h2=Mes circuits de randonnée').isExisting());
+    await browser.action('key').down(Key.Ctrl).down('a').up('a').down('c').up('c').up(Key.Ctrl).perform();
+    await browser.closeWindow();
+    handles = await browser.getWindowHandles();
+    await browser.switchToWindow(handles[handles.length - 1]);
+
+    (await list.moreMenu()).clickItemWithText('Import from URL');
+    modal = new ImportFromURLModal(await App.waitModal());
+    await modal.fromClipboardButton.click();
+    await modal.importFrom('Visorando');
+
+    trail = await list.waitTrail(hautMontetName);
+    expect(await trail.getTrailMetadata('location')).toBe(hautMontetLocation);
+    await trail.expectPhotos();
+    await list.selectAllCheckbox.setSelected(true);
+    await list.selectionMenu('Delete');
+    await (await App.waitAlert()).clickButtonWithRole('danger');
+    await browser.waitUntil(() => list.items.length.then(nb => nb === 0));
   });
 
   it('Import with unknown URL', async () => {

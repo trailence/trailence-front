@@ -111,7 +111,7 @@ export class ImageUtils {
           offset += 4;
 					break;
 				case 0xDD:
-					offset += 2; // TODO check if 2 or 4
+					offset += 2;
 					break;
 				case 0xDF:
 					offset += 3;

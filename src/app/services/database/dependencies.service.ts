@@ -9,6 +9,8 @@ export class DependenciesService {
     private readonly injector: Injector,
   ) {}
 
+  private readonly events = new Map<string, {storeName: string, itemKey: string, operation: ServerOperation}[]>();
+
   public operationDone(storeName: string, operation: ServerOperation, items: string[]): void {
     if (items.length === 0) return;
     const db = this.injector.get(DatabaseService).db;
@@ -93,22 +95,44 @@ export class DependenciesService {
     });
   }
 
+  public addEventDependency(storeName: string, itemKey: string, operation: ServerOperation, eventId: string): void {
+    Console.info('Add dependency on event ' + eventId + ' for ' + operation + ' ' + storeName + ' ' + itemKey);
+    const event = this.events.get(eventId);
+    if (!event) this.events.set(eventId, [{storeName, itemKey, operation}]);
+    else event.push({storeName, itemKey, operation});
+  }
+
+  public fireEvent(eventId: string): void {
+    Console.info('Remove dependencies on event ' + eventId);
+    this.events.delete(eventId);
+  }
+
   public canDo(storeName: string, operation: ServerOperation, items: string[]): Promise<string[]> {
+    const filter1 = [...items];
+    for (const event of this.events.values()) {
+      for (const item of event) {
+        if (item.storeName === storeName && item.operation === operation) {
+          const index = filter1.indexOf(item.itemKey);
+          if (index >= 0) filter1.splice(index, 1);
+        }
+      }
+    }
+    if (filter1.length === 0) return Promise.resolve([]);
     const db = this.injector.get(DatabaseService).db;
     if (!db) return Promise.resolve([]);
-    const keys = items.map(i =>storeName + ';' + i);
+    const keys = filter1.map(i =>storeName + ';' + i);
     return db.table<Dependency>(DEPENDENCIES_TABLE_NAME).bulkGet(keys).then(dbItems => {
       const result: string[] = [];
       for (let i = 0; i < dbItems.length; ++i) {
         const dbItem = dbItems[i];
         if (!dbItem) {
           // no dependency => ok
-          result.push(items[i]);
+          result.push(filter1[i]);
         } else {
           const itemOp = dbItem.operations.find(o => o.operation === operation);
           if (!itemOp) {
             // no dependency for this operation => ok
-            result.push(items[i]);
+            result.push(filter1[i]);
           } else {
             // has dependencis => not ok
           }

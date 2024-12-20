@@ -128,7 +128,6 @@ function createDefaultLayer( // NOSONAR
   };
 }
 
-// TODO set boundaries for IGN map ?
 function createIgnLayer(
   injector: Injector,
   name: string,

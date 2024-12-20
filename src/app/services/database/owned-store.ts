@@ -227,53 +227,59 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     this._syncStatus$.next(new OwnedStoreSyncStatus());
   }
 
-  protected override sync(): void {
-    this._operationInProgress$.pipe(
-      filter(p => !p),
-      first()
-    ).subscribe(() => this._sync());
+  protected override sync(): Observable<boolean> {
+    const db = this._db;
+    return this._operationInProgress$.pipe(
+      filter(p => {
+        if (p) Console.info('Store ' + this.tableName + ' waiting for ' + this.operationsQueue$.value.length + ' operations to finish before sync');
+        return !p;
+      }),
+      first(),
+      switchMap(() => this._db === db ? this._sync() : EMPTY),
+    );
   }
 
-  private _sync(): void {
-    this.ngZone.runOutsideAngular(() => {
+  private _sync(): Observable<boolean> {
+    return this.ngZone.runOutsideAngular(() => {
       const db = this._db;
       const stillValid = () => this._db === db;
 
       this._syncStatus$.value.inProgress = true;
       this._syncStatus$.next(this._syncStatus$.value);
 
-      this.syncCreateNewItems(stillValid)
+      return this.syncCreateNewItems(stillValid)
       .pipe(
-        switchMap(result => {
+        switchMap(() => {
           if (!stillValid()) return of(false);
           return this.syncLocalDeleteToServer(stillValid);
         }),
-        switchMap(result => {
+        switchMap(() => {
           if (!stillValid()) return of(false);
           return this.syncUpdateFromServer(stillValid);
         }),
-        switchMap(result => {
+        switchMap(() => {
           if (!stillValid()) return of(false);
           return this.syncUpdateToServer(stillValid);
         }),
-      ).subscribe({
-        next: result => {
-          if (stillValid()) {
-            const status = this._syncStatus$.value;
-            status.localCreates = this._createdLocally.length !== 0;
-            status.localDeletes = this._deletedLocally.length !== 0;
-            status.localUpdates = this._updatedLocally.length !== 0;
-            status.inProgress = false;
-            status.needsUpdateFromServer = false;
-            status.lastUpdateFromServer = Date.now();
-            this._syncStatus$.next(status);
-          }
-        },
-        error: error => {
+        switchMap(() => {
+          if (!stillValid()) return EMPTY;
+          const status = this._syncStatus$.value;
+          status.localCreates = this._createdLocally.length !== 0;
+          status.localDeletes = this._deletedLocally.length !== 0;
+          status.localUpdates = this._updatedLocally.length !== 0;
+          status.inProgress = false;
+          status.needsUpdateFromServer = false;
+          status.lastUpdateFromServer = Date.now();
+          Console.info('Store ' + this.tableName + ' sync: ' + (status.hasLocalChanges ? 'still ' + this._createdLocally.length + ' to create, ' + this._deletedLocally.length + ' to delete, ' + this._updatedLocally.length + ' to update' : 'no more local changes'))
+          this._syncStatus$.next(status);
+          return of(status.hasLocalChanges);
+        }),
+        catchError(error => {
           // should never happen
           Console.error(error);
-        }
-      });
+          return of(false);
+        }),
+      );
     });
   }
 
@@ -293,7 +299,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         }
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server');
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server, ' + notReady.length + ' waiting');
             if (!stillValid()) return of(false);
             return this.updatedDtosFromServer(result);
           }),
@@ -344,7 +350,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         const notReady = toUpdate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
         for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName + ', ' + notReady.length + ' waiting');
           return of(false);
         }
         return this.sendUpdatesToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
