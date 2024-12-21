@@ -114,8 +114,14 @@
           }
         }
       },
-      "searching": "Searching",
-      "search_error": "Error searching trails"
+      "search": {
+        "sources": "Sources",
+        "searching": "Searching",
+        "error": "Error searching trails",
+        "needs_zoom": "Map too wide, zoom in more",
+        "too_much_results": "Too many results",
+        "needs_source": "Please select a source"
+      }
     },
     "trail": {
       "title_compare": "Compare",

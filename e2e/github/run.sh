@@ -18,6 +18,7 @@ export DB_PASSWORD="$(echo $RANDOM | md5sum | head -c 20)"
 export JWT_SECRET="$(echo $RANDOM | md5sum | head -c 32)"
 export TRAILENCE_INIT_USER="user@trailence.org"
 export TRAILENCE_INIT_PASSWORD="$(echo $RANDOM | md5sum | head -c 20)"
+export OUTDOOR_ACTIVE_KEY="yourtest-outdoora-ctiveapi"
 
 docker compose down
 docker compose up -d --wait

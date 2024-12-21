@@ -42,10 +42,12 @@ export class ImportFromUrlComponent {
       this.message = undefined;
       this.detectedSource = undefined;
     } else {
-      this.detectedSource = this.fetchSourceService.canFetchTrailByUrl(value)?.name;
-      if (!this.detectedSource) this.detectedSource = this.fetchSourceService.canFetchTrailsByUrl(value)?.name;
-      if (!this.detectedSource) this.message = this.i18n.texts.pages.import_from_url.unknown_source;
-      else this.message = undefined;
+      this.fetchSourceService.waitReady$().subscribe(() => {
+        this.detectedSource = this.fetchSourceService.canFetchTrailByUrl(value)?.name;
+        if (!this.detectedSource) this.detectedSource = this.fetchSourceService.canFetchTrailsByUrl(value)?.name;
+        if (!this.detectedSource) this.message = this.i18n.texts.pages.import_from_url.unknown_source;
+        else this.message = undefined;
+      });
     }
   }
 
@@ -62,13 +64,15 @@ export class ImportFromUrlComponent {
             html.text().then(txt => {
               const parser = new DOMParser();
               const doc = parser.parseFromString(txt, 'text/html');
-              const source = this.fetchSourceService.canFetchTrailsByContent(doc);
-              if (source) {
-                this.clipboard = doc;
-                this.detectedSource = source.name;
-              } else {
-                this.message = this.i18n.texts.pages.import_from_url.nothing_found_in_clipboard;
-              }
+              this.fetchSourceService.waitReady$().subscribe(() => {
+                const source = this.fetchSourceService.canFetchTrailsByContent(doc);
+                if (source) {
+                  this.clipboard = doc;
+                  this.detectedSource = source.name;
+                } else {
+                  this.message = this.i18n.texts.pages.import_from_url.nothing_found_in_clipboard;
+                }
+              });
             });
           }).catch(e => {
             Console.error('Error reading html from clipboard', e);

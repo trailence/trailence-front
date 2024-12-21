@@ -1,0 +1,15 @@
+<div class="source-selection" *ngIf="!searching">
+  <ion-select
+    [multiple]="true"
+    [value]="plugins$.value"
+    (ionChange)="setPlugins($event.detail.value)"
+    [label]="i18n.texts.pages.trails.search.sources"
+    labelPlacement="fixed"
+  >
+    <ion-select-option *ngFor="let plugin of availablePlugins" [value]="plugin.name">{{plugin.name}}</ion-select-option>
+  </ion-select>
+</div>
+<div class="searching" *ngIf="searching">
+  <span>{{i18n.texts.pages.trails.search.searching}}</span>
+  <ion-spinner name="dots"></ion-spinner>
+</div>

@@ -501,19 +501,31 @@ export class TrailMenuService {
     let toImport = imported.filter(t => !!t.source);
     if (toImport.length === 0) return Promise.resolve(true);
     const fetchService = this.injector.get(FetchSourceService);
-    toImport = toImport.filter(t => fetchService.canFetchTrailInfo(t.source!));
-    if (toImport.length === 0) return Promise.resolve(true);
-    return import('../../components/fetch-source-popup/fetch-source-popup.component')
-    .then(module => this.injector.get(ModalController).create({
-      component: module.FetchSourcePopupComponent,
-      backdropDismiss: false,
-      componentProps: {
-        trails: toImport.map(t => ({trailUuid: t.trailUuid, source: t.source!})),
-      }
-    }))
-    .then(modal => {
-      modal.present();
-      return modal.onDidDismiss();
+    return new Promise(resolve => {
+      fetchService.waitReady$().subscribe(r => {
+        if (!r) {
+          resolve(true);
+          return;
+        }
+        toImport = toImport.filter(t => fetchService.canFetchTrailInfo(t.source!));
+        if (toImport.length === 0) {
+          resolve(true);
+          return;
+        }
+        import('../../components/fetch-source-popup/fetch-source-popup.component')
+        .then(module => this.injector.get(ModalController).create({
+          component: module.FetchSourcePopupComponent,
+          backdropDismiss: false,
+          componentProps: {
+            trails: toImport.map(t => ({trailUuid: t.trailUuid, source: t.source!})),
+          }
+        }))
+        .then(modal => {
+          modal.present();
+          return modal.onDidDismiss();
+        })
+        .then(resolve);
+      });
     });
   }
 

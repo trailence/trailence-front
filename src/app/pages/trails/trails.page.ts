@@ -1,8 +1,8 @@
-import { Component, Injector, Input } from '@angular/core';
+import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, catchError, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, catchError } from 'rxjs';
 import { Router } from '@angular/router';
 import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -22,12 +22,12 @@ import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AuthResponse } from 'src/app/services/auth/auth-response';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import { BrowserService } from 'src/app/services/browser/browser.service';
 import L from 'leaflet';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { IonSpinner } from '@ionic/angular/standalone';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Arrays } from 'src/app/utils/arrays';
+import { SearchTrailsHeaderComponent } from 'src/app/components/search-trails-header/search-trails-header.component';
 
 @Component({
     selector: 'app-trails-page',
@@ -37,7 +37,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
         CommonModule,
         HeaderComponent,
         TrailsAndMapComponent,
-        IonSpinner,
+        SearchTrailsHeaderComponent,
     ]
 })
 export class TrailsPage extends AbstractPage {
@@ -53,6 +53,12 @@ export class TrailsPage extends AbstractPage {
   viewId?: string;
 
   searching = false;
+  searchWith$ = new BehaviorSubject<string[]>([]);
+  searchMessage?: string;
+
+  private readonly _trailsAndMap$ = new BehaviorSubject<TrailsAndMapComponent | undefined>(undefined);
+
+  @ViewChild('trailsAndMap', { read: TrailsAndMapComponent }) set trailsAndMap(v: TrailsAndMapComponent) { this._trailsAndMap$.next(v); }
 
   constructor(
     injector: Injector,
@@ -78,140 +84,148 @@ export class TrailsPage extends AbstractPage {
     }
     this.reset();
     if (!newState.type) return;
-    if (newState.type === 'collection') {
-      // title is collection name, or default
-      this.byState.add(this.injector.get(AuthService).auth$.pipe(
-        filterDefined(),
-        switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth.email)),
-        switchMap(collection => {
-          if (!collection) return this.onItemEmpty<string>(
-            () => this.injector.get(TrailCollectionService).storeLoadedAndServerUpdates$(),
-            auth => this.injector.get(TrailCollectionService).getCollection$(newState.id, auth.email)
+    switch (newState.type) {
+      case 'collection': this.initCollection(newState.id); break;
+      case 'share': this.initShare(newState.id, newState.from); break;
+      case 'search': this.initSearch(); break;
+      default: this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
+    }
+  }
+
+  private initCollection(collectionUuid: string): void {
+    // title is collection name, or default
+    this.byState.add(this.injector.get(AuthService).auth$.pipe(
+      filterDefined(),
+      switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)),
+      switchMap(collection => {
+        if (!collection) return this.onItemEmpty<string>(
+          () => this.injector.get(TrailCollectionService).storeLoadedAndServerUpdates$(),
+          auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)
+        );
+        this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
+        // menu
+        this.actions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
+        if (collection.name.length > 0) return of(collection.name);
+        if (collection.type === TrailCollectionType.MY_TRAILS)
+          return this.i18n.texts$.pipe(map(texts => texts.my_trails));
+        return of('');
+      })
+    ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    // trails from collection
+    this.byStateAndVisible.subscribe(
+      this.injector.get(TrailService).getAll$().pipe(
+        collection$items(trail => trail.collectionUuid === collectionUuid)
+      ),
+      trails => {
+        const newList = List(trails);
+        if (!newList.equals(this.trails$.value))
+          this.ngZone.run(() => this.trails$.next(newList));
+      }
+    );
+  }
+
+  private initShare(shareId: string, sharedBy: string): void {
+    this.byStateAndVisible.subscribe(
+      this.injector.get(ShareService).getShare$(shareId, sharedBy).pipe(
+        switchMap(share => {
+          if (!share) return this.onItemEmpty<{share: Share, trails: Trail[]}>(
+            () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
+            () => this.injector.get(ShareService).getShare$(shareId, sharedBy),
           );
-          this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
-          // menu
-          this.actions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
-          if (collection.name.length > 0) return of(collection.name);
-          if (collection.type === TrailCollectionType.MY_TRAILS)
-            return this.i18n.texts$.pipe(map(texts => texts.my_trails));
-          return of('');
-        })
-      ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
-      // trails from collection
-      this.byStateAndVisible.subscribe(
-        this.injector.get(TrailService).getAll$().pipe(
-          collection$items(trail => trail.collectionUuid === newState.id)
-        ),
-        trails => {
-          const newList = List(trails);
-          if (!newList.equals(this.trails$.value))
-            this.ngZone.run(() => this.trails$.next(newList));
-        }
-      );
-    } else if (newState.type === 'share') {
-      this.byStateAndVisible.subscribe(
-        this.injector.get(ShareService).getShare$(newState.id, newState.from).pipe(
-          switchMap(share => {
-            if (!share) return this.onItemEmpty<{share: Share, trails: Trail[]}>(
-              () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
-              () => this.injector.get(ShareService).getShare$(newState.id, newState.from),
-            );
-            if (share.from === this.injector.get(AuthService).email) {
-              if (share.type === ShareElementType.TRAIL)
-                return this.injector.get(TrailService).getAll$().pipe(
-                  collection$items(),
-                  map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.uuid) >= 0)),
-                  map(trails => ({share, trails}))
-                );
-              if (share.type === ShareElementType.COLLECTION)
-                return this.injector.get(TrailService).getAll$().pipe(
-                  collection$items(),
-                  map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.collectionUuid) >= 0)),
-                  map(trails => ({share, trails}))
-                );
-              return this.injector.get(TagService).getAllTrailsTags$().pipe(
-                collection$items(),
-                map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
-                switchMap(uuids => this.injector.get(TrailService).getAll$().pipe(
-                  collection$items(),
-                  map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)), // NOSONAR
-                  map(trails => ({share, trails}))
-                ))
-              )
-            } else {
+          if (share.from === this.injector.get(AuthService).email) {
+            if (share.type === ShareElementType.TRAIL)
               return this.injector.get(TrailService).getAll$().pipe(
                 collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.from && share.trails.indexOf(trail.uuid) >= 0)),
+                map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.uuid) >= 0)),
                 map(trails => ({share, trails}))
               );
-            }
-          })
-        ), (result: {share: Share, trails: Trail[]}) => {
-          this.ngZone.run(() => {
-            this.title$.next(result.share.name);
-            const newList = List(result.trails);
-            if (!newList.equals(this.trails$.value))
-              this.trails$.next(newList);
-            this.viewId = "share-" + result.share.id + "-" + result.share.from;
-            this.actions = this.injector.get(ShareService).getShareMenu(result.share);
-          });
-        });
-    } else if (newState.type === 'search') {
-      // title
-      this.byStateAndVisible.subscribe(
-        this.i18n.texts$,
-        i18n => this.title$.next(i18n.menu.search_trail)
-      );
-      this.viewId = 'search-trails';
-      // search trails
-      let previousSearch: L.LatLngBounds | undefined = undefined;
-      this.byStateAndVisible.subscribe(
-        timer(1000).pipe(
-          switchMap(() => this.injector.get(BrowserService).hash$),
-          debounceTime(1000),
-          switchMap(hash => {
-            this.ngZone.run(() => this.searching = true);
-            const coords = hash.get('bounds')?.split(',');
-            if (coords?.length !== 4) {
-              previousSearch = undefined;
-              return of([] as Trail[]);
-            }
-            const bounds = L.latLngBounds(
-              {lat: parseFloat(coords[0]), lng: parseFloat(coords[3])},
-              {lat: parseFloat(coords[2]), lng: parseFloat(coords[1])}
+            if (share.type === ShareElementType.COLLECTION)
+              return this.injector.get(TrailService).getAll$().pipe(
+                collection$items(),
+                map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.collectionUuid) >= 0)),
+                map(trails => ({share, trails}))
+              );
+            return this.injector.get(TagService).getAllTrailsTags$().pipe(
+              collection$items(),
+              map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
+              switchMap(uuids => this.injector.get(TrailService).getAll$().pipe(
+                collection$items(),
+                map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)), // NOSONAR
+                map(trails => ({share, trails}))
+              ))
+            )
+          } else {
+            return this.injector.get(TrailService).getAll$().pipe(
+              collection$items(),
+              map(trails => trails.filter(trail => trail.owner === share.from && share.trails.indexOf(trail.uuid) >= 0)),
+              map(trails => ({share, trails}))
             );
-            if (previousSearch?.equals(bounds)) {
-              this.ngZone.run(() => this.searching = false);
-              return EMPTY;
-            }
-            if (bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
-                bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000) {
-                  previousSearch = undefined;
-                  return of([] as Trail[]);
-                }
-            previousSearch = bounds;
-            return this.injector.get(FetchSourceService).searchByArea(bounds);
-          }),
-          catchError(e => {
-            Console.error('Error searching trails', e);
-            this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search_error', []);
-            this.searching = false;
-            return EMPTY;
-          })
-        ),
-        trails => {
-          const newList = List(trails);
-          this.ngZone.run(() => {
-            if (!newList.equals(this.trails$.value))
-              this.trails$.next(newList);
-            this.searching = false;
-          });
-        }
-      )
+          }
+        })
+      ), (result: {share: Share, trails: Trail[]}) => {
+        this.ngZone.run(() => {
+          this.title$.next(result.share.name);
+          const newList = List(result.trails);
+          if (!newList.equals(this.trails$.value))
+            this.trails$.next(newList);
+          this.viewId = "share-" + result.share.id + "-" + result.share.from;
+          this.actions = this.injector.get(ShareService).getShareMenu(result.share);
+        });
+      }
+    );
+  }
 
-    } else {
-      this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
-    }
+  private initSearch(): void {
+    // title
+    this.byStateAndVisible.subscribe(
+      this.i18n.texts$,
+      i18n => this.title$.next(i18n.menu.search_trail)
+    );
+    this.viewId = 'search-trails';
+    // search trails
+    let previousSearch: L.LatLngBounds | undefined = undefined;
+    let previousWith: string[] = [];
+    this.byStateAndVisible.subscribe(
+      combineLatest([
+        this._trailsAndMap$.pipe(
+          switchMap(c => c ? c.map$ : of(undefined)),
+          switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoom$]).pipe(debounceTime(200), map(() => c.getBounds())) : of(undefined))
+        ),
+        this.searchWith$
+      ]).pipe(
+        debounceTime(1000),
+        switchMap(([bounds, plugins]) => {
+          this.searchMessage = plugins.length === 0 ? 'pages.trails.search.needs_source' : undefined;
+          if (!bounds || plugins.length === 0) return of({trails: [], tooMuchResults: false});
+          if (previousSearch?.equals(bounds) && Arrays.sameContent(previousWith, plugins)) return EMPTY;
+          if (bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
+              bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000) {
+                previousSearch = undefined;
+                this.searchMessage = 'pages.trails.search.needs_zoom';
+                return of({trails: [], tooMuchResults: false});
+              }
+          previousSearch = bounds;
+          previousWith = plugins;
+          this.ngZone.run(() => this.searching = true);
+          return this.injector.get(FetchSourceService).searchByArea(bounds, plugins);
+        }),
+        catchError(e => {
+          Console.error('Error searching trails', e);
+          this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
+          this.searching = false;
+          return EMPTY;
+        })
+      ),
+      result => {
+        const newList = List(result.trails);
+        this.ngZone.run(() => {
+          if (!newList.equals(this.trails$.value))
+            this.trails$.next(newList);
+          this.searching = false;
+          if (result.tooMuchResults) this.searchMessage = 'pages.trails.search.too_much_results';
+        });
+      }
+    );
   }
 
   private onItemEmpty<T>(storeReady$: () => Observable<boolean>, getItem$: (auth: AuthResponse) => Observable<any>): Observable<T> {
@@ -241,6 +255,8 @@ export class TrailsPage extends AbstractPage {
     this.trails$.next(List());
     this.actions = [];
     this.searching = false;
+    this.searchMessage = undefined;
+    this.searchWith$.next([]);
   }
 
 }

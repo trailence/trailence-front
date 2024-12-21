@@ -38,6 +38,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @Input() trails: List<Trail> = List();
   @Input() collectionUuid?: string;
 
+  @Input() message?: string;
+
   mode =  '';
   listMetadataClass = 'two-columns';
   tab = 'map';
@@ -55,8 +57,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   showBubbles$ = new BehaviorSubject<boolean>(false);
 
+  private readonly _map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
+
+  public get map$() { return this._map$; }
+  public get map() { return this._map$.value; }
+
   @ViewChild(TrailsListComponent) trailsList?: TrailsListComponent;
-  @ViewChild(MapComponent) map?: MapComponent;
+  @ViewChild(MapComponent) set mapComponent(v: MapComponent) { this._map$.next(v); }
 
   constructor(
     injector: Injector,
@@ -218,8 +225,10 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   private updateVisibility(mapVisible: boolean, listVisible: boolean, trailSheetVisible: boolean): void {
     this._children$.value.forEach(child => {
-      if (child instanceof MapComponent) child.setVisible(mapVisible);
-      else if (child instanceof TrailsListComponent) {
+      if (child instanceof MapComponent) {
+        child.setVisible(mapVisible);
+        if (this.map$.value !== child) this.map$.next(child);
+      } else if (child instanceof TrailsListComponent) {
         child.setVisible(listVisible);
         child.changeDetector.detectChanges();
       } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);

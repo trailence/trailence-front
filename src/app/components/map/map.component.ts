@@ -220,11 +220,11 @@ export class MapComponent extends AbstractComponent {
       if (!isNaN(zoomValue) && zoomValue >= 0 && zoomValue <= 19 && !isNaN(lat) && !isNaN(lng)) {
         if (this._mapState.zoom !== zoomValue || this._mapState.center.lat !== lat || this._mapState.center.lng !== lng) {
           Console.info('Update map ' + this.mapId + ' from hash: zoom from ' + this._mapState.zoom + ' to ' + zoomValue + ' and center from ' + this._mapState.center.lat + ',' + this._mapState.center.lng + ' to ' + lat + ',' + lng);
+          if (this._map$.value) {
+            this._map$.value.setView({lat, lng}, zoomValue);
+          }
           this._mapState.zoom = zoomValue;
           this._mapState.center = {lat, lng};
-          if (this._map$.value) {
-            this._map$.value.setView(this._mapState.center, zoomValue);
-          }
         }
         return true;
       }

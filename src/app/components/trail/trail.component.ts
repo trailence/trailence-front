@@ -384,6 +384,7 @@ export class TrailComponent extends AbstractComponent {
         switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos(trail1) : of(undefined))
       ),
       photos => {
+        console.log(photos);
         if (photos === undefined)
           this.photos = undefined;
         else {

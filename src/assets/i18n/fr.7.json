@@ -114,8 +114,14 @@
           }
         }
       },
-      "searching": "Recherche",
-      "search_error": "Erreur lors de la recherche"
+      "search": {
+        "sources": "Sources",
+        "searching": "Recherche",
+        "error": "Erreur lors de la recherche",
+        "needs_zoom": "Carte trop large, zoomez d'avantage",
+        "too_much_results": "Trop de résultats",
+        "needs_source": "Veuillez sélectionner une source"
+      }
     },
     "trail": {
       "title_compare": "Comparaison de",

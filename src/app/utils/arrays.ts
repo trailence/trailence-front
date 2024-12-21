@@ -41,6 +41,16 @@ export class Arrays {
     return result;
   }
 
+  public static chunk<T>(array: T[], chunkSize: number): T[][] {
+    if (array.length <= chunkSize) return [array];
+    const result: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      if (i + chunkSize >= array.length) result.push(array.slice(i));
+      else result.push(array.slice(i, i + chunkSize));
+    }
+    return result;
+  }
+
 }
 
 export class CollectionMapper<S, T> {

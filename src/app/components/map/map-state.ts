@@ -15,7 +15,7 @@ export class MapState {
   public get center(): L.LatLngLiteral { return this._center$.value; }
   public get center$(): Observable<L.LatLngLiteral> { return this._center$; }
   public set center(value: L.LatLngLiteral) {
-    if (this._center$.value !== value && this._center$.value.lat !== value.lat && this._center$.value.lng !== value.lng)
+    if (this._center$.value.lat !== value.lat && this._center$.value.lng !== value.lng)
       this._center$.next(value);
   }
 

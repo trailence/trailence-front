@@ -1,0 +1,52 @@
+:host {
+  min-height: 36px;
+  max-height: 36px;
+  background-color: var(--ion-background-color);
+  border-bottom: 1px solid var(--ion-background-color-step-100);
+}
+
+.source-selection {
+  padding: 0 8px;
+
+  ion-select {
+    width: auto;
+    display: inline-block;
+    min-height: 35px;
+
+    &::part(text) {
+      color: var(--ion-color-secondary);
+    }
+    &::part(icon) {
+      color: var(--ion-color-secondary);
+    }
+  }
+}
+
+.searching {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 3px 8px;
+
+  ion-spinner {
+    margin-left: 8px;
+  }
+}
+
+@media (max-width: 600px) or (max-height: 600px) {
+  :host {
+    min-height: 30px;
+    max-height: 30px;
+    font-size: 14px;
+
+    .source-selection {
+      ion-select {
+        min-height: 29px;
+      }
+    }
+
+    .searching {
+      padding: 0 8px;
+    }
+  }
+}

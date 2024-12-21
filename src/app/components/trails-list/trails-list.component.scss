@@ -14,6 +14,13 @@
   padding-bottom: 2px;
 }
 
+.message {
+  padding: 4px 8px;
+  border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.1);
+  font-size: 14px;
+  color: var(--ion-color-secondary);
+}
+
 .selection {
   flex: none;
   display: flex;

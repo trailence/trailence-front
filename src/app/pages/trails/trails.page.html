@@ -1,6 +1,17 @@
 <app-header [title]="title$ ? (title$ | async) || '' : ''" [actions]="actions"></app-header>
-<app-trails-and-map *ngIf="viewId" [trails]="(trails$ | async)!" [viewId]="viewId" [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"></app-trails-and-map>
-<div class="searching" *ngIf="searching">
-  <span>{{i18n.texts.pages.trails.searching}}</span>
-  <ion-spinner name="dots"></ion-spinner>
-</div>
+@defer (when trailsType === 'search') {
+  <app-search-trails-header
+    *ngIf="trailsType === 'search'"
+    [plugins$]="searchWith$"
+    [searching]="searching"
+  >
+  </app-search-trails-header>
+}
+<app-trails-and-map
+  #trailsAndMap
+  *ngIf="viewId"
+  [trails]="(trails$ | async)!"
+  [viewId]="viewId"
+  [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"
+  [message]="searchMessage"
+></app-trails-and-map>

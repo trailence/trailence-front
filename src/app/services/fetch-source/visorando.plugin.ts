@@ -17,50 +17,23 @@ import { Track } from 'src/app/model/track';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { Console } from 'src/app/utils/console';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
+import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
 
-interface TrailInfoDto {
+interface TrailInfoDto extends TrailInfoBaseDto {
   keyNumber: string;
   keyGpx: string;
   url: string;
-  info: TrailInfo;
-  fetchDate: number;
 }
 
-interface SimplifiedTrackDto {
-  uuid: string;
-  points: SimplifiedPoint[];
-}
-
-export class VisorandoPlugin implements FetchSourcePlugin {
+export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
 
   public readonly name = 'Visorando';
   public readonly owner = 'visorando';
 
-  private readonly sanitizer: DomSanitizer;
-
-  private readonly tableInfos: Table<TrailInfoDto, string>;
-  private readonly tableTrails: Table<TrailDto, string>;
-  private readonly tableFullTracks: Table<TrackDto, string>;
-  private readonly tableSimplifiedTracks: Table<SimplifiedTrackDto, string>;
-  private readonly tableMetadata: Table<TrackMetadataSnapshot, string>;
-
   constructor(
-    readonly injector: Injector,
+    injector: Injector,
   ) {
-    this.sanitizer = injector.get(DomSanitizer);
-    const db = new Dexie('visorando');
-      const schemaV1: any = {};
-      schemaV1['infos'] = 'keyNumber, keyGpx, url, fetchDate';
-      schemaV1['trails'] = 'uuid';
-      schemaV1['full_tracks'] = 'uuid';
-      schemaV1['simplified_tracks'] = 'uuid';
-      schemaV1['metadata'] = 'uuid';
-      db.version(1).stores(schemaV1);
-      this.tableInfos = db.table<TrailInfoDto, string>('infos');
-      this.tableTrails = db.table<TrailDto, string>('trails');
-      this.tableFullTracks = db.table<TrackDto, string>('full_tracks');
-      this.tableSimplifiedTracks = db.table<SimplifiedTrackDto, string>('simplified_tracks');
-      this.tableMetadata = db.table<TrackMetadataSnapshot, string>('metadata');
+    super(injector, 'visorando', 'keyNumber, keyGpx, url');
   }
 
   public canFetchTrailInfoByUrl(url: string): boolean {
@@ -208,12 +181,13 @@ export class VisorandoPlugin implements FetchSourcePlugin {
     return true;
   }
 
-  public searchByArea(bounds: L.LatLngBounds): Promise<Trail[]> {
+  public searchByArea(bounds: L.LatLngBounds): Promise<{trails: Trail[], tooMuchResults: boolean}> {
     const bbox = '' + bounds.getWest() + '%2C' + bounds.getEast() + '%2C' + bounds.getSouth() + '%2C' + bounds.getNorth();
     return firstValueFrom(this.injector.get(HttpService).get<{id: number, url: string}[]>(environment.apiBaseUrl + '/search-trails/v1/visorando?bbox=' + bbox))
     .then(items => {
-      const nextItems = (found: Trail[], items: {id: number, url: string}[], startIndex: number): Promise<Trail[]> => {
-        if (found.length >= 200 || startIndex >= items.length) return Promise.resolve(found);
+      const nextItems = (found: Trail[], items: {id: number, url: string}[], startIndex: number): Promise<{trails: Trail[], tooMuchResults: boolean}> => {
+        if (found.length >= 200) return Promise.resolve({trails: found, tooMuchResults: true});
+        if (startIndex >= items.length) return Promise.resolve({trails: found, tooMuchResults: false});
         const toFetch = items.slice(startIndex, Math.min(items.length, startIndex + 200 - found.length));
         const trails$: Promise<Trail | null>[] = [];
         for (const item of toFetch) trails$.push(this.fetchTrailByUrl(item.url).catch(e => null));
@@ -360,26 +334,6 @@ export class VisorandoPlugin implements FetchSourcePlugin {
     const promises = [];
     for (const link of validLinks) promises.push(this.fetchTrailByUrl(link));
     return Promise.all(promises).then(list => filterItemsDefined(list));
-  }
-
-  public getTrail(uuid: string): Promise<Trail | null> {
-    return this.tableTrails.get(uuid).then(t => t ? new Trail(t) : null);
-  }
-
-  public getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null> {
-    return this.tableMetadata.get(uuid).then(t => t ?? null);
-  }
-
-  public getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null> {
-    return this.tableSimplifiedTracks.get(uuid).then(t => t ?? null);
-  }
-
-  public getFullTrack(uuid: string): Promise<Track | null> {
-    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService)) : null);
-  }
-
-  public getInfo(uuid: string): Promise<TrailInfo | null> {
-    return this.tableInfos.get(uuid).then(t => t?.info ?? null);
   }
 
   /*

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { CommonModule } from '@angular/common';
@@ -25,6 +25,8 @@ import { TrailTag } from 'src/app/model/trail-tag';
 import { FilterTagsComponent } from '../filters/filter-tags/filter-tags.component';
 import { List } from 'immutable';
 import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
+import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { MenuItem } from 'src/app/utils/menu-item';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -102,6 +104,7 @@ interface TrailWithInfo {
         MenuContentComponent,
         FilterNumericComponent,
         FilterTagsComponent,
+        I18nPipe,
     ]
 })
 export class TrailsListComponent extends AbstractComponent {
@@ -113,6 +116,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   @Input() map?: MapComponent;
   @Input() listId!: string;
+  @Input() message?: string;
 
   id = IdGenerator.generateId();
   highlighted?: Trail;
@@ -125,6 +129,7 @@ export class TrailsListComponent extends AbstractComponent {
   allTrails: TrailWithInfo[] = [];
   mapTrails: TrailWithInfo[] = [];
   listTrails: List<TrailWithInfo> = List();
+  moreMenu: MenuItem[] = [];
 
   durationFormatter = (value: number) => this.i18n.hoursToString(value);
   isPositive = (value: any) => typeof value === 'number' && value > 0;
@@ -193,6 +198,8 @@ export class TrailsListComponent extends AbstractComponent {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState?.collectionUuid !== previousState?.collectionUuid)
       this.loadState();
+
+    this.moreMenu = this.trailMenuService.getTrailsMenu(this.trails.toArray(), false, this.collectionUuid, true);
 
     // if no active filter, we can early emit the list of trails to the map
     if (!this.trails.isEmpty() && this.nbActiveFilters() === 0)
@@ -266,6 +273,10 @@ export class TrailsListComponent extends AbstractComponent {
       },
       true
     );
+  }
+
+  protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
+    if (changes['message']) this.changeDetector.detectChanges();
   }
 
   private applyFilters(): TrailWithInfo[] {
@@ -554,11 +565,11 @@ export class TrailsListComponent extends AbstractComponent {
     this.trailMenuService.openSharePopup(this.collectionUuid!, []);
   }
 
-  moreMenu(event: any): void {
+  showMoreMenu(event: any): void {
     this.injector.get(PopoverController).create({
       component: MenuContentComponent,
       componentProps: {
-        menu: this.trailMenuService.getTrailsMenu(this.trails.toArray(), false, this.collectionUuid, true)
+        menu: this.moreMenu
       },
       event: event,
       side: 'bottom',
