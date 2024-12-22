@@ -222,7 +222,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
                 if (!stillValid()) return of(false);
                 result.forEach(created => {
                   const entity = this.fromDTO(created);
-                  const index = this._createdLocally.findIndex(item$ => item$.value && this.areSame(entity, item$.value)); // NOSONAR
+                  const index = this._createdLocally.findIndex(item$ => item$.value && this.areSame(entity, item$.value));
                   if (index >= 0) this._createdLocally.splice(index, 1);
                 });
                 this._syncStatus$.value.localCreates = this._createdLocally.length !== 0;

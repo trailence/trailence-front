@@ -1,4 +1,6 @@
+import { App } from '../app/app';
 import { Component } from './component';
+import { EditToolElevationThresholdModal } from './edit-tool-elevation-threshold.modal';
 import { IonicButton } from './ionic/ion-button';
 import { IonicInput } from './ionic/ion-input';
 
@@ -10,6 +12,10 @@ export class EditTools extends Component {
 
   public async backToOriginalTrack() {
     await new IonicButton(this.getElement().$('ion-item.button-back-to-original-track')).click();
+  }
+
+  public async removeUnprobableElevations() {
+    await new IonicButton(this.getElement().$('ion-item.button-remove-unprobable-elevations')).click();
   }
 
   public async canJoinArrivalToDeparture() {
@@ -41,6 +47,15 @@ export class EditTools extends Component {
     await new IonicButton(this.getElement().$('ion-item.button-remove-breaks-moves')).click();
     await this.getElement().$('>>>app-edit-tool-remove-breaks-moves').waitForDisplayed();
     return new RemoveBreaksMovesTool(this.getElement().$('>>>app-edit-tool-remove-breaks-moves'));
+  }
+
+  public async openElevationThreshold() {
+    await new IonicButton(this.getElement().$('ion-item.button-elevation-threshold')).click();
+    return new EditToolElevationThresholdModal(await App.waitModal());
+  }
+
+  public async canUndo() {
+    return (await this.getElement().$('app-icon-label-button[icon=undo] div.button-container').getAttribute('class')).indexOf('disabled') >= 0;
   }
 
   public async undo() {

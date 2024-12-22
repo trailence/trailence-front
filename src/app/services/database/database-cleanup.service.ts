@@ -39,7 +39,7 @@ export class DatabaseCleanupService {
       const nextTimeout = Math.max(nextCleanTime - Date.now(), 60000);
       Console.info('Next database cleaning at', new Date(Date.now() + nextTimeout));
       this.timeout = setTimeout(() => {
-        this.doCleaning(this.email!).subscribe((done) => { // NOSONAR
+        this.doCleaning(this.email!).subscribe((done) => {
           if (this.email === auth.email && done) {
             Console.info('Database cleaned, next cleaning in 24 hours');
             localStorage.setItem('trailence.db-cleaning.last-time.' + this.email, '' + Date.now());

@@ -28,10 +28,10 @@
 
     <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.elevation_improvments}}</div>
     <ion-list>
-      <ion-item button (click)="removeUnprobableElevations()">
+      <ion-item button (click)="removeUnprobableElevations()" class="button-remove-unprobable-elevations">
         {{i18n.texts.pages.trail.edit_tools.remove_unprobable_elevations}}
       </ion-item>
-      <ion-item button (click)="openElevationThresholdModal()">
+      <ion-item button (click)="openElevationThresholdModal()" class="button-elevation-threshold">
         {{i18n.texts.pages.trail.edit_tools.apply_elevation_threshold}}
       </ion-item>
     </ion-list>

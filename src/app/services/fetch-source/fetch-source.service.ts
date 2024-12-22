@@ -113,10 +113,8 @@ export class FetchSourceService {
           return plugin.fetchTrailByUrl(url).then(trail => trail ? [trail] : []);
         });
       }
-      if (plugin.canFetchTrailByUrl(url))
-        return plugin.fetchTrailByUrl(url).then(trail => trail ? [trail] : []);
     }
-    return Promise.resolve([]);
+    return this.fetchTrailByUrl(url).then(trail => trail ? [trail] : []);
   }
 
   public canFetchTrailByContent(html: Document): FetchSourcePlugin | undefined {
@@ -129,6 +127,8 @@ export class FetchSourceService {
   public canFetchTrailsByContent(html: Document): FetchSourcePlugin | undefined {
     for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailsByContent(html)) return plugin;
+    }
+    for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailByContent(html)) return plugin;
     }
     return undefined;
@@ -145,6 +145,8 @@ export class FetchSourceService {
     for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailsByContent(html))
         return plugin.fetchTrailsByContent(html);
+    }
+    for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailByContent(html))
         return plugin.fetchTrailByContent(html).then(trail => trail ? [trail] : []);
     }

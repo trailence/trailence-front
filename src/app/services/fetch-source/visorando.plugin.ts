@@ -1,19 +1,14 @@
 import { Injector, SecurityContext } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 import { XmlUtils } from 'src/app/utils/xml-utils';
-import { FetchSourcePlugin, populateWayPointInfo, TrailInfo } from './fetch-source.interfaces';
+import { populateWayPointInfo, TrailInfo } from './fetch-source.interfaces';
 import L from 'leaflet';
-import Dexie, { Table } from 'dexie';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
-import { TrailDto } from 'src/app/model/dto/trail';
-import { TrackDto } from 'src/app/model/dto/track';
-import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from '../database/track-database';
+import { TrackDatabase } from '../database/track-database';
 import { Trail } from 'src/app/model/trail';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
-import { Track } from 'src/app/model/track';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { Console } from 'src/app/utils/console';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -43,7 +38,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   public fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
     if (!url.endsWith('/')) url += '/';
     const fromDb = this.tableInfos.where('url').equalsIgnoreCase(url).first();
-    return fromDb.then(info => info?.info ?? window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => { // NOSONAR
+    return fromDb.then(info => info?.info ?? window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
       return this.fetchTrailInfoByContent(doc);
@@ -192,7 +187,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
         const trails$: Promise<Trail | null>[] = [];
         for (const item of toFetch) trails$.push(this.fetchTrailByUrl(item.url).catch(e => null));
         return Promise.all(trails$).then(trails => filterItemsDefined(trails))
-        .then(newFound => nextItems([...found, ...newFound], items, startIndex + toFetch.length)); // NOSONAR
+        .then(newFound => nextItems([...found, ...newFound], items, startIndex + toFetch.length));
       };
       return nextItems([], items, 0);
     });
@@ -277,7 +272,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   fetchTrailsByUrl(url: string): Promise<Trail[]> {
-    return window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => { // NOSONAR
+    return window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
       return this.fetchTrailsByContent(doc);

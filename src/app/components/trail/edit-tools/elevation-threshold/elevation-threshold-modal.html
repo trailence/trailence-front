@@ -16,7 +16,7 @@
     mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThreshold()" [max]="getMaxElevationThreshold()" [step]="getElevationThresholdStep()"
     [value]="getInitialElevationThreshold()"
     [pin]="true" [pinFormatter]="elevationThresholdFormatter"
-    class="always-show-knob-pin"
+    class="always-show-knob-pin elevation-threshold"
   >
     <ion-label slot="start">{{elevationThresholdFormatter(getMinElevationThreshold())}}</ion-label>
     <ion-label slot="end">{{elevationThresholdFormatter(getMaxElevationThreshold())}}</ion-label>
@@ -30,7 +30,7 @@
     mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="getMinElevationThresholdDistance()" [max]="getMaxElevationThresholdDistance()" [step]="getElevationThresholdDistanceStep()"
     [value]="getInitialElevationThresholdDistance()"
     [pin]="true" [pinFormatter]="smallDistanceFormatter"
-    class="always-show-knob-pin"
+    class="always-show-knob-pin max-distance"
   >
     <ion-label slot="start">{{smallDistanceFormatter(getMinElevationThresholdDistance())}}</ion-label>
     <ion-label slot="end">{{smallDistanceFormatter(getMaxElevationThresholdDistance())}}</ion-label>

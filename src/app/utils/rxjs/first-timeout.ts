@@ -33,7 +33,7 @@ export function firstTimeout<T>(
         activeTask = executeSchedule(
           destination,
           scheduler,
-          () => { // NOSONAR
+          () => {
             activeTask = undefined;
             subscription?.unsubscribe();
             subscription = undefined;

@@ -48,7 +48,7 @@ export class FileService implements IFileService {
           const results: T[] = [];
           const errors: any[] = [];
           const readNext = (index: number) => {
-            const onerror = (e: any) => { // NOSONAR
+            const onerror = (e: any) => {
               errors.push(e);
               if (index === files.length - 1) {
                 setTimeout(() => r.ondone(fromStartReading, results, errors), 0);
@@ -57,7 +57,7 @@ export class FileService implements IFileService {
               }
             };
             files[index].getFile()
-            .then(file => { // NOSONAR
+            .then(file => {
               file.arrayBuffer().then(fileContent => {
                 r.onfileread(index, files.length, fromStartReading, files[index].name, fileContent)
                 .then(result => {
@@ -103,7 +103,7 @@ export class FileService implements IFileService {
           const results: T[] = [];
           const errors: any[] = [];
           const readNext = (index: number) => {
-            const onerror = (e: any) => { // NOSONAR
+            const onerror = (e: any) => {
               document.documentElement.removeChild(input);
               errors.push(e);
               if (index === input.files!.length - 1) {
@@ -112,7 +112,7 @@ export class FileService implements IFileService {
                 setTimeout(() => readNext(index + 1), 0);
               }
             };
-            input.files![index].arrayBuffer().then(fileContent => { // NOSONAR
+            input.files![index].arrayBuffer().then(fileContent => {
               r.onfileread(index, input.files!.length, fromStartReading, input.files![index].name, fileContent)
               .then(result => {
                 results.push(result);

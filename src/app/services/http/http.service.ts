@@ -66,7 +66,7 @@ export class HttpService {
       }
       let nr = interceptors[interceptorIndex++](r);
       if (!(nr instanceof TrailenceHttpRequest)) {
-        return nr.pipe(switchMap(req => this.interceptRequest(req, interceptors, interceptorIndex))); // NOSONAR
+        return nr.pipe(switchMap(req => this.interceptRequest(req, interceptors, interceptorIndex)));
       }
       r = nr;
     } while (true);
@@ -78,7 +78,7 @@ export class HttpService {
       if (interceptorIndex >= interceptors.length) return of(r);
       let nr = interceptors[interceptorIndex++](r);
       if (!(nr instanceof TrailenceHttpResponse)) {
-        return nr.pipe(switchMap(resp => this.interceptResponse(resp, interceptors, interceptorIndex))); // NOSONAR
+        return nr.pipe(switchMap(resp => this.interceptResponse(resp, interceptors, interceptorIndex)));
       }
       r = nr;
     } while (true);

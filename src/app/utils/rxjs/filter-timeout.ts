@@ -24,7 +24,7 @@ export function filterTimeout<T>(
         activeTask = executeSchedule(
           destination,
           scheduler,
-          () => { // NOSONAR
+          () => {
             activeTask = undefined;
             destination.next(itemOnTimeout());
           },

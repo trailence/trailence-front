@@ -1,5 +1,5 @@
 import { Injector } from '@angular/core';
-import { PluginWithDb, SimplifiedTrackDto, TrailInfoBaseDto } from './abstract-plugin-with-db';
+import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
 import { TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
 import { HttpService } from '../http/http.service';
@@ -13,8 +13,6 @@ import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { TrackEditionService } from '../track-edition/track-edition.service';
 import { Arrays } from 'src/app/utils/arrays';
-import { Console } from 'src/app/utils/console';
-import { ErrorService } from '../progress/error.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;

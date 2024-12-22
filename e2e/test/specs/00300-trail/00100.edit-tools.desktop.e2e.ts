@@ -73,7 +73,7 @@ describe('Edit tools', () => {
     await selectionTool.removePointsBefore()
     const d1 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
     const d2 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', false);
-    expect(parseInt(d1!.replace('.',''))).toBeGreaterThan(parseInt(d2!.replace('.','')));
+    expect(parseInt(d1.replace('.',''))).toBeGreaterThan(parseInt(d2.replace('.','')));
     await tools.undo();
     await tools.undo();
   });
@@ -85,7 +85,7 @@ describe('Edit tools', () => {
     await selectionTool.remove();
     const d1 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
     const d2 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', false);
-    expect(parseInt(d1!.replace('.',''))).toBeGreaterThan(parseInt(d2!.replace('.','')));
+    expect(parseInt(d1.replace('.',''))).toBeGreaterThan(parseInt(d2.replace('.','')));
     await tools.undo();
   });
 
@@ -112,19 +112,29 @@ describe('Edit tools', () => {
     await browser.pause(1000); // wait for zoom animation to end
   });
 
-  it('Change elevation from selected point', async () => {
+  it('Change elevation from selected point, then remove unprobable elevation', async () => {
     let selectionTool = await selectPoint(10);
     const valueBefore = await selectionTool.getElevation();
     await selectionTool.setElevation(500);
     const expectDiff = Math.abs(500 - parseFloat(valueBefore));
-    const ascent1 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true))!.replace(',','').replace('+','').trim();
-    const ascent2 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', false))!.replace(',','').replace('+','').trim();
+    const ascent1 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true)).replace(',','').replace('+','').trim();
+    const ascent2 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', false)).replace(',','').replace('+','').trim();
     const diff = Math.abs(parseFloat(ascent1) - parseFloat(ascent2));
     expect(diff).withContext('Ascent before ' + ascent1 + ' (' + valueBefore + '), after ' + ascent2 + ' (500)').toBeLessThanOrEqual(expectDiff + 1);
-    await tools.undo();
+    // unselect
     const pos = await (await trailPage.trailComponent.openMap()).getMapPosition();
     await browser.action('pointer').move({x: Math.floor(pos.x + 1), y: Math.floor(pos.y + 1), origin: 'viewport'}).pause(100).down().pause(10).up().perform();
     await browser.waitUntil(() =>tools.isSelectionTool().then(d => !d));
+
+    // remove unprobable elevation
+    await tools.removeUnprobableElevations();
+    const ascent3 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', false)).replace(',','').replace('+','').trim();
+    const diff2 = Math.abs(parseFloat(ascent1) - parseFloat(ascent3));
+    expect(diff2).withContext('Ascent before ' + ascent1 + ' (' + valueBefore + '), after ' + ascent3).toBeLessThanOrEqual(3);
+
+    await tools.undo();
+    await tools.undo();
+    expect(await tools.canUndo()).toBeFalse();
   });
 
   it('Join departure and arrival, then undo', async () => {
@@ -141,11 +151,11 @@ describe('Edit tools', () => {
   });
 
   it('Back to original track', async () => {
-    const ascent1 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true))!.replace(',','').replace('+','').trim();
+    const ascent1 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true)).replace(',','').replace('+','').trim();
     await tools.backToOriginalTrack();
-    const ascent2 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true))!.replace(',','').replace('+','').trim();
+    const ascent2 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true)).replace(',','').replace('+','').trim();
     await tools.undo();
-    const ascent3 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true))!.replace(',','').replace('+','').trim();
+    const ascent3 = (await trailPage.trailComponent.getMetadataValueByTitle('Ascent', true)).replace(',','').replace('+','').trim();
     expect(parseInt(ascent2)).toBeGreaterThan(parseInt(ascent1));
     expect(ascent3).toBe(ascent1);
   });
@@ -158,6 +168,15 @@ describe('Edit tools', () => {
     await tool.continue();
     await tool.expectEnd();
     await tool.quit();
+  });
+
+  it('Apply elevation threshold', async () => {
+    const modal = await tools.openElevationThreshold();
+    await modal.threshold.setValue(50);
+    await modal.distance.setValue(1080);
+    await (await modal.getFooterButtonWithColor('success')).click();
+    await modal.waitNotDisplayed();
+    await tools.undo();
   });
 
   it('Close edit tools', async () => {

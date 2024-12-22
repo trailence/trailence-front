@@ -499,7 +499,7 @@ export class TrailComponent extends AbstractComponent {
       switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 75, 0.7))),
       switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
         map(base64 => {
-          const marker = MapPhoto.create(point, base64, jpeg.width, jpeg.height, photos.length > 1 ? '' + photos.length : undefined);
+          const marker = MapPhoto.create(point, 'data:image/jpeg;base64,' + base64, jpeg.width, jpeg.height, photos.length > 1 ? '' + photos.length : undefined);
           marker.addEventListener('click', () => {
             this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
           });

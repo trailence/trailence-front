@@ -150,7 +150,7 @@ export class TrailsPage extends AbstractPage {
               map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
               switchMap(uuids => this.injector.get(TrailService).getAll$().pipe(
                 collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)), // NOSONAR
+                map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)),
                 map(trails => ({share, trails}))
               ))
             )

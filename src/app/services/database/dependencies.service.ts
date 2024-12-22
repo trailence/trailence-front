@@ -57,7 +57,7 @@ export class DependenciesService {
           }
         }
         let result: Promise<any> = Promise.resolve(true);
-        if (itemsToRemove.length > 0) result = result.then(() => table.bulkDelete(itemsToRemove.map(i => i.key))); // NOSONAR
+        if (itemsToRemove.length > 0) result = result.then(() => table.bulkDelete(itemsToRemove.map(i => i.key)));
         if (itemsToSave.length > 0) result = result.then(() => table.bulkPut(itemsToSave));
         return result;
       });

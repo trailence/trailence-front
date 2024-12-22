@@ -203,7 +203,7 @@ export class TrackDatabase {
           this.operation(() => this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
             let count = 0;
             let countInMemory = 0;
-            return this.fullTrackTable?.each(trackItem => { // NOSONAR
+            return this.fullTrackTable?.each(trackItem => {
               if (!trackItem.track || trackItem.version === -1) return;
               count++;
               const track = new Track(trackItem.track, this.injector.get(PreferencesService));
@@ -224,7 +224,7 @@ export class TrackDatabase {
                   ...TrackDatabase.toMetadata(track)
                 });
               }
-            }).then(() => { // NOSONAR
+            }).then(() => {
               Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
             });
           }));
@@ -691,10 +691,10 @@ export class TrackDatabase {
         firstValueFrom(this.syncStatus$.pipe(filter(s => !s?.inProgress)))
         .then(() => {
           if (db != this.db) return Promise.reject();
-          return op().then(r => { // NOSONAR
+          return op().then(r => {
             this._pendingOperation$.next(this._pendingOperation$.value - 1);
             return r;
-          }).catch(e => { // NOSONAR
+          }).catch(e => {
             this._pendingOperation$.next(this._pendingOperation$.value - 1);
             return Promise.reject(e);
           });
@@ -835,7 +835,7 @@ export class TrackDatabase {
                 const bunch = toRetrieve.slice(i, Math.min(toRetrieve.length, i + 20));
                 const limiter = new RequestLimiter(3);
                 const requests = bunch
-                .map(item => () => { // NOSONAR
+                .map(item => () => {
                   if (this.db !== db) {
                     progress.done();
                     return EMPTY;
@@ -843,12 +843,12 @@ export class TrackDatabase {
                   return this.injector.get(HttpService).get<TrackDto>(environment.apiBaseUrl + '/track/v1/' + encodeURIComponent(item.owner) + '/' + item.uuid);
                 })
                 .map(request => limiter.add(request).pipe(
-                  tap(() => { // NOSONAR
+                  tap(() => {
                     done++;
                     progress.addWorkDone(1);
                     progress.subTitle = '' + done + '/' + toRetrieve.length;
                   }),
-                  catchError(error => { // NOSONAR
+                  catchError(error => {
                     done++;
                     progress.addWorkDone(1);
                     progress.subTitle = '' + done + '/' + toRetrieve.length;
@@ -859,8 +859,8 @@ export class TrackDatabase {
                 ));
                 operations$ = operations$.pipe(
                   switchMap(() => (requests.length === 0 ? of([]) : zip(requests)).pipe(
-                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), [])), // NOSONAR
-                    map(() => true), // NOSONAR
+                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), [])),
+                    map(() => true),
                   ))
                 );
               }
@@ -889,7 +889,7 @@ export class TrackDatabase {
           const request = () => {
             if (this.db !== db) return EMPTY;
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
-              catchError(e => { // NOSONAR
+              catchError(e => {
                 Console.error('error sending update for track', item.track, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.update_track', []);
                 return EMPTY;

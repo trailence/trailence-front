@@ -183,7 +183,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   public addToMap(element: L.Layer): void {
-    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!)); // NOSONAR
+    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!));
   }
 
   public removeFromMap(element: L.Layer): void {

@@ -146,7 +146,7 @@ export class OfflineMapService {
                     key: '' + c.z + '_' + c.y + '_' + c.x,
                     blob: blob
                   }))
-                ]).subscribe(() => { // NOSONAR
+                ]).subscribe(() => {
                   progress.workDone = ++done;
                   progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
                   if (done === coordsToDl.length) ondone();
@@ -214,7 +214,7 @@ export class OfflineMapService {
           } else {
             state.zoom++;
           }
-          this.ngZone.runTask(() => setTimeout(() => computeNext(), 0)); // NOSONAR
+          this.ngZone.runTask(() => setTimeout(() => computeNext(), 0));
         });
       };
       this.ngZone.runTask(() => computeNext());
@@ -239,7 +239,7 @@ export class OfflineMapService {
           resolve(points);
           return;
         }
-        this.ngZone.runTask(() => setTimeout(() => computeNextRow(j + 1), 0)); // NOSONAR
+        this.ngZone.runTask(() => setTimeout(() => computeNextRow(j + 1), 0));
       };
       this.ngZone.runTask(() => computeNextRow(topLeftTile.y));
     });

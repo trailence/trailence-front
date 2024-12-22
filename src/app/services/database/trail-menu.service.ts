@@ -348,7 +348,7 @@ export class TrailMenuService {
                 progress.subTitle = '' + (index + 1 + previousZipEntries) + '/' + (nbFiles + zipEntries);
                 progress.addWorkDone(1);
                 const done: ({trailUuid: string, tags: string[][], source?: string})[] = [];
-                const readNextZipEntry = (entryIndex: number) => { // NOSONAR
+                const readNextZipEntry = (entryIndex: number) => {
                   const gpxFile = gpxFiles[entryIndex];
                   return gpxFile.async('arraybuffer')
                   .then(arraybuffer => {
@@ -542,7 +542,7 @@ export class TrailMenuService {
             trailsPhotos,
           }
         })
-        .then(modal => modal.present().then(() => modal.onWillDismiss())) // NOSONAR
+        .then(modal => modal.present().then(() => modal.onWillDismiss()))
         .then(modalResult => {
           if (!modalResult.data?.what) return;
           this.doExport(trails, modalResult.data.what, modalResult.data.includePhotos, trailsPhotos);
@@ -587,7 +587,7 @@ export class TrailMenuService {
                 t.trail,
                 t.tracks,
                 tags,
-                photosToExport.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid), // NOSONAR
+                photosToExport.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid),
                 photoFilenameMap,
               )
             }))
@@ -942,12 +942,12 @@ export class TrailMenuService {
               originalPhoto.longitude,
               originalPhoto.isCover
             ).subscribe({
-              next: () => { // NOSONAR
+              next: () => {
                 progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
                 progress.addWorkDone(1);
                 if (++index < allPhotos.length) setTimeout(copyNext, 0);
               },
-              error: err => { // NOSONAR
+              error: err => {
                 this.injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
                 progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
                 progress.addWorkDone(1);
@@ -994,7 +994,7 @@ export class TrailMenuService {
             },
             t => {
               (t.version > 0 ? this.injector.get(TrailCollectionService).doNotDeleteCollectionWhileTrailNotSync(originalCollection, t) : Promise.resolve())
-              .then(() => { // NOSONAR
+              .then(() => {
                 progress.addWorkDone(1);
                 progress.subTitle = (++done) + '/' + trails.length;
                 resolve(true);

@@ -18,7 +18,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
             network.internet$.pipe(
               filterDefined(),
               first()
-            ).subscribe(() => { // NOSONAR
+            ).subscribe(() => {
               if (!img.parentElement) return;
               img._loaded = true;
               img.onerror = undefined;
@@ -45,8 +45,8 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
             });
             fallbackTile(img, coords, tiles, done);
           } else {
-            binary.toBase64().then(url => { // NOSONAR
-              img.src = url;
+            binary.toBase64().then(base64 => {
+              img.src = 'data:' + binary.getContentType() + ';base64,' + base64;
               img._loaded = true;
               img.classList.add('map-tile-offline');
               img.classList.remove('map-tile-loading');
