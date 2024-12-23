@@ -26,24 +26,54 @@
       </ng-template>
     </ion-popover>
   </ng-template>
+  <div class="space"></div>
+  <div class="view-selection">
+    <ion-segment mode="ios" [value]="state$.value.mode" (ionChange)="setListMode($event.detail.value)">
+      <ion-segment-button value="detailed"><ion-icon name="list-detailed"></ion-icon></ion-segment-button>
+      <ion-segment-button value="condensed"><ion-icon name="list-condensed"></ion-icon></ion-segment-button>
+    </ion-segment>
+  </div>
 </div>
 <div class="trails">
-  @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
-    <div class="trail metadata-container {{metadataClass}}"
-      [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
-      id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
-    >
-      <app-trail-overview
-        [trail]="trailWithInfo.trail"
-        [selectable]="true"
-        [selected]="trailWithInfo.selected"
-        (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
-        (click)="onTrailClick(trailWithInfo.trail)"
-        [fromCollection]="!!collectionUuid"
-        [trackSnapshot]="trailWithInfo.track"
-        [delayLoading]="$index >= 10"
-      ></app-trail-overview>
-    </div>
+  @switch (state$.value.mode) {
+    @case ("detailed") {
+      @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
+        <div class="trail metadata-container {{metadataClass}}"
+          [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
+          id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
+          [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
+        >
+          <app-trail-overview
+            [trail]="trailWithInfo.trail"
+            [selectable]="true"
+            [selected]="trailWithInfo.selected"
+            (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
+            (click)="onTrailClick(trailWithInfo.trail)"
+            [fromCollection]="!!collectionUuid"
+            [trackSnapshot]="trailWithInfo.track"
+            [delayLoading]="$index >= 10"
+          ></app-trail-overview>
+        </div>
+      }
+    }
+
+    @case ("condensed") {
+      @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
+        <app-trail-overview-condensed
+          id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
+          [trail]="trailWithInfo.trail"
+          [track]="trailWithInfo.track"
+          [selectable]="true"
+          [selected]="trailWithInfo.selected"
+          (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
+          [fromCollection]="!!collectionUuid"
+          [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
+          (click)="onTrailClick(trailWithInfo.trail)"
+          [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
+        >
+        </app-trail-overview-condensed>
+      }
+    }
   }
 </div>
 

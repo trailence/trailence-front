@@ -102,6 +102,13 @@ export class I18nService {
     }
   }
 
+  public distanceInLongUserUnit(meters: number): number {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return meters / 1000;
+      case 'IMPERIAL': return this.metersToMiles(meters);
+    }
+  }
+
   public distanceInMetersFromUserUnit(distance: number): number {
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return distance;
@@ -118,6 +125,17 @@ export class I18nService {
 
   public shortUserDistanceUnit(): string {
     return this.shortDistanceUnit(this.prefService.preferences.distanceUnit);
+  }
+
+  public longDistanceUnit(unit: DistanceUnit): string {
+    switch (unit) {
+      case 'METERS': return 'km';
+      case 'IMPERIAL': return 'mi';
+    }
+  }
+
+  public longUserDistanceUnit(): string {
+    return this.longDistanceUnit(this.prefService.preferences.distanceUnit);
   }
 
   public getSpeedString(speed?: number): string {

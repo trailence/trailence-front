@@ -87,7 +87,10 @@ export class TrackUtils {
     let closestDistance = -1;
     const p = L.latLng(pos);
     for (let i = 0; i < points.length; ++i) {
-      const d = p.distanceTo(points[i]);
+      const p2 = points[i];
+      if (p.lat === p2.lat && p.lng === p2.lng) return i;
+      const d = p.distanceTo(p2);
+      if (d <= 0.1) return i;
       if ((maxDistance < 0 || d <= maxDistance) && (closestDistance === -1 || d < closestDistance)) {
         closestIndex = i;
         closestDistance = d;

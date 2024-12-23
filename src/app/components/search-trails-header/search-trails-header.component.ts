@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { IonSpinner, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { IonSpinner, IonSelect, IonSelectOption, IonButton, IonIcon } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FetchSourcePlugin } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
@@ -11,16 +11,18 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
   templateUrl: './search-trails-header.component.html',
   styleUrl: './search-trails-header.component.scss',
   imports: [
-    IonSpinner, IonSelect, IonSelectOption,
+    IonSpinner, IonSelect, IonSelectOption, IonButton, IonIcon,
     CommonModule,
   ]
 })
 export class SearchTrailsHeaderComponent implements OnInit, OnDestroy {
 
-  @Input() plugins$!: BehaviorSubject<string[]>;
   @Input() searching!: boolean;
+  @Input() searchEnabled!: boolean;
+  @Output() search = new EventEmitter<string[]>();
 
   availablePlugins: FetchSourcePlugin[] = [];
+  selectedPlugins: string[] = [];
   subscription?: Subscription;
 
   constructor(
@@ -38,7 +40,11 @@ export class SearchTrailsHeaderComponent implements OnInit, OnDestroy {
   }
 
   setPlugins(value: string[]): void {
-    this.plugins$.next(value);
+    this.selectedPlugins = value;
+  }
+
+  launchSearch(): void {
+    this.search.emit(this.selectedPlugins);
   }
 
 }

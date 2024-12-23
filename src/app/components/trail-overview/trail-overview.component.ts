@@ -23,6 +23,10 @@ import { Photo } from 'src/app/model/photo';
 import { PhotosSliderComponent } from "../photos-slider/photos-slider.component";
 import { Router } from '@angular/router';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 class Meta {
   name?: string;
@@ -66,6 +70,8 @@ export class TrailOverviewComponent extends AbstractComponent {
   photos: Photo[] = [];
   load$ = new BehaviorSubject<boolean>(false);
   observer?: IntersectionObserver;
+
+  external?: TrailInfo;
 
   constructor(
     injector: Injector,
@@ -168,6 +174,19 @@ export class TrailOverviewComponent extends AbstractComponent {
           }
         );
       }
+      if (this.trail.owner.indexOf('@') < 0) {
+        this.byStateAndVisible.subscribe(
+          this.load$.pipe(
+            filterDefined(),
+            switchMap(() => this.injector.get(FetchSourceService).getTrailInfo$(this.trail!.owner, this.trail!.uuid))
+          ),
+          info => {
+            if (this.external === info) return;
+            this.external = info ?? undefined;
+            this.changeDetector.detectChanges();
+          }
+        );
+      }
       if (this.delayLoading && !this.load$.value && !this.observer) {
         this.observer = new IntersectionObserver(entries => {
           if (this.observer && entries[0].isIntersecting) {
@@ -212,6 +231,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.track$.next(undefined);
     this.tagsNames = [];
     this.photos = [];
+    this.external = undefined;
     if (!this.delayLoading && !this.load$.value)
       this.load$.next(true);
   }
@@ -262,6 +282,16 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   openTrail(): void {
     this.router.navigate(['trail', this.trail!.owner, this.trail!.uuid], {queryParams: { from: this.router.url }});
+  }
+
+  private _symbol?: string;
+  private _generatedSymbol?: SafeHtml;
+  generateRouteSymbol(symbol: string): SafeHtml | undefined {
+    if (this._symbol === symbol) return this._generatedSymbol!;
+    const svg = this.injector.get(OsmcSymbolService).generateSymbol(symbol);
+    this._symbol = symbol;
+    this._generatedSymbol = this.injector.get(DomSanitizer).bypassSecurityTrustHtml(svg);
+    return this._generatedSymbol;
   }
 
 }

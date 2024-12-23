@@ -12,6 +12,8 @@ describe('Find Trail', () => {
   });
 
   let page: TrailsPage;
+  let trail: TrailOverview;
+  let list: TrailsList;
 
   it('Go to find a trail, zoom on Saint Honorat, search with Visorando', async () => {
     const menu = await App.openMenu();
@@ -19,6 +21,7 @@ describe('Find Trail', () => {
     const map = await page.trailsAndMap.openMap();
     await map.goTo(43.50436332683977, 7.046184539794922, 14);
     await page.searchSources.selectByText('Visorando');
+    await page.searchButton.click();
     const list = await page.trailsAndMap.openTrailsList();
     const trail = await list.waitTrail('Tour de l\'Île Saint-Honorat');
     const trailPage = await list.openTrail(trail);
@@ -42,11 +45,9 @@ describe('Find Trail', () => {
       await map.goTo(43.50748766288276,7.047182321548463, 17);
   });
 
-  let trail: TrailOverview;
-  let list: TrailsList;
-
   it('search with Outdoor Active', async () => {
     await page.searchSources.selectByText('Outdoor Active');
+    await page.searchButton.click();
     list = await page.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
     trail = await list.waitTrail('20201025-Saint Honorat');
@@ -56,6 +57,30 @@ describe('Find Trail', () => {
     const trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('a=Open in Outdoor Active').isExisting());
+    await trailPage.header.goBack();
+  });
+
+  it('Unselect Outdoor Active, zoom fo Open Street Map', async () => {
+    await page.searchSources.selectByText('Outdoor Active');
+    const map = await page.trailsAndMap.openMap();
+    if (App.config.mode === 'mobile')
+      await map.goTo(43.497514901391675,7.046356201171876, 14);
+    else
+      await map.goTo(43.50748766288276,7.047182321548463, 16);
+  });
+
+  it('Search with Open Street Map', async () => {
+    await page.searchSources.selectByText('Open Street Map');
+    await page.searchButton.click();
+    list = await page.trailsAndMap.openTrailsList();
+    await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
+    trail = await list.waitTrail('Île Saint-Honorat');
+  });
+
+  it('Check trail from Open Street Map', async () => {
+    const trailPage = await list.openTrail(trail);
+    const details = await trailPage.trailComponent.openDetails();
+    await browser.waitUntil(() => details.$('a=Open in Open Street Map').isExisting());
     await trailPage.header.goBack();
   });
 

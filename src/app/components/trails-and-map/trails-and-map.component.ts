@@ -39,6 +39,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @Input() collectionUuid?: string;
 
   @Input() message?: string;
+  @Input() enableRemoveByGesture = false;
 
   mode =  '';
   listMetadataClass = 'two-columns';

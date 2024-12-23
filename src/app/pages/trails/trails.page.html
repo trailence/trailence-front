@@ -2,8 +2,9 @@
 @defer (when trailsType === 'search') {
   <app-search-trails-header
     *ngIf="trailsType === 'search'"
-    [plugins$]="searchWith$"
     [searching]="searching"
+    [searchEnabled]="canSearch"
+    (search)="doSearch($event)"
   >
   </app-search-trails-header>
 }
@@ -14,4 +15,5 @@
   [viewId]="viewId"
   [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"
   [message]="searchMessage"
+  [enableRemoveByGesture]="trailsType === 'search'"
 ></app-trails-and-map>

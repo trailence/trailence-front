@@ -592,6 +592,15 @@ export class ElevationGraphComponent extends AbstractComponent {
       const ds = this.chartData.datasets[datasetIndex];
       ds.data = [];
       this.fillDataSet(ds, track);
+      if (this.chartPlugins.find(p => p instanceof LegendPlugin)) {
+        for (let i = 0; i < this.chartData.datasets.length; ++i) {
+          if ((this.chartData.datasets[i] as any).isGrade) {
+            this.chartData.datasets.splice(i, 1);
+            i--;
+          }
+        }
+        this.chartData.datasets.push(...this.buildGradeDatasets(ds));
+      }
       this.updateMinMaxAxis(true);
       this.canvas?.chart?.update();
     });

@@ -6,7 +6,8 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup, IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, PopoverController } from "@ionic/angular/standalone";
+import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
+  IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, PopoverController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
@@ -27,10 +28,13 @@ import { List } from 'immutable';
 import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { MenuItem } from 'src/app/utils/menu-item';
+import { TrailOverviewCondensedComponent } from '../trail-overview/condensed/trail-overview-condensed.component';
+import { HorizontalGestureDirective } from 'src/app/utils/horizontal-gesture.directive';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
 interface State {
+  mode: 'detailed' | 'condensed';
   sortAsc: boolean;
   sortBy: string;
   filters: Filters;
@@ -48,6 +52,7 @@ interface Filters {
 }
 
 const defaultState: State = {
+  mode: 'detailed',
   sortAsc: false,
   sortBy: 'track.startDate',
   filters: {
@@ -96,15 +101,17 @@ interface TrailWithInfo {
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [IonList, IonSelect, IonSelectOption,
         IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
-        IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
+        IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal, IonSegment, IonSegmentButton,
         CommonModule,
         TrailOverviewComponent,
+        TrailOverviewCondensedComponent,
         IconLabelButtonComponent,
         ToggleChoiceComponent,
         MenuContentComponent,
         FilterNumericComponent,
         FilterTagsComponent,
         I18nPipe,
+        HorizontalGestureDirective,
     ]
 })
 export class TrailsListComponent extends AbstractComponent {
@@ -117,6 +124,7 @@ export class TrailsListComponent extends AbstractComponent {
   @Input() map?: MapComponent;
   @Input() listId!: string;
   @Input() message?: string;
+  @Input() enableRemoveByGesture = false;
 
   id = IdGenerator.generateId();
   highlighted?: Trail;
@@ -382,6 +390,12 @@ export class TrailsListComponent extends AbstractComponent {
     else localStorage.setItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId, JSON.stringify(state));
   }
 
+  public setListMode(mode: any): void {
+    if (this.state$.value.mode === mode || (mode !== 'condensed' && mode !== 'detailed')) return;
+    this.state$.next({...this.state$.value, mode: mode});
+    this.changeDetector.detectChanges();
+  }
+
   public get nbShown(): number {
     return this.listTrails.size
   }
@@ -538,19 +552,27 @@ export class TrailsListComponent extends AbstractComponent {
       if (element) {
         const parent = element.parentElement;
         if (parent) {
-          const scrollPos = parent.scrollTop;
-          const totalHeight = parent.offsetHeight;
-          const top = element.offsetTop - parent.offsetTop;
-          const bottom = top + element.offsetHeight;
-          if (top < scrollPos) {
-            parent.scrollTo(0, top);
-          } else if (bottom > scrollPos + totalHeight) {
-            parent.scrollTo(0, bottom - totalHeight);
-          }
+          this.scrollTo(parent, element, 0);
         }
       }
     }
     this.changeDetector.detectChanges();
+  }
+
+  private scrollTo(parent: HTMLElement, element: HTMLElement, trial: number): void {
+    const scrollPos = parent.scrollTop;
+    const totalHeight = parent.offsetHeight;
+    const top = element.offsetTop - parent.offsetTop;
+    const bottom = top + element.offsetHeight;
+    if (top < scrollPos) {
+      parent.scrollTo(0, top);
+    } else if (bottom > scrollPos + totalHeight) {
+      parent.scrollTo(0, bottom - totalHeight);
+    } else {
+      return;
+    }
+    if (trial >= 5) return;
+    setTimeout(() => this.scrollTo(parent, element, trial + 1), 100);
   }
 
   import(): void {
@@ -578,6 +600,18 @@ export class TrailsListComponent extends AbstractComponent {
     }).then(p => {
       p.present();
     });
+  }
+
+  removeFromList(trailWithInfo: TrailWithInfo): void {
+    const index = this.allTrails.indexOf(trailWithInfo);
+    if (index >= 0) {
+      this.allTrails.splice(index, 1);
+      this.applySort(this.applyFilters());
+      if (this.highlighted === trailWithInfo.trail) {
+        this.highlighted = undefined;
+      }
+      this.changeDetector.detectChanges();
+    }
   }
 
 }

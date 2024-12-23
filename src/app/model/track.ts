@@ -167,20 +167,24 @@ export class Track extends Owned {
     return result;
   }
 
-  public forEachPoint(callback: (p: Point) => void): void {
+  public forEachPoint<T>(callback: (p: Point) => T | null | undefined | void): T | undefined {
     for (const segment of this.segments) {
       for (const point of segment.points) {
-        callback(point);
+        const value = callback(point);
+        if (value) return value;
       }
     }
+    return undefined;
   }
 
-  public forEachPosition(callback: (p: L.LatLng) => void): void {
+  public forEachPosition<T>(callback: (p: L.LatLng) => T | null | undefined | void): T | undefined {
     for (const segment of this.segments) {
       for (const point of segment.points) {
-        callback(point.pos);
+        const value = callback(point.pos);
+        if (value) return value;
       }
     }
+    return undefined;
   }
 
   public segmentTimeSinceDeparture(segmentIndex: number): number {

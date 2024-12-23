@@ -162,6 +162,7 @@
     border-radius: 8px;
     padding: 1px 5px;
     font-size: 12px;
+    white-space: nowrap;
 
     &:not(:first-child) {
       margin-left: 5px;

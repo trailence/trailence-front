@@ -7,6 +7,9 @@
 
 .source-selection {
   padding: 0 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
   ion-select {
     width: auto;
@@ -20,16 +23,14 @@
       color: var(--ion-color-secondary);
     }
   }
-}
 
-.searching {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 3px 8px;
+  ion-button {
+    margin-left: 10px;
+  }
 
   ion-spinner {
-    margin-left: 8px;
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -43,10 +44,9 @@
       ion-select {
         min-height: 29px;
       }
-    }
-
-    .searching {
-      padding: 0 8px;
+      ion-button {
+        margin-top: 0;
+      }
     }
   }
 }

@@ -45,6 +45,12 @@ export class MapComponent extends Component {
   public async goTo(lat: number, lng: number, zoom: number) {
     await browser.execute(u => window.location.hash = u, '#zoom=' + zoom + '&center=' + lat + ',' + lng);
     await browser.pause(1500); // wait for the hash to be taken into account
+    const newHash = await browser.execute(() => window.location.hash);
+    if (newHash.indexOf('zoom=' + zoom) < 0 || newHash.indexOf('center=' + lat + ',' + lng) < 0) {
+      // failed, may be the map was still initializing => try again
+      await browser.execute(u => window.location.hash = u, '#zoom=' + zoom + '&center=' + lat + ',' + lng);
+      await browser.pause(1500); // wait for the hash to be taken into account
+    }
   }
 
   public async fitBounds() {
@@ -105,7 +111,9 @@ export class MapComponent extends Component {
     await App.waitNoProgress();
   }
 
-  public get paths() { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane svg').$$('path'); }
+  public get paths() { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path'); }
+
+  public getPathsWithColor(stroke: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path[stroke=' + stroke + ']'); }
 
   public async getMapPosition() {
     const location = await this.getElement().getLocation();

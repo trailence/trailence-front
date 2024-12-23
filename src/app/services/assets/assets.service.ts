@@ -59,6 +59,8 @@ export class AssetsService {
       'info': 'assets/info-circle.1.svg', // information-circle-outline
       'item-menu': 'assets/item-menu.1.svg', // ellipsis-vertical
       'layers': 'assets/layers.1.svg', // layers-outline
+      'list-condensed': 'assets/list-condensed.1.svg',
+      'list-detailed': 'assets/list-detailed.1.svg',
       'location': 'assets/location.1.svg', // location
       'logo': 'assets/icon/trailence.1.svg',
       'logout': 'assets/logout.1.svg', // log-out-outline
@@ -92,6 +94,9 @@ export class AssetsService {
       'share-outline': 'assets/share-outline.1.svg',  // share-social-outline
       'small-loop': 'assets/small-loop.1.svg',
       'speed': 'assets/speed.1.svg', // speedometer-outline
+      'star-empty': 'assets/star-empty.1.svg', // star-outline
+      'star-half': 'assets/star-half.1.svg', // star-half
+      'star-filled': 'assets/star-filled.1.svg', // star
       'sort': 'assets/sort.1.svg', // swap-vertical-outline
       'stop': 'assets/stop.1.svg', // stop-outline
       'stop-circle': 'assets/stop-circle.1.svg', // stop-circle-outline

@@ -1,10 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, SecurityContext } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { Console } from 'src/app/utils/console';
 import { XmlUtils } from 'src/app/utils/xml-utils';
 
 @Injectable({providedIn: 'root'})
 export class OsmcSymbolService {
+
+  constructor(private readonly sanitizer: DomSanitizer) {}
 
   public generateSymbol(symbol: string): string { // NOSONAR
     const elements = symbol.split(':');
@@ -52,7 +55,7 @@ export class OsmcSymbolService {
     if (text && textcolor) {
       const color = this.oscmColor(textcolor);
       if (color)
-        svg += '<text x="12" y="16" style="font-size: 11px; font-weight: bold; font-family: monospace; text-anchor: middle; fill: ' + color + '">' + XmlUtils.escapeHtml(text) + '</text>'
+        svg += '<text x="12" y="16" style="font-size: 11px; font-weight: bold; font-family: monospace; text-anchor: middle; fill: ' + color + '">' + (this.sanitizer.sanitize(SecurityContext.HTML, XmlUtils.escapeHtml(text)) ?? '') + '</text>'
     }
     svg += '</svg>';
     return svg;

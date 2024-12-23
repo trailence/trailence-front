@@ -7,7 +7,6 @@ import L from 'leaflet';
 import { Arrays } from 'src/app/utils/arrays';
 import { Place } from './place';
 import { Way, WayPermission } from './way';
-import { RouteCircuit } from './route';
 import { Track } from 'src/app/model/track';
 import { Segment } from 'src/app/model/segment';
 import { Point } from 'src/app/model/point';
@@ -64,30 +63,6 @@ export class GeoService {
     if (overpassPermission === 'permissive')
       return WayPermission.PERMISSIVE;
     return overpassPermission ? WayPermission.ALLOWED : undefined;
-  }
-
-  public findRoutes(bounds: L.LatLngBounds): Observable<RouteCircuit[]> {
-    return this.http.post<OverpassResponse>('https://overpass-api.de/api/interpreter', "[out:json][timeout:25];rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out meta geom;").pipe(
-      map(response => response.elements.filter(e => {
-        if (!e.members) return false;
-        e.members = e.members.filter(m => m.geometry && m.geometry.length > 0);
-        return e.members.length > 0;
-      }).map(e => this.overpassElementToRoute(e)))
-    );
-  }
-
-  private overpassElementToRoute(element: OverpassElement): RouteCircuit {
-    return {
-      id: 'overpass-' + element.id,
-      segments: element.members.map(m => m.geometry.map(g => L.latLng(g.lat, g.lon))),
-      positiveElevation: parseInt(element.tags['ascent']) || undefined,
-      negativeElevation: parseInt(element.tags['descent']) || undefined,
-      distance: (parseInt(element.tags['distance']) * 1000) || undefined,
-      name: element.tags['name'] ||
-        (element.tags['from'] && element.tags['to'] ? this.i18n.texts.pages.trailplanner.meta.from + ' ' + element.tags['from'] + ' ' + this.i18n.texts.pages.trailplanner.meta.to + ' ' + element.tags['to'] : undefined),
-      description: element.tags['description'],
-      oscmSymbol: element.tags['osmc:symbol']
-    }
   }
 
   public fillTrackElevation(track: Track): Observable<any> {
@@ -154,11 +129,6 @@ interface OverpassElement {
   id: string;
   geometry: OverpassGeometry[];
   tags: {[key:string]: any};
-  members: OverpassElementMember[];
-}
-
-interface OverpassElementMember {
-  geometry: OverpassGeometry[];
 }
 
 interface OverpassGeometry {

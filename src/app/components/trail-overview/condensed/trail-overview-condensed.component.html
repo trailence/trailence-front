@@ -1,0 +1,61 @@
+<div class="first-cell">
+  <div class="title-row">
+    <ion-checkbox
+      *ngIf="selectable && checkboxMode === 'md'"
+      class="trail-checkbox"
+      mode="md"
+      [checked]="selected"
+      (ionChange)="setSelected($event.detail.checked)"
+      (click)="$event.stopPropagation()"
+    ></ion-checkbox>
+    <ion-checkbox
+      *ngIf="selectable && checkboxMode === 'ios'"
+      class="trail-checkbox"
+      mode="ios"
+      [checked]="selected"
+      (ionChange)="setSelected($event.detail.checked)"
+      (click)="$event.stopPropagation()"
+    ></ion-checkbox>
+    <div class="trail-name">{{ trail.name }}</div>
+  </div>
+  <ng-container *ngIf="!subTitle">
+    <div class="trail-tags-row">
+      <div class="tag" *ngFor="let tag of tags">{{tag}}</div>
+    </div>
+    <div class="space"></div>
+    <div class="meta-row" *ngIf="loopType !== ''">
+      <ion-icon [name]="loopTypeIcon"></ion-icon>
+      <div class="meta">{{ loopType }}</div>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="subTitle">
+    <div class="sub-title-row">
+      {{ subTitle }}
+    </div>
+  </ng-container>
+</div>
+<div class="cell-metadata cell-duration">
+  <ion-icon name="duration"></ion-icon>
+  <div class="meta">{{duration}}</div>
+  <div class="meta">{{estimatedDuration}}</div>
+</div>
+<div class="cell-metadata cell-distance">
+  <ion-icon name="distance"></ion-icon>
+  <div class="meta">{{distance}}</div>
+  <div class="meta">{{distanceUnit}}</div>
+</div>
+<div class="cell-metadata cell-elevation">
+  <ion-icon name="elevation"></ion-icon>
+  <div class="meta">{{positiveElevation}}</div>
+  <div class="meta">{{negativeElevation}}</div>
+</div>
+<div class="cell-buttons" *ngIf="showButtons">
+  <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
+    <ion-icon name="item-menu" slot="icon-only"></ion-icon>
+  </ion-button>
+  <ion-button class="open-trail-button" size="small" fill="clear" color="dark" (click)="openTrail(); $event.stopPropagation()">
+    <a href="/trail/{{trail.owner + '/' + trail.uuid }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+      <ion-icon name="enter" slot="icon-only"></ion-icon>
+    </a>
+  </ion-button>
+</div>

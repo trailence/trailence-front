@@ -5,6 +5,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../preferences/preferences';
 import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Observable, of } from 'rxjs';
 
 export abstract class FetchSourcePlugin {
 
@@ -19,26 +20,26 @@ export abstract class FetchSourcePlugin {
   public readonly abstract name: string;
   public readonly abstract owner: string;
 
-  public abstract canFetchTrailInfoByUrl(url: string): boolean;
-  public abstract fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null>;
+  public canFetchTrailInfoByUrl(url: string): boolean { return false };
+  public fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> { return Promise.resolve(null); };
 
-  public abstract canFetchTrailInfoByContent(html: Document): boolean;
-  public abstract fetchTrailInfoByContent(html: Document): Promise<TrailInfo | null>;
+  public canFetchTrailInfoByContent(html: Document): boolean { return false };
+  public fetchTrailInfoByContent(html: Document): Promise<TrailInfo | null> { return Promise.resolve(null); };
 
-  public abstract canFetchTrailByUrl(url: string): boolean;
-  public abstract fetchTrailByUrl(url: string): Promise<Trail | null>;
+  public canFetchTrailByUrl(url: string): boolean { return false };
+  public fetchTrailByUrl(url: string): Promise<Trail | null> { return Promise.resolve(null); };
 
-  public abstract canFetchTrailsByUrl(url: string): boolean;
-  public abstract fetchTrailsByUrl(url: string): Promise<Trail[]>;
+  public canFetchTrailsByUrl(url: string): boolean { return false };
+  public fetchTrailsByUrl(url: string): Promise<Trail[]> { return Promise.resolve([]); };
 
-  public abstract canFetchTrailByContent(html: Document): boolean;
-  public abstract fetchTrailByContent(html: Document): Promise<Trail | null>;
+  public canFetchTrailByContent(html: Document): boolean { return false };
+  public fetchTrailByContent(html: Document): Promise<Trail | null> { return Promise.resolve(null); };
 
-  public abstract canFetchTrailsByContent(html: Document): boolean;
-  public abstract fetchTrailsByContent(html: Document): Promise<Trail[]>;
+  public canFetchTrailsByContent(html: Document): boolean { return false };
+  public fetchTrailsByContent(html: Document): Promise<Trail[]> { return Promise.resolve([]); };
 
-  public abstract canSearchByArea(): boolean;
-  public abstract searchByArea(bounds: L.LatLngBounds): Promise<{trails: Trail[], tooMuchResults: boolean}>;
+  public canSearchByArea(): boolean { return false };
+  public searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> { return of({trails: [], end: true, tooManyResults: false}); }
 
   public abstract getInfo(uuid: string): Promise<TrailInfo | null>;
   public abstract getTrail(uuid: string): Promise<Trail | null>;
@@ -55,6 +56,8 @@ export interface TrailInfo {
   photos?: PhotoInfo[];
   key?: string;
   externalUrl?: string;
+  rating?: number; // 0 to 5
+  oscmSymbol?: string;
 
 }
 
@@ -72,6 +75,12 @@ export interface PhotoInfo {
   description?: string;
   pos?: L.LatLngLiteral;
   time?: number;
+}
+
+export interface SearchResult {
+  trails: Trail[];
+  end: boolean;
+  tooManyResults: boolean;
 }
 
 export function populateWayPointInfo(track: Track, fetched: WayPointInfo[], preferences: ComputedPreferences): boolean { // NOSONAR

@@ -3,6 +3,7 @@ import { TrailPage } from '../app/pages/trail-page';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
+import { IonicSegment } from './ionic/ion-segment';
 import { MenuContent } from './menu-content.component';
 import { TrailOverview } from './trail-overview.component';
 
@@ -29,6 +30,14 @@ export class TrailsList extends Component {
   public get items() { return this.getElement().$('div.trails').$$('div.metadata-container.trail'); }
 
   public get selectAllCheckbox() { return new IonicCheckbox(this.getElement().$('div.selection').$('ion-checkbox')); }
+
+  public async switchToCondensedView() {
+    await new IonicSegment(this.getElement().$('div.selection div.view-selection ion-segment')).setSelected('condensed');
+  }
+
+  public async switchToDetailedView() {
+    await new IonicSegment(this.getElement().$('div.selection div.view-selection ion-segment')).setSelected('detailed');
+  }
 
   public async getItemTrailOverview(item: WebdriverIO.Element) {
     if (!await item.isDisplayed()) {
@@ -85,6 +94,8 @@ export class TrailsList extends Component {
     const openButton = new IonicButton(trail.getElement().$('div.open-trail ion-button'));
     await openButton.getElement().scrollIntoView({block: 'center', inline: 'center'});
     await openButton.click();
+    try { await browser.waitUntil(() => openButton.isDisplayed().then(d => !d), { timeout: 5000 })}
+    catch (e) { openButton.click(); }
     const trailPage = new TrailPage(owner, uuid);
     await trailPage.waitDisplayed();
     return trailPage;

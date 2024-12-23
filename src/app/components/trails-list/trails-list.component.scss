@@ -29,10 +29,49 @@
   border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.1);
 
   ion-checkbox {
+    flex: none;
     padding-right: 8px;
     padding-top: 4px;
     padding-bottom: 4px;
     margin-left: 5px;
+  }
+
+  ion-button {
+    flex: none;
+  }
+
+  .space {
+    flex: 1 1 100%;
+  }
+
+  .view-selection {
+    flex: none;
+    margin-right: 8px;
+
+    ion-segment {
+
+      ion-segment-button {
+        --padding-start: 0px;
+        --padding-end: 0px;
+        min-width: 32px;
+        min-height: 24px;
+        margin-top: 1px;
+        margin-bottom: 1px;
+        --indicator-color: var(--ion-background-color-step-200);
+
+        ion-icon {
+          width: 16px;
+          height: 16px;
+          color: rgba(var(--ion-text-color-rgb), 0.5);
+        }
+
+        &.segment-button-checked {
+          ion-icon {
+            color: var(--ion-text-color);
+          }
+        }
+      }
+    }
   }
 }
 

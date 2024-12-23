@@ -102,7 +102,7 @@ export class MapComponent extends AbstractComponent {
       );
       this.whenVisible.subscribe(
         combineLatest([this._mapState.center$, this._mapState.zoom$])
-        .pipe(debounceTime(10)),
+        .pipe(debounceTime(500)),
         () => {
           if (!this._mapState.live) return;
           this.updateHashFromMap();
@@ -110,7 +110,7 @@ export class MapComponent extends AbstractComponent {
       this.whenVisible.subscribe(
         combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(
           switchMap(([c,z]) => this.browser.hash$.pipe(map(h => ([c,z,h] as [L.LatLngLiteral, number, Map<string,string>])))),
-          debounceTime(500),
+          debounceTime(750),
         ), ([c,z,hash]) => {
           if (!this._mapState.live) return;
           const h = this.browser.getHashes();
@@ -183,7 +183,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   public addToMap(element: L.Layer): void {
-    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!));
+    this.ngZone.runOutsideAngular(() => element.addTo(this._map$.value!)); // NOSONAR
   }
 
   public removeFromMap(element: L.Layer): void {

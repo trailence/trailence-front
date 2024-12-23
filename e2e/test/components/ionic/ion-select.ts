@@ -19,7 +19,10 @@ export class IonicSelect extends Component {
       .$('div.alert-' + (this.multiple ? 'checkbox' : 'radio') + '-group')
       .$('div.alert-' + (this.multiple ? 'checkbox' : 'radio') + '-label=' + text)
       .parentElement().parentElement().click();
-    await alert.clickButtonWithText('OK');
+    if (await alert.hasButtonWithText('OK'))
+      await alert.clickButtonWithText('OK');
+    else
+      await alert.clickButtonWithText('Apply');
   }
 
 }

@@ -13,7 +13,6 @@ import { ShareService } from 'src/app/services/database/share.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { UpdateService } from 'src/app/services/update/update.service';
 import { List } from 'immutable';
-import { BrowserService } from 'src/app/services/browser/browser.service';
 import { trailenceAppVersionName } from 'src/app/trailence-version';
 
 @Component({
@@ -37,8 +36,6 @@ export class MenuComponent {
   sharedWithMeOpen = false;
   sharedByMeOpen = false;
 
-  large = false;
-
   constructor(
     public i18n: I18nService,
     public collectionService: TrailCollectionService,
@@ -47,12 +44,8 @@ export class MenuComponent {
     public traceRecorder: TraceRecorderService,
     shareService: ShareService,
     authService: AuthService,
-    browser: BrowserService,
     public update: UpdateService,
   ) {
-
-    this.updateSize(browser);
-    browser.resize$.subscribe(() => this.updateSize(browser));
     collectionService.getAll$().pipe(
       collection$items(),
       map(list => collectionService.sort(list))
@@ -63,10 +56,6 @@ export class MenuComponent {
       this.sharedByMe = List(shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
       this.sharedWithMe = List(shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
     });
-  }
-
-  private updateSize(browser: BrowserService): void {
-    this.large = browser.width > 600 && browser.height > 400;
   }
 
   private compareShares(s1: Share, s2: Share): number {

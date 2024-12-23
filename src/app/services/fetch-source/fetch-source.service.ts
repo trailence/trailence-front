@@ -1,8 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
-import { FetchSourcePlugin, TrailInfo } from './fetch-source.interfaces';
-import { Arrays } from 'src/app/utils/arrays';
+import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
-import { BehaviorSubject, catchError, combineLatest, from, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, from, map, merge, Observable, of, switchMap } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
 import { Track } from 'src/app/model/track';
 import { Photo } from 'src/app/model/photo';
@@ -42,6 +41,8 @@ export class FetchSourceService {
           promises.push(import('./visorando.plugin').then(m => new m.VisorandoPlugin(injector)));
         if (outdooractiveAvailable === true && !this.plugins$.value.find(p => p.name === 'Outdoor Active'))
           promises.push(import('./outdoor.plugin').then(m => new m.OutdoorPlugin(injector)));
+        if (!this.plugins$.value.find(p => p.name === 'Open Street Map'))
+          promises.push(import('./osm.plugin').then(m => new m.OsmPlugin(injector)));
         Promise.all(promises).then(list => {
           this.plugins$.next([...this.plugins$.value, ...list]);
           if (ready) this.ready$.next(true);
@@ -153,13 +154,22 @@ export class FetchSourceService {
     return Promise.resolve([]);
   }
 
-  public searchByArea(bounds: L.LatLngBounds, plugins?: string[]): Promise<{trails: Trail[], tooMuchResults: boolean}> {
-    const results: Promise<{trails: Trail[], tooMuchResults: boolean}>[] = [];
-    for (const plugin of this.plugins$.value) {
-      if (plugins && plugins.indexOf(plugin.name) < 0) continue;
-      if (plugin.canSearchByArea()) results.push(plugin.searchByArea(bounds));
-    }
-    return Promise.all(results).then(r => ({trails: Arrays.flatMap(r, a => a.trails), tooMuchResults: r.reduce((p,n) => p || n.tooMuchResults, false)}));
+  public searchByArea(bounds: L.LatLngBounds, limit: number, plugins?: string[]): Observable<SearchResult> {
+    const list = this.plugins$.value.filter(plugin => (!plugins || plugins.indexOf(plugin.name) >= 0) && plugin.canSearchByArea());
+    if (list.length === 0) return of({trails: [], end: true, tooManyResults: false});
+    let tooMany = false;
+    const end: string[] = [];
+    return merge(
+      ...list.map(plugin =>
+        plugin.searchByArea(bounds, Math.floor(limit / list.length)).pipe(
+          map(result => {
+            tooMany ||= result.tooManyResults;
+            if (result.end) end.push(plugin.owner);
+            return {trails: result.trails, end: end.length === list.length, tooManyResults: tooMany};
+          })
+        )
+      )
+    );
   }
 
   private plugin$(name: string): Observable<FetchSourcePlugin | undefined> {
@@ -209,6 +219,10 @@ export class FetchSourceService {
 
   public getExternalUrl$(owner: string, uuid: string): Observable<string | null> {
     return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getInfo(uuid).then(i => i?.externalUrl ?? null)) : of(null)));
+  }
+
+  public getTrailInfo$(owner: string, uuid: string): Observable<TrailInfo | null> {
+    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getInfo(uuid)) : of(null)));
   }
 
   public getName(owner: string): string | undefined {

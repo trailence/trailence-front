@@ -780,7 +780,7 @@ export class TrailMenuService {
         switchMap(
           tracks => {
             const originalTrack = tracks[0].copy(email);
-            const currentTrack = tracks[1] ? undefined : tracks[1]!.copy(email);
+            const currentTrack = tracks[1] ? tracks[1].copy(email) : undefined;
             const copy = new Trail({
               ...trail.toDto(),
               uuid: undefined,

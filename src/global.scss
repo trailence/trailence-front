@@ -86,3 +86,13 @@ ion-button a, a.inherit {
     background-color: rgba(var(--ion-text-color-rgb), 0.05);
   }
 }
+
+.rating-stars {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ion-icon {
+    color: yellow;
+  }
+}

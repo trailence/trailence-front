@@ -1,15 +1,13 @@
 import { Injector, SecurityContext } from '@angular/core';
 import { XmlUtils } from 'src/app/utils/xml-utils';
-import { populateWayPointInfo, TrailInfo } from './fetch-source.interfaces';
+import { populateWayPointInfo, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import L from 'leaflet';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
-import { TrackDatabase } from '../database/track-database';
 import { Trail } from 'src/app/model/trail';
-import { firstValueFrom } from 'rxjs';
+import { from, Observable, switchMap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
-import { TrackEditionService } from '../track-edition/track-edition.service';
 import { Console } from 'src/app/utils/console';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
@@ -28,16 +26,16 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   constructor(
     injector: Injector,
   ) {
-    super(injector, 'visorando', 'keyNumber, keyGpx, url');
+    super(injector, 'visorando', 'keyNumber, keyGpx, url', 'keyNumber');
   }
 
-  public canFetchTrailInfoByUrl(url: string): boolean {
+  public override canFetchTrailInfoByUrl(url: string): boolean {
     return url.startsWith('https://www.visorando.com/') && !url.startsWith('https://www.visorando.com/page-');
   }
 
-  public fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
+  public override fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
     if (!url.endsWith('/')) url += '/';
-    const fromDb = this.tableInfos.where('url').equalsIgnoreCase(url).first();
+    const fromDb = this.tableInfos.searchFirstIgnoreCase('url', url);
     return fromDb.then(info => info?.info ?? window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
@@ -48,11 +46,11 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     }));
   }
 
-  public canFetchTrailInfoByContent(doc: Document): boolean {
+  public override canFetchTrailInfoByContent(doc: Document): boolean {
     return !!doc.querySelector('div.vr-walk-datasheet');
   }
 
-  public fetchTrailInfoByContent(doc: Document, fromUrl?: string): Promise<TrailInfo | null> { // NOSONAR
+  public override fetchTrailInfoByContent(doc: Document, fromUrl?: string): Promise<TrailInfo | null> { // NOSONAR
     const result: TrailInfo = {};
 
     // description
@@ -124,6 +122,13 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       }
     }
 
+    // rating
+    const ratingElement = doc.querySelector('div[itemprop=aggregateRating] span[itemprop=ratingValue]');
+    if (ratingElement?.textContent) {
+      const v = parseFloat(ratingElement.textContent);
+      if (!isNaN(v) && v >= 0 && v <= 5) result.rating = v;
+    }
+
     // ids
     const buttons = doc.querySelectorAll('a.btn');
     let keyGpx = '';
@@ -163,7 +168,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
 
     if (keyNumber.length === 0) return Promise.resolve(null);
 
-    this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()}, keyNumber);
+    this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()});
     return Promise.resolve(result);
   }
 
@@ -172,41 +177,54 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     return this.sanitizer.sanitize(SecurityContext.NONE, content.replace(/\r/g, '').replace(/\n/g, ' ').trim());
   }
 
-  public canSearchByArea(): boolean {
+  public override canSearchByArea(): boolean {
     return true;
   }
 
-  public searchByArea(bounds: L.LatLngBounds): Promise<{trails: Trail[], tooMuchResults: boolean}> {
+  public override searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> {
     const bbox = '' + bounds.getWest() + '%2C' + bounds.getEast() + '%2C' + bounds.getSouth() + '%2C' + bounds.getNorth();
-    return firstValueFrom(this.injector.get(HttpService).get<{id: number, url: string}[]>(environment.apiBaseUrl + '/search-trails/v1/visorando?bbox=' + bbox))
-    .then(items => {
-      const nextItems = (found: Trail[], items: {id: number, url: string}[], startIndex: number): Promise<{trails: Trail[], tooMuchResults: boolean}> => {
-        if (found.length >= 200) return Promise.resolve({trails: found, tooMuchResults: true});
-        if (startIndex >= items.length) return Promise.resolve({trails: found, tooMuchResults: false});
-        const toFetch = items.slice(startIndex, Math.min(items.length, startIndex + 200 - found.length));
-        const trails$: Promise<Trail | null>[] = [];
-        for (const item of toFetch) trails$.push(this.fetchTrailByUrl(item.url).catch(e => null));
-        return Promise.all(trails$).then(trails => filterItemsDefined(trails))
-        .then(newFound => nextItems([...found, ...newFound], items, startIndex + toFetch.length));
-      };
-      return nextItems([], items, 0);
-    });
+    return this.injector.get(HttpService).get<{id: number, url: string}[]>(environment.apiBaseUrl + '/search-trails/v1/visorando?bbox=' + bbox).pipe(
+      switchMap(allItems => new Observable<SearchResult>(subscriber => {
+        const nextItems = (emitted: number, startIndex: number) => {
+          const nbToFetch = Math.min(allItems.length - startIndex, limit - emitted);
+          if (nbToFetch <= 0) {
+            subscriber.next({trails: [], end: true, tooManyResults: allItems.length > limit});
+            subscriber.complete();
+            return;
+          }
+          const urlsToFetch = allItems.slice(startIndex, startIndex + Math.min(nbToFetch, 30)).map(item => item.url);
+          zip(...urlsToFetch.map(url => from(this.fetchTrailByUrl(url)))).subscribe(trails => {
+            const ok = filterItemsDefined(trails);
+            if (ok.length === 0) {
+              nextItems(emitted, startIndex + urlsToFetch.length);
+              return;
+            }
+            const end = emitted + ok.length >= limit || startIndex + urlsToFetch.length === allItems.length;
+            const tooManyResults = end && emitted + ok.length >= limit && startIndex + urlsToFetch.length < allItems.length;
+            subscriber.next({trails: ok, end, tooManyResults});
+            if (end) subscriber.complete();
+            else nextItems(emitted + ok.length, startIndex + urlsToFetch.length);
+          });
+        };
+        nextItems(0, 0);
+      }))
+    );
   }
 
-  canFetchTrailByUrl(url: string): boolean {
+  public override canFetchTrailByUrl(url: string): boolean {
     return url.startsWith('https://www.visorando.com/') && !url.startsWith('https://www.visorando.com/page-');
   }
 
-  fetchTrailByUrl(url: string) {
+  public override fetchTrailByUrl(url: string) {
     return this.fetchTrailInfoByUrl(url)
     .then(info => info ? this.fetchTrailFromInfo(info) : null);
   }
 
-  canFetchTrailByContent(html: Document): boolean {
+  public override canFetchTrailByContent(html: Document): boolean {
     return this.canFetchTrailInfoByContent(html);
   }
 
-  fetchTrailByContent(html: Document): Promise<Trail | null> {
+  public override fetchTrailByContent(html: Document): Promise<Trail | null> {
     return this.fetchTrailInfoByContent(html)
     .then(info => info ? this.fetchTrailFromInfo(info) : null);
   }
@@ -243,35 +261,17 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       if (info.location && info.location.length > 0 && gpx.trail.location.length === 0) {
         gpx.trail.location = info.location;
       }
-
-      const improved = this.injector.get(TrackEditionService).applyDefaultImprovments(gpx.tracks[0]);
-      this.injector.get(TrackEditionService).computeFinalMetadata(gpx.trail, improved);
-      const trailDto = gpx.trail.toDto();
-      trailDto.uuid = idTrail;
-      trailDto.originalTrackUuid = idTrail + '-original';
-      trailDto.currentTrackUuid = idTrail + '-improved';
-      const track1Dto = gpx.tracks[0].toDto();
-      track1Dto.uuid = idTrail + '-original';
-      const track2Dto = improved.toDto();
-      track2Dto.uuid = idTrail + '-improved';
-      const metadata = TrackDatabase.toMetadata(improved);
-      metadata.uuid = idTrail;
-      this.tableTrails.put(trailDto, idTrail);
-      this.tableFullTracks.put(track1Dto, track1Dto.uuid);
-      this.tableFullTracks.put(track2Dto, track2Dto.uuid);
-      this.tableSimplifiedTracks.put({uuid: track1Dto.uuid, points: TrackDatabase.simplify(gpx.tracks[0]).points}, track1Dto.uuid);
-      this.tableSimplifiedTracks.put({uuid: track2Dto.uuid, points: TrackDatabase.simplify(improved).points}, track2Dto.uuid);
-      this.tableMetadata.put({...TrackDatabase.toMetadata(gpx.tracks[0]), uuid: track1Dto.uuid}, track1Dto.uuid);
-      this.tableMetadata.put({...TrackDatabase.toMetadata(improved), uuid: track2Dto.uuid}, track2Dto.uuid);
-      return trailDto;
+      const prepare = this.prepareTrailToStore(gpx.trail, gpx.tracks[0], idTrail);
+      this.storeTrails([prepare]);
+      return prepare.trailDto;
     })
   }
 
-  canFetchTrailsByUrl(url: string): boolean {
+  public override canFetchTrailsByUrl(url: string): boolean {
     return url.startsWith('https://www.visorando.com/page-');
   }
 
-  fetchTrailsByUrl(url: string): Promise<Trail[]> {
+  public override fetchTrailsByUrl(url: string): Promise<Trail[]> {
     return window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
@@ -282,7 +282,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     });
   }
 
-  canFetchTrailsByContent(doc: Document): boolean { // NOSONAR
+  public override canFetchTrailsByContent(doc: Document): boolean { // NOSONAR
     if (doc.querySelector('div.vr-walk-datasheet')) return false; // single trail case
     const links = doc.querySelectorAll('a');
     for (let i = 0; i < links.length; ++i) {
@@ -304,7 +304,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     return false;
   }
 
-  fetchTrailsByContent(doc: Document): Promise<Trail[]> { // NOSONAR
+  public override fetchTrailsByContent(doc: Document): Promise<Trail[]> { // NOSONAR
     const links = doc.querySelectorAll('a');
     const validLinks = [];
     for (let i = 0; i < links.length; ++i) {

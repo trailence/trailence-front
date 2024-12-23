@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, catchError } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime } from 'rxjs';
 import { Router } from '@angular/router';
 import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -26,8 +26,8 @@ import L from 'leaflet';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { Arrays } from 'src/app/utils/arrays';
 import { SearchTrailsHeaderComponent } from 'src/app/components/search-trails-header/search-trails-header.component';
+import { SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
 
 @Component({
     selector: 'app-trails-page',
@@ -53,7 +53,7 @@ export class TrailsPage extends AbstractPage {
   viewId?: string;
 
   searching = false;
-  searchWith$ = new BehaviorSubject<string[]>([]);
+  canSearch = false;
   searchMessage?: string;
 
   private readonly _trailsAndMap$ = new BehaviorSubject<TrailsAndMapComponent | undefined>(undefined);
@@ -183,49 +183,62 @@ export class TrailsPage extends AbstractPage {
     );
     this.viewId = 'search-trails';
     // search trails
-    let previousSearch: L.LatLngBounds | undefined = undefined;
-    let previousWith: string[] = [];
     this.byStateAndVisible.subscribe(
-      combineLatest([
-        this._trailsAndMap$.pipe(
-          switchMap(c => c ? c.map$ : of(undefined)),
-          switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoom$]).pipe(debounceTime(200), map(() => c.getBounds())) : of(undefined))
-        ),
-        this.searchWith$
-      ]).pipe(
-        debounceTime(1000),
-        switchMap(([bounds, plugins]) => {
-          this.searchMessage = plugins.length === 0 ? 'pages.trails.search.needs_source' : undefined;
-          if (!bounds || plugins.length === 0) return of({trails: [], tooMuchResults: false});
-          if (previousSearch?.equals(bounds) && Arrays.sameContent(previousWith, plugins)) return EMPTY;
-          if (bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
-              bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000) {
-                previousSearch = undefined;
-                this.searchMessage = 'pages.trails.search.needs_zoom';
-                return of({trails: [], tooMuchResults: false});
-              }
-          previousSearch = bounds;
-          previousWith = plugins;
-          this.ngZone.run(() => this.searching = true);
-          return this.injector.get(FetchSourceService).searchByArea(bounds, plugins);
-        }),
-        catchError(e => {
-          Console.error('Error searching trails', e);
-          this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
-          this.searching = false;
-          return EMPTY;
-        })
+      this._trailsAndMap$.pipe(
+        switchMap(c => c ? c.map$ : of(undefined)),
+        switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoom$]).pipe(debounceTime(200), map(() => c.getBounds())) : of(undefined))
       ),
-      result => {
-        const newList = List(result.trails);
-        this.ngZone.run(() => {
-          if (!newList.equals(this.trails$.value))
-            this.trails$.next(newList);
-          this.searching = false;
-          if (result.tooMuchResults) this.searchMessage = 'pages.trails.search.too_much_results';
-        });
-      }
+      bounds => this.setSearchBounds(bounds)
     );
+  }
+
+  private searchBounds?: L.LatLngBounds;
+  private setSearchBounds(bounds?: L.LatLngBounds): void {
+    this.ngZone.run(() => {
+      this.searchBounds = bounds;
+      if (!bounds ||
+        bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
+        bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000
+      ) {
+        this.canSearch = false;
+        this.searchMessage = 'pages.trails.search.needs_zoom';
+      } else {
+        this.canSearch = true;
+        this.searchMessage = undefined;
+      }
+    });
+  }
+
+  doSearch(plugins: string[]): void {
+    let firstResult = true;
+    const fillResults = (result: SearchResult) => {
+      console.log('search result', result.trails.length, result.end, result.tooManyResults);
+      const newList = List(firstResult ? result.trails : [...this.trails$.value, ...result.trails]);
+      firstResult = false;
+      this.ngZone.run(() => {
+        if (!newList.equals(this.trails$.value))
+          this.trails$.next(newList);
+        if (result.end) {
+          this.searching = false;
+          this.setSearchBounds(this.searchBounds);
+        }
+        if (result.tooManyResults) this.searchMessage = 'pages.trails.search.too_much_results';
+      });
+    };
+    this.ngZone.run(() => {
+      this.searching = true;
+      this.canSearch = false;
+      this.searchMessage = undefined;
+    });
+    this.injector.get(FetchSourceService).searchByArea(this.searchBounds!, 200, plugins).subscribe({ // NOSONAR
+      next: result => fillResults(result),
+      error: e => {
+        Console.error('Error searching trails', e);
+        this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
+        this.searching = false;
+        this.setSearchBounds(this.searchBounds);
+      }
+    });
   }
 
   private onItemEmpty<T>(storeReady$: () => Observable<boolean>, getItem$: (auth: AuthResponse) => Observable<any>): Observable<T> {
@@ -256,7 +269,7 @@ export class TrailsPage extends AbstractPage {
     this.actions = [];
     this.searching = false;
     this.searchMessage = undefined;
-    this.searchWith$.next([]);
+    this.canSearch = false;
   }
 
 }

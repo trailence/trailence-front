@@ -119,8 +119,7 @@
         "searching": "Recherche",
         "error": "Erreur lors de la recherche",
         "needs_zoom": "Carte trop large, zoomez d'avantage",
-        "too_much_results": "Trop de résultats",
-        "needs_source": "Veuillez sélectionner une source"
+        "too_much_results": "Trop de résultats"
       }
     },
     "trail": {
@@ -647,5 +646,9 @@
   "export": {
     "trail": "Parcours",
     "photo": "Photo"
+  },
+  "osm": {
+    "from": "De",
+    "to": "à"
   }
 }

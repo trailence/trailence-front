@@ -94,16 +94,14 @@
     </div>
   </div>
 
-  <ng-container *ngIf="large">
-    <div class="menu-separator"></div>
+  <div class="menu-separator"></div>
 
-    <div class="menu-item" (click)="goTo('/trail-planner'); close();">
-      <ion-icon name="planner"></ion-icon>
-      <div class="item-title-container">
-        <div class="item-title">{{ i18n.texts.menu.planner }}</div>
-      </div>
+  <div class="menu-item" (click)="goTo('/trail-planner'); close();">
+    <ion-icon name="planner"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{ i18n.texts.menu.planner }}</div>
     </div>
-  </ng-container>
+  </div>
 
   <div class="menu-separator"></div>
   <div class="menu-item" (click)="goTo('/trails/search'); close();">

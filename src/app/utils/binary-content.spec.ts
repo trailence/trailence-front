@@ -21,7 +21,7 @@ describe('Binary Content', () => {
     try {
       new BinaryContent({} as any, 'application/test');
       expect(true).toBeFalse();
-    } catch (error) {
+    } catch (error) { // NOSONAR
       // ok
     }
 

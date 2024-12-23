@@ -31,6 +31,15 @@
   margin-bottom: 3px;
 }
 
+.rating-stars {
+  margin-bottom: 2px;
+
+  span {
+    margin-left: 5px;
+    font-size: 13px;
+  }
+}
+
 div.metadata-with-photos {
   display: flex;
   flex-direction: row;

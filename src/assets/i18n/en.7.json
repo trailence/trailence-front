@@ -119,8 +119,7 @@
         "searching": "Searching",
         "error": "Error searching trails",
         "needs_zoom": "Map too wide, zoom in more",
-        "too_much_results": "Too many results",
-        "needs_source": "Please select a source"
+        "too_much_results": "Too many results"
       }
     },
     "trail": {
@@ -647,5 +646,9 @@
   "export": {
     "trail": "Trail",
     "photo": "Photo"
+  },
+  "osm": {
+    "from": "From",
+    "to": "to"
   }
 }
