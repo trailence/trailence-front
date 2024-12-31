@@ -17,9 +17,11 @@ export class ZoomLevelDisplayTool extends L.Control {
     span.appendChild(text2);
     text1.style.fontSize = '10px';
     text2.style.fontSize = '11px';
-    map.on('zoom', () => {
+    const update = () => {
       text2.innerText = map.getZoom().toLocaleString('en', {maximumFractionDigits: 1});
-    });
+    };
+    map.on('zoom', update);
+    map.on('zoomend', update);
     return span;
   }
 

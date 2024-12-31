@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { INetworkService } from 'src/app/services/network/network.interface';
-import { ConnectionStatus, ConnectionType, Network } from '@capacitor/network';
+import { ConnectionStatus, Network } from '@capacitor/network';
 import { HttpClientService } from 'src/app/services/http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from 'src/app/services/http/http-request';
 import { environment } from 'src/environments/environment';
@@ -13,10 +13,10 @@ import { HttpService } from 'src/app/services/http/http.service';
 })
 export class NetworkService implements INetworkService {
 
-  private _server$ = new BehaviorSubject<boolean>(false);
-  private _internet$ = new BehaviorSubject<boolean>(false);
+  private readonly _server$ = new BehaviorSubject<boolean>(false);
+  private readonly _internet$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private http: HttpClientService, httpService: HttpService) {
+  constructor(private readonly http: HttpClientService, httpService: HttpService) {
     this._server$ = new BehaviorSubject<boolean>(false);
     this._internet$ = new BehaviorSubject<boolean>(false);
     Network.getStatus().then(status => {

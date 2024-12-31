@@ -398,7 +398,7 @@ export class TraceRecorderService {
       point.eleAccuracy = position.ea;
       updated = true;
     }
-    if (updated || (position.t !== undefined && (point.time === undefined || position.t - point.time >= 60000)))
+    if (updated || (position.t !== undefined && point.time === undefined))
       point.time = position.t;
     Console.info('update ' + pointType + ' position', position, reason, updated);
   }
@@ -406,7 +406,7 @@ export class TraceRecorderService {
   private isBetterAccuracy(newAccuracy: number | undefined, previousAccuracy: number | undefined): boolean {
     if (newAccuracy === undefined) return previousAccuracy === undefined;
     if (previousAccuracy === undefined) return true;
-    return newAccuracy <= previousAccuracy;
+    return newAccuracy < previousAccuracy;
   }
 
   private stopRecording(recording: Recording): void {

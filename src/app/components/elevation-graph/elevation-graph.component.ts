@@ -135,7 +135,7 @@ export class ElevationGraphComponent extends AbstractComponent {
             if (entries[0].isIntersecting) {
               const w = entries[0].boundingClientRect.width;
               const h = entries[0].boundingClientRect.height;
-              if (w > 0 && h > 0) {
+              if (w > 100 && h > 100) {
                 this._visibilityObserver.disconnect();
                 this._visibilityObserver = undefined;
                 this.startChart(w, h, entries[0].target as HTMLElement);
