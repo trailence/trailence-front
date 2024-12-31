@@ -233,7 +233,7 @@ export class TrailsPage extends AbstractPage {
     this.injector.get(FetchSourceService).searchByArea(this.searchBounds!, 200, plugins).subscribe({ // NOSONAR
       next: result => fillResults(result),
       error: e => {
-        Console.error('Error searching trails', e);
+        Console.error('Error searching trails on ' + plugins.join(',') + ' with bounds', this.searchBounds, 'error', e);
         this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
         this.searching = false;
         this.setSearchBounds(this.searchBounds);

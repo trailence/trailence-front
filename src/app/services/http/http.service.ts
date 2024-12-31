@@ -89,7 +89,7 @@ export class HttpService {
     .pipe(
       switchMap(response => {
         if (response.status / 100 === 2) return of(response.body);
-        return throwError(() => ApiError.fromHttpResponse(response));
+        return throwError(() => ApiError.fromHttpResponse(response, request));
       })
     );
   }

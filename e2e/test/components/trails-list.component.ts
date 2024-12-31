@@ -95,7 +95,9 @@ export class TrailsList extends Component {
     await openButton.getElement().scrollIntoView({block: 'center', inline: 'center'});
     await openButton.click();
     try { await browser.waitUntil(() => openButton.isDisplayed().then(d => !d), { timeout: 5000 })}
-    catch (e) { openButton.click(); }
+    catch (e) {
+      await new IonicButton(trail.getElement(true).$('div.open-trail ion-button')).click();
+    }
     const trailPage = new TrailPage(owner, uuid);
     await trailPage.waitDisplayed();
     return trailPage;
