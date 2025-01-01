@@ -337,12 +337,20 @@
         "connected_since": "Connected since",
         "last_usage": "Latest usage",
         "this_device": "This device",
-        "types": {
-          "capacitor": "Mobile application",
-          "mobileweb": "Mobile web application",
-          "desktop": "Desktop web application"
+        "mobile_app": "Mobile application",
+        "web_app": "Web application",
+        "systems": {
+          "android": "Android",
+          "ios": "iOS",
+          "windows": "Windows"
+        },
+        "browsers": {
+          "chrome": "Google Chrome",
+          "edge": "Microsoft Edge",
+          "firefox": "Mozilla Firefox"
         }
       },
+      "not_connected": "You are not connected",
       "change_password": {
         "button": "Change my password",
         "button_new": "Create my account",

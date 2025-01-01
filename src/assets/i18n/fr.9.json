@@ -337,12 +337,20 @@
         "connected_since": "Connecté depuis",
         "last_usage": "Dernière utilisation",
         "this_device": "Ce périphérique",
-        "types": {
-          "capacitor": "Application mobile",
-          "mobileweb": "Web application mobile",
-          "desktop": "Web application desktop"
+        "mobile_app": "Application mobile",
+        "web_app": "Application web",
+        "systems": {
+          "android": "Android",
+          "ios": "iOS",
+          "windows": "Windows"
+        },
+        "browsers": {
+          "chrome": "Google Chrome",
+          "edge": "Microsoft Edge",
+          "firefox": "Mozilla Firefox"
         }
       },
+      "not_connected": "Vous n'êtes pas connecté",
       "change_password": {
         "button": "Modifier mon mot de passe",
         "button_new": "Créer mon compte",
