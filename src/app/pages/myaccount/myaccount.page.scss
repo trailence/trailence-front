@@ -1,3 +1,14 @@
+:host {
+  --actions-width: 95px;
+  --device-width: 350px;
+}
+
+@media (max-width: 500px) {
+  :host {
+    --device-width: 245px;
+  }
+}
+
 .page-content {
   flex: 1 1 100%;
   display: block;
@@ -17,18 +28,24 @@
   margin-bottom: 3px;
 
   .device-row {
-    width: 245px;
+    width: var(--device-width);
 
     .device-info {
       .device-description {
         .device-systemtype {
-          display: flex;
-          flex-direction: row;
-          div {
+          div.icons {
+            ion-icon {
+              margin-right: 3px;
+            }
+          }
+          div.texts {
             color: var(--ion-color-secondary);
             font-size: 14px;
-            &:not(:first-child) {
-              margin-left: 8px;
+            span {
+              white-space: nowrap;
+              &:not(:last-child) {
+                margin-right: 6px;
+              }
             }
           }
         }
@@ -43,19 +60,23 @@
         font-size: 14px;
         div:first-child {
           color: var(--ion-color-medium);
+          flex: none;
         }
         div:not(:first-child) {
           color: var(--ion-text-color);
           margin-left: 5px;
+          flex: 1 1 100%;
+          text-align: right;
         }
       }
     }
   }
   .device-action {
     flex: none;
-    width: 95px;
+    width: var(--actions-width);
     padding: 5px 2px;
     font-size: 12px;
+    text-align: right;
     span {
       font-style: italic;
     }

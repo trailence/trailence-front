@@ -18,10 +18,14 @@ export class AssetsService {
       'add-circle': 'assets/add-circle.1.svg', // add-circle-outline
       'altitude': 'assets/altitude.1.svg',
       'android': 'assets/android.1.svg', // logo-android
+      'apple': 'assets/apple.1.svg', // logo-apple
       'arrow-back': 'assets/arrow-back.1.svg', // arrow-back
       'arrow-down': 'assets/arrow-down.1.svg', // arrow-down
       'arrow-forward': 'assets/arrow-forward.1.svg', // arrow-forward
       'arrow-up': 'assets/arrow-up.1.svg', // arrow-up
+      'browser-chrome': 'assets/browser-chrome.1.svg', // logo-chrome
+      'browser-firefox': 'assets/browser-firefox.1.svg', // logo-firefox
+      'browser-edge': 'assets/browser-edge.1.svg', // logo-edge
       'bubbles': 'assets/bubbles.1.svg',
       'car': 'assets/car.1.svg', // car
       'caret-back': 'assets/caret-back.1.svg', // caret-back
@@ -42,6 +46,7 @@ export class AssetsService {
       'cross': 'assets/cross.1.svg', // close-outline
       'database': 'assets/database.1.svg', // server-outline
       'date': 'assets/calendar-outline.1.svg', // calendar-outline
+      'desktop': 'assets/desktop.1.svg', // desktop-outline
       'distance': 'assets/distance.1.svg',
       'download': 'assets/download.1.svg', // cloud-download
       'duration': 'assets/duration.1.svg', // time-outline
@@ -67,6 +72,7 @@ export class AssetsService {
       'loop': 'assets/loop.1.svg',
       'lowest-point': 'assets/lowest-point.1.svg',
       'map': 'assets/map.1.svg', // map
+      'mobile': 'assets/mobile.1.svg',
       'more-menu': 'assets/more-menu.1.svg', // ellipsis-horizontal
       'offline': 'assets/exclamation-circle.1.svg', // alert-circle-outline
       'one-way': 'assets/point-to-point.1.svg',
@@ -111,6 +117,8 @@ export class AssetsService {
       'theme-system': 'assets/theme-system.1.svg', // cog-outline
       'undo': 'assets/undo.1.svg', // arrow-undo-outline
       'warning': 'assets/warning.1.svg', // warning-outline
+      'web': 'assets/web.1.svg', // globe-outline
+      'windows': 'assets/windows.1.svg', // logo-windows
       'zoom-in': 'assets/zoom-in.1.svg',
       'zoom-out': 'assets/zoom-out.1.svg',
     };

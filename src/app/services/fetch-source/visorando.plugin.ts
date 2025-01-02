@@ -54,9 +54,14 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     const result: TrailInfo = {};
 
     // description
-    const description = doc.querySelector('main header div[itemprop=description]');
+    let description = doc.querySelector('main header div[itemprop=description]');
     if (description) {
       const content = description.textContent;
+      if (content) result.description = this.sanitize(content) ?? undefined;
+    }
+    if (!result.description) {
+      description = doc.querySelector('main header div.text--lg p');
+      const content = description?.textContent;
       if (content) result.description = this.sanitize(content) ?? undefined;
     }
 

@@ -6,6 +6,8 @@
     {{email}}
   </div>
 
+  @if (network.server$ | async) {
+
   <ion-button (click)="changePassword()">
     {{ complete ? i18n.texts.pages.myaccount.change_password.button : i18n.texts.pages.myaccount.change_password.button_new }}
   </ion-button>
@@ -20,10 +22,59 @@
         <div class="device-info">
           <div class="device-description">
             <div class="device-systemtype">
-              <div class="device-type">{{deviceApplicationType(key)}}</div>
-              <div class="device-system">{{deviceSystem(key)}}</div>
+              <div class="icons">
+                @switch (key.deviceType) {
+                  @case('desktop') {
+                    <ion-icon name="desktop"></ion-icon>
+                  }
+                  @case ('mobile') {
+                    <ion-icon name="mobile"></ion-icon>
+                  }
+                }
+                @switch (key.system) {
+                  @case ('windows') {
+                    <ion-icon name="windows"></ion-icon>
+                  }
+                  @case ('android') {
+                    <ion-icon name="android"></ion-icon>
+                  }
+                  @case ('ios') {
+                    <ion-icon name="apple"></ion-icon>
+                  }
+                }
+                <ng-container *ngIf="!key.native">
+                  <ion-icon name="web"></ion-icon>
+                  @switch (key.browser) {
+                    @case ('chrome') {
+                      <ion-icon name="browser-chrome"></ion-icon>
+                    }
+                    @case ('firefox') {
+                      <ion-icon name="browser-firefox"></ion-icon>
+                    }
+                    @case ('edge') {
+                      <ion-icon name="browser-edge"></ion-icon>
+                    }
+                  }
+                </ng-container>
+              </div>
+              <div class="texts">
+                @if (key.native) {
+                  <span>{{i18n.texts.pages.myaccount.devices_table.mobile_app}}</span>
+                  @if (key.system) {
+                    <span>{{i18n.texts.pages.myaccount.devices_table.systems[key.system]}}</span>
+                  }
+                } @else {
+                  <span>{{i18n.texts.pages.myaccount.devices_table.web_app}}</span>
+                  @if (key.browser) {
+                    <span>{{i18n.texts.pages.myaccount.devices_table.browsers[key.browser]}}</span>
+                  }
+                  @if (key.system) {
+                    <span>{{i18n.texts.pages.myaccount.devices_table.systems[key.system]}}</span>
+                  }
+                }
+              </div>
             </div>
-            <div class="device-details">{{deviceDetails(key)}}</div>
+            <div class="device-details" *ngIf="key.deviceDescription">{{key.deviceDescription}}</div>
           </div>
           <div class="device-date">
             <div>{{i18n.texts.pages.myaccount.devices_table.connected_since}}</div>
@@ -40,10 +91,13 @@
           {{i18n.texts.pages.myaccount.devices_table.this_device}}
         </span>
         <ion-button size="small" *ngIf="!isThisDevice(key)" (click)="deleteKey(key)">
-          {{i18n.texts.buttons.delete}}
+          <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-button>
       </div>
     </div>
   </ng-container>
 
+  } @else {
+    <div class="no-network">{{i18n.texts.pages.myaccount.not_connected}}</div>
+  }
 </div>
