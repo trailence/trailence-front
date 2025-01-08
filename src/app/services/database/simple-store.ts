@@ -265,54 +265,54 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       private syncGetAllFromServer(stillValid: () => boolean): Observable<boolean> {
         return this.getAllFromServer().pipe(
           switchMap(dtos => {
-                if (!stillValid()) return of(false);
-                const returnedFromServer = dtos.length;
-                // remove items not created locally and not returned by the server, and add new items from server
-                const deleted: BehaviorSubject<ENTITY | null>[] = [];
-                this._store.value.forEach(
-                  item$ => {
-                    if (!item$.value) return;
-                    const index = dtos.findIndex(dto => this.areSame(this.fromDTO(dto), item$.value!)); // NOSONAR
-                    if (index >= 0) {
-                      // returned by server => already known
-                      if (this.updateEntityFromServer()) {
-                        const dto = dtos[index];
-                        const entity = this.fromDTO(dto);
-                        item$.next(entity);
-                      }
-                      dtos.splice(index, 1);
-                    } else if (this._createdLocally.indexOf(item$) < 0) {
-                      // not returned by the server
-                      // not created locally => removed from server
-                      deleted.push(item$);
-                    }
+            if (!stillValid()) return of(false);
+            const returnedFromServer = dtos.length;
+            // remove items not created locally and not returned by the server, and add new items from server
+            const deleted: BehaviorSubject<ENTITY | null>[] = [];
+            this._store.value.forEach(
+              item$ => {
+                if (!item$.value) return;
+                const index = dtos.findIndex(dto => this.areSame(this.fromDTO(dto), item$.value!)); // NOSONAR
+                if (index >= 0) {
+                  // returned by server => already known
+                  if (this.updateEntityFromServer()) {
+                    const dto = dtos[index];
+                    const entity = this.fromDTO(dto);
+                    item$.next(entity);
                   }
-                );
-                const added: BehaviorSubject<ENTITY | null>[] = [];
-                dtos.forEach(dto => {
-                  const e = this.fromDTO(dto);
-                  if (!this._deletedLocally.find(entity => this.areSame(e, entity))) {
-                    // not deleted locally => new item from server
-                    added.push(new BehaviorSubject<ENTITY | null>(this.fromDTO(dto)));
-                  }
-                });
-                Console.info('Server updates for ' + this.tableName + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
-                if (deleted.length > 0 || added.length > 0) {
-                  for (const item$ of deleted) {
-                    const index = this._store.value.indexOf(item$);
-                    if (index >= 0) this._store.value.splice(index, 1);
-                  }
-                  this._store.value.push(...added);
-                  this._store.next(this._store.value);
-                  return this.saveStore();
+                  dtos.splice(index, 1);
+                } else if (this._createdLocally.indexOf(item$) < 0) {
+                  // not returned by the server
+                  // not created locally => removed from server
+                  deleted.push(item$);
                 }
-                return of(true);
-            }),
-            catchError(error => {
-              Console.error('Error getting updates from server for ' + this.tableName, error);
-              this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
-              return of(false);
-            })
+              }
+            );
+            const added: BehaviorSubject<ENTITY | null>[] = [];
+            dtos.forEach(dto => {
+              const e = this.fromDTO(dto);
+              if (!this._deletedLocally.find(entity => this.areSame(e, entity))) {
+                // not deleted locally => new item from server
+                added.push(new BehaviorSubject<ENTITY | null>(this.fromDTO(dto)));
+              }
+            });
+            Console.info('Server updates for ' + this.tableName + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
+            if (deleted.length > 0 || added.length > 0) {
+              for (const item$ of deleted) {
+                const index = this._store.value.indexOf(item$);
+                if (index >= 0) this._store.value.splice(index, 1);
+              }
+              this._store.value.push(...added);
+              this._store.next(this._store.value);
+              return this.saveStore();
+            }
+            return of(true);
+          }),
+          catchError(error => {
+            Console.error('Error getting updates from server for ' + this.tableName, error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
+            return of(false);
+          })
         );
       }
 }

@@ -24,7 +24,7 @@
         <ion-button fill="clear" shape="round" id="header-title-actions-button-{{id}}">
           <ion-icon slot="icon-only" name="item-menu"></ion-icon>
         </ion-button>
-        <ion-popover trigger="header-title-actions-button-{{id}}" [dismissOnSelect]="true">
+        <ion-popover trigger="header-title-actions-button-{{id}}" [dismissOnSelect]="true" [ngClass]="{'tight-menu': actions.length > 10}">
           <ng-template>
             <ion-content>
               <app-menu-content [menu]="actions"></app-menu-content>

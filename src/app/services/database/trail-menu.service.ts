@@ -139,19 +139,24 @@ export class TrailMenuService {
   }
 
   private getCollectionsMenuItems(excludeUuids: string[], action: (col: TrailCollection) => void): Observable<MenuItem[]> {
-    return this.injector.get(TrailCollectionService).getAll$().pipe(
+    const collectionService = this.injector.get(TrailCollectionService);
+    return collectionService.getAll$().pipe(
       switchMap(cols => cols.length === 0 ? of([]) : combineLatest(cols)),
-      map(cols => (cols.filter(col => !!col && excludeUuids.indexOf(col.uuid) < 0) as TrailCollection[]).map(
-        col => {
-          const item = new MenuItem();
-          if (col.name === '' && col.type === TrailCollectionType.MY_TRAILS)
-            item.setI18nLabel('my_trails');
-          else
-            item.setFixedLabel(col.name);
-          item.setAction(() => action(col));
-          return item;
-        }
-      )),
+      map(cols => {
+        const list = cols.filter(col => !!col && excludeUuids.indexOf(col.uuid) < 0) as TrailCollection[];
+        collectionService.sort(list);
+        return list.map(
+          col => {
+            const item = new MenuItem();
+            if (col.name === '' && col.type === TrailCollectionType.MY_TRAILS)
+              item.setI18nLabel('my_trails');
+            else
+              item.setFixedLabel(col.name);
+            item.setAction(() => action(col));
+            return item;
+          }
+        );
+      }),
       map(items => {
         items.splice(0, 0, new MenuItem()
           .setI18nLabel('pages.trails.actions.new_collection')

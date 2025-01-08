@@ -17,7 +17,7 @@ export class LegendPlugin implements C.Plugin<"line"> {
 
   afterDraw(chart: C.Chart<'line', (number | C.Point | null)[], unknown>, args: EmptyObject, options: AnyObject): void {
     let xAxis = chart.scales['x'];
-    if (xAxis.width < 350) return;
+    if (xAxis.width < 225) return;
     let ctx = chart.ctx;
     ctx.save();
     let x = xAxis.right;

@@ -58,6 +58,7 @@ export class NetworkService implements INetworkService {
   }
 
   private checkServerConnection(count: number, trial: number): void {
+    if (count !== this.countPing) return;
     this.http.send(new TrailenceHttpRequest(HttpMethod.GET, environment.apiBaseUrl + '/ping'))
     .subscribe(response => {
       if (count !== this.countPing) return;
@@ -68,11 +69,11 @@ export class NetworkService implements INetworkService {
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');
         status = false;
-        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), 500);
+        if (trial < 3) setTimeout(() => this.checkServerConnection(count, trial + 1), trial * 250);
         else if (trial < 10) setTimeout(() => this.checkServerConnection(count, trial + 1), 1000);
-        else if (trial < 20) setTimeout(() => this.checkServerConnection(count, trial + 1), 5000);
-        else if (trial < 30) setTimeout(() => this.checkServerConnection(count, trial + 1), 15000);
-        else setTimeout(() => this.checkServerConnection(count, trial + 1), 60000);
+        else if (trial < 15) setTimeout(() => this.checkServerConnection(count, trial + 1), 15000);
+        else if (trial < 20) setTimeout(() => this.checkServerConnection(count, trial + 1), 60000);
+        else setTimeout(() => this.checkServerConnection(count, trial + 1), 5 * 60000);
       }
       if (status !== this._server$.value) {
         this._server$.next(status);

@@ -34,6 +34,7 @@ export interface DataPoint {
   lng: number;
   ele?: number;
   distanceMeters: number;
+  distanceFromPrevious: number;
   grade: {gradeBefore: number | undefined; gradeAfter: number | undefined};
   eleAccuracy?: number;
   posAccuracy?: number;
@@ -111,8 +112,6 @@ export class ElevationGraphComponent extends AbstractComponent {
     });
   }
 
-  private _visibilityObserver?: IntersectionObserver;
-
   public resetChart(): void {
     this.ngZone.runOutsideAngular(() => {
       this.chartOptions = undefined;
@@ -125,26 +124,37 @@ export class ElevationGraphComponent extends AbstractComponent {
         this._visibilityObserver.disconnect();
         this._visibilityObserver = undefined;
       }
+      if (this._visibilityTimeout) {
+        clearTimeout(this._visibilityTimeout);
+        this._visibilityTimeout = undefined;
+      }
       if (!this.initializing)
         this.ngZone.run(() => this.changeDetector.detectChanges());
       if (!this.track1) return;
       if (this.visible)
-        setTimeout(() => {
-          this._visibilityObserver = new IntersectionObserver(entries => {
-            if (!this._visibilityObserver) return;
-            if (entries[0].isIntersecting) {
-              const w = entries[0].boundingClientRect.width;
-              const h = entries[0].boundingClientRect.height;
-              if (w > 100 && h > 100) {
-                this._visibilityObserver.disconnect();
-                this._visibilityObserver = undefined;
-                this.startChart(w, h, entries[0].target as HTMLElement);
-              }
-            }
-          });
-          this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement);
-        }, 0);
+        this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 0);
     });
+  }
+
+  private _visibilityObserver?: IntersectionObserver;
+  private _visibilityTimeout?: any;
+  private waitForVisible(): void {
+    this._visibilityTimeout = undefined;
+    this._visibilityObserver = new IntersectionObserver(entries => {
+      if (!this._visibilityObserver) return;
+      if (entries[0].isIntersecting) {
+        const w = entries[0].boundingClientRect.width;
+        const h = entries[0].boundingClientRect.height;
+        this._visibilityObserver.disconnect();
+        this._visibilityObserver = undefined;
+        if (w > 100 && h > 100) {
+          this.startChart(w, h, entries[0].target as HTMLElement);
+        } else {
+          this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 250);
+        }
+      }
+    });
+    this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement);
   }
 
   private backgroundColor = '';
@@ -458,44 +468,35 @@ export class ElevationGraphComponent extends AbstractComponent {
       minY = Math.min(minY, originalDs.data[i].y);
 
     let previousIndex = 0;
-    let previousLevel = undefined;
+    let previousLevel: number | undefined = undefined;
+    let distanceFromPrevious = 0;
+    let totalGradeFromPrevious = 0;
     for (let i = 1; i < points.length; ++i) {
-      const e = points[i].ele as number;
-      const l = new L.LatLng(points[i].lat, points[i].lng);
-      const d = new L.LatLng(points[previousIndex].lat, points[previousIndex].lng).distanceTo(l);
-      if (d > 25 && i > previousIndex) {
-        const direction = e - points[i - 1].ele >= 0;
-        const direction2 = e - points[previousIndex].ele >= 0;
-        if (direction !== direction2) {
-          previousLevel = this.addElevationGrade(ds, points, previousIndex, i - 1, minY);
-          previousIndex = i - 1;
-          i--;
-          continue;
-        }
-        if (previousLevel !== undefined) {
-          const grade = (points[i].ele - points[previousIndex].ele) / d;
-          const level = this.getGradeRange(grade);
-          if (level === previousLevel) {
-            // just add it to the current dataset
-            previousLevel = this.addElevationGrade(ds, points, previousIndex, i, minY);
-            previousIndex = i;
-          }
-        }
-      }
-      if (d >= 100) {
-        previousLevel = this.addElevationGrade(ds, points, previousIndex, i, minY);
+      const g = Math.abs(points[i].grade.gradeBefore as number);
+      if (previousIndex === i - 1 && previousLevel === this.getGradeRange(g)) {
+        // same level => add it to the current dataset
+        this.addElevationGrade(ds, points, previousIndex, i, minY, previousLevel);
         previousIndex = i;
+        continue;
+      }
+      const d = new L.LatLng(points[i].lat, points[i].lng).distanceTo(points[i - 1] as L.LatLngExpression);
+      distanceFromPrevious += d;
+      totalGradeFromPrevious += g * d;
+      if (distanceFromPrevious === 0) continue;
+      const level = this.getGradeRange(totalGradeFromPrevious / distanceFromPrevious);
+      if (distanceFromPrevious > 25 || level === previousLevel) {
+        previousLevel = this.addElevationGrade(ds, points, previousIndex, i, minY, level);
+        previousIndex = i;
+        distanceFromPrevious = 0;
+        totalGradeFromPrevious = 0;
       }
     }
-    if (previousIndex < points.length - 1)
-      this.addElevationGrade(ds, points, previousIndex, points.length - 1, minY);
+    if (distanceFromPrevious > 0)
+      this.addElevationGrade(ds, points, previousIndex, points.length - 1, minY, this.getGradeRange(totalGradeFromPrevious / distanceFromPrevious));
     return ds;
   }
 
-  private addElevationGrade(ds: any[], points: any[], startIndex: number, endIndex: number, minY: number): number {
-    const d = new L.LatLng(points[startIndex].lat, points[startIndex].lng).distanceTo(points[endIndex] as L.LatLngLiteral);
-    const grade = (points[endIndex].ele - points[startIndex].ele) / d;
-    const level = this.getGradeRange(grade);
+  private addElevationGrade(ds: any[], points: any[], startIndex: number, endIndex: number, minY: number, level: number): number {
     const color = this.gradeColors[level] + 'A0';
     if (ds.length === 0 || ds[ds.length - 1].backgroundColor !== color) {
       ds.push({
@@ -526,21 +527,13 @@ export class ElevationGraphComponent extends AbstractComponent {
   }
 
   private readonly gradeColors = [
-    '#000070', // -15%-
-    '#1650C0', // -10% to -15%
-    '#40A0F0', // -7% to -10%
-    '#90D8FF', // -5% to -7%
-    '#D8D8D8', // 5% to -5%
+    '#D8D8D8', // 5%-
     '#FFD890', // 7% to 5%
     '#F0A040', // 10% to 7%
     '#C05016', // 15% to 10%
     '#700000' // 15%+
   ];
   private readonly gradeLegend = [
-    '< -15%',
-    '< -10%',
-    '< -7%',
-    '< -5%',
     '± 5%',
     '> 5%',
     '> 7%',
@@ -548,15 +541,11 @@ export class ElevationGraphComponent extends AbstractComponent {
     '> 15%'
   ];
   private getGradeRange(grade: number): number {
-    if (grade <= -0.15) return 0;
-    if (grade <= -0.1) return 1;
-    if (grade <= -0.07) return 2;
-    if (grade <= -0.05) return 3;
-    if (grade <= 0.05) return 4;
-    if (grade <= 0.07) return 5;
-    if (grade <= 0.1) return 6;
-    if (grade <= 0.15) return 7;
-    return 8;
+    if (grade <= 0.05) return 0;
+    if (grade <= 0.07) return 1;
+    if (grade <= 0.1) return 2;
+    if (grade <= 0.15) return 3;
+    return 4;
   }
 
   private updateRecordingData(ds: any, track: Track): void { // NOSONAR
@@ -564,17 +553,15 @@ export class ElevationGraphComponent extends AbstractComponent {
     let pointCount = 0;
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const points = track.segments[segmentIndex].points;
-      let pointIndex = Math.max(0, (ds.data.length - 1) - pointCount);
-      if (pointIndex >= points.length) {
-        pointCount += points.length;
-        continue;
-      }
-      pointCount += pointIndex;
-      for (; pointIndex < points.length; pointIndex++) {
-        if (pointCount === ds.data.length - 1) {
-          // latest known point => update it
-          ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points);
+      for (let pointIndex = 0; pointIndex < points.length; ++pointIndex) {
+        if (pointCount < ds.data.length) {
+          // existing
+          if (ds.data[pointCount].ele !== points[pointIndex].ele || ds.data[pointCount].distanceFromPrevious !== points[pointIndex].distanceFromPreviousPoint) {
+            // update
+            ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points);
+          }
         } else {
+          // new point
           ds.data.push(this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points));
         }
         pointCount++;
@@ -628,6 +615,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       lng: point.pos.lng,
       ele: point.ele,
       distanceMeters: distance,
+      distanceFromPrevious: point.distanceFromPreviousPoint,
       grade: TrackUtils.elevationGrade(points, pointIndex),
       eleAccuracy: point.eleAccuracy,
       posAccuracy: point.posAccuracy,

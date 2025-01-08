@@ -16,6 +16,7 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { Console } from 'src/app/utils/console';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { ReplayService } from 'src/app/services/replay/replay.service';
 
 @Component({
     selector: 'app-trail-page',
@@ -122,6 +123,11 @@ export class TrailPage extends AbstractPage {
         ),
         ([t1, t2]) => {
           this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, t1?.collectionUuid);
+          if (t1 && this.injector.get(ReplayService).canReplay) {
+            this.menu.push(new MenuItem());
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1)));
+          }
           if (!t2 && t1?.owner === this.injector.get(AuthService).email) {
             const browser = this.injector.get(BrowserService);
             if (browser.width >= 1500 && browser.height >= 500) {

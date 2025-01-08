@@ -269,8 +269,10 @@ export class TraceRecorderService {
       return;
     }
     // raw point
-    if (this.takeRawPoint(status.latestRawPoint, position)) {
-      status.latestRawPoint = this.addRawPoint(recording, position, 'enough time/distance');
+    if (this.takeRawPoint(status.latestRawPoint, position, status.latestRawAngle)) {
+      const newPoint = this.addRawPoint(recording, position, 'enough time/distance');
+      status.latestRawAngle = status.latestRawPoint ? Math.atan2(newPoint.pos.lat - status.latestRawPoint.pos.lat, newPoint.pos.lng - status.latestRawPoint.pos.lng) : undefined;
+      status.latestRawPoint = newPoint;
     } else {
       this.updatePoint(status.latestRawPoint, position, 'raw', 'short time/distance');
     }
@@ -296,9 +298,9 @@ export class TraceRecorderService {
         this.updatePoint(status.temporaryImprovedPoint, position, 'improved', 'accuracy far better for second point');
         return;
       }
-      if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position)) {
+      if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position, undefined)) {
         // enough time/distance from first point => fix the second point
-        if (this.takeImprovedPoint(status.temporaryImprovedPoint, position)) {
+        if (this.takeImprovedPoint(status.temporaryImprovedPoint, position, undefined)) {
           // enough time/distance from second point => do not update it
           status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
           status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'third point');
@@ -321,8 +323,9 @@ export class TraceRecorderService {
       return;
     }
     // at least third point, normal way
-    if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position)) {
+    if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position, status.latestDefinitiveImprovedAngle)) {
       // enough time/distance from previous definitive point => take a new point
+      status.latestDefinitiveImprovedAngle = status.latestDefinitiveImprovedPoint ? Math.atan2(status.temporaryImprovedPoint.pos.lat - status.latestDefinitiveImprovedPoint.pos.lat, status.temporaryImprovedPoint.pos.lng - status.latestDefinitiveImprovedPoint.pos.lng) : undefined;
       status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
       status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'enough time/distance');
       status.points++;
@@ -344,8 +347,8 @@ export class TraceRecorderService {
     return false;
   }
 
-  private takeRawPoint(previous: Point, pos: PointDto): boolean {
-    return this.takeImprovedPoint(previous, pos);
+  private takeRawPoint(previous: Point, pos: PointDto, previousAngle: number | undefined): boolean {
+    return this.takeImprovedPoint(previous, pos, previousAngle);
     /*
     const prefs = this.preferencesService.preferences;
     if (prefs.traceMinMeters > 0 && previous.distanceTo({lat: pos.l!, lng: pos.n!}) < Math.min(prefs.traceMinMeters / 2, 1)) return false;
@@ -353,10 +356,17 @@ export class TraceRecorderService {
     return true;*/
   }
 
-  private takeImprovedPoint(previous: Point, pos: PointDto): boolean {
+  private takeImprovedPoint(previous: Point, pos: PointDto, previousAngle: number | undefined): boolean {
     const prefs = this.preferencesService.preferences;
-    if (prefs.traceMinMeters > 0 && previous.distanceTo({lat: pos.l!, lng: pos.n!}) < prefs.traceMinMeters) return false;
+    // do not take points too often, based on prefs.traceMinMillis
     if (prefs.traceMinMillis > 0 && pos.t && previous.time && pos.t - previous.time < prefs.traceMinMillis) return false;
+    // if the direction changes enough, take point, else do not take until prefs.traceMinMeters
+    const newAngle = Math.atan2(pos.l! - previous.pos.lat, pos.n! - previous.pos.lng);
+    if ((previousAngle === undefined || Math.abs(newAngle - previousAngle) < 0.1) &&
+      (prefs.traceMinMeters > 0 && previous.distanceTo({lat: pos.l!, lng: pos.n!}) < prefs.traceMinMeters)
+    ) {
+      return false;
+    }
     return true;
   }
 
@@ -495,7 +505,10 @@ interface RecordingStatus {
 
   points: number;
   latestRawPoint?: Point;
+  latestRawAngle?: number;
   latestDefinitiveImprovedPoint?: Point;
+  latestDefinitiveImprovedAngle?: number;
   temporaryImprovedPoint?: Point;
+  temporaryImprovedAngle?: number;
 
 }

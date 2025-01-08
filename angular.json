@@ -77,7 +77,13 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/app/services/replay/replay.service.ts",
+                  "with": "dev/services/replay/replay.service.ts"
+                }
+              ]
             },
             "ci": {
               "progress": false

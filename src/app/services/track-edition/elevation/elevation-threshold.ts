@@ -5,7 +5,7 @@ import { TrackUtils } from 'src/app/utils/track-utils';
 
 export function applyElevationThresholdToTrack(track: Track, threshold: number, maxDistance: number): void {
   for (const segment of track.segments)
-    applyElevationThresholdToSegment(segment, threshold, maxDistance, undefined, true);
+    applyElevationThresholdToSegment(segment, threshold, maxDistance, undefined, segment.points.length - 1, true);
 }
 
 class Cursor {
@@ -37,14 +37,14 @@ class Cursor {
   }
 }
 
-export function applyElevationThresholdToSegment(segment: Segment, threshold: number, maxDistance: number, lastIndexProcessed: number | undefined, finish: boolean): number { // NOSONAR
+export function applyElevationThresholdToSegment(segment: Segment, threshold: number, maxDistance: number, lastIndexProcessed: number | undefined, maxIndexToProcess: number, finish: boolean): number { // NOSONAR
   const points = segment.points;
   if (points.length < 3) return 0;
   const smoothOutsideThreshold = threshold * 0.75;
   const start = lastIndexProcessed ?? 0;
   const cursor = new Cursor(points, start);
-  const nb = finish ? points.length : points.length - 10;
-  for (let i = start + 1; i < nb - 1; ++i) {
+  const endIndex = finish ? points.length - 1 : maxIndexToProcess;
+  for (let i = start + 1; i <= endIndex - 1; ++i) {
     const ele = points[i].ele;
     const pos = points[i].pos;
     cursor.newPoint(pos, i);
@@ -63,7 +63,7 @@ export function applyElevationThresholdToSegment(segment: Segment, threshold: nu
   let last = points.length - 2;
   while (points[last].ele === undefined && last > cursor.previousIndex) last--;
   if (cursor.previousIndex < last && cursor.previousEle !== undefined) {
-    if (last != nb - 1) {
+    if (last != endIndex) {
       cursor.resetWithIndex(points, cursor.previousIndex);
       for (let i = cursor.previousIndex + 1; i <= last; ++i) {
         cursor.newPoint(points[i].pos, i);
@@ -80,7 +80,7 @@ export function applyElevationThresholdToSegment(segment: Segment, threshold: nu
       }
     } while (cursor.previousIndex < last - 1);
   }
-  return Math.max(nb, 0);
+  return Math.max(endIndex, 0);
 }
 
 function smoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, smoothOutsideThreshold: number): number {

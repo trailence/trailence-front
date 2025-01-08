@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { ImprovmentRecordingState, TrackEditionService } from './track-edition.service';
 import { Track } from 'src/app/model/track';
-import { copyPoint, Point } from 'src/app/model/point';
+import { copyPoint } from 'src/app/model/point';
 import { PreferencesService } from '../preferences/preferences.service';
 
 describe('Test improvments while recording', () => {
@@ -20,7 +20,7 @@ describe('Test improvments while recording', () => {
     preferencesService = TestBed.inject(PreferencesService);
   });
 
-  it('gpx-002 improvments are same when importing and while recording', async () => {
+  it('gpx-001 improvments are same when importing and while recording', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
     const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
 
@@ -40,7 +40,9 @@ describe('Test improvments while recording', () => {
       for (let j = 0; j < improved.segments[i].points.length; ++j) {
         const pt1 = improved.segments[i].points[j];
         const pt2 = recording.segments[i].points[j];
-        const ctx = 'segment ' + (i + 1) + '/' + improved.segments.length + ', point ' + (j + 1) + '/' + improved.segments[i].points.length;
+        const ctx = 'segment ' + (i + 1) + '/' + improved.segments.length +
+          ', point ' + (j + 1) + '/' + improved.segments[i].points.length +
+          ', pos ' + pt1.pos.lat + ',' + pt1.pos.lng + ' / ' + pt2.pos.lat + ',' + pt2.pos.lng;
         if (pt1.ele === undefined)
           expect(pt2.ele).withContext(ctx).toBe(undefined);
         else {

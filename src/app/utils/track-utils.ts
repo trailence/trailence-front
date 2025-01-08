@@ -5,6 +5,8 @@ import { Segment } from '../model/segment';
 
 export class TrackUtils {
 
+  // Elevation utilities
+
   public static elevationGrade(points: Point[], pointIndex: number): {gradeBefore: number | undefined, gradeAfter: number | undefined} {
     const pt = points[pointIndex];
     const pte = pt.ele;
@@ -55,6 +57,8 @@ export class TrackUtils {
     return -1;
   }
 
+  // Distance utilities
+
   public static distanceBetween(points: Point[], startIndex: number, endIndex: number): number {
     let total = 0;
     for (let i = startIndex + 1; i <= endIndex; ++i) {
@@ -73,12 +77,23 @@ export class TrackUtils {
     }
   }
 
-  public static durationBetween(startPoint: Point, endPoint: Point): number {
-    const startTime = startPoint.time;
-    if (startTime === undefined) return 0;
-    const endTime = endPoint.time;
-    if (endTime === undefined) return 0;
-    return endTime - startTime;
+  public static goBackUntilDistance(points: Point[], index: number, minIndex: number, maxDistance: number): number {
+    if (index >= points.length || index < minIndex) return -1;
+    let d = 0;
+    for (let i = index - 1; i >= minIndex; i--) {
+      d += points[i + 1].distanceFromPreviousPoint;
+      if (d >= maxDistance) return i;
+    }
+    return -1;
+  }
+
+  public static isDistanceBetweenPointsLessThan(points: Point[], startIndex: number, endIndex: number, maxDistance: number): boolean {
+    let d = 0;
+    for (let i = startIndex + 1; i <= endIndex; ++i) {
+      d += points[i].distanceFromPreviousPoint;
+      if (d >= maxDistance) return false;
+    }
+    return true;
   }
 
   public static findClosestPoint(pos: L.LatLngLiteral, points: L.LatLngLiteral[], maxDistance: number = -1): number {
@@ -137,6 +152,16 @@ export class TrackUtils {
       }
     }
     return undefined;
+  }
+
+  // Duration utilities
+
+  public static durationBetween(startPoint: Point, endPoint: Point): number {
+    const startTime = startPoint.time;
+    if (startTime === undefined) return 0;
+    const endTime = endPoint.time;
+    if (endTime === undefined) return 0;
+    return endTime - startTime;
   }
 
 }

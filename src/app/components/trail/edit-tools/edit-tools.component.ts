@@ -6,7 +6,6 @@ import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFoot
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { adjustUnprobableElevationToTrack } from 'src/app/services/track-edition/elevation/unprobable-elevation';
 import { CommonModule } from '@angular/common';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { TrailService } from 'src/app/services/database/trail.service';
@@ -20,6 +19,7 @@ import { ToolRenderer } from './tool-renderer';
 import { SelectionTool } from './selection/selection-tool';
 import { PathRange } from '../path-selection';
 import { TrailComponent } from '../trail.component';
+import { adjustUnprobableElevationToTrackBasedOnGrade } from 'src/app/services/track-edition/elevation/unprobable-elevation-with-grade';
 
 interface HistoryState {
   base: Track | undefined;
@@ -225,7 +225,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   }
 
   removeUnprobableElevations(): void {
-    this.mayModify(track => of(adjustUnprobableElevationToTrack(track)));
+    this.mayModify(track => of(adjustUnprobableElevationToTrackBasedOnGrade(track)));
   }
 
   openElevationThresholdModal(): void {

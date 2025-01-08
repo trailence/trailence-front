@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { applyElevationThresholdToSegment, applyElevationThresholdToTrack } from './elevation/elevation-threshold';
 import { Segment } from 'src/app/model/segment';
-import { adjustUnprobableElevationToSegment, adjustUnprobableElevationToTrack } from './elevation/unprobable-elevation';
+import { adjustUnprobableElevationToSegmentBasedOnGrade, adjustUnprobableElevationToTrackBasedOnGrade } from './elevation/unprobable-elevation-with-grade';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';
 import { detectLoopType } from './path-analysis/loop-type-detection';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,7 @@ export class TrackEditionService {
 
   public applyDefaultImprovments(track: Track): Track {
     const newTrack = new Track({...track.toDto(), uuid: undefined}, this.preferencesService);
-    adjustUnprobableElevationToTrack(newTrack);
+    adjustUnprobableElevationToTrackBasedOnGrade(newTrack);
     applyElevationThresholdToTrack(newTrack, 10, 250);
     return newTrack;
   }
@@ -28,10 +29,19 @@ export class TrackEditionService {
   }
 
   public applyDefaultImprovmentsForRecordingSegment(segment: Segment, state: ImprovmentRecordingState | undefined, finish: boolean): ImprovmentRecordingState {
-    const lastUnprobableElevationIndex = adjustUnprobableElevationToSegment(segment, state?.lastUnprobableElevationIndex, finish);
-    const lastElevationThresholdIndex = applyElevationThresholdToSegment(segment, 10, 250, state?.lastElevationThresholdIndex, finish);
+    if (!finish) Console.info("Partial improvment: adjust unprobable elevation based on grade");
+    const lastUnprobableElevationBasedOnGradeIndex = adjustUnprobableElevationToSegmentBasedOnGrade(segment, state?.lastUnprobableElevationBasedOnGradeIndex, finish);
+    if (!finish) Console.info("Partial improvment: apply elevation threshold");
+    let lastElevationThresholdIndex: number | undefined;
+    if (finish)
+      lastElevationThresholdIndex = applyElevationThresholdToSegment(segment, 10, 250, state?.lastElevationThresholdIndex, segment.points.length - 1, true);
+    else if (lastUnprobableElevationBasedOnGradeIndex)
+      lastElevationThresholdIndex = applyElevationThresholdToSegment(segment, 10, 250, state?.lastElevationThresholdIndex, lastUnprobableElevationBasedOnGradeIndex, false);
+    else
+      lastElevationThresholdIndex = state?.lastElevationThresholdIndex;
+    if (!finish) Console.info("Partial improvment done.");
     return {
-      lastUnprobableElevationIndex,
+      lastUnprobableElevationBasedOnGradeIndex,
       lastElevationThresholdIndex,
     }
   }
@@ -40,7 +50,7 @@ export class TrackEditionService {
 
 export interface ImprovmentRecordingState {
 
-  lastUnprobableElevationIndex: number;
-  lastElevationThresholdIndex: number;
+  lastUnprobableElevationBasedOnGradeIndex: number;
+  lastElevationThresholdIndex: number | undefined;
 
 }

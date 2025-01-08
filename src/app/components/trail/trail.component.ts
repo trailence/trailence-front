@@ -519,9 +519,11 @@ export class TrailComponent extends AbstractComponent {
   private listenForRecordingUpdates(): void {
     if (!this.recording$) return;
     const trackChanges$ = this.recording$.pipe(switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)));
+    let previousDistance = 0;
     this.byStateAndVisible.subscribe(
-      trackChanges$.pipe(debounceTimeExtended(1000, 5000, 250),),
+      trackChanges$.pipe(debounceTimeExtended(1000, 5000, 100, (p, n) => !!n && n.track.metadata.distance - previousDistance > 100),),
       r => {
+        previousDistance = r ? r.track.metadata.distance : 0;
         const pt = r?.track.arrivalPoint;
         if (pt && this.elevationGraph) {
           this.elevationGraph.updateRecording(r.track);
