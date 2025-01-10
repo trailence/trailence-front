@@ -5,6 +5,7 @@ import { TrailsPage } from '../../app/pages/trails-page';
 import { CollectionModal } from '../../components/collection.modal';
 import { HeaderComponent } from '../../components/header.component';
 import { MapComponent } from '../../components/map.component';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Trail Planner', () => {
 
@@ -88,8 +89,8 @@ describe('Trail Planner', () => {
     await page.resume();
     await browser.waitUntil(() => map.paths.length.then(nb => nb > 1));
     await putAnchor(0, 1);
-    let distance = parseInt((await page.getDistance()).replace(',', '').replace('.', ''));
-    expect(distance).toBeGreaterThan(100);
+    let distance = await TestUtils.waitFor(async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')), d => d > 1000);
+    expect(distance).toBeGreaterThan(1000);
   });
 
   it('Stop, save, and finally delete collection', async () => {

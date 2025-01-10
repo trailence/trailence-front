@@ -1,4 +1,5 @@
 import { App } from '../../app/app';
+import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { TrailOverview } from '../../components/trail-overview.component';
 import { TrailsList } from '../../components/trails-list.component';
@@ -14,6 +15,7 @@ describe('Find Trail', () => {
   let page: TrailsPage;
   let trail: TrailOverview;
   let list: TrailsList;
+  let trailPage: TrailPage;
 
   it('Go to find a trail, zoom on Saint Honorat, search with Visorando', async () => {
     const menu = await App.openMenu();
@@ -24,7 +26,7 @@ describe('Find Trail', () => {
     await page.searchButton.click();
     const list = await page.trailsAndMap.openTrailsList();
     const trail = await list.waitTrail('Tour de l\'Île Saint-Honorat');
-    const trailPage = await list.openTrail(trail);
+    trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('a=Open in Visorando').isExisting());
     expect(await trailPage.trailComponent.getDescription())
@@ -33,10 +35,10 @@ describe('Find Trail', () => {
     expect(wayPoints.length).toBe(6);
     expect(wayPoints[0].name).toBe('Débarcadère');
     expect(wayPoints[0].description).toBe("En descendant du bateau, emprunter la rampe qui monte légèrement sur la gauche et suivre le chemin principal. En arrivant à une patte d'oie au bout de quelques mètres, emprunter le chemin de droite et arriver au niveau d'une chapelle surmontée d'une Vierge.");
-    await trailPage.header.goBack();
   });
 
   it('Unselect Visorando, zoom fo Outdoor Active', async () => {
+    await trailPage.header.goBack();
     await page.searchSources.selectByText('Visorando');
     const map = await page.trailsAndMap.openMap();
     if (App.config.mode === 'mobile')
@@ -54,13 +56,13 @@ describe('Find Trail', () => {
   });
 
   it('Check trail from Outdoor Active', async () => {
-    const trailPage = await list.openTrail(trail);
+    trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('a=Open in Outdoor Active').isExisting());
-    await trailPage.header.goBack();
   });
 
   it('Unselect Outdoor Active, zoom fo Open Street Map', async () => {
+    await trailPage.header.goBack();
     await page.searchSources.selectByText('Outdoor Active');
     const map = await page.trailsAndMap.openMap();
     if (App.config.mode === 'mobile')
@@ -78,9 +80,12 @@ describe('Find Trail', () => {
   });
 
   it('Check trail from Open Street Map', async () => {
-    const trailPage = await list.openTrail(trail);
+    trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('a=Open in Open Street Map').isExisting());
+  });
+
+  it('Go back', async () => {
     await trailPage.header.goBack();
   });
 

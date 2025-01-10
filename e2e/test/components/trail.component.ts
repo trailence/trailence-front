@@ -295,10 +295,13 @@ export class TrailComponent extends Component {
     const elements = await details.$$('div.waypoint div.waypoint-content').getElements();
     const result = [];
     for (const element of elements) {
-      result.push({
-        name: await element.$('div.waypoint-name span').getText(),
-        description: await element.$('div.waypoint-description span').getText(),
-      });
+      if (await element.$('div.waypoint-name span').isExisting())
+        result.push({
+          name: await element.$('div.waypoint-name span').getText(),
+          description: await element.$('div.waypoint-description span').getText(),
+        });
+      else
+        result.push({name: '', description: ''});
     }
     return result;
   }

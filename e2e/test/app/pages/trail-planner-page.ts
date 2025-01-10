@@ -6,7 +6,6 @@ import { MapComponent } from '../../components/map.component';
 import { ModalComponent } from '../../components/modal';
 import { App } from '../app';
 import { PageWithHeader } from './page';
-import { TrailPage } from './trail-page';
 
 export class TrailPlannerPage extends PageWithHeader {
 

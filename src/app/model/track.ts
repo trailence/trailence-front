@@ -685,6 +685,25 @@ export class ComputedWayPoint {
         currentBestIndexes = undefined;
       }
     }
+    // if we have several eligibles, with one having a perfect match, and not the others, keep only the perfect match
+    if (result.length > 1) {
+      let perfectMatch = undefined;
+      let perfectMatchOnTime = false;
+      let perfectMatchOnPosition = false;
+      for (const match of result) {
+        const pt = segments[match.segmentIndex].points[match.pointIndex];
+        const isPerfectMatchOnTime = pt.time !== undefined && t !== undefined && pt.time === t;
+        const isPerfectMatchOnPosition = pt.pos.lat === p.lat && pt.pos.lng === p.lng;
+        if (isPerfectMatchOnTime || isPerfectMatchOnPosition) {
+          if (perfectMatch === undefined || (!perfectMatchOnTime && (isPerfectMatchOnTime || (isPerfectMatchOnPosition && !perfectMatchOnPosition)))) {
+            perfectMatch = match;
+            perfectMatchOnTime = isPerfectMatchOnTime;
+            perfectMatchOnPosition = isPerfectMatchOnPosition;
+          }
+        }
+      }
+      if (perfectMatch) return [perfectMatch];
+    }
     return result;
   }
 

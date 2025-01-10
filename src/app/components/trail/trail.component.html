@@ -307,7 +307,7 @@
                   <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
                 </div>
               </div>
-              <div class="waypoint-name" *ngIf="!wp.breakPoint">
+              <div class="waypoint-name" *ngIf="!wp.breakPoint && !arrival">
                 <span *ngIf="!editToolsComponent">{{wp.wayPoint.name}}</span>
                 <ion-input *ngIf="editToolsComponent"
                   [placeholder]="i18n.texts.way_points.name_placeholder"
@@ -317,7 +317,7 @@
                   (ionChange)="wayPointNameChanged(wp.wayPoint, $event.detail.value || '')"
                 ></ion-input>
               </div>
-              <div class="waypoint-description" *ngIf="!wp.breakPoint">
+              <div class="waypoint-description" *ngIf="!wp.breakPoint && !arrival">
                 <span *ngIf="!editToolsComponent">{{wp.wayPoint.description}}</span>
                 <ion-textarea *ngIf="editToolsComponent"
                   [placeholder]="i18n.texts.way_points.description_placeholder"
