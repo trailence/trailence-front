@@ -12,7 +12,7 @@ export class HorizontalGestureDirective implements OnDestroy, OnChanges {
   @Output() horizontalGesturePerformed = new EventEmitter<any>();
 
   private gesture?: Gesture;
-  private mouseDownListener = (e: MouseEvent) => e.preventDefault();
+  private readonly mouseDownListener = (e: MouseEvent) => e.preventDefault();
 
   constructor(
     private readonly el: ElementRef,
