@@ -658,5 +658,6 @@
   "osm": {
     "from": "From",
     "to": "to"
-  }
+  },
+  "administration": "Administration"
 }

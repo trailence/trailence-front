@@ -1,0 +1,16 @@
+table.user-info {
+
+  th {
+    text-align: left;
+    color: var(--ion-color-secondary);
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  td {
+    white-space: nowrap;
+  }
+
+}

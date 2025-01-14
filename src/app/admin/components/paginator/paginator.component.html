@@ -1,0 +1,25 @@
+<ion-button fill="clear" color="secondary" [disabled]="!nbPages || pageRequest.page === 0" (click)="firstPage()">
+  <ion-icon slot="icon-only" name="chevron-first"></ion-icon>
+</ion-button>
+<ion-button fill="clear" color="secondary" [disabled]="!nbPages || pageRequest.page === 0" (click)="previousPage()">
+  <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
+</ion-button>
+
+<div class="page-number">
+  {{ 'admin.paginator.page' | i18nString }} {{ pageRequest.page + 1 }} / {{ nbPages }}
+  <span *ngIf="result && result.elements.length > 0">({{ firstElement }}..{{ lastElement }})</span>
+</div>
+<ion-button fill="clear" color="secondary" (click)="refresh()">
+  <ion-icon slot="icon-only" name="reset"></ion-icon>
+</ion-button>
+
+<ion-button fill="clear" color="secondary" [disabled]="!nbPages || pageRequest.page >= nbPages - 1" (click)="nextPage()">
+  <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
+</ion-button>
+<ion-button fill="clear" color="secondary" [disabled]="!nbPages || pageRequest.page >= nbPages - 1" (click)="lastPage()">
+  <ion-icon slot="icon-only" name="chevron-last"></ion-icon>
+</ion-button>
+
+<ion-select [value]="pageRequest.size" label="{{ 'admin.paginator.elementsPerPage' | i18nString }}" (ionChange)="setPageSize($event.detail.value)">
+  <ion-select-option *ngFor="let option of pagingOptions" [value]="option">{{ option }}</ion-select-option>
+</ion-select>

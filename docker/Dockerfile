@@ -5,6 +5,7 @@ COPY ./ /build/
 RUN npm install && \
     ionic capacitor sync android --configuration=android-prod && \
     rimraf android/app/src/main/assets/public/assets/apk && \
+    rimraf android/app/src/main/assets/public/assets/admin && \
     cd android/environments/prod && \
     cpy . ../.. && \
     cd ../../.. && \

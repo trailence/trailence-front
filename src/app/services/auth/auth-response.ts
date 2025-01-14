@@ -8,5 +8,6 @@ export interface AuthResponse {
   keyId: string;
   preferences: Preferences;
   complete: boolean;
+  admin: boolean;
 
 }

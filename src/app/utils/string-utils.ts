@@ -41,4 +41,12 @@ export class StringUtils {
     return queryParams;
   }
 
+  public static versionCodeToVersionName(v?: number): string {
+    if (!v) return '';
+    const fixVersion = v % 100;
+    const minorVersion = Math.floor(v / 100) % 100;
+    const majorVersion = Math.floor(v / 10000);
+    return majorVersion + '.' + minorVersion + '.' + fixVersion;
+  };
+
 }

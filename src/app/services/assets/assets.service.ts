@@ -34,6 +34,8 @@ export class AssetsService {
       'center-on-location': 'assets/center-on-location.1.svg',
       'checkmark': 'assets/checkmark.1.svg', // checkmark-outline
       'chevron-down': 'assets/chevron-down.1.svg', // chevron-down-outline
+      'chevron-first': 'assets/admin/chevron-first.1.svg',
+      'chevron-last': 'assets/admin/chevron-last.1.svg',
       'chevron-left': 'assets/chevron-left.1.svg', // chevron-back-outline
       'chevron-right': 'assets/chevron-right.1.svg', // chevron-forward-outline
       'chevron-up': 'assets/chevron-up.1.svg', // chevron-up-outline

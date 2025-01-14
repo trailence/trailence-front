@@ -2,9 +2,9 @@ const fs = require('fs');
 
 const knownLanguages = ['en', 'fr'];
 
-function readI18nDir() {
+function readI18nDir(dir) {
   const languages = new Map();
-  const dir = fs.opendirSync('./src/assets/i18n');
+  const dir = fs.opendirSync(dir);
   try {
     let entry;
     while ((entry = dir.readSync()) !== null) {
@@ -39,12 +39,6 @@ function readI18nDir() {
   return languages;
 }
 
-const languages = readI18nDir();
-for (const l of languages.values()) {
-  const json = JSON.parse(fs.readFileSync('./src/assets/i18n/' + l.language + '.' + l.versions['json'] + '.json', { encoding: 'utf-8'}));
-  l['jsonContent'] = json;
-}
-
 function checkKeys(object1, object2, lang1, lang2, path) {
   for (const k of Object.keys(object1)) {
     const v = object1[k];
@@ -56,10 +50,21 @@ function checkKeys(object1, object2, lang1, lang2, path) {
   }
 }
 
-for (const l1 of languages.values()) {
-  for (const l2 of languages.values()) {
-    if (l1.language === l2.language) continue;
-    checkKeys(l1['jsonContent'], l2['jsonContent'], l1.language, l2.language, '');
-    console.log('json from ' + l1.language + ' is valid against ' + l2.language);
+function checkDir(dir) {
+  const languages = readI18nDir(dir);
+  for (const l of languages.values()) {
+    const json = JSON.parse(fs.readFileSync(dir + '/' + l.language + '.' + l.versions['json'] + '.json', { encoding: 'utf-8'}));
+    l['jsonContent'] = json;
+  }
+
+  for (const l1 of languages.values()) {
+    for (const l2 of languages.values()) {
+      if (l1.language === l2.language) continue;
+      checkKeys(l1['jsonContent'], l2['jsonContent'], l1.language, l2.language, '');
+      console.log('json from ' + l1.language + ' is valid against ' + l2.language);
+    }
   }
 }
+
+checkDir('./src/assets/i18n');
+checkDir('./src/assets/admin/i18n');

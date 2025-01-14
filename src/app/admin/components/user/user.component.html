@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="account"></ion-icon>
+      <ion-label>{{user.email}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <table class="user-info">
+    <tr>
+      <th scope="row">{{i18n.texts.admin.users.createdAt}}</th>
+      <td>{{i18n.timestampToDateTimeString(user.createdAt)}}</td>
+      <th scope="row">{{i18n.texts.admin.users.password}}</th>
+      <td><ion-checkbox [checked]="user.complete" [disabled]="true"></ion-checkbox></td>
+    </tr>
+    <tr>
+      <th scope="row">{{i18n.texts.admin.users.lastLogin}}</th>
+      <td>{{i18n.timestampToDateTimeString(user.lastLogin)}}</td>
+      <th scope="row">{{i18n.texts.admin.users.administrator}}</th>
+      <td><ion-checkbox [checked]="user.admin" [disabled]="true"></ion-checkbox></td>
+    </tr>
+    <tr>
+      <th scope="row">{{i18n.texts.admin.users.invalidLoginAttempts}}</th>
+      <td>{{user.invalidLoginAttempts}}</td>
+    </tr>
+  </table>
+  <div class="page-section-title">
+    {{i18n.texts.pages.myaccount.devices}}
+  </div>
+  <app-user-keys [keysProvider]="userKeysProvider"></app-user-keys>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

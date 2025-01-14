@@ -1,0 +1,82 @@
+:host {
+  --actions-width: 95px;
+  --device-width: 350px;
+}
+
+@media (max-width: 500px) {
+  :host {
+    --device-width: 245px;
+  }
+}
+
+.device {
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--ion-color-medium);
+  margin-bottom: 3px;
+
+  .device-row {
+    width: var(--device-width);
+
+    .device-info {
+      .device-description {
+        .device-systemtype {
+          div.icons {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            ion-icon {
+              margin-right: 3px;
+            }
+
+            .app-version {
+              font-size: 14px;
+              color: var(--ion-color-secondary);
+            }
+          }
+          div.texts {
+            color: var(--ion-color-secondary);
+            font-size: 14px;
+            span {
+              white-space: nowrap;
+              &:not(:last-child) {
+                margin-right: 6px;
+              }
+            }
+          }
+        }
+        .device-details {
+          color: var(--ion-color-medium);
+          font-size: 11px;
+        }
+      }
+      .device-date {
+        display: flex;
+        flex-direction: row;
+        font-size: 14px;
+        div:first-child {
+          color: var(--ion-color-medium);
+          flex: none;
+        }
+        div:not(:first-child) {
+          color: var(--ion-text-color);
+          margin-left: 5px;
+          flex: 1 1 100%;
+          text-align: right;
+        }
+      }
+    }
+  }
+  .device-action {
+    flex: none;
+    width: var(--actions-width);
+    padding: 5px 2px;
+    font-size: 12px;
+    text-align: right;
+    span {
+      font-style: italic;
+    }
+  }
+}

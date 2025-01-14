@@ -6,6 +6,7 @@ import { CodeInputModule } from 'angular-code-input';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -30,7 +31,8 @@ export class ChangePasswordComponent {
     public i18n: I18nService,
     private readonly modalController: ModalController,
     private readonly http: HttpService,
-    public auth: AuthService
+    public auth: AuthService,
+    private readonly prefService: PreferencesService,
   ) {
     this.hasPreviousPassword = auth.auth?.complete === false ? false : true; // NOSONAR
   }
@@ -50,7 +52,7 @@ export class ChangePasswordComponent {
 
   next(): void {
     if (this.page === 1) {
-      this.http.get(environment.apiBaseUrl + '/user/v1/sendChangePasswordCode?lang=' + this.i18n.textsLanguage).subscribe();
+      this.http.get(environment.apiBaseUrl + '/user/v1/sendChangePasswordCode?lang=' + this.prefService.preferences.lang).subscribe();
       this.code = '';
     } else if (this.page === 2) {
       this.changeResult = undefined;

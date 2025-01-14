@@ -18,6 +18,7 @@ import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
 import { DependenciesService } from './dependencies.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { PreferencesService } from '../preferences/preferences.service';
 
 @Injectable({
     providedIn: 'root'
@@ -160,14 +161,14 @@ export class TrailCollectionService {
   }
 
   public sort(list: TrailCollection[]): TrailCollection[] {
-    const i18n = this.injector.get(I18nService);
-    return list.sort((c1, c2) => this.compareCollections(c1, c2, i18n));
+    const prefs = this.injector.get(PreferencesService).preferences;
+    return list.sort((c1, c2) => this.compareCollections(c1, c2, prefs.lang));
   }
 
-  public compareCollections(c1: TrailCollection, c2: TrailCollection, i18n: I18nService): number {
+  public compareCollections(c1: TrailCollection, c2: TrailCollection, lang: string): number {
     if (c1.type === TrailCollectionType.MY_TRAILS) return -1;
     if (c2.type === TrailCollectionType.MY_TRAILS) return 1;
-    return c1.name.localeCompare(c2.name, i18n.textsLanguage);
+    return c1.name.localeCompare(c2.name, lang);
   }
 }
 

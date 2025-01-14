@@ -54,7 +54,7 @@ export class AuthService {
           navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
         }
       } else if (auth) {
-        Console.info('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete);
+        Console.info('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete + ' admin = ' + auth.admin);
         localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
       }
     });
@@ -122,6 +122,16 @@ export class AuthService {
       map(auth => {
         if (auth) return true;
         return this.router.createUrlTree(['/login'], {queryParams: {returnUrl: state.url}});
+      })
+    );
+  }
+
+  public guardAdmin(): MaybeAsync<GuardResult> {
+    return this._auth$.pipe(
+      filter(auth => auth !== undefined),
+      map(auth => {
+        if (auth?.admin) return true;
+        return this.router.createUrlTree(['/']);
       })
     );
   }

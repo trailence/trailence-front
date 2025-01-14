@@ -13,6 +13,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { of, switchMap } from 'rxjs';
 import { TagService } from 'src/app/services/database/tag.service';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
   selector: 'app-trail-overview-condensed',
@@ -65,6 +66,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     private readonly tagService: TagService,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly ngZone: NgZone,
+    private readonly prefService: PreferencesService,
   ) {}
 
   ngOnInit(): void {
@@ -93,7 +95,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     if (this.track) {
       this.duration = this.i18n.durationToString(this.track.duration, true);
       this.estimatedDuration = '≈ ' + this.i18n.durationToString(this.track.estimatedDuration, true);
-      this.distance = this.i18n.distanceInLongUserUnit(this.track.distance).toLocaleString(this.i18n.textsLanguage, {maximumFractionDigits: 1, minimumFractionDigits: 1});
+      this.distance = this.i18n.distanceInLongUserUnit(this.track.distance).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1, minimumFractionDigits: 1});
       this.distanceUnit = this.i18n.longUserDistanceUnit();
       this.positiveElevation = this.track.positiveElevation ? '+ ' + Math.round(this.i18n.elevationInUserUnit(this.track.positiveElevation)) : '';
       this.negativeElevation = this.track.negativeElevation ? '- ' + Math.round(this.i18n.elevationInUserUnit(this.track.negativeElevation)) : '';

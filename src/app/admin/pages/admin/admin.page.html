@@ -1,0 +1,11 @@
+<div class="header">
+  <app-header title="{{ 'administration' | i18nString }}"></app-header>
+  <ng-container *ngIf="ready">
+    <ion-segment [value]="getCurrentPage()" color="tertiary">
+      <ion-segment-button value="users">{{ 'admin.users.title' | i18nString }}</ion-segment-button>
+    </ion-segment>
+  </ng-container>
+</div>
+<ng-container *ngIf="ready">
+  <ion-router-outlet></ion-router-outlet>
+</ng-container>

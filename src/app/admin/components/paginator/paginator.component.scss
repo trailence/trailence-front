@@ -1,0 +1,15 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background-color: var(--ion-color-footer);
+}
+
+.page-number, .elements-index, ion-select {
+  font-size: 11pt;
+  color: var(--ion-color-dark);
+}
+
+ion-select {
+  width: auto;
+}

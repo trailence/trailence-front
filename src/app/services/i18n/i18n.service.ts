@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
@@ -9,16 +9,31 @@ import { Console } from 'src/app/utils/console';
 
 const TEXTS_VERSION = '9';
 
+interface TextToLoad {
+  filePath: string;
+  fileVersion: string;
+  textPath: string;
+}
+interface TextLoaded {
+  lang: string;
+  filePath: string;
+  textPath: string;
+  texts: any;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class I18nService {
 
   private readonly _texts$ = new BehaviorSubject<any>(undefined);
-  private _textsLoading?: string;
-  private readonly _textsLoaded$ = new BehaviorSubject<string | undefined>(undefined);
+  private readonly _textsLoaded$ = new BehaviorSubject<TextLoaded[]>([]);
 
   private readonly _stateChanged$ = new BehaviorSubject<number>(0);
+
+  private readonly _toLoad: TextToLoad[] = [
+    { filePath: '/i18n', fileVersion: TEXTS_VERSION, textPath: '' }
+  ];
 
   constructor(
     private readonly prefService: PreferencesService,
@@ -37,10 +52,16 @@ export class I18nService {
 
   public get texts(): any { return this._texts$.value; }
   public get texts$(): Observable<any> { return this._texts$; }
-  public get textsLanguage$(): Observable<string | undefined> { return this._textsLoaded$; }
-  public get textsLanguage(): string { return this._textsLoaded$.value || 'en'; }
 
   public get stateChanged$(): Observable<number> { return this._stateChanged$; }
+
+  public loadAdditionalTexts(filePath: string, fileVersion: string, textPath: string): void {
+    const i = this._toLoad.findIndex(e => e.filePath === filePath);
+    if (i < 0) {
+      this._toLoad.push({filePath, fileVersion, textPath});
+      this.loadTexts(this.prefService.preferences.lang);
+    }
+  }
 
   public coordToString(latOrLng: number): string {
     return latOrLng.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 6});
@@ -267,17 +288,55 @@ export class I18nService {
     return (gbFractionalDigits ? (size / (1024 * 1024 * 1024)).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: gbFractionalDigits}) : Math.floor(size / (1024 * 1024 * 1024))) + ' ' + this.texts.bytes.gb;
   }
 
+  private _loading?: string;
+
   private loadTexts(lang: string): void {
-    if (this._textsLoading === lang) return;
-    this._textsLoading = lang;
-    if (this._textsLoaded$.value === lang) return;
+    if (this._loading === lang) return;
+    this._loading = lang;
+    const toLoad: Observable<TextLoaded>[] = [];
+    const toKeep: TextLoaded[] = [];
+    for (const l of this._toLoad) {
+      const existing = this._textsLoaded$.value.find(e => e.lang === lang && e.filePath === l.filePath);
+      if (existing)
+        toKeep.push(existing);
+      else
+        toLoad.push(
+          this.assets.loadJson(environment.assetsUrl + l.filePath + '/' + lang + '.' + l.fileVersion + '.json').pipe(
+            map(t => ({
+              lang,
+              filePath: l.filePath,
+              textPath: l.textPath,
+              texts: t,
+            } as TextLoaded))
+          )
+        );
+    }
+    if (toLoad.length === 0) {
+      this._loading = undefined;
+      return;
+    }
+    for (let e of toKeep) {
+      toLoad.push(of(e));
+    }
     Console.info('Start loading texts ', lang);
     const start = Date.now();
-    this.assets.loadJson(environment.assetsUrl + '/i18n/' + lang + '.' + TEXTS_VERSION + '.json').subscribe(data => {
+    combineLatest(toLoad).subscribe(loaded => {
       Console.info('i18n texts loaded for language ', lang, '(' + (Date.now() - start) + 'ms.)');
-      this._texts$.next(data);
+      let newTexts = {};
+      for (let l of loaded) {
+        let t: any;
+        if (l.textPath.length > 0) {
+          t = {};
+          t[l.textPath] = l.texts;
+        } else {
+          t = l.texts;
+        }
+        newTexts = {...newTexts, ...t};
+      }
+      this._loading = undefined;
+      this._texts$.next(newTexts);
       document.documentElement.lang = lang;
-      this._textsLoaded$.next(lang);
+      this._textsLoaded$.next(loaded);
       this._stateChanged$.next(this._stateChanged$.value + 1);
     });
   }

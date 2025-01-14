@@ -1,0 +1,18 @@
+{
+  "paginator": {
+    "page": "Page",
+    "elementsPerPage": "Elements per page"
+  },
+  "users": {
+    "title": "Users",
+    "email": "E-Mail",
+    "createdAt": "Created At",
+    "password": "Password",
+    "administrator": "Administrator",
+    "invalidLoginAttempts": "Invalid passwords",
+    "lastLogin": "Last Login",
+    "minVersion": "Min Version",
+    "maxVersion": "Max Version",
+    "error": "Error retrieving data"
+  }
+}

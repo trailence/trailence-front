@@ -91,6 +91,10 @@
             "android-dev": {
               "fileReplacements": [
                 {
+                  "replace": "src/app/routes/package.routes.ts",
+                  "with": "src/app/routes/package.native-app.routes.ts"
+                },
+                {
                   "replace": "src/app/services/file/file.service.ts",
                   "with": "capacitor/services/file/file.service.ts"
                 },
@@ -127,6 +131,10 @@
             "android-local": {
               "fileReplacements": [
                 {
+                  "replace": "src/app/routes/package.routes.ts",
+                  "with": "src/app/routes/package.native-app.routes.ts"
+                },
+                {
                   "replace": "src/app/services/file/file.service.ts",
                   "with": "capacitor/services/file/file.service.ts"
                 },
@@ -162,6 +170,10 @@
             },
             "android-prod": {
               "fileReplacements": [
+                {
+                  "replace": "src/app/routes/package.routes.ts",
+                  "with": "src/app/routes/package.native-app.routes.ts"
+                },
                 {
                   "replace": "src/app/services/file/file.service.ts",
                   "with": "capacitor/services/file/file.service.ts"

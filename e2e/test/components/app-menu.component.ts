@@ -8,6 +8,7 @@ import { HeaderComponent } from './header.component';
 import { IonicButton } from './ionic/ion-button';
 import { TestUtils } from '../utils/test-utils';
 import { TrailPlannerPage } from '../app/pages/trail-planner-page';
+import { AdminPage } from '../admin/admin.page';
 
 export class AppMenu extends Component {
 
@@ -101,6 +102,17 @@ export class AppMenu extends Component {
   public async openTrailFinder() {
     await this.getElement().$('ion-icon[name=search]').parentElement().click();
     const page = new TrailsPage(TrailsPageType.SEARCH);
+    await page.waitDisplayed();
+    return page;
+  }
+
+  public async hasAdmin() {
+    return await this.getElement().$('ion-icon[name=tool]').isExisting();
+  }
+
+  public async openAdmin() {
+    await this.getElement().$('ion-icon[name=tool]').parentElement().click();
+    const page = new AdminPage();
     await page.waitDisplayed();
     return page;
   }

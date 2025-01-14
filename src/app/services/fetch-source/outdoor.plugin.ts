@@ -8,7 +8,6 @@ import { catchError, firstValueFrom, from, map, merge, Observable, of, switchMap
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import L from 'leaflet';
 import { TrackMetadataSnapshot } from '../database/track-database';
-import { I18nService } from '../i18n/i18n.service';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Arrays } from 'src/app/utils/arrays';
@@ -140,7 +139,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
 
   private requestTrailsByIds(ids: string[]): Observable<{trail: Trail, metadata: TrackMetadataSnapshot, info: TrailInfo}[]> {
     return this.injector.get(HttpService).post<OutdoorTrail[]>(
-      environment.apiBaseUrl + '/search-trails/v1/outdooractive/trails?lang=' + this.injector.get(I18nService).textsLanguage,
+      environment.apiBaseUrl + '/search-trails/v1/outdooractive/trails?lang=' + this.injector.get(PreferencesService).preferences.lang,
       ids
     ).pipe(
       map(list => {

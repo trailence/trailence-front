@@ -13,7 +13,8 @@ export function provideAuthService(email: string) {
         keyId: 'mockKey',
         preferences: {
         },
-        complete: true
+        complete: true,
+        admin: false,
       })
     }
   }

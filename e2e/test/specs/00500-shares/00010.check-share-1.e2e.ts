@@ -30,6 +30,11 @@ describe('Shares - Share 1', () => {
     const menu = await page.header.openUserMenu();
     expect(await menu.getUser()).toBe('friend1@trailence.org');
     await menu.close();
+
+    const appMenu = await App.openMenu();
+    expect(await appMenu.hasAdmin()).toBeFalse();
+    await appMenu.close();
+
     const list = await page.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb === 5));
     const trails = await list.getTrailsNames();

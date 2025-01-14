@@ -1,0 +1,18 @@
+{
+  "paginator": {
+    "page": "Page",
+    "elementsPerPage": "Eléments par page"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "email": "E-Mail",
+    "createdAt": "Créé le",
+    "password": "Mot de passe",
+    "administrator": "Administrateur",
+    "invalidLoginAttempts": "Mot de passe invalides",
+    "lastLogin": "Dernière connection",
+    "minVersion": "Version Min",
+    "maxVersion": "Version Max",
+    "error": "Erreur lors de la récupération des données"
+  }
+}

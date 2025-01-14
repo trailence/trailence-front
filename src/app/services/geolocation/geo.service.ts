@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, zip } from 'rxjs';
-import { I18nService } from '../i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import L from 'leaflet';
 import { Arrays } from 'src/app/utils/arrays';
@@ -10,6 +9,7 @@ import { Way, WayPermission } from './way';
 import { Track } from 'src/app/model/track';
 import { Segment } from 'src/app/model/segment';
 import { Point } from 'src/app/model/point';
+import { PreferencesService } from '../preferences/preferences.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +18,7 @@ export class GeoService {
 
   constructor(
     private readonly http: HttpService,
-    private readonly i18n: I18nService,
+    private readonly prefService: PreferencesService,
   ) {}
 
   public findNearestPlaces(latitude: number, longitude: number): Observable<string[][]> {
@@ -32,7 +32,7 @@ export class GeoService {
       }),
       catchError(() => of([] as string[][]))
     );
-    const fromServer = this.http.get<string[][]>(environment.apiBaseUrl + '/place/v1?lat=' + latitude + '&lng=' + longitude + '&lang=' + this.i18n.textsLanguage).pipe(
+    const fromServer = this.http.get<string[][]>(environment.apiBaseUrl + '/place/v1?lat=' + latitude + '&lng=' + longitude + '&lang=' + this.prefService.preferences.lang).pipe(
       catchError(() => of([] as string[][]))
     );
     return zip(fromOSM, fromServer).pipe(
@@ -41,7 +41,7 @@ export class GeoService {
   }
 
   public findPlacesByName(name: string): Observable<Place[]> {
-    return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name) + '&lang=' + this.i18n.textsLanguage);
+    return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name) + '&lang=' + this.prefService.preferences.lang);
   }
 
   public findWays(bounds: L.LatLngBounds): Observable<Way[]> {

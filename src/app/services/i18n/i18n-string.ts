@@ -21,7 +21,10 @@ export class TranslatedString implements I18nString {
     const path = this.i18nKey.split('.');
     let t = i18n.texts;
     for (const name of path) t = t ? t[name] : undefined;
-    if (typeof t !== 'string') return 'Invalid i18nkey: ' + this.i18nKey;
+    if (typeof t !== 'string') {
+      console.error('Invalid i18n key', this.i18nKey, path, t, i18n.texts);
+      return 'Invalid i18nkey: ' + this.i18nKey;
+    }
     for (let i = 0; i < this.args.length; ++i) {
       const arg = translate(this.args[i], i18n);
       t = t.replace(new RegExp('\\{\\{' + (i + 1) + '\\}\\}', 'g'), arg);

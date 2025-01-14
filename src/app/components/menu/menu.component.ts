@@ -36,6 +36,8 @@ export class MenuComponent {
   sharedWithMeOpen = false;
   sharedByMeOpen = false;
 
+  isAdmin = false;
+
   constructor(
     public i18n: I18nService,
     public collectionService: TrailCollectionService,
@@ -55,6 +57,7 @@ export class MenuComponent {
     .subscribe(([auth, shares]) => {
       this.sharedByMe = List(shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
       this.sharedWithMe = List(shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
+      this.isAdmin = !!auth?.admin;
     });
   }
 

@@ -6,6 +6,7 @@ import { CodeInputModule } from 'angular-code-input';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Console } from 'src/app/utils/console';
 import { environment } from 'src/environments/environment';
 
@@ -34,6 +35,7 @@ export class ResetPasswordComponent implements OnInit {
     private readonly http: HttpService,
     private readonly captchaService: CaptchaService,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly prefService: PreferencesService,
   ) {
   }
 
@@ -69,7 +71,7 @@ export class ResetPasswordComponent implements OnInit {
   next(): void {
     if (this.page === 1) {
       this.http.post(environment.apiBaseUrl + '/auth/v1/forgot', {
-        lang: this.i18n.textsLanguage,
+        lang: this.prefService.preferences.lang,
         email: this.email,
         captchaToken: this.captchaToken,
       }).subscribe();

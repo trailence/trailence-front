@@ -46,3 +46,20 @@ export abstract class PageWithHeader extends Page {
   }
 
 }
+
+export abstract class EmbeddedPage extends Page {
+
+  constructor(
+    protected readonly parentPage: Page,
+    private readonly _embeddedPageName: string,
+  ) {
+    super(_embeddedPageName);
+  }
+
+  override _getElement(resetGetElement: boolean): ChainablePromiseElement {
+    if (!this._displayedElement || resetGetElement)
+      this._displayedElement = this.parentPage.getElement(resetGetElement).$('>>>ion-router-outlet>app-' + this._embeddedPageName + '.ion-page:not(.ion-page-hidden)');
+    return this._displayedElement;
+  }
+
+}

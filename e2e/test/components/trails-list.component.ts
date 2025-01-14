@@ -1,5 +1,6 @@
 import { App } from '../app/app';
 import { TrailPage } from '../app/pages/trail-page';
+import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
@@ -91,13 +92,12 @@ export class TrailsList extends Component {
 
   public async openTrail(trail: TrailOverview) {
     const {uuid, owner} = await this.getTrailId(trail);
-    const openButton = new IonicButton(trail.getElement().$('div.open-trail ion-button'));
-    await openButton.getElement().scrollIntoView({block: 'center', inline: 'center'});
-    await openButton.click();
-    try { await browser.waitUntil(() => openButton.isDisplayed().then(d => !d), { timeout: 5000 })}
-    catch (e) {
-      await new IonicButton(trail.getElement(true).$('div.open-trail ion-button')).click();
-    }
+    await TestUtils.retry(async () => {
+      const openButton = new IonicButton(trail.getElement().$('div.open-trail ion-button'));
+      await openButton.getElement().scrollIntoView({block: 'center', inline: 'center'});
+      await openButton.click();
+      await browser.waitUntil(() => openButton.isDisplayed().then(d => !d), { timeout: 5000 });
+    }, 5, 100);
     const trailPage = new TrailPage(owner, uuid);
     await trailPage.waitDisplayed();
     return trailPage;

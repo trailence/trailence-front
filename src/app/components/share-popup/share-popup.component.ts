@@ -13,6 +13,7 @@ import { TagsComponent } from '../tags/tags.component';
 import { Tag } from 'src/app/model/tag';
 import { ShareService } from 'src/app/services/database/share.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 enum SharePage {
   TYPE = 'type',
@@ -47,6 +48,7 @@ export class SharePopupComponent implements OnInit {
     public i18n: I18nService,
     private readonly modalController: ModalController,
     private readonly injector: Injector,
+    private readonly prefService: PreferencesService,
   ) { }
 
   ngOnInit(): void {
@@ -66,7 +68,7 @@ export class SharePopupComponent implements OnInit {
           this.collectionName = col.name;
       });
     }
-    this.toLanguage = this.i18n.textsLanguage;
+    this.toLanguage = this.prefService.preferences.lang;
   }
 
   setElementType(type: string) {
