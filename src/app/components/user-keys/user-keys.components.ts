@@ -11,6 +11,7 @@ export interface UserKey {
   createdAt: number;
   lastUsage: number;
   deviceInfo: any;
+  deletedAt?: number;
 }
 
 @Component({
@@ -59,6 +60,7 @@ export class UserKeysComponent implements OnInit {
       id: key.id,
       createdAt: key.createdAt,
       lastUsage: key.lastUsage,
+      deletedAt: key.deletedAt,
       native,
       deviceType,
       system,
@@ -143,6 +145,7 @@ interface KeyDescription {
   id: string;
   createdAt: number;
   lastUsage: number;
+  deletedAt?: number;
 
   appVersion?: string;
 

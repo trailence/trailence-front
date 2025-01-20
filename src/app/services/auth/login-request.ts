@@ -6,4 +6,5 @@ export interface LoginRequest {
   publicKey: string;
   deviceInfo: DeviceInfo;
   captchaToken?: string;
+  expiresAfter?: number;
 }

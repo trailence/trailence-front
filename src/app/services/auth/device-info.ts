@@ -1,6 +1,8 @@
 import { Platform } from '@ionic/angular/standalone';
 import { trailenceAppVersionCode, trailenceAppVersionName } from 'src/app/trailence-version';
 
+const DEVICE_ID_KEY = "device_id";
+
 export class DeviceInfo {
 
   public userAgent: string;
@@ -10,6 +12,7 @@ export class DeviceInfo {
   public ionPlatforms: string[];
   public versionName: string;
   public versionCode: number;
+  public deviceId: string;
 
   constructor(ionic: Platform) {
     this.userAgent = window.navigator.userAgent;
@@ -26,6 +29,13 @@ export class DeviceInfo {
     this.ionPlatforms = ionic.platforms();
     this.versionName = trailenceAppVersionName;
     this.versionCode = trailenceAppVersionCode;
+    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+    if (deviceId && !/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i.test(deviceId)) deviceId = null;
+    if (!deviceId) {
+      deviceId = window.crypto.randomUUID();
+      localStorage.setItem(DEVICE_ID_KEY, deviceId);
+    }
+    this.deviceId = deviceId;
   }
 
 }

@@ -6,6 +6,8 @@ export interface AuthResponse {
   expires: number;
   email: string;
   keyId: string;
+  keyCreatedAt: number;
+  keyExpiresAt: number;
   preferences: Preferences;
   complete: boolean;
   admin: boolean;

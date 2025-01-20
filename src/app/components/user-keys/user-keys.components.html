@@ -73,6 +73,9 @@
       <span *ngIf="isThisDevice(key)">
         {{i18n.texts.pages.myaccount.devices_table.this_device}}
       </span>
+      <span *ngIf="key.deletedAt">
+        {{i18n.texts.pages.myaccount.devices_table.deleted_at }} {{ i18n.timestampToDateTimeString(key.deletedAt) }}
+      </span>
       <ion-button size="small" *ngIf="keyDelete && !isThisDevice(key)" (click)="deleteKey(key)">
         <ion-icon name="trash" slot="icon-only"></ion-icon>
       </ion-button>

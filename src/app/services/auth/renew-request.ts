@@ -6,4 +6,6 @@ export interface RenewRequest {
   keyId: string;
   signature: string;
   deviceInfo: DeviceInfo;
+  newPublicKey?: string;
+  newKeyExpiresAfter?: number;
 }

@@ -11,6 +11,8 @@ export function provideAuthService(email: string) {
         expires: Date.now() + 120 * 60 * 1000,
         email,
         keyId: 'mockKey',
+        keyCreatedAt: Date.now(),
+        keyExpiresAt: Date.now() + 120 * 60 * 1000,
         preferences: {
         },
         complete: true,

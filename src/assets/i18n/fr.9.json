@@ -337,6 +337,7 @@
         "connected_since": "Connecté depuis",
         "last_usage": "Dernière utilisation",
         "this_device": "Ce périphérique",
+        "deleted_at": "Supprimé le",
         "mobile_app": "Application mobile",
         "web_app": "Application web",
         "systems": {

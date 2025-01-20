@@ -20,6 +20,11 @@ const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
 const DB_SECURITY_TABLE = 'security';
 
+const KEY_EXPIRATION_WEB = 31 * 24 * 60 * 60 * 1000; // 31 days
+const KEY_EXPIRATION_NATIVE = 6 * 31 * 24 * 60 * 60 * 1000; // 6 months
+const RENEW_KEY_AFTER_WEB = 7 * 24 * 60 * 60 * 1000; // 7 days
+const RENEW_KEY_AFTER_NATIVE = 31 * 24 * 60 * 60 * 1000; // 31 days
+
 /*
 On first login, or when logged out, the authentication is using username + password:
  - generate a new KeyPair
@@ -29,6 +34,11 @@ On first login, or when logged out, the authentication is using username + passw
 When the token is expired, auto-renewal is done:
  - send email + random + signature using private key
  - the server checks the signature and returns a new token
+
+After RENEW_KEY_AFTER_xxx the key is renewed together with the token:
+ - generate a new KeyPair
+ - renew sending the new public key
+ - the server responds with the new token, and removed the previous key
 */
 
 @Injectable({
@@ -54,7 +64,14 @@ export class AuthService {
           navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
         }
       } else if (auth) {
-        Console.info('Using ' + auth.email + ', token expires at ' + new Date(auth.expires) + ' complete = ' + auth.complete + ' admin = ' + auth.admin);
+        Console.info(
+          'Using ' + auth.email +
+          ', token expires at ' + new Date(auth.expires).toISOString() +
+          ', complete = ' + auth.complete +
+          ', admin = ' + auth.admin +
+          ', key expires at ' + new Date(auth.keyExpiresAt).toISOString() +
+          ', renew key after ' + new Date(auth.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB)).toISOString()
+        );
         localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
       }
     });
@@ -137,39 +154,32 @@ export class AuthService {
   }
 
   public login(email: string, password: string, captchaToken?: string): Observable<AuthResponse> {
-    return this.generateKeys().pipe(
-      switchMap(keys =>
-        this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
-          email,
-          password,
-          publicKey: keys.publicKeyBase64,
-          deviceInfo: new DeviceInfo(this.platform),
-          captchaToken,
-        } as LoginRequest)
-        .pipe(
-          tap(response => {
-            this._auth$.next(response);
-          }),
-          switchMap(response =>
-            from(this.openDB(response.email)
-              .transaction('rw', DB_SECURITY_TABLE, tx =>
-                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
-              )
-            ).pipe(map(() => response))
-          )
-        )
-      ),
+    return this.loginAndStoreKey(
+      publicKeyBase64 => this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
+        email,
+        password,
+        publicKey: publicKeyBase64,
+        deviceInfo: new DeviceInfo(this.platform),
+        captchaToken,
+        expiresAfter: this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB,
+      } as LoginRequest)
     );
   }
 
   public loginWithShareLink(token: string): Observable<AuthResponse> {
+    return this.loginAndStoreKey(
+      publicKeyBase64 => this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/share', {
+        token,
+        publicKey: publicKeyBase64,
+        deviceInfo: new DeviceInfo(this.platform)
+      } as LoginShareRequest)
+    );
+  }
+
+  private loginAndStoreKey(loginRequest: (publicKeyBase64: string) => Observable<AuthResponse>): Observable<AuthResponse> {
     return this.generateKeys().pipe(
       switchMap(keys =>
-        this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/share', {
-          token,
-          publicKey: keys.publicKeyBase64,
-          deviceInfo: new DeviceInfo(this.platform)
-        } as LoginShareRequest)
+        loginRequest(keys.publicKeyBase64)
         .pipe(
           tap(response => {
             this._auth$.next(response);
@@ -262,11 +272,11 @@ export class AuthService {
 
   private renewAuth(): Observable<AuthResponse | null> {
     if (!this._currentAuth) {
-      if (!this._auth$.value) return of(null);
-      const email = this._auth$.value.email;
-      Console.info('Authenticating ' + email);
+      const current = this._auth$.value;
+      if (!current) return of(null);
+      Console.info('Authenticating ' + current.email);
       this._currentAuth =
-        from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(email)))
+        from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(current.email)))
         .pipe(
           switchMap(security => {
             if (!security) {
@@ -283,7 +293,7 @@ export class AuthService {
                 if (error instanceof ApiError) {
                   if (error.httpCode === 403) {
                    Console.warn('The server refused our authentication key');
-                    this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(email);
+                    this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(current.email);
                     this._auth$.next(null);
                     return of(null);
                   }
@@ -294,13 +304,31 @@ export class AuthService {
           }),
           switchMap(result => {
             if (!result) return of(null);
-            return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', {
-              email,
+            const request = {
+              email: current.email,
               random: result.randomBase64,
               keyId: result.keyId,
               signature: btoa(String.fromCharCode(...new Uint8Array(result.signature))),
               deviceInfo: new DeviceInfo(this.platform),
-            } as RenewRequest);
+            } as RenewRequest;
+            if (current.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB) > Date.now())
+              return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request);
+            // renew the key
+            Console.info("Renew token with new key pair");
+            return this.generateKeys().pipe(
+              switchMap(keys => {
+                request.newPublicKey = keys.publicKeyBase64;
+                request.newKeyExpiresAfter = this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB;
+                return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(
+                  switchMap(response =>
+                    from(this.db!.transaction('rw', DB_SECURITY_TABLE, tx =>
+                      tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
+                    ))
+                    .pipe(map(() => response))
+                  )
+                );
+              }),
+            );
           }),
           tap(response => this._auth$.next(response)),
           share()
