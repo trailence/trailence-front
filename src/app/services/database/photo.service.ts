@@ -24,6 +24,7 @@ import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { QuotaService } from '../auth/quota.service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -253,6 +254,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
   private readonly http: HttpService;
   private readonly files: StoredFilesService;
   private readonly trails: TrailService;
+  private readonly quotaService: QuotaService;
 
   constructor(
     injector: Injector,
@@ -261,6 +263,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
     this.http = injector.get(HttpService);
     this.files = injector.get(StoredFilesService);
     this.trails = injector.get(TrailService);
+    this.quotaService = injector.get(QuotaService);
   }
 
   protected override fromDTO(dto: PhotoDto): Photo {
@@ -280,7 +283,14 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
   }
 
   protected override deleteFromServer(uuids: string[]): Observable<void> {
-    return this.http.post<void>(environment.apiBaseUrl + '/photo/v1/_bulkDelete', uuids);
+    return this.http.post<number>(environment.apiBaseUrl + '/photo/v1/_bulkDelete', uuids).pipe(
+      map(sizeRemoved => {
+        this.quotaService.updateQuotas(q => {
+          q.photosUsed -= uuids.length;
+          q.photosSizeUsed -= sizeRemoved;
+        });
+      })
+    );
   }
 
   protected override createOnServer(items: PhotoDto[]): Observable<PhotoDto[]> {
@@ -304,6 +314,10 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
             if (dto.latitude) headers['X-Latitude'] = dto.latitude;
             if (dto.longitude) headers['X-Longitude'] = dto.longitude;
             return this.http.post<PhotoDto>(environment.apiBaseUrl + '/photo/v1/' + dto.trailUuid + '/' + dto.uuid, blob, headers).pipe(
+              tap(dto => this.quotaService.updateQuotas(q => {
+                q.photosUsed++;
+                q.photosSizeUsed += blob.size;
+              })),
               catchError(e => {
                 Console.error('error saving photo on server', dto, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_photo', [dto.description]);

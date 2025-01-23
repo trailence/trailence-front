@@ -332,6 +332,17 @@
     },
     "myaccount": {
       "title": "My Account",
+      "quotas": {
+        "title": "Quotas",
+        "collections": "Collections",
+        "trails": "Trails",
+        "tracks-size": "Traces storage",
+        "tags": "Tags",
+        "trail-tags": "Tagged trails",
+        "photos": "Photos",
+        "photos-size": "Photos storage",
+        "shares": "Shares"
+      },
       "devices": "Connected devices",
       "devices_table": {
         "connected_since": "Connected since",

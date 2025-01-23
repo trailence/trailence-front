@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs';
 import { PageRequest } from '../paginator/page-request';
 import { PageResult } from '../paginator/page-result';
+import { ObjectUtils } from 'src/app/utils/object-utils';
 
 export class TableSettings {
 
@@ -31,8 +32,8 @@ export class TableColumn {
   public sortable?: string;
   public horizontalAlignment: HorizontalAlignment = HorizontalAlignment.LEFT;
 
-  public withField(fieldName: string, transform: (value: any) => string = v => '' + v): this {
-    this.valueGetter = (element: any) => transform(element[fieldName]);
+  public withField(fieldName: string, transform: (value: any, rowData: any) => string = v => '' + v): this {
+    this.valueGetter = (element: any) => transform(ObjectUtils.extractField(element, fieldName), element);
     return this;
   }
 
@@ -41,7 +42,7 @@ export class TableColumn {
     return this;
   }
 
-  public withSortableField(fieldName: string, transform: (value: any) => string = v => '' + v): this {
+  public withSortableField(fieldName: string, transform: (value: any, rowData: any) => string = v => '' + v): this {
     return this.withField(fieldName, transform).withSort(fieldName);
   }
 

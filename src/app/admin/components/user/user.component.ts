@@ -5,12 +5,13 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
 
 @Component({
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',
   imports: [
-    UserKeysComponent,
+    UserKeysComponent, UserQuotasComponent,
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox,
   ]
 })

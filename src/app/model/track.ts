@@ -22,6 +22,8 @@ export class Track extends Owned {
   private readonly _meta = new TrackMetadata(this._segments);
   private readonly _computedMeta: TrackComputedMetadata;
 
+  public readonly sizeUsed?: number;
+
   public get segments(): Segment[] { return this._segments.value; }
   public get segments$(): Observable<Segment[]> { return this._segments; }
 
@@ -65,6 +67,7 @@ export class Track extends Owned {
     private readonly preferencesService: PreferencesService,
   ) {
     super(dto);
+    this.sizeUsed = dto.sizeUsed;
     dto.s?.forEach(s => {
       const segment = this.newSegment();
       if (s.p) {
@@ -125,7 +128,8 @@ export class Track extends Owned {
     return {
       ...super.toDto(),
       s: this.segments.map(segment => segment.toDto()),
-      wp: this.wayPoints.map(wp => wp.toDto())
+      wp: this.wayPoints.map(wp => wp.toDto()),
+      sizeUsed: this.sizeUsed
     }
   }
 

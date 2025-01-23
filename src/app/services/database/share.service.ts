@@ -3,7 +3,7 @@ import { SimpleStore } from './simple-store';
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
 import { Share } from 'src/app/model/share';
 import { SHARE_TABLE_NAME } from './database.service';
-import { combineLatest, EMPTY, map, Observable, of, zip } from 'rxjs';
+import { combineLatest, EMPTY, map, Observable, of, tap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
@@ -16,6 +16,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { AlertController } from '@ionic/angular/standalone';
 import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { QuotaService } from '../auth/quota.service';
 
 @Injectable({
   providedIn: 'root'
@@ -97,7 +98,10 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     injector: Injector
   ) {
     super(SHARE_TABLE_NAME, injector);
+    this.quotaService = injector.get(QuotaService);
   }
+
+  private readonly quotaService: QuotaService;
 
   protected override fromDTO(dto: ShareDto): Share { return Share.fromDto(dto); }
   protected override toDTO(entity: Share): ShareDto { return entity.toDto(); }
@@ -123,6 +127,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
         }).pipe(
           map(result => {
             result.trails = item.trails;
+            this.quotaService.updateQuotas(q => q.sharesUsed++);
             return result;
           })
         );
@@ -140,7 +145,12 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     items.forEach(item => {
       const request = () => {
         if (this._db !== db) return EMPTY;
-        return this.injector.get(HttpService).delete(environment.apiBaseUrl + '/share/v1/' + encodeURIComponent(item.from) + '/' + item.id).pipe(map(() => 1));
+        return this.injector.get(HttpService).delete(environment.apiBaseUrl + '/share/v1/' + encodeURIComponent(item.from) + '/' + item.id).pipe(
+          tap({
+            complete: () => this.quotaService.updateQuotas(q => q.sharesUsed--)
+          }),
+          map(() => 1)
+        );
       }
       requests.push(limiter.add(request));
     });

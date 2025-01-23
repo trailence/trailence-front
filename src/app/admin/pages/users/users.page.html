@@ -1,3 +1,10 @@
+<div class="table-header">
+  <span>{{ i18n.texts.admin.users.view }}: &nbsp;</span>
+  <ion-segment mode="ios" [value]="view" (ionChange)="setView($event.detail.value)">
+    <ion-segment-button value="general">{{ i18n.texts.admin.users.view_general }}</ion-segment-button>
+    <ion-segment-button value="quotas">{{ i18n.texts.admin.users.view_quotas }}</ion-segment-button>
+  </ion-segment>
+</div>
 <app-table
   [settings]="tableSettings"
   (rowClick)="displayUser($event)"

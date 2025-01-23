@@ -12,6 +12,7 @@ import { Console } from './utils/console';
 import { PlatformService } from './services/platform/platform.service';
 import { NetworkService } from './services/network/network.service';
 import { filterDefined } from './utils/rxjs/filter-defined';
+import { QuotaService } from './services/auth/quota.service';
 
 @Component({
     selector: 'app-root',
@@ -48,8 +49,9 @@ export class AppComponent {
     injector.get(AssetsService);
     // init platform specificities
     injector.get(PlatformService);
-    // init auth
+    // init auth and quotas
     const auth = injector.get(AuthService);
+    injector.get(QuotaService);
 
     combineLatest([
       injector.get(Router).events.pipe(

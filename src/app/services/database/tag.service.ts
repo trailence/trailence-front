@@ -5,7 +5,7 @@ import { Tag } from "src/app/model/tag";
 import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, first, map, of, switchMap, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, first, map, of, switchMap, tap, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
@@ -20,6 +20,7 @@ import Dexie from 'dexie';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { QuotaService } from '../auth/quota.service';
 
 @Injectable({
     providedIn: 'root'
@@ -178,7 +179,10 @@ class TagStore extends OwnedStore<TagDto, Tag> {
     private readonly collectionService: TrailCollectionService,
   ) {
     super(TAG_TABLE_NAME, injector);
+    this.quotaService = injector.get(QuotaService);
   }
+
+  private readonly quotaService: QuotaService;
 
   protected override fromDTO(dto: TagDto): Tag {
     return new Tag(dto);
@@ -203,7 +207,9 @@ class TagStore extends OwnedStore<TagDto, Tag> {
   }
 
   protected override createOnServer(items: TagDto[]): Observable<TagDto[]> {
-    return this.http.post<TagDto[]>(environment.apiBaseUrl + '/tag/v1/_bulkCreate', items);
+    return this.http.post<TagDto[]>(environment.apiBaseUrl + '/tag/v1/_bulkCreate', items).pipe(
+      tap(created => this.quotaService.updateQuotas(q => q.tagsUsed += created.length))
+    );
   }
 
   protected override getUpdatesFromServer(knownItems: VersionedDto[]): Observable<UpdatesResponse<TagDto>> {
@@ -215,7 +221,11 @@ class TagStore extends OwnedStore<TagDto, Tag> {
   }
 
   protected override deleteFromServer(uuids: string[]): Observable<void> {
-    return this.http.post<void>(environment.apiBaseUrl + '/tag/v1/_bulkDelete', uuids);
+    return this.http.post<void>(environment.apiBaseUrl + '/tag/v1/_bulkDelete', uuids).pipe(
+      tap({
+        complete: () => this.quotaService.updateQuotas(q => q.tagsUsed -= uuids.length)
+      })
+    );
   }
 
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
@@ -275,7 +285,10 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
     private readonly auth: AuthService,
   ) {
     super(TRAIL_TAG_TABLE_NAME, injector);
+    this.quotaService = injector.get(QuotaService);
   }
+
+  private readonly quotaService: QuotaService;
 
   protected override fromDTO(dto: TrailTagDto): TrailTag {
     return new TrailTag(dto);
@@ -307,11 +320,17 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
 }
 
   protected override createOnServer(items: TrailTagDto[]): Observable<TrailTagDto[]> {
-    return this.http.post<TrailTagDto[]>(environment.apiBaseUrl + '/tag/v1/trails/_bulkCreate', items);
+    return this.http.post<TrailTagDto[]>(environment.apiBaseUrl + '/tag/v1/trails/_bulkCreate', items).pipe(
+      tap(created => this.quotaService.updateQuotas(q => q.trailTagsUsed += created.length))
+    );
   }
 
   protected override deleteFromServer(items: TrailTagDto[]): Observable<void> {
-    return this.http.post<void>(environment.apiBaseUrl + '/tag/v1/trails/_bulkDelete', items);
+    return this.http.post<void>(environment.apiBaseUrl + '/tag/v1/trails/_bulkDelete', items).pipe(
+      tap({
+        complete: () => this.quotaService.updateQuotas(q => q.trailTagsUsed -= items.length)
+      })
+    );
   }
 
   protected override getAllFromServer(): Observable<TrailTagDto[]> {

@@ -1,4 +1,5 @@
 import { Preferences } from '../preferences/preferences';
+import { UserQuotas } from './user-quotas';
 
 export interface AuthResponse {
 
@@ -11,5 +12,6 @@ export interface AuthResponse {
   preferences: Preferences;
   complete: boolean;
   admin: boolean;
+  quotas: UserQuotas;
 
 }

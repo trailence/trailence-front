@@ -22,6 +22,7 @@ import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { QuotaService } from '../auth/quota.service';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -78,6 +79,7 @@ export class TrackDatabase {
   ) {
     this.ngZone = injector.get(NgZone);
     this.subjectService = injector.get(DatabaseSubjectService);
+    this.quotaService = injector.get(QuotaService);
     injector.get(DatabaseService).registerStore({
       name: 'tracks',
       status$: this.syncStatus$,
@@ -96,6 +98,7 @@ export class TrackDatabase {
   }
 
   private readonly subjectService: DatabaseSubjectService;
+  private readonly quotaService: QuotaService;
   private db?: Dexie;
   private openEmail?: string;
   private preferencesSubscription?: Subscription;
@@ -767,6 +770,10 @@ export class TrackDatabase {
         switchMap(result => {
           if (this.db !== db) return EMPTY;
           Console.info("track created on server", result.uuid);
+          this.quotaService.updateQuotas(q => {
+            q.tracksUsed++;
+            q.tracksSizeUsed += result.sizeUsed ?? 0;
+          });
           return from(this.fullTrackTable!.put({
             key: result.uuid + '#' + result.owner,
             uuid: result.uuid,
@@ -799,6 +806,10 @@ export class TrackDatabase {
           defaultIfEmpty(true),
           switchMap(() => {
             if (this.db !== db) return EMPTY;
+            this.quotaService.updateQuotas(q => {
+              q.tracksUsed -= uuids.length;
+              q.tracksSizeUsed -= items.filter(item => item.owner === this.openEmail).reduce((p,n) => p + (n.track?.sizeUsed ?? 0), 0);
+            });
             return from(this.fullTrackTable!.bulkDelete(keys)).pipe(map(() => uuids.length < 50));
           }),
           catchError(error => {

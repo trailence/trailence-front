@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, zip } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
@@ -20,6 +20,7 @@ import { AuthService } from '../auth/auth.service';
 import { PhotoService } from './photo.service';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
+import { QuotaService } from '../auth/quota.service';
 
 @Injectable({
   providedIn: 'root'
@@ -187,7 +188,10 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     private readonly collectionService: TrailCollectionService,
   ) {
     super(TRAIL_TABLE_NAME, injector);
+    this.quotaService = injector.get(QuotaService);
   }
+
+  private readonly quotaService: QuotaService;
 
   protected override fromDTO(dto: TrailDto): Trail {
     return new Trail(dto);
@@ -215,7 +219,9 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   }
 
   protected override createOnServer(items: TrailDto[]): Observable<TrailDto[]> {
-    return this.http.post<TrailDto[]>(environment.apiBaseUrl + '/trail/v1/_bulkCreate', items);
+    return this.http.post<TrailDto[]>(environment.apiBaseUrl + '/trail/v1/_bulkCreate', items).pipe(
+      tap(created => this.quotaService.updateQuotas(q => q.trailsUsed += created.length))
+    );
   }
 
   protected override getUpdatesFromServer(knownItems: VersionedDto[]): Observable<UpdatesResponse<TrailDto>> {
@@ -227,7 +233,11 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   }
 
   protected override deleteFromServer(uuids: string[]): Observable<void> {
-    return this.http.post<void>(environment.apiBaseUrl + '/trail/v1/_bulkDelete', uuids);
+    return this.http.post<void>(environment.apiBaseUrl + '/trail/v1/_bulkDelete', uuids).pipe(
+      tap({
+        complete: () => this.quotaService.updateQuotas(q => q.trailsUsed -= uuids.length)
+      })
+    );
   }
 
   protected override deleted(item$: BehaviorSubject<Trail | null> | undefined, item: Trail): void {

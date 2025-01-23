@@ -13,6 +13,9 @@
     "lastLogin": "Last Login",
     "minVersion": "Min Version",
     "maxVersion": "Max Version",
-    "error": "Error retrieving data"
+    "error": "Error retrieving data",
+    "view": "View",
+    "view_general": "General",
+    "view_quotas": "Quotas"
   }
 }

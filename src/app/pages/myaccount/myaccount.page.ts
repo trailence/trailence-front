@@ -10,17 +10,22 @@ import { first, Subscription, switchMap } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { UserKey, UserKeysComponent } from 'src/app/components/user-keys/user-keys.components';
+import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
+import { UserQuotas } from 'src/app/services/auth/user-quotas';
+import { QuotaService } from 'src/app/services/auth/quota.service';
+import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
 
 @Component({
     selector: 'app-myaccount',
     templateUrl: './myaccount.page.html',
     styleUrls: ['./myaccount.page.scss'],
-    imports: [IonButton, HeaderComponent, CommonModule, UserKeysComponent]
+    imports: [IonButton, HeaderComponent, CommonModule, UserKeysComponent, UserQuotasComponent]
 })
 export class MyaccountPage implements OnDestroy {
 
   email: string;
   complete: boolean;
+  quotas?: UserQuotas;
 
   keysProvider = () => this.network.server$.pipe(
     filterDefined(),
@@ -29,7 +34,7 @@ export class MyaccountPage implements OnDestroy {
   );
   keyDelete = (id: string) => this.http.delete(environment.apiBaseUrl + '/auth/v1/mykeys/' + id);
 
-  subscription: Subscription;
+  subscriptions = new Subscriptions();
 
   @ViewChild('app-user-keys') keysComponent?: UserKeysComponent;
 
@@ -38,22 +43,27 @@ export class MyaccountPage implements OnDestroy {
     public readonly network: NetworkService,
     private readonly http: HttpService,
     auth: AuthService,
+    quotaService: QuotaService,
     private readonly modalController: ModalController,
     private readonly changeDetector: ChangeDetectorRef,
   ) {
     this.email = auth.email!;
     this.complete = auth.auth?.complete || false;
-    this.subscription = auth.auth$.subscribe(a => {
+    this.subscriptions.add(auth.auth$.subscribe(a => {
       const newValue = a?.complete || false;
       if (this.complete !== newValue) {
         this.complete = newValue;
         this.changeDetector.detectChanges();
       }
-    });
+    }));
+    this.subscriptions.add(quotaService.quotas$.subscribe(q => {
+      this.quotas = q;
+      this.changeDetector.detectChanges();
+    }));
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   ionViewWillEnter(): void {

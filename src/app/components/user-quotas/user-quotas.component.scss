@@ -1,0 +1,31 @@
+.quota {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .usage-bar {
+    flex: 1 1 100%;
+    max-width: 300px;
+    height: 10px;
+    border: 1px solid rgba(var(--ion-color-dark-rgb), 0.33);
+    border-radius: 5px;
+    position: relative;
+
+    &::after {
+      content: ' ';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background-color: var(--color);
+      border-radius: 3px;
+      width: calc(100% * calc(var(--quota-used) / var(--quota-max)));
+    }
+  }
+
+  .usage-text {
+    flex: none;
+    margin-left: 8px;
+    font-size: 12px;
+  }
+}

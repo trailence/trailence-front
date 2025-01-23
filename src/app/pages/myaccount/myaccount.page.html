@@ -12,6 +12,13 @@
     {{ complete ? i18n.texts.pages.myaccount.change_password.button : i18n.texts.pages.myaccount.change_password.button_new }}
   </ion-button>
 
+  <ng-container *ngIf="quotas">
+    <div class="page-section-title">
+      {{i18n.texts.pages.myaccount.quotas.title}}
+    </div>
+    <app-user-quotas [quotas]="quotas"></app-user-quotas>
+  </ng-container>
+
   <div class="page-section-title">
     {{i18n.texts.pages.myaccount.devices}}
   </div>

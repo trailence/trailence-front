@@ -25,6 +25,12 @@
       <td>{{user.invalidLoginAttempts}}</td>
     </tr>
   </table>
+
+  <div class="page-section-title">
+    {{i18n.texts.pages.myaccount.quotas.title}}
+  </div>
+  <app-user-quotas [quotas]="user.quotas"></app-user-quotas>
+
   <div class="page-section-title">
     {{i18n.texts.pages.myaccount.devices}}
   </div>

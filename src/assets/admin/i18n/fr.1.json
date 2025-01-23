@@ -13,6 +13,9 @@
     "lastLogin": "Dernière connection",
     "minVersion": "Version Min",
     "maxVersion": "Version Max",
-    "error": "Erreur lors de la récupération des données"
+    "error": "Erreur lors de la récupération des données",
+    "view": "Vue",
+    "view_general": "Général",
+    "view_quotas": "Quotas"
   }
 }
