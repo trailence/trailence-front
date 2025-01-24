@@ -20,6 +20,8 @@ export abstract class FetchSourcePlugin {
   public readonly abstract name: string;
   public readonly abstract owner: string;
 
+  public readonly abstract canFetchFromUrl: boolean;
+
   public canFetchTrailInfoByUrl(url: string): boolean { return false };
   public fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> { return Promise.resolve(null); };
 

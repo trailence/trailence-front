@@ -37,6 +37,7 @@ export class AdminUsersPage {
       new TableColumn('admin.users.lastLogin').withSortableField('lastLogin', v => this.i18n.timestampToDateTimeString(v)),
       new TableColumn('admin.users.minVersion').withSortableField('minAppVersion', StringUtils.versionCodeToVersionName),
       new TableColumn('admin.users.maxVersion').withSortableField('maxAppVersion', StringUtils.versionCodeToVersionName),
+      new TableColumn('admin.users.roles').withField('roles'),
     ],
     (request: PageRequest) => this.http.get<PageResult<UserDto>>(environment.apiBaseUrl + '/admin/users/v1' + request.toQueryParams()),
     'admin.users.error'

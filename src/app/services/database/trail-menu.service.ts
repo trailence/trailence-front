@@ -98,9 +98,11 @@ export class TrailMenuService {
 
     if (onlyGlobal && fromCollection) {
       menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(null, fromCollection)));
-      menu.push(new MenuItem());
-      inImportExportSection = true;
-      menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title').setAction(() => this.importFromUrl(fromCollection)));
+      if (this.injector.get(FetchSourceService).canImportFromUrl) {
+        menu.push(new MenuItem());
+        inImportExportSection = true;
+        menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title').setAction(() => this.importFromUrl(fromCollection)));
+      }
     }
 
     if (trails.length > 0) {

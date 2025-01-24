@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { PageResult } from '../paginator/page-result';
 import { CommonModule } from '@angular/common';
 import { PaginatorComponent } from '../paginator/paginator.component';
@@ -18,13 +18,12 @@ import { I18nPipe } from 'src/app/services/i18n/i18n-string';
     IonIcon, IonSpinner,
   ]
 })
-export class TableComponent implements OnInit {
+export class TableComponent implements OnInit, OnChanges {
 
   @Input() settings!: TableSettings;
   @Output() rowClick = new EventEmitter<any>();
 
   result?: PageResult<any>;
-  nbPages?: number;
   pending = false;
 
   constructor(
@@ -33,6 +32,15 @@ export class TableComponent implements OnInit {
 
   ngOnInit(): void {
     this.refreshData();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['settings']) {
+      if (!changes['settings'].firstChange) {
+        this.result = undefined;
+        this.refreshData();
+      }
+    }
   }
 
   public refreshData(): void {

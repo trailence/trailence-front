@@ -5,6 +5,7 @@ export interface UserDto {
   createdAt: number;
   complete: boolean;
   admin: boolean;
+  roles: string[];
   invalidLoginAttempts: number;
   lastLogin?: number;
   minAppVersion?: number;

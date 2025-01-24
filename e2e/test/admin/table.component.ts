@@ -29,4 +29,12 @@ export class TableComponent extends Component {
     return this.searchCellByColumnIndexAndValue(colIndex, cellValue);
   }
 
+  public async clickColumnByTitle(columnTitle: string) {
+    await this.clickColumnByIndex(await this.searchColumnIndexByTitle(columnTitle));
+  }
+
+  public async clickColumnByIndex(index: number) {
+    await this.getElement().$('tr:first-child').$$('th')[index].click();
+  }
+
 }

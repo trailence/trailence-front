@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import { IonButton, ModalController } from "@ionic/angular/standalone";
-import { first, Subscription, switchMap } from 'rxjs';
+import { first, switchMap } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { UserKey, UserKeysComponent } from 'src/app/components/user-keys/user-keys.components';
@@ -21,7 +21,7 @@ import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.
     styleUrls: ['./myaccount.page.scss'],
     imports: [IonButton, HeaderComponent, CommonModule, UserKeysComponent, UserQuotasComponent]
 })
-export class MyaccountPage implements OnDestroy {
+export class MyaccountPage implements OnDestroy, OnInit {
 
   email: string;
   complete: boolean;
@@ -58,8 +58,15 @@ export class MyaccountPage implements OnDestroy {
     }));
     this.subscriptions.add(quotaService.quotas$.subscribe(q => {
       this.quotas = q;
-      this.changeDetector.detectChanges();
+      if (this._init)
+        this.changeDetector.detectChanges();
     }));
+  }
+
+  private _init = false;
+
+  ngOnInit(): void {
+    this._init = true;
   }
 
   ngOnDestroy(): void {

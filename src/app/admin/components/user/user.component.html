@@ -27,6 +27,17 @@
   </table>
 
   <div class="page-section-title">
+    {{i18n.texts.admin.users.roles}}
+  </div>
+  <div class="roles">
+    <div class="role" *ngFor="let role of user.roles">
+      <span>{{ role }}</span>
+      <ion-button size="small" color="danger" fill="clear" shape="round" (click)="removeRole(role)"><ion-icon slot="icon-only" name="trash"></ion-icon></ion-button>
+    </div>
+    <ion-button size="small" color="success" fill="clear" shape="round" (click)="addRole()"><ion-icon slot="icon-only" name="add-circle"></ion-icon></ion-button>
+  </div>
+
+  <div class="page-section-title">
     {{i18n.texts.pages.myaccount.quotas.title}}
   </div>
   <app-user-quotas [quotas]="user.quotas"></app-user-quotas>

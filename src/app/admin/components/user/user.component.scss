@@ -14,3 +14,15 @@ table.user-info {
   }
 
 }
+
+.roles {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .role {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+}

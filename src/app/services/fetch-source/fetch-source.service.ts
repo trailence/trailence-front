@@ -12,6 +12,7 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Console } from 'src/app/utils/console';
 import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({providedIn: 'root'})
 export class FetchSourceService {
@@ -22,12 +23,16 @@ export class FetchSourceService {
   constructor(
     readonly injector: Injector,
   ) {
-    const subscription = injector.get(NetworkService).server$.pipe(
-      switchMap(available => !available ? of([undefined, undefined]) :
-        combineLatest([
-          injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/visorando/available').pipe(catchError(e => of(null))),
-          injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/outdooractive/available').pipe(catchError(e => of(null))),
-        ])
+    injector.get(AuthService).auth$.pipe(
+      switchMap(auth => !auth ? of([undefined, undefined]) :
+        injector.get(NetworkService).server$.pipe(
+          switchMap(serverAvailable => !serverAvailable ? of([undefined, undefined]) :
+            combineLatest([
+              injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/visorando/available').pipe(catchError(e => of(null))),
+              injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/outdooractive/available').pipe(catchError(e => of(null))),
+            ])
+          )
+        )
       )
     ).subscribe(
       ([visorandoAvailable, outdooractiveAvailable]) => {
@@ -35,7 +40,6 @@ export class FetchSourceService {
         const ready =
           visorandoAvailable !== undefined && visorandoAvailable !== null &&
           outdooractiveAvailable !== undefined && outdooractiveAvailable !== null;
-        if (ready) subscription.unsubscribe();
         const promises: Promise<FetchSourcePlugin>[] = [];
         if (visorandoAvailable === true && !this.plugins$.value.find(p => p.name === 'Visorando'))
           promises.push(import('./visorando.plugin').then(m => new m.VisorandoPlugin(injector)));
@@ -44,7 +48,13 @@ export class FetchSourceService {
         if (!this.plugins$.value.find(p => p.name === 'Open Street Map'))
           promises.push(import('./osm.plugin').then(m => new m.OsmPlugin(injector)));
         Promise.all(promises).then(list => {
-          this.plugins$.next([...this.plugins$.value, ...list]);
+          this.plugins$.next([...this.plugins$.value, ...list].filter(
+            plugin => {
+              if (plugin.name === 'Visorando' && visorandoAvailable !== true) return false;
+              if (plugin.name === 'Outdoor Active' && outdooractiveAvailable !== true) return false;
+              return true;
+            }
+          ));
           if (ready) this.ready$.next(true);
         });
       }
@@ -53,6 +63,22 @@ export class FetchSourceService {
 
   public getPlugins$(): Observable<FetchSourcePlugin[]> {
     return this.plugins$;
+  }
+
+  public get canSearch$(): Observable<boolean> {
+    return this.plugins$.pipe(
+      map(plugins => plugins.length > 1)
+    );
+  }
+
+  public get canImportFromUrl$(): Observable<boolean> {
+    return this.plugins$.pipe(
+      map(plugins => !!plugins.find(p => p.canFetchFromUrl))
+    );
+  }
+
+  public get canImportFromUrl(): boolean {
+    return !!this.plugins$.value.find(p => p.canFetchFromUrl);
   }
 
   public waitReady$(): Observable<boolean> {

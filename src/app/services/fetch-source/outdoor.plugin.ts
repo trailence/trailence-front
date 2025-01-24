@@ -26,6 +26,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
 
   public override readonly name = 'Outdoor Active';
   public override readonly owner = 'outdooractive';
+  public override readonly canFetchFromUrl = true;
 
   public override canFetchTrailInfoByUrl(url: string): boolean {
     return this.idFromUrl(url) !== undefined;

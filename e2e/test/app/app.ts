@@ -150,12 +150,13 @@ export class App {
     await browser.waitUntil(() => App.getPopoverContainer().isExisting().then(e => !e), opts);
   }
 
-  public static async waitModal(index?: number, byElementName?: string) {
+  public static async waitModal(index?: number, byElementName?: string, timeout?: number) {
     if (index === undefined && byElementName === undefined)
       index = 1;
     if (index !== undefined) {
-      try { await browser.waitUntil(() => $$('ion-app>ion-modal:not(.overlay-hidden)').getElements().then(elements => elements.length >= index)); }
+      try { await browser.waitUntil(() => $$('ion-app>ion-modal:not(.overlay-hidden)').getElements().then(elements => elements.length >= index), {timeout}); }
       catch (e) {
+        if (timeout) throw e;
         expect((await $$('ion-app>ion-modal:not(.overlay-hidden)').getElements()).length).toBeGreaterThanOrEqual(index);
       }
       const modal = $$('ion-app>ion-modal:not(.overlay-hidden)')[index - 1];

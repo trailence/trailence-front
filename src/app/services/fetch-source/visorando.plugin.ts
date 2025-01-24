@@ -20,8 +20,9 @@ interface TrailInfoDto extends TrailInfoBaseDto {
 
 export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
 
-  public readonly name = 'Visorando';
-  public readonly owner = 'visorando';
+  public override readonly name = 'Visorando';
+  public override readonly owner = 'visorando';
+  public override readonly canFetchFromUrl = true;
 
   constructor(
     injector: Injector,

@@ -4,6 +4,7 @@ import { IonicSelect } from '../../components/ionic/ion-select';
 import { IonicToggle } from '../../components/ionic/ion-toggle';
 import { MapComponent } from '../../components/map.component';
 import { ModalComponent } from '../../components/modal';
+import { TestUtils } from '../../utils/test-utils';
 import { App } from '../app';
 import { PageWithHeader } from './page';
 
@@ -55,7 +56,7 @@ export class TrailPlannerPage extends PageWithHeader {
   public async save(trailName: string, trailCollection: string) {
     const button = this.getElement().$('div.started').$('>>>ion-icon[name=save]');
     await button.click();
-    const modal = await App.waitModal();
+    const modal = await TestUtils.retry(() => App.waitModal(undefined, undefined, 5000), 3, 500);
     await new IonicInput(modal.$('>>>ion-input[name=trail-name]')).setValue(trailName);
     await new IonicSelect(modal.$('>>>ion-select[name=collection]')).selectByText(trailCollection);
     await (await new ModalComponent(modal).getFooterButtonWithText('Save')).click();

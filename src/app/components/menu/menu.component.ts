@@ -14,6 +14,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { UpdateService } from 'src/app/services/update/update.service';
 import { List } from 'immutable';
 import { trailenceAppVersionName } from 'src/app/trailence-version';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 
 @Component({
     selector: 'app-menu',
@@ -39,14 +40,15 @@ export class MenuComponent {
   isAdmin = false;
 
   constructor(
-    public i18n: I18nService,
-    public collectionService: TrailCollectionService,
+    public readonly i18n: I18nService,
+    public readonly collectionService: TrailCollectionService,
     private readonly router: Router,
-    public menuController: MenuController,
-    public traceRecorder: TraceRecorderService,
+    public readonly menuController: MenuController,
+    public readonly traceRecorder: TraceRecorderService,
     shareService: ShareService,
     authService: AuthService,
-    public update: UpdateService,
+    public readonly update: UpdateService,
+    public readonly fetchSourceService: FetchSourceService,
   ) {
     collectionService.getAll$().pipe(
       collection$items(),

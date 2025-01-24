@@ -19,8 +19,9 @@ interface TrailInfoDto extends TrailInfoBaseDto {
 
 export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
 
-  public readonly name = 'Open Street Map';
-  public readonly owner = 'osm';
+  public override readonly name = 'Open Street Map';
+  public override readonly owner = 'osm';
+  public override readonly canFetchFromUrl = false;
 
   constructor(
     injector: Injector,
