@@ -8,7 +8,6 @@ import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { DependenciesService } from './dependencies.service';
 
-
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 
   private _updatedLocally: string[] = [];

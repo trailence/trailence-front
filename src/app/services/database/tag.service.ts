@@ -208,7 +208,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
 
   protected override createOnServer(items: TagDto[]): Observable<TagDto[]> {
     return this.http.post<TagDto[]>(environment.apiBaseUrl + '/tag/v1/_bulkCreate', items).pipe(
-      tap(created => this.quotaService.updateQuotas(q => q.tagsUsed += created.length))
+      tap(created => this.quotaService.updateQuotas(q => q.tagsUsed += created.length)),
     );
   }
 
@@ -317,11 +317,11 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
     return combineLatest([tagReady$, trailReady$]).pipe(
       map(readiness => readiness.indexOf(false) < 0)
     );
-}
+  }
 
   protected override createOnServer(items: TrailTagDto[]): Observable<TrailTagDto[]> {
     return this.http.post<TrailTagDto[]>(environment.apiBaseUrl + '/tag/v1/trails/_bulkCreate', items).pipe(
-      tap(created => this.quotaService.updateQuotas(q => q.trailTagsUsed += created.length))
+      tap(created => this.quotaService.updateQuotas(q => q.trailTagsUsed += created.length)),
     );
   }
 

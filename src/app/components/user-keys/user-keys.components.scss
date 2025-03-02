@@ -10,6 +10,7 @@
 }
 
 .device {
+  max-width: calc(var(--device-width) + var(--actions-width));
   display: flex;
   flex-direction: row;
   padding-bottom: 3px;

@@ -15,6 +15,7 @@ import { RenewRequest } from './renew-request';
 import { LoginShareRequest } from './login-share-request';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { UserQuotas } from './user-quotas';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
@@ -122,6 +123,14 @@ export class AuthService {
   public preferencesUpdated(): void {
     const auth = this.auth;
     if (auth) {
+      localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
+    }
+  }
+
+  public quotasUpdated(quotas: UserQuotas): void {
+    const auth = this.auth;
+    if (auth) {
+      auth.quotas = quotas;
       localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
     }
   }

@@ -3,7 +3,7 @@ import { OwnedStore, UpdatesResponse } from './owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
-import { BehaviorSubject, catchError, combineLatest, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, zip } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
 import { DatabaseService, PHOTO_TABLE_NAME } from './database.service';
@@ -329,7 +329,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
       };
       requests.push(limiter.add(request));
     }
-    return (requests.length === 0 ? of([]) : zip(requests));
+    return (requests.length === 0 ? of([]) : zip(requests).pipe(defaultIfEmpty([])));
   }
 
   protected override readyToSave(entity: Photo): boolean {

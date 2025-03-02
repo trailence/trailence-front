@@ -1,3 +1,26 @@
+@media (min-width: 650px) {
+  :host {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 632px;
+  }
+  .quota-container {
+    width: 300px;
+    margin: 0 8px;
+
+    .quota {
+      width: 300px;
+      .usage-bar {
+        width: 200px;
+      }
+      .usage-text {
+        width: 100px;
+      }
+    }
+  }
+}
+
 .quota {
   display: flex;
   flex-direction: row;

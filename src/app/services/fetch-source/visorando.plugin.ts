@@ -133,6 +133,13 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       const v = parseFloat(ratingElement.textContent);
       if (!isNaN(v) && v >= 0 && v <= 5) result.rating = v;
     }
+    if (result.rating === undefined) {
+      const ratingElement2 = doc.querySelector('div.liste-topics div.clearfix div.h1>span');
+      if (ratingElement2?.textContent) {
+        const v = parseFloat(ratingElement2.textContent);
+        if (!isNaN(v) && v >= 0 && v <= 5) result.rating = v;
+      }
+    }
 
     // ids
     const buttons = doc.querySelectorAll('a.btn');

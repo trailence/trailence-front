@@ -40,6 +40,10 @@ export class TrailOverview extends Component {
     expect(await this.getPhotosSliderElement().isExisting()).toBeFalse();
   }
 
+  public async expectRatingPresent() {
+    expect(await this.getElement().$('div.rating-stars').isDisplayed()).toBeTrue();
+  }
+
   public async clickMenuItem(item: string) {
     const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
     await button.click();

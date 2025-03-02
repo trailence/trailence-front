@@ -129,7 +129,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
             result.trails = item.trails;
             this.quotaService.updateQuotas(q => q.sharesUsed++);
             return result;
-          })
+          }),
         );
       }
       requests.push(limiter.add(request));

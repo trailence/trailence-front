@@ -1,16 +1,18 @@
 <ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'collections', used: quotas.collectionsUsed, max: quotas.collectionsMax, formatter: noFormatter }"></ng-container>
 <ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'trails', used: quotas.trailsUsed, max: quotas.trailsMax, formatter: noFormatter }"></ng-container>
 <ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'tracks-size', used: quotas.tracksSizeUsed, max: quotas.tracksSizeMax, formatter: sizeFormatter }"></ng-container>
+<ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'shares', used: quotas.sharesUsed, max: quotas.sharesMax, formatter: noFormatter }"></ng-container>
 <ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'tags', used: quotas.tagsUsed, max: quotas.tagsMax, formatter: noFormatter }"></ng-container>
 <ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'trail-tags', used: quotas.trailTagsUsed, max: quotas.trailTagsMax, formatter: noFormatter }"></ng-container>
 <ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'photos', used: quotas.photosUsed, max: quotas.photosMax, formatter: noFormatter }"></ng-container>
 <ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'photos-size', used: quotas.photosSizeUsed, max: quotas.photosSizeMax, formatter: sizeFormatter }"></ng-container>
-<ng-container *ngTemplateOutlet="quotaTemplate; context: { title: 'shares', used: quotas.sharesUsed, max: quotas.sharesMax, formatter: noFormatter }"></ng-container>
 
 <ng-template #quotaTemplate let-used="used" let-max="max" let-title="title" let-formatter="formatter">
-  <div class="page-section-sub-title">{{ i18n.texts.pages.myaccount.quotas[title] }}</div>
-  <div class="quota">
-    <div class="usage-bar" [ngStyle]="{'--quota-used': used, '--quota-max': max, '--color': (used / max) < 0.75 ? 'var(--ion-color-success)' : (used === max ? 'var(--ion-color-danger)' : 'var(--ion-color-warning)')}"></div>
-    <div class="usage-text">{{ formatter(used) }} / {{ formatter(max) }}</div>
+  <div class="quota-container">
+    <div class="page-section-sub-title">{{ i18n.texts.pages.myaccount.quotas[title] }}</div>
+    <div class="quota">
+      <div class="usage-bar" [ngStyle]="{'--quota-used': used, '--quota-max': max, '--color': (used / max) < 0.75 ? 'var(--ion-color-success)' : (used === max ? 'var(--ion-color-danger)' : 'var(--ion-color-warning)')}"></div>
+      <div class="usage-text">{{ formatter(used) }} / {{ formatter(max) }}</div>
+    </div>
   </div>
 </ng-template>

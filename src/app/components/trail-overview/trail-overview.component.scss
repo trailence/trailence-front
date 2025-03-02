@@ -53,9 +53,14 @@
 .rating-stars {
   margin-bottom: 2px;
 
+  ion-icon {
+    width: 12px;
+    height: 12px;
+  }
+
   span {
     margin-left: 5px;
-    font-size: 13px;
+    font-size: 12px;
   }
 }
 

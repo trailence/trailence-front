@@ -54,6 +54,7 @@ export class ErrorService {
       breakpoints: [0, 0.25, 0.5, 0.75, 1],
       canDismiss: true,
       backdropDismiss: true,
+      backdropBreakpoint: 0.3,
       component: module.ErrorsModalComponent,
       componentProps: {
         errors: this._shownErrors

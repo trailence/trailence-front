@@ -23,7 +23,7 @@
     <span>{{ external.rating | number:'1.0-1' }} / 5</span>
   </div>
 
-  <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && tagsNames.length > 0}">
+  <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined)}">
     <ng-container *ngIf="meta.dateString || meta.location">
       <div class="metadata-item-container">
         <div class="metadata-item">

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
@@ -17,6 +17,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   @Input() maxWidth?: number;
   @Input() maxHeight?: number;
   @Input() photo?: Photo;
+  @Input() loadWhenVisible = false;
 
   @Output() blobSize = new EventEmitter<number>();
 
@@ -27,6 +28,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   constructor(
     private readonly photoService: PhotoService,
     private readonly changesDetector: ChangeDetectorRef,
+    private readonly elementRef: ElementRef,
   ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -39,16 +41,31 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.subscription = undefined;
       this.error = false;
       this.setBlob(undefined);
-      if (this.photo)
-        this.subscription = this.photoService.getBlobUrl$(this.photo.owner, this.photo.uuid).subscribe({
-          next: blob => {
-            this.setBlob(blob);
-          },
-          error: e => {
-            Console.error('Error loading photo', e);
-            this.error = true;
-          }
-        });
+      if (this.photo) {
+        const loadPhoto = (photo: Photo) => {
+          this.subscription = this.photoService.getBlobUrl$(photo.owner, photo.uuid).subscribe({
+            next: blob => {
+              this.setBlob(blob);
+            },
+            error: e => {
+              Console.error('Error loading photo', e);
+              this.error = true;
+            }
+          });
+        }
+        if (!this.loadWhenVisible) loadPhoto(this.photo);
+        else {
+          const p = this.photo;
+          const observer = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting) {
+              observer.disconnect();
+              if (this.photo === p)
+                loadPhoto(p);
+            }
+          });
+          observer.observe(this.elementRef.nativeElement);
+        }
+      }
     }
   }
 

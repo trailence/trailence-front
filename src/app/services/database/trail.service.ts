@@ -220,7 +220,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
 
   protected override createOnServer(items: TrailDto[]): Observable<TrailDto[]> {
     return this.http.post<TrailDto[]>(environment.apiBaseUrl + '/trail/v1/_bulkCreate', items).pipe(
-      tap(created => this.quotaService.updateQuotas(q => q.trailsUsed += created.length))
+      tap(created => this.quotaService.updateQuotas(q => q.trailsUsed += created.length)),
     );
   }
 

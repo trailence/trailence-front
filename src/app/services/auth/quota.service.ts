@@ -10,7 +10,7 @@ export class QuotaService {
   private readonly _quotas$ = new BehaviorSubject<UserQuotas | undefined>(undefined);
 
   constructor(
-    auth: AuthService
+    private readonly auth: AuthService
   ) {
     auth.auth$.subscribe(a => this._quotas$.next(a?.quotas));
     this._quotas$.subscribe(q => Console.info('New quotas', q));
@@ -23,6 +23,7 @@ export class QuotaService {
     const quotas = this.quotas;
     if (!quotas) return;
     updater(quotas);
+    this.auth.quotasUpdated(quotas);
     this._quotas$.next(quotas);
   }
 

@@ -26,6 +26,7 @@ describe('Find Trail', () => {
     await page.searchButton.click();
     const list = await page.trailsAndMap.openTrailsList();
     const trail = await list.waitTrail('Tour de l\'Île Saint-Honorat');
+    trail.expectRatingPresent();
     trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('a=Open in Visorando').isExisting());
