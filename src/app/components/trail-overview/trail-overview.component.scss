@@ -19,6 +19,17 @@
     flex: 1 1 100%;
     color: var(--ion-color-tertiary);
     font-size: 15px;
+    max-width: calc(100% - 45px);
+
+    &:not(.selectable) {
+      max-width: calc(100% - 28px);
+    }
+
+    &.nowrap {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
   }
 
   ion-button.trail-menu-button {
@@ -27,8 +38,16 @@
 
 }
 
-.tag {
-  margin-bottom: 3px;
+.trail-tags-row {
+  .tag {
+    margin-bottom: 3px;
+  }
+  &.nowrap {
+    flex-wrap: nowrap;
+    .tag {
+      font-size: 11px;
+    }
+  }
 }
 
 .rating-stars {
@@ -73,6 +92,13 @@ div.metadata-with-photos {
     }
   }
 
+}
+
+.inner-metadata-container.smaller {
+  font-size: 10px;
+  ion-icon, ::ng-deep .metadata-item-container .metadata-item svg {
+    height: 18px;
+  }
 }
 
 .open-trail {

@@ -60,6 +60,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Output() selectedChange = new EventEmitter<boolean>();
 
   @Input() photoEnabled = true;
+  @Input() hasFixedHeight = false;
 
   @Input() delayLoading = false;
 

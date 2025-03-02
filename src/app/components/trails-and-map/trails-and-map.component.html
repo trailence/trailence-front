@@ -29,7 +29,7 @@
   </div>
   <div class="trail-sheet {{trailSheetMode}} {{highlightedTrail ? '' : 'none'}} metadata-container {{trailSheetMetadataClass}}">
     <ng-container *ngIf="highlightedTrail">
-      <app-trail-overview [trail]="highlightedTrail" [photoEnabled]="false"></app-trail-overview>
+      <app-trail-overview [trail]="highlightedTrail" [photoEnabled]="false" [hasFixedHeight]="true"></app-trail-overview>
     </ng-container>
   </div>
 </div>

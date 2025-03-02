@@ -120,6 +120,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
         )
       ),
       result => {
+        if (this.highlightedTrail && !result.trails.find(t => t.trail.owner === this.highlightedTrail?.owner && t.trail.uuid === this.highlightedTrail?.uuid))
+          this.highlightedTrail = undefined; // the trail was deleted
         if (result.zoom === undefined) {
           if (this.mapBubbles$.value.length > 0)
             this.mapBubbles$.next([]);

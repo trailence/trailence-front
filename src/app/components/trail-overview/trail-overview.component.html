@@ -1,6 +1,6 @@
 <div class="trail-name-row" *ngIf="trail">
   <ion-checkbox class="trail-checkbox" *ngIf="selectable" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
-  <div class="trail-name">{{ meta.name }}</div>
+  <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}">{{ meta.name }}</div>
   <ng-container *ngIf="external && external.oscmSymbol">
     <ng-container *ngIf="generateRouteSymbol(external.oscmSymbol) as svg">
       <div class="ocsm-symbol" [innerHTML]="svg"></div>
@@ -11,7 +11,7 @@
   </ion-button>
 </div>
 <ng-container *ngIf="load$.value">
-  <div class="trail-tags-row">
+  <div class="trail-tags-row" [ngClass]="{'nowrap': hasFixedHeight}">
     <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
   </div>
   <div class="rating-stars" *ngIf="external && external.rating !== undefined">
@@ -23,7 +23,7 @@
     <span>{{ external.rating | number:'1.0-1' }} / 5</span>
   </div>
 
-  <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container">
+  <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && tagsNames.length > 0}">
     <ng-container *ngIf="meta.dateString || meta.location">
       <div class="metadata-item-container">
         <div class="metadata-item">
