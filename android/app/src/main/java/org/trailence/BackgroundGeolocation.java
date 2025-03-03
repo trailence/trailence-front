@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -116,6 +117,18 @@ public class BackgroundGeolocation extends Plugin {
                 );
             } catch (Exception e) {
                 Logger.error("Could not set notification icon", e);
+            }
+
+            try {
+              String color = getAppString(
+                "capacitor_background_geolocation_notification_color",
+                null
+              );
+              if (color != null) {
+                builder.setColor(Color.parseColor(color));
+              }
+            } catch (Exception e) {
+              Logger.error("Could not set notification color", e);
             }
 
             Intent launchIntent = getContext().getPackageManager().getLaunchIntentForPackage(
@@ -250,9 +263,9 @@ public class BackgroundGeolocation extends Plugin {
             Location location = intent.getParcelableExtra("location");
             Logger.debug("location broadcast received: " + location);
             if (location != null) {
-                call.success(formatLocation(location));
+                call.resolve(formatLocation(location));
             } else {
-              call.reject("Location not available");
+                call.reject("Location not available");
             }
         }
     }
