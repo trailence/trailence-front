@@ -45,6 +45,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return this._updatedLocally.indexOf(uuid + '#' + owner) >= 0;
   }
 
+  public getNbLocalCreates(): number {
+    return this._createdLocally.length;
+  }
+
   protected override areSame(item1: ENTITY, item2: ENTITY): boolean {
     return item1.uuid === item2.uuid && item1.owner === item2.owner;
   }
@@ -136,6 +140,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   private updatedDtosFromServer(dtos: DTO[], deleted: {uuid: string; owner: string;}[] = []): Observable<boolean> {
     if (dtos.length === 0 && deleted.length === 0) return of(true);
+    this._errors.itemsSuccess(dtos.map(dto => dto.uuid + '#' + dto.owner));
+    this._errors.itemsSuccess(deleted.map(d => d.uuid + '#' + d.owner));
     const entitiesToAdd: BehaviorSubject<ENTITY | null>[] = [];
     const dtosToAdd: StoredItem<DTO>[] = [];
     const dtosToUpdate: StoredItem<DTO>[] = [];
@@ -266,12 +272,17 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           status.localCreates = this._createdLocally.length !== 0;
           status.localDeletes = this._deletedLocally.length !== 0;
           status.localUpdates = this._updatedLocally.length !== 0;
+          status.quotaReached = this.isQuotaReached();
           status.inProgress = false;
           status.needsUpdateFromServer = false;
           status.lastUpdateFromServer = Date.now();
           Console.info('Store ' + this.tableName + ' sync: ' + (status.hasLocalChanges ? 'still ' + this._createdLocally.length + ' to create, ' + this._deletedLocally.length + ' to delete, ' + this._updatedLocally.length + ' to update' : 'no more local changes'))
           this._syncStatus$.next(status);
-          return of(status.hasLocalChanges);
+          const isIncomplete =
+            this._createdLocally.filter(item => this._errors.canProcess(item.value?.uuid + '#' + item.value?.owner, true)).length > 0 ||
+            this._deletedLocally.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false)).length > 0 ||
+            this._updatedLocally.filter(item => this._errors.canProcess(item, false)).length > 0;
+          return of(isIncomplete);
         }),
         catchError(error => {
           // should never happen
@@ -283,9 +294,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {
-    this._createdLocally = this._createdLocally.filter($item => !!$item.value);
-    if (this._createdLocally.length === 0) return of(true);
-    const toCreate = this._createdLocally.map(item$ => item$.value!).filter(item => this._locks.startSync(item.uuid + '#' + item.owner));
+    const canCreate = this._createdLocally.filter($item => !!$item.value && this._errors.canProcess($item.value.uuid + '#' + $item.value.owner, true));
+    if (canCreate.length === 0) return of(true);
+    const toCreate = canCreate.map(item$ => item$.value!).filter(item => this._locks.startSync(item.uuid + '#' + item.owner));
     const ready = toCreate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
     return ready$.pipe(
@@ -305,6 +316,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           catchError(error => {
             Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.tableName]);
+            this._errors.itemsError(readyEntities.map(e => e.uuid + '#' + e.owner), error);
             return of(false);
           }),
           tap(() => {
@@ -333,12 +345,13 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   private syncUpdateToServer(stillValid: () => boolean): Observable<boolean> {
-    if (this._updatedLocally.length === 0) return of(true);
+    let canUpdate = this._updatedLocally.filter(item => this._errors.canProcess(item, false));
+    if (canUpdate.length === 0) return of(true);
     const toUpdate = this._store.value
       .map(item$ => item$.value)
       .filter(
         item => !!item &&
-        this._updatedLocally.indexOf(item.uuid + '#' + item.owner) >= 0 &&
+        canUpdate.indexOf(item.uuid + '#' + item.owner) >= 0 &&
         this._locks.startSync(item.uuid + '#' + item.owner)
       ) as ENTITY[];
     if (toUpdate.length === 0) return of(true);
@@ -372,6 +385,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
               }
               const index = this._updatedLocally.indexOf(entity.uuid + '#' + entity.owner);
               if (index >= 0) this._updatedLocally.splice(index, 1);
+              this._errors.itemSuccess(entity.uuid + '#' + entity.owner);
             }
             this.injector.get(DependenciesService).operationDone(this.tableName, 'update', notUpdated);
             return from(Promise.all(promises)).pipe(
@@ -381,6 +395,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           catchError(error => {
             Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.tableName]);
+            this._errors.itemsError(readyEntities.map(item => item.uuid + '#' + item.owner), error);
             return of(false);
           }),
           tap(() => {
@@ -392,11 +407,12 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
-    if (this._deletedLocally.length === 0) return of(true);
-    return from(this.injector.get(DependenciesService).canDo(this.tableName, 'delete', this._deletedLocally.map(item => item.uuid + '#' + item.owner))).pipe(
+    const toDelete = this._deletedLocally.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false));
+    if (toDelete.length === 0) return of(true);
+    return from(this.injector.get(DependenciesService).canDo(this.tableName, 'delete', toDelete.map(item => item.uuid + '#' + item.owner))).pipe(
       switchMap(canDelete => {
         if (canDelete.length === 0) {
-          Console.info('Nothing ready to be deleted among ' + this._deletedLocally.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to be deleted among ' + toDelete.length + ' element(s) of ' + this.tableName);
           return of(false);
         }
         Console.info(canDelete.length + ' element(s) of ' + this.tableName + ' ready to be deleted on server');
@@ -408,13 +424,14 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             Console.info('' + canDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
             return this.updatedDtosFromServer([], canDelete.map(e => ({uuid: e.substring(0, e.indexOf('#')), owner: e.substring(e.indexOf('#') + 1)})));
           }),
+          catchError(error => {
+            Console.error('Error deleting element(s) of ' + this.tableName + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
+            this._errors.itemsError(canDelete, error);
+            return of(false);
+          })
         );
       }),
-      catchError(error => {
-        Console.error('Error deleting element(s) of ' + this.tableName + ' on server', error);
-        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
-        return of(false);
-      })
     );
   }
 
@@ -445,10 +462,11 @@ class OwnedStoreSyncStatus implements StoreSyncStatus {
   public localDeletes = false;
   public needsUpdateFromServer = true;
   public lastUpdateFromServer?: number;
+  public quotaReached = false;
 
   public inProgress = false;
 
-  public get needsSync(): boolean { return this.localCreates || this.localUpdates || this.localDeletes || this.needsUpdateFromServer; }
+  public get needsSync(): boolean { return (this.localCreates && !this.quotaReached) || this.localUpdates || this.localDeletes || this.needsUpdateFromServer; }
   public get hasLocalChanges(): boolean { return this.localCreates || this.localUpdates || this.localDeletes; }
 
 }

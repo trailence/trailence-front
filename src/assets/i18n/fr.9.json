@@ -671,5 +671,24 @@
     "from": "De",
     "to": "à"
   },
-  "administration": "Administration"
+  "administration": "Administration",
+  "quota_error": {
+    "trail_collections": "Vous avez dépassé le nombre maximum de collections, les nouvelles ne peuvent pas être enregistrées sur le serveur !",
+    "trails": "Vous avez dépassé le nombre maximum de parcours, les nouveaux ne peuvent pas être enregistrés sur le serveur !",
+    "tracks": "Vous avez dépassé le nombre maximum de traces, les nouvelles ne peuvent pas être enregistrées sur le serveur !",
+    "tags": "Vous avez dépassé le nombre maximum de tags, les nouveaux ne peuvent pas être enregistrés sur le serveur !",
+    "trails_tags": "Vous avez dépassé le nombre maximum de parcours taggués, les nouveaux ne peuvent pas être enregistrés sur le serveur !",
+    "photos": "Vous avez dépassé le nombre maximum de photos, les nouvelles ne peuvent pas être enregistrées sur le serveur !",
+    "shares": "Vous avez dépassé le nombre maximum de partages, les nouveaux ne peuvent pas être enregistrés sur le serveur !"
+  },
+  "quota_reached": {
+    "trail_collections": "Vous avez atteint le nombre maximum de collections",
+    "trails": "Vous avez atteint le nombre maximum de parcours",
+    "tracks": "Vous avez atteint le nombre maximum de traces",
+    "tags": "Vous avez atteint le nombre maximum de tags",
+    "trails_tags": "Vous avez atteint le nombre maximum de parcours taggués",
+    "photos": "Vous avez atteint le nombre maximum de photos",
+    "shares": "Vous avez atteint le nombre maximum de partages",
+    "photos_max": "Votre quota de photos est {{1}} et vous en avez déjà {{2}}: vous ne pouvez pas en ajouter {{3}} nouvelle(s)"
+  }
 }

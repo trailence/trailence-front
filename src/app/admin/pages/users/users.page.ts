@@ -45,18 +45,38 @@ export class AdminUsersPage {
 
   private readonly simpleQuotaFormatter = (used: number, max: number) => used + ' / ' + max;
   private readonly sizeQuotaFormatter = (used: number, max: number) => this.i18n.sizeToString(used) + ' / ' + this.i18n.sizeToString(max);
+  private readonly quotaStyle = (used: number, max: number) => ({'color': (used / max) < 0.75 ? 'var(--ion-color-success)' : (used >= max ? 'var(--ion-color-danger)' : 'var(--ion-color-warning)')});
 
   tableSettingsQuotas = new TableSettings(
     [
       new TableColumn('admin.users.email').withSortableField('email'),
-      new TableColumn('pages.myaccount.quotas.collections').withSortableField('quotas.collectionsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.collectionsUsed, user.quotas.collectionsMax)),
-      new TableColumn('pages.myaccount.quotas.trails').withSortableField('quotas.trailsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.trailsUsed, user.quotas.trailsMax)),
-      new TableColumn('pages.myaccount.quotas.tracks-size').withSortableField('quotas.tracksSizeUsed', (used, user: UserDto) => this.sizeQuotaFormatter(user.quotas.tracksSizeUsed, user.quotas.tracksSizeMax)),
-      new TableColumn('pages.myaccount.quotas.tags').withSortableField('quotas.tagsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.tagsUsed, user.quotas.tagsMax)),
-      new TableColumn('pages.myaccount.quotas.trail-tags').withSortableField('quotas.trailTagsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.trailTagsUsed, user.quotas.trailTagsMax)),
-      new TableColumn('pages.myaccount.quotas.photos').withSortableField('quotas.photosUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.photosUsed, user.quotas.photosMax)),
-      new TableColumn('pages.myaccount.quotas.photos-size').withSortableField('quotas.photosSizeUsed', (used, user: UserDto) => this.sizeQuotaFormatter(user.quotas.photosSizeUsed, user.quotas.photosSizeMax)),
-      new TableColumn('pages.myaccount.quotas.shares').withSortableField('quotas.sharesUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.sharesUsed, user.quotas.sharesMax)),
+      new TableColumn('pages.myaccount.quotas.collections')
+        .withSortableField('quotas.collectionsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.collectionsUsed, user.quotas.collectionsMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.collectionsUsed, user.quotas.collectionsMax)),
+      new TableColumn('pages.myaccount.quotas.trails')
+        .withSortableField('quotas.trailsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.trailsUsed, user.quotas.trailsMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.trailsUsed, user.quotas.trailsMax)),
+      new TableColumn('admin.users.quota_tracks')
+        .withSortableField('quotas.tracksUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.tracksUsed, user.quotas.tracksMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.tracksUsed, user.quotas.tracksMax)),
+      new TableColumn('pages.myaccount.quotas.tracks-size')
+        .withSortableField('quotas.tracksSizeUsed', (used, user: UserDto) => this.sizeQuotaFormatter(user.quotas.tracksSizeUsed, user.quotas.tracksSizeMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.tracksSizeUsed, user.quotas.tracksSizeMax)),
+      new TableColumn('pages.myaccount.quotas.tags')
+        .withSortableField('quotas.tagsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.tagsUsed, user.quotas.tagsMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.tagsUsed, user.quotas.tagsMax)),
+      new TableColumn('pages.myaccount.quotas.trail-tags')
+        .withSortableField('quotas.trailTagsUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.trailTagsUsed, user.quotas.trailTagsMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.trailTagsUsed, user.quotas.trailTagsMax)),
+      new TableColumn('pages.myaccount.quotas.photos')
+        .withSortableField('quotas.photosUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.photosUsed, user.quotas.photosMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.photosUsed, user.quotas.photosMax)),
+      new TableColumn('pages.myaccount.quotas.photos-size')
+        .withSortableField('quotas.photosSizeUsed', (used, user: UserDto) => this.sizeQuotaFormatter(user.quotas.photosSizeUsed, user.quotas.photosSizeMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.photosSizeUsed, user.quotas.photosSizeMax)),
+      new TableColumn('pages.myaccount.quotas.shares')
+        .withSortableField('quotas.sharesUsed', (used, user: UserDto) => this.simpleQuotaFormatter(user.quotas.sharesUsed, user.quotas.sharesMax))
+        .styleFromRowData((user: UserDto) => this.quotaStyle(user.quotas.sharesUsed, user.quotas.sharesMax)),
     ],
     (request: PageRequest) => this.http.get<PageResult<UserDto>>(environment.apiBaseUrl + '/admin/users/v1' + request.toQueryParams()),
     'admin.users.error'
@@ -66,7 +86,7 @@ export class AdminUsersPage {
   tableSettings = this.tableSettingsGeneral;
 
   displayUser(user: any): void {
-    import('../../components/user/user.component')
+    import('./user/user.component')
     .then(m => this.modalController.create({
       component: m.UserComponent,
       componentProps: {

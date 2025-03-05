@@ -19,6 +19,25 @@
     "error": "Erreur lors de la récupération des données",
     "view": "Vue",
     "view_general": "Général",
-    "view_quotas": "Quotas"
-  }
+    "view_quotas": "Quotas",
+    "quota_tracks": "Traces",
+    "subscriptions": "Abonnements",
+    "stop_subscription_confirmation": "Confirmez-vous l'arrêt de cet abonnement ?"
+  },
+  "plans": {
+    "title": "Offres",
+    "plan": "Offre",
+    "error": "Erreur lors de la récupération des données",
+    "subscriptions": "Abonnements",
+    "activeSubscriptions": "Abonnements actifs",
+    "new": "Nouvelle offre",
+    "new_subscription": "Nouvel abonnement",
+    "planForm": {
+      "name": "Nom de l'offre",
+      "error": "Erreur lors de la sauvegarde de l'offre",
+      "delete_confirmation": "Confirmez-vous la suppression de cette offre ?"
+    }
+  },
+  "starts_at": "Depuis",
+  "ends_at": "Jusqu'à"
 }

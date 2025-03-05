@@ -319,3 +319,15 @@ ion-menu::part(container) {
 ion-input.input-label-placement-floating:not(.label-floating) .label-text-wrapper .label-text {
   color: var(--ion-color-medium);
 }
+
+ion-input.input-fill-outline.small {
+  min-height: 40px;
+}
+
+ion-select.select-fill-outline.small {
+  min-height: 40px;
+}
+
+.page-content {
+  container-type: size;
+}

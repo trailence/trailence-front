@@ -1,4 +1,4 @@
-@media (min-width: 650px) {
+@container (min-width: 650px) {
   :host {
     display: flex;
     flex-direction: row;
@@ -42,7 +42,7 @@
       bottom: 0;
       background-color: var(--color);
       border-radius: 3px;
-      width: calc(100% * calc(var(--quota-used) / var(--quota-max)));
+      width: calc(min(100%, calc(100% * calc(var(--quota-used) / var(--quota-max)))));
     }
   }
 

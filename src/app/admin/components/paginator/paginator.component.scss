@@ -10,6 +10,14 @@
   color: var(--ion-color-dark);
 }
 
+.page-number {
+  white-space: nowrap;
+}
+
 ion-select {
   width: auto;
+}
+
+.right-content-container {
+  flex: 1 1 100%;
 }

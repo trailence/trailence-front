@@ -193,6 +193,11 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
 
   private readonly quotaService: QuotaService;
 
+  protected override isQuotaReached(): boolean {
+    const q = this.quotaService.quotas;
+    return !q || q.trailsUsed >= q.trailsMax;
+  }
+
   protected override fromDTO(dto: TrailDto): Trail {
     return new Trail(dto);
   }

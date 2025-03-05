@@ -25,20 +25,22 @@ export enum HorizontalAlignment {
 export class TableColumn {
 
   constructor(
-    public title: string,
+    public readonly title: string,
   ) {}
 
-  public valueGetter: (element: any) => string = () => '';
-  public sortable?: string;
-  public horizontalAlignment: HorizontalAlignment = HorizontalAlignment.LEFT;
+  _valueGetter: (element: any) => string = () => '';
+  _sortable?: string;
+  _horizontalAlignment: HorizontalAlignment = HorizontalAlignment.LEFT;
+  _cellStyleFromRowData: (rowData: any) => any = () => {};
+  _cellStyleFromValue: (value: any) => any = () => {};
 
   public withField(fieldName: string, transform: (value: any, rowData: any) => string = v => '' + v): this {
-    this.valueGetter = (element: any) => transform(ObjectUtils.extractField(element, fieldName), element);
+    this._valueGetter = (element: any) => transform(ObjectUtils.extractField(element, fieldName), element);
     return this;
   }
 
   public withSort(sortableFieldName: string): this {
-    this.sortable = sortableFieldName;
+    this._sortable = sortableFieldName;
     return this;
   }
 
@@ -47,8 +49,21 @@ export class TableColumn {
   }
 
   public hAlign(align: HorizontalAlignment): this {
-    this.horizontalAlignment = align;
+    this._horizontalAlignment = align;
     return this;
   }
 
+  public styleFromValue(styleProvider: (value: any) => any): this {
+    this._cellStyleFromValue = styleProvider;
+    return this;
+  }
+
+  public styleFromRowData(styleProvider: (rowData: any) => any): this {
+    this._cellStyleFromRowData = styleProvider;
+    return this;
+  }
+
+  _computeCellStyle(element: any, value: any): any {
+    return {'text-align': this._horizontalAlignment, ...this._cellStyleFromValue(value), ...this._cellStyleFromRowData(element)};
+  }
 }

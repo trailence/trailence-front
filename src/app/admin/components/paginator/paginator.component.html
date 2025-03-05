@@ -1,3 +1,4 @@
+<div class="left-content-container"><ng-content select=".left-content"></ng-content></div>
 <ion-button fill="clear" color="secondary" [disabled]="!nbPages || pageRequest.page === 0" (click)="firstPage()">
   <ion-icon slot="icon-only" name="chevron-first"></ion-icon>
 </ion-button>
@@ -23,3 +24,4 @@
 <ion-select [value]="pageRequest.size" label="{{ 'admin.paginator.elementsPerPage' | i18nString }}" (ionChange)="setPageSize($event.detail.value)">
   <ion-select-option *ngFor="let option of pagingOptions" [value]="option">{{ option }}</ion-select-option>
 </ion-select>
+<div class="right-content-container"><ng-content select=".right-content"></ng-content></div>

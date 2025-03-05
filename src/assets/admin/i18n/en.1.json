@@ -19,6 +19,24 @@
     "error": "Error retrieving data",
     "view": "View",
     "view_general": "General",
-    "view_quotas": "Quotas"
-  }
+    "view_quotas": "Quotas",
+    "quota_tracks": "Tracks",
+    "stop_subscription_confirmation": "Are you sure to stop this subscription?"
+  },
+  "plans": {
+    "title": "Plans",
+    "plan": "Plan",
+    "error": "Error retrieving data",
+    "subscriptions": "Subscriptions",
+    "activeSubscriptions": "Active Subscriptions",
+    "new": "New plan",
+    "new_subscription": "New subscription",
+    "planForm": {
+      "name": "Plan name",
+      "error": "Error saving plan",
+      "delete_confirmation": "Are you sure to delete this plan?"
+    }
+  },
+  "starts_at": "Since",
+  "ends_at": "Until"
 }

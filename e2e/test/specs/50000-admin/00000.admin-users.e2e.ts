@@ -70,7 +70,7 @@ describe('Admin Users', () => {
     expect(cell).toBeDefined();
     if (cell) {
       const tagsQuotas = await cell.parentElement().$$('td')[tagsIndex].getText();
-      expect(tagsQuotas.endsWith('/ 1000')).toBeTrue();
+      expect(tagsQuotas.endsWith('/ 500')).toBeTrue();
     }
     await usersPage.views.setSelected('general');
   });

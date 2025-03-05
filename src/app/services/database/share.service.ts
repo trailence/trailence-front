@@ -107,6 +107,11 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
   protected override toDTO(entity: Share): ShareDto { return entity.toDto(); }
   protected override getKey(entity: Share): string { return entity.id; }
 
+  protected override isQuotaReached(): boolean {
+    const q = this.quotaService.quotas;
+    return !q || q.sharesUsed >= q.sharesMax;
+  }
+
   protected override updateEntityFromServer(): boolean { return true; }
 
   protected override createOnServer(items: ShareDto[]): Observable<ShareDto[]> {

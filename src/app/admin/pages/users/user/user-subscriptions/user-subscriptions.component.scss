@@ -1,0 +1,25 @@
+table {
+  th {
+    color: var(--ion-secondary-color);
+  }
+  th, td {
+    padding: 2px 5px;
+  }
+}
+
+div.new-subscription {
+  margin: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  span {
+    color: var(--ion-color-success);
+  }
+
+  ion-select {
+    margin: 0 8px;
+    flex: 1 1 100%;
+    max-width: 250px;
+  }
+}

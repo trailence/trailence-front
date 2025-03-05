@@ -1,7 +1,7 @@
 <ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button">
   <div slot="icon-only" style="pointer-events: none;">{{userLetter}}</div>
 </ion-button>
-<div class="status"><ion-icon [name]="status"></ion-icon></div>
+<div class="status"><ion-icon [name]="status === 'online' && hasLocalChanges ? 'duration' : status"></ion-icon></div>
 
 <ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click">
   <ng-template>

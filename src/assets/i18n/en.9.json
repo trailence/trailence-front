@@ -671,5 +671,24 @@
     "from": "From",
     "to": "to"
   },
-  "administration": "Administration"
+  "administration": "Administration",
+  "quota_error": {
+    "trail_collections": "You have exceeded the maximum number of collections, new ones cannot be saved on the server !",
+    "trails": "You have exceeded the maximum number of trails, new ones cannot be saved on the server !",
+    "tracks": "You have exceeded the maximum number of tracks, new ones cannot be saved on the server !",
+    "tags": "You have exceeded the maximum number of tags, new ones cannot be saved on the server !",
+    "trails_tags": "You have exceeded the maximum number of tagged trails, new ones cannot be saved on the server !",
+    "photos": "You have exceeded the maximum number of photos, new ones cannot be saved on the server !",
+    "shares": "You have exceeded the maximum number of shares, new ones cannot be saved on the server !"
+  },
+  "quota_reached": {
+    "trail_collections": "You have reached the maximum number of collections",
+    "trails": "You have reached the maximum number of trails",
+    "tracks": "You have reached the maximum number of tracks",
+    "tags": "You have reached the maximum number of tags",
+    "trails_tags": "You have reached the maximum number of tagged trails",
+    "photos": "You have reached the maximum number of photos",
+    "shares": "You have reached the maximum number of shares",
+    "photos_max": "Your quota for photos is {{1}} and you already have {{2}}: you cannot add {{3}} new one(s)"
+  }
 }

@@ -8,6 +8,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { Router } from '@angular/router';
 import { first } from 'rxjs';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Console } from 'src/app/utils/console';
 
 @Component({
     selector: 'app-collection-form-popup',
@@ -62,10 +63,16 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
         filterDefined(),
         first()
       )
-      .subscribe(col => {
-        this.close(col);
-        if (this.redirectOnApplied)
-          this.router.navigateByUrl('/trails/collection/' + col.uuid);
+      .subscribe({
+        next: col => {
+          this.close(col);
+          if (this.redirectOnApplied)
+            this.router.navigateByUrl('/trails/collection/' + col.uuid);
+        },
+        error: e => {
+          Console.error(e);
+          this.applying = false;
+        }
       });
     } else if (this.name !== this.collection!.name) {
       this.collection!.name = this.name;

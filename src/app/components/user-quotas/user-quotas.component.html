@@ -11,7 +11,7 @@
   <div class="quota-container">
     <div class="page-section-sub-title">{{ i18n.texts.pages.myaccount.quotas[title] }}</div>
     <div class="quota">
-      <div class="usage-bar" [ngStyle]="{'--quota-used': used, '--quota-max': max, '--color': (used / max) < 0.75 ? 'var(--ion-color-success)' : (used === max ? 'var(--ion-color-danger)' : 'var(--ion-color-warning)')}"></div>
+      <div class="usage-bar" [ngStyle]="{'--quota-used': used, '--quota-max': max, '--color': (used / max) < 0.75 ? 'var(--ion-color-success)' : (used >= max ? 'var(--ion-color-danger)' : 'var(--ion-color-warning)')}"></div>
       <div class="usage-text">{{ formatter(used) }} / {{ formatter(max) }}</div>
     </div>
   </div>

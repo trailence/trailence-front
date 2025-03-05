@@ -45,7 +45,7 @@ export class HttpService {
     return this.send(new TrailenceHttpRequest(HttpMethod.PUT, url, headers ?? {}, body, ResponseType.JSON));
   }
 
-  public delete(url: string): Observable<void> {
+  public delete<T>(url: string): Observable<T> {
     return this.send(new TrailenceHttpRequest(HttpMethod.DELETE, url, {}, null, ResponseType.JSON));
   }
 

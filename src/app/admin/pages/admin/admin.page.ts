@@ -46,4 +46,8 @@ export class AdminPage extends AbstractPage {
     if (i > 0) url = url.substring(0, i);
     return url;
   }
+
+  goToPage(page: any): void {
+    this.router.navigateByUrl('/admin/' + page);
+  }
 }

@@ -219,22 +219,30 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   apply(): void {
-    this.applyNodes(this.tree);
+    const add: {trailUuid: string, tagUuid: string}[] = [];
+    const remove: {trailUuid: string, tagUuid: string}[] = [];
+    this.applyNodes(this.tree, add, remove);
+    if (remove.length > 0) {
+      remove.forEach(r => this.tagService.deleteTrailTag(r.trailUuid, r.tagUuid));
+    }
+    if (add.length > 0) {
+      this.tagService.addTrailTags(add);
+    }
     this.modalController.dismiss(null, 'apply');
   }
 
-  private applyNodes(nodes: TagNode[]): void {
+  private applyNodes(nodes: TagNode[], add: {trailUuid: string, tagUuid: string}[], remove: {trailUuid: string, tagUuid: string}[]): void {
     for (const node of nodes) {
       if (node.userSelected !== undefined) {
         if (node.userSelected) {
           for (const trail of this.trails!)
-            this.tagService.addTrailTag(trail.uuid, node.tag.uuid);
+            add.push({trailUuid: trail.uuid, tagUuid: node.tag.uuid});
         } else if (node.userSelected === false) {
           for (const trail of this.trails!)
-            this.tagService.deleteTrailTag(trail.uuid, node.tag.uuid);
+            remove.push({trailUuid: trail.uuid, tagUuid: node.tag.uuid});
         }
       }
-      this.applyNodes(node.children);
+      this.applyNodes(node.children, add, remove);
     }
   }
 

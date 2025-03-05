@@ -29,6 +29,7 @@ export interface StoreRegistration {
   syncFromServer: () => void;
   fireSyncStatus: () => void;
   doSync: () => Observable<boolean>;
+  resetErrors: () => void;
 }
 
 class RegisteredStore implements StoreRegistration {
@@ -40,6 +41,7 @@ class RegisteredStore implements StoreRegistration {
   syncFromServer: () => void;
   fireSyncStatus: () => void;
   doSync: () => Observable<boolean>;
+  resetErrors: () => void;
 
   lastSync = 0;
   syncTimeout?: any;
@@ -56,6 +58,7 @@ class RegisteredStore implements StoreRegistration {
     this.syncFromServer = registration.syncFromServer;
     this.fireSyncStatus = registration.fireSyncStatus;
     this.doSync = registration.doSync;
+    this.resetErrors = registration.resetErrors;
   }
 }
 
@@ -140,6 +143,7 @@ export class DatabaseService {
   public syncNow(): void {
     this._syncNowRequestedAt = Date.now();
     this._stores.value.forEach(s => {
+      s.resetErrors();
       s.lastSync = 0;
       if (s.syncTimeout) clearTimeout(s.syncTimeout);
       s.syncTimeout = undefined;

@@ -5,7 +5,7 @@ import { Tag } from "src/app/model/tag";
 import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, first, map, of, switchMap, tap, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, first, map, of, switchMap, tap, throwError, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
 import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
@@ -31,7 +31,7 @@ export class TagService {
   private readonly _trailTagStore: TrailTagStore;
 
   constructor(
-    injector: Injector,
+    private readonly injector: Injector,
     http: HttpService,
     collectionService: TrailCollectionService,
     trailService: TrailService,
@@ -54,6 +54,8 @@ export class TagService {
   }
 
   public create(tag: Tag, ondone?: () => void): Observable<Tag | null> {
+    if (!this.injector.get(QuotaService).checkQuota(q => q.tagsUsed + this._tagStore.getNbLocalCreates() >= q.tagsMax, 'tags'))
+      return throwError(() => new Error('quota reached'));
     return this._tagStore.create(tag, ondone);
   }
 
@@ -119,10 +121,14 @@ export class TagService {
   }
 
   public addTrailTag(trailUuid: string, tagUuid: string, ondone?: () => void) {
+    if (!this.injector.get(QuotaService).checkQuota(q => q.trailTagsUsed + this._trailTagStore.getNbLocalCreates() >= q.trailTagsMax, 'trails_tags'))
+      return;
     this._trailTagStore.create(new TrailTag({trailUuid, tagUuid}), ondone);
   }
 
   public addTrailTags(trailTags: {trailUuid: string, tagUuid: string}[], ondone?: () => void) {
+    if (!this.injector.get(QuotaService).checkQuota(q => q.trailTagsUsed + this._trailTagStore.getNbLocalCreates() + trailTags.length > q.trailTagsMax, 'trails_tags'))
+      return;
     this._trailTagStore.createMany(trailTags.map(t => new TrailTag({trailUuid: t.trailUuid, tagUuid: t.tagUuid})), ondone);
   }
 
@@ -190,6 +196,11 @@ class TagStore extends OwnedStore<TagDto, Tag> {
 
   protected override toDTO(entity: Tag): TagDto {
     return entity.toDto();
+  }
+
+  protected override isQuotaReached(): boolean {
+    const q = this.quotaService.quotas;
+    return !q || q.tagsUsed >= q.tagsMax;
   }
 
   protected override readyToSave(entity: Tag): boolean {
@@ -289,6 +300,11 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
   }
 
   private readonly quotaService: QuotaService;
+
+  protected override isQuotaReached(): boolean {
+    const q = this.quotaService.quotas;
+    return !q || q.trailTagsUsed >= q.trailTagsMax;
+  }
 
   protected override fromDTO(dto: TrailTagDto): TrailTag {
     return new TrailTag(dto);

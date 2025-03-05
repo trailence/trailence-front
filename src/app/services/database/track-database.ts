@@ -23,6 +23,7 @@ import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { QuotaService } from '../auth/quota.service';
+import { StoreErrors } from './store-errors';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -66,7 +67,6 @@ interface TrackItem {
   owner: string;
   version: number;
   updatedLocally: number;
-  needsSync: number;
   track?: TrackDto;
 }
 
@@ -80,6 +80,7 @@ export class TrackDatabase {
     this.ngZone = injector.get(NgZone);
     this.subjectService = injector.get(DatabaseSubjectService);
     this.quotaService = injector.get(QuotaService);
+    this._errors = new StoreErrors(injector, 'tracks', () => this.isQuotaReached());
     injector.get(DatabaseService).registerStore({
       name: 'tracks',
       status$: this.syncStatus$,
@@ -88,6 +89,7 @@ export class TrackDatabase {
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
       syncFromServer: () => this.triggerSyncFromServer(),
       doSync: () => this.sync(),
+      resetErrors: () => this._errors.reset(),
     });
     injector.get(AuthService).auth$.subscribe(
       auth => {
@@ -105,6 +107,12 @@ export class TrackDatabase {
   private readonly ngZone: NgZone;
   private readonly syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
   private readonly _pendingOperation$ = new BehaviorSubject<number>(0);
+  private readonly _errors: StoreErrors;
+
+  private isQuotaReached(): boolean {
+    const q = this.quotaService.quotas;
+    return !q || q.tracksUsed >= q.tracksMax || q.tracksSizeUsed >= q.tracksSizeMax;
+  }
 
   private close() {
     this.ngZone.runOutsideAngular(() => {
@@ -139,7 +147,7 @@ export class TrackDatabase {
       const schemaV1: any = {};
       schemaV1['metadata'] = 'key';
       schemaV1['simplified_tracks'] = 'key';
-      schemaV1['full_tracks'] = 'key, version, updatedLocally, owner, needsSync';
+      schemaV1['full_tracks'] = 'key, version, updatedLocally, owner';
       db.version(1).stores(schemaV1);
       this.metadataTable = db.table<MetadataItem, string>('metadata');
       this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks');
@@ -154,17 +162,17 @@ export class TrackDatabase {
   private initStatus(): void {
     const status = new TrackSyncStatus();
     const db = this.db;
-    from(this.fullTrackTable!.where('version').belowOrEqual(0).limit(1).toArray()).pipe(
-      switchMap(r1 => {
-        if (r1.length > 0) return of(true);
-        return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray()).pipe(
-          map(r2 => r2.length > 0)
-        );
-      }),
-      first(),
-    ).subscribe(hasLocalChanges => {
+    zip([
+      from(this.fullTrackTable!.where('version').equals(0).limit(1).toArray()),
+      from(this.fullTrackTable!.where('version').below(0).limit(1).toArray()),
+      from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray())
+    ])
+    .pipe(first())
+    .subscribe(([r1, r2, r3]) => {
       if (this.db === db) {
-        status.hasLocalChanges = hasLocalChanges;
+        status.hasLocalCreates = r1.length > 0;
+        status.hasLocalDeletes = r2.length > 0;
+        status.hasLocalUpdates = r3.length > 0;
         this.syncStatus$.next(status);
       }
     });
@@ -493,7 +501,6 @@ export class TrackDatabase {
             owner: dto.owner,
             version: dto.version,
             updatedLocally: 0,
-            needsSync: 1,
             track: dto,
           }).then(onDone1);
           const onDone2 = stepsDone.add();
@@ -516,8 +523,8 @@ export class TrackDatabase {
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-        if (!this.syncStatus$.value!.hasLocalChanges) {
-          this.syncStatus$.value!.hasLocalChanges = true;
+        if (!this.syncStatus$.value!.hasLocalCreates) {
+          this.syncStatus$.value!.hasLocalCreates = true;
           this.syncStatus$.next(this.syncStatus$.value);
         }
         const onDone4 = stepsDone.add();
@@ -544,7 +551,6 @@ export class TrackDatabase {
             owner: dto.owner,
             version: dto.version,
             updatedLocally: 1,
-            needsSync: 1,
             track: dto,
           });
           this.simplifiedTrackTable?.put({
@@ -565,8 +571,8 @@ export class TrackDatabase {
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-        if (!this.syncStatus$.value!.hasLocalChanges) {
-          this.syncStatus$.value!.hasLocalChanges = true;
+        if (!this.syncStatus$.value!.hasLocalUpdates) {
+          this.syncStatus$.value!.hasLocalUpdates = true;
           this.syncStatus$.next(this.syncStatus$.value);
         }
         return tx;
@@ -584,7 +590,6 @@ export class TrackDatabase {
           owner: owner,
           version: -1,
           updatedLocally: 0,
-          needsSync: 1,
           track: undefined,
         });
         await this.simplifiedTrackTable?.delete(key);
@@ -598,8 +603,8 @@ export class TrackDatabase {
       if (metadata$) metadata$.newValue(null);
       if (!dbUpdated) dbUpdated = Promise.resolve();
       return dbUpdated.then(() => {
-        if (!this.syncStatus$.value!.hasLocalChanges) {
-          this.syncStatus$.value!.hasLocalChanges = true;
+        if (!this.syncStatus$.value!.hasLocalDeletes) {
+          this.syncStatus$.value!.hasLocalDeletes = true;
           this.syncStatus$.next(this.syncStatus$.value);
         }
         if (ondone) ondone();
@@ -617,7 +622,6 @@ export class TrackDatabase {
           owner: id.owner,
           version: -1,
           updatedLocally: 0,
-          needsSync: 1,
           track: undefined,
         })));
         await this.simplifiedTrackTable?.bulkDelete(keys);
@@ -641,8 +645,8 @@ export class TrackDatabase {
       if (!dbUpdated) dbUpdated = Promise.resolve();
       return dbUpdated.then(() => {
         progress?.addWorkDone(progressDb);
-        if (!this.syncStatus$.value!.hasLocalChanges) {
-          this.syncStatus$.value!.hasLocalChanges = true;
+        if (!this.syncStatus$.value!.hasLocalDeletes) {
+          this.syncStatus$.value!.hasLocalDeletes = true;
           this.syncStatus$.next(this.syncStatus$.value);
         }
         if (ondone) ondone();
@@ -726,11 +730,14 @@ export class TrackDatabase {
         switchMap(r => r ? (this.db === db ? this.syncDeletedLocally(db) : EMPTY) : of(false)),
         switchMap(r => r ? (this.db === db ? this.syncUpdatesFromServer(db) : EMPTY) : of(false)),
         switchMap(r => r ? (this.db === db ? this.syncUpdatesToServer(db) : EMPTY) : of(false)),
-        switchMap(r => this.db === db ? this.hasLocalChanges().pipe(map(l => ([l, r] as [boolean, boolean]))) : EMPTY),
+        switchMap(r => this.db === db ? this.getLocalChanges().pipe(map(l => ([l, r] as [{create: boolean, update: boolean, delete: boolean}, boolean]))) : EMPTY),
         map(([hasLocalChanges, syncComplete]) => {
           if (this.db !== db) return false;
           const status = this.syncStatus$.value!;
-          status.hasLocalChanges = hasLocalChanges;
+          status.hasLocalCreates = hasLocalChanges.create;
+          status.hasLocalUpdates = hasLocalChanges.update;
+          status.hasLocalDeletes = hasLocalChanges.delete;
+          status.quotaReached = this.isQuotaReached();
           status.inProgress = false;
           status.needsUpdateFromServer = !syncComplete;
           status.lastUpdateFromServer = syncComplete ? Date.now() : 0;
@@ -741,19 +748,20 @@ export class TrackDatabase {
     });
   }
 
-  private syncCreatedLocally(db: Dexie): Observable<any> {
+  private syncCreatedLocally(db: Dexie): Observable<boolean> {
     return from(this.fullTrackTable!.where('version').equals(0).limit(50).toArray()).pipe(
       switchMap(items => {
         if (this.db !== db) return EMPTY;
-        if (items.length === 0) return of(true);
-        Console.info('' + items.length + ' tracks to be created on server');
+        const toCreate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, true));
+        if (toCreate.length === 0) return of(true);
+        Console.info('' + toCreate.length + ' tracks to be created on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<any>[] = [];
-        items.forEach(item => {
+        toCreate.forEach(item => {
           const request = this.createItemRequest(db, item);
           requests.push(limiter.add(request));
         });
-        if (requests.length === 0) return of([]);
+        if (requests.length === 0) return of(true);
         return zip(requests).pipe(map(() => items.length < 50), defaultIfEmpty(true));
       }),
       catchError(error => {
@@ -770,6 +778,7 @@ export class TrackDatabase {
         switchMap(result => {
           if (this.db !== db) return EMPTY;
           Console.info("track created on server", result.uuid);
+          this._errors.itemSuccess(item.uuid + '#' + item.owner);
           this.quotaService.updateQuotas(q => {
             q.tracksUsed++;
             q.tracksSizeUsed += result.sizeUsed ?? 0;
@@ -780,13 +789,13 @@ export class TrackDatabase {
             owner: result.owner,
             version: result.version,
             updatedLocally: 0,
-            needsSync: 0,
             track: result,
           }));
         }),
         catchError(e => {
           Console.error('error creating track on server', item.track, e);
           this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_track', []);
+          this._errors.itemError(item.uuid + '#' + item.owner, e);
           return EMPTY;
         })
       );
@@ -888,21 +897,27 @@ export class TrackDatabase {
     );
   }
 
-  private syncUpdatesToServer(db: Dexie): Observable<any> {
+  private syncUpdatesToServer(db: Dexie): Observable<boolean> {
     return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(50).toArray()).pipe(
       switchMap(items => {
         if (this.db !== db) return EMPTY;
-        if (items.length === 0) return of(true);
-        Console.info('' + items.length + ' tracks to be updated on server');
+        const toUpdate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false));
+        if (toUpdate.length === 0) return of(true);
+        Console.info('' + toUpdate.length + ' tracks to be updated on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<TrackDto>[] = [];
-        items.forEach(item => {
+        toUpdate.forEach(item => {
           const request = () => {
             if (this.db !== db) return EMPTY;
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
+              map(r => {
+                this._errors.itemSuccess(item.uuid + '#' + item.owner);
+                return r;
+              }),
               catchError(e => {
                 Console.error('error sending update for track', item.track, e);
                 this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.update_track', []);
+                this._errors.itemError(item.uuid + '#' + item.owner, e);
                 return EMPTY;
               })
             );
@@ -926,6 +941,8 @@ export class TrackDatabase {
   private updatesFromServer(db: Dexie, tracks: TrackDto[], deleted: { uuid: string, owner: string }[]): Observable<any> {
     if (this.db !== db) return EMPTY;
     if (tracks.length === 0 && deleted.length === 0) return of(true);
+    tracks.forEach(t => this._errors.itemSuccess(t.uuid + '#' + t.owner));
+    deleted.forEach(t => this._errors.itemSuccess(t.uuid + '#' + t.owner));
     return from(this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => { // NOSONAR
       if (deleted.length > 0) {
         const keys = deleted.map(item => item.uuid + '#' + item.owner);
@@ -950,7 +967,6 @@ export class TrackDatabase {
           owner: track.owner,
           version: track.version,
           updatedLocally: 0,
-          needsSync: 0,
           track: track,
         }));
         await this.fullTrackTable!.bulkPut(fulls);
@@ -981,9 +997,15 @@ export class TrackDatabase {
     );
   }
 
-  private hasLocalChanges(): Observable<boolean> {
-    return from(this.fullTrackTable!.where('needsSync').equals(1).first()).pipe(
-      map(result => !!result)
+  private getLocalChanges(): Observable<{create: boolean, update: boolean, delete: boolean}> {
+    return zip([
+      from(this.fullTrackTable!.where('version').equals(0).limit(1).toArray()),
+      from(this.fullTrackTable!.where('version').below(0).limit(1).toArray()),
+      from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray())
+    ])
+    .pipe(
+      first(),
+      map(([r1, r2, r3]) => ({create: r1.length > 0, delete: r2.length > 0, update: r3.length > 0}))
     );
   }
 
@@ -991,13 +1013,20 @@ export class TrackDatabase {
 
 class TrackSyncStatus implements StoreSyncStatus {
 
-  hasLocalChanges = false;
+  hasLocalCreates = false;
+  hasLocalUpdates = false;
+  hasLocalDeletes = false;
   inProgress = false;
   needsUpdateFromServer = true;
   lastUpdateFromServer?: number;
+  quotaReached = false;
+
+  get hasLocalChanges(): boolean {
+    return this.hasLocalCreates || this.hasLocalUpdates || this.hasLocalDeletes;
+  }
 
   get needsSync(): boolean {
-    return this.hasLocalChanges || this.needsUpdateFromServer;
+    return (this.hasLocalCreates && !this.quotaReached) || this.hasLocalUpdates || this.hasLocalDeletes || this.needsUpdateFromServer;
   }
 
 }

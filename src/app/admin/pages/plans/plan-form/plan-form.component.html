@@ -1,0 +1,129 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.texts.admin.plans.plan}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding" [formGroup]="form">
+  <ion-input
+    fill="outline"
+    label="{{ i18n.texts.admin.plans.planForm.name }}"
+    labelPlacement="floating"
+    formControlName="name"
+    maxlength="50"
+    [counter]="true"
+  ></ion-input>
+  <table>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas.collections }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="collections"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas.trails }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="trails"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.admin.users.quota_tracks }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="tracks"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas['tracks-size'] }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="tracksSize"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas.tags }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="tags"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas['trail-tags'] }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="trailTags"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas.photos }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="photos"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas['photos-size'] }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="photosSize"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+    <tr>
+      <th>{{ i18n.texts.pages.myaccount.quotas.shares }}</th>
+      <td>
+        <ion-input
+          type="number"
+          fill="outline"
+          formControlName="shares"
+          class="small"
+        ></ion-input>
+      </td>
+    </tr>
+  </table>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="start">
+      <ion-button color="danger" (click)="deletePlan()" [disabled]="applying">{{i18n.texts.buttons.delete}}</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="apply()" [disabled]="!canApply() || applying">{{plan ? i18n.texts.buttons.save : i18n.texts.buttons.create}}</ion-button>
+      <ion-button color="medium" (click)="close('cancel')" [disabled]="applying">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -5,6 +5,7 @@ import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { StoreErrors } from './store-errors';
 
 export interface StoreSyncStatus {
 
@@ -24,6 +25,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
   protected _createdLocally: BehaviorSubject<STORE_ITEM | null>[] = [];
   protected _deletedLocally: STORE_ITEM[] = [];
+  protected _errors: StoreErrors;
   protected _locks = new SynchronizationLocks();
 
   private readonly _storeLoaded$ = new BehaviorSubject<boolean>(false);
@@ -35,9 +37,12 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     protected injector: Injector,
   ) {
     this.ngZone = injector.get(NgZone);
+    this._errors = new StoreErrors(injector, tableName, () => this.isQuotaReached());
   }
 
   public get loaded$() { return this._storeLoaded$; }
+
+  protected abstract isQuotaReached(): boolean;
 
   protected abstract readyToSave(entity: STORE_ITEM): boolean;
   protected abstract readyToSave$(entity: STORE_ITEM): Observable<boolean>;
@@ -59,6 +64,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       syncFromServer: () => this.triggerSyncFromServer(),
       fireSyncStatus: () => this.syncStatus = this.syncStatus, // NOSONAR
       doSync: () => this.sync(),
+      resetErrors: () => this._errors.reset(),
     });
     // listen to database change (when authentication changed)
     dbService.db$.subscribe(db => {
@@ -97,6 +103,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected close(): void {
     if (!this._db) return;
     this.ngZone.runOutsideAngular(() => {
+      this._errors.reset();
       this._locks = new SynchronizationLocks();
       this._db = undefined;
       this._storeLoaded$.next(false);
@@ -346,12 +353,16 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         const index = this._store.value.findIndex(item$ => item$.value && this.areSame(item$.value, item));
         const entity$ = index >= 0 ? this._store.value[index] : undefined;
         entity$?.next(null);
-        if (this._deletedLocally.indexOf(item) < 0)
-          this._deletedLocally.push(item);
+        let createdLocally = false;
         if (entity$) {
           const created = this._createdLocally.indexOf(entity$);
-          if (created) this._createdLocally.splice(created, 1);
+          if (created >= 0) {
+            this._createdLocally.splice(created, 1);
+            createdLocally = true;
+          }
         }
+        if (this._deletedLocally.indexOf(item) < 0 && !createdLocally)
+          this._deletedLocally.push(item);
         this.deleted(entity$, item);
         if (index >= 0) {
           this._store.value.splice(index, 1);
@@ -373,10 +384,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         toDelete.forEach(item$ => {
           const item = item$.value!;
           items.push(item);
-          if (this._deletedLocally.indexOf(item) < 0)
-            this._deletedLocally.push(item);
           const created = this._createdLocally.indexOf(item$);
-          if (created) this._createdLocally.splice(created, 1);
+          if (created >= 0) this._createdLocally.splice(created, 1);
+          if (this._deletedLocally.indexOf(item) < 0 && created < 0)
+            this._deletedLocally.push(item);
           item$.next(null);
           this.deleted(item$, item);
           const index = this._store.value.indexOf(item$);

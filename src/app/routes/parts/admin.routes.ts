@@ -14,6 +14,10 @@ export const adminRoutes: Routes = [
         loadComponent: () => import('../../admin/pages/users/users.page').then(m => m.AdminUsersPage)
       },
       {
+        path: 'plans',
+        loadComponent: () => import('../../admin/pages/plans/plans.page').then(m => m.AdminPlansPage)
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'users'

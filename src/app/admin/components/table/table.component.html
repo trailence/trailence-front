@@ -3,16 +3,18 @@
     <tr>
       <th *ngFor="let column of settings.columns" (click)="sortBy(column)">
         <div>
-          <div class="title" [ngStyle]="{'text-align': column.horizontalAlignment}">{{column.title | i18nString}}</div>
-          <div *ngIf="column.sortable" class="sort-icon" [ngClass]="{'sorted': settings.pageRequest.sortBy === column.sortable}">
-            <ion-icon [name]="settings.pageRequest.sortBy === column.sortable && !settings.pageRequest.sortAsc ? 'arrow-down' : 'arrow-up'"></ion-icon>
+          <div class="title" [ngStyle]="{'text-align': column._horizontalAlignment}">{{column.title | i18nString}}</div>
+          <div *ngIf="column._sortable" class="sort-icon" [ngClass]="{'sorted': settings.pageRequest.sortBy === column._sortable}">
+            <ion-icon [name]="settings.pageRequest.sortBy === column._sortable && !settings.pageRequest.sortAsc ? 'arrow-down' : 'arrow-up'"></ion-icon>
           </div>
         </div>
       </th>
     </tr>
     <ng-container *ngIf="result">
       <tr *ngFor="let element of result.elements" (click)="rowClick.emit(element)">
-        <td *ngFor="let column of settings.columns" [ngStyle]="{'text-align': column.horizontalAlignment}">{{column.valueGetter(element)}}</td>
+        <ng-container *ngFor="let column of settings.columns">
+          <ng-container *ngTemplateOutlet="cellTemplate; context: { column: column, element: element, value: column._valueGetter(element) }"></ng-container>
+        </ng-container>
       </tr>
     </ng-container>
   </table>
@@ -22,5 +24,12 @@
   (pageRequestChange)="refreshData()"
   [pagingOptions]="settings.pagingOptions"
   [result]="result"
-></app-paginator>
+>
+  <div class="left-content"><ng-content select=".paginator-left-content"></ng-content></div>
+  <div class="right-content"><ng-content select=".paginator-right-content"></ng-content></div>
+</app-paginator>
 <div class="loading" *ngIf="pending"><ion-spinner name="dots"></ion-spinner></div>
+
+<ng-template #cellTemplate let-column="column" let-element="element" let-value="value">
+  <td [ngStyle]="column._computeCellStyle(element, value)">{{ value }}</td>
+</ng-template>

@@ -1,5 +1,5 @@
 import { Injectable, Injector } from "@angular/core";
-import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, tap } from "rxjs";
+import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, tap, throwError } from "rxjs";
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
@@ -57,6 +57,8 @@ export class TrailCollectionService {
   }
 
   public create(collection: TrailCollection, ondone?: () => void): Observable<TrailCollection | null> {
+    if (!this.injector.get(QuotaService).checkQuota(q => q.collectionsUsed + this._store.getNbLocalCreates() >= q.collectionsMax, 'trail_collections'))
+      return throwError(() => new Error('quota reached'));
     return this._store.create(collection, ondone);
   }
 
@@ -184,6 +186,11 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
     }
 
     private readonly quotaService: QuotaService;
+
+    protected override isQuotaReached(): boolean {
+      const q = this.quotaService.quotas;
+      return !q || q.collectionsUsed >= q.collectionsMax;
+    }
 
     protected override fromDTO(dto: TrailCollectionDto): TrailCollection {
       return new TrailCollection(dto);

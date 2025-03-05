@@ -1,0 +1,8 @@
+<app-table
+  [settings]="tableSettings"
+  (rowClick)="openPlan($event)"
+>
+  <div class="paginator-right-content">
+    <ion-button (click)="newPlan()">{{ i18n.texts.admin.plans.new }}</ion-button>
+  </div>
+</app-table>

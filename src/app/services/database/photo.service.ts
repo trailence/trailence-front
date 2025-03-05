@@ -119,6 +119,15 @@ export class PhotoService {
     return subject.asObservable();
   }
 
+  public getQuota(): {max: number, current: number} {
+    const q = this.injector.get(QuotaService).quotas;
+    if (!q) return {max: 0, current: 0};
+    return {
+      max: q.photosMax,
+      current: q.photosUsed + this.store.getNbLocalCreates(),
+    }
+  }
+
   public addPhoto( // NOSONAR
     owner: string, trailUuid: string,
     description: string, index: number,
@@ -272,6 +281,11 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
 
   protected override toDTO(entity: Photo): PhotoDto {
     return entity.toDto();
+  }
+
+  protected override isQuotaReached(): boolean {
+    const q = this.quotaService.quotas;
+    return !q || q.photosUsed >= q.photosMax || q.photosSizeUsed >= q.photosSizeMax;
   }
 
   protected override getUpdatesFromServer(knownItems: VersionedDto[]): Observable<UpdatesResponse<PhotoDto>> {

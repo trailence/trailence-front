@@ -58,11 +58,11 @@ export class TableComponent implements OnInit, OnChanges {
   }
 
   public sortBy(column: TableColumn) {
-    if (!column.sortable) return;
-    if (this.settings.pageRequest.sortBy === column.sortable) {
+    if (!column._sortable) return;
+    if (this.settings.pageRequest.sortBy === column._sortable) {
       this.settings.pageRequest.sortAsc = !this.settings.pageRequest.sortAsc;
     } else {
-      this.settings.pageRequest.sortBy = column.sortable;
+      this.settings.pageRequest.sortBy = column._sortable;
       this.settings.pageRequest.sortAsc = true;
     }
     this.refreshData();

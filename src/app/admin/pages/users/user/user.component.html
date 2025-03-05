@@ -43,6 +43,11 @@
   <app-user-quotas [quotas]="user.quotas"></app-user-quotas>
 
   <div class="page-section-title">
+    {{i18n.texts.admin.plans.subscriptions}}
+  </div>
+  <app-user-subscriptions [user]="user.email" (subscriptionsChanged)="refreshQuotas()"></app-user-subscriptions>
+
+  <div class="page-section-title">
     {{i18n.texts.pages.myaccount.devices}}
   </div>
   <app-user-keys [keysProvider]="userKeysProvider"></app-user-keys>

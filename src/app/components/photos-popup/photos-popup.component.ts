@@ -14,6 +14,7 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
+import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -141,6 +142,9 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
       multiple: true,
       description: this.i18n.texts.pages.photos_popup.importing,
       onstartreading: (nbFiles: number) => {
+        const quota = this.photoService.getQuota();
+        if (quota.current + nbFiles > quota.max)
+          return Promise.reject(new Error(new TranslatedString('quota_reached.photos_max', [quota.max, quota.current, nbFiles]).translate(this.i18n)));
         const progress = this.progressService.create(this.i18n.texts.pages.photos_popup.importing, nbFiles);
         progress.subTitle = '0/' + nbFiles;
         return Promise.resolve(progress);

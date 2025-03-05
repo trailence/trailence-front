@@ -32,6 +32,7 @@ export class ExtensionsService {
       fireSyncStatus: () => this._syncStatus$.next(this._syncStatus$.value),
       syncFromServer: () => this.triggerUpdatesFromServer(),
       doSync: () => this.sync(),
+      resetErrors: () => null,
     });
     this.databaseService.db$.subscribe(db => {
       if (db) this.load(db);
