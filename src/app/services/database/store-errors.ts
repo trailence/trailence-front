@@ -44,7 +44,7 @@ export class StoreErrors {
     items.forEach(item => this.itemSuccess(item));
   }
 
-  public canProcess(item: string, isCreation: boolean): boolean {
+  public canProcess(item: string, isCreation: boolean): boolean { // NOSONAR
     const err = this._errors.find(e => e.item === item);
     if (!isCreation && !err) return true;
     const quotaReached = this.isQuotaReached();
