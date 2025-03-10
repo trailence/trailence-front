@@ -156,6 +156,7 @@
           "title": "Way Points"
         }
       },
+      "remaining_metadata_title": "Remaining",
       "edit_tools": {
         "title": "Edition tools",
         "back_to_original": "Back to the original track",

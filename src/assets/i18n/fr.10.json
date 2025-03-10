@@ -156,6 +156,7 @@
           "title": "Points de passage"
         }
       },
+      "remaining_metadata_title": "Restant",
       "edit_tools": {
         "title": "Outils d'édition",
         "back_to_original": "Revenir à la trace d'origine",

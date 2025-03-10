@@ -580,3 +580,24 @@ a, a:active {
 .comparison-message {
   margin: 0 0 8px 0;
 }
+
+.bottom-sheet-remaining-separator {
+  display: none;
+}
+
+.metadata-container.tiles {
+  .bottom-sheet-remaining-separator {
+    display: block;
+    width: 20px;
+    height: var(--bottom-sheet-tab-content-height);
+    border-left: 1px solid rgba(var(--ion-color-secondary-rgb), 0.5);
+    position: relative;
+    span {
+      position: absolute;
+      width: var(--bottom-sheet-tab-content-height);
+      transform: rotate(-90deg) translateY(calc(-1 * var(--bottom-sheet-tab-content-height) / 2 + 12px)) translateX(-65px);
+      text-align: center;
+      color: var(--ion-color-secondary);
+    }
+  }
+}

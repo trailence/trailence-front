@@ -21,6 +21,7 @@ export class BrowserService {
     platform.resize.subscribe(() => {
       this._width = platform.width();
       this._height = platform.height();
+      Console.info('Screen resize', this._width, this._height);
       this._resize$.next({width: this._width, height: this._height});
     });
     this._width = platform.width();

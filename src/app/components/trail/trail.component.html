@@ -393,6 +393,7 @@
       </div>
     </div>
     <ng-container *ngIf="remaining">
+      <div class="bottom-sheet-remaining-separator"><span>{{ i18n.texts.pages.trail.remaining_metadata_title }}</span></div>
       <div class="metadata-item-container">
         <div class="metadata-item">
           <ion-icon name="duration"></ion-icon>
@@ -400,9 +401,7 @@
             <div class="metadata-title">{{ i18n.texts.metadata.remaining_time }}</div>
             <div class="metadata-value">
               <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">
-                <span *ngIf="remaining.originalTime !== undefined">≈ {{i18n.durationToString(remaining.originalTime)}}</span>
-                <span> / </span>
-                <span>≈ {{i18n.durationToString(remaining.estimatedTime)}}</span>
+                ≈ {{i18n.durationToString(remaining.estimatedTime)}}
               </div>
             </div>
           </div>

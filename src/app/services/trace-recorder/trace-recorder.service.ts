@@ -167,7 +167,7 @@ export class TraceRecorderService {
         switchMap(() => {
           recording.rawTrack.removeEmptySegments();
           recording.track.removeEmptySegments();
-          if (recording.rawTrack.segments.length === 0) {
+          if (recording.rawTrack.segments.length === 0 || recording.track.segments.length === 0) {
             progress.done();
             this.alertController.create({
               header: this.i18n.texts.trace_recorder.saving,
