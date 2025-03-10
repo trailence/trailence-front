@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GeoService } from '../geolocation/geo.service';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Way } from '../geolocation/way';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';

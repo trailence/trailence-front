@@ -98,9 +98,10 @@ export class TrailMenuService {
 
     if (onlyGlobal && fromCollection) {
       menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item').setAction(() => this.openTags(null, fromCollection)));
+      menu.push(new MenuItem());
+      inImportExportSection = true;
+      menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('tools.import').setAction(() => this.importGpxDialog(fromCollection)));
       if (this.injector.get(FetchSourceService).canImportFromUrl) {
-        menu.push(new MenuItem());
-        inImportExportSection = true;
         menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title').setAction(() => this.importFromUrl(fromCollection)));
       }
     }
@@ -115,6 +116,11 @@ export class TrailMenuService {
         new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
         .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email), (col) => this.copyTrailsTo(trails, col, email, fromTrail)))
       );
+    }
+
+    if (trails.length > 0 && fromCollection && onlyGlobal) {
+      menu.push(new MenuItem());
+      menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share').setAction(() => this.openSharePopup(fromCollection, [])));
     }
 
     if (fromCollection !== undefined && !onlyGlobal && trails.length > 0) {

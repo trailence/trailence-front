@@ -208,6 +208,12 @@ export class TrailsListComponent extends AbstractComponent {
       this.loadState();
 
     this.moreMenu = this.trailMenuService.getTrailsMenu(this.trails.toArray(), false, this.collectionUuid, true);
+    // remove import as it is on the toolbar
+    let index = this.moreMenu.findIndex(a => a.i18nLabel === 'tools.import');
+    if (index >= 0) this.moreMenu.splice(index, 1);
+    // remove share as it is on the toolbar
+    index = this.moreMenu.findIndex(a => a.i18nLabel === 'tools.share');
+    if (index >= 0) this.moreMenu.splice(index - 1, 2); // 2 because it has a separator before
 
     // if no active filter, we can early emit the list of trails to the map
     if (!this.trails.isEmpty() && this.nbActiveFilters() === 0)

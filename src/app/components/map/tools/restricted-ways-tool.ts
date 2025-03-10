@@ -110,7 +110,7 @@ export class RestrictedWaysTool extends L.Control {
 
   private addPathsToMap(): void {
     for (const path of this._paths) {
-      path.addTo(this._map!);
+      path.addTo(this._map!); // NOSONAR
       path.bringToFront();
     }
     this.updateLegend();

@@ -76,7 +76,7 @@ class ComputedItem {
   constructor(
     public item: MenuItem,
   ) {
-    this.separator = !item.action && !item.icon && !item.label && !item.i18nLabel;
+    this.separator = item.isSeparator();
     this.clickable = !!item.action || !!item.children || !!item.childrenProvider;
     item.getChildren$().pipe(first()).subscribe(c => this.children = c);
   }

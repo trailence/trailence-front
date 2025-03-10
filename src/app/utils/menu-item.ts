@@ -68,4 +68,8 @@ export class MenuItem {
     return of([]);
   }
 
+  public isSeparator(): boolean {
+    return !this.action && !this.icon && !this.label && !this.i18nLabel;
+  }
+
 }

@@ -28,6 +28,7 @@ import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { SearchTrailsHeaderComponent } from 'src/app/components/search-trails-header/search-trails-header.component';
 import { SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 
 @Component({
     selector: 'app-trails-page',
@@ -104,7 +105,7 @@ export class TrailsPage extends AbstractPage {
         );
         this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
         // menu
-        this.actions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
+        this.actions.splice(0, 0, ...this.injector.get(TrailCollectionService).getCollectionMenu(collection));
         if (collection.name.length > 0) return of(collection.name);
         if (collection.type === TrailCollectionType.MY_TRAILS)
           return this.i18n.texts$.pipe(map(texts => texts.my_trails));
@@ -118,8 +119,15 @@ export class TrailsPage extends AbstractPage {
       ),
       trails => {
         const newList = List(trails);
-        if (!newList.equals(this.trails$.value))
+        if (!newList.equals(this.trails$.value)) {
+          const index = this.actions.findIndex(a => a.isSeparator());
+          if (index > 0) this.actions.splice(index, this.actions.length - index);
+          const addActions = this.injector.get(TrailMenuService).getTrailsMenu(trails, false, collectionUuid, true);
+          if (addActions.length > 0) {
+            this.actions.push(new MenuItem(), ...addActions);
+          }
           this.ngZone.run(() => this.trails$.next(newList));
+        }
       }
     );
   }
