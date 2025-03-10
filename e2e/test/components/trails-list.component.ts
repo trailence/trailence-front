@@ -92,8 +92,8 @@ export class TrailsList extends Component {
 
   public async openTrail(trail: TrailOverview) {
     const {uuid, owner} = await this.getTrailId(trail);
-    await TestUtils.retry(async () => {
-      const openButton = new IonicButton(trail.getElement().$('div.open-trail ion-button'));
+    await TestUtils.retry(async (trial) => {
+      const openButton = new IonicButton(trail.getElement(trial > 1).$('div.open-trail ion-button'));
       await openButton.getElement().scrollIntoView({block: 'center', inline: 'center'});
       await openButton.click();
       await browser.waitUntil(() => openButton.isDisplayed().then(d => !d), { timeout: 5000 });

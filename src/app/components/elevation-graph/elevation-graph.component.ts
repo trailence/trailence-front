@@ -436,6 +436,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       strokeColor: color,
       pointStyle: false,
       parsing: false,
+      tension: 0.02,
       data: []
     } as any;
     this.fillDataSet(ds, track);

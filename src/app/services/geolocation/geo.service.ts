@@ -44,14 +44,24 @@ export class GeoService {
     return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name) + '&lang=' + this.prefService.preferences.lang);
   }
 
-  public findWays(bounds: L.LatLngBounds): Observable<Way[]> {
-    return this.http.post<OverpassResponse>('https://overpass-api.de/api/interpreter', "[out:json][timeout:25];way[\"highway\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out tags geom;").pipe(
+  public findWays(bounds: L.LatLngBounds, onlyRestricted: boolean = false): Observable<Way[]> {
+    const header = '[out:json][timeout:25];';
+    const filterWays = 'way["highway"]';
+    const filterRestricted = onlyRestricted ? '["foot"~"(no)|(private)|(destination)|(permissive)"]' : '';
+    const filterBounds = '(' + bounds.getSouth() + ',' + bounds.getWest() + ',' + bounds.getNorth() + ',' + bounds.getEast() + ')';
+    const output = 'out tags geom;';
+
+    const request = header + filterWays + filterRestricted + filterBounds + ';' + output;
+
+    return this.http.post<OverpassResponse>('https://overpass-api.de/api/interpreter', request).pipe(
       map(response => response.elements.filter(e => e.geometry && e.geometry.length > 0).map(e => this.overpassElementToWay(e)))
     );
   }
 
   private overpassElementToWay(element: OverpassElement): Way {
     return {
+      id: element.id,
+      bounds: element.bounds,
       points: element.geometry.map(g => L.latLng(g.lat, g.lon)),
       permission: this.overpassWayPermission(element.tags['foot'])
     };
@@ -127,6 +137,7 @@ interface OverpassResponse {
 
 interface OverpassElement {
   id: string;
+  bounds?: {minlat: number, minlon: number, maxlat: number, maxlon: number};
   geometry: OverpassGeometry[];
   tags: {[key:string]: any};
 }

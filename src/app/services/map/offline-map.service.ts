@@ -15,6 +15,8 @@ import { HttpClient } from '@angular/common/http';
 import { ErrorService } from '../progress/error.service';
 import { I18nError } from '../i18n/i18n-string';
 import { Console } from 'src/app/utils/console';
+import { GeoService } from '../geolocation/geo.service';
+import { Way } from '../geolocation/way';
 
 interface TileMetadata {
   key: string;
@@ -47,6 +49,7 @@ export class OfflineMapService {
     private readonly angularHttp: HttpClient,
     private readonly errorService: ErrorService,
     private readonly ngZone: NgZone,
+    private readonly geoService: GeoService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -76,6 +79,7 @@ export class OfflineMapService {
       storesV1[layer + '_meta'] = 'key, date';
       storesV1[layer + '_tiles'] = 'key';
     }
+    storesV1['osm_restricted_ways'] = 'id, date';
     db.version(1).stores(storesV1);
     this._db = db;
     this.cleanExpiredTimeout();
@@ -164,6 +168,7 @@ export class OfflineMapService {
         }
       );
     });
+    for (const b of bounds) this.saveRestrictedWays(b);
   }
 
   private getBlob(layer: MapLayer, url: string): Observable<Blob> {
@@ -282,6 +287,47 @@ export class OfflineMapService {
     );
   }
 
+  private saveRestrictedWays(bounds: L.LatLngBounds): void {
+    this.geoService.findWays(bounds, true).subscribe(
+      ways => {
+        if (!this._db) return;
+        this._db.table('osm_restricted_ways').bulkAdd(ways.map(w => ({...w, date: Date.now()})));
+      }
+    );
+  }
+
+  public getRestrictedWays(bounds: L.LatLngBounds): Observable<Way[]> {
+    if (!this._db) return of([]);
+    return from(this._db.table('osm_restricted_ways').toArray()).pipe(
+      map(ways => ways.filter(way => {
+        if (!way.bounds) return false;
+        if (!way.bounds.minlat || !way.bounds.maxlat || !way.bounds.minlon || !way.bounds.maxlon) return false;
+        if (way.bounds.minlat < bounds.getSouth()) return false;
+        if (way.bounds.maxlat > bounds.getNorth()) return false;
+        if (way.bounds.minlon < bounds.getWest()) return false;
+        if (way.bounds.maxlon > bounds.getEast()) return false;
+        return true;
+      }))
+    );
+  }
+
+  private cleanExpiredRestrictedWays(db: Dexie): void {
+    if (db !== this._db) return;
+    let count = 0;
+    Console.info('Cleaning restricted ways');
+    db.transaction('rw', ['osm_restricted_ways'], () => {
+      db.table('osm_restricted_ways')
+      .where('date')
+      .below(Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000)
+      .eachPrimaryKey(key => {
+        db.table('osm_restricted_ways').delete(key);
+        count++;
+      }).then(() => {
+        Console.info('Restricted ways removed: ', count);
+      });
+    });
+  }
+
   private cleanExpiredTimeout() {
     const db = this._db!;
     const lastClean = localStorage.getItem('trailence.map-offline.last-cleaning.' + this._openEmail);
@@ -303,6 +349,7 @@ export class OfflineMapService {
       const name = this.layers.layers[i].name;
       setTimeout(() => this.cleanExpiredLayer(db, name), 60000 + i * 15000);
     }
+    this.cleanExpiredRestrictedWays(db);
     setTimeout(() => {
       if (this._db === db) {
         localStorage.setItem('trailence.map-offline.last-cleaning.' + this._openEmail, '' + Date.now());

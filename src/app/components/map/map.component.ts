@@ -25,6 +25,7 @@ import { MapBubblesTool } from './tools/bubbles-tool';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { RestrictedWaysTool } from './tools/restricted-ways-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -43,6 +44,7 @@ export class MapComponent extends AbstractComponent {
   @Input() downloadMapTrail?: Trail;
   @Input() bubbles$: Observable<MapBubble[]> = of([]);
   @Input() showBubbles$?: BehaviorSubject<boolean>;
+  @Input() enableShowRestrictedWays = false;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
@@ -568,6 +570,9 @@ export class MapComponent extends AbstractComponent {
 
     new MapFitBoundsTool({position: 'topleft'}).addTo(map)
     map.on('fitBounds', () => this.fitMapBounds(map));
+
+    if (this.enableShowRestrictedWays)
+      new RestrictedWaysTool(this.injector, this.mapId, {position: 'topright'}).addTo(map);
 
     this.cursors.addTo(map);
 

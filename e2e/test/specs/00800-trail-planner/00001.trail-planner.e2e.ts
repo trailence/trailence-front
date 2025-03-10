@@ -86,8 +86,10 @@ describe('Trail Planner', () => {
     await putAnchor(0, 0);
     await page.stop();
     await browser.waitUntil(() => map.paths.length.then(nb => nb === 1));
-    await page.resume();
-    await browser.waitUntil(() => map.paths.length.then(nb => nb > 1));
+    await TestUtils.retry(async () => {
+      await page.resume();
+      await browser.waitUntil(() => map.paths.length.then(nb => nb > 1), { timeout: 5000});
+    }, 3, 200);
     await putAnchor(0, 1);
     let distance = await TestUtils.waitFor(async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')), d => d > 1000);
     expect(distance).toBeGreaterThan(1000);
