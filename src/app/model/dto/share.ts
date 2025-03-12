@@ -1,15 +1,19 @@
 export interface ShareDto {
 
-  id: string;
-  name: string;
-  from: string;
-  to: string;
-  type: ShareElementType;
+  uuid: string;
+  owner: string;
+  version: number;
   createdAt: number;
+  updatedAt: number;
+
+  recipients: string[];
+  type: ShareElementType;
+  name: string;
+  includePhotos: boolean | null | undefined;
+
   elements: string[] | null | undefined;
   trails: string[] | null | undefined;
-  toLanguage: string | null | undefined;
-  includePhotos: boolean | null | undefined;
+  mailLanguage: string | null | undefined;
 }
 
 export enum ShareElementType {

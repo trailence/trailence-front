@@ -14,11 +14,18 @@ import { Tag } from 'src/app/model/tag';
 import { ShareService } from 'src/app/services/database/share.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { EMAIL_REGEX } from 'src/app/utils/string-utils';
+import { Share } from 'src/app/model/share';
 
 enum SharePage {
   TYPE = 'type',
   ELEMENTS = 'elements',
   NAME_WHO = 'name_who',
+}
+
+interface Recipient {
+  email: string;
+  error: boolean;
 }
 
 @Component({
@@ -29,14 +36,15 @@ enum SharePage {
 })
 export class SharePopupComponent implements OnInit {
 
-  @Input() collectionUuid!: string;
-  @Input() trails!: Trail[];
+  @Input() collectionUuid?: string;
+  @Input() trails?: Trail[];
+  @Input() share?: Share;
 
   elementType?: ShareElementType;
   elements: string[] = [];
   name: string = '';
-  to: string = '';
-  toLanguage: string = 'en';
+  recipients: Recipient[] = [{email: '', error: false}];
+  mailLanguage: string = 'en';
   includePhotos = false;
 
   pages: SharePage[] = [SharePage.TYPE, SharePage.ELEMENTS, SharePage.NAME_WHO];
@@ -52,13 +60,19 @@ export class SharePopupComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (this.trails.length > 0) {
+    if (this.share) {
+      this.pages = [SharePage.NAME_WHO];
+      this.name = this.share.name;
+      this.recipients = this.share.recipients.map(r => ({email: r, error: false}));
+      this.recipients.push({email: '', error: false});
+      this.includePhotos = this.share.includePhotos;
+    } else if (this.trails!.length > 0) {
       this.elementType = ShareElementType.TRAIL;
-      this.elements = this.trails.map(trail => trail.uuid);
+      this.elements = this.trails!.map(trail => trail.uuid);
       this.pages = [SharePage.NAME_WHO];
     } else {
       const email = this.injector.get(AuthService).email!;
-      this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid, email).pipe(
+      this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid!, email).pipe(
         filterDefined(),
         first()
       ).subscribe(col => {
@@ -68,13 +82,13 @@ export class SharePopupComponent implements OnInit {
           this.collectionName = col.name;
       });
     }
-    this.toLanguage = this.prefService.preferences.lang;
+    this.mailLanguage = this.prefService.preferences.lang;
   }
 
   setElementType(type: string) {
     this.elementType = type as ShareElementType;
     if (this.elementType === ShareElementType.COLLECTION) {
-      this.elements = [this.collectionUuid];
+      this.elements = [this.collectionUuid!];
       this.pages = [SharePage.TYPE, SharePage.NAME_WHO];
     } else {
       this.elements = [];
@@ -103,12 +117,56 @@ export class SharePopupComponent implements OnInit {
   }
 
   canSave(): boolean {
-    return this.name.length > 0 && this.to.length > 0;
+    return this.name.length > 0 && this.checkRecipients().length > 0;
   }
 
   save(): void {
-    this.injector.get(ShareService).create(this.elementType!, this.elements, this.name, this.to, this.toLanguage, this.includePhotos);
+    if (!this.canSave()) return;
+    const service = this.injector.get(ShareService);
+    if (!this.share)
+      service.create(this.elementType!, this.elements, this.name, this.checkRecipients(), this.mailLanguage, this.includePhotos).subscribe();
+    else {
+      this.share.name = this.name;
+      this.share.includePhotos = this.includePhotos;
+      this.share.recipients = this.checkRecipients();
+      this.share.mailLanguage = this.mailLanguage;
+      service.update(this.share);
+    }
     this.close('ok');
+  }
+
+  checkRecipients(): string[] {
+    return this.recipients.filter(email => {
+      const s = email.email.trim();
+      if (s.length === 0) return false;
+      if (!EMAIL_REGEX.test(s)) return false;
+      return true;
+    }).map(r => r.email);
+  }
+
+  setRecipient(index: number, value: string | null | undefined): void {
+    this.recipients[index] = {email: value ?? '', error: false};
+    const owner = this.injector.get(AuthService).email!;
+    const remove = (email: string, index: number) => {
+      const s = email.trim().toLowerCase();
+      if (s.length === 0) return true;
+      if (s === owner.toLowerCase()) return true;
+      for (let j = 0; j < index; ++j) {
+        if (this.recipients[j].email.trim().toLowerCase() === s) return true;
+      }
+      return false;
+    };
+    for (let i = 0; i < this.recipients.length; ++i) {
+      if (remove(this.recipients[i].email, i)) {
+        this.recipients.splice(i, 1);
+        i--;
+      } else {
+        this.recipients[i].error = !EMAIL_REGEX.test(this.recipients[i].email);
+      }
+    }
+    if (this.recipients.length < 20 && (this.recipients.length === 0 || this.recipients[this.recipients.length - 1].email.trim().length > 0))
+      this.recipients.push({email:'', error: false});
+    this.recipients = [...this.recipients];
   }
 
   close(role: string): void {

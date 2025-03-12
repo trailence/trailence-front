@@ -49,8 +49,9 @@ export class ShareModal extends ModalComponent {
     await new IonicInput(this.contentElement.$('>>>ion-input[name=name]')).setValue(name);
   }
 
-  public async setEmail(email: string) {
-    await new IonicInput(this.contentElement.$('>>>ion-input[name=email]')).setValue(email);
+  public async addEmail(email: string) {
+    const recipientsElements = await this.contentElement.$$('>>>div.recipients ion-input').getElements();
+    await new IonicInput(recipientsElements[recipientsElements.length - 1]).setValue(email);
   }
 
   public async selectIncludePhotos() {
@@ -59,6 +60,7 @@ export class ShareModal extends ModalComponent {
 
   public async save() {
     await (await this.getFooterButtonWithText('Save')).click();
+    await this.waitNotDisplayed();
   }
 
 }

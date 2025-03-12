@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonButton, MenuController, IonBadge } from "@ionic/angular/standalone";
+import { IonIcon, IonButton, MenuController, IonBadge, IonPopover, IonContent } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { combineLatest, map } from 'rxjs';
@@ -15,14 +15,16 @@ import { UpdateService } from 'src/app/services/update/update.service';
 import { List } from 'immutable';
 import { trailenceAppVersionName } from 'src/app/trailence-version';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { MenuContentComponent } from '../menu-content/menu-content.component';
 
 @Component({
     selector: 'app-menu',
     templateUrl: './menu.component.html',
     styleUrls: ['./menu.component.scss'],
-    imports: [IonBadge, IonButton,
-        CommonModule,
-        IonIcon,
+    imports: [
+      CommonModule,
+      IonBadge, IonButton, IonIcon, IonPopover, IonContent,
+      MenuContentComponent,
     ]
 })
 export class MenuComponent {
@@ -42,10 +44,10 @@ export class MenuComponent {
   constructor(
     public readonly i18n: I18nService,
     public readonly collectionService: TrailCollectionService,
+    public readonly shareService: ShareService,
     private readonly router: Router,
     public readonly menuController: MenuController,
     public readonly traceRecorder: TraceRecorderService,
-    shareService: ShareService,
     authService: AuthService,
     public readonly update: UpdateService,
     public readonly fetchSourceService: FetchSourceService,
@@ -57,8 +59,8 @@ export class MenuComponent {
     .subscribe(list => this.collections = List(list));
     combineLatest([authService.auth$, shareService.getAll$().pipe(collection$items())])
     .subscribe(([auth, shares]) => {
-      this.sharedByMe = List(shares.filter(share => share.from === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
-      this.sharedWithMe = List(shares.filter(share => share.to === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
+      this.sharedByMe = List(shares.filter(share => share.owner === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
+      this.sharedWithMe = List(shares.filter(share => share.owner !== auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
       this.isAdmin = !!auth?.admin;
     });
   }
@@ -91,6 +93,35 @@ export class MenuComponent {
       if (trial <= 5)
         setTimeout(() => this.close(trial + 1), 200);
     }
+  }
+
+  emailsSplit(emails: string[]): string {
+    let s = emails.join(', ');
+    if (s.length <= 30) return s;
+    s = '';
+    for (let i = 0; i < emails.length; ++i) {
+      const e = this.emailSplit(emails[i]);
+      if (i === 0) s = e;
+      else {
+        if (s.length + 2 + e.length > 30) {
+          const full = emails.slice(0, i).join(', ');
+          if (full.length <= s.length || full.length < 28) s = full;
+          s += ' +' + (emails.length - i);
+          return s;
+        }
+        s += ', ' + e;
+      }
+    }
+    return s;
+  }
+
+  private emailSplit(email: string): string {
+    const i = email.indexOf('@');
+    let part1 = i >= 0 ? email.substring(0, i) : email;
+    let part2 = i >= 0 ? email.substring(i + 1) : '';
+    if (part1.length > 12) part1 = part1.substring(0, 9) + '...';
+    if (part2.length > 12) part2 = part2.substring(0, 9) + '...';
+    return part1 + '@' + part2;
   }
 
 }

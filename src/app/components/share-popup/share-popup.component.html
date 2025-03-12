@@ -58,14 +58,21 @@
       <div class="separator"></div>
 
       <div class="question">{{i18n.texts.pages.share_popup.who_question}}</div>
-      <ion-input
-        name="email"
-        fill="outline"
-        label="{{i18n.texts.pages.share_popup.email}}"
-        label-placement="floating"
-        [(ngModel)]="to"
-        type="email"
-      ></ion-input>
+      <div class="recipients">
+        <ng-container *ngFor="let recipient of recipients; let index = index;">
+          <ion-input
+            fill="outline"
+            label="{{i18n.texts.pages.share_popup.email}}"
+            label-placement="floating"
+            [value]="recipients[index].email"
+            (ionChange)="setRecipient(index, $event.detail.value)"
+            type="email"
+            class="small"
+            [clearInput]="true"
+          ></ion-input>
+          <div class="error" *ngIf="recipients[index].error">{{ i18n.texts.pages.share_popup.recipient_error }}</div>
+        </ng-container>
+      </div>
       <div class="info">
         <ion-icon name="info"></ion-icon>
         <div>{{i18n.texts.pages.share_popup.email_info}}</div>
@@ -74,7 +81,7 @@
       <div class="separator"></div>
 
       <div class="question">{{i18n.texts.pages.share_popup.language}}</div>
-      <ion-radio-group name="lang" [value]="toLanguage" (ionChange)="toLanguage = $event.detail.value">
+      <ion-radio-group name="lang" [value]="mailLanguage" (ionChange)="mailLanguage = $event.detail.value">
         <div>
           <ion-radio value="en" labelPlacement="end">English</ion-radio>
         </div>

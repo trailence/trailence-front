@@ -103,11 +103,11 @@
         <ion-icon slot="start" name="stop" color="secondary"></ion-icon>
         <ion-label color="secondary">{{ i18n.texts.pages.trailplanner.stop }}</ion-label>
       </ion-item>
-      <ion-item (click)="trackBuilder.resume()" *ngIf="!trackBuilder.putAnchors && !trackBuilder.putFreeAnchor && zoom >= minZoom" size="small" button>
+      <ion-item (click)="trackBuilder.resume()" *ngIf="!trackBuilder.putAnchors && !trackBuilder.putFreeAnchor && zoom >= minZoom" size="small" button class="resume-button">
         <ion-icon slot="start" name="play" color="success"></ion-icon>
         <ion-label color="success">{{ i18n.texts.pages.trailplanner.resume }}</ion-label>
       </ion-item>
-      <ion-item (click)="saveModal.present()" *ngIf="!trackBuilder.putAnchors && !trackBuilder.putFreeAnchor && trackBuilder.anchors.length > 1" size="small" button>
+      <ion-item (click)="saveModal.present()" *ngIf="!trackBuilder.putAnchors && !trackBuilder.putFreeAnchor && trackBuilder.anchors.length > 1" size="small" button class="save-button">
         <ion-icon slot="start" name="save" color="success"></ion-icon>
         <ion-label color="success">{{i18n.texts.buttons.save}}</ion-label>
       </ion-item>

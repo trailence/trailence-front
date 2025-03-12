@@ -10,7 +10,6 @@ import { DependenciesService } from './dependencies.service';
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 
-  private _updatedLocally: string[] = [];
   private readonly _syncStatus$ = new BehaviorSubject<OwnedStoreSyncStatus>(new OwnedStoreSyncStatus());
 
   constructor(
@@ -33,6 +32,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   public override get syncStatus() { return this._syncStatus$.value; }
   protected override set syncStatus(status: OwnedStoreSyncStatus) { this._syncStatus$.next(status); }
 
+  protected override getKey(item: ENTITY): string {
+    return item.uuid + '#' + item.owner;
+  }
+
   protected override isCreatedLocally(item: StoredItem<DTO>): boolean {
     return item.item.version === 0;
   }
@@ -41,7 +44,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return item.item.version < 0;
   }
 
-  public isUpdatedLocally(owner: string, uuid: string): boolean {
+  protected override isUpdatedLocally(item: StoredItem<DTO>): boolean {
+    return item.updatedLocally;
+  }
+
+  public itemUpdatedLocally(owner: string, uuid: string): boolean {
     return this._updatedLocally.indexOf(uuid + '#' + owner) >= 0;
   }
 
@@ -84,10 +91,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override deleted(item$: BehaviorSubject<ENTITY | null> | undefined, item: ENTITY): void {
-    const key = item.uuid + '#' + item.owner;
-    const updatedIndex = this._updatedLocally.indexOf(key);
-    if (updatedIndex >= 0)
-      this._updatedLocally.splice(updatedIndex, 1);
+    super.deleted(item$, item);
     const createdIndex = this._createdLocally.findIndex($item => $item === item$ || $item.value === item);
     if (createdIndex >= 0)
       this._createdLocally.splice(createdIndex, 1);
@@ -118,24 +122,18 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     this._locks.unlock(uuid + '#' + owner);
   }
 
-  public update(entity: ENTITY, ondone?: () => void): void {
-    const key = entity.uuid + '#' + entity.owner;
-    entity.updatedAt = Date.now();
-    this.performOperation(
-      () => {
-        if (!entity.isCreatedLocally() && this._updatedLocally.indexOf(key) < 0)
-          this._updatedLocally.push(key);
-        const entity$ = this._store.value.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
-        entity$?.next(entity);
-      },
-      db => from(db.table<StoredItem<DTO>>(this.tableName).put({id_owner: key, item: this.toDTO(entity), updatedLocally: true, localUpdate: Date.now()})),
-      status => {
-        if (status.localUpdates) return false;
-        status.localUpdates = true;
-        return true;
-      },
-      ondone
-    );
+  protected override updated(item: ENTITY): void {
+    item.updatedAt = Date.now();
+  }
+
+  protected override markUpdatedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
+    return from(table.put({id_owner: item.uuid + '#' + item.owner, item: this.toDTO(item), updatedLocally: true, localUpdate: Date.now()}))
+  }
+
+  protected override updateStatusWithLocalUpdate(status: OwnedStoreSyncStatus): boolean {
+    if (status.localUpdates) return false;
+    status.localUpdates = true;
+    return true;
   }
 
   private updatedDtosFromServer(dtos: DTO[], deleted: {uuid: string; owner: string;}[] = []): Observable<boolean> {
@@ -210,11 +208,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   protected override close(): void {
     super.close();
-    this._updatedLocally = [];
   }
 
   protected override itemFromDb(item: StoredItem<DTO>): ENTITY {
-    if (item.updatedLocally) this._updatedLocally.push(item.id_owner);
     return this.fromDTO(item.item);
   }
 

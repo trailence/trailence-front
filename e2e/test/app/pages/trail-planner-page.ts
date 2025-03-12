@@ -39,24 +39,32 @@ export class TrailPlannerPage extends PageWithHeader {
   }
 
   public async start() {
-    const button = this.getElement().$('div.not-started').$('ion-button=Start');
-    await new IonicButton(button).click();
+    await TestUtils.retry(async () => {
+      try { await new IonicButton(this.getElement(true).$('div.not-started').$('ion-button=Start')).click(); } catch (e) {}
+      await browser.waitUntil(() => this.getElement().$('div.not-started').isExisting().then(e => !e), { timeout: 5000 });
+    }, 3, 1000);
   }
 
   public async stop() {
-    const button = this.getElement().$('div.started').$('ion-item.ion-color-secondary');
-    await button.click();
+    await TestUtils.retry(async () => {
+      try { await new IonicButton(this.getElement(true).$('div.started').$('ion-item.ion-color-secondary')).click(); } catch (e) {}
+      await browser.waitUntil(() => this.getElement().$('div.started').$('ion-item.resume-button').isDisplayed(), { timeout: 5000 });
+    }, 3, 1000);
   }
 
   public async resume() {
-    const button = this.getElement().$('div.started').$('>>>ion-icon[name=play]');
-    await button.click();
+    await TestUtils.retry(async () => {
+      try { await new IonicButton(this.getElement(true).$('div.started').$('ion-item.resume-button')).click(); } catch (e) {}
+      await browser.waitUntil(() => this.getElement().$('div.started').$('ion-item.ion-color-secondary').isDisplayed(), { timeout: 5000 });
+    }, 3, 1000);
   }
 
   public async save(trailName: string, trailCollection: string) {
-    const button = this.getElement().$('div.started').$('>>>ion-icon[name=save]');
-    await button.click();
-    const modal = await TestUtils.retry(() => App.waitModal(undefined, undefined, 5000), 3, 500);
+    const modal = await TestUtils.retry(async () => {
+      const button = this.getElement(true).$('div.started').$('ion-item.save-button');
+      try { await button.click(); }catch (e) {}
+      return await App.waitModal(undefined, undefined, 5000);
+    }, 3, 1000);
     await new IonicInput(modal.$('>>>ion-input[name=trail-name]')).setValue(trailName);
     await new IonicSelect(modal.$('>>>ion-select[name=collection]')).selectByText(trailCollection);
     await (await new ModalComponent(modal).getFooterButtonWithText('Save')).click();

@@ -123,6 +123,10 @@ export class App {
 
   public static async startLink(link: string) {
     await App.startMode();
+    return await this.openLink(link);
+  }
+
+  public static async openLink(link: string) {
     const url = browser.options.baseUrl!;
     await browser.url(url + '/link/' + link);
     const trailsPage = new TrailsPage(TrailsPageType.SHARE);

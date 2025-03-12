@@ -247,7 +247,7 @@ export class PhotoService {
       switchMap(items => this.injector.get(StoredFilesService).removeAll('photo', (owner, uuid) => {
         const item = items.find(p => p.owner === owner && p.uuid === uuid);
         if (!item) return false;
-        return !item.isSavedOnServerAndNotDeletedLocally() || this.store.isUpdatedLocally(owner, uuid);
+        return !item.isSavedOnServerAndNotDeletedLocally() || this.store.itemUpdatedLocally(owner, uuid);
       }))
     );
   }
@@ -286,6 +286,10 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
   protected override isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
     return !q || q.photosUsed >= q.photosMax || q.photosSizeUsed >= q.photosSizeMax;
+  }
+
+  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+    return Promise.resolve(undefined);
   }
 
   protected override getUpdatesFromServer(knownItems: VersionedDto[]): Observable<UpdatesResponse<PhotoDto>> {
@@ -371,7 +375,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
       switchMap(([photos, trails]) => {
         return new Observable<any>(subscriber => {
           const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db || email !== dbService.email) {
+          if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -389,7 +393,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
             if (trail) continue;
             const d = ondone.add();
             this.getLocalUpdate(photo).then(date => {
-              if (db !== dbService.db || email !== dbService.email) {
+              if (db !== dbService.db?.db || email !== dbService.email) {
                 d();
                 return;
               }

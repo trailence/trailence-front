@@ -28,8 +28,18 @@
       @for (collection of collections; track collection.uuid) {
         <div class="menu-item" (click)="goTo('/trails/collection/' + collection.uuid); close();">
           <div class="item-title-container">
-            <div class="item-title">
+            <div class="item-title with-actions">
               <a href="/trails/collection/{{collection.uuid}}" target="_blank" class="inherit" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">{{ collection.name.length === 0 && collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collection.name }}</a>
+              <ion-button fill="clear" size="small" id="collection-actions-button-{{collection.uuid}}" (click)="$event.stopPropagation();">
+                <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+              </ion-button>
+              <ion-popover trigger="collection-actions-button-{{collection.uuid}}" [dismissOnSelect]="true">
+                <ng-template>
+                  <ion-content>
+                    <app-menu-content [menu]="collectionService.getCollectionMenu(collection)"></app-menu-content>
+                  </ion-content>
+                </ng-template>
+              </ion-popover>
             </div>
           </div>
         </div>
@@ -49,10 +59,22 @@
     </div>
     @if (sharedWithMeOpen) {
       <ng-container *ngIf="!sharedWithMe.isEmpty()">
-        <div class="menu-item" *ngFor="let share of sharedWithMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); close();">
+        <div class="menu-item" *ngFor="let share of sharedWithMe" (click)="goTo('/trails/share/' + share.uuid + '/' + share.owner); close();">
           <div class="item-title-container">
-            <div class="item-title">{{share.name}}</div>
-            <div class="item-sub-title">{{share.from}}</div>
+            <div class="item-title with-actions">
+              <div>{{share.name}}</div>
+              <ion-button fill="clear" size="small" id="share-actions-button-{{share.uuid}}-{share.owner}}" (click)="$event.stopPropagation();">
+                <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+              </ion-button>
+              <ion-popover trigger="share-actions-button-{{share.uuid}}-{share.owner}}" [dismissOnSelect]="true">
+                <ng-template>
+                  <ion-content>
+                    <app-menu-content [menu]="shareService.getShareMenu(share)"></app-menu-content>
+                  </ion-content>
+                </ng-template>
+              </ion-popover>
+            </div>
+            <div class="item-sub-title">{{share.owner}}</div>
           </div>
         </div>
       </ng-container>
@@ -72,10 +94,22 @@
     </div>
     @if (sharedByMeOpen) {
       <ng-container *ngIf="!sharedByMe.isEmpty()">
-        <div class="menu-item" *ngFor="let share of sharedByMe" (click)="goTo('/trails/share/' + share.id + '/' + share.from); close();">
+        <div class="menu-item" *ngFor="let share of sharedByMe" (click)="goTo('/trails/share/' + share.uuid + '/' + share.owner); close();">
           <div class="item-title-container">
-            <div class="item-title">{{share.name}}</div>
-            <div class="item-sub-title">{{share.to}}</div>
+            <div class="item-title with-actions">
+              <div>{{share.name}}</div>
+              <ion-button fill="clear" size="small" id="share-actions-button-{{share.uuid}}-{share.owner}}" (click)="$event.stopPropagation();">
+                <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+              </ion-button>
+              <ion-popover trigger="share-actions-button-{{share.uuid}}-{share.owner}}" [dismissOnSelect]="true">
+                <ng-template>
+                  <ion-content>
+                    <app-menu-content [menu]="shareService.getShareMenu(share)"></app-menu-content>
+                  </ion-content>
+                </ng-template>
+              </ion-popover>
+            </div>
+            <div class="item-sub-title">{{ emailsSplit(share.recipients) }}</div>
           </div>
         </div>
       </ng-container>

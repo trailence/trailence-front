@@ -6,6 +6,7 @@ import { StoreSyncStatus } from './store';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { trailenceAppVersionCode } from 'src/app/trailence-version';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
@@ -17,6 +18,7 @@ export const EXTENSIONS_TABLE_NAME = 'extensions';
 export const SHARE_TABLE_NAME = 'shares';
 export const PHOTO_TABLE_NAME = 'photos';
 export const DEPENDENCIES_TABLE_NAME = 'dependencies';
+const INTERNAL_TABLE_NAME = 'internal';
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 15 * 1000;
@@ -62,12 +64,17 @@ class RegisteredStore implements StoreRegistration {
   }
 }
 
+export interface VersionedDb {
+  db: Dexie;
+  tablesVersion: {[key: string]: number};
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class DatabaseService {
 
-  private readonly _db = new BehaviorSubject<Dexie | undefined>(undefined);
+  private readonly _db = new BehaviorSubject<VersionedDb | undefined>(undefined);
   private _openEmail?: string;
   private readonly _stores = new BehaviorSubject<RegisteredStore[]>([]);
 
@@ -84,8 +91,8 @@ export class DatabaseService {
     );
   }
 
-  public get db$(): Observable<Dexie | undefined> { return this._db; }
-  public get db(): Dexie | undefined { return this._db.value; }
+  public get db$(): Observable<VersionedDb | undefined> { return this._db; }
+  public get db(): VersionedDb | undefined { return this._db.value; }
 
   public get email(): string | undefined { return this._openEmail; }
 
@@ -236,7 +243,7 @@ export class DatabaseService {
       this.updateFromServerInterval = undefined;
       this._openEmail = undefined;
       this._db.next(undefined);
-      db.close();
+      db.db.close();
     }
   }
 
@@ -246,21 +253,63 @@ export class DatabaseService {
     Console.info('Open DB for user ' + email);
     this._openEmail = email;
     this.ngZone.runOutsideAngular(() => {
-      const db = new Dexie(DB_PREFIX + email);
-      const storesV1: any = {};
-      storesV1[TRACK_TABLE_NAME] = 'id_owner';
-      storesV1[TRAIL_TABLE_NAME] = 'id_owner';
-      storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
-      storesV1[TAG_TABLE_NAME] = 'id_owner';
-      storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
-      storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
-      storesV1[SHARE_TABLE_NAME] = 'key';
-      storesV1[PHOTO_TABLE_NAME] = 'id_owner';
-      storesV1[DEPENDENCIES_TABLE_NAME] = 'key';
-      db.version(1).stores(storesV1);
-      this._db.next(db);
-      this.initAutoUpdateFromServer();
+      Dexie.exists(DB_PREFIX + email)
+      .then(exists => {
+        const initialVersion = exists ? 1100 : trailenceAppVersionCode;
+        const db = new Dexie(DB_PREFIX + email);
+        const storesV1: any = {};
+        storesV1[INTERNAL_TABLE_NAME] = 'key';
+        storesV1[TRACK_TABLE_NAME] = 'id_owner';
+        storesV1[TRAIL_TABLE_NAME] = 'id_owner';
+        storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
+        storesV1[TAG_TABLE_NAME] = 'id_owner';
+        storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
+        storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
+        storesV1[SHARE_TABLE_NAME] = 'key';
+        storesV1[PHOTO_TABLE_NAME] = 'id_owner';
+        storesV1[DEPENDENCIES_TABLE_NAME] = 'key';
+        db.version(1).stores(storesV1);
+        db.table(INTERNAL_TABLE_NAME).get('version')
+        .then(result => {
+          const versions = {} as any;
+          const getTableVersion = (name: string) => {
+            if (!result) return initialVersion;
+            const v = result[name];
+            if (!v) return initialVersion;
+            return v;
+          }
+          versions[TRACK_TABLE_NAME] = getTableVersion(TRACK_TABLE_NAME);
+          versions[TRAIL_TABLE_NAME] = getTableVersion(TRAIL_TABLE_NAME);
+          versions[TRAIL_COLLECTION_TABLE_NAME] = getTableVersion(TRAIL_COLLECTION_TABLE_NAME);
+          versions[TAG_TABLE_NAME] = getTableVersion(TAG_TABLE_NAME);
+          versions[TRAIL_TAG_TABLE_NAME] = getTableVersion(TRAIL_TAG_TABLE_NAME);
+          versions[EXTENSIONS_TABLE_NAME] = getTableVersion(EXTENSIONS_TABLE_NAME);
+          versions[SHARE_TABLE_NAME] = getTableVersion(SHARE_TABLE_NAME);
+          versions[PHOTO_TABLE_NAME] = getTableVersion(PHOTO_TABLE_NAME);
+          versions[DEPENDENCIES_TABLE_NAME] = getTableVersion(DEPENDENCIES_TABLE_NAME);
+          Console.info("Database loaded with versions", versions);
+          const versionedDb = {
+            db,
+            tablesVersion: versions,
+          } as VersionedDb;
+          this._db.next(versionedDb);
+          this.initAutoUpdateFromServer();
+        });
+      });
     });
+  }
+
+  public saveTableVersion(tableName: string, newVersion: number): Promise<void> {
+    const db = this._db.value;
+    if (!db) return Promise.resolve();
+    return db.db.transaction('rw', [INTERNAL_TABLE_NAME], () => {
+      const table = db.db.table(INTERNAL_TABLE_NAME);
+      return table.get('version').then(result => {
+        const newVersions = result ?? {key: 'version'};
+        newVersions[tableName] = newVersion;
+        return table.put(newVersions);
+      });
+    }).then();
   }
 
   private initAutoUpdateFromServer(): void {

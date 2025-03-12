@@ -2,7 +2,6 @@ import { Injectable, Injector } from "@angular/core";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TagDto } from "src/app/model/dto/tag";
 import { Tag } from "src/app/model/tag";
-import { SimpleStore } from "./simple-store";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
 import { EMPTY, Observable, combineLatest, first, map, of, switchMap, tap, throwError, zip } from "rxjs";
@@ -21,6 +20,7 @@ import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { QuotaService } from '../auth/quota.service';
+import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
 
 @Injectable({
     providedIn: 'root'
@@ -203,6 +203,10 @@ class TagStore extends OwnedStore<TagDto, Tag> {
     return !q || q.tagsUsed >= q.tagsMax;
   }
 
+  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+    return Promise.resolve(undefined);
+  }
+
   protected override readyToSave(entity: Tag): boolean {
     if (entity.parentUuid && !this.getItem(entity.parentUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
     if (!this.collectionService.getCollection(entity.collectionUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally()) return false;
@@ -248,7 +252,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
       switchMap(([tags, collections]) => {
         return new Observable<any>(subscriber => {
           const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db || email !== dbService.email) {
+          if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -266,7 +270,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
             if (collection) continue;
             const d = ondone.add();
             this.getLocalUpdate(tag).then(date => {
-              if (db !== dbService.db || email !== dbService.email) {
+              if (db !== dbService.db?.db || email !== dbService.email) {
                 d();
                 return;
               }
@@ -286,7 +290,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
 
 }
 
-class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
+class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
 
   constructor(
     injector: Injector,
@@ -316,6 +320,10 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
 
   protected override getKey(entity: TrailTag): string {
     return entity.trailUuid + '_' + entity.tagUuid;
+  }
+
+  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+    return Promise.resolve(undefined);
   }
 
   protected override readyToSave(entity: TrailTag): boolean {
@@ -363,7 +371,7 @@ class TrailTagStore extends SimpleStore<TrailTagDto, TrailTag> {
       switchMap(([trailsTags, tags, trails]) => {
         return new Observable<any>(subscriber => {
           const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db || email !== dbService.email) {
+          if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
             return;

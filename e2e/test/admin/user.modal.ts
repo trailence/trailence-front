@@ -1,6 +1,7 @@
 import { App } from '../app/app';
 import { IonicButton } from '../components/ionic/ion-button';
 import { ModalComponent } from '../components/modal';
+import { TestUtils } from '../utils/test-utils';
 
 export class UserModal extends ModalComponent {
 
@@ -19,8 +20,10 @@ export class UserModal extends ModalComponent {
   }
 
   public async addRole(role: string) {
-    await new IonicButton(this, 'div.roles ion-button[color=success]').click();
-    const alert = await App.waitAlert();
+    const alert = await TestUtils.retry(async () => {
+      await new IonicButton(this.getElement(true), 'div.roles ion-button[color=success]').click();
+      return await App.waitAlert();
+    }, 3, 1000);
     await alert.setInputValue(role);
     await alert.clickButtonWithRole('ok');
     await alert.notDisplayed();

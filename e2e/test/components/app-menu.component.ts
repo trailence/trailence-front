@@ -9,6 +9,7 @@ import { IonicButton } from './ionic/ion-button';
 import { TestUtils } from '../utils/test-utils';
 import { TrailPlannerPage } from '../app/pages/trail-planner-page';
 import { AdminPage } from '../admin/admin.page';
+import { MenuContent } from './menu-content.component';
 
 export class AppMenu extends Component {
 
@@ -76,12 +77,16 @@ export class AppMenu extends Component {
     return this.getElement().$('div.menu-content div.menu-section#section-shared-by-me');
   }
 
-  public async getShares(section: ChainablePromiseElement) {
+  public async openShareSection(section: ChainablePromiseElement) {
     const openButton = section.$('.menu-section-header ion-button');
     const iconName = await openButton.$('>>>ion-icon').getAttribute('name');
     if (iconName === 'chevron-right') {
       await openButton.click();
     }
+  }
+
+  public async getShares(section: ChainablePromiseElement) {
+    await this.openShareSection(section);
     const items = section.$$('.menu-item');
     const shares: string[][] = [];
     for (const item of await items.getElements()) {
@@ -90,6 +95,21 @@ export class AppMenu extends Component {
       shares.push([name, email]);
     }
     return shares;
+  }
+
+  public async openShareMenu(section: ChainablePromiseElement, shareName: string) {
+    await this.openShareSection(section);
+    const items = section.$$('.menu-item');
+    for (const item of await items.getElements()) {
+      const name = await item.$('.item-title').getText();
+      if (name === shareName) {
+        const menuButton = new IonicButton(item.$('.item-title ion-button'));
+        await menuButton.click();
+        const popover = await App.waitPopover();
+        return new MenuContent(popover.$('>>>app-menu-content'));
+      }
+    }
+    return undefined;
   }
 
   public async openTrailPlanner() {

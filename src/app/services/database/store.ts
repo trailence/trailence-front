@@ -1,11 +1,12 @@
 import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, timeout } from "rxjs";
-import { DatabaseService } from "./database.service";
+import { DatabaseService, VersionedDb } from "./database.service";
 import Dexie, { Table } from "dexie";
 import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { StoreErrors } from './store-errors';
+import { trailenceAppVersionCode } from 'src/app/trailence-version';
 
 export interface StoreSyncStatus {
 
@@ -25,6 +26,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
   protected _createdLocally: BehaviorSubject<STORE_ITEM | null>[] = [];
   protected _deletedLocally: STORE_ITEM[] = [];
+  protected _updatedLocally: string[] = [];
   protected _errors: StoreErrors;
   protected _locks = new SynchronizationLocks();
 
@@ -49,6 +51,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract isDeletedLocally(item: DB_ITEM): boolean;
   protected abstract isCreatedLocally(item: DB_ITEM): boolean;
+  protected abstract isUpdatedLocally(item: DB_ITEM): boolean;
 
   public getAll$(): Observable<Observable<STORE_ITEM | null>[]> {
     return this._store;
@@ -68,7 +71,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
     // listen to database change (when authentication changed)
     dbService.db$.subscribe(db => {
-      if (db) this.load(db);
+      if (db) this.load(dbService, db);
       else this.close();
     });
   }
@@ -95,8 +98,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   public abstract get syncStatus(): SYNCSTATUS;
   protected abstract set syncStatus(status: SYNCSTATUS);
 
+  protected abstract migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined>;
+
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
   protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
+  protected abstract getKey(item: STORE_ITEM): string;
 
   protected abstract sync(): Observable<boolean>;
 
@@ -111,37 +117,53 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this._store.next([]);
       this._createdLocally = [];
       this._deletedLocally = [];
+      this._updatedLocally = [];
       items.forEach(item$ => item$.complete());
       this.afterClosed();
     });
   }
 
-  private load(db: Dexie): void {
+  private load(dbService: DatabaseService, db: VersionedDb): void {
     if (this._db) this.close();
     this.ngZone.runOutsideAngular(() => {
-      this._db = db;
-      this._locks = new SynchronizationLocks();
-      from(db.table<DB_ITEM>(this.tableName).toArray()).subscribe({
-        next: items => {
-          if (this._db !== db) return;
-          const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
-          items.forEach(dbItem => {
-            const item = this.itemFromDb(dbItem);
-            if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
-            else {
-              const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
-              if (this.isCreatedLocally(dbItem)) this._createdLocally.push(item$);
-              newStore.push(item$);
-            }
-          });
-          this._store.next(newStore);
-          this.beforeEmittingStoreLoaded();
-          this._storeLoaded$.next(true);
-        },
-        error: e => {
-          Console.error('Error loading store ' + this.tableName, e);
-        }
+      this.migrateIfNeeded(dbService, db.tablesVersion[this.tableName] ?? trailenceAppVersionCode)
+      .then(() => {
+        if (dbService.db !== db) return;
+        this._db = db.db;
+        this._locks = new SynchronizationLocks();
+        from(db.db.table<DB_ITEM>(this.tableName).toArray()).subscribe({
+          next: items => {
+            if (this._db !== db.db) return;
+            const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
+            items.forEach(dbItem => {
+              const item = this.itemFromDb(dbItem);
+              if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
+              else {
+                const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
+                if (this.isCreatedLocally(dbItem)) this._createdLocally.push(item$);
+                else if (this.isUpdatedLocally(dbItem)) this._updatedLocally.push(this.getKey(item));
+                newStore.push(item$);
+              }
+            });
+            this._store.next(newStore);
+            this.beforeEmittingStoreLoaded();
+            this._storeLoaded$.next(true);
+          },
+          error: e => {
+            Console.error('Error loading store ' + this.tableName, e);
+          }
+        });
       });
+    });
+  }
+
+  private migrateIfNeeded(dbService: DatabaseService, currentVersion: number): Promise<void> {
+    if (currentVersion >= trailenceAppVersionCode) return Promise.resolve();
+    return this.migrate(currentVersion, dbService)
+    .then(migrationResult => {
+      const newVersion = migrationResult ?? trailenceAppVersionCode;
+      return dbService.saveTableVersion(this.tableName, newVersion)
+      .then(() => this.migrateIfNeeded(dbService, newVersion));
     });
   }
 
@@ -339,13 +361,20 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected deleted(item$: BehaviorSubject<STORE_ITEM | null> | undefined, item: STORE_ITEM): void {
-    // nothing by default
+    const key = this.getKey(item);
+    const updatedIndex = this._updatedLocally.indexOf(key);
+    if (updatedIndex >= 0)
+      this._updatedLocally.splice(updatedIndex, 1);
   }
+
+  protected abstract updated(item: STORE_ITEM): void;
 
   protected abstract markDeletedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
   protected abstract markUndeletedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
+  protected abstract markUpdatedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
 
   protected abstract updateStatusWithLocalDelete(status: SYNCSTATUS): boolean;
+  protected abstract updateStatusWithLocalUpdate(status: SYNCSTATUS): boolean;
 
   public delete(item: STORE_ITEM, ondone?: () => void): void {
     this.performOperation(
@@ -401,10 +430,27 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
   }
 
+  public update(item: STORE_ITEM, ondone?: () => void): void {
+    const key = this.getKey(item);
+    this.updated(item);
+    this.performOperation(
+      () => {
+        const createdLocally = this._createdLocally.find(item$ => item$.value && this.areSame(item$.value, item));
+        if (!createdLocally && this._updatedLocally.indexOf(key) < 0)
+          this._updatedLocally.push(key);
+        const entity$ = this._store.value.find(item$ => item$.value && this.areSame(item$.value, item));
+        entity$?.next(item);
+      },
+      db => this.markUpdatedInDb(db.table<DB_ITEM>(this.tableName), item),
+      status => this.updateStatusWithLocalUpdate(status),
+      ondone
+    );
+  }
+
   public cleanDatabase(db: Dexie, email: string): Observable<any> {
     return new Observable(subscriber => {
       const dbService = this.injector.get(DatabaseService);
-      if (db !== dbService.db || email !== dbService.email) {
+      if (db !== dbService.db?.db || email !== dbService.email) {
         subscriber.next(false);
         subscriber.complete();
         return;

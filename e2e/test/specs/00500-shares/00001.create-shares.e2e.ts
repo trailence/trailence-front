@@ -2,6 +2,7 @@ import { App } from '../../app/app';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { ShareModal } from '../../components/share.modal';
 import { importAllTrailsToCollection } from '../../utils/import-trails';
+import { checkShares } from './share-utils';
 
 describe('Shares - Create', () => {
 
@@ -24,7 +25,7 @@ describe('Shares - Create', () => {
     const modal = new ShareModal(await App.waitModal());
     await modal.shareWholeCollection();
     await modal.setShareName('full col');
-    await modal.setEmail('friend1@trailence.org');
+    await modal.addEmail('friend1@trailence.org');
     await modal.save();
   });
 
@@ -35,7 +36,7 @@ describe('Shares - Create', () => {
     await modal.shareTags();
     await modal.selectTags(['Tag 2']);
     await modal.setShareName('tag2 nophoto');
-    await modal.setEmail('friend2@trailence.org');
+    await modal.addEmail('friend2@trailence.org');
     await modal.save();
   });
 
@@ -46,7 +47,7 @@ describe('Shares - Create', () => {
     await modal.shareTags();
     await modal.selectTags(['Tag 2', 'Tag 4']);
     await modal.setShareName('tag2+4+photo');
-    await modal.setEmail('friend3@trailence.org');
+    await modal.addEmail('friend3@trailence.org');
     await modal.selectIncludePhotos();
     await modal.save();
   });
@@ -62,38 +63,24 @@ describe('Shares - Create', () => {
     await list.selectionMenu('Share');
     const modal = new ShareModal(await App.waitModal());
     await modal.setShareName('2trails');
-    await modal.setEmail('friend4@trailence.org');
+    await modal.addEmail('friend4@trailence.org');
     await modal.save();
+  });
+
+  it('Synchronize', async () => {
+    await App.synchronize();
   });
 
   it('All shares are present in app menu', async () => {
     const menu = await App.openMenu();
-    const shares = await menu.getShares(menu.getSharedByMeSection());
     const expected = [
       ['full col', 'friend1@trailence.org'],
       ['tag2 nophoto', 'friend2@trailence.org'],
       ['tag2+4+photo', 'friend3@trailence.org'],
       ['2trails', 'friend4@trailence.org']
     ];
-    let ok = shares.length === expected.length;
-    if (ok) {
-      for (let i = 0; i < shares.length; ++i) {
-        let found = false;
-        for (let j = 0; j < expected.length; ++j) {
-          if (shares[i][0] === expected[j][0] && shares[i][1] === expected[j][1]) {
-            expected.splice(j, 1);
-            found = true;
-            break;
-          }
-        }
-        if (!found) throw new Error('Share not expected: ' + shares[i][0] + ' with ' + shares[i][1]);
-      }
-    }
+    await checkShares(menu, true, expected);
     await menu.close();
-  });
-
-  it('Synchronize', async () => {
-    await App.synchronize();
   });
 
 });

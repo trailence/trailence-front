@@ -71,7 +71,7 @@ export class LinkPage {
             Console.info('Opening share id', payload.data.substring(0, i), 'from', payload.data.substring(i + 1));
             this.injector.get(ShareService).getAll$().pipe(
               collection$items(),
-              map(shares => shares.find(share => share.id === payload.data.substring(0, i) && share.from === payload.data.substring(i + 1))),
+              map(shares => shares.find(share => share.uuid === payload.data.substring(0, i) && share.owner === payload.data.substring(i + 1))),
               firstTimeout(share => !!share, 10000, () => null as any)
             ).subscribe(() => this.router.navigateByUrl('/trails/share/' + payload.data));
           },

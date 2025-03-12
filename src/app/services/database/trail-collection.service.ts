@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, 
 import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
-import { TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./database.service";
+import { DatabaseService, TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./database.service";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
@@ -198,6 +198,10 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override toDTO(entity: TrailCollection): TrailCollectionDto {
       return entity.toDto();
+    }
+
+    protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+      return Promise.resolve(undefined);
     }
 
     protected override readyToSave(entity: TrailCollection): boolean {

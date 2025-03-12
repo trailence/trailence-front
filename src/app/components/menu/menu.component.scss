@@ -119,12 +119,40 @@
     flex: 1 1 100%;
     display: flex;
     flex-direction: column;
+    max-width: 100%;
 
     .item-title {
       font-size: 16px;
       text-overflow: ellipsis;
       overflow: hidden;
       text-wrap: nowrap;
+
+      &.with-actions {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        max-width: 100%;
+        overflow: hidden;
+
+        :first-child {
+          flex: 1 1 100%;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+        ion-button {
+          flex: none;
+          color: var(--ion-text-color);
+          font-size: 8px;
+          margin: 0;
+          margin: -3px 0 3px 0;
+          padding-top: 3px;
+          ion-icon {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+          }
+        }
+      }
     }
 
     .item-sub-title {

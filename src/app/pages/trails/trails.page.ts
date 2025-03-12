@@ -140,17 +140,17 @@ export class TrailsPage extends AbstractPage {
             () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
             () => this.injector.get(ShareService).getShare$(shareId, sharedBy),
           );
-          if (share.from === this.injector.get(AuthService).email) {
+          if (share.owner === this.injector.get(AuthService).email) {
             if (share.type === ShareElementType.TRAIL)
               return this.injector.get(TrailService).getAll$().pipe(
                 collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.uuid) >= 0)),
+                map(trails => trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.uuid) >= 0)),
                 map(trails => ({share, trails}))
               );
             if (share.type === ShareElementType.COLLECTION)
               return this.injector.get(TrailService).getAll$().pipe(
                 collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.from && share.elements.indexOf(trail.collectionUuid) >= 0)),
+                map(trails => trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.collectionUuid) >= 0)),
                 map(trails => ({share, trails}))
               );
             return this.injector.get(TagService).getAllTrailsTags$().pipe(
@@ -158,14 +158,14 @@ export class TrailsPage extends AbstractPage {
               map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
               switchMap(uuids => this.injector.get(TrailService).getAll$().pipe(
                 collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.from && uuids.indexOf(trail.uuid) >= 0)),
+                map(trails => trails.filter(trail => trail.owner === share.owner && uuids.indexOf(trail.uuid) >= 0)),
                 map(trails => ({share, trails}))
               ))
             )
           } else {
             return this.injector.get(TrailService).getAll$().pipe(
               collection$items(),
-              map(trails => trails.filter(trail => trail.owner === share.from && share.trails.indexOf(trail.uuid) >= 0)),
+              map(trails => trails.filter(trail => trail.owner === share.owner && share.trails.indexOf(trail.uuid) >= 0)),
               map(trails => ({share, trails}))
             );
           }
@@ -176,7 +176,7 @@ export class TrailsPage extends AbstractPage {
           const newList = List(result.trails);
           if (!newList.equals(this.trails$.value))
             this.trails$.next(newList);
-          this.viewId = "share-" + result.share.id + "-" + result.share.from;
+          this.viewId = "share-" + result.share.uuid + "-" + result.share.owner;
           this.actions = this.injector.get(ShareService).getShareMenu(result.share);
         });
       }

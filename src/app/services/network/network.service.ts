@@ -72,7 +72,7 @@ export class NetworkService implements INetworkService {
       if (count !== this.count || this.destroyed) return;
       let status: boolean;
       if (response.status === 200) {
-        Console.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)');
+        Console.info('Server ping response received: connected (' + (Date.now() - start) + 'ms.)', response.body);
         status = true;
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');

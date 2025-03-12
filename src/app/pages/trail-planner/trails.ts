@@ -114,7 +114,7 @@ export class Trails {
         const collectionName = collection.name.length === 0 && collection.type === TrailCollectionType.MY_TRAILS ? this.injector.get(I18nService).texts.my_trails : collection.name;
         result.push({trail, track, collectionName, meta});
       } else {
-        const share = shares.find(share => share.from === trail.owner && share.trails.indexOf(trail.uuid) >= 0);
+        const share = shares.find(share => share.owner === trail.owner && share.trails.indexOf(trail.uuid) >= 0);
         if (share) {
           result.push({trail, track, collectionName: share.name, meta});
         }

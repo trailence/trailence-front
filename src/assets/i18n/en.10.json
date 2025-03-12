@@ -258,12 +258,13 @@
       },
       "name": "Give a name to this share",
       "name_info": "This name will be visible by you and the person with who you are sharing",
-      "who_question": "With who?",
+      "who_question": "With who? (up to 20 persons)",
       "includePhotos": "Share photos with trails",
       "photos_info": "Photos associated with shared trails will be visible to the person you are sharing with, but cannot be modified",
       "email": "Email",
       "email_info": "An e-mail will be sent to inform about this share",
-      "language": "In which language should we send the e-mail?"
+      "language": "In which language should we send the e-mail?",
+      "recipient_error": "Please enter a valid e-mail address"
     },
     "find_duplicates": {
       "title": "Search for similar trails",
@@ -484,6 +485,7 @@
     "save": "Save",
     "start": "Start",
     "retry": "Retry",
+    "understood": "Understood",
     "undo": "Undo",
     "redo": "Redo",
     "yes": "Yes",
@@ -691,5 +693,9 @@
     "photos": "You have reached the maximum number of photos",
     "shares": "You have reached the maximum number of shares",
     "photos_max": "Your quota for photos is {{1}} and you already have {{2}}: you cannot add {{3}} new one(s)"
+  },
+  "obsolete_message": {
+    "title": "Update required",
+    "message": "Your application is in an outdated version and needs to be updated. By using this version, your changes cannot be saved to the server and may be lost."
   }
 }

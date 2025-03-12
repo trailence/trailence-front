@@ -1,12 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { INetworkService } from 'src/app/services/network/network.interface';
+import { INetworkService, PingResponse } from 'src/app/services/network/network.interface';
 import { ConnectionStatus, Network } from '@capacitor/network';
 import { HttpClientService } from 'src/app/services/http/http-client.service';
 import { HttpMethod, TrailenceHttpRequest } from 'src/app/services/http/http-request';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { HttpService } from 'src/app/services/http/http.service';
+import { StringUtils } from 'src/app/utils/string-utils';
+import { trailenceAppVersionCode } from 'src/app/trailence-version';
+import { AlertController } from '@ionic/angular/standalone';
+import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +20,11 @@ export class NetworkService implements INetworkService {
   private readonly _server$ = new BehaviorSubject<boolean>(false);
   private readonly _internet$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private readonly http: HttpClientService, httpService: HttpService) {
+  constructor(
+    private readonly http: HttpClientService,
+    httpService: HttpService,
+    private readonly injector: Injector,
+  ) {
     this._server$ = new BehaviorSubject<boolean>(false);
     this._internet$ = new BehaviorSubject<boolean>(false);
     Network.getStatus().then(status => {
@@ -65,7 +73,23 @@ export class NetworkService implements INetworkService {
       let status: boolean;
       if (response.status === 200) {
         Console.info('Server ping response received: connected');
-        status = true;
+        const ping = response.body as PingResponse;
+        const minSupportedVersion = StringUtils.versionNameToVersionCode(ping.minSupportedVersion);
+        if (minSupportedVersion === undefined || minSupportedVersion > trailenceAppVersionCode) {
+          Console.info("We are on an obselete version ! please update");
+          status = false;
+          const i18n = this.injector.get(I18nService);
+          this.injector.get(AlertController).create({
+            header: i18n.texts.obsolete_message.title,
+            message: i18n.texts.obsolete_message.message,
+            buttons: [{
+              text: i18n.texts.buttons.understood,
+              role: 'cancel'
+            }]
+          }).then(a => a.present());
+        } else {
+          status = true;
+        }
       } else {
         Console.info('Server ping response error (' + response.status + '): not connected');
         status = false;

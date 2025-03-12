@@ -51,21 +51,21 @@ export class DatabaseCleanupService {
 
   private doCleaning(email: string): Observable<boolean> {
     const dbService = this.injector.get(DatabaseService);
-    const db = dbService.db;
+    const db = dbService.db?.db;
     if (!db) return of(false);
     return combineLatest([dbService.hasLocalChanges, dbService.lastSync, dbService.syncStatus, this.injector.get(NetworkService).server$]).pipe(
       filter(([localChanges, lastSync, syncing, connected]) => !localChanges && !!lastSync && Date.now() - lastSync < 15 * 60 * 1000 && !syncing && connected),
       first(),
       switchMap(() => {
-        if (db !== dbService.db || email !== dbService.email) return of(false);
+        if (db !== dbService.db?.db || email !== dbService.email) return of(false);
         Console.info('Cleaning database...');
         return this.injector.get(TrailService).cleanDatabase(db, email).pipe(
           switchMap(() => {
-            if (db !== dbService.db || email !== dbService.email) return of(false);
+            if (db !== dbService.db?.db || email !== dbService.email) return of(false);
             return this.injector.get(TagService).cleanDatabase(db, email);
           }),
           switchMap(() => {
-            if (db !== dbService.db || email !== dbService.email) return of(false);
+            if (db !== dbService.db?.db || email !== dbService.email) return of(false);
             return this.injector.get(TrackService).cleanDatabase(db, email);
           }),
         );

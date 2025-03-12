@@ -251,7 +251,7 @@ export class TrackDatabase {
       first(),
       switchMap(trails => {
         const dbService = this.injector.get(DatabaseService);
-        if (db !== dbService.db || email !== dbService.email) return of(false);
+        if (db !== dbService.db?.db || email !== dbService.email) return of(false);
         const allKnownKeys: string[] = [];
         for (const trail of trails) {
           if (trail) {
@@ -262,7 +262,7 @@ export class TrackDatabase {
         }
         return from(this.metadataTable!.toCollection().primaryKeys()).pipe(
           map(keys => {
-            if (db !== dbService.db || email !== dbService.email) return [];
+            if (db !== dbService.db?.db || email !== dbService.email) return [];
             const eligibleKeys: string[] = [];
             for (const key of keys) {
               if (allKnownKeys.indexOf(key) < 0) {
@@ -277,7 +277,7 @@ export class TrackDatabase {
             return from(this.metadataTable!.bulkGet(keys));
           }),
           map(items => {
-            if (db !== dbService.db || email !== dbService.email) return false;
+            if (db !== dbService.db?.db || email !== dbService.email) return false;
             items = items.filter(i => i && i.localUpdate < Date.now() - 24 * 60 * 60 * 1000 && i.updatedAt < Date.now() - 24 * 60 * 60 * 1000);
             Console.info('Tracks cleanup: ' + items.length + ' to delete');
             for (const item of items) {

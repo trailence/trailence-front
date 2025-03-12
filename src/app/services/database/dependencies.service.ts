@@ -13,7 +13,7 @@ export class DependenciesService {
 
   public operationDone(storeName: string, operation: ServerOperation, items: string[]): void {
     if (items.length === 0) return;
-    const db = this.injector.get(DatabaseService).db;
+    const db = this.injector.get(DatabaseService).db?.db;
     if (!db) return;
     const itemsToDelete = operation === 'delete' ? items.map(i => storeName + ';' + i) : [];
     db.transaction('rw', DEPENDENCIES_TABLE_NAME, () => {
@@ -65,7 +65,7 @@ export class DependenciesService {
   }
 
   public addDependencies(storeName: string, itemKey: string, operation: ServerOperation, dependencies: {storeName: string, itemKey: string, operation: ServerOperation}[]): Promise<any> {
-    const db = this.injector.get(DatabaseService).db;
+    const db = this.injector.get(DatabaseService).db?.db;
     if (!db) return Promise.resolve(false);
     Console.info('Add dependencies from ' + operation + ' ' + storeName  + ' ' + itemKey + ' to ', dependencies);
     return db.transaction('rw', DEPENDENCIES_TABLE_NAME, () => {
@@ -118,7 +118,7 @@ export class DependenciesService {
       }
     }
     if (filter1.length === 0) return Promise.resolve([]);
-    const db = this.injector.get(DatabaseService).db;
+    const db = this.injector.get(DatabaseService).db?.db;
     if (!db) return Promise.resolve([]);
     const keys = filter1.map(i =>storeName + ';' + i);
     return db.table<Dependency>(DEPENDENCIES_TABLE_NAME).bulkGet(keys).then(dbItems => {

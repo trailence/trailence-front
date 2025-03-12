@@ -9,3 +9,7 @@ export interface INetworkService {
   get internet$(): Observable<boolean>;
 
 }
+
+export interface PingResponse {
+  minSupportedVersion: string;
+}

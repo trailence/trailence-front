@@ -35,7 +35,7 @@ export class ExtensionsService {
       resetErrors: () => null,
     });
     this.databaseService.db$.subscribe(db => {
-      if (db) this.load(db);
+      if (db) this.load(db.db);
       else this.close();
     });
   }

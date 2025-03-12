@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { SimpleStore } from './simple-store';
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
 import { Share } from 'src/app/model/share';
-import { SHARE_TABLE_NAME } from './database.service';
+import { DatabaseService, SHARE_TABLE_NAME } from './database.service';
 import { combineLatest, EMPTY, map, Observable, of, tap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
@@ -13,7 +13,7 @@ import { AuthService } from '../auth/auth.service';
 import { TrailService } from './trail.service';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { I18nService } from '../i18n/i18n.service';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController, ModalController } from '@ionic/angular/standalone';
 import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { QuotaService } from '../auth/quota.service';
@@ -38,17 +38,33 @@ export class ShareService {
   public getShare$(id: string, from: string): Observable<Share | null> {
     return this.getAll$().pipe(
       collection$items(),
-      map(shares => shares.find(share => share.id === id && share.from === from) ?? null)
+      map(shares => shares.find(share => share.uuid === id && share.owner === from) ?? null)
     );
   }
 
-  public create(type: ShareElementType, elements: string[], name: string, to: string, toLanguage: string, includePhotos: boolean): Observable<Share | null> {
+  public create(type: ShareElementType, elements: string[], name: string, recipients: string[], mailLanguage: string, includePhotos: boolean): Observable<Share | null> {
     const from = this.injector.get(AuthService).email;
     if (!from) return of(null);
     const trails: string[] = [];
+    const date = Date.now();
     return this._store.create(new Share(
-      window.crypto.randomUUID(), name, from, to, type, Date.now(), elements, trails, toLanguage, includePhotos
+      window.crypto.randomUUID(),
+      from,
+      1,
+      date,
+      date,
+      recipients,
+      type,
+      name,
+      includePhotos,
+      elements,
+      trails,
+      mailLanguage,
     ));
+  }
+
+  public update(share: Share): void {
+    this._store.update(share);
   }
 
   public remove(share: Share) {
@@ -57,8 +73,21 @@ export class ShareService {
 
   public getShareMenu(share: Share): MenuItem[] {
     const menu: MenuItem[] = [];
+    if (share.owner === this.injector.get(AuthService).email)
+      menu.push(new MenuItem().setIcon('edit').setI18nLabel('buttons.edit').setAction(() => this.sharePopup(share)))
     menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(share)));
     return menu;
+  }
+
+  public async sharePopup(share: Share) {
+    const module = await import('../../components/share-popup/share-popup.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.SharePopupComponent,
+      componentProps: {
+        share
+      }
+    });
+    modal.present();
   }
 
   public async confirmDelete(share: Share) {
@@ -105,14 +134,27 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
 
   protected override fromDTO(dto: ShareDto): Share { return Share.fromDto(dto); }
   protected override toDTO(entity: Share): ShareDto { return entity.toDto(); }
-  protected override getKey(entity: Share): string { return entity.id; }
+  protected override getKey(entity: Share): string { return entity.uuid; }
 
   protected override isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
     return !q || q.sharesUsed >= q.sharesMax;
   }
 
-  protected override updateEntityFromServer(): boolean { return true; }
+  protected override updateEntityFromServer(fromServer: Share, inStore: Share): boolean {
+    if (fromServer.version > inStore.version) return true;
+    if (this._updatedLocally.indexOf(this.getKey(fromServer)) >= 0) return false;
+    return true;
+  }
+
+  protected override updated(item: Share): void {
+    item.updatedAt = Date.now();
+  }
+
+  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+    if (fromVersion < 1300) return import('./migrations/sharev1_sharev2').then(m => m.ShareV1ToShareV2.migrate(dbService)).then(() => 1300);
+    return Promise.resolve(undefined);
+  }
 
   protected override createOnServer(items: ShareDto[]): Observable<ShareDto[]> {
     const db = this._db;
@@ -121,13 +163,13 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     items.forEach(item => {
       const request = () => {
         if (this._db !== db) return EMPTY;
-        return this.injector.get(HttpService).post<ShareDto>(environment.apiBaseUrl + '/share/v1', {
-          id: item.id,
+        return this.injector.get(HttpService).post<ShareDto>(environment.apiBaseUrl + '/share/v2', {
+          id: item.uuid,
           name: item.name,
-          to: item.to,
+          recipients: item.recipients,
           type: item.type,
           elements: item.elements,
-          toLanguage: item.toLanguage,
+          mailLanguage: item.mailLanguage,
           includePhotos: item.includePhotos,
         }).pipe(
           map(result => {
@@ -150,7 +192,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     items.forEach(item => {
       const request = () => {
         if (this._db !== db) return EMPTY;
-        return this.injector.get(HttpService).delete(environment.apiBaseUrl + '/share/v1/' + encodeURIComponent(item.from) + '/' + item.id).pipe(
+        return this.injector.get(HttpService).delete(environment.apiBaseUrl + '/share/v2/' + encodeURIComponent(item.owner) + '/' + item.uuid).pipe(
           tap({
             complete: () => this.quotaService.updateQuotas(q => q.sharesUsed--)
           }),
@@ -163,15 +205,40 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     return zip(requests).pipe(map(() => {}));
   }
 
+  protected override updateToServer(items: ShareDto[]): Observable<ShareDto[]> {
+    const db = this._db;
+    const limiter = new RequestLimiter(2);
+    const requests: Observable<any>[] = [];
+    items.forEach(item => {
+      const request = () => {
+        if (this._db !== db) return EMPTY;
+        return this.injector.get(HttpService).put<ShareDto>(environment.apiBaseUrl + '/share/v2/' + item.uuid, {
+          name: item.name,
+          includePhotos: item.includePhotos,
+          recipients: item.recipients,
+          mailLanguage: item.mailLanguage,
+        }).pipe(
+          map(result => {
+            result.trails = item.trails;
+            return result;
+          }),
+        );
+      }
+      requests.push(limiter.add(request));
+    });
+    if (requests.length === 0) return of([]);
+    return zip(requests);
+  }
+
   protected override getAllFromServer(): Observable<ShareDto[]> {
-    return this.injector.get(HttpService).get<ShareDto[]>(environment.apiBaseUrl + '/share/v1');
+    return this.injector.get(HttpService).get<ShareDto[]>(environment.apiBaseUrl + '/share/v2');
   }
 
   protected override readyToSave(entity: Share): boolean {
-    if (entity.from != this.injector.get(AuthService).email) return false;
+    if (entity.owner != this.injector.get(AuthService).email) return false;
     if (entity.type === ShareElementType.COLLECTION) {
       const collectionService = this.injector.get(TrailCollectionService);
-      return entity.elements.every(collectionUuid => collectionService.getCollection(collectionUuid, entity.from)?.isSavedOnServerAndNotDeletedLocally());
+      return entity.elements.every(collectionUuid => collectionService.getCollection(collectionUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally());
     }
     if (entity.type === ShareElementType.TAG) {
       const tagService = this.injector.get(TagService);
@@ -179,17 +246,17 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     }
     if (entity.type === ShareElementType.TRAIL) {
       const trailService = this.injector.get(TrailService);
-      return entity.elements.every(trailUuid => trailService.getTrail(trailUuid, entity.from)?.isSavedOnServerAndNotDeletedLocally());
+      return entity.elements.every(trailUuid => trailService.getTrail(trailUuid, entity.owner)?.isSavedOnServerAndNotDeletedLocally());
     }
     return false;
   }
 
   protected override readyToSave$(entity: Share): Observable<boolean> {
-    if (entity.elements.length === 0 || entity.from != this.injector.get(AuthService).email) return of(false);
+    if (entity.elements.length === 0 || entity.owner != this.injector.get(AuthService).email) return of(false);
     if (entity.type === ShareElementType.COLLECTION) {
       const collectionService = this.injector.get(TrailCollectionService);
       return combineLatest(
-        entity.elements.map(collectionUuid => collectionService.getCollection$(collectionUuid, entity.from).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally())))
+        entity.elements.map(collectionUuid => collectionService.getCollection$(collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally())))
       ).pipe(
         map(readiness => readiness.indexOf(false) < 0)
       );
@@ -205,7 +272,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     if (entity.type === ShareElementType.TRAIL) {
       const trailService = this.injector.get(TrailService);
       return combineLatest(
-        entity.elements.map(trailUuid => trailService.getTrail$(trailUuid, entity.from).pipe(map(trail => !!trail?.isSavedOnServerAndNotDeletedLocally())))
+        entity.elements.map(trailUuid => trailService.getTrail$(trailUuid, entity.owner).pipe(map(trail => !!trail?.isSavedOnServerAndNotDeletedLocally())))
       ).pipe(
         map(readiness => readiness.indexOf(false) < 0)
       );

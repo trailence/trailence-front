@@ -6,6 +6,7 @@ const reservedRe = /^\.+$/;
 const windowsReservedRe = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i; // NOSONAR
 const windowsTrailingRe = /[\. ]+$/; // NOSONAR
 
+export const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/; // NOSONAR
 
 export class StringUtils {
 
@@ -48,5 +49,24 @@ export class StringUtils {
     const majorVersion = Math.floor(v / 10000);
     return majorVersion + '.' + minorVersion + '.' + fixVersion;
   };
+
+  public static versionNameToVersionCode(name: string): number | undefined {
+    let i = name.indexOf('.');
+    if (i <= 0) return undefined;
+    const majorVersion = parseInt(name.substring(0, i));
+    if (isNaN(majorVersion) || majorVersion < 0 || majorVersion > 99) return undefined;
+    name = name.substring(i + 1);
+
+    i = name.indexOf('.');
+    if (i <= 0) return undefined;
+    const minorVersion = parseInt(name.substring(0, i));
+    if (isNaN(minorVersion) || minorVersion < 0 || minorVersion > 99) return undefined;
+    name = name.substring(i + 1);
+
+    const fixVersion = parseInt(name);
+    if (isNaN(fixVersion) || fixVersion < 0 || fixVersion > 99) return undefined;
+
+    return majorVersion * 10000 + minorVersion * 100 + fixVersion;
+  }
 
 }

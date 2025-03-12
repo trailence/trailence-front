@@ -256,14 +256,15 @@
       "tags": {
         "question": "Quels tags ?"
       },
-      "name": "Donner un nom au partage",
+      "name": "Donnez un nom au partage",
       "name_info": "Ce nom sera visible par vous et la personne avec qui vous partagez",
-      "who_question": "Avec qui ?",
+      "who_question": "Avec qui ? (jusqu'à 20 personnes)",
       "includePhotos": "Partager les photos avec les parcours",
       "photos_info": "Les photos associées aux parcours partagés seront visibles par la personne avec qui vous partagez, mais non modifiables",
       "email": "Email",
       "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
-      "language": "Dans quelle langue devons-nous envoyer le mail ?"
+      "language": "Dans quelle langue devons-nous envoyer le mail ?",
+      "recipient_error": "Veuillez entrer une adresse mail valide"
     },
     "find_duplicates": {
       "title": "Rechercher les parcours similaires",
@@ -484,6 +485,7 @@
     "save": "Enregistrer",
     "start": "Démarrer",
     "retry": "Réessayer",
+    "understood": "Compris",
     "undo": "Revenir",
     "redo": "Refaire",
     "yes": "Oui",
@@ -691,5 +693,9 @@
     "photos": "Vous avez atteint le nombre maximum de photos",
     "shares": "Vous avez atteint le nombre maximum de partages",
     "photos_max": "Votre quota de photos est {{1}} et vous en avez déjà {{2}}: vous ne pouvez pas en ajouter {{3}} nouvelle(s)"
+  },
+  "obsolete_message": {
+    "title": "Mise à jour nécessaire",
+    "message": "Votre application est dans une version obsolète, et doit être mise à jour. En utilisant cette version, vos modifications ne pourront pas être sauvegardées sur le serveur, et pourront être perdues."
   }
 }

@@ -95,7 +95,7 @@ export class TrailService {
   }
 
   public isUpdatedLocally(owner: string, uuid: string): boolean {
-    return this._store.isUpdatedLocally(owner, uuid);
+    return this._store.itemUpdatedLocally(owner, uuid);
   }
 
   public delete(trail: Trail, ondone?: () => void): void {
@@ -198,6 +198,10 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     return !q || q.trailsUsed >= q.trailsMax;
   }
 
+  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+    return Promise.resolve(undefined);
+  }
+
   protected override fromDTO(dto: TrailDto): Trail {
     return new Trail(dto);
   }
@@ -259,7 +263,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
       switchMap(([trails, collections, shares]) => {
         return new Observable<any>(subscriber => {
           const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db || email !== dbService.email) {
+          if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -277,11 +281,11 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
               const collection = collections.find(c => c.uuid === trail.collectionUuid && c.owner === email);
               if (collection) continue;
             }
-            const share = shares.find(s => s.from === trail.owner && s.trails.indexOf(trail.uuid) >= 0);
+            const share = shares.find(s => s.owner === trail.owner && s.trails.indexOf(trail.uuid) >= 0);
             if (share) continue;
             const d = ondone.add();
             this.getLocalUpdate(trail).then(date => {
-              if (db !== dbService.db || email !== dbService.email) {
+              if (db !== dbService.db?.db || email !== dbService.email) {
                 d();
                 return;
               }

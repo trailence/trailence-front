@@ -3,36 +3,51 @@ import { ShareDto, ShareElementType } from './dto/share';
 export class Share {
 
   constructor(
-    public id: string,
-    public name: string,
-    public from: string,
-    public to: string,
-    public type: ShareElementType,
+    public uuid: string,
+    public owner: string,
+    public version: number,
     public createdAt: number,
+    public updatedAt: number,
+    public recipients: string[],
+    public type: ShareElementType,
+    public name: string,
+    public includePhotos: boolean,
     public elements: string[],
     public trails: string[],
-    public toLanguage: string | null | undefined,
-    public includePhotos: boolean,
+    public mailLanguage: string | null | undefined,
   ) {}
 
   public toDto(): ShareDto {
     return {
-      id: this.id,
-      name: this.name,
-      from: this.from,
-      to: this.to,
-      type: this.type,
+      uuid: this.uuid,
+      owner: this.owner,
+      version: this.version,
       createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      recipients: [...this.recipients],
+      type: this.type,
+      name: this.name,
+      includePhotos: this.includePhotos,
       elements: this.elements,
       trails: this.trails,
-      toLanguage: this.toLanguage,
-      includePhotos: this.includePhotos,
+      mailLanguage: this.mailLanguage,
     };
   }
 
   public static fromDto(dto: ShareDto): Share {
     return new Share(
-      dto.id, dto.name, dto.from, dto.to, dto.type, dto.createdAt, dto.elements || [], dto.trails || [], dto.toLanguage, dto.includePhotos ?? false
+      dto.uuid,
+      dto.owner,
+      dto.version,
+      dto.createdAt,
+      dto.updatedAt,
+      [...dto.recipients],
+      dto.type,
+      dto.name,
+      dto.includePhotos ?? false,
+      dto.elements || [],
+      dto.trails || [],
+      dto.mailLanguage,
     );
   }
 }
