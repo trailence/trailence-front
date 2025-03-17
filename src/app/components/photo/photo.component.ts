@@ -57,7 +57,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
         else {
           const p = this.photo;
           const observer = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting) {
+            if (entries.some(e => e.isIntersecting)) {
               observer.disconnect();
               if (this.photo === p)
                 loadPhoto(p);

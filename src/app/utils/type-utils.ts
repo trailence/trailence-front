@@ -43,7 +43,7 @@ export class TypeUtils {
   }
 
   public static convertDMSToDD(direction: string, degrees: number, minutes: number, seconds: number): number {
-    const dd = degrees + minutes/60 + seconds/(60*60);
+    const dd = degrees + minutes/60.0 + seconds/(60.0*60);
 
     if (direction == "S" || direction == "W") {
         return -dd;

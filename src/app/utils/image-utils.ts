@@ -266,21 +266,27 @@ export class ImageUtils {
       } else if (tag === 0x0002 && format === 5 && nbComponents === 3) {
         lat = [
           DataUtils.readUint32(data, start + addressOrValue, littleEndian),
+          DataUtils.readUint32(data, start + addressOrValue + 4, littleEndian),
           DataUtils.readUint32(data, start + addressOrValue + 8, littleEndian),
+          DataUtils.readUint32(data, start + addressOrValue + 12, littleEndian),
           DataUtils.readUint32(data, start + addressOrValue + 16, littleEndian),
+          DataUtils.readUint32(data, start + addressOrValue + 20, littleEndian),
         ];
       } else if (tag === 0x0004 && format === 5 && nbComponents === 3) {
         lng = [
           DataUtils.readUint32(data, start + addressOrValue, littleEndian),
+          DataUtils.readUint32(data, start + addressOrValue + 4, littleEndian),
           DataUtils.readUint32(data, start + addressOrValue + 8, littleEndian),
+          DataUtils.readUint32(data, start + addressOrValue + 12, littleEndian),
           DataUtils.readUint32(data, start + addressOrValue + 16, littleEndian),
+          DataUtils.readUint32(data, start + addressOrValue + 20, littleEndian),
         ];
       }
     }
     if (latRef && lat && lngRef && lng) {
       return {
-        lat: TypeUtils.convertDMSToDD(String.fromCharCode(latRef), lat[0], lat[1], lat[2]),
-        lng: TypeUtils.convertDMSToDD(String.fromCharCode(lngRef), lng[0], lng[1], lng[2]),
+        lat: TypeUtils.convertDMSToDD(String.fromCharCode(latRef), lat[0] / lat[1], lat[2] / lat[3], lat[4] / lat[5]),
+        lng: TypeUtils.convertDMSToDD(String.fromCharCode(lngRef), lng[0] / lng[1], lng[2] / lng[3], lng[4] / lng[5]),
       }
     }
     return undefined;

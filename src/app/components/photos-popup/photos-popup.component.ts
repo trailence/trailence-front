@@ -124,6 +124,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   setAllSelected(selected: boolean): void {
     this.photos.forEach(p => p.selected = selected);
     if (selected) this.nbSelected = this.photos.length; else this.nbSelected = 0;
+    this.changesDetector.detectChanges();
   }
 
   addPhotos(): void {
