@@ -5,7 +5,7 @@ import Dexie from 'dexie';
 import { MapLayer, MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
-import { Observable, combineLatest, from, map, of, zip } from 'rxjs';
+import { Observable, catchError, combineLatest, from, map, of, switchMap, tap, zip } from 'rxjs';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { HttpService } from '../http/http.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
@@ -132,39 +132,58 @@ export class OfflineMapService {
           limiter = new RequestLimiter(layer.maxConcurrentRequests);
           let done = 0;
           let errors = 0;
+          const startTime = Date.now();
           const ondone = () => {
             progress.done();
-            if (errors > 0) this.errorService.addError(new I18nError('errors.download_offline_map', [errors]))
+            if (errors > 0) this.errorService.addError(new I18nError('errors.download_offline_map', [errors]));
+            Console.info(done + " tiles downloaded in " + (Date.now() - startTime) + "ms.");
+          };
+          let requests: Observable<{blob: Blob | undefined, key: string | undefined, error: any}>[] = [];
+          const processRequests = () => {
+            const bunch = requests;
+            requests = [];
+            combineLatest(bunch).pipe(
+              switchMap(responses => {
+                const metadata: TileMetadata[] = [];
+                const tiles: TileBlob[] = [];
+                for (const response of responses) {
+                  if (response.error !== undefined) {
+                    Console.error('Error loading map tile', response.error);
+                    errors++;
+                  } else {
+                    metadata.push({
+                      key: response.key!,
+                      size: response.blob!.size,
+                      date: Date.now(),
+                    });
+                    tiles.push({
+                      key: response.key!,
+                      blob: response.blob!,
+                    });
+                  }
+                }
+                return metadata.length === 0 ? of(true) : zip([
+                  from(metaTable.bulkPut(metadata)),
+                  from(tilesTables.bulkPut(tiles))
+                ]);
+              })
+            ).subscribe(() => {
+              done += bunch.length;
+              progress.workDone = done;
+              progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
+              if (done === coordsToDl.length) ondone();
+            });
           };
           for (const c of coordsToDl) {
-            const request$ = limiter.add(() => this.getBlob(layer, layer.getTileUrl(tiles, c, crs)));
-            request$.subscribe({
-              next: blob => {
-                zip([
-                  from(metaTable.put({
-                    key: '' + c.z + '_' + c.y + '_' + c.x,
-                    size: blob.size,
-                    date: Date.now()
-                  })),
-                  from(tilesTables.put({
-                    key: '' + c.z + '_' + c.y + '_' + c.x,
-                    blob: blob
-                  }))
-                ]).subscribe(() => {
-                  progress.workDone = ++done;
-                  progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
-                  if (done === coordsToDl.length) ondone();
-                });
-              },
-              error: e => {
-                Console.error('Error loading map tile', e);
-                errors++;
-                progress.workDone = ++done;
-                progress.subTitle = layer.displayName + ' ' + done + '/' + coordsToDl.length;
-                if (done === coordsToDl.length) ondone();
-              }
-            });
+            requests.push(limiter.add(() =>
+              this.getBlob(layer, layer.getTileUrl(tiles, c, crs)).pipe(
+                map(blob => ({blob, key: '' + c.z + '_' + c.y + '_' + c.x, error: undefined})),
+                catchError(e => of({blob: undefined, key: undefined, error: e})),
+              )
+            ));
+            if (requests.length >= 50) processRequests();
           }
+          if (requests.length > 0) processRequests();
         }
       );
     });
