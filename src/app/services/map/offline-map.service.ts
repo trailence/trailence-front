@@ -5,7 +5,7 @@ import Dexie from 'dexie';
 import { MapLayer, MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
-import { Observable, catchError, combineLatest, from, map, of, switchMap, tap, zip } from 'rxjs';
+import { Observable, catchError, combineLatest, from, map, of, switchMap, zip } from 'rxjs';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { HttpService } from '../http/http.service';
 import { BinaryContent } from 'src/app/utils/binary-content';

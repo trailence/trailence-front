@@ -118,7 +118,7 @@ export class AssetsService {
       'theme-dark': 'assets/theme-dark.1.svg', // moon-outline
       'theme-system': 'assets/theme-system.1.svg', // cog-outline
       'undo': 'assets/undo.1.svg', // arrow-undo-outline
-      'warning': 'assets/warning.1.svg', // warning-outline
+      'warning': 'assets/warning.2.svg', // warning-outline
       'web': 'assets/web.1.svg', // globe-outline
       'windows': 'assets/windows.1.svg', // logo-windows
       'zoom-in': 'assets/zoom-in.1.svg',
