@@ -232,7 +232,7 @@ export class PreferencesService {
   }
 
   public setOfflineMapMaxKeepDays(value: number): void {
-    this.setPreference('offlineMapMaxkeepDays', value);
+    this.setPreference('offlineMapMaxKeepDays', value);
   }
 
   public setEstimatedBaseSpeed(value: number): void {

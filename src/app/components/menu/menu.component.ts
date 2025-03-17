@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonButton, MenuController, IonBadge, IonPopover, IonContent } from "@ionic/angular/standalone";
+import { IonIcon, IonButton, MenuController, IonBadge, IonPopover, IonContent, Platform } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { combineLatest, map } from 'rxjs';
@@ -51,6 +51,7 @@ export class MenuComponent {
     authService: AuthService,
     public readonly update: UpdateService,
     public readonly fetchSourceService: FetchSourceService,
+    platform: Platform,
   ) {
     collectionService.getAll$().pipe(
       collection$items(),
@@ -61,7 +62,7 @@ export class MenuComponent {
     .subscribe(([auth, shares]) => {
       this.sharedByMe = List(shares.filter(share => share.owner === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
       this.sharedWithMe = List(shares.filter(share => share.owner !== auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
-      this.isAdmin = !!auth?.admin;
+      this.isAdmin = !!auth?.admin && !platform.is('capacitor');
     });
   }
 

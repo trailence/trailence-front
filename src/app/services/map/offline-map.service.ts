@@ -298,11 +298,12 @@ export class OfflineMapService {
   private computeLayerContent(name: string): Observable<{items: number, size: number}> {
     const result = {items: 0, size: 0};
     if (!this._db) return of(result);
-    return from(this._db.table<TileMetadata>(name + '_meta').each((item => {
-      result.items++;
-      result.size += item.size;
-    }))).pipe(
-      map(() => result)
+    return from(this._db.table<TileMetadata>(name + '_meta').toArray()).pipe(
+      map(items => {
+        result.items = items.length;
+        result.size = items.reduce((p,n) => p + n.size, 0);
+        return result;
+      })
     );
   }
 

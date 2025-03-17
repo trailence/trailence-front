@@ -25,7 +25,7 @@ export class NetworkService implements INetworkService {
     this._server$.subscribe(connected => Console.info("Server reachable = " + connected));
     this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
     httpService.addResponseInterceptor(response => {
-      if (response.status === 0) {
+      if (response.status === 0 && response.request.url.startsWith(environment.apiBaseUrl)) {
         if (this._server$.value) {
           this._server$.next(false);
           this.checkServerConnection(++this.count, 1);
