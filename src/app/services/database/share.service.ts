@@ -17,6 +17,7 @@ import { AlertController, ModalController } from '@ionic/angular/standalone';
 import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { QuotaService } from '../auth/quota.service';
+import { Arrays } from 'src/app/utils/arrays';
 
 @Injectable({
   providedIn: 'root'
@@ -141,10 +142,14 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     return !q || q.sharesUsed >= q.sharesMax;
   }
 
-  protected override updateEntityFromServer(fromServer: Share, inStore: Share): boolean {
-    if (fromServer.version > inStore.version) return true;
-    if (this._updatedLocally.indexOf(this.getKey(fromServer)) >= 0) return false;
-    return true;
+  protected override updateEntityFromServer(fromServer: Share, inStore: Share): Share | null {
+    if (fromServer.version > inStore.version) return fromServer;
+    if (this._updatedLocally.indexOf(this.getKey(fromServer)) >= 0) {
+      if (Arrays.sameContent(inStore.trails, fromServer.trails)) return null;
+      inStore.trails = fromServer.trails;
+      return inStore;
+    }
+    return inStore.isEqual(fromServer) ? null : fromServer;
   }
 
   protected override updated(item: Share): void {

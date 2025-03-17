@@ -75,8 +75,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     return this.getKey(item1) === this.getKey(item2);
   }
 
-  protected updateEntityFromServer(fromServer: ENTITY, inStore: ENTITY): boolean {
-    return false;
+  protected updateEntityFromServer(fromServer: ENTITY, inStore: ENTITY): ENTITY | null {
+    return null;
   }
 
   private saveStore(): Observable<boolean> {
@@ -359,6 +359,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         const returnedFromServer = dtos.length;
         // remove items not created locally and not returned by the server, and add new items from server
         const deleted: BehaviorSubject<ENTITY | null>[] = [];
+        let updated = false;
         this._store.value.forEach(
           item$ => {
             if (!item$.value) return;
@@ -367,10 +368,11 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             if (index >= 0) {
               // returned by server => already known
               const dto = dtos[index];
-              const entity = this.fromDTO(dto);
-              if (this.updateEntityFromServer(entity, known)) {
+              const entity = this.updateEntityFromServer(this.fromDTO(dto), known);
+              if (entity) {
                 item$.next(entity);
                 this._errors.itemSuccess(this.getKey(entity));
+                updated = true;
               }
               dtos.splice(index, 1);
             } else if (this._createdLocally.indexOf(item$) < 0) {
@@ -386,11 +388,11 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           const e = this.fromDTO(dto);
           if (!this._deletedLocally.find(entity => this.areSame(e, entity))) {
             // not deleted locally => new item from server
-            added.push(new BehaviorSubject<ENTITY | null>(this.fromDTO(dto)));
+            added.push(new BehaviorSubject<ENTITY | null>(e));
           }
         });
         Console.info('Server updates for ' + this.tableName + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
-        if (deleted.length > 0 || added.length > 0) {
+        if (deleted.length > 0 || added.length > 0 || updated) {
           for (const item$ of deleted) {
             const index = this._store.value.indexOf(item$);
             if (index >= 0) this._store.value.splice(index, 1);
