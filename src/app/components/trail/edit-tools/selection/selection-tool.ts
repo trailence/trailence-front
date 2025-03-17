@@ -138,6 +138,15 @@ export class SelectionTool implements EditTool {
     }
   }
 
+  getTime(): string {
+    if (!this.point1?.point.time) return '';
+    if (this.point2) {
+      if (!this.point2.point.time) return '';
+      return this.i18n.durationToString(Math.abs(this.point2.point.time - this.point1.point.time), false, true);
+    }
+    return this.i18n.timestampToDateTimeString(this.point1.point.time);
+  }
+
   elevationInputValue(meters: number): string {
     return this.i18n.elevationInUserUnit(meters).toFixed(6);
   }

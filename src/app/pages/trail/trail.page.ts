@@ -125,8 +125,9 @@ export class TrailPage extends AbstractPage {
           this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, t1?.collectionUuid);
           if (t1 && this.injector.get(ReplayService).canReplay) {
             this.menu.push(new MenuItem());
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1)));
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1)));
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner)));
           }
           if (!t2 && t1?.owner === this.injector.get(AuthService).email) {
             const browser = this.injector.get(BrowserService);

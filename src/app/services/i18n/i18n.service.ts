@@ -214,15 +214,28 @@ export class I18nService {
     }
   }
 
-  public durationToString(duration?: number, showZeroHour: boolean = true): string {
+  public durationToString(duration?: number, showZeroHour: boolean = true, showSeconds: boolean = false): string {
     if (duration === undefined) return '';
     const minutes = Math.floor(duration / (1000 * 60));
     const days = Math.floor(minutes / (24 * 60));
     const hours = Math.floor((minutes - days * 24 * 60) / 60);
     const min = minutes - (days * 24 * 60) - (hours * 60);
+    const seconds = Math.floor((duration - minutes * 60000) / 1000);
     let minS = min.toString();
-    if (!showZeroHour && hours === 0 && days === 0) return minS + this.texts.duration.minutes;
+    if (!showZeroHour && hours === 0 && days === 0) {
+      minS += this.texts.duration.minutes;
+      if (showSeconds) {
+        if (seconds < 10) minS += '0';
+        minS += seconds;
+      }
+      return minS;
+    }
     if (minS.length < 2) minS = '0' + minS;
+    if (showSeconds) {
+      minS += this.texts.duration.minutes;
+      if (seconds < 10) minS += '0';
+      minS += seconds;
+    }
     let hourS = hours.toString();
     if (days === 0) return hourS + this.texts.duration.hours + minS;
     if (hourS.length < 2) hourS = '0' + hourS;

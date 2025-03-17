@@ -1,7 +1,39 @@
 <ng-container *ngIf="point1 && !selectingPoint2">
   <div class="page-section-title">{{i18n.texts.pages.trail.edit_tools.selected_point[point2 ? 'title_plural' : 'title_singular']}}</div>
   <div class="selection">
+    <div class="metadata-container" [ngClass]="{'one-column': !point2, 'two-columns': !!point2}">
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <ion-icon name="center-on-location"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{i18n.coordToString(point1.point.pos.lat)}}, {{i18n.coordToString(point1.point.pos.lng)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="metadata-item-container" *ngIf="point2">
+        <div class="metadata-item">
+          <ion-icon name="center-on-location"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{i18n.coordToString(point2.point.pos.lat)}}, {{i18n.coordToString(point2.point.pos.lng)}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="metadata-container one-column">
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <ion-icon name="duration"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{getTime()}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="metadata-item-container">
         <div class="metadata-item">
           <ion-icon name="distance"></ion-icon>
@@ -29,28 +61,6 @@
                 >
                 </ion-input>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="metadata-container" [ngClass]="{'one-column': !point2, 'two-columns': !!point2}">
-      <div class="metadata-item-container">
-        <div class="metadata-item">
-          <ion-icon name="center-on-location"></ion-icon>
-          <div class="metadata-content">
-            <div class="metadata-value">
-              <div class="metadata-primary">{{i18n.coordToString(point1.point.pos.lat)}}, {{i18n.coordToString(point1.point.pos.lng)}}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="metadata-item-container" *ngIf="point2">
-        <div class="metadata-item">
-          <ion-icon name="center-on-location"></ion-icon>
-          <div class="metadata-content">
-            <div class="metadata-value">
-              <div class="metadata-primary">{{i18n.coordToString(point2.point.pos.lat)}}, {{i18n.coordToString(point2.point.pos.lng)}}</div>
             </div>
           </div>
         </div>

@@ -329,6 +329,8 @@ export class TraceRecorderService {
       status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
       status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'enough time/distance');
       status.points++;
+      this.removeUnprobablePoints(recording);
+      this.improveBreaks(recording, status);
       return;
     }
     // update with best accuracy
@@ -363,6 +365,82 @@ export class TraceRecorderService {
       return false;
     }
     return true;
+  }
+
+  private removeUnprobablePoints(recording: Recording): void { // NOSONAR
+    const segment = recording.track.lastSegment;
+    const points = segment.points;
+    if (points.length < 3) return;
+    const latestPoint = points[points.length - 1];
+    if (latestPoint.posAccuracy === undefined || latestPoint.time === undefined) return;
+    for (let i = points.length - 2; i >= 0 && i > points.length - 10; --i) {
+      const point = points[i];
+      if (point.posAccuracy === undefined || point.time === undefined) continue;
+      if (point.posAccuracy > latestPoint.posAccuracy * 1.5) {
+        const distance = point.distanceTo(latestPoint.pos);
+        if (point.time - latestPoint.time < 60000 && distance < 100) {
+          let found = false;
+          for (let j = i - 1; j >= 0 && j > points.length - 15; --j) {
+            const point2 = points[j];
+            if (point2.posAccuracy === undefined || point2.time === undefined) continue;
+            const distance2 = point2.distanceTo(latestPoint.pos);
+            if (point2.posAccuracy <= latestPoint.posAccuracy * 1.25 && distance2 < distance * 0.95) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) return;
+          Console.info("Remove unprobable point", point);
+          segment.removePointAt(i);
+          i++;
+        }
+      }
+    }
+  }
+
+  private improveBreaks(recording: Recording, status: RecordingStatus): void { // NOSONAR
+    const segment = recording.track.lastSegment;
+    const points = segment.points;
+    const currentPoint = status.temporaryImprovedPoint;
+    const currentTime = currentPoint?.time;
+    if (points.length < 3 || !currentTime) return;
+    /* If we stay in a 20 meters area since at least 2 minutes
+    * we are most probably in a break, so we can keep only one point to remove small moves during break
+    */
+    let i = points.length - 1;
+    let latestWithin5Meters = -1;
+    while (i >= 0) {
+      const distance = points[i].distanceTo(currentPoint.pos);
+      if (distance > 20) break;
+      if (distance <= 5) latestWithin5Meters = i;
+      i--;
+    }
+    if (latestWithin5Meters < 0) return;
+    i = latestWithin5Meters;
+    if (i >= points.length - 3) return;
+    const firstPoint = points[i];
+    if (!firstPoint.time || currentTime - firstPoint.time < 120000) return;
+    const averagePos = { lat: firstPoint.pos.lat, lng: firstPoint.pos.lng };
+    for (let j = i + 1; j <= points.length - 1; ++j) {
+      averagePos.lat += points[j].pos.lat;
+      averagePos.lng += points[j].pos.lng;
+    }
+    averagePos.lat /= points.length - i;
+    averagePos.lng /= points.length - i;
+    let best = i;
+    for (let j = i + 1; j <= points.length - 1; ++j) {
+      if (points[best].pos.distanceTo(averagePos) > points[j].pos.distanceTo(averagePos)) {
+        best = j;
+      }
+    }
+    Console.info('Break moves removal: ' + (points.length - i - 1) + ' point(s) removed');
+    if (best > i)
+      segment.removeMany(points.slice(i, best));
+    if (best < points.length - 1) {
+      segment.removeMany(points.slice(best + 1, points.length));
+      status.latestDefinitiveImprovedAngle = Math.atan2(currentPoint.pos.lat - points[best].pos.lat, currentPoint.pos.lng - points[best].pos.lng);
+      status.latestDefinitiveImprovedPoint = points[best];
+    }
   }
 
   private addRawPoint(recording: Recording, position: PointDto, reason: string): Point {
