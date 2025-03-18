@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, NgZone, OnDestroy } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput } from "@ionic/angular/standalone";
@@ -9,20 +9,24 @@ import { Subscription } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { ExtensionsService } from 'src/app/services/database/extensions.service';
 import { Extension } from 'src/app/model/extension';
-import { NumericFilterConfig } from 'src/app/components/filters/filter';
+import { FilterNumeric, NumericFilterConfig, NumericFilterCustomConfig } from 'src/app/components/filters/filter';
 import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
+import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-numeric-custom/filter-numeric-custom.component';
 
 @Component({
     selector: 'app-preferences',
     templateUrl: './preferences.page.html',
     styleUrls: ['./preferences.page.scss'],
-    imports: [IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon, HeaderComponent, FormsModule, CommonModule]
+    imports: [
+      IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon,
+      HeaderComponent, FormsModule, CommonModule,
+      FilterNumericCustomComponent,
+    ]
 })
 export class PreferencesPage implements OnDestroy {
 
   timestamp = new Date(2001, 11, 27, 18, 36, 42).getTime();
-  millisecondsFormatter = (value: number) => (value / 1000).toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits: 1}) + 's';
   minutesFormatter = (value: number) => (value / 60000).toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits:0}) + 'm';
   fileSizeFormatter = (value: number) => this.i18n.sizeToString(value * 1024, 0, 2);
   daysFormatter = (value: number) => value + ' ' + this.i18n.texts.duration.days;
@@ -33,6 +37,7 @@ export class PreferencesPage implements OnDestroy {
 
   private readonly extensionsSubscription: Subscription;
   private currentExtensions: Extension[] = [];
+  private readonly preferencesSubscription: Subscription;
 
   constructor(
     public i18n: I18nService,
@@ -40,6 +45,7 @@ export class PreferencesPage implements OnDestroy {
     private readonly offlineMaps: OfflineMapService,
     private readonly extensions: ExtensionsService,
     private readonly photoService: PhotoService,
+    private readonly ngZone: NgZone,
   ) {
     this.updateOfflineMapCounters();
     this.updatePhotoCacheSize();
@@ -50,10 +56,78 @@ export class PreferencesPage implements OnDestroy {
         this.currentExtensions = extensions;
       }
     );
+    this.preferencesSubscription = preferences.preferences$.subscribe(() => this.refresh());
   }
 
   ngOnDestroy(): void {
     this.extensionsSubscription.unsubscribe();
+    this.preferencesSubscription.unsubscribe();
+  }
+
+  traceMinMillisConfig: NumericFilterCustomConfig = {
+    range: false,
+    values: [0, 1000, 2000, 3000, 4000, 5000, 10000, 15000, 20000, 30000, 45000, 60000],
+    formatter: (value: number) => Math.floor(value / 1000) + 's'
+  };
+  offlineMapMaxKeepDaysConfig: NumericFilterCustomConfig = {
+    range: false,
+    values: [5, 10, 15, 30, 60, 100, 200, 300, 500, 1000],
+    formatter: (value: number) => '' + value,
+  }
+  photoCacheDaysConfig: NumericFilterCustomConfig = {
+    range: false,
+    values: [1, 5, 15, 30, 60, 100, 300, 500, 1000],
+    formatter: (value: number) => '' + value,
+  }
+
+  private currentDistanceUnit?: DistanceUnit;
+  traceMinMetersConfig!: NumericFilterCustomConfig;
+  baseSpeedConfig!: NumericFilterCustomConfig;
+  longBreakMaximumDistanceConfig!: NumericFilterCustomConfig;
+
+  refresh(): void {
+    if (this.currentDistanceUnit !== this.preferences.preferences.distanceUnit) {
+      this.currentDistanceUnit = this.preferences.preferences.distanceUnit
+      switch (this.currentDistanceUnit) {
+        case 'METERS':
+          this.traceMinMetersConfig = {
+            range: false,
+            values: [1, 2, 3, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100],
+            formatter: (value: number) => value + 'm',
+          };
+          this.baseSpeedConfig = {
+            range: false,
+            values: [2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 20000],
+            formatter: (value: number) => this.i18n.getSpeedStringInUserUnit(value)
+          };
+          this.longBreakMaximumDistanceConfig = {
+            range: false,
+            values: [15, 20, 25, 30, 40, 50, 75, 100, 150, 200],
+            formatter: (value: number) => value + 'm',
+          };
+          break;
+        case 'IMPERIAL':
+          this.traceMinMetersConfig = {
+            range: false,
+            values: [3, 6, 10, 16, 33, 50, 65, 82, 98, 131, 164, 246, 328],
+            realValues: [1, 2, 3, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100],
+            formatter: (value: number) => value + 'ft',
+          };
+          this.baseSpeedConfig = {
+            range: false,
+            values: [1.24, 1.55, 1.86, 2.17, 2.48, 2.80, 3.10, 3.42, 3.73, 4.04, 4.35, 4.66, 4.97, 5.59, 6.21, 6.83, 7.46, 8.08, 8.70, 9.32, 12.43],
+            realValues: [2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 20000],
+            formatter: (value: number) => this.i18n.getSpeedStringInUserUnit(value)
+          }
+          this.longBreakMaximumDistanceConfig = {
+            range: false,
+            values: [50, 65, 82, 98, 131, 164, 246, 328, 492, 656],
+            realValues: [15, 20, 25, 30, 40, 50, 75, 100, 150, 200],
+            formatter: (value: number) => value + 'ft',
+          };
+          break;
+      }
+    }
   }
 
   setTheme(s?: string): void {
@@ -72,115 +146,28 @@ export class PreferencesPage implements OnDestroy {
     this.preferences.setHourFormat(s as HourFormat);
   }
 
-  getTraceMinimumDistanceConfig(): NumericFilterConfig {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return {
-        min: 1,
-        max: 100,
-        step: 1,
-        formatter: (value: number) => value + 'm'
-      }
-      case 'IMPERIAL': return {
-        min: 3,
-        max: 300,
-        step: 3,
-        formatter: (value: number) => value + 'ft'
-      }
-    }
+  setTraceMinimumDistance(value: number | FilterNumeric): void {
+    this.preferences.setTraceMinMeters(value as number);
   }
 
-  getTraceMinimumDistanceValue(): number {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return this.preferences.preferences.traceMinMeters;
-      case 'IMPERIAL': return Math.floor(Math.round(this.i18n.metersToFoot(this.preferences.preferences.traceMinMeters)) / 3) * 3
-    }
+  setTraceMinimumInterval(millis: number | FilterNumeric): void {
+    this.preferences.setTraceMinMillis(millis as number);
   }
 
-  setTraceMinimumDistance(value: number): void {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': this.preferences.setTraceMinMeters(value); break;
-      case 'IMPERIAL': this.preferences.setTraceMinMeters(Math.round(this.i18n.footToMeters(value))); break;
-    }
-  }
-
-  setTraceMinimumInterval(millis: number): void {
-    this.preferences.setTraceMinMillis(millis);
-  }
-
-  getEstimatedBaseSpeedConfig(): NumericFilterConfig {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return {
-        min: 2000,
-        max: 20000,
-        step: 250,
-        formatter: (value: number) => this.i18n.getSpeedString(value)
-      }
-      case 'IMPERIAL': return {
-        min: 1,
-        max: 125,
-        step: 0.2,
-        formatter: (value: number) => this.i18n.getSpeedString(this.i18n.milesToMeters(value))
-      }
-    }
-  }
-
-  getEstimatedBaseSpeedValue(): number {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return this.preferences.preferences.estimatedBaseSpeed;
-      case 'IMPERIAL': {
-        const miles = this.i18n.metersToMiles(this.preferences.preferences.estimatedBaseSpeed);
-        if (miles < 1) return 1;
-        if (miles > 125) return 125;
-        return 1 + Math.round((miles - 1) / 0.2) * 0.2;
-      }
-    }
-  }
-
-  setEstimatedBaseSpeed(speed: number): void {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': this.preferences.setEstimatedBaseSpeed(speed); break;
-      case 'IMPERIAL': this.preferences.setEstimatedBaseSpeed(Math.round(this.i18n.milesToMeters(speed))); break;
-    }
+  setEstimatedBaseSpeed(speed: number | FilterNumeric): void {
+    this.preferences.setEstimatedBaseSpeed(speed as number);
   }
 
   setLongBreakMinimumDuration(value: number): void {
     this.preferences.setLongBreakMinimumDuration(value);
   }
 
-  getLongBreakMaximumDistanceConfig(): NumericFilterConfig {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return {
-        min: 15,
-        max: 200,
-        step: 5,
-        formatter: (value: number) => value + 'm'
-      };
-      case 'IMPERIAL': return {
-        min: 50,
-        max: 650,
-        step: 10,
-        formatter: (value: number) => value + 'ft'
-      }
-    }
+  setLongBreakMaximumDistance(value: number | FilterNumeric): void {
+    this.preferences.setLongBreakMaximumDistance(value as number);
   }
 
-  getLongBreakMaximumDistanceValue(): number {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return this.preferences.preferences.longBreakMaximumDistance;
-      case 'IMPERIAL': {
-        const foot = this.i18n.metersToFoot(this.preferences.preferences.longBreakMaximumDistance);
-        if (foot < 50) return 50;
-        if (foot > 650) return 650;
-        return 50 + Math.round((foot - 50) / 10) * 10;
-      }
-    }
-  }
-
-  setLongBreakMaximumDistance(value: number): void {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': this.preferences.setLongBreakMaximumDistance(value); break;
-      case 'IMPERIAL': this.preferences.setLongBreakMaximumDistance(Math.round(this.i18n.footToMeters(value))); break;
-    }
+  setOfflineMapMaxKeepDays(value: number | FilterNumeric): void {
+    this.preferences.setOfflineMapMaxKeepDays(value as number);
   }
 
   cleanOfflineMaps(): void {
@@ -190,9 +177,15 @@ export class PreferencesPage implements OnDestroy {
   }
 
   private updateOfflineMapCounters(): void {
-    this.offlineMaps.computeContent().subscribe(
-      counters => this.offlineMapCounters = counters
-    );
+    this.compute('offline-map-counters', () => new Promise(resolve => {
+      this.offlineMaps.computeContent().subscribe({
+        next: counters => {
+          this.offlineMapCounters = counters;
+          resolve(true);
+        },
+        error: () => resolve(true)
+      });
+    }));
   }
 
   updateThunderforestApiKey(value?: string | null): void {
@@ -203,8 +196,8 @@ export class PreferencesPage implements OnDestroy {
     }
   }
 
-  setPhotoCacheDays(days: number): void {
-    this.preferences.setPhotoCacheDays(days);
+  setPhotoCacheDays(value: number | FilterNumeric): void {
+    this.preferences.setPhotoCacheDays(value as number);
     this.photoCacheSize = undefined;
     this.updatePhotoCacheSize();
   }
@@ -220,11 +213,36 @@ export class PreferencesPage implements OnDestroy {
   }
 
   private updatePhotoCacheSize(): void {
-    this.photoService.getTotalCacheSize(Date.now() - this.preferences.preferences.photoCacheDays * 24 * 60 * 60 * 1000).subscribe(([total, expired]) => this.photoCacheSize = {total, expired})
+    this.compute('photo-cache-size', () => new Promise(resolve => {
+      this.ngZone.runOutsideAngular(() => {
+        this.photoService.getTotalCacheSize(Date.now() - this.preferences.preferences.photoCacheDays * 24 * 60 * 60 * 1000)
+        .subscribe({
+          next: ([total, expired]) => {
+            this.ngZone.run(() => {
+              this.photoCacheSize = {total, expired};
+              resolve(true);
+            });
+          },
+          error: () => resolve(true)
+        });
+      });
+    }));
   }
 
   resetAll(): void {
     this.preferences.resetAll();
+  }
+
+  private compute$ = Promise.resolve(true);
+  private computeCounter: {[key: string]: number} = {};
+
+  private compute(type: string, operation: () => Promise<boolean>): void {
+    const counter = (this.computeCounter[type] ?? 0) + 1;
+    this.computeCounter[type] = counter;
+    this.compute$ = this.compute$.then(() => {
+      if (this.computeCounter[type] !== counter) return true;
+      return operation();
+    });
   }
 
 }

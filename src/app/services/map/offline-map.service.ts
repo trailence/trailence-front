@@ -298,13 +298,19 @@ export class OfflineMapService {
   private computeLayerContent(name: string): Observable<{items: number, size: number}> {
     const result = {items: 0, size: 0};
     if (!this._db) return of(result);
-    return from(this._db.table<TileMetadata>(name + '_meta').toArray()).pipe(
-      map(items => {
-        result.items = items.length;
-        result.size = items.reduce((p,n) => p + n.size, 0);
-        return result;
-      })
-    );
+    const t = this._db.table<TileMetadata>(name + '_meta');
+    return from(t.count().then(count => {
+      result.items = count;
+      if (count === 0) return result;
+      const next = (i: number): Promise<void> => {
+        const next$ = t.offset(i).limit(i + 10000 > count ? count - i : 10000).toArray()
+          .then(items => {
+            for (const item of items) result.size += item.size;
+          });
+        return i + 10000 > count ? next$ : next$.then(() => next(i + 10000));
+      };
+      return next(0).then(() => result);
+    }));
   }
 
   private saveRestrictedWays(bounds: L.LatLngBounds): void {

@@ -238,7 +238,7 @@ export class PhotoService {
   }
 
   public getTotalCacheSize(maxDateStored: number): Observable<[number,number]> {
-    return this.injector.get(StoredFilesService).getTotalSize('photo', maxDateStored);
+    return this.injector.get(StoredFilesService).getTotalSize('photo', maxDateStored, 20);
   }
 
   public removeAllCached(): Observable<any> {

@@ -18,3 +18,10 @@ export interface NumericFilterConfig {
   step: number;
   formatter: (value: number) => string;
 }
+
+export interface NumericFilterCustomConfig {
+  values: number[];
+  range: boolean;
+  formatter: (value: number) => string;
+  realValues?: number[];
+}

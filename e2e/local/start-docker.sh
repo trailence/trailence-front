@@ -21,7 +21,7 @@ docker compose down
 echo "Install NPM packages"
 cd .. && npm i && cd local
 echo "Starting docker compose"
-docker compose up -d --wait
+docker compose up -d --pull always --wait
 echo "Database user is $DB_USERNAME with password $DB_PASSWORD"
 echo "Initial user is $TRAILENCE_INIT_USER with password $TRAILENCE_INIT_PASSWORD"
 /bin/bash

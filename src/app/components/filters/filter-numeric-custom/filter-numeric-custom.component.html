@@ -1,0 +1,18 @@
+<ion-range
+  #range
+  mode="md"
+  [dualKnobs]="config.range"
+  [pin]="true"
+  [pinFormatter]="valueFormatter"
+  [ticks]="true"
+  [snaps]="true"
+  [min]="0"
+  [max]="config.values.length - 1"
+  [step]="1"
+  [value]="ionValue"
+  (ionInput)="ionValueChanged($event.detail.value)"
+  class="always-show-knob-pin"
+>
+  <ion-label slot="start">{{ minValueLabel ? minValueLabel : config.formatter(config.values[0]) }}</ion-label>
+  <ion-label slot="end">{{ maxValueLabel ? maxValueLabel : config.formatter(config.values[config.values.length - 1]) }}</ion-label>
+</ion-range>

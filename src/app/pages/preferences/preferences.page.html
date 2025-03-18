@@ -117,16 +117,12 @@
     <div class="preference-content">
       <div class="title">{{i18n.texts.pages.preferences.traceMinMeters}}</div>
       <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.traceMinMeters_explaination"></div>
-      <div class="value" *ngIf="getTraceMinimumDistanceConfig() as config">
-        <ion-range
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="config.min" [max]="config.max" [step]="config.step"
-          [pin]="true" [pinFormatter]="config.formatter"
-          [ngModel]="getTraceMinimumDistanceValue()" (ngModelChange)="setTraceMinimumDistance($event)"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">{{config.formatter(config.min)}}</ion-label>
-          <ion-label slot="end">{{config.formatter(config.max)}}</ion-label>
-        </ion-range>
+      <div class="value">
+        <app-filter-numeric-custom
+          [config]="traceMinMetersConfig"
+          [value]="preferences.preferences.traceMinMeters"
+          (valueChange)="setTraceMinimumDistance($event)"
+        ></app-filter-numeric-custom>
       </div>
     </div>
   </div>
@@ -139,15 +135,11 @@
       <div class="title">{{i18n.texts.pages.preferences.traceMinMillis}}</div>
       <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.traceMinMillis_explaination"></div>
       <div class="value">
-        <ion-range
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="0" [max]="60000" [step]="500"
-          [pin]="true" [pinFormatter]="millisecondsFormatter"
-          [ngModel]="preferences.preferences.traceMinMillis" (ngModelChange)="setTraceMinimumInterval($event)"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">0s</ion-label>
-          <ion-label slot="end">60s</ion-label>
-        </ion-range>
+        <app-filter-numeric-custom
+          [config]="traceMinMillisConfig"
+          [value]="preferences.preferences.traceMinMillis"
+          (valueChange)="setTraceMinimumInterval($event)"
+        ></app-filter-numeric-custom>
       </div>
     </div>
   </div>
@@ -163,16 +155,12 @@
     <div class="preference-content">
       <div class="title">{{i18n.texts.pages.preferences.time_calculation.base_speed}}</div>
       <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.time_calculation.base_speed_explaination"></div>
-      <div class="value" *ngIf="getEstimatedBaseSpeedConfig() as config">
-        <ion-range
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="config.min" [max]="config.max" [step]="config.step"
-          [pin]="true" [pinFormatter]="config.formatter"
-          [ngModel]="getEstimatedBaseSpeedValue()" (ngModelChange)="setEstimatedBaseSpeed($event)"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">{{config.formatter(config.min)}}</ion-label>
-          <ion-label slot="end">{{config.formatter(config.max)}}</ion-label>
-        </ion-range>
+      <div class="value">
+        <app-filter-numeric-custom
+          [config]="baseSpeedConfig"
+          [value]="preferences.preferences.estimatedBaseSpeed"
+          (valueChange)="setEstimatedBaseSpeed($event)"
+        ></app-filter-numeric-custom>
       </div>
     </div>
   </div>
@@ -197,16 +185,12 @@
         </ion-range>
       </div>
       <div class="sub-title">{{i18n.texts.pages.preferences.time_calculation.long_break_maximum_distance}}</div>
-      <div class="value" *ngIf="getLongBreakMaximumDistanceConfig() as config">
-        <ion-range
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="config.min" [max]="config.max" [step]="config.step"
-          [pin]="true" [pinFormatter]="config.formatter"
-          [ngModel]="getLongBreakMaximumDistanceValue()" (ngModelChange)="setLongBreakMaximumDistance($event)"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">{{config.formatter(config.min)}}</ion-label>
-          <ion-label slot="end">{{config.formatter(config.max)}}</ion-label>
-        </ion-range>
+      <div class="value">
+        <app-filter-numeric-custom
+          [config]="longBreakMaximumDistanceConfig"
+          [value]="preferences.preferences.longBreakMaximumDistance"
+          (valueChange)="setLongBreakMaximumDistance($event)"
+        ></app-filter-numeric-custom>
       </div>
     </div>
   </div>
@@ -223,15 +207,11 @@
       <div class="title">{{i18n.texts.pages.preferences.offlineMapMaxKeepDays}}</div>
       <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.offlineMapMaxKeepDays_explaination"></div>
       <div class="value">
-        <ion-range
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="15" [max]="300" [step]="15"
-          [pin]="true"
-          [ngModel]="preferences.preferences.offlineMapMaxKeepDays" (ngModelChange)="preferences.setOfflineMapMaxKeepDays($event)"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">15</ion-label>
-          <ion-label slot="end">300</ion-label>
-        </ion-range>
+        <app-filter-numeric-custom
+          [config]="offlineMapMaxKeepDaysConfig"
+          [value]="preferences.preferences.offlineMapMaxKeepDays"
+          (valueChange)="setOfflineMapMaxKeepDays($event)"
+        ></app-filter-numeric-custom>
       </div>
     </div>
   </div>
@@ -357,16 +337,11 @@
       <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.photos_cache_explaination"></div>
       <div style="margin-top: 10px">{{i18n.texts.pages.preferences.photos_cache_max_days}}</div>
       <div class="value">
-        <ion-range
-          mode="md" [dualKnobs]="false" [ticks]="true" [snaps]="true" [min]="1" [max]="180" [step]="1"
-          [pin]="true"
-          [pinFormatter]="daysFormatter"
-          [ngModel]="preferences.preferences.photoCacheDays" (ngModelChange)="setPhotoCacheDays($event)"
-          class="always-show-knob-pin"
-        >
-          <ion-label slot="start">{{daysFormatter(1)}}</ion-label>
-          <ion-label slot="end">{{daysFormatter(180)}}</ion-label>
-        </ion-range>
+        <app-filter-numeric-custom
+          [config]="photoCacheDaysConfig"
+          [value]="preferences.preferences.photoCacheDays"
+          (valueChange)="setPhotoCacheDays($event)"
+        ></app-filter-numeric-custom>
       </div>
       <div class="value">
         <table>

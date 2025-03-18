@@ -159,11 +159,11 @@ export class I18nService {
     return this.longDistanceUnit(this.prefService.preferences.distanceUnit);
   }
 
-  public getSpeedString(speed?: number): string {
+  public getSpeedStringInUserUnit(speed?: number): string {
     if (speed === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return (speed / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' km/h';
-      case 'IMPERIAL': return this.footToMiles(this.metersToFoot(speed)).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' mi/h';
+      case 'IMPERIAL': return speed.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 2, minimumFractionDigits: 2}) + ' mi/h';
     }
   }
 
