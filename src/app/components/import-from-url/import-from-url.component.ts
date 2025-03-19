@@ -1,10 +1,9 @@
-import { Component, Input } from '@angular/core';
+import { Component, Injector, Input } from '@angular/core';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { CommonModule } from '@angular/common';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Console } from 'src/app/utils/console';
@@ -26,10 +25,10 @@ export class ImportFromUrlComponent {
   inProgress = false;
 
   constructor(
+    private readonly injector: Injector,
     public readonly i18n: I18nService,
     private readonly fetchSourceService: FetchSourceService,
     private readonly modalController: ModalController,
-    private readonly trailMenuService: TrailMenuService,
     private readonly trailCollectionService: TrailCollectionService,
     private readonly authService: AuthService,
   ) {
@@ -96,7 +95,8 @@ export class ImportFromUrlComponent {
     }
     const email = this.authService.email!;
     const collection = this.trailCollectionService.getCollection(this.collectionUuid, email)!;
-    this.trailMenuService.copyTrailsTo(trails, collection, email, false, true);
+    const copy = await import('../../services/functions/copy-trails');
+    copy.copyTrailsTo(this.injector, trails, collection, email, false, true);
     this.close();
   }
 

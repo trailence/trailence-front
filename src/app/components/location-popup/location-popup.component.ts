@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonInput, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular/standalone";
 import { switchMap, throwError } from 'rxjs';
@@ -10,6 +10,17 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+
+export async function openLocationDialog(injector: Injector, trail: Trail) {
+  const modal = await injector.get(ModalController).create({
+    component: LocationPopupComponent,
+    backdropDismiss: true,
+    componentProps: {
+      trail,
+    }
+  });
+  modal.present();
+}
 
 @Component({
     selector: 'app-location-popup',

@@ -17,6 +17,17 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { EMAIL_REGEX } from 'src/app/utils/string-utils';
 import { Share } from 'src/app/model/share';
 
+export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
+  injector.get(ModalController).create({
+    component: SharePopupComponent,
+    componentProps: {
+      collectionUuid,
+      trails
+    }
+  }).then(modal => modal.present());
+}
+
+
 enum SharePage {
   TYPE = 'type',
   ELEMENTS = 'elements',

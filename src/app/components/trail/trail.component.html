@@ -150,7 +150,7 @@
           </ion-button>
         </ng-container>
       </div>
-      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="trailMenuService.openTags([trail1], trail1.collectionUuid)">
+      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="openTags(trail1)">
         <span *ngIf="tagsNames1.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
         <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
       </div>

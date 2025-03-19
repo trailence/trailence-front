@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
 import { Subscription, combineLatest, debounceTime, of } from 'rxjs';
@@ -10,6 +10,19 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { TagService } from 'src/app/services/database/tag.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+
+export async function openTagsDialog(injector: Injector, trails: Trail[] | null, collectionUuid: string) {
+  const modal = await injector.get(ModalController).create({
+    component: TagsComponent,
+    backdropDismiss: false,
+    componentProps: {
+      trails,
+      collectionUuid,
+      selectable: !!trails,
+    }
+  });
+  modal.present();
+}
 
 class TagNode {
 

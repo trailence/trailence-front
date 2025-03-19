@@ -2,7 +2,6 @@ import { Injector } from '@angular/core';
 import L from 'leaflet';
 import { MapToolUtils } from './map-tool-utils';
 import { AssetsService } from 'src/app/services/assets/assets.service';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { Trail } from 'src/app/model/trail';
 
 export class DownloadMapTool extends L.Control {
@@ -32,7 +31,8 @@ export class DownloadMapTool extends L.Control {
     });
     button.onclick = () => {
       if (map.getZoom() < 12) return;
-      this.injector.get(TrailMenuService).openDownloadMap(this.trail ? [this.trail] : [], map.getBounds());
+      import('../../../services/functions/map-download')
+      .then(m => m.openMapDownloadDialog(this.injector, this.trail ? [this.trail] : [], map.getBounds()));
     };
     return button;
   }

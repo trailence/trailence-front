@@ -582,7 +582,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   import(): void {
-    this.trailMenuService.importGpxDialog(this.collectionUuid!);
+    import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collectionUuid!));
   }
 
   openTrail(trail: Trail): void {
@@ -590,7 +590,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   share(): void {
-    this.trailMenuService.openSharePopup(this.collectionUuid!, []);
+    import('../share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, this.collectionUuid!, []));
   }
 
   showMoreMenu(event: any): void {

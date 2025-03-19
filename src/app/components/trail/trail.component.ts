@@ -22,7 +22,6 @@ import { TrailPathSelection } from './path-selection';
 import { Router } from '@angular/router';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { WayPoint } from 'src/app/model/way-point';
 import { TagService } from 'src/app/services/database/tag.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
@@ -125,12 +124,11 @@ export class TrailComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     private readonly trackService: TrackService,
-    public i18n: I18nService,
+    public readonly i18n: I18nService,
     private readonly browser: BrowserService,
     private readonly auth: AuthService,
-    public trailService: TrailService,
+    public readonly trailService: TrailService,
     private readonly traceRecorder: TraceRecorderService,
-    public trailMenuService: TrailMenuService,
     private readonly tagService: TagService,
     private readonly photoService: PhotoService,
     private readonly changesDetector: ChangeDetectorRef,
@@ -677,13 +675,21 @@ export class TrailComponent extends AbstractComponent {
   }
 
   goToDeparture(): void {
-    if (this.trail1)
-      this.trailMenuService.goToDeparture(this.trail1);
+    if (this.trail1) {
+      const trail = this.trail1;
+      import('../../services/functions/go-to-departure').then(m => m.goToDeparture(this.injector, trail));
+    }
   }
 
   downloadMap(): void {
-    if (this.trail1)
-      this.trailMenuService.openDownloadMap([this.trail1]);
+    if (this.trail1) {
+      const trail = this.trail1;
+      import('../../services/functions/map-download').then(m => m.openMapDownloadDialog(this.injector, [trail]));
+    }
+  }
+
+  openTags(trail: Trail): void {
+    import('../tags/tags.component').then(m => m.openTagsDialog(this.injector, [trail], trail.collectionUuid));
   }
 
   startTrail(): void {
@@ -883,7 +889,8 @@ export class TrailComponent extends AbstractComponent {
 
   openLocationDialog(): void {
     if (this.trail2 || !this.trail1 || !this.editable) return;
-    this.trailMenuService.openLocationPopup(this.trail1);
+    const trail = this.trail1;
+    import('../location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trail));
   }
 
   canEdit(): boolean {

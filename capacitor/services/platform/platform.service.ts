@@ -3,7 +3,6 @@ import Trailence from '../trailence.service';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { first } from 'rxjs';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
 import { Router } from '@angular/router';
 import { ErrorService } from 'src/app/services/progress/error.service';
@@ -73,7 +72,6 @@ export class PlatformService {
       }
       const buffer = bytes.buffer;
 
-      const menuService = this.injector.get(TrailMenuService);
       this.injector.get(ModalController).create({
         component: ImportGpxPopupComponent,
         backdropDismiss: false,
@@ -82,15 +80,18 @@ export class PlatformService {
           onDone: (collectionUuid: string) => {
             const i18n = this.injector.get(I18nService);
             const progress = this.injector.get(ProgressService).create(i18n.texts.tools.importing, 1);
-            menuService.importGpx(buffer, owner, collectionUuid).allDone
-            .then(imported => {
-              progress.done();
-              menuService.finishImport([imported], collectionUuid).then(
-                () => this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid)
-              );
-            })
-            .catch(error => {
-              this.injector.get(ErrorService).addError(error);
+            import('src/app/services/functions/import')
+            .then(importer => {
+              importer.importGpx(this.injector, buffer, owner, collectionUuid).allDone
+              .then(imported => {
+                progress.done();
+                importer.finishImport(this.injector, [imported], collectionUuid).then(
+                  () => this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(owner) + '/' + imported.trailUuid)
+                );
+              })
+              .catch(error => {
+                this.injector.get(ErrorService).addError(error);
+              });
             });
           }
         }

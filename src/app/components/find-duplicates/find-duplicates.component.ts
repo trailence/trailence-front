@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent, IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonPopover, IonList, IonItem, IonSpinner, ModalController } from '@ionic/angular/standalone';
 import { first, map, Observable, of, switchMap, zip } from 'rxjs';
 import { Track } from 'src/app/model/track';
@@ -15,7 +15,17 @@ import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { TrailComponent } from '../trail/trail.component';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+
+export function openFindDuplicates(injector: Injector, fromCollection: string): void {
+  injector.get(ModalController).create({
+    component: FindDuplicatesComponent,
+    backdropDismiss: false,
+    cssClass: 'large-modal',
+    componentProps: {
+      collectionUuid: fromCollection,
+    }
+  }).then(modal => modal.present());
+}
 
 @Component({
   templateUrl: './find-duplicates.component.html',
@@ -52,13 +62,13 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
   private readonly subscriptions = new Subscriptions();
 
   constructor(
+    private readonly injector: Injector,
     public readonly i18n: I18nService,
     private readonly modalController: ModalController,
     private readonly collectionService: TrailCollectionService,
     private readonly auth: AuthService,
     private readonly trailService: TrailService,
     private readonly trackService: TrackService,
-    private readonly trailMenuService: TrailMenuService,
   ) {}
 
   ngOnInit(): void {
@@ -194,13 +204,13 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
     };
   }
 
-  deleteTrail(trail: Trail): void {
-    this.trailMenuService.confirmDelete([trail], false).then(deleted => {
-      if (deleted) {
-        this.deleted.push(trail);
-        this.launchNext!();
-      }
-    });
+  async deleteTrail(trail: Trail) {
+    const module = await import('../../services/functions/delete-trails');
+    const deleted = await module.confirmDeleteTrails(this.injector, [trail], false);
+    if (deleted) {
+      this.deleted.push(trail);
+      this.launchNext!();
+    }
   }
 
 }
