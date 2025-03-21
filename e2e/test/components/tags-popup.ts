@@ -1,3 +1,4 @@
+import { AppElement } from '../app/app-element';
 import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicInput } from './ionic/ion-input';
@@ -5,23 +6,52 @@ import { ModalComponent } from './modal';
 
 export class TagsPopup extends ModalComponent {
 
+  constructor(
+    type: 'edit' | 'selection',
+    _parent: AppElement | ChainablePromiseElement | (() => ChainablePromiseElement),
+    _selector?: string,
+  ) {
+    super(_parent, _selector);
+    if (type === 'edit') {
+      this.selectable = false;
+      this.editing = true;
+    } else {
+      this.selectable = true;
+      this.editing = false;
+    }
+  }
+
+  private selectable: boolean;
+  private editing: boolean;
+
   public async getAllTags() {
-    const nodes = this.contentElement.$$('>>>div.tag-node div.tag-name span');
     const tags = [];
-    for (const node of await nodes.getElements()) {
-      const tagName = await node.getText();
-      tags.push(tagName);
+    if (this.editing) {
+      const inputs = this.contentElement.$$('>>>div.tag-node ion-input');
+      for (const input of await inputs.getElements()) {
+        tags.push(await new IonicInput(input).getValue());
+      }
+    } else if (this.selectable) {
+      const nodes = this.contentElement.$$('>>>div.tag-node');
+      for (const node of await nodes.getElements()) {
+        tags.push(await new IonicCheckbox(node.$('ion-checkbox')).getLabel());
+      }
+    } else {
+      const nodes = this.contentElement.$$('>>>div.tag-node div.tag-name');
+      for (const node of await nodes.getElements()) {
+        tags.push(await node.getText());
+      }
     }
     return tags;
   }
 
-  public async selectTags(tags: string[]) {
-    const nodes = this.contentElement.$$('>>>div.tag-node');
+  public async selectTags(tags: string[], isPopup: boolean = true) {
+    const nodes = (isPopup ? this.contentElement : this.getElement()).$$('>>>div.tag-node');
     const found = [];
     let selected = 0;
     for (const node of await nodes.getElements()) {
-      const tagName = await node.$('div.tag-name span').getText();
       const cb = new IonicCheckbox(node.$('ion-checkbox'));
+      const tagName = await cb.getLabel();
       cb.setSelected(tags.indexOf(tagName) >= 0);
       found.push(tagName);
       if (tags.indexOf(tagName) >= 0) selected++;
@@ -42,13 +72,46 @@ export class TagsPopup extends ModalComponent {
   public async cancel() {
     const button = await this.getFooterButtonWithText('Cancel');
     await button.click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+    if (this.selectable && this.editing) {
+      await browser.waitUntil(() => this.getFooterButtonWithText('Edit', false).then(b => b.isDisplayed()));
+      this.editing = false;
+    } else {
+      await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+    }
   }
 
   public async apply() {
     const button = await this.getFooterButtonWithText('Apply');
     await button.click();
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+  }
+
+  public async editName(currentName: string, newName: string) {
+    const inputs = this.contentElement.$$('>>>div.tag-node ion-input');
+    for (const input of await inputs.getElements()) {
+      const i = new IonicInput(input);
+      if (await i.getValue() === currentName) {
+        await i.setValue(newName);
+        return;
+      }
+    }
+    throw Error('Tag not found: ' + currentName);
+  }
+
+  public async save() {
+    const button = await this.getFooterButtonWithText('Save');
+    await button.click();
+    if (this.selectable) {
+      await browser.waitUntil(() => button.isDisplayed().then(d => !d));
+      this.editing = false;
+    } else {
+      await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+    }
+  }
+
+  public async editMode() {
+    await (await this.getFooterButtonWithText('Edit', false)).click();
+    this.editing = true;
   }
 
 }

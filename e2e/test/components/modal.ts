@@ -9,19 +9,19 @@ export class ModalComponent extends Component {
 
   public get contentElement() { return this.getElement().$('ion-content'); }
 
-  public getFooterButtons() {
-    return this.getElement().$('ion-footer ion-buttons');
+  public getFooterButtons(end: boolean) {
+    return this.getElement().$('ion-footer ion-buttons[slot=' + (end ? 'end' : 'start') + ']');
   }
 
-  public async getFooterButtonWithText(text: string) {
-    const element = await this.getFooterButtons().$('ion-button=' + text);
+  public async getFooterButtonWithText(text: string, end: boolean = true) {
+    const element = this.getFooterButtons(end).$('ion-button=' + text);
     await element.waitForDisplayed();
     const button = new IonicButton(element);
     return button;
   }
 
-  public async getFooterButtonWithColor(color: string) {
-    const element = await this.getFooterButtons().$('ion-button[color=' + color + ']');
+  public async getFooterButtonWithColor(color: string, end: boolean = true) {
+    const element = this.getFooterButtons(end).$('ion-button[color=' + color + ']');
     await element.waitForDisplayed();
     const button = new IonicButton(element);
     return button;

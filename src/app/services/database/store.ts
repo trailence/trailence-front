@@ -76,7 +76,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  private triggerSyncFromServer(): void {
+  public triggerSyncFromServer(): void {
     const db = this._db;
     this._storeLoaded$.pipe(
       filterDefined(),

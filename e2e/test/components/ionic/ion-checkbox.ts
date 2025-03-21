@@ -23,4 +23,8 @@ export class IonicCheckbox extends Component {
     }
   }
 
+  public async getLabel() {
+    return this.getElement().getText();
+  }
+
 }

@@ -18,23 +18,32 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-bottom: 2px;
+
+  &.deleted {
+    display: none;
+  }
 
   ion-checkbox {
     flex: none;
     margin: 0px 8px 2px 0px;
+
+    &::part(label) {
+      margin-inline-start: 8px;
+      -webkit-margin-start: 8px;
+    }
   }
 
-  .tag-name {
-    flex: 1 1 100%;
-
-    .editing {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-
-      ion-input {
-        flex: 1 1 100%;
-      }
+  ion-input {
+    &:not(.focus) {
+      border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.25);
     }
+  }
+}
+
+@media (pointer: coarse) {
+  .tag-node {
+    padding-top: 2px;
+    padding-bottom: 2px;
   }
 }

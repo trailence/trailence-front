@@ -21,6 +21,7 @@ import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { QuotaService } from '../auth/quota.service';
 import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
+import { ShareService } from './share.service';
 
 @Injectable({
     providedIn: 'root'
@@ -107,12 +108,6 @@ export class TagService {
   public getTrailTags$(trailUuid: string): Observable<TrailTag[]> {
     return this._trailTagStore.getAll$().pipe(
       collection$items(trailTag => trailTag.trailUuid === trailUuid)
-    );
-  }
-
-  public getTrailsTags$(trailsUuids: string[]): Observable<TrailTag[]> {
-    return this._trailTagStore.getAll$().pipe(
-      collection$items(trailTag => trailsUuids.indexOf(trailTag.trailUuid) >= 0)
     );
   }
 
@@ -241,6 +236,10 @@ class TagStore extends OwnedStore<TagDto, Tag> {
         complete: () => this.quotaService.updateQuotas(q => q.tagsUsed -= uuids.length)
       })
     );
+  }
+
+  protected override signalDeleted(deleted: { uuid: string; owner: string; }[]): void {
+    this.injector.get(ShareService).signalTagsDeleted(deleted);
   }
 
   protected override doCleaning(email: string, db: Dexie): Observable<any> {

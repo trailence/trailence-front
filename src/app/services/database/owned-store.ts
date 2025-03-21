@@ -97,6 +97,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       this._createdLocally.splice(createdIndex, 1);
   }
 
+  /** Called when items are deleted from the server. */
+  protected signalDeleted(deleted: {uuid: string, owner: string}[]): void {
+    // nothing by default
+  }
+
   protected override markDeletedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
     item.markAsDeletedLocally();
     const dto = this.toDTO(item);
@@ -186,6 +191,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           this.deleted(item$, item$.value);
       }
     });
+    if (deleted.length > 0)
+      this.signalDeleted(deleted);
     if (entitiesToAdd.length !== 0 || deletedItems.length !== 0) {
       for (const item$ of deletedItems) {
         const index = this._store.value.indexOf(item$);

@@ -108,7 +108,7 @@
           "add_tag_label": "Nouveau tag",
           "confirm_delete": {
             "title": "Supprimer le Tag",
-            "message": "Etes-vous sûr de vouloir supprimer ce tag ?",
+            "message": "Etes-vous sûr de vouloir supprimer ce tag ? Il est actuellement utilisé sur {{1}} parcours",
             "yes": "Oui, supprimer",
             "no": "Annuler, garder"
           }

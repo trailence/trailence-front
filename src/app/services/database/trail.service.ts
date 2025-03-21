@@ -253,6 +253,10 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     this.injector.get(TrailService).propagateDelete(item);
   }
 
+  protected override signalDeleted(deleted: { uuid: string; owner: string; }[]): void {
+    this.injector.get(ShareService).signalTrailsDeleted(deleted);
+  }
+
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
     return zip([
       this.getAll$().pipe(collection$items()),

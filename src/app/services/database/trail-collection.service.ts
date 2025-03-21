@@ -20,6 +20,7 @@ import { DependenciesService } from './dependencies.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from '../preferences/preferences.service';
 import { QuotaService } from '../auth/quota.service';
+import { ShareService } from './share.service';
 
 @Injectable({
     providedIn: 'root'
@@ -236,6 +237,10 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override deleted(item$: BehaviorSubject<TrailCollection | null> | undefined, item: TrailCollection): void {
       this.injector.get(TrailCollectionService).propagateDelete(item);
+    }
+
+    protected override signalDeleted(deleted: { uuid: string; owner: string; }[]): void {
+      this.injector.get(ShareService).signalCollectionsDeleted(deleted);
     }
 
     protected override doCleaning(email: string, db: Dexie): Observable<any> {

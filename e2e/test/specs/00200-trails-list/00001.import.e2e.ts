@@ -85,7 +85,7 @@ describe('Trails list - Import Simple GPX', () => {
       return tags.length === 2 && tags.indexOf('Tag 1') >= 0 && tags.indexOf('Tag 2') >= 0;
     });
     await trail.clickMenuItem('Tags');
-    const tagsPopup = new TagsPopup(await App.waitModal());
+    const tagsPopup = new TagsPopup('selection', await App.waitModal());
     const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 2);
     expect(allTags.length).toBe(2);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
@@ -125,7 +125,7 @@ describe('Trails list - Import Simple GPX', () => {
       return tags.length === 2 && tags.indexOf('Tag 2') >= 0 && tags.indexOf('Tag 3') >= 0;
     });
     await trail.clickMenuItem('Tags');
-    const tagsPopup = new TagsPopup(await App.waitModal());
+    const tagsPopup = new TagsPopup('selection', await App.waitModal());
     const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 3);
     expect(allTags.length).toBe(3);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
@@ -153,7 +153,7 @@ describe('Trails list - Import Simple GPX', () => {
       return tags.length === 1 && tags.indexOf('Tag 1') >= 0;
     });
     await trail.clickMenuItem('Tags');
-    const tagsPopup = new TagsPopup(await App.waitModal());
+    const tagsPopup = new TagsPopup('selection', await App.waitModal());
     const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 3);
     expect(allTags.length).toBe(3);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();
@@ -190,7 +190,7 @@ describe('Trails list - Import Simple GPX', () => {
     });
 
     await trail1.clickMenuItem('Tags');
-    const tagsPopup = new TagsPopup(await App.waitModal());
+    const tagsPopup = new TagsPopup('selection', await App.waitModal());
     const allTags = await TestUtils.waitFor(() => tagsPopup.getAllTags(), tags => tags.length === 4);
     expect(allTags.length).toBe(4);
     expect(allTags.indexOf('Tag 1') >= 0).toBeTrue();

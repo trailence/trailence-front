@@ -1,8 +1,9 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { TagsPopup } from '../../components/tags-popup';
 import { TrailsList } from '../../components/trails-list.component';
-import { EXPECTED_TRAILS } from './00099.list';
+import { EXPECTED_TRAILS, expectListContains } from './00099.list';
 
 describe('Trails Tools', () => {
 
@@ -136,6 +137,64 @@ describe('Trails Tools', () => {
     await (await App.waitAlert()).clickButtonWithRole('danger');
 
     await collectionPage.waitDisplayed();
+  });
+
+  it('Edit tags', async () => {
+    list = await collectionPage.trailsAndMap.openTrailsList();
+    (await list.moreMenu()).clickItemWithText('Tags');
+    let tags = new TagsPopup('edit', await App.waitModal());
+    await tags.editName('Tag 2', 'Tag 2 edited');
+    await tags.cancel();
+
+    await expectListContains(list, EXPECTED_TRAILS);
+
+    (await list.moreMenu()).clickItemWithText('Tags');
+    tags = new TagsPopup('edit', await App.waitModal());
+    await tags.editName('Tag 2', 'Tag 2 edited');
+    await tags.save();
+
+    await expectListContains(list, EXPECTED_TRAILS.map(t => {
+      return {...t, tags: t.tags.map(tag => tag === 'Tag 2' ? 'Tag 2 edited' : tag)};
+    }));
+
+    (await list.moreMenu()).clickItemWithText('Tags');
+    tags = new TagsPopup('edit', await App.waitModal());
+    await tags.editName('Tag 2 edited', 'Tag 2');
+    await tags.save();
+
+    await expectListContains(list, EXPECTED_TRAILS);
+
+    let trail = await list.findItemByTrailName('Tour de Port-Cros');
+    await trail!.clickMenuItem('Tags');
+    tags = new TagsPopup('selection', await App.waitModal());
+    await tags.editMode();
+    await tags.editName('Tag 1', 'Tag 1 edited');
+    await tags.save();
+    await tags.cancel();
+
+    await expectListContains(list, EXPECTED_TRAILS.map(t => {
+      return {...t, tags: t.tags.map(tag => tag === 'Tag 1' ? 'Tag 1 edited' : tag)};
+    }));
+
+    trail = await list.findItemByTrailName('Tour de Port-Cros');
+    await trail!.clickMenuItem('Tags');
+    tags = new TagsPopup('selection', await App.waitModal());
+    await tags.editMode();
+    await tags.editName('Tag 1 edited', 'Tag 1');
+    await tags.save();
+    await tags.cancel();
+
+    await expectListContains(list, EXPECTED_TRAILS);
+
+    trail = await list.findItemByTrailName('Tour de Port-Cros');
+    await trail!.clickMenuItem('Tags');
+    tags = new TagsPopup('selection', await App.waitModal());
+    await tags.editMode();
+    await tags.editName('Tag 1', 'Tag 1 edited');
+    await tags.cancel();
+    await tags.cancel();
+
+    await expectListContains(list, EXPECTED_TRAILS);
   });
 
   it('Synchronize', async () => {

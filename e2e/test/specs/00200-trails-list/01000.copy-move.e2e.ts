@@ -2,7 +2,6 @@ import { App } from '../../app/app';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { CollectionModal } from '../../components/collection.modal';
 import { ImportTagsPopup } from '../../components/import-tags-popup.component';
-import { MenuContent } from '../../components/menu-content.component';
 import { EXPECTED_TRAILS, expectListContains } from './00099.list';
 
 describe('Copy / Move Trails', () => {

@@ -93,7 +93,7 @@ export class TrailComponent extends Component {
     const details = await this.openDetails();
     const row = details.$('.trail-tags-row');
     await row.click();
-    return new TagsPopup(await App.waitModal());
+    return new TagsPopup('selection', await App.waitModal());
   }
 
   public async toggleShowOriginalTrace() {

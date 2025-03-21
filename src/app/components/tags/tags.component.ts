@@ -2,12 +2,13 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
-import { Subscription, combineLatest, debounceTime, of } from 'rxjs';
+import { Subscription, combineLatest, debounceTime } from 'rxjs';
 import { Tag } from 'src/app/model/tag';
 import { Trail } from 'src/app/model/trail';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TagService } from 'src/app/services/database/tag.service';
+import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
@@ -26,16 +27,20 @@ export async function openTagsDialog(injector: Injector, trails: Trail[] | null,
 
 class TagNode {
 
-  public editing = false;
-  public newName = '';
+  public newName: string;
+  public deleted = false;
+  public focus = false;
 
   constructor(
     public tag: Tag,
-    public existing: number,
+    public allTaggedTrails: number,
+    public inputTaggedTrails: number,
     public userSelected: boolean | undefined,
     public children: TagNode[] = [],
     public parentNode?: TagNode,
-  ) {}
+  ) {
+    this.newName = tag.name;
+  }
 
 }
 
@@ -59,6 +64,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   tree: TagNode[] = [];
 
   newTagName = '';
+  editing = false;
 
   private subscription?: Subscription;
 
@@ -76,7 +82,10 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.update();
+    if (changes['editable'] || changes['selectable'] || changes['trails'] || changes['collectionUuid'])
+      this.update();
+    else if (changes['selection'])
+      this.updateSelection(this.tree);
   }
 
   ngOnDestroy(): void {
@@ -87,13 +96,14 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     this.subscription?.unsubscribe();
     this.subscription = undefined;
     this.tree = [];
+    if (this.editable && !this.selectable) this.editing = true;
 
     if (!this.collectionUuid) return;
 
     const tags$ = this.tagService.getAllTags$().pipe(
       collection$items(tag => tag.collectionUuid === this.collectionUuid)
     );
-    const trailsTags$ = this.trails ? this.tagService.getTrailsTags$(this.trails.map(t => t.uuid)) : of([]);
+    const trailsTags$ = this.tagService.getAllTrailsTags$().pipe(collection$items());
 
     this.subscription = combineLatest([tags$, trailsTags$]).pipe(
       debounceTime(100)
@@ -108,10 +118,12 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   private buildTree(tags: Tag[], nodes: TagNode[], trailsTags: TrailTag[]): TagNode[] {
     const toRemove = this.flatten(nodes);
     const newTree =  this.buildTreeNodes(toRemove, tags, trailsTags, null);
+    this.sort(newTree);
+    if (toRemove.length > 0) this.removeNodes(this.tree, toRemove);
     return newTree;
   }
 
-  private buildTreeNodes(toRemove: TagNode[], tags: Tag[], trailsTags: TrailTag[], parentUuid: string | null, parentNode?: TagNode): TagNode[] {
+  private buildTreeNodes(toRemove: TagNode[], tags: Tag[], trailsTags: TrailTag[], parentUuid: string | null, parentNode?: TagNode): TagNode[] { // NOSONAR
     const nodes: TagNode[] = [];
     for (let i = 0; i < tags.length; ++i) {
       if (tags[i].parentUuid !== parentUuid) continue;
@@ -120,26 +132,46 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
       i--;
 
       const index = toRemove.findIndex(node => node.tag.uuid === tag.uuid);
-      const existing = trailsTags.reduce((count, t) => count + (t && t.tagUuid === tag.uuid ? 1 : 0), 0);
+      let allTaggedTrails = 0;
+      let inputTaggedTrails = 0;
+      for (const trailTag of trailsTags) {
+        if (trailTag.tagUuid !== tag.uuid) continue;
+        allTaggedTrails++;
+        if (this.trails && this.trails.findIndex(t => t.uuid === trailTag.trailUuid) >= 0) inputTaggedTrails++;
+      }
       if (index >= 0) {
         const node = toRemove[index];
         toRemove.splice(index, 1);
         node.tag = tag;
-        node.existing = existing;
+        node.allTaggedTrails = allTaggedTrails;
+        node.inputTaggedTrails = inputTaggedTrails;
         node.parentNode = parentNode;
         if (this.selection && this.selection.indexOf(tag.uuid) >= 0) node.userSelected = true;
         nodes.push(node);
       } else {
-        const node = new TagNode(tag, existing, undefined, [], parentNode);
+        const node = new TagNode(tag, allTaggedTrails, inputTaggedTrails, undefined, [], parentNode);
         if (this.selection && this.selection.indexOf(tag.uuid) >= 0) node.userSelected = true;
         nodes.push(node);
       }
     }
-    nodes.sort((n1, n2) => n1.tag.name.localeCompare(n2.tag.name));
     nodes.forEach(node => {
       node.children = this.buildTreeNodes(toRemove, tags, trailsTags, node.tag.uuid, node);
     });
     return nodes;
+  }
+
+  private removeNodes(nodes: TagNode[], toRemove: TagNode[]): void {
+    for (let i = 0; i < nodes.length; ++i) {
+      const index = toRemove.indexOf(nodes[i]);
+      if (index >= 0) {
+        nodes.splice(i, 1);
+        i--;
+        toRemove.splice(index, 1);
+        if (toRemove.length === 0) return;
+      }
+      this.removeNodes(nodes[i].children, toRemove);
+      if (toRemove.length === 0) return;
+    }
   }
 
   private flatten(nodes: TagNode[]): TagNode[] {
@@ -155,6 +187,11 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  private sort(nodes: TagNode[]): void {
+    nodes.sort((n1, n2) => n1.tag.name.localeCompare(n2.tag.name));
+    for (const node of nodes) this.sort(node.children);
+  }
+
   newRootTag(): void {
     this.tagService.create(new Tag({
       owner: this.auth.email!,
@@ -164,50 +201,86 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     this.newTagName = '';
   }
 
-  startEdit(node: TagNode): void {
-    if (!this.editable) return;
-    node.newName = node.tag.name;
-    node.editing = true;
-    const startTime = Date.now();
-    const autofocus = () => {
-      const element = document.getElementById('editing-tag-' + node.tag.uuid);
-      if (element) {
-        const natives = element.getElementsByClassName('native-input');
-        if (natives.length > 0) {
-          (natives[0] as HTMLInputElement).focus();
-          return;
-        }
-      }
-      if (Date.now() - startTime < 15000) setTimeout(autofocus, 25);
-    };
+  startEdit(): void {
+    if (!this.editable || this.editing) return;
+    this.editing = true;
     this.changeDetector.detectChanges();
-    setTimeout(autofocus, 0);
   }
 
-  endEdit(node: TagNode, event$: CustomEvent<FocusEvent>): void {
-    if (node.tag.name !== node.newName) {
-      node.tag.name = node.newName;
-      this.tagService.update(node.tag);
+  canSaveEdit(): boolean {
+    return this.validateEdit(this.tree);
+  }
+
+  private validateEdit(nodes: TagNode[]): boolean {
+    for (const node of nodes) {
+      if (node.deleted) continue;
+      if (node.newName.trim().length === 0) return false;
+      if (node.newName.length > 50) return false;
+      if (!this.validateEdit(node.children)) return false;
     }
-    if ((event$.detail.relatedTarget as any)?.nodeName === 'ION-BUTTON') {
-      // give the time for the delete button to be taken into account
-      setTimeout(() => { node.editing = false; this.changeDetector.detectChanges(); }, 1000);
-    } else {
-      node.editing = false;
-      this.changeDetector.detectChanges();
+    return true;
+  }
+
+  saveEdit(): void {
+    this.saveNodes(this.tree);
+    if (this.editable && !this.selectable) {
+      this.cancel();
+      return;
+    }
+    this.editing = false;
+    this.sort(this.tree);
+    this.changeDetector.detectChanges();
+  }
+
+  private saveNodes(nodes: TagNode[]): void {
+    for (const node of nodes) {
+      if (node.deleted) {
+        this.tagService.delete(node.tag);
+      } else if (node.newName !== node.tag.name) {
+        node.tag.name = node.newName;
+        this.tagService.update(node.tag);
+      }
+      node.focus = false;
+      this.saveNodes(node.children);
+    }
+  }
+
+  cancelEdit(): void {
+    this.cancelNodes(this.tree);
+    if (this.editable && !this.selectable) {
+      this.cancel();
+      return;
+    }
+    this.editing = false;
+    this.changeDetector.detectChanges();
+  }
+
+  private cancelNodes(nodes: TagNode[]): void {
+    for (const node of nodes) {
+      node.deleted = false;
+      node.newName = node.tag.name;
+      node.focus = false;
+      this.cancelNodes(node.children);
     }
   }
 
   async deleteTag(node: TagNode) {
+    if (node.allTaggedTrails === 0) {
+      node.deleted = true;
+      this.changeDetector.detectChanges();
+      return;
+    }
+    const message = new TranslatedString('pages.trails.tags.popup.confirm_delete.message', [node.allTaggedTrails]);
     const alert = await this.alertController.create({
       header: this.i18n.texts.pages.trails.tags.popup.confirm_delete.title,
-      message: this.i18n.texts.pages.trails.tags.popup.confirm_delete.message,
+      message: message.translate(this.i18n),
       buttons: [
         {
           text: this.i18n.texts.pages.trails.tags.popup.confirm_delete.yes,
           role: 'danger',
           handler: () => {
-            this.tagService.delete(node.tag);
+            node.deleted = true;
+            this.changeDetector.detectChanges();
             alert.dismiss();
           }
         }, {
@@ -280,6 +353,16 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
         selection.push(node.tag);
       }
       this.fillSelection(selection, node.children);
+    }
+  }
+
+  private updateSelection(nodes: TagNode[]): void {
+    for (const node of nodes) {
+      if (this.selection && this.selection.indexOf(node.tag.uuid) >= 0)
+        node.userSelected = true;
+      else if (node.userSelected)
+        node.userSelected = false;
+      this.updateSelection(node.children);
     }
   }
 
