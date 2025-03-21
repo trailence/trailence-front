@@ -13,6 +13,7 @@ import { FilterNumeric, NumericFilterCustomConfig } from 'src/app/components/fil
 import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-numeric-custom/filter-numeric-custom.component';
+import { AuthService } from 'src/app/services/auth/auth.service';
 
 @Component({
     selector: 'app-preferences',
@@ -33,15 +34,17 @@ export class PreferencesPage implements OnDestroy {
 
   offlineMapCounters?: {items: number, size: number};
   tfoApiKey?: string;
+  tfoAllowed = false;
   photoCacheSize?: {total: number, expired: number};
 
   private readonly extensionsSubscription: Subscription;
-  private currentExtensions: Extension[] = [];
   private readonly preferencesSubscription: Subscription;
+  private readonly authSubscription: Subscription;
 
   constructor(
-    public i18n: I18nService,
-    public preferences: PreferencesService,
+    public readonly i18n: I18nService,
+    public readonly preferences: PreferencesService,
+    auth: AuthService,
     private readonly offlineMaps: OfflineMapService,
     private readonly extensions: ExtensionsService,
     private readonly photoService: PhotoService,
@@ -53,15 +56,18 @@ export class PreferencesPage implements OnDestroy {
       extensions => {
         const thunderforest = extensions.find(e => e.extension === 'thunderforest.com');
         if (thunderforest) this.tfoApiKey = thunderforest.data['apikey'] || undefined;
-        this.currentExtensions = extensions;
       }
     );
     this.preferencesSubscription = preferences.preferences$.subscribe(() => this.refresh());
+    this.authSubscription = auth.auth$.subscribe(a => {
+      this.tfoAllowed = !!a && a.allowedExtensions.indexOf('thunderforest.com') >= 0;
+    });
   }
 
   ngOnDestroy(): void {
     this.extensionsSubscription.unsubscribe();
     this.preferencesSubscription.unsubscribe();
+    this.authSubscription.unsubscribe();
   }
 
   traceMinMillisConfig: NumericFilterCustomConfig = {

@@ -13,5 +13,6 @@ export interface AuthResponse {
   complete: boolean;
   admin: boolean;
   quotas: UserQuotas;
+  allowedExtensions: string[];
 
 }

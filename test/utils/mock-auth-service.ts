@@ -37,6 +37,7 @@ export function provideAuthService(email: string) {
           trailTagsMax: 100,
           trailTagsUsed: 0
         },
+        allowedExtensions: [],
       })
     }
   }

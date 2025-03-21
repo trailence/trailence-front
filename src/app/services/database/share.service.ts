@@ -3,7 +3,7 @@ import { SimpleStore } from './simple-store';
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
 import { Share } from 'src/app/model/share';
 import { DatabaseService, SHARE_TABLE_NAME } from './database.service';
-import { combineLatest, EMPTY, first, map, Observable, of, tap, zip } from 'rxjs';
+import { combineLatest, EMPTY, map, Observable, of, tap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { RequestLimiter } from 'src/app/utils/request-limiter';

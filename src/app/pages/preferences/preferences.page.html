@@ -245,22 +245,24 @@
     </div>
   </div>
 
-  <div class="page-section-title">
-    {{i18n.texts.pages.preferences.more_maps_layers}}
-  </div>
-
-  <div class="preference">
-    <div class="icon">
-      <ion-icon name="map"></ion-icon>
+  <ng-container *ngIf="tfoAllowed">
+    <div class="page-section-title">
+      {{i18n.texts.pages.preferences.more_maps_layers}}
     </div>
-    <div class="preference-content">
-      <div class="title">Thunderforest</div>
-      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.thunderforest_explaination"></div>
-      <div class="value">
-        <ion-input label="API Key" labelPlacement="floating" fill="outline" [value]="tfoApiKey" (ionChange)="updateThunderforestApiKey($event.detail.value)"></ion-input>
+
+    <div class="preference">
+      <div class="icon">
+        <ion-icon name="map"></ion-icon>
+      </div>
+      <div class="preference-content">
+        <div class="title">Thunderforest</div>
+        <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.thunderforest_explaination"></div>
+        <div class="value">
+          <ion-input label="API Key" labelPlacement="floating" fill="outline" [value]="tfoApiKey" (ionChange)="updateThunderforestApiKey($event.detail.value)"></ion-input>
+        </div>
       </div>
     </div>
-  </div>
+  </ng-container>
 
   <div class="page-section-title">
     {{i18n.texts.pages.preferences.photos}}

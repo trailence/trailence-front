@@ -40,6 +40,7 @@ services:
       - TRAILENCE_INIT_USER=${TRAILENCE_INIT_USER}
       - TRAILENCE_INIT_PASSWORD=${TRAILENCE_INIT_PASSWORD}
       - OUTDOOR_ACTIVE_KEY=${OUTDOOR_ACTIVE_KEY}
+      - THUNDERFOREST_ENABLED=true
   front:
     build:
       context: ./docker
