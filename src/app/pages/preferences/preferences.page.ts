@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { ExtensionsService } from 'src/app/services/database/extensions.service';
-import { Extension } from 'src/app/model/extension';
 import { FilterNumeric, NumericFilterCustomConfig } from 'src/app/components/filters/filter';
 import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
