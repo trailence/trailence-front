@@ -31,6 +31,7 @@ export class AssetsService {
       'caret-back': 'assets/caret-back.1.svg', // caret-back
       'caret-down': 'assets/caret-down.1.svg', // caret-down
       'caret-forward': 'assets/caret-forward.1.svg', // caret-forward
+      'celebration': 'assets/celebration.1.svg',
       'center-on-location': 'assets/center-on-location.1.svg',
       'checkmark': 'assets/checkmark.1.svg', // checkmark-outline
       'chevron-down': 'assets/chevron-down.1.svg', // chevron-down-outline
@@ -60,6 +61,7 @@ export class AssetsService {
       'file': 'assets/file.1.svg', // document-outline
       'filters': 'assets/filters.1.svg', // funnel-outline
       'half-loop': 'assets/half-loop.1.svg',
+      'heart-outline': 'assets/heart-outline.1.svg', // heart-outline
       'highest-point': 'assets/highest-point.1.svg',
       'hourglass': 'assets/hourglass.1.svg', // hourglass-outline
       'i18n': 'assets/language.1.svg', // language-outline

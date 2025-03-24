@@ -96,3 +96,11 @@ ion-button a, a.inherit {
     color: yellow;
   }
 }
+
+:root {
+  --donation-color: #E000E0;
+}
+
+.donation-color {
+  color: var(--donation-color);
+}

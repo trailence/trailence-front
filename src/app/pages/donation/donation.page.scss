@@ -1,0 +1,110 @@
+div.page-container {
+  padding: 10px;
+  height: 100%;
+  overflow-y: auto;
+  font-size: 16px;
+}
+
+h1 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 24px;
+
+  ion-icon {
+    margin-right: 10px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+  }
+}
+
+p {
+  color: rgba(var(--ion-text-color-rgb), 0.8);
+}
+
+@media (max-width: 600px) {
+  div.page-container {
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 16px;
+
+    ion-icon {
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+    }
+  }
+}
+
+.goals {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+
+  .goal {
+    margin: 8px 8px;
+    padding: 8px;
+    background-color: rgba(var(--ion-text-color-rgb), 0.05);
+    border: 1px solid rgba(var(--ion-color-medium-rgb), 0.66);
+    border-radius: 8px;
+    width: calc(min(95%, 300px));
+
+    .title {
+      font-size: 16px;
+    }
+
+    .goal-description {
+      font-size: 14px;
+      color: rgba(var(--ion-text-color-rgb), 0.8);
+    }
+
+    .progression {
+      margin: 10px 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      font-size: 14px;
+
+      div {
+        white-space: nowrap;
+      }
+
+      .progression-bar {
+        margin: 0 8px 0 0;
+        flex: 1 1 100%;
+        background-color: rgba(var(--ion-text-color-rgb), 0.1);
+        border-radius: 9px;
+        height: 24px;
+        overflow: hidden;
+
+        .progression-done {
+          font-size: 13px;
+          color: var(--ion-text-color);
+          white-space: nowrap;
+          text-align: right;
+          background-color: var(--donation-color);
+          width: calc((calc(var(--progression-done) / var(--progression-total))) * 100%);
+          height: 100%;
+          border-radius: 4px;
+          padding-top: 4px;
+        }
+      }
+
+    }
+
+    .progress-full {
+      padding: 10px 6px;
+
+      ion-icon {
+        width: 26px;
+        min-width: 26px;
+        height: 26px;
+        margin: 0 2px -4px 2px;
+      }
+    }
+  }
+}
