@@ -1,0 +1,143 @@
+<div class="page-container">
+
+  <h1>
+    <ion-icon name="heart-outline" class="donation-color"></ion-icon>
+    <span>
+      @switch (prefs.preferences.lang) {
+        @case('fr') {
+          Merci de considérer d'aider ce projet !
+        }
+        @default {
+          Thank you for considering helping this project!
+        }
+      }
+    </span>
+  </h1>
+
+  <p>
+    @switch (prefs.preferences.lang) {
+      @case('fr') {
+        Trailence est gratuit, sans publicité, et open-source.<br/>
+        <br/>
+        Afin de le rester, nous aimerions solliciter votre aide.<br/>
+        <br/>
+        Nous sommes transparent sur nos coûts, et ce à quoi sert vos dons.<br/>
+        &nbsp; - Nous payons actuellement 60 euros par an pour l'hébergement (un serveur de base + le nom de domaine).<br/>
+        &nbsp; - Nous avons un espace de stockage de 100GB pour 20 euros.<br/>
+      }
+      @default {
+        Trailence is free, ad-free, and open-source.<br/>
+        <br/>
+        In order to remain so, we would like to ask for your help.<br/>
+        <br/>
+        We are transparent about our costs, and what your donations are used for.<br/>
+        &nbsp; - We currently pay 60 euros per year for hosting (a basic server + the domain name).<br/>
+        &nbsp; - We have 100GB of storage space for 20 euros.<br/>
+      }
+    }
+  </p>
+
+  <div class="donation-button">
+    <a href="https://ko-fi.com/trailence" target="_blank">
+      <ion-button>
+        @switch (prefs.preferences.lang) {
+          @case('fr') {
+            Faire un don
+          }
+          @default {
+            Make a donation
+          }
+        }
+      </ion-button>
+    </a>
+  </div>
+
+  <div class="goals">
+    <div class="goal" *ngFor="let goal of goals; let index = index">
+      <div class="title">
+        <span>
+          @switch (prefs.preferences.lang) {
+            @case('fr') {
+              Objectif
+            }
+            @default {
+              Objective
+            }
+          }
+        </span>
+        <span>&nbsp;{{ index + 1 }}</span>
+      </div>
+      <div class="goal-content">
+        @if (goal.current < goal.amount) {
+          <div class="progression">
+            <div class="progression-bar" [ngStyle]="{'--progression-total': goal.amount, '--progression-done': goal.current}">
+              <div class="progression-done">
+                &nbsp; € {{ amountFormatter(goal.current) }} &nbsp;
+              </div>
+            </div>
+            <div>€ {{ amountFormatter(goal.amount) }}</div>
+          </div>
+        } @else {
+          <div class="progress-full">
+            € {{ amountFormatter(goal.amount) }}
+            @switch (prefs.preferences.lang) {
+              @case('fr') {
+                récoltés
+              }
+              @default {
+                raised
+              }
+            }
+            <ion-icon name="celebration"></ion-icon>
+            @switch (prefs.preferences.lang) {
+              @case('fr') {
+                Merci !
+              }
+              @default {
+                Thanks!
+              }
+            }
+            <ion-icon name="heart-outline" class="donation-color"></ion-icon>
+          </div>
+        }
+        <div class="goal-description">
+          <span>
+          @switch(goal.type) {
+            @case('past_costs') {
+              @switch (prefs.preferences.lang) {
+                @case('fr') {
+                  Couvrir nos dépenses depuis 2025
+                }
+                @default {
+                  Cover our expenses since 2025
+                }
+              }
+            }
+            @case('future_costs') {
+              @switch (prefs.preferences.lang) {
+                @case('fr') {
+                  Assurer la pérénnité en couvrant les dépenses pour 2 années supplémentaires
+                }
+                @default {
+                  Ensure sustainability by covering expenses for 2 additional years
+                }
+              }
+            }
+            @case('increase_capacity') {
+              @switch (prefs.preferences.lang) {
+                @case('fr') {
+                  Augmenter la capacité pour tous les utilisateurs (plus de stockage, serveur pouvant servir plus d'utilisateurs)
+                }
+                @default {
+                  Increase capacity for all users (more storage, server can serve more users)
+                }
+              }
+            }
+          }
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

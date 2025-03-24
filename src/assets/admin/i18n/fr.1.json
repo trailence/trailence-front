@@ -37,6 +37,31 @@
       "delete_confirmation": "Confirmez-vous la suppression de cette offre ?"
     }
   },
+  "donations": {
+    "title": "Dons",
+    "error": "Erreur lors de la récupération des données",
+    "view": "Vue",
+    "view_donations_list": "Liste des dons",
+    "view_goals": "Objectifs",
+    "view_public_page": "Page publique",
+    "platform": "Platforme",
+    "date": "Date",
+    "amount": "Montant",
+    "realAmount": "Montant reçu",
+    "email": "E-Mail",
+    "new": "Ajouter un don",
+    "form": {
+      "title": "Don",
+      "platformId": "ID Platforme"
+    },
+    "goals": {
+      "index": "Index",
+      "type": "Type",
+      "amount": "Montant",
+      "createdAt": "Créé",
+      "updatedAt": "Mis à jour"
+    }
+  },
   "starts_at": "Depuis",
   "ends_at": "Jusqu'à"
 }

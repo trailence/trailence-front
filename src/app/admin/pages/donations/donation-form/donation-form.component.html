@@ -1,0 +1,88 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="heart-outline"></ion-icon>
+      <ion-label>{{ i18n.texts.admin.donations.form.title }}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="form-value">
+    <ion-input
+      fill="outline"
+      [label]="i18n.texts.admin.donations.platform"
+      labelPlacement="floating"
+      [(ngModel)]="dto.platform"
+    ></ion-input>
+  </div>
+
+  <div class="form-value">
+    <ion-input
+      fill="outline"
+      [label]="i18n.texts.admin.donations.form.platformId"
+      labelPlacement="floating"
+      [(ngModel)]="dto.platformId"
+    ></ion-input>
+  </div>
+
+  <div class="form-value" *ngIf="donation">
+    <ion-input
+      fill="outline"
+      [label]="i18n.texts.admin.donations.date"
+      labelPlacement="floating"
+      [value]="i18n.timestampToDateTimeString(dto.timestamp)"
+      [disabled]="true"
+    ></ion-input>
+  </div>
+
+  <div class="form-value">
+    <ion-input
+      fill="outline"
+      [label]="i18n.texts.admin.donations.amount"
+      labelPlacement="floating"
+      [(ngModel)]="dto.amount"
+      type="number"
+      min="0"
+      inputmode="decimal"
+      step="0.000001"
+    ></ion-input>
+  </div>
+
+  <div class="form-value">
+    <ion-input
+      fill="outline"
+      [label]="i18n.texts.admin.donations.realAmount"
+      labelPlacement="floating"
+      [(ngModel)]="dto.realAmount"
+      type="number"
+      min="0"
+      inputmode="decimal"
+      step="0.000001"
+    ></ion-input>
+  </div>
+
+  <div class="form-value">
+    <ion-input
+      fill="outline"
+      [label]="i18n.texts.admin.donations.email"
+      labelPlacement="floating"
+      [(ngModel)]="dto.email"
+    ></ion-input>
+  </div>
+
+  <div class="donation-details">
+    Details: {{ dto.details }}
+  </div>
+
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="start" *ngIf="donation">
+      <ion-button color="danger" (click)="delete()">{{ i18n.texts.buttons.delete }}</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="save()">{{ donation ? i18n.texts.buttons.save : i18n.texts.buttons.create }}</ion-button>
+      <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

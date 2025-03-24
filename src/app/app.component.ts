@@ -1,4 +1,4 @@
-import { Component, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
@@ -91,7 +91,10 @@ export class AppComponent {
         });
       }
       import('./services/geolocation/geolocation.service')
-      .then(module => injector.get(module.GeolocationService).waitingForGps$.subscribe(value => this.waitingForGps = value));
+      .then(module => injector.get(module.GeolocationService).waitingForGps$.subscribe(value => {
+        this.waitingForGps = value;
+        this.injector.get(ChangeDetectorRef).detectChanges();
+      }));
     });
     i18n.texts$.subscribe(texts => this.waitingForGpsText = texts?.waiting_for_gps);
   }

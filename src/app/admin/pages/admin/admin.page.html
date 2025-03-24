@@ -4,6 +4,7 @@
     <ion-segment [value]="getCurrentPage()" color="tertiary" (ionChange)="goToPage($event.detail.value)">
       <ion-segment-button value="users">{{ 'admin.users.title' | i18nString }}</ion-segment-button>
       <ion-segment-button value="plans">{{ 'admin.plans.title' | i18nString }}</ion-segment-button>
+      <ion-segment-button value="donations">{{ 'admin.donations.title' | i18nString }}</ion-segment-button>
     </ion-segment>
   </ng-container>
 </div>

@@ -48,7 +48,15 @@ export class TrailsList extends Component {
   }
 
   public async findItemByTrailName(trailName: string) {
-    const overview = new TrailOverview(this.getElement().$('div.trail-name=' + trailName).parentElement().parentElement());
+    let overview = new TrailOverview(this.getElement().$('div.trail-name=' + trailName).parentElement().parentElement());
+    try {
+      if (await overview.getElement().isExisting()) return overview;
+    } catch (e) {}
+    // not found, we may need to scroll
+    for (const element of await this.getElement().$$('div.trail-name').getElements())
+      await element.scrollIntoView({block: 'center', inline: 'center'});
+    // try again
+    overview = new TrailOverview(this.getElement().$('div.trail-name=' + trailName).parentElement().parentElement());
     try {
       if (!await overview.getElement().isExisting()) {
         return undefined;

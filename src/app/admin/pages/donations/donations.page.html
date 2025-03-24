@@ -1,0 +1,28 @@
+<div class="table-header">
+  <span>{{ i18n.texts.admin.donations.view }}: &nbsp;</span>
+  <ion-segment mode="ios" [value]="view" (ionChange)="setView($event.detail.value)">
+    <ion-segment-button value="donations_list">{{ i18n.texts.admin.donations.view_donations_list }}</ion-segment-button>
+    <ion-segment-button value="goals">{{ i18n.texts.admin.donations.view_goals }}</ion-segment-button>
+    <ion-segment-button value="public_page">{{ i18n.texts.admin.donations.view_public_page }}</ion-segment-button>
+  </ion-segment>
+</div>
+<div class="view_content donations_list" [ngClass]="{'visible': view === 'donations_list'}">
+  <app-table
+    [settings]="donationsTableSettings"
+    (rowClick)="openDonation($event)"
+  >
+    <div class="paginator-right-content">
+      <ion-button (click)="newDonation()">{{ i18n.texts.admin.donations.new }}</ion-button>
+    </div>
+  </app-table>
+</div>
+<div class="view_content goals" [ngClass]="{'visible': view === 'goals'}">
+  @defer(when view === 'goals') {
+    <app-donation-goals></app-donation-goals>
+  }
+</div>
+<div class="view_content public_page" [ngClass]="{'visible': view === 'public_page'}">
+  @defer(when view === 'public_page') {
+    <app-donation-page></app-donation-page>
+  }
+</div>

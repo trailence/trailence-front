@@ -37,6 +37,31 @@
       "delete_confirmation": "Are you sure to delete this plan?"
     }
   },
+  "donations": {
+    "title": "Donations",
+    "error": "Error retrieving data",
+    "view": "View",
+    "view_donations_list": "Donations list",
+    "view_goals": "Goals",
+    "view_public_page": "Public Page",
+    "platform": "Platform",
+    "date": "Date",
+    "amount": "Amount",
+    "realAmount": "Amount received",
+    "email": "E-Mail",
+    "new": "Add donation",
+    "form": {
+      "title": "Donation",
+      "platformId": "Platform Id"
+    },
+    "goals": {
+      "index": "Index",
+      "type": "Type",
+      "amount": "Amount",
+      "createdAt": "Created",
+      "updatedAt": "Updated"
+    }
+  },
   "starts_at": "Since",
   "ends_at": "Until"
 }
