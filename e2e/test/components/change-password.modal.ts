@@ -10,4 +10,8 @@ export class ChangePasswordModal extends ModalComponent {
 
   public get codeInput() { return new CodeInput(this.getElement().$('code-input')); }
 
+  public isBlockedByRecentRequest() {
+    return this.getElement().$('div.mail-already-sent').isExisting()
+  }
+
 }

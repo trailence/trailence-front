@@ -31,6 +31,7 @@
 
 :root {
   --header-height: 56px;
+  --donation-color: #E000E0;
 }
 
 @media (max-height: 600px) {
@@ -95,10 +96,6 @@ ion-button a, a.inherit {
   ion-icon {
     color: yellow;
   }
-}
-
-:root {
-  --donation-color: #E000E0;
 }
 
 .donation-color {

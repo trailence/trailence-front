@@ -17,12 +17,36 @@ describe('Reset password', () => {
 
   let accountPage: MyAccountPage;
 
-  it('Reset password', async () => {
+  it('Reset password is blocked', async () => {
     const menu = await trailsPage.header.openUserMenu();
     await menu.clickMyAccount();
     accountPage = new MyAccountPage();
     await accountPage.waitDisplayed();
     await browser.waitUntil(() => accountPage.changePasswordButton.isDisplayed());
+    await accountPage.changePasswordButton.click();
+    const modal = new ChangePasswordModal(await App.waitModal());
+    await modal.currentPasswordInput.setValue('myNewPassword');
+    await modal.newPasswordInput.setValue(App.config.initUserpass);
+    await modal.newPassword2Input.setValue(App.config.initUserpass);
+    const continueButton = await modal.getFooterButtonWithText('Continue');
+    await continueButton.click();
+    await browser.waitUntil(() => modal.isBlockedByRecentRequest());
+    await (await modal.getFooterButtonWithText('Cancel')).click();
+    await browser.waitUntil(() => modal.notDisplayed());
+  });
+
+  it('Change in database', async () => {
+    const childProcess = (browser.options as any)['child_process'];
+    const trailence = (browser.options as any)['trailence'];
+    let result = childProcess.spawnSync('docker', ['ps', '--filter', 'name=trailence-e2e-db', '-q']);
+    const containerId = (result.stdout as Buffer).toString().trim();
+    const dbUrl = 'postgresql://' + trailence['dbUsername'] + ':' + trailence['dbPassword'] + '@localhost:5432/trailence';
+    result = childProcess.spawnSync('docker', ['container', 'exec', containerId, 'psql', dbUrl, '-c' ,'update users set last_password_email = NULL']);
+    expect((result.stdout as Buffer).toString().indexOf('UPDATE')).toBeGreaterThanOrEqual(0);
+    expect((result.stderr as Buffer).toString()).toBe('');
+  });
+
+  it('Reset password', async () => {
     await accountPage.changePasswordButton.click();
     const modal = new ChangePasswordModal(await App.waitModal());
     await modal.currentPasswordInput.setValue('myNewPassword');

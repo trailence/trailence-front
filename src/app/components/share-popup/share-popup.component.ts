@@ -16,6 +16,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { EMAIL_REGEX } from 'src/app/utils/string-utils';
 import { Share } from 'src/app/model/share';
+import { IdGenerator } from 'src/app/utils/component-utils';
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
   injector.get(ModalController).create({
@@ -37,6 +38,7 @@ enum SharePage {
 interface Recipient {
   email: string;
   error: boolean;
+  id: string;
 }
 
 @Component({
@@ -54,7 +56,7 @@ export class SharePopupComponent implements OnInit {
   elementType?: ShareElementType;
   elements: string[] = [];
   name: string = '';
-  recipients: Recipient[] = [{email: '', error: false}];
+  recipients: Recipient[] = [{email: '', error: false, id: IdGenerator.generateId()}];
   mailLanguage: string = 'en';
   includePhotos = false;
 
@@ -74,8 +76,8 @@ export class SharePopupComponent implements OnInit {
     if (this.share) {
       this.pages = [SharePage.NAME_WHO];
       this.name = this.share.name;
-      this.recipients = this.share.recipients.map(r => ({email: r, error: false}));
-      this.recipients.push({email: '', error: false});
+      this.recipients = this.share.recipients.map(r => ({email: r, error: false, id: IdGenerator.generateId()}));
+      this.recipients.push({email: '', error: false, id: IdGenerator.generateId()});
       this.includePhotos = this.share.includePhotos;
     } else if (this.trails!.length > 0) {
       this.elementType = ShareElementType.TRAIL;
@@ -156,7 +158,8 @@ export class SharePopupComponent implements OnInit {
   }
 
   setRecipient(index: number, value: string | null | undefined): void {
-    this.recipients[index] = {email: value ?? '', error: false};
+    this.recipients[index].email = value ?? '';
+    this.recipients[index].error = false;
     const owner = this.injector.get(AuthService).email!;
     const remove = (email: string, index: number) => {
       const s = email.trim().toLowerCase();
@@ -176,8 +179,12 @@ export class SharePopupComponent implements OnInit {
       }
     }
     if (this.recipients.length < 20 && (this.recipients.length === 0 || this.recipients[this.recipients.length - 1].email.trim().length > 0))
-      this.recipients.push({email:'', error: false});
+      this.recipients.push({email:'', error: false, id: IdGenerator.generateId()});
     this.recipients = [...this.recipients];
+  }
+
+  trackRecipientBy(index: number, element: Recipient) {
+    return element.id;
   }
 
   close(role: string): void {

@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import * as child_process from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -9,6 +10,7 @@ const dynamicConfig = {} as any;
 
 dynamicConfig.baseUrl = "http://localhost:8100";
 dynamicConfig.trailence = {mode: 'desktop'};
+dynamicConfig.child_process = child_process;
 
 let specs = [ './test/specs/**/*.e2e.ts' ];
 let excludeSpecs: string[] = [];
@@ -19,6 +21,10 @@ for (const arg of process.argv) {
     dynamicConfig.trailence['initUsername'] = arg.substring(26);
   else if (arg.startsWith('--trailence-init-password='))
     dynamicConfig.trailence['initUserpass'] = arg.substring(26);
+  else if (arg.startsWith('--db_user='))
+    dynamicConfig.trailence['dbUsername'] = arg.substring(10);
+  else if (arg.startsWith('--db_password='))
+    dynamicConfig.trailence['dbPassword'] = arg.substring(14);
   else if (arg.startsWith('--test-only=')) {
     const name = arg.substring(12).trim();
     if (name.length > 0) {

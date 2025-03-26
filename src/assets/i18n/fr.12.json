@@ -31,7 +31,9 @@
         "errors": {
           "email": "Veuillez entrer un e-mail valide",
           "password": "Doit comporter au moins 8 caractères",
-          "passwordsDontMatch": "Les mots de passe ne correspondent pas"
+          "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+          "mail_already_sent": "Une demande a déjà été faite pour votre compte il y a moins de 10 minutes.",
+          "mail_error": "Une erreur est survenue, veuillez réessayer."
         }
       },
       "signing_in": "Connection...",
@@ -379,7 +381,9 @@
         "errors": {
           "current_password": "Veuillez entrer votre mot de passe actuel",
           "new_password": "Doit contenir au moins 8 caractères",
-          "passwordsDontMatch": "Les 2 mots de passe ne correspondent pas"
+          "passwordsDontMatch": "Les 2 mots de passe ne correspondent pas",
+          "mail_already_sent": "Une demande a déjà été faite pour votre compte il y a moins de 10 minutes.",
+          "mail_error": "Une erreur est survenue, veuillez réessayer."
         }
       }
     },

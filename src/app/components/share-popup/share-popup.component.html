@@ -59,17 +59,18 @@
 
       <div class="question">{{i18n.texts.pages.share_popup.who_question}}</div>
       <div class="recipients">
-        <ng-container *ngFor="let recipient of recipients; let index = index;">
+        <ng-container *ngFor="let recipient of recipients; let index = index; trackBy: trackRecipientBy">
           <ion-input
             fill="outline"
             label="{{i18n.texts.pages.share_popup.email}}"
             label-placement="floating"
             [value]="recipients[index].email"
-            (ionChange)="setRecipient(index, $event.detail.value)"
+            (ionInput)="setRecipient(index, $event.detail.value)"
             type="email"
             class="small"
-            [clearInput]="true"
-          ></ion-input>
+          >
+            <ion-icon slot="end" name="trash" *ngIf="recipients[index].email.length > 0" (click)="setRecipient(index, '')"></ion-icon>
+          </ion-input>
           <div class="error" *ngIf="recipients[index].error">{{ i18n.texts.pages.share_popup.recipient_error }}</div>
         </ng-container>
       </div>

@@ -31,7 +31,9 @@
         "errors": {
           "email": "Please enter a valid e-mail",
           "password": "Must contain at least 8 characters",
-          "passwordsDontMatch": "Passwords don't match"
+          "passwordsDontMatch": "Passwords don't match",
+          "mail_already_sent": "A request was already made for your account less than 10 minutes ago.",
+          "mail_error": "An error has occurred, please try again."
         }
       },
       "signing_in": "Connection...",
@@ -379,7 +381,9 @@
         "errors": {
           "current_password": "Please enter your current password",
           "new_password": "Must contain at least 8 characters",
-          "passwordsDontMatch": "The 2 passwords don't match"
+          "passwordsDontMatch": "The 2 passwords don't match",
+          "mail_already_sent": "A request was already made for your account less than 10 minutes ago.",
+          "mail_error": "An error has occurred, please try again."
         }
       }
     },

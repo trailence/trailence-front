@@ -331,3 +331,8 @@ ion-input.sc-ion-input-md-h.very-small {
 .page-content {
   container-type: size;
 }
+
+ion-checkbox:focus {
+  --border-color: rgb(var(--ion-text-color-rgb, 0, 0, 0), 0.9);
+  --border-color-checked: rgb(var(--ion-text-color-rgb, 0, 0, 0), 0.9);
+}

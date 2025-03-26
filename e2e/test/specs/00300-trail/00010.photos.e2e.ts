@@ -71,7 +71,12 @@ describe('Trail - Photos', () => {
   it('Move second to first', async() => {
     expect(await photosPopup.getIndexByDescription('20230605_101849.jpg')).toBe(2);
     await photosPopup.moveUpByDescription('20230605_101849.jpg');
-    expect(await photosPopup.getIndexByDescription('20230605_101849.jpg')).toBe(1);
+    const index = await TestUtils.retry(async () => {
+      const result = await photosPopup.getIndexByDescription('20230605_101849.jpg');
+      if (result != 1) throw Error('Expect photo to be first');
+      return result;
+    }, 2, 1000);
+    expect(index).toBe(1);
   });
 
   it('Set cover description', async () => {
