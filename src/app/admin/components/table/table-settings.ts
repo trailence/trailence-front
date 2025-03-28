@@ -11,8 +11,20 @@ export class TableSettings {
     public columns: TableColumn[],
     public dataProvider: (request: PageRequest) => Observable<PageResult<any>>,
     public dataErrorI18nText: string,
-    public pagingOptions: number[] = [5, 10, 25, 50, 100, 250, 500, 1000],
   ) {}
+
+  public pagingOptions: number[] = [5, 10, 25, 50, 100, 250, 500, 1000];
+  public selectable?: (row: any) => boolean;
+
+  withPagingOptions(pagingOptions: number[]): this {
+    this.pagingOptions = pagingOptions;
+    return this;
+  }
+
+  withSelectable(selectable: (row: any) => boolean): this {
+    this.selectable = selectable;
+    return this;
+  }
 
 }
 

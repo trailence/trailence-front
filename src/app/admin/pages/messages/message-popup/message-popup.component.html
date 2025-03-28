@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.texts.admin.messages.message}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <table>
+    <tr>
+      <th>{{i18n.texts.admin.messages.from}}</th>
+      <td>{{ message.email }}</td>
+    </tr>
+    <tr>
+      <th>{{i18n.texts.admin.messages.type}}</th>
+      <td>{{ i18n.texts.pages.contact.types[message.type] }}</td>
+    </tr>
+    <tr>
+      <th>{{i18n.texts.admin.messages.date}}</th>
+      <td>{{ i18n.timestampToDateTimeString(message.sentAt) }}</td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <textarea disabled="true">{{message.message}}</textarea>
+      </td>
+    </tr>
+  </table>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="start">
+      <ion-button color="danger" (click)="deleteMessage()">{{i18n.texts.buttons.delete}}</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="markAsUnread()">{{i18n.texts.admin.messages.mark_as_unread}}</ion-button>
+      <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -67,6 +67,7 @@ export class AssetsService {
       'i18n': 'assets/language.1.svg', // language-outline
       'info': 'assets/info-circle.1.svg', // information-circle-outline
       'item-menu': 'assets/item-menu.1.svg', // ellipsis-vertical
+      'key': 'assets/key.1.svg', // key-outline
       'layers': 'assets/layers.1.svg', // layers-outline
       'list-condensed': 'assets/list-condensed.1.svg',
       'list-detailed': 'assets/list-detailed.1.svg',
@@ -75,6 +76,7 @@ export class AssetsService {
       'logout': 'assets/logout.1.svg', // log-out-outline
       'loop': 'assets/loop.1.svg',
       'lowest-point': 'assets/lowest-point.1.svg',
+      'mail': 'assets/mail.1.svg', // mail-outline
       'map': 'assets/map.1.svg', // map
       'mobile': 'assets/mobile.1.svg',
       'more-menu': 'assets/more-menu.1.svg', // ellipsis-horizontal
@@ -99,6 +101,7 @@ export class AssetsService {
       'reset': 'assets/reset.1.svg', // refresh-outline
       'save': 'assets/save.1.svg', // save
       'search': 'assets/search.1.svg', // search-outline
+      'send-message': 'assets/send-message.1.svg', // send-outline
       'settings': 'assets/settings.1.svg', // settings
       'share': 'assets/share.1.svg', // share-social
       'share-outline': 'assets/share-outline.1.svg',  // share-social-outline

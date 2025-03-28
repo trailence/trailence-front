@@ -8,6 +8,8 @@ import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { Subscription } from 'rxjs';
+import { HeaderComponent } from 'src/app/components/header/header.component';
+import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 interface Goal {
   type: string;
@@ -22,12 +24,14 @@ interface Goal {
   imports: [
     CommonModule,
     IonIcon, IonButton,
+    HeaderComponent,
   ]
 })
 export class DonationPage implements OnInit, OnDestroy {
 
   constructor(
     public readonly prefs: PreferencesService,
+    public readonly i18n: I18nService,
     private readonly http: HttpService,
     private readonly network: NetworkService,
   ) {}
@@ -37,13 +41,23 @@ export class DonationPage implements OnInit, OnDestroy {
   private _refreshTimeout: any;
 
   ngOnInit(): void {
-    this.networkSubscription = this.network.server$.subscribe(available => {
-      if (available) this.refresh();
-    });
+    this.ionViewWillEnter();
   }
 
   ngOnDestroy(): void {
+    this.ionViewWillLeave();
+  }
+
+  ionViewWillEnter(): void {
+    if (this.networkSubscription === undefined)
+      this.networkSubscription = this.network.server$.subscribe(available => {
+        if (available) this.refresh();
+      });
+  }
+
+  ionViewWillLeave(): void {
     this.networkSubscription?.unsubscribe();
+    this.networkSubscription = undefined;
   }
 
   refresh(): void {

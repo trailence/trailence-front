@@ -62,6 +62,17 @@
       "updatedAt": "Updated"
     }
   },
+  "messages": {
+    "title": "Messages",
+    "date": "Date",
+    "from": "From",
+    "type": "Type",
+    "message": "Message",
+    "mark_as_read": "Mark as read",
+    "mark_as_unread": "Mark as unread",
+    "delete": "Remove",
+    "error": "Error retrieving data"
+  },
   "starts_at": "Since",
   "ends_at": "Until"
 }

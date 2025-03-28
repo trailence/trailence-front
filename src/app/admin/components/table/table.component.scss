@@ -21,6 +21,12 @@ table {
     background-color: rgba(var(--ion-text-color-rgb), 0.1);
   }
 
+  th.selection, td.selection {
+    text-align: left;
+    width: 32px;
+    max-width: 32px;
+  }
+
   th, td {
     padding: 8px 8px;
   }

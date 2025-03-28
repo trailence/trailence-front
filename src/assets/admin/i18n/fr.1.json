@@ -62,6 +62,17 @@
       "updatedAt": "Mis à jour"
     }
   },
+  "messages": {
+    "title": "Messages",
+    "date": "Date",
+    "from": "De",
+    "type": "Type",
+    "message": "Message",
+    "mark_as_read": "Marquer comme lu",
+    "mark_as_unread": "Marquer comme non lu",
+    "delete": "Supprimer",
+    "error": "Erreur lors de la récupération des données"
+  },
   "starts_at": "Depuis",
   "ends_at": "Jusqu'à"
 }

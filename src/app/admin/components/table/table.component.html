@@ -1,6 +1,13 @@
 <div class="table-container">
   <table>
     <tr>
+      <th *ngIf="settings.selectable" class="selection">
+        <ion-checkbox
+          [checked]="result?.elements?.length && selection.length === result?.elements?.length"
+          [indeterminate]="selection.length > 0 && result?.elements?.length && selection.length < result!.elements.length"
+          (ionChange)="selectAll($event.detail.checked)"
+        ></ion-checkbox>
+      </th>
       <th *ngFor="let column of settings.columns" (click)="sortBy(column)">
         <div>
           <div class="title" [ngStyle]="{'text-align': column._horizontalAlignment}">{{column.title | i18nString}}</div>
@@ -12,6 +19,12 @@
     </tr>
     <ng-container *ngIf="result">
       <tr *ngFor="let element of result.elements" (click)="rowClick.emit(element)">
+        <td *ngIf="settings.selectable && settings.selectable(element)" class="selection">
+          <ion-checkbox
+            [checked]="selection.indexOf(element) >= 0"
+            (ionChange)="select(element, $event.detail.checked)"
+          ></ion-checkbox>
+        </td>
         <ng-container *ngFor="let column of settings.columns">
           <ng-container *ngTemplateOutlet="cellTemplate; context: { column: column, element: element, value: column._valueGetter(element) }"></ng-container>
         </ng-container>

@@ -1,13 +1,11 @@
+<app-header></app-header>
+<div class="page-container">
 <ion-card>
   <ion-toolbar color="primary">
     <div style="font-size: 20px; display: flex; flex-direction: row; align-items: center; padding: 8px 16px;">
-      <ion-icon name="logo" style="margin-right: 10px" size="large"></ion-icon>
-      <ion-label>Trailence</ion-label>
+      <ion-label>{{i18n.texts.pages.login.title}}</ion-label>
     </div>
   </ion-toolbar>
-  <ion-card-header>
-    <ion-card-title>{{i18n.texts.pages.login.title}}</ion-card-title>
-  </ion-card-header>
   <ion-card-content>
     <ng-container *ngIf="!connected">
       <div>{{ i18n.texts.pages.login.offline }}</div>
@@ -62,4 +60,5 @@
     <img src="/assets/i18n/fr.1.png"/>
     Français
   </div>
+</div>
 </div>

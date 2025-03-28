@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar, IonIcon } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar } from '@ionic/angular/standalone';
 import { combineLatest, filter, first, Subscription } from 'rxjs';
+import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
@@ -20,7 +21,6 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
     templateUrl: './login.page.html',
     styleUrls: ['./login.page.scss'],
     imports: [
-        IonIcon,
         IonToolbar,
         IonLabel,
         IonSpinner,
@@ -28,12 +28,11 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
         IonItem,
         IonInput,
         IonCardContent,
-        IonCardTitle,
-        IonCardHeader,
         IonCard,
         IonButton,
         FormsModule,
         CommonModule,
+        HeaderComponent,
     ]
 })
 export class LoginPage implements OnInit, OnDestroy {

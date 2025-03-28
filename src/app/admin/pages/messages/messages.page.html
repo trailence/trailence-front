@@ -1,0 +1,11 @@
+<app-table
+  [settings]="tableSettings"
+  (selectionChange)="selection = $event"
+  (rowClick)="openMessage($event)"
+>
+  <div class="paginator-right-content">
+    <ion-button *ngIf="nbSelectedWithRead(false) > 0" (click)="markAsRead(true)">{{ i18n.texts.admin.messages.mark_as_read }}</ion-button>
+    <ion-button *ngIf="nbSelectedWithRead(true) > 0" (click)="markAsRead(false)">{{ i18n.texts.admin.messages.mark_as_unread }}</ion-button>
+    <ion-button *ngIf="selection.length > 0" (click)="deleteMessages()" color="danger">{{ i18n.texts.admin.messages.delete }}</ion-button>
+  </div>
+</app-table>

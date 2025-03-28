@@ -16,6 +16,7 @@ import { LoginShareRequest } from './login-share-request';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { UserQuotas } from './user-quotas';
+import { publicRoutes } from 'src/app/routes/package.routes';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
@@ -62,7 +63,8 @@ export class AuthService {
       if (auth === null) {
         const url = window.location.pathname;
         if (!url.startsWith('/login') && !url.startsWith('/link')) {
-          navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
+          if (!publicRoutes.find(r => '/' + r.path === url))
+            navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
         }
       } else if (auth) {
         Console.info(
@@ -371,9 +373,15 @@ export class AuthService {
         return request;
       }
     return this.requireAuth().pipe(
-      filterDefined(), // cancel request if not authenticated
+      filter(auth => {
+        if (auth) return true;
+        if (request.url === environment.apiBaseUrl + '/contact/v1' ||
+          request.url === environment.apiBaseUrl + '/donation/v1/status'
+        ) return true;
+        return false; // cancel request if not authenticated
+      }),
       map(auth => {
-        if (auth.accessToken && auth.expires > Date.now()) {
+        if (auth?.accessToken && auth.expires > Date.now()) {
           request.headers['Authorization'] = 'Bearer ' + auth.accessToken;
         }
         return request;

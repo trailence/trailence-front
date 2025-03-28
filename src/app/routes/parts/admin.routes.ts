@@ -22,6 +22,10 @@ export const adminRoutes: Routes = [
         loadComponent: () => import('../../admin/pages/donations/donations.page').then(m => m.AdminDonationsPage)
       },
       {
+        path: 'messages',
+        loadComponent: () => import('../../admin/pages/messages/messages.page').then(m => m.AdminMessagesPage)
+      },
+      {
         path: '',
         pathMatch: 'full',
         redirectTo: 'users'

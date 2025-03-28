@@ -6,6 +6,7 @@ import { I18nAdminService } from '../../services/i18n-admin.service';
 import { CommonModule } from '@angular/common';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { AbstractPage } from 'src/app/utils/component-utils';
+import { MessagesService } from '../../services/messages.service';
 
 @Component({
   selector: 'app-admin-page',
@@ -21,12 +22,14 @@ import { AbstractPage } from 'src/app/utils/component-utils';
 export class AdminPage extends AbstractPage {
 
   ready = false;
+  unreadMessagesCount?: number;
 
   constructor(
     injector: Injector,
     private readonly router: Router,
     private readonly i18nAdmin: I18nAdminService,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly messagesService: MessagesService,
   ) {
     super(injector);
   }
@@ -36,6 +39,7 @@ export class AdminPage extends AbstractPage {
       this.ready = r;
       this.changeDetector.detectChanges();
     });
+    this.whenVisible.subscribe(this.messagesService.unreadCount$, nb => this.unreadMessagesCount = nb)
   }
 
   getCurrentPage(): string {

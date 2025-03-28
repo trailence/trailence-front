@@ -9,6 +9,14 @@ export const appPublicRoutes: Routes = [
     path: 'link/:link',
     loadComponent: () => import('../../pages/link/link.page').then(m => m.LinkPage)
   },
+  {
+    path: 'donation',
+    loadComponent: () => import('../../pages/donation/donation.page').then(m => m.DonationPage)
+  },
+  {
+    path: 'contact',
+    loadComponent: () => import('../../pages/contact/contact.page').then(m => m.ContactPage)
+  },
 ];
 
 export const appDefaultPublicRoute = 'login';

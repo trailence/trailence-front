@@ -450,6 +450,38 @@
       "from_clipboard": "From clipboard",
       "nothing_found_in_clipboard": "No trail found in the clipboard",
       "button_import": "Import from {{1}}"
+    },
+    "donation": {
+      "title": "Contribute",
+      "header": "Thank you for considering helping this project!",
+      "text": "Trailence is free, ad-free, and open-source.<br/><br/>In order to remain so, we would like to ask for your help.<br/><br/>We are transparent about our costs, and what your donations are used for.<br/>&nbsp; - We currently pay 60 euros per year for hosting (a basic server + the domain name).<br/>&nbsp; - We have 100GB of storage space for 20 euros.<br/>",
+      "button": "Make a donation",
+      "goals": {
+        "goal": "Objective",
+        "raised": "raised",
+        "thanks": "Thanks!",
+        "descriptions": {
+          "past_costs": "Cover our expenses since 2025",
+          "future_costs": "Ensure sustainability by covering expenses for 2 additional years",
+          "increase_capacity": "Increase capacity for all users (more storage, server can serve more users)"
+        }
+      }
+    },
+    "contact": {
+      "title": "Contact",
+      "email": "Your E-Mail to answer you",
+      "type": "Type of request",
+      "types": {
+        "question": "Question",
+        "bug": "Report a problem",
+        "feature": "Suggest an improvement",
+        "other": "Other"
+      },
+      "message": "Your message",
+      "send_button": "Send",
+      "sent": "Your message has been sent",
+      "error": "An error occurred, please try again",
+      "network_needed": "Please connect to Internet to send a message"
     }
   },
   "menu": {

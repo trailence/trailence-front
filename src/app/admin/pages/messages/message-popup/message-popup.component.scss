@@ -1,0 +1,14 @@
+table {
+  width: 100%;
+
+  th, td {
+    padding: 4px 8px;
+  }
+  th {
+    color: var(--ion-color-secondary);
+  }
+  textarea {
+    width: 100%;
+    min-height: 200px;
+  }
+}

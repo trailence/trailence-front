@@ -12,6 +12,16 @@
       <ion-buttons slot="end">
         <app-header-user-menu></app-header-user-menu>
       </ion-buttons>
+    } @else {
+      <div class="trailence-title" slot="start" (click)="goTo('/')">
+        <ion-icon name="logo" size="large"></ion-icon>
+        <ion-label>Trailence</ion-label>
+      </div>
+      <ion-buttons slot="end" class="public-buttons">
+        <ion-button (click)="goTo('/donation')"><ion-icon slot="icon-only" name="heart-outline" class="donation-color"></ion-icon></ion-button>
+        <ion-button (click)="goTo('/contact')"><ion-icon slot="icon-only" name="mail"></ion-icon></ion-button>
+        <ion-button (click)="goTo('/login')"><ion-icon slot="icon-only" name="key"></ion-icon></ion-button>
+      </ion-buttons>
     }
     <div class="header-title">
       <div class="back-button" *ngIf="backUrl">
@@ -19,6 +29,7 @@
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
       </div>
+      <div class="title-icon" *ngIf="icon"><ion-icon [name]="icon" class="{{iconClass ?? ''}}"></ion-icon></div>
       <div class="title-text">{{title}}</div>
       <div class="title-actions" *ngIf="actions && actions.length > 0">
         <ion-button fill="clear" shape="round" id="header-title-actions-button-{{id}}">
