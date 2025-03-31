@@ -14,7 +14,6 @@ import { InitRenewRequest } from './init-renew-request';
 import { RenewRequest } from './renew-request';
 import { LoginShareRequest } from './login-share-request';
 import { Console } from 'src/app/utils/console';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { UserQuotas } from './user-quotas';
 import { publicRoutes } from 'src/app/routes/package.routes';
 

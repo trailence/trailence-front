@@ -8,15 +8,15 @@
 <ion-content class="ion-padding">
   <table>
     <tr>
-      <th>{{i18n.texts.admin.messages.from}}</th>
+      <th scope="row">{{i18n.texts.admin.messages.from}}</th>
       <td>{{ message.email }}</td>
     </tr>
     <tr>
-      <th>{{i18n.texts.admin.messages.type}}</th>
+      <th scope="row">{{i18n.texts.admin.messages.type}}</th>
       <td>{{ i18n.texts.pages.contact.types[message.type] }}</td>
     </tr>
     <tr>
-      <th>{{i18n.texts.admin.messages.date}}</th>
+      <th scope="row">{{i18n.texts.admin.messages.date}}</th>
       <td>{{ i18n.timestampToDateTimeString(message.sentAt) }}</td>
     </tr>
     <tr>
