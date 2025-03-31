@@ -567,6 +567,9 @@
     "padding_explaination_for_trail": "Pourcentage de la zone à télécharger autour de la zone du parcours (100% veut dire pas plus que le parcours). Permet de voir d'avantage autour du parcours en mode hors-ligne.",
     "padding_explaination_for_map": "Pourcentage de la zone à télécharger autour de la zone actuellement affichée (100% veut dire pas plus que le parcours). Permet de voir une zone un peu plus large en mode hors-ligne."
   },
+  "layers_popup": {
+    "title": "Fond de carte"
+  },
   "trace_recorder": {
     "trail_name_start": "Parcours du",
     "pause": "Pause",

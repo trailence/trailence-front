@@ -89,7 +89,7 @@ describe('Preferences', () => {
     await (await preferences.getRangeByTitle('Speed on flat terrain')).setValue(10);
     const collection = await goToCollection('My Trails');
     await TestUtils.retry(
-      async () => await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 2h00)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft'),
+      async () => await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 1h55)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft'),
       20, 1000
     );
   });

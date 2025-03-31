@@ -567,6 +567,9 @@
     "padding_explaination_for_trail": "Percentage of the area to download in around the trail area (100% means only the trail area). Allows you to see more around the trail in offline mode.",
     "padding_explaination_for_map": "Percentage of the area to download in around the currently displayed area (100% means only the trail area). Allows you to see a larger area in offline mode."
   },
+  "layers_popup": {
+    "title": "Map Layer"
+  },
   "trace_recorder": {
     "trail_name_start": "Trail of",
     "pause": "Pause",

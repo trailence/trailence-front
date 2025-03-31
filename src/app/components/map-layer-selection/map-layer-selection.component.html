@@ -1,3 +1,12 @@
+<ion-header *ngIf="popup">
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="layers" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.layers_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
 <div [ngClass]="{'popup': popup}">
 <ion-radio-group (ionChange)="select($event.detail.value, true, true)" [value]="selection.length > 0 ? selection[0] : undefined">
 <div class="layer layer-{{layer.layer.name}}" *ngFor="let layer of layers" [ngClass]="{'as-button': buttons, 'selected': selection.indexOf(layer.layer.name) >= 0}" (click)="layerClick(layer)">
@@ -10,3 +19,11 @@
 </div>
 </ion-radio-group>
 </div>
+
+<ion-footer *ngIf="popup">
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

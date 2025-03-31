@@ -36,10 +36,10 @@ describe('Map offline', () => {
     await map.downloadMapOffline(['ign-sat'], 13);
   });
 
-  it('Offline, OSM Fr cannot be loaded', async () => {
+  it('Offline, IGN Plan cannot be loaded', async () => {
     await browser.throttleNetwork('offline');
     await browser.setNetworkConditions({ latency: 0, throughput: 0, offline: true });
-    await map.selectLayer('osmfr');
+    await map.selectLayer('ign');
     await browser.waitUntil(async () => {
       const tiles = await map.tiles.getElements();
       if (tiles.length === 0) return false;
@@ -106,10 +106,10 @@ describe('Map offline', () => {
     });
   });
 
-  it('Back to offline, select OSM Fr, tiles in error', async () => {
+  it('Back to offline, select IGN, tiles in error', async () => {
     await browser.throttleNetwork('offline');
     await browser.setNetworkConditions({ latency: 0, throughput: 0, offline: true });
-    await map.selectLayer('osmfr');
+    await map.selectLayer('ign');
     await browser.waitUntil(async () => {
       const tiles = await map.tiles.getElements();
       if (tiles.length === 0) return false;

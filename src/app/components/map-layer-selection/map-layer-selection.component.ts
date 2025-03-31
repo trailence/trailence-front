@@ -2,14 +2,18 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
 import L from 'leaflet';
 import { CommonModule } from '@angular/common';
-import { IonRadio, IonRadioGroup, IonCheckbox } from "@ionic/angular/standalone";
+import { IonRadio, IonRadioGroup, IonCheckbox, IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController } from "@ionic/angular/standalone";
 import { environment } from 'src/environments/environment';
+import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Component({
     selector: 'app-map-layer-selection',
     templateUrl: './map-layer-selection.component.html',
     styleUrls: ['./map-layer-selection.component.scss'],
-    imports: [IonCheckbox, IonRadioGroup, IonRadio, CommonModule,]
+    imports: [
+      IonIcon, IonToolbar, IonHeader, IonCheckbox, IonRadioGroup, IonRadio, IonTitle, IonLabel, IonButton, IonButtons, IonFooter,
+      CommonModule,
+    ]
 })
 export class MapLayerSelectionComponent implements OnInit {
 
@@ -27,7 +31,9 @@ export class MapLayerSelectionComponent implements OnInit {
   assertsUrl = environment.assetsUrl;
 
   constructor(
+    public readonly i18n: I18nService,
     service: MapLayersService,
+    private readonly modalController: ModalController,
   ) {
     for (const l of service.layers) {
       this.layers.push({layer: l, tiles: l.create()});
@@ -78,6 +84,10 @@ export class MapLayerSelectionComponent implements OnInit {
       }
     }
     return result;
+  }
+
+  close(): void {
+    this.modalController.dismiss();
   }
 
 }
