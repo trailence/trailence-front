@@ -8,6 +8,7 @@ import { Trail } from 'src/app/model/trail';
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
+import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -25,9 +26,17 @@ export class TrailMenuService {
     if (!onlyGlobal && trails.length > 0) {
       menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
         .setAction(() => import('../functions/map-download').then(m => m.openMapDownloadDialog(this.injector, trails))));
-      if (trails.length === 1)
+      if (trails.length === 1) {
         menu.push(new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure')
         .setAction(() => import('../functions/go-to-departure').then(m => m.goToDeparture(this.injector, trails[0]))));
+        menu.push(new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
+        .setAction(() => {
+          this.injector.get(TraceRecorderService).start(trails[0]);
+          const url = '/trail/' + trails[0].owner + '/' + trails[0].uuid;
+          const router = this.injector.get(Router);
+          if (router.url.indexOf(url) < 0) router.navigateByUrl(url);
+        }));
+      }
 
       if (trails.every(t => t.owner === email)) {
         const collectionUuid = this.getUniqueCollectionUuid(trails);
