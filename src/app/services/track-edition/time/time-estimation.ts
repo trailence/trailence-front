@@ -28,7 +28,7 @@ export function estimateTimeForSegment(segment: Segment, preferences: ComputedPr
     const speedMetersByHour = Math.min(baseSpeed - 500, Math.max(1000, baseSpeed * Math.exp(-3.5 * Math.abs(elevation / distance + 0.05))));
     total += distance * (60 * 60 * 1000) / speedMetersByHour;
     if (durationSincePeviousBreak >= 60 * 60 * 1000) {
-      total += (hrs > 0 ? 5 : 3) * 60 * 1000;
+      total += (hrs > 0 ? 3 : 2) * 60 * 1000;
       durationSincePeviousBreak = 0;
     }
   }

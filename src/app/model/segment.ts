@@ -367,6 +367,8 @@ export class PointImpl implements Point {
       this.meta?.cancelElevation(this._elevationFromPrevious);
     if (this._distanceFromPrevious)
       this.meta?.addDistance(-this._distanceFromPrevious);
+    if (this._durationFromPrevious)
+      this.meta?.addDuration(-this._durationFromPrevious);
     if (this._next) {
       this._next._previous = this._previous;
       this._next.update();
