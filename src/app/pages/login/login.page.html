@@ -2,7 +2,7 @@
 <div class="page-container">
 <ion-card>
   <ion-toolbar color="primary">
-    <div style="font-size: 20px; display: flex; flex-direction: row; align-items: center; padding: 8px 16px;">
+    <div>
       <ion-label>{{i18n.texts.pages.login.title}}</ion-label>
     </div>
   </ion-toolbar>
@@ -33,7 +33,7 @@
           <div *ngIf="captchaNeeded">{{i18n.texts.pages.login.captcha_message}}</div>
           <div id="captcha-login"></div>
         </div>
-        <div style="display: flex; flex-direction: row; align-items: center; justify-content: center; margin-top: 10px">
+        <div class="bottom-button" style="margin-top: 10px">
           <ion-button fill="clear" color="secondary" (click)="signin()" [disabled]="!canSignin() || inprogress" type="submit">
             <span *ngIf="!inprogress">{{i18n.texts.pages.login.signin_button}}</span>
             <ion-spinner *ngIf="inprogress" color="secondary"></ion-spinner>
@@ -42,23 +42,19 @@
         <div style="text-align: center; font-size: 12px;" *ngIf="inprogress">
           {{progressMessage}}
         </div>
-        <div *ngIf="!inprogress">
+        <div *ngIf="!inprogress" class="bottom-button">
           <ion-button fill="clear" color="tertiary" (click)="resetPassword()">
             {{i18n.texts.pages.login.forgot_password}}
+          </ion-button>
+        </div>
+        <div *ngIf="!inprogress" class="bottom-button">
+          <ion-button fill="clear" color="success" (click)="createAccount()">
+            {{i18n.texts.pages.login.create_account}}
           </ion-button>
         </div>
       </form>
     </ng-container>
   </ion-card-content>
 </ion-card>
-<div class="languages" *ngIf="!inprogress && currentLanguage">
-  <div (click)="setLanguage('en')" *ngIf="currentLanguage !== 'en'">
-    <img src="/assets/i18n/en.1.png"/>
-    English
-  </div>
-  <div (click)="setLanguage('fr')" *ngIf="currentLanguage !== 'fr'">
-    <img src="/assets/i18n/fr.1.png"/>
-    Français
-  </div>
-</div>
+<app-language-bar *ngIf="!inprogress"></app-language-bar>
 </div>

@@ -20,6 +20,7 @@
       "captcha_message": "Following several attempts, we need to check you are not a robot",
       "locked_message": "Your account has been locked, please use the forgot password button",
       "forgot_password": "Forgot password?",
+      "create_account": "Create an account",
       "reset_password": {
         "title": "Reset password",
         "email": "E-Mail",
@@ -38,6 +39,25 @@
       },
       "signing_in": "Connection...",
       "downloading_data": "Loading your data..."
+    },
+    "register": {
+      "title": "Create an account",
+      "offline": "Please connect to Internet to create an account on Trailence",
+      "step1": "Enter your information",
+      "email": "E-Mail",
+      "password1": "Password",
+      "password2": "Confirm the password",
+      "step2": "Confirm you E-Mail",
+      "code_text": "WWe have just sent a 6-digit code to your email address, please enter it below",
+      "step3": "Account created",
+      "connection": "Connexion...",
+      "continue": "Continue",
+      "back": "Back",
+      "errors": {
+        "network": "An error has occurred, please try again",
+        "passwordsDontMatch": "The passwords don't match",
+        "invalidEmail": "Please enter a valid e-mail address"
+      }
     },
     "trails": {
       "edit_filters_popup_title": "Filter Trails",
@@ -385,12 +405,26 @@
           "mail_already_sent": "A request was already made for your account less than 10 minutes ago.",
           "mail_error": "An error has occurred, please try again."
         }
+      },
+      "delete_me": {
+        "button": "Delete my account",
+        "confirm_message": "Do you confirm that you want to permanently delete your account and all your data on Trailence?",
+        "code_message": "We have just sent a 6-digit code to your email address, please enter it below",
+        "done": "Your account and data have been deleted."
       }
     },
     "link": {
       "stop_change_password": {
         "in_progress": "Thank you for reporting the problem to us, we are canceling the password change request for your account...",
         "done": "Thank you for reporting the issue, we have canceled all password change requests for your account."
+      },
+      "stop_registration": {
+        "in_progress": "Thank you for reporting the problem to us, we are canceling the request to create your account...",
+        "done": "Thank you for reporting the issue, we have canceled the request to create your account."
+      },
+      "stop_deletion": {
+        "in_progress": "Thank you for reporting the problem to us, we are canceling the request to delete your account...",
+        "done": "Thank you for reporting the issue, we have canceled the request to delete your account."
       },
       "share": {
         "in_progress": "We are loading data for your share link...",
@@ -703,7 +737,8 @@
     "import_photo": "Cannot import photo {{1}}",
     "invalid_format": "Invalid format",
     "search_places": "Error searching places",
-    "search_routes": "Error searching circuits"
+    "search_routes": "Error searching circuits",
+    "password_strength": "The password must contain at least 8 characters"
   },
   "export": {
     "trail": "Trail",

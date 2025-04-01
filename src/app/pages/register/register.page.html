@@ -1,0 +1,71 @@
+<app-header></app-header>
+<div class="page-container">
+<ion-card>
+  <ion-toolbar color="primary">
+    <div>
+      <ion-label>{{i18n.texts.pages.register.title}}</ion-label>
+    </div>
+  </ion-toolbar>
+  <ion-card-content>
+    <ng-container *ngIf="!connected">
+      <div>{{ i18n.texts.pages.register.offline }}</div>
+    </ng-container>
+    <ng-container *ngIf="connected">
+      <form (ngSubmit)="onSubmit()">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <div class="step-title">{{ i18n.texts.pages.register.step1 }}</div>
+        </div>
+        <div class="step-content" [ngClass]="{'hidden': step !== 1}">
+          <ion-list>
+            <ion-item>
+              <ion-input label="{{i18n.texts.pages.register.email}}" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" autocomplete="username" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input label="{{i18n.texts.pages.register.password1}}" labelPlacement="floating" type="password" name="password1" [(ngModel)]="password1" autocomplete="new-password" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-input label="{{i18n.texts.pages.register.password2}}" labelPlacement="floating" type="password" name="password2" [(ngModel)]="password2" autocomplete="new-password" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
+            </ion-item>
+          </ion-list>
+          <div>
+            <div id="captcha-register"></div>
+          </div>
+          <div class="center error" *ngIf="error">{{ error }}</div>
+          <div class="center">
+            <ion-button (click)="onSubmit()" [disabled]="!isStep1Valid() || inprogress">
+              <span *ngIf="!inprogress">{{ i18n.texts.pages.register.continue }}</span>
+              <ion-spinner *ngIf="inprogress" color="secondary"></ion-spinner>
+            </ion-button>
+          </div>
+        </div>
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <div class="step-title">{{ i18n.texts.pages.register.step2 }}</div>
+        </div>
+        <div class="step-content" [ngClass]="{'hidden': step !== 2}">
+          <div>{{ i18n.texts.pages.register.code_text }}</div>
+          <code-input [codeLength]="6" (codeChanged)="code = $event"></code-input>
+          <div class="center error" *ngIf="error">{{ error }}</div>
+          <div class="center">
+            <ion-button color="secondary" (click)="back()" [disabled]="inprogress">{{ i18n.texts.pages.register.back }}</ion-button>
+            <ion-button (click)="onSubmit()" [disabled]="code.length !== 6 || inprogress">
+              <span *ngIf="!inprogress">{{ i18n.texts.pages.register.continue }}</span>
+              <ion-spinner *ngIf="inprogress" color="secondary"></ion-spinner>
+            </ion-button>
+          </div>
+        </div>
+        <div class="step-header">
+          <div class="step-number">3</div>
+          <div class="step-title">{{ i18n.texts.pages.register.step3 }}</div>
+        </div>
+        <div class="step-content" [ngClass]="{'hidden': step !== 3}">
+          <ion-spinner color="secondary"></ion-spinner>
+          <span>{{ i18n.texts.pages.register.connection }}</span>
+        </div>
+      </form>
+    </ng-container>
+  </ion-card-content>
+</ion-card>
+<app-language-bar *ngIf="!inprogress"></app-language-bar>
+</div>

@@ -12,15 +12,17 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { map } from 'rxjs';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { Console } from 'src/app/utils/console';
+import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-link',
     templateUrl: './link.page.html',
     styleUrls: [],
-    imports: [IonIcon,]
+    imports: [IonIcon, CommonModule]
 })
 export class LinkPage {
 
+  inprogress = true;
   message = '';
 
   constructor(
@@ -55,7 +57,26 @@ export class LinkPage {
       if (payload.type === 'stop_change_password') {
         this.message = this.i18n.texts.pages.link.stop_change_password.in_progress;
         this.injector.get(HttpService).delete(environment.apiBaseUrl + '/user/v1/changePassword?token=' + encodeURIComponent(token)).subscribe(
-          () => this.message = this.i18n.texts.pages.link.stop_change_password.done
+          () => {
+            this.message = this.i18n.texts.pages.link.stop_change_password.done;
+            this.inprogress = false;
+          }
+        );
+      } else if (payload.type === 'stop_registration') {
+        this.message = this.i18n.texts.pages.link.stop_registration.in_progress;
+        this.injector.get(HttpService).delete(environment.apiBaseUrl + '/user/v1/sendRegisterCode?token=' + encodeURIComponent(token)).subscribe(
+          () => {
+            this.message = this.i18n.texts.pages.link.stop_registration.done;
+            this.inprogress = false;
+          }
+        );
+      } else if (payload.type === 'stop_deletion') {
+        this.message = this.i18n.texts.pages.link.stop_deletion.in_progress;
+        this.injector.get(HttpService).delete(environment.apiBaseUrl + '/user/v1/sendDeletionCode?token=' + encodeURIComponent(token)).subscribe(
+          () => {
+            this.message = this.i18n.texts.pages.link.stop_deletion.done;
+            this.inprogress = false;
+          }
         );
       } else if (payload.type === 'share') {
         this.message = this.i18n.texts.pages.link.share.in_progress;
@@ -81,6 +102,7 @@ export class LinkPage {
               this.router.navigateByUrl('/login?email=' + encodeURIComponent(payload.email));
             }
             this.message = this.i18n.texts.pages.link.share.error;
+            this.inprogress = false;
           }
         });
       }

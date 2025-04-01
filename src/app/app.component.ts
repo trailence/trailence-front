@@ -5,7 +5,7 @@ import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menu/menu.component';
 import { NavigationEnd, Router } from '@angular/router';
-import { combineLatest, filter, first, Observable, tap } from 'rxjs';
+import { combineLatest, filter, first, Observable, of, switchMap, tap } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';
@@ -57,6 +57,13 @@ export class AppComponent {
       injector.get(Router).events.pipe(
         filter(e => e instanceof NavigationEnd),
         first(),
+        switchMap(e => {
+          if (e.url.startsWith('/link/')) return of(null);
+          return auth.auth$.pipe(
+            filter(a => a !== undefined),
+            first(),
+          );
+        })
       ),
       i18n.texts$.pipe(
         filter(texts => !!texts),
@@ -66,11 +73,7 @@ export class AppComponent {
         }),
         first(),
       ),
-      auth.auth$.pipe(
-        filter(a => a !== undefined),
-        first(),
-      ),
-    ]).subscribe(([e, t, a]) => {
+    ]).subscribe(([a, t]) => {
       this.loadMenu = true;
       const startup = document.getElementById('startup')!;
       document.getElementById('root')!.style.display = '';

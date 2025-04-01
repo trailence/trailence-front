@@ -6,6 +6,10 @@ export const appPublicRoutes: Routes = [
     loadComponent: () => import('../../pages/login/login.page').then(m => m.LoginPage)
   },
   {
+    path: 'register',
+    loadComponent: () => import('../../pages/register/register.page').then(m => m.RegisterPage)
+  },
+  {
     path: 'link/:link',
     loadComponent: () => import('../../pages/link/link.page').then(m => m.LinkPage)
   },

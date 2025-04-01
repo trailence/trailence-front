@@ -10,8 +10,20 @@
   align-items: center;
   justify-content: center;
 }
-.languages {
-  div {
-    cursor: pointer;
+ion-card {
+  ion-toolbar {
+    div {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 20px;
+    }
   }
+}
+div.bottom-button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }

@@ -85,4 +85,12 @@ export class MyaccountPage implements OnDestroy, OnInit {
     modal.present();
   }
 
+  async deleteMe() {
+    const module = await import('./delete-me/delete-me.component');
+    const modal = await this.modalController.create({
+      component: module.DeleteMeComponent
+    });
+    modal.present();
+  }
+
 }

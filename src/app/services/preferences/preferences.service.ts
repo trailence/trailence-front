@@ -47,7 +47,7 @@ export class PreferencesService {
 
   private readonly _prefs$: BehaviorSubject<Preferences>;
   private readonly _computed$: BehaviorSubject<ComputedPreferences>;
-  private readonly _systemTheme: ThemeType;
+  private readonly _systemTheme: 'DARK' | 'LIGHT';
   private readonly _saveNeeded$ = new BehaviorSubject<string | undefined>(undefined);
   private destroyed = false;
   private subscription?: Subscription;
@@ -292,6 +292,14 @@ export class PreferencesService {
       this._saveNeeded$.next(auth.email);
     }
     this._prefs$.next({});
+  }
+
+  public getResolvedTheme(): 'DARK' | 'LIGHT' {
+    switch (this.preferences.theme) {
+      case 'DARK': return 'DARK';
+      case 'LIGHT': return 'LIGHT';
+      default: return this._systemTheme;
+    }
   }
 
 }

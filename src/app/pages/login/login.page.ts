@@ -12,9 +12,10 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { ApiError } from 'src/app/services/http/api-error';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Console } from 'src/app/utils/console';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { LanguageBarComponent } from './language-bar.component';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
     selector: 'app-login',
@@ -33,6 +34,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
         FormsModule,
         CommonModule,
         HeaderComponent,
+        LanguageBarComponent,
     ]
 })
 export class LoginPage implements OnInit, OnDestroy {
@@ -51,14 +53,11 @@ export class LoginPage implements OnInit, OnDestroy {
   captchaNeeded = false;
   captchaToken?: string;
 
-  destroyed = false;
-  preferencesSubscription?: Subscription;
-  currentLanguage?: string;
 
   private returnUrl = '';
 
   constructor(
-    public i18n: I18nService,
+    public readonly i18n: I18nService,
     network: NetworkService,
     private readonly auth: AuthService,
     route: ActivatedRoute,
@@ -76,18 +75,15 @@ export class LoginPage implements OnInit, OnDestroy {
     });
   }
 
+  private langSubscription?: Subscription;
+
   ngOnInit(): void {
     const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
-    title.innerText = 'Sign in - Trailence';
-    setTimeout(() => {
-      if (this.destroyed) return;
-      this.preferencesSubscription = this.injector.get(PreferencesService).preferences$.subscribe(p => this.currentLanguage = p.lang);
-    }, 100);
+    this.langSubscription = this.i18n.texts$.subscribe(texts => title.innerText = texts.pages.login.title + ' - Trailence');
   }
 
   ngOnDestroy(): void {
-    this.destroyed = true;
-    this.preferencesSubscription?.unsubscribe();
+    this.langSubscription?.unsubscribe();
   }
 
   onSubmit(): void {
@@ -172,10 +168,6 @@ export class LoginPage implements OnInit, OnDestroy {
     this.injector.get(NavController);
   }
 
-  setLanguage(lang: string): void {
-    this.injector.get(PreferencesService).setLanguage(lang);
-  }
-
   async resetPassword() {
     const module = await import('./reset-password/reset-password.component');
     const modal = await this.injector.get(ModalController).create({
@@ -185,6 +177,10 @@ export class LoginPage implements OnInit, OnDestroy {
       }
     });
     modal.present();
+  }
+
+  createAccount(): void {
+    this.router.navigateByUrl('/register');
   }
 
 }

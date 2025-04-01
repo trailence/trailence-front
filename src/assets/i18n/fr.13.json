@@ -20,6 +20,7 @@
       "captcha_message": "Suite à plusieurs tentative, nous avons besoin de vérifier que vous n'êtes pas un robot",
       "locked_message": "Votre compte a été bloqué, veuillez utiliser le bouton Mot de passe oublié",
       "forgot_password": "Mot de passe oublié ?",
+      "create_account": "Créer un compte",
       "reset_password": {
         "title": "Mot de passe oublié",
         "email": "E-Mail",
@@ -38,6 +39,25 @@
       },
       "signing_in": "Connection...",
       "downloading_data": "Chargement de vos données..."
+    },
+    "register": {
+      "title": "Créer un compte",
+      "offline": "Veuillez vous connecter à Internet afin de pouvoir créer un compte sur Trailence",
+      "step1": "Entrez vos informations",
+      "email": "E-Mail",
+      "password1": "Mot de passe",
+      "password2": "Confirmez votre mot de passe",
+      "step2": "Confirmez votre E-Mail",
+      "code_text": "Un mail vous a été envoyé avec un code de confirmation à 6 chiffres, veuillez le rentrer ci-dessous",
+      "step3": "Compte créé",
+      "connection": "Connection...",
+      "continue": "Continuer",
+      "back": "Revenir",
+      "errors": {
+        "network": "Une erreur s'est produite, veuillez réessayer",
+        "passwordsDontMatch": "Les 2 mots de passe ne correspondent pas",
+        "invalidEmail": "Veuillez entrer une adresse e-mail valide"
+      }
     },
     "trails": {
       "edit_filters_popup_title": "Filtrer les Parcours",
@@ -385,12 +405,26 @@
           "mail_already_sent": "Une demande a déjà été faite pour votre compte il y a moins de 10 minutes.",
           "mail_error": "Une erreur est survenue, veuillez réessayer."
         }
+      },
+      "delete_me": {
+        "button": "Supprimer mon compte",
+        "confirm_message": "Confirmez-vous vouloir définitivement supprimer votre compte et toutes vos données sur Trailence ?",
+        "code_message": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
+        "done": "Votre compte et vos données ont été supprimés."
       }
     },
     "link": {
       "stop_change_password": {
         "in_progress": "Merci de nous avoir signalé le problème, nous annulons la demande de changement de mot de passe pour votre compte...",
         "done": "Merci de nous avoir signalé le problème, nous avons annulé toutes les demandes de changement de mot de passe pour votre compte."
+      },
+      "stop_registration": {
+        "in_progress": "Merci de nous avoir signalé le problème, nous annulons la demande de création de compte...",
+        "done": "Merci de nous avoir signalé le problème, nous avons annulé la demande de création de votre compte."
+      },
+      "stop_deletion": {
+        "in_progress": "Merci de nous avoir signalé le problème, nous annulons la demande de suppression de compte...",
+        "done": "Merci de nous avoir signalé le problème, nous avons annulé la demande de suppression de votre compte."
       },
       "share": {
         "in_progress": "Nous chargeons les données de votre lien de partage...",
@@ -703,7 +737,8 @@
     "import_photo": "Impossible de charger la photo {{1}}",
     "invalid_format": "Format invalide/non supporté",
     "search_places": "Erreur lors de la recherche de lieux",
-    "search_routes": "Erreur lors de la recherche des circuits"
+    "search_routes": "Erreur lors de la recherche des circuits",
+    "password_strength": "Le mot de passe doit contenir au moins 8 caractères"
   },
   "export": {
     "trail": "Parcours",

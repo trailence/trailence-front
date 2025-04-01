@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{ i18n.texts.pages.myaccount.delete_me.button }}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ng-container *ngIf="page === 1">
+    <div>{{ i18n.texts.pages.myaccount.delete_me.confirm_message }}</div>
+  </ng-container>
+
+  <ng-container *ngIf="page === 2">
+    <div class="explaination">
+      {{i18n.texts.pages.myaccount.delete_me.code_message}}
+    </div>
+    <code-input [codeLength]="6" (codeChanged)="code = $event"></code-input>
+  </ng-container>
+
+  <ng-container *ngIf="page === 3">
+    {{i18n.texts.pages.myaccount.delete_me.done}}
+  </ng-container>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ng-container *ngIf="page === 1">
+        <ion-button color="success" [disabled]="pending" (click)="confirm()">{{i18n.texts.buttons.yes}}</ion-button>
+      </ng-container>
+      <ng-container *ngIf="page === 2">
+        <ion-button color="danger" [disabled]="pending || code.length !== 6" (click)="deleteMe()">{{i18n.texts.buttons.confirm}}</ion-button>
+      </ng-container>
+      <ng-container *ngIf="page === 3">
+        <ion-button color="medium" (click)="logout()" [disabled]="pending">{{i18n.texts.buttons.close}}</ion-button>
+      </ng-container>
+      <ng-container *ngIf="page !== 3">
+        <ion-button color="medium" (click)="close()" [disabled]="pending">{{i18n.texts.buttons.cancel}}</ion-button>
+      </ng-container>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -368,7 +368,10 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/auth/v1/captcha' ||
       request.url === environment.apiBaseUrl + '/auth/v1/forgot' ||
       request.url === environment.apiBaseUrl + '/user/v1/resetPassword' ||
-      (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE')) {
+      request.url === environment.apiBaseUrl + '/user/v1/sendRegisterCode' ||
+      request.url === environment.apiBaseUrl + '/user/v1/registerNewUser' ||
+      (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE') ||
+      (request.url.startsWith(environment.apiBaseUrl + '/user/v1/sendDeletionCode') && request.method === 'DELETE')) {
         return request;
       }
     return this.requireAuth().pipe(
@@ -377,6 +380,7 @@ export class AuthService {
         if (request.url === environment.apiBaseUrl + '/contact/v1' ||
           request.url === environment.apiBaseUrl + '/donation/v1/status'
         ) return true;
+        Console.warn('Request cancelled because no authentication', request.url);
         return false; // cancel request if not authenticated
       }),
       map(auth => {

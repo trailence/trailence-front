@@ -8,22 +8,27 @@
 
   @if (network.server$ | async) {
 
-  <ion-button (click)="changePassword()">
-    {{ complete ? i18n.texts.pages.myaccount.change_password.button : i18n.texts.pages.myaccount.change_password.button_new }}
-  </ion-button>
-
-  <ng-container *ngIf="quotas">
-    <div class="page-section-title">
-      {{i18n.texts.pages.myaccount.quotas.title}}
+    <div class="account-buttons">
+      <ion-button (click)="changePassword()">
+        {{ complete ? i18n.texts.pages.myaccount.change_password.button : i18n.texts.pages.myaccount.change_password.button_new }}
+      </ion-button>
+      <ion-button color="danger" (click)="deleteMe()">
+        {{ i18n.texts.pages.myaccount.delete_me.button }}
+      </ion-button>
     </div>
-    <app-user-quotas [quotas]="quotas"></app-user-quotas>
-  </ng-container>
 
-  <div class="page-section-title">
-    {{i18n.texts.pages.myaccount.devices}}
-  </div>
+    <ng-container *ngIf="quotas">
+      <div class="page-section-title">
+        {{i18n.texts.pages.myaccount.quotas.title}}
+      </div>
+      <app-user-quotas [quotas]="quotas"></app-user-quotas>
+    </ng-container>
 
-  <app-user-keys [keysProvider]="keysProvider" [keyDelete]="keyDelete"></app-user-keys>
+    <div class="page-section-title">
+      {{i18n.texts.pages.myaccount.devices}}
+    </div>
+
+    <app-user-keys [keysProvider]="keysProvider" [keyDelete]="keyDelete"></app-user-keys>
 
   } @else {
     <div class="no-network">{{i18n.texts.pages.myaccount.not_connected}}</div>
