@@ -6,10 +6,12 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
-import { PlatformService } from 'src/app/services/platform/platform.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { GestureController } from '@ionic/angular/standalone';
+import { Gesture, GestureDetail } from '@ionic/core';
+import { IdGenerator } from 'src/app/utils/component-utils';
 
 @Component({
   templateUrl: './home.page.html',
@@ -25,6 +27,9 @@ export class HomePage {
   slides: Slide[] = [];
   subscriptions = new Subscriptions();
   mask: string = '';
+  id = IdGenerator.generateId();
+
+  private gesture?: Gesture;
 
   constructor(
     public readonly i18n: I18nService,
@@ -35,6 +40,7 @@ export class HomePage {
     private readonly browser: BrowserService,
     private readonly changeDetector: ChangeDetectorRef,
     public readonly auth: AuthService,
+    private readonly gestureController: GestureController,
   ) {}
 
   ionViewWillEnter(): void {
@@ -49,12 +55,61 @@ export class HomePage {
     this.slideInterval = setInterval(() => this.nextSlide(), 7500);
   }
 
+  ionViewDidEnter(): void {
+    setTimeout(() => {
+      const element = document.getElementById('slider-' + this.id)!;
+      const start = (detail: GestureDetail) => {
+        detail.event.stopPropagation()
+      };
+      const move = (detail: GestureDetail) => {
+        const current = this.element.nativeElement.getElementsByClassName('current') as HTMLCollection;
+        if (current.length === 1) {
+          if (this.slideInterval) {
+            clearInterval(this.slideInterval);
+            this.slideInterval = undefined;
+          }
+          const item = current.item(0) as HTMLElement;
+          item.style.left = -(detail.startX - detail.currentX) + 'px';
+          item.style.transition = 'none';
+        }
+        this.changeDetector.detectChanges();
+        detail.event.stopPropagation();
+        detail.event.preventDefault();
+      };
+      const end = (detail: GestureDetail) => {
+        const current = (this.element.nativeElement.getElementsByClassName('current') as HTMLCollection).item(0) as HTMLElement;
+        if (current) {
+          current.style.left = '';
+          current.style.transition = '';
+          const diff = detail.currentX - detail.startX;
+          if (Math.abs(diff) > 15) {
+            if (diff < 0) this.nextSlide();
+            else this.previousSlide();
+          }
+        }
+        detail.event.stopPropagation();
+        detail.event.preventDefault();
+      };
+      this.gesture = this.gestureController.create({
+        el: element,
+        threshold: 15,
+        direction: 'x',
+        gestureName: 'home-slider',
+        onMove: move,
+        onEnd: end,
+        onStart: start,
+      }, true);
+      this.gesture.enable();
+    }, 0);
+  }
+
   ionViewWillLeave(): void {
     if (this.slideInterval) {
       clearInterval(this.slideInterval);
       this.slideInterval = undefined;
     }
     this.subscriptions.unsubscribe();
+    this.gesture?.destroy();
   }
 
   private updateSlides(): void {
@@ -84,6 +139,10 @@ export class HomePage {
     if (this.slide >= this.slides.length - 1) this.setSlide(0); else this.setSlide(this.slide + 1);
   }
 
+  previousSlide(): void {
+    if (this.slide === 0) this.setSlide(this.slides.length - 1); else this.setSlide(this.slide - 1);
+  }
+
   setSlide(index: number, stopInterval: boolean = false): void {
     const previous = this.slide;
     this.slide = index;
@@ -92,13 +151,12 @@ export class HomePage {
       const item = items.item(i)!;
       if (i === index) {
         item.classList.add('current');
-        item.classList.remove('previous');
+        item.classList.remove('previous', 'from-left', 'from-right');
       } else if (i === previous) {
         item.classList.remove('current');
-        item.classList.add('previous');
+        item.classList.add('previous', previous < index ? 'from-left' : 'from-right');
       } else {
-        item.classList.remove('current');
-        item.classList.remove('previous');
+        item.classList.remove('current', 'previous', 'from-left', 'from-right');
       }
     }
     if (stopInterval && this.slideInterval) {

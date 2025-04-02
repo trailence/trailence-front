@@ -94,8 +94,13 @@ div.slider {
     opacity: 0;
 
     &.previous {
-      left: calc(0px - var(--width));
       opacity: 1;
+      &.from-left {
+        left: calc(0px - var(--width));
+      }
+      &.from-right {
+        left: var(--width);
+      }
     }
     &.current {
       left: 0px;

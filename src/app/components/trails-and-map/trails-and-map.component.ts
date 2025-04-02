@@ -276,6 +276,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   onTrailClickOnList(trail: Trail): void {
     this.toggleHighlightedTrail(trail);
+    if (this.tab === 'list' && this.mode.indexOf('large') < 0) {
+      this.setTab('map');
+      this.changeDetector.detectChanges();
+    }
+    const mt = this.mapTracks$.value.find(t => t.trail?.owner === trail.owner && t.trail?.uuid === trail.uuid);
+    if (mt && this.map)
+      this.map.ensureVisible(mt);
   }
 
   onTrailClickOnMap(event: MapTrackPointReference[]): void {

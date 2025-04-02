@@ -257,6 +257,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   openMenu(event: MouseEvent): void {
+    event.stopPropagation();
     const y = event.pageY;
     const h = this.browser.height;
     const remaining = h - y - 15;
