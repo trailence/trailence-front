@@ -1,5 +1,5 @@
 import { Component, Injector, Input } from '@angular/core';
-import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, IonPopover, IonContent, IonBadge, IonLabel } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, IonPopover, IonContent, IonBadge, IonLabel, IonList, IonItem } from '@ionic/angular/standalone';
 import { HeaderUserMenuComponent } from '../header-user-menu/header-user-menu.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Router } from '@angular/router';
@@ -10,12 +10,15 @@ import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { UpdateService } from 'src/app/services/update/update.service';
 import { of } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { publicRoutes } from 'src/app/routes/package.routes';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
     selector: 'app-header',
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss'],
-    imports: [
+    imports: [IonItem, IonList,
       IonBadge, IonContent, IonPopover, IonButton, IonHeader, IonToolbar, IonButtons, IonIcon, IonLabel, IonMenuButton,
       HeaderUserMenuComponent, MenuContentComponent,
       CommonModule,
@@ -26,10 +29,9 @@ export class HeaderComponent extends AbstractComponent {
   @Input() title = '';
   @Input() backUrl?: string;
   @Input() actions?: MenuItem[];
-  @Input() icon?: string;
-  @Input() iconClass?: string;
 
   id = IdGenerator.generateId();
+  small: boolean;
 
   constructor(
     injector: Injector,
@@ -37,8 +39,12 @@ export class HeaderComponent extends AbstractComponent {
     private readonly router: Router,
     public readonly update: UpdateService,
     public readonly i18n: I18nService,
+    public readonly prefs: PreferencesService,
+    public readonly browser: BrowserService,
   ) {
     super(injector);
+    this.small = browser.width < 500;
+    this.whenAlive.add(browser.resize$.subscribe(s => this.small = s.width < 500));
   }
 
   back(): void {
@@ -47,6 +53,13 @@ export class HeaderComponent extends AbstractComponent {
 
   goTo(url: string): void {
     this.router.navigateByUrl(url);
+  }
+
+  home(): void {
+    if (publicRoutes.find(r => r.path === 'home'))
+      this.goTo('/home');
+    else
+      this.goTo('/');
   }
 
   protected override getComponentState() {

@@ -39,6 +39,28 @@
   ion-button {
     flex: none;
   }
+  &.list-medium {
+    ion-checkbox {
+      padding-right: 4px;
+    }
+    ion-button {
+      font-size: 11px;
+      --padding-start: 2px;
+      --padding-end: 2px;
+    }
+    .view-selection {
+      ion-segment {
+        ion-segment-button {
+          min-width: 28px;
+        }
+      }
+    }
+  }
+  &.list-small {
+    .view-selection {
+      display: none;
+    }
+  }
 
   .space {
     flex: 1 1 100%;

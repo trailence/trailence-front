@@ -4,7 +4,6 @@ import { IonCard, IonToolbar, IonLabel, IonCardContent, IonList, IonItem, IonInp
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { NetworkService } from 'src/app/services/network/network.service';
-import { LanguageBarComponent } from '../login/language-bar.component';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
@@ -21,7 +20,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
   styleUrl: './register.page.scss',
   imports: [
     CommonModule, FormsModule,
-    HeaderComponent, LanguageBarComponent, CodeInputModule,
+    HeaderComponent, CodeInputModule,
     IonSpinner, IonButton, IonInput, IonItem, IonList, IonCardContent, IonLabel, IonToolbar, IonCard,
   ]
 })

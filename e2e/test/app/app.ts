@@ -93,9 +93,9 @@ export class App {
 
   public static async start(redirectUrl?: string) {
     await App.startMode();
-    let url = browser.options.baseUrl!;
+    let url = browser.options.baseUrl! + '/login';
     if (redirectUrl) {
-      url += '/login?returnUrl=' + encodeURIComponent(redirectUrl);
+      url += '?returnUrl=' + encodeURIComponent(redirectUrl);
     }
     await browser.url(url);
     const loginPage = new LoginPage();

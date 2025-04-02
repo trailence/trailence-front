@@ -1,0 +1,26 @@
+<app-header [title]="auth.email ? 'Trailence' : ''"></app-header>
+<div class="page-content">
+  <div class="content-container">
+    <h1>{{i18n.texts.pages.home.title}}</h1>
+    <h2>{{i18n.texts.pages.home.subTitle}}</h2>
+    <div class="slider">
+      <ng-container *ngFor="let s of slides; let index = index">
+        <div class="slider-item {{index === slide ? 'current' : ''}}">
+          <div class="slider-item-header">{{ s.header }}</div>
+          <div class="slider-item-image" *ngIf="s.image">
+            <div class="mask"><img [src]="mask" /></div>
+            <div class="screen"><img [src]="s.image" /></div>
+          </div>
+          <div class="slider-item-footer {{s.image ? '' : 'no-image'}}">
+            <div *ngFor="let f of s.footer">{{ f }}</div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+    <div class="slider-buttons">
+      <ng-container *ngFor="let s of slides; let index = index">
+        <div class="slider-button" [ngClass]="{'selected': slide === index}" (click)="setSlide(index, true)"></div>
+      </ng-container>
+    </div>
+  </div>
+</div>

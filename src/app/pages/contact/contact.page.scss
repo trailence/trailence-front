@@ -9,7 +9,7 @@ div.page-container {
 
 div.form-container {
   min-width: calc(min(95%, 500px));
-  max-width: 500px;
+  max-width: calc(min(100%, 500px));
   margin-top: 10px;
 
   div.form-value {

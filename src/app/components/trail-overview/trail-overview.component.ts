@@ -61,6 +61,7 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() photoEnabled = true;
   @Input() hasFixedHeight = false;
+  @Input() photoCanBeOnLeft = true;
 
   @Input() delayLoading = false;
 

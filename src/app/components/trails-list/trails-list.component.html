@@ -1,20 +1,20 @@
 <div class="toolbar">
   <app-icon-label-button icon="sort" label="{{i18n.texts.tools.sort}}" id="sort-trails-button-{{id}}"></app-icon-label-button>
   <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button-{{id}}" [badge]="nbActiveFilters()" [showBadge]="isPositive"></app-icon-label-button>
-  <app-icon-label-button *ngIf="collectionUuid" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
-  <app-icon-label-button *ngIf="collectionUuid" icon="share" label="{{i18n.texts.tools.share}}" (click)="share()"></app-icon-label-button>
+  <app-icon-label-button *ngIf="collectionUuid && size !== 'small'" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
+  <app-icon-label-button *ngIf="collectionUuid && size === 'large'" icon="share" label="{{i18n.texts.tools.share}}" (click)="share()"></app-icon-label-button>
   <app-icon-label-button icon="more-menu" label="{{i18n.texts.tools.more}}" *ngIf="moreMenu.length > 0" (click)="showMoreMenu($event)"></app-icon-label-button>
 </div>
 <div class="message" *ngIf="message">
   {{message | i18nString}}
 </div>
-<div class="selection">
+<div class="selection list-{{size}}">
   <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
   <ng-template let-selected="nbSelected" let-total="nbShown" #templateSelectionButton>
     <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event.detail.checked)"></ion-checkbox>
     <ion-button color="light" size="small" id="trail-list-{{id}}-selection-button" [disabled]="selected === 0">
       <ion-label>
-        {{ selected }} / {{ total }} {{ i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single'] }}
+        {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
       </ion-label>
       <ion-icon slot="end" name="caret-down"></ion-icon>
     </ion-button>
@@ -38,7 +38,7 @@
   @switch (state$.value.mode) {
     @case ("detailed") {
       @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
-        <div class="trail metadata-container {{metadataClass}}"
+        <div class="trail metadata-container {{size === 'large' ? 'two-columns' : ('one-column' + (size === 'medium' ? ' accept-small' : ''))}}"
           [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
           id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
           [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
@@ -52,6 +52,7 @@
             [fromCollection]="!!collectionUuid"
             [trackSnapshot]="trailWithInfo.track"
             [delayLoading]="$index >= 10"
+            [photoCanBeOnLeft]="size !== 'small'"
           ></app-trail-overview>
         </div>
       }

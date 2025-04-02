@@ -14,8 +14,6 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { Console } from 'src/app/utils/console';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
-import { LanguageBarComponent } from './language-bar.component';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
     selector: 'app-login',
@@ -34,7 +32,6 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
         FormsModule,
         CommonModule,
         HeaderComponent,
-        LanguageBarComponent,
     ]
 })
 export class LoginPage implements OnInit, OnDestroy {

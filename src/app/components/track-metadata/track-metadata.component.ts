@@ -91,14 +91,14 @@ export class TrackMetadataComponent extends AbstractComponent {
   ): void {
     domController.write(() => {
       whenVisible.zone.runOutsideAngular(() => {
-        const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, detailed);
-        const breaksDuration = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, detailed) : [undefined, undefined, undefined];
-        const estimatedDuration = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, detailed) : [undefined, undefined, undefined];
-        const distance = TrackMetadataComponent.createItemElement(container, insertBefore, 'distance', assets, detailed);
-        const positiveElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'positive-elevation', assets, detailed);
-        const negativeElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'negative-elevation', assets, detailed);
-        const highestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'highest-point', assets, detailed) : [undefined, undefined, undefined];
-        const lowestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'lowest-point', assets, detailed) : [undefined, undefined, undefined];
+        const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, detailed, false);
+        const breaksDuration = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, detailed, false) : [undefined, undefined, undefined];
+        const estimatedDuration = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, detailed, false) : [undefined, undefined, undefined];
+        const distance = TrackMetadataComponent.createItemElement(container, insertBefore, 'distance', assets, detailed, false);
+        const positiveElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'positive-elevation', assets, detailed, true);
+        const negativeElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'negative-elevation', assets, detailed, true);
+        const highestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'highest-point', assets, detailed, true) : [undefined, undefined, undefined];
+        const lowestAltitudeDivs = detailed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'lowest-point', assets, detailed, true) : [undefined, undefined, undefined];
         const titles = new Titles(
           duration[2],
           breaksDuration[2],
@@ -119,9 +119,9 @@ export class TrackMetadataComponent extends AbstractComponent {
     });
   }
 
-  private static createItemElement(parent: HTMLElement, insertBefore: HTMLElement | undefined, icon: string, assets: AssetsService, detailed: boolean): [HTMLDivElement, HTMLDivElement | undefined, HTMLDivElement] {
+  private static createItemElement(parent: HTMLElement, insertBefore: HTMLElement | undefined, icon: string, assets: AssetsService, detailed: boolean, small: boolean): [HTMLDivElement, HTMLDivElement | undefined, HTMLDivElement] {
     const container = document.createElement('DIV');
-    container.className = 'metadata-item-container';
+    container.className = 'metadata-item-container' + (small && !detailed ? ' metadata-content-small' : '');
 
     const item = document.createElement('DIV');
     item.className = 'metadata-item';

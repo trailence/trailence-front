@@ -78,6 +78,7 @@ export class AssetsService {
       'lowest-point': 'assets/lowest-point.1.svg',
       'mail': 'assets/mail.1.svg', // mail-outline
       'map': 'assets/map.1.svg', // map
+      'menu': 'assets/menu.1.svg', // menu
       'mobile': 'assets/mobile.1.svg',
       'more-menu': 'assets/more-menu.1.svg', // ellipsis-horizontal
       'offline': 'assets/exclamation-circle.1.svg', // alert-circle-outline

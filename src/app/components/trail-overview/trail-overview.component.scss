@@ -64,7 +64,7 @@
   }
 }
 
-div.metadata-with-photos {
+div.metadata-with-photos.photo-left {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -97,6 +97,20 @@ div.metadata-with-photos {
     }
   }
 
+}
+
+div.metadata-with-photos.photo-block {
+  div.photos {
+    max-width: 140px;
+    max-height: 80px;
+    width: 140px;
+    height: 80px;
+    overflow: hidden;
+
+    app-photos-slider {
+      display: block;
+    }
+  }
 }
 
 .inner-metadata-container.smaller {

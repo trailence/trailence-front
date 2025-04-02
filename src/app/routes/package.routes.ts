@@ -1,12 +1,14 @@
 import { Routes } from '@angular/router';
-import { appAuthRoutes, appDefaultAuthRoute, appDefaultPublicRoute, appPublicRoutes } from './parts/app.routes';
+import { appAuthRoutes, appDefaultAuthRoute, appPublicRoutes } from './parts/app.routes';
 import { adminRoutes } from './parts/admin.routes';
+import { siteDefaultPublicRoute, sitePublicRoutes } from './parts/site.routes';
 
 export const publicRoutes: Routes = [
-  ...appPublicRoutes
+  ...appPublicRoutes,
+  ...sitePublicRoutes,
 ];
 
-export const defaultPublicRoute = appDefaultPublicRoute;
+export const defaultPublicRoute = siteDefaultPublicRoute;
 
 export const authRoutes: Routes = [
   ...appAuthRoutes,

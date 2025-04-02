@@ -23,6 +23,7 @@
           <ion-checkbox
             [checked]="selection.indexOf(element) >= 0"
             (ionChange)="select(element, $event.detail.checked)"
+            (click)="$event.stopPropagation()"
           ></ion-checkbox>
         </td>
         <ng-container *ngFor="let column of settings.columns">

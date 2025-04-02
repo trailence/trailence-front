@@ -83,6 +83,16 @@
     }
   }
 
+  &.one-column.accept-small {
+    .metadata:not(.with-photos) {
+      .metadata-item-container.metadata-content-small {
+        min-width: 50%;
+        max-width: 50%;
+        display: inline-block;
+      }
+    }
+  }
+
   &.one-column {
     div.metadata-item-container:not(:last-child) {
       margin-bottom: 5px;

@@ -62,8 +62,12 @@ export class AuthService {
       if (auth === null) {
         const url = window.location.pathname;
         if (!url.startsWith('/login') && !url.startsWith('/link')) {
-          if (!publicRoutes.find(r => '/' + r.path === url))
-            navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
+          if (!publicRoutes.find(r => '/' + r.path === url || url.startsWith('/' + r.path + '/'))) {
+            if (url === '/')
+              navController.navigateRoot(['/home']);
+            else
+              navController.navigateRoot(['/login'], { queryParams: {returnUrl: url} });
+          }
         }
       } else if (auth) {
         Console.info(
@@ -148,6 +152,7 @@ export class AuthService {
       filter(auth => auth !== undefined),
       map(auth => {
         if (auth) return true;
+        console.log('guard', route, state);
         return this.router.createUrlTree(['/login'], {queryParams: {returnUrl: state.url}});
       })
     );

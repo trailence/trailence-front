@@ -9,6 +9,28 @@
     "more": "Plus"
   },
   "pages": {
+    "home": {
+      "title": "Outil de gestion de vos traces GPS",
+      "subTitle": "Trailence est gratuit, sans publicité, et open source",
+      "slides": [
+        {
+          "header": "Organisez vos parcours",
+          "footer": ["Créez des collections", "Tagguez vos parcours", "Visualisez sur la carte", "Tri, filtres..."]
+        }, {
+          "header": "Créez vos traces",
+          "footer": ["Créez une trace pendant votre activité", "Cartes hors-ligne", "Suivez un parcours existant"]
+        }, {
+          "header": "Parcours en détails",
+          "footer": ["Altimétrie", "Description", "Points de passage"]
+        }, {
+          "header": "Ajoutez des photos",
+          "footer": ["Mettez des photos sur vos parcours", "Visualisez les photos sur la carte"]
+        }, {
+          "header": "Mais aussi...",
+          "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "..."]
+        }
+      ]
+    },
     "login": {
       "title": "Connexion",
       "email": "E-Mail",

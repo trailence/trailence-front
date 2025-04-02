@@ -42,7 +42,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @Input() enableRemoveByGesture = false;
 
   mode =  '';
-  listMetadataClass = 'two-columns';
+  listSize: 'large' | 'medium' | 'small' = 'large';
   tab = 'map';
   trailSheetMode = 'none';
   trailSheetMetadataClass = 'two-columns';
@@ -180,22 +180,28 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     const w = this.browser.width;
     const h = this.browser.height;
-    if (w >= 750 + 350) {
+    if (w >= 650 + 350) {
       this.mode = 'large list-two-cols';
-      this.listMetadataClass = 'two-columns';
+      this.listSize = 'large';
       this.trailSheetMode = 'none';
       this.isSmall = false;
       this.updateVisibility(true, true, false);
-    } else if (w >= 700 + 175) {
-      this.mode = 'large list-one-col';
-      this.listMetadataClass = 'one-column';
+    } else if (w >= 600 + 250) {
+      this.mode = 'large list-one-col-large';
+      this.listSize = 'medium';
+      this.trailSheetMode = 'none';
+      this.isSmall = false;
+      this.updateVisibility(true, true, false);
+    } else if (w >= 600 + 175) {
+      this.mode = 'large list-one-col-small';
+      this.listSize = 'small';
       this.trailSheetMode = 'none';
       this.isSmall = false;
       this.updateVisibility(true, true, false);
     } else if (h > w) {
       this.mode = 'small vertical ' + this.tab;
       this.isSmall = true;
-      this.listMetadataClass = w >= 350 ? 'two-columns' : 'one-column';
+      this.listSize = w >= 350 ? 'large' : w >= 250 ? 'medium' : 'small';
       if (this.tab === 'map') {
         this.trailSheetMode = 'bottom';
         if (w < 500 + 36) this.trailSheetMode += ' two-rows';
@@ -208,7 +214,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     } else {
       this.mode = 'small horizontal ' + this.tab;
       this.isSmall = true;
-      this.listMetadataClass = w >= 350 ? 'two-columns' : 'one-column';
+      this.listSize = w >= 350 ? 'large' : w >= 250 ? 'medium' : 'small';
       if (this.tab === 'map') {
         if (w >= 750 || h <= 400) {
           this.trailSheetMode = 'left';

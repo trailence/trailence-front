@@ -9,6 +9,28 @@
     "more": "More"
   },
   "pages": {
+    "home": {
+      "title": "GPS Track Management Tool",
+      "subTitle": "Trailence is free, ad-free, and open source",
+      "slides": [
+        {
+          "header": "Organize your trails",
+          "footer": ["Create collections", "Tag your trails", "View them on the map", "Sorting, filters..."]
+        }, {
+          "header": "Create your tracks",
+          "footer": ["Record a track during your activity", "Offline maps", "Follow an existing track"]
+        }, {
+          "header": "Trail details",
+          "footer": ["Elevation profile", "Description", "Waypoints"]
+        }, {
+          "header": "Add photos",
+          "footer": ["Attach photos to your trails", "View them on the map"]
+        }, {
+          "header": "But also...",
+          "footer": ["Share trails", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a trail with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated trail time", "..."]
+        }
+      ]
+    },
     "login": {
       "title": "Sign in",
       "email": "E-Mail",

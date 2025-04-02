@@ -4,6 +4,7 @@
   flex-direction: row;
   align-items: center;
   padding: 8px 16px;
+  cursor: pointer;
 
   ion-icon {
     margin-right: 10px
@@ -36,6 +37,16 @@
       overflow: hidden;
       text-wrap: nowrap;
       text-overflow: ellipsis;
+
+      &.not-logged {
+        font-size: 20px;
+        margin-top: -2px;
+      }
+
+      .separator {
+        font-size: 28px;
+        margin-right: 12px;
+      }
     }
 }
 
@@ -79,6 +90,15 @@ ion-toolbar {
             min-height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
         }
     }
+
+    ion-buttons.public-buttons {
+      div.separator {
+        width: 0px;
+        height: calc(var(--header-height) / 2);
+        margin: 0 2px;
+        border-right: 1px solid rgba(var(--ion-color-primary-contrast-rgb), 0.33);
+      }
+    }
 }
 
 @media (max-width: 500px) {
@@ -88,7 +108,7 @@ ion-toolbar {
     ion-icon {
       margin-right: 0;
     }
-    ion-label {
+    ion-label:not(.no-title) {
       display: none;
     }
   }

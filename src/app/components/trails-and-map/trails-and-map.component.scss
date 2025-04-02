@@ -81,7 +81,15 @@
     .tabs-container {
       display: none;
     }
-    &.list-one-col {
+    &.list-one-col-large {
+      .list-container {
+        width: 250px;
+      }
+      .map-container {
+        left: 250px;
+      }
+    }
+    &.list-one-col-small {
       .list-container {
         width: 175px;
       }
