@@ -7,7 +7,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
 import { Console } from 'src/app/utils/console';
 
-const TEXTS_VERSION = '14';
+const TEXTS_VERSION = '15';
 
 interface TextToLoad {
   filePath: string;
