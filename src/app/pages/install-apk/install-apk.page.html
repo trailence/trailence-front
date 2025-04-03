@@ -1,0 +1,27 @@
+<app-header [title]="i18n.texts.pages.installApk.title"></app-header>
+<div class="page-content">
+  <div class="content-container">
+    <div class="step">
+      <div class="before">
+        <div class="step-number">1</div>
+        <div class="text-before">
+          {{ i18n.texts.pages.installApk.download }}:
+          <a href="/assets/apk/trailence.apk" target="_blank">trailence.apk</a>
+        </div>
+      </div>
+    </div>
+
+    <ng-container *ngFor="let step of i18n.texts.pages.installApk.steps; let index = index">
+      <div class="step">
+        <div class="before">
+          <div class="step-number">{{ index + 2 }}</div>
+          <div class="text-before">{{ step.beforeImg }}</div>
+        </div>
+        <div class="img-container">
+          <img [src]="'/assets/home-page/apk-install-' + (index + 1) + '.' + prefs.preferences.lang + '.png'" />
+        </div>
+        <div class="text-after">{{ step.afterImg }}</div>
+      </div>
+    </ng-container>
+  </div>
+</div>

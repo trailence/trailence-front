@@ -1,0 +1,54 @@
+:host {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+div.page-content {
+  flex: 1 1 100%;
+  overflow: auto;
+
+  div.content-container {
+    margin: auto;
+    max-width: 800px;
+    padding-top: 10px;
+  }
+}
+
+a, a:hover, a:active {
+  color: var(--ion-color-secondary);
+}
+
+div.step {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+
+  div.before {
+    display: flex;
+    flex-direction: row;
+
+    div.step-number {
+      border-radius: 14px;
+      min-width: 28px;
+      max-width: 28px;
+      min-height: 28px;
+      max-height: 28px;
+      font-size: 24px;
+      text-align: center;
+      background-color: var(--ion-color-secondary);
+      color: var(--ion-color-secondary-contrast);
+      margin-right: 8px;
+    }
+    div.text-before {
+      padding-top: 6px;
+    }
+  }
+  div.img-container {
+    margin-left: 36px;
+  }
+  div.text-after {
+    margin-left: 36px;
+  }
+}

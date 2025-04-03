@@ -32,6 +32,34 @@
       ],
       "download_apk": "Télécharger l'app Android"
     },
+    "installApk": {
+      "title": "App Android",
+      "download": "Téléchargez le fichier d'installation",
+      "steps": [
+        {
+          "beforeImg": "Une fenêtre similaire à celle ci-dessous peut s'afficher",
+          "afterImg": "Confirmez le téléchargement, puis ouvrez le fichier"
+        }, {
+          "beforeImg": "Si c'est la première fois que vous essayez d'installation une application de cette manière, une alerte similaire à celle ci-dessous peut s'afficher",
+          "afterImg": "Allez dans la paramètres, pour autoriser l'installation"
+        }, {
+          "beforeImg": "Une fenêtre s'affiche alors",
+          "afterImg": "Cliquez sur Autoriser depuis cette source"
+        }, {
+          "beforeImg": "Une fenêtre s'affiche ensuite pour confirmer l'installation",
+          "afterImg": "Cliquez sur Installer"
+        }, {
+          "beforeImg": "Une fenêtre similaire à celle ci-dessous s'affiche alors",
+          "afterImg": "Cliquez sur Plus de détails au milieu de l'écran"
+        }, {
+          "beforeImg": "L'écran affiche alors un bouton Installer sans analyser",
+          "afterImg": "Vous pouvez cliquer dessous, ou demander l'analyse si vous le souhaitez"
+        }, {
+          "beforeImg": "Enfin, l'application est installée",
+          "afterImg": ""
+        }
+      ]
+    },
     "login": {
       "title": "Connexion",
       "email": "E-Mail",
