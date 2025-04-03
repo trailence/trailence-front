@@ -9,6 +9,8 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { Gesture, GestureDetail } from '@ionic/core';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { PublicPage } from '../public.page';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { Router } from '@angular/router';
 
 @Component({
   templateUrl: './home.page.html',
@@ -29,6 +31,8 @@ export class HomePage extends PublicPage {
 
   constructor(
     public readonly i18n: I18nService,
+    public readonly prefs: PreferencesService,
+    public readonly router: Router,
     private readonly element: ElementRef,
     private readonly browser: BrowserService,
     private readonly changeDetector: ChangeDetectorRef,

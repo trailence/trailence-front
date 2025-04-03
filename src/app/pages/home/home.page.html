@@ -26,6 +26,9 @@
       <a href="/assets/apk/trailence.apk" target="_blank">
         <ion-button>{{i18n.texts.pages.home.download_apk}}</ion-button>
       </a>
+      <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
+        <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/register')">{{i18n.texts.pages.register.title}}</ion-button>
+      </a>
     </div>
   </div>
 </div>

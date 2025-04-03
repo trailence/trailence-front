@@ -55,6 +55,10 @@ export class RegisterPage extends PublicPage {
     });
   }
 
+  protected override initComponent(): void {
+    this.initCaptcha();
+  }
+
   onSubmit(): void {
     if (this.inprogress) return;
     switch (this.step) {
