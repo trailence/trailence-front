@@ -4,11 +4,7 @@ export const sitePublicRoutes: Routes = [
   {
     path: 'home',
     loadComponent: () => import('../../pages/home/home.page').then(m => m.HomePage)
-  },
-  {
-    path: 'home/:lang',
-    loadComponent: () => import('../../pages/home/home.page').then(m => m.HomePage)
-  },
+  }
 ];
 
 export const siteDefaultPublicRoute = 'home';

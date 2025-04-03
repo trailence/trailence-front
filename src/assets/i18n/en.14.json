@@ -10,7 +10,7 @@
   },
   "pages": {
     "home": {
-      "title": "GPS Track Management Tool",
+      "title": "Hiking and GPS Track Management Tool (GPX)",
       "subTitle": "Trailence is free, ad-free, and open source",
       "slides": [
         {
@@ -29,7 +29,8 @@
           "header": "But also...",
           "footer": ["Share trails", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a trail with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated trail time", "..."]
         }
-      ]
+      ],
+      "download_apk": "Download Android App"
     },
     "login": {
       "title": "Sign in",

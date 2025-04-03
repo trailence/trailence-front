@@ -4,7 +4,23 @@ import { AuthService } from '../services/auth/auth.service';
 import { inject } from '@angular/core';
 
 export const routes: Routes = [
-  ...publicRoutes,
+  {
+    path: 'fr',
+    loadComponent: () => import('src/app/pages/public.page').then(m => m.PublicPageRoute),
+    children: [...publicRoutes.filter(p => !p.path?.startsWith('link'))]
+  },
+  {
+    path: 'en',
+    loadComponent: () => import('src/app/pages/public.page').then(m => m.PublicPageRoute),
+    children: [...publicRoutes.filter(p => !p.path?.startsWith('link'))]
+  },
+  ...publicRoutes.map(p => {
+    if (p.path?.startsWith('link')) return p;
+    return {
+      path: p.path,
+      loadComponent: () => import('src/app/pages/public.page').then(m => m.PublicPageWithoutLang),
+    };
+  }),
   {
     path: '',
     canMatch: [(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => inject(AuthService).guardAuthenticated(route, state)],

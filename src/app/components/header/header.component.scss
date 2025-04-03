@@ -98,6 +98,9 @@ ion-toolbar {
         margin: 0 2px;
         border-right: 1px solid rgba(var(--ion-color-primary-contrast-rgb), 0.33);
       }
+      a:hover, a:active, a {
+        color: var(--ion-color-primary-contrast);
+      }
     }
 }
 

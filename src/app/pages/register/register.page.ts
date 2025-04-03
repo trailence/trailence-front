@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { IonCard, IonToolbar, IonLabel, IonCardContent, IonList, IonItem, IonInput, IonButton, IonSpinner, NavController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { NetworkService } from 'src/app/services/network/network.service';
-import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { Console } from 'src/app/utils/console';
@@ -14,6 +13,7 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { PublicPage } from '../public.page';
 
 @Component({
   templateUrl: './register.page.html',
@@ -24,7 +24,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
     IonSpinner, IonButton, IonInput, IonItem, IonList, IonCardContent, IonLabel, IonToolbar, IonCard,
   ]
 })
-export class RegisterPage implements OnInit, OnDestroy {
+export class RegisterPage extends PublicPage {
 
   connected = false;
   inprogress = false;
@@ -46,23 +46,13 @@ export class RegisterPage implements OnInit, OnDestroy {
     private readonly preferences: PreferencesService,
     private readonly auth: AuthService,
     private readonly navController: NavController,
+    injector: Injector,
   ) {
+    super(injector);
     network.server$.subscribe(connected => {
       this.connected = connected;
       changeDetector.markForCheck();
     });
-  }
-
-  private langSubscription?: Subscription;
-
-  ngOnInit(): void {
-    const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
-    this.langSubscription = this.i18n.texts$.subscribe(texts => title.innerText = texts.pages.register.title + ' - Trailence');
-    this.initCaptcha();
-  }
-
-  ngOnDestroy(): void {
-    this.langSubscription?.unsubscribe();
   }
 
   onSubmit(): void {

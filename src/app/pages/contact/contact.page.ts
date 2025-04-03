@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon } from '@ionic/angular/standalone';
@@ -13,6 +13,7 @@ import { ApiError } from 'src/app/services/http/api-error';
 import { Subscription } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { FormsModule } from '@angular/forms';
+import { PublicPage } from '../public.page';
 
 @Component({
   templateUrl: './contact.page.html',
@@ -23,7 +24,7 @@ import { FormsModule } from '@angular/forms';
     IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon,
   ]
 })
-export class ContactPage implements OnInit, OnDestroy {
+export class ContactPage extends PublicPage {
 
   constructor(
     public readonly i18n: I18nService,
@@ -32,7 +33,10 @@ export class ContactPage implements OnInit, OnDestroy {
     private readonly changeDetector: ChangeDetectorRef,
     private readonly http: HttpService,
     private readonly networkService: NetworkService,
-  ) {}
+    injector: Injector,
+  ) {
+    super(injector);
+  }
 
   email = '';
   type = '';
@@ -46,15 +50,26 @@ export class ContactPage implements OnInit, OnDestroy {
   networkSubscription?: Subscription;
   captchaInit = false;
 
-  ngOnInit(): void {
-    this.ionViewWillEnter();
+  protected override initComponent(): void {
+    this.init();
   }
 
-  ngOnDestroy(): void {
-    this.ionViewWillLeave();
+  protected override destroyComponent(): void {
+    this.destroy();
   }
 
-  ionViewWillEnter(): void {
+
+  override ionViewWillEnter(): void {
+    this.init();
+    super.ionViewWillEnter();
+  }
+
+  override ionViewWillLeave(): void {
+    this.destroy();
+    super.ionViewWillLeave();
+  }
+
+  private init(): void {
     if (!this.networkSubscription) {
       this.networkSubscription = this.networkService.server$.subscribe(available => {
         this.networkAvailable = available;
@@ -72,7 +87,7 @@ export class ContactPage implements OnInit, OnDestroy {
     this.error = false;
   }
 
-  ionViewWillLeave(): void {
+  private destroy(): void {
     this.networkSubscription?.unsubscribe();
     this.networkSubscription = undefined;
     this.captchaNeeded = false;

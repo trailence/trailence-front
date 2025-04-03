@@ -18,34 +18,54 @@
         <ion-label class="{{title.length === 0 ? 'no-title' : ''}}">Trailence</ion-label>
       </div>
       <ion-buttons slot="end" class="public-buttons">
-        <ion-button *ngIf="prefs.preferences.lang !== 'en'" (click)="prefs.setLanguage('en')"><img slot="icon-only" src="/assets/i18n/en.1.png" /></ion-button>
-        <ion-button *ngIf="prefs.preferences.lang !== 'fr'" (click)="prefs.setLanguage('fr')"><img slot="icon-only" src="/assets/i18n/fr.1.png" /></ion-button>
+        @if (prefs.preferences.lang !== 'en') {
+          <a href="/en/{{publicUrl}}" (click)="$event.preventDefault()">
+            <ion-button (click)="goTo('/en/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/en.1.png" /></ion-button>
+          </a>
+        }
+        @if (prefs.preferences.lang !== 'fr') {
+          <a href="/fr/{{publicUrl}}" (click)="$event.preventDefault()">
+            <ion-button (click)="goTo('/fr/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/fr.1.png" /></ion-button>
+          </a>
+        }
         <ng-container *ngIf="prefs.getResolvedTheme() as theme">
           <ion-button (click)="prefs.setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')"><ion-icon slot="icon-only" [name]="theme === 'DARK' ? 'theme-light' : 'theme-dark'"></ion-icon></ion-button>
         </ng-container>
         @if (!small) {
           <div class="separator"></div>
-          <ion-button (click)="goTo('/donation')"><ion-icon slot="icon-only" name="heart-outline" class="donation-color"></ion-icon></ion-button>
-          <ion-button (click)="goTo('/contact')"><ion-icon slot="icon-only" name="mail"></ion-icon></ion-button>
-          <ion-button (click)="goTo('/login')"><ion-icon slot="icon-only" name="key"></ion-icon></ion-button>
+          <a href="/{{prefs.preferences.lang}}/donation" (click)="$event.preventDefault()">
+            <ion-button (click)="goTo('/' + prefs.preferences.lang + '/donation')"><ion-icon slot="icon-only" name="heart-outline" class="donation-color"></ion-icon></ion-button>
+          </a>
+          <a href="/{{prefs.preferences.lang}}/contact" (click)="$event.preventDefault()">
+            <ion-button (click)="goTo('/' + prefs.preferences.lang + '/contact')"><ion-icon slot="icon-only" name="mail"></ion-icon></ion-button>
+          </a>
+          <a href="/{{prefs.preferences.lang}}/login" (click)="$event.preventDefault()">
+            <ion-button (click)="goTo('/' + prefs.preferences.lang + '/login')"><ion-icon slot="icon-only" name="key"></ion-icon></ion-button>
+          </a>
         } @else {
           <ion-button id="header-small-device-menu-button-{{id}}"><ion-icon slot="icon-only" name="menu"></ion-icon></ion-button>
           <ion-popover trigger="header-small-device-menu-button-{{id}}" [dismissOnSelect]="true">
             <ng-template>
               <ion-content>
                 <ion-list>
-                  <ion-item (click)="goTo('/contact')">
-                    <ion-icon slot="start" name="mail"></ion-icon>
-                    <ion-label>{{i18n.texts.pages.contact.title}}</ion-label>
-                  </ion-item>
-                  <ion-item (click)="goTo('/donation')">
-                    <ion-icon slot="start" class="donation-color" name="heart-outline"></ion-icon>
-                    <ion-label>{{i18n.texts.pages.donation.title}}</ion-label>
-                  </ion-item>
-                  <ion-item (click)="goTo('/login')">
-                    <ion-icon slot="start" name="key"></ion-icon>
-                    <ion-label>{{i18n.texts.pages.login.title}}</ion-label>
-                  </ion-item>
+                  <a href="/{{prefs.preferences.lang}}/contact" (click)="$event.preventDefault()">
+                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/contact')">
+                      <ion-icon slot="start" name="mail"></ion-icon>
+                      <ion-label>{{i18n.texts.pages.contact.title}}</ion-label>
+                    </ion-item>
+                  </a>
+                  <a href="/{{prefs.preferences.lang}}/donation" (click)="$event.preventDefault()">
+                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/donation')">
+                      <ion-icon slot="start" class="donation-color" name="heart-outline"></ion-icon>
+                      <ion-label>{{i18n.texts.pages.donation.title}}</ion-label>
+                    </ion-item>
+                  </a>
+                  <a href="/{{prefs.preferences.lang}}/login" (click)="$event.preventDefault()">
+                    <ion-item (click)="goTo('/' + prefs.preferences.lang + '/login')">
+                      <ion-icon slot="start" name="key"></ion-icon>
+                      <ion-label>{{i18n.texts.pages.login.title}}</ion-label>
+                    </ion-item>
+                  </a>
                 </ion-list>
               </ion-content>
             </ng-template>

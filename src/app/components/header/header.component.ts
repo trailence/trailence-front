@@ -32,6 +32,7 @@ export class HeaderComponent extends AbstractComponent {
 
   id = IdGenerator.generateId();
   small: boolean;
+  publicUrl?: string;
 
   constructor(
     injector: Injector,
@@ -45,6 +46,7 @@ export class HeaderComponent extends AbstractComponent {
     super(injector);
     this.small = browser.width < 500;
     this.whenAlive.add(browser.resize$.subscribe(s => this.small = s.width < 500));
+    if (router.url.startsWith('/fr/') || router.url.startsWith('/en/')) this.publicUrl = this.router.url.substring(4);
   }
 
   back(): void {
@@ -69,7 +71,7 @@ export class HeaderComponent extends AbstractComponent {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.byStateAndVisible.subscribe(of(true), () => {
       const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
-      title.innerText = this.title + ' - Trailence';
+      title.innerText = this.title.length > 0 ? this.title + ' - Trailence' : 'Trailence';
     }, true);
   }
 

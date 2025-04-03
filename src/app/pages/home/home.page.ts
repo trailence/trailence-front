@@ -1,31 +1,27 @@
-import { ChangeDetectorRef, Component, ElementRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
-import { NavController } from '@ionic/angular/standalone';
-import { ActivatedRoute } from '@angular/router';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { GestureController, IonButton } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { GestureController } from '@ionic/angular/standalone';
 import { Gesture, GestureDetail } from '@ionic/core';
 import { IdGenerator } from 'src/app/utils/component-utils';
+import { PublicPage } from '../public.page';
 
 @Component({
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
-  imports: [
+  imports: [IonButton,
     HeaderComponent, CommonModule,
   ]
 })
-export class HomePage {
+export class HomePage extends PublicPage {
 
   slide = 0;
   slideInterval?: any;
   slides: Slide[] = [];
-  subscriptions = new Subscriptions();
   mask: string = '';
   id = IdGenerator.generateId();
 
@@ -33,29 +29,47 @@ export class HomePage {
 
   constructor(
     public readonly i18n: I18nService,
-    private readonly navController: NavController,
-    private readonly route: ActivatedRoute,
-    private readonly preferences: PreferencesService,
     private readonly element: ElementRef,
     private readonly browser: BrowserService,
     private readonly changeDetector: ChangeDetectorRef,
     public readonly auth: AuthService,
     private readonly gestureController: GestureController,
-  ) {}
+    injector: Injector,
+  ) {
+    super(injector);
+    this.whenVisible.subscribe(this.i18n.texts$, () => this.updateSlides());
+    this.whenVisible.subscribe(this.browser.resize$, () => this.updateSlides());
+    this.visible$.subscribe(visible => {
+      if (visible && !this.slideInterval) {
+        this.slideInterval = setInterval(() => this.nextSlide(), 7500);
+      } else if (!visible && this.slideInterval) {
+        clearInterval(this.slideInterval);
+        this.slideInterval = undefined;
+      }
+      if (visible && !this.gesture) {
+        this.setupGesture();
+      } else if (!visible && this.gesture) {
+        this.gesture.destroy();
+        this.gesture = undefined;
+      }
+    });
+  }
 
-  ionViewWillEnter(): void {
+  protected override initComponent(): void {
+    this.setSlide(0);
+  }
+
+  /*
+  override ionViewWillEnter(): void {
     if (!this.route.snapshot.params['lang']) {
       this.navController.navigateRoot('/home/' + this.preferences.preferences.lang);
       return;
     }
     this.preferences.setLanguage(this.route.snapshot.params['lang']);
-    this.subscriptions.add(this.i18n.texts$.subscribe(texts => this.updateSlides()));
-    this.subscriptions.add(this.browser.resize$.subscribe(() => this.updateSlides()));
-    this.setSlide(0);
-    this.slideInterval = setInterval(() => this.nextSlide(), 7500);
-  }
+    super.ionViewWillEnter();
+  }*/
 
-  ionViewDidEnter(): void {
+  setupGesture(): void {
     setTimeout(() => {
       const element = document.getElementById('slider-' + this.id)!;
       const start = (detail: GestureDetail) => {
@@ -101,15 +115,6 @@ export class HomePage {
       }, true);
       this.gesture.enable();
     }, 0);
-  }
-
-  ionViewWillLeave(): void {
-    if (this.slideInterval) {
-      clearInterval(this.slideInterval);
-      this.slideInterval = undefined;
-    }
-    this.subscriptions.unsubscribe();
-    this.gesture?.destroy();
   }
 
   private updateSlides(): void {

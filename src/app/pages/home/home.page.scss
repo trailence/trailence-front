@@ -1,4 +1,4 @@
-@media (min-width: 600px) and (min-height: 540px) {
+@media (min-width: 600px) and (min-height: 610px) {
   div.page-content {
     --width: 600px;
     --slider-image-height: 326px;
@@ -10,7 +10,7 @@
   }
 }
 
-@media (min-width: 800px) and (min-height: 650px) {
+@media (min-width: 800px) and (min-height: 700px) {
   div.page-content {
     --width: 800px;
     --slider-image-height: 435px;
@@ -22,7 +22,7 @@
   }
 }
 
-@media (max-width: 599px) or (max-height: 539px) {
+@media (max-width: 599px) or (max-height: 609px) {
   div.page-content {
     --width: calc(min(100%, 600px));
     --slider-image-height: calc(min(100vw, 600px) * 326 / 600);
@@ -56,7 +56,7 @@ h2 {
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 500px) {
   h1 {
     font-size: 18px;
   }
@@ -192,4 +192,12 @@ div.slider-buttons {
       background-color: var(--ion-color-secondary);
     }
   }
+}
+
+div.download {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
 }

@@ -10,7 +10,7 @@
   },
   "pages": {
     "home": {
-      "title": "Outil de gestion de vos traces GPS",
+      "title": "Outil pour la randonnée et la gestion de vos traces GPS (GPX)",
       "subTitle": "Trailence est gratuit, sans publicité, et open source",
       "slides": [
         {
@@ -29,7 +29,8 @@
           "header": "Mais aussi...",
           "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "..."]
         }
-      ]
+      ],
+      "download_apk": "Télécharger l'app Android"
     },
     "login": {
       "title": "Connexion",

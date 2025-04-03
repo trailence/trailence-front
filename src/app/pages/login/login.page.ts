@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { IonCard, IonCardContent, IonInput, IonItem, IonList, IonButton, IonSpinner, IonLabel, ModalController, NavController, IonToolbar } from '@ionic/angular/standalone';
-import { combineLatest, filter, first, Subscription } from 'rxjs';
+import { combineLatest, filter, first } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
@@ -14,6 +14,8 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { Console } from 'src/app/utils/console';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { PublicPage } from '../public.page';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
     selector: 'app-login',
@@ -34,7 +36,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
         HeaderComponent,
     ]
 })
-export class LoginPage implements OnInit, OnDestroy {
+export class LoginPage extends PublicPage {
 
   email = '';
   password = '';
@@ -60,8 +62,10 @@ export class LoginPage implements OnInit, OnDestroy {
     route: ActivatedRoute,
     private readonly router: Router,
     private readonly changeDetector: ChangeDetectorRef,
-    private readonly injector: Injector,
+    public readonly prefs: PreferencesService,
+    injector: Injector,
   ) {
+    super(injector);
     route.queryParamMap.subscribe(params => {
       this.returnUrl = params.get('returnUrl') ?? '';
       if (params.has('email')) this.email = params.get('email')!;
@@ -70,17 +74,6 @@ export class LoginPage implements OnInit, OnDestroy {
       this.connected = connected;
       changeDetector.markForCheck();
     });
-  }
-
-  private langSubscription?: Subscription;
-
-  ngOnInit(): void {
-    const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
-    this.langSubscription = this.i18n.texts$.subscribe(texts => title.innerText = texts.pages.login.title + ' - Trailence');
-  }
-
-  ngOnDestroy(): void {
-    this.langSubscription?.unsubscribe();
   }
 
   onSubmit(): void {
@@ -177,7 +170,7 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   createAccount(): void {
-    this.router.navigateByUrl('/register');
+    this.router.navigateByUrl('/' + this.prefs.preferences.lang + '/register');
   }
 
 }

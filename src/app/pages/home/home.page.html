@@ -22,5 +22,10 @@
         <div class="slider-button" [ngClass]="{'selected': slide === index}" (click)="setSlide(index, true)"></div>
       </ng-container>
     </div>
+    <div class="download">
+      <a href="/assets/apk/trailence.apk" target="_blank">
+        <ion-button>{{i18n.texts.pages.home.download_apk}}</ion-button>
+      </a>
+    </div>
   </div>
 </div>

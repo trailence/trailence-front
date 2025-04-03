@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { IonIcon, IonButton } from '@ionic/angular/standalone';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DonationStatusDto } from './donation-status';
@@ -7,9 +7,9 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
-import { Subscription } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { PublicPage } from '../public.page';
 
 interface Goal {
   type: string;
@@ -27,37 +27,25 @@ interface Goal {
     HeaderComponent,
   ]
 })
-export class DonationPage implements OnInit, OnDestroy {
+export class DonationPage extends PublicPage {
 
   constructor(
+    injector: Injector,
     public readonly prefs: PreferencesService,
     public readonly i18n: I18nService,
     private readonly http: HttpService,
     private readonly network: NetworkService,
-  ) {}
+  ) {
+    super(injector);
+  }
 
-  networkSubscription?: Subscription;
   goals: Goal[] = [];
   private _refreshTimeout: any;
 
-  ngOnInit(): void {
-    this.ionViewWillEnter();
-  }
-
-  ngOnDestroy(): void {
-    this.ionViewWillLeave();
-  }
-
-  ionViewWillEnter(): void {
-    if (this.networkSubscription === undefined)
-      this.networkSubscription = this.network.server$.subscribe(available => {
-        if (available) this.refresh();
-      });
-  }
-
-  ionViewWillLeave(): void {
-    this.networkSubscription?.unsubscribe();
-    this.networkSubscription = undefined;
+  protected override initComponent(): void {
+    this.whenVisible.subscribe(this.network.server$, available => {
+      if (available) this.refresh();
+    });
   }
 
   refresh(): void {

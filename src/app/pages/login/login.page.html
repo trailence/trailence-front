@@ -1,4 +1,4 @@
-<app-header></app-header>
+<app-header [title]="i18n.texts.pages.login.title"></app-header>
 <div class="page-container">
 <ion-card>
   <ion-toolbar color="primary">
@@ -48,9 +48,11 @@
           </ion-button>
         </div>
         <div *ngIf="!inprogress" class="bottom-button">
-          <ion-button fill="clear" color="success" (click)="createAccount()">
-            {{i18n.texts.pages.login.create_account}}
-          </ion-button>
+          <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
+            <ion-button fill="clear" color="success" (click)="createAccount()">
+              {{i18n.texts.pages.login.create_account}}
+            </ion-button>
+          </a>
         </div>
       </form>
     </ng-container>

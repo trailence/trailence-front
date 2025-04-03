@@ -13,11 +13,6 @@ console.log('Checking assets versions from ' + previousVersion);
 const childProcess = require('child_process');
 const excludedDirs = ['src/assets/apk', 'src/assets/icon', 'src/assets/map-layers'];
 
-function compareContent(a1, a2) {
-  if (a1.length !== a2.length) return false;
-  return a1.every((value, index) => value === a2[index]);
-}
-
 function checkAssets(dir) {
   const localDir = fs.opendirSync('./' + dir);
   try {

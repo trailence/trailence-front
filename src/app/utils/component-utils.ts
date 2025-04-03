@@ -18,7 +18,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   protected ngZone: NgZone;
 
   private _isInit = false;
-  private _currentState: any;
+  private _currentState: any = undefined;
 
   private _initializing = true;
   public get initializing() { return this._initializing; }
@@ -149,11 +149,11 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   private _checkComponentState(): void { // NOSONAR
     const state = this.getComponentState();
     let needRefresh = false;
-    if (!this._currentState) {
-      if (state) {
+    if (this._currentState === undefined) {
+      if (state !== undefined) {
         needRefresh = true;
       }
-    } else if (!state) {
+    } else if (state === undefined) {
       needRefresh = true;
     } else {
       const currentKeys = Object.getOwnPropertyNames(this._currentState);
