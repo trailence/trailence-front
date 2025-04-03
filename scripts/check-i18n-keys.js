@@ -42,7 +42,7 @@ function readI18nDir(path, withFlagsIcons) {
 function checkKeys(object1, object2, lang1, lang2, path, dirname) {
   for (const k of Object.keys(object1)) {
     const v = object1[k];
-    if (!object2[k]) throw 'Directory' + dirname + ': Key ' + path + '/' + k + ' present in ' + lang1 + ' is missing in ' + lang2;
+    if (object2[k] === undefined) throw 'Directory' + dirname + ': Key ' + path + '/' + k + ' present in ' + lang1 + ' is missing in ' + lang2;
     const v2 = object2[k];
     if (typeof v !== typeof v2) throw 'Directory' + dirname + ': Key ' + path + '/' + k + ' in lang1 is a ' + (typeof v) + ' but is a ' + (typeof v2) + ' in ' + lang2;
     if (typeof v === 'string') continue;
