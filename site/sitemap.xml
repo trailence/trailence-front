@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+  http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/fr/home</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/en/home</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/fr/contact</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/en/contact</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/fr/register</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/en/register</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/fr/login</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/en/login</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/fr/donation</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/en/donation</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+  </url>
+
+</urlset>
