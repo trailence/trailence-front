@@ -5,6 +5,7 @@ import { IHttpClient } from 'src/app/services/http/http-client.interface';
 import { TrailenceHttpRequest, ResponseType } from 'src/app/services/http/http-request';
 import { TrailenceHttpResponse } from 'src/app/services/http/http-response';
 import { BinaryContent } from 'src/app/utils/binary-content';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,7 @@ export class HttpClientService implements IHttpClient {
     return new Observable(subscriber => {
       const headers = {...request.headers};
       headers['User-Agent'] = window.navigator.userAgent;
+      headers['Referer'] = environment.baseUrl + '/';
       let dataAndType: Promise<{data: any, dataType: 'file' | 'formData' | undefined}>;
       if (request.body instanceof Blob) {
         if (!headers['Content-Type']) headers['Content-Type'] = 'application/octet-stream';
