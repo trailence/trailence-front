@@ -139,11 +139,20 @@ export class SharePopupComponent implements OnInit {
     if (!this.share)
       service.create(this.elementType!, this.elements, this.name, this.checkRecipients(), this.mailLanguage, this.includePhotos).subscribe();
     else {
-      this.share.name = this.name;
-      this.share.includePhotos = this.includePhotos;
-      this.share.recipients = this.checkRecipients();
-      this.share.mailLanguage = this.mailLanguage;
-      service.update(this.share);
+      const newName = this.name;
+      const newIncludePhotos = this.includePhotos;
+      const newRecipients = this.checkRecipients();
+      const newMailLanguage = this.mailLanguage;
+      this.share.name = newName;
+      this.share.includePhotos = newIncludePhotos;
+      this.share.recipients = newRecipients;
+      this.share.mailLanguage = newMailLanguage;
+      service.update(this.share, s => {
+        s.name = newName;
+        s.includePhotos = newIncludePhotos;
+        s.recipients = newRecipients;
+        s.mailLanguage = newMailLanguage;
+      });
     }
     this.close('ok');
   }

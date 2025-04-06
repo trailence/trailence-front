@@ -20,7 +20,7 @@ export class ShareModal extends ModalComponent {
 
   public async selectTags(tags: string[]) {
     const tagsPopup = new TagsPopup('selection', this.contentElement.$('>>>app-tags'));
-    tagsPopup.selectTags(tags, false);
+    await tagsPopup.selectTags(tags, false);
     await (await this.getFooterButtonWithText('Continue')).click();
   }
 

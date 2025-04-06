@@ -75,9 +75,7 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
         }
       });
     } else if (this.name !== this.collection!.name) {
-      this.collection!.name = this.name;
-      this.collectionService.update(this.collection!);
-      this.close(this.collection!);
+      this.collectionService.update(this.collection!, col => col.name = this.name, col => this.close(col));
     } else {
       this.close(null);
     }

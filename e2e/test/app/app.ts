@@ -12,10 +12,13 @@ export class App {
 
   public static init() {
     const trailence = (browser.options as any)['trailence'];
+    const instance = trailence.instance ?? '1';
     App.config = {
       initUsername: trailence.initUsername,
       initUserpass: trailence.initUserpass,
-      mode: trailence.mode ?? 'desktop'
+      mode: trailence.mode ?? 'desktop',
+      instance: instance,
+      downloadPath: './tmp-data/' + instance + '/downloads',
     };
     expect(App.config.initUsername).toBeDefined();
     expect(App.config.initUserpass).toBeDefined();
@@ -27,7 +30,7 @@ export class App {
         if (result.status === 'failed') {
           console.log('Test error: take a screen shot');
           promise = promise
-            .then(() => browser.saveScreenshot('wdio_error.png').then().catch(() => Promise.resolve()))
+            .then(() => browser.saveScreenshot('./output/wdio_error_' + App.config.instance + '_' + result.id + '_' + Date.now() + '.png').then().catch(() => Promise.resolve()))
             .then(() => browser.getUrl()).catch(e => Promise.resolve('error')).then(url => { console.log('Browser URL was: ' + url); return true; });
         }
         promise = promise.then(() => browser.execute(name => {
@@ -64,7 +67,7 @@ export class App {
           console.log('Coverage retrieved in ' + (Date.now() - start) + ' ms.');
           return import('fs')
           .then(fs => {
-            const name = 'cov_' + result.id + '_' + Date.now() + '.json';
+            const name = 'cov_' + App.config.instance + '_' + result.id + '_' + Date.now() + '.json';
             console.log('Writing coverage to ' + name);
             fs.writeFileSync(
               '../.nyc_output/' + name,
@@ -245,4 +248,6 @@ export interface AppConfig {
   initUsername: string;
   initUserpass: string;
   mode: string;
+  instance: string;
+  downloadPath: string;
 }

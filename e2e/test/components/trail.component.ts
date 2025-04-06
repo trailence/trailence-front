@@ -163,7 +163,7 @@ export class TrailComponent extends Component {
     await element.scrollIntoView({block: 'center', inline: 'center'});
     const span = element.$('span');
     const text = await span.getText();
-    if (text === 'Enter the description of the trail here') return '';
+    if (text === 'Enter the description of the route here') return '';
     return text;
   }
 

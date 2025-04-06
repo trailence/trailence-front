@@ -64,8 +64,8 @@ export class ShareService {
     ));
   }
 
-  public update(share: Share): void {
-    this._store.update(share);
+  public update(share: Share, updater: (share: Share) => void, ondone?: (share: Share) => void): void {
+    this._store.updateWithLock(share, updater, ondone);
   }
 
   public remove(share: Share) {

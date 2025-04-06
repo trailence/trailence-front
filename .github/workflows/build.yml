@@ -114,7 +114,7 @@ jobs:
       matrix:
         browser: ["chrome","firefox"]
         mode: ["desktop","mobile"]
-        test-set: ["00000+00201+01000+50000", "00100+00202+00300+00900", "00200", "00400+00500+00800"]
+        test-set: ["00000+00100+00300+00400+00800+00900+01000+50000","00200+00201+00202+00500"]
     name: E2E ${{matrix.browser}} ${{matrix.mode}} ${{matrix.test-set}}
     runs-on: ubuntu-latest
     steps:
@@ -146,9 +146,11 @@ jobs:
           mkdir .nyc_output
           cd e2e
           npm ci
+          chmod 777 ./run.sh
+          chmod 777 ./run_test.sh
           cd github
           chmod 777 ./run.sh
-          ./run.sh --trailence-mode=${{matrix.mode}} --test-browser=${{matrix.browser}} --test-only=${{matrix.test-set}}/
+          ./run.sh --trailence-mode=${{matrix.mode}} --test-browser=${{matrix.browser}} --test-only=${{matrix.test-set}}
       - name: Build coverage report
         run: |
           ls -l .nyc_output
@@ -158,12 +160,12 @@ jobs:
           sed -i -e 's!www/browser/!!' ../coverage/e2e/lcov.info
           mv ../coverage/e2e/lcov.info ../coverage/e2e/${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}.info
           ls -l ../coverage/e2e
-      - name: Upload failure screenshot
-        if: ${{ failure() && steps.e2e.conclusion == 'failure' }}
+      - name: Upload output
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wdio_error_${{github.run_number}}_${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}.png
-          path: e2e/wdio_error.png
+          name: wdio_output_${{github.run_number}}_${{matrix.browser}}_${{matrix.mode}}_${{matrix.test-set}}
+          path: e2e/output
           retention-days: 5
       - name: Store coverage results
         uses: actions/upload-artifact@v4

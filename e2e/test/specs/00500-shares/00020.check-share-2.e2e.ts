@@ -7,6 +7,7 @@ describe('Shares - Share 2', () => {
   let linkUrl: string;
 
   it('Open mail', async () => {
+    App.init();
     const mh = new MailHog();
     await mh.open();
     const msg = await mh.openMessageTo('friend2@trailence.org');
@@ -19,12 +20,11 @@ describe('Shares - Share 2', () => {
     linkUrl = link.substring(27);
     await mh.deleteMessage();
     await FilesUtils.fs().then(fs => {
-      fs.writeFileSync('./downloads/share2.link', linkUrl);
+      fs.writeFileSync(App.config.downloadPath + '/share2.link', linkUrl);
     });
   });
 
   it('Open link', async () => {
-    App.init();
     const page = await App.startLink(linkUrl);
     await browser.waitUntil(() => page.header.getTitle().then(title => title === 'tag2 nophoto'));
     const menu = await page.header.openUserMenu();

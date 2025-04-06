@@ -40,11 +40,11 @@ describe('Shares - Edit', () => {
   });
 
   it('Friend 1 can see the new name', async () => {
-    const link = await FilesUtils.fs().then(fs => fs.readFileSync('./downloads/share1.link', 'utf8') as string);
+    const link = await FilesUtils.fs().then(fs => fs.readFileSync(App.config.downloadPath + '/share1.link', 'utf8') as string);
     await App.openLink(link);
     const menu = await App.openMenu();
     const expected = [
-      ['full col edited', 'user@trailence.org'],
+      ['full col edited', App.config.initUsername],
     ];
     await checkShares(menu, false, expected);
     await menu.close();
@@ -52,12 +52,12 @@ describe('Shares - Edit', () => {
   });
 
   it('Friend 2 can see the new share', async () => {
-    const link = await FilesUtils.fs().then(fs => fs.readFileSync('./downloads/share2.link', 'utf8') as string);
+    const link = await FilesUtils.fs().then(fs => fs.readFileSync(App.config.downloadPath + '/share2.link', 'utf8') as string);
     await App.openLink(link);
     const menu = await App.openMenu();
     const expected = [
-      ['full col edited', 'user@trailence.org'],
-      ['tag2 nophoto', 'user@trailence.org'],
+      ['full col edited', App.config.initUsername],
+      ['tag2 nophoto', App.config.initUsername],
     ];
     await checkShares(menu, false, expected);
     await menu.close();

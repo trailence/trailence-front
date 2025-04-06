@@ -180,10 +180,10 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     const photo = this.photos.splice(index, 1)[0];
     const previous = this.photos[index - 1];
     this.photos.splice(index - 1, 0, photo);
-    photo.photo.index--;
-    previous.photo.index = photo.photo.index + 1;
-    this.photoService.update(photo.photo);
-    this.photoService.update(previous.photo);
+    const newIndex = --photo.photo.index;
+    previous.photo.index = newIndex + 1;
+    this.photoService.update(photo.photo, p => p.index = newIndex);
+    this.photoService.update(previous.photo, p => p.index = newIndex + 1);
   }
 
   moveForward(index: number): void {
@@ -215,7 +215,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     if (!photo.editing || !text) return;
     if (photo.photo.description !== text) {
       photo.photo.description = text;
-      this.photoService.update(photo.photo);
+      this.photoService.update(photo.photo, p => p.description = text);
     }
     this.exitEditDescription(photo);
   }

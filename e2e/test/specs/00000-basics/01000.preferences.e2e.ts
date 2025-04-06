@@ -124,7 +124,7 @@ describe('Preferences', () => {
     const trail = await trailsList.findItemByTrailName('Randonnée du 05/06/2023 à 08:58');
     await trail!.clickMenuItem('Delete');
     const alert = await App.waitAlert();
-    expect(await alert.getTitle()).toBe('Delete Trail');
+    expect(await alert.getTitle()).toBe('Delete Track');
     await alert.clickButtonWithRole('danger');
     await browser.waitUntil(() => trailsList.items.getElements().then(l => l.length === 0));
     await App.synchronize();

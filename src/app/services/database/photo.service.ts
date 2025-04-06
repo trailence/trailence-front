@@ -183,8 +183,8 @@ export class PhotoService {
     );
   }
 
-  public update(photo: Photo): void {
-    this.store.update(photo);
+  public update(photo: Photo, updater: (photo: Photo) => void, ondone?: (photo: Photo) => void): void {
+    this.store.updateWithLock(photo, updater, ondone);
   }
 
   public delete(photo: Photo, ondone?: () => void): void {

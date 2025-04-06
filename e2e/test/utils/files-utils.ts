@@ -1,3 +1,5 @@
+import { App } from '../app/app';
+
 export class FilesUtils {
 
   private static _fs: any;
@@ -16,9 +18,9 @@ export class FilesUtils {
   public static async waitFileDownloaded(filename: string) {
     const fs = await FilesUtils.fs();
     try {
-      await browser.waitUntil(async () => fs.existsSync('./downloads/' + filename));
+      await browser.waitUntil(async () => fs.existsSync(App.config.downloadPath + '/' + filename));
     } catch (e) {
-      const dir = await fs.opendir('./downloads');
+      const dir = await fs.opendir(App.config.downloadPath);
       let content = '';
       for await (const ent of dir) content += ent.name + ', ';
       throw new Error('File ' + filename + ' cannot be found in downloads directory, found are: ' + content);

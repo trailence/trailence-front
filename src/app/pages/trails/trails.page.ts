@@ -94,6 +94,8 @@ export class TrailsPage extends AbstractPage {
   }
 
   private initCollection(collectionUuid: string): void {
+    let collectionActions: MenuItem[] = [];
+    let trailsActions: MenuItem[] = [];
     // title is collection name, or default
     this.byState.add(this.injector.get(AuthService).auth$.pipe(
       filterDefined(),
@@ -105,7 +107,8 @@ export class TrailsPage extends AbstractPage {
         );
         this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
         // menu
-        this.actions.splice(0, 0, ...this.injector.get(TrailCollectionService).getCollectionMenu(collection));
+        collectionActions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
+        this.actions = [...collectionActions, ...trailsActions];
         if (collection.name.length > 0) return of(collection.name);
         if (collection.type === TrailCollectionType.MY_TRAILS)
           return this.i18n.texts$.pipe(map(texts => texts.my_trails));
@@ -113,19 +116,22 @@ export class TrailsPage extends AbstractPage {
       })
     ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
     // trails from collection
+    let first = true;
     this.byStateAndVisible.subscribe(
       this.injector.get(TrailService).getAll$().pipe(
         collection$items(trail => trail.collectionUuid === collectionUuid)
       ),
       trails => {
         const newList = List(trails);
-        if (!newList.equals(this.trails$.value)) {
+        if (first || !newList.equals(this.trails$.value)) {
+          first = false;
           const index = this.actions.findIndex(a => a.isSeparator());
           if (index > 0) this.actions.splice(index, this.actions.length - index);
-          const addActions = this.injector.get(TrailMenuService).getTrailsMenu(trails, false, collectionUuid, true);
-          if (addActions.length > 0) {
-            this.actions.push(new MenuItem(), ...addActions);
-          }
+          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails, false, collectionUuid, true);
+          if (actions.length > 0)
+            actions.splice(0, 0, new MenuItem());
+          trailsActions = actions;
+          this.actions = [...collectionActions, ...trailsActions];
           this.ngZone.run(() => this.trails$.next(newList));
         }
       }

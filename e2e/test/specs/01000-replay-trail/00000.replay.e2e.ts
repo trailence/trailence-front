@@ -1,7 +1,6 @@
 import { App } from '../../app/app';
 import { Page } from '../../app/pages/page';
 import { TrailPage } from '../../app/pages/trail-page';
-import { TrailsPage } from '../../app/pages/trails-page';
 import { HeaderComponent } from '../../components/header.component';
 import { FilesUtils } from '../../utils/files-utils';
 import { importGpx } from '../../utils/gpx';
@@ -10,22 +9,8 @@ import { OpenFile } from '../../utils/open-file';
 describe('Replay trail', () => {
 
   let trailPage: TrailPage;
-  let startButton: WebdriverIO.Element;
 
-  it('Login and prepare browser', async () => {
-    const fs = await FilesUtils.fsPromises();
-    const f = await fs.open('./test/assets/gpx-005.gpx', 'r');
-    const file = await f.readFile();
-    await f.close();
-    const segments = await importGpx(file);
-    // remove 2/3 points to speed up the test
-    for (let i = 0; i < segments.length; ++i) {
-      const s = segments[i];
-      for (let j = 1; j < s.length; ++j) {
-        s.splice(j, 2);
-      }
-    }
-
+  it('Login, import trail and open it', async () => {
     App.init();
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
@@ -39,6 +24,20 @@ describe('Replay trail', () => {
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-005.gpx'));
     const trail = await trailsList.waitTrail('Lac de l\'Avellan');
     trailPage = await trailsList.openTrail(trail);
+  });
+
+  it('Prepare browser for replay', async () => {
+    const fs = await FilesUtils.fsPromises();
+    const f = await fs.open('./test/assets/gpx-005.gpx', 'r');
+    const file = await f.readFile();
+    await f.close();
+    const segments = await importGpx(file);
+    // remove 2/3 points to speed up the test
+    for (const s of segments) {
+      for (let j = 1; j < s.length; ++j) {
+        s.splice(j, 2);
+      }
+    }
 
     await browser.execute((segments) => {
       window.navigator.geolocation.getCurrentPosition = function(success, error) {
@@ -92,8 +91,6 @@ describe('Replay trail', () => {
         // nothing
       };
     }, segments);
-
-    startButton = await trailPage.trailComponent.getStartTrailButton();
   });
 
   let savedUuid: string;
@@ -101,6 +98,7 @@ describe('Replay trail', () => {
   let ok = true;
 
   it('Start trail', async () => {
+    let startButton = await trailPage.trailComponent.getStartTrailButton();
     await startButton.click();
   });
 

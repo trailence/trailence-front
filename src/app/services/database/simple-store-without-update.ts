@@ -3,7 +3,11 @@ import { SimpleStore } from './simple-store';
 
 export abstract class SimpleStoreWithoutUpdate<DTO, ENTITY> extends SimpleStore<DTO, ENTITY> {
 
-  public override update(item: ENTITY, ondone?: () => void): void {
+  public override updateWithLock(item: ENTITY, updater: (latestVersion: ENTITY) => void, ondone?: (item: ENTITY) => void): void {
+    throw new Error('Update not supported');
+  }
+
+  public override updateWithoutLock(item: ENTITY, ondone?: () => void): void {
     throw new Error('Update not supported');
   }
 

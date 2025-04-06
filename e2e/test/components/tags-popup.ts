@@ -51,10 +51,14 @@ export class TagsPopup extends ModalComponent {
     let selected = 0;
     for (const node of await nodes.getElements()) {
       const cb = new IonicCheckbox(node.$('ion-checkbox'));
-      const tagName = await cb.getLabel();
-      cb.setSelected(tags.indexOf(tagName) >= 0);
-      found.push(tagName);
-      if (tags.indexOf(tagName) >= 0) selected++;
+      try {
+        const tagName = await cb.getLabel();
+        cb.setSelected(tags.indexOf(tagName) >= 0);
+        found.push(tagName);
+        if (tags.indexOf(tagName) >= 0) selected++;
+      } catch (e) {
+        throw new Error('Unable to select tag checkbox', {cause: e});
+      }
     }
     if (selected !== tags.length)
       throw new Error('Cannot select all tags: expect to find ' + tags.join(',') + ' but the following tags were found: ' + found.join(','));

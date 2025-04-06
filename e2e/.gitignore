@@ -1,3 +1,4 @@
 /node_modules/
 wdio_error.png
-/downloads/
+/tmp-data/
+/output/

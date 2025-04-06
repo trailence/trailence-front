@@ -66,7 +66,7 @@ export class TrailService {
 
   public update(trail: Trail, ondone?: () => void): void {
     this.check(trail);
-    this._store.update(trail, ondone);
+    this._store.updateWithoutLock(trail, ondone);
   }
 
   public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void, ondone?: (trail: Trail) => void): void {

@@ -238,7 +238,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
         this.tagService.delete(node.tag);
       } else if (node.newName !== node.tag.name) {
         node.tag.name = node.newName;
-        this.tagService.update(node.tag);
+        this.tagService.update(node.tag, tag => tag.name = node.newName);
       }
       node.focus = false;
       this.saveNodes(node.children);

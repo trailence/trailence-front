@@ -16,7 +16,13 @@ export class TrailPage extends PageWithHeader {
   protected override expectedUrl(url: string): boolean {
     if (!this.owner2 || !this.uuid2)
       return url.indexOf('/trail/' + this.owner + '/' + this.uuid) > 0;
-    return url.indexOf('/trail/' + this.owner + '/' + this.uuid + '/' + this.owner2 + '/' + this.uuid2) > 0;
+    if (url.indexOf('/trail/' + this.owner + '/' + this.uuid + '/' + this.owner2 + '/' + this.uuid2) > 0) {
+      return true;
+    }
+    if (url.indexOf('/trail/' + this.owner2 + '/' + this.uuid2 + '/' + this.owner + '/' + this.uuid) > 0) {
+      return true;
+    }
+    return false;
   }
 
   public get trailComponent() { return new TrailComponent(this.getElement().$('app-trail')); }

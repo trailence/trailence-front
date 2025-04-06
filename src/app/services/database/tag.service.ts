@@ -60,8 +60,8 @@ export class TagService {
     return this._tagStore.create(tag, ondone);
   }
 
-  public update(tag: Tag): void {
-    this._tagStore.update(tag);
+  public update(tag: Tag, updater: (tag: Tag) => void, ondone?: (tag: Tag) => void): void {
+    this._tagStore.updateWithLock(tag, updater, ondone);
   }
 
   public delete(tag: Tag, ondone?: () => void): void {

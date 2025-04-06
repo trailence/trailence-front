@@ -12,6 +12,7 @@
     "home": {
       "title": "Outil pour la randonnée et la gestion de vos traces GPS (GPX)",
       "subTitle": "Trailence est gratuit, sans publicité, et open source",
+      "meta_description": "Outil pour la randonnée et la gestion de vos traces GPS (GPX). Trailence est gratuit, sans publicité, et open source",
       "slides": [
         {
           "header": "Organisez vos parcours",
@@ -35,6 +36,7 @@
     "installApk": {
       "title": "App Android",
       "download": "Téléchargez le fichier d'installation",
+      "meta_description": "Instructions pour installer l'application Android Trailence",
       "steps": [
         {
           "beforeImg": "Une fenêtre similaire à celle ci-dessous peut s'afficher",
@@ -61,6 +63,7 @@
       ]
     },
     "login": {
+      "meta_description": "Connexion à votre compte Trailence",
       "title": "Connexion",
       "email": "E-Mail",
       "password": "Mot de passe",
@@ -92,6 +95,7 @@
       "downloading_data": "Chargement de vos données..."
     },
     "register": {
+      "meta_description": "Créez un compte sur Trailence",
       "title": "Créer un compte",
       "offline": "Veuillez vous connecter à Internet afin de pouvoir créer un compte sur Trailence",
       "step1": "Entrez vos informations",
@@ -537,6 +541,7 @@
       "button_import": "Importer depuis {{1}}"
     },
     "donation": {
+      "meta_description": "Soutenir le project Trailence",
       "title": "Contribuer",
       "header": "Merci de considérer d'aider ce projet !",
       "text": "Trailence est gratuit, sans publicité, et open-source.<br/><br/>Afin de le rester, nous aimerions solliciter votre aide.<br/><br/>Nous sommes transparent sur nos coûts, et ce à quoi servent vos dons.<br/>&nbsp; - Nous payons actuellement 60 euros par an pour l'hébergement (un serveur de base + le nom de domaine).<br/>&nbsp; - Nous avons un espace de stockage de 100GB pour 20 euros.<br/>",
@@ -553,6 +558,7 @@
       }
     },
     "contact": {
+      "meta_description": "Formulaire de contact, question, signaler un problème...",
       "title": "Contact",
       "email": "Votre E-Mail pour vous répondre",
       "type": "Type de demande",

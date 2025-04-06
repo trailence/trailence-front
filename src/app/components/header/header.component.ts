@@ -29,6 +29,7 @@ export class HeaderComponent extends AbstractComponent {
   @Input() title = '';
   @Input() backUrl?: string;
   @Input() actions?: MenuItem[];
+  @Input() description?: string;
 
   id = IdGenerator.generateId();
   small: boolean;
@@ -70,8 +71,13 @@ export class HeaderComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.byStateAndVisible.subscribe(of(true), () => {
-      const title = document.getElementsByTagName('head')[0].getElementsByTagName('title')[0];
+      const head = document.getElementsByTagName('head')[0];
+      const title = head.getElementsByTagName('title')[0];
       title.innerText = this.title.length > 0 ? this.title + ' - Trailence' : 'Trailence';
+      const desc = document.getElementById('head_meta_description');
+      if (desc && this.description) {
+        desc.setAttribute('content', this.description);
+      }
     }, true);
   }
 

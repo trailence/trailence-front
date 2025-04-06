@@ -1,6 +1,6 @@
 import { App } from '../../app/app';
 import { LoginPage } from '../../app/pages/login-page';
-import { Page, PageWithHeader } from '../../app/pages/page';
+import { Page } from '../../app/pages/page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { HeaderComponent } from '../../components/header.component';
 import { FilesUtils } from '../../utils/files-utils';
@@ -10,8 +10,8 @@ describe('Shares - delete by friend', () => {
   let page: TrailsPage;
 
   it('Open link', async () => {
-    const linkUrl = await FilesUtils.fs().then(fs => fs.readFileSync('./downloads/share3.link', {encoding: 'utf-8'}));
     App.init();
+    const linkUrl = await FilesUtils.fs().then(fs => fs.readFileSync(App.config.downloadPath + '/share3.link', {encoding: 'utf-8'}));
     page = await App.startLink(linkUrl);
     await browser.waitUntil(() => page.header.getTitle().then(title => title === 'tag2+4+photo'));
   });

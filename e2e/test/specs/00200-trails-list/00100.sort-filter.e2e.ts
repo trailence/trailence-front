@@ -177,4 +177,12 @@ describe('Trails list - Sort and filter', () => {
     await expectListContainsByName(list, [...EXPECTED_TRAILS].filter(t => t.name === 'Près de Tourves' || t.name === 'Randonnée du 20/02/2022 à 09:55'));
   });
 
+  it('Remove filters', async () => {
+    await (await list.getToolbarButton('filters')).click();
+    const popup = new FilterTrailsPopup(await App.waitModal());
+    await popup.resetFilters();
+    await popup.close();
+    await expectListContains(list, EXPECTED_TRAILS);
+  });
+
 });

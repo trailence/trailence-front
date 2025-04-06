@@ -430,7 +430,36 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
   }
 
-  public update(item: STORE_ITEM, ondone?: () => void): void {
+  public lockItem(item: STORE_ITEM, onlocked: (locked: boolean, unlock: () => void) => void): void {
+    const key = this.getKey(item);
+    this._locks.lock(key, locked => {
+      onlocked(locked, () => {
+        this._locks.unlock(key);
+      });
+    });
+  }
+
+  public updateWithLock(item: STORE_ITEM, updater: (latestVersion: STORE_ITEM) => void, ondone?: (item: STORE_ITEM) => void) {
+    this.lockItem(item, (locked, unlock) => {
+      if (!locked) {
+        if (ondone) ondone(item);
+        return;
+      }
+      const latestItem = this._store.value.find(item$ => item$.value && this.areSame(item$.value, item))?.value;
+      if (latestItem) {
+        updater(latestItem);
+        this.updateWithoutLock(latestItem, () => {
+          unlock();
+          if (ondone) ondone(latestItem);
+        });
+      } else {
+        unlock();
+        if (ondone) ondone(item);
+      }
+    });
+  }
+
+  public updateWithoutLock(item: STORE_ITEM, ondone?: () => void): void {
     const key = this.getKey(item);
     this.updated(item);
     this.performOperation(

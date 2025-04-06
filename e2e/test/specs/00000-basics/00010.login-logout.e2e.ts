@@ -41,7 +41,7 @@ describe('Login and Logout', () => {
     myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     expect(await myTrailsPage.header.getTitle()).toBe('My Trails');
     await browser.url('https://github.com/trailence');
-    await browser.waitUntil(() => browser.getTitle().then(title => title === 'trailence · GitHub'));
+    await browser.waitUntil(() => browser.getTitle().then(title => title === 'Trailence · GitHub'));
     await browser.pause(2500); // else sometimes the geckodriver crashes
     await browser.url(browser.options.baseUrl!);
     myTrailsPage = new TrailsPage();

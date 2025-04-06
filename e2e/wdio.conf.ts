@@ -4,17 +4,18 @@ import * as child_process from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
-const downloadPath = path.join(__dirname, 'downloads');
 
 const dynamicConfig = {} as any;
 
 dynamicConfig.baseUrl = "http://localhost:8100";
-dynamicConfig.trailence = {mode: 'desktop'};
+dynamicConfig.trailence = {mode: 'desktop', instance: '1'};
 dynamicConfig.child_process = child_process;
 
 let specs = [ './test/specs/**/*.e2e.ts' ];
 let excludeSpecs: string[] = [];
 let browser = 'chrome';
+
+console.log('Arguments: ' + JSON.stringify(process.argv));
 
 for (const arg of process.argv) {
   if (arg.startsWith('--trailence-init-username='))
@@ -55,6 +56,8 @@ for (const arg of process.argv) {
     dynamicConfig.trailence['mode'] = arg.substring(17);
   } else if (arg.startsWith('--test-browser=')) {
     browser = arg.substring(15);
+  } else if (arg.startsWith('--test-instance=')) {
+    dynamicConfig.trailence['instance'] = arg.substring(16);
   }
 }
 
@@ -66,6 +69,8 @@ if (process.env.IS_CI) {
 
 const caps = { browserName: browser } as any;
 dynamicConfig.capabilities = [caps];
+const downloadPath = path.join(__dirname, 'tmp-data', '' + dynamicConfig.trailence.instance, 'downloads');
+const userDataPath = path.join(__dirname, 'tmp-data', '' + dynamicConfig.trailence.instance, 'user-data');
 
 if (browser === 'chrome') {
   caps['goog:chromeOptions'] = {
@@ -74,6 +79,7 @@ if (browser === 'chrome') {
       '--disable-ipc-flooding-protection',
       '--disk-cache-size=1',
       '--aggressive-cache-discard',
+      '--user-data-dir=' + userDataPath,
     ],
     prefs: {
       "download.default_directory": downloadPath,
@@ -201,6 +207,8 @@ console.log('Excluding:');
 for (const spec of excludeSpecs) {
   console.log(' - ' + spec);
 }
+console.log('Browser caps: ' + JSON.stringify(caps));
+console.log('Trailence config: ' + JSON.stringify(dynamicConfig.trailence));
 
 export const config = Object.assign({}, {
     //

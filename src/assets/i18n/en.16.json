@@ -12,10 +12,11 @@
     "home": {
       "title": "Hiking and GPS Track Management Tool (GPX)",
       "subTitle": "Trailence is free, ad-free, and open source",
+      "meta_description": "Hiking and GPS Track Management Tool (GPX). Trailence is free, ad-free, and open source",
       "slides": [
         {
-          "header": "Organize your trails",
-          "footer": ["Create collections", "Tag your trails", "View them on the map", "Sorting, filters..."]
+          "header": "Organize your tracks",
+          "footer": ["Create collections", "Tag your tracks", "View them on the map", "Sorting, filters..."]
         }, {
           "header": "Create your tracks",
           "footer": ["Record a track during your activity", "Offline maps", "Follow an existing track"]
@@ -24,10 +25,10 @@
           "footer": ["Elevation profile", "Description", "Waypoints"]
         }, {
           "header": "Add photos",
-          "footer": ["Attach photos to your trails", "View them on the map"]
+          "footer": ["Attach photos to your tracks", "View them on the map"]
         }, {
           "header": "But also...",
-          "footer": ["Share trails", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a trail with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated trail time", "..."]
+          "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "..."]
         }
       ],
       "download_apk": "Download Android App"
@@ -35,6 +36,7 @@
     "installApk": {
       "title": "Android App",
       "download": "Download the installation file",
+      "meta_description": "Instructions for installing the Trailence Android app",
       "steps": [
         {
           "beforeImg": "A window similar to the one below may appear",
@@ -61,6 +63,7 @@
       ]
     },
     "login": {
+      "meta_description": "Connect to your Trailence account",
       "title": "Sign in",
       "email": "E-Mail",
       "password": "Password",
@@ -92,6 +95,7 @@
       "downloading_data": "Loading your data..."
     },
     "register": {
+      "meta_description": "Create an account on Trailence",
       "title": "Create an account",
       "offline": "Please connect to Internet to create an account on Trailence",
       "step1": "Enter your information",
@@ -111,10 +115,10 @@
       }
     },
     "trails": {
-      "edit_filters_popup_title": "Filter Trails",
-      "edit_sort_popup_title": "Sort Trails",
+      "edit_filters_popup_title": "Filter Tracks",
+      "edit_sort_popup_title": "Sort Tracks",
       "sorts": {
-        "trail_date": "Date of the trail",
+        "trail_date": "Date of the track",
         "creation_date": "Creation in Trailence",
         "update_date": "Last update in Trailence",
         "distance": "Distance",
@@ -129,10 +133,10 @@
         "distance": "Distance",
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation",
-        "loopType": "Trail type",
+        "loopType": "Track type",
         "loopTypePlaceholder": "Select types",
         "tags": "Tags",
-        "onlyVisibleOnMap": "Show in list only trails visible on map",
+        "onlyVisibleOnMap": "Show in list only tracks visible on map",
         "reset_button": "Reset all filters"
       },
       "tabs": {
@@ -142,14 +146,14 @@
       "open_trail": "Open",
       "actions": {
         "delete_confirm_single": {
-          "title": "Delete Trail",
+          "title": "Delete Track",
           "message": "Are you sure you want to delete {{}}?",
           "yes": "Yes, delete",
           "no": "Cancel, keep"
         },
         "delete_confirm_multiple": {
-          "title": "Delete {{}} Trails",
-          "message": "Are you sure you want to delete these {{}} trails?",
+          "title": "Delete {{}} Tracks",
+          "message": "Are you sure you want to delete these {{}} tracks?",
           "yes": "Yes, delete",
           "no": "Cancel, keep"
         },
@@ -162,14 +166,14 @@
         "export": "Export",
         "rename": "Rename",
         "rename_popup": {
-          "title": "Rename trail",
+          "title": "Rename track",
           "name": "Name"
         },
         "edit_location": "Edit location",
         "copy_photos_alert": {
           "title": "Copy photos",
-          "message_singular": "The copied trail contains photos. Would you like to make a copy of the photos as well?",
-          "message_plural": "The copied trails contain photos. Would you like to make a copy of the photos as well?"
+          "message_singular": "The copied track contains photos. Would you like to make a copy of the photos as well?",
+          "message_plural": "The copied tracks contain photos. Would you like to make a copy of the photos as well?"
         },
         "copying_photos": "Copying photos",
         "copy_photo_error": "Error copying photo {{1}}"
@@ -181,7 +185,7 @@
           "add_tag_label": "New tag",
           "confirm_delete": {
             "title": "Delete Tag",
-            "message": "Are you sure you want to delete this tag? It is used on {{1}} trail(s)",
+            "message": "Are you sure you want to delete this tag? It is used on {{1}} tracks(s)",
             "yes": "Yes, delete",
             "no": "Cancel, keep"
           }
@@ -190,7 +194,7 @@
       "search": {
         "sources": "Sources",
         "searching": "Searching",
-        "error": "Error searching trails",
+        "error": "Error searching tracks",
         "needs_zoom": "Map too wide, zoom in more",
         "too_much_results": "Too many results"
       }
@@ -213,17 +217,17 @@
         "edit_tools": "Edition tools",
         "compare": "Compare",
         "compare_with": "Compare with...",
-        "compare_with_this_one": "Compare with this trail",
-        "merge_trails": "Merge these trails",
-        "merged_trail_name": "Merged trail"
+        "compare_with_this_one": "Compare with this track",
+        "merge_trails": "Merge these tracks",
+        "merged_trail_name": "Merged track"
       },
-      "no_tag_message": "No tag on this trail",
-      "no_photo_message": "No photo on this trail",
+      "no_tag_message": "No tag on this track",
+      "no_photo_message": "No photo on this track",
       "comparison_message": "These paths are {{1}}% similar",
       "sections": {
         "description": {
           "title": "Description",
-          "placeholder": "Enter the description of the trail here"
+          "placeholder": "Enter the description of the route here"
         },
         "waypoints": {
           "title": "Way Points"
@@ -243,7 +247,7 @@
         "elevation_threshold": "Slope threshold",
         "elevation_threshold_distance": "Maximum distance",
         "elevation_threshold_explaination": "The purpose of smoothing is to smooth out GPS inaccuracies.<br/>Because of these inaccuracies, it often happens that in a few meters of distance the altitude also rises and falls by a few meters, while the reality is a continuous slope.<br/>Smoothing therefore works as follows:<ul><li>We look for sections in which the altitude has varied within the configured threshold, and over a configured maximum distance.</li><li>For each section found, we take the starting altitude and the arrival altitude, and we smooth into a continuous slope.</li><li>In order to avoid losing the high points or low points of the route, if we find such a point in the middle of the section, we reduce the section to keep this point.</li></ul>",
-        "path": "Trail path",
+        "path": "Track path",
         "join_departure_and_arrival": {
           "title": "Join departure and arrival",
           "join_departure": "Start at the arrival point",
@@ -286,19 +290,19 @@
       "collection_name": "Name"
     },
     "location_popup": {
-      "title": "Trail location",
+      "title": "Track location",
       "location": "Location",
       "search_from_departure": "Suggest locations based on departure"
     },
     "import_gpx_popup": {
-      "title": "Import new trail",
+      "title": "Import new track",
       "message": "Please select the collection you want the file{{1}}to be imported into"
     },
     "import_tags_popup": {
       "title_import": "Import tags",
       "title_copy": "Copy tags",
       "message_import": "The following tags were found in the imported filed",
-      "message_copy": "The following tags are present on the copied trails",
+      "message_copy": "The following tags are present on the copied tracks",
       "tag": "Tag",
       "status": "Status",
       "status_exists": "Exists",
@@ -332,18 +336,18 @@
       "name": "Give a name to this share",
       "name_info": "This name will be visible by you and the person with who you are sharing",
       "who_question": "With who? (up to 20 persons)",
-      "includePhotos": "Share photos with trails",
-      "photos_info": "Photos associated with shared trails will be visible to the person you are sharing with, but cannot be modified",
+      "includePhotos": "Share photos with tracks",
+      "photos_info": "Photos associated with shared tracks will be visible to the person you are sharing with, but cannot be modified",
       "email": "Email",
       "email_info": "An e-mail will be sent to inform about this share",
       "language": "In which language should we send the e-mail?",
       "recipient_error": "Please enter a valid e-mail address"
     },
     "find_duplicates": {
-      "title": "Search for similar trails",
+      "title": "Search for similar tracks",
       "option_inside_collection": "Inside collection {{1}}",
-      "option_between_collections": "Between trails of collection {{1}} and collection",
-      "option_all": "Between all trails of all collections",
+      "option_between_collections": "Between tracjs of collection {{1}} and collection",
+      "option_all": "Between all tracks of all collections",
       "threshold": "With a similarity of at least",
       "end_message": "End of search"
     },
@@ -387,7 +391,7 @@
       "photos_max_size_kb": "Maximum photo file size (KB)",
       "photos_max_size_kb_explaination": "When you store a photo, the maximum pixel size and quality are applied. If the result is a file size larger than this value, the size and quality will be slightly reduced until the file size is below this threshold.",
       "photos_cache": "Downloaded photos",
-      "photos_cache_explaination": "When a photo is displayed, it is downloaded and then cached on your device. This avoids having to download a photo each time, and therefore makes the display faster. It also allows you to view photos offline. So, if you plan to follow a trail that contains photos, and you want to be able to view the photos offline during your trail, by viewing the photos before you start the trail while you have network access, they will be available offline.",
+      "photos_cache_explaination": "When a photo is displayed, it is downloaded and then cached on your device. This avoids having to download a photo each time, and therefore makes the display faster. It also allows you to view photos offline. So, if you plan to follow a track that contains photos, and you want to be able to view the photos offline during your hike, by viewing the photos before you start the hike while you have network access, they will be available offline.",
       "photos_cache_total": "Total files size",
       "photos_cache_expired": "Expired files size",
       "photos_cache_remove_all": "Remove All",
@@ -395,11 +399,11 @@
       "photos_cache_max_days": "Retention of downloaded photos (days)",
       "thunderforest_explaination": "You can add maps from thunderforest.com if you have an account on their web site (a free account is available). Enter your API key below",
       "time_calculation": {
-        "title": "Calculation of trail duration",
+        "title": "Calculation of hike duration",
         "base_speed": "Speed on flat terrain",
-        "base_speed_explaination": "This speed is used for estimating trail durations. It is weighted according to the elevation and trail duration.",
+        "base_speed_explaination": "This speed is used for estimating hike durations. It is weighted according to the elevation and duration.",
         "long_breaks_title": "Detection of long stops",
-        "long_break_explaination": "A stop is considered long when you have stayed within the configured perimeter for more than the minimum stop time. When a long stop is detected, we keep the minimum time in the normal trail duration, the rest is considered as stop time outside the normal trail duration.",
+        "long_break_explaination": "A stop is considered long when you have stayed within the configured perimeter for more than the minimum stop time. When a long stop is detected, we keep the minimum time in the normal hike duration, the rest is considered as stop time outside the normal hike duration.",
         "long_break_minimum_duration": "Minimum stop time",
         "long_break_maximum_distance": "Maximum perimeter"
       },
@@ -410,10 +414,10 @@
       "quotas": {
         "title": "Quotas",
         "collections": "Collections",
-        "trails": "Trails",
+        "trails": "Tracks",
         "tracks-size": "Traces storage",
         "tags": "Tags",
-        "trail-tags": "Tagged trails",
+        "trail-tags": "Tagged tracks",
         "photos": "Photos",
         "photos-size": "Photos storage",
         "shares": "Shares"
@@ -491,7 +495,7 @@
       "resume": "Resume",
       "undo": "Undo last point",
       "show_routes": "Display circuits",
-      "show_trails": "Display my trails",
+      "show_trails": "Display my tracks",
       "put_free_point": "Add a free point",
       "back_to_non_free_point": "Pick up points on paths",
       "meta": {
@@ -503,7 +507,7 @@
         "forbidden": "Passage forbidden"
       },
       "save": {
-        "trail_name": "Trail name",
+        "trail_name": "Track name",
         "collection": "In which collection"
       }
     },
@@ -514,7 +518,7 @@
       "track_current": "The current one",
       "track_current_explaination": "The current track in Trailence, including improvements and changes",
       "track_both": "Both",
-      "track_both_explaination": "Both will be exported in the same file. This will allow you to re-import the 2 tracks into Trailence in a single trail, ideal for a backup. However, it may not open properly if you import the file into another application.",
+      "track_both_explaination": "Both will be exported in the same file. This will allow you to re-import the 2 tracks into Trailence in a single hike, ideal for a backup. However, it may not open properly if you import the file into another application.",
       "include_photos": "Include photos",
       "include_photos_explaination": "Photos will be included in a ZIP file, that can be imported in Trailence"
     },
@@ -537,6 +541,7 @@
       "button_import": "Import from {{1}}"
     },
     "donation": {
+      "meta_description": "Support the Trailence project",
       "title": "Contribute",
       "header": "Thank you for considering helping this project!",
       "text": "Trailence is free, ad-free, and open-source.<br/><br/>In order to remain so, we would like to ask for your help.<br/><br/>We are transparent about our costs, and what your donations are used for.<br/>&nbsp; - We currently pay 60 euros per year for hosting (a basic server + the domain name).<br/>&nbsp; - We have 100GB of storage space for 20 euros.<br/>",
@@ -553,6 +558,7 @@
       }
     },
     "contact": {
+      "meta_description": "Contact form, question, report a problem...",
       "title": "Contact",
       "email": "Your E-Mail to answer you",
       "type": "Type of request",
@@ -572,9 +578,9 @@
   "menu": {
     "collections": "Collections",
     "shared_with_me": "Shared with me",
-    "nothing_shared_with_me": "No trail shared with you",
+    "nothing_shared_with_me": "No track shared with you",
     "shared_by_me": "Shared by me",
-    "nothing_shared_by_me": "You don't share any trail",
+    "nothing_shared_by_me": "You don't share any track",
     "start_trace": "Start a trace",
     "current_trace": "Trace in progress",
     "planner": "Plan a trail",
@@ -641,16 +647,16 @@
   "downloading_map": "Downloading map",
   "preparing_download": "Preparing for download...",
   "offline_map": {
-    "download_trail": "Maps corresponding to the trail will be downloaded to be available offline",
+    "download_trail": "Maps corresponding to the track will be downloaded to be available offline",
     "download_map": "Maps of the currently displayed area will be downloaded to be available offline",
     "select_layers": "Select the layers to download",
     "parameters": "Parameters",
     "max_zoom": "Maximum zoom level to download",
-    "max_zoom_explaination": "The higher you select a zoom level, the more you will be able to zoom during your trail when you are offline, but consequently the longer the download will take and the more storage space will be required on your device.",
+    "max_zoom_explaination": "The higher you select a zoom level, the more you will be able to zoom during your hike when you are offline, but consequently the longer the download will take and the more storage space will be required on your device.",
     "max_zoom_reco": "A value between 15 and 17 is recommended. Below 15, the level of detail is often too low to see small paths clearly. Above 17, the download size is large, and is generally not necessary to perfectly follow a route.",
     "padding": "Extend the area to download (%)",
-    "padding_explaination_for_trail": "Percentage of the area to download in around the trail area (100% means only the trail area). Allows you to see more around the trail in offline mode.",
-    "padding_explaination_for_map": "Percentage of the area to download in around the currently displayed area (100% means only the trail area). Allows you to see a larger area in offline mode."
+    "padding_explaination_for_trail": "Percentage of the area to download in around the track area (100% means only the track area). Allows you to see more around the track in offline mode.",
+    "padding_explaination_for_map": "Percentage of the area to download in around the currently displayed area (100% means only the track area). Allows you to see a larger area in offline mode."
   },
   "layers_popup": {
     "title": "Map Layer"
@@ -660,7 +666,7 @@
     "pause": "Pause",
     "resume": "Resume",
     "stop": "Stop",
-    "start_this_trail": "Start this trail",
+    "start_this_trail": "Start this track",
     "notif_title": "Trailence",
     "notif_message": "Track in progress",
     "notif_message_map": "Following your position on the map",
@@ -669,12 +675,12 @@
       "message": "Your GPS is disabled, please enable it to start a track."
     },
     "confirm_popup": {
-      "resume_message": "Please confirm to resume the trail",
-      "pause_message": "Please confirm to pause the trail",
-      "stop_message": "Please confirm the end of the trail"
+      "resume_message": "Please confirm to resume the track",
+      "pause_message": "Please confirm to pause the track",
+      "stop_message": "Please confirm the end of the track"
     },
-    "saving": "Saving trail",
-    "empty_trail": "Your trail being empty, it has not been saved"
+    "saving": "Saving track",
+    "empty_trail": "Your track being empty, it has not been saved"
   },
   "waiting_for_gps": "Waiting for GPS signal...",
   "bytes": {
@@ -726,11 +732,11 @@
     "ob": "Out and back"
   },
   "tags_filter": {
-    "onlyWithAnyTag": "Trails having at least one tag",
-    "onlyWithoutAnyTag": "Trails having no tag",
-    "include_and": "Trails having all the following tags",
-    "include_or": "Trails having at least one of the following tags",
-    "exclude": "Trails having none of the following tags",
+    "onlyWithAnyTag": "Tracks having at least one tag",
+    "onlyWithoutAnyTag": "Tracks having no tag",
+    "include_and": "Tracks having all the following tags",
+    "include_or": "Tracks having at least one of the following tags",
+    "exclude": "Tracks having none of the following tags",
     "click_to_select": "Click to select",
     "popup": {
       "title": "Filter on tags"
@@ -746,7 +752,7 @@
     "installing": "Installing update"
   },
   "metadata": {
-    "trail_date": "Trail date",
+    "trail_date": "Track date",
     "trail_location": "Location",
     "loop_type": "Type",
     "duration": "Duration",
@@ -764,7 +770,7 @@
     "remaining_ascent": "Remaining ascent",
     "remaining_descent": "Remaining descent"
   },
-  "synchronizing_your_data": "Downloading your trails",
+  "synchronizing_your_data": "Downloading your tracks",
   "errors": {
     "modal_title_singular": "Error",
     "modal_title_plural": "Errors",
@@ -792,7 +798,7 @@
     "password_strength": "The password must contain at least 8 characters"
   },
   "export": {
-    "trail": "Trail",
+    "trail": "Track",
     "photo": "Photo"
   },
   "osm": {
@@ -805,7 +811,7 @@
     "trails": "You have exceeded the maximum number of trails, new ones cannot be saved on the server !",
     "tracks": "You have exceeded the maximum number of tracks, new ones cannot be saved on the server !",
     "tags": "You have exceeded the maximum number of tags, new ones cannot be saved on the server !",
-    "trails_tags": "You have exceeded the maximum number of tagged trails, new ones cannot be saved on the server !",
+    "trails_tags": "You have exceeded the maximum number of tagged tracks, new ones cannot be saved on the server !",
     "photos": "You have exceeded the maximum number of photos, new ones cannot be saved on the server !",
     "shares": "You have exceeded the maximum number of shares, new ones cannot be saved on the server !"
   },
@@ -814,7 +820,7 @@
     "trails": "You have reached the maximum number of trails",
     "tracks": "You have reached the maximum number of tracks",
     "tags": "You have reached the maximum number of tags",
-    "trails_tags": "You have reached the maximum number of tagged trails",
+    "trails_tags": "You have reached the maximum number of tagged tracks",
     "photos": "You have reached the maximum number of photos",
     "shares": "You have reached the maximum number of shares",
     "photos_max": "Your quota for photos is {{1}} and you already have {{2}}: you cannot add {{3}} new one(s)"

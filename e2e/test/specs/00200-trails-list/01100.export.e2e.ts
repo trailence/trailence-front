@@ -33,7 +33,7 @@ describe('Export', () => {
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
     await (await trailsList.getToolbarButton('add-circle')).click();
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./downloads/Randonnée du 05_06_2023 à 08_58.gpx'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/Randonnée du 05_06_2023 à 08_58.gpx'));
     await App.waitNoProgress();
     await expectListContains(trailsList, EXPECTED_TRAILS.filter(t => t.name === 'Randonnée du 05/06/2023 à 08:58'));
     trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
@@ -61,7 +61,7 @@ describe('Export', () => {
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
     await (await trailsList.getToolbarButton('add-circle')).click();
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./downloads/Col et lacs de la Cayolle.gpx'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/Col et lacs de la Cayolle.gpx'));
     await App.waitNoProgress();
     const tagsPopup = new ImportTagsPopup(await App.waitModal());
     await tagsPopup.doNotImportTags();
@@ -94,7 +94,7 @@ describe('Export', () => {
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
     await (await trailsList.getToolbarButton('add-circle')).click();
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./downloads/Col et lacs de la Cayolle.zip'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/Col et lacs de la Cayolle.zip'));
     await App.waitNoProgress();
     const tagsPopup = new ImportTagsPopup(await App.waitModal());
     await tagsPopup.doNotImportTags();
@@ -127,7 +127,7 @@ describe('Export', () => {
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
     await (await trailsList.getToolbarButton('add-circle')).click();
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./downloads/trailence-export.zip'));
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/trailence-export.zip'));
     await App.waitNoProgress();
     const tagsPopup = new ImportTagsPopup(await App.waitModal());
     await tagsPopup.importAll();

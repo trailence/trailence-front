@@ -63,8 +63,8 @@ export class TrailCollectionService {
     return this._store.create(collection, ondone);
   }
 
-  public update(collection: TrailCollection): void {
-    this._store.update(collection);
+  public update(collection: TrailCollection, updater: (collection: TrailCollection) => void, ondone?: (collection: TrailCollection) => void): void {
+    this._store.updateWithLock(collection, updater, ondone);
   }
 
   public delete(collection: TrailCollection, progress: Progress): void {

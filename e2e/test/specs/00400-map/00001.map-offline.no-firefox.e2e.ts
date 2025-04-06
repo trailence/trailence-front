@@ -17,7 +17,7 @@ describe('Map offline', () => {
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
     // import trail
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
-    await (await trailsList.getToolbarButton('add-circle')).click();;
+    await (await trailsList.getToolbarButton('add-circle')).click();
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();

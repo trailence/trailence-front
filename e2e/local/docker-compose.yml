@@ -41,6 +41,9 @@ services:
       - TRAILENCE_INIT_PASSWORD=${TRAILENCE_INIT_PASSWORD}
       - OUTDOOR_ACTIVE_KEY=${OUTDOOR_ACTIVE_KEY}
       - THUNDERFOREST_ENABLED=true
+      - OUTDOOR_ACTIVE_ROLE=upgraded
+      - VISORANDO_ROLE=upgraded
+      - THUNDERFOREST_ROLE=upgraded
   front:
     build:
       context: ./docker

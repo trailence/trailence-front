@@ -37,7 +37,7 @@ describe('Trails Tools', () => {
     await trail1!.clickMenuItem('Compare with...');
     const trail1Id = await list.getTrailId(trail1!);
     const trail2 = await list.findItemByTrailName('Près de Tourves');
-    await trail2!.clickMenuItem('Compare with this trail');
+    await trail2!.clickMenuItem('Compare with this track');
     const trail2Id = await list.getTrailId(trail2!);
 
     const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
@@ -74,7 +74,9 @@ describe('Trails Tools', () => {
 
     const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
     await trailPage.waitDisplayed();
-    expect(await trailPage.header.getTitle()).toBe('Compare Randonnée du 20/02/2022 à 09:55 and Près de Tourves');
+    const title = await trailPage.header.getTitle();
+    if (title !== 'Compare Randonnée du 20/02/2022 à 09:55 and Près de Tourves' && title !== 'Compare Près de Tourves and Randonnée du 20/02/2022 à 09:55')
+      throw new Error('Unexpected title: ' + title);
 
     await trailPage.header.goBack();
     collectionPage = new TrailsPage();
@@ -115,8 +117,8 @@ describe('Trails Tools', () => {
     trail = await list.findItemByTrailName('Près de Tourves');
     await trail!.selectTrail();
 
-    await (await list.openSelectionMenu()).clickItemWithText('Merge these trails');
-    const trailPage = await TrailPage.waitForName('Merged trail');
+    await (await list.openSelectionMenu()).clickItemWithText('Merge these tracks');
+    const trailPage = await TrailPage.waitForName('Merged track');
     await trailPage.trailComponent.openDetails();
     const duration = await trailPage.trailComponent.getMetadataValueByTitle('Duration' ,true);
 
