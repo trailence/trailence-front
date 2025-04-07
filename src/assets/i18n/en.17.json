@@ -68,9 +68,9 @@
       "email": "E-Mail",
       "password": "Password",
       "signin_button": "Sign In",
-      "offline": "Please connect to Internet to sign in",
+      "offline": "Please connect to the Internet to sign in",
       "incorrect_message": "Invalid e-mail or password",
-      "error_message": "Autnetication error, please retry",
+      "error_message": "Authentication error, please retry",
       "captcha_message": "Following several attempts, we need to check you are not a robot",
       "locked_message": "Your account has been locked, please use the forgot password button",
       "forgot_password": "Forgot password?",
@@ -80,9 +80,9 @@
         "email": "E-Mail",
         "new_password1": "New password",
         "new_password2": "Confirm your password",
-        "verification_code_explaination": "We have just sent a 6-digit code to your email address, please enter it below",
+        "verification_code_explaination": "We have just sent a 6-digit code to your email address. Please enter it below",
         "in_progress": "Resetting password...",
-        "error": "An error occured, please go back and retry",
+        "error": "An error occurred, please go back and retry",
         "errors": {
           "email": "Please enter a valid e-mail",
           "password": "Must contain at least 8 characters",
@@ -91,7 +91,7 @@
           "mail_error": "An error has occurred, please try again."
         }
       },
-      "signing_in": "Connection...",
+      "signing_in": "Signing in...",
       "downloading_data": "Loading your data..."
     },
     "register": {
@@ -102,10 +102,10 @@
       "email": "E-Mail",
       "password1": "Password",
       "password2": "Confirm the password",
-      "step2": "Confirm you E-Mail",
-      "code_text": "WWe have just sent a 6-digit code to your email address, please enter it below",
+      "step2": "Confirm your E-Mail",
+      "code_text": "We have just sent a 6-digit code to your email address. Please enter it below",
       "step3": "Account created",
-      "connection": "Connexion...",
+      "connection": "Signing in...",
       "continue": "Continue",
       "back": "Back",
       "errors": {
@@ -227,7 +227,7 @@
       "sections": {
         "description": {
           "title": "Description",
-          "placeholder": "Enter the description of the route here"
+          "placeholder": "Describe the trail here"
         },
         "waypoints": {
           "title": "Way Points"
@@ -246,7 +246,7 @@
         "apply_elevation_threshold": "Smooth with a slope threshold",
         "elevation_threshold": "Slope threshold",
         "elevation_threshold_distance": "Maximum distance",
-        "elevation_threshold_explaination": "The purpose of smoothing is to smooth out GPS inaccuracies.<br/>Because of these inaccuracies, it often happens that in a few meters of distance the altitude also rises and falls by a few meters, while the reality is a continuous slope.<br/>Smoothing therefore works as follows:<ul><li>We look for sections in which the altitude has varied within the configured threshold, and over a configured maximum distance.</li><li>For each section found, we take the starting altitude and the arrival altitude, and we smooth into a continuous slope.</li><li>In order to avoid losing the high points or low points of the route, if we find such a point in the middle of the section, we reduce the section to keep this point.</li></ul>",
+        "elevation_threshold_explaination": "Smoothing helps correct GPS inaccuracies, making the trail appear as a continuous slope rather than showing irregular elevation changes.<br/>This is done by:<ul><li>Identifying sections where altitude changes within the configured threshold and distance.</li><li>Smoothing these sections into a continuous slope while keeping high or low points intact.</li></ul>",
         "path": "Track path",
         "join_departure_and_arrival": {
           "title": "Join departure and arrival",
@@ -255,7 +255,7 @@
         },
         "breaks": "Breaks",
         "remove_long_breaks_moves": {
-          "title": "Remove moves during long breaks",
+          "title": "Remove movements during long breaks",
           "configuration": "Configuration",
           "config_min_duration": "Minimum duration",
           "config_max_distance": "Perimeter",
@@ -296,26 +296,26 @@
     },
     "import_gpx_popup": {
       "title": "Import new track",
-      "message": "Please select the collection you want the file{{1}}to be imported into"
+      "message": "Please select the collection into which you want to import the file{{1}}"
     },
     "import_tags_popup": {
       "title_import": "Import tags",
       "title_copy": "Copy tags",
-      "message_import": "The following tags were found in the imported filed",
+      "message_import": "The following tags were found in the imported file",
       "message_copy": "The following tags are present on the copied tracks",
       "tag": "Tag",
       "status": "Status",
       "status_exists": "Exists",
       "status_does_not_exist": "Does not exist",
       "message2": "What do you want to do with these tags?",
-      "import_existing_only": "Import only existing tags",
+      "import_existing_only": "Import only the existing tags",
       "import_and_create": "Import all tags by creating the missing ones",
       "import_all": "Import all",
-      "ignore_all_import": "Do not import tags",
-      "copy_existing_only": "Copy only existing tags",
+      "ignore_all_import": "Do not import any tags",
+      "copy_existing_only": "Copy only the existing tags",
       "copy_and_create": "Copy all tags by creating the missing ones",
       "copy_all": "Copy all",
-      "ignore_all_copy": "Do not copy tags"
+      "ignore_all_copy": "Do not copy any tags"
     },
     "import_from_sources": {
       "title": "Import data",
@@ -334,7 +334,7 @@
         "question": "Which tags?"
       },
       "name": "Give a name to this share",
-      "name_info": "This name will be visible by you and the person with who you are sharing",
+      "name_info": "This name will be visible to you and the person you're sharing with",
       "who_question": "With who? (up to 20 persons)",
       "includePhotos": "Share photos with tracks",
       "photos_info": "Photos associated with shared tracks will be visible to the person you are sharing with, but cannot be modified",
@@ -346,7 +346,7 @@
     "find_duplicates": {
       "title": "Search for similar tracks",
       "option_inside_collection": "Inside collection {{1}}",
-      "option_between_collections": "Between tracjs of collection {{1}} and collection",
+      "option_between_collections": "Between tracks of collection {{1}} and collection",
       "option_all": "Between all tracks of all collections",
       "threshold": "With a similarity of at least",
       "end_message": "End of search"
@@ -359,7 +359,7 @@
       "themes": {
         "light": "Light",
         "dark": "Dark",
-        "system": "System preference"
+        "system": "System Default"
       },
       "distance_unit": "Distance Unit",
       "distance_units": {
@@ -370,12 +370,12 @@
       "time_format": "Time format",
       "trace_recorder": "Trace recording",
       "traceMinMeters": "Minimum distance between each recorded point",
-      "traceMinMeters_explaination": "A value that is too low may result in a low-quality track due to the imprecision of GPS.<br/>A value that is too high may also produce a low-quality track with long straight lines.<br/>It is also important to consider that the shorter the distance, the higher the number of recorded points, which can impact battery consumption during recording.<br/>For a good compromise, we recommend a value between 5 and 15 meters (approximately 16 to 50 foot).",
+      "traceMinMeters_explaination": "If the value is too low, the track quality may decrease due to GPS imprecision.<br/>A value that is too high also lead to a low-quality track with long straight lines.<br/>Additionally, shorter distances result in more recorded points, which can increase battery consumption.<br/>We recommend setting the value between 5 and 15 meters (approximately 16 to 50 foot) for a good balance.",
       "traceMinMillis": "Minimum time between each recorded point",
-      "traceMinMillis_explaination": "If you want to limit the number of recorded points to reduce battery consumption, you can use a longer minimum time between each point. The minimum distance between each point is also taken into account, so BOTH the minimum distance and minimum time must be reached before recording a new point.<br/>We recommend a value of 5 seconds.",
+      "traceMinMillis_explaination": "To limit the number of recorded points and reduce battery consumption, you can increase the minimum time between each point. Both the minimum time and minimum distance must be met before recording a new point.<br/>We recommend setting it to 5 seconds.",
       "offline_map": "Offline maps",
       "offlineMapMaxKeepDays": "Number of days a downloaded map is valid",
-      "offlineMapMaxKeepDays_explaination": "When you download a map to make it available offline, this setting indicates how long it will be retained. This also makes it possible to not download a map item if it has already been downloaded recently, saving time when downloading.",
+      "offlineMapMaxKeepDays_explaination": "When you download a map to make it available offline, this setting defines how long it will be retained. It also prevents re-downloading a map if it was recently downloaded, saving time.",
       "offline_maps": {
         "title": "Downloaded maps",
         "items": "Items",
@@ -385,9 +385,9 @@
       "more_maps_layers": "More Map Layers",
       "photos": "Photos",
       "photos_max_pixels": "Maximum width/height of photos",
-      "photos_max_pixels_explaination": "When you add a photo, if it is larger than the maximum size, it will be automatically reduced.",
+      "photos_max_pixels_explaination": "When you add a photo larger than the maximum size, it will be automatically resized.",
       "photos_max_quality": "Photo quality (%)",
-      "photos_max_quality_explaination": "Photos are automatically converted to JPEG format, this setting indicates the quality for compression. 100% indicates maximum quality, but therefore low compression. We recommend 90% which maintains very good quality while allowing good compression.",
+      "photos_max_quality_explaination": "Photos are automatically converted to JPEG format, and this setting determines the compression quality. 100% provides maximum quality with low compression. We recommend setting it around 75% for a good balance of quality and compression.",
       "photos_max_size_kb": "Maximum photo file size (KB)",
       "photos_max_size_kb_explaination": "When you store a photo, the maximum pixel size and quality are applied. If the result is a file size larger than this value, the size and quality will be slightly reduced until the file size is below this threshold.",
       "photos_cache": "Downloaded photos",
@@ -401,13 +401,13 @@
       "time_calculation": {
         "title": "Calculation of hike duration",
         "base_speed": "Speed on flat terrain",
-        "base_speed_explaination": "This speed is used for estimating hike durations. It is weighted according to the elevation and duration.",
+        "base_speed_explaination": "This speed is used to estimate the hike duration. It is weighted according to the elevation and duration.",
         "long_breaks_title": "Detection of long stops",
-        "long_break_explaination": "A stop is considered long when you have stayed within the configured perimeter for more than the minimum stop time. When a long stop is detected, we keep the minimum time in the normal hike duration, the rest is considered as stop time outside the normal hike duration.",
+        "long_break_explaination": "A stop is considered long if you remain within the configured perimeter for longer than the minimum stop time. During a long stop, we count the minimum time as part of the hike duration, while the rest is treated as stop time.",
         "long_break_minimum_duration": "Minimum stop time",
         "long_break_maximum_distance": "Maximum perimeter"
       },
-      "reset_all": "Reset all to default values"
+      "reset_all": "Restore all settings to default"
     },
     "myaccount": {
       "title": "My Account",
@@ -452,7 +452,7 @@
         "new_password2_new": "Confirm your password",
         "verification_code_explaination": "We have just sent a 6-digit code to your email address, please enter it below",
         "in_progress": "Changing your password...",
-        "error": "An error occured, please go back and try again",
+        "error": "An error occurred, please go back and try again",
         "errors": {
           "current_password": "Please enter your current password",
           "new_password": "Must contain at least 8 characters",
@@ -463,7 +463,7 @@
       },
       "delete_me": {
         "button": "Delete my account",
-        "confirm_message": "Do you confirm that you want to permanently delete your account and all your data on Trailence?",
+        "confirm_message": "Do you confirm that you want to permanently delete your account and all your data from Trailence?",
         "code_message": "We have just sent a 6-digit code to your email address, please enter it below",
         "done": "Your account and data have been deleted."
       }
@@ -483,12 +483,12 @@
       },
       "share": {
         "in_progress": "We are loading data for your share link...",
-        "error": "Your link is not valid. May be the share of this link has been removed."
+        "error": "Your link is not valid. Maybe the share of this link has been removed."
       }
     },
     "trailplanner": {
       "title": "Trail Planner",
-      "please_zoom": "To see possibles ways and position points, please zoom at least to level",
+      "please_zoom": "To see possible ways and position points, please zoom at least to level",
       "start": "Start",
       "stop": "Stop",
       "reset": "Reset",
@@ -560,7 +560,7 @@
     "contact": {
       "meta_description": "Contact form, question, report a problem...",
       "title": "Contact",
-      "email": "Your E-Mail to answer you",
+      "email": "Your E-Mail to reply to you",
       "type": "Type of request",
       "types": {
         "question": "Question",
@@ -680,7 +680,7 @@
       "stop_message": "Please confirm the end of the track"
     },
     "saving": "Saving track",
-    "empty_trail": "Your track being empty, it has not been saved"
+    "empty_trail": "Your track is empty, so it has not been saved"
   },
   "waiting_for_gps": "Waiting for GPS signal...",
   "bytes": {
@@ -697,8 +697,8 @@
   "logout": {
     "title": "Sign out",
     "text": "Do you also want to delete all your data on this device?",
-    "text_info": "Your data are stored on our servers and will be downloaded the next time you log in.",
-    "text_warning": "You have local data that will be lost if you delete!",
+    "text_info": "Your data is stored on our servers and will be downloaded the next time you log in.",
+    "text_warning": "You have local data that will be lost if you delete it!",
     "button_delete": "Delete",
     "button_keep": "Keep"
   },
@@ -720,7 +720,7 @@
     "no": "Cancel, keep"
   },
   "search_place": {
-    "placeholder": "Search a place",
+    "placeholder": "Search for a place",
     "tap_enter": "Enter key ↵ to start the search",
     "no_result": "No result"
   },
@@ -776,7 +776,7 @@
     "modal_title_plural": "Errors",
     "import": {
       "file_not_imported": "File '{{1}}' cannot be imported: {{2}}",
-      "not_gpx": "File is not a valid GPX"
+      "not_gpx": "This file is not a valid GPX"
     },
     "download_offline_map": "{{1}} error(s) while downloading offline maps",
     "stores": {
@@ -795,7 +795,7 @@
     "invalid_format": "Invalid format",
     "search_places": "Error searching places",
     "search_routes": "Error searching circuits",
-    "password_strength": "The password must contain at least 8 characters"
+    "password_strength": "The password must be at least 8 characters long"
   },
   "export": {
     "trail": "Track",

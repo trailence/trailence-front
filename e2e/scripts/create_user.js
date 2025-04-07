@@ -64,7 +64,7 @@ export async function setUserRoles(adminToken, email, roles) {
     body: JSON.stringify(roles)
   });
   if (!response.ok) {
-    console.error('Set user roles error: ', await response.json());
+    console.error('Set user roles error: ', await response.json(), 'request', JSON.stringify(roles));
     process.exit(1);
   }
 }

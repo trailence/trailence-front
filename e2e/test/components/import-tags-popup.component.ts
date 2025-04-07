@@ -40,14 +40,23 @@ export class ImportTagsPopup extends ModalComponent {
 
   public async importOnlyExisting() {
     const buttons = this.contentElement.$('>>>div.buttons');
-    const button = buttons.$('ion-button=Import only existing tags');
+    const button = buttons.$('ion-button=Import only the existing tags');
     await new IonicButton(button).click();
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }
 
   public async doNotImportTags() {
     const buttons = this.contentElement.$('>>>div.buttons');
-    const button = buttons.$('ion-button=Do not import tags');
+    const button = buttons.$('ion-button=Do not import any tags');
+    await new IonicButton(button).click();
+    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+  }
+  public async importAllAnyCase() {
+    const buttons = this.contentElement.$('>>>div.buttons');
+    let button = buttons.$('ion-button=Import all');
+    if (!await button.isExisting()) {
+      button = buttons.$('ion-button=Import all tags by creating the missing ones');
+    }
     await new IonicButton(button).click();
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }

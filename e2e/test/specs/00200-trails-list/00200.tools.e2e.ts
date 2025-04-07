@@ -3,7 +3,19 @@ import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { TagsPopup } from '../../components/tags-popup';
 import { TrailsList } from '../../components/trails-list.component';
-import { EXPECTED_TRAILS, expectListContains } from './00099.list';
+import { expectedTrailsByFile, expectListContains } from '../../utils/import-trails';
+
+const EXPECTED_TRAILS = [
+  ...expectedTrailsByFile['gpx-001.gpx'](),
+  ...expectedTrailsByFile['gpx-002.gpx'](),
+  ...expectedTrailsByFile['gpx-003.gpx'](),
+  ...expectedTrailsByFile['gpx-004.gpx']().map(t => {
+    t.tags = t.tags.filter(tag => tag !== 'Tag 4');
+    return t;
+  }),
+  ...expectedTrailsByFile['gpx-zip-001.zip'](),
+  ...expectedTrailsByFile['gpx-zip-002.zip'](),
+]
 
 describe('Trails Tools', () => {
 

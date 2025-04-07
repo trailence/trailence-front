@@ -96,9 +96,10 @@ describe('Trail Planner', () => {
   it('Stop, save, and finally delete collection', async () => {
     await page.stop();
     await page.save('Good trail', 'Wish list');
-    (await new HeaderComponent(await Page.getActivePageElement()).openAppMenu()).openCollection('Wish list');
-    const trailsPage = new TrailsPage();
-    await trailsPage.waitDisplayed();
+    const appMenu = await TestUtils.retry(async () =>
+      await new HeaderComponent(await Page.getActivePageElement()).openAppMenu()
+    , 2, 2000);
+    const trailsPage = await appMenu.openCollection('Wish list');
     const list = await trailsPage.trailsAndMap.openTrailsList();
     await list.waitTrail('Good trail');
     await list.waitTrail('Île Saint-Honorat');

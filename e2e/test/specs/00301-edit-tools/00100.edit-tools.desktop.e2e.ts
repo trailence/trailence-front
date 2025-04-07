@@ -5,6 +5,9 @@ import { IonicButton } from '../../components/ionic/ion-button';
 import { MapComponent } from '../../components/map.component';
 import { ChainablePromiseElement} from 'webdriverio';
 import { TestUtils } from '../../utils/test-utils';
+import { OpenFile } from '../../utils/open-file';
+import { FilesUtils } from '../../utils/files-utils';
+import { TrailsPage } from '../../app/pages/trails-page';
 
 describe('Edit tools', () => {
 
@@ -13,14 +16,16 @@ describe('Edit tools', () => {
   let tools: EditTools;
   let details: ChainablePromiseElement;
 
-  it('Login, go to trail page, open edit tools', async () => {
+  it('Login, import gpx, open edit tools', async () => {
     App.init();
     const loginPage = await App.start();
-    await loginPage.loginAndWaitMyTrailsCollection();
-    const menu = await App.openMenu();
-    const collectionPage = await menu.openCollection('Test Trail');
-    const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const trail = await trailsList.waitTrail('My test trail');
+    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
+    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
+    const importButton = await trailsList.getToolbarButton('add-circle');
+    await importButton.click();
+    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
+    const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     trailPage = await trailsList.openTrail(trail);
     map = await trailPage.trailComponent.openMap();
@@ -29,8 +34,20 @@ describe('Edit tools', () => {
   });
 
   const selectPoint = async (arrowIndex: number) => {
-    const arrow = (await map.paths.filter(e => e.getAttribute('stroke').then(s => s === 'black'))).at(arrowIndex)
-    const pos = await map.getPathPosition(arrow!);
+    const elements = await map.paths.getElements();
+    let arrowFound = 0;
+    let arrow;
+    for (const element of elements) {
+      if ((await element.getAttribute('stroke')) === 'black') {
+        if (arrowIndex === arrowFound) {
+          arrow = element;
+          break;
+        }
+        arrowFound++;
+      }
+    }
+    if (!arrow) throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
+    const pos = await map.getPathPosition(arrow);
     await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
     return await tools.waitSelectionTool();
   }
@@ -179,8 +196,13 @@ describe('Edit tools', () => {
     await tools.undo();
   });
 
-  it('Close edit tools', async () => {
+  it('Close edit tools, delete trail, synchronize', async () => {
     await tools.close();
+    const menu = await trailPage.header.openActionsMenu();
+    await menu.clickItemWithText('Delete');
+    await (await App.waitAlert()).clickButtonWithRole('danger');
+    await new TrailsPage().waitDisplayed();
+    await App.synchronize();
   });
 
 });

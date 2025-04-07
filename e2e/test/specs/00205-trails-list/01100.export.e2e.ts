@@ -1,24 +1,32 @@
 import { App } from '../../app/app';
+import { TrailsPage } from '../../app/pages/trails-page';
 import { ExportTrailModal } from '../../components/export-trail.modal';
 import { ImportTagsPopup } from '../../components/import-tags-popup.component';
 import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
-import { EXPECTED_TRAILS, ExpectedTrail, expectListContains } from './00099.list';
+import { ExpectedTrail, expectedTrailsByFile, expectListContains } from '../../utils/import-trails';
 
 describe('Export', () => {
 
-  it('Login, create a collection for reimport', async () => {
+  const EXPECTED_TRAILS = ['gpx-001.gpx', 'gpx-002.gpx', 'gpx-003.gpx', 'gpx-004.gpx', 'gpx-zip-001.zip', 'gpx-zip-002.zip']
+    .flatMap(file => expectedTrailsByFile[file]());
+
+  it('Login, create a collection for reimport, Go to Test List', async () => {
     App.init();
     const loginPage = await App.start();
     await loginPage.loginAndWaitMyTrailsCollection();
-    const menu = await App.openMenu();
+    let menu = await App.openMenu();
     await menu.addCollection('Reimport');
+
+    menu = await App.openMenu();
+    let collectionPage = await menu.openCollection('Test List');
+    expect(await collectionPage.header.getTitle()).toBe('Test List');
+    let trailsList = await collectionPage.trailsAndMap.openTrailsList();
+    await expectListContains(trailsList, EXPECTED_TRAILS);
   });
 
   it('Export a single trail, only original, without photo', async () => {
-    let menu = await App.openMenu();
-    let collectionPage = await menu.openCollection('Test Import');
-    expect(await collectionPage.header.getTitle()).toBe('Test Import');
+    let collectionPage = new TrailsPage();
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     let trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     await trail.clickMenuItem('Export');
@@ -28,7 +36,7 @@ describe('Export', () => {
     await FilesUtils.waitFileDownloaded('Randonnée du 05_06_2023 à 08_58.gpx');
     await App.waitNoProgress();
 
-    menu = await App.openMenu();
+    const menu = await App.openMenu();
     collectionPage = await menu.openCollection('Reimport');
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
@@ -37,16 +45,14 @@ describe('Export', () => {
     await App.waitNoProgress();
     await expectListContains(trailsList, EXPECTED_TRAILS.filter(t => t.name === 'Randonnée du 05/06/2023 à 08:58'));
     trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
-    await trail.clickMenuItem('Delete');
-    await (await App.waitAlert()).clickButtonWithRole('danger');
+    await trail.delete();
     await browser.waitUntil(() => trailsList.items.length.then(nb => nb === 0));
-    await App.waitNoProgress();
   });
 
   it('Export a single trail, having photos and tags, but do not export photos', async () => {
     let menu = await App.openMenu();
-    let collectionPage = await menu.openCollection('Test Import');
-    expect(await collectionPage.header.getTitle()).toBe('Test Import');
+    let collectionPage = await menu.openCollection('Test List');
+    expect(await collectionPage.header.getTitle()).toBe('Test List');
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     let trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
     await trail.clickMenuItem('Export');
@@ -68,17 +74,15 @@ describe('Export', () => {
     await App.waitNoProgress();
     await expectListContains(trailsList, EXPECTED_TRAILS.filter(t => t.name === 'Col et lacs de la Cayolle').map(t => ({...t, photos: 0, tags: [] } as ExpectedTrail)));
     trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
-    await trail.clickMenuItem('Delete');
-    await (await App.waitAlert()).clickButtonWithRole('danger');
+    await trail.delete();
     await browser.waitUntil(() => trailsList.items.length.then(nb => nb === 0));
-    await App.waitNoProgress();
   });
 
 
   it('Export a single trail, having photos and tags, export with photos', async () => {
     let menu = await App.openMenu();
-    let collectionPage = await menu.openCollection('Test Import');
-    expect(await collectionPage.header.getTitle()).toBe('Test Import');
+    let collectionPage = await menu.openCollection('Test List');
+    expect(await collectionPage.header.getTitle()).toBe('Test List');
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     let trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
     await trail.clickMenuItem('Export');
@@ -101,16 +105,14 @@ describe('Export', () => {
     await App.waitNoProgress();
     await expectListContains(trailsList, EXPECTED_TRAILS.filter(t => t.name === 'Col et lacs de la Cayolle').map(t => ({...t, tags: [] } as ExpectedTrail)));
     trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
-    await trail.clickMenuItem('Delete');
-    await (await App.waitAlert()).clickButtonWithRole('danger');
+    await trail.delete();
     await browser.waitUntil(() => trailsList.items.length.then(nb => nb === 0));
-    await App.waitNoProgress();
   });
 
   it('Export all', async () => {
     let menu = await App.openMenu();
-    let collectionPage = await menu.openCollection('Test Import');
-    expect(await collectionPage.header.getTitle()).toBe('Test Import');
+    let collectionPage = await menu.openCollection('Test List');
+    expect(await collectionPage.header.getTitle()).toBe('Test List');
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     await trailsList.selectAllCheckbox.setSelected(true);
     const selectionMenu = await trailsList.openSelectionMenu();

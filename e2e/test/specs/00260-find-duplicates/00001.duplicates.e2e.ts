@@ -66,7 +66,12 @@ describe('Find Duplicates', () => {
     await modal.selectOption('two');
     await modal.selectOtherCollection('Copy');
     await modal.setSimilarityPercent(90);
-    await modal.start();
+    try {
+      await modal.start();
+    } catch (e) {
+      await modal.selectOtherCollection('Copy');
+      await modal.start();
+    }
     await modal.expectSimilarFound();
     await modal.continue();
     await modal.expectSimilarFound();

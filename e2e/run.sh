@@ -11,10 +11,8 @@ mkdir ./tmp-data
 
 echo List tests to run in parallel
 
-cd scripts
-node ./list_parallel.js $@ > ../output/tests.txt
+npm run list_parallel --silent -- $@ > ./output/tests.txt
 code=$?
-cd ..
 if [[ $code -ne 0 ]]; then
   echo "Error in list_parallel: $code"
   exit 1
@@ -22,12 +20,11 @@ fi
 
 nb_tests=$(wc -l < ./output/tests.txt)
 echo Jobs to launch: $nb_tests
-if [[ $nb_tests -gt 1 ]]; then
-  echo Init wdio
-  npm run wdio -- --test-only=nothing/
-fi
 
 echo Launching tests in parallel
+
+date=$(date)
+echo "Launching tests at $date" >> ./output/jobs_result.txt
 
 count=0
 
@@ -36,10 +33,9 @@ while read test; do
   mkdir ./tmp-data/$count
   mkdir ./tmp-data/$count/downloads
   echo "Launching command $count/$nb_tests: $test"
+  echo "Launching command $count/$nb_tests: $test" >> ./output/jobs_result.txt
   ./run_test.sh --test-instance=$count $test &> ./output/test_$count.log &
   echo $! >> ./output/jobs.txt
-  date=$(date)
-  echo "Command $count started at $date" >> ./output/jobs_result.txt
 done < ./output/tests.txt
 
 echo Waiting for tests to finish

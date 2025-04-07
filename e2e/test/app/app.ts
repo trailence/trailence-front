@@ -57,6 +57,17 @@ export class App {
           console.log('Cannot get console history', e);
           return Promise.resolve();
         }));
+
+        if (result.status === 'failed') {
+          console.log('Failed expectations:');
+          for (const fail of result.failedExpectations) {
+            console.log(' - Expected: ', fail.expected, ' Actual: ', fail.actual);
+            console.log('   Message: ', fail.message);
+            console.log('   Stack:');
+            console.log(fail.stack);
+          }
+        }
+
         return promise;
       },
       suiteDone: (result) => {

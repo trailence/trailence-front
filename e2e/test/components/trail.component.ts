@@ -163,7 +163,7 @@ export class TrailComponent extends Component {
     await element.scrollIntoView({block: 'center', inline: 'center'});
     const span = element.$('span');
     const text = await span.getText();
-    if (text === 'Enter the description of the route here') return '';
+    if (text === 'Describe the trail here') return '';
     return text;
   }
 
@@ -203,10 +203,10 @@ export class TrailComponent extends Component {
   public async openMap() {
     if (await this.hasTabs()) {
       // mobile mode
-      if (await this.openTab('map'))
-        await this.getElement().$('div.top-container>div.map-container>app-map').waitForDisplayed();
+      await this.openTab('map');
     }
     const element = this.getElement().$('div.top-container>div.map-container>app-map');
+    await element.waitForDisplayed();
     return new MapComponent(element);
   }
 

@@ -15,7 +15,7 @@ jobs:
           cache-dependency-path: '**/package-lock.json'
       - name: Build and Instrument
         run: |
-          npm ci
+          npm ci --no-audit
           npm run build -- --configuration=development
           npm run instrument
       - name: Store web app
@@ -114,7 +114,7 @@ jobs:
       matrix:
         browser: ["chrome","firefox"]
         mode: ["desktop","mobile"]
-        test-set: ["00000+00100+00300+00400+00800+00900+01000+50000","00200+00201+00202+00500"]
+        test-set: ["00000+00010,00100+00300+00001,00301+00400,00800+00900+50000","00200+00201+00250+00205+00260,01000+00500"]
     name: E2E ${{matrix.browser}} ${{matrix.mode}} ${{matrix.test-set}}
     runs-on: ubuntu-latest
     steps:
@@ -145,11 +145,10 @@ jobs:
         run: |
           mkdir .nyc_output
           cd e2e
-          npm ci
-          chmod 777 ./run.sh
-          chmod 777 ./run_test.sh
+          chmod 777 ./*.sh
           cd github
-          chmod 777 ./run.sh
+          chmod 777 ./*.sh
+          ./prepare_tests.sh
           ./run.sh --trailence-mode=${{matrix.mode}} --test-browser=${{matrix.browser}} --test-only=${{matrix.test-set}}
       - name: Build coverage report
         run: |
@@ -198,7 +197,7 @@ jobs:
           pattern: e2e-tests-web-app-*-coverage-report
           merge-multiple: true
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

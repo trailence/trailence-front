@@ -1,7 +1,7 @@
 import { App } from '../../app/app';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { ShareModal } from '../../components/share.modal';
-import { importAllTrailsToCollection } from '../../utils/import-trails';
+import { importTrails } from '../../utils/import-trails';
 import { checkShares } from './share-utils';
 
 describe('Shares - Create', () => {
@@ -16,7 +16,7 @@ describe('Shares - Create', () => {
     const menu = await App.openMenu();
     collectionPage = await menu.addCollection('Test Shares');
     expect(await collectionPage.header.getTitle()).toBe('Test Shares');
-    await importAllTrailsToCollection(collectionPage);
+    await importTrails(collectionPage, ['gpx-001.gpx', 'gpx-002.gpx', 'gpx-003.gpx', 'gpx-004.gpx', 'gpx-zip-002.zip']);
   });
 
   it('Share full collection to friend1 without photos', async () => {

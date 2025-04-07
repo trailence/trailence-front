@@ -1,4 +1,5 @@
 import { AppElement } from '../app/app-element';
+import { TestUtils } from '../utils/test-utils';
 import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicInput } from './ionic/ion-input';
@@ -46,22 +47,24 @@ export class TagsPopup extends ModalComponent {
   }
 
   public async selectTags(tags: string[], isPopup: boolean = true) {
-    const nodes = (isPopup ? this.contentElement : this.getElement()).$$('>>>div.tag-node');
-    const found = [];
-    let selected = 0;
-    for (const node of await nodes.getElements()) {
-      const cb = new IonicCheckbox(node.$('ion-checkbox'));
-      try {
-        const tagName = await cb.getLabel();
-        cb.setSelected(tags.indexOf(tagName) >= 0);
-        found.push(tagName);
-        if (tags.indexOf(tagName) >= 0) selected++;
-      } catch (e) {
-        throw new Error('Unable to select tag checkbox', {cause: e});
+    await TestUtils.retry(async () => {
+      const nodes = (isPopup ? this.contentElement : this.getElement()).$$('>>>div.tag-node');
+      const found = [];
+      let selected = 0;
+      for (const node of await nodes.getElements()) {
+        const cb = new IonicCheckbox(node.$('ion-checkbox'));
+        try {
+          const tagName = await cb.getLabel();
+          cb.setSelected(tags.indexOf(tagName) >= 0);
+          found.push(tagName);
+          if (tags.indexOf(tagName) >= 0) selected++;
+        } catch (e) {
+          throw new Error('Unable to select tag checkbox', {cause: e});
+        }
       }
-    }
-    if (selected !== tags.length)
-      throw new Error('Cannot select all tags: expect to find ' + tags.join(',') + ' but the following tags were found: ' + found.join(','));
+      if (selected !== tags.length)
+        throw new Error('Cannot select all tags: expect to find ' + tags.join(',') + ' but the following tags were found: ' + found.join(','));
+    }, 2, 100);
   }
 
   public async createTag(tagName: string) {

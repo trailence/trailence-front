@@ -346,7 +346,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           for (const item of items) {
             if (existingList.indexOf(item) >= 0) continue;
             if (recoveredList.indexOf(item) >= 0) await firstValueFrom(this.markUndeletedInDb(table, item));
-            toAdd.push(this.dbItemCreatedLocally(item));
+            else toAdd.push(this.dbItemCreatedLocally(item));
           }
           if (toAdd.length > 0)
             await table.bulkAdd(toAdd);

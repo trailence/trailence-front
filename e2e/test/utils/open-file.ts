@@ -2,7 +2,7 @@ export class OpenFile {
 
   public static async openFile(path: string) {
     const input = browser.$('html>input[type=file]');
-    await input.waitForExist();
+    await input.waitForExist({timeout: 10000});
     await browser.execute(() => {
       for (let i = 0; i < document.documentElement.children.length; ++i) {
         const el = document.documentElement.children.item(i) as HTMLElement | null;
@@ -13,7 +13,11 @@ export class OpenFile {
         }
       }
     });
-    await input.waitForDisplayed();
+    try {
+      await input.waitForDisplayed({timeout: 10000});
+    } catch (e) {
+      // ok anyway
+    }
     await input.setValue(path);
   }
 

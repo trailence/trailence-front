@@ -9,7 +9,7 @@ services:
       - POSTGRES_DB=trailence
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
-      interval: 5s
+      interval: 1s
       timeout: 60s
       retries: 20
       start_period: 80s
@@ -44,21 +44,25 @@ services:
       - OUTDOOR_ACTIVE_ROLE=upgraded
       - VISORANDO_ROLE=upgraded
       - THUNDERFOREST_ROLE=upgraded
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/api/ping || exit 1
+      interval: 1s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
   front:
-    build:
-      context: ./docker
-    depends_on:
-      - back
+    image: nginx:stable-alpine
     ports:
       - 80:80
     volumes:
       - ../../www/browser:/usr/share/nginx/html/:ro
+      - ./nginx:/etc/nginx/templates/
     environment:
       - TRAILENCE_BACK_NAME=back
       - TRAILENCE_BACK_PORT=8080
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
-      interval: 5s
+      interval: 1s
       timeout: 10s
       retries: 20
       start_period: 60s

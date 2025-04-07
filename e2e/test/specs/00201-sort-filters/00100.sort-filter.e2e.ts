@@ -3,17 +3,20 @@ import { TrailsPage } from '../../app/pages/trails-page';
 import { FilterTrailsPopup } from '../../components/filter-trails-popup';
 import { SortTrailsPopup } from '../../components/sort-trails-popup';
 import { TrailsList } from '../../components/trails-list.component';
-import { EXPECTED_TRAILS, expectListContains, expectListContainsByName } from './00099.list';
+import { expectListContains, expectListContainsByName, ExpectedTrail, importTrails } from '../../utils/import-trails';
 
 describe('Trails list - Sort and filter', () => {
 
-  it('Login and go to Test import collection', async () => {
+  let EXPECTED_TRAILS: ExpectedTrail[];
+
+  it('Login, create collection, import trails', async () => {
     App.init();
     const loginPage = await App.start();
     await loginPage.loginAndWaitMyTrailsCollection();
     const menu = await App.openMenu();
-    const page = await menu.openCollection('Test Import');
-    expect(await page.header.getTitle()).toBe('Test Import');
+    const collectionPage = await menu.addCollection('Test SortFilter');
+    expect(await collectionPage.header.getTitle()).toBe('Test SortFilter');
+    EXPECTED_TRAILS = await importTrails(collectionPage, ['gpx-001.gpx', 'gpx-002.gpx', 'gpx-003.gpx', 'gpx-004.gpx', 'gpx-zip-001.zip', 'gpx-zip-002.zip']);
   });
 
   let page: TrailsPage;

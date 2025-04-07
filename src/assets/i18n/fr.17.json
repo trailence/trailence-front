@@ -42,8 +42,8 @@
           "beforeImg": "Une fenêtre similaire à celle ci-dessous peut s'afficher",
           "afterImg": "Confirmez le téléchargement, puis ouvrez le fichier"
         }, {
-          "beforeImg": "Si c'est la première fois que vous essayez d'installation une application de cette manière, une alerte similaire à celle ci-dessous peut s'afficher",
-          "afterImg": "Allez dans la paramètres, pour autoriser l'installation"
+          "beforeImg": "Si c'est la première fois que vous essayez d'installer une application de cette manière, une alerte similaire à celle ci-dessous peut s'afficher",
+          "afterImg": "Allez dans la paramètres pour autoriser l'installation"
         }, {
           "beforeImg": "Une fenêtre s'affiche alors",
           "afterImg": "Cliquez sur Autoriser depuis cette source"
@@ -54,8 +54,8 @@
           "beforeImg": "Une fenêtre similaire à celle ci-dessous s'affiche alors",
           "afterImg": "Cliquez sur Plus de détails au milieu de l'écran"
         }, {
-          "beforeImg": "L'écran affiche alors un bouton Installer sans analyser",
-          "afterImg": "Vous pouvez cliquer dessous, ou demander l'analyse si vous le souhaitez"
+          "beforeImg": "L'écran affiche alors un bouton 'Installer sans analyser'",
+          "afterImg": "Vous pouvez cliquer dessus, ou demander l'analyse si vous le souhaitez"
         }, {
           "beforeImg": "Enfin, l'application est installée",
           "afterImg": ""
@@ -68,10 +68,10 @@
       "email": "E-Mail",
       "password": "Mot de passe",
       "signin_button": "Se Connecter",
-      "offline": "Veuillez vous connecter à Internet afin de vous connecter sur Trailence",
+      "offline": "Veuillez vous connecter à Internet pour vous connecter sur Trailence",
       "incorrect_message": "Identifiants incorrects",
       "error_message": "Erreur d'authentification, veuillez réessayer",
-      "captcha_message": "Suite à plusieurs tentative, nous avons besoin de vérifier que vous n'êtes pas un robot",
+      "captcha_message": "Suite à plusieurs tentatives, nous avons besoin de vérifier que vous n'êtes pas un robot",
       "locked_message": "Votre compte a été bloqué, veuillez utiliser le bouton Mot de passe oublié",
       "forgot_password": "Mot de passe oublié ?",
       "create_account": "Créer un compte",
@@ -109,8 +109,8 @@
       "continue": "Continuer",
       "back": "Revenir",
       "errors": {
-        "network": "Une erreur s'est produite, veuillez réessayer",
-        "passwordsDontMatch": "Les 2 mots de passe ne correspondent pas",
+        "network": "Une erreur est survenue, veuillez réessayer",
+        "passwordsDontMatch": "Les deux mots de passe ne correspondent pas",
         "invalidEmail": "Veuillez entrer une adresse e-mail valide"
       }
     },
@@ -147,13 +147,13 @@
       "actions": {
         "delete_confirm_single": {
           "title": "Supprimer un parcours",
-          "message": "Etes-vous sûr de vouloir supprimer {{}} ?",
+          "message": "Êtes-vous sûr de vouloir supprimer {{}} ?",
           "yes": "Oui, supprimer",
           "no": "Annuler, garder"
         },
         "delete_confirm_multiple": {
           "title": "Suppression de {{}} parcours",
-          "message": "Etes-vous sûr de vouloir supprimer ces {{}} parcours ?",
+          "message": "Êtes-vous sûr de vouloir supprimer ces {{}} parcours ?",
           "yes": "Oui, supprimer",
           "no": "Annuler, garder"
         },
@@ -279,7 +279,7 @@
           "create_waypoint": "Créer un point de passage",
           "remove_waypoint": "Supprimer le point de passage",
           "remove_all_next_points": "Supprimer tous les points après",
-          "remove_all_previous_points": "Supprimer tous les points avants"
+          "remove_all_previous_points": "Supprimer tous les points avant"
         },
         "no_modification": "Aucune modification n'a été apportée par cette fonction",
         "actions": "Actions"
@@ -321,7 +321,7 @@
       "title": "Import de données",
       "message1": "Nous avons trouvé les sources suivantes:",
       "message2": "Souhaitez-vous tenter d'importer des données supplémentaires depuis ces sources ?",
-      "message_internet": "Vous devez vous connecter à Internet afin que pouvoir importer deuis ces sources"
+      "message_internet": "Vous devez vous connecter à Internet afin de pouvoir importer depuis ces sources"
     },
     "share_popup": {
       "title": "Partager",
@@ -715,7 +715,7 @@
   },
   "confirm_delete_share": {
     "title": "Supprimer un partage",
-    "message": "Etes-vous sûr de vouloir supprimer {{}} ?",
+    "message": "Êtes-vous sûr de vouloir supprimer {{}} ?",
     "yes": "Oui, supprimer",
     "no": "Annuler, garder"
   },
@@ -733,7 +733,7 @@
   },
   "tags_filter": {
     "onlyWithAnyTag": "Parcours ayant au moins un tag",
-    "onlyWithoutAnyTag": "Parcours n'ayant aucun tag",
+    "onlyWithoutAnyTag": "Parcours sans aucun tag",
     "include_and": "Parcours ayant tous les tags suivants",
     "include_or": "Parcours ayant au moins un des tags suivants",
     "exclude": "Parcours n'ayant aucun des tags suivants",
@@ -745,7 +745,7 @@
   "update": {
     "download_android": "Télécharger l'application Android",
     "update_android": "Télécharger la mise à jour",
-    "not_allowed": "Si vous ne souhaitez pas autoriser la mise à jour automatique, vous pouvez télécharger la mise à jour puis l'installer manuellement.",
+    "not_allowed": "Si vous préférez ne pas autoriser la mise à jour automatique, vous pouvez télécharger la mise à jour et l'installer manuellement.",
     "download_manually": "Télécharger manuellement",
     "updating": "Mise à jour",
     "downloading": "Téléchargement",
@@ -795,7 +795,7 @@
     "invalid_format": "Format invalide/non supporté",
     "search_places": "Erreur lors de la recherche de lieux",
     "search_routes": "Erreur lors de la recherche des circuits",
-    "password_strength": "Le mot de passe doit contenir au moins 8 caractères"
+    "password_strength": "Le mot de passe doit comporter au moins 8 caractères"
   },
   "export": {
     "trail": "Parcours",

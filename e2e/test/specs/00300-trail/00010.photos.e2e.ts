@@ -1,6 +1,7 @@
 import { App } from '../../app/app';
 import { PreferencesPage } from '../../app/pages/preferences-page';
 import { TrailPage } from '../../app/pages/trail-page';
+import { TrailsPage } from '../../app/pages/trails-page';
 import { PhotosPopup } from '../../components/photos-popup.component';
 import { TestUtils } from '../../utils/test-utils';
 
@@ -142,7 +143,18 @@ describe('Trail - Photos', () => {
     await photosPopup.close();
   });
 
-  it('Synchronize', async () => {
+  it('Delete collection and synchronize', async () => {
+    const menu = await App.openMenu();
+    const collectionPage = await menu.openCollection('Test Trail');
+    expect(await collectionPage.header.getTitle()).toBe('Test Trail');
+    const collectionMenu = await collectionPage.header.openActionsMenu();
+    await collectionMenu.clickItemWithText('Delete');
+    const alert = await App.waitAlert();
+    await alert.clickButtonWithRole('danger');
+    const newPage = new TrailsPage();
+    await newPage.waitDisplayed();
+    await newPage.header.getElement().waitForDisplayed();
+    expect(await newPage.header.getTitle()).toBe('My Trails');
     await App.synchronize();
   });
 

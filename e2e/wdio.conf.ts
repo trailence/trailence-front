@@ -99,6 +99,7 @@ if (browser === 'chrome') {
       '--disable-background-timer-throttling',
       '--disable-backgrounding-occluded-windows',
       '--disable-breakpad',
+      '--disable-crash-reporter',
       '--disable-client-side-phishing-detection',
       '--disable-component-extensions-with-background-pages',
       '--disable-default-apps',

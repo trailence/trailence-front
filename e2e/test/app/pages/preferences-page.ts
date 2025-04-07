@@ -44,7 +44,7 @@ export class PreferencesPage extends PageWithHeader {
   }
 
   public async resetAll() {
-    await new IonicButton(this.getElement(), 'ion-button=Reset all to default values').click();
+    await new IonicButton(this.getElement(), 'ion-button=Restore all settings to default').click();
   }
 
 }

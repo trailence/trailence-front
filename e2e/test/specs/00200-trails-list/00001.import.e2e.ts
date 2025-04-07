@@ -34,7 +34,7 @@ describe('Trails list - Import Simple GPX', () => {
     const modal = new ErrorsModal(await App.waitModal());
     expect(await modal.getTitle()).toBe('Error');
     const errors = await modal.getErrors();
-    expect(errors).toContain('File \'app.ts\' cannot be imported: File is not a valid GPX');
+    expect(errors).toContain('File \'app.ts\' cannot be imported: This file is not a valid GPX');
     expect(errors.length).toBe(1);
     await modal.deleteAll();
   });
