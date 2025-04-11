@@ -1,5 +1,6 @@
 export type BrowserName = 'chrome' | 'firefox' | 'edge';
 export type BrowserSize = 'desktop' | 'mobile';
+export type NativePlatform = 'Android';
 
 export interface TestArguments {
   trailenceUsername: string;
@@ -8,6 +9,9 @@ export interface TestArguments {
   dbPassword: string;
   browser?: BrowserName;
   browserSize?: BrowserSize;
+  nativePlatform?: NativePlatform;
+  nativePlatformVersion?: string;
+  nativeDevice?: string;
   specs: string[];
   excludeSpecs: string[];
   instance: number;
@@ -44,6 +48,12 @@ export function parseArguments(): TestArguments {
       result.browser = check(arg.substring(10), ['chrome', 'firefox', 'edge']) as BrowserName;
     else if (arg.startsWith('--browser-size='))
       result.browserSize = check(arg.substring(15), ['desktop', 'mobile']) as BrowserSize;
+    else if (arg.startsWith('--native-platform='))
+      result.nativePlatform = check(arg.substring(18), ['Android']) as NativePlatform;
+    else if (arg.startsWith('--native-platform-version='))
+      result.nativePlatformVersion = arg.substring(26);
+    else if (arg.startsWith('--native-device='))
+      result.nativeDevice = arg.substring(16);
     else if (arg.startsWith('--test-instance='))
       result.instance = parseInt(arg.substring(16));
     else if (arg.startsWith('--tests=')) {

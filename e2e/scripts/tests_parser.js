@@ -35,6 +35,10 @@ export function parseTests(tests) {
     if (modesStr[0] === 'browser') {
       test['browser'] = modesStr.length > 1 ? modesStr[1] : 'chrome';
       test['browserSize'] = modesStr.length > 2 ? modesStr[2] : 'desktop';
+    } else if (modesStr[0] === 'native') {
+      test['nativePlatform'] = modesStr.length > 1 ? modesStr[1] : 'Android';
+      test['nativePlatformVersion'] = modesStr.length > 2 ? modesStr[2] : '13.0';
+      test['nativeDevice'] = modesStr.length > 3 ? modesStr[3] : 'Pixel_8_API_33';
     } else {
       throw new Error('Unknown mode <' + modesStr[0] + '> in: ' + modesStr);
     }
@@ -48,6 +52,7 @@ export function parseTests(tests) {
           if (test['browser'] && spec.spec.indexOf('.no-' + test['browser'] + '.') > 0) return false;
           if (test['browserSize'] === 'desktop' && spec.spec.indexOf('.mobile.') > 0) return false;
           if (test['browserSize'] === 'mobile' && spec.spec.indexOf('.desktop.') > 0) return false;
+          if (test['nativePlatform'] && spec.spec.indexOf('.desktop.') > 0) return false;
           return true;
         }));
       }

@@ -36,4 +36,6 @@ describe('Locate me on map', () => {
     expect(await map.getControl('center-on-location-tool').isDisplayed()).toBeFalse();
   });
 
+  it('End', async () => await App.end());
+
 });

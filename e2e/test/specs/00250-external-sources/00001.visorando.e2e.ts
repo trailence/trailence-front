@@ -167,4 +167,5 @@ describe('Import data from Visorando', () => {
     await App.synchronize();
   });
 
+  it('End', async () => await App.end());
 });

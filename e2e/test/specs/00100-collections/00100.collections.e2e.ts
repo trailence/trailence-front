@@ -118,4 +118,6 @@ describe('Collections', () => {
     expect(collections).toContain('My Trails');
   });
 
+  it('End', async () => await App.end());
+
 })

@@ -83,4 +83,5 @@ describe('Shares - Create', () => {
     await menu.close();
   });
 
+  it('End', async () => await App.end());
 });

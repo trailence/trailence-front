@@ -84,13 +84,7 @@ export const expectedTrailsByFile: {[key: string]: () => ExpectedTrail[]} = {
 export async function importTrail(collectionPage: TrailsPage, filename: string, expected?: string[], tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
   const trailsList = await collectionPage.trailsAndMap.openTrailsList();
   const importButton = await trailsList.getToolbarButton('add-circle');
-  await importButton.click();
-  await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/' + filename));
-  if (tagsPopup) {
-    const popup = new ImportTagsPopup(await App.waitModal());
-    expect(await popup.getTitle()).toBe('Import tags');
-    await tagsPopup(popup);
-  }
+  await importTrailInternal(importButton, filename, tagsPopup);
   if (expected) {
     for (const trailName of expected) {
       const trail = await trailsList.waitTrail(trailName);
@@ -99,13 +93,28 @@ export async function importTrail(collectionPage: TrailsPage, filename: string, 
   }
 }
 
+async function importTrailInternal(importButton: WebdriverIO.Element, filename: string, tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
+  await importButton.click();
+  await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/' + filename));
+  if (tagsPopup) {
+    const popup = new ImportTagsPopup(await App.waitModal());
+    expect(await popup.getTitle()).toBe('Import tags');
+    await tagsPopup(popup);
+  }
+}
+
 export async function importTrails(collectionPage: TrailsPage, filenames: string[]) {
+  const trailsList = await collectionPage.trailsAndMap.openTrailsList();
+  const importButton = await trailsList.getToolbarButton('add-circle');
   const expectedTrails: ExpectedTrail[] = [];
-  for (const filename of filenames) {
-    const expected = expectedTrailsByFile[filename]();
-    const hasTags = expected.reduce((p,n) => p || n.tags.length > 0, false);
-    await importTrail(collectionPage, filename, undefined, hasTags ? async (popup) => popup.importAllAnyCase() : undefined);
-    expectedTrails.push(...expected);
+  for (const filename of filenames)
+    expectedTrails.push(...expectedTrailsByFile[filename]());
+  await importButton.click();
+  const fs = await FilesUtils.fs();
+  await OpenFile.openFiles(filenames.map(f => fs.realpathSync('./test/assets/' + f)));
+  if (expectedTrails.reduce((p,n) => p || n.tags.length > 0, false)) {
+    const popup = new ImportTagsPopup(await App.waitModal());
+    await popup.importAll();
   }
   return expectedTrails;
 }

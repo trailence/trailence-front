@@ -62,4 +62,6 @@ describe('Collection map', () => {
     expect(found).toBeTrue();
   });
 
+  it('End', async () => await App.end());
+
 });

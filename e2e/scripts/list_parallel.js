@@ -53,6 +53,8 @@ async function generateCommandLines() {
     let mode = '';
     if (test['browser']) {
       mode += ' --browser=' + test['browser'] + ' --browser-size=' + test['browserSize'];
+    } else if (test['nativePlatform']) {
+      mode += ' --native-platform=' + test['nativePlatform'] + ' --native-platform-version=' + test['nativePlatformVersion'] + ' --native-device=' + test['nativeDevice'];
     }
     if (preparation) {
       mode += ' --exclude-tests=**/*.e2e.ts';

@@ -23,7 +23,6 @@ export class AppMenu extends Component {
 
   public async getCollectionName(item: WebdriverIO.Element | ChainablePromiseElement) {
     const title = item.$('.item-title a');
-    await title.waitForDisplayed();
     return await title.getText();
   }
 
@@ -40,7 +39,7 @@ export class AppMenu extends Component {
   public async openCollection(name: string) {
     return await TestUtils.retry(async () => {
       const items = this.getCollectionsItems();
-      await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0));
+      await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0), { timeout: 2000 });
       for (const item of await items.getElements()) {
         if (await this.getCollectionName(item) === name) {
           await item.click();

@@ -158,4 +158,5 @@ describe('Trail - Photos', () => {
     await App.synchronize();
   });
 
+  it('End', async () => await App.end());
 });

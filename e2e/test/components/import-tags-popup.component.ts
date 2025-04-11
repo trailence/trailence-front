@@ -6,7 +6,7 @@ export class ImportTagsPopup extends ModalComponent {
   public async getTags() {
     const table = this.contentElement.$('>>>table');
     const rows = table.$$('tr');
-    const tags = new Map<String, String>();
+    const tags = new Map<string, string>();
     for (const row of await rows.getElements()) {
       const cells = await row.$$('td').getElements();
       if (cells.length !== 2) continue;
@@ -18,46 +18,17 @@ export class ImportTagsPopup extends ModalComponent {
   }
 
   public async importAll() {
-    const buttons = this.contentElement.$('>>>div.buttons');
-    const button = buttons.$('ion-button=Import all');
-    await new IonicButton(button).click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
-  }
-
-  public async copyAll() {
-    const buttons = this.contentElement.$('>>>div.buttons');
-    const button = buttons.$('ion-button=Copy all');
-    await new IonicButton(button).click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
-  }
-
-  public async importAllWithExistingAndMissing() {
-    const buttons = this.contentElement.$('>>>div.buttons');
-    const button = buttons.$('ion-button=Import all tags by creating the missing ones');
-    await new IonicButton(button).click();
+    await new IonicButton(this.contentElement.$('>>>div.buttons').$('ion-button.import-all')).click();
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }
 
   public async importOnlyExisting() {
-    const buttons = this.contentElement.$('>>>div.buttons');
-    const button = buttons.$('ion-button=Import only the existing tags');
-    await new IonicButton(button).click();
+    await new IonicButton(this.contentElement.$('>>>div.buttons').$('ion-button.import-existing-only')).click();
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }
 
   public async doNotImportTags() {
-    const buttons = this.contentElement.$('>>>div.buttons');
-    const button = buttons.$('ion-button=Do not import any tags');
-    await new IonicButton(button).click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
-  }
-  public async importAllAnyCase() {
-    const buttons = this.contentElement.$('>>>div.buttons');
-    let button = buttons.$('ion-button=Import all');
-    if (!await button.isExisting()) {
-      button = buttons.$('ion-button=Import all tags by creating the missing ones');
-    }
-    await new IonicButton(button).click();
+    await new IonicButton(this.contentElement.$('>>>div.buttons').$('ion-button.import-none')).click();
     await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
   }
 

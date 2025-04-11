@@ -33,4 +33,6 @@ describe('Login with redirects', () => {
     await browser.waitUntil(() => browser.getTitle().then(title => title === 'My Trails - Trailence'));
   });
 
+  it('End', async () => await App.end());
+
 });

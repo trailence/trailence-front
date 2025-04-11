@@ -88,4 +88,5 @@ describe('Trail page', () => {
     await browser.switchToWindow(currentWin);
   });
 
+  it('End', async () => await App.end());
 });

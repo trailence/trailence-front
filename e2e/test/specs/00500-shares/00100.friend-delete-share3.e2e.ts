@@ -41,4 +41,5 @@ describe('Shares - delete by friend', () => {
     expect(shares.find(s => s[1] === 'friend3@trailence.org')).toBeUndefined();
   });
 
+  it('End', async () => await App.end());
 });

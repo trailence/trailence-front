@@ -108,4 +108,5 @@ describe('Trail Planner', () => {
     await App.synchronize();
   });
 
+  it('End', async () => await App.end());
 });

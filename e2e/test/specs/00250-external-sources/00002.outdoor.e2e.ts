@@ -34,4 +34,5 @@ describe('Import data from Outdoor Active', () => {
     await App.synchronize();
   });
 
+  it('End', async () => await App.end());
 });

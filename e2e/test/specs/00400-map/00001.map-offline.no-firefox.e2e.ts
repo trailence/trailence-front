@@ -135,4 +135,5 @@ describe('Map offline', () => {
     });
   });
 
+  it('End', async () => await App.end());
 });

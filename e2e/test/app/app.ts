@@ -16,16 +16,31 @@ export class App {
     App.config = {
       username: trailence.username,
       password: trailence.password,
-      mode: trailence.browserSize ?? 'desktop',
+      mode: trailence.native ? 'native' : trailence.browserSize ?? 'desktop',
       instance: instance,
       downloadPath: './tmp-data/' + instance + '/downloads',
     };
+    console.log('Trailence config', App.config);
     expect(App.config.username).toBeDefined();
     expect(App.config.password).toBeDefined();
     expect(App.config.username.length).toBeGreaterThan(0);
     expect(App.config.password.length).toBeGreaterThan(0);
+    const timing: {name: string, start: number, end: number}[] = [];
+    const start = Date.now();
     jasmine.getEnv().addReporter({
+      specStarted: (result) => {
+        console.log('Start spec: ' + result.fullName);
+        timing.push({name: result.fullName, start: Date.now(), end: 0});
+      },
       specDone: (result) => {
+        console.log('Spec done: ' + result.fullName);
+        if (timing.length > 0) {
+          const last = timing[timing.length - 1];
+          if (last.name === result.fullName)
+            last.end = Date.now();
+        } else {
+          timing.push({name: result.fullName, start, end: Date.now()});
+        }
         let promise: Promise<any> = Promise.resolve();
         if (result.status === 'failed') {
           console.log('Test error: take a screen shot');
@@ -74,40 +89,45 @@ export class App {
       },
       suiteDone: (result) => {
         console.log('Suite done: ' + result.fullName);
-        console.log('Retrieving coverage');
-        const start = Date.now();
-        const step = 10000000;
-        const finalStep = (coverage: string) => {
-          console.log('Coverage retrieved in ' + (Date.now() - start) + ' ms. with size = ' + coverage.length);
-          return import('fs')
-          .then(fs => {
-            const name = 'cov_' + App.config.instance + '_' + result.id + '_' + Date.now() + '.json';
-            console.log('Writing coverage to ' + name);
-            fs.writeFileSync(
-              '../.nyc_output/' + name,
-              coverage
-            );
-            console.log('Coverage file written: ' + name);
-            return '';
-          });
-        };
-        const nextStep = (previous: string, newValue?: string): Promise<string> => {
-          console.log('Coverage retrieved: ' + newValue?.length);
-          const result = previous + (newValue ?? '');
-          if (!newValue || newValue.length < step) return finalStep(result);
-          const pos = result.length;
-          return browser.execute((pos, step) => (window as any).__coverage__str.substring(pos, pos + step), pos, step).then(n => nextStep(result, n));
-        };
-        return browser.setTimeout({'script': 120000})
-        .then(() => browser.execute(() => (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? ''))
-        .then(() => browser.execute((step) => (window as any).__coverage__str.substring(0, step), step))
-        .then(part => nextStep('', part))
-        .then(() => {})
-        .catch(e => {
-          console.log('Error retrieving coverage', e);
-        });
+        for (const t of timing) {
+          let s = ' - ' + t.name + ': ';
+          while (s.length < 100) s += ' ';
+          s += (t.end - t.start) + ' ms.';
+          console.log(s);
+        }
       },
     });
+  }
+
+  public static async end() {
+    console.log('Retrieving code coverage...');
+    const start = Date.now();
+    const step = 15000000;
+    await browser.setTimeout({'script': 120000});
+    const size = await browser.execute(() => {
+      (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? '';
+      return (window as any).__coverage__str.length;
+    });
+    let coverage = '';
+    let pos = 0;
+    do {
+      const part = await browser.execute((pos, step) => (window as any).__coverage__str.substring(pos, pos + step), pos, step);
+      coverage += part;
+      pos += part.length;
+    } while (pos < size);
+    console.log('Coverage retrieved in ' + (Date.now() - start) + ' ms. with size = ' + coverage.length);
+    const fs = await import('fs');
+    const name = 'cov_' + App.config.instance + '_' + Date.now() + '.json';
+    console.log('Writing coverage to ' + name);
+    try {
+      fs.writeFileSync(
+        '../.nyc_output/' + name,
+        coverage
+      );
+      console.log('Coverage file written: ' + name);
+    } catch (e) {
+      console.error('Error writing coverage file', e);
+    }
   }
 
   private static async startMode() {
@@ -119,8 +139,12 @@ export class App {
           height: 600
         })
         break;
-      default:
+      case 'desktop':
         await browser.setWindowSize(1600, 900);
+        break;
+      case 'native':
+        // nothing
+        break;
     }
   }
 

@@ -1,6 +1,7 @@
 import { parseArguments } from './arguments';
 import { baseConfig } from './conf.base';
 import { browserConfig } from './conf.browser';
+import { nativeConfig } from './conf.native';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as child_process from 'child_process';
@@ -21,7 +22,11 @@ export const config = {
   ...baseConfig,
   specs: args.specs,
   exclude: args.excludeSpecs,
-  ...(args.browser ? browserConfig(args, downloadPath, userDataPath, isCi) : { capabilities: [] }),
+  ...(
+    args.browser ? browserConfig(args, downloadPath, userDataPath, isCi) :
+    args.nativePlatform ? nativeConfig(args, downloadPath, userDataPath, isCi) :
+    { capabilities: [] }
+  ),
   child_process: child_process,
   trailence: {
     username: args.trailenceUsername,
@@ -29,6 +34,7 @@ export const config = {
     dbUsername: args.dbUsername,
     dbPassword: args.dbPassword,
     browserSize: args.browserSize,
+    native: args.nativePlatform,
     instance: args.instance,
   }
 } as any as WebdriverIO.Config;

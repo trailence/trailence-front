@@ -34,7 +34,7 @@ describe('Copy / Move Trails', () => {
     await copyTagsModal.waitDisplayed(true);
     const tags = await copyTagsModal.getTags();
     expect(tags.size).toBe(4);
-    await copyTagsModal.copyAll();
+    await copyTagsModal.importAll();
     const alert = await App.waitAlert();
     expect(await alert.getTitle()).toBe('Copy photos');
     await alert.clickButtonWithRole('success');
@@ -73,7 +73,7 @@ describe('Copy / Move Trails', () => {
     await copyTagsModal.waitDisplayed(true);
     const tags = await copyTagsModal.getTags();
     expect(tags.size).toBe(4);
-    await copyTagsModal.copyAll();
+    await copyTagsModal.importAll();
     await browser.waitUntil(() => copyTagsModal.notDisplayed());
     await App.waitNoProgress();
 
@@ -97,7 +97,7 @@ describe('Copy / Move Trails', () => {
     await copyTagsModal.waitDisplayed(true);
     const tags = await copyTagsModal.getTags();
     expect(tags.size).toBe(4);
-    await copyTagsModal.copyAll();
+    await copyTagsModal.importAll();
     await browser.waitUntil(() => copyTagsModal.notDisplayed());
     await App.waitNoProgress();
 
@@ -117,4 +117,5 @@ describe('Copy / Move Trails', () => {
     await App.synchronize();
   });
 
+  it('End', async () => await App.end());
 });

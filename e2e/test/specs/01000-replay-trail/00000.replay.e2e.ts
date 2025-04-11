@@ -197,4 +197,5 @@ describe('Replay trail', () => {
     await App.synchronize();
   });
 
+  it('End', async () => await App.end());
 });

@@ -64,4 +64,5 @@ describe('Shares - Edit', () => {
     await App.logout();
   });
 
+  it('End', async () => await App.end());
 });

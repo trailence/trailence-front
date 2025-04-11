@@ -72,7 +72,7 @@ export class NetworkService implements INetworkService {
       if (count !== this.countPing) return;
       let status: boolean;
       if (response.status === 200) {
-        Console.info('Server ping response received: connected');
+        Console.info('Server ping response received: connected on ' + environment.apiBaseUrl);
         const ping = response.body as PingResponse;
         const minSupportedVersion = StringUtils.versionNameToVersionCode(ping.minSupportedVersion);
         if (minSupportedVersion === undefined || minSupportedVersion > trailenceAppVersionCode) {

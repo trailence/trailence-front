@@ -8,7 +8,7 @@ import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
 import { TestUtils } from '../../utils/test-utils';
 
-describe('Trails list - Import Simple GPX', () => {
+describe('Trails list', () => {
 
   it('Login', async () => {
     App.init();
@@ -117,7 +117,7 @@ describe('Trails list - Import Simple GPX', () => {
     expect(tags.size).toBe(2);
     expect(tags.get('Tag 2')).toBe('Exists');
     expect(tags.get('Tag 3')).toBe('Does not exist');
-    await popup.importAllWithExistingAndMissing();
+    await popup.importAll();
     const trail = await trailsList.waitTrail('Roquefraîche');
     expect(trail).toBeDefined();
     await browser.waitUntil(async () => {
@@ -174,7 +174,7 @@ describe('Trails list - Import Simple GPX', () => {
     expect(tags.size).toBe(2);
     expect(tags.get('Tag 1')).toBe('Exists');
     expect(tags.get('Tag 4')).toBe('Does not exist');
-    await popup.importAllWithExistingAndMissing();
+    await popup.importAll();
     const trail1 = await trailsList.waitTrail('Randonnée du 20/02/2022 à 09:55');
     expect(trail1).toBeDefined();
     await browser.waitUntil(async () => {
@@ -231,5 +231,7 @@ describe('Trails list - Import Simple GPX', () => {
   it('Synchronize', async () => {
     await App.synchronize();
   });
+
+  it('End', async () => await App.end());
 
 });

@@ -43,4 +43,6 @@ describe('Forgot password', () => {
     await browser.waitUntil(() => modal.notDisplayed());
   });
 
+  it('End', async () => await App.end());
+
 });
