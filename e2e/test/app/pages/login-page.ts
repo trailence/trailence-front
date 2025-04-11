@@ -23,8 +23,8 @@ export class LoginPage extends Page {
 
   public async login(username?: string, password?: string) {
     await browser.waitUntil(() => this.loginInput.isDisplayed());
-    await this.loginInput.setValue(username ?? App.config.initUsername);
-    await this.passwordInput.setValue(password ?? App.config.initUserpass);
+    await this.loginInput.setValue(username ?? App.config.username);
+    await this.passwordInput.setValue(password ?? App.config.password);
     await this.loginButton.click();
     await browser.waitUntil(() => this.notDisplayed());
   }

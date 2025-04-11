@@ -12,7 +12,7 @@ describe('Reset password', () => {
   it('Login with new password', async () => {
     App.init();
     const loginPage = await App.start();
-    trailsPage = await loginPage.loginAndWaitMyTrailsCollection(App.config.initUsername, 'myNewPassword');
+    trailsPage = await loginPage.loginAndWaitMyTrailsCollection(App.config.username, 'myNewPassword');
   });
 
   let accountPage: MyAccountPage;
@@ -26,8 +26,8 @@ describe('Reset password', () => {
     await accountPage.changePasswordButton.click();
     const modal = new ChangePasswordModal(await App.waitModal());
     await modal.currentPasswordInput.setValue('myNewPassword');
-    await modal.newPasswordInput.setValue(App.config.initUserpass);
-    await modal.newPassword2Input.setValue(App.config.initUserpass);
+    await modal.newPasswordInput.setValue(App.config.password);
+    await modal.newPassword2Input.setValue(App.config.password);
     const continueButton = await modal.getFooterButtonWithText('Continue');
     await continueButton.click();
     await browser.waitUntil(() => modal.isBlockedByRecentRequest());
@@ -50,15 +50,15 @@ describe('Reset password', () => {
     await accountPage.changePasswordButton.click();
     const modal = new ChangePasswordModal(await App.waitModal());
     await modal.currentPasswordInput.setValue('myNewPassword');
-    await modal.newPasswordInput.setValue(App.config.initUserpass);
-    await modal.newPassword2Input.setValue(App.config.initUserpass);
+    await modal.newPasswordInput.setValue(App.config.password);
+    await modal.newPassword2Input.setValue(App.config.password);
     const continueButton = await modal.getFooterButtonWithText('Continue');
     await continueButton.click();
     await browser.waitUntil(() => modal.codeInput.getElement().isDisplayed());
 
     const mh = new MailHog();
     await mh.open(true);
-    const mailContent = await mh.openMessageTo(App.config.initUsername);
+    const mailContent = await mh.openMessageTo(App.config.username);
     expect(mailContent).toBeDefined();
     await mh.deleteMessage();
     await mh.closeTab();

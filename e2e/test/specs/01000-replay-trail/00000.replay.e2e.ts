@@ -156,7 +156,7 @@ describe('Replay trail', () => {
     expect(breaks2).toBe(breaks1);
 
     const urlBefore = await browser.getUrl();
-    uuidBefore = urlBefore.substring(urlBefore.indexOf('/trail/' + App.config.initUsername + '/') + 7 + App.config.initUsername.length + 1);
+    uuidBefore = urlBefore.substring(urlBefore.indexOf('/trail/' + App.config.username + '/') + 7 + App.config.username.length + 1);
     uuidBefore = uuidBefore.substring(0, 36)
 
     await trailPage.trailComponent.openMap();
@@ -171,7 +171,7 @@ describe('Replay trail', () => {
       await App.waitNoProgress(45000);
 
     const urlAfter = await browser.getUrl();
-    let uuidAfter = urlAfter.substring(urlAfter.indexOf('/trail/' + App.config.initUsername + '/') + 7 + App.config.initUsername.length + 1);
+    let uuidAfter = urlAfter.substring(urlAfter.indexOf('/trail/' + App.config.username + '/') + 7 + App.config.username.length + 1);
     uuidAfter = uuidAfter.substring(0, 36)
 
     expect(uuidAfter).not.toBe(uuidBefore);
@@ -179,7 +179,7 @@ describe('Replay trail', () => {
   });
 
   it('Check saved trail, then delete it', async () => {
-    const page = new TrailPage(App.config.initUsername, savedUuid);
+    const page = new TrailPage(App.config.username, savedUuid);
     expect(await page.trailComponent.getMetadataValueByTitle('Duration', true)).toBe('3h15');
     const menu = await page.header.openActionsMenu();
     await menu.clickItemWithText('Delete');

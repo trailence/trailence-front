@@ -51,6 +51,9 @@ services:
       retries: 20
       start_period: 60s
   front:
+    depends_on:
+      back:
+        condition: service_started
     image: nginx:stable-alpine
     ports:
       - 80:80

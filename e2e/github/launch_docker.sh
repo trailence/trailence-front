@@ -24,6 +24,12 @@ docker compose down
 docker compose up -d --wait
 if [ $? -ne 0 ]; then
   echo "Error starting docker containers"
+  docker ps -a
+  for container_id in $(docker ps -a -q --filter name=trailence);
+  do
+    echo " --- Logs from container $container_id ---"
+    docker logs $container_id
+  done
   exit 1
 fi
 

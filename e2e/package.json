@@ -11,9 +11,10 @@
     "nyc": "^17.1.0"
   },
   "scripts": {
-    "wdio": "wdio run ./wdio.conf.ts",
+    "wdio": "wdio run ./config/wdio.conf.ts",
     "coverage-report": "nyc report --reporter=lcovonly --report-dir=coverage/e2e --cwd=../",
-    "list_parallel": "cd scripts && node ./list_parallel.js"
+    "list_parallel": "cd scripts && node ./list_parallel.js",
+    "tests_to_filename": "node ./scripts/tests_to_filename.js"
   },
   "dependencies": {
     "jsdom": "^25.0.1",

@@ -14,16 +14,16 @@ export class App {
     const trailence = (browser.options as any)['trailence'];
     const instance = trailence.instance ?? '1';
     App.config = {
-      initUsername: trailence.initUsername,
-      initUserpass: trailence.initUserpass,
-      mode: trailence.mode ?? 'desktop',
+      username: trailence.username,
+      password: trailence.password,
+      mode: trailence.browserSize ?? 'desktop',
       instance: instance,
       downloadPath: './tmp-data/' + instance + '/downloads',
     };
-    expect(App.config.initUsername).toBeDefined();
-    expect(App.config.initUserpass).toBeDefined();
-    expect(App.config.initUsername.length).toBeGreaterThan(0);
-    expect(App.config.initUserpass.length).toBeGreaterThan(0);
+    expect(App.config.username).toBeDefined();
+    expect(App.config.password).toBeDefined();
+    expect(App.config.username.length).toBeGreaterThan(0);
+    expect(App.config.password.length).toBeGreaterThan(0);
     jasmine.getEnv().addReporter({
       specDone: (result) => {
         let promise: Promise<any> = Promise.resolve();
@@ -34,7 +34,7 @@ export class App {
             .then(() => browser.getUrl()).catch(e => Promise.resolve('error')).then(url => { console.log('Browser URL was: ' + url); return true; });
         }
         promise = promise.then(() => browser.execute(name => {
-          const history = [...(window as any)['_consoleHistory']];
+          const history = [...(window as any)['_consoleHistory'], ' *** End of ' + name + ' ***'];
           (window as any)['_consoleHistory'].push(' *** End of ' + name + ' ***');
           return history;
         }, result.fullName)
@@ -52,6 +52,8 @@ export class App {
           if (currentChunk.length > 0) chunks.push(currentChunk);
           for (const chunk of chunks)
             console.log(chunk);
+          console.log('----- End of Console -----');
+          return true;
         })
         .catch(e => {
           console.log('Cannot get console history', e);
@@ -72,10 +74,11 @@ export class App {
       },
       suiteDone: (result) => {
         console.log('Suite done: ' + result.fullName);
+        console.log('Retrieving coverage');
         const start = Date.now();
-        return browser.execute(() => JSON.stringify((window as any).__coverage__))
-        .then(coverage => {
-          console.log('Coverage retrieved in ' + (Date.now() - start) + ' ms.');
+        const step = 10000000;
+        const finalStep = (coverage: string) => {
+          console.log('Coverage retrieved in ' + (Date.now() - start) + ' ms. with size = ' + coverage.length);
           return import('fs')
           .then(fs => {
             const name = 'cov_' + App.config.instance + '_' + result.id + '_' + Date.now() + '.json';
@@ -85,7 +88,23 @@ export class App {
               coverage
             );
             console.log('Coverage file written: ' + name);
-          })
+            return '';
+          });
+        };
+        const nextStep = (previous: string, newValue?: string): Promise<string> => {
+          console.log('Coverage retrieved: ' + newValue?.length);
+          const result = previous + (newValue ?? '');
+          if (!newValue || newValue.length < step) return finalStep(result);
+          const pos = result.length;
+          return browser.execute((pos, step) => (window as any).__coverage__str.substring(pos, pos + step), pos, step).then(n => nextStep(result, n));
+        };
+        return browser.setTimeout({'script': 120000})
+        .then(() => browser.execute(() => (window as any).__coverage__str = JSON.stringify((window as any).__coverage__) ?? ''))
+        .then(() => browser.execute((step) => (window as any).__coverage__str.substring(0, step), step))
+        .then(part => nextStep('', part))
+        .then(() => {})
+        .catch(e => {
+          console.log('Error retrieving coverage', e);
         });
       },
     });
@@ -256,8 +275,8 @@ export class App {
 }
 
 export interface AppConfig {
-  initUsername: string;
-  initUserpass: string;
+  username: string;
+  password: string;
   mode: string;
   instance: string;
   downloadPath: string;

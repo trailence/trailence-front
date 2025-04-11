@@ -22,14 +22,14 @@ describe('Login and Logout', () => {
     myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
     const userMenu = await myTrailsPage.header.openUserMenu();
-    expect(await userMenu.getUser()).toBe(App.config.initUsername);
+    expect(await userMenu.getUser()).toBe(App.config.username);
     await userMenu.close();
   });
 
   it('Logout', async () => {
     const userMenu = await myTrailsPage.header.openUserMenu();
     expect(await userMenu.isDisplayed()).toBeTrue();
-    expect(await userMenu.getUser()).toBe(App.config.initUsername);
+    expect(await userMenu.getUser()).toBe(App.config.username);
     const logoutPopup = await userMenu.clickLogout();
     expect(await logoutPopup.getTitle()).toBe('Sign out');
     await logoutPopup.clickKeepData();

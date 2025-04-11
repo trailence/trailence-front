@@ -44,7 +44,7 @@ describe('Shares - Edit', () => {
     await App.openLink(link);
     const menu = await App.openMenu();
     const expected = [
-      ['full col edited', App.config.initUsername],
+      ['full col edited', App.config.username],
     ];
     await checkShares(menu, false, expected);
     await menu.close();
@@ -56,8 +56,8 @@ describe('Shares - Edit', () => {
     await App.openLink(link);
     const menu = await App.openMenu();
     const expected = [
-      ['full col edited', App.config.initUsername],
-      ['tag2 nophoto', App.config.initUsername],
+      ['full col edited', App.config.username],
+      ['tag2 nophoto', App.config.username],
     ];
     await checkShares(menu, false, expected);
     await menu.close();

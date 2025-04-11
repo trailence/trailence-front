@@ -9,7 +9,7 @@ describe('Forgot password', () => {
     App.init();
     const loginPage = await App.start();
     await browser.waitUntil(() => loginPage.loginInput.isDisplayed());
-    await loginPage.loginInput.setValue(App.config.initUsername);
+    await loginPage.loginInput.setValue(App.config.username);
     await loginPage.passwordInput.setValue('wrongPassword');
     await loginPage.loginButton.click();
     await browser.waitUntil(() => loginPage.errorMessage.isDisplayed());
@@ -22,7 +22,7 @@ describe('Forgot password', () => {
     await loginPage.forgotPasswordButton.click();
     const modal = new ForgotPasswordModal(await App.waitModal());
     await modal.emailInput.waitDisplayed();
-    expect(await modal.emailInput.getValue()).toBe(App.config.initUsername);
+    expect(await modal.emailInput.getValue()).toBe(App.config.username);
     await modal.newPasswordInput.setValue('myNewPassword');
     await modal.newPassword2Input.setValue('myNewPassword');
     const continueButton = await modal.getFooterButtonWithText('Continue');
@@ -31,7 +31,7 @@ describe('Forgot password', () => {
 
     const mh = new MailHog();
     await mh.open(true);
-    const mailContent = await mh.openMessageTo(App.config.initUsername);
+    const mailContent = await mh.openMessageTo(App.config.username);
     expect(mailContent).toBeDefined();
     await mh.deleteMessage();
     await mh.closeTab();

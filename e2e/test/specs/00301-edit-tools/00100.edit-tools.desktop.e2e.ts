@@ -34,19 +34,22 @@ describe('Edit tools', () => {
   });
 
   const selectPoint = async (arrowIndex: number) => {
-    const elements = await map.paths.getElements();
-    let arrowFound = 0;
-    let arrow;
-    for (const element of elements) {
-      if ((await element.getAttribute('stroke')) === 'black') {
-        if (arrowIndex === arrowFound) {
-          arrow = element;
-          break;
+    const arrow = await TestUtils.retry(async () => {
+      const elements = await map.paths.getElements();
+      let arrowFound = 0;
+      let arrow;
+      for (const element of elements) {
+        if ((await element.getAttribute('stroke')) === 'black') {
+          if (arrowIndex === arrowFound) {
+            arrow = element;
+            break;
+          }
+          arrowFound++;
         }
-        arrowFound++;
       }
-    }
-    if (!arrow) throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
+      if (!arrow) throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
+      return arrow;
+    }, 2, 1000);
     const pos = await map.getPathPosition(arrow);
     await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
     return await tools.waitSelectionTool();

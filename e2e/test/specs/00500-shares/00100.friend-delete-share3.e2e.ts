@@ -23,7 +23,7 @@ describe('Shares - delete by friend', () => {
     const shares = await appMenu.getShares(appMenu.getSharedWithMeSection());
     expect(shares.length).toBe(1);
     expect(shares[0][0]).toBe('tag2+4+photo');
-    expect(shares[0][1]).toBe(App.config.initUsername);
+    expect(shares[0][1]).toBe(App.config.username);
     await appMenu.close();
     const shareMenu = await page.header.openActionsMenu();
     await shareMenu.clickItemWithText('Delete');
