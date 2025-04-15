@@ -1,0 +1,67 @@
+name: trailence-local
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=trailence
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+  smtp:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - 8025:8025
+  back:
+    depends_on:
+      db:
+        condition: service_healthy
+      smtp:
+        condition: service_started
+    image: trailence/back:snapshot-dev
+    ports:
+      - 8080:8080
+    environment:
+      - POSTGRESQL_HOST=db
+      - POSTGRESQL_PORT=5432
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DB=trailence
+      - TRAILENCE_JWT_SECRET=123456789
+      - TRAILENCE_INIT_USER=user@trailence.org
+      - TRAILENCE_INIT_PASSWORD=12345678
+      - SMTP_HOST=smtp
+      - SMTP_PORT=1025
+      - SMTP_AUTH_ENABLED=false
+      - SMTP_TLS_ENABLED=false
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/api/ping || exit 1
+      interval: 1s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+  front:
+    depends_on:
+      back:
+        condition: service_started
+    image: nginx:stable-alpine
+    volumes:
+      - ../../www/browser:/usr/share/nginx/html:ro
+      - ../../www/nginx:/etc/nginx/templates:ro
+    ports:
+      - 80:80
+    environment:
+      - TRAILENCE_BACK_NAME=back
+      - TRAILENCE_BACK_PORT=8080
+      - TRAILENCE_HOSTNAME=localhost
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:80 || exit 1
+      interval: 1s
+      timeout: 10s
+      retries: 10
+      start_period: 30s

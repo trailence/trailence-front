@@ -81,7 +81,12 @@
       </div>
       <div class="title-text {{auth.email ? '' : 'not-logged'}}">
         <span *ngIf="!auth.email && title.length > 0 && !small" class="separator">-</span>
-        <span>{{title}}</span>
+        @if (useH1) {
+          <h1>{{title}}</h1>
+          <h2>{{description}}</h2>
+        } @else {
+          <span>{{title}}</span>
+        }
       </div>
       <div class="title-actions" *ngIf="actions && actions.length > 0">
         <ion-button fill="clear" shape="round" id="header-title-actions-button-{{id}}">

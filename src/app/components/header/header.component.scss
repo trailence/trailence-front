@@ -47,6 +47,14 @@
         font-size: 28px;
         margin-right: 12px;
       }
+
+      h1 {
+        font-size: inherit;
+        display: inline;
+      }
+      h2 {
+        display: none;
+      }
     }
 }
 

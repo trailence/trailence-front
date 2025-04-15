@@ -11,6 +11,7 @@ RUN npm install && \
     cpy . ../.. && \
     cd ../../.. && \
     ionic build --configuration=production && \
+    npm run generate-public-pages && \
     export BUILD_TIME="$(date -u -Iseconds)" && \
     sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' -e 's/\${BUILD_TIME}/'"$BUILD_TIME"'/g' /build/site/sitemap.xml > /build/www/browser/sitemap.xml && \
     sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' /build/site/robots.txt > /build/www/browser/robots.txt

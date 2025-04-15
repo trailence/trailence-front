@@ -133,6 +133,8 @@ export class AppComponent {
       return;
     }
     Console.info('Starting app: ready in ' + (Date.now() - (window as any)._trailenceStart) + 'ms.');
+    const startupContent = document.getElementById('startup-content');
+    startupContent?.parentElement?.removeChild(startupContent);
     startup.style.opacity = '0';
     setTimeout(() => startup.parentElement?.removeChild(startup), 500);
     this.loadMenuContent = true;

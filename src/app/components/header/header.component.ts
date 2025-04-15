@@ -30,6 +30,7 @@ export class HeaderComponent extends AbstractComponent {
   @Input() backUrl?: string;
   @Input() actions?: MenuItem[];
   @Input() description?: string;
+  @Input() useH1 = false;
 
   id = IdGenerator.generateId();
   small: boolean;

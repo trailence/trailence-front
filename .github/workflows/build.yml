@@ -45,6 +45,7 @@ jobs:
         run: |
           npm ci
           npm run build -- --configuration=production
+          npm run generate-public-pages
   build-android:
     name: Build - Android App
     runs-on: ubuntu-latest
