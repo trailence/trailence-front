@@ -68,7 +68,7 @@ export class TagsPopup extends ModalComponent {
   }
 
   public async createTag(tagName: string) {
-    const container = this.getElement().$('>>>div.add-tag-footer');
+    const container = this.getElement().$('>>>form.add-tag-footer');
     const input = new IonicInput(container.$('ion-input'));
     await input.setValue(tagName);
     const addButton = new IonicButton(container.$('ion-button'));

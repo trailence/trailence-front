@@ -28,7 +28,7 @@
           "footer": ["Attach photos to your tracks", "View them on the map"]
         }, {
           "header": "But also...",
-          "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "..."]
+          "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "And more !"]
         }
       ],
       "download_apk": "Download Android App"
@@ -144,6 +144,11 @@
         "map": "Map"
       },
       "open_trail": "Open",
+      "empty_list": {
+        "collection": "No trail yet in this collection",
+        "share": "No trail in this share",
+        "filter": "No trail match your filters"
+      },
       "actions": {
         "delete_confirm_single": {
           "title": "Delete Track",
@@ -275,7 +280,7 @@
           "title_singular": "Selected point",
           "title_plural": "Selected points",
           "extend_selection": "Expand selection to...",
-          "select_target_point": "Select a point to extend the selection",
+          "select_target_point": "Select a point on the map or elevation chart to extend the selection to that point",
           "create_waypoint": "Create a way point",
           "remove_waypoint": "Remove the way point",
           "remove_all_next_points": "Remove all points after this one",

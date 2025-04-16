@@ -96,7 +96,15 @@ export class TrailComponent extends AbstractComponent {
   elevationTrack2?: Track;
 
   @ViewChild(MapComponent) map?: MapComponent;
-  @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
+  @ViewChild(ElevationGraphComponent)
+  set elevationGraph(child: ElevationGraphComponent | undefined) {
+    this.elevationGraph$.next(child ?? undefined);
+  }
+  get elevationGraph() {
+    return this.elevationGraph$.value;
+  }
+
+  elevationGraph$ = new BehaviorSubject<ElevationGraphComponent | undefined>(undefined);
 
   displayMode = 'loading';
   bottomSheetOpen = true;

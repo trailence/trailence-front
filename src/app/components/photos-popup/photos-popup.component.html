@@ -8,80 +8,88 @@
 </ion-header>
 <div style="flex: 1 1 100%; display:flex; flex-direction: column; overflow: hidden">
 
-  <div class="selection" *ngIf="canEdit && photos.length > 0">
-    <ion-checkbox [checked]="nbSelected === photos.length" [indeterminate]="nbSelected > 0 && nbSelected < photos.length" (ionChange)="setAllSelected($event.detail.checked)"></ion-checkbox>
-    <div style="margin-left: 8px">
-      {{nbSelected}} / {{photos.length}} {{nbSelected > 1 ? i18n.texts.pages.photos_popup.selected_plural : i18n.texts.pages.photos_popup.selected_single}}
-    </div>
-    <ng-container *ngIf="nbSelected > 0">
-      <div style="margin: 0 5px">:</div>
-      <ion-button size="small" color="danger" (click)="deleteSelected()">{{i18n.texts.buttons.delete}}</ion-button>
-    </ng-container>
-  </div>
-  <div class="photos" style="flex: 1 1 100%; overflow-y: auto;">
-    @for (photoWithInfo of photos; track photoWithInfo.photo.uuid + photoWithInfo.photo.owner) {
-      <div [ngStyle]="{'width': (maxWidth + 30) + 'px'}" class="photo-container" [ngClass]="{'selected': photoWithInfo.selected}">
-        <div style="display: flex; flex-direction: column; align-items: center; align-self: stretch;" *ngIf="canEdit">
-          <ion-checkbox [checked]="photoWithInfo.selected" (ionChange)="setSelected(photoWithInfo, $event.detail.checked)"></ion-checkbox>
-          <div style="flex: 1 1 100%; display: flex; flex-direction: column; align-items: center; justify-content: center">
-            <ion-button *ngIf="$index > 0" shape="round" size="small" fill="clear" color="dark" (click)="moveBack($index)">
-              <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
-            </ion-button>
-            <ion-button *ngIf="$index < photos.length - 1" shape="round" size="small" fill="clear" color="dark" (click)="moveForward($index)">
-              <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
-            </ion-button>
-          </div>
+  @if (loaded) {
+    @if (photos.length === 0) {
+      <div class="no-photo">{{i18n.texts.pages.trail.no_photo_message}}</div>
+    } @else {
+
+      <div class="selection" *ngIf="canEdit">
+        <ion-checkbox [checked]="nbSelected === photos.length" [indeterminate]="nbSelected > 0 && nbSelected < photos.length" (ionChange)="setAllSelected($event.detail.checked)"></ion-checkbox>
+        <div style="margin-left: 8px">
+          {{nbSelected}} / {{photos.length}} {{nbSelected > 1 ? i18n.texts.pages.photos_popup.selected_plural : i18n.texts.pages.photos_popup.selected_single}}
         </div>
-        <div class="photo-and-description">
-          <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)" (blobSize)="setBlobSize(photoWithInfo, $event)" [loadWhenVisible]="true"></app-photo>
-          <div class="description" (click)="editDescription(photoWithInfo)" *ngIf="!photoWithInfo.editing" [ngClass]="{'editable-text': canEdit}">
-            {{photoWithInfo.photo.description}}
-          </div>
-          <ion-textarea #descriptionEditor
-            *ngIf="photoWithInfo.editing"
-            [maxlength]="5000"
-            [autoGrow]="true"
-            [value]="photoWithInfo.editing"
-            (ionChange)="descriptionChanged(photoWithInfo, $event.detail.value)"
-            (ionInput)="descriptionChanging(photoWithInfo, $event.detail.value)"
-            (ionBlur)="exitEditDescription(photoWithInfo)"
-          ></ion-textarea>
-          <div class="metadata-container one-column">
-            <div class="metadata-item-container" *ngIf="photoWithInfo.photo.dateTaken">
-              <div class="metadata-item">
-                <ion-icon name="date"></ion-icon>
-                <div class="metadata-content">
-                  <div class="metadata-value">
-                    <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="metadata-item-container" *ngIf="photoWithInfo.photo.latitude">
-              <div class="metadata-item">
-                <ion-icon name="location"></ion-icon>
-                <div class="metadata-content">
-                  <div class="metadata-value">
-                    <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="metadata-item-container" *ngIf="photoWithInfo.blobSize">
-              <div class="metadata-item">
-                <ion-icon name="file"></ion-icon>
-                <div class="metadata-content">
-                  <div class="metadata-value">
-                    <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ng-container *ngIf="nbSelected > 0">
+          <div style="margin: 0 5px">:</div>
+          <ion-button size="small" color="danger" (click)="deleteSelected()">{{i18n.texts.buttons.delete}}</ion-button>
+        </ng-container>
       </div>
+      <div class="photos" style="flex: 1 1 100%; overflow-y: auto;">
+        @for (photoWithInfo of photos; track photoWithInfo.photo.uuid + photoWithInfo.photo.owner) {
+          <div [ngStyle]="{'width': (maxWidth + 30) + 'px'}" class="photo-container" [ngClass]="{'selected': photoWithInfo.selected}">
+            <div style="display: flex; flex-direction: column; align-items: center; align-self: stretch;" *ngIf="canEdit">
+              <ion-checkbox [checked]="photoWithInfo.selected" (ionChange)="setSelected(photoWithInfo, $event.detail.checked)"></ion-checkbox>
+              <div style="flex: 1 1 100%; display: flex; flex-direction: column; align-items: center; justify-content: center">
+                <ion-button *ngIf="$index > 0" shape="round" size="small" fill="clear" color="dark" (click)="moveBack($index)">
+                  <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
+                </ion-button>
+                <ion-button *ngIf="$index < photos.length - 1" shape="round" size="small" fill="clear" color="dark" (click)="moveForward($index)">
+                  <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+            <div class="photo-and-description">
+              <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)" (blobSize)="setBlobSize(photoWithInfo, $event)" [loadWhenVisible]="true"></app-photo>
+              <div class="description" (click)="editDescription(photoWithInfo)" *ngIf="!photoWithInfo.editing" [ngClass]="{'editable-text': canEdit}">
+                {{photoWithInfo.photo.description}}
+              </div>
+              <ion-textarea #descriptionEditor
+                *ngIf="photoWithInfo.editing"
+                [maxlength]="5000"
+                [autoGrow]="true"
+                [value]="photoWithInfo.editing"
+                (ionChange)="descriptionChanged(photoWithInfo, $event.detail.value)"
+                (ionInput)="descriptionChanging(photoWithInfo, $event.detail.value)"
+                (ionBlur)="exitEditDescription(photoWithInfo)"
+              ></ion-textarea>
+              <div class="metadata-container one-column">
+                <div class="metadata-item-container" *ngIf="photoWithInfo.photo.dateTaken">
+                  <div class="metadata-item">
+                    <ion-icon name="date"></ion-icon>
+                    <div class="metadata-content">
+                      <div class="metadata-value">
+                        <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="metadata-item-container" *ngIf="photoWithInfo.photo.latitude">
+                  <div class="metadata-item">
+                    <ion-icon name="location"></ion-icon>
+                    <div class="metadata-content">
+                      <div class="metadata-value">
+                        <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="metadata-item-container" *ngIf="photoWithInfo.blobSize">
+                  <div class="metadata-item">
+                    <ion-icon name="file"></ion-icon>
+                    <div class="metadata-content">
+                      <div class="metadata-value">
+                        <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
     }
-  </div>
+  }
 
 </div>
 <ion-footer>

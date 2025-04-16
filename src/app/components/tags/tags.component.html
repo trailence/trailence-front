@@ -11,19 +11,20 @@
   <ng-container *ngTemplateOutlet="tagsNodes; context: { nodes: tree }"></ng-container>
 </ion-content>
 <ion-footer>
-  <div class="add-tag-footer">
+  <form class="add-tag-footer" (ngSubmit)="newRootTag()">
     <ion-input
       fill="outline"
       label="{{i18n.texts.pages.trails.tags.popup.add_tag_label}}"
       label-placement="floating"
+      name="newTagName"
       [(ngModel)]="newTagName"
       [maxlength]="50"
       [counter]="true"
     ></ion-input>
-    <ion-button shape="round" color="primary" [disabled]="newTagName.length === 0" (click)="newRootTag()">
+    <ion-button shape="round" color="primary" [disabled]="newTagName.trim().length === 0" (click)="newRootTag()" type="submit">
       <ion-icon name="add" slot="icon-only"></ion-icon>
     </ion-button>
-  </div>
+  </form>
   <ion-toolbar color="footer">
     <ion-buttons slot="start" *ngIf="editable && !editing">
       <ion-button color="secondary" (click)="startEdit()">{{i18n.texts.buttons.edit}}</ion-button>

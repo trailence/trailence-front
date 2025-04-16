@@ -25,7 +25,7 @@ describe('Collection map', () => {
     expect(bubbles.length).toBe(0);
 
     await map.toggleBubbles();
-    // map should only bubbles
+    // map should contain only bubbles
     paths = await map.paths.map(e => e.getAttribute('stroke'));
     expect(paths.length).toBe(0);
     bubbles = await map.markers.map(m => m.getAttribute('class'));

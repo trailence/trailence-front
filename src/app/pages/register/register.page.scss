@@ -79,3 +79,13 @@ code-input {
   --item-height: 3em;
   color: var(--ion-text-color);
 }
+
+@media (max-height: 700px) and (max-width: 1000px) {
+  ion-card {
+    ion-toolbar {
+      display: none;
+    }
+    border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.1);
+    box-shadow: 1px 1px 8px 0px rgba(var(--ion-color-secondary-rgb), 0.2);
+  }
+}

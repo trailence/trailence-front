@@ -1,5 +1,19 @@
-import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
+import { Track } from 'src/app/model/track';
 import { EditToolsComponent } from "./edit-tools.component";
+import { Point } from 'src/app/model/point';
+
+export interface PointReference {
+  track: Track;
+  segmentIndex: number;
+  pointIndex: number;
+  point: Point;
+}
+
+export interface PointReferenceRange {
+  track: Track;
+  start: PointReference;
+  end: PointReference;
+}
 
 export interface EditTool {
 
@@ -7,6 +21,7 @@ export interface EditTool {
 
   hasOwnFooter: boolean;
 
-  onMapClick?: (event: MapTrackPointReference[]) => void;
+  onPointClick?: (event: PointReference[]) => void;
+  onRangeSelected?: (event: PointReferenceRange[]) => void;
 
 }

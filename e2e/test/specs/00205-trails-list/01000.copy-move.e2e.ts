@@ -49,6 +49,7 @@ describe('Copy / Move Trails', () => {
     await alertDelete.clickButtonWithRole('danger');
 
     await browser.waitUntil(() => browser.getTitle().then(title => title === 'My Trails - Trailence'));
+    await App.waitNoProgress();
   });
 
   const moved1 = ['Tour de Port-Cros', 'Roquefraîche', 'Au dessus de Montclar'];
@@ -106,6 +107,7 @@ describe('Copy / Move Trails', () => {
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
+    await App.waitNoProgress();
 
     const appMenu = await App.openMenu();
     collectionPage = await appMenu.openCollection('Test List');

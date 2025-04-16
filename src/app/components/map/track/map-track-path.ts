@@ -22,7 +22,8 @@ export class MapTrackPath {
       this._path = L.polyline(polylines, {
         color: this._color,
         smoothFactor: this._smoothFactor,
-        interactive: true
+        interactive: true,
+        className: 'track-path',
       });
       this._path.on('click', e => {
         (e.originalEvent as any).fromTrack = this._track; // NOSONAR

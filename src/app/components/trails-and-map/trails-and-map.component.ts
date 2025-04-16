@@ -37,6 +37,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @Input() trails: List<Trail> = List();
   @Input() collectionUuid?: string;
+  @Input() type?: string;
 
   @Input() message?: string;
   @Input() enableRemoveByGesture = false;

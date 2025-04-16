@@ -14,7 +14,7 @@ export class MapCursors {
   }
 
   public addCursor(position: L.LatLngExpression): void {
-    const marker = new L.CircleMarker(position, { radius: 3 });
+    const marker = new L.CircleMarker(position, { radius: 3, className: 'cursor' });
     this._cursors.push(marker);
     if (this._map) {
       marker.addTo(this._map);

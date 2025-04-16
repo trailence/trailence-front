@@ -154,7 +154,7 @@ describe('Import data from Visorando', () => {
     const modal = new ImportFromURLModal(await App.waitModal());
     await modal.urlInput.setValue('https://www.visorando.com/inscription-visorando.html');
     await (await modal.getFooterButtonWithText('Import from Visorando')).click();
-    browser.waitUntil(() => modal.getMessage().then(s => s === 'The trail could not be retrieved correctly'));
+    await browser.waitUntil(() => modal.getMessage().then(s => s === 'The trail could not be retrieved correctly'));
     await modal.urlInput.setValue('');
     await (await modal.getFooterButtonWithText('Cancel')).click();
     await modal.waitNotDisplayed();

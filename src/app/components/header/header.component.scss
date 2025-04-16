@@ -123,6 +123,11 @@ ion-toolbar {
       display: none;
     }
   }
+  .header-title {
+    .separator {
+      display: none;
+    }
+  }
   .public-buttons {
     ion-button {
       --padding-start: 0px;

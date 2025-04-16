@@ -107,7 +107,7 @@ export class MapTrackArrowPath {
           // it's ok !
           result.push(
             this.drawArrow(middle, p, 5, map)
-            .setStyle({color: 'black', weight: 2})
+            .setStyle({color: 'black', weight: 2, className: 'track-arrow'})
           );
           arrows.push(middle);
           lastArrow = middle;

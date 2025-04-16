@@ -13,7 +13,8 @@ export class MapPhoto {
       icon: L.icon({
         iconUrl: MapPhoto.createDataIconWithImage('#8080C0', dataUrl, width, height, badge),
         iconSize: [width, height + 15],
-        iconAnchor: [width / 2, height + 15]
+        iconAnchor: [width / 2, height + 15],
+        className: 'photo',
       }),
     });
   }

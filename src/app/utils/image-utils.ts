@@ -205,13 +205,13 @@ export class ImageUtils {
       if (tag === 0x9003) {
         // date/time original
         const str = this.readExifString(data, start + addressOrValue, nbComponents);
-        const date = ImageUtils.toDate(str);
-        info.dateTaken = date?.getTime();
+        console.log(str);
+        info.dateTaken = ImageUtils.toDate(str);
       }
     }
   }
 
-  private static toDate(str: string): Date | undefined {
+  private static toDate(str: string): number | undefined {
     if (str.length === 0) return;
     const datetime = str.split(' ');
     if (datetime.length !== 2) return;
@@ -227,7 +227,7 @@ export class ImageUtils {
         const minute = parseInt(t[1]);
         const second = parseInt(t[2]);
         if (!isNaN(hour) && !isNaN(minute) && !isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
-          return new Date(year, month - 1, day, hour, minute, second);
+          return new Date(year, month - 1, day, hour, minute, second).getTime();
         }
       }
     }

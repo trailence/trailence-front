@@ -28,7 +28,7 @@
           "footer": ["Mettez des photos sur vos parcours", "Visualisez les photos sur la carte"]
         }, {
           "header": "Mais aussi...",
-          "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "..."]
+          "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "Et bien plus !"]
         }
       ],
       "download_apk": "Télécharger l'app Android"
@@ -144,6 +144,11 @@
         "map": "Carte"
       },
       "open_trail": "Ouvrir",
+      "empty_list": {
+        "collection": "Aucun parcours dans cette collection pour l'instant",
+        "share": "Aucun parcours dans ce partage",
+        "filter": "Aucun parcours ne correspond à vos filtres"
+      },
       "actions": {
         "delete_confirm_single": {
           "title": "Supprimer un parcours",
@@ -275,7 +280,7 @@
           "title_singular": "Point sélectionné",
           "title_plural": "Points sélectionnés",
           "extend_selection": "Étendre la sélection jusqu'à...",
-          "select_target_point": "Sélectionnez un point pour étendre la sélection",
+          "select_target_point": "Sélectionnez un point sur la carte ou le graphique d'altimétrie pour étendre la sélection jusqu'à ce point",
           "create_waypoint": "Créer un point de passage",
           "remove_waypoint": "Supprimer le point de passage",
           "remove_all_next_points": "Supprimer tous les points après",

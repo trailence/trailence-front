@@ -115,6 +115,8 @@ export class MapComponent extends Component {
 
   public getPathsWithColor(stroke: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path[stroke=' + stroke + ']'); }
 
+  public getPathsWithClass(className: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path.' + className); }
+
   public async getMapPosition() {
     const location = await this.getElement().getLocation();
     const size = await this.getElement().getSize();

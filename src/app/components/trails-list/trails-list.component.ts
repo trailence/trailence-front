@@ -118,6 +118,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   @Input() trails: List<Trail> = List();
   @Input() collectionUuid?: string;
+  @Input() listType?: string;
 
   @Input() size: 'large' | 'medium' | 'small' = 'large';
 

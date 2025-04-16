@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Type, ViewChild } from '@angular/core';
-import { BehaviorSubject, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, defaultIfEmpty, EMPTY, first, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButton, IonList, IonItem, IonCheckbox, ToastController, ModalController } from "@ionic/angular/standalone";
@@ -12,7 +12,7 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { MapComponent } from '../../map/map.component';
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 import { IconLabelButtonComponent } from '../../icon-label-button/icon-label-button.component';
-import { EditTool } from './tool.interface';
+import { EditTool, PointReference, PointReferenceRange } from './tool.interface';
 import { RemoveBreaksMoves } from './remove-breaks-moves/remove-breaks-moves';
 import { ElevationThresholdModal } from './elevation-threshold/elevation-threshold-modal';
 import { ToolRenderer } from './tool-renderer';
@@ -20,6 +20,7 @@ import { SelectionTool } from './selection/selection-tool';
 import { PathRange } from '../path-selection';
 import { TrailComponent } from '../trail.component';
 import { adjustUnprobableElevationToTrackBasedOnGrade } from 'src/app/services/track-edition/elevation/unprobable-elevation-with-grade';
+import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
 
 interface HistoryState {
   base: Track | undefined;
@@ -66,12 +67,60 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   ) { }
 
   private mapClickSubscription?: Subscription;
+  private elevationGraphClickSubscription?: Subscription;
+  private elevationGraphSelectionSubscription?: Subscription;
   ngOnInit(): void {
     this.mapClickSubscription = this.map.mouseClickPoint.subscribe(event => {
+      const mapPoints = event.filter(p => p.point !== undefined).sort(MapTrackPointReference.distanceComparator);
+      const points = mapPoints.map(p => ({
+        track: p.track.track,
+        segmentIndex: p.segmentIndex,
+        pointIndex: p.pointIndex,
+        point: p.point,
+      } as PointReference));
       if (this.inlineToolRenderer?.tool) {
-        if (this.inlineToolRenderer.tool.onMapClick) this.inlineToolRenderer.tool.onMapClick(event);
+        if (this.inlineToolRenderer.tool.onPointClick) this.inlineToolRenderer.tool.onPointClick(points);
       } else if (event.length !== 0) {
-        this.setInlineTool(SelectionTool, tool => tool.onMapClick(event));
+        this.setInlineTool(SelectionTool, tool => tool.onPointClick(points));
+      }
+    });
+    this.elevationGraphClickSubscription = this.trailComponent.elevationGraph$.pipe(
+      switchMap(graph => graph ? graph.pointClick : EMPTY)
+    ).subscribe(event => {
+      const points = event.map(p => ({
+        track: p.track,
+        segmentIndex: p.segmentIndex,
+        pointIndex: p.pointIndex,
+        point: p.track.segments[p.segmentIndex].points[p.pointIndex]
+      } as PointReference));
+      if (this.inlineToolRenderer?.tool) {
+        if (this.inlineToolRenderer.tool.onPointClick) this.inlineToolRenderer.tool.onPointClick(points);
+      } else if (event.length !== 0) {
+        this.setInlineTool(SelectionTool, tool => tool.onPointClick(points));
+      }
+    });
+    this.elevationGraphSelectionSubscription = this.trailComponent.elevationGraph$.pipe(
+      switchMap(graph => graph ? graph.selected : EMPTY)
+    ).subscribe(event => {
+      const points = (event ?? []).map(range => ({
+        track: range.track,
+        start: {
+          track: range.track,
+          segmentIndex: range.start.segmentIndex,
+          pointIndex: range.start.pointIndex,
+          point: range.track.segments[range.start.segmentIndex].points[range.start.pointIndex]
+        },
+        end: {
+          track: range.track,
+          segmentIndex: range.end.segmentIndex,
+          pointIndex: range.end.pointIndex,
+          point: range.track.segments[range.end.segmentIndex].points[range.end.pointIndex]
+        }
+      } as PointReferenceRange));
+      if (this.inlineToolRenderer?.tool) {
+        if (this.inlineToolRenderer.tool.onRangeSelected) this.inlineToolRenderer.tool.onRangeSelected(points);
+      } else if (points.length !== 0) {
+        this.setInlineTool(SelectionTool, tool => tool.onRangeSelected(points));
       }
     });
     this.getMe(this);
@@ -79,6 +128,8 @@ export class EditToolsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.mapClickSubscription?.unsubscribe();
+    this.elevationGraphClickSubscription?.unsubscribe();
+    this.elevationGraphSelectionSubscription?.unsubscribe();
   }
 
   setSelection(range: PathRange): boolean {

@@ -48,6 +48,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   @Input() trailUuid!: string;
   @Input() popup = true;
 
+  loaded = false;
   photos: PhotoWithInfo[] = [];
 
   maxWidth!: number;
@@ -97,6 +98,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
         } as PhotoWithInfo;
       });
       this.nbSelected = this.photos.reduce((p, pi) => p + (pi.selected ? 1 : 0), 0);
+      this.loaded = true;
       this.changesDetector.detectChanges();
     }));
   }

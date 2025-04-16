@@ -162,14 +162,13 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   private removeNodes(nodes: TagNode[], toRemove: TagNode[]): void {
     for (let i = 0; i < nodes.length; ++i) {
+      this.removeNodes(nodes[i].children, toRemove);
       const index = toRemove.indexOf(nodes[i]);
       if (index >= 0) {
         nodes.splice(i, 1);
         i--;
         toRemove.splice(index, 1);
-        if (toRemove.length === 0) return;
       }
-      this.removeNodes(nodes[i].children, toRemove);
       if (toRemove.length === 0) return;
     }
   }
@@ -193,11 +192,18 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   newRootTag(): void {
-    this.tagService.create(new Tag({
+    const name = this.newTagName.trim();
+    if (name.length === 0) return;
+    const tag = new Tag({
       owner: this.auth.email!,
-      name: this.newTagName,
+      name: name,
       collectionUuid: this.collectionUuid,
-    }));
+    });
+    if (this.trails) {
+      this.tree.push(new TagNode(tag, 0, 0, true, [], undefined));
+      this.sort(this.tree);
+    }
+    this.tagService.create(tag);
     this.newTagName = '';
   }
 

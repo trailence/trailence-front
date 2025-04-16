@@ -226,7 +226,7 @@ export class TrailsPage extends AbstractPage {
   doSearch(plugins: string[]): void {
     let firstResult = true;
     const fillResults = (result: SearchResult) => {
-      console.log('search result', result.trails.length, result.end, result.tooManyResults);
+      Console.info('search result', result.trails.length, result.end, result.tooManyResults);
       const newList = List(firstResult ? result.trails : [...this.trails$.value, ...result.trails]);
       firstResult = false;
       this.ngZone.run(() => {

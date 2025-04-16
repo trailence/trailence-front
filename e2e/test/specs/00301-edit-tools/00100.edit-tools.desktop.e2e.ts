@@ -35,20 +35,10 @@ describe('Edit tools', () => {
 
   const selectPoint = async (arrowIndex: number) => {
     const arrow = await TestUtils.retry(async () => {
-      const elements = await map.paths.getElements();
-      let arrowFound = 0;
-      let arrow;
-      for (const element of elements) {
-        if ((await element.getAttribute('stroke')) === 'black') {
-          if (arrowIndex === arrowFound) {
-            arrow = element;
-            break;
-          }
-          arrowFound++;
-        }
-      }
-      if (!arrow) throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
-      return arrow;
+      const elements = map.getPathsWithClass('track-arrow');
+      const arrow = elements[arrowIndex];
+      if (await arrow.isExisting()) return await arrow.getElement();
+      throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
     }, 2, 1000);
     const pos = await map.getPathPosition(arrow);
     await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
@@ -121,10 +111,6 @@ describe('Edit tools', () => {
       .pause(10)
       .up()
       .perform();
-    // zoom button should be displayed
-    await browser.waitUntil(() => graph.zoomButton.isDisplayed());
-    // zoom on selection
-    await graph.zoomButton.click();
     let selectionTool = await tools.waitSelectionTool();
     await selectionTool.remove();
     await tools.undo();

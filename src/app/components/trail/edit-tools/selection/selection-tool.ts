@@ -1,12 +1,11 @@
-import { Component, Input } from '@angular/core';
-import { EditTool } from '../tool.interface';
+import { Component, Input, OnDestroy } from '@angular/core';
+import { EditTool, PointReference, PointReferenceRange } from '../tool.interface';
 import { EditToolsComponent } from '../edit-tools.component';
 import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
-import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { map, Observable, of, switchMap } from 'rxjs';
 import { WayPoint } from 'src/app/model/way-point';
-import { Point, samePositionRound } from 'src/app/model/point';
+import { samePositionRound } from 'src/app/model/point';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonList, IonItem, IonButton, IonInput } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
@@ -14,20 +13,13 @@ import { TrackUtils } from 'src/app/utils/track-utils';
 import { PathRange } from '../../path-selection';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
-interface PointReference {
-  track: Track;
-  segmentIndex: number;
-  pointIndex: number;
-  point: Point;
-}
-
 @Component({
   selector: 'app-edit-tools-selection',
   templateUrl: './selection-tool.html',
   styleUrls: ['./selection-tool.scss'],
   imports: [IonIcon, IonList, IonItem, IonButton, IonInput, CommonModule]
 })
-export class SelectionTool implements EditTool {
+export class SelectionTool implements EditTool, OnDestroy {
 
   @Input() editTools!: EditToolsComponent;
 
@@ -44,13 +36,13 @@ export class SelectionTool implements EditTool {
 
   selectingPoint2 = false;
 
-  onMapClick(event: MapTrackPointReference[]) : void {
+  onPointClick(event: PointReference[]) : void {
     if (event.length === 0) {
       this.exit();
       return;
     }
     this.editTools.getTrack().subscribe(track => {
-      const points = event.filter(p => p.track.track === track && p.point !== undefined).sort(MapTrackPointReference.distanceComparator);
+      const points = event.filter(p => p.track === track);
       const point = points.length > 0 ? points[0] : undefined;
       if (!point) {
         if (!this.selectingPoint2 && this.point1) {
@@ -59,30 +51,32 @@ export class SelectionTool implements EditTool {
         return;
       }
       if (this.selectingPoint2) {
-        if (point.segmentIndex! < this.point1!.segmentIndex || (point.segmentIndex === this.point1!.segmentIndex && point.pointIndex! < this.point1!.pointIndex)) {
+        if (point.segmentIndex < this.point1!.segmentIndex || (point.segmentIndex === this.point1!.segmentIndex && point.pointIndex < this.point1!.pointIndex)) {
           this.point2 = this.point1;
-          this.point1 = this.mapReferenceToPointReference(point);
+          this.point1 = point;
         } else {
-          this.point2 = this.mapReferenceToPointReference(point);
+          this.point2 = point;
         }
         this.selectingPoint2 = false;
       } else if (!this.point2) {
-        this.point1 = this.mapReferenceToPointReference(point);
+        this.point1 = point;
       } else {
-        this.point1 = this.mapReferenceToPointReference(point);
+        this.point1 = point;
         this.point2 = undefined;
       }
       this.updateSelection();
     });
   }
 
-  private mapReferenceToPointReference(point: MapTrackPointReference): PointReference {
-    return {
-      track: point.track.track as Track,
-      segmentIndex: point.segmentIndex!,
-      pointIndex: point.pointIndex!,
-      point: point.point as Point,
-    }
+  onRangeSelected(event: PointReferenceRange[]) {
+    this.editTools.getTrack().subscribe(track => {
+      const ranges = event.filter(p => p.track === track);
+      const range = ranges.length > 0 ? ranges[0] : undefined;
+      if (!range) return;
+      this.point1 = range.start;
+      this.point2 = range.end;
+      this.updateSelection();
+    });
   }
 
   private updateSelection(): void {
@@ -112,10 +106,13 @@ export class SelectionTool implements EditTool {
   }
 
   private exit(): void {
+    this.editTools.setInlineTool(undefined);
+  }
+
+  ngOnDestroy(): void {
     this.editTools.map.removeFromMap(this.selectedPointAnchor.marker);
     if (this.point2)
       this.editTools.cancelFocus();
-    this.editTools.setInlineTool(undefined);
   }
 
   extendSelection(): void {
@@ -148,7 +145,10 @@ export class SelectionTool implements EditTool {
   }
 
   elevationInputValue(meters: number): string {
-    return this.i18n.elevationInUserUnit(meters).toFixed(6);
+    let e = this.i18n.elevationInUserUnit(meters).toFixed(6);
+    while (e.at(e.length - 1) === '0') e = e.substring(0, e.length - 1);
+    if (e.at(e.length - 1)! < '0' || e.at(e.length - 1)! > '9') e = e.substring(0, e.length - 1);
+    return e;
   }
 
   setElevation(point: PointReference, ele: string | null | undefined): void {

@@ -142,6 +142,12 @@ export class PhotoService {
         info = {dateTaken, latitude, longitude};
       else {
         info = ImageUtils.extractInfos(arr);
+        if (!info?.dateTaken) {
+          const date = PhotoService.extractDateFromName(description);
+          if (date) {
+            if (!info) info = {dateTaken: date}; else info.dateTaken = date;
+          }
+        }
         Console.info('extracted info from image', info);
       }
     }
@@ -181,6 +187,26 @@ export class PhotoService {
         return of(null);
       })
     );
+  }
+
+  private static extractDateFromName(name: string): number | undefined {
+    const regex = /.*(\d{4})([0-1]\d)([0-3]\d).?([0-2]\d)([0-5]\d)([0-5]\d).*/;
+    const dateMatch = regex.exec(name);
+    if (!dateMatch) return undefined;
+    const year = dateMatch[1] ? parseInt(dateMatch[1]) : undefined;
+    if (!year || isNaN(year) || year < 1900) return undefined;
+    const month = dateMatch[2] ? parseInt(dateMatch[2]) : undefined;
+    if (!month || isNaN(month) || month < 1 || month > 12) return undefined;
+    const day = dateMatch[3] ? parseInt(dateMatch[3]) : undefined;
+    if (!day || isNaN(day) || day < 1 || day > 31) return undefined;
+    const hour = dateMatch[4] ? parseInt(dateMatch[4]) : undefined;
+    if (!hour || isNaN(hour) || hour < 1 || hour > 23) return undefined;
+    const minute = dateMatch[5] ? parseInt(dateMatch[5]) : undefined;
+    if (minute === undefined || isNaN(minute) || minute < 0 || minute > 59) return undefined;
+    const second = dateMatch[6] ? parseInt(dateMatch[6]) : undefined;
+    if (second === undefined || isNaN(second) || second < 0 || second > 59) return undefined;
+    const date = new Date(year, month - 1, day, hour, minute, second).getTime();
+    return date;
   }
 
   public update(photo: Photo, updater: (photo: Photo) => void, ondone?: (photo: Photo) => void): void {

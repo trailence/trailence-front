@@ -58,6 +58,7 @@ export class ElevationGraphComponent extends AbstractComponent {
   @Input() selection?: PathRange[];
 
   @Output() pointHover = new EventEmitter<ElevationGraphPointReference[]>();
+  @Output() pointClick = new EventEmitter<ElevationGraphPointReference[]>();
 
   @Output() selecting = new EventEmitter<ElevationGraphRange[] | undefined>();
   @Output() selected = new EventEmitter<ElevationGraphRange[] | undefined>();
@@ -424,6 +425,17 @@ export class ElevationGraphComponent extends AbstractComponent {
         }).filter(r => !!r);
         if (references.length === 0 && event.native.detail === -1) return;
         this.pointHover.emit(references);
+      },
+      onClick: (event:any, elements: C.ActiveElement[], chart: any) => {
+        if (event.type !== 'click' || (this.selection && this.selection.length > 0)) return;
+        const references = this.canvas!.chart!.getActiveElements().map(element => {
+          if ((this.chartData!.datasets[element.datasetIndex] as any).isGrade) return null;
+          if ((element.element as any).$context) // NOSONAR
+            return this.activeElementToPointReference(element);
+          return null;
+        }).filter(r => !!r);
+        if (references.length === 0 && event.native.detail === -1) return;
+        this.pointClick.emit(references);
       },
     };
   }

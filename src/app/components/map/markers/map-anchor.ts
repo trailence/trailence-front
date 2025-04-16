@@ -21,7 +21,8 @@ export class MapAnchor {
       icon: L.icon({
         iconUrl: MapAnchor.createDataIcon(borderColor, text, textColor, fillColor, fillColor2),
         iconSize: [40, 40],
-        iconAnchor: [20, 40]
+        iconAnchor: [20, 40],
+        className: 'anchor',
       }),
       title
     });
