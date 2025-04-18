@@ -94,6 +94,21 @@
     }
   }
 </div>
+<div class="search-container" [ngClass]="{'open': searchOpen}">
+  <div class="search-bar">
+    <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
+      [value]="state$.value.filters.search"
+      (ionInput)="searchTrailInput($event.detail.value)"
+    >
+      <ion-icon slot="end" name="cross" (click)="clearSearch()"></ion-icon>
+    </ion-input>
+  </div>
+  <div class="search-button">
+    <ion-button shape="round" color="primary" (click)="toggleSearch()">
+      <ion-icon slot="icon-only" name="search"></ion-icon>
+    </ion-button>
+  </div>
+</div>
 
 <ion-modal trigger="filters-trails-button-{{id}}" #filtersModal>
   <ng-template>

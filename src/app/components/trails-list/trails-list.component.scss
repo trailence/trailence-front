@@ -3,6 +3,7 @@
   flex-direction: column;
   align-items: stretch;
   overflow: hidden;
+  position: relative;
 }
 
 .toolbar {
@@ -101,6 +102,7 @@
   flex: 1 1 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  padding-bottom: 25px;
 
   .trail {
     padding: 3px 5px;
@@ -145,6 +147,42 @@
 
 .filter-value {
   margin-bottom: 5px;
+}
+
+div.search-container {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
+  height: 45px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+
+  div.search-bar {
+    width: 0;
+    height: 45px;
+    margin-right: 45px;
+    transition: width 0.2s ease-in-out;
+    overflow: hidden;
+  }
+
+  div.search-button {
+    position: absolute;
+    right: 0;
+  }
+
+  &:not(.open) {
+    div.search-bar {
+      width: 0;
+    }
+  }
+  &.open {
+    left: 5px;
+    div.search-bar {
+      width: calc(100% - 50px);
+    }
+  }
 }
 
 @media (max-height: 600px) {

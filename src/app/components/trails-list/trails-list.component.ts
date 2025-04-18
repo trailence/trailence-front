@@ -7,7 +7,7 @@ import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
-  IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, PopoverController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
+  IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, PopoverController, IonSegment, IonSegmentButton, IonInput } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
@@ -49,6 +49,7 @@ interface Filters {
   loopTypes: FilterEnum<TrailLoopType>;
   onlyVisibleOnMap: boolean;
   tags: FilterTags;
+  search: string;
 }
 
 const defaultState: State = {
@@ -83,7 +84,8 @@ const defaultState: State = {
     tags: {
       tagsUuids: [],
       type: 'include_and',
-    }
+    },
+    search: ''
   }
 }
 
@@ -99,7 +101,7 @@ interface TrailWithInfo {
     templateUrl: './trails-list.component.html',
     styleUrls: ['./trails-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [IonList, IonSelect, IonSelectOption,
+    imports: [IonInput, IonList, IonSelect, IonSelectOption,
         IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
         IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal, IonSegment, IonSegmentButton,
         CommonModule,
@@ -139,6 +141,7 @@ export class TrailsListComponent extends AbstractComponent {
   mapTrails: TrailWithInfo[] = [];
   listTrails: List<TrailWithInfo> = List();
   moreMenu: MenuItem[] = [];
+  searchOpen = false;
 
   durationFormatter = (value: number) => this.i18n.hoursToString(value);
   isPositive = (value: any) => typeof value === 'number' && value > 0;
@@ -194,6 +197,14 @@ export class TrailsListComponent extends AbstractComponent {
           componentElement.nativeElement.style.display = '';
         }, 25);
       }
+    });
+    this.searchValue$.pipe(
+      debounceTime(500)
+    ).subscribe(search => {
+      this.state$.next({
+        ...this.state$.value,
+        filters: { ...this.state$.value.filters, search }
+      });
     });
   }
 
@@ -309,6 +320,10 @@ export class TrailsListComponent extends AbstractComponent {
     const maxNegEle = filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to);
     this.mapTrails = this.allTrails.filter(
       t => { // NOSONAR
+        if (filters.search.trim().length > 0) {
+          const s = filters.search.trim().toLowerCase();
+          if (t.trail.name.toLowerCase().indexOf(s) < 0 && t.trail.location.toLowerCase().indexOf(s) < 0) return false;
+        }
         if (filters.duration.from !== undefined || filters.duration.to !== undefined) {
           let duration = t.track?.duration;
           if (duration !== undefined && t.track?.breaksDuration !== undefined) duration -= t.track.breaksDuration;
@@ -388,9 +403,10 @@ export class TrailsListComponent extends AbstractComponent {
           break;
         }
       }
-      if (valid)
+      if (valid) {
         this.state$.next(newState);
-      else
+        if (newState.filters.search) this.searchOpen = true;
+      } else
         this.state$.next(defaultState);
     }
   }
@@ -623,6 +639,30 @@ export class TrailsListComponent extends AbstractComponent {
       }
       this.changeDetector.detectChanges();
     }
+  }
+
+  toggleSearch(): void {
+    if (this.searchOpen) {
+      this.searchOpen = false;
+    } else {
+      this.searchOpen = true;
+      setTimeout(() => {
+        const input = document.getElementById('search-trail-' + this.id) as any;
+        if (input?.setFocus) input.setFocus();
+      }, 100);
+    }
+    this.changeDetector.detectChanges();
+  }
+
+  searchValue$ = new EventEmitter<string>();
+  searchTrailInput(event: string | null | undefined): void {
+    this.searchValue$.emit(event ?? '');
+  }
+  clearSearch(): void {
+    this.state$.next({
+      ...this.state$.value,
+      filters: { ...this.state$.value.filters, search: '' }
+    });
   }
 
 }

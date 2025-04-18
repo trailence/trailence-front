@@ -25,7 +25,7 @@
 
   <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined)}">
     <ng-container *ngIf="meta.dateString || meta.location">
-      <div class="metadata-item-container">
+      <div class="metadata-item-container" *ngIf="meta.dateString">
         <div class="metadata-item">
           <ion-icon name="date"></ion-icon>
           <div class="metadata-content">
@@ -35,7 +35,7 @@
           </div>
         </div>
       </div>
-      <div class="metadata-item-container">
+      <div class="metadata-item-container" *ngIf="meta.location">
         <div class="metadata-item nowrap">
           <ion-icon name="location"></ion-icon>
           <div class="metadata-content">

@@ -4,6 +4,7 @@
       "message": "Add release notes",
       "items": [
         "Display release notes when Trailence is updated",
+        "Search text in trails",
         "Some small improvements and fixes"
       ]
     },
@@ -11,6 +12,7 @@
       "message": "Informations de mise à jour",
       "items": [
         "Affiche les nouveautés lors d'une mise à jour",
+        "Recherche de texte dans les parcours",
         "Quelques petites améliorations et correctifs"
       ]
     }

@@ -45,6 +45,7 @@ export class TrailOverview extends Component {
   }
 
   public async clickMenuItem(item: string) {
+    this.getElement().scrollIntoView({block: 'center', inline: 'center'});
     const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
     await button.click();
     const menu = new MenuContent(await App.waitPopover());
