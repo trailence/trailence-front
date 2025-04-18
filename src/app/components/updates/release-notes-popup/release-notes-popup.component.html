@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="reset" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.update.release_notes.popup[type]}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="news">{{ i18n.texts.update.release_notes.popup.news }}</div>
+  <app-release-notes [sinceVersion]="sinceVersion"></app-release-notes>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      @if (type === 'available') {
+        <ion-button color="success" (click)="install()">{{i18n.texts.update.release_notes.popup.download}}</ion-button>
+        <ion-button color="medium" (click)="close()">{{i18n.texts.update.release_notes.popup.later}}</ion-button>
+      } @else {
+        <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

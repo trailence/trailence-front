@@ -1,4 +1,4 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, Injector, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
 import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, map, of, switchMap, tap, timeout } from 'rxjs';
@@ -7,6 +7,7 @@ import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
+import { ModalController } from '@ionic/angular/standalone';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
@@ -66,6 +67,7 @@ class RegisteredStore implements StoreRegistration {
 
 export interface VersionedDb {
   db: Dexie;
+  appVersion?: number;
   tablesVersion: {[key: string]: number};
 }
 
@@ -82,6 +84,7 @@ export class DatabaseService {
     auth: AuthService,
     private readonly ngZone: NgZone,
     private readonly network: NetworkService,
+    private readonly injector: Injector,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -271,6 +274,8 @@ export class DatabaseService {
         db.version(1).stores(storesV1);
         db.table(INTERNAL_TABLE_NAME).get('version')
         .then(result => {
+          const appVersion = result?.appVersion;
+          Console.info("Database app version", appVersion, "current", trailenceAppVersionCode);
           const versions = {} as any;
           const getTableVersion = (name: string) => {
             if (!result) return initialVersion;
@@ -290,16 +295,27 @@ export class DatabaseService {
           Console.info("Database loaded with versions", versions);
           const versionedDb = {
             db,
+            appVersion,
             tablesVersion: versions,
           } as VersionedDb;
           this._db.next(versionedDb);
           this.initAutoUpdateFromServer();
+          if ((!appVersion && exists) || (appVersion && appVersion < trailenceAppVersionCode)) {
+            import('../../components/updates/release-notes-popup/release-notes-popup.component')
+            .then(m => this.injector.get(ModalController).create({
+              component: m.ReleaseNotesPopup,
+              componentProps: { sinceVersion: appVersion ?? 0, type: 'updated' },
+              cssClass: 'small-modal',
+            }))
+            .then(m => m.present());
+          }
+          this.saveTableVersion('appVersion', trailenceAppVersionCode);
         });
       });
     });
   }
 
-  public saveTableVersion(tableName: string, newVersion: number): Promise<void> {
+  public saveTableVersion(tableName: string, newVersion?: number): Promise<void> {
     const db = this._db.value;
     if (!db) return Promise.resolve();
     return db.db.transaction('rw', [INTERNAL_TABLE_NAME], () => {

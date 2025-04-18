@@ -1,0 +1,41 @@
+div.release {
+  &:not(:first-child) {
+    margin-top: 10px;
+  }
+
+  div.release-header {
+    font-size: 16px;
+    div.version {
+      display: inline;
+      color: var(--ion-color-secondary);
+      span:first-child {
+        margin-right: 6px;
+      }
+    }
+    div.message {
+      display: inline;
+    }
+  }
+  div.release-items {
+    color: var(--ion-color-medium);
+    margin-top: 5px;
+    font-size: 14px;
+
+    div.release-item {
+      margin-left: 20px;
+      position: relative;
+      margin-top: 3px;
+
+      &:before {
+        content: ' ';
+        position: absolute;
+        left: -10px;
+        top: 6px;
+        width: 4px;
+        height: 4px;
+        border-radius: 2px;
+        background-color: var(--ion-color-secondary);
+      }
+    }
+  }
+}

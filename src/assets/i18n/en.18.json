@@ -749,12 +749,22 @@
   },
   "update": {
     "download_android": "Download Android application",
-    "update_android": "Download update",
+    "update_android": "View Update",
     "not_allowed": "If you don't want to allow automatic update, you can still download it and install it manually.",
     "download_manually": "Download manually",
     "updating": "Updating",
     "downloading": "Downloading",
-    "installing": "Installing update"
+    "installing": "Installing update",
+    "release_notes": {
+      "popup": {
+        "updated": "Trailence has been updated!",
+        "available": "Update available!",
+        "news": "What's new",
+        "later": "Later",
+        "download": "Install"
+      },
+      "version": "Version"
+    }
   },
   "metadata": {
     "trail_date": "Track date",

@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { APK_PATH, AppDownload } from 'src/app/services/update/common';
-import { Platform, AlertController } from '@ionic/angular/standalone';
+import { Platform, AlertController, ModalController } from '@ionic/angular/standalone';
 import { catchError, first, map, Observable, of, switchMap } from 'rxjs';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
@@ -37,7 +37,7 @@ export class UpdateService {
           icon: 'android',
           i18nText: 'update_android',
           badge: '⟳',
-          launch: () => { this.downloadAndUpdate(); },
+          launch: () => { this.displayUpdate(); },
         };
       }
     });
@@ -52,6 +52,16 @@ export class UpdateService {
       }),
       catchError(() => of(null))
     );
+  }
+
+  private async displayUpdate() {
+    const module = await import('src/app/components/updates/release-notes-popup/release-notes-popup.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.ReleaseNotesPopup,
+      componentProps: { sinceVersion: trailenceAppVersionCode, type: 'available' },
+      cssClass: 'small-modal',
+    });
+    await modal.present();
   }
 
   public async downloadAndUpdate() {

@@ -1,0 +1,18 @@
+{
+  "001408": {
+    "en": {
+      "message": "Add release notes",
+      "items": [
+        "Display release notes when Trailence is updated",
+        "Some small improvements and fixes"
+      ]
+    },
+    "fr": {
+      "message": "Informations de mise à jour",
+      "items": [
+        "Affiche les nouveautés lors d'une mise à jour",
+        "Quelques petites améliorations et correctifs"
+      ]
+    }
+  }
+}

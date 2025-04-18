@@ -749,12 +749,22 @@
   },
   "update": {
     "download_android": "Télécharger l'application Android",
-    "update_android": "Télécharger la mise à jour",
+    "update_android": "Voir la mise à jour",
     "not_allowed": "Si vous préférez ne pas autoriser la mise à jour automatique, vous pouvez télécharger la mise à jour et l'installer manuellement.",
     "download_manually": "Télécharger manuellement",
     "updating": "Mise à jour",
     "downloading": "Téléchargement",
-    "installing": "Installation de la mise à jour"
+    "installing": "Installation de la mise à jour",
+    "release_notes": {
+      "popup": {
+        "updated": "Trailence a été mis à jour !",
+        "available": "Mise à jour disponible !",
+        "news": "Nouveautés",
+        "later": "Plus tard",
+        "download": "Installer"
+      },
+      "version": "Version"
+    }
   },
   "metadata": {
     "trail_date": "Date du parcours",
