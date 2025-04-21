@@ -106,8 +106,7 @@ export class PhotoService {
     const key = owner + '#' + uuid;
     const existing = this._blobUrls.get(key);
     if (existing) return existing.asObservable();
-    const subject = new DatabaseSubject(
-      this.injector.get(DatabaseSubjectService),
+    const subject = this.injector.get(DatabaseSubjectService).create(
       'PhotoBlobUrl',
       () => firstValueFrom(this.getFile$(owner, uuid).pipe(map(blob => ({url: URL.createObjectURL(blob), blobSize: blob.size})))),
       item => {
@@ -191,7 +190,7 @@ export class PhotoService {
 
   private static extractDateFromName(name: string): number | undefined {
     const regex = /.*(\d{4})([0-1]\d)([0-3]\d).?([0-2]\d)([0-5]\d)([0-5]\d).*/;
-    const dateMatch = regex.exec(name);
+    const dateMatch = regex.exec(name.length > 200 ? name.substring(0, 200) : name);
     if (!dateMatch) return undefined;
     const year = dateMatch[1] ? parseInt(dateMatch[1]) : undefined;
     if (!year || isNaN(year) || year < 1900) return undefined;

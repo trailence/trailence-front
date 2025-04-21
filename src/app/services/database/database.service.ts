@@ -102,7 +102,7 @@ export class DatabaseService {
   public get syncStatus(): Observable<boolean> {
     return this._stores.pipe(
       switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.status$))),
-      map(status => status.map(s => !!s?.inProgress).reduce((a,b) => a || b, false))
+      map(status => status.map(s => !!s?.inProgress).some(b => b))
     );
   }
 
@@ -117,9 +117,9 @@ export class DatabaseService {
           ]
         ).pipe(
           map(([statuses, operations]) => {
-            let hasChanges = statuses.map(s => !!s?.hasLocalChanges).reduce((a,b) => a || b, false);
+            let hasChanges = statuses.map(s => !!s?.hasLocalChanges).some(b => b);
             if (hasChanges) return true;
-            hasChanges = operations.reduce((a,b) => a || b, false);
+            hasChanges = operations.some(b => b);
             return hasChanges;
           }),
           debounceTimeExtended(100, 100, undefined, (p, n) => n === true)

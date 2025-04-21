@@ -4,7 +4,6 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { Subscription } from 'rxjs';
 import L from 'leaflet';
-import { MapTrack } from './map-track';
 import { Color } from 'src/app/utils/color';
 
 export const anchorBorderColor = '#d00000';
@@ -41,8 +40,9 @@ export class MapTrackWayPoints {
   private subscription?: Subscription;
 
   constructor(
-    private readonly track: MapTrack,
+    private readonly track: Track | SimplifiedTrackSnapshot,
     private readonly _isRecording: boolean,
+    private readonly getColor: () => string,
     private readonly i18n: I18nService,
   ) {}
 
@@ -102,10 +102,10 @@ export class MapTrackWayPoints {
 
   private load(): void {
     if (this._anchors !== undefined) return;
-    if (this.track.track instanceof Track) {
-      this.subscription = this.track.track.computedWayPoints$.subscribe(list => this.loadFromTrack(list));
+    if (this.track instanceof Track) {
+      this.subscription = this.track.computedWayPoints$.subscribe(list => this.loadFromTrack(list));
     } else {
-      this.loadFromSimplifiedTrack(this.track.track);
+      this.loadFromSimplifiedTrack(this.track);
     }
   }
 
@@ -171,7 +171,8 @@ export class MapTrackWayPoints {
   }
 
   private createWayPoint(wp: ComputedWayPoint): MapAnchor {
-    return new MapAnchor(wp.wayPoint.point.pos, this.track.color, '' + wp.index, undefined, anchorTextColor, new Color(this.track.color).setAlpha(0.8).darker(48).toString(), undefined, true, wp);
+    const color = this.getColor();
+    return new MapAnchor(wp.wayPoint.point.pos, color, '' + wp.index, undefined, anchorTextColor, new Color(color).setAlpha(0.8).darker(48).toString(), undefined, true, wp);
   }
 
   private createBreakPoint(wp: ComputedWayPoint): MapAnchor {

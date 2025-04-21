@@ -96,13 +96,11 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
     } else {
       this.screenWidth = this.browser.width;
       this.screenHeight = this.browser.height;
-      if (!this.browserSubscription) {
-        this.browserSubscription = this.browser.resize$.subscribe(size => {
-          this.scroll = this.scroll / this.screenWidth * size.width;
-          this.screenWidth = size.width;
-          this.screenHeight = size.height;
-        });
-      }
+      this.browserSubscription ??= this.browser.resize$.subscribe(size => {
+        this.scroll = this.scroll / this.screenWidth * size.width;
+         this.screenWidth = size.width;
+         this.screenHeight = size.height;
+      });
     }
     this.items = this.photos.map((p, index) => ({
       photo: p,

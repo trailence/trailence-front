@@ -230,7 +230,7 @@ export class MapComponent extends AbstractComponent {
         }
         return true;
       }
-    } catch (e) {
+    } catch (e) { // NOSONAR
       // ignore
     }
     return false;
@@ -517,13 +517,13 @@ export class MapComponent extends AbstractComponent {
   }
 
   public get crs(): L.CRS {
-    return this._map$.value?.options.crs || L.CRS.EPSG3857;
+    return this._map$.value?.options.crs ?? L.CRS.EPSG3857;
   }
 
   private createMap(): void {
-    let layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName);
-    if (!layer) layer = this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer());
-    if (!layer) layer = this.mapLayersService.layers[0];
+    const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
+      ?? this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer())
+      ?? this.mapLayersService.layers[0];
 
     const map = L.map(this.id, {
       center: this._mapState.center,
@@ -621,8 +621,8 @@ export class MapComponent extends AbstractComponent {
               toolShowPosition.remove();
               toolShowPosition = undefined;
             }
-          } else if (!toolShowPosition) {
-            toolShowPosition = new MapShowPositionTool(this.injector, this.mapGeolocation.showPosition$, { position: 'topleft' }).addTo(map);
+          } else {
+            toolShowPosition ??= new MapShowPositionTool(this.injector, this.mapGeolocation.showPosition$, { position: 'topleft' }).addTo(map);
           }
           // show position
           if (position) {

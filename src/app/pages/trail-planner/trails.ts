@@ -11,9 +11,10 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { ShareService } from 'src/app/services/database/share.service';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { Share } from 'src/app/model/share';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 const TRAIL_MAPTRACK_DEFAULT_COLOR = '#FF000080';
 const TRAIL_MAPTRACK_HIGHLIGHTED_COLOR = '#FF00FFFF';

@@ -16,10 +16,10 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { BackgroundPlugin } from './plugins/background';
 import { RangeSelection, RangeSelectionEvent, SelectedRange } from './plugins/range-selection';
 import { Point } from 'src/app/model/point';
-import { PathRange } from '../trail/path-selection';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { LegendPlugin } from './plugins/elevation-legend';
+import { PathRange } from '../trail/path-range';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 

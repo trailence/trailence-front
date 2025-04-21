@@ -119,6 +119,13 @@ export async function importTrails(collectionPage: TrailsPage, filenames: string
   return expectedTrails;
 }
 
+export function expectedFromFiles(filenames: string[]) {
+  const result = [];
+  for (const filename of filenames)
+    result.push(...expectedTrailsByFile[filename]());
+  return result;
+}
+
 export async function expectListContains(list: TrailsList, expectedTrails: ExpectedTrail[]) {
   let nbFound = 0;
   try { await browser.waitUntil(() => list.items.length.then(nb => { nbFound = nb; return nb === expectedTrails.length; })); } catch (e) {}

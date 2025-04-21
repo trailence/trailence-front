@@ -75,5 +75,8 @@ describe('Admin Users', () => {
     await usersPage.views.setSelected('general');
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 });

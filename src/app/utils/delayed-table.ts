@@ -35,7 +35,7 @@ export class DelayedTable<DTO, K> {
     .then(fromDb => {
       let j = 0;
       for (let i = 0; i < keys.length; ++i) {
-        if (!result[i]) result[i] = fromDb[j++];
+        result[i] ??= fromDb[j++];
       }
       return result;
     })
@@ -43,12 +43,12 @@ export class DelayedTable<DTO, K> {
 
   public put(item: DTO): void {
     this.delayedItems.set((item as any)[this.keyName], item);
-    if (!this.delay) this.delay = setTimeout(() => this.processDelayed(), this.initialDelay);
+    this.delay ??= setTimeout(() => this.processDelayed(), this.initialDelay);
   }
 
   public bulkPut(items: DTO[]): void {
     for (const item of items) this.delayedItems.set((item as any)[this.keyName], item);
-    if (!this.delay) this.delay = setTimeout(() => this.processDelayed(), this.initialDelay);
+    this.delay ??= setTimeout(() => this.processDelayed(), this.initialDelay);
   }
 
   private processDelayed(): void {

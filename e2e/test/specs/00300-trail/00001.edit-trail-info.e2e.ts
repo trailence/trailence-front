@@ -81,8 +81,9 @@ describe('Trail - Edit infos', () => {
     expect(tags.indexOf('Beautiful') >= 0).toBeTrue();
   });
 
-  it('Synchronize', async () => {
+  it('Synchronize and logout', async () => {
     await App.synchronize();
+    await App.logout();
   });
 
   it('End', async () => await App.end());

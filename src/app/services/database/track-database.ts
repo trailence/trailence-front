@@ -297,7 +297,7 @@ export class TrackDatabase {
     const key = uuid + '#' + owner;
     let item$ = this.metadata.get(key);
     if (!item$) {
-      item$ = new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key));
+      item$ = this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key));
       this.metadata.set(key, item$);
     }
     return item$.asObservable();
@@ -310,10 +310,7 @@ export class TrackDatabase {
     return new Promise<TrackMetadataSnapshot | null>((resolve) => {
       this.metadataKeysToLoad.set(key, resolve);
       if (this.metadataLoadingTimeout) return;
-      this.ngZone.runOutsideAngular(() => {
-        if (!this.metadataLoadingTimeout)
-          this.metadataLoadingTimeout = setTimeout(() => this.loadMetadataAsync(), 0);
-      });
+      this.ngZone.runOutsideAngular(() => this.metadataLoadingTimeout ??= setTimeout(() => this.loadMetadataAsync(), 0));
     });
   }
   private loadMetadataAsync(): void {
@@ -346,7 +343,7 @@ export class TrackDatabase {
             if (item$) {
               item$.newValue(item);
             } else {
-              item$ = new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, item);
+              item$ = this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, item);
               this.metadata.set(key, item$);
             }
             result.push(item$.asObservable());
@@ -364,7 +361,7 @@ export class TrackDatabase {
     const key = uuid + '#' + owner;
     let item$ = this.simplifiedTracks.get(key);
     if (!item$) {
-      item$ = new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key));
+      item$ = this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key));
       this.simplifiedTracks.set(key, item$);
     }
     return item$.asObservable();
@@ -377,10 +374,7 @@ export class TrackDatabase {
     return new Promise<SimplifiedTrackSnapshot | null>((resolve) => {
       this.simplifiedKeysToLoad.set(key, resolve);
       if (this.simplifiedLoadingTimeout) return;
-      this.ngZone.runOutsideAngular(() => {
-        if (!this.simplifiedLoadingTimeout)
-          this.simplifiedLoadingTimeout = setTimeout(() => this.loadSimplifiedTrackAsync(), 0);
-      });
+      this.ngZone.runOutsideAngular(() => this.simplifiedLoadingTimeout ??= setTimeout(() => this.loadSimplifiedTrackAsync(), 0));
     });
   }
   private loadSimplifiedTrackAsync(): void {
@@ -408,7 +402,7 @@ export class TrackDatabase {
     const key = uuid + '#' + owner;
     let item$ = this.fullTracks.get(key);
     if (!item$) {
-      item$ = new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key));
+      item$ = this.subjectService.create<Track>('Track', () => this.loadFullTrack(key));
       this.fullTracks.set(key, item$);
     }
     return item$.asObservable();
@@ -516,13 +510,13 @@ export class TrackDatabase {
         });
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
-        else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
+        else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
         const simplified$ = this.simplifiedTracks.get(key);
         if (simplified$) simplified$.newValue(simplified);
-        else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
-        else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
+        else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
         if (!this.syncStatus$.value!.hasLocalCreates) {
           this.syncStatus$.value!.hasLocalCreates = true;
           this.syncStatus$.next(this.syncStatus$.value);
@@ -564,13 +558,13 @@ export class TrackDatabase {
         });
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
-        else this.fullTracks.set(key, new DatabaseSubject<Track>(this.subjectService, 'Track', () => this.loadFullTrack(key), undefined, track));
+        else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
         const simplified$ = this.simplifiedTracks.get(key);
         if (simplified$) simplified$.newValue(simplified);
-        else this.simplifiedTracks.set(key, new DatabaseSubject<SimplifiedTrackSnapshot>(this.subjectService, 'SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
+        else this.simplifiedTracks.set(key, this.subjectService.create<SimplifiedTrackSnapshot>('SimplifiedTrackSnapshot', () => this.loadSimplifiedTrack(key), undefined, simplified));
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
-        else this.metadata.set(key, new DatabaseSubject<TrackMetadataSnapshot>(this.subjectService, 'TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
+        else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
         if (!this.syncStatus$.value!.hasLocalUpdates) {
           this.syncStatus$.value!.hasLocalUpdates = true;
           this.syncStatus$.next(this.syncStatus$.value);
@@ -601,7 +595,7 @@ export class TrackDatabase {
       if (simplified$) simplified$.newValue(null);
       const metadata$ = this.metadata.get(key);
       if (metadata$) metadata$.newValue(null);
-      if (!dbUpdated) dbUpdated = Promise.resolve();
+      dbUpdated ??= Promise.resolve();
       return dbUpdated.then(() => {
         if (!this.syncStatus$.value!.hasLocalDeletes) {
           this.syncStatus$.value!.hasLocalDeletes = true;
@@ -642,7 +636,7 @@ export class TrackDatabase {
         remaining--;
         progress?.addWorkDone(work);
       }
-      if (!dbUpdated) dbUpdated = Promise.resolve();
+      dbUpdated ??= Promise.resolve();
       return dbUpdated.then(() => {
         progress?.addWorkDone(progressDb);
         if (!this.syncStatus$.value!.hasLocalDeletes) {

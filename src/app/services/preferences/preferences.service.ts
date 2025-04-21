@@ -80,7 +80,7 @@ export class PreferencesService {
           photoCacheDays: parsed['photoCacheDays'],
         }
       }
-    } catch (e) {}
+    } catch (e) {} // NOSONAR
     this._prefs$ = new BehaviorSubject<Preferences>(prefs);
     this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
     Console.info('Initial preferences: ', this._computed$.value);
@@ -128,26 +128,26 @@ export class PreferencesService {
     if (!result.lang || !defaultPreferences[result.lang])
       result.lang = this.getDefaultLanguage();
     this.complete(result, defaultPreferences[result.lang]);
-    if (!result.theme) result.theme = 'SYSTEM';
+    result.theme ??= 'SYSTEM';
     return result as ComputedPreferences;
   }
 
   private complete(toComplete: Preferences, withPrefs: Preferences): void { // NOSONAR
-    if (!toComplete.lang) toComplete.lang = withPrefs.lang;
+    toComplete.lang ??= withPrefs.lang;
     toComplete.distanceUnit = this.completeEnum(toComplete.distanceUnit, withPrefs.distanceUnit, ['METERS', 'IMPERIAL']);
     toComplete.hourFormat = this.completeEnum(toComplete.hourFormat, withPrefs.hourFormat, ['H12', 'H24'])
     toComplete.dateFormat = this.completeEnum(toComplete.dateFormat, withPrefs.dateFormat, ['m/d/yyyy', 'dd/mm/yyyy'])
-    if (toComplete.traceMinMeters === undefined || toComplete.traceMinMeters === null) toComplete.traceMinMeters = DEFAULT_TRACE_MIN_METERS;
-    if (toComplete.traceMinMillis === undefined || toComplete.traceMinMillis === null) toComplete.traceMinMillis = DEFAULT_TRACE_MIN_MILLIS;
-    if (toComplete.offlineMapMaxKeepDays === undefined || toComplete.offlineMapMaxKeepDays === null) toComplete.offlineMapMaxKeepDays = DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS;
-    if (toComplete.offlineMapMaxZoom === undefined || toComplete.offlineMapMaxZoom === null) toComplete.offlineMapMaxZoom = DEFAULT_OFFLINE_MAP_MAX_ZOOM;
-    if (toComplete.estimatedBaseSpeed === undefined || toComplete.estimatedBaseSpeed === null) toComplete.estimatedBaseSpeed = DEFAULT_ESTIMATED_BASE_SPEED;
-    if (toComplete.longBreakMinimumDuration === undefined || toComplete.longBreakMinimumDuration === null) toComplete.longBreakMinimumDuration = DEFAULT_LONG_BREAK_MINIMUM_DURATION;
-    if (toComplete.longBreakMaximumDistance === undefined || toComplete.longBreakMaximumDistance === null) toComplete.longBreakMaximumDistance = DEFAULT_LONG_BREAK_MAXIMUM_DISTANCE;
-    if (toComplete.photoMaxPixels === undefined || toComplete.photoMaxPixels === null) toComplete.photoMaxPixels = DEFAULT_PHOTO_MAX_PIXELS;
-    if (toComplete.photoMaxQuality === undefined || toComplete.photoMaxQuality === null) toComplete.photoMaxQuality = DEFAULT_PHOTO_MAX_QUALITY;
-    if (toComplete.photoMaxSizeKB === undefined || toComplete.photoMaxSizeKB === null) toComplete.photoMaxSizeKB = DEFAULT_PHOTO_MAX_SIZE;
-    if (toComplete.photoCacheDays === undefined || toComplete.photoCacheDays === null) toComplete.photoCacheDays = DEFAULT_PHOTO_CACHE_DAYS;
+    toComplete.traceMinMeters ??= DEFAULT_TRACE_MIN_METERS;
+    toComplete.traceMinMillis ??= DEFAULT_TRACE_MIN_MILLIS;
+    toComplete.offlineMapMaxKeepDays ??= DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS;
+    toComplete.offlineMapMaxZoom ??= DEFAULT_OFFLINE_MAP_MAX_ZOOM;
+    toComplete.estimatedBaseSpeed ??= DEFAULT_ESTIMATED_BASE_SPEED;
+    toComplete.longBreakMinimumDuration ??= DEFAULT_LONG_BREAK_MINIMUM_DURATION;
+    toComplete.longBreakMaximumDistance ??= DEFAULT_LONG_BREAK_MAXIMUM_DISTANCE;
+    toComplete.photoMaxPixels ??= DEFAULT_PHOTO_MAX_PIXELS;
+    toComplete.photoMaxQuality ??= DEFAULT_PHOTO_MAX_QUALITY;
+    toComplete.photoMaxSizeKB ??= DEFAULT_PHOTO_MAX_SIZE;
+    toComplete.photoCacheDays ??= DEFAULT_PHOTO_CACHE_DAYS;
   }
 
   private completeEnum<T>(value: string | undefined, defaultValue: T, allowedValues: string[]): T {
@@ -190,9 +190,7 @@ export class PreferencesService {
     const authService = this.injector.get(AuthService);
     const auth = authService.auth;
     if (auth && auth.preferences?.lang !== lang) {
-      if (!auth.preferences) {
-        auth.preferences = {};
-      }
+      auth.preferences ??= {};
       auth.preferences.lang = lang;
       authService.preferencesUpdated();
       this._saveNeeded$.next(auth.email);
@@ -269,9 +267,7 @@ export class PreferencesService {
     if (auth) {
       const currentValue = auth?.preferences ? (auth.preferences as any)[field] : undefined;
       if (currentValue !== value) {
-        if (!auth.preferences) {
-          auth.preferences = {};
-        }
+        auth.preferences ??= {};
         (auth.preferences as any)[field] = value;
         authService.preferencesUpdated();
         this._saveNeeded$.next(auth.email);

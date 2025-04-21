@@ -2,13 +2,14 @@ import { Injectable, Injector } from '@angular/core';
 import { MenuItem } from 'src/app/utils/menu-item';
 import { AuthService } from '../auth/auth.service';
 import { ModalController } from '@ionic/angular/standalone';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {

@@ -15,7 +15,7 @@ import { SearchPlaceComponent } from 'src/app/components/search-place/search-pla
 import { Place } from 'src/app/services/geolocation/place';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Router } from '@angular/router';
 import { ElevationGraphComponent } from 'src/app/components/elevation-graph/elevation-graph.component';
@@ -26,6 +26,7 @@ import { Trails } from './trails';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { TrailHoverCursor } from 'src/app/components/trail/hover-cursor';
 import { ElevationGraphPointReference } from 'src/app/components/elevation-graph/elevation-graph-events';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 @Component({
     selector: 'app-trail-planner',

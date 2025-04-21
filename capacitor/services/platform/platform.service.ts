@@ -6,7 +6,7 @@ import { first } from 'rxjs';
 import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
 import { Router } from '@angular/router';
 import { ErrorService } from 'src/app/services/progress/error.service';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {

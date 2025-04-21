@@ -16,6 +16,15 @@ export class DatabaseSubjectService {
 
   private readonly subjects: DatabaseSubject<any>[] = [];
 
+  public create<T>(
+    type: string,
+    loadItem: () => Promise<T | null>,
+    unloadItem: ((item: T) => void) | undefined = undefined,
+    initialValue: T | null | undefined = undefined,
+  ): DatabaseSubject<T> {
+    return new DatabaseSubject<T>(s => this.register(s), s => this.unregister(s), type, loadItem, unloadItem, initialValue);
+  }
+
   public register(subject: DatabaseSubject<any>) {
     const index = this.subjects.indexOf(subject);
     if (index < 0) this.subjects.push(subject);

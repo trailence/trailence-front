@@ -188,5 +188,8 @@ describe('Trails list - Sort and filter', () => {
     await expectListContains(list, EXPECTED_TRAILS);
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 });

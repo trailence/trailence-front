@@ -4,7 +4,6 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime } from 'rxjs';
 import { Router } from '@angular/router';
-import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { Trail } from 'src/app/model/trail';
@@ -29,6 +28,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { SearchTrailsHeaderComponent } from 'src/app/components/search-trails-header/search-trails-header.component';
 import { SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 @Component({
     selector: 'app-trails-page',

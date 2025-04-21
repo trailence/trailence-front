@@ -2,14 +2,15 @@ import { Track } from 'src/app/model/track';
 import L from 'leaflet';
 import { Subscription } from 'rxjs';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { MapTrack } from './map-track';
+import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 
 export class MapTrackPath {
 
   constructor(
-    private readonly _track: MapTrack,
+    private readonly _track: Track | SimplifiedTrackSnapshot,
     private _color: string,
     private readonly _smoothFactor: number,
+    private readonly fromTrack: any, // this will be the MapTrack, but any avoids circular reference
   ) {}
 
   private _map?: L.Map;
@@ -18,7 +19,7 @@ export class MapTrackPath {
 
   public get path(): L.Polyline {
     if (!this._path) {
-      const polylines: L.LatLngExpression[][] = this._track.track instanceof Track ? this.buildPolyLines(this._track.track) : [this._track.track.points as L.LatLngLiteral[]];
+      const polylines: L.LatLngExpression[][] = this._track instanceof Track ? this.buildPolyLines(this._track) : [this._track.points as L.LatLngLiteral[]];
       this._path = L.polyline(polylines, {
         color: this._color,
         smoothFactor: this._smoothFactor,
@@ -26,14 +27,14 @@ export class MapTrackPath {
         className: 'track-path',
       });
       this._path.on('click', e => {
-        (e.originalEvent as any).fromTrack = this._track; // NOSONAR
+        (e.originalEvent as any).fromTrack = this.fromTrack; // NOSONAR
       });
-      if (!this._subscription && this._track.track instanceof Track) {
-        this._subscription = this._track.track.segmentChanges$.pipe(
+      if (!this._subscription && this._track instanceof Track) {
+        this._subscription = this._track.segmentChanges$.pipe(
           debounceTimeExtended(100, 100, 100),
         ).subscribe(() => {
           if (this._path && this._map) {
-            this._path.setLatLngs(this.buildPolyLines(this._track.track as Track));
+            this._path.setLatLngs(this.buildPolyLines(this._track as Track));
             return;
           }
           this._path = undefined;

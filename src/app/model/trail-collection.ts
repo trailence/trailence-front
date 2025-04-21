@@ -1,4 +1,4 @@
-import { TrailCollectionDto } from "./dto/trail-collection";
+import { TrailCollectionDto, TrailCollectionType } from "./dto/trail-collection";
 import { Owned } from "./owned";
 
 export class TrailCollection extends Owned {
@@ -23,9 +23,4 @@ export class TrailCollection extends Owned {
         };
     }
 
-}
-
-export enum TrailCollectionType {
-    MY_TRAILS = 'MY_TRAILS',
-    CUSTOM = 'CUSTOM',
 }

@@ -80,6 +80,9 @@ describe('Reset password', () => {
     await loginPage.loginAndWaitMyTrailsCollection();
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 
 });

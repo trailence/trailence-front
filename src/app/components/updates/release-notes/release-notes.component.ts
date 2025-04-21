@@ -3,7 +3,6 @@ import { Component, Input, OnInit } from '@angular/core';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { trailenceAppVersionCode } from 'src/app/trailence-version';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { environment } from 'src/environments/environment';
 

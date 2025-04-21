@@ -55,7 +55,7 @@ export class Resubscribeables {
     if (!this.paused) return;
     this.paused = false;
     for (const rs of this.subscriptions) {
-      if (!rs.subscription) rs.subscription = rs.outsideAngular ? this.ngZone.runOutsideAngular(() => rs.observable.subscribe(rs.observer)) : rs.observable.subscribe(rs.observer);
+      rs.subscription ??= rs.outsideAngular ? this.ngZone.runOutsideAngular(() => rs.observable.subscribe(rs.observer)) : rs.observable.subscribe(rs.observer);
     }
   }
 

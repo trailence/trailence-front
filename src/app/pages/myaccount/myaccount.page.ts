@@ -50,7 +50,7 @@ export class MyaccountPage implements OnDestroy, OnInit {
     this.email = auth.email!;
     this.complete = auth.auth?.complete || false;
     this.subscriptions.add(auth.auth$.subscribe(a => {
-      const newValue = a?.complete || false;
+      const newValue = a?.complete ?? false;
       if (this.complete !== newValue) {
         this.complete = newValue;
         this.changeDetector.detectChanges();

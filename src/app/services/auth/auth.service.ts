@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, share, switchMap, tap, throwError, zip } from 'rxjs';
+import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, throwError, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -49,7 +49,7 @@ export class AuthService {
 
   private readonly _auth$ = new BehaviorSubject<AuthResponse | null | undefined>(undefined);
   private db?: Dexie;
-  private _currentAuth?: Observable<AuthResponse | null>;
+  private _currentAuth?: Subscriber<AuthResponse | null>[];
 
   constructor(
     private readonly http: HttpService,
@@ -121,7 +121,7 @@ export class AuthService {
   }
 
   public get auth$(): Observable<AuthResponse | null> { return this._auth$.pipe(filter(auth => auth !== undefined)); }
-  public get auth(): AuthResponse | null { return this._auth$.value || null; }
+  public get auth(): AuthResponse | null { return this._auth$.value ?? null; }
 
   public get email(): string | undefined { return this.auth?.email; }
 
@@ -285,71 +285,86 @@ export class AuthService {
   }
 
   private renewAuth(): Observable<AuthResponse | null> {
-    if (!this._currentAuth) {
-      const current = this._auth$.value;
-      if (!current) return of(null);
-      Console.info('Authenticating ' + current.email);
-      this._currentAuth =
-        from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(current.email)))
+    return new Observable<AuthResponse | null>(
+      subscriber => {
+        if (!this._currentAuth) {
+          const subscribers = [subscriber];
+          this._currentAuth = subscribers;
+          this.doRenewAuth().subscribe({
+            next: result => {
+              this._currentAuth = undefined;
+              for (const s of subscribers) {
+                s.next(result);
+                s.complete();
+              }
+            },
+          });
+        } else {
+          this._currentAuth.push(subscriber);
+        }
+      }
+    );
+  }
+
+  private doRenewAuth(): Observable<AuthResponse | null> {
+    const current = this._auth$.value;
+    if (!current) return of(null);
+    Console.info('Authenticating ' + current.email);
+    return from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(current.email)))
+    .pipe(
+      switchMap(security => {
+        if (!security) {
+          this._auth$.next(null);
+          return of(null);
+        }
+        return this.http.post<{random:string}>(environment.apiBaseUrl + '/auth/v1/init_renew', {email: security.email, keyId: security.keyId} as InitRenewRequest)
         .pipe(
-          switchMap(security => {
-            if (!security) {
-              this._auth$.next(null);
-              return of(null);
+          switchMap(initResponse =>
+            from(window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', security.privateKey, new TextEncoder().encode(security.email + initResponse.random)))
+            .pipe(map(signature => ({signature, randomBase64: initResponse.random, keyId: security.keyId})))
+          ),
+          catchError(error => {
+            if (error instanceof ApiError) {
+              if (error.httpCode === 403) {
+                Console.warn('The server refused our authentication key id ' + security.keyId);
+                this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(current.email);
+                this._auth$.next(null);
+                return of(null);
+              }
             }
-            return this.http.post<{random:string}>(environment.apiBaseUrl + '/auth/v1/init_renew', {email: security.email, keyId: security.keyId} as InitRenewRequest)
-            .pipe(
-              switchMap(initResponse =>
-                from(window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', security.privateKey, new TextEncoder().encode(security.email + initResponse.random)))
-                .pipe(map(signature => ({signature, randomBase64: initResponse.random, keyId: security.keyId})))
-              ),
-              catchError(error => {
-                if (error instanceof ApiError) {
-                  if (error.httpCode === 403) {
-                   Console.warn('The server refused our authentication key');
-                    this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(current.email);
-                    this._auth$.next(null);
-                    return of(null);
-                  }
-                }
-                return throwError(() => error);
-              })
-            )
-          }),
-          switchMap(result => {
-            if (!result) return of(null);
-            const request = {
-              email: current.email,
-              random: result.randomBase64,
-              keyId: result.keyId,
-              signature: btoa(String.fromCharCode(...new Uint8Array(result.signature))),
-              deviceInfo: new DeviceInfo(this.platform),
-            } as RenewRequest;
-            if (current.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB) > Date.now())
-              return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request);
-            // renew the key
-            Console.info("Renew token with new key pair");
-            return this.generateKeys().pipe(
-              switchMap(keys => {
-                request.newPublicKey = keys.publicKeyBase64;
-                request.newKeyExpiresAfter = this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB;
-                return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(
-                  switchMap(response =>
-                    from(this.db!.transaction('rw', DB_SECURITY_TABLE, tx =>
-                      tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
-                    ))
-                    .pipe(map(() => response))
-                  )
-                );
-              }),
+            return throwError(() => error);
+          })
+        )
+      }),
+      switchMap(result => {
+        if (!result) return of(null);
+        const request = {
+          email: current.email,
+          random: result.randomBase64,
+          keyId: result.keyId,
+          signature: btoa(String.fromCharCode(...new Uint8Array(result.signature))),
+          deviceInfo: new DeviceInfo(this.platform),
+        } as RenewRequest;
+        if (current.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB) > Date.now())
+          return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request);
+        // renew the key
+        Console.info("Renew token with new key pair");
+        return this.generateKeys().pipe(
+          switchMap(keys => {
+            request.newPublicKey = keys.publicKeyBase64;
+            request.newKeyExpiresAfter = this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB;
+            return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(
+              switchMap(response =>
+                from(this.db!.transaction('rw', DB_SECURITY_TABLE, tx =>
+                  tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
+                ))
+                .pipe(map(() => response))
+              )
             );
           }),
-          tap(response => this._auth$.next(response)),
-          share()
         );
-    }
-    return this._currentAuth.pipe(
-      tap(() => this._currentAuth = undefined)
+      }),
+      tap(response => this._auth$.next(response))
     );
   }
 

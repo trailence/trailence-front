@@ -6,7 +6,7 @@ import { BehaviorSubject, firstValueFrom, of } from 'rxjs';
 import { provideAuthService } from 'test/utils/mock-auth-service';
 import { provideNetworkService } from 'test/utils/mock-network-service';
 import { TrailCollectionService } from '../database/trail-collection.service';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { PointDto } from 'src/app/model/dto/point';
@@ -16,6 +16,7 @@ import { DatabaseService } from '../database/database.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthResponse } from '../auth/auth-response';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 describe('Test Trace Recorder', () => {
 

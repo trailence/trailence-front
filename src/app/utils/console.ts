@@ -37,7 +37,7 @@ export class Console {
     }
     if (navigator.webdriver) {
       const w = window as any;
-      if (!w._consoleHistory) w._consoleHistory = [];
+      w._consoleHistory ??= [];
       const convert = (a: any, done: any[], deep: number) => { // NOSONAR
         try {
           if (deep > 3) return '<too deep>';

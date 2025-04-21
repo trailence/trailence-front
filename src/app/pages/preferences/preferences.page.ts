@@ -54,7 +54,7 @@ export class PreferencesPage implements OnDestroy {
     this.extensionsSubscription = extensions.getExtensions$().subscribe(
       extensions => {
         const thunderforest = extensions.find(e => e.extension === 'thunderforest.com');
-        if (thunderforest) this.tfoApiKey = thunderforest.data['apikey'] || undefined;
+        if (thunderforest) this.tfoApiKey = thunderforest.data['apikey'] ?? undefined;
       }
     );
     this.preferencesSubscription = preferences.preferences$.subscribe(() => this.refresh());

@@ -158,5 +158,8 @@ describe('Trail - Photos', () => {
     await App.synchronize();
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 });

@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { first } from 'rxjs';
-import { TrailCollectionType } from 'src/app/model/trail-collection';
 import { TagsComponent } from '../tags/tags.component';
 import { Tag } from 'src/app/model/tag';
 import { ShareService } from 'src/app/services/database/share.service';
@@ -17,6 +16,7 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { EMAIL_REGEX } from 'src/app/utils/string-utils';
 import { Share } from 'src/app/model/share';
 import { IdGenerator } from 'src/app/utils/component-utils';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
   injector.get(ModalController).create({

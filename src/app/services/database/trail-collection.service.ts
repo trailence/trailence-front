@@ -1,8 +1,8 @@
 import { Injectable, Injector } from "@angular/core";
 import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, tap, throwError } from "rxjs";
-import { TrailCollection, TrailCollectionType } from "src/app/model/trail-collection";
+import { TrailCollection } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
-import { TrailCollectionDto } from "src/app/model/dto/trail-collection";
+import { TrailCollectionDto, TrailCollectionType } from "src/app/model/dto/trail-collection";
 import { DatabaseService, TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./database.service";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";

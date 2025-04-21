@@ -4,7 +4,7 @@ import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonL
 import { first, map, Observable, of, switchMap, zip } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
@@ -15,6 +15,7 @@ import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { TrailComponent } from '../trail/trail.component';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 export function openFindDuplicates(injector: Injector, fromCollection: string): void {
   injector.get(ModalController).create({

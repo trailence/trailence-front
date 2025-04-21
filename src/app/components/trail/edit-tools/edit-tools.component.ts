@@ -17,10 +17,10 @@ import { RemoveBreaksMoves } from './remove-breaks-moves/remove-breaks-moves';
 import { ElevationThresholdModal } from './elevation-threshold/elevation-threshold-modal';
 import { ToolRenderer } from './tool-renderer';
 import { SelectionTool } from './selection/selection-tool';
-import { PathRange } from '../path-selection';
 import { TrailComponent } from '../trail.component';
 import { adjustUnprobableElevationToTrackBasedOnGrade } from 'src/app/services/track-edition/elevation/unprobable-elevation-with-grade';
 import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
+import { PathRange } from '../path-range';
 
 interface HistoryState {
   base: Track | undefined;
@@ -175,7 +175,7 @@ export class EditToolsComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
-    let track = (this.modifiedTrack$.value || this.baseTrack$.value)!;
+    let track = (this.modifiedTrack$.value ?? this.baseTrack$.value)!;
     track = track.copy(this.auth.email!);
     this.trackService.create(track);
     this.trail.currentTrackUuid = track.uuid;

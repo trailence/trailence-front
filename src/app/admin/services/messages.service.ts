@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, filter, Observable, tap } from 'rxjs';
 import { HttpService } from 'src/app/services/http/http.service';
 import { Console } from 'src/app/utils/console';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { environment } from 'src/environments/environment';
 import { PageRequest } from '../components/paginator/page-request';
 import { PageResult } from '../components/paginator/page-result';
@@ -19,7 +18,9 @@ export class MessagesService {
 
   public get unreadCount$(): Observable<number> {
     if (!this._unreadCount$.observed && this._unreadCount$.value === undefined) this.refreshUnreadCount();
-    return this._unreadCount$.pipe(filterDefined());
+    return this._unreadCount$.pipe(
+      filter(nb => nb !== undefined && nb !== null)
+    );
   }
 
   public refreshUnreadCount(): void {
@@ -27,7 +28,6 @@ export class MessagesService {
       next: nb => this._unreadCount$.next(nb),
       error: e => {
         Console.error(e);
-        // TODO
       }
     })
   }

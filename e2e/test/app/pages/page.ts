@@ -17,10 +17,10 @@ export abstract class Page extends AppElement {
   public static async getActivePageElement() {
     const app = $('ion-app');
     await browser.waitUntil(async () => {
-      const nb = await app.$$('>>>ion-router-outlet>.ion-page:not(.ion-page-hidden)').length;
+      const nb = await app.$$('ion-app>ion-content>ion-router-outlet>.ion-page:not(.ion-page-hidden)').length;
       return nb === 1;
     });
-    return app.$('>>>ion-router-outlet>.ion-page:not(.ion-page-hidden)');
+    return app.$('ion-app>ion-content>ion-router-outlet>.ion-page:not(.ion-page-hidden)');
   }
 
   public override _getElement(resetGetElement: boolean) {

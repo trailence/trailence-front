@@ -42,8 +42,8 @@ export class ImportFromUrlComponent {
       this.detectedSource = undefined;
     } else {
       this.fetchSourceService.waitReady$().subscribe(() => {
-        this.detectedSource = this.fetchSourceService.canFetchTrailByUrl(value)?.name;
-        if (!this.detectedSource) this.detectedSource = this.fetchSourceService.canFetchTrailsByUrl(value)?.name;
+        this.detectedSource = this.fetchSourceService.canFetchTrailByUrl(value)?.name
+          ?? this.fetchSourceService.canFetchTrailsByUrl(value)?.name;
         if (!this.detectedSource) this.message = this.i18n.texts.pages.import_from_url.unknown_source;
         else this.message = undefined;
       });

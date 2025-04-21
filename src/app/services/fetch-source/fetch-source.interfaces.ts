@@ -98,8 +98,8 @@ export function populateWayPointInfo(track: Track, fetched: WayPointInfo[], pref
         }
       }
     } else if (wpi.isDeparture || wpi.isArrival) {
-      let wp = cwp.find(w => w.isDeparture === wpi.isDeparture && w.isArrival === wpi.isArrival);
-      if (!wp) wp = cwp.find(w => (wpi.isDeparture && w.isDeparture) || (wpi.isArrival && w.isArrival));
+      let wp = cwp.find(w => w.isDeparture === wpi.isDeparture && w.isArrival === wpi.isArrival)
+        ?? cwp.find(w => (wpi.isDeparture && w.isDeparture) || (wpi.isArrival && w.isArrival));
       if (wp) {
         if (wp.wayPoint.description.trim().length === 0 && wpi.description) {
           wp.wayPoint.description = wpi.description.trim();

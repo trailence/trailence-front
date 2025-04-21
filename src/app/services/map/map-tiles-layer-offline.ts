@@ -68,7 +68,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
         return;
       }
       if (!img?._offlineLoaded) {
-        loadOffline(img || tile, 1);
+        loadOffline(img ?? tile, 1);
       }
     });
     img.classList.add('map-tile-loading');

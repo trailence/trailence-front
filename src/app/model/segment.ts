@@ -668,9 +668,9 @@ export class SegmentMetadata {
     this.addDistance(distance);
     this.addDuration(duration);
     if (positiveElevation !== undefined && (this._positiveElevation.value === undefined || positiveElevation > 0))
-      this._positiveElevation.next((this._positiveElevation.value || 0) + positiveElevation);
+      this._positiveElevation.next((this._positiveElevation.value ?? 0) + positiveElevation);
     if (negativeElevation !== undefined && (this._negativeElevation.value === undefined || negativeElevation > 0))
-      this._negativeElevation.next((this._negativeElevation.value || 0) + negativeElevation);
+      this._negativeElevation.next((this._negativeElevation.value ?? 0) + negativeElevation);
     if (this._startPoint.value !== startPoint) this._startPoint.next(startPoint);
     if (this._highestPoint.value !== highestPoint) this._highestPoint.next(highestPoint);
     if (this._lowestPoint.value !== lowestPoint) this._lowestPoint.next(lowestPoint);

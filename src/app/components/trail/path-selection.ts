@@ -5,14 +5,7 @@ import { TrailComponent } from './trail.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ChangeDetectorRef, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
-
-export interface PathRange {
-  track: Track;
-  startSegmentIndex: number;
-  startPointIndex: number;
-  endSegmentIndex: number;
-  endPointIndex: number;
-}
+import { PathRange } from './path-range';
 
 export class TrailPathSelection {
 
@@ -69,9 +62,9 @@ export class TrailPathSelection {
     if (!this.zoomOnSelection) {
       if (this.component.editToolsComponentInstance) {
         const track =
-          this.component.toolsFocusTrack$.value ||
-          this.component.toolsModifiedTrack$.value ||
-          this.component.toolsBaseTrack$.value ||
+          this.component.toolsFocusTrack$.value ??
+          this.component.toolsModifiedTrack$.value ??
+          this.component.toolsBaseTrack$.value ??
           this.component.tracks$.value[0];
         const range = this.selectionRange.find(r => r.track === track);
         if (range && this.component.editToolsComponentInstance.setSelection(range)) return;

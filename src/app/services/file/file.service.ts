@@ -84,7 +84,7 @@ export class FileService implements IFileService {
         }
       });
       return true;
-    } catch (e) {
+    } catch (e) { // NOSONAR
       return false;
     }
   }

@@ -85,7 +85,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     if (showBubblesState) {
       try {
         this.showBubbles$.next(!!JSON.parse(showBubblesState));
-      } catch (e) {
+      } catch (e) { // NOSONAR
         // ignore
       }
     }

@@ -74,6 +74,10 @@ export class LoginPage extends PublicPage {
       this.connected = connected;
       changeDetector.markForCheck();
     });
+    this.whenVisible.subscribe(auth.auth$, a => {
+      if (this.inprogress || !a) return;
+      this.injector.get(NavController).navigateRoot(this.returnUrl);
+    });
   }
 
   onSubmit(): void {

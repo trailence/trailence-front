@@ -10,8 +10,8 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonList, IonItem, IonButton, IonInput } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import { PathRange } from '../../path-selection';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { PathRange } from '../../path-range';
 
 @Component({
   selector: 'app-edit-tools-selection',

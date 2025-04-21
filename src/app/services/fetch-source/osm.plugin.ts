@@ -100,7 +100,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
     const trail = new Trail({
       owner: this.owner,
       uuid: circuit.id.toString(),
-      name: circuit.tags['name'] ||
+      name: circuit.tags['name'] ??
         (circuit.tags['from'] && circuit.tags['to'] ? this.i18n.texts.osm.from + ' ' + circuit.tags['from'] + ' ' + this.i18n.texts.osm.to + ' ' + circuit.tags['to'] : undefined),
       description: circuit.tags['description'] ?? undefined,
       collectionUuid: this.owner,

@@ -18,9 +18,9 @@ export class DeviceInfo {
     this.userAgent = window.navigator.userAgent;
     const uaData = (window.navigator as any).userAgentData;
     if (uaData) {
-      this.mobile = uaData.mobile || false;
-      this.platform = uaData.platform || '';
-      this.brands = (uaData.brands || []).map((b: any) => ({brand: b.brand, version: b.version}));
+      this.mobile = uaData.mobile ?? false;
+      this.platform = uaData.platform ?? '';
+      this.brands = (uaData.brands ?? []).map((b: any) => ({brand: b.brand, version: b.version}));
     } else {
       this.mobile = false;
       this.platform = '';

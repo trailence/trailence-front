@@ -3,31 +3,21 @@ import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { TagsPopup } from '../../components/tags-popup';
 import { TrailsList } from '../../components/trails-list.component';
-import { expectedTrailsByFile, expectListContains } from '../../utils/import-trails';
-
-const EXPECTED_TRAILS = [
-  ...expectedTrailsByFile['gpx-001.gpx'](),
-  ...expectedTrailsByFile['gpx-002.gpx'](),
-  ...expectedTrailsByFile['gpx-003.gpx'](),
-  ...expectedTrailsByFile['gpx-004.gpx']().map(t => {
-    t.tags = t.tags.filter(tag => tag !== 'Tag 4');
-    return t;
-  }),
-  ...expectedTrailsByFile['gpx-zip-001.zip'](),
-  ...expectedTrailsByFile['gpx-zip-002.zip'](),
-]
+import { expectedFromFiles, ExpectedTrail, expectListContains, importTrails } from '../../utils/import-trails';
 
 describe('Trails Tools', () => {
 
   let collectionPage: TrailsPage;
+  let EXPECTED_TRAILS: ExpectedTrail[];
 
-  it('Login and go to Test import collection', async () => {
+  it('Login, create collection, import trails', async () => {
     App.init();
     const loginPage = await App.start();
     await loginPage.loginAndWaitMyTrailsCollection();
     const menu = await App.openMenu();
-    collectionPage = await menu.openCollection('Test Import');
-    expect(await collectionPage.header.getTitle()).toBe('Test Import');
+    collectionPage = await menu.openCollection('Test SortFilter');
+    expect(await collectionPage.header.getTitle()).toBe('Test SortFilter');
+    EXPECTED_TRAILS = expectedFromFiles(['gpx-001.gpx', 'gpx-002.gpx', 'gpx-003.gpx', 'gpx-004.gpx', 'gpx-zip-001.zip', 'gpx-zip-002.zip']);
   });
 
   let list: TrailsList;
@@ -211,8 +201,9 @@ describe('Trails Tools', () => {
     await expectListContains(list, EXPECTED_TRAILS);
   });
 
-  it('Synchronize', async () => {
+  it('Synchronize and logout', async () => {
     await App.synchronize();
+    await App.logout();
   });
 
   it('End', async () => await App.end());

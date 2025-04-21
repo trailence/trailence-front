@@ -41,7 +41,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 @Component({
     selector: 'app-trail',
@@ -348,7 +348,7 @@ export class TrailComponent extends AbstractComponent {
   private listenForWayPoints(): void {
     this.byStateAndVisible.subscribe(
       combineLatest([this.toolsModifiedTrack$, this.tracks$]).pipe(
-        map(([modified, tracks]) => modified || (tracks.length > 0 ? tracks[0] : undefined)),
+        map(([modified, tracks]) => modified ?? (tracks.length > 0 ? tracks[0] : undefined)),
         switchMap(track => { this.wayPointsTrack = track; return track ? track.computedWayPoints$ : of([]); })
       ),
       wayPoints => {
@@ -362,7 +362,7 @@ export class TrailComponent extends AbstractComponent {
   private listenForTags(): void {
     if (!this.trail1$) return;
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
+      combineLatest([this.trail1$, this.trail2$ ?? of(null)]).pipe(
         switchMap(([trail1, trail2]) =>
           combineLatest([
             trail1 && trail1.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail1.uuid) : of(undefined),
@@ -386,7 +386,7 @@ export class TrailComponent extends AbstractComponent {
   private listenForPhotos(): void {
     if (!this.trail1$) return;
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$, this.trail2$ || of(null)]).pipe(
+      combineLatest([this.trail1$, this.trail2$ ?? of(null)]).pipe(
         switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos(trail1) : of(undefined))
       ),
       photos => {
@@ -411,7 +411,7 @@ export class TrailComponent extends AbstractComponent {
     const photosByKey = new Map<string, Photo[]>();
     const dateToPoint = { trackUuid: undefined as string | undefined, cache: new Map<number, L.LatLngExpression | null>() };
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$, this.trail2$ || of(null), this.showPhotos$]).pipe(
+      combineLatest([this.trail1$, this.trail2$ ?? of(null), this.showPhotos$]).pipe(
         switchMap(([trail1, trail2, showPhotos]) => {
           if (!trail1 || trail2 || !showPhotos) return of([]);
           return this.photoService.getTrailPhotos(trail1).pipe(
@@ -575,7 +575,7 @@ export class TrailComponent extends AbstractComponent {
 
   private listenForCollections(): void {
     this.whenVisible.subscribe(
-      combineLatest([this.trail1$ || of(null), this.trail2$ || of(null), this.auth.auth$, this.i18n.texts$]).pipe(
+      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.auth.auth$, this.i18n.texts$]).pipe(
         switchMap(([trail1, trail2, auth]) => {
           if (!trail1 || !trail2 || trail1.collectionUuid === trail2.collectionUuid || !auth || trail1.owner !== auth.email || trail2.owner !== auth.email) return of([null, null]);
           return combineLatest([

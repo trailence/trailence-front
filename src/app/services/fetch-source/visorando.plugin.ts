@@ -98,7 +98,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
             if (text.startsWith(')')) text = text.substring(1).trim();
             if (text.endsWith('(')) text = text.substring(0, text.length - 1).trim();
 
-            if (!result.wayPoints) result.wayPoints = [];
+            result.wayPoints ??= [];
             if (n === 'D/A') {
               if (!result.wayPoints.find(w => w.isDeparture && w.isArrival))
                 result.wayPoints.push({isDeparture: true, isArrival: true, description: text});

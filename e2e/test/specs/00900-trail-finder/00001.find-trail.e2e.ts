@@ -90,5 +90,8 @@ describe('Find Trail', () => {
     await trailPage.header.goBack();
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 });

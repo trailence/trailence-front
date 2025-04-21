@@ -1,20 +1,49 @@
 import { App } from '../../app/app';
+import { LoginPage } from '../../app/pages/login-page';
+import { Page } from '../../app/pages/page';
+import { AppMenu } from '../../components/app-menu.component';
+import { HeaderComponent } from '../../components/header.component';
 import { ShareModal } from '../../components/share.modal';
 import { FilesUtils } from '../../utils/files-utils';
 import { checkShares } from './share-utils';
 
 describe('Shares - Edit', () => {
 
-  it('Login', async () => {
+  let loginPage: LoginPage;
+
+  it('Open link, remove share', async () => {
     App.init();
-    const loginPage = await App.start();
-    const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
-    await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
+    const linkUrl = await FilesUtils.fs().then(fs => fs.readFileSync(App.config.downloadPath + '/share3.link', {encoding: 'utf-8'}));
+    const page = await App.startLink(linkUrl);
+    await browser.waitUntil(() => page.header.getTitle().then(title => title === 'tag2+4+photo'));
+
+    const appMenu = await App.openMenu();
+    const shares = await appMenu.getShares(appMenu.getSharedWithMeSection());
+    expect(shares.length).toBe(1);
+    expect(shares[0][0]).toBe('tag2+4+photo');
+    expect(shares[0][1]).toBe(App.config.username);
+    await appMenu.close();
+
+    const shareMenu = await page.header.openActionsMenu();
+    await shareMenu.clickItemWithText('Delete');
+    const alert = await App.waitAlert();
+    await alert.clickButtonWithRole('danger');
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(t => t === 'My Trails'));
+    await App.synchronize();
+    loginPage = await App.logout();
+  });
+
+  let appMenu: AppMenu;
+
+  it('User see the share has been deleted', async () => {
+    await loginPage.loginAndWaitMyTrailsCollection();
+    appMenu = await App.openMenu();
+    const shares = await appMenu.getShares(appMenu.getSharedByMeSection());
+    expect(shares.find(s => s[1] === 'friend3@trailence.org')).toBeUndefined();
   });
 
   it('Edit share with friend1, rename it and share it with friend 2', async () => {
-    const menu = await App.openMenu();
-    const shareMenu = await menu.openShareMenu(menu.getSharedByMeSection(), 'full col');
+    const shareMenu = await appMenu.openShareMenu(appMenu.getSharedByMeSection(), 'full col');
     expect(shareMenu).toBeDefined();
     await shareMenu!.clickItemWithText('Edit');
     const modal = new ShareModal(await App.waitModal());

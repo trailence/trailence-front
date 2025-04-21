@@ -33,9 +33,9 @@ describe('Import data from Visorando', () => {
     expect(await modal.getTitle()).toBe('Import data');
     await (await modal.getFooterButtonWithText('Yes')).click();
     await modal.notDisplayed();
-    const trailPage = await trailsList.openTrailByName(hautMontetName);
     await App.waitNoProgress();
 
+    const trailPage = await trailsList.openTrailByName(hautMontetName);
     const description = await trailPage.trailComponent.getDescription();
     expect(description).toBe(hautMontetDescription);
     const waypoints = await trailPage.trailComponent.getWayPoints();
@@ -167,5 +167,8 @@ describe('Import data from Visorando', () => {
     await App.synchronize();
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 });

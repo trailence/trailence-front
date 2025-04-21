@@ -115,8 +115,9 @@ describe('Copy / Move Trails', () => {
     await expectListContains(list, EXPECTED_TRAILS);
   });
 
-  it('Synchronize', async () => {
+  it('Synchronize and logout', async () => {
     await App.synchronize();
+    await App.logout();
   });
 
   it('End', async () => await App.end());

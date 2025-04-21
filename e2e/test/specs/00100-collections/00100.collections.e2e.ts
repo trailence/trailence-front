@@ -116,8 +116,12 @@ describe('Collections', () => {
     const collections = await menu.getCollections();
     expect(collections.length).toBe(1);
     expect(collections).toContain('My Trails');
+    await menu.close();
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 
 })

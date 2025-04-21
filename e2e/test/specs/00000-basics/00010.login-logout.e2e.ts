@@ -49,6 +49,9 @@ describe('Login and Logout', () => {
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 
 });

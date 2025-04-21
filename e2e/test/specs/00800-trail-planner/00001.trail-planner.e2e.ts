@@ -1,7 +1,6 @@
 import { App } from '../../app/app';
 import { Page } from '../../app/pages/page';
 import { TrailPlannerPage } from '../../app/pages/trail-planner-page';
-import { TrailsPage } from '../../app/pages/trails-page';
 import { CollectionModal } from '../../components/collection.modal';
 import { HeaderComponent } from '../../components/header.component';
 import { MapComponent } from '../../components/map.component';
@@ -108,5 +107,8 @@ describe('Trail Planner', () => {
     await App.synchronize();
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 });

@@ -145,5 +145,8 @@ describe('Shares - Check shares', () => {
     expect(trails.length).toBe(2);
   });
 
-  it('End', async () => await App.end());
+  it('End', async () => {
+    await App.logout(false);
+    await App.end();
+  });
 });

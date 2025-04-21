@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { TrailCollection, TrailCollectionType } from 'src/app/model/trail-collection';
+import { TrailCollection } from 'src/app/model/trail-collection';
 import { IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { first } from 'rxjs';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Console } from 'src/app/utils/console';
+import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 @Component({
     selector: 'app-collection-form-popup',
