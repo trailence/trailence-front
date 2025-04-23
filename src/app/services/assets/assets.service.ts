@@ -90,6 +90,7 @@ export class AssetsService {
       'merge': 'assets/merge.1.svg', // git-merge-outline
       'negative-elevation': 'assets/negative-elevation.1.svg',
       'path': 'assets/path.1.svg',
+      'pause': 'assets/pause.1.svg', // pause-outline
       'pause-circle': 'assets/pause-circle.1.svg', // pause-circle-outline
       'photos': 'assets/photos.1.svg', // images-outline
       'planner': 'assets/calendar-outline.1.svg', // calendar-outline

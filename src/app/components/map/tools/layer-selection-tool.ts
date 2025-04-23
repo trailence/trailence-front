@@ -20,14 +20,7 @@ export class MapLayerSelectionTool extends L.Control {
     const button = MapToolUtils.createButton('layer-tool');
     button.style.color = 'black';
     const assets = this.injector.get(AssetsService);
-    assets.loadSvg(assets.icons['layers']).subscribe(
-      svg => {
-        svg.style.width = '32px';
-        svg.style.height = '32px';
-        svg.style.margin = '3px 3px -2px 3px';
-        button.appendChild(svg);
-      }
-    );
+    assets.loadSvg(assets.icons['layers']).subscribe(svg => button.appendChild(svg));
     button.onclick = async (event: MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();

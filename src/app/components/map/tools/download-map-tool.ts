@@ -18,14 +18,7 @@ export class DownloadMapTool extends L.Control {
     const button = MapToolUtils.createButton('download-map-tool');
     button.style.color = map.getZoom() < 12 ? '#A0A0A0' : '#000000';
     const assets = this.injector.get(AssetsService);
-    assets.loadSvg(assets.icons['download']).subscribe(
-      svg => {
-        svg.style.width = '32px';
-        svg.style.height = '32px';
-        svg.style.margin = '3px 3px -2px 3px';
-        button.appendChild(svg);
-      }
-    );
+    assets.loadSvg(assets.icons['download']).subscribe(svg => button.appendChild(svg));
     map.on('zoom', () => {
       button.style.color = map.getZoom() < 12 ? '#A0A0A0' : '#000000';
     });

@@ -109,6 +109,7 @@ export class TrackBuilder {
   }
 
   undo(): void {
+    if (this.anchors.length === 0) return;
     if (this.anchors.length === 1) {
       this.map.removeFromMap(this.anchors[0].marker);
       this.anchors = [];
@@ -212,6 +213,7 @@ export class TrackBuilder {
   }
 
   enableFreeAnchor(): void {
+    if (!this.putAnchors) return;
     this.disablePutAnchors();
     this.cancelWays();
     this.putFreeAnchor = true;

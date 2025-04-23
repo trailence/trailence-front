@@ -25,9 +25,6 @@ export class MapBubblesTool extends L.Control {
     assets.loadSvg(assets.icons['bubbles']).subscribe(
       svg => {
         svgOn = svg;
-        svg.style.width = '32px';
-        svg.style.height = '32px';
-        svg.style.margin = '3px 3px -2px 3px';
         if (!activated)
           button.appendChild(svg);
       }
@@ -35,9 +32,6 @@ export class MapBubblesTool extends L.Control {
     assets.loadSvg(assets.icons['path']).subscribe(
       svg => {
         svgOff = svg;
-        svg.style.width = '32px';
-        svg.style.height = '32px';
-        svg.style.margin = '3px 3px -2px 3px';
         if (activated)
           button.appendChild(svg);
       }

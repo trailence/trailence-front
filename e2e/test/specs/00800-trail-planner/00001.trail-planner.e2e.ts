@@ -50,7 +50,7 @@ describe('Trail Planner', () => {
     await browser.waitUntil(() => $('app-map div.leaflet-map-pane div.leaflet-tile-container img').isExisting());
     map = page.map;
     if (App.config.mode === 'mobile')
-      await map.goTo(43.50149953433722,7.046613693237306, 14);
+      await map.goTo(43.497514901391675,7.046356201171876, 14);
     else
       await map.goTo(43.50748766288276,7.047182321548463, 16);
     await browser.waitUntil(() => page.needZoom().then(n => !n));

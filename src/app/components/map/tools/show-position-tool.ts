@@ -25,9 +25,6 @@ export class MapShowPositionTool extends L.Control {
     assets.loadSvg(assets.icons['pin']).subscribe(
       svg => {
         svgOn = svg;
-        svg.style.width = '26px';
-        svg.style.height = '26px';
-        svg.style.margin = '3px 3px -2px 3px';
         if (!activated)
           button.appendChild(svg);
       }
@@ -35,9 +32,6 @@ export class MapShowPositionTool extends L.Control {
     assets.loadSvg(assets.icons['pin-off']).subscribe(
       svg => {
         svgOff = svg;
-        svg.style.width = '26px';
-        svg.style.height = '26px';
-        svg.style.margin = '3px 3px -2px 3px';
         if (activated)
           button.appendChild(svg);
       }

@@ -20,14 +20,7 @@ export class MapCenterOnPositionTool extends L.Control {
     const button = MapToolUtils.createButton('center-on-location-tool');
     button.style.color = 'black';
     const assets = this.injector.get(AssetsService);
-    assets.loadSvg(assets.icons['center-on-location']).subscribe(
-      svg => {
-        svg.style.width = '26px';
-        svg.style.height = '26px';
-        svg.style.margin = '3px 3px -2px 3px';
-        button.appendChild(svg);
-      }
-    );
+    assets.loadSvg(assets.icons['center-on-location']).subscribe(svg => button.appendChild(svg));
     this.subscription = this.following$.subscribe(
       following => button.style.color = following ? 'red' : 'black'
     );

@@ -1,13 +1,137 @@
 app-map {
 
-  .leaflet-container {
+  div.leaflet-container {
     background: var(--ion-background-color);
+
+    div.leaflet-control-container {
+
+      div.leaflet-control.leaflet-control-button {
+        background: #ffffff;
+        background-clip: padding-box;
+        border-radius: 5px;
+        border: 2px solid rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        &:hover {
+          border-color: rgba(0, 0, 0, 0.5);
+        }
+      }
+
+      div.leaflet-right div.leaflet-control.leaflet-control-button {
+        svg {
+          width: 32px;
+          height: 32px;
+          margin: 3px 3px -2px 3px;
+        }
+      }
+
+      div.leaflet-left div.leaflet-control.leaflet-control-button {
+        svg {
+          width: 24px;
+          height: 24px;
+          margin: 3px 3px -2px 3px;
+        }
+        img {
+          width: 28px;
+          height: 28px;
+          margin: 1px 1px -3px 1px;
+        }
+      }
+
+    }
   }
 
   &.mouse-pointer {
     .leaflet-grab {
       cursor: pointer;
     }
+  }
+
+  div.map-top-controls-container {
+    position: absolute;
+    top: 5px;
+    left: 56px;
+    right: 64px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+
+  div.map-toolbar {
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    padding: 0 5px;
+    box-shadow: 0px 0px 6px 0 #606060;
+
+    &.horizontal {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    div.map-tool {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-height: 45px;
+      margin: 2px 1px 1px 1px;
+
+      ion-icon {
+        flex: none;
+        width: 16px;
+        height: 16px;
+      }
+
+      ion-label {
+        margin-top: 2px;
+        flex: 1 1 100%;
+        font-size: 9px;
+        max-width: 45px;
+        min-width: 32px;
+        text-align: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+      }
+
+      + div.map-tool {
+        margin-left: 8px;
+      }
+    }
+
+    div.separator {
+      margin: 0 4px;
+      border-right: 1px solid #00000030;
+    }
+
+  }
+
+}
+
+@media (max-width: 450px) {
+
+  app-map {
+
+    div.leaflet-container {
+
+      div.leaflet-control-container {
+
+        div.leaflet-right div.leaflet-control.leaflet-control-button {
+          svg {
+            width: 24px;
+            height: 24px;
+            margin: 3px 3px -2px 3px;
+          }
+        }
+      }
+    }
+
+    div.map-top-controls-container {
+      right: 56px;
+    }
+
   }
 
 }

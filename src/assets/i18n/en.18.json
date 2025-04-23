@@ -495,14 +495,14 @@
       "title": "Trail Planner",
       "please_zoom": "To see possible ways and position points, please zoom at least to level",
       "start": "Start",
-      "stop": "Stop",
+      "stop": "Pause",
       "reset": "Reset",
       "resume": "Resume",
-      "undo": "Undo last point",
+      "undo": "Undo",
       "show_routes": "Display circuits",
       "show_trails": "Display my tracks",
-      "put_free_point": "Add a free point",
-      "back_to_non_free_point": "Pick up points on paths",
+      "put_free_point": "Free point",
+      "back_to_non_free_point": "Follow paths",
       "meta": {
         "from": "From",
         "to": "to"

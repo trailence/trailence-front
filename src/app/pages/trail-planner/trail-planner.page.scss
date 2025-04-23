@@ -7,51 +7,17 @@
   flex: 1 1 100%;
   position: relative;
 
-  --left-pane-width: 350px;
   --bottom-pane-height: 0px;
   --elevation-graph-height: 0px;
   --bottom-tabs-width: 0px;
   --left-pane-button-width: 12px;
+  --left-pane-width: var(--left-pane-button-width);
 
-  &.small {
-    --left-pane-width: var(--left-pane-button-width);
+  &.left-pane-open {
+    --left-pane-width: calc(min(80vw, calc(350px + var(--left-pane-button-width))));
+  }
+  &.bottom-pane-open {
     --bottom-pane-height: 150px;
-
-    .map-container {
-      bottom: var(--bottom-pane-height);
-    }
-    .left-pane {
-      z-index: 1000;
-      background-color: var(--ion-background-color);
-      padding-top: 5px;
-
-      &.open {
-        --left-pane-width: 80vw;
-      }
-
-      .trails-section ion-toggle {
-        margin-left: 8px;
-      }
-    }
-  }
-
-  &.has-elevation {
-    --elevation-graph-height: 200px;
-    &.small {
-      --bottom-tabs-width: 30px;
-      --elevation-graph-height: var(--bottom-pane-height);
-      .elevation-graph-container {
-        left: var(--bottom-tabs-width);
-      }
-    }
-  }
-
-  .map-container {
-    position: absolute;
-    top: 0;
-    bottom: var(--elevation-graph-height);
-    right: 0;
-    left: var(--left-pane-width);
   }
 
   .left-pane {
@@ -64,10 +30,8 @@
     flex-direction: column;
     overflow: hidden;
     transition: width 0.3s ease-in-out;
-
-    .metadata-container {
-      padding: 10px;
-    }
+    background-color: var(--ion-background-color);
+    z-index: 2000;
 
     .left-pane-button {
       position: absolute;
@@ -85,56 +49,75 @@
         margin-top: calc(50vh - calc(var(--left-pane-button-width) / 2));
       }
     }
+
+    .trails-section {
+      flex: 1 1 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      ion-toggle {
+        flex: none;
+        align-self: flex-start;
+        margin: 4px 4px 8px 4px;
+      }
+      .trails-list {
+        flex: 1 1 100%;
+        overflow-y: auto;
+      }
+    }
+  }
+
+  .map-container {
+    position: absolute;
+    top: 0;
+    bottom: var(--bottom-pane-height);
+    right: 0;
+    left: var(--left-pane-button-width);
+
+    ::ng-deep app-search-place {
+      ion-searchbar {
+        --box-shadow: none;
+
+        input.searchbar-input {
+          padding-inline-start: 25px;
+          padding-inline-end: 25px;
+          padding-top: 4px;
+          padding-bottom: 4px;
+        }
+        ion-icon.searchbar-search-icon {
+          inset-inline-start: 0;
+          top: 8px;
+        }
+        button.searchbar-clear-button {
+          inset-inline-end: 0;
+        }
+      }
+      .tip {
+        font-size: 10px;
+      }
+    }
+  }
+
+  &.has-elevation {
+    --bottom-tabs-width: 30px;
+    --elevation-graph-height: var(--bottom-pane-height);
   }
 
   .elevation-graph-container {
     position: absolute;
     bottom: 0;
     right: 0;
-    left: var(--left-pane-width);
+    left: calc(var(--left-pane-button-width) + var(--bottom-tabs-width));
     height: var(--elevation-graph-height);
   }
 
   .bottom-pane {
     position: absolute;
     bottom: 0;
-    left: var(--left-pane-width);
+    left: var(--left-pane-button-width);
     right: 0;
     height: var(--bottom-pane-height);
-
-    .meta-and-actions {
-      position: absolute;
-      bottom: 0;
-      top: 0;
-      right: 0;
-      left: var(--bottom-tabs-width);
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-      height: var(--bottom-pane-height);
-
-      .metadata-container {
-        flex: none;
-        padding: 10px;
-        font-size: 13px;
-        border-right: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
-      }
-      .started {
-        flex: 1 1 100%;
-        overflow-y: auto;
-
-        ion-list {
-          ion-item {
-            --min-height: 36px;
-            font-size: 0.9rem;
-          }
-        }
-      }
-      .message-zoom {
-        padding: 0 8px;
-        font-size: 13px;
-      }
-    }
 
     .bottom-tabs {
       position: absolute;
@@ -169,51 +152,21 @@
         }
       }
     }
+
+    .metadata-container {
+      margin: 5px 10px;
+      margin-left: calc(var(--bottom-tabs-width) + 5px);
+      max-width: 300px;
+    }
   }
 }
 
 .message-zoom {
-  margin: 10px 0;
-  color: var(--ion-color-dark);
-}
-
-.separator {
-  margin: 15px 0 10px 0;
-  height: 0;
-  width: 100%;
-  border-bottom: 1px solid var(--ion-color-medium);
-}
-
-.trails-section {
-  flex: 1 1 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-
-  ion-toggle {
-    flex: none;
-    align-self: flex-start;
-    margin-bottom: 8px;
-  }
-  .trails-list {
-    flex: 1 1 100%;
-    overflow-y: auto;
-  }
-}
-
-.started {
-  ion-list {
-    ion-item {
-      --min-height: 36px;
-
-      ion-icon[slot=start] {
-        margin-top: 0;
-        margin-bottom: 0;
-      }
-      ion-label {
-        margin-top: 3px;
-        margin-bottom: 0;
-      }
-    }
-  }
+  margin: 6px 0;
+  padding: 3px;
+  font-size: 12px;
+  background-color: #F0C0A0C0;
+  color: black;
+  border-radius: 5px;
+  box-shadow: 0 0 4px 0 #F0C0A0;
 }

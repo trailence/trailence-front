@@ -25,7 +25,7 @@ export function parseTests(tests) {
   const allSpecs = listTests();
   const result = [];
 
-  // split with '*'
+  // split with '§'
   for (const modeStr of tests.split('§')) {
     i = modeStr.lastIndexOf(':');
     const modesStr = modeStr.substring(0, i).split(':');

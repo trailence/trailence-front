@@ -1,4 +1,4 @@
-body.dark-theme {
+.dark-theme {
   --ion-color-primary: #005000;
 	--ion-color-primary-rgb: 0,80,0;
 	--ion-color-primary-contrast: #ffffff;
@@ -126,7 +126,7 @@ body.dark-theme {
   --graph-selection-color: #2020FF;
 }
 
-body.light-theme {
+.light-theme {
   --ion-color-primary: #00a000;
 	--ion-color-primary-rgb: 0,160,0;
 	--ion-color-primary-contrast: #ffffff;

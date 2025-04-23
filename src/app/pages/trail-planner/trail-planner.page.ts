@@ -7,7 +7,7 @@ import { MapComponent } from 'src/app/components/map/map.component';
 import { MapTrack } from 'src/app/components/map/track/map-track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
-import { IonButton, IonIcon, IonList, IonItem, IonToggle, IonLabel, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons,
+import { IonButton, IonIcon, IonToggle, IonLabel, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons,
   IonInput, IonSelect, IonSelectOption, ModalController, IonSpinner } from "@ionic/angular/standalone";
 import { Track } from 'src/app/model/track';
 import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
@@ -23,7 +23,6 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailOverviewCondensedComponent } from 'src/app/components/trail-overview/condensed/trail-overview-condensed.component';
 import { TrackBuilder, WAY_MAPTRACK_FORBIDDEN_COLOR, WAY_MAPTRACK_PERMISSIVE_COLOR } from './track-builder';
 import { Trails } from './trails';
-import { BrowserService } from 'src/app/services/browser/browser.service';
 import { TrailHoverCursor } from 'src/app/components/trail/hover-cursor';
 import { ElevationGraphPointReference } from 'src/app/components/elevation-graph/elevation-graph-events';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
@@ -34,7 +33,7 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
     styleUrls: ['./trail-planner.page.scss'],
     imports: [
       IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader,
-      IonModal, IonLabel, IonToggle, IonItem, IonList, IonIcon, IonButton,
+      IonModal, IonLabel, IonToggle, IonIcon, IonButton,
       HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, ElevationGraphComponent,
       TrailOverviewCondensedComponent,
     ]
@@ -56,7 +55,6 @@ export class TrailPlannerPage extends AbstractPage {
   collectionUuid?: string;
   collections: TrailCollection[] = [];
 
-  small: boolean;
   bottomTab: 'info' | 'elevation' = 'info';
   leftPaneOpen = false;
 
@@ -67,12 +65,9 @@ export class TrailPlannerPage extends AbstractPage {
     public i18n: I18nService,
     collectionService: TrailCollectionService,
     private readonly changeDetector: ChangeDetectorRef,
-    browser: BrowserService,
   ) {
     super(injector);
-    this.small = browser.width < 800;
     this.hover = new TrailHoverCursor(() => this.map, () => this.elevationGraph);
-    this.whenVisible.subscribe(browser.resize$, () => this.small = browser.width < 800);
     this.whenAlive.add(collectionService.getAll$().pipe(
       collection$items(),
     ).subscribe(
@@ -113,6 +108,11 @@ export class TrailPlannerPage extends AbstractPage {
     this.trackBuilder!.reset();
     this.trailName = '';
     this.collectionUuid = undefined;
+  }
+
+  openSaveModal(modal: IonModal): void {
+    if (!this.trackBuilder || this.trackBuilder.anchors.length < 2) return;
+    modal.present();
   }
 
   save(): void {

@@ -33,14 +33,7 @@ export class RestrictedWaysTool extends L.Control {
     this._button = MapToolUtils.createButton('restricted-ways-map-tool');
     this._button.style.color = '#FF8000';
     const assets = this.injector.get(AssetsService);
-    assets.loadSvg(assets.icons['warning']).subscribe(
-      svg => {
-        svg.style.width = '32px';
-        svg.style.height = '32px';
-        svg.style.margin = '3px 3px -2px 3px';
-        this._button!.appendChild(svg);
-      }
-    );
+    assets.loadSvg(assets.icons['warning']).subscribe(svg => this._button!.appendChild(svg));
     this.refresh(false);
     this._button.onclick = () => {
       if (this._show) {

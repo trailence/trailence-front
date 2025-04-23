@@ -21,9 +21,6 @@ export class DarkMapToggle extends L.Control {
     assets.loadSvg(assets.icons['theme-dark']).subscribe(
       svg => {
         iconDark = svg;
-        iconDark.style.width = '32px';
-        iconDark.style.height = '32px';
-        iconDark.style.margin = '3px 3px -2px 3px';
         if (!this.injector.get(MapLayersService).darkMapEnabled) {
           button.appendChild(iconDark);
         }
@@ -32,9 +29,6 @@ export class DarkMapToggle extends L.Control {
     assets.loadSvg(assets.icons['theme-light']).subscribe(
       svg => {
         iconLight = svg;
-        iconLight.style.width = '32px';
-        iconLight.style.height = '32px';
-        iconLight.style.margin = '3px 3px -2px 3px';
         if (this.injector.get(MapLayersService).darkMapEnabled) {
           button.appendChild(iconLight);
         }

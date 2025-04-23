@@ -33,6 +33,7 @@ if (!preparation && (admin_username.length === 0 || admin_password.length === 0)
 async function generateCommandLines() {
   let user_index = 1;
   let token = null;
+  let preparation_done = [];
   for (const test of tests) {
     let username;
     let password;
@@ -57,6 +58,11 @@ async function generateCommandLines() {
       mode += ' --native-platform=' + test['nativePlatform'] + ' --native-platform-version=' + test['nativePlatformVersion'] + ' --native-device=' + test['nativeDevice'];
     }
     if (preparation) {
+      if (preparation_done.indexOf(mode) < 0) {
+        preparation_done.push(mode);
+      } else {
+        continue;
+      }
       mode += ' --exclude-tests=**/*.e2e.ts';
     }
     console.log('--trailence-username=' + username + ' --trailence-password=' + password + mode + ' --tests=' + test.specs.join(',') + other_args);

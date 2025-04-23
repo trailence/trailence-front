@@ -495,14 +495,14 @@
       "title": "Planificateur de parcours",
       "please_zoom": "Pour voir les chemins possibles et positionner des points, veuillez zoomer au moins au niveau",
       "start": "Commencer",
-      "stop": "Arrêter",
-      "reset": "Recommencer tout",
+      "stop": "Pause",
+      "reset": "Tout annuler",
       "resume": "Reprendre",
-      "undo": "Annuler le dernier point",
+      "undo": "Annuler",
       "show_routes": "Afficher les circuits",
       "show_trails": "Afficher mes parcours",
-      "put_free_point": "Positionner un point libre",
-      "back_to_non_free_point": "Reprendre des points sur les chemins",
+      "put_free_point": "Point libre",
+      "back_to_non_free_point": "Suivre chemins",
       "meta": {
         "from": "De",
         "to": "à"
@@ -725,7 +725,7 @@
     "no": "Annuler, garder"
   },
   "search_place": {
-    "placeholder": "Rechercher un lieu",
+    "placeholder": "Chercher un lieu",
     "tap_enter": "Touche entrée ↵ pour lancer la recherche",
     "no_result": "Aucun résultat"
   },
