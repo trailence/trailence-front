@@ -1,7 +1,8 @@
-import { Point } from 'src/app/model/point';
+import { PointDescriptor } from 'src/app/model/point';
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
 import { TrackUtils } from 'src/app/utils/track-utils';
+import * as L from 'leaflet';
 
 export function applyElevationThresholdToTrack(track: Track, threshold: number, maxDistance: number): void {
   for (const segment of track.segments)
@@ -10,35 +11,39 @@ export function applyElevationThresholdToTrack(track: Track, threshold: number, 
 
 class Cursor {
   previousEle: number | undefined;
-  previousPos!: L.LatLng;
+  previousPos!: L.LatLng | L.LatLngLiteral;
   previousIndex = 0;
   currentDistance = 0;
 
   constructor(
-    public points: Point[],
+    public points: PointDescriptor[],
     startIndex: number
   ) {
     this.resetWithIndex(points, startIndex);
   }
 
-  reset(ele: number | undefined, pos: L.LatLng, index: number): void {
+  reset(ele: number | undefined, pos: L.LatLng | L.LatLngLiteral, index: number): void {
     this.previousEle = ele;
     this.previousPos = pos;
     this.previousIndex = index;
     this.currentDistance = 0;
   }
 
-  resetWithIndex(points: Point[], index: number) {
+  resetWithIndex(points: PointDescriptor[], index: number) {
     this.reset(points[index].ele, points[index].pos, index);
   }
 
-  newPoint(pos: L.LatLng, index: number) {
-    this.currentDistance += pos.distanceTo(this.points[index - 1].pos);
+  newPoint(pos: L.LatLng | L.LatLngLiteral, index: number) {
+    const p = pos instanceof L.LatLng ? pos : L.latLng(pos.lat, pos.lng);
+    this.currentDistance += p.distanceTo(this.points[index - 1].pos);
   }
 }
 
 export function applyElevationThresholdToSegment(segment: Segment, threshold: number, maxDistance: number, lastIndexProcessed: number | undefined, maxIndexToProcess: number, finish: boolean): number { // NOSONAR
-  const points = segment.points;
+  return applyElevationThresholdToPoints(segment.points, threshold, maxDistance, lastIndexProcessed, maxIndexToProcess, finish);
+}
+
+export function applyElevationThresholdToPoints(points: PointDescriptor[], threshold: number, maxDistance: number, lastIndexProcessed: number | undefined, maxIndexToProcess: number, finish: boolean): number { // NOSONAR
   if (points.length < 3) return 0;
   const smoothOutsideThreshold = threshold * 0.75;
   const start = lastIndexProcessed ?? 0;
@@ -83,7 +88,7 @@ export function applyElevationThresholdToSegment(segment: Segment, threshold: nu
   return Math.max(endIndex, 0);
 }
 
-function smoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, smoothOutsideThreshold: number): number {
+function smoothElevation(points: PointDescriptor[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, smoothOutsideThreshold: number): number {
   const outside = outsideFromSmoothElevation(points, previousIndex, previousEle, toIndex, diff, totalDistance, smoothOutsideThreshold);
   if (outside !== null) {
     return applySmoothElevation(points, previousIndex, previousEle, outside.index, points[outside.index].ele! - previousEle, outside.distance);
@@ -91,12 +96,12 @@ function smoothElevation(points: Point[], previousIndex: number, previousEle: nu
   return applySmoothElevation(points, previousIndex, previousEle, toIndex, diff, totalDistance);
 }
 
-function outsideFromSmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, threshold: number): {index: number, distance: number} | null {
+function outsideFromSmoothElevation(points: PointDescriptor[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number, threshold: number): {index: number, distance: number} | null {
   let currentDistance = 0;
   let distanceAbove = 0;
   let distanceBelow = 0;
   for (let j = previousIndex + 1; j < toIndex; ++j) {
-    const dist = points[j].distanceFromPreviousPoint;
+    const dist = TrackUtils.getDistanceFromPreviousPoint(points, j);
     currentDistance += dist;
     const ele = points[j].ele;
     if (ele === undefined) continue;
@@ -115,7 +120,7 @@ function outsideFromSmoothElevation(points: Point[], previousIndex: number, prev
   return null;
 }
 
-function applySmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number): number {
+function applySmoothElevation(points: PointDescriptor[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number): number {
   if (previousIndex > 0) {
     const ppEle = points[previousIndex - 1].ele;
     if (ppEle !== undefined &&
@@ -135,10 +140,10 @@ function applySmoothElevation(points: Point[], previousIndex: number, previousEl
   return toIndex;
 }
 
-function applyFinalSmoothElevation(points: Point[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number) {
+function applyFinalSmoothElevation(points: PointDescriptor[], previousIndex: number, previousEle: number, toIndex: number, diff: number, totalDistance: number) {
   let currentDistance = 0;
   for (let j = previousIndex + 1; j < toIndex; ++j) {
-    currentDistance += points[j].distanceFromPreviousPoint;
+    currentDistance += TrackUtils.getDistanceFromPreviousPoint(points, j);
     points[j].ele = previousEle + (diff * currentDistance / totalDistance);
   }
 }

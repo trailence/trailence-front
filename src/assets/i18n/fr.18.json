@@ -247,6 +247,7 @@
         "elevation_improvments": "Améliorations",
         "from_download": "Utiliser un fournisseur d'altitude",
         "download_elevations": "Remplacer les altitudes",
+        "improve_elevations_with_providers": "Améliorer les altitudes",
         "remove_unprobable_elevations": "Enlever les altitudes improbables",
         "apply_elevation_threshold": "Lisser avec un seuil de dénivelé",
         "elevation_threshold": "Seuil de dénivelé",
@@ -843,5 +844,6 @@
   "obsolete_message": {
     "title": "Mise à jour nécessaire",
     "message": "Votre application est dans une version obsolète, et doit être mise à jour. En utilisant cette version, vos modifications ne pourront pas être sauvegardées sur le serveur, et pourront être perdues."
-  }
+  },
+  "downloading_elevation": "Téléchargement des altitudes"
 }

@@ -174,5 +174,11 @@ export class TrailPlannerPage extends AbstractPage {
     this.hover.elevationGraphPointHover(references);
   }
 
+  setBottomTab(tab: 'info' | 'elevation'): void {
+    if (tab === this.bottomTab) return;
+    this.bottomTab = tab;
+    this.changeDetector.detectChanges();
+  }
+
 }
 

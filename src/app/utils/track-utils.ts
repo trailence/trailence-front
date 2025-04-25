@@ -1,4 +1,4 @@
-import { Point } from '../model/point';
+import { Point, PointDescriptor } from '../model/point';
 import L from 'leaflet';
 import { Track } from '../model/track';
 import { Segment } from '../model/segment';
@@ -59,12 +59,19 @@ export class TrackUtils {
 
   // Distance utilities
 
-  public static distanceBetween(points: Point[], startIndex: number, endIndex: number): number {
+  public static distanceBetween(points: PointDescriptor[], startIndex: number, endIndex: number): number {
     let total = 0;
     for (let i = startIndex + 1; i <= endIndex; ++i) {
-      total += points[i].distanceFromPreviousPoint;
+      total += TrackUtils.getDistanceFromPreviousPoint(points, i);
     }
     return total;
+  }
+
+  public static getDistanceFromPreviousPoint(points: PointDescriptor[], index: number): number {
+    const p = points[index];
+    if ((p as any)['distanceFromPreviousPoint'] !== undefined) return (p as Point).distanceFromPreviousPoint;
+    const pos = p.pos instanceof L.LatLng ? p.pos : L.latLng(p.pos.lat, p.pos.lng);
+    return pos.distanceTo(points[index - 1].pos);
   }
 
   public static distanceBetweenPoints(segments: Segment[], startSegment: number, startPoint: number, endSegment: number, endPoint: number): number {

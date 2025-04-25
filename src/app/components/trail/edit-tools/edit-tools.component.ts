@@ -21,6 +21,8 @@ import { TrailComponent } from '../trail.component';
 import { adjustUnprobableElevationToTrackBasedOnGrade } from 'src/app/services/track-edition/elevation/unprobable-elevation-with-grade';
 import { MapTrackPointReference } from '../../map/track/map-track-point-reference';
 import { PathRange } from '../path-range';
+import { copyPoint, Point, PointDescriptor } from 'src/app/model/point';
+import { improveElevationWithProvider } from 'src/app/services/track-edition/elevation/improve-elevations-with-provider';
 
 interface HistoryState {
   base: Track | undefined;
@@ -271,7 +273,22 @@ export class EditToolsComponent implements OnInit, OnDestroy {
           point.ele = undefined;
           point.eleAccuracy = undefined;
         }
-      return this.geo.fillTrackElevation(track);
+      return this.geo.fillTrackElevation(track, true);
+    });
+  }
+
+  improveElevationsWithProvider(): void {
+    this.mayModify(track => {
+      const points: Point[] = [];
+      const toFill: PointDescriptor[] = [];
+      for (const segment of track.segments)
+        for (const point of segment.points) {
+          points.push(point);
+          toFill.push({...copyPoint(point), ele: undefined});
+        }
+      return this.geo.fillPointsElevation(toFill, true, true).pipe(
+        map(() => improveElevationWithProvider(points, toFill))
+      );
     });
   }
 

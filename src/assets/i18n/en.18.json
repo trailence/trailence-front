@@ -247,6 +247,7 @@
         "elevation_improvments": "Improvments",
         "from_download": "Use an altitude provider",
         "download_elevations": "Replace elevations",
+        "improve_elevations_with_providers": "Improve elevations",
         "remove_unprobable_elevations": "Remove unprobable elevations",
         "apply_elevation_threshold": "Smooth with a slope threshold",
         "elevation_threshold": "Slope threshold",
@@ -843,5 +844,6 @@
   "obsolete_message": {
     "title": "Update required",
     "message": "Your application is in an outdated version and needs to be updated. By using this version, your changes cannot be saved to the server and may be lost."
-  }
+  },
+  "downloading_elevation": "Downloading elevation"
 }

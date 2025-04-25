@@ -37,6 +37,9 @@
     </ion-list>
     <div class="page-section-sub-title">{{i18n.texts.pages.trail.edit_tools.from_download}}</div>
     <ion-list>
+      <ion-item button (click)="improveElevationsWithProvider()">
+        {{i18n.texts.pages.trail.edit_tools.improve_elevations_with_providers}}
+      </ion-item>
       <ion-item button (click)="downloadElevations()">
         {{i18n.texts.pages.trail.edit_tools.download_elevations}}
       </ion-item>

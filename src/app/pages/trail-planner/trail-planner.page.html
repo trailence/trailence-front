@@ -110,10 +110,10 @@
   <div class="bottom-pane">
     @if (trackBuilder?.hasElevation) {
       <div class="bottom-tabs">
-        <div class="bottom-tab {{bottomTab === 'info' ? 'tab-selected' : ''}}" (click)="bottomTab = 'info'">
+        <div class="bottom-tab {{bottomTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomTab('info')">
           <ion-icon name="info"></ion-icon>
         </div>
-        <div class="bottom-tab {{bottomTab === 'elevation' ? 'tab-selected' : ''}}" (click)="bottomTab = 'elevation'">
+        <div class="bottom-tab {{bottomTab === 'elevation' ? 'tab-selected' : ''}}" (click)="setBottomTab('elevation')">
           <ion-icon name="elevation"></ion-icon>
         </div>
       </div>
