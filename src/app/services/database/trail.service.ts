@@ -110,6 +110,11 @@ export class TrailService {
   }
 
   public deleteMany(trails: Trail[], progress: Progress | undefined, progressWork: number, ondone?: () => void): void {
+    if (trails.length === 0) {
+      progress?.addWorkDone(progressWork);
+      if (ondone) ondone();
+      return;
+    }
     const doneHandler = new CompositeOnDone(ondone);
     const tracks: {uuid: string, owner: string}[] = [];
     for (const trail of trails) {

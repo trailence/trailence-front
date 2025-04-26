@@ -63,6 +63,10 @@ export class TrackService {
   }
 
   public deleteMany(ids: {uuid: string, owner: string}[], progress: Progress | undefined, progressWork: number, ondone?: () => void) {
+    if (ids.length === 0) {
+      if (ondone) ondone();
+      return;
+    }
     this.db.deleteMany(ids, progress, progressWork, ondone);
   }
 

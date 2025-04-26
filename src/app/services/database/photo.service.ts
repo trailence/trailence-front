@@ -225,6 +225,10 @@ export class PhotoService {
   }
 
   public deleteMany(photos: Photo[], ondone?: () => void): void {
+    if (photos.length === 0) {
+      if (ondone) ondone();
+      return;
+    }
     this.store.deleteIf(item => !!photos.find(p => p.uuid === item.uuid), ondone);
   }
 

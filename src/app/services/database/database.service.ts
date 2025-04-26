@@ -79,6 +79,7 @@ export class DatabaseService {
   private readonly _db = new BehaviorSubject<VersionedDb | undefined>(undefined);
   private _openEmail?: string;
   private readonly _stores = new BehaviorSubject<RegisteredStore[]>([]);
+  private _syncPaused = 0;
 
   constructor(
     auth: AuthService,
@@ -172,6 +173,20 @@ export class DatabaseService {
     }
   }
 
+  public pauseSync(): void {
+    this._syncPaused = Date.now();
+  }
+
+  public resumeSync(): void {
+    this._syncPaused = 0;
+    this._stores.value.forEach(s => {
+      if (s.syncTimeout) clearTimeout(s.syncTimeout);
+      s.syncTimeout = undefined;
+      s.syncTimeoutDate = 0;
+      s.fireSyncStatus();
+    });
+  }
+
   registerStore(store: StoreRegistration): void {
     const registered = new RegisteredStore(store);
     this._stores.value.push(registered);
@@ -193,17 +208,20 @@ export class DatabaseService {
       }),
       filter(r => !!r[0] && !!r[2]), // should sync and database loaded
       filter(() => {
-        if (Date.now() - registered.lastSync > MINIMUM_SYNC_INTERVAL) return true;
-        if (this._syncNowRequestedAt >= registered.lastSync) return true;
+        if (Date.now() - this._syncPaused > 60000) {
+          if (Date.now() - registered.lastSync > MINIMUM_SYNC_INTERVAL) return true;
+          if (this._syncNowRequestedAt >= registered.lastSync) return true;
+        }
         this.ngZone.runOutsideAngular(() => {
-          const nextDate = Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync));
+          const nextTimeout = Date.now() - this._syncPaused < 60000 ? 5000 : Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync));
+          const nextDate = Date.now() + nextTimeout;
           if (registered.syncTimeout && registered.syncTimeoutDate > nextDate) {
             clearTimeout(registered.syncTimeout);
             registered.syncTimeout = undefined;
           }
           if (!registered.syncTimeout) {
             registered.syncTimeoutDate = nextDate;
-            registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), nextDate);
+            registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), nextTimeout);
           }
         });
         return false;

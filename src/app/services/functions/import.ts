@@ -17,6 +17,7 @@ import { firstValueFrom } from 'rxjs';
 import { ModalController } from '@ionic/angular/standalone';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
+import { DatabaseService } from '../database/database.service';
 
 export function openImportTrailsDialog(injector: Injector, collectionUuid: string): void {
   const i18n = injector.get(I18nService);
@@ -55,6 +56,7 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
               progress.addWorkDone(1);
               return Promise.resolve([]);
             }
+            injector.get(DatabaseService).pauseSync();
             return new Promise<({trailUuid: string, tags: string[][]})[]>((resolve, reject) => {
               const previousZipEntries = zipEntries;
               zipEntries += gpxFiles.length;
@@ -77,6 +79,7 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
                 .then(result => {
                   done.push(result);
                   if (entryIndex === gpxFiles.length - 1) {
+                    injector.get(DatabaseService).resumeSync();
                     resolve(done);
                   } else {
                     readNextZipEntry(entryIndex + 1);
@@ -87,6 +90,7 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
                   progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
                   progress.addWorkDone(1);
                   if (entryIndex === gpxFiles.length - 1) {
+                    injector.get(DatabaseService).resumeSync();
                     resolve(done);
                   } else {
                     readNextZipEntry(entryIndex + 1);

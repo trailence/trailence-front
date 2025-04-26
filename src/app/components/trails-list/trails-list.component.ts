@@ -498,6 +498,7 @@ export class TrailsListComponent extends AbstractComponent {
     let nb = 0;
     const filters = this.state$.value.filters;
     if (filters.duration.from !== undefined || filters.duration.to !== undefined) nb++;
+    if (filters.estimatedDuration.from !== undefined || filters.estimatedDuration.to !== undefined) nb++;
     if (filters.distance.from !== undefined || filters.distance.to !== undefined) nb++;
     if (filters.positiveElevation.from !== undefined || filters.positiveElevation.to !== undefined) nb++;
     if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
@@ -511,6 +512,8 @@ export class TrailsListComponent extends AbstractComponent {
     const filters = this.state$.value.filters;
     filters.duration.from = undefined;
     filters.duration.to = undefined;
+    filters.estimatedDuration.from = undefined;
+    filters.estimatedDuration.to = undefined;
     filters.distance.from = undefined;
     filters.distance.to = undefined;
     filters.positiveElevation.from = undefined;

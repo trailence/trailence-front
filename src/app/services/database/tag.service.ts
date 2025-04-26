@@ -71,6 +71,10 @@ export class TagService {
   }
 
   public deleteMany(tags: Tag[], ondone?: () => void): void {
+    if (tags.length === 0) {
+      if (ondone) ondone();
+      return;
+    }
     this._trailTagStore.deleteIf(trailTag => !!tags.find(t => trailTag.tagUuid === t.uuid), () => {
       this._tagStore.deleteIf(tag => !!tags.find(t => tag.uuid === t.uuid), ondone);
     });
@@ -81,6 +85,10 @@ export class TagService {
   }
 
   public deleteTrailTagsForTrails(trailUuids: string[], ondone?: () => void): void {
+    if (trailUuids.length === 0) {
+      if (ondone) ondone();
+      return;
+    }
     this._trailTagStore.deleteIf(trailTag => !!trailUuids.find(u => u === trailTag.trailUuid), ondone);
   }
 
