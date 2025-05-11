@@ -8,8 +8,8 @@ export function adjustUnprobableElevationToTrackBasedOnGrade(track: Track): void
     adjustUnprobableElevationToSegmentBasedOnGrade(segment, undefined, true);
 }
 
-const MAX_DISTANCE = 75;
-const MIN_POINTS = 10;
+const MAX_DISTANCE = 150;
+const MIN_POINTS = 75;
 const UNPROBABLE_MIN_GRADE = 0.35;
 
 export function adjustUnprobableElevationToSegmentBasedOnGrade(segment: Segment, lastIndex: number | undefined, finish: boolean): number {
@@ -48,7 +48,6 @@ export function adjustUnprobableElevationToSegmentBasedOnGrade(segment: Segment,
       continue;
     }
     // we have an unprobable grade at i
-
     // search in the next few points if we go back to almost the same elevation
     let j = searchCloseElevationInNextPoints(points, i + 1, Math.min(endIndex, i + MIN_POINTS), previousPointCursor, absGrade);
     if (j > 0) {

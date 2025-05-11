@@ -21,6 +21,7 @@ import { ImprovmentRecordingState, TrackEditionService } from '../track-edition/
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
+import Trailence from '../trailence.service';
 
 @Injectable({
   providedIn: 'root'
@@ -160,6 +161,7 @@ export class TraceRecorderService {
     this.stopRecording(recording);
     Console.info('Recording stopped');
     this._recording$.next(null);
+    Trailence.setKeepOnScreenLock({enabled: false});
     if (this._table) this._table.delete(1);
     if (save && this._email) {
       const progress = this.progressService.create(this.i18n.texts.trace_recorder.saving, 5);
@@ -329,7 +331,8 @@ export class TraceRecorderService {
       status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
       status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'enough time/distance');
       status.points++;
-      this.removeUnprobablePoints(recording);
+      this.removeUnprobablePointsBasedOnAccuracy(recording);
+      this.removeUnprobablePointsBasedOnBigMovesOnShortTime(recording);
       this.improveBreaks(recording, status);
       return;
     }
@@ -367,7 +370,7 @@ export class TraceRecorderService {
     return true;
   }
 
-  private removeUnprobablePoints(recording: Recording): void { // NOSONAR
+  private removeUnprobablePointsBasedOnAccuracy(recording: Recording): void { // NOSONAR
     const segment = recording.track.lastSegment;
     const points = segment.points;
     if (points.length < 3) return;
@@ -378,7 +381,7 @@ export class TraceRecorderService {
       if (point.posAccuracy === undefined || point.time === undefined) continue;
       if (point.posAccuracy > latestPoint.posAccuracy * 1.5) {
         const distance = point.distanceTo(latestPoint.pos);
-        if (point.time - latestPoint.time < 60000 && distance < 100) {
+        if (point.time - latestPoint.time < 60000 /*&& distance < 100*/) {
           let found = false;
           for (let j = i - 1; j >= 0 && j > points.length - 15; --j) {
             const point2 = points[j];
@@ -390,10 +393,31 @@ export class TraceRecorderService {
             }
           }
           if (!found) return;
-          Console.info("Remove unprobable point", point);
+          Console.info("Remove unprobable point based on accuracy", point);
           segment.removePointAt(i);
+          this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, i, i);
           i++;
         }
+      }
+    }
+  }
+
+  private removeUnprobablePointsBasedOnBigMovesOnShortTime(recording: Recording): void {
+    const segment = recording.track.lastSegment;
+    const points = segment.points;
+    if (points.length < 3) return;
+    const latestPoint = points[points.length - 1];
+    if (latestPoint.time === undefined || latestPoint.distanceFromPreviousPoint <= 20 || latestPoint.durationFromPreviousPoint === undefined) return;
+    for (let i = points.length - 3; i >= 0; --i) {
+      const point = points[i];
+      if (point.time === undefined) break;
+      if (point.distanceTo(latestPoint.pos) <= 20) {
+        if (latestPoint.time - points[i + 1].time! > 15000) break;
+        // remove points between i + 1 and the latest
+        Console.info("Remove unprobable points based on big moves in a short time", i + 1, points.length - 1);
+        segment.removeMany(points.slice(i + 1, points.length - 1));
+        this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, i + 1, points.length - 1);
+        break;
       }
     }
   }
@@ -434,12 +458,15 @@ export class TraceRecorderService {
       }
     }
     Console.info('Break moves removal: ' + (points.length - i - 1) + ' point(s) removed');
-    if (best > i)
+    if (best > i) {
       segment.removeMany(points.slice(i, best));
+      this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, i, best - 1);
+    }
     if (best < points.length - 1) {
       segment.removeMany(points.slice(best + 1, points.length));
       status.latestDefinitiveImprovedAngle = Math.atan2(currentPoint.pos.lat - points[best].pos.lat, currentPoint.pos.lng - points[best].pos.lng);
       status.latestDefinitiveImprovedPoint = points[best];
+      this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, best + 1, points.length - 1);
     }
   }
 

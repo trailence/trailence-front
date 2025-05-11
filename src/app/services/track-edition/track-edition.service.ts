@@ -46,6 +46,14 @@ export class TrackEditionService {
     }
   }
 
+  public updateImprovmentState(state: ImprovmentRecordingState | undefined, removedPointFrom: number, removedPointTo: number): ImprovmentRecordingState | undefined {
+    if (state === undefined || removedPointFrom === 0) return undefined;
+    return {
+      lastUnprobableElevationBasedOnGradeIndex: removedPointFrom <= state.lastUnprobableElevationBasedOnGradeIndex ? removedPointFrom - 1 : state.lastUnprobableElevationBasedOnGradeIndex,
+      lastElevationThresholdIndex: state.lastElevationThresholdIndex === undefined ? undefined : (removedPointFrom <= state.lastElevationThresholdIndex ? removedPointFrom - 1 : state.lastElevationThresholdIndex),
+    }
+  }
+
 }
 
 export interface ImprovmentRecordingState {
