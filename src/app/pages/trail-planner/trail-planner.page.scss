@@ -74,29 +74,6 @@
     bottom: var(--bottom-pane-height);
     right: 0;
     left: var(--left-pane-button-width);
-
-    ::ng-deep app-search-place {
-      ion-searchbar {
-        --box-shadow: none;
-
-        input.searchbar-input {
-          padding-inline-start: 25px;
-          padding-inline-end: 25px;
-          padding-top: 4px;
-          padding-bottom: 4px;
-        }
-        ion-icon.searchbar-search-icon {
-          inset-inline-start: 0;
-          top: 8px;
-        }
-        button.searchbar-clear-button {
-          inset-inline-end: 0;
-        }
-      }
-      .tip {
-        font-size: 10px;
-      }
-    }
   }
 
   &.has-elevation {

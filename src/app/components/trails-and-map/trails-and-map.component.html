@@ -6,7 +6,21 @@
       [bubbles$]="mapBubbles$"
       [showBubbles$]="showBubbles$"
       (mouseClickPoint)="onTrailClickOnMap($event)"
-    ></app-map>
+    >
+      @if (enableSearchPlace) {
+        <div class="map-top-controls right">
+          <div class="map-toolbar horizontal light-theme">
+            @if (searchPlaceExpanded) {
+              <app-search-place #searchPlace (placeSelected)="goToPlace($event)"></app-search-place>
+            } @else {
+              <div class="map-tool icon-only" (click)="expandSearchPlace()">
+                <ion-icon name="search" color="dark"></ion-icon>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </app-map>
   </div>
   <div class="list-container">
     <app-trails-list

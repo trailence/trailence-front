@@ -9,7 +9,7 @@
       (mouseOverPoint)="mouseOverPointOnMap($event)"
     >
       @if (trackBuilder) {
-        <div class="map-top-controls">
+        <div class="map-top-controls center">
           <div class="map-toolbar horizontal light-theme">
             @if (!trackBuilder.track) {
               <app-search-place (placeSelected)="goToPlace($event)"></app-search-place>

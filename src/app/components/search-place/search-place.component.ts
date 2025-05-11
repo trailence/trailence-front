@@ -73,4 +73,8 @@ export class SearchPlaceComponent {
     this.searching = false;
   }
 
+  setFocus(): void {
+    this.searchbar.setFocus();
+  }
+
 }

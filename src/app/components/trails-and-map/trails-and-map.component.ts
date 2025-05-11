@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, map, of, switchMap } from 'rxjs';
-import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
@@ -20,6 +20,8 @@ import L from 'leaflet';
 import { MapBubble } from '../map/bubble/map-bubble';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { SearchPlaceComponent } from '../search-place/search-place.component';
+import { Place } from 'src/app/services/geolocation/place';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -27,8 +29,9 @@ const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
     selector: 'app-trails-and-map',
     templateUrl: './trails-and-map.component.html',
     styleUrls: ['./trails-and-map.component.scss'],
-    imports: [IonSegmentButton, IonSegment,
-        TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule,
+    imports: [
+      IonIcon, IonSegmentButton, IonSegment,
+      TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule, SearchPlaceComponent,
     ]
 })
 export class TrailsAndMapComponent extends AbstractComponent {
@@ -41,6 +44,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @Input() message?: string;
   @Input() enableRemoveByGesture = false;
+  @Input() enableSearchPlace = false;
 
   mode =  '';
   listSize: 'large' | 'medium' | 'small' = 'large';
@@ -59,6 +63,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   showBubbles$ = new BehaviorSubject<boolean>(false);
 
+  searchPlaceExpanded = false;
+
   private readonly _map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
 
   public get map$() { return this._map$; }
@@ -66,6 +72,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @ViewChild(TrailsListComponent) trailsList?: TrailsListComponent;
   @ViewChild(MapComponent) set mapComponent(v: MapComponent) { this._map$.next(v); }
+  @ViewChild(SearchPlaceComponent) searchPlace?: SearchPlaceComponent;
 
   constructor(
     injector: Injector,
@@ -297,6 +304,19 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   openTrail(trail: Trail): void {
     this.router.navigate(['/trail/' + trail.owner + '/' + trail.uuid], {queryParams: { from: this.router.url }});
+  }
+
+  expandSearchPlace(): void {
+    this.searchPlaceExpanded = true;
+    this.changeDetector.detectChanges();
+    setTimeout(() => {
+      this.searchPlace?.setFocus();
+    }, 0);
+  }
+
+  goToPlace(place: Place): void {
+    this.map?.goTo(place.lat, place.lng, 14);
+    this.searchPlaceExpanded = false;
   }
 
 }
