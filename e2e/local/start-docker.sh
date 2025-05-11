@@ -24,4 +24,5 @@ echo "Starting docker compose"
 docker compose up -d --pull always --wait
 echo "Database user is $DB_USERNAME with password $DB_PASSWORD"
 echo "Initial user is $TRAILENCE_INIT_USER with password $TRAILENCE_INIT_PASSWORD"
+echo "Start tests using run.sh. Example: ./run.sh --tests=1:browser:chrome:desktop:01000/"
 /bin/bash

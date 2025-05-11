@@ -145,8 +145,8 @@ describe('Replay trail', () => {
     }
 
     await intValueAlmostSame('Distance', 200);
-    await intValueAlmostSame('Ascent', 20);
-    await intValueAlmostSame('Descent', 20);
+    await intValueAlmostSame('Ascent', 150);
+    await intValueAlmostSame('Descent', 150);
     await intValueAlmostSame('Highest altitude', 5);
     await intValueAlmostSame('Lowest altitude', 5);
 

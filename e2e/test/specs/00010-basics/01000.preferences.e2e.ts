@@ -46,7 +46,7 @@ describe('Preferences', () => {
     const importButton = await trailsList.getToolbarButton('add-circle');
     await importButton.click();
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
-    await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h35)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft');
+    await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h35)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft');
   });
 
   const goToPreferences = async (title: string) => {
@@ -70,7 +70,7 @@ describe('Preferences', () => {
     expect(await (await preferences.getOptionSegmentByTitle('Format de date')).getSelected()).toBe('dd/mm/yyyy');
     expect(await (await preferences.getOptionSegmentByTitle('Format d\'heure')).getSelected()).toBe('H24');
     const collection = await goToCollection('Mes Parcours');
-    await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateFr, 'Durée', '3h12 (≈ 2h35)', 'Distance', '8,59 km', 'Dénivelé positif', '+ 321 m', 'Dénivelé négatif', '- 296 m');
+    await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateFr, 'Durée', '3h12 (≈ 2h35)', 'Distance', '8,59 km', 'Dénivelé positif', '+ 307 m', 'Dénivelé négatif', '- 282 m');
   });
 
   it('Change back to english', async () => {
@@ -81,7 +81,7 @@ describe('Preferences', () => {
     expect(await (await preferences.getOptionSegmentByTitle('Date format')).getSelected()).toBe('m/d/yyyy');
     expect(await (await preferences.getOptionSegmentByTitle('Time format')).getSelected()).toBe('H12');
     const collection = await goToCollection('My Trails');
-    await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 2h35)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft');
+    await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 2h35)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft');
   });
 
   it('Change speed', async () => {
@@ -89,7 +89,7 @@ describe('Preferences', () => {
     await (await preferences.getRangeByTitle('Speed on flat terrain')).setValue(10);
     const collection = await goToCollection('My Trails');
     await TestUtils.retry(
-      async () => await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 1h55)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft'),
+      async () => await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 1h50)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft'),
       20, 1000
     );
   });
@@ -118,7 +118,7 @@ describe('Preferences', () => {
     const collection = await goToCollection('My Trails');
     const trailsList = await collection.trailsAndMap.openTrailsList();
     await TestUtils.retry(
-      async () => await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h35)', 'Distance', '5.335 mi', 'Ascent', '+ 1,053 ft', 'Descent', '- 971 ft'),
+      async () => await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h35)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft'),
       20, 1000
     );
     const trail = await trailsList.findItemByTrailName('Randonnée du 05/06/2023 à 08:58');

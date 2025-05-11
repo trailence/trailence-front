@@ -22,6 +22,7 @@ export function adjustUnprobableElevationToSegmentBasedOnGrade(segment: Segment,
   if (!finish) {
     // do not use the last MAX_DISTANCE meters / MIN_POINTS
     endIndex = Math.max(0, Math.min(points.length - MIN_POINTS - 1, TrackUtils.goBackUntilDistance(points, points.length - 1, startIndex, MAX_DISTANCE)));
+    if (endIndex - startIndex + 1 < MIN_POINTS) return startIndex;
   } else {
     endIndex = points.length - 1;
   }
