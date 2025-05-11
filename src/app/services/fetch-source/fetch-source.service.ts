@@ -20,13 +20,16 @@ export class FetchSourceService {
   private readonly ready$ = new BehaviorSubject<boolean>(false);
   private readonly plugins$ = new BehaviorSubject<FetchSourcePlugin[]>([]);
 
+  private get _visorandoLoaded(): boolean { return !!this.plugins$.value.find(p => p.name === 'Visorando'); }
+  private get _outdooractiveLoaded(): boolean { return !!this.plugins$.value.find(p => p.name === 'Outdoor Active'); }
+
   constructor(
     readonly injector: Injector,
   ) {
     injector.get(AuthService).auth$.pipe(
       switchMap(auth => !auth ? of([undefined, undefined]) :
         injector.get(NetworkService).server$.pipe(
-          switchMap(serverAvailable => !serverAvailable ? of([undefined, undefined]) :
+          switchMap(serverAvailable => !serverAvailable ? of([this._visorandoLoaded ? true : undefined, this._outdooractiveLoaded ? true : undefined]) :
             combineLatest([
               injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/visorando/available').pipe(catchError(e => of(null))),
               injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/outdooractive/available').pipe(catchError(e => of(null))),
@@ -41,9 +44,9 @@ export class FetchSourceService {
           visorandoAvailable !== undefined && visorandoAvailable !== null &&
           outdooractiveAvailable !== undefined && outdooractiveAvailable !== null;
         const promises: Promise<FetchSourcePlugin>[] = [];
-        if (visorandoAvailable === true && !this.plugins$.value.find(p => p.name === 'Visorando'))
+        if (visorandoAvailable === true && !this._visorandoLoaded)
           promises.push(import('./visorando.plugin').then(m => new m.VisorandoPlugin(injector)));
-        if (outdooractiveAvailable === true && !this.plugins$.value.find(p => p.name === 'Outdoor Active'))
+        if (outdooractiveAvailable === true && !this._outdooractiveLoaded)
           promises.push(import('./outdoor.plugin').then(m => new m.OutdoorPlugin(injector)));
         if (!this.plugins$.value.find(p => p.name === 'Open Street Map'))
           promises.push(import('./osm.plugin').then(m => new m.OsmPlugin(injector)));
