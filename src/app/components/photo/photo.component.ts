@@ -50,6 +50,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
             error: e => {
               Console.error('Error loading photo', e);
               this.error = true;
+              this.changesDetector.detectChanges();
             }
           });
         }

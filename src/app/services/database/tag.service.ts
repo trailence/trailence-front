@@ -155,6 +155,17 @@ export class TagService {
     return result$;
   }
 
+  public getTagsNames$(tagsUuids: string[]): Observable<string[][]> {
+    if (tagsUuids.length === 0) return of([]);
+    return combineLatest(tagsUuids.map(uuid => this.getTagNames$(uuid)));
+  }
+
+  public getTagsFullnames$(tagsUuids: string[]): Observable<string[]> {
+    return this.getTagsNames$(tagsUuids).pipe(
+      map(tagsNames => tagsNames.map(names => names.join('/')))
+    );
+  }
+
   public getTrailTagsNames$(trailUuid: string, firstReady: boolean = false): Observable<string[][]> {
     const result$ = this.getTrailTags$(trailUuid).pipe(
       switchMap(trailTags => {

@@ -347,7 +347,12 @@
       "email": "Email",
       "email_info": "An e-mail will be sent to inform about this share",
       "language": "In which language should we send the e-mail?",
-      "recipient_error": "Please enter a valid e-mail address"
+      "recipient_error": "Please enter a valid e-mail address",
+      "share_description": {
+        "COLLECTION": "Share the whole collection {{1}}",
+        "TRAIL": "Share {{1}} trail(s)",
+        "TAGS": "Share the following tags: {{1}}"
+      }
     },
     "find_duplicates": {
       "title": "Search for similar tracks",

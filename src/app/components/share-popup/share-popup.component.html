@@ -31,6 +31,9 @@
     }
 
     @case ('name_who') {
+      <div class="share-description">{{ shareDescription | async }}</div>
+      <div class="separator"></div>
+
       <ion-input
         name="name"
         fill="outline"

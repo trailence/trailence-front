@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { first } from 'rxjs';
+import { first, Observable, of } from 'rxjs';
 import { TagsComponent } from '../tags/tags.component';
 import { Tag } from 'src/app/model/tag';
 import { ShareService } from 'src/app/services/database/share.service';
@@ -17,6 +17,8 @@ import { EMAIL_REGEX } from 'src/app/utils/string-utils';
 import { Share } from 'src/app/model/share';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { TranslatedString } from 'src/app/services/i18n/i18n-string';
+import { TagService } from 'src/app/services/database/tag.service';
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
   injector.get(ModalController).create({
@@ -64,6 +66,7 @@ export class SharePopupComponent implements OnInit {
   pageIndex = 0;
 
   collectionName = '';
+  shareDescription: Observable<string> = of('');
 
   constructor(
     public i18n: I18nService,
@@ -79,10 +82,23 @@ export class SharePopupComponent implements OnInit {
       this.recipients = this.share.recipients.map(r => ({email: r, error: false, id: IdGenerator.generateId()}));
       this.recipients.push({email: '', error: false, id: IdGenerator.generateId()});
       this.includePhotos = this.share.includePhotos;
+      let sharing: TranslatedString;
+      switch (this.share.type) {
+        case ShareElementType.COLLECTION:
+          sharing = new TranslatedString('pages.share_popup.share_description.COLLECTION', [this.injector.get(TrailCollectionService).getCollectionName$(this.share.elements[0])]);
+          break;
+        case ShareElementType.TRAIL:
+          sharing = new TranslatedString('pages.share_popup.share_description.TRAIL', [this.share.elements.length]);
+          break;
+        case ShareElementType.TAG:
+          sharing = new TranslatedString('pages.share_popup.share_description.TAGS', [this.injector.get(TagService).getTagsFullnames$(this.share.elements)]);
+      }
+      this.shareDescription = sharing.translate$(this.i18n);
     } else if (this.trails!.length > 0) {
       this.elementType = ShareElementType.TRAIL;
       this.elements = this.trails!.map(trail => trail.uuid);
       this.pages = [SharePage.NAME_WHO];
+      this.shareDescription = new TranslatedString('pages.share_popup.share_description.TRAIL', [this.elements.length]).translate$(this.i18n);
     } else {
       const email = this.injector.get(AuthService).email!;
       this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid!, email).pipe(
@@ -103,14 +119,21 @@ export class SharePopupComponent implements OnInit {
     if (this.elementType === ShareElementType.COLLECTION) {
       this.elements = [this.collectionUuid!];
       this.pages = [SharePage.TYPE, SharePage.NAME_WHO];
+      this.shareDescription = new TranslatedString('pages.share_popup.share_description.COLLECTION', [this.injector.get(TrailCollectionService).getCollectionName$(this.collectionUuid!)]).translate$(this.i18n);
     } else {
       this.elements = [];
       this.pages = [SharePage.TYPE, SharePage.ELEMENTS, SharePage.NAME_WHO];
+      this.shareDescription = of('');
     }
   }
 
   tagsSelected(tags: Tag[]): void {
     this.elements = tags.map(tag => tag.uuid);
+    if (this.elements.length > 0) {
+      this.shareDescription = new TranslatedString('pages.share_popup.share_description.TAGS', [this.injector.get(TagService).getTagsFullnames$(this.elements)]).translate$(this.i18n);
+    } else {
+      this.shareDescription = of('');
+    }
   }
 
   previous(): void {

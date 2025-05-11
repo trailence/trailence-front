@@ -21,6 +21,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from '../preferences/preferences.service';
 import { QuotaService } from '../auth/quota.service';
 import { ShareService } from './share.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
     providedIn: 'root'
@@ -54,6 +55,17 @@ export class TrailCollectionService {
       map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
       filterDefined(),
       first()
+    );
+  }
+
+  public getCollectionName$(uuid: string, owner?: string): Observable<string> {
+    return this.getCollection$(uuid, owner ?? this.injector.get(AuthService).email ?? '').pipe(
+      filterDefined(),
+      switchMap(col => {
+        if (col.name.length === 0 && col.type === TrailCollectionType.MY_TRAILS)
+          return this.injector.get(I18nService).texts$.pipe(map(texts => texts.my_trails));
+        return of(col.name);
+      })
     );
   }
 

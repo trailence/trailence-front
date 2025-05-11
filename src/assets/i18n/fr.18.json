@@ -347,7 +347,12 @@
       "email": "Email",
       "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
       "language": "Dans quelle langue devons-nous envoyer le mail ?",
-      "recipient_error": "Veuillez entrer une adresse mail valide"
+      "recipient_error": "Veuillez entrer une adresse mail valide",
+      "share_description": {
+        "COLLECTION": "Partage de toute la collection {{1}}",
+        "TRAIL": "Partage de {{1}} parcours",
+        "TAGS": "Partage des tags suivants: {{1}}"
+      }
     },
     "find_duplicates": {
       "title": "Rechercher les parcours similaires",
