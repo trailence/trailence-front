@@ -69,6 +69,7 @@ export class RestrictedWaysTool extends L.Control {
     this._hasForbidden = false;
     this._button!.style.display = 'none';
     if (!this._map || this._map.getZoom() < 12) {
+      this.updateLegend();
       return;
     }
     const count = ++this._refreshCount;
@@ -87,9 +88,10 @@ export class RestrictedWaysTool extends L.Control {
         if (this._paths.length === 0) {
           this._button!.style.display = 'none';
           this._show = false;
+          this.updateLegend();
         } else {
           this._button!.style.display = '';
-          if (this._show && this._map) this.addPathsToMap();
+          if (this._show && this._map) this.addPathsToMap(); else this.updateLegend();
         }
       }
     );
