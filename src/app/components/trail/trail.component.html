@@ -22,6 +22,7 @@
       [downloadMapTrail]="trail1 && !trail2 ? trail1 : undefined"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
       (mouseClickPoint)="mouseClickOnMap($event)"
+      [enableLockScreen]="!!recording"
     ></app-map>
   </div>
   <div class="tabs-container">

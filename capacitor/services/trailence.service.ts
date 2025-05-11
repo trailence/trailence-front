@@ -16,6 +16,9 @@ export interface TrailencePlugin {
   requestInstallPermission(call: {}): Promise<{allowed: boolean}>;
   downloadAndInstall(call: {url: string}, callback: (status: {done: boolean, error: string | null, i18n: string | null, progress: number | null}) => void): void;
 
+  canKeepOnScreenLock(call: {}): Promise<{allowed: boolean}>;
+  setKeepOnScreenLock(call: {enabled: boolean}): Promise<{success: boolean}>;
+  getKeepOnScreenLock(call: {}): Promise<{enabled: boolean}>;
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');

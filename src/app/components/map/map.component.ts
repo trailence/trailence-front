@@ -26,6 +26,8 @@ import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-databas
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { RestrictedWaysTool } from './tools/restricted-ways-tool';
+import { PhoneLockTool } from './tools/phone-lock-tool';
+import Trailence from 'src/app/services/trailence.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -45,6 +47,7 @@ export class MapComponent extends AbstractComponent {
   @Input() bubbles$: Observable<MapBubble[]> = of([]);
   @Input() showBubbles$?: BehaviorSubject<boolean>;
   @Input() enableShowRestrictedWays = false;
+  @Input() enableLockScreen = false;
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
@@ -573,6 +576,11 @@ export class MapComponent extends AbstractComponent {
 
     if (this.enableShowRestrictedWays)
       new RestrictedWaysTool(this.injector, this.mapId, {position: 'topright'}).addTo(map);
+    if (this.enableLockScreen)
+      Trailence.canKeepOnScreenLock({}).then(response => {
+        if (response.allowed)
+          new PhoneLockTool(this.injector, { position: 'topright' }).addTo(map);
+      });
 
     this.cursors.addTo(map);
 

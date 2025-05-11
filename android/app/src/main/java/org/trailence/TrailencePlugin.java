@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.PackageInstaller;
 import android.net.Uri;
 import android.os.Build;
-import android.os.PowerManager;
 import android.provider.Settings;
 
 import androidx.activity.result.ActivityResult;
@@ -20,9 +19,7 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.getcapacitor.plugin.util.HttpRequestHandler;
 
-import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import javax.net.ssl.HttpsURLConnection;
 
 @CapacitorPlugin(
   name = "Trailence"
@@ -319,4 +314,26 @@ public class TrailencePlugin extends Plugin {
     call.resolve(new JSObject().put("done", false).put("progress", 100));
   }
 
+  @PluginMethod
+  public void canKeepOnScreenLock(PluginCall call) {
+    call.resolve(new JSObject().put("allowed", Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1));
+  }
+
+  private boolean keepOnScreenLock = false;
+
+  @PluginMethod
+  public void setKeepOnScreenLock(PluginCall call) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+      this.keepOnScreenLock = call.getBoolean("enabled");
+      this.getActivity().setShowWhenLocked(this.keepOnScreenLock);
+      call.resolve(new JSObject().put("success", true));
+    } else {
+      call.resolve(new JSObject().put("success", false));
+    }
+  }
+
+  @PluginMethod
+  public void getKeepOnScreenLock(PluginCall call) {
+    call.resolve(new JSObject().put("enabled", this.keepOnScreenLock));
+  }
 }

@@ -1,7 +1,6 @@
 package org.trailence;
 
 import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.Logger;
 
 import android.content.Intent;
 import android.database.Cursor;

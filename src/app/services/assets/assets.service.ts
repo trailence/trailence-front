@@ -92,6 +92,7 @@ export class AssetsService {
       'path': 'assets/path.1.svg',
       'pause': 'assets/pause.1.svg', // pause-outline
       'pause-circle': 'assets/pause-circle.1.svg', // pause-circle-outline
+      'phone-lock': 'assets/phone-lock.1.svg',
       'photos': 'assets/photos.1.svg', // images-outline
       'planner': 'assets/calendar-outline.1.svg', // calendar-outline
       'play': 'assets/play.1.svg', // play-outline
