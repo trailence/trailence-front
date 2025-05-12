@@ -19,41 +19,66 @@
             android:launchMode="singleTask"
             android:exported="true">
 
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+          <intent-filter>
+              <action android:name="android.intent.action.MAIN" />
+              <category android:name="android.intent.category.LAUNCHER" />
+          </intent-filter>
 
-          <!-- Open file by extension .gpx -->
-            <intent-filter>
-              <category android:name="android.intent.category.DEFAULT" />
-              <category android:name="android.intent.category.BROWSABLE" />
-              <action android:name="android.intent.action.VIEW" />
-              <action android:name="android.intent.action.OPEN_DOCUMENT" />
-              <!-- <data android:scheme="file" /> -->
-              <data android:scheme="content" />
-              <data android:mimeType="*/*" />
-              <data android:host="*" />
-              <data android:pathPattern=".*\\.gpx" />
-              <data android:pathPattern=".*\\..*\\.gpx"/>
-              <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
-              <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
-            </intent-filter>
-
-          <!-- Open file by MIME type -->
+          <!-- Open file by extension .gpx with scheme content -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
             <action android:name="android.intent.action.VIEW" />
             <action android:name="android.intent.action.OPEN_DOCUMENT" />
-            <!-- <data android:scheme="file" /> -->
+            <data android:scheme="content" />
+            <data android:mimeType="*/*" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file by extension .gpx with scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:mimeType="*/*" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file by MIME type and scheme content -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
             <data android:scheme="content" />
             <data android:mimeType="application/gpx+xml" />
             <data android:mimeType="application/gpx" />
             <data android:host="*" />
           </intent-filter>
 
-          <!-- Open file without mime type but extension .gpx -->
+          <!-- Open file by MIME type and scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:mimeType="application/gpx+xml" />
+            <data android:mimeType="application/gpx" />
+            <data android:host="*" />
+          </intent-filter>
+
+          <!-- Open file without mime type but extension .gpx and scheme content -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
@@ -65,6 +90,47 @@
             <data android:pathPattern=".*\\..*\\.gpx"/>
             <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
             <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file without mime type but extension .gpx and scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file with extension .gpx without host and scheme content -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="content" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+            <data android:mimeType="*/*" />
+          </intent-filter>
+          <!-- Open file with extension .gpx without host and scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+            <data android:mimeType="*/*" />
           </intent-filter>
 
         </activity>
