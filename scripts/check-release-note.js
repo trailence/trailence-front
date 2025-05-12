@@ -3,7 +3,7 @@ const fs = require('fs');
 if (process.argv.length < 3) {
   console.log('Usage: check-release-note <major>.<minor>.<fix>');
   console.log('No version found.')
-  return 1;
+  throw new Error('No version found: invalid usage');
 }
 
 const versionStr = process.argv[2];
@@ -11,7 +11,7 @@ const versionRegexp = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
 const version = versionStr.match(versionRegexp);
 if (!version) {
   console.log('Invalid version: ', versionStr);
-  return 1;
+  throw new Error('Invalid version: ' + versionStr);
 }
 const major = parseInt(version[1]);
 const minor = parseInt(version[2]);
@@ -22,7 +22,7 @@ console.log('Checking release note for version: ', versionStr);
 const versionCode = fix + minor * 100 + major * 10000;
 const knownLanguages = ['en', 'fr'];
 
-const json = fs.readFileSync('./assets/releases/notes.json', { encoding: 'utf-8'});
+const json = fs.readFileSync('./src/assets/releases/notes.json', { encoding: 'utf-8'});
 const releases = JSON.parse(json);
 
 let versionKey = '' + versionCode;

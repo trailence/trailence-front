@@ -1,11 +1,14 @@
 {
-  "001408": {
+  "001500": {
     "en": {
       "message": "Add release notes",
       "items": [
         "Display release notes when Trailence is updated",
         "Search text in trails",
-        "Some small improvements and fixes"
+        "Search a place from a collection map",
+        "Elevation provider available outside France",
+        "Android: option to keep the app visible even if the screen is locked",
+        "Some improvements and fixes"
       ]
     },
     "fr": {
@@ -13,7 +16,10 @@
       "items": [
         "Affiche les nouveautés lors d'une mise à jour",
         "Recherche de texte dans les parcours",
-        "Quelques petites améliorations et correctifs"
+        "Recherche de lieu sur la carte d'une collection",
+        "Fournisseur d'altitude disponible hors France",
+        "Android: option pour garder l'application visible même si l'écran est vérouillé",
+        "Quelques améliorations et correctifs"
       ]
     }
   }
