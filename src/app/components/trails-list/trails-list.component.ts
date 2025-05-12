@@ -404,6 +404,7 @@ export class TrailsListComponent extends AbstractComponent {
         }
       }
       if (valid) {
+        newState.filters.search ??= '';
         this.state$.next(newState);
         if (newState.filters.search) this.searchOpen = true;
       } else
