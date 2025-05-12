@@ -29,7 +29,7 @@ public class MainActivity extends BridgeActivity {
 
   private void checkForOpenFile(Intent intent) {
     Uri fileUri = intent.getData();
-    if (fileUri != null) {
+    if (fileUri != null && !intent.getBooleanExtra("consumed", false)) {
       String filename = this.getFileName(fileUri);
       List<byte[]> content = new LinkedList<>();
       try (InputStream in = this.getContentResolver().openInputStream(fileUri)) {
@@ -56,6 +56,7 @@ public class MainActivity extends BridgeActivity {
       }
       if (!content.isEmpty()) {
         ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).addFileToImport(filename, content);
+        intent.putExtra("consumed", true);
       }
     }
   }

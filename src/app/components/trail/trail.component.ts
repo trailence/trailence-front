@@ -757,8 +757,13 @@ export class TrailComponent extends AbstractComponent {
           text: this.i18n.texts.buttons.confirm,
           role: 'confirm',
           handler: () => {
-            this.traceRecorder.stop(true).pipe(filter(trail => !!trail), take(1))
-            .subscribe(trail => this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid));
+            this.traceRecorder.stop(true)
+            .subscribe(trail => {
+              if (trail)
+                this.injector.get(Router).navigateByUrl('/trail/' + trail.owner + '/' + trail.uuid);
+              else if (!this.trail1)
+                this.injector.get(Router).navigateByUrl('/trails/collection/my_trails');
+            });
             this.injector.get(AlertController).dismiss();
           }
         }, {

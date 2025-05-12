@@ -123,7 +123,7 @@ export class PlatformService {
   </ion-radio-group>
 
   <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
-    <ion-button fill="clear" (click)="newCollection()">{{i18n.texts.pages.trails.actions.new_collection}}</ion-button>
+    <ion-button fill="clear" color="secondary" (click)="newCollection()">{{i18n.texts.pages.trails.actions.new_collection}}</ion-button>
   </div>
 
 </ion-content>
