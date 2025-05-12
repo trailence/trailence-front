@@ -18,8 +18,8 @@ app-map {
 
       div.leaflet-right div.leaflet-control.leaflet-control-button {
         svg {
-          width: 32px;
-          height: 32px;
+          width: 24px;
+          height: 24px;
           margin: 3px 3px -2px 3px;
         }
       }
@@ -37,6 +37,10 @@ app-map {
         }
       }
 
+      div.leaflet-top .leaflet-control {
+        margin-top: 5px;
+      }
+
     }
   }
 
@@ -50,7 +54,7 @@ app-map {
     position: absolute;
     top: 5px;
     left: 56px;
-    right: 64px;
+    right: 56px;
     z-index: 1000;
 
     div.map-top-controls {
@@ -96,8 +100,9 @@ app-map {
   div.map-toolbar {
     background-color: #FFFFFF;
     border-radius: 5px;
-    padding: 0 5px;
-    box-shadow: 0px 0px 6px 0 #606060;
+    padding: 0 2px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    background-clip: padding-box;
 
     &.horizontal {
       display: flex;
@@ -115,7 +120,7 @@ app-map {
       border-radius: 5px;
       border: 1px solid #00000000;
 
-      &:hover {
+      &:hover:not(.disabled) {
         background: #00000004;
         border: 1px solid #0000000A;
       }
@@ -147,7 +152,7 @@ app-map {
         ion-icon {
           width: 24px;
           height: 24px;
-          margin: 4px 0;
+          margin: 2px 0;
         }
       }
     }
@@ -187,6 +192,20 @@ app-map {
 
 }
 
+.leaflet-legend {
+  background: #E8E8E8;
+  color: #202020;
+  z-index: 1000;
+  font-size: 11px;
+}
+.leaflet-pane.leaflet-marker-pane .leaflet-marker-icon.highlighted {
+  width: 50px !important;
+  height: 50px !important;
+  margin-left: -25px !important;
+  margin-top: -50px !important;
+  z-index: 1000 !important;
+}
+
 body.dark-map {
 
   .leaflet-layer,
@@ -207,21 +226,27 @@ body.dark-map {
       fill: #888;
     }
   }
-  path[stroke=black] {
-    stroke: white;
+  app-map {
+    path[stroke=black] {
+      stroke: white;
+    }
+
+    div.map-toolbar {
+      background-color: #000000;
+      border-color: rgba(255, 255, 255, 0.2);
+
+      div.map-tool {
+        &:hover:not(.disabled) {
+          background: #FFFFFF04;
+          border: 1px solid #FFFFFF0A;
+        }
+      }
+
+      div.separator {
+        margin: 0 4px;
+        border-color: #FFFFFF30;
+      }
+    }
   }
 
-}
-.leaflet-legend {
-  background: #E8E8E8;
-  color: #202020;
-  z-index: 1000;
-  font-size: 11px;
-}
-.leaflet-pane.leaflet-marker-pane .leaflet-marker-icon.highlighted {
-  width: 50px !important;
-  height: 50px !important;
-  margin-left: -25px !important;
-  margin-top: -50px !important;
-  z-index: 1000 !important;
 }

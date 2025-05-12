@@ -10,7 +10,7 @@
     >
       @if (trackBuilder) {
         <div class="map-top-controls center">
-          <div class="map-toolbar horizontal light-theme">
+          <div class="map-toolbar horizontal">
             @if (!trackBuilder.track) {
               <app-search-place (placeSelected)="goToPlace($event)"></app-search-place>
               @if (mapState && mapState.zoom >= minZoom) {
@@ -21,19 +21,19 @@
                 </div>
               }
             } @else {
-              <div class="map-tool button-undo" (click)="trackBuilder.undo()" [ngStyle]="{'color': trackBuilder.anchors.length > 0 ? '#000000' : '#808080'}">
-                <ion-icon name="undo"></ion-icon>
-                <ion-label>{{ i18n.texts.pages.trailplanner.undo }}</ion-label>
+              <div class="map-tool button-undo" (click)="trackBuilder.undo()" [ngClass]="{'disabled': trackBuilder.anchors.length === 0}">
+                <ion-icon name="undo" [color]="trackBuilder.anchors.length > 0 ? 'dark' : 'medium'"></ion-icon>
+                <ion-label [color]="trackBuilder.anchors.length > 0 ? 'dark' : 'medium'">{{ i18n.texts.pages.trailplanner.undo }}</ion-label>
               </div>
               @if (trackBuilder.putFreeAnchor) {
-                <div class="map-tool button-non-free-anchor" (click)="trackBuilder.backToNonFreeAnchors()" style="color: black">
-                  <ion-icon name="location" slot="start"></ion-icon>
-                  <ion-label>{{ i18n.texts.pages.trailplanner.back_to_non_free_point }}</ion-label>
+                <div class="map-tool button-non-free-anchor" (click)="trackBuilder.backToNonFreeAnchors()">
+                  <ion-icon name="location" slot="start" color="dark"></ion-icon>
+                  <ion-label color="dark">{{ i18n.texts.pages.trailplanner.back_to_non_free_point }}</ion-label>
                 </div>
               } @else {
-                <div class="map-tool button-free-anchor" (click)="trackBuilder.enableFreeAnchor()" [ngStyle]="{'color': trackBuilder.putAnchors ? '#000000' : '#808080'}">
-                  <ion-icon name="location" slot="start"></ion-icon>
-                  <ion-label>{{ i18n.texts.pages.trailplanner.put_free_point }}</ion-label>
+                <div class="map-tool button-free-anchor" (click)="trackBuilder.enableFreeAnchor()" [ngClass]="{'disabled': !trackBuilder.putAnchors}">
+                  <ion-icon name="location" slot="start" [color]="trackBuilder.putAnchors ? 'dark' : 'medium'"></ion-icon>
+                  <ion-label [color]="trackBuilder.putAnchors ? 'dark' : 'medium'">{{ i18n.texts.pages.trailplanner.put_free_point }}</ion-label>
                 </div>
               }
               <div class="map-tool button-stop" (click)="trackBuilder.stop()" *ngIf="trackBuilder.putAnchors || trackBuilder.putFreeAnchor">
@@ -45,7 +45,7 @@
                 <ion-label color="success">{{ i18n.texts.pages.trailplanner.resume }}</ion-label>
               </div>
               <div class="separator"></div>
-              <div class="map-tool button-save" (click)="openSaveModal(saveModal)">
+              <div class="map-tool button-save" (click)="openSaveModal(saveModal)" [ngClass]="{'disabled': trackBuilder.anchors.length < 2}">
                 <ion-icon slot="start" name="save" [color]="trackBuilder.anchors.length > 1 ? 'success' : 'medium'"></ion-icon>
                 <ion-label [color]="trackBuilder.anchors.length > 1 ? 'success' : 'medium'">{{i18n.texts.buttons.save}}</ion-label>
               </div>

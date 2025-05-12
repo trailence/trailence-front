@@ -146,7 +146,10 @@ export class DatabaseService {
   public allLoaded(): Observable<boolean> {
     return this._stores.pipe(
       switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.loaded$))),
-      map(loaded => loaded.reduce((a,b) => a && b, true))
+      map(loaded => {
+        Console.info('Databases: ' + loaded.reduce((a,b) => a + (b ? 1 : 0), 0) + '/' + loaded.length + ' loaded');
+        return loaded.reduce((a,b) => a && b, true);
+      }),
     );
   }
 

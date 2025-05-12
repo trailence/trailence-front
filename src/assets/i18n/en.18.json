@@ -149,6 +149,7 @@
         "share": "No trail in this share",
         "filter": "No trail match your filters"
       },
+      "search_trail_placeholder": "Search a trail",
       "actions": {
         "delete_confirm_single": {
           "title": "Delete Track",

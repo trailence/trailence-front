@@ -149,6 +149,7 @@
         "share": "Aucun parcours dans ce partage",
         "filter": "Aucun parcours ne correspond à vos filtres"
       },
+      "search_trail_placeholder": "Chercher un parcours",
       "actions": {
         "delete_confirm_single": {
           "title": "Supprimer un parcours",

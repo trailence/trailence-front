@@ -314,6 +314,11 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }, 0);
   }
 
+  collapseSearchPlace(): void {
+    this.searchPlaceExpanded = false;
+    this.changeDetector.detectChanges();
+  }
+
   goToPlace(place: Place): void {
     this.map?.goTo(place.lat, place.lng, 14);
     this.searchPlaceExpanded = false;

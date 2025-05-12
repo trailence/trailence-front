@@ -99,6 +99,7 @@
     <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
       [value]="state$.value.filters.search"
       (ionInput)="searchTrailInput($event.detail.value)"
+      [placeholder]="i18n.texts.pages.trails.search_trail_placeholder"
     >
       <ion-icon slot="end" name="cross" (click)="clearSearch()"></ion-icon>
     </ion-input>

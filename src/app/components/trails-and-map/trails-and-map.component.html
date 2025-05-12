@@ -9,9 +9,10 @@
     >
       @if (enableSearchPlace) {
         <div class="map-top-controls right">
-          <div class="map-toolbar horizontal light-theme">
+          <div class="map-toolbar horizontal">
             @if (searchPlaceExpanded) {
               <app-search-place #searchPlace (placeSelected)="goToPlace($event)"></app-search-place>
+              <ion-icon name="chevron-left" style="width: 24px; height: 24px; margin-top: 5px; cursor: pointer" (click)="collapseSearchPlace()" color="dark"></ion-icon>
             } @else {
               <div class="map-tool icon-only" (click)="expandSearchPlace()">
                 <ion-icon name="search" color="dark"></ion-icon>

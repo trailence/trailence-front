@@ -82,6 +82,20 @@ export class MapLayersService {
       localStorage.removeItem(LOCALSTORAGE_KEY_DARKMAP);
       window.document.body.classList.remove('dark-map');
     }
+    const maps = window.document.getElementsByTagName('app-map');
+    for (let i = 0; i < maps.length; ++i) {
+      if (this._darkMap) {
+        maps.item(i)!.classList.remove('light-theme');
+        maps.item(i)!.classList.add('dark-theme');
+      } else {
+        maps.item(i)!.classList.remove('dark-theme');
+        maps.item(i)!.classList.add('light-theme');
+      }
+    }
+  }
+
+  public applyDarkMap(map: L.Map): void {
+    map.getContainer().parentElement!.classList.add(this._darkMap ? 'dark-theme' : 'light-theme');
   }
 
 }
