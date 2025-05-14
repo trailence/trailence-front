@@ -240,6 +240,8 @@
         }
       },
       "remaining_metadata_title": "Restant",
+      "created_in_trailence_on": "Créé dans Trailence le",
+      "last_update_on": "Dernière mise à jour le",
       "edit_tools": {
         "title": "Outils d'édition",
         "back_to_original": "Revenir à la trace d'origine",
@@ -851,5 +853,60 @@
     "title": "Mise à jour nécessaire",
     "message": "Votre application est dans une version obsolète, et doit être mise à jour. En utilisant cette version, vos modifications ne pourront pas être sauvegardées sur le serveur, et pourront être perdues."
   },
-  "downloading_elevation": "Téléchargement des altitudes"
+  "downloading_elevation": "Téléchargement des altitudes",
+  "track_edit_tools": {
+    "categories": {
+      "track": "Trace",
+      "elevation": "Altitude",
+      "path": "Chemin",
+      "selection": "Sélection",
+      "elevation_provider": "Utiliser un fournisseur d'altitude",
+      "join_departure_and_arrival": "Relier le départ à l'arrivée"
+    },
+    "tools": {
+      "remove_unprobable_elevations": {
+        "button_label": "Ajuster les altitudes improbables"
+      },
+      "slope_threshold": {
+        "button_label": "Lisser avec un seuil de dénivelé",
+        "elevation_threshold": "Seuil de dénivelé",
+        "max_distance": "Distance maximum",
+        "explaination": "Le but du lissage est de gommer les imprécisions du GPS.<br/>Du fait de ces imprécisions, il arrive fréquemment que en quelques mètres de distance l'altitude monte et descende également de quelques mètres, alors que la réalité est une pente continue.<br/>Le lissage fonctionne donc comme suit:<ul><li>On recherche les sections dans lesquelles l'altitude a varié dans la limite du seuil configuré, et sur une distance maximum configurée.</li><li>Pour chaque section trouvée, on prend l'altitude de départ et l'altitude d'arrivée, et on lisse en une pente continue.</li><li>Afin d'éviter de perdre les points hauts ou les points bas du parcours, si nous trouvons un tel point au milieu de la section, nous réduisons la section pour conserver ce point.</li></ul>"
+      },
+      "selection": {
+        "title": "Sélection",
+        "extend_selection": "Étendre la sélection jusqu'à...",
+        "close": "Fermer la Sélection",
+        "select_target_point": "Sélectionnez un point sur la carte ou le graphique d'altimétrie pour étendre la sélection jusqu'à ce point",
+        "create_waypoint": "Créer un point de passage",
+        "remove_waypoint": "Supprimer le point de passage",
+        "remove_all_next_points": "Supprimer tous les points après",
+        "remove_all_previous_points": "Supprimer tous les points avant"
+      },
+      "remove_selection": {
+        "button_single_label": "Supprimer le point sélectionné",
+        "button_multiple_label": "Supprimer la section sélectionnée"
+      },
+      "replace_elevation_with_provider": {
+        "button_label": "Remplacer les altitudes"
+      },
+      "improve_elevation_with_provider": {
+        "button_label": "Améliorer les altitudes"
+      },
+      "arrival_to_departure": {
+        "button_label": "Terminer au même endroit que le départ"
+      },
+      "departure_to_arrival": {
+        "button_label": "Démarrer au même endroit que l'arrivée"
+      },
+      "back_to_original_track": {
+        "button_label": "Revenir à la trace d'origine sans amélioration"
+      },
+      "toggle_show_only_modified_track": {
+        "button_label_hide": "N'afficher que la trace modifiée (bleue)",
+        "button_label_show": "Afficher la trace non modifiée"
+      }
+    },
+    "no_modification": "Aucune modification n'a été apportée par cette fonction"
+  }
 }

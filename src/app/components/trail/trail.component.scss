@@ -9,21 +9,28 @@
   --bottom-sheet-tabs-width: 30px;
   --bottom-sheet-tab-icon-size: 24px;
   --bottom-sheet-tab-content-height: 150px;
-  --edit-tools-width: 0px;
-  --edit-tools-open-width: 300px;
+  --edit-tools-right-side-width: 0px;
+  --edit-tools-right-side-open-width: 300px;
+  --edit-tools-bottom-height: 0px;
+  --edit-tools-bottom-open-height: 150px;
 }
 
 @media (min-width: 1600px) {
   .top-container {
-    --edit-tools-open-width: 350px;
+    --edit-tools-right-side-open-width: 350px;
+  }
+}
+@media (min-width: 1800px) {
+  .top-container {
+    --edit-tools-right-side-open-width: 400px;
+  }
+}
+@media (max-width: 800px) {
+  .top-container {
+    --edit-tools-right-side-open-width: 250px;
   }
 }
 
-@media (min-width: 1800px) {
-  .top-container {
-    --edit-tools-open-width: 400px;
-  }
-}
 
 .top-container {
   position: absolute;
@@ -81,7 +88,7 @@
 
   .bottom-sheet-container {
     position: absolute;
-    right: var(--edit-tools-width);
+    right: var(--edit-tools-right-side-width);
     bottom: 0;
     height: var(--bottom-sheet-button-height);
     transition: height 0.3s ease-in-out;
@@ -111,15 +118,16 @@
   .edit-tools-container {
     position: absolute;
     display: none;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    width: var(--edit-tools-width);
   }
   &.edit-tools-open {
-    --edit-tools-width: var(--edit-tools-open-width);
     .edit-tools-container {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+
+      &.horizontal {
+        flex-direction: row;
+      }
     }
   }
 
@@ -136,7 +144,7 @@
         height: var(--bottom-sheet-button-height);
       }
       .map-container {
-        bottom: var(--bottom-sheet-button-height);
+        bottom: calc(var(--bottom-sheet-button-height) + var(--edit-tools-bottom-height));
       }
       .elevation-container {
         top: 100%;
@@ -147,7 +155,7 @@
         height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height));
       }
       .map-container {
-        bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height));
+        bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height) + var(--edit-tools-bottom-height));
       }
       .elevation-container {
         top: calc(100% - var(--bottom-sheet-large-height));
@@ -170,12 +178,12 @@
     .map-container {
       top: 0;
       left: var(--details-width);
-      right: var(--edit-tools-width);
+      right: var(--edit-tools-right-side-width);
     }
     .elevation-container {
       bottom: 0;
       left: var(--details-width);
-      right: var(--edit-tools-width);
+      right: var(--edit-tools-right-side-width);
       height: var(--bottom-sheet-large-height);
       background-color: var(--ion-color-light);
       transition: top 0.3s ease-in-out;
@@ -203,6 +211,9 @@
       .elevation-container {
         display: none;
       }
+      .edit-tools-container {
+        display: none;
+      }
       .trail-details {
         top: var(--tabs-height);
         left: 0;
@@ -225,6 +236,9 @@
         display: none;
       }
       .trail-details {
+        display: none;
+      }
+      .edit-tools-container {
         display: none;
       }
       .trail-photos-tab {
@@ -250,14 +264,14 @@
       .map-container {
         top: var(--tabs-height);
         left: 0;
-        right: 0;
+        right: var(--edit-tools-right-side-width);
         transition: bottom 0.3s ease-in-out;
       }
       .bottom-sheet-info-content {
         position: absolute;
         bottom: 0;
         left: var(--bottom-sheet-tabs-width);
-        right: 0;
+        right: var(--edit-tools-right-side-width);
         z-index: 501;
 
         height: 0;
@@ -273,7 +287,7 @@
       }
       .elevation-container {
         left: var(--bottom-sheet-tabs-width);
-        right: 0;
+        right: var(--edit-tools-right-side-width);
         top: 100%;
         height: var(--bottom-sheet-tab-content-height);
         transition: top 0.3s ease-in-out;
@@ -288,7 +302,7 @@
           height: var(--bottom-sheet-button-height);
         }
         .map-container {
-          bottom: var(--bottom-sheet-button-height);
+          bottom: calc(var(--bottom-sheet-button-height) + var(--edit-tools-bottom-height));
         }
         .bottom-sheet-tabs {
           display: none;
@@ -300,7 +314,7 @@
           height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
         }
         .map-container {
-          bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
+          bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height) + var(--edit-tools-bottom-height));
         }
         .bottom-sheet-button {
           border-bottom: 1px solid var(--ion-color-light);
@@ -355,6 +369,64 @@
           .bottom-sheet-info-content {
             display: none;
           }
+        }
+      }
+    }
+  }
+
+  &.edit-tools-on-right {
+    .edit-tools-container {
+      bottom: 0;
+      right: 0;
+      width: var(--edit-tools-right-side-width);
+    }
+    &.edit-tools-open {
+      --edit-tools-right-side-width: var(--edit-tools-right-side-open-width);
+    }
+    &.large {
+      .edit-tools-container {
+        top: 0;
+      }
+    }
+    &.small {
+      .edit-tools-container {
+        top: var(--tabs-height);
+      }
+    }
+  }
+  &.edit-tools-on-bottom {
+    .edit-tools-container {
+      left: 0;
+      right: 0;
+      height: var(--edit-tools-bottom-open-height);
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      div.edit-tool-container {
+        flex-shrink: 0;
+      }
+    }
+    &.edit-tools-open {
+      --edit-tools-bottom-height: var(--edit-tools-bottom-open-height);
+    }
+    &.large {
+      .edit-tools-container {
+        left: var(--details-width);
+        bottom: var(--bottom-sheet-button-height);
+      }
+      &.bottom-sheet-open {
+        .edit-tools-container {
+          bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height));
+        }
+      }
+    }
+    &.small {
+      .edit-tools-container {
+        bottom: var(--bottom-sheet-button-height);
+      }
+      &.bottom-sheet-open {
+        .edit-tools-container {
+          bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
         }
       }
     }

@@ -1,4 +1,4 @@
-<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }} {{editToolsComponent ? 'edit-tools-open' : ''}}">
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }} {{editToolsComponent || toolsStack ? 'edit-tools-open' : ''}}">
   <div class="map-container">
     <div class="map-top-buttons" *ngIf="recording">
       <ion-button shape="round" size="small" *ngIf="recording.paused" (click)="togglePauseRecordingWithConfirmation()">
@@ -15,6 +15,7 @@
       </ion-button>
     </div>
     <app-map *ngIf="trail1 || recording"
+      #map
       mapId="trail-{{trail1?.owner || recording?.trail?.owner}}-{{trail1?.uuid || recording?.trail?.uuid}}{{trail2 ? '-' + trail2.owner + '-' + trail2.uuid : ''}}"
       [tracks$]="mapTracks$"
       [autoFollowLocation]="true"
@@ -23,7 +24,23 @@
       (mouseOverPoint)="mouseOverPointOnMap($event)"
       (mouseClickPoint)="mouseClickOnMap($event)"
       [enableLockScreen]="!!recording"
-    ></app-map>
+    >
+      @if (trail1 && !recording && !trail2) {
+      <div class="map-top-controls center">
+        <app-track-edit-tools
+          [trail]="trail1"
+          [originalTrack$]="toolsOriginalTrack$"
+          [baseTrack$]="toolsBaseTrack$"
+          [modifiedTrack$]="toolsModifiedTrack$"
+          [focusTrack$]="toolsFocusTrack$"
+          [hideBaseTrack$]="toolsHideBaseTrack$"
+          [map]="map"
+          [elevationGraph]="elevationGraph"
+          (toolsStackChange)="setToolsStack($event)"
+        ></app-track-edit-tools>
+      </div>
+      }
+    </app-map>
   </div>
   <div class="tabs-container">
     <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())" *ngIf="isSmall">
@@ -45,9 +62,14 @@
       </div>
     </div>
   </div>
-  <div class="edit-tools-container">
+  <div class="edit-tools-container" [ngClass]="{'horizontal': !toolsVertical}">
     <ng-container *ngIf="editToolsComponent">
       <ng-container *ngComponentOutlet="editToolsComponent; inputs: editToolsInputs"></ng-container>
+    </ng-container>
+    <ng-container *ngIf="toolsStack">
+      <div class="edit-tool-container" *ngFor="let tool of toolsStack.components">
+        <ng-container *ngComponentOutlet="tool.component; inputs: { context: toolsStack.context, onCreated: toolCreated(tool), vertical: toolsVertical }"></ng-container>
+      </div>
     </ng-container>
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
@@ -201,7 +223,7 @@
         </div>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
-      <div *ngIf="!editToolsComponent" style="padding: 5px 3px 10px 3px">
+      <div *ngIf="!editToolsComponent" style="padding: 5px 3px 10px 8px">
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
         <ion-checkbox *ngIf="photos && photos.length > 0" labelPlacement="end" [checked]="showPhotos$.value" (ionChange)="showPhotos$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_photos}}</ion-checkbox>
       </div>
@@ -210,11 +232,11 @@
       </div>
       <div class="trail-dates" *ngIf="trail1 && !trail2 && !isExternal">
         <div>
-          <span class="trail-date-title">Créé dans Trailence le </span>
+          <span class="trail-date-title">{{i18n.texts.pages.trail.created_in_trailence_on}} </span>
           <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
         </div>
         <div *ngIf="trail1.createdAt !== trail1.updatedAt">
-          <span class="trail-date-title">Dernière mise à jour le </span>
+          <span class="trail-date-title">{{i18n.texts.pages.trail.last_update_on}} </span>
           <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.updatedAt)}}</span>
         </div>
       </div>
@@ -342,6 +364,7 @@
     </div>
     <div class="elevation-container">
       <app-elevation-graph
+        #elevationGraph
         [track1]="pathSelection.zoomOnSelection ? pathSelection.selection[0] : (elevationTrack1 || tracks[0])"
         [track2]="pathSelection.zoomOnSelection ? pathSelection.selection[1] : elevationTrack2"
         (pointHover)="elevationGraphPointHover($event)"

@@ -94,6 +94,13 @@ export class Track extends Owned {
     return s;
   }
 
+  public insertSegment(index: number): Segment {
+    const s = new Segment();
+    this._segments.value.splice(index, 0, s);
+    this._segments.next(this._segments.value);
+    return s;
+  }
+
   public appendWayPoint(wp: WayPoint): void {
     this._wayPoints.value.push(wp);
     this._wayPoints.next(this._wayPoints.value);
@@ -217,6 +224,45 @@ export class Track extends Owned {
     const newSegment = sub.newSegment();
     newSegment.appendMany(newPoints);
     return sub;
+  }
+
+  public replace(startSegment: number, startPoint: number, endSegment: number, endPoint: number, subTrack: Track): void {
+    subTrack.removeEmptySegments();
+    // remove
+    if (startSegment === endSegment) {
+      const segment = this.segments[startSegment];
+      segment.removeMany(segment.points.slice(startPoint, endPoint + 1));
+    } else {
+      let segment = this.segments[startSegment];
+      segment.removeMany(segment.points.slice(startPoint, segment.points.length));
+      for (let i = startSegment + 1; i < endSegment; ++i)
+        this.removeSegmentAt(startSegment + 1);
+      segment = this.segments[startSegment + 1];
+      segment.removeMany(segment.points.slice(0, endPoint + 1));
+    }
+    if (subTrack.segments.length === 0) return;
+    // insert
+    let dstSegment = this.segments[startSegment];
+    let srcSegment = subTrack.segments[0];
+    if (dstSegment.points.length === startPoint) {
+      dstSegment.appendMany(srcSegment.points);
+    } else {
+      dstSegment.insertMany(startPoint, srcSegment.points);
+    }
+    if (subTrack.segments.length === 1) return;
+    let lastSegment = subTrack.segments.length - 1;
+    if (endSegment > startSegment) {
+      dstSegment = this.segments[startSegment + 1];
+      srcSegment = subTrack.segments[subTrack.segments.length - 1];
+      dstSegment.insertMany(0, srcSegment.points);
+      if (subTrack.segments.length === 2) return;
+      lastSegment--;
+    }
+    for (let i = 1; i <= lastSegment; ++i) {
+      srcSegment = subTrack.segments[i];
+      dstSegment = this.insertSegment(startSegment + 1);
+      dstSegment.appendMany(srcSegment.points);
+    }
   }
 
   public copy(email: string): Track {

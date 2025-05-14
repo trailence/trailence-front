@@ -9,6 +9,7 @@ export class MenuItem {
   public label?: string;
   public action?: () => void
   public color?: string;
+  public textColor?: string;
   public children?: MenuItem[];
   public childrenProvider?: () => Observable<MenuItem[]>;
 
@@ -34,6 +35,11 @@ export class MenuItem {
 
   public setColor(color?: string): this {
     this.color = color;
+    return this;
+  }
+
+  public setTextColor(color?: string): this {
+    this.textColor = color;
     return this;
   }
 

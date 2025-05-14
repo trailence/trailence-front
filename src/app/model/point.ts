@@ -1,4 +1,5 @@
 import { PointDto } from './dto/point';
+import { Track } from './track';
 
 export interface Point extends PointDescriptor {
 
@@ -18,6 +19,8 @@ export interface Point extends PointDescriptor {
   readonly nextPoint: Point | undefined;
 
   distanceTo(other: L.LatLngExpression): number;
+  durationFromStart(track: Track): number;
+  distanceFromStart(track: Track): number;
 
 }
 

@@ -1,0 +1,39 @@
+@use "../edit-tool-component.scss";
+
+.metadata-container {
+  ion-input {
+    font-size: var(--metadata-font-size, 13px);
+    min-height: 24px;
+    width: 75px;
+  }
+}
+
+.selection-points {
+  .points-moves {
+    .point-carets {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+
+      ion-button:not(:first-child) {
+        margin-left: 10px;
+      }
+
+      ion-button {
+        margin: 0;
+      }
+    }
+
+    &.two-columns {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+
+      .point-carets {
+        flex: 1 1 50%;
+      }
+    }
+  }
+}
+

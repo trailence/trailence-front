@@ -1,0 +1,107 @@
+div.edit-tool {
+  border: 1px solid var(--ion-color-medium);
+
+  div.edit-tool-header {
+    background-color: var(--ion-toolbar-background);
+    color: var(--ion-toolbar-color, var(--ion-text-color));
+
+    div.edit-tool-title {
+      flex: 1 1 100%;
+      color: var(--ion-color-tertiary);
+    }
+  }
+
+  div.edit-tool-content {
+    padding: 3px;
+  }
+
+  &.vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    div.edit-tool-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      border-bottom: 1px solid var(--ion-color-medium);
+    }
+  }
+  &.horizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 100%;
+    --metadata-font-size: 12px;
+    --metadata-icon-size: 16px;
+
+    div.metadata-container.two-columns {
+      max-width: 300px;
+    }
+
+    div.edit-tool-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-right: 1px solid var(--ion-color-medium);
+
+      div.edit-tool-title {
+        min-width: 32px;
+        max-width: 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        span {
+          transform: rotate(-90deg);
+          white-space: nowrap;
+          padding-left: 3px;
+        }
+      }
+    }
+
+    div.edit-tool-content {
+      display: flex;
+      flex-direction: row;
+    }
+
+    ion-item {
+      font-size: 12px;
+      --min-height: 24px;
+    }
+    ion-list {
+      padding: 0;
+    }
+
+    .message {
+      padding: 0 5px;
+      font-size: 13px;
+      max-width: 150px;
+    }
+  }
+
+  ion-item {
+    font-size: 14px;
+    --min-height: 32px;
+
+    &.success {
+      color: var(--ion-color-success);
+    }
+    &.danger {
+      color: var(--ion-color-danger);
+    }
+  }
+  ion-item-divider.empty {
+    min-height: 8px;
+  }
+  .message {
+    padding: 10px;
+    color: var(--ion-color-tertiary);
+  }
+
+  &.collpased {
+    div.edit-tool-content {
+      display: none;
+    }
+  }
+
+}

@@ -12,6 +12,7 @@ export class BackgroundPlugin implements C.Plugin<"line"> {
     let xAxis = chart.scales['x'];
     let yAxis = chart.scales['y'];
     let ctx = chart.ctx;
+    if (!ctx) return;
     ctx.save();
     ctx.fillStyle = this.backgroundColor;
     ctx.fillRect(xAxis.left, yAxis.top, xAxis.right - xAxis.left, yAxis.bottom - yAxis.top);

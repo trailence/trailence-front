@@ -146,10 +146,7 @@ export class DatabaseService {
   public allLoaded(): Observable<boolean> {
     return this._stores.pipe(
       switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.loaded$))),
-      map(loaded => {
-        Console.info('Databases: ' + loaded.reduce((a,b) => a + (b ? 1 : 0), 0) + '/' + loaded.length + ' loaded');
-        return loaded.reduce((a,b) => a && b, true);
-      }),
+      map(loaded => loaded.reduce((a,b) => a && b, true)),
     );
   }
 
@@ -193,7 +190,6 @@ export class DatabaseService {
   registerStore(store: StoreRegistration): void {
     const registered = new RegisteredStore(store);
     this._stores.value.push(registered);
-    this._stores.next(this._stores.value);
     combineLatest([
       store.loaded$,         // local database is loaded
       this.network.server$,  // network is connected
@@ -255,6 +251,7 @@ export class DatabaseService {
       error: e => Console.warn('Store ' + store.name + ' is still not loaded after 20 seconds !', e),
       next: n => { if (n === true) Console.info("Store loaded: " + store.name); }
     });
+    this._stores.next(this._stores.value);
   }
 
   private updateFromServerInterval: any = undefined;

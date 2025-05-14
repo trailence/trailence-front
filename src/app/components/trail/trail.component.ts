@@ -42,6 +42,8 @@ import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
+import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools/tools/track-edit-tools-stack';
 
 @Component({
     selector: 'app-trail',
@@ -65,6 +67,7 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
         PhotoComponent,
         PhotosPopupComponent,
         I18nPipe,
+        TrackEditToolsComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -82,6 +85,7 @@ export class TrailComponent extends AbstractComponent {
   trail2: Trail | null = null;
   recording: Recording | null = null;
   tracks$ = new BehaviorSubject<Track[]>([]);
+  toolsOriginalTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsFocusTrack$ = new BehaviorSubject<Track | undefined>(undefined);
@@ -128,6 +132,9 @@ export class TrailComponent extends AbstractComponent {
   private _lockForDescription?: () => void;
   editingDescription = false;
   @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
+
+  toolsStack?: TrackEditToolsStack;
+  toolsVertical = true;
 
   constructor(
     injector: Injector,
@@ -278,6 +285,7 @@ export class TrailComponent extends AbstractComponent {
         }
 
         if (!recordingWithTrack && !trail2[0]) {
+          this.toolsOriginalTrack$.next(trail1[1]);
           if (toolsModifiedTrack) {
             tracks.push(toolsModifiedTrack);
             if (this.elevationTrack1)
@@ -612,11 +620,19 @@ export class TrailComponent extends AbstractComponent {
     const w = this.browser.width;
     const h = this.browser.height;
     if (w >= 750 + 350) {
-      this.displayMode = 'large';
+      this.displayMode = 'large edit-tools-on-right';
+      this.toolsVertical = true;
       this.isSmall = false;
       this.updateVisibility(true, this.bottomSheetOpen);
     } else {
       this.displayMode = h > 500 || w < 500 ? 'small' : 'small small-height bottom-sheet-tab-open-' + this.bottomSheetTab;
+      if (h > w) {
+        this.displayMode += ' edit-tools-on-bottom';
+        this.toolsVertical = false;
+      } else {
+        this.displayMode += ' edit-tools-on-right';
+        this.toolsVertical = true;
+      }
       this.isSmall = true;
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation');
     }
@@ -950,6 +966,22 @@ export class TrailComponent extends AbstractComponent {
       this._children$.value.find(child => child instanceof MapComponent)?.invalidateSize();
       this._children$.value.find(child => child instanceof ElevationGraphComponent)?.resetChart();
     }, 0);
+  }
+
+  setToolsStack(stack: TrackEditToolsStack | undefined): void {
+    const hadTools = this.toolsStack && this.toolsStack.components.length > 0;
+    const hasTools = stack && stack.components.length > 0;
+    this.toolsStack = stack;
+    if (hadTools != hasTools)
+      this.elevationGraph?.resetChart();
+    this.changesDetector.detectChanges();
+  }
+
+  toolCreated(tool: TrackEditToolComponent<any>) {
+    return (instance: any) => {
+      tool.instance = instance;
+      tool.onCreated(instance);
+    };
   }
 
 }

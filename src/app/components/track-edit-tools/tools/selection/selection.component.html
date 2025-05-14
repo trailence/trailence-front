@@ -1,0 +1,173 @@
+<div class="edit-tool" [ngClass]="{'collpased': !expanded, 'vertical': vertical, 'horizontal': !vertical}">
+  <div class="edit-tool-header">
+    <div class="edit-tool-expand-button">
+      <ion-button slot="end" fill="clear" size="small" color="dark" (click)="toggleExpanded()">
+        <ion-icon [name]="expanded ? (vertical ? 'chevron-down' : 'chevron-right') : (vertical ? 'chevron-right' : 'chevron-down')" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="edit-tool-title"><span>{{i18n.texts.track_edit_tools.tools.selection.title}}</span></div>
+    <div class="edit-tool-close-button">
+      <ion-button slot="end" fill="clear" size="small" color="dark" (click)="close()">
+        <ion-icon name="cross" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+  <div class="edit-tool-content">
+    @if (point1) {
+      <div class="selection-points">
+        <div class="metadata-container" [ngClass]="{'one-column': !point2, 'two-columns': !!point2}">
+          <div class="metadata-item-container">
+            <div class="metadata-item">
+              <ion-icon name="center-on-location"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{i18n.coordToString(point1.point.pos.lat)}}, {{i18n.coordToString(point1.point.pos.lng)}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          @if (point2) {
+            <div class="metadata-item-container">
+              <div class="metadata-item">
+                <ion-icon name="center-on-location"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="metadata-primary">{{i18n.coordToString(point2.point.pos.lat)}}, {{i18n.coordToString(point2.point.pos.lng)}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          <div class="metadata-item-container">
+            <div class="metadata-item">
+              <ion-icon name="date"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{i18n.timestampToDateTimeString(point1.point.time)}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          @if (point2) {
+            <div class="metadata-item-container">
+              <div class="metadata-item">
+                <ion-icon name="date"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="metadata-primary">{{i18n.timestampToDateTimeString(point2.point.time)}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          <div class="metadata-item-container">
+            <div class="metadata-item">
+              <ion-icon name="duration"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{i18n.durationToString(point1.point.durationFromStart(point1.track))}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          @if (point2) {
+            <div class="metadata-item-container">
+              <div class="metadata-item">
+                <ion-icon name="duration"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="metadata-primary">{{i18n.durationToString(point2.point.durationFromStart(point2.track))}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          <div class="metadata-item-container">
+            <div class="metadata-item">
+              <ion-icon name="distance"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{i18n.distanceToString(point1.point.distanceFromStart(point1.track))}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          @if (point2) {
+            <div class="metadata-item-container">
+              <div class="metadata-item">
+                <ion-icon name="distance"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <div class="metadata-primary">{{i18n.distanceToString(point2.point.distanceFromStart(point2.track))}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+          <div class="metadata-item-container">
+            <div class="metadata-item">
+              <ion-icon name="altitude"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <ng-container *ngTemplateOutlet="pointElevation; context: {point: point1}"></ng-container>
+                </div>
+              </div>
+            </div>
+          </div>
+          @if (point2) {
+            <div class="metadata-item-container">
+              <div class="metadata-item">
+                <ion-icon name="altitude"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-value">
+                    <ng-container *ngTemplateOutlet="pointElevation; context: {point: point2}"></ng-container>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        <ng-template #pointElevation let-point="point">
+          <ion-input
+            type="number"
+            color="dark"
+            class="very-small"
+            step="any"
+            [value]="elevationInputValue(point.point!.ele)"
+            (ionChange)="setElevation(point, $event.detail.value)"
+          >
+          </ion-input>
+        </ng-template>
+        <div class="points-moves" [ngClass]="{'one-column': !point2, 'two-columns': !!point2}">
+          <ng-container *ngTemplateOutlet="pointMoves; context: {point: point1}"></ng-container>
+          <ng-container *ngIf="point2">
+            <ng-container *ngTemplateOutlet="pointMoves; context: {point: point2}"></ng-container>
+          </ng-container>
+        </div>
+        <ng-template #pointMoves let-point="point">
+          <div class="point-carets">
+            <ion-button shape="round" color="dark" size="small" fill="clear" [disabled]="!canMoveBackward(point)" (click)="moveBackward(point)" class="go-to-previous">
+              <ion-icon slot="icon-only" name="caret-back"></ion-icon>
+            </ion-button>
+            <ion-button shape="round" color="dark" size="small" fill="clear" [disabled]="!canMoveForward(point)" (click)="moveForward(point)" class="go-to-next">
+              <ion-icon slot="icon-only" name="caret-forward"></ion-icon>
+            </ion-button>
+          </div>
+        </ng-template>
+      </div>
+
+      @if (selectingPoint2) {
+        <div class="message">
+          {{i18n.texts.track_edit_tools.tools.selection.select_target_point}}
+        </div>
+      } @else {
+        <ion-list>
+          @if (!point2) {
+            <ion-item button lines="none" (click)="extendSelection()" class="extend-selection">{{i18n.texts.track_edit_tools.tools.selection.extend_selection}}</ion-item>
+            <ion-item-divider class="empty"></ion-item-divider>
+          }
+        </ion-list>
+      }
+    }
+  </div>
+</div>

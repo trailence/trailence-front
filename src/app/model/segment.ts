@@ -3,6 +3,8 @@ import { Point, PointDescriptor, PointDtoMapper, pointsAreEqual } from './point'
 import { Arrays } from '../utils/arrays';
 import { SegmentDto } from './dto/segment';
 import L from 'leaflet';
+import { Track } from './track';
+import { TrackUtils } from '../utils/track-utils';
 
 export class Segment {
 
@@ -59,6 +61,24 @@ export class Segment {
     this._points.value.splice(index, 0, p);
     this._points.next(this._points.value);
     return p;
+  }
+
+  public insertMany(index: number, points: PointDescriptor[]): Point[] {
+    if (index < 0 || index >= this._points.value.length) return this.appendMany(points);
+    let prev = index > 0 ? this._points.value[index - 1] : undefined;
+    const next = this._points.value[index];
+    let inserted: Point[] = [];
+    for (let i = 0; i < points.length - 1; ++i) {
+      const p = new PointImpl(this._meta, points[i], prev, undefined, this._pointsChanges$);
+      this._points.value.splice(index + i, 0, p);
+      prev = p;
+      inserted.push(p);
+    }
+    const p = new PointImpl(this._meta, points[points.length - 1], prev, next, this._pointsChanges$);
+    this._points.value.splice(index + points.length - 1, 0, p);
+    this._points.next(this._points.value);
+    inserted.push(p);
+    return inserted;
   }
 
   public removePoint(point: Point): this {
@@ -303,13 +323,17 @@ export class PointImpl implements Point {
   public get nextPoint(): Point | undefined { return this._next; }
 
   private setPrevious(previous?: PointImpl): void {
-    this._previous?.setNext();
+    const p = this._previous;
+    this._previous = undefined;
+    p?.setNext();
     this._previous = previous;
     this.update();
   }
 
   private setNext(next?: PointImpl): void {
-    this._next?.setPrevious();
+    const n = this._next;
+    this._next = undefined;
+    n?.setPrevious();
     this._next = next;
   }
 
@@ -377,6 +401,28 @@ export class PointImpl implements Point {
 
   public distanceTo(other: L.LatLngExpression): number {
     return L.CRS.Earth.distance(this._pos, other);
+  }
+
+  public durationFromStart(track: Track): number {
+    return TrackUtils.durationBetween(track.departurePoint!, this);
+  }
+
+  public distanceFromStart(track: Track): number {
+    let segmentIndex: number | undefined = undefined;
+    let pointIndex: number | undefined = undefined;
+    for (let si = 0; si < track.segments.length; ++si) {
+      const segment = track.segments[si];
+      for (let pi = 0; pi < segment.points.length; ++pi) {
+        if (segment.points[pi] === this) {
+          segmentIndex = si;
+          pointIndex = pi;
+          break;
+        }
+      }
+      if (segmentIndex !== undefined) break;
+    }
+    if (segmentIndex === undefined) return 0;
+    return TrackUtils.distanceBetweenPoints(track.segments, 0, 0, segmentIndex, pointIndex!);
   }
 
 }

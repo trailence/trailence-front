@@ -118,11 +118,10 @@ app-map {
       margin: 1px 0px 0px 0px;
       cursor: pointer;
       border-radius: 5px;
-      border: 1px solid #00000000;
 
       &:hover:not(.disabled) {
-        background: #00000004;
-        border: 1px solid #0000000A;
+        background: #00000010;
+        box-shadow: 0 0 4px 0 #00000020;
       }
 
       ion-icon {
@@ -237,8 +236,8 @@ body.dark-map {
 
       div.map-tool {
         &:hover:not(.disabled) {
-          background: #FFFFFF04;
-          border: 1px solid #FFFFFF0A;
+          background: #FFFFFF18;
+          box-shadow: 0 0 4px 0 #FFFFFF28;
         }
       }
 

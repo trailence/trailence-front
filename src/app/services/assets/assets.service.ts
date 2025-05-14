@@ -104,6 +104,9 @@ export class AssetsService {
       'reset': 'assets/reset.1.svg', // refresh-outline
       'save': 'assets/save.1.svg', // save
       'search': 'assets/search.1.svg', // search-outline
+      'selection': 'assets/selection.1.svg',
+      'selection-add': 'assets/selection-add.1.svg',
+      'selection-off': 'assets/selection-off.1.svg',
       'send-message': 'assets/send-message.1.svg', // send-outline
       'settings': 'assets/settings.1.svg', // settings
       'share': 'assets/share.1.svg', // share-social

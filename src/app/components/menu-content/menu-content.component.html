@@ -21,8 +21,8 @@
         [disabled]="(computedItem.item.children || computedItem.item.childrenProvider) && computedItem.children.length === 0"
         [lines]="index < computed.length - 1 && !computed[index + 1].separator ? 'full' : 'none'"
       >
-        <ion-icon *ngIf="computedItem.item.icon" [name]="computedItem.item.icon"></ion-icon>
-        <ion-label>{{ computedItem.item.label$(i18n) | async }}</ion-label>
+        <ion-icon *ngIf="computedItem.item.icon" [name]="computedItem.item.icon" [color]="computedItem.item.textColor"></ion-icon>
+        <ion-label [color]="computedItem.item.textColor">{{ computedItem.item.label$(i18n) | async }}</ion-label>
       </ion-item>
     </ng-container>
   </ng-container>

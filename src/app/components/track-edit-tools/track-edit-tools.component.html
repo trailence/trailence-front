@@ -1,0 +1,15 @@
+<div class="map-toolbar horizontal">
+  <div class="map-tool" *ngFor="let category of categories" (click)="openCategory(category, $event)">
+    <ion-icon [name]="category.icon" color="dark"></ion-icon>
+    <ion-label color="dark">{{i18n.texts.track_edit_tools.categories[category.label]}}</ion-label>
+  </div>
+  <div class="separator"></div>
+  <div class="map-tool" [ngClass]="{'disabled': statesStack.length === 0}" (click)="undo()">
+    <ion-icon name="undo" [color]="statesStack.length === 0 ? 'medium' : 'dark'"></ion-icon>
+    <ion-label [color]="statesStack.length === 0 ? 'medium' : 'dark'">{{i18n.texts.buttons.undo}}</ion-label>
+  </div>
+  <div class="map-tool" [ngClass]="{'disabled': undoneStack.length === 0}" (click)="redo()">
+    <ion-icon name="redo" [color]="undoneStack.length === 0 ? 'medium' : 'dark'"></ion-icon>
+    <ion-label [color]="undoneStack.length === 0 ? 'medium' : 'dark'">{{i18n.texts.buttons.redo}}</ion-label>
+  </div>
+</div>
