@@ -1,5 +1,4 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { isRange } from '../selection.tool';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { copyPoint, Point, PointDescriptor } from 'src/app/model/point';
 import { improveElevationWithProvider } from 'src/app/services/track-edition/elevation/improve-elevations-with-provider';
@@ -11,8 +10,7 @@ export class ImproveElevationWithProvider implements TrackEditTool {
   labelKey(ctx: TrackEditToolContext): string { return 'improve_elevation_with_provider.button_label'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
-    const s = ctx.getSelection() as any;
-    return !s || isRange(s);
+    return !ctx.selection.hasSelection() || ctx.selection.isRange();
   }
 
   execute(ctx: TrackEditToolContext) {

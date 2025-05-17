@@ -216,8 +216,11 @@ export class Segment {
 
   public isEquals(other: Segment): boolean {
     if (this._points.value.length !== other._points.value.length) return false;
-    for (let i = 0; i < this._points.value.length; ++i)
-      if (!pointsAreEqual(this._points.value[i], other._points.value[i])) return false;
+    for (let i = 0; i < this._points.value.length; ++i) {
+      if (!pointsAreEqual(this._points.value[i], other._points.value[i])) {
+        return false;
+      }
+    }
     return true;
   }
 

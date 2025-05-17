@@ -14,6 +14,7 @@ import { estimateTimeForTrack } from '../services/track-edition/time/time-estima
 import { ComputedPreferences } from '../services/preferences/preferences';
 import { TrackUtils } from '../utils/track-utils';
 import { debounceTimeExtended } from '../utils/rxjs/debounce-time-extended';
+import { PointReference } from './point-reference';
 
 export class Track extends Owned {
 
@@ -226,7 +227,7 @@ export class Track extends Owned {
     return sub;
   }
 
-  public replace(startSegment: number, startPoint: number, endSegment: number, endPoint: number, subTrack: Track): void {
+  public replace(startSegment: number, startPoint: number, endSegment: number, endPoint: number, subTrack: Track): PointReference | undefined {
     subTrack.removeEmptySegments();
     // remove
     if (startSegment === endSegment) {
@@ -240,7 +241,7 @@ export class Track extends Owned {
       segment = this.segments[startSegment + 1];
       segment.removeMany(segment.points.slice(0, endPoint + 1));
     }
-    if (subTrack.segments.length === 0) return;
+    if (subTrack.segments.length === 0) return undefined;
     // insert
     let dstSegment = this.segments[startSegment];
     let srcSegment = subTrack.segments[0];
@@ -249,13 +250,13 @@ export class Track extends Owned {
     } else {
       dstSegment.insertMany(startPoint, srcSegment.points);
     }
-    if (subTrack.segments.length === 1) return;
+    if (subTrack.segments.length === 1) return new PointReference(this, startSegment, startPoint + srcSegment.points.length - 1);
     let lastSegment = subTrack.segments.length - 1;
     if (endSegment > startSegment) {
       dstSegment = this.segments[startSegment + 1];
       srcSegment = subTrack.segments[subTrack.segments.length - 1];
       dstSegment.insertMany(0, srcSegment.points);
-      if (subTrack.segments.length === 2) return;
+      if (subTrack.segments.length === 2) return new PointReference(this, startSegment + 1, srcSegment.points.length - 1);
       lastSegment--;
     }
     for (let i = 1; i <= lastSegment; ++i) {
@@ -263,6 +264,7 @@ export class Track extends Owned {
       dstSegment = this.insertSegment(startSegment + 1);
       dstSegment.appendMany(srcSegment.points);
     }
+    return new PointReference(this, startSegment + lastSegment + 1, srcSegment.points.length - 1);
   }
 
   public copy(email: string): Track {
@@ -284,6 +286,17 @@ export class Track extends Owned {
     for (let i = 0; i < this._segments.value.length; ++i)
       if (!this._segments.value[i].isEquals(other._segments.value[i])) return false;
     return true;
+  }
+
+  public findPointInstance(point: Point): PointReference | undefined {
+    const segments = this.segments;
+    for (let i = segments.length - 1; i >= 0; --i) {
+      const points = segments[i].points;
+      for (let j = points.length - 1; j >= 0; --j) {
+        if (points[j] === point) return new PointReference(this, i, j);
+      }
+    }
+    return undefined;
   }
 
 }

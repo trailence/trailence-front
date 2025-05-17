@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonInput, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -18,11 +18,9 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { TrailHoverCursor } from './hover-cursor';
-import { TrailPathSelection } from './path-selection';
 import { Router } from '@angular/router';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
-import { WayPoint } from 'src/app/model/way-point';
 import { TagService } from 'src/app/services/database/tag.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { PhotoService } from 'src/app/services/database/photo.service';
@@ -44,6 +42,9 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
 import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools/tools/track-edit-tools-stack';
+import { TrailSelection } from './trail-selection';
+import { PointReference } from 'src/app/model/point-reference';
+import { samePositionRound } from 'src/app/model/point';
 
 @Component({
     selector: 'app-trail',
@@ -53,7 +54,6 @@ import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools
     imports: [
         IonSpinner,
         IonCheckbox,
-        IonInput,
         IonTextarea,
         IonButton,
         IonIcon,
@@ -88,7 +88,6 @@ export class TrailComponent extends AbstractComponent {
   toolsOriginalTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsBaseTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
-  toolsFocusTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsHideBaseTrack$ = new BehaviorSubject<boolean>(false);
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   wayPoints: ComputedWayPoint[] = [];
@@ -98,8 +97,18 @@ export class TrailComponent extends AbstractComponent {
   photos: Photo[] | undefined;
   elevationTrack1?: Track;
   elevationTrack2?: Track;
+  elevationGraphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
 
-  @ViewChild(MapComponent) map?: MapComponent;
+  @ViewChild(MapComponent)
+  set map(child: MapComponent | undefined) {
+    this.map$.next(child);
+  }
+  get map() {
+    return this.map$.value;
+  }
+
+  map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
+
   @ViewChild(ElevationGraphComponent)
   set elevationGraph(child: ElevationGraphComponent | undefined) {
     this.elevationGraph$.next(child ?? undefined);
@@ -118,8 +127,7 @@ export class TrailComponent extends AbstractComponent {
   editable = false;
 
   hover: TrailHoverCursor;
-  pathSelection: TrailPathSelection;
-  previousFocus: Track | undefined = undefined;
+  selection = new TrailSelection(this.map$, this.elevationGraph$);
 
   isExternal = false;
   externalUrl?: string;
@@ -135,6 +143,7 @@ export class TrailComponent extends AbstractComponent {
 
   toolsStack?: TrackEditToolsStack;
   toolsVertical = true;
+  toolsEnabled = true;
 
   constructor(
     injector: Injector,
@@ -151,7 +160,6 @@ export class TrailComponent extends AbstractComponent {
     super(injector);
     changesDetector.detach();
     this.hover = new TrailHoverCursor(() => this.map, () => this.elevationGraph);
-    this.pathSelection = new TrailPathSelection(this, injector);
   }
 
   protected override initComponent(): void {
@@ -159,6 +167,10 @@ export class TrailComponent extends AbstractComponent {
     this.whenVisible.subscribe(this.browser.resize$, () => this.updateDisplay());
     this.visible$.subscribe(() => this.updateDisplay());
     setTimeout(() => this.updateDisplay(), 0);
+  }
+
+  protected override destroyComponent(): void {
+    this.selection.destroy();
   }
 
   protected override getComponentState() {
@@ -200,10 +212,10 @@ export class TrailComponent extends AbstractComponent {
   private listenForTracks(): void {
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.toolsFocusTrack$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.selection.selectionTrack$, this.selection.zoom$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(
         debounceTime(1)
       ),
-      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, toolsFocusTrack, hideBaseTrack, showBreaks]) => { // NOSONAR
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, showBreaks]) => { // NOSONAR
         if (this.trail1 !== trail1[0]) {
           if (this._lockForDescription) {
             this._lockForDescription();
@@ -292,33 +304,35 @@ export class TrailComponent extends AbstractComponent {
               this.elevationTrack2 = toolsModifiedTrack;
             else
               this.elevationTrack1 = toolsModifiedTrack;
-            const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n);
+            const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n, hideBaseTrack ? 3 : 2);
             mapTrack.showDepartureAndArrivalAnchors();
             mapTrack.showWayPointsAnchors();
             mapTrack.showBreaksAnchors(showBreaks);
             mapTracks.push(mapTrack);
           }
-          if (toolsFocusTrack !== this.previousFocus) {
-            this.previousFocus = toolsFocusTrack;
-            if (toolsFocusTrack) {
-              let bounds = toolsFocusTrack.metadata.bounds;
-              if (bounds) {
-                bounds = bounds.pad(0.05);
-                this.map?.centerAndZoomOn(bounds);
-              }
+        }
+
+        for (const selectionTrack of selectionTracks) {
+          mapTracks.push(new MapTrack(undefined, selectionTrack, '#E0E000C0', 1, false, this.i18n));
+        }
+        if (zoomOnSelection && selectionTracks.length > 0) {
+          let bounds = undefined;
+          for (let i = 0; i < selectionTracks.length; ++i) {
+            const track = selectionTracks[i];
+            if (track.metadata.bounds) {
+              if (bounds === undefined) bounds = track.metadata.bounds;
+              else bounds = bounds.extend(track.metadata.bounds);
             }
+            if (i === 0) this.elevationTrack1 = track;
+            else if (i === 1) this.elevationTrack2 = track;
           }
-          if (toolsFocusTrack) {
-            tracks.push(toolsFocusTrack);
-            mapTracks.push(new MapTrack(undefined, toolsFocusTrack, '#E0E000C0', 1, false, this.i18n));
-            this.pathSelection.clear();
-            this.elevationTrack1 = toolsFocusTrack;
-            this.elevationTrack2 = undefined;
+          if (bounds) {
+            bounds = bounds.pad(0.05);
+            this.map?.centerAndZoomOn(bounds);
           }
         }
 
-        this.pathSelection.updatedTracks(tracks);
-        mapTracks.push(...this.pathSelection.mapTracks$.value);
+        this.selection.tracksChanged(tracks);
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
 
@@ -328,6 +342,7 @@ export class TrailComponent extends AbstractComponent {
         this.changesDetector.detectChanges();
       }, true
     );
+    this.byStateAndVisible.subscribe(this.selection.selection$, () => this.changesDetector.detectChanges());
   }
 
   private trail$(trail$?: Observable<Trail | null>): Observable<[Trail | null, Track | undefined, MapTrack | undefined]> {
@@ -645,8 +660,6 @@ export class TrailComponent extends AbstractComponent {
       else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
       else if (child instanceof TrackMetadataComponent) {
         // nothing
-      } else if (this.editToolsComponent && child instanceof this.editToolsComponent) {
-        child.setVisible(true);
       }
       else Console.error('unexpected child', child);
     })
@@ -846,46 +859,20 @@ export class TrailComponent extends AbstractComponent {
     return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
   }
 
-  removeWayPoint(wp: ComputedWayPoint): void {
-    if (!this.wayPointsTrack) return;
-    const index = this.wayPointsTrack.wayPoints.indexOf(wp.wayPoint);
-    if (index >= 0) {
-      this.editToolsComponentInstance.modify().subscribe((track: Track) => {
-        track.removeWayPoint(track.wayPoints[index]);
-      });
-    }
-  }
-
-  wayPointDescriptionChanged(wp: WayPoint, description: string): void {
-    if (!this.wayPointsTrack) return;
-    const index = this.wayPointsTrack.wayPoints.indexOf(wp);
-    this.editToolsComponentInstance.modify().subscribe((track: Track) => {
-      if (index >= 0) {
-        track.wayPoints[index].description = description.trim();
-      } else if (description.trim().length > 0) {
-        const twp = new WayPoint(wp.point, '', description.trim());
-        track.appendWayPoint(twp);
-      }
-    });
-  }
-
-  wayPointNameChanged(wp: WayPoint, name: string): void {
-    if (!this.wayPointsTrack) return;
-    const index = this.wayPointsTrack.wayPoints.indexOf(wp);
-    this.editToolsComponentInstance.modify().subscribe((track: Track) => {
-      if (index >= 0) {
-        track.wayPoints[index].name = name.trim();
-      } else if (name.trim().length > 0) {
-        const twp = new WayPoint(wp.point, name.trim(), '');
-        track.appendWayPoint(twp);
-      }
-    });
-  }
-
   _highlightedWayPoint?: ComputedWayPoint;
   private _highlightedWayPointFromClick = false;
 
   highlightWayPoint(wp: ComputedWayPoint, click: boolean): void {
+    if (click) {
+      if (wp.nearestSegmentIndex !== undefined && wp.nearestPointIndex !== undefined && this.wayPointsTrack !== undefined) {
+        const pathPoint = this.wayPointsTrack?.segments[wp.nearestSegmentIndex].points[wp.nearestPointIndex];
+        console.log(wp, pathPoint)
+        if (pathPoint && samePositionRound(pathPoint.pos, wp.wayPoint.point.pos)) {
+          this.selection.selectPoint([new PointReference(this.wayPointsTrack, wp.nearestSegmentIndex, wp.nearestPointIndex)]);
+        }
+      }
+    }
+
     if (this._highlightedWayPoint === wp) {
       if (click) this._highlightedWayPointFromClick = true;
       return;
@@ -923,57 +910,30 @@ export class TrailComponent extends AbstractComponent {
   }
 
   canEdit(): boolean {
-    if (this.editToolsComponent) return false;
+    if (this.toolsEnabled) return false;
     if (this.trail2) return false;
     if (this.trail1?.owner !== this.auth.email) return false;
     if (this.recording) return false;
     return this.browser.width >= 1500 && this.browser.height >= 500;
   }
 
-  editToolsComponent: any;
-  editToolsInputs: any;
-  editToolsComponentInstance: any;
-
   public async enableEditTools() {
-    if (this.editToolsComponent) return;
+    if (this.toolsEnabled) return;
     if (this.showOriginal$.value) this.showOriginal$.next(false);
-    const module = await import('./edit-tools/edit-tools.component');
-    this.editToolsComponent = module.EditToolsComponent;
-    this.editToolsInputs = {
-      trail: this.trail1,
-      baseTrack$: this.toolsBaseTrack$,
-      modifiedTrack$: this.toolsModifiedTrack$,
-      focusTrack$: this.toolsFocusTrack$,
-      hideBaseTrack$: this.toolsHideBaseTrack$,
-      map: this.map!,
-      trailComponent: this,
-      getMe: (me: any) => { this.editToolsComponentInstance = me; },
-      close: () => {
-        this.editToolsComponent = undefined;
-        this.editToolsInputs = undefined;
-        this.editToolsComponentInstance = undefined;
-        this.toolsModifiedTrack$.next(undefined);
-        this.toolsBaseTrack$.next(undefined);
-        this.toolsFocusTrack$.next(undefined);
-        setTimeout(() => {
-          this._children$.value.find(child => child instanceof MapComponent)?.invalidateSize();
-          this._children$.value.find(child => child instanceof ElevationGraphComponent)?.resetChart();
-        }, 0);
-      }
-    };
+    this.toolsEnabled = true;
     this.changesDetector.detectChanges();
-    setTimeout(() => {
-      this._children$.value.find(child => child instanceof MapComponent)?.invalidateSize();
-      this._children$.value.find(child => child instanceof ElevationGraphComponent)?.resetChart();
-    }, 0);
   }
 
   setToolsStack(stack: TrackEditToolsStack | undefined): void {
     const hadTools = this.toolsStack && this.toolsStack.components.length > 0;
     const hasTools = stack && stack.components.length > 0;
     this.toolsStack = stack;
-    if (hadTools != hasTools)
-      this.elevationGraph?.resetChart();
+    if (hadTools != hasTools) {
+      setTimeout(() => {
+        this.elevationGraph?.resetChart();
+        this.map?.invalidateSize();
+      }, 0);
+    }
     this.changesDetector.detectChanges();
   }
 
@@ -982,6 +942,15 @@ export class TrailComponent extends AbstractComponent {
       tool.instance = instance;
       tool.onCreated(instance);
     };
+  }
+
+  setZoomButtonPosition(pos: {x: number, y: number} | undefined): void {
+    if ((pos && !this.elevationGraphZoomButtonPosition.value) ||
+        (!pos && this.elevationGraphZoomButtonPosition.value) ||
+        (pos && this.elevationGraphZoomButtonPosition.value && pos.x !== this.elevationGraphZoomButtonPosition.value.x && pos.y !== this.elevationGraphZoomButtonPosition.value.y)) {
+      this.elevationGraphZoomButtonPosition.next(pos);
+      this.changesDetector.detectChanges();
+    }
   }
 
 }

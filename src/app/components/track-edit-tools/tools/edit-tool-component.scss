@@ -1,5 +1,5 @@
 div.edit-tool {
-  border: 1px solid var(--ion-color-medium);
+  border-bottom: 1px solid var(--ion-color-medium);
 
   div.edit-tool-header {
     background-color: var(--ion-toolbar-background);
@@ -9,6 +9,10 @@ div.edit-tool {
       flex: 1 1 100%;
       color: var(--ion-color-tertiary);
     }
+  }
+
+  ion-list {
+    padding: 0;
   }
 
   div.edit-tool-content {
@@ -24,7 +28,7 @@ div.edit-tool {
       display: flex;
       flex-direction: row;
       align-items: center;
-      border-bottom: 1px solid var(--ion-color-medium);
+      border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
     }
   }
   &.horizontal {
@@ -34,6 +38,7 @@ div.edit-tool {
     height: 100%;
     --metadata-font-size: 12px;
     --metadata-icon-size: 16px;
+    border-right: 1px solid var(--ion-color-medium);
 
     div.metadata-container.two-columns {
       max-width: 300px;
@@ -43,7 +48,7 @@ div.edit-tool {
       display: flex;
       flex-direction: column;
       align-items: center;
-      border-right: 1px solid var(--ion-color-medium);
+      border-right: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
 
       div.edit-tool-title {
         min-width: 32px;
@@ -67,9 +72,6 @@ div.edit-tool {
     ion-item {
       font-size: 12px;
       --min-height: 24px;
-    }
-    ion-list {
-      padding: 0;
     }
 
     .message {

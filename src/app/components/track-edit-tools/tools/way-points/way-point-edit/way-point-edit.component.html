@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      <ion-icon name="location"></ion-icon>
+      <ion-label>{{i18n.texts.track_edit_tools.tools.way_points.popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ion-input
+    fill="solid"
+    color="secondary"
+    labelPlacement="stacked"
+    [label]="i18n.texts.way_points.name_placeholder"
+    [maxlength]="100"
+    [value]="name"
+    (ionChange)="nameChanged($event.detail.value || '')"
+  ></ion-input>
+  <br/>
+  <ion-textarea
+    fill="solid"
+    color="secondary"
+    labelPlacement="stacked"
+    [label]="i18n.texts.way_points.description_placeholder"
+    [maxlength]="1000"
+    [autoGrow]="true"
+    [value]="description"
+    (ionChange)="descriptionChanged($event.detail.value || '')"
+  ></ion-textarea>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="close(false)">{{i18n.texts.buttons.apply}}</ion-button>
+      <ion-button color="medium" (click)="close(true)">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -6,11 +6,11 @@ export class CloseSelectionTool implements TrackEditTool {
   labelKey(ctx: TrackEditToolContext) { return 'selection.close'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
-    return !!ctx.getSelection();
+    return ctx.selection.hasSelection();
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.cancelSelection();
+    ctx.selection.cancelSelection();
   }
 
 }

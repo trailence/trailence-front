@@ -156,7 +156,7 @@
         </ng-template>
       </div>
 
-      @if (selectingPoint2) {
+      @if (context.selection.extendingSelection) {
         <div class="message">
           {{i18n.texts.track_edit_tools.tools.selection.select_target_point}}
         </div>

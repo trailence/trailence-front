@@ -857,6 +857,7 @@
   "track_edit_tools": {
     "categories": {
       "track": "Track",
+      "way_point": "Way point",
       "elevation": "Elevation",
       "path": "Path",
       "selection": "Selection",
@@ -878,8 +879,6 @@
         "extend_selection": "Expand selection to...",
         "close": "Close Selection",
         "select_target_point": "Select a point on the map or elevation chart to extend the selection to that point",
-        "create_waypoint": "Create a way point",
-        "remove_waypoint": "Remove the way point",
         "remove_all_next_points": "Remove all points after this one",
         "remove_all_previous_points": "Remove all points before this one"
       },
@@ -905,6 +904,14 @@
       "toggle_show_only_modified_track": {
         "button_label_hide": "Show only modified track (blue)",
         "button_label_show": "Show unmodified track"
+      },
+      "way_points": {
+        "create_waypoint": "Create a way point",
+        "remove_waypoint": "Remove the way point",
+        "edit_waypoint": "Edit the way point",
+        "popup": {
+          "title": "Way Point"
+        }
       }
     },
     "no_modification":"No changes were made by this function"

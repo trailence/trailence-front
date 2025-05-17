@@ -1,12 +1,10 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { PointReference, PointReferenceRange, TrackEditToolContext } from '../tool.interface';
+import { TrackEditToolContext } from '../tool.interface';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonButton, IonInput, IonItem, IonList, IonItemDivider } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
-import { Track } from 'src/app/model/track';
-import { of, Subscription } from 'rxjs';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { combineLatest, of, Subscription } from 'rxjs';
+import { PointReference, RangeReference } from 'src/app/model/point-reference';
 
 @Component({
   templateUrl: './selection.component.html',
@@ -22,33 +20,41 @@ export class SelectionComponent implements OnInit, OnDestroy {
   @Input() vertical = true;
 
   expanded = true;
-
+  selection?: PointReference | RangeReference;
   point1?: PointReference;
   point2?: PointReference;
 
-  private readonly selectedPointAnchor = new MapAnchor({lat: 0, lng: 0}, '#6060FFC0', undefined, undefined, undefined, '#6060FF80', undefined);
-  private trackChangeSubscription?: Subscription;
+  private selectionSubscription?: Subscription;
 
   constructor(
     public readonly i18n: I18nService,
-    private readonly prefs: PreferencesService,
     private readonly changesDetector: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.onCreated(this);
-    this.trackChangeSubscription = this.context.currentTrack$.subscribe(newTrack => {
-      if (!newTrack) this.close();
-      else this.updateTrack(newTrack);
-    });
+    this.selectionSubscription =
+      combineLatest([this.context.selection.selection$, this.context.currentTrack$])
+      .subscribe(([sel, track]) => {
+        const selection = track && sel ? sel.find(s => s.track === track) : undefined;
+        this.selection = selection;
+        if (!track || !selection) {
+          this.point1 = undefined;
+          this.point2 = undefined;
+        } else if (selection instanceof PointReference) {
+          this.point1 = selection;
+          this.point2 = undefined;
+        } else {
+          this.point1 = selection.start;
+          this.point2 = selection.end;
+        }
+        this.changesDetector.detectChanges();
+      });
   }
 
   ngOnDestroy(): void {
     this.context.removeTool(SelectionComponent);
-    this.context.map?.removeFromMap(this.selectedPointAnchor.marker);
-    if (this.point2)
-      this.context.cancelFocus();
-    this.trackChangeSubscription?.unsubscribe();
+    this.selectionSubscription?.unsubscribe();
   }
 
   // header
@@ -59,78 +65,15 @@ export class SelectionComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
-    this.context.removeTool(SelectionComponent);
+    this.context.selection.cancelSelection();
     this.context.refreshTools();
   }
 
   // selection
 
-  selectPoint(point: PointReference): void {
-    if (this.selectingPoint2) {
-      if (point.segmentIndex < this.point1!.segmentIndex || (point.segmentIndex === this.point1!.segmentIndex && point.pointIndex < this.point1!.pointIndex)) {
-        this.point2 = this.point1;
-        this.point1 = point;
-      } else {
-        this.point2 = point;
-      }
-      this.selectingPoint2 = false;
-    } else if (!this.point2) {
-      this.point1 = point;
-    } else {
-      this.point1 = point;
-      this.point2 = undefined;
-    }
-    this.updateSelection();
-  }
-
-  selectRange(range: PointReferenceRange): void {
-    this.point1 = range.start;
-    this.point2 = range.end;
-    this.updateSelection();
-  }
-
-  getSelection(): PointReference | PointReferenceRange | undefined {
-    if (!this.point1) return undefined;
-    if (!this.point2) return this.point1;
-    return {
-      track: this.point1.track,
-      start: this.point1,
-      end: this.point2,
-    } as PointReferenceRange;
-  }
-
-  selectingPoint2 = false;
-
   extendSelection(): void {
-    this.selectingPoint2 = true;
+    this.context.selection.extendingSelection = true;
     this.changesDetector.detectChanges();
-  }
-
-  private updateSelection(): void {
-    if (this.point2 && this.point2.point === this.point1!.point) {
-      this.point2 = undefined;
-    }
-    if (this.point2) {
-      this.context.map?.removeFromMap(this.selectedPointAnchor.marker);
-      this.context.focusOn(this.point2.track, this.point1!.segmentIndex, this.point1!.pointIndex, this.point2.segmentIndex, this.point2.pointIndex);
-    } else {
-      this.selectedPointAnchor.marker.setLatLng(this.point1!.point.pos); // NOSONAR
-      this.context.map?.addToMap(this.selectedPointAnchor.marker);
-      this.context.cancelFocus();
-    }
-    this.context.refreshTools();
-    this.changesDetector.detectChanges();
-  }
-
-  private updateTrack(newTrack: Track): void {
-    if (this.point1) {
-      this.point1.track = newTrack;
-      this.point1.point = newTrack.segments[this.point1.segmentIndex].points[this.point1.pointIndex];
-    }
-    if (this.point2) {
-      this.point2.track = newTrack;
-      this.point2.point = newTrack.segments[this.point2.segmentIndex].points[this.point2.pointIndex];
-    }
   }
 
   // navigation
@@ -140,15 +83,21 @@ export class SelectionComponent implements OnInit, OnDestroy {
   }
 
   moveBackward(point: PointReference): void {
+    let newPoint: PointReference;
     if (point.pointIndex === 0) {
-      point.segmentIndex = point.segmentIndex - 1;
-      point.pointIndex = point.track.segments[point.segmentIndex].points.length - 1;
-      point.point = point.track.segments[point.segmentIndex].points[point.pointIndex];
+      newPoint = new PointReference(point.track, point.segmentIndex - 1, point.track.segments[point.segmentIndex].points.length - 1);
     } else {
-      point.pointIndex--;
-      point.point = point.track.segments[point.segmentIndex].points[point.pointIndex];
+      newPoint = new PointReference(point.track, point.segmentIndex, point.pointIndex - 1);
     }
-    this.updateSelection();
+    if (this.selection instanceof PointReference) {
+      this.context.selection.selectPoint([newPoint]);
+    } else if (point === this.point1) {
+      this.context.selection.selectRange([new RangeReference(newPoint, this.point2!)]);
+    } else if (newPoint.segmentIndex === this.point1!.segmentIndex && newPoint.pointIndex === this.point1!.pointIndex) {
+      this.context.selection.selectPoint([newPoint]);
+    } else {
+      this.context.selection.selectRange([new RangeReference(this.point1!, newPoint)]);
+    }
   }
 
   canMoveForward(point: PointReference): boolean {
@@ -157,15 +106,21 @@ export class SelectionComponent implements OnInit, OnDestroy {
   }
 
   moveForward(point: PointReference): void {
+    let newPoint: PointReference;
     if (point.pointIndex === point.track.segments[point.segmentIndex].points.length - 1) {
-      point.segmentIndex = point.segmentIndex + 1;
-      point.pointIndex = 0;
-      point.point = point.track.segments[point.segmentIndex].points[0];
+      newPoint = new PointReference(point.track, point.segmentIndex + 1, 0);
     } else {
-      point.pointIndex++;
-      point.point = point.track.segments[point.segmentIndex].points[point.pointIndex];
+      newPoint = new PointReference(point.track, point.segmentIndex, point.pointIndex + 1);
     }
-    this.updateSelection();
+    if (this.selection instanceof PointReference) {
+      this.context.selection.selectPoint([newPoint]);
+    } else if (point === this.point2) {
+      this.context.selection.selectRange([new RangeReference(this.point1!, newPoint)]);
+    } else if (newPoint.segmentIndex === this.point2!.segmentIndex && newPoint.pointIndex === this.point2!.pointIndex) {
+      this.context.selection.selectPoint([newPoint]);
+    } else {
+      this.context.selection.selectRange([new RangeReference(newPoint, this.point2!)]);
+    }
   }
 
   // elevation

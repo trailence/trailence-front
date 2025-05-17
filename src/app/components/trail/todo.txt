@@ -1,0 +1,3 @@
+- edit way point with modal
+- tool bar component with MenuItem
+- improveBreak as tool

@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { IonIcon, IonLabel, PopoverController, ToastController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { PointReference, PointReferenceRange, TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
+import { TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { MenuItem } from 'src/app/utils/menu-item';
@@ -11,17 +11,13 @@ import { Track } from 'src/app/model/track';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { SlopeThreshold } from './tools/elevation/slope-threshold/slope-threshold';
-import { MapComponent } from '../map/map.component';
-import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
-import { MapTrackPointReference } from '../map/track/map-track-point-reference';
-import { isRange, SelectionTool } from './tools/selection.tool';
 import { TrackEditToolsStack } from './tools/track-edit-tools-stack';
 import { SelectionComponent } from './tools/selection/selection.component';
 import { RemoveSelectionTool } from './tools/selection/remove-selection';
 import { RemoveBeforeSelectedPointTool } from './tools/selection/remove-before-selected-point';
 import { RemoveAfterSelectedPointTool } from './tools/selection/remove-after-selected-point';
-import { CreateWayPointTool } from './tools/path/create-way-point';
-import { RemoveWayPointTool } from './tools/path/remove-way-point';
+import { CreateWayPointTool } from './tools/way-points/create-way-point';
+import { RemoveWayPointTool } from './tools/way-points/remove-way-point';
 import { CloseSelectionTool } from './tools/selection/close-selection';
 import { ReplaceElevationWithProvider } from './tools/elevation/replace-with-provider';
 import { ImproveElevationWithProvider } from './tools/elevation/improve-with-provider';
@@ -30,6 +26,9 @@ import { JoinDepartureToArrival } from './tools/path/join-departure-to-arrival';
 import { Trail } from 'src/app/model/trail';
 import { BackToOriginalTrack } from './tools/track/back-to-original';
 import { ToogleShowOnlyModifiedTrack } from './tools/track/toggle-show-only-modified-track';
+import { TrailSelection } from '../trail/trail-selection';
+import { EditWayPointTool } from './tools/way-points/edit-way-point';
+import { PointReference, RangeReference } from 'src/app/model/point-reference';
 
 interface ToolsCategory {
   icon: string;
@@ -51,17 +50,14 @@ interface TrackEditToolsState {
     IonLabel, IonIcon,
   ]
 })
-export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
+export class TrackEditToolsComponent implements OnInit, OnDestroy {
 
   @Input() trail!: Trail;
+  @Input() selection!: TrailSelection;
   @Input() originalTrack$!: BehaviorSubject<Track | undefined>;
   @Input() modifiedTrack$!: BehaviorSubject<Track | undefined>;
   @Input() baseTrack$!: BehaviorSubject<Track | undefined>;
-  @Input() focusTrack$!: BehaviorSubject<Track | undefined>;
   @Input() hideBaseTrack$!: BehaviorSubject<boolean>;
-
-  @Input() map?: MapComponent;
-  @Input() elevationGraph?: ElevationGraphComponent;
 
   @Output() toolsStackChange = new EventEmitter<TrackEditToolsStack | undefined>();
 
@@ -84,6 +80,14 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
         new ToogleShowOnlyModifiedTrack(),
       ],
     }, {
+      icon: 'location',
+      label: 'way_point',
+      tools: [
+        new CreateWayPointTool(),
+        new EditWayPointTool(),
+        new RemoveWayPointTool(),
+      ]
+    }, {
       icon: 'elevation',
       label: 'elevation',
       tools: [
@@ -102,8 +106,6 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
       icon: 'path',
       label: 'path',
       tools: [
-        new CreateWayPointTool(),
-        new RemoveWayPointTool(),
         {
           icon: '',
           label: 'join_departure_and_arrival',
@@ -117,15 +119,12 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
   ];
   categories: ToolsCategory[] = [];
 
-  readonly context: TrackEditToolContext;
+  context!: TrackEditToolContext;
   readonly statesStack: TrackEditToolsState[] = [];
   readonly undoneStack: TrackEditToolsState[] = [];
 
   private toolsStack?: TrackEditToolsStack;
-
-  private mapClickSubscription?: Subscription;
-  private elevationGraphClickSubscription?: Subscription;
-  private elevationGraphSelectionSubscription?: Subscription;
+  private selectionSubscription?: Subscription;
 
   constructor(
     public readonly i18n: I18nService,
@@ -133,19 +132,16 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
     private readonly popoverController: PopoverController,
     private readonly toastController: ToastController,
     private readonly changesDetector: ChangeDetectorRef,
-    readonly injector: Injector,
+    private readonly injector: Injector,
   ) {
-    const that = this;
+  }
+
+  ngOnInit(): void {
     this.context = {
-      injector,
-      selection: new SelectionTool(),
+      injector: this.injector,
+      selection: this.selection,
+      trail: this.trail,
       currentTrack$: new BehaviorSubject<Track | undefined>(undefined),
-      get map(): MapComponent | undefined {
-        return that.map;
-      },
-      get elevationGraph(): ElevationGraphComponent | undefined {
-        return that.elevationGraph;
-      },
 
       modifyTrack: (mayNotChange, trackModifier) => this.modify(mayNotChange, trackModifier),
       modifySelectedRange: (mayNotChange, trackModifier) => this.modifySelectedRange(mayNotChange, trackModifier),
@@ -209,88 +205,17 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
         return this.toolsStack?.components.find(c => c.component === component)?.instance;
       },
       refreshTools: () => this.refreshTools(),
-
-      focusOn: (track, startSegment, startPoint, endSegment, endPoint) => {
-        this.focusTrack$.next(track.subTrack(startSegment, startPoint, endSegment, endPoint));
-      },
-      cancelFocus: () => {
-        this.focusTrack$.next(undefined);
-      },
-
-      hasSelection() {
-        return this.getTool(SelectionComponent) !== undefined;
-      },
-      getSelection() {
-        return this.getTool(SelectionComponent)?.getSelection();
-      },
-      cancelSelection: () => this.cancelSelection(),
     };
-  }
-
-  ngOnInit(): void {
-    this.context.trail = this.trail;
     this.currentTrackChanged();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['map']?.currentValue) {
-      this.setMap(changes['map'].currentValue);
-    }
-    if (changes['elevationGraph']?.currentValue) {
-      this.setElevationGraph(changes['elevationGraph'].currentValue);
-    }
+    this.selectionSubscription = this.selection.selection$.subscribe(sel => {
+      if (!sel) this.context.removeTool(SelectionComponent);
+      else this.context.insertTool({component: SelectionComponent, onCreated: () => {}});
+      this.refreshTools();
+    });
   }
 
   ngOnDestroy(): void {
-    this.mapClickSubscription?.unsubscribe();
-    this.elevationGraphClickSubscription?.unsubscribe();
-    this.elevationGraphSelectionSubscription?.unsubscribe();
-  }
-
-  private setMap(map: MapComponent): void {
-    this.mapClickSubscription?.unsubscribe();
-    this.mapClickSubscription = map.mouseClickPoint.subscribe(event => {
-      const mapPoints = event.filter(p => p.point !== undefined).sort(MapTrackPointReference.distanceComparator);
-      const points = mapPoints.map(p => ({
-        track: p.track.track,
-        segmentIndex: p.segmentIndex,
-        pointIndex: p.pointIndex,
-        point: p.point,
-      } as PointReference));
-      this.pointClick(points);
-    });
-  }
-
-  private setElevationGraph(graph: ElevationGraphComponent): void {
-    this.elevationGraphClickSubscription?.unsubscribe();
-    this.elevationGraphSelectionSubscription?.unsubscribe();
-    this.elevationGraphClickSubscription = graph.pointClick.subscribe(event => {
-      const points = event.map(p => ({
-        track: p.track,
-        segmentIndex: p.segmentIndex,
-        pointIndex: p.pointIndex,
-        point: p.track.segments[p.segmentIndex].points[p.pointIndex]
-      } as PointReference));
-      this.pointClick(points);
-    });
-    this.elevationGraphSelectionSubscription = graph.selected.subscribe(event => {
-      const points = (event ?? []).map(range => ({
-        track: range.track,
-        start: {
-          track: range.track,
-          segmentIndex: range.start.segmentIndex,
-          pointIndex: range.start.pointIndex,
-          point: range.track.segments[range.start.segmentIndex].points[range.start.pointIndex]
-        },
-        end: {
-          track: range.track,
-          segmentIndex: range.end.segmentIndex,
-          pointIndex: range.end.pointIndex,
-          point: range.track.segments[range.end.segmentIndex].points[range.end.pointIndex]
-        }
-      } as PointReferenceRange));
-      this.rangeSelected(points);
-    });
+    this.selectionSubscription?.unsubscribe();
   }
 
   refreshTools(): void {
@@ -448,22 +373,46 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
     this.currentTrackChanged();
   }
 
-  public modify(mayNotChange: boolean, modification: (track: Track) => Observable<any>): Observable<any> {
+  public modify<T>(mayNotChange: boolean, modification: (track: Track) => Observable<T>): Observable<T | undefined> {
     return this.getCurrentTrack().pipe(
-      map(track => track.copy(this.auth.email!)),
-      switchMap(track => {
-        const before = mayNotChange ? track.copy(this.auth.email!) : undefined;
-        return modification(track).pipe(
+      switchMap(originalTrack => {
+        const copy = originalTrack.copy(this.auth.email!);
+        const before = mayNotChange ? copy.copy(this.auth.email!) : undefined;
+        const originalSelection = this.selection.getSelectionForTrack(originalTrack);
+        const copySelectionStart =
+          originalSelection instanceof PointReference ?
+            copy.segments[originalSelection.segmentIndex].points[originalSelection.pointIndex] :
+            (originalSelection ?
+              copy.segments[originalSelection.start.segmentIndex].points[originalSelection.start.pointIndex] :
+              undefined);
+        const copySelectionEnd =
+          originalSelection instanceof RangeReference ?
+          copy.segments[originalSelection.end.segmentIndex].points[originalSelection.end.pointIndex] :
+          undefined;
+        return modification(copy).pipe(
           defaultIfEmpty(undefined),
           map(result => {
-            if (mayNotChange && track.isEquals(before!)) {
+            if (mayNotChange && copy.isEquals(before!)) {
               this.toastController.create({
                 message: this.i18n.texts.track_edit_tools.no_modification,
                 duration: 2000,
               })
               .then(toast => toast.present());
             } else {
-              this.trackModified(track);
+              this.selection.removeSelectionForTrack(originalTrack);
+              if (!copySelectionStart) {
+                this.selection.cancelSelection();
+              } else {
+                const newSelectionStart = copy.findPointInstance(copySelectionStart);
+                if (!newSelectionStart) {
+                  this.selection.cancelSelection();
+                } else {
+                  const newSelectionEnd = copySelectionEnd ? copy.findPointInstance(copySelectionEnd) : undefined;
+                  if (newSelectionEnd) this.selection.addRange(new RangeReference(newSelectionStart, newSelectionEnd));
+                  else this.selection.addPoint(newSelectionStart);
+                }
+              }
+              this.trackModified(copy);
             }
             return result;
           })
@@ -472,13 +421,13 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
     );
   }
 
-  public modifySelectedRange(mayNotChange: boolean, modification: (track: Track) => Observable<any>): Observable<any> {
-    const selection = this.context.getSelection();
-    if (!isRange(selection)) return this.modify(mayNotChange, modification);
-    const range = selection as PointReferenceRange;
+  public modifySelectedRange<T>(mayNotChange: boolean, modification: (track: Track) => Observable<T>): Observable<T | undefined> {
     return this.getCurrentTrack().pipe(
       switchMap(fullTrack => {
-        const subTrack = fullTrack.subTrack(range.start.segmentIndex, range.start.pointIndex, range.end.segmentIndex, range.end.pointIndex);
+        const sel = this.selection.getSubTrackOf(fullTrack);
+        if (!sel) return this.modify(mayNotChange, modification);
+        const subTrack = sel.subTrack;
+        const range = sel.range;
         const before = mayNotChange ? subTrack.copy(this.auth.email!) : undefined;
         return modification(subTrack).pipe(
           defaultIfEmpty(undefined),
@@ -490,8 +439,18 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
               })
               .then(toast => toast.present());
             } else {
+              this.selection.removeSelectionForTrack(fullTrack);
               const newTrack = fullTrack.copy(this.auth.email!)
-              newTrack.replace(range.start.segmentIndex, range.start.pointIndex, range.end.segmentIndex, range.end.pointIndex, subTrack);
+              const newSelectionStart = new PointReference(newTrack, range.start.segmentIndex, range.start.pointIndex);
+              const newSelectionEnd = newTrack.replace(range.start.segmentIndex, range.start.pointIndex, range.end.segmentIndex, range.end.pointIndex, subTrack);
+              if (!newSelectionEnd) {
+                this.selection.cancelSelection();
+              } else if (newSelectionEnd.segmentIndex === newSelectionStart.segmentIndex && newSelectionEnd.pointIndex === newSelectionStart.pointIndex) {
+                this.selection.reduceRangeToStartPoint();
+                this.selection.addPoint(newSelectionStart);
+              } else {
+                this.selection.addRange(new RangeReference(newSelectionStart, newSelectionEnd));
+              }
               this.trackModified(newTrack);
             }
             return result;
@@ -499,29 +458,5 @@ export class TrackEditToolsComponent implements OnInit, OnChanges, OnDestroy {
         );
       }),
     );
-  }
-
-  private pointClick(points: PointReference[]): void {
-    if (points.length === 0) {
-      this.context.selection.cancel(this.context);
-      return;
-    }
-    this.getCurrentTrack().subscribe(track => {
-      const point = points.find(p => p.track === track);
-      if (!point) return;
-      this.context.selection.selectPoint(this.context, point);
-    });
-  }
-
-  private rangeSelected(ranges: PointReferenceRange[]): void {
-    this.getCurrentTrack().subscribe(track => {
-      const range = ranges.find(r => r.track === track);
-      if (!range) return;
-      this.context.selection.selectRange(this.context, range);
-    });
-  }
-
-  cancelSelection(): void {
-    this.context.removeTool(SelectionComponent);
   }
 }

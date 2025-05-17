@@ -8,7 +8,7 @@ export class JoinDepartureToArrival implements TrackEditTool {
   }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
-    if (ctx.hasSelection()) return false;
+    if (ctx.selection.hasSelection()) return false;
     const track = ctx.currentTrack$.value;
     if (!track) return false;
     return !!track.departurePoint && !!track.arrivalPoint && track.departurePoint.distanceTo(track.arrivalPoint.pos) > 1 && track.departurePoint.distanceTo(track.arrivalPoint.pos) < 100;

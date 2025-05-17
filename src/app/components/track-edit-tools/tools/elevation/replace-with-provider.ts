@@ -1,5 +1,4 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { isRange } from '../selection.tool';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 
 export class ReplaceElevationWithProvider implements TrackEditTool {
@@ -8,8 +7,7 @@ export class ReplaceElevationWithProvider implements TrackEditTool {
   labelKey(ctx: TrackEditToolContext): string { return 'replace_elevation_with_provider.button_label'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
-    const s = ctx.getSelection() as any;
-    return !s || isRange(s);
+    return !ctx.selection.hasSelection() || ctx.selection.isRange();
   }
 
   execute(ctx: TrackEditToolContext) {

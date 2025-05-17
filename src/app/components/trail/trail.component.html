@@ -1,4 +1,4 @@
-<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }} {{editToolsComponent || toolsStack ? 'edit-tools-open' : ''}}">
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }} {{toolsStack ? 'edit-tools-open' : ''}}">
   <div class="map-container">
     <div class="map-top-buttons" *ngIf="recording">
       <ion-button shape="round" size="small" *ngIf="recording.paused" (click)="togglePauseRecordingWithConfirmation()">
@@ -26,19 +26,19 @@
       [enableLockScreen]="!!recording"
     >
       @if (trail1 && !recording && !trail2) {
-      <div class="map-top-controls center">
-        <app-track-edit-tools
-          [trail]="trail1"
-          [originalTrack$]="toolsOriginalTrack$"
-          [baseTrack$]="toolsBaseTrack$"
-          [modifiedTrack$]="toolsModifiedTrack$"
-          [focusTrack$]="toolsFocusTrack$"
-          [hideBaseTrack$]="toolsHideBaseTrack$"
-          [map]="map"
-          [elevationGraph]="elevationGraph"
-          (toolsStackChange)="setToolsStack($event)"
-        ></app-track-edit-tools>
-      </div>
+        @if (toolsEnabled) {
+          <div class="map-top-controls center">
+            <app-track-edit-tools
+              [trail]="trail1"
+              [selection]="selection"
+              [originalTrack$]="toolsOriginalTrack$"
+              [baseTrack$]="toolsBaseTrack$"
+              [modifiedTrack$]="toolsModifiedTrack$"
+              [hideBaseTrack$]="toolsHideBaseTrack$"
+              (toolsStackChange)="setToolsStack($event)"
+            ></app-track-edit-tools>
+          </div>
+        }
       }
     </app-map>
   </div>
@@ -63,9 +63,6 @@
     </div>
   </div>
   <div class="edit-tools-container" [ngClass]="{'horizontal': !toolsVertical}">
-    <ng-container *ngIf="editToolsComponent">
-      <ng-container *ngComponentOutlet="editToolsComponent; inputs: editToolsInputs"></ng-container>
-    </ng-container>
     <ng-container *ngIf="toolsStack">
       <div class="edit-tool-container" *ngFor="let tool of toolsStack.components">
         <ng-container *ngComponentOutlet="tool.component; inputs: { context: toolsStack.context, onCreated: toolCreated(tool), vertical: toolsVertical }"></ng-container>
@@ -223,7 +220,7 @@
         </div>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
-      <div *ngIf="!editToolsComponent" style="padding: 5px 3px 10px 8px">
+      <div *ngIf="!toolsEnabled" style="padding: 5px 3px 10px 8px">
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
         <ion-checkbox *ngIf="photos && photos.length > 0" labelPlacement="end" [checked]="showPhotos$.value" (ionChange)="showPhotos$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_photos}}</ion-checkbox>
       </div>
@@ -243,7 +240,7 @@
       <div class="actions" *ngIf="tracks[0] && !trail2">
         <app-icon-label-button icon="download" [label]="i18n.texts.pages.trail.actions.download_map" [size]="28" [fontSize]="11" color="primary" (click)="downloadMap()"></app-icon-label-button>
         <app-icon-label-button icon="car" [label]="i18n.texts.pages.trail.actions.go_to_departure" [size]="28" [fontSize]="11" color="primary" (click)="goToDeparture()"></app-icon-label-button>
-        <ng-container *ngIf="trail1 && !recording && !editToolsComponent">
+        <ng-container *ngIf="trail1 && !recording && !toolsEnabled">
           <app-icon-label-button icon="play-circle" [label]="i18n.texts.trace_recorder.start_this_trail" [size]="28" [fontSize]="11" color="primary" (click)="startTrail()"></app-icon-label-button>
         </ng-container>
         <ng-container *ngIf="recording">
@@ -332,31 +329,11 @@
                 </div>
               </div>
               <div class="waypoint-name" *ngIf="!wp.breakPoint && !arrival">
-                <span *ngIf="!editToolsComponent">{{wp.wayPoint.name}}</span>
-                <ion-input *ngIf="editToolsComponent"
-                  [placeholder]="i18n.texts.way_points.name_placeholder"
-                  color="tertiary"
-                  [maxlength]="100"
-                  [value]="wp.wayPoint.name"
-                  (ionChange)="wayPointNameChanged(wp.wayPoint, $event.detail.value || '')"
-                ></ion-input>
+                <span>{{wp.wayPoint.name}}</span>
               </div>
               <div class="waypoint-description" *ngIf="!wp.breakPoint && !arrival">
-                <span *ngIf="!editToolsComponent">{{wp.wayPoint.description}}</span>
-                <ion-textarea *ngIf="editToolsComponent"
-                  [placeholder]="i18n.texts.way_points.description_placeholder"
-                  color="medium"
-                  [maxlength]="1000"
-                  [autoGrow]="true"
-                  [value]="wp.wayPoint.description"
-                  (ionChange)="wayPointDescriptionChanged(wp.wayPoint, $event.detail.value || '')"
-                ></ion-textarea>
+                <span>{{wp.wayPoint.description}}</span>
               </div>
-            </div>
-            <div class="waypoint-actions" *ngIf="editToolsComponent && !wp.isDeparture && !wp.isArrival && !wp.breakpoint">
-              <ion-button color="danger" fill="clear" size="small" (click)="removeWayPoint(wp)">
-                <ion-icon slot="icon-only" name="trash"></ion-icon>
-              </ion-button>
             </div>
           </div>
         </ng-template>
@@ -365,16 +342,22 @@
     <div class="elevation-container">
       <app-elevation-graph
         #elevationGraph
-        [track1]="pathSelection.zoomOnSelection ? pathSelection.selection[0] : (elevationTrack1 || tracks[0])"
-        [track2]="pathSelection.zoomOnSelection ? pathSelection.selection[1] : elevationTrack2"
+        [track1]="elevationTrack1 || tracks[0]"
+        [track2]="elevationTrack2"
         (pointHover)="elevationGraphPointHover($event)"
-        [selectable]="!pathSelection.zoomOnSelection"
-        (selecting)="pathSelection.elevationGraphSelecting($event)"
-        (selected)="pathSelection.elevationGraphSelected($event)"
-        [selection]="pathSelection.selectionRange"
+        [selectable]="!selection.zoom$.value"
+        [selection]="selection.selection$.value"
+        (zoomButtonPosition)="setZoomButtonPosition($event)"
       ></app-elevation-graph>
-      <ion-button class="zoom-button" *ngIf="pathSelection.selection.length > 0" (click)="pathSelection.toggleZoom()">
-        <ion-icon [name]="pathSelection.zoomOnSelection ? 'zoom-out' : 'zoom-in'" slot="icon-only"></ion-icon>
+      <ion-button
+        *ngIf="elevationGraphZoomButtonPosition.value !== undefined"
+        class="zoom-button"
+        [ngStyle]="{'top': elevationGraphZoomButtonPosition.value.y + 'px', 'left': elevationGraphZoomButtonPosition.value.x + 'px'}"
+        shape="round"
+        size="small"
+        (click)="selection.toggleZoom()"
+      >
+        <ion-icon [name]="selection.zoom$.value ? 'zoom-out' : 'zoom-in'" slot="icon-only"></ion-icon>
       </ion-button>
     </div>
     <div class="bottom-sheet-info-content">

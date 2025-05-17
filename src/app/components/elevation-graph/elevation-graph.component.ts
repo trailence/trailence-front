@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
@@ -19,7 +19,7 @@ import { Point } from 'src/app/model/point';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { LegendPlugin } from './plugins/elevation-legend';
-import { PathRange } from '../trail/path-range';
+import { PointReference, RangeReference } from 'src/app/model/point-reference';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -55,13 +55,15 @@ export class ElevationGraphComponent extends AbstractComponent {
   @Input() track1!: Track
   @Input() track2?: Track;
   @Input() selectable = false;
-  @Input() selection?: PathRange[];
+  @Input() selection?: RangeReference[] | PointReference[];
 
   @Output() pointHover = new EventEmitter<ElevationGraphPointReference[]>();
   @Output() pointClick = new EventEmitter<ElevationGraphPointReference[]>();
 
   @Output() selecting = new EventEmitter<ElevationGraphRange[] | undefined>();
   @Output() selected = new EventEmitter<ElevationGraphRange[] | undefined>();
+
+  @Output() zoomButtonPosition = new EventEmitter<{x: number, y: number} | undefined>();
 
   chartOptions?: _DeepPartialObject<C.CoreChartOptions<"line"> & C.ElementChartOptions<"line"> & C.PluginChartOptions<"line"> & C.DatasetChartOptions<"line"> & C.ScaleChartOptions<"line"> & C.LineControllerChartOptions>;
   chartData?: C.ChartData<"line", (number | C.Point | null)[]>;
@@ -100,6 +102,13 @@ export class ElevationGraphComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.resetChart();
+  }
+
+  protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
+    if (changes['selection']) {
+      if (this.chartOptions !== undefined)
+        this.setSelection(changes['selection'].currentValue);
+    }
   }
 
   public updateRecording(track: Track): void {
@@ -164,6 +173,7 @@ export class ElevationGraphComponent extends AbstractComponent {
   private secondaryColor = '';
   private selectingColor = '';
   private selectionColor = '';
+  private singleSelectionColor = '';
 
   private startChart(width: number, height: number, element: HTMLElement): void {
     if (!this.visible || !this.track1) return;
@@ -177,23 +187,22 @@ export class ElevationGraphComponent extends AbstractComponent {
       this.secondaryColor = String(styles.getPropertyValue('--graph-secondary-color')).trim();
       this.selectingColor = String(styles.getPropertyValue('--graph-selecting-color')).trim();
       this.selectionColor = String(styles.getPropertyValue('--graph-selection-color')).trim();
+      this.singleSelectionColor = String(styles.getPropertyValue('--graph-single-selection-color')).trim();
     }
     this.createChart();
   }
 
-  private selectionRange: PathRange[] = [];
+  private selectionRange: RangeReference[] | PointReference[] = [];
 
-  public setSelection(ranges: PathRange[]): void {
+  public setSelection(ranges: RangeReference[] | PointReference[] | undefined): void {
     const plugin = this.chartPlugins.find(p => p instanceof RangeSelection);
     if (plugin) {
-      const selection = this.pathRangeToRangeSelection(ranges);
-      if (selection) {
-        this.selectionRange = [];
-        plugin.setSelection(selection);
-        this.canvas?.chart?.draw();
-      }
+      const selection = ranges ? this.selectionToRangeSelection(ranges) : undefined;
+      this.selectionRange = [];
+      plugin.setSelection(selection);
+      this.canvas?.chart?.draw();
     } else {
-      this.selectionRange = ranges;
+      this.selectionRange = ranges ?? [];
     }
   }
 
@@ -205,10 +214,11 @@ export class ElevationGraphComponent extends AbstractComponent {
           new HoverVerticalLine(this.contrastColor),
           new BackgroundPlugin(this.backgroundColor),
           new RangeSelection(
-            this.selectingColor, this.selectionColor,
+            this.selectingColor, this.selectionColor, this.singleSelectionColor,
             event => this.selecting.emit(this.rangeSelectionToEvent(event)),
             event => this.selected.emit(this.rangeSelectionToEvent(event)),
             () => this.selectable,
+            (pos) => this.zoomButtonPosition.emit(pos),
           )
         );
 
@@ -434,6 +444,7 @@ export class ElevationGraphComponent extends AbstractComponent {
             return this.activeElementToPointReference(element);
           return null;
         }).filter(r => !!r);
+        console.log('graph.onClick', references, event)
         if (references.length === 0 && event.native.detail === -1) return;
         this.pointClick.emit(references);
       },
@@ -651,7 +662,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       if (elements.length > 0)
         this.canvas.chart.tooltip!.setActiveElements(elements, elements[0].element);
       this.canvas.chart.update();
-});
+    });
   }
 
   public hideCursor(): void {
@@ -696,8 +707,8 @@ export class ElevationGraphComponent extends AbstractComponent {
     return events;
   };
 
-  private pathRangeToRangeSelection(ranges: PathRange[]): SelectedRange | undefined {
-    if (ranges.length === 0 || !this.canvas?.chart) return undefined;
+  private selectionToRangeSelection(sel: RangeReference[] | PointReference[]): SelectedRange | undefined {
+    if (sel.length === 0 || !this.canvas?.chart) return undefined;
     const chart = this.canvas.chart;
     const selection: SelectedRange = {
       startX: -1,
@@ -705,42 +716,43 @@ export class ElevationGraphComponent extends AbstractComponent {
       endX: -1,
       endElements: [],
     };
-    for (const range of ranges) {
-      const datasetIndex = range.track === this.track1 ? 0 : 1;
-      const startIndex = this.chartData!.datasets[datasetIndex].data.findIndex(d => (d as DataPoint).segmentIndex === range.startSegmentIndex && (d as DataPoint).pointIndex === range.startPointIndex);
-      if (startIndex >= 0) {
-        const startData = this.chartData!.datasets[datasetIndex].data[startIndex] as DataPoint;
-        if (selection.startX === -1) {
-          selection.startX = chart.scales['x'].getPixelForValue(startData.x);
+    for (const selectionElement of sel) {
+      const datasetIndex = selectionElement.track === this.track1 ? 0 : 1;
+      if (selectionElement instanceof PointReference) {
+        const e = this.pointReferenceToGraph(selectionElement, datasetIndex, chart, selection.startX);
+        if (e) {
+          selection.startX = e.x;
+          selection.startElements?.push(e.element);
         }
-        const element = new C.PointElement(chart.getDatasetMeta(datasetIndex).data[startIndex]);
-        (element as any).$context = {
-          raw: startData
-        };
-        selection.startElements!.push({
-          datasetIndex: datasetIndex,
-          index: startIndex,
-          element: element,
-        });
-      }
-      const endIndex = this.chartData!.datasets[datasetIndex].data.findIndex(d => (d as DataPoint).segmentIndex === range.endSegmentIndex && (d as DataPoint).pointIndex === range.endPointIndex);
-      if (endIndex >= 0) {
-        const endData = this.chartData!.datasets[datasetIndex].data[endIndex] as DataPoint;
-        if (selection.endX === -1) {
-          selection.endX = chart.scales['x'].getPixelForValue(endData.x);
+      } else {
+        const start = this.pointReferenceToGraph(selectionElement.start, datasetIndex, chart, selection.startX);
+        const end = this.pointReferenceToGraph(selectionElement.end, datasetIndex, chart, selection.endX);
+        if (start) {
+          selection.startX = start.x;
+          selection.startElements?.push(start.element);
         }
-        const element = new C.PointElement(chart.getDatasetMeta(datasetIndex).data[endIndex]);
-        (element as any).$context = {
-          raw: endData
-        };
-        selection.endElements!.push({
-          datasetIndex: datasetIndex,
-          index: endIndex,
-          element: element,
-        });
+        if (end) {
+          selection.endX = end.x;
+          selection.endElements?.push(end.element);
+        }
       }
     }
     return selection;
+  }
+
+  private pointReferenceToGraph(point: PointReference, datasetIndex: number, chart: C.Chart, x: number): { x: number, element: C.ActiveElement} | undefined {
+    const index = this.chartData!.datasets[datasetIndex].data.findIndex(d => (d as DataPoint).segmentIndex === point.segmentIndex && (d as DataPoint).pointIndex === point.pointIndex);
+    if (index < 0) return undefined;
+    const data = this.chartData!.datasets[datasetIndex].data[index] as DataPoint;
+    const resultX = x === -1 ? chart.scales['x'].getPixelForValue(data.x) : x;
+    const element = new C.PointElement(chart.getDatasetMeta(datasetIndex).data[index]);
+    (element as any).$context = { raw: data };
+    const resultElement: C.ActiveElement = {
+      datasetIndex: datasetIndex,
+      index: index,
+      element: element,
+    };
+    return {x: resultX, element: resultElement};
   }
 
 }

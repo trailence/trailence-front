@@ -3,7 +3,6 @@ import { ModalController } from '@ionic/angular/standalone';
 import { SlopeThresholdModal } from './slope-threshold-modal';
 import { applyElevationThresholdToTrack } from 'src/app/services/track-edition/elevation/elevation-threshold';
 import { of } from 'rxjs';
-import { isRange } from '../../selection.tool';
 
 export class SlopeThreshold implements TrackEditTool {
 
@@ -11,8 +10,7 @@ export class SlopeThreshold implements TrackEditTool {
   labelKey(ctx: TrackEditToolContext): string { return 'slope_threshold.button_label'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
-    const s = ctx.getSelection() as any;
-    return !s || isRange(s);
+    return !ctx.selection.hasSelection() || ctx.selection.isRange();
   }
 
   execute(ctx: TrackEditToolContext): void {

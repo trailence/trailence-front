@@ -8,11 +8,11 @@ export class BackToOriginalTrack implements TrackEditTool {
   }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
-    return !ctx.hasSelection() && !!ctx.trail;
+    return !ctx.selection.hasSelection();
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.injector.get(TrackService).getFullTrackReady$(ctx.trail!.originalTrackUuid, ctx.trail!.owner).subscribe(
+    ctx.injector.get(TrackService).getFullTrackReady$(ctx.trail.originalTrackUuid, ctx.trail.owner).subscribe(
       originalTrack => ctx.setBaseTrack(originalTrack)
     );
   }

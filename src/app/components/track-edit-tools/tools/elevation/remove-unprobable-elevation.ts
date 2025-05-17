@@ -1,7 +1,6 @@
 import { adjustUnprobableElevationToTrackBasedOnGrade } from 'src/app/services/track-edition/elevation/unprobable-elevation-with-grade';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { of } from 'rxjs';
-import { isRange } from '../selection.tool';
 
 export class RemoveUnprobableElevation implements TrackEditTool {
 
@@ -9,8 +8,7 @@ export class RemoveUnprobableElevation implements TrackEditTool {
   labelKey(ctx: TrackEditToolContext): string { return 'remove_unprobable_elevations.button_label'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
-    const s = ctx.getSelection() as any;
-    return !s || isRange(s);
+    return !ctx.selection.hasSelection() || ctx.selection.isRange();
   }
 
   execute(ctx: TrackEditToolContext) {

@@ -574,18 +574,10 @@
     .waypoint-name {
       font-size: 14px;
       color: var(--ion-color-tertiary);
-      ion-input {
-        min-height: 30px;
-      }
     }
     .waypoint-description {
       color: var(--ion-color-medium);
       font-size: 13px;
-      ion-textarea {
-        --padding-top: 0px;
-        --padding-bottom: 0px;
-        min-height: 30px;
-      }
     }
   }
 }
