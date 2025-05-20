@@ -855,6 +855,7 @@
   },
   "downloading_elevation": "Downloading elevation",
   "track_edit_tools": {
+    "title": "Edit",
     "categories": {
       "track": "Track",
       "way_point": "Way point",
@@ -905,6 +906,10 @@
         }
       }
     },
-    "no_modification":"No changes were made by this function"
+    "no_modification":"No changes were made by this function",
+    "close_confirmation": {
+      "title": "Close trace editor",
+      "message": "You have unsaved changes. Are you sure you want to close the trace editor?"
+    }
   }
 }

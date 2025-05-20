@@ -36,7 +36,17 @@
               [modifiedTrack$]="toolsModifiedTrack$"
               [hideBaseTrack$]="toolsHideBaseTrack$"
               (toolsStackChange)="setToolsStack($event)"
+              (onClose)="disableEditTools()"
             ></app-track-edit-tools>
+          </div>
+        } @else {
+          <div class="map-top-controls right">
+            <div class="map-toolbar horizontal">
+              <div class="map-tool" (click)="enableEditTools()">
+                <ion-icon name="edit" color="dark"></ion-icon>
+                <ion-label color="dark">{{ i18n.texts.track_edit_tools.title }}</ion-label>
+              </div>
+            </div>
           </div>
         }
       }

@@ -20,4 +20,9 @@
       <ion-label [color]="disabled ? 'medium' : 'success'">{{i18n.texts.buttons.save}}</ion-label>
     </div>
   </ng-template>
+  <div class="separator"></div>
+  <div class="map-tool" (click)="close()">
+    <ion-icon name="cross" color="dark"></ion-icon>
+    <ion-label color="dark">{{i18n.texts.buttons.close}}</ion-label>
+  </div>
 </div>

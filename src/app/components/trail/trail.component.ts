@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, IonLabel } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -51,7 +51,7 @@ import { samePositionRound } from 'src/app/model/point';
     templateUrl: './trail.component.html',
     styleUrls: ['./trail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
+    imports: [IonLabel,
         IonSpinner,
         IonCheckbox,
         IonTextarea,
@@ -143,7 +143,7 @@ export class TrailComponent extends AbstractComponent {
 
   toolsStack?: TrackEditToolsStack;
   toolsVertical = true;
-  toolsEnabled = true;
+  toolsEnabled = false;
 
   constructor(
     injector: Injector,
@@ -917,10 +917,16 @@ export class TrailComponent extends AbstractComponent {
     return this.browser.width >= 1500 && this.browser.height >= 500;
   }
 
-  public async enableEditTools() {
+  public enableEditTools() {
     if (this.toolsEnabled) return;
     if (this.showOriginal$.value) this.showOriginal$.next(false);
     this.toolsEnabled = true;
+    this.changesDetector.detectChanges();
+  }
+
+  public disableEditTools() {
+    if (!this.toolsEnabled) return;
+    this.toolsEnabled = false;
     this.changesDetector.detectChanges();
   }
 

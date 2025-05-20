@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { IonIcon, IonLabel, PopoverController, ToastController } from "@ionic/angular/standalone";
+import { IonIcon, IonLabel, PopoverController, ToastController, AlertController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';
@@ -66,6 +66,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   @Input() hideBaseTrack$!: BehaviorSubject<boolean>;
 
   @Output() toolsStackChange = new EventEmitter<TrackEditToolsStack | undefined>();
+  @Output() onClose = new EventEmitter<boolean>();
 
   private readonly allCategories: ToolsCategory[] = [
     {
@@ -230,6 +231,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.selectionSubscription?.unsubscribe();
+    this.selection.cancelSelection();
+    this.toolsStackChange.emit(undefined);
   }
 
   refreshTools(): void {
@@ -502,5 +505,33 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.currentTrackChanged();
       });
     }, 0);
+  }
+
+  close(): void {
+    if (!this.canSave()) this.doClose();
+    else this.injector.get(AlertController).create({
+      header: this.i18n.texts.track_edit_tools.close_confirmation.title,
+      message: this.i18n.texts.track_edit_tools.close_confirmation.message,
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: () => {
+            this.injector.get(AlertController).dismiss();
+            this.doClose();
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss();
+          }
+        }
+      ]
+    }).then(a => a.present());
+  }
+
+  private doClose(): void {
+    this.onClose.emit(true);
   }
 }
