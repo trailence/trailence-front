@@ -862,12 +862,13 @@
       "path": "Chemin",
       "selection": "Sélection",
       "elevation_provider": "Utiliser un fournisseur d'altitude",
-      "join_departure_and_arrival": "Relier le départ à l'arrivée"
+      "join_departure_and_arrival": "Relier le départ à l'arrivée",
+      "improvements": "Améliorations"
     },
     "tools": {
-      "remove_unprobable_elevations": {
-        "button_label": "Ajuster les altitudes improbables"
-      },
+      "remove_unprobable_elevations": "Ajuster les altitudes improbables",
+      "remove_unprobable_points": "Enlever les points improbables",
+      "remove_breaks_moves": "Enlever les mouvements pendant les pauses",
       "slope_threshold": {
         "button_label": "Lisser avec un seuil de dénivelé",
         "elevation_threshold": "Seuil de dénivelé",
@@ -886,21 +887,11 @@
         "button_single_label": "Supprimer le point sélectionné",
         "button_multiple_label": "Supprimer la section sélectionnée"
       },
-      "replace_elevation_with_provider": {
-        "button_label": "Remplacer les altitudes"
-      },
-      "improve_elevation_with_provider": {
-        "button_label": "Améliorer les altitudes"
-      },
-      "arrival_to_departure": {
-        "button_label": "Terminer au même endroit que le départ"
-      },
-      "departure_to_arrival": {
-        "button_label": "Démarrer au même endroit que l'arrivée"
-      },
-      "back_to_original_track": {
-        "button_label": "Revenir à la trace d'origine sans amélioration"
-      },
+      "replace_elevation_with_provider": "Remplacer les altitudes",
+      "improve_elevation_with_provider": "Améliorer les altitudes",
+      "arrival_to_departure": "Terminer au même endroit que le départ",
+      "departure_to_arrival": "Démarrer au même endroit que l'arrivée",
+      "back_to_original_track": "Revenir à la trace d'origine sans amélioration",
       "toggle_show_only_modified_track": {
         "button_label_hide": "N'afficher que la trace modifiée (bleue)",
         "button_label_show": "Afficher la trace non modifiée"

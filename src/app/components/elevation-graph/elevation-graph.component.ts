@@ -591,6 +591,9 @@ export class ElevationGraphComponent extends AbstractComponent {
         pointCount++;
       }
     }
+    if (pointCount < ds.data.length) {
+      ds.data.splice(pointCount, ds.data.length - pointCount);
+    }
     this.updateMinMaxAxis(true);
     this.canvas?.chart?.update('none');
   }

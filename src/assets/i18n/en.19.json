@@ -862,12 +862,13 @@
       "path": "Path",
       "selection": "Selection",
       "elevation_provider": "Use an elevation provider",
-      "join_departure_and_arrival": "Join departure and arrival"
+      "join_departure_and_arrival": "Join departure and arrival",
+      "improvements": "Improvements"
     },
     "tools": {
-      "remove_unprobable_elevations": {
-        "button_label": "Adjust unprobable elevations"
-      },
+      "remove_unprobable_elevations": "Adjust unprobable elevations",
+      "remove_unprobable_points": "Remove unprobable points",
+      "remove_breaks_moves": "Remove moves during breaks",
       "slope_threshold": {
         "button_label": "Smooth with a slope threshold",
         "elevation_threshold": "Slope threshold",
@@ -886,21 +887,11 @@
         "button_single_label": "Remove selected point",
         "button_multiple_label": "Remove selected path"
       },
-      "replace_elevation_with_provider": {
-        "button_label": "Replace elevations"
-      },
-      "improve_elevation_with_provider": {
-        "button_label": "Improve elevations"
-      },
-      "arrival_to_departure": {
-        "button_label": "Finish at the departure point"
-      },
-      "departure_to_arrival": {
-        "button_label": "Start at the arrival point"
-      },
-      "back_to_original_track": {
-        "button_label": "Back to original trace without improvements"
-      },
+      "replace_elevation_with_provider": "Replace elevations",
+      "improve_elevation_with_provider": "Improve elevations",
+      "arrival_to_departure": "Finish at the departure point",
+      "departure_to_arrival": "Start at the arrival point",
+      "back_to_original_track": "Back to original trace without improvements",
       "toggle_show_only_modified_track": {
         "button_label_hide": "Show only modified track (blue)",
         "button_label_show": "Show unmodified track"

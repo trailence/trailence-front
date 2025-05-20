@@ -7,7 +7,7 @@ import { map } from 'rxjs';
 export class ImproveElevationWithProvider implements TrackEditTool {
 
   readonly icon = undefined;
-  labelKey(ctx: TrackEditToolContext): string { return 'improve_elevation_with_provider.button_label'; }
+  labelKey(ctx: TrackEditToolContext): string { return 'improve_elevation_with_provider'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
     return !ctx.selection.hasSelection() || ctx.selection.isRange();

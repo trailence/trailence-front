@@ -1,4 +1,4 @@
-<div class="map-toolbar horizontal">
+<div class="map-toolbar horizontal" *ngIf="!saving">
   <div class="map-tool" *ngFor="let category of categories" (click)="openCategory(category, $event)">
     <ion-icon [name]="category.icon" color="dark"></ion-icon>
     <ion-label color="dark">{{i18n.texts.track_edit_tools.categories[category.label]}}</ion-label>
@@ -12,4 +12,12 @@
     <ion-icon name="redo" [color]="undoneStack.length === 0 ? 'medium' : 'dark'"></ion-icon>
     <ion-label [color]="undoneStack.length === 0 ? 'medium' : 'dark'">{{i18n.texts.buttons.redo}}</ion-label>
   </div>
+  <div class="separator"></div>
+  <ng-container *ngTemplateOutlet="saveButton; context: {disabled: !canSave()}"></ng-container>
+  <ng-template #saveButton let-disabled="disabled">
+    <div class="map-tool" [ngClass]="{'disabled': disabled}" (click)="save()">
+      <ion-icon name="save" [color]="disabled ? 'medium' : 'success'"></ion-icon>
+      <ion-label [color]="disabled ? 'medium' : 'success'">{{i18n.texts.buttons.save}}</ion-label>
+    </div>
+  </ng-template>
 </div>

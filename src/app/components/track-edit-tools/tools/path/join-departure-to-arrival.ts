@@ -4,7 +4,7 @@ import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 export class JoinDepartureToArrival implements TrackEditTool {
 
   labelKey(ctx: TrackEditToolContext) {
-    return 'departure_to_arrival.button_label';
+    return 'departure_to_arrival';
   }
 
   isAvailable(ctx: TrackEditToolContext): boolean {

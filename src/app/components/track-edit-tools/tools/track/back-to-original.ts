@@ -4,7 +4,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 export class BackToOriginalTrack implements TrackEditTool {
 
   labelKey(ctx: TrackEditToolContext) {
-    return 'back_to_original_track.button_label';
+    return 'back_to_original_track';
   }
 
   isAvailable(ctx: TrackEditToolContext): boolean {

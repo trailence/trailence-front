@@ -4,7 +4,7 @@ import { GeoService } from 'src/app/services/geolocation/geo.service';
 export class ReplaceElevationWithProvider implements TrackEditTool {
 
   readonly icon = undefined;
-  labelKey(ctx: TrackEditToolContext): string { return 'replace_elevation_with_provider.button_label'; }
+  labelKey(ctx: TrackEditToolContext): string { return 'replace_elevation_with_provider'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
     return !ctx.selection.hasSelection() || ctx.selection.isRange();

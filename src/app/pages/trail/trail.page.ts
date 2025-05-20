@@ -128,6 +128,7 @@ export class TrailPage extends AbstractPage {
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner)));
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1)));
           }
           if (!t2 && t1?.owner === this.injector.get(AuthService).email) {
             const browser = this.injector.get(BrowserService);

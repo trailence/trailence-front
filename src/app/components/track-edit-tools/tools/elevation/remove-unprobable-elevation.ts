@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 export class RemoveUnprobableElevation implements TrackEditTool {
 
   readonly icon = undefined;
-  labelKey(ctx: TrackEditToolContext): string { return 'remove_unprobable_elevations.button_label'; }
+  labelKey(ctx: TrackEditToolContext): string { return 'remove_unprobable_elevations'; }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
     return !ctx.selection.hasSelection() || ctx.selection.isRange();

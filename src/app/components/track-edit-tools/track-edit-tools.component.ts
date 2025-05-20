@@ -29,6 +29,12 @@ import { ToogleShowOnlyModifiedTrack } from './tools/track/toggle-show-only-modi
 import { TrailSelection } from '../trail/trail-selection';
 import { EditWayPointTool } from './tools/way-points/edit-way-point';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
+import { TrackService } from 'src/app/services/database/track.service';
+import { TrailService } from 'src/app/services/database/trail.service';
+import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
+import { ProgressService } from 'src/app/services/progress/progress.service';
+import { RemoveUnprobablePointsTool } from './tools/path/remove-unprobable-points';
+import { RemoveBreaksMovesTool } from './tools/path/remove-breaks-moves';
 
 interface ToolsCategory {
   icon: string;
@@ -113,6 +119,13 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
             new JoinArrivalToDeparture(),
             new JoinDepartureToArrival(),
           ]
+        }, {
+          icon: '',
+          label: 'improvements',
+          tools: [
+            new RemoveUnprobablePointsTool(),
+            new RemoveBreaksMovesTool(),
+          ]
         }
       ],
     }
@@ -146,10 +159,11 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       modifyTrack: (mayNotChange, trackModifier) => this.modify(mayNotChange, trackModifier),
       modifySelectedRange: (mayNotChange, trackModifier) => this.modifySelectedRange(mayNotChange, trackModifier),
       setBaseTrack: (track) => {
+        this.selection.cancelSelection();
         this.pushHistory();
         this.baseTrack$.next(track);
         this.modifiedTrack$.next(undefined);
-        this.refreshTools();
+        this.currentTrackChanged();
       },
       isBaseTrackShown: () => !this.hideBaseTrack$.value,
       setShowBaseTrack: (show) => {
@@ -458,5 +472,35 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         );
       }),
     );
+  }
+
+  public saving = false;
+
+  canSave(): boolean {
+    return !this.saving && (!!this.baseTrack$.value || !!this.modifiedTrack$.value);
+  }
+
+  public save(): void {
+    if (this.saving || (this.baseTrack$.value === undefined && this.modifiedTrack$.value === undefined)) return;
+    this.saving = true;
+    const progress = this.injector.get(ProgressService).create(this.i18n.texts.trace_recorder.saving, 3);
+    this.changesDetector.detectChanges();
+    setTimeout(() => {
+      let track = (this.modifiedTrack$.value ?? this.baseTrack$.value)!;
+      track = track.copy(this.auth.email!);
+      progress.addWorkDone(1);
+      this.injector.get(TrackService).create(track, () => progress.addWorkDone(1));
+      this.trail.currentTrackUuid = track.uuid;
+      this.injector.get(TrailService).doUpdate(this.trail, t => {
+        t.currentTrackUuid = track.uuid;
+        this.injector.get(TrackEditionService).computeFinalMetadata(t, track);
+      }, () => {
+        progress.addWorkDone(1);
+        this.saving = false;
+        this.modifiedTrack$.next(undefined);
+        this.baseTrack$.next(undefined);
+        this.currentTrackChanged();
+      });
+    }, 0);
   }
 }
