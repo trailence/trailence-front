@@ -257,7 +257,6 @@
           <app-icon-label-button [icon]="recording.paused ? 'play-circle' : 'pause-circle'" [label]="i18n.texts.trace_recorder[recording.paused ? 'resume' : 'pause']" [size]="28" [fontSize]="11" color="primary" (click)="togglePauseRecordingWithoutConfirmation()"></app-icon-label-button>
           <app-icon-label-button icon="stop-circle" [label]="i18n.texts.trace_recorder.stop" [size]="28" [fontSize]="11" color="primary" (click)="stopRecordingWithoutConfirmation()"></app-icon-label-button>
         </ng-container>
-        <app-icon-label-button *ngIf="canEdit()" icon="tool" [label]="i18n.texts.pages.trail.actions.edit_tools" [size]="28" [fontSize]="11" color="primary" (click)="enableEditTools()"></app-icon-label-button>
       </div>
       <ng-container *ngIf="trail1 && !trail2">
         <ng-container *ngIf="trail1.description || editable">

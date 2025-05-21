@@ -29,7 +29,6 @@ export class TrailSelection {
     ).subscribe(range => this.graphRange(range));
     this._mapAnchorSubscription = combineLatest([map$, this.selection$])
     .subscribe(([map, sel]) => {
-      console.log(map, sel)
       if (!map) return;
       if (!sel || sel.length !== 1 || !(sel[0] instanceof PointReference)) {
         map.removeFromMap(this.selectedPointAnchor.marker);

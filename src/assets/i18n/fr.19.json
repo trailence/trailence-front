@@ -220,7 +220,6 @@
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",
-        "edit_tools": "Outils d'édition",
         "compare": "Comparer",
         "compare_with": "Comparer avec...",
         "compare_with_this_one": "Comparer avec ce parcours",
@@ -241,58 +240,7 @@
       },
       "remaining_metadata_title": "Restant",
       "created_in_trailence_on": "Créé dans Trailence le",
-      "last_update_on": "Dernière mise à jour le",
-      "edit_tools": {
-        "title": "Outils d'édition",
-        "back_to_original": "Revenir à la trace d'origine",
-        "show_only_modified": "N'afficher que la trace modifiée (bleue)",
-        "elevation": "Altitude",
-        "elevation_improvments": "Améliorations",
-        "from_download": "Utiliser un fournisseur d'altitude",
-        "download_elevations": "Remplacer les altitudes",
-        "improve_elevations_with_providers": "Améliorer les altitudes",
-        "remove_unprobable_elevations": "Enlever les altitudes improbables",
-        "apply_elevation_threshold": "Lisser avec un seuil de dénivelé",
-        "elevation_threshold": "Seuil de dénivelé",
-        "elevation_threshold_distance": "Distance maximum",
-        "elevation_threshold_explaination": "Le but du lissage est de gommer les imprécisions du GPS.<br/>Du fait de ces imprécisions, il arrive fréquemment que en quelques mètres de distance l'altitude monte et descende également de quelques mètres, alors que la réalité est une pente continue.<br/>Le lissage fonctionne donc comme suit:<ul><li>On recherche les sections dans lesquelles l'altitude a varié dans la limite du seuil configuré, et sur une distance maximum configurée.</li><li>Pour chaque section trouvée, on prend l'altitude de départ et l'altitude d'arrivée, et on lisse en une pente continue.</li><li>Afin d'éviter de perdre les points hauts ou les points bas du parcours, si nous trouvons un tel point au milieu de la section, nous réduisons la section pour conserver ce point.</li></ul>",
-        "path": "Parcours",
-        "join_departure_and_arrival": {
-          "title": "Relier le départ à l'arrivée",
-          "join_departure": "Démarrer au même endroit que l'arrivée",
-          "join_arrival": "Terminer au même endroit que le départ"
-        },
-        "breaks": "Pauses",
-        "remove_long_breaks_moves": {
-          "title": "Enlever les mouvements pendant les longues pauses",
-          "configuration": "Configuration",
-          "config_min_duration": "Durée minimum",
-          "config_max_distance": "Périmètre",
-          "detection": "Détection",
-          "start": "Commencer",
-          "no_more_break": "Il n'y a plus de longue pause détectée avec des mouvements",
-          "remove_moves": "Supprimer ces mouvements",
-          "skip_moves": "Ignorer ces mouvements",
-          "duration": "Durée",
-          "adjust_start": "Ajuster le point de départ",
-          "adjust_end": "Ajuster le point de fin",
-          "before": "Précédent",
-          "after": "Suivant"
-        },
-        "merge_segments": "Relier les points de pause et de reprise",
-        "selected_point": {
-          "title_singular": "Point sélectionné",
-          "title_plural": "Points sélectionnés",
-          "extend_selection": "Étendre la sélection jusqu'à...",
-          "select_target_point": "Sélectionnez un point sur la carte ou le graphique d'altimétrie pour étendre la sélection jusqu'à ce point",
-          "create_waypoint": "Créer un point de passage",
-          "remove_waypoint": "Supprimer le point de passage",
-          "remove_all_next_points": "Supprimer tous les points après",
-          "remove_all_previous_points": "Supprimer tous les points avant"
-        },
-        "no_modification": "Aucune modification n'a été apportée par cette fonction",
-        "actions": "Actions"
-      }
+      "last_update_on": "Dernière mise à jour le"
     },
     "collection_form": {
       "title": "Collection",
@@ -864,7 +812,8 @@
       "selection": "Sélection",
       "elevation_provider": "Utiliser un fournisseur d'altitude",
       "join_departure_and_arrival": "Relier le départ à l'arrivée",
-      "improvements": "Améliorations"
+      "improvements": "Améliorations",
+      "set_elevation_on_range": "Modifier l'altitude"
     },
     "tools": {
       "remove_unprobable_elevations": "Ajuster les altitudes improbables",
@@ -904,7 +853,15 @@
         "popup": {
           "title": "Point de passage"
         }
-      }
+      },
+      "set_elevation_on_range": {
+        "with_start": "En utilisant celle du premier point sélectionné",
+        "with_end": "En utilisant celle du dernier point sélectionné",
+        "smoothing": "En lissant depuis le premier jusqu'au dernier point sélectionné",
+        "manually": "En entrant une valeur manuellement"
+      },
+      "apply_default_improvements": "Appliquer les améliorations par défaut (celles utilisées lors de la création d'une trace)",
+      "merge_segments": "Relier les points de pause et de reprise"
     },
     "no_modification": "Aucune modification n'a été apportée par cette fonction",
     "close_confirmation": {

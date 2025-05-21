@@ -21,11 +21,15 @@ export class TrackEditionService {
 
   public applyDefaultImprovments(track: Track): Track {
     const newTrack = new Track({...track.toDto(), uuid: undefined}, this.preferencesService);
-    removeUnprobablePointsOnTrack(newTrack);
-    removeBreaksMovesOnTrack(newTrack);
-    adjustUnprobableElevationToTrackBasedOnGrade(newTrack);
-    applyElevationThresholdToTrack(newTrack, 10, 250);
+    this.applyDefaultImprovmentsOnTrack(newTrack);
     return newTrack;
+  }
+
+  public applyDefaultImprovmentsOnTrack(track: Track): void {
+    removeUnprobablePointsOnTrack(track);
+    removeBreaksMovesOnTrack(track);
+    adjustUnprobableElevationToTrackBasedOnGrade(track);
+    applyElevationThresholdToTrack(track, 10, 250);
   }
 
   public computeFinalMetadata(trail: Trail, track: Track): void {

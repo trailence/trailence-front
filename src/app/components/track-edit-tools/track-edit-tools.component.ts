@@ -6,7 +6,7 @@ import { TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { MenuItem } from 'src/app/utils/menu-item';
-import { BehaviorSubject, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -35,6 +35,9 @@ import { TrackEditionService } from 'src/app/services/track-edition/track-editio
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { RemoveUnprobablePointsTool } from './tools/path/remove-unprobable-points';
 import { RemoveBreaksMovesTool } from './tools/path/remove-breaks-moves';
+import { SetElevationOnRangeManuallyTool, SetElevationOnRangeSmoothTool, SetElevationOnRangeWithEndTool, SetElevationOnRangeWithStartTool } from './tools/elevation/set-elevation';
+import { ApplyDefaultImprovementsTool } from './tools/track/apply-default-improvements';
+import { MergeSegementsTool } from './tools/path/merge-segments';
 
 interface ToolsCategory {
   icon: string;
@@ -45,6 +48,7 @@ interface ToolsCategory {
 interface TrackEditToolsState {
   baseTrack?: Track;
   modifiedTrack?: Track;
+  selection?: PointReference[] | RangeReference[];
 }
 
 @Component({
@@ -85,6 +89,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       tools: [
         new BackToOriginalTrack(),
         new ToogleShowOnlyModifiedTrack(),
+        new ApplyDefaultImprovementsTool(),
       ],
     }, {
       icon: 'location',
@@ -98,9 +103,23 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       icon: 'elevation',
       label: 'elevation',
       tools: [
-        new RemoveUnprobableElevation(),
-        new SlopeThreshold(),
         {
+          icon: '',
+          label: 'set_elevation_on_range',
+          tools: [
+            new SetElevationOnRangeWithStartTool(),
+            new SetElevationOnRangeWithEndTool(),
+            new SetElevationOnRangeSmoothTool(),
+            new SetElevationOnRangeManuallyTool(),
+          ]
+        }, {
+          icon: '',
+          label: 'improvements',
+          tools: [
+            new RemoveUnprobableElevation(),
+            new SlopeThreshold(),
+          ]
+        }, {
           icon: '',
           label: 'elevation_provider',
           tools: [
@@ -113,6 +132,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       icon: 'path',
       label: 'path',
       tools: [
+        new MergeSegementsTool(),
         {
           icon: '',
           label: 'join_departure_and_arrival',
@@ -222,8 +242,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       refreshTools: () => this.refreshTools(),
     };
     this.currentTrackChanged();
-    this.selectionSubscription = this.selection.selection$.subscribe(sel => {
-      if (!sel) this.context.removeTool(SelectionComponent);
+    this.selectionSubscription = this.selection.selection$.pipe(debounceTime(1)).subscribe(sel => {
+      if (!sel || sel.length === 0) this.context.removeTool(SelectionComponent);
       else this.context.insertTool({component: SelectionComponent, onCreated: () => {}});
       this.refreshTools();
     });
@@ -233,6 +253,9 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     this.selectionSubscription?.unsubscribe();
     this.selection.cancelSelection();
     this.toolsStackChange.emit(undefined);
+    this.modifiedTrack$.next(undefined);
+    this.baseTrack$.next(undefined);
+    this.hideBaseTrack$.next(false);
   }
 
   refreshTools(): void {
@@ -339,7 +362,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   private getCurrentState(): TrackEditToolsState {
     return {
       baseTrack: this.baseTrack$.value,
-      modifiedTrack: this.modifiedTrack$.value
+      modifiedTrack: this.modifiedTrack$.value,
+      selection: this.selection.selection$.value,
     };
   }
 
@@ -362,6 +386,15 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.currentTrackChanged();
     } else if (state.baseTrack) {
       this.currentTrackChanged();
+    }
+    if (state.selection && state.selection.length > 0) {
+      if (state.selection[0] instanceof PointReference) {
+        this.selection.selectPoint(state.selection as PointReference[]);
+      } else {
+        this.selection.selectRange(state.selection as RangeReference[]);
+      }
+    } else {
+      this.selection.cancelSelection();
     }
   }
 
