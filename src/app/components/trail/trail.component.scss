@@ -435,6 +435,12 @@
 
 .trail-details {
 
+  app-toolbar {
+    display: block;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.15);
+  }
+
   .trail-tags-row {
     padding: 5px;
 
@@ -465,17 +471,6 @@
           background-color: rgba(var(--ion-color-secondary-rgb), 0.1);
         }
       }
-    }
-  }
-
-  .actions {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 5px 8px;
-
-    app-icon-label-button:not(:first-child) {
-      margin-left: 10px;
     }
   }
 

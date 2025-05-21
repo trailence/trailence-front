@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, timeout } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, timeout } from "rxjs";
 import { DatabaseService, VersionedDb } from "./database.service";
 import Dexie, { Table } from "dexie";
 import { Injector, NgZone } from "@angular/core";
@@ -55,6 +55,15 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   public getAll$(): Observable<Observable<STORE_ITEM | null>[]> {
     return this._store;
+  }
+
+  public getAllWhenLoaded$(): Observable<Observable<STORE_ITEM | null>[]> {
+    return this._storeLoaded$.pipe(
+      switchMap(loaded => {
+        if (!loaded) return EMPTY;
+        return this._store;
+      })
+    );
   }
 
   protected _initStore(name: string): void {

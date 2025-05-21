@@ -1,0 +1,72 @@
+app-toolbar {
+
+  div.toolbar-items-container {
+    display: flex;
+
+    &.align-fill {
+      justify-content: space-around;
+    }
+    &.align-left {
+      justify-content: flex-start;
+    }
+    &.align-right {
+      justify-content: flex-end;
+    }
+    &.align-center {
+      justify-content: center;
+    }
+
+    &.horizontal {
+      flex-direction: row;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    &.vertical {
+      flex-direction: column;
+    }
+
+    div.toolbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 5px;
+      padding: var(--item-padding, '0');
+      min-width: var(--item-min-width, var(--item-fixed-width, ''));
+      max-width: var(--item-max-width, var(--item-fixed-width, ''));
+      position: relative;
+
+      &:not(.disabled) {
+        cursor: pointer;
+      }
+
+      ion-icon {
+        flex: none;
+      }
+      ion-label {
+        margin-top: 2px;
+        flex: 1 1 100%;
+        text-align: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+      }
+
+      ion-badge {
+        position: absolute;
+        right: 0;
+        top: 0;
+        --background: rgba(var(--ion-color-success-rgb), 0.75);
+      }
+
+      + div.toolbar-item {
+        margin-left: var(--item-space, 4px);
+      }
+
+      &:hover:not(.disabled) {
+        background: rgba(var(--ion-text-color-rgb), 0.1);
+      }
+    }
+  }
+
+}

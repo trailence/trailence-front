@@ -13,7 +13,6 @@ import { TrackMetadataComponent } from '../track-metadata/track-metadata.compone
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { ElevationGraphPointReference } from '../elevation-graph/elevation-graph-events';
-import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
@@ -45,13 +44,16 @@ import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools
 import { TrailSelection } from './trail-selection';
 import { PointReference } from 'src/app/model/point-reference';
 import { samePositionRound } from 'src/app/model/point';
+import { MenuItem } from '../menus/menu-item';
+import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 
 @Component({
     selector: 'app-trail',
     templateUrl: './trail.component.html',
     styleUrls: ['./trail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [IonLabel,
+    imports: [
+        IonLabel,
         IonSpinner,
         IonCheckbox,
         IonTextarea,
@@ -63,11 +65,11 @@ import { samePositionRound } from 'src/app/model/point';
         MapComponent,
         TrackMetadataComponent,
         ElevationGraphComponent,
-        IconLabelButtonComponent,
         PhotoComponent,
         PhotosPopupComponent,
         I18nPipe,
         TrackEditToolsComponent,
+        ToolbarComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -144,6 +146,15 @@ export class TrailComponent extends AbstractComponent {
   toolsStack?: TrackEditToolsStack;
   toolsVertical = true;
   toolsEnabled = false;
+
+  toolbar: MenuItem[] = [
+    new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map').setAction(() => this.downloadMap()),
+    new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure').setAction(() => this.goToDeparture()),
+    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail').setAction(() => this.startTrail()).setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled),
+    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume').setAction(() => this.togglePauseRecordingWithoutConfirmation()).setVisible(() => !!this.recording && this.recording.paused),
+    new MenuItem().setIcon('pause-circle').setI18nLabel('trace_recorder.pause').setAction(() => this.togglePauseRecordingWithoutConfirmation()).setVisible(() => !!this.recording && !this.recording.paused),
+    new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setAction(() => this.stopRecordingWithoutConfirmation()).setVisible(() => !!this.recording),
+  ];
 
   constructor(
     injector: Injector,
@@ -739,6 +750,7 @@ export class TrailComponent extends AbstractComponent {
     } else {
       this.traceRecorder.pause();
     }
+    this.changesDetector.detectChanges();
   }
 
   togglePauseRecordingWithConfirmation(): void {

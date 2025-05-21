@@ -8,7 +8,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { MenuContentComponent } from '../menu-content/menu-content.component';
+import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';

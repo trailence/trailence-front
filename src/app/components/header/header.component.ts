@@ -4,9 +4,9 @@ import { HeaderUserMenuComponent } from '../header-user-menu/header-user-menu.co
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
-import { MenuContentComponent } from '../menu-content/menu-content.component';
+import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { UpdateService } from 'src/app/services/update/update.service';
 import { of } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';

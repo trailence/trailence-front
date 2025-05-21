@@ -11,7 +11,7 @@ import { TrailCollectionService } from './trail-collection.service';
 import { TagService } from './tag.service';
 import { AuthService } from '../auth/auth.service';
 import { TrailService } from './trail.service';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import Dexie from 'dexie';

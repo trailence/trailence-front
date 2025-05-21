@@ -4,8 +4,8 @@ import { IonIcon, IonLabel, PopoverController, ToastController, AlertController 
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';
-import { MenuContentComponent } from '../menu-content/menu-content.component';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { BehaviorSubject, debounceTime, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { AuthService } from 'src/app/services/auth/auth.service';

@@ -8,7 +8,7 @@ import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { ModalController, AlertController } from '@ionic/angular/standalone';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { TagService } from './tag.service';
 import { TrailService } from './trail.service';

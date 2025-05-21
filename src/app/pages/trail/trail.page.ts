@@ -9,10 +9,8 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
-import { MenuItem } from 'src/app/utils/menu-item';
-import { AuthService } from 'src/app/services/auth/auth.service';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { BrowserService } from 'src/app/services/browser/browser.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { Console } from 'src/app/utils/console';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -129,20 +127,6 @@ export class TrailPage extends AbstractPage {
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1)));
-          }
-          if (!t2 && t1?.owner === this.injector.get(AuthService).email) {
-            const browser = this.injector.get(BrowserService);
-            if (browser.width >= 1500 && browser.height >= 500) {
-              if (!this.injector.get(TraceRecorderService).recording) {
-                // eligible for edit tools
-                const sepIndex = this.menu.findIndex(item => !item.action && !item.icon && !item.label && !item.i18nLabel);
-                this.menu.splice(sepIndex, 0, new MenuItem(),
-                  new MenuItem().setIcon('tool').setI18nLabel('pages.trail.actions.edit_tools').setAction(() => {
-                    this.trailComponent?.enableEditTools();
-                  })
-                );
-              }
-            }
           }
           this.trail$.next(t1);
           this.trail2$.next(t2);

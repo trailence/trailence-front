@@ -10,7 +10,7 @@ import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-and-map.component';
 import { CommonModule } from '@angular/common';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { ShareService } from 'src/app/services/database/share.service';
 import { ShareElementType } from 'src/app/model/dto/share';
@@ -48,7 +48,7 @@ export class TrailsPage extends AbstractPage {
   @Input() trailsFrom?: string;
 
   title$ = new BehaviorSubject<string>('');
-  trails$ = new BehaviorSubject<List<Trail>>(List());
+  trails$ = new BehaviorSubject<List<Trail> | undefined>(undefined);
   actions: MenuItem[] = [];
 
   viewId?: string;
@@ -118,7 +118,7 @@ export class TrailsPage extends AbstractPage {
     // trails from collection
     let first = true;
     this.byStateAndVisible.subscribe(
-      this.injector.get(TrailService).getAll$().pipe(
+      this.injector.get(TrailService).getAllWhenLoaded$().pipe(
         collection$items(trail => trail.collectionUuid === collectionUuid)
       ),
       trails => {
@@ -148,13 +148,13 @@ export class TrailsPage extends AbstractPage {
           );
           if (share.owner === this.injector.get(AuthService).email) {
             if (share.type === ShareElementType.TRAIL)
-              return this.injector.get(TrailService).getAll$().pipe(
+              return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
                 collection$items(),
                 map(trails => trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.uuid) >= 0)),
                 map(trails => ({share, trails}))
               );
             if (share.type === ShareElementType.COLLECTION)
-              return this.injector.get(TrailService).getAll$().pipe(
+              return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
                 collection$items(),
                 map(trails => trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.collectionUuid) >= 0)),
                 map(trails => ({share, trails}))
@@ -162,14 +162,14 @@ export class TrailsPage extends AbstractPage {
             return this.injector.get(TagService).getAllTrailsTags$().pipe(
               collection$items(),
               map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
-              switchMap(uuids => this.injector.get(TrailService).getAll$().pipe(
+              switchMap(uuids => this.injector.get(TrailService).getAllWhenLoaded$().pipe(
                 collection$items(),
                 map(trails => trails.filter(trail => trail.owner === share.owner && uuids.indexOf(trail.uuid) >= 0)),
                 map(trails => ({share, trails}))
               ))
             )
           } else {
-            return this.injector.get(TrailService).getAll$().pipe(
+            return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
               collection$items(),
               map(trails => trails.filter(trail => trail.owner === share.owner && share.trails.indexOf(trail.uuid) >= 0)),
               map(trails => ({share, trails}))
@@ -227,7 +227,7 @@ export class TrailsPage extends AbstractPage {
     let firstResult = true;
     const fillResults = (result: SearchResult) => {
       Console.info('search result', result.trails.length, result.end, result.tooManyResults);
-      const newList = List(firstResult ? result.trails : [...this.trails$.value, ...result.trails]);
+      const newList = List(firstResult ? result.trails : [...(this.trails$.value ?? []), ...result.trails]);
       firstResult = false;
       this.ngZone.run(() => {
         if (!newList.equals(this.trails$.value))
@@ -279,7 +279,7 @@ export class TrailsPage extends AbstractPage {
   private reset(): void {
     this.viewId = undefined;
     this.title$.next('');
-    this.trails$.next(List());
+    this.trails$.next(undefined);
     this.actions = [];
     this.searching = false;
     this.searchMessage = undefined;

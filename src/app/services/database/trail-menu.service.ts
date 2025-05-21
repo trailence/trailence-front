@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { AuthService } from '../auth/auth.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
