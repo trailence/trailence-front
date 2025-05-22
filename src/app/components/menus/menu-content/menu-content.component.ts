@@ -12,12 +12,10 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 })
 export class MenuContentComponent implements OnInit, OnChanges {
 
-  @Input() menu?: MenuItem[]
+  @Input() menu?: (MenuItem | ComputedMenuItem)[]
 
   computed = new ComputedMenuItems();
   parents: {from: ComputedMenuItem, list: MenuItem[]}[] = [];
-
-  identify = ComputedMenuItem.identify;
 
   constructor(
     public i18n: I18nService,
@@ -32,7 +30,7 @@ export class MenuContentComponent implements OnInit, OnChanges {
     if (changes['menu']) this.setMenu(this.menu);
   }
 
-  private setMenu(items?: MenuItem[]): void {
+  private setMenu(items?: (MenuItem | ComputedMenuItem)[]): void {
     this.computed.compute(items).subscribe(refresh => {
       if (refresh) this.changesDetector.detectChanges();
     });
@@ -44,9 +42,9 @@ export class MenuContentComponent implements OnInit, OnChanges {
     } else {
       $event.preventDefault();
       $event.stopPropagation()
-      if (item.children.length > 0) {
+      if (item.children.items.length > 0) {
         this.parents.push({from: item, list: this.computed.items.map(i => i.item)});
-        this.setMenu(item.children);
+        this.setMenu(item.children.items);
       }
     }
     this.changesDetector.detectChanges();

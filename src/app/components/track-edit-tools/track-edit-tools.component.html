@@ -1,28 +1,16 @@
-<div class="map-toolbar horizontal" *ngIf="!saving">
-  <div class="map-tool" *ngFor="let category of categories" (click)="openCategory(category, $event)">
-    <ion-icon [name]="category.icon" color="dark"></ion-icon>
-    <ion-label color="dark">{{i18n.texts.track_edit_tools.categories[category.label]}}</ion-label>
-  </div>
-  <div class="separator"></div>
-  <div class="map-tool" [ngClass]="{'disabled': statesStack.length === 0}" (click)="undo()">
-    <ion-icon name="undo" [color]="statesStack.length === 0 ? 'medium' : 'dark'"></ion-icon>
-    <ion-label [color]="statesStack.length === 0 ? 'medium' : 'dark'">{{i18n.texts.buttons.undo}}</ion-label>
-  </div>
-  <div class="map-tool" [ngClass]="{'disabled': undoneStack.length === 0}" (click)="redo()">
-    <ion-icon name="redo" [color]="undoneStack.length === 0 ? 'medium' : 'dark'"></ion-icon>
-    <ion-label [color]="undoneStack.length === 0 ? 'medium' : 'dark'">{{i18n.texts.buttons.redo}}</ion-label>
-  </div>
-  <div class="separator"></div>
-  <ng-container *ngTemplateOutlet="saveButton; context: {disabled: !canSave()}"></ng-container>
-  <ng-template #saveButton let-disabled="disabled">
-    <div class="map-tool" [ngClass]="{'disabled': disabled}" (click)="save()">
-      <ion-icon name="save" [color]="disabled ? 'medium' : 'success'"></ion-icon>
-      <ion-label [color]="disabled ? 'medium' : 'success'">{{i18n.texts.buttons.save}}</ion-label>
-    </div>
-  </ng-template>
-  <div class="separator"></div>
-  <div class="map-tool" (click)="close()">
-    <ion-icon name="cross" color="dark"></ion-icon>
-    <ion-label color="dark">{{i18n.texts.buttons.close}}</ion-label>
-  </div>
-</div>
+@if (!saving) {
+  <app-toolbar #toolbar
+    [items]="toolsItems"
+    [iconSize]="16"
+    textSize="9px"
+    [itemMinWidth]="32"
+    [itemMaxWidth]="50"
+    itemSpace="2px"
+    itemPaddingTop="1px"
+    itemPaddingBottom="1px"
+    itemPaddingLeft="4px"
+    itemPaddingRight="4px"
+    separatorSpace="4px"
+    [smallSizeDivider]="4"
+  ></app-toolbar>
+}

@@ -5,18 +5,20 @@
     @if (item.visible) {
       @if (item.separator) {
         <div class="separator"></div>
+      } @else if (item.item.customContentSelector) {
+        <ng-content [select]="item.item.customContentSelector"></ng-content>
       } @else {
         <div class="toolbar-item" [ngClass]="{'disabled': item.disabled}" (click)="itemClick(item, $event)">
           @if (item.item.icon) {
             <ion-icon
               [name]="item.item.icon"
               [color]="item.textColor"
-              [ngStyle]="{'width': iconSize + 'px', 'height': iconSize + 'px'}"
+              [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
             ></ion-icon>
           }
           <ion-label
             [color]="item.textColor"
-            [ngStyle]="{'font-size': textSize}"
+            [ngStyle]="{'font-size': textSize, 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
           >{{ item.item.label$(i18n) | async }}</ion-label>
           @if (item.badge) {
             <ion-badge>{{ item.badge }}</ion-badge>

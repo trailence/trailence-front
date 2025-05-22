@@ -30,7 +30,10 @@ app-toolbar {
       flex-direction: column;
       align-items: center;
       border-radius: 5px;
-      padding: var(--item-padding, '0');
+      padding-left: var(--item-padding-left, '0');
+      padding-right: var(--item-padding-right, '0');
+      padding-top: var(--item-padding-top, '0');
+      padding-bottom: var(--item-padding-bottom, '0');
       min-width: var(--item-min-width, var(--item-fixed-width, ''));
       max-width: var(--item-max-width, var(--item-fixed-width, ''));
       position: relative;
@@ -67,6 +70,29 @@ app-toolbar {
         background: rgba(var(--ion-text-color-rgb), 0.1);
       }
     }
+
+    &.horizontal div.separator {
+      margin: 0 var(--separator-space, var(--item-space, 4px));
+      border-right: 1px solid rgba(var(--ion-text-color-rgb), 0.12);
+    }
   }
 
+}
+
+@media (max-width: 450px) {
+  app-toolbar div.toolbar-items-container.horizontal {
+    div.toolbar-item {
+      padding-left: calc(var(--item-padding-left, '0') / var(--small-size-divider, 2));
+      padding-right: calc(var(--item-padding-right, '0') / var(--small-size-divider, 2));
+      min-width: var(--item-min-width-small, var(--item-min-width, var(--item-fixed-width, '')));
+      max-width: var(--item-max-width-small, var(--item-max-width, var(--item-fixed-width, '')));
+
+      + div.toolbar-item {
+        margin-left: calc(var(--item-space, 4px) / var(--small-size-divider, 2));
+      }
+    }
+    div.separator {
+      margin: 0 calc(var(--separator-space, var(--item-space, 4px)) / var(--small-size-divider, 2));
+    }
+  }
 }

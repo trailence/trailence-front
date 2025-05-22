@@ -9,16 +9,21 @@
     >
       @if (enableSearchPlace) {
         <div class="map-top-controls right">
-          <div class="map-toolbar horizontal">
-            @if (searchPlaceExpanded) {
-              <app-search-place #searchPlace (placeSelected)="goToPlace($event)"></app-search-place>
-              <ion-icon name="chevron-left" style="width: 24px; height: 24px; margin-top: 5px; cursor: pointer" (click)="collapseSearchPlace()" color="dark"></ion-icon>
-            } @else {
-              <div class="map-tool icon-only" (click)="expandSearchPlace()">
-                <ion-icon name="search" color="dark"></ion-icon>
-              </div>
-            }
-          </div>
+          <app-toolbar #mapToolbarTopRight
+            [items]="mapToolbarTopRightItems"
+            [iconSize]="16"
+            textSize="9px"
+            [itemMinWidth]="40"
+            [itemMaxWidth]="50"
+            itemSpace="2px"
+            itemPaddingTop="1px"
+            itemPaddingBottom="1px"
+            itemPaddingLeft="2px"
+            itemPaddingRight="2px"
+            separatorSpace="4px"
+          >
+            <app-search-place (placeSelected)="goToPlace($event)"></app-search-place>
+          </app-toolbar>
         </div>
       }
     </app-map>

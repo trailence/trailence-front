@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, IonLabel } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -53,7 +53,6 @@ import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
     styleUrls: ['./trail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        IonLabel,
         IonSpinner,
         IonCheckbox,
         IonTextarea,
@@ -145,15 +144,22 @@ export class TrailComponent extends AbstractComponent {
 
   toolsStack?: TrackEditToolsStack;
   toolsVertical = true;
-  toolsEnabled = false;
+  toolsEnabled = true;
 
-  toolbar: MenuItem[] = [
+  @ViewChild('toolbar') toolbar?: ToolbarComponent;
+  toolbarItems: MenuItem[] = [
     new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map').setAction(() => this.downloadMap()),
     new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure').setAction(() => this.goToDeparture()),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail').setAction(() => this.startTrail()).setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume').setAction(() => this.togglePauseRecordingWithoutConfirmation()).setVisible(() => !!this.recording && this.recording.paused),
     new MenuItem().setIcon('pause-circle').setI18nLabel('trace_recorder.pause').setAction(() => this.togglePauseRecordingWithoutConfirmation()).setVisible(() => !!this.recording && !this.recording.paused),
     new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setAction(() => this.stopRecordingWithoutConfirmation()).setVisible(() => !!this.recording),
+  ];
+
+  @ViewChild('mapToolbarRight') mapToolbarRight?: ToolbarComponent;
+  mapToolbarRightItems: MenuItem[] = [
+    new MenuItem().setIcon('tool').setI18nLabel('track_edit_tools.title')
+      .setAction(() => this.enableEditTools())
   ];
 
   constructor(
@@ -350,6 +356,7 @@ export class TrailComponent extends AbstractComponent {
         this.editable = !this.trail2 && !!this.trail1 && this.trail1.owner === this.auth.email;
         if (toolsModifiedTrack)
           this.elevationGraph?.resetChart();
+        this.toolbar?.refresh();
         this.changesDetector.detectChanges();
       }, true
     );
@@ -933,12 +940,16 @@ export class TrailComponent extends AbstractComponent {
     if (this.toolsEnabled) return;
     if (this.showOriginal$.value) this.showOriginal$.next(false);
     this.toolsEnabled = true;
+    this.mapToolbarRight?.refresh();
+    this.toolbar?.refresh();
     this.changesDetector.detectChanges();
   }
 
   public disableEditTools() {
     if (!this.toolsEnabled) return;
     this.toolsEnabled = false;
+    this.mapToolbarRight?.refresh();
+    this.toolbar?.refresh();
     this.changesDetector.detectChanges();
   }
 

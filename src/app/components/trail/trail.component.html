@@ -41,12 +41,19 @@
           </div>
         } @else {
           <div class="map-top-controls right">
-            <div class="map-toolbar horizontal">
-              <div class="map-tool" (click)="enableEditTools()">
-                <ion-icon name="edit" color="dark"></ion-icon>
-                <ion-label color="dark">{{ i18n.texts.track_edit_tools.title }}</ion-label>
-              </div>
-            </div>
+            <app-toolbar #mapToolbarRight
+              [items]="mapToolbarRightItems"
+              [iconSize]="16"
+              textSize="9px"
+              [itemMinWidth]="40"
+              [itemMaxWidth]="50"
+              itemSpace="2px"
+              itemPaddingTop="1px"
+              itemPaddingBottom="1px"
+              itemPaddingLeft="4px"
+              itemPaddingRight="4px"
+              separatorSpace="4px"
+            ></app-toolbar>
           </div>
         }
       }
@@ -81,11 +88,14 @@
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="!isSmall || tab === 'details'">
-      <app-toolbar
-        [items]="toolbar"
+      <app-toolbar #toolbar
+        [items]="toolbarItems"
         [iconSize]="28"
         textSize="11px"
-        itemPadding="5px"
+        itemPaddingTop="5px"
+        itemPaddingBottom="5px"
+        itemPaddingRight="5px"
+        itemPaddingLeft="5px"
       ></app-toolbar>
       <div *ngIf="trail1 && trail2">
         <div class="metadata-container two-columns comparison">

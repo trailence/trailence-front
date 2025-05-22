@@ -10,57 +10,28 @@
     >
       @if (trackBuilder) {
         <div class="map-top-controls center">
-          <div class="map-toolbar horizontal">
-            @if (!trackBuilder.track) {
+          <div style="display: flex; flex-direction: column; align-items: center">
+            <app-toolbar #toolbar
+              [items]="tools"
+              [iconSize]="16"
+              textSize="9px"
+              [itemMinWidth]="40"
+              [itemMaxWidth]="50"
+              itemSpace="2px"
+              itemPaddingTop="1px"
+              itemPaddingBottom="1px"
+              itemPaddingLeft="4px"
+              itemPaddingRight="4px"
+              separatorSpace="4px"
+            >
               <app-search-place (placeSelected)="goToPlace($event)"></app-search-place>
-              @if (mapState && mapState.zoom >= minZoom) {
-                <div class="separator"></div>
-                <div class="map-tool button-start" (click)="trackBuilder.start()">
-                  <ion-icon name="play" color="success"></ion-icon>
-                  <ion-label color="success">{{ i18n.texts.pages.trailplanner.start }}</ion-label>
-                </div>
-              }
-            } @else {
-              <div class="map-tool button-undo" (click)="trackBuilder.undo()" [ngClass]="{'disabled': trackBuilder.anchors.length === 0}">
-                <ion-icon name="undo" [color]="trackBuilder.anchors.length > 0 ? 'dark' : 'medium'"></ion-icon>
-                <ion-label [color]="trackBuilder.anchors.length > 0 ? 'dark' : 'medium'">{{ i18n.texts.pages.trailplanner.undo }}</ion-label>
-              </div>
-              @if (trackBuilder.putFreeAnchor) {
-                <div class="map-tool button-non-free-anchor" (click)="trackBuilder.backToNonFreeAnchors()">
-                  <ion-icon name="location" slot="start" color="dark"></ion-icon>
-                  <ion-label color="dark">{{ i18n.texts.pages.trailplanner.back_to_non_free_point }}</ion-label>
-                </div>
-              } @else {
-                <div class="map-tool button-free-anchor" (click)="trackBuilder.enableFreeAnchor()" [ngClass]="{'disabled': !trackBuilder.putAnchors}">
-                  <ion-icon name="location" slot="start" [color]="trackBuilder.putAnchors ? 'dark' : 'medium'"></ion-icon>
-                  <ion-label [color]="trackBuilder.putAnchors ? 'dark' : 'medium'">{{ i18n.texts.pages.trailplanner.put_free_point }}</ion-label>
-                </div>
-              }
-              <div class="map-tool button-stop" (click)="trackBuilder.stop()" *ngIf="trackBuilder.putAnchors || trackBuilder.putFreeAnchor">
-                <ion-icon slot="start" name="pause" color="secondary"></ion-icon>
-                <ion-label color="secondary">{{ i18n.texts.pages.trailplanner.stop }}</ion-label>
-              </div>
-              <div class="map-tool button-resume" (click)="trackBuilder.resume()" *ngIf="!trackBuilder.putAnchors && !trackBuilder.putFreeAnchor && mapState && mapState.zoom >= minZoom">
-                <ion-icon slot="start" name="play" color="success"></ion-icon>
-                <ion-label color="success">{{ i18n.texts.pages.trailplanner.resume }}</ion-label>
-              </div>
-              <div class="separator"></div>
-              <div class="map-tool button-save" (click)="openSaveModal(saveModal)" [ngClass]="{'disabled': trackBuilder.anchors.length < 2}">
-                <ion-icon slot="start" name="save" [color]="trackBuilder.anchors.length > 1 ? 'success' : 'medium'"></ion-icon>
-                <ion-label [color]="trackBuilder.anchors.length > 1 ? 'success' : 'medium'">{{i18n.texts.buttons.save}}</ion-label>
-              </div>
-              <div class="separator"></div>
-              <div class="map-tool button-reset" (click)="reset()">
-                <ion-icon slot="start" name="reset" color="danger"></ion-icon>
-                <ion-label color="danger">{{ i18n.texts.pages.trailplanner.reset }}</ion-label>
+            </app-toolbar>
+            @if (mapState && mapState.zoom < minZoom) {
+              <div class="message-zoom">
+                {{ i18n.texts.pages.trailplanner.please_zoom }} {{ minZoom }}
               </div>
             }
           </div>
-          @if (mapState && mapState.zoom < minZoom) {
-            <div class="message-zoom">
-              {{ i18n.texts.pages.trailplanner.please_zoom }} {{ minZoom }}
-            </div>
-          }
         </div>
       }
     </app-map>

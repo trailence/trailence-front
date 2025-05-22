@@ -97,6 +97,14 @@ app-map {
     }
   }
 
+  app-toolbar {
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    background-clip: padding-box;
+    display: block;
+  }
+
   div.map-toolbar {
     background-color: #FFFFFF;
     border-radius: 5px;
@@ -239,6 +247,11 @@ body.dark-map {
   app-map {
     path[stroke=black] {
       stroke: white;
+    }
+
+    app-toolbar {
+      background-color: #000000;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     div.map-toolbar {
