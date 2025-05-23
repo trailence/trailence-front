@@ -88,7 +88,7 @@
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="!isSmall || tab === 'details'">
-      <app-toolbar #toolbar
+      <app-toolbar #toolbar *ngIf="trail1"
         [items]="toolbarItems"
         [iconSize]="28"
         textSize="11px"
@@ -200,68 +200,69 @@
         <span *ngIf="tagsNames1.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
         <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
       </div>
-      <div class="metadata-container one-column with-title">
-        <div class="metadata-item-container" *ngIf="tracks[0]">
-          <div class="metadata-item">
-            <ion-icon name="date"></ion-icon>
-            <div class="metadata-content">
-              <div class="metadata-title">{{ i18n.texts.metadata.trail_date }}</div>
-              <div class="metadata-value">
-                <div class="metadata-primary">{{ i18n.timestampToDateTimeString(tracks[0].metadata.startDate) }}</div>
-                <div class="metadata-secondary" *ngIf="tracks[1]">{{ i18n.timestampToDateTimeString(tracks[1].metadata.startDate) }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openLocationDialog()">
-          <div class="metadata-item">
-            <ion-icon name="location"></ion-icon>
-            <div class="metadata-content">
-              <div class="metadata-title">{{ i18n.texts.metadata.trail_location }}</div>
-              <div class="metadata-value">
-                <div class="metadata-primary">{{ trail1?.location ?? '' }}</div>
-                <div class="metadata-secondary" *ngIf="trail2?.location">{{ trail2?.location ?? '' }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="!tracks[0]">
+      @if (!tracks[0]) {
         <ion-spinner name="dots"></ion-spinner>
-      </div>
-      <div class="metadata-container two-columns with-title" *ngIf="tracks[0]">
-        <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
-        <div class="metadata-item">
-          <ion-icon [name]="trailService.getLoopTypeIcon(trail1?.loopType)"></ion-icon>
-          <div class="metadata-content">
-            <div class="metadata-title">{{ i18n.texts.metadata.loop_type }}</div>
-            <div class="metadata-value">
-              <div class="metadata-primary" *ngIf="trail1?.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
-              <div class="metadata-secondary" *ngIf="trail2?.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
+      } @else {
+        <div class="metadata-container one-column with-title">
+          <div class="metadata-item-container">
+            <div class="metadata-item">
+              <ion-icon name="date"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-title">{{ i18n.texts.metadata.trail_date }}</div>
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{ i18n.timestampToDateTimeString(tracks[0].metadata.startDate) }}</div>
+                  <div class="metadata-secondary" *ngIf="tracks[1]">{{ i18n.timestampToDateTimeString(tracks[1].metadata.startDate) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openLocationDialog()">
+            <div class="metadata-item">
+              <ion-icon name="location"></ion-icon>
+              <div class="metadata-content">
+                <div class="metadata-title">{{ i18n.texts.metadata.trail_location }}</div>
+                <div class="metadata-value">
+                  <div class="metadata-primary">{{ trail1?.location ?? '' }}</div>
+                  <div class="metadata-secondary" *ngIf="trail2?.location">{{ trail2?.location ?? '' }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="metadata-item">
-          <!-- Empty until another meta -->
+        <div class="metadata-container two-columns with-title">
+          <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
+          <div class="metadata-item">
+            <ion-icon [name]="trailService.getLoopTypeIcon(trail1?.loopType)"></ion-icon>
+            <div class="metadata-content">
+              <div class="metadata-title">{{ i18n.texts.metadata.loop_type }}</div>
+              <div class="metadata-value">
+                <div class="metadata-primary" *ngIf="trail1?.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
+                <div class="metadata-secondary" *ngIf="trail2?.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="metadata-item">
+            <!-- Empty until another meta -->
+          </div>
+          <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
         </div>
-        <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
-      </div>
-      <div *ngIf="!toolsEnabled" style="padding: 5px 3px 10px 8px">
-        <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
-      </div>
-      <div *ngIf="externalUrl" class="external-link">
-        <a href="{{externalUrl}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{externalAppName}}</a>
-      </div>
-      <div class="trail-dates" *ngIf="trail1 && !trail2 && !isExternal">
-        <div>
-          <span class="trail-date-title">{{i18n.texts.pages.trail.created_in_trailence_on}} </span>
-          <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
+        <div *ngIf="!toolsEnabled" style="padding: 5px 3px 10px 8px">
+          <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
         </div>
-        <div *ngIf="trail1.createdAt !== trail1.updatedAt">
-          <span class="trail-date-title">{{i18n.texts.pages.trail.last_update_on}} </span>
-          <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.updatedAt)}}</span>
+        <div *ngIf="externalUrl" class="external-link">
+          <a href="{{externalUrl}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{externalAppName}}</a>
         </div>
-      </div>
+        <div class="trail-dates" *ngIf="trail1 && !trail2 && !isExternal">
+          <div>
+            <span class="trail-date-title">{{i18n.texts.pages.trail.created_in_trailence_on}} </span>
+            <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
+          </div>
+          <div *ngIf="trail1.createdAt !== trail1.updatedAt">
+            <span class="trail-date-title">{{i18n.texts.pages.trail.last_update_on}} </span>
+            <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.updatedAt)}}</span>
+          </div>
+        </div>
+      }
       <ng-container *ngIf="trail1 && !trail2">
         <ng-container *ngIf="trail1.description || editable">
           <div class="section-title">

@@ -105,7 +105,7 @@ export class AppMenu extends Component {
         const menuButton = new IonicButton(item.$('.item-title ion-button'));
         await menuButton.click();
         const popover = await App.waitPopover();
-        return new MenuContent(popover.$('>>>app-menu-content'));
+        return new MenuContent(popover);
       }
     }
     return undefined;

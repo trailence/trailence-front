@@ -17,8 +17,7 @@ describe('Trail - Edit infos', () => {
     const collectionPage = await menu.addCollection('Test Trail');
     expect(await collectionPage.header.getTitle()).toBe('Test Trail');
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();

@@ -121,7 +121,11 @@ describe('Trail - Photos', () => {
     await (await trailPage.header.openUserMenu()).clickByLabel('Preferences');
     const prefs = new PreferencesPage();
     await prefs.waitDisplayed();
-    const sizes = await prefs.getPhotosSizes();
+    const sizes = await TestUtils.retry(async () => {
+      const sizes = await prefs.getPhotosSizes();
+      if (sizes.length !== 2 || sizes[0] === '0 Bytes' || sizes[1] !== '0 Bytes') throw Error();
+      return sizes;
+    }, 3, 2500);
     expect(sizes.length).toBe(2);
     expect(sizes[0]).not.toBe('0 Bytes');
     expect(sizes[1]).toBe('0 Bytes');

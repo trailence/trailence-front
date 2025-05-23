@@ -205,7 +205,6 @@ export class ImageUtils {
       if (tag === 0x9003) {
         // date/time original
         const str = this.readExifString(data, start + addressOrValue, nbComponents);
-        console.log(str);
         info.dateTaken = ImageUtils.toDate(str);
       }
     }

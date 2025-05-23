@@ -9,6 +9,7 @@ import { IonicTextArea } from './ionic/ion-textarea';
 import { MapComponent } from './map.component';
 import { PhotosPopup } from './photos-popup.component';
 import { TagsPopup } from './tags-popup';
+import { ToolbarComponent } from './toolbar.component';
 
 export class TrailComponent extends Component {
 
@@ -111,17 +112,8 @@ export class TrailComponent extends Component {
   }
 
   public async toggleShowPhotosOnMap() {
-    const details = await this.openDetails();
-    const checkboxes = details.$$('ion-checkbox');
-    for (const cb of await checkboxes.getElements()) {
-      await cb.scrollIntoView({block: 'center', inline: 'center'});
-      const text = await cb.getText();
-      if (text === 'Show photos on map') {
-        await cb.click();
-        return;
-      }
-    }
-    throw new Error('Checkbox "Show photos on map" not found');
+    const map = await this.openMap();
+    await map.rightToolbar.clickByIcon('photos');
   }
 
   public async openPhotos() {
@@ -185,7 +177,7 @@ export class TrailComponent extends Component {
 
   public async setLocation() {
     const element = await this.getMetadataContentByTitle('Location');
-    await element!.click();
+    await element.click();
     const modal = await App.waitModal();
     const button = new IonicButton(modal.$('ion-content').$('>>>ion-button'));
     await button.click();
@@ -212,30 +204,24 @@ export class TrailComponent extends Component {
 
   public async goToDeparture() {
     const details = await (await this.openDetails()).getElement();
-    await details.$('app-icon-label-button[icon=car]').click();
+    await new ToolbarComponent(details.$('app-toolbar')).clickByIcon('car');
   }
 
   public async hasEditTools() {
-    const details = await (await this.openDetails()).getElement();
-    return await details.$('app-icon-label-button[icon=tool]').isExisting();
+    const map = await this.openMap();
+    return await map.topToolbar.getButtonByIcon('tool').isExisting();
   }
 
   public async openEditTools() {
-    const details = await (await this.openDetails()).getElement();
-    const button = details.$('app-icon-label-button[icon=tool]');
-    await button.waitForExist();
-    await button.scrollIntoView({block: 'center', inline: 'center'});
-    await button.click();
-    await browser.waitUntil(() => this.getElement().$('div.edit-tools-container app-edit-tools').isDisplayed());
-    return new EditTools(this.getElement().$('div.edit-tools-container app-edit-tools'));
+    const map = await this.openMap();
+    await map.topToolbar.clickByIcon('tool');
+    await browser.waitUntil(() => this.getElement().$('app-track-edit-tools').isDisplayed());
+    return new EditTools(this.getElement().$('app-track-edit-tools'));
   }
 
   public async getStartTrailButton() {
     const details = await (await this.openDetails()).getElement();
-    const button = details.$('app-icon-label-button[icon=play-circle]');
-    await button.waitForExist();
-    await button.scrollIntoView({block: 'center', inline: 'center'});
-    return await button.getElement();
+    return new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('play-circle');
   }
 
   public async pauseRecordingFromMap() {

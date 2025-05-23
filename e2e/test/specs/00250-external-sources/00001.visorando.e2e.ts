@@ -26,8 +26,7 @@ describe('Import data from Visorando', () => {
 
   it('Import GPX from Visorando', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/visorando-le-haut-montet.gpx'));
     const modal = new ModalComponent(await App.waitModal());
     expect(await modal.getTitle()).toBe('Import data');
@@ -58,7 +57,7 @@ describe('Import data from Visorando', () => {
 
   it('Import trail from URL', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.moreMenu()).clickItemWithText('Import from URL');
+    (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     const modal = new ImportFromURLModal(await App.waitModal());
     await modal.urlInput.setValue('https://www.visorando.com/randonnee-le-haut-montet-2/');
     await modal.importFrom('Visorando');
@@ -72,7 +71,7 @@ describe('Import data from Visorando', () => {
 
   it('Import trails from user page', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.moreMenu()).clickItemWithText('Import from URL');
+    (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     const modal = new ImportFromURLModal(await App.waitModal());
     await modal.urlInput.setValue('https://www.visorando.com/page-jean-paul-m3/');
     await modal.importFrom('Visorando');
@@ -89,7 +88,7 @@ describe('Import data from Visorando', () => {
 
   it('Import from clipboard', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.moreMenu()).clickItemWithText('Import from URL');
+    (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     let modal = new ImportFromURLModal(await App.waitModal());
 
     try { await browser.setPermissions({name: 'clipboard-read'}, 'granted'); }
@@ -124,7 +123,7 @@ describe('Import data from Visorando', () => {
     handles = await browser.getWindowHandles();
     await browser.switchToWindow(handles[handles.length - 1]);
 
-    (await list.moreMenu()).clickItemWithText('Import from URL');
+    (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     modal = new ImportFromURLModal(await App.waitModal());
     await modal.fromClipboardButton.click();
     await modal.importFrom('Visorando');
@@ -140,7 +139,7 @@ describe('Import data from Visorando', () => {
 
   it('Import with unknown URL', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.moreMenu()).clickItemWithText('Import from URL');
+    (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     const modal = new ImportFromURLModal(await App.waitModal());
     await modal.urlInput.setValue('https://www.google.com');
     expect((await modal.getMessage()).trim()).toBe('No supported source matches this URL');
@@ -150,7 +149,7 @@ describe('Import data from Visorando', () => {
 
   it('Import with page not containing trail', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.moreMenu()).clickItemWithText('Import from URL');
+    (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     const modal = new ImportFromURLModal(await App.waitModal());
     await modal.urlInput.setValue('https://www.visorando.com/inscription-visorando.html');
     await (await modal.getFooterButtonWithText('Import from Visorando')).click();

@@ -30,16 +30,9 @@
           <div class="item-title-container">
             <div class="item-title with-actions">
               <a href="/trails/collection/{{collection.uuid}}" target="_blank" class="inherit" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">{{ collection.name.length === 0 && collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collection.name }}</a>
-              <ion-button fill="clear" size="small" id="collection-actions-button-{{collection.uuid}}" (click)="$event.stopPropagation();">
+              <ion-button fill="clear" size="small" (click)="openCollectionMenu($event, collection);">
                 <ion-icon slot="icon-only" name="item-menu"></ion-icon>
               </ion-button>
-              <ion-popover trigger="collection-actions-button-{{collection.uuid}}" [dismissOnSelect]="true">
-                <ng-template>
-                  <ion-content>
-                    <app-menu-content [menu]="collectionService.getCollectionMenu(collection)"></app-menu-content>
-                  </ion-content>
-                </ng-template>
-              </ion-popover>
             </div>
           </div>
         </div>
@@ -63,16 +56,9 @@
           <div class="item-title-container">
             <div class="item-title with-actions">
               <div>{{share.name}}</div>
-              <ion-button fill="clear" size="small" id="share-actions-button-{{share.uuid}}-{share.owner}}" (click)="$event.stopPropagation();">
+              <ion-button fill="clear" size="small" (click)="openShareMenu($event, share)">
                 <ion-icon slot="icon-only" name="item-menu"></ion-icon>
               </ion-button>
-              <ion-popover trigger="share-actions-button-{{share.uuid}}-{share.owner}}" [dismissOnSelect]="true">
-                <ng-template>
-                  <ion-content>
-                    <app-menu-content [menu]="shareService.getShareMenu(share)"></app-menu-content>
-                  </ion-content>
-                </ng-template>
-              </ion-popover>
             </div>
             <div class="item-sub-title">{{share.owner}}</div>
           </div>
@@ -98,16 +84,9 @@
           <div class="item-title-container">
             <div class="item-title with-actions">
               <div>{{share.name}}</div>
-              <ion-button fill="clear" size="small" id="share-actions-button-{{share.uuid}}-{share.owner}}" (click)="$event.stopPropagation();">
+              <ion-button fill="clear" size="small" (click)="openShareMenu($event, share)">
                 <ion-icon slot="icon-only" name="item-menu"></ion-icon>
               </ion-button>
-              <ion-popover trigger="share-actions-button-{{share.uuid}}-{share.owner}}" [dismissOnSelect]="true">
-                <ng-template>
-                  <ion-content>
-                    <app-menu-content [menu]="shareService.getShareMenu(share)"></app-menu-content>
-                  </ion-content>
-                </ng-template>
-              </ion-popover>
             </div>
             <div class="item-sub-title">{{ emailsSplit(share.recipients) }}</div>
           </div>

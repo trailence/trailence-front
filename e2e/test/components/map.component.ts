@@ -2,6 +2,7 @@ import { App } from '../app/app';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicRange } from './ionic/ion-range';
+import { ToolbarComponent } from './toolbar.component';
 
 export class MapComponent extends Component {
 
@@ -11,33 +12,35 @@ export class MapComponent extends Component {
 
   public get markers() { return this.getElement().$('div.leaflet-pane.leaflet-marker-pane').$$('img'); }
 
-  public getControl(className: string) {
-    return this.getElement().$('div.leaflet-control-container .' + className);
-  }
+  public get leftToolbar() { return new ToolbarComponent(this.getElement().$('div.map-left-controls-container app-toolbar')); }
+  public get rightToolbar() { return new ToolbarComponent(this.getElement().$('div.map-right-controls-container app-toolbar')); }
+  public get topToolbar() { return new ToolbarComponent(this.getElement().$('div.map-top-controls-container app-toolbar')); }
 
   public async getZoom() {
-    const levelTool = this.getControl('zoom-level-tool');
-    const levelSpan = levelTool.$('span.zoom-level');
-    return parseInt(await levelSpan.getText());
+    const levelTool = this.leftToolbar.getElement().$('div.toolbar-item.disabled ion-label');
+    return parseInt(await levelTool.getText());
   }
 
   public async zoomTo(level: number) {
     let zoom = await this.getZoom();
     if (zoom === level) return;
-    const zoomTool = this.getControl('leaflet-control-zoom');
     if (zoom > level) {
+      const zoomOutTool = this.leftToolbar.getButtonByIcon('minus');
       while (zoom > level) {
-        await zoomTool.$('.leaflet-control-zoom-out').click();
+        await zoomOutTool.click();
         await browser.pause(2000); // wait for the animation to be done
         zoom = await this.getZoom();
       }
       expect(zoom).toBe(level);
       return;
     }
-    while (zoom < level) {
-      await zoomTool.$('.leaflet-control-zoom-in').click();
-      await browser.pause(2000); // wait for the animation to be done
-      zoom = await this.getZoom();
+    if (zoom < level) {
+      const zoomInTool = this.leftToolbar.getButtonByIcon('plus');
+      while (zoom < level) {
+        await zoomInTool.click();
+        await browser.pause(2000); // wait for the animation to be done
+        zoom = await this.getZoom();
+      }
     }
     expect(zoom).toBe(level);
   }
@@ -54,15 +57,24 @@ export class MapComponent extends Component {
   }
 
   public async fitBounds() {
-    await this.getControl('fit-bounds-tool').click();
+    await this.leftToolbar.clickByIcon('zoom-fit-bounds');
   }
 
   public async toggleGeolocation() {
-    await this.getControl('show-position-tool').click();
+    let button = this.leftToolbar.getButtonByIcon('pin');
+    if (await button.isExisting()) await button.click();
+    else {
+      button = this.leftToolbar.getButtonByIcon('pin-off');
+      await button.click();
+    }
   }
 
   public async centerOnGeolocation() {
-    await this.getControl('center-on-location-tool').click();
+    await this.leftToolbar.clickByIcon('center-on-location');
+  }
+
+  public async hasCenterOnGeolocation() {
+    return await this.leftToolbar.getButtonByIcon('center-on-location').isExisting();
   }
 
   public getGeolocationMarker() {
@@ -70,7 +82,7 @@ export class MapComponent extends Component {
   }
 
   public async selectLayer(name: string) {
-    await this.getControl('layer-tool').click();
+    await this.rightToolbar.clickByIcon('layers');
     const modal = await App.waitModal();
     await modal.$('div.layer.layer-' + name).isDisplayed();
     await modal.$('div.layer.layer-' + name).click();
@@ -78,7 +90,7 @@ export class MapComponent extends Component {
   }
 
   public async isLayerAvailable(name: string) {
-    await this.getControl('layer-tool').click();
+    await this.rightToolbar.clickByIcon('layers');
     const modal = await App.waitModal();
     await modal.$('div.layer').isDisplayed();
     const result = await modal.$('div.layer.layer-' + name).isExisting();
@@ -88,15 +100,20 @@ export class MapComponent extends Component {
   }
 
   public async toggleBubbles() {
-    await this.getControl('bubbles-tool').click();
+    let button = this.rightToolbar.getButtonByIcon('bubbles');
+    if (await button.isExisting()) await button.click();
+    else {
+      button = this.rightToolbar.getButtonByIcon('path');
+      await button.click();
+    }
   }
 
   public async downloadMapOffline(layers: string[], zoomLevel: number) {
-    await this.getControl('download-map-tool').click();
+    await this.rightToolbar.clickByIcon('download');
     let modal = undefined;
     try { modal = await App.waitModal(); } catch (e) {}
     if (!modal) {
-      await browser.action('pointer').move({x: 3, y: 3, origin: await this.getControl('download-map-tool').getElement()}).pause(50).down().pause(10).up().perform();
+      await browser.action('pointer').move({x: 3, y: 3, origin: await this.rightToolbar.getButtonByIcon('download').getElement()}).pause(50).down().pause(10).up().perform();
       modal = await App.waitModal();
     }
     for (const layerName of layers) {

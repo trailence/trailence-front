@@ -22,7 +22,7 @@ describe('Copy / Move Trails', () => {
   it('Copy full collection to new collection', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb === EXPECTED_TRAILS.length));
-    const menu = await list.moreMenu();
+    const menu = await list.toolbar.moreMenu();
     await menu.clickItemWithText('Copy into...');
     await menu.getElement().$('ion-list-header').waitForDisplayed();
     await menu.clickItemWithText('New collection...');

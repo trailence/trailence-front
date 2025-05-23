@@ -29,10 +29,10 @@ describe('Test improvments while recording', () => {
     const recording = new Track({owner: 'test@example.com'}, preferencesService);
     for (const originalSegment of track.segments) {
       const segment = recording.newSegment();
-      let state: ImprovmentRecordingState | undefined = undefined;
+      const state = new ImprovmentRecordingState();
       for (const originalPoint of originalSegment.points) {
         segment.append(copyPoint(originalPoint));
-        state = trackEdition.applyDefaultImprovmentsForRecordingSegment(segment, state, segment.points.length === originalSegment.points.length);
+        trackEdition.applyDefaultImprovmentsForRecordingSegment(segment, state, segment.points.length === originalSegment.points.length);
       }
     }
 

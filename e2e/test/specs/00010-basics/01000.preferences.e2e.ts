@@ -43,8 +43,7 @@ describe('Preferences', () => {
     const loginPage = await App.start();
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     await checkTrail(trailsList, expectedDateEn, 'Duration', '3h12 (≈ 2h35)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft');
   });

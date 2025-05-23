@@ -94,8 +94,8 @@ export class MapLayersService {
     }
   }
 
-  public applyDarkMap(map: L.Map): void {
-    map.getContainer().parentElement!.classList.add(this._darkMap ? 'dark-theme' : 'light-theme');
+  public applyDarkMap(element: HTMLElement): void {
+    element.classList.add(this._darkMap ? 'dark-theme' : 'light-theme');
   }
 
 }

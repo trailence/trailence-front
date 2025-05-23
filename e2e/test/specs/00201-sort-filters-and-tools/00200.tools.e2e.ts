@@ -145,14 +145,14 @@ describe('Trails Tools', () => {
 
   it('Edit tags', async () => {
     list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.moreMenu()).clickItemWithText('Tags');
+    (await list.toolbar.moreMenu()).clickItemWithText('Tags');
     let tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2', 'Tag 2 edited');
     await tags.cancel();
 
     await expectListContains(list, EXPECTED_TRAILS);
 
-    (await list.moreMenu()).clickItemWithText('Tags');
+    (await list.toolbar.moreMenu()).clickItemWithText('Tags');
     tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2', 'Tag 2 edited');
     await tags.save();
@@ -161,7 +161,7 @@ describe('Trails Tools', () => {
       return {...t, tags: t.tags.map(tag => tag === 'Tag 2' ? 'Tag 2 edited' : tag)};
     }));
 
-    (await list.moreMenu()).clickItemWithText('Tags');
+    (await list.toolbar.moreMenu()).clickItemWithText('Tags');
     tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2 edited', 'Tag 2');
     await tags.save();

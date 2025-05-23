@@ -905,7 +905,6 @@ export class TrailComponent extends AbstractComponent {
     if (click) {
       if (wp.nearestSegmentIndex !== undefined && wp.nearestPointIndex !== undefined && this.wayPointsTrack !== undefined) {
         const pathPoint = this.wayPointsTrack?.segments[wp.nearestSegmentIndex].points[wp.nearestPointIndex];
-        console.log(wp, pathPoint)
         if (pathPoint && samePositionRound(pathPoint.pos, wp.wayPoint.point.pos)) {
           this.selection.selectPoint([new PointReference(this.wayPointsTrack, wp.nearestSegmentIndex, wp.nearestPointIndex)]);
         }

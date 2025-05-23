@@ -444,7 +444,6 @@ export class ElevationGraphComponent extends AbstractComponent {
             return this.activeElementToPointReference(element);
           return null;
         }).filter(r => !!r);
-        console.log('graph.onClick', references, event)
         if (references.length === 0 && event.native.detail === -1) return;
         this.pointClick.emit(references);
       },

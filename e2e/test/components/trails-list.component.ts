@@ -6,27 +6,12 @@ import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicSegment } from './ionic/ion-segment';
 import { MenuContent } from './menu-content.component';
+import { ToolbarComponent } from './toolbar.component';
 import { TrailOverview } from './trail-overview.component';
 
 export class TrailsList extends Component {
 
-  public get toolbarButtons() { return this.getElement().$('div.toolbar').$$('app-icon-label-button'); }
-
-  public async getToolbarButton(icon: string) {
-    for (const button of await this.toolbarButtons.getElements()) {
-      const buttonIcon = await button.getAttribute('icon');
-      if (buttonIcon === icon) return button;
-    }
-    throw new Error('Toolbar button not found: ' + icon);
-  }
-
-  public async moreMenu() {
-    await (await this.getToolbarButton('more-menu')).click();
-    const popover = await App.waitPopover();
-    const menu = new MenuContent(popover);
-    await menu.waitDisplayed();
-    return menu;
-  }
+  public get toolbar() { return new ToolbarComponent(this.getElement().$('app-toolbar')); }
 
   public get items() { return this.getElement().$('div.trails').$$('div.metadata-container.trail'); }
 

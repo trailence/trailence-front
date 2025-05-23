@@ -21,7 +21,7 @@ describe('Shares - Create', () => {
 
   it('Share full collection to friend1 without photos', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    await(await list.getToolbarButton('share')).click();
+    await list.toolbar.clickByIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.shareWholeCollection();
     await modal.setShareName('full col');
@@ -31,7 +31,7 @@ describe('Shares - Create', () => {
 
   it('Share Tag 2 to friend2 without photos to friend2', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    await(await list.getToolbarButton('share')).click();
+    await list.toolbar.clickByIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.shareTags();
     await modal.selectTags(['Tag 2']);
@@ -42,7 +42,7 @@ describe('Shares - Create', () => {
 
   it('Share Tag2 and Tag 4 with photos to friend3', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    await(await list.getToolbarButton('share')).click();
+    await list.toolbar.clickByIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.shareTags();
     await modal.selectTags(['Tag 2', 'Tag 4']);

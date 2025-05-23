@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Injector } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonButton, MenuController, IonBadge, IonPopover, IonContent, Platform } from "@ionic/angular/standalone";
+import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverController } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { combineLatest, map } from 'rxjs';
@@ -23,8 +23,7 @@ import { MenuContentComponent } from '../menu-content/menu-content.component';
     styleUrls: ['./menu.component.scss'],
     imports: [
       CommonModule,
-      IonBadge, IonButton, IonIcon, IonPopover, IonContent,
-      MenuContentComponent,
+      IonBadge, IonButton, IonIcon,
     ]
 })
 export class MenuComponent {
@@ -52,6 +51,7 @@ export class MenuComponent {
     public readonly update: UpdateService,
     public readonly fetchSourceService: FetchSourceService,
     platform: Platform,
+    private readonly injector: Injector,
   ) {
     collectionService.getAll$().pipe(
       collection$items(),
@@ -123,6 +123,36 @@ export class MenuComponent {
     if (part1.length > 12) part1 = part1.substring(0, 9) + '...';
     if (part2.length > 12) part2 = part2.substring(0, 9) + '...';
     return part1 + '@' + part2;
+  }
+
+  openCollectionMenu($event: MouseEvent, collection: TrailCollection) {
+    $event.stopPropagation();
+    const menu = this.collectionService.getCollectionMenu(collection);
+    this.injector.get(PopoverController).create({
+      component: MenuContentComponent,
+      componentProps: {
+        menu,
+      },
+      event: $event,
+      side: 'right',
+      dismissOnSelect: true,
+      arrow: true,
+    }).then(p => p.present());
+  }
+
+  openShareMenu($event: MouseEvent, share: Share) {
+    $event.stopPropagation();
+    const menu = this.shareService.getShareMenu(share);
+    this.injector.get(PopoverController).create({
+      component: MenuContentComponent,
+      componentProps: {
+        menu,
+      },
+      event: $event,
+      side: 'right',
+      dismissOnSelect: true,
+      arrow: true,
+    }).then(p => p.present());
   }
 
 }

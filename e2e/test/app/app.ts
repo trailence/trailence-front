@@ -5,6 +5,7 @@ import { LoginPage } from './pages/login-page';
 import { Page } from './pages/page';
 import { ChainablePromiseElement, WaitUntilOptions } from 'webdriverio';
 import { TrailsPage, TrailsPageType } from './pages/trails-page';
+import { TestUtils } from '../utils/test-utils';
 
 export class App {
 
@@ -192,11 +193,14 @@ export class App {
   }
 
   public static async waitPopover(timeout?: number) {
-    const popover = this.getPopoverContainer();
-    await popover.waitForDisplayed({timeout});
-    const content = this.getPopoverContent(popover);
-    await content.waitForExist({timeout});
-    return content;
+    timeout = timeout ?? 30000;
+    return await TestUtils.retry(async () => {
+      const popover = this.getPopoverContainer();
+      await popover.waitForDisplayed({timeout: 2000});
+      const content = this.getPopoverContent(popover);
+      await content.waitForExist({timeout: 2000});
+      return content;
+    }, Math.max(2, timeout / 2000), 100);
   }
 
   public static getPopoverContainer(): ChainablePromiseElement {

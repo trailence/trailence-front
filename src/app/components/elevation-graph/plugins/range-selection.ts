@@ -99,7 +99,10 @@ export class RangeSelection implements C.Plugin<"line"> {
   }
 
   private cancelSelection(): void {
-    this.selected = undefined;
+    if (this.selected) {
+      this.selected = undefined;
+      this.onSelected(undefined);
+    }
   }
 
   afterDraw(chart: C.Chart<"line">): void {

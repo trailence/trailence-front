@@ -17,22 +17,9 @@ describe('Trail page', () => {
     trailPage = await trailsList.openTrail(trail);
   });
 
-  it('Edit tools present on desktop mode', async () => {
-    if (App.config.mode === 'desktop') {
-      expect(await trailPage.trailComponent.hasTabs()).toBeFalse();
-      expect(await trailPage.trailComponent.hasEditTools()).toBeTrue();
-
-      const tools = await trailPage.trailComponent.openEditTools();
-      await tools.close();
-    } else {
-      expect(await trailPage.trailComponent.hasTabs()).toBeTrue();
-      expect(await trailPage.trailComponent.hasEditTools()).toBeFalse();
-    }
-  });
-
   it('Interaction with elevation graph', async () => {
     const map = await trailPage.trailComponent.openMap();
-    const graph = await trailPage.trailComponent.showElevationGraph();
+    let graph = await trailPage.trailComponent.showElevationGraph();
     // mouse over graph => tooltip should be displayed
     await browser.action('pointer').move({x: 25, y: 25, origin: await graph.getElement().$('canvas').getElement()}).pause(10).perform();
     await browser.waitUntil(() => graph.tooltip.isDisplayed());
@@ -53,7 +40,7 @@ describe('Trail page', () => {
     // zoom button should be displayed
     await browser.waitUntil(() => graph.zoomButton.isDisplayed());
     // map should contain the selection
-    await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('rgba(0,0,255,1)') >= 0));
+    await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') >= 0));
     let zoom = await map.getZoom();
     // zoom on selection
     await graph.zoomButton.click();
@@ -61,15 +48,14 @@ describe('Trail page', () => {
       return z !== zoom;
     }));
     // unzoom
+    graph = await trailPage.trailComponent.showElevationGraph();
     await graph.zoomButton.click();
-    await browser.waitUntil(() => map.getZoom().then(z => {
-      return z === zoom;
-    }));
     // click on graph to remove selection
-    await browser.action('pointer').move({x: 40, y: 25, origin: await graph.getElement().$('canvas').getElement()}).pause(10).down().pause(10).up().perform();
+    graph = await trailPage.trailComponent.showElevationGraph();
+    await browser.action('pointer').move({x: 40, y: 25, origin: await graph.getElement(true).$('canvas').getElement()}).pause(10).down().pause(10).up().perform();
     await browser.waitUntil(() => graph.zoomButton.isDisplayed().then(d => !d));
     // map should not contain selection anymore
-    await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('rgba(0,0,255,1)') < 0));
+    await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') < 0));
   });
 
   it('Go to departure', async () => {

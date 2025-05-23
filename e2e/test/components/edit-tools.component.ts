@@ -3,63 +3,104 @@ import { Component } from './component';
 import { EditToolElevationThresholdModal } from './edit-tool-elevation-threshold.modal';
 import { IonicButton } from './ionic/ion-button';
 import { IonicInput } from './ionic/ion-input';
+import { ModalComponent } from './modal';
+import { ToolbarComponent } from './toolbar.component';
 
 export class EditTools extends Component {
 
+  public get toolbar() { return new ToolbarComponent(this.getElement().$('app-toolbar')); }
+
   public async close() {
-    await new IonicButton(this.getElement().$('ion-header ion-toolbar').$('>>>ion-button')).click();
+    await this.toolbar.clickByIcon('cross');
   }
 
   public async backToOriginalTrack() {
-    await new IonicButton(this.getElement().$('ion-item.button-back-to-original-track')).click();
+    const menu = await this.toolbar.clickByIconAndGetMenu('distance');
+    await menu.clickItemWithText('Back to original trace without improvements');
   }
 
   public async removeUnprobableElevations() {
-    await new IonicButton(this.getElement().$('ion-item.button-remove-unprobable-elevations')).click();
+    const menu = await this.toolbar.clickByIconAndGetMenu('elevation');
+    await menu.clickItemWithText('Adjust unprobable elevations');
   }
 
   public async canJoinArrivalToDeparture() {
-    return await this.getElement().$('ion-item.button-join-arrival-to-departure').isExisting();
+    const menu = await this.toolbar.clickByIconAndGetMenu('path');
+    const present = await menu.getItemWithText('Finish at the departure point').isExisting();
+    await menu.close();
+    return present;
   }
 
   public async joinArrivalToDeparture() {
-    await new IonicButton(this.getElement().$('ion-item.button-join-arrival-to-departure')).click();
+    const menu = await this.toolbar.clickByIconAndGetMenu('path');
+    await menu.clickItemWithText('Finish at the departure point');
   }
 
   public async canJoinDepartureToArrival() {
-    return await this.getElement().$('ion-item.button-join-departure-to-arrival').isExisting();
+    const menu = await this.toolbar.clickByIconAndGetMenu('path');
+    const present = await menu.getItemWithText('Start at the arrival point').isExisting();
+    await menu.close();
+    return present;
   }
 
   public async joinDepartureToArrival() {
-    await new IonicButton(this.getElement().$('ion-item.button-join-departure-to-arrival')).click();
+    const menu = await this.toolbar.clickByIconAndGetMenu('path');
+    await menu.clickItemWithText('Start at the arrival point');
   }
 
   public async isSelectionTool() {
-    return await this.getElement().$('>>>app-edit-tools-selection').isExisting();
+    return await $('div.edit-tool.selection-tool').isExisting();
   }
 
   public async waitSelectionTool() {
     await browser.waitUntil(() => this.isSelectionTool());
-    return new EditToolSelection(this.getElement().$('>>>app-edit-tools-selection'));
-  }
-
-  public async openRemoveBreaksMoves() {
-    await new IonicButton(this.getElement().$('ion-item.button-remove-breaks-moves')).click();
-    await this.getElement().$('>>>app-edit-tool-remove-breaks-moves').waitForDisplayed();
-    return new RemoveBreaksMovesTool(this.getElement().$('>>>app-edit-tool-remove-breaks-moves'));
+    return new EditToolSelection($('div.edit-tool.selection-tool'));
   }
 
   public async openElevationThreshold() {
-    await new IonicButton(this.getElement().$('ion-item.button-elevation-threshold')).click();
+    const menu = await this.toolbar.clickByIconAndGetMenu('elevation');
+    await menu.clickItemWithText('Smooth with a slope threshold');
     return new EditToolElevationThresholdModal(await App.waitModal());
   }
 
   public async canUndo() {
-    return (await this.getElement().$('app-icon-label-button[icon=undo] div.button-container').getAttribute('class')).indexOf('disabled') >= 0;
+    return (await this.toolbar.getButtonByIcon('undo').parentElement().getAttribute('class')).indexOf('disabled') < 0;
   }
 
   public async undo() {
-    await this.getElement().$('app-icon-label-button[icon=undo]').click();
+    await this.toolbar.clickByIcon('undo');
+  }
+
+  public async createWayPoint() {
+    const menu = await this.toolbar.clickByIconAndGetMenu('location');
+    await menu.clickItemWithText('Create a way point');
+    const modal = await App.waitModal();
+    (await new ModalComponent(modal).getFooterButtonWithColor('success')).click();
+  }
+
+  public async removeWayPoint() {
+    const menu = await this.toolbar.clickByIconAndGetMenu('location');
+    await menu.clickItemWithText('Remove the way point');
+  }
+
+  public async removePointsAfter() {
+    const menu = await this.toolbar.clickByIconAndGetMenu('selection');
+    await menu.clickItemWithText('Remove all points after this one');
+  }
+
+  public async removePointsBefore() {
+    const menu = await this.toolbar.clickByIconAndGetMenu('selection');
+    await menu.clickItemWithText('Remove all points before this one');
+  }
+
+  public async removeSelectedPoint() {
+    const menu = await this.toolbar.clickByIconAndGetMenu('selection');
+    await menu.clickItemWithText('Remove selected point');
+  }
+
+  public async removeSelectedRange() {
+    const menu = await this.toolbar.clickByIconAndGetMenu('selection');
+    await menu.clickItemWithText('Remove selected path');
   }
 
 }
@@ -68,17 +109,7 @@ export class EditToolSelection extends Component {
 
   public async extendSelection() {
     await this.getElement().$('>>>ion-item.extend-selection').click();
-    await browser.waitUntil(() => this.getElement().$('>>>div.wait-for-extend-selection').isExisting());
-  }
-
-  public async createWayPoint() {
-    await this.getElement().$('>>>ion-item.button-create-way-point').click();
-  }
-
-  public async removeWayPoint() {
-    const button = this.getElement().$('>>>ion-item.button-remove-way-point');
-    expect(await button.isExisting()).toBeTrue();
-    await button.click();
+    await browser.waitUntil(() => this.getElement().$('>>>div.message').isExisting());
   }
 
   public async goToNextPoint() {
@@ -89,52 +120,12 @@ export class EditToolSelection extends Component {
     await new IonicButton(this.getElement().$('>>>div.point-carets').$('ion-button.go-to-previous')).click();
   }
 
-  public async removePointsAfter() {
-    await this.getElement().$('>>>ion-item.button-remove-points-after').click();
-  }
-
-  public async removePointsBefore() {
-    await this.getElement().$('>>>ion-item.button-remove-points-before').click();
-  }
-
-  public async remove() {
-    await this.getElement().$('>>>ion-item.button-remove-selection').click();
-  }
-
   public async getElevation() {
-    return await new IonicInput(this.getElement().$('>>>div.selection').$('ion-icon[name=altitude]').parentElement().$('ion-input')).getValue();
+    return await new IonicInput(this.getElement().$('>>>div.selection-points').$('ion-icon[name=altitude]').parentElement().$('ion-input')).getValue();
   }
 
   public async setElevation(value: number) {
-    await new IonicInput(this.getElement().$('>>>div.selection').$('ion-icon[name=altitude]').parentElement().$('ion-input')).setValue('' + value);
-  }
-
-}
-
-export class RemoveBreaksMovesTool extends Component {
-
-  public async start() {
-    await new IonicButton(this.getElement().$('>>>ion-button.button-start')).click();
-  }
-
-  public async expectMoves() {
-    await browser.waitUntil(() => this.getElement().$('>>>ion-item.button-remove-moves').isExisting());
-  }
-
-  public async removeMoves() {
-    await new IonicButton(this.getElement().$('>>>ion-item.button-remove-moves')).click();
-  }
-
-  public async continue() {
-    await new IonicButton(this.getElement().$('>>>ion-button.button-continue')).click();
-  }
-
-  public async expectEnd() {
-    await browser.waitUntil(() => this.getElement().$('div.no-more-breaks').isDisplayed());
-  }
-
-  public async quit() {
-    await new IonicButton(this.getElement().$('>>>ion-footer').$('>>>ion-button')).click();
+    await new IonicInput(this.getElement().$('>>>div.selection-points').$('ion-icon[name=altitude]').parentElement().$('ion-input')).setValue('' + value);
   }
 
 }

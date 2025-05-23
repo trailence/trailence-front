@@ -82,6 +82,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
+    this.mapLayersService.applyDarkMap(this.injector.get(ElementRef).nativeElement);
     this.whenVisible.subscribe(this.browser.resize$.pipe(debounceTime(500)), () => this.invalidateSize(), true);
     this.ngZone.runOutsideAngular(() => {
       this.visible$.subscribe(visible => {
@@ -161,7 +162,6 @@ export class MapComponent extends AbstractComponent {
     if (changes['mapId']) this.loadState();
     if (changes['tracks$']) this.updateTracks();
     if (changes['bubbles$']) this.updateBubbles();
-    console.log(changes)
     if (changes['rightTools'] || changes['leftTools']) this.updateTools();
   }
 
