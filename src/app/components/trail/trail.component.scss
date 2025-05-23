@@ -46,21 +46,6 @@
 
   .map-container {
     position: absolute;
-    .map-top-buttons {
-      position: absolute;
-      top: 5px;
-      left: 45px;
-      right: 55px;
-      z-index: 501;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-
-      ion-button:not(:first-child) {
-        margin-left: 8px;
-      }
-    }
   }
 
   .elevation-container {

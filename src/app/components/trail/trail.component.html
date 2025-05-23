@@ -23,6 +23,7 @@
       [downloadMapTrail]="trail1 && !trail2 ? trail1 : undefined"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
       (mouseClickPoint)="mouseClickOnMap($event)"
+      [rightTools]="mapToolbarRightItems"
     >
       @if (trail1 && !recording && !trail2) {
         @if (toolsEnabled) {
@@ -40,8 +41,8 @@
           </div>
         } @else {
           <div class="map-top-controls right">
-            <app-toolbar #mapToolbarRight
-              [items]="mapToolbarRightItems"
+            <app-toolbar #mapToolbarTopRight
+              [items]="mapToolbarTopRightItems"
               [iconSize]="16"
               textSize="9px"
               [itemMinWidth]="40"
@@ -247,7 +248,6 @@
       </div>
       <div *ngIf="!toolsEnabled" style="padding: 5px 3px 10px 8px">
         <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
-        <ion-checkbox *ngIf="photos && photos.length > 0" labelPlacement="end" [checked]="showPhotos$.value" (ionChange)="showPhotos$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_photos}}</ion-checkbox>
       </div>
       <div *ngIf="externalUrl" class="external-link">
         <a href="{{externalUrl}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{externalAppName}}</a>

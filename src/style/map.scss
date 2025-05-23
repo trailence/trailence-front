@@ -72,29 +72,6 @@ app-map {
         justify-content: flex-start;
       }
     }
-
-    app-search-place {
-      ion-searchbar {
-        --box-shadow: none;
-
-        input.searchbar-input {
-          padding-inline-start: 25px;
-          padding-inline-end: 25px;
-          padding-top: 4px;
-          padding-bottom: 4px;
-        }
-        ion-icon.searchbar-search-icon {
-          inset-inline-start: 0;
-          top: 8px;
-        }
-        button.searchbar-clear-button {
-          inset-inline-end: 0;
-        }
-      }
-      .tip {
-        font-size: 10px;
-      }
-    }
   }
 
   div.map-right-controls-container {
@@ -116,72 +93,6 @@ app-map {
     border: 2px solid rgba(0, 0, 0, 0.2);
     background-clip: padding-box;
     display: block;
-  }
-
-  div.map-toolbar {
-    background-color: #FFFFFF;
-    border-radius: 5px;
-    padding: 0 2px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
-    background-clip: padding-box;
-
-    &.horizontal {
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-    }
-
-    div.map-tool {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      max-height: 45px;
-      margin: 1px 0px 0px 0px;
-      cursor: pointer;
-      border-radius: 5px;
-
-      &:hover:not(.disabled) {
-        background: #00000010;
-        box-shadow: 0 0 4px 0 #00000020;
-      }
-
-      ion-icon {
-        flex: none;
-        width: 16px;
-        height: 16px;
-      }
-
-      ion-label {
-        margin-top: 2px;
-        flex: 1 1 100%;
-        font-size: 9px;
-        max-width: 45px;
-        min-width: 32px;
-        text-align: center;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-      }
-
-      + div.map-tool {
-        margin-left: 8px;
-      }
-
-      &.icon-only {
-        ion-icon {
-          width: 24px;
-          height: 24px;
-          margin: 2px 0;
-        }
-      }
-    }
-
-    div.separator {
-      margin: 0 4px;
-      border-right: 1px solid #00000030;
-    }
-
   }
 
 }
@@ -206,17 +117,6 @@ app-map {
 
     div.map-top-controls-container {
       right: 56px;
-    }
-
-    div.map-toolbar {
-      div.separator {
-        margin: 0 1px;
-      }
-      div.map-tool {
-        + div.map-tool {
-          margin-left: 2px;
-        }
-      }
     }
 
   }
@@ -267,21 +167,6 @@ body.dark-map {
       border-color: rgba(255, 255, 255, 0.2);
     }
 
-    div.map-toolbar {
-      background-color: #000000;
-      border-color: rgba(255, 255, 255, 0.2);
-
-      div.map-tool {
-        &:hover:not(.disabled) {
-          background: #FFFFFF18;
-          box-shadow: 0 0 4px 0 #FFFFFF28;
-        }
-      }
-
-      div.separator {
-        border-color: #FFFFFF30;
-      }
-    }
   }
 
 }

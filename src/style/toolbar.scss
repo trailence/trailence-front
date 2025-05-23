@@ -103,3 +103,21 @@ app-toolbar {
     }
   }
 }
+
+@media (max-height: 400px) {
+
+  app-toolbar div.toolbar-items-container.vertical {
+    div.toolbar-item {
+      padding-top: calc(var(--item-padding-top, '0') / var(--small-size-divider, 2));
+      padding-bottom: calc(var(--item-padding-bottom, '0') / var(--small-size-divider, 2));
+
+      + div.toolbar-item {
+        margin-top: calc(var(--item-space, 4px) / var(--small-size-divider, 2));
+      }
+    }
+    div.separator {
+      margin: calc(var(--separator-space, var(--item-space, 4px)) / var(--small-size-divider, 2)) 0;
+    }
+  }
+
+}

@@ -161,6 +161,7 @@ export class MapComponent extends AbstractComponent {
     if (changes['mapId']) this.loadState();
     if (changes['tracks$']) this.updateTracks();
     if (changes['bubbles$']) this.updateBubbles();
+    console.log(changes)
     if (changes['rightTools'] || changes['leftTools']) this.updateTools();
   }
 

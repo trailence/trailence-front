@@ -156,11 +156,14 @@ export class TrailComponent extends AbstractComponent {
     new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setAction(() => this.stopRecordingWithoutConfirmation()).setVisible(() => !!this.recording),
   ];
 
-  @ViewChild('mapToolbarRight') mapToolbarRight?: ToolbarComponent;
-  mapToolbarRightItems: MenuItem[] = [
+  @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
+  mapToolbarTopRightItems: MenuItem[] = [
     new MenuItem().setIcon('tool').setI18nLabel('track_edit_tools.title')
       .setAction(() => this.enableEditTools())
   ];
+
+  mapToolbarRightItems: MenuItem[] = [];
+  private refreshMapToolbarRight() { this.mapToolbarRightItems = [...this.mapToolbarRightItems]; this.changesDetector.detectChanges(); }
 
   constructor(
     injector: Injector,
@@ -184,6 +187,23 @@ export class TrailComponent extends AbstractComponent {
     this.whenVisible.subscribe(this.browser.resize$, () => this.updateDisplay());
     this.visible$.subscribe(() => this.updateDisplay());
     setTimeout(() => this.updateDisplay(), 0);
+    const showPhotoTool = new MenuItem().setIcon('photos')
+      .setVisible(() => !!this.photos?.length)
+      .setTextColor(() => this.showPhotos$.value ? 'light' : 'dark')
+      .setBackgroundColor(() => this.showPhotos$.value ? 'dark' : '')
+      .setAction(() => {
+        this.showPhotos$.next(!this.showPhotos$.value);
+        this.refreshMapToolbarRight();
+      });
+    const showBreaksTool = new MenuItem().setIcon('hourglass')
+      .setVisible(() => !this.recording && !!this.wayPoints.find(wp => wp.breakPoint))
+      .setTextColor(() => this.showBreaks$.value ? 'light' : 'dark')
+      .setBackgroundColor(() => this.showBreaks$.value ? 'dark' : '')
+      .setAction(() => {
+        this.showBreaks$.next(!this.showBreaks$.value);
+        this.refreshMapToolbarRight();
+      });
+    this.mapToolbarRightItems.push(new MenuItem(), showPhotoTool, showBreaksTool);
   }
 
   protected override destroyComponent(): void {
@@ -395,7 +415,7 @@ export class TrailComponent extends AbstractComponent {
       wayPoints => {
         if (this._highlightedWayPoint) this.unhighlightWayPoint(this._highlightedWayPoint, true);
         this.wayPoints = wayPoints;
-        this.changesDetector.detectChanges();
+        this.refreshMapToolbarRight();
       }, true
     );
   }
@@ -441,7 +461,7 @@ export class TrailComponent extends AbstractComponent {
           });
           this.photos = photos;
         }
-        this.changesDetector.detectChanges();
+        this.refreshMapToolbarRight();
       }, true
     );
   }
@@ -940,7 +960,7 @@ export class TrailComponent extends AbstractComponent {
     if (this.toolsEnabled) return;
     if (this.showOriginal$.value) this.showOriginal$.next(false);
     this.toolsEnabled = true;
-    this.mapToolbarRight?.refresh();
+    this.mapToolbarTopRight?.refresh();
     this.toolbar?.refresh();
     this.changesDetector.detectChanges();
   }
@@ -948,7 +968,7 @@ export class TrailComponent extends AbstractComponent {
   public disableEditTools() {
     if (!this.toolsEnabled) return;
     this.toolsEnabled = false;
-    this.mapToolbarRight?.refresh();
+    this.mapToolbarTopRight?.refresh();
     this.toolbar?.refresh();
     this.changesDetector.detectChanges();
   }
