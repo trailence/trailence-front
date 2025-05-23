@@ -100,7 +100,7 @@ export class TrailCollectionService {
     const menu: MenuItem[] = [];
     menu.push(new MenuItem().setIcon('edit').setI18nLabel('buttons.edit').setAction(() => this.collectionPopup(collection)));
     if (collection.type === TrailCollectionType.CUSTOM) {
-      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(collection)));
+      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger').setAction(() => this.confirmDelete(collection)));
     }
     return menu;
   }

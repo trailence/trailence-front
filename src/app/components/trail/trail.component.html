@@ -23,7 +23,6 @@
       [downloadMapTrail]="trail1 && !trail2 ? trail1 : undefined"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
       (mouseClickPoint)="mouseClickOnMap($event)"
-      [enableLockScreen]="!!recording"
     >
       @if (trail1 && !recording && !trail2) {
         @if (toolsEnabled) {

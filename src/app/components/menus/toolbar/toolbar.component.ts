@@ -33,7 +33,7 @@ export class ToolbarComponent implements OnInit, OnChanges {
   @Input() maxItems?: number;
   @Input() smallSizeDivider = 2;
 
-  computed = new ComputedMenuItems();
+  computed = new ComputedMenuItems(this.i18n);
   moreMenu: MenuItem[] = [];
   styles: any = {};
 
@@ -44,12 +44,16 @@ export class ToolbarComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.setMenu(this.items, true);
+    this.computed.setMoreMenu(this.maxItems);
+    this.setMenu(this.items);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['maxItems']) this.setMenu(this.items, true);
-    else if (changes['items']) this.setMenu(this.items, false);
+    if (changes['maxItems']) {
+      this.computed.setMoreMenu(this.maxItems);
+      this.setMenu(this.items);
+    }
+    else if (changes['items']) this.setMenu(this.items);
     this.styles = {
       '--item-space': this.itemSpace,
       '--item-padding-top': this.itemPaddingTop,
@@ -65,28 +69,15 @@ export class ToolbarComponent implements OnInit, OnChanges {
   }
 
   public refresh(): void {
-    this.computed.forceRefresh().subscribe(refresh => this.onRefresh(refresh));
+    this.computed.refresh().subscribe(refresh => this.onRefresh(refresh));
   }
 
-  private setMenu(items: MenuItem[] | undefined, forceRefresh: boolean): void {
-    this.computed.compute(items, forceRefresh).subscribe(refresh => this.onRefresh(refresh));
+  private setMenu(items: MenuItem[] | undefined): void {
+    this.computed.compute(items).subscribe(refresh => this.onRefresh(refresh));
   }
 
   private onRefresh(refresh: boolean): void {
     if (refresh) {
-      this.moreMenu = [];
-      let itemIndex = 0;
-      for (const item of this.computed.items) {
-        if (!item.separator && item.visible) {
-          itemIndex++;
-        }
-        if (this.maxItems && itemIndex > this.maxItems) {
-          item.visible = false;
-          if (this.moreMenu.length > 0 || !item.separator) {
-            this.moreMenu.push(item.item);
-          }
-        }
-      }
       this.changesDetector.detectChanges();
     }
   }
@@ -94,6 +85,7 @@ export class ToolbarComponent implements OnInit, OnChanges {
   itemClick(item: ComputedMenuItem, event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
+    if (item.disabled) return;
     if (item.item.action) {
       item.item.action();
     } else if (item.children.items.length > 0) {
@@ -112,23 +104,6 @@ export class ToolbarComponent implements OnInit, OnChanges {
       }))
       .then(p => p.present());
     }
-  }
-
-  showMoreMenu(event: MouseEvent): void {
-    import('../menu-content/menu-content.component')
-    .then(module => this.popoverController.create({
-      component: module.MenuContentComponent,
-      componentProps: {
-        menu: this.moreMenu
-      },
-      event: event,
-      side: 'bottom',
-      alignment: 'center',
-      cssClass: 'always-tight-menu',
-      dismissOnSelect: true,
-      arrow: true,
-    }))
-    .then(p => p.present());
   }
 
 }

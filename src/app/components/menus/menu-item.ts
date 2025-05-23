@@ -2,16 +2,16 @@ import { Observable, first, forkJoin, map, of, switchMap } from "rxjs";
 import { I18nService } from "../../services/i18n/i18n.service";
 import { ObjectUtils } from "../../utils/object-utils";
 import { IdGenerator } from 'src/app/utils/component-utils';
-import { Arrays } from 'src/app/utils/arrays';
 
 export class MenuItem {
 
-  public icon?: string;
+  public icon?: string | (() => string | undefined);
   public i18nLabel?: string | (() => string);
   public label?: string | (() => string);
   public action?: () => void
-  public color?: string;
-  public textColor?: string;
+  public backgroundColor?: string | (() => string | undefined);
+  public textColor?: string | (() => string | undefined);
+  public textSize: string | undefined | (() => string | undefined);
   public sectionTitle?: boolean;
   public children?: MenuItem[];
   public childrenProvider?: () => Observable<MenuItem[]>;
@@ -20,7 +20,7 @@ export class MenuItem {
   public badge?: string | (() => string | undefined);
   public customContentSelector?: string;
 
-  public setIcon(icon?: string): this {
+  public setIcon(icon?: string | (() => string | undefined)): this {
     this.icon = icon;
     return this;
   }
@@ -35,17 +35,17 @@ export class MenuItem {
     return this;
   }
 
-  public setAction(action: () => void): this {
+  public setAction(action?: () => void): this {
     this.action = action;
     return this;
   }
 
-  public setColor(color?: string): this {
-    this.color = color;
+  public setBackgroundColor(color?: string | (() => string | undefined)): this {
+    this.backgroundColor = color;
     return this;
   }
 
-  public setTextColor(color?: string): this {
+  public setTextColor(color?: string | (() => string | undefined)): this {
     this.textColor = color;
     return this;
   }
@@ -53,17 +53,6 @@ export class MenuItem {
   public setSectionTitle(title?: boolean): this {
     this.sectionTitle = title;
     return this;
-  }
-
-  public label$(i18n: I18nService): Observable<string> {
-    if (this.i18nLabel) {
-      const key = typeof this.i18nLabel === 'string' ? this.i18nLabel : this.i18nLabel();
-      return i18n.texts$.pipe(map(texts => ObjectUtils.extractField(texts, key)));
-    }
-    if (this.label) {
-      return of(typeof this.label === 'string' ? this.label : this.label());
-    }
-    return of('');
   }
 
   public setChildren(items: MenuItem[]): this {
@@ -96,6 +85,11 @@ export class MenuItem {
     return this;
   }
 
+  public setTextSize(size: string | undefined | (() => string | undefined)): this {
+    this.textSize = size;
+    return this;
+  }
+
   public getChildren$(): Observable<MenuItem[]> {
     if (this.children) {
       if (this.childrenProvider) {
@@ -109,6 +103,21 @@ export class MenuItem {
       return this.childrenProvider();
     }
     return of([]);
+  }
+
+  public getIcon(): string | undefined {
+    if (typeof this.icon === 'function') return this.icon();
+    return this.icon;
+  }
+
+  public getTextColor(): string | undefined {
+    if (typeof this.textColor === 'function') return this.textColor();
+    return this.textColor;
+  }
+
+  public getBackgroundColor(): string | undefined {
+    if (typeof this.backgroundColor === 'function') return this.backgroundColor();
+    return this.backgroundColor;
   }
 
   public isSeparator(): boolean {
@@ -134,111 +143,140 @@ export class MenuItem {
     return value;
   }
 
+  public getTextSize(): string | undefined {
+    if (typeof this.textSize === 'function') return this.textSize();
+    return this.textSize;
+  }
+
 }
 
 export class ComputedMenuItems {
 
+  constructor(
+    private readonly i18n: I18nService,
+  ) {}
+
   public items: ComputedMenuItem[] = [];
 
-  private _previousItems: (MenuItem | ComputedMenuItem)[] = [];
+  private _allItems: ComputedMenuItem[] = [];
+  private _visibility = new Map<ComputedMenuItem, boolean>();
+  private _maxItems?: number;
+  private _moreItem?: MenuItem;
+  private _moreComputed?: ComputedMenuItem;
 
-  public forceRefresh(): Observable<boolean> {
-    return this.compute(this.items.map(i => i.item), true);
+  public setMoreMenu(
+    maxItems: number | undefined = undefined,
+    icon: string | undefined = 'more-menu',
+    label: string | undefined = 'tools.more',
+  ): void {
+    this._maxItems = maxItems;
+    this._moreItem = this._maxItems ? new MenuItem().setIcon(icon).setI18nLabel(label).setChildren([]) : undefined;
   }
 
-  public compute(items?: (MenuItem | ComputedMenuItem)[], forceRefresh: boolean = false): Observable<boolean> {
-    const newItems = items ?? [];
-    let refresh$: Observable<boolean>[];
-    if (!forceRefresh && Arrays.sameContent(this._previousItems, newItems)) {
-      refresh$ = this.items.map(i => i.refresh$());
-    } else {
-      this._previousItems = newItems;
-      refresh$ = [];
+  public refresh(): Observable<boolean> {
+    return this.compute(this._allItems);
+  }
 
-      const previousItems = [...this.items];
-      if (this.items.length > 0)
-        this.items.splice(0, this.items.length);
-      for (const item of newItems) {
-        const existing = previousItems.find(c => c === item || c.item === item);
-        if (existing) {
-          this.items.push(existing);
-          refresh$.push(existing.refresh$());
-        } else {
-          const newItem = item instanceof ComputedMenuItem ? item : new ComputedMenuItem(item);
-          this.items.push(newItem);
-          refresh$.push(newItem.refresh$().pipe(map(() => true)));
-        }
+  public compute(items?: (MenuItem | ComputedMenuItem)[]): Observable<boolean> {
+    const newItems = items ?? [];
+    let changed = false;
+
+    // refresh list
+    const newAllItems: ComputedMenuItem[] = [];
+    for (const item of newItems) {
+      if (item === this._moreComputed) continue;
+      const existing = this._allItems.find(c => c === item || c.item === item);
+      if (existing) {
+        newAllItems.push(existing);
+      } else {
+        const newItem = item instanceof ComputedMenuItem ? item : new ComputedMenuItem(item, this.i18n);
+        newAllItems.push(newItem);
+        changed = true;
       }
     }
-    return forkJoin(refresh$).pipe(
-      map(result => {
-        let changed = result.reduce((p, n) => p || n, false);
-        changed = this.hideEmptySections() || changed;
-        changed = this.hideConsecutiveSeparators() || changed;
+    this._allItems = newAllItems;
+
+    // refresh visibility
+    return forkJoin(this._allItems.map(i => i.refreshVisible$())).pipe(
+      switchMap(itemsChanged => {
+        changed = changed || itemsChanged.reduce((p, n) => p || n, false);
+        this.hideEmptySections();
+        this.hideConsecutiveSeparators();
         do {
           const item = this.firstVisible();
           if (!item?.separator) break;
           item.visible = false;
-          changed = true;
         } while (true);
         do {
           const item = this.lastVisible();
           if (!item?.separator) break;
           item.visible = false;
-          changed = true;
         } while (true);
         if (this.isOnlyTitles()) {
-          for (const item of this.items) {
+          for (const item of this._allItems) {
             if (item.visible) {
               item.visible = false;
-              changed = true;
             }
           }
         }
-        return changed;
-      })
+        this.computeMaxItems();
+
+        // compute result of visibility, removing the hidden ones
+        const visibleItems: ComputedMenuItem[] = [];
+        const newVisibility = new Map<ComputedMenuItem, boolean>();
+        for (const item of this._allItems) {
+          const previousVisible = !!this._visibility.get(item);
+          if (previousVisible !== item.visible) changed = true;
+          newVisibility.set(item, item.visible);
+          if (item.visible) visibleItems.push(item);
+        }
+        this._visibility = newVisibility;
+        this.items.splice(0, this.items.length, ...visibleItems);
+
+        // finally refresh only visible items
+        for (const item of this.items) changed = item.refresh() || changed;
+
+        if (!this._moreComputed?.visible)
+          return of(changed);
+        return this._moreComputed.children.compute(this._moreComputed.item.children).pipe(map(() => changed));
+      }),
     );
   }
 
-  firstVisible(): ComputedMenuItem | undefined {
-    for (const item of this.items) if (item.visible) return item;
+  private firstVisible(): ComputedMenuItem | undefined {
+    for (const item of this._allItems) if (item.visible) return item;
     return undefined;
   }
 
-  lastVisible(): ComputedMenuItem | undefined {
-    for (let i = this.items.length - 1; i >= 0; --i) if (this.items[i].visible) return this.items[i];
+  private lastVisible(): ComputedMenuItem | undefined {
+    for (let i = this._allItems.length - 1; i >= 0; --i) if (this._allItems[i].visible) return this._allItems[i];
     return undefined;
   }
 
-  hideConsecutiveSeparators(): boolean {
-    let changed = false;
+  private hideConsecutiveSeparators(): void {
     let previous = true;
-    for (const item of this.items) {
+    for (const item of this._allItems) {
       if (!item.visible) continue;
       if (item.separator) {
         if (previous) {
           item.visible = false;
-          changed = true;
         } else previous = true;
       } else {
         previous = false;
       }
     }
-    return changed;
   }
 
-  hideEmptySections(): boolean {
-    let changed = false;
+  private hideEmptySections(): void {
     let currentSectionTitle: ComputedMenuItem | undefined = undefined;
     let currentSectionHasContent = false;
-    for (const item of this.items) {
+    for (const item of this._allItems) {
       if (!item.visible) continue;
       if (item.sectionTitle) {
         // new section
         if (currentSectionTitle !== undefined) {
           if (!currentSectionHasContent) {
             currentSectionTitle.visible = false;
-            changed = true;
           }
         }
         currentSectionTitle = item;
@@ -249,17 +287,36 @@ export class ComputedMenuItems {
     }
     if (currentSectionTitle !== undefined && !currentSectionHasContent) {
       currentSectionTitle.visible = false;
-      changed = true;
     }
-    return changed;
   }
 
-  isOnlyTitles(): boolean {
-    for (const item of this.items) {
+  private isOnlyTitles(): boolean {
+    for (const item of this._allItems) {
       if (!item.visible) continue;
       if (!!item.item.action || !!item.item.customContentSelector || !!item.children.firstVisible()) return false;
     }
     return true;
+  }
+
+  private computeMaxItems(): void {
+    if (this._maxItems === undefined) return;
+    this._moreItem!.children = [];
+    let itemIndex = 0;
+    for (const item of this._allItems) {
+      if (!item.separator && item.visible) {
+        itemIndex++;
+      }
+      if (itemIndex > this._maxItems) {
+        item.visible = false;
+        if (this._moreItem!.children.length > 0 || !item.separator) {
+          this._moreItem!.children.push(item.item);
+        }
+      }
+    }
+    if (!this._moreComputed || this._moreComputed.item !== this._moreItem)
+      this._moreComputed = new ComputedMenuItem(this._moreItem!, this.i18n);
+    this._moreComputed.visible = this._moreItem!.children.length > 0;
+    if (this._moreComputed.visible) this._allItems.push(this._moreComputed);
   }
 
 }
@@ -269,46 +326,72 @@ export class ComputedMenuItem {
   public id = IdGenerator.generateId();
   public separator: boolean = false;
   public clickable: boolean = true;
-  public children = new ComputedMenuItems();
+  public children = new ComputedMenuItems(this.i18n);
   public disabled: boolean = false;
-  public textColor?: string;
   public visible: boolean = true;
+  public icon?: string;
+  public text$?: Observable<string>;
+  public textColor?: string;
+  public textSize: string | undefined | (() => string | undefined);
+  public backgroundColor?: string;
   public badge?: string;
   public sectionTitle: boolean = false;
   public onlyText = false;
   public onlyIcon = false;
 
+  private i18nKey?: string;
+  private fixedLabel?: string;
+
   constructor(
     public item: MenuItem,
+    private readonly i18n: I18nService,
   ) {
   }
 
-  public refresh$(): Observable<boolean> {
-    let changed = false;
-    changed = this.setValue(this.separator, this.item.isSeparator(), v => this.separator = v) || changed;
-    changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
-    changed = this.setValue(this.visible, this.item.isVisible(), v => this.visible = v) || changed;
-    changed = this.setValue(this.textColor, this.disabled ? 'medium' : this.item.textColor, v => this.textColor = v) || changed;
-    changed = this.setValue(this.badge, this.item.getBadge(), v => this.badge = v) || changed;
-    changed = this.setValue(this.sectionTitle, this.item.isSectionTitle(), v => this.sectionTitle = v) || changed;
-    changed = this.setValue(this.onlyText, this.item.icon === undefined, v => this.onlyText = v) || changed;
-    changed = this.setValue(this.onlyIcon, !!this.item.icon && (!this.item.label || !this.item.i18nLabel), v => this.onlyIcon = v) || changed;
-    if (this.item.action || this.separator || (!this.item.children && !this.item.childrenProvider)) {
-      changed = this.setValue(this.clickable, !!this.item.action, v => this.clickable = v) || changed;
-      return of(changed);
+  public refreshVisible$(): Observable<boolean> {
+    this.visible = this.item.isVisible();
+    if (!this.visible) return of(false);
+    // visibility depends on presence of children
+    if (this.item.children === undefined && this.item.childrenProvider === undefined) {
+      return of(false);
     }
     return this.item.getChildren$().pipe(
       first(),
-      switchMap(children => this.children.compute(children, true)),
+      switchMap(children => this.children.compute(children)),
       map(childrenChanged => {
-        changed = changed || childrenChanged;
-
+        let changed = childrenChanged;
         const hasChildren = !!this.children.items.find(child => child.visible);
-        changed = this.setValue(this.visible, hasChildren, v => this.visible = v) || changed;
+        if (!hasChildren) {
+          this.visible = false;
+          return false;
+        }
         changed = this.setValue(this.clickable, hasChildren, v => this.clickable = v) || changed;
         return changed;
       }),
     );
+  }
+
+  public refresh(): boolean {
+    let changed = false;
+    changed = this.setValue(this.i18nKey, this.item.i18nLabel ? typeof this.item.i18nLabel === 'string' ? this.item.i18nLabel : this.item.i18nLabel() : undefined, v => this.i18nKey = v) || changed;
+    changed = this.setValue(this.fixedLabel, this.i18nKey ? undefined : this.item.label ? typeof this.item.label === 'string' ? this.item.label : this.item.label() : undefined, v => this.fixedLabel = v) || changed;
+    if (this.i18nKey) this.text$ = this.i18n.texts$.pipe(map(texts => ObjectUtils.extractField(texts, this.i18nKey ?? 'x')));
+    else if (this.fixedLabel) this.text$ = of(this.fixedLabel);
+    else this.text$ = undefined;
+    changed = this.setValue(this.separator, this.item.isSeparator(), v => this.separator = v) || changed;
+    changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
+    changed = this.setValue(this.icon, this.item.getIcon(), v => this.icon = v) || changed;
+    changed = this.setValue(this.textColor, this.disabled ? 'medium' : this.item.getTextColor(), v => this.textColor = v) || changed;
+    changed = this.setValue(this.backgroundColor, this.disabled ? undefined : this.item.getBackgroundColor(), v => this.backgroundColor = v) || changed;
+    changed = this.setValue(this.badge, this.item.getBadge(), v => this.badge = v) || changed;
+    changed = this.setValue(this.sectionTitle, this.item.isSectionTitle(), v => this.sectionTitle = v) || changed;
+    changed = this.setValue(this.onlyText, this.icon === undefined, v => this.onlyText = v) || changed;
+    changed = this.setValue(this.onlyIcon, !!this.icon && (!this.item.label || !this.item.i18nLabel), v => this.onlyIcon = v) || changed;
+    changed = this.setValue(this.textSize, this.item.getTextSize(), v => this.textSize = v) || changed;
+    if (this.item.action || this.separator || (!this.item.children && !this.item.childrenProvider)) {
+      changed = this.setValue(this.clickable, !!this.item.action, v => this.clickable = v) || changed;
+    }
+    return changed;
   }
 
   private setValue<T>(previous: T, newValue: T, setter: (value: T) => void): boolean {

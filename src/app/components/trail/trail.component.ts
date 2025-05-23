@@ -144,7 +144,7 @@ export class TrailComponent extends AbstractComponent {
 
   toolsStack?: TrackEditToolsStack;
   toolsVertical = true;
-  toolsEnabled = true;
+  toolsEnabled = false;
 
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
   toolbarItems: MenuItem[] = [

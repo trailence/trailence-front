@@ -1,59 +1,20 @@
 import L from 'leaflet';
-import { MapToolUtils } from './map-tool-utils';
-import { Observable, Subscription } from 'rxjs';
+import { of } from 'rxjs';
 import { Injector } from '@angular/core';
-import { AssetsService } from 'src/app/services/assets/assets.service';
+import { MapTool } from './tool.interface';
+import { MapGeolocationService } from 'src/app/services/map/map-geolocation.service';
+import { MapComponent } from '../map.component';
 
-export class MapShowPositionTool extends L.Control {
+export class MapShowPositionTool extends MapTool {
 
-  constructor(
-    private readonly injector: Injector,
-    private readonly activated$: Observable<boolean>,
-    options?: L.ControlOptions,
-  ) {
-    super(options);
-  }
-
-  private subscription?: Subscription;
-
-  override onAdd(map: L.Map) {
-    const button = MapToolUtils.createButton('show-position-tool');
-    button.style.color = 'black';
-    const assets = this.injector.get(AssetsService);
-    let svgOn: SVGSVGElement, svgOff: SVGSVGElement;
-    let activated = false;
-    assets.loadSvg(assets.icons['pin']).subscribe(
-      svg => {
-        svgOn = svg;
-        if (!activated)
-          button.appendChild(svg);
-      }
-    );
-    assets.loadSvg(assets.icons['pin-off']).subscribe(
-      svg => {
-        svgOff = svg;
-        if (activated)
-          button.appendChild(svg);
-      }
-    );
-    this.subscription = this.activated$.subscribe(
-      isActivated => {
-        activated = isActivated;
-        if (button.children.length > 0) button.removeChild(button.children.item(0)!);
-        if (activated && svgOff) button.appendChild(svgOff);
-        else if (!activated && svgOn) button.appendChild(svgOn);
-      }
-    );
-    button.onclick = async (event: MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      map.fireEvent('toggleShowPosition');
+  constructor() {
+    super();
+    this.visible = false;
+    this.icon = 'pin';
+    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+      injector.get(MapGeolocationService).toggleShowPosition();
+      return of(true);
     };
-    return button;
   }
 
-  override onRemove(map: L.Map): void {
-    this.subscription?.unsubscribe();
-    this.subscription = undefined;
-  }
 }

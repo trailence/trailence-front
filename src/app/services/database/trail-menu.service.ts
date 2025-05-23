@@ -135,7 +135,7 @@ export class TrailMenuService {
             .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, collectionUuid, trails))));
         }
         menu.push(new MenuItem());
-        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger')
+        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger')
           .setAction(() => import('../functions/delete-trails').then(m => m.confirmDeleteTrails(this.injector, trails, fromTrail))));
       }
     }

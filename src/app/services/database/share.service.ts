@@ -76,7 +76,7 @@ export class ShareService {
     const menu: MenuItem[] = [];
     if (share.owner === this.injector.get(AuthService).email)
       menu.push(new MenuItem().setIcon('edit').setI18nLabel('buttons.edit').setAction(() => this.sharePopup(share)))
-    menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(share)));
+    menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger').setAction(() => this.confirmDelete(share)));
     return menu;
   }
 

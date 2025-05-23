@@ -97,6 +97,19 @@ app-map {
     }
   }
 
+  div.map-right-controls-container {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 1000;
+  }
+  div.map-left-controls-container {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 1000;
+  }
+
   app-toolbar {
     background-color: #FFFFFF;
     border-radius: 5px;

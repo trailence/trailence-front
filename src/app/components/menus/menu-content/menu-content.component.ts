@@ -14,11 +14,11 @@ export class MenuContentComponent implements OnInit, OnChanges {
 
   @Input() menu?: (MenuItem | ComputedMenuItem)[]
 
-  computed = new ComputedMenuItems();
+  computed = new ComputedMenuItems(this.i18n);
   parents: {from: ComputedMenuItem, list: MenuItem[]}[] = [];
 
   constructor(
-    public i18n: I18nService,
+    private readonly i18n: I18nService,
     private readonly changesDetector: ChangeDetectorRef,
   ) {}
 

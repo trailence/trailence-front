@@ -62,18 +62,25 @@ app-toolbar {
         --background: rgba(var(--ion-color-success-rgb), 0.75);
       }
 
-      + div.toolbar-item {
-        margin-left: var(--item-space, 4px);
-      }
-
       &:hover:not(.disabled) {
         background: rgba(var(--ion-text-color-rgb), 0.1);
       }
     }
 
+    &.horizontal div.toolbar-item + div.toolbar-item {
+      margin-left: var(--item-space, 4px);
+    }
     &.horizontal div.separator {
       margin: 0 var(--separator-space, var(--item-space, 4px));
-      border-right: 1px solid rgba(var(--ion-text-color-rgb), 0.12);
+      border-right: 1px solid rgba(var(--ion-text-color-rgb), 0.15);
+    }
+
+    &.vertical div.toolbar-item + div.toolbar-item {
+      margin-top: var(--item-space, 4px);
+    }
+    &.vertical div.separator {
+      margin: var(--separator-space, var(--item-space, 4px)) 0;
+      border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.25);
     }
   }
 

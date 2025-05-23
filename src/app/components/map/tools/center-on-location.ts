@@ -1,39 +1,23 @@
 import L from 'leaflet';
-import { MapToolUtils } from './map-tool-utils';
-import { Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 import { Injector } from '@angular/core';
-import { AssetsService } from 'src/app/services/assets/assets.service';
+import { MapTool } from './tool.interface';
+import { MapComponent } from '../map.component';
 
-export class MapCenterOnPositionTool extends L.Control {
+export class MapCenterOnPositionTool extends MapTool {
 
   constructor(
-    private readonly injector: Injector,
-    private readonly following$: Observable<boolean>,
-    options?: L.ControlOptions,
+    getVisible: () => boolean,
+    following$: BehaviorSubject<boolean>,
   ) {
-    super(options);
-  }
-
-  private subscription?: Subscription;
-
-  override onAdd(map: L.Map) {
-    const button = MapToolUtils.createButton('center-on-location-tool');
-    button.style.color = 'black';
-    const assets = this.injector.get(AssetsService);
-    assets.loadSvg(assets.icons['center-on-location']).subscribe(svg => button.appendChild(svg));
-    this.subscription = this.following$.subscribe(
-      following => button.style.color = following ? 'red' : 'black'
-    );
-    button.onclick = async (event: MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      map.fireEvent('centerOnLocation');
+    super();
+    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => getVisible();
+    this.icon = 'center-on-location';
+    this.color = () => following$.value ? 'danger' : '';
+    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+      mapComponent.toggleCenterOnLocation();
+      return of(true);
     };
-    return button;
   }
 
-  override onRemove(map: L.Map): void {
-    this.subscription?.unsubscribe();
-    this.subscription = undefined;
-  }
 }

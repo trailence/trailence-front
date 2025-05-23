@@ -70,7 +70,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     return new MenuItem()
       .setIcon(tool.icon)
       .setI18nLabel(() => 'track_edit_tools.tools.' + tool.labelKey(this.context))
-      .setColor(tool.backgroundColor)
+      .setBackgroundColor(tool.backgroundColor)
       .setTextColor(tool.textColor)
       .setAction(() => {
         tool.execute(this.context);

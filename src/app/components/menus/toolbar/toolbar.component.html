@@ -2,40 +2,33 @@
   [ngStyle]="styles"
 >
   @for (item of computed.items; track item.id) {
-    @if (item.visible) {
-      @if (item.separator) {
-        <div class="separator"></div>
-      } @else if (item.item.customContentSelector) {
-        <ng-content [select]="item.item.customContentSelector"></ng-content>
-      } @else {
-        <div class="toolbar-item" [ngClass]="{'disabled': item.disabled}" (click)="itemClick(item, $event)">
-          @if (item.item.icon) {
-            <ion-icon
-              [name]="item.item.icon"
-              [color]="item.textColor"
-              [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
-            ></ion-icon>
-          }
+    @if (item.separator) {
+      <div class="separator"></div>
+    } @else if (item.item.customContentSelector) {
+      <ng-content [select]="item.item.customContentSelector"></ng-content>
+    } @else {
+      <div class="toolbar-item"
+        [ngClass]="{'disabled': item.disabled}"
+        [ngStyle]="{'background-color': item.backgroundColor?.length ? 'var(--ion-color-' + item.backgroundColor + ')' : ''}"
+        (click)="itemClick(item, $event)"
+      >
+        @if (item.icon) {
+          <ion-icon
+            [name]="item.icon"
+            [color]="item.textColor"
+            [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+          ></ion-icon>
+        }
+        @if (item.text$) {
           <ion-label
             [color]="item.textColor"
-            [ngStyle]="{'font-size': textSize, 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
-          >{{ item.item.label$(i18n) | async }}</ion-label>
-          @if (item.badge) {
-            <ion-badge>{{ item.badge }}</ion-badge>
-          }
-        </div>
-      }
+            [ngStyle]="{'font-size': item.textSize ?? textSize, 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+          >{{ item.text$ | async }}</ion-label>
+        }
+        @if (item.badge) {
+          <ion-badge>{{ item.badge }}</ion-badge>
+        }
+      </div>
     }
-  }
-  @if (moreMenu.length > 0) {
-    <div class="toolbar-item" (click)="showMoreMenu($event)">
-      <ion-icon
-        name="more-menu"
-        [ngStyle]="{'width': iconSize + 'px', 'height': iconSize + 'px'}"
-      ></ion-icon>
-      <ion-label
-        [ngStyle]="{'font-size': textSize}"
-      >{{ i18n.texts.tools.more }}</ion-label>
-    </div>
   }
 </div>

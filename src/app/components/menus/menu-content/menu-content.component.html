@@ -5,28 +5,26 @@
         <ion-button shape="round" fill="clear" color="secondary" (click)="back($event)">
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
-        <ion-icon *ngIf="parent.from.item.icon" [name]="parent.from.item.icon"></ion-icon>
-        <ion-label>{{ parent.from.item.label$(i18n) | async }}</ion-label>
+        <ion-icon *ngIf="parent.from.icon" [name]="parent.from.icon"></ion-icon>
+        <ion-label *ngIf="parent.from.text$">{{ parent.from.text$ | async }}</ion-label>
       </ion-list-header>
     </ng-container>
   </ng-container>
   @for (item of computed.items; track item.id; let index = $index) {
-    @if (item.visible) {
-      @if (item.separator) {
-        <div class="separator"></div>
-      } @else {
-        <ion-item
-          [button]="item.clickable"
-          [detail]="item.item.children || item.item.childrenProvider"
-          [color]="item.item.color"
-          (click)="clicked(item, $event)"
-          [disabled]="item.disabled"
-          [lines]="index < computed.items.length - 1 && !computed.items[index + 1].separator ? 'full' : 'none'"
-        >
-          <ion-icon *ngIf="item.item.icon" [name]="item.item.icon" [color]="item.item.textColor"></ion-icon>
-          <ion-label [color]="item.item.textColor">{{ item.item.label$(i18n) | async }}</ion-label>
-        </ion-item>
-      }
+    @if (item.separator) {
+      <div class="separator"></div>
+    } @else {
+      <ion-item
+        [button]="item.clickable"
+        [detail]="item.item.children || item.item.childrenProvider"
+        [color]="item.item.backgroundColor"
+        (click)="clicked(item, $event)"
+        [disabled]="item.disabled"
+        [lines]="index < computed.items.length - 1 && !computed.items[index + 1].separator ? 'full' : 'none'"
+      >
+        <ion-icon *ngIf="item.icon" [name]="item.icon" [color]="item.item.textColor"></ion-icon>
+        <ion-label *ngIf="item.text$" [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>
+      </ion-item>
     }
   }
 </ion-list>
