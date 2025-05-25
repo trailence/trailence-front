@@ -190,6 +190,7 @@ export class TrailsPage extends AbstractPage {
   }
 
   private initSearch(): void {
+    if (this.trails$.value === undefined) this.trails$.next(List());
     // title
     this.byStateAndVisible.subscribe(
       this.i18n.texts$,

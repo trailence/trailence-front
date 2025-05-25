@@ -31,6 +31,8 @@ import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
 import { MapTool } from './tools/tool.interface';
 import { ZoomInTool, ZoomLevelTool, ZoomOutTool } from './tools/zoom-tools';
+import { MapAdditionsService } from 'src/app/services/map/map-additions.service';
+import { GoBackTool } from './tools/go-back-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -76,6 +78,7 @@ export class MapComponent extends AbstractComponent {
     private readonly prefService: PreferencesService,
     private readonly mapLayersService: MapLayersService,
     private readonly mapGeolocation: MapGeolocationService,
+    private readonly mapAdditions: MapAdditionsService,
   ) {
     super(injector);
     this.id = IdGenerator.generateId('map-');
@@ -117,8 +120,10 @@ export class MapComponent extends AbstractComponent {
       this.whenVisible.subscribe(
         combineLatest([this._mapState.center$, this._mapState.zoom$])
         .pipe(debounceTime(500)),
-        () => {
+        ([center, zoom]) => {
           if (!this._mapState.live) return;
+          this.mapAdditions.pushState(center, zoom);
+          this.refreshTools();
           this.updateHashFromMap();
         }, true);
       this.whenVisible.subscribe(
@@ -742,6 +747,8 @@ export class MapComponent extends AbstractComponent {
     this.toMenuItem(new ZoomOutTool()),
     new MenuItem(),
     this.toMenuItem(new MapFitBoundsTool()),
+    new MenuItem(),
+    this.toMenuItem(new GoBackTool()),
   ];
   rightToolsItems: MenuItem[] = [];
   defaultRightToolsItems: MenuItem[] = [
