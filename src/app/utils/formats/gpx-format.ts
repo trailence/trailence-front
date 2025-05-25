@@ -191,24 +191,48 @@ export class GpxFormat {
   }
 
   private static fixPoints(points: PointDescriptor[]): void { // NOSONAR
-    let previousTime: number | undefined = undefined;
+    while (this.removeTimeGoingToPast(points));
+    this.removeTimeIfAllPointsAreAtTheSameTime(points);
+    this.removeImpossibleElevations(points);
+  }
+
+  private static removeTimeGoingToPast(points: PointDescriptor[]): boolean {
+    if (points.length === 0) return false;
+    let previousTime: number | undefined = points[0].time;
+    let changed = false;
     for (let i = 1; i < points.length; ++i) {
-      // fix time going to the past
-      if (points[i].time !== undefined) {
-        if (previousTime !== undefined && points[i].time! < previousTime) {
-          // go to the past => find the valid previous time and remove all invalid times
-          for (let j = i - 1; j >= 0; --j) {
-            if (points[j].time !== undefined && points[j].time! <= points[i].time!) {
-              for (let k = j + 1; k <= i; k++) points[k].time = undefined;
-              previousTime = points[i].time;
-              break;
-            }
-          }
-        } else {
-          previousTime = points[i].time;
+      const time = points[i].time;
+      if (time === undefined) continue;
+      if (previousTime === undefined) {
+        previousTime = time;
+        continue;
+      }
+      if (time < previousTime) {
+        // going to the past
+        changed = true;
+        const r = points.reduce((p, n) => {
+          if (n.time === undefined) return p;
+          const diff1 = Math.abs(previousTime! - n.time);
+          const diff2 = Math.abs(time - n.time);
+          if (diff1 < diff2) p.c1++; else p.c2++;
+          return p;
+        }, {c1: 0, c2: 0});
+        if (r.c1 >= r.c2) {
+          // there are more dates close to previousTime => keep previous time and remove this point's time
+          points[i].time = undefined;
+          continue;
+        }
+        // there are more dates close to this time, consider previous time as invalid
+        for (let j = i - 1; j >= 0; --j) {
+          if (points[j].time !== undefined && points[j].time! > time) points[j].time = undefined;
         }
       }
+      previousTime = time;
     }
+    return changed;
+  }
+
+  private static removeTimeIfAllPointsAreAtTheSameTime(points: PointDescriptor[]): void {
     let firstTimeIndex = points.findIndex(p => p.time !== undefined);
     if (firstTimeIndex >= 0) {
       let lastTimeIndex = points.length - 1;
@@ -217,6 +241,13 @@ export class GpxFormat {
         // all points seems to have the same date => put all to undefined
         points.forEach(p => p.time = undefined);
       }
+    }
+  }
+
+  private static removeImpossibleElevations(points: PointDescriptor[]): void {
+    for (const point of points) {
+      if (point.ele !== undefined && (point.ele < -1000 || point.ele > 10000))
+        point.ele = undefined;
     }
   }
 
