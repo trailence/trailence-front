@@ -16,6 +16,7 @@ import { List } from 'immutable';
 import { trailenceAppVersionName } from 'src/app/trailence-version';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
     selector: 'app-menu',
@@ -72,6 +73,10 @@ export class MenuComponent {
 
   goTo(url: string): void {
     this.router.navigateByUrl(url);
+  }
+
+  goToPublicPage(url: string): void {
+    this.goTo('/' + this.injector.get(PreferencesService).preferences.lang + url);
   }
 
   goToRecordTrace(): void {
