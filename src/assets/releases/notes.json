@@ -22,5 +22,21 @@
         "Quelques améliorations et correctifs"
       ]
     }
+  },
+  "001600": {
+    "en": {
+      "message": "New editing tools",
+      "items": [
+        "Editing tools are now available on all devices",
+        "Some improvements and fixes"
+      ]
+    },
+    "fr": {
+      "message": "Nouveaux outils d'édition",
+      "items": [
+        "Les outils d'édition sont désormais disponibles sur tous les périphériques",
+        "Quelques améliorations et correctifs"
+      ]
+    }
   }
 }
