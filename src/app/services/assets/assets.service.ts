@@ -87,7 +87,9 @@ export class AssetsService {
       'out-and-back': 'assets/out-and-back.1.svg',
       'pin': 'assets/pin.1.svg',
       'pin-off': 'assets/pin-off.1.svg',
+      'plus': 'assets/add.1.svg', // add
       'merge': 'assets/merge.1.svg', // git-merge-outline
+      'minus': 'assets/minus.1.svg', // remove
       'negative-elevation': 'assets/negative-elevation.1.svg',
       'path': 'assets/path.1.svg',
       'pause': 'assets/pause.1.svg', // pause-outline
@@ -104,6 +106,9 @@ export class AssetsService {
       'reset': 'assets/reset.1.svg', // refresh-outline
       'save': 'assets/save.1.svg', // save
       'search': 'assets/search.1.svg', // search-outline
+      'selection': 'assets/selection.1.svg',
+      'selection-add': 'assets/selection-add.1.svg',
+      'selection-off': 'assets/selection-off.1.svg',
       'send-message': 'assets/send-message.1.svg', // send-outline
       'settings': 'assets/settings.1.svg', // settings
       'share': 'assets/share.1.svg', // share-social
@@ -131,6 +136,7 @@ export class AssetsService {
       'windows': 'assets/windows.1.svg', // logo-windows
       'zoom-in': 'assets/zoom-in.1.svg',
       'zoom-out': 'assets/zoom-out.1.svg',
+      'zoom-fit-bounds': 'assets/zoom-fit.1.svg',
     };
     addIcons(this.icons);
     // override fetch to intercept ion icons calls, and use our cache

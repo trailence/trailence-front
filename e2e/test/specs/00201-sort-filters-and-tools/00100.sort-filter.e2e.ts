@@ -33,7 +33,7 @@ describe('Trails list - Sort and filter', () => {
     ascending: boolean,
     checkSort: (names: string[]) => void,
   ) => {
-    await (await list.getToolbarButton('sort')).click();
+    await list.toolbar.clickByIcon('sort');
     const popup = new SortTrailsPopup(await App.waitModal());
     await popup.setAscending(ascending);
     await popup.selectField(field);
@@ -105,7 +105,7 @@ describe('Trails list - Sort and filter', () => {
   // --- Filter
 
   it('Filter on positive elevation greater than 1200 ft', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setNumericFilter('Positive elevation', 1200, undefined);
@@ -114,7 +114,7 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('Filter on negative elevation less than 1500 ft', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setNumericFilter('Negative elevation', undefined, 1500);
@@ -124,7 +124,7 @@ describe('Trails list - Sort and filter', () => {
 
 
   it('Filter on Tag 1', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setTagsFilter('include_and', ['Tag 1']);
@@ -133,7 +133,7 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('Filter on Tag 2 and Tag 3', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setTagsFilter('include_and', ['Tag 2', 'Tag 3']);
@@ -142,7 +142,7 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('Filter on Tag 1 or Tag 3', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setTagsFilter('include_or', ['Tag 1', 'Tag 3']);
@@ -151,7 +151,7 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('Filter on not Tag 2', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setTagsFilter('exclude', ['Tag 2']);
@@ -160,7 +160,7 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('Filter on without any tag', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.setTagsFilter('onlyWithoutAnyTag', []);
@@ -169,7 +169,7 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('Filter visible on map', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.showOnlyVisibleCheckbox.setSelected(true);
@@ -181,7 +181,7 @@ describe('Trails list - Sort and filter', () => {
   });
 
   it('Remove filters', async () => {
-    await (await list.getToolbarButton('filters')).click();
+    await list.toolbar.clickByIcon('filters');
     const popup = new FilterTrailsPopup(await App.waitModal());
     await popup.resetFilters();
     await popup.close();

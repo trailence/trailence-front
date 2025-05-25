@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, map, of, switchMap } from 'rxjs';
-import { IonSegment, IonSegmentButton, IonIcon } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
@@ -22,6 +22,8 @@ import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { SearchPlaceComponent } from '../search-place/search-place.component';
 import { Place } from 'src/app/services/geolocation/place';
+import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
+import { MenuItem } from '../menus/menu-item';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -30,8 +32,9 @@ const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
     templateUrl: './trails-and-map.component.html',
     styleUrls: ['./trails-and-map.component.scss'],
     imports: [
-      IonIcon, IonSegmentButton, IonSegment,
+      IonSegmentButton, IonSegment,
       TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule, SearchPlaceComponent,
+      ToolbarComponent,
     ]
 })
 export class TrailsAndMapComponent extends AbstractComponent {
@@ -73,6 +76,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @ViewChild(TrailsListComponent) trailsList?: TrailsListComponent;
   @ViewChild(MapComponent) set mapComponent(v: MapComponent) { this._map$.next(v); }
   @ViewChild(SearchPlaceComponent) searchPlace?: SearchPlaceComponent;
+
+  @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
+  mapToolbarTopRightItems: MenuItem[] = [
+    new MenuItem().setIcon('search').setAction(() => this.expandSearchPlace()).setVisible(() => !this.searchPlaceExpanded),
+    new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => this.searchPlaceExpanded),
+    new MenuItem().setIcon('chevron-left').setAction(() => this.collapseSearchPlace()).setVisible(() => this.searchPlaceExpanded),
+  ];
 
   constructor(
     injector: Injector,
@@ -308,6 +318,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   expandSearchPlace(): void {
     this.searchPlaceExpanded = true;
+    this.mapToolbarTopRight?.refresh();
     this.changeDetector.detectChanges();
     setTimeout(() => {
       this.searchPlace?.setFocus();
@@ -316,6 +327,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   collapseSearchPlace(): void {
     this.searchPlaceExpanded = false;
+    this.mapToolbarTopRight?.refresh();
     this.changeDetector.detectChanges();
   }
 

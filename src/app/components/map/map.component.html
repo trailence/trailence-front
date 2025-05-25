@@ -3,3 +3,31 @@
 <div class="map-top-controls-container">
   <ng-content selector=".map-top-controls"></ng-content>
 </div>
+<div class="map-left-controls-container">
+  <app-toolbar
+    direction="vertical"
+    [items]="leftToolsItems"
+    [iconSize]="24"
+    [iconOnlySize]="28"
+    [itemMinWidth]="32"
+    [itemMaxWidth]="32"
+    itemPaddingLeft="2px"
+    itemPaddingRight="2px"
+    itemPaddingTop="2px"
+    itemPaddingBottom="2px"
+  ></app-toolbar>
+</div>
+<div class="map-right-controls-container">
+  <app-toolbar
+    direction="vertical"
+    [items]="rightToolsItems"
+    [iconSize]="24"
+    [iconOnlySize]="28"
+    [itemMinWidth]="32"
+    [itemMaxWidth]="32"
+    itemPaddingLeft="2px"
+    itemPaddingRight="2px"
+    itemPaddingTop="2px"
+    itemPaddingBottom="2px"
+  ></app-toolbar>
+</div>

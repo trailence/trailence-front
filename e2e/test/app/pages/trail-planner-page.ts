@@ -1,10 +1,8 @@
-import { IonicButton } from '../../components/ionic/ion-button';
 import { IonicInput } from '../../components/ionic/ion-input';
 import { IonicSelect } from '../../components/ionic/ion-select';
 import { IonicToggle } from '../../components/ionic/ion-toggle';
 import { MapComponent } from '../../components/map.component';
 import { ModalComponent } from '../../components/modal';
-import { TestUtils } from '../../utils/test-utils';
 import { App } from '../app';
 import { PageWithHeader } from './page';
 
@@ -33,31 +31,20 @@ export class TrailPlannerPage extends PageWithHeader {
     await browser.pause(1000); // wait animation
   }
 
-  public getButton(className: string) {
-    return this.getElement().$('app-map div.map-top-controls div.map-tool.' + className);
-  }
-
   public async start() {
-    const button = this.getButton('button-start');
-    await button.click();
-    await browser.waitUntil(() => button.isExisting().then(e => !e), { timeout: 5000 });
+    await this.map.topToolbar.clickByIcon('play');
   }
 
   public async stop() {
-    const button = this.getButton('button-stop');
-    await button.click();
-    await browser.waitUntil(() => button.isExisting().then(e => !e), { timeout: 5000 });
+    await this.map.topToolbar.clickByIcon('pause');
   }
 
   public async resume() {
-    const button = this.getButton('button-resume');
-    await button.click();
-    await browser.waitUntil(() => button.isExisting().then(e => !e), { timeout: 5000 });
+    await this.map.topToolbar.clickByIcon('play');
   }
 
   public async save(trailName: string, trailCollection: string) {
-    const button = this.getButton('button-save');
-    await button.click();
+    await this.map.topToolbar.clickByIcon('save');
     const modal = await App.waitModal();
     await new IonicInput(modal.$('>>>ion-input[name=trail-name]')).setValue(trailName);
     await new IonicSelect(modal.$('>>>ion-select[name=collection]')).selectByText(trailCollection);

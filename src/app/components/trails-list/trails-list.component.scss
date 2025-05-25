@@ -6,11 +6,7 @@
   position: relative;
 }
 
-.toolbar {
-  flex: none;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+app-toolbar {
   border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.1);
   padding-bottom: 2px;
 }

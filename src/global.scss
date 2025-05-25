@@ -28,6 +28,7 @@
 @use "style/modals.scss";
 @use "style/sections.scss";
 @use "style/map.scss";
+@use "style/toolbar.scss";
 
 :root {
   --header-height: 56px;
@@ -44,10 +45,31 @@
   .tight-menu app-menu-content ion-list ion-item {
     --min-height: 34px;
 
-    ::slotted(ion-label) {
-      margin-top: 8px;
-      margin-bottom: 8px;
+    ::slotted(ion-label), ion-label {
+      margin-top: 6px;
+      margin-bottom: 6px;
     }
+
+    ion-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+  }
+}
+
+.always-tight-menu app-menu-content ion-list ion-item {
+  --min-height: 34px;
+  font-size: 14px;
+
+  ::slotted(ion-label), ion-label {
+    margin-top: 6px;
+    margin-bottom: 6px;
+  }
+
+  ion-icon {
+    width: 18px;
+    height: 18px;
   }
 }
 

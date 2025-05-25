@@ -17,11 +17,12 @@ import { TrailService } from '../database/trail.service';
 import L from 'leaflet';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular/standalone';
-import { ImprovmentRecordingState, TrackEditionService } from '../track-edition/track-edition.service';
+import { ImprovmentRecordingState, ImprovmentRecordingStateDto, TrackEditionService } from '../track-edition/track-edition.service';
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import Trailence from '../trailence.service';
+import { Segment } from 'src/app/model/segment';
 
 @Injectable({
   providedIn: 'root'
@@ -124,6 +125,8 @@ export class TraceRecorderService {
             track,
             rawTrack,
             false,
+            new ImprovmentRecordingState(),
+            new RecordingStatus(0, undefined, undefined, undefined),
             following?.uuid,
             following?.owner,
             following?.currentTrackUuid,
@@ -151,6 +154,8 @@ export class TraceRecorderService {
     recording.rawTrack.newSegment();
     recording.track.newSegment();
     recording.paused = false;
+    recording.state = new ImprovmentRecordingState();
+    recording.status = new RecordingStatus(0, undefined, undefined, undefined);
     this.save(recording);
     return this.startRecording(recording);
   }
@@ -209,8 +214,6 @@ export class TraceRecorderService {
   }
 
   private _geolocationListener?: (position: PointDto) => void;
-  private recordingStatus: RecordingStatus | undefined = undefined;
-  private improvmentState: ImprovmentRecordingState | undefined = undefined;
 
   private startRecording(recording: Recording): Promise<Recording> {
     return this.geolocation.getState()
@@ -251,7 +254,6 @@ export class TraceRecorderService {
           .pipe(skip(1), debounceTime(1000))
           .subscribe(() => this.save(recording))
         );
-        this.recordingStatus = { points: 0, latestRawPoint: undefined, latestDefinitiveImprovedPoint: undefined, temporaryImprovedPoint: undefined };
         this._geolocationListener = (position: PointDto) => {
           this.ngZone.runOutsideAngular(() => this.newPositionReceived(position, recording));
         }
@@ -262,226 +264,127 @@ export class TraceRecorderService {
   }
 
   private newPositionReceived(position: PointDto, recording: Recording): void { // NOSONAR
-    const status = this.recordingStatus!;
-    if (status.latestRawPoint === undefined) {
+    if (recording.status.latestRawPoint === undefined) {
       // no first point yet => take it
-      status.latestRawPoint = this.addRawPoint(recording, position, 'first position received');
-      status.latestDefinitiveImprovedPoint = this.addImprovedPoint(recording, position, 'first position received');
-      status.points = 1;
+      recording.status.latestRawPoint = this.addRawPoint(recording, position, 'first position received');
+      recording.status.latestDefinitiveImprovedPoint = this.addImprovedPoint(recording, position, 'first position received');
+      recording.status.points = 1;
       return;
     }
     // raw point
-    if (this.takeRawPoint(status.latestRawPoint, position, status.latestRawAngle)) {
-      const newPoint = this.addRawPoint(recording, position, 'enough time/distance');
-      status.latestRawAngle = status.latestRawPoint ? Math.atan2(newPoint.pos.lat - status.latestRawPoint.pos.lat, newPoint.pos.lng - status.latestRawPoint.pos.lng) : undefined;
-      status.latestRawPoint = newPoint;
+    if (this.takeRawPoint(recording.status.latestRawPoint, position)) {
+      recording.status.latestRawPoint = this.addRawPoint(recording, position, 'enough time/distance');
     } else {
-      this.updatePoint(status.latestRawPoint, position, 'raw', 'short time/distance');
+      this.updatePoint(recording.status.latestRawPoint, position, 'raw', 'short time/distance');
     }
     // improved track
-    if (status.points === 1) {
-      if (status.temporaryImprovedPoint === undefined) {
+    if (recording.status.points === 1) {
+      if (recording.status.temporaryImprovedPoint === undefined) {
         // second point
-        if (this.mustReplace(position, status.latestDefinitiveImprovedPoint!)) {
-          this.updatePoint(status.latestDefinitiveImprovedPoint!, position, 'improved', 'accuracy far better for first point');
+        if (this.mustReplace(position, recording.status.latestDefinitiveImprovedPoint!)) {
+          this.updatePoint(recording.status.latestDefinitiveImprovedPoint!, position, 'improved', 'accuracy far better for first point');
           return;
         }
-        status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'second position as temporary');
+        recording.status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'second position as temporary');
         return;
       }
       // temporary point is the second point
-      if (this.mustReplace(position, status.latestDefinitiveImprovedPoint!)) {
-        this.updatePoint(status.latestDefinitiveImprovedPoint!, position, 'improved', 'accuracy far better for first point');
-        recording.track.lastSegment.removePoint(status.temporaryImprovedPoint);
-        status.temporaryImprovedPoint = undefined;
+      if (this.mustReplace(position, recording.status.latestDefinitiveImprovedPoint!)) {
+        this.updatePoint(recording.status.latestDefinitiveImprovedPoint!, position, 'improved', 'accuracy far better for first point');
+        recording.track.lastSegment.removePoint(recording.status.temporaryImprovedPoint.point);
+        recording.status.temporaryImprovedPoint = undefined;
         return;
       }
-      if (this.mustReplace(position, status.temporaryImprovedPoint)) {
-        this.updatePoint(status.temporaryImprovedPoint, position, 'improved', 'accuracy far better for second point');
+      if (this.mustReplace(position, recording.status.temporaryImprovedPoint)) {
+        this.updatePoint(recording.status.temporaryImprovedPoint, position, 'improved', 'accuracy far better for second point');
         return;
       }
-      if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position, undefined)) {
+      if (this.takeImprovedPoint(recording.status.latestDefinitiveImprovedPoint!, position)) {
         // enough time/distance from first point => fix the second point
-        if (this.takeImprovedPoint(status.temporaryImprovedPoint, position, undefined)) {
+        if (this.takeImprovedPoint(recording.status.temporaryImprovedPoint, position)) {
           // enough time/distance from second point => do not update it
-          status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
-          status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'third point');
-          status.points = 2;
+          recording.status.latestDefinitiveImprovedPoint = recording.status.temporaryImprovedPoint;
+          recording.status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'third point');
+          recording.status.points = 2;
           return;
         }
-        this.updatePoint(status.temporaryImprovedPoint, position, 'improved', 'update second point before to fix it');
-        status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
-        status.temporaryImprovedPoint = undefined;
-        status.points = 2;
+        this.updatePoint(recording.status.temporaryImprovedPoint, position, 'improved', 'update second point before to fix it');
+        recording.status.latestDefinitiveImprovedPoint = recording.status.temporaryImprovedPoint;
+        recording.status.temporaryImprovedPoint = undefined;
+        recording.status.points = 2;
         return;
       }
       // update the second point
-      this.updatePoint(status.temporaryImprovedPoint, position, 'improved', 'update second point');
+      this.updatePoint(recording.status.temporaryImprovedPoint, position, 'improved', 'update second point');
       return;
     }
     // third point ?
-    if (status.temporaryImprovedPoint === undefined) {
-      status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'third position');
+    if (recording.status.temporaryImprovedPoint === undefined) {
+      recording.status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'third position');
       return;
     }
     // at least third point, normal way
-    if (this.takeImprovedPoint(status.latestDefinitiveImprovedPoint!, position, status.latestDefinitiveImprovedAngle)) {
+    if (this.takeImprovedPoint(recording.status.latestDefinitiveImprovedPoint!, position)) {
       // enough time/distance from previous definitive point => take a new point
-      status.latestDefinitiveImprovedAngle = status.latestDefinitiveImprovedPoint ? Math.atan2(status.temporaryImprovedPoint.pos.lat - status.latestDefinitiveImprovedPoint.pos.lat, status.temporaryImprovedPoint.pos.lng - status.latestDefinitiveImprovedPoint.pos.lng) : undefined;
-      status.latestDefinitiveImprovedPoint = status.temporaryImprovedPoint;
-      status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'enough time/distance');
-      status.points++;
-      this.removeUnprobablePointsBasedOnAccuracy(recording);
-      this.removeUnprobablePointsBasedOnBigMovesOnShortTime(recording);
-      this.improveBreaks(recording, status);
+      recording.status.latestDefinitiveImprovedPoint = recording.status.temporaryImprovedPoint;
+      recording.status.temporaryImprovedPoint = this.addImprovedPoint(recording, position, 'enough time/distance');
+      recording.status.points++;
       return;
     }
     // update with best accuracy
-    this.updatePoint(status.temporaryImprovedPoint, position, 'improved', 'short distance and time');
+    this.updatePoint(recording.status.temporaryImprovedPoint, position, 'improved', 'short distance and time');
   }
 
-  private mustReplace(newPosition: PointDto, previousPosition: Point): boolean {
+  private mustReplace(newPosition: PointDto, previousPosition: RecordingPoint): boolean {
     if (newPosition.pa !== undefined) {
-      if (previousPosition.posAccuracy === undefined || newPosition.pa < 0.67 * previousPosition.posAccuracy)
+      if (previousPosition.point.posAccuracy === undefined || newPosition.pa < 0.67 * previousPosition.point.posAccuracy)
         return true;
     }
     if (newPosition.ea !== undefined) {
-      if (previousPosition.eleAccuracy === undefined || newPosition.ea < 0.67 * previousPosition.eleAccuracy)
+      if (previousPosition.point.eleAccuracy === undefined || newPosition.ea < 0.67 * previousPosition.point.eleAccuracy)
         return true;
     }
     return false;
   }
 
-  private takeRawPoint(previous: Point, pos: PointDto, previousAngle: number | undefined): boolean {
-    return this.takeImprovedPoint(previous, pos, previousAngle);
+  private takeRawPoint(previous: RecordingPoint, pos: PointDto): boolean {
+    return this.takeImprovedPoint(previous, pos);
   }
 
-  private takeImprovedPoint(previous: Point, pos: PointDto, previousAngle: number | undefined): boolean {
+  private takeImprovedPoint(previous: RecordingPoint, pos: PointDto): boolean {
     const prefs = this.preferencesService.preferences;
     // do not take points too often, based on prefs.traceMinMillis
-    if (prefs.traceMinMillis > 0 && pos.t && previous.time && pos.t - previous.time < prefs.traceMinMillis) return false;
+    if (prefs.traceMinMillis > 0 && pos.t && previous.point.time && pos.t - previous.point.time < prefs.traceMinMillis) return false;
     // if the direction changes enough, take point, else do not take until prefs.traceMinMeters
-    const newAngle = Math.atan2(pos.l! - previous.pos.lat, pos.n! - previous.pos.lng);
-    if ((previousAngle === undefined || Math.abs(newAngle - previousAngle) < 0.1) &&
-      (prefs.traceMinMeters > 0 && previous.distanceTo({lat: pos.l!, lng: pos.n!}) < prefs.traceMinMeters)
+    const newAngle = Math.atan2(pos.l! - previous.point.pos.lat, pos.n! - previous.point.pos.lng);
+    if ((previous.angle === undefined || Math.abs(newAngle - previous.angle) < 0.1) &&
+      (prefs.traceMinMeters > 0 && previous.point.distanceTo({lat: pos.l!, lng: pos.n!}) < prefs.traceMinMeters)
     ) {
       return false;
     }
     return true;
   }
 
-  private removeUnprobablePointsBasedOnAccuracy(recording: Recording): void { // NOSONAR
-    const segment = recording.track.lastSegment;
-    const points = segment.points;
-    if (points.length < 3) return;
-    const latestPoint = points[points.length - 1];
-    if (latestPoint.posAccuracy === undefined || latestPoint.time === undefined) return;
-    for (let i = points.length - 2; i >= 0 && i > points.length - 10; --i) {
-      const point = points[i];
-      if (point.posAccuracy === undefined || point.time === undefined) continue;
-      if (point.posAccuracy > latestPoint.posAccuracy * 1.5) {
-        const distance = point.distanceTo(latestPoint.pos);
-        if (point.time - latestPoint.time < 60000 /*&& distance < 100*/) {
-          let found = false;
-          for (let j = i - 1; j >= 0 && j > points.length - 15; --j) {
-            const point2 = points[j];
-            if (point2.posAccuracy === undefined || point2.time === undefined) continue;
-            const distance2 = point2.distanceTo(latestPoint.pos);
-            if (point2.posAccuracy <= latestPoint.posAccuracy * 1.25 && distance2 < distance * 0.95) {
-              found = true;
-              break;
-            }
-          }
-          if (!found) return;
-          Console.info("Remove unprobable point based on accuracy", point);
-          segment.removePointAt(i);
-          this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, i, i);
-          i++;
-        }
-      }
-    }
-  }
-
-  private removeUnprobablePointsBasedOnBigMovesOnShortTime(recording: Recording): void {
-    const segment = recording.track.lastSegment;
-    const points = segment.points;
-    if (points.length < 3) return;
-    const latestPoint = points[points.length - 1];
-    if (latestPoint.time === undefined || latestPoint.distanceFromPreviousPoint <= 20 || latestPoint.durationFromPreviousPoint === undefined) return;
-    for (let i = points.length - 3; i >= 0; --i) {
-      const point = points[i];
-      if (point.time === undefined) break;
-      if (point.distanceTo(latestPoint.pos) <= 20) {
-        if (latestPoint.time - points[i + 1].time! > 15000) break;
-        // remove points between i + 1 and the latest
-        Console.info("Remove unprobable points based on big moves in a short time", i + 1, points.length - 1);
-        segment.removeMany(points.slice(i + 1, points.length - 1));
-        this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, i + 1, points.length - 1);
-        break;
-      }
-    }
-  }
-
-  private improveBreaks(recording: Recording, status: RecordingStatus): void { // NOSONAR
-    const segment = recording.track.lastSegment;
-    const points = segment.points;
-    const currentPoint = status.temporaryImprovedPoint;
-    const currentTime = currentPoint?.time;
-    if (points.length < 3 || !currentTime) return;
-    /* If we stay in a 20 meters area since at least 2 minutes
-    * we are most probably in a break, so we can keep only one point to remove small moves during break
-    */
-    let i = points.length - 1;
-    let latestWithin5Meters = -1;
-    while (i >= 0) {
-      const distance = points[i].distanceTo(currentPoint.pos);
-      if (distance > 20) break;
-      if (distance <= 5) latestWithin5Meters = i;
-      i--;
-    }
-    if (latestWithin5Meters < 0) return;
-    i = latestWithin5Meters;
-    if (i >= points.length - 3) return;
-    const firstPoint = points[i];
-    if (!firstPoint.time || currentTime - firstPoint.time < 120000) return;
-    const averagePos = { lat: firstPoint.pos.lat, lng: firstPoint.pos.lng };
-    for (let j = i + 1; j <= points.length - 1; ++j) {
-      averagePos.lat += points[j].pos.lat;
-      averagePos.lng += points[j].pos.lng;
-    }
-    averagePos.lat /= points.length - i;
-    averagePos.lng /= points.length - i;
-    let best = i;
-    for (let j = i + 1; j <= points.length - 1; ++j) {
-      if (points[best].pos.distanceTo(averagePos) > points[j].pos.distanceTo(averagePos)) {
-        best = j;
-      }
-    }
-    Console.info('Break moves removal: ' + (points.length - i - 1) + ' point(s) removed');
-    if (best > i) {
-      segment.removeMany(points.slice(i, best));
-      this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, i, best - 1);
-    }
-    if (best < points.length - 1) {
-      segment.removeMany(points.slice(best + 1, points.length));
-      status.latestDefinitiveImprovedAngle = Math.atan2(currentPoint.pos.lat - points[best].pos.lat, currentPoint.pos.lng - points[best].pos.lng);
-      status.latestDefinitiveImprovedPoint = points[best];
-      this.improvmentState = this.trackEdition.updateImprovmentState(this.improvmentState, best + 1, points.length - 1);
-    }
-  }
-
-  private addRawPoint(recording: Recording, position: PointDto, reason: string): Point {
+  private addRawPoint(recording: Recording, position: PointDto, reason: string): RecordingPoint {
     Console.info('new raw position', position, reason);
-    return this.addPointToTrack(position, recording.rawTrack);
+    const point = this.addPointToTrack(position, recording.rawTrack);
+    const angle = angleBetween(point, recording.status.latestRawPoint?.point);
+    return { point, angle };
   }
 
-  private addImprovedPoint(recording: Recording, position: PointDto, reason: string): Point {
+  private addImprovedPoint(recording: Recording, position: PointDto, reason: string): RecordingPoint {
     Console.info('new improved position', position, reason);
     const point = this.addPointToTrack(position, recording.track);
     const lastSegment = recording.track.segments[recording.track.segments.length - 1];
-    if (lastSegment.points.length > 5 && (lastSegment.points.length % 10) === 0)
-      this.improvmentState = this.trackEdition.applyDefaultImprovmentsForRecordingSegment(lastSegment, this.improvmentState, false);
-    return point;
+    if (lastSegment.points.length > 5 && (lastSegment.points.length % 10) === 0) {
+      this.trackEdition.applyDefaultImprovmentsForRecordingSegment(lastSegment, recording.state, false);
+      const latestPoint = lastSegment.arrivalPoint!;
+      const index = lastSegment.points.indexOf(latestPoint);
+      const angle = angleBetween(latestPoint, index === 0 ? undefined : lastSegment.points[index]);
+      return { point: latestPoint, angle };
+    }
+    const previous = lastSegment.points.length <= 1 ? undefined : lastSegment.points[lastSegment.points.length - 2];
+    return { point, angle: angleBetween(point, previous) };
   }
 
   private addPointToTrack(position: PointDto, track: Track): Point {
@@ -494,22 +397,23 @@ export class TraceRecorderService {
     return segment.append(point);
   }
 
-  private updatePoint(point: Point, position: PointDto, pointType: string, reason: string): void {
+  private updatePoint(point: RecordingPoint, position: PointDto, pointType: string, reason: string): void {
     let updated = false;
-    if (this.isBetterAccuracy(position.pa, point.posAccuracy)) {
-      point.pos = new L.LatLng(position.l!, position.n!);
-      point.posAccuracy = position.pa;
-      point.heading = position.h;
-      point.speed = position.s;
+    if (this.isBetterAccuracy(position.pa, point.point.posAccuracy)) {
+      point.point.pos = new L.LatLng(position.l!, position.n!);
+      point.point.posAccuracy = position.pa;
+      point.point.heading = position.h;
+      point.point.speed = position.s;
+      point.angle = angleBetween(point.point, point.point.previousPoint);
       updated = true;
     }
-    if (this.isBetterAccuracy(position.ea, point.eleAccuracy)) {
-      point.ele = position.e;
-      point.eleAccuracy = position.ea;
+    if (this.isBetterAccuracy(position.ea, point.point.eleAccuracy)) {
+      point.point.ele = position.e;
+      point.point.eleAccuracy = position.ea;
       updated = true;
     }
-    if (updated || (position.t !== undefined && point.time === undefined))
-      point.time = position.t;
+    if (updated || (position.t !== undefined && point.point.time === undefined))
+      point.point.time = position.t;
     Console.info('update ' + pointType + ' position', position, reason, updated);
   }
 
@@ -525,10 +429,8 @@ export class TraceRecorderService {
     this._changesSubscription = undefined;
     if (this._geolocationListener) this.geolocation.stopWatching(this._geolocationListener);
     this._geolocationListener = undefined;
-    this.recordingStatus = undefined;
     if (recording.track.segments.length > 0)
-      this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments[recording.track.segments.length - 1], this.improvmentState, true);
-    this.improvmentState = undefined;
+      this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments[recording.track.segments.length - 1], recording.state, true);
   }
 
   private save(recording: Recording): void {
@@ -556,6 +458,8 @@ export class Recording {
     public track: Track,
     public rawTrack: Track,
     public paused: boolean,
+    public state: ImprovmentRecordingState,
+    public status: RecordingStatus,
     public followingTrailUuid?: string,
     public followingTrailOwner?: string,
     public followingTrackUuid?: string,
@@ -568,6 +472,12 @@ export class Recording {
       track: this.track.toDto(),
       rawTrack: this.rawTrack.toDto(),
       paused: this.paused,
+      state: this.state.toDto(),
+      status: {
+        points: this.status.points,
+        latestDefinitiveImprovedPoint: this.status.latestDefinitiveImprovedPoint === undefined ? undefined : this.track.lastSegment.points.indexOf(this.status.latestDefinitiveImprovedPoint.point),
+        temporaryImprovedPoint: this.status.temporaryImprovedPoint === undefined ? undefined : this.track.lastSegment.points.indexOf(this.status.temporaryImprovedPoint.point),
+      },
       followingTrailUuid: this.followingTrailUuid,
       followingTrailOwner: this.followingTrailOwner,
       followingTrackUuid: this.followingTrackUuid,
@@ -575,18 +485,51 @@ export class Recording {
   }
 
   static fromDto(dto: RecordingDto, preferencesService: PreferencesService): Recording {
+    const rawTrack = new Track(dto.track, preferencesService);
+    const improvedTrack = new Track(dto.rawTrack, preferencesService);
     return new Recording(
       new Trail(dto.trail),
-      new Track(dto.track, preferencesService),
-      new Track(dto.rawTrack, preferencesService),
+      rawTrack,
+      improvedTrack,
       dto.paused,
+      ImprovmentRecordingState.fromDto(dto.state),
+      new RecordingStatus(
+        dto.status.points,
+        rawTrack.segments.length === 0 ? undefined : this.createRecordingPoint(rawTrack.lastSegment, rawTrack.lastSegment.points.length - 1),
+        dto.status.latestDefinitiveImprovedPoint === undefined || improvedTrack.segments.length === 0 ? undefined : this.createRecordingPoint(improvedTrack.lastSegment, dto.status.latestDefinitiveImprovedPoint),
+        dto.status.temporaryImprovedPoint === undefined || improvedTrack.segments.length === 0 ? undefined : this.createRecordingPoint(improvedTrack.lastSegment, dto.status.temporaryImprovedPoint),
+      ),
       dto.followingTrailUuid,
       dto.followingTrailOwner,
       dto.followingTrackUuid,
     );
   }
 
+  private static createRecordingPoint(segment: Segment, pointIndex: number): RecordingPoint {
+    const point = segment.points[pointIndex];
+    const previousPoint = pointIndex === 0 ? undefined : segment.points[pointIndex - 1];
+    const angle = angleBetween(point, previousPoint);
+    return { point, angle };
+  }
+
 }
+
+class RecordingStatus {
+
+  constructor(
+    public points: number,
+    public latestRawPoint: RecordingPoint | undefined,
+    public latestDefinitiveImprovedPoint: RecordingPoint | undefined,
+    public temporaryImprovedPoint: RecordingPoint | undefined,
+  ) {}
+
+}
+
+interface RecordingPoint {
+  point: Point;
+  angle?: number;
+}
+
 
 interface RecordingDto {
 
@@ -595,20 +538,20 @@ interface RecordingDto {
   track: TrackDto;
   rawTrack: TrackDto;
   paused: boolean;
+  state: ImprovmentRecordingStateDto,
+  status: RecordingStatusDto,
   followingTrailUuid: string | undefined;
   followingTrailOwner: string | undefined;
   followingTrackUuid: string | undefined;
 
 }
 
-interface RecordingStatus {
-
+interface RecordingStatusDto {
   points: number;
-  latestRawPoint?: Point;
-  latestRawAngle?: number;
-  latestDefinitiveImprovedPoint?: Point;
-  latestDefinitiveImprovedAngle?: number;
-  temporaryImprovedPoint?: Point;
-  temporaryImprovedAngle?: number;
+  latestDefinitiveImprovedPoint: number | undefined,
+  temporaryImprovedPoint: number | undefined,
+}
 
+function angleBetween(currentPoint: Point, previousPoint: Point | undefined): number | undefined {
+  return previousPoint === undefined ? undefined : Math.atan2(currentPoint.pos.lat - previousPoint.pos.lat, currentPoint.pos.lng - previousPoint.pos.lng);
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, first, map, of, switchMap } from 'rxjs';
@@ -13,21 +13,24 @@ import { MapCursors } from './markers/map-cursors';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { MapCenterOnPositionTool } from './tools/center-on-location';
 import { MapLayerSelectionTool } from './tools/layer-selection-tool';
-import { ZoomLevelDisplayTool } from './tools/zoom-level-display';
 import { DownloadMapTool } from './tools/download-map-tool';
-import { DarkMapToggle } from './tools/dark-map-toggle';
+import { DarkMapToggleTool } from './tools/dark-map-toggle';
 import { MapGeolocationService } from 'src/app/services/map/map-geolocation.service';
 import { MapShowPositionTool } from './tools/show-position-tool';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { Trail } from 'src/app/model/trail';
 import { MapBubble } from './bubble/map-bubble';
-import { MapBubblesTool } from './tools/bubbles-tool';
+import { MapToggleBubblesTool } from './tools/toggle-bubbles-tool';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { RestrictedWaysTool } from './tools/restricted-ways-tool';
 import { PhoneLockTool } from './tools/phone-lock-tool';
 import Trailence from 'src/app/services/trailence.service';
+import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
+import { MenuItem } from '../menus/menu-item';
+import { MapTool } from './tools/tool.interface';
+import { ZoomInTool, ZoomLevelTool, ZoomOutTool } from './tools/zoom-tools';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -36,7 +39,9 @@ const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
     templateUrl: './map.component.html',
     styleUrls: ['./map.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: []
+    imports: [
+      ToolbarComponent,
+    ]
 })
 export class MapComponent extends AbstractComponent {
 
@@ -47,7 +52,8 @@ export class MapComponent extends AbstractComponent {
   @Input() bubbles$: Observable<MapBubble[]> = of([]);
   @Input() showBubbles$?: BehaviorSubject<boolean>;
   @Input() enableShowRestrictedWays = false;
-  @Input() enableLockScreen = false;
+  @Input() leftTools: MenuItem[] = [];
+  @Input() rightTools: MenuItem[] = [];
 
   @Output() mouseClickPoint = new EventEmitter<MapTrackPointReference[]>();
   @Output() mouseOverPoint = new EventEmitter<MapTrackPointReference[]>();
@@ -62,6 +68,8 @@ export class MapComponent extends AbstractComponent {
   private readonly _mapState = new MapState();
   private readonly _map$ = new BehaviorSubject<L.Map | undefined>(undefined);
 
+  @ViewChildren(ToolbarComponent) toolbars?: QueryList<ToolbarComponent>;
+
   constructor(
     injector: Injector,
     private readonly browser: BrowserService,
@@ -74,6 +82,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   protected override initComponent(): void {
+    this.mapLayersService.applyDarkMap(this.injector.get(ElementRef).nativeElement);
     this.whenVisible.subscribe(this.browser.resize$.pipe(debounceTime(500)), () => this.invalidateSize(), true);
     this.ngZone.runOutsideAngular(() => {
       this.visible$.subscribe(visible => {
@@ -128,6 +137,7 @@ export class MapComponent extends AbstractComponent {
         }, true
       );
     }
+    this.initTools();
   }
 
   private _initMapTimeout: any;
@@ -152,6 +162,7 @@ export class MapComponent extends AbstractComponent {
     if (changes['mapId']) this.loadState();
     if (changes['tracks$']) this.updateTracks();
     if (changes['bubbles$']) this.updateBubbles();
+    if (changes['rightTools'] || changes['leftTools']) this.updateTools();
   }
 
   protected override destroyComponent(): void {
@@ -360,7 +371,7 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
-  private fitMapBounds(map: L.Map): void {
+  fitMapBounds(map: L.Map): void {
     let bounds;
     for (const t of this._currentTracks) {
       if (!bounds) {
@@ -399,36 +410,34 @@ export class MapComponent extends AbstractComponent {
 
   private readonly _followingLocation$ = new BehaviorSubject<boolean>(false);
   private _locationMarker?: L.CircleMarker;
-  private _toolCenterOnPosition?: L.Control;
   private showLocation(lat: number, lng: number, color: string): void {
-    this.ngZone.runOutsideAngular(() => {
+    if (this.ngZone.runOutsideAngular(() => {
       if (this._locationMarker) {
         this.updateLocation(this._locationMarker, lat, lng, color);
-      } else {
-        this._locationMarker = new L.CircleMarker({lat, lng}, {
-          radius: 7,
-          color: color,
-          opacity: 0.75,
-          fillColor: color,
-          fillOpacity: 0.33,
-          stroke: true,
-          className: 'leaflet-position-marker',
-        });
-        if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
-          this._followingLocation$.next(true);
-        if (this._map$.value) {
-          this._locationMarker.addTo(this._map$.value);
-          if (this._followingLocation$.value) {
-            this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
-          } else {
-            this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
-          }
-          if (!this._toolCenterOnPosition) {
-            this.addToolCenterOnPosition(this._map$.value);
-          }
+        return false;
+      }
+      this._locationMarker = new L.CircleMarker({lat, lng}, {
+        radius: 7,
+        color: color,
+        opacity: 0.75,
+        fillColor: color,
+        fillOpacity: 0.33,
+        stroke: true,
+        className: 'leaflet-position-marker',
+      });
+      if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
+        this._followingLocation$.next(true);
+      if (this._map$.value) {
+        this._locationMarker.addTo(this._map$.value);
+        if (this._followingLocation$.value) {
+          this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
+        } else {
+          this._map$.value.panInside(this._locationMarker.getLatLng(), {padding: [25,25]})
         }
       }
-    });
+      return true;
+    }))
+      this.refreshTools();
   }
 
   private updateLocation(marker: L.CircleMarker, lat: number, lng: number, color: string): void {
@@ -485,38 +494,36 @@ export class MapComponent extends AbstractComponent {
       if (this._map$.value && this._locationMarker) {
         this._map$.value.setView(this._locationMarker.getLatLng(), Math.max(this._map$.value.getZoom(), 16));
       }
-      this._followingLocation$.next(true);
+      if (!this._followingLocation$.value)
+        this._followingLocation$.next(true);
     });
   }
 
-  private toggleCenterOnLocation(): void {
+  toggleCenterOnLocation(): void {
     if (this._followingLocation$.value) {
       this._followingLocation$.next(false);
     } else {
       this.centerOnLocation();
     }
+    this.refreshTools();
   }
 
   private hideLocation(): void {
-    this.ngZone.runOutsideAngular(() => {
+    if (this.ngZone.runOutsideAngular(() => {
       if (this._locationMarker) {
         if (this._map$.value) {
           this._locationMarker.removeFrom(this._map$.value);
         }
         this._locationMarker = undefined;
+        return true;
       }
-      this._followingLocation$.next(false);
-      if (this._toolCenterOnPosition) {
-        this._toolCenterOnPosition.remove();
-        this._toolCenterOnPosition = undefined;
+      if (this._followingLocation$.value) {
+        this._followingLocation$.next(false);
+        return true;
       }
-    });
-  }
-
-  private addToolCenterOnPosition(map: L.Map): void {
-    this.ngZone.runOutsideAngular(() => {
-      this._toolCenterOnPosition = new MapCenterOnPositionTool(this.injector, this._followingLocation$, { position: 'topleft' }).addTo(map);
-    });
+      return false;
+    }))
+      this.refreshTools();
   }
 
   public get crs(): L.CRS {
@@ -532,27 +539,27 @@ export class MapComponent extends AbstractComponent {
       center: this._mapState.center,
       zoom: this._mapState.zoom,
       layers: [layer.create()],
+      zoomControl: false,
     });
-
-    new ZoomLevelDisplayTool({position: 'topleft'}).addTo(map);
-    new MapLayerSelectionTool(this.injector, this._mapState, {position: 'topright'}).addTo(map);
-    new DarkMapToggle(this.injector, {position: 'topright'}).addTo(map);
-
-    if (this.showBubbles$) {
-      new MapBubblesTool(this.injector, this.showBubbles$, {position: 'topright'}).addTo(map);
-      map.on('toggleBubbles', () => this.showBubbles$!.next(!this.showBubbles$!.value));
-    }
-    new DownloadMapTool(this.injector, this.downloadMapTrail, {position: 'topright'}).addTo(map);
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {
       this.mapChanged(map);
       if ((e as any)['originalEvent']) { // NOSONAR
         // action from user
-        this._followingLocation$.next(false);
+        if (this._followingLocation$.value) {
+          this._followingLocation$.next(false);
+          this.refreshTools();
+        }
       }
     });
-    map.on('zoom', () => this.mapChanged(map));
+    map.on('zoom', () => {
+      this.mapChanged(map);
+      this.refreshTools();
+    });
+    map.on('zoomend', () => {
+      this.refreshTools();
+    });
     map.on('click', e => {
       if (this.mouseClickPoint.observed) {
         this.mouseClickPoint.emit(this.getEvent(map, e));
@@ -571,26 +578,12 @@ export class MapComponent extends AbstractComponent {
     });
     map.on('zoomanim', e => this._mapState.zoom = e.zoom);
 
-    new MapFitBoundsTool({position: 'topleft'}).addTo(map)
-    map.on('fitBounds', () => this.fitMapBounds(map));
-
-    if (this.enableShowRestrictedWays)
-      new RestrictedWaysTool(this.injector, this.mapId, {position: 'topright'}).addTo(map);
-    if (this.enableLockScreen)
-      Trailence.canKeepOnScreenLock({}).then(response => {
-        if (response.allowed)
-          new PhoneLockTool(this.injector, { position: 'topright' }).addTo(map);
-      });
-
     this.cursors.addTo(map);
 
     if (this._locationMarker) {
       this._locationMarker.addTo(map);
       map.setView(this._locationMarker.getLatLng(), Math.max(map.getZoom(), 16));
-      this.addToolCenterOnPosition(map);
     }
-    map.on('centerOnLocation', () => this.toggleCenterOnLocation());
-    map.on('toggleShowPosition', () => this.mapGeolocation.toggleShowPosition());
 
     this._map$.next(map);
     if (!this.isEmbedded)
@@ -614,33 +607,7 @@ export class MapComponent extends AbstractComponent {
         }
       )
     );
-    let toolShowPosition: MapShowPositionTool | undefined;
-    this.whenAlive.add(
-      combineLatest([
-        this._mapState.live$,
-        this.mapGeolocation.position$,
-        this.mapGeolocation.recorder.current$,
-      ]).subscribe(
-        ([live, position, recording]) => {
-          if (!live) return;
-          // show tool only if not recording
-          if (recording) {
-            if (toolShowPosition) {
-              toolShowPosition.remove();
-              toolShowPosition = undefined;
-            }
-          } else {
-            toolShowPosition ??= new MapShowPositionTool(this.injector, this.mapGeolocation.showPosition$, { position: 'topleft' }).addTo(map);
-          }
-          // show position
-          if (position) {
-            this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
-          } else {
-            this.hideLocation();
-          }
-        }
-      )
-    );
+    this.refreshTools();
   }
 
   private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] {
@@ -687,6 +654,134 @@ export class MapComponent extends AbstractComponent {
         result.push(new MapTrackPointReference(mapTrack, undefined, undefined, pointIndex, pt, distance));
       }
     }
+  }
+
+  private initTools(): void {
+    if (this.showBubbles$) {
+      this.defaultRightToolsItems.push(this.toMenuItem(new MapToggleBubblesTool(this.showBubbles$)));
+      this.whenVisible.subscribe(this.showBubbles$, () => this.refreshTools(), true);
+    }
+    this.defaultRightToolsItems.push(new MenuItem());
+    this.defaultRightToolsItems.push(this.toMenuItem(new DownloadMapTool(this.downloadMapTrail)));
+    const phoneLockTool = new PhoneLockTool();
+    this.defaultRightToolsItems.push(this.toMenuItem(phoneLockTool));
+    if (this.enableShowRestrictedWays) {
+      const tool = new RestrictedWaysTool(this.mapId);
+      this.defaultRightToolsItems.push(this.toMenuItem(tool));
+      this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoom$]), ([map, center, zoom]) => {
+        tool.refresh(map, this.injector, () => this.refreshTools());
+      });
+    }
+
+    const toolShowPosition = new MapShowPositionTool();
+    this.defaultLeftToolsItems.push(new MenuItem());
+    this.defaultLeftToolsItems.push(this.toMenuItem(toolShowPosition));
+    this.defaultLeftToolsItems.push(this.toMenuItem(new MapCenterOnPositionTool(() => !!this._locationMarker, this._followingLocation$)));
+
+    // handle recording and position
+    this.whenAlive.add(
+      combineLatest([
+        this._mapState.live$,
+        this.mapGeolocation.position$,
+        this.mapGeolocation.recorder.current$,
+        this.mapGeolocation.showPosition$,
+      ]).subscribe(
+        ([live, position, recording, showPosition]) => {
+          if (!live) return;
+          // show position tool only if not recording
+          // show phone lock only if recording
+          const positionToolWasVisible = toolShowPosition.visible;
+          const positionToolWasActive = toolShowPosition.icon === 'pin-off';
+          const phoneLockToolWasVisible = phoneLockTool.visible;
+          if (recording) {
+            toolShowPosition.visible = false;
+            phoneLockTool.visible = phoneLockTool.available;
+          } else {
+            toolShowPosition.visible = true;
+            toolShowPosition.icon = showPosition ? 'pin-off' : 'pin';
+            phoneLockTool.visible = false;
+          }
+          // show position
+          if (position) {
+            this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
+          } else {
+            this.hideLocation();
+          }
+          if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible)
+            this.refreshTools();
+        }
+      )
+    );
+
+    this.updateTools();
+
+    Trailence.canKeepOnScreenLock({}).then(response => {
+      if (response.allowed) {
+        phoneLockTool.available = true;
+        Trailence.getKeepOnScreenLock({}).then(response => {
+          phoneLockTool.enabled = response.enabled;
+          this.refreshTools();
+        });
+      }
+    });
+  }
+
+  private updateTools(): void {
+    this.leftToolsItems = [...this.defaultLeftToolsItems, ...this.leftTools];
+    this.rightToolsItems = [...this.defaultRightToolsItems, ...this.rightTools];
+  }
+
+  private refreshTools(): void {
+    this.toolbars?.forEach(tb => tb.refresh());
+  }
+
+  leftToolsItems: MenuItem[] = [];
+  defaultLeftToolsItems: MenuItem[] = [
+    this.toMenuItem(new ZoomInTool()),
+    this.toMenuItem(new ZoomLevelTool()).setTextSize('11px'),
+    this.toMenuItem(new ZoomOutTool()),
+    new MenuItem(),
+    this.toMenuItem(new MapFitBoundsTool()),
+  ];
+  rightToolsItems: MenuItem[] = [];
+  defaultRightToolsItems: MenuItem[] = [
+    this.toMenuItem(new MapLayerSelectionTool()),
+    this.toMenuItem(new DarkMapToggleTool()),
+  ];
+
+  private toMenuItem(tool: MapTool): MenuItem {
+    const item = new MenuItem()
+      .setIcon(this.toMenuFunction(() => tool.icon, undefined))
+      .setDisabled(this.toMenuFunction(() => tool.disabled, false))
+      .setVisible(this.toMenuFunction(() => tool.visible, false))
+      .setTextColor(this.toMenuFunction(() => tool.color, ''))
+      .setBackgroundColor(this.toMenuFunction(() => tool.backgroundColor, ''))
+      .setAction(tool.execute ? () => {
+        const map = this._map$.value;
+        if (!map) return;
+        (tool.execute as (map: L.Map, mapComponent: MapComponent, injector: Injector) => Observable<any>)(map, this, this.injector).subscribe({
+          complete: () => this.refreshTools(),
+        });
+      } : undefined)
+      ;
+    if (tool.i18n) item.setI18nLabel(this.toMenuFunction(() => tool.i18n!, ''));
+    else if (tool.label) item.setFixedLabel(this.toMenuFunction(() => tool.label!, ''));
+    return item;
+  }
+
+  private toMenuFunction<T>(
+    getter: () => T | ((map: L.Map, mapComponent: MapComponent, injector: Injector) => T),
+    defaultValue: T,
+  ): () => T {
+    return () => {
+      const value = getter();
+      if (typeof value === 'function') {
+        const map = this._map$.value;
+        if (!map) return defaultValue;
+        return (value as (map: L.Map, mapComponent: MapComponent, injector: Injector) => T)(map, this, this.injector);
+      }
+      return value;
+    };
   }
 
 }

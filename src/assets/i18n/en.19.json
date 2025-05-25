@@ -215,12 +215,10 @@
       },
       "show_original": "Show original trace",
       "show_breaks": "Show breaks",
-      "show_photos": "Show photos on map",
       "open_in_app": "Open in",
       "actions": {
         "go_to_departure": "Go to departure",
         "download_map": "Download map",
-        "edit_tools": "Edition tools",
         "compare": "Compare",
         "compare_with": "Compare with...",
         "compare_with_this_one": "Compare with this track",
@@ -240,57 +238,8 @@
         }
       },
       "remaining_metadata_title": "Remaining",
-      "edit_tools": {
-        "title": "Edition tools",
-        "back_to_original": "Back to the original track",
-        "show_only_modified": "Show only modified track (blue)",
-        "elevation": "Elevation",
-        "elevation_improvments": "Improvments",
-        "from_download": "Use an altitude provider",
-        "download_elevations": "Replace elevations",
-        "improve_elevations_with_providers": "Improve elevations",
-        "remove_unprobable_elevations": "Remove unprobable elevations",
-        "apply_elevation_threshold": "Smooth with a slope threshold",
-        "elevation_threshold": "Slope threshold",
-        "elevation_threshold_distance": "Maximum distance",
-        "elevation_threshold_explaination": "Smoothing helps correct GPS inaccuracies, making the trail appear as a continuous slope rather than showing irregular elevation changes.<br/>This is done by:<ul><li>Identifying sections where altitude changes within the configured threshold and distance.</li><li>Smoothing these sections into a continuous slope while keeping high or low points intact.</li></ul>",
-        "path": "Track path",
-        "join_departure_and_arrival": {
-          "title": "Join departure and arrival",
-          "join_departure": "Start at the arrival point",
-          "join_arrival": "Finish at the departure point"
-        },
-        "breaks": "Breaks",
-        "remove_long_breaks_moves": {
-          "title": "Remove movements during long breaks",
-          "configuration": "Configuration",
-          "config_min_duration": "Minimum duration",
-          "config_max_distance": "Perimeter",
-          "detection": "Detection",
-          "start": "Start",
-          "no_more_break": "There is no more long break detected with movements",
-          "remove_moves": "Remove these moves",
-          "skip_moves": "Skip these moves",
-          "duration": "Duration",
-          "adjust_start": "Adjust start point",
-          "adjust_end": "Adjust end point",
-          "before": "Previous",
-          "after": "Next"
-        },
-        "merge_segments": "Connect pause and resume points",
-        "selected_point": {
-          "title_singular": "Selected point",
-          "title_plural": "Selected points",
-          "extend_selection": "Expand selection to...",
-          "select_target_point": "Select a point on the map or elevation chart to extend the selection to that point",
-          "create_waypoint": "Create a way point",
-          "remove_waypoint": "Remove the way point",
-          "remove_all_next_points": "Remove all points after this one",
-          "remove_all_previous_points": "Remove all points before this one"
-        },
-        "no_modification": "No changes were made by this function",
-        "actions": "Actions"
-      }
+      "created_in_trailence_on": "Created in Trailence on",
+      "last_update_on": "Last updated on"
     },
     "collection_form": {
       "title": "Collection",
@@ -851,5 +800,72 @@
     "title": "Update required",
     "message": "Your application is in an outdated version and needs to be updated. By using this version, your changes cannot be saved to the server and may be lost."
   },
-  "downloading_elevation": "Downloading elevation"
+  "downloading_elevation": "Downloading elevation",
+  "track_edit_tools": {
+    "title": "Edit",
+    "categories": {
+      "track": "Track",
+      "way_point": "Way point",
+      "elevation": "Elevation",
+      "path": "Path",
+      "selection": "Selection",
+      "elevation_provider": "Use an elevation provider",
+      "join_departure_and_arrival": "Join departure and arrival",
+      "improvements": "Improvements",
+      "set_elevation_on_range": "Change elevation"
+    },
+    "tools": {
+      "remove_unprobable_elevations": "Adjust unprobable elevations",
+      "remove_unprobable_points": "Remove unprobable points",
+      "remove_breaks_moves": "Remove moves during breaks",
+      "slope_threshold": {
+        "button_label": "Smooth with a slope threshold",
+        "elevation_threshold": "Slope threshold",
+        "max_distance": "Maximum distance",
+        "explaination": "Smoothing helps correct GPS inaccuracies, making the trail appear as a continuous slope rather than showing irregular elevation changes.<br/>This is done by:<ul><li>Identifying sections where altitude changes within the configured threshold and distance.</li><li>Smoothing these sections into a continuous slope while keeping high or low points intact.</li></ul>"
+      },
+      "selection": {
+        "title": "Selection",
+        "extend_selection": "Expand selection to...",
+        "close": "Close Selection",
+        "select_target_point": "Select a point on the map or elevation chart to extend the selection to that point",
+        "remove_all_next_points": "Remove all points after this one",
+        "remove_all_previous_points": "Remove all points before this one"
+      },
+      "remove_selection": {
+        "button_single_label": "Remove selected point",
+        "button_multiple_label": "Remove selected path"
+      },
+      "replace_elevation_with_provider": "Replace elevations",
+      "improve_elevation_with_provider": "Improve elevations",
+      "arrival_to_departure": "Finish at the departure point",
+      "departure_to_arrival": "Start at the arrival point",
+      "back_to_original_track": "Back to original trace without improvements",
+      "toggle_show_only_modified_track": {
+        "button_label_hide": "Show only modified track (blue)",
+        "button_label_show": "Show unmodified track"
+      },
+      "way_points": {
+        "create_waypoint": "Create a way point",
+        "remove_waypoint": "Remove the way point",
+        "edit_waypoint": "Edit the way point",
+        "popup": {
+          "title": "Way Point"
+        }
+      },
+      "set_elevation_on_range": {
+        "with_start": "Using the one from the first selected point",
+        "with_end": "Using the one from the last selected point",
+        "smoothing": "By smoothing from the first to the last selected point",
+        "manually": "By entering a value manually"
+      },
+      "apply_default_improvements": "Apply default enhancements (those used when creating a trace)",
+      "merge_segments": "Connect pause and resume points"
+    },
+    "no_modification":"No changes were made by this function",
+    "close_confirmation": {
+      "title": "Close trace editor",
+      "message": "You have unsaved changes. Are you sure you want to close the trace editor?"
+    }
+  }
 }

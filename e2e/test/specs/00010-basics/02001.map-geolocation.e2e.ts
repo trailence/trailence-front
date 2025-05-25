@@ -25,15 +25,15 @@ describe('Locate me on map', () => {
     const map = await myTrailsPage.trailsAndMap.openMap();
     await map.waitReady();
     await browser.waitUntil(() => map.getGeolocationMarker().isDisplayed().then(d => !d));
-    expect(await map.getControl('center-on-location-tool').isDisplayed()).toBeFalse();
+    expect(await map.hasCenterOnGeolocation()).toBeFalse();
     await map.toggleGeolocation();
     await browser.waitUntil(() => map.getGeolocationMarker().isDisplayed());
-    expect(await map.getControl('center-on-location-tool').isDisplayed()).toBeTrue();
+    expect(await map.hasCenterOnGeolocation()).toBeTrue();
     await map.centerOnGeolocation();
     await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('center=9.157015,124.669407') > 0));
     await map.toggleGeolocation();
     await browser.waitUntil(() => map.getGeolocationMarker().isDisplayed().then(d => !d));
-    expect(await map.getControl('center-on-location-tool').isDisplayed()).toBeFalse();
+    expect(await map.hasCenterOnGeolocation()).toBeFalse();
   });
 
   it('End', async () => {

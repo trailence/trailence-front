@@ -1,10 +1,9 @@
-<div class="toolbar">
-  <app-icon-label-button icon="sort" label="{{i18n.texts.tools.sort}}" id="sort-trails-button-{{id}}"></app-icon-label-button>
-  <app-icon-label-button icon="filters" label="{{i18n.texts.tools.filters}}" id="filters-trails-button-{{id}}" [badge]="nbActiveFilters()" [showBadge]="isPositive"></app-icon-label-button>
-  <app-icon-label-button *ngIf="collectionUuid && size !== 'small'" icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
-  <app-icon-label-button *ngIf="collectionUuid && size === 'large'" icon="share" label="{{i18n.texts.tools.share}}" (click)="share()"></app-icon-label-button>
-  <app-icon-label-button icon="more-menu" label="{{i18n.texts.tools.more}}" *ngIf="moreMenu.length > 0" (click)="showMoreMenu($event)"></app-icon-label-button>
-</div>
+<app-toolbar
+  [items]="toolbar"
+  [maxItems]="size === 'small' ? 2 : size === 'large' ? 4 : 3"
+  itemPadding="4px"
+  [itemMinWidth]="60"
+></app-toolbar>
 <div class="message" *ngIf="message">
   {{message | i18nString}}
 </div>
@@ -35,12 +34,18 @@
   </div>
 </div>
 <div class="trails">
-  @if (trails.size === 0) {
+  @if (trails === undefined) {
+    <div style="display: flex; flex-direction: row; justify-content: center; margin: 10px;">
+      <ion-spinner name="dots"></ion-spinner>
+    </div>
+  } @else if (trails && trails.size === 0) {
     <div class="empty-list">
       @if (listType === 'collection') {
         <div>{{i18n.texts.pages.trails.empty_list.collection}}</div>
         <div>
-          <app-icon-label-button icon="add-circle" label="{{i18n.texts.tools.import}}" (click)="import()"></app-icon-label-button>
+          <app-toolbar
+            [items]="emptyListTools"
+          ></app-toolbar>
         </div>
       } @else if (listType === 'share') {
         <div>{{i18n.texts.pages.trails.empty_list.share}}</div>
@@ -94,7 +99,7 @@
     }
   }
 </div>
-<div class="search-container" [ngClass]="{'open': searchOpen}">
+<div class="search-container" [ngClass]="{'open': searchOpen}" *ngIf="listTrails.size > 0">
   <div class="search-bar">
     <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
       [value]="state$.value.filters.search"
@@ -111,7 +116,7 @@
   </div>
 </div>
 
-<ion-modal trigger="filters-trails-button-{{id}}" #filtersModal>
+<ion-modal #filtersModal>
   <ng-template>
     <ion-header>
       <ion-toolbar color="primary">
@@ -234,7 +239,7 @@
 </ion-modal>
 
 
-<ion-modal trigger="sort-trails-button-{{id}}" #sortModal>
+<ion-modal #sortModal>
   <ng-template>
     <ion-header>
       <ion-toolbar color="primary">

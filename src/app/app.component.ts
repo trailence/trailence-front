@@ -3,7 +3,7 @@ import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular/sta
 import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
-import { MenuComponent } from './components/menu/menu.component';
+import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router } from '@angular/router';
 import { combineLatest, filter, first, Observable, of, switchMap, tap } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';

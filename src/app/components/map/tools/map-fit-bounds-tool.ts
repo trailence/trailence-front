@@ -1,13 +1,18 @@
 import L from 'leaflet';
-import { environment } from 'src/environments/environment';
-import { MapToolUtils } from './map-tool-utils';
+import { MapTool } from './tool.interface';
+import { MapComponent } from '../map.component';
+import { Injector } from '@angular/core';
+import { of } from 'rxjs';
 
-export const MapFitBoundsTool = L.Control.extend({
+export class MapFitBoundsTool extends MapTool {
 
-  onAdd: (map: L.Map) => {
-    const img = L.DomUtil.create('img');
-    img.src = environment.assetsUrl + '/zoom-fit.1.svg';
-    return MapToolUtils.createButtonWithEvent(map, img, 'fitBounds', 'fit-bounds-tool');
-  },
-  onRemove: (map: L.Map) => {}
-});
+  constructor() {
+    super();
+    this.icon = 'zoom-fit-bounds';
+    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+      mapComponent.fitMapBounds(map);
+      return of(true);
+    };
+  }
+
+}

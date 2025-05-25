@@ -83,7 +83,7 @@ export const expectedTrailsByFile: {[key: string]: () => ExpectedTrail[]} = {
 
 export async function importTrail(collectionPage: TrailsPage, filename: string, expected?: string[], tagsPopup?: (popup: ImportTagsPopup) => Promise<any>) {
   const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-  const importButton = await trailsList.getToolbarButton('add-circle');
+  const importButton = await trailsList.toolbar.getButtonByIcon('add-circle').getElement();
   await importTrailInternal(importButton, filename, tagsPopup);
   if (expected) {
     for (const trailName of expected) {
@@ -105,7 +105,7 @@ async function importTrailInternal(importButton: WebdriverIO.Element, filename: 
 
 export async function importTrails(collectionPage: TrailsPage, filenames: string[]) {
   const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-  const importButton = await trailsList.getToolbarButton('add-circle');
+  const importButton = trailsList.toolbar.getButtonByIcon('add-circle');
   const expectedTrails: ExpectedTrail[] = [];
   for (const filename of filenames)
     expectedTrails.push(...expectedTrailsByFile[filename]());

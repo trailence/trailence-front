@@ -20,7 +20,7 @@ describe('Find Duplicates', () => {
     const menu = await App.openMenu();
     collectionPage = await menu.addCollection('Duplicates');
     list = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await list.getToolbarButton('add-circle');
+    const importButton = list.toolbar.getButtonByIcon('add-circle');
     await importButton.click();
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     await importButton.click();
@@ -32,7 +32,7 @@ describe('Find Duplicates', () => {
   let modal: FindDuplicatesModal;
 
   it('Find duplicates with at least 90%, does not detect anything', async () => {
-    await (await list.moreMenu()).clickItemWithText('Search for similar tracks');
+    await (await list.toolbar.moreMenu()).clickItemWithText('Search for similar tracks');
     modal = new FindDuplicatesModal(await App.waitModal());
     await modal.selectOption('inside');
     await modal.setSimilarityPercent(90);
@@ -50,7 +50,7 @@ describe('Find Duplicates', () => {
   });
 
   it('Copy trails to another collection', async () => {
-    const menu = await list.moreMenu();
+    const menu = await list.toolbar.moreMenu();
     await menu.clickItemWithText('Copy into...');
     await menu.clickItemWithText('New collection...');
     const collectionModal = new CollectionModal(await App.waitModal());
@@ -61,7 +61,7 @@ describe('Find Duplicates', () => {
   });
 
   it('Compare trails between the 2 collections with threshold of 90%', async () => {
-    await (await list.moreMenu()).clickItemWithText('Search for similar tracks');
+    await (await list.toolbar.moreMenu()).clickItemWithText('Search for similar tracks');
     modal = new FindDuplicatesModal(await App.waitModal());
     await modal.selectOption('two');
     await modal.selectOtherCollection('Copy');

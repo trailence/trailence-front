@@ -124,6 +124,7 @@
   --graph-secondary-color: #8080FF;
   --graph-selecting-color: #4040F0;
   --graph-selection-color: #2020FF;
+  --graph-single-selection-color: #4080FF;
 }
 
 .light-theme {
@@ -251,6 +252,7 @@
   --graph-secondary-color: #0000FF;
   --graph-selecting-color: #4040F0;
   --graph-selection-color: #0000FF;
+  --graph-single-selection-color: #6060FF;
 }
 
 .ion-color-footer {
@@ -320,12 +322,15 @@ ion-input.input-label-placement-floating:not(.label-floating) .label-text-wrappe
   color: var(--ion-color-medium);
 }
 
-ion-input.input-fill-outline.small, ion-input.input-fill-solid.small, ion-select.select-fill-outline.small {
+ion-input.small, ion-input.input-fill-outline.small, ion-input.input-fill-solid.small, ion-select.select-fill-outline.small {
   min-height: 40px;
 }
 
-ion-input.sc-ion-input-md-h.very-small {
+ion-input.very-small, ion-input.sc-ion-input-md-h.very-small {
   min-height: 30px;
+  .input-wrapper {
+    overflow: hidden;
+  }
 }
 
 .page-content {

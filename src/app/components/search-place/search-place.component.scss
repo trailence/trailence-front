@@ -1,5 +1,21 @@
 ion-searchbar {
   padding: 0;
+  --box-shadow: none;
+
+  input.searchbar-input {
+    padding-inline-start: 25px;
+    padding-inline-end: 25px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  ion-icon.searchbar-search-icon {
+    inset-inline-start: 0;
+    top: 8px;
+  }
+  button.searchbar-clear-button {
+    inset-inline-end: 0;
+  }
+
 }
 ion-item {
   ion-label {
@@ -13,7 +29,7 @@ ion-item {
   }
 }
 .tip {
-  font-size: 12px;
+  font-size: 10px;
   text-align: right;
   color: var(--ion-color-medium);
 }

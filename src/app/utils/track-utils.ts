@@ -1,7 +1,9 @@
-import { Point, PointDescriptor } from '../model/point';
+import { Point, PointDescriptor, samePositionRound } from '../model/point';
 import L from 'leaflet';
-import { Track } from '../model/track';
+import { ComputedWayPoint, Track } from '../model/track';
 import { Segment } from '../model/segment';
+import { PreferencesService } from '../services/preferences/preferences.service';
+import { WayPoint } from '../model/way-point';
 
 export class TrackUtils {
 
@@ -170,5 +172,36 @@ export class TrackUtils {
     if (endTime === undefined) return 0;
     return endTime - startTime;
   }
+
+  // Way points
+
+  public static findWayPoints(track: Track, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number, prefs: PreferencesService) {
+    let computed = ComputedWayPoint.compute(track, prefs.preferences);
+    computed = computed.filter(wp =>
+      wp.nearestSegmentIndex !== undefined && wp.nearestPointIndex !== undefined &&
+      this.inRange(wp.nearestSegmentIndex, wp.nearestPointIndex, startSegmentIndex, startPointIndex, endSegmentIndex, endPointIndex)
+    );
+    return track.wayPoints.filter(wp => computed.find(c => c.wayPoint.isEquals(wp)));
+  }
+
+  public static getWayPointAt(track: Track, position: L.LatLngLiteral): WayPoint | undefined {
+    for (const wp of track.wayPoints) {
+      if (wp.point.pos.lat === position.lat && wp.point.pos.lng === position.lng)
+        return wp;
+    }
+    for (const wp of track.wayPoints) {
+      if (samePositionRound(wp.point.pos, position))
+        return wp;
+    }
+    return undefined;
+  }
+
+  public static inRange(segmentIndex: number, pointIndex: number, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number): boolean {
+    if (segmentIndex < startSegmentIndex || segmentIndex > endSegmentIndex) return false;
+    if (segmentIndex === startSegmentIndex && pointIndex < startPointIndex) return false;
+    if (segmentIndex === endSegmentIndex && pointIndex > endPointIndex) return false;
+    return true;
+  }
+
 
 }

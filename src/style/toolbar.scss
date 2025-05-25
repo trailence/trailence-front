@@ -1,0 +1,123 @@
+app-toolbar {
+
+  div.toolbar-items-container {
+    display: flex;
+
+    &.align-fill {
+      justify-content: space-around;
+    }
+    &.align-left {
+      justify-content: flex-start;
+    }
+    &.align-right {
+      justify-content: flex-end;
+    }
+    &.align-center {
+      justify-content: center;
+    }
+
+    &.horizontal {
+      flex-direction: row;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    &.vertical {
+      flex-direction: column;
+    }
+
+    div.toolbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 5px;
+      padding-left: var(--item-padding-left, '0');
+      padding-right: var(--item-padding-right, '0');
+      padding-top: var(--item-padding-top, '0');
+      padding-bottom: var(--item-padding-bottom, '0');
+      min-width: var(--item-min-width, var(--item-fixed-width, ''));
+      max-width: var(--item-max-width, var(--item-fixed-width, ''));
+      position: relative;
+
+      &:not(.disabled) {
+        cursor: pointer;
+      }
+
+      ion-icon {
+        flex: none;
+      }
+      ion-label {
+        margin-top: 2px;
+        flex: 1 1 100%;
+        text-align: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+      }
+
+      ion-badge {
+        position: absolute;
+        right: 0;
+        top: 0;
+        --background: rgba(var(--ion-color-success-rgb), 0.75);
+      }
+
+      &:hover:not(.disabled) {
+        background: rgba(var(--ion-text-color-rgb), 0.1);
+      }
+    }
+
+    &.horizontal div.toolbar-item + div.toolbar-item {
+      margin-left: var(--item-space, 4px);
+    }
+    &.horizontal div.separator {
+      margin: 0 var(--separator-space, var(--item-space, 4px));
+      border-right: 1px solid rgba(var(--ion-text-color-rgb), 0.15);
+    }
+
+    &.vertical div.toolbar-item + div.toolbar-item {
+      margin-top: var(--item-space, 4px);
+    }
+    &.vertical div.separator {
+      margin: var(--separator-space, var(--item-space, 4px)) 0;
+      border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.25);
+    }
+  }
+
+}
+
+@media (max-width: 450px) {
+  app-toolbar div.toolbar-items-container.horizontal {
+    div.toolbar-item {
+      padding-left: calc(var(--item-padding-left, '0') / var(--small-size-divider, 2));
+      padding-right: calc(var(--item-padding-right, '0') / var(--small-size-divider, 2));
+      min-width: var(--item-min-width-small, var(--item-min-width, var(--item-fixed-width, '')));
+      max-width: var(--item-max-width-small, var(--item-max-width, var(--item-fixed-width, '')));
+
+      + div.toolbar-item {
+        margin-left: calc(var(--item-space, 4px) / var(--small-size-divider, 2));
+      }
+    }
+    div.separator {
+      margin: 0 calc(var(--separator-space, var(--item-space, 4px)) / var(--small-size-divider, 2));
+    }
+  }
+}
+
+@media (max-height: 400px) {
+
+  app-toolbar div.toolbar-items-container.vertical {
+    div.toolbar-item {
+      padding-top: calc(var(--item-padding-top, '0') / var(--small-size-divider, 2));
+      padding-bottom: calc(var(--item-padding-bottom, '0') / var(--small-size-divider, 2));
+
+      + div.toolbar-item {
+        margin-top: calc(var(--item-space, 4px) / var(--small-size-divider, 2));
+      }
+    }
+    div.separator {
+      margin: calc(var(--separator-space, var(--item-space, 4px)) / var(--small-size-divider, 2)) 0;
+    }
+  }
+
+}

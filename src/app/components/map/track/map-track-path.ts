@@ -10,6 +10,7 @@ export class MapTrackPath {
     private readonly _track: Track | SimplifiedTrackSnapshot,
     private _color: string,
     private readonly _smoothFactor: number,
+    private readonly _weight: number = 3,
     private readonly fromTrack: any, // this will be the MapTrack, but any avoids circular reference
   ) {}
 
@@ -25,6 +26,7 @@ export class MapTrackPath {
         smoothFactor: this._smoothFactor,
         interactive: true,
         className: 'track-path',
+        weight: this._weight,
       });
       this._path.on('click', e => {
         (e.originalEvent as any).fromTrack = this.fromTrack; // NOSONAR

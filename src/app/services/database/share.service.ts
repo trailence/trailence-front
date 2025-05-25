@@ -11,7 +11,7 @@ import { TrailCollectionService } from './trail-collection.service';
 import { TagService } from './tag.service';
 import { AuthService } from '../auth/auth.service';
 import { TrailService } from './trail.service';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import Dexie from 'dexie';
@@ -76,7 +76,7 @@ export class ShareService {
     const menu: MenuItem[] = [];
     if (share.owner === this.injector.get(AuthService).email)
       menu.push(new MenuItem().setIcon('edit').setI18nLabel('buttons.edit').setAction(() => this.sharePopup(share)))
-    menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger').setAction(() => this.confirmDelete(share)));
+    menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger').setAction(() => this.confirmDelete(share)));
     return menu;
   }
 

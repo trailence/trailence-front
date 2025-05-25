@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { AuthService } from '../auth/auth.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
@@ -135,7 +135,7 @@ export class TrailMenuService {
             .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, collectionUuid, trails))));
         }
         menu.push(new MenuItem());
-        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setColor('danger')
+        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger')
           .setAction(() => import('../functions/delete-trails').then(m => m.confirmDeleteTrails(this.injector, trails, fromTrail))));
       }
     }

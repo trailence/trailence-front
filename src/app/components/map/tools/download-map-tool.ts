@@ -1,33 +1,23 @@
 import { Injector } from '@angular/core';
 import L from 'leaflet';
-import { MapToolUtils } from './map-tool-utils';
-import { AssetsService } from 'src/app/services/assets/assets.service';
 import { Trail } from 'src/app/model/trail';
+import { MapTool } from './tool.interface';
+import { MapComponent } from '../map.component';
+import { of } from 'rxjs';
 
-export class DownloadMapTool extends L.Control {
+export class DownloadMapTool extends MapTool {
 
   constructor(
-    private readonly injector: Injector,
-    private readonly trail: Trail | undefined,
-    options?: L.ControlOptions,
+    trail: Trail | undefined,
   ) {
-    super(options);
-  }
-
-  override onAdd(map: L.Map): HTMLElement {
-    const button = MapToolUtils.createButton('download-map-tool');
-    button.style.color = map.getZoom() < 12 ? '#A0A0A0' : '#000000';
-    const assets = this.injector.get(AssetsService);
-    assets.loadSvg(assets.icons['download']).subscribe(svg => button.appendChild(svg));
-    map.on('zoom', () => {
-      button.style.color = map.getZoom() < 12 ? '#A0A0A0' : '#000000';
-    });
-    button.onclick = () => {
-      if (map.getZoom() < 12) return;
+    super();
+    this.icon = 'download';
+    this.disabled = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() < 12;
+    this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       import('../../../services/functions/map-download')
-      .then(m => m.openMapDownloadDialog(this.injector, this.trail ? [this.trail] : [], map.getBounds()));
+      .then(m => m.openMapDownloadDialog(injector, trail ? [trail] : [], map.getBounds()));
+      return of(true);
     };
-    return button;
   }
 
 }

@@ -1,9 +1,14 @@
+import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
 
 export class MenuContent extends Component {
 
+  public getItemWithText(text: string) {
+    return this.getElement().$('ion-label=' + text);
+  }
+
   public async clickItemWithText(text: string) {
-    await this.getElement().$('ion-label=' + text).click();
+    await this.getItemWithText(text).click();
   }
 
   public async clickItemWithColorAndText(color: string, text: string) {
@@ -23,8 +28,10 @@ export class MenuContent extends Component {
   }
 
   public async close() {
-    await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+    await TestUtils.retry(async () => {
+      await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
+      await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d), {timeout: 2000});
+    }, 3, 1000);
   }
 
 }

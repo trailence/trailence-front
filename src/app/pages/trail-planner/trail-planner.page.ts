@@ -26,6 +26,8 @@ import { Trails } from './trails';
 import { TrailHoverCursor } from 'src/app/components/trail/hover-cursor';
 import { ElevationGraphPointReference } from 'src/app/components/elevation-graph/elevation-graph-events';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { MenuItem } from 'src/app/components/menus/menu-item';
+import { ToolbarComponent } from 'src/app/components/menus/toolbar/toolbar.component';
 
 @Component({
     selector: 'app-trail-planner',
@@ -35,7 +37,7 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
       IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader,
       IonModal, IonLabel, IonToggle, IonIcon, IonButton,
       HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, ElevationGraphComponent,
-      TrailOverviewCondensedComponent,
+      TrailOverviewCondensedComponent, ToolbarComponent
     ]
 })
 export class TrailPlannerPage extends AbstractPage {
@@ -59,6 +61,46 @@ export class TrailPlannerPage extends AbstractPage {
   leftPaneOpen = false;
 
   hover: TrailHoverCursor;
+
+  @ViewChild('saveModal') saveModal?: IonModal;
+
+  @ViewChild('toolbar') toolbar?: ToolbarComponent;
+  tools: MenuItem[] = [
+    new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => !this.trackBuilder?.track),
+    new MenuItem(),
+    new MenuItem().setIcon('play').setI18nLabel('pages.trailplanner.start').setTextColor('success')
+      .setVisible(() => !this.trackBuilder?.track && !!this.mapState && this.mapState.zoom >= this.minZoom)
+      .setAction(() => { this.trackBuilder?.start(); this.toolbar?.refresh(); }),
+
+    new MenuItem().setIcon('location').setI18nLabel('pages.trailplanner.put_free_point')
+      .setVisible(() => !!this.trackBuilder?.track && !this.trackBuilder.putFreeAnchor)
+      .setDisabled(() => !this.trackBuilder?.putAnchors)
+      .setAction(() => { this.trackBuilder?.enableFreeAnchor(); this.toolbar?.refresh(); }),
+    new MenuItem().setIcon('location').setI18nLabel('pages.trailplanner.back_to_non_free_point')
+      .setVisible(() => !!this.trackBuilder?.track && !!this.trackBuilder.putFreeAnchor)
+      .setAction(() => { this.trackBuilder?.backToNonFreeAnchors(); this.toolbar?.refresh(); }),
+    new MenuItem().setIcon('pause').setI18nLabel('pages.trailplanner.stop').setTextColor('secondary')
+      .setVisible(() => !!this.trackBuilder?.track && (this.trackBuilder.putAnchors || this.trackBuilder.putFreeAnchor))
+      .setAction(() => { this.trackBuilder?.stop(); this.toolbar?.refresh(); }),
+    new MenuItem().setIcon('play').setI18nLabel('pages.trailplanner.resume').setTextColor('success')
+      .setVisible(() => !!this.trackBuilder?.track && !this.trackBuilder.putAnchors && !this.trackBuilder.putFreeAnchor && !!this.mapState && this.mapState.zoom >= this.minZoom)
+      .setAction(() => { this.trackBuilder?.resume(); this.toolbar?.refresh(); }),
+
+    new MenuItem(),
+    new MenuItem().setIcon('undo').setI18nLabel('pages.trailplanner.undo')
+      .setVisible(() => !!this.trackBuilder?.track)
+      .setDisabled(() => this.trackBuilder?.anchors.length === 0)
+      .setAction(() => { this.trackBuilder?.undo(); this.toolbar?.refresh(); }),
+    new MenuItem().setIcon('reset').setI18nLabel('pages.trailplanner.reset').setTextColor('danger')
+      .setVisible(() => !!this.trackBuilder?.track)
+      .setAction(() => this.reset()),
+
+    new MenuItem(),
+    new MenuItem().setIcon('save').setI18nLabel('buttons.save').setTextColor('success')
+      .setVisible(() => !!this.trackBuilder?.track)
+      .setDisabled(() => !this.trackBuilder || this.trackBuilder.anchors.length < 2)
+      .setAction(() => this.openSaveModal())
+  ];
 
   constructor(
     injector: Injector,
@@ -91,6 +133,7 @@ export class TrailPlannerPage extends AbstractPage {
           const all = [...list1, ...list2, ...list3];
           if (currentTrack) all.push(currentTrack);
           this.updateLegend();
+          this.toolbar?.refresh();
           return all;
         })
       );
@@ -108,11 +151,13 @@ export class TrailPlannerPage extends AbstractPage {
     this.trackBuilder!.reset();
     this.trailName = '';
     this.collectionUuid = undefined;
+    this.toolbar?.refresh();
+    this.map?.invalidateSize();
   }
 
-  openSaveModal(modal: IonModal): void {
+  openSaveModal(): void {
     if (!this.trackBuilder || this.trackBuilder.anchors.length < 2) return;
-    modal.present();
+    this.saveModal?.present();
   }
 
   save(): void {

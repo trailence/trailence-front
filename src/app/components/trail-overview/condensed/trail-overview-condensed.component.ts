@@ -4,7 +4,7 @@ import { TrackMetadataSnapshot } from 'src/app/services/database/track-database'
 import { IonIcon, IonButton, IonCheckbox, PopoverController } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
-import { MenuContentComponent } from '../../menu-content/menu-content.component';
+import { MenuContentComponent } from '../../menus/menu-content/menu-content.component';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';

@@ -8,8 +8,8 @@ export abstract class AppElement {
 
   public abstract _getElement(resetGetElement: boolean): ChainablePromiseElement;
 
-  public async waitDisplayed(resetGetElement: boolean = false) {
-    await browser.waitUntil(() => this.getElement(resetGetElement).isDisplayed());
+  public async waitDisplayed(resetGetElement: boolean = false, timeout: number | undefined = undefined) {
+    await browser.waitUntil(() => this.getElement(resetGetElement).isDisplayed(), {timeout});
   }
 
   public async waitExist(resetGetElement: boolean = false) {

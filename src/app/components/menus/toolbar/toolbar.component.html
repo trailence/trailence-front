@@ -1,0 +1,34 @@
+<div class="toolbar-items-container {{ direction }} align-{{ align }}"
+  [ngStyle]="styles"
+>
+  @for (item of computed.items; track item.id) {
+    @if (item.separator) {
+      <div class="separator"></div>
+    } @else if (item.item.customContentSelector) {
+      <ng-content [select]="item.item.customContentSelector"></ng-content>
+    } @else {
+      <div class="toolbar-item"
+        [ngClass]="{'disabled': item.disabled}"
+        [ngStyle]="{'background-color': item.backgroundColor?.length ? 'var(--ion-color-' + item.backgroundColor + ')' : ''}"
+        (click)="itemClick(item, $event)"
+      >
+        @if (item.icon) {
+          <ion-icon
+            [name]="item.icon"
+            [color]="item.textColor"
+            [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+          ></ion-icon>
+        }
+        @if (item.text$) {
+          <ion-label
+            [color]="item.textColor"
+            [ngStyle]="{'font-size': item.textSize ?? textSize, 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+          >{{ item.text$ | async }}</ion-label>
+        }
+        @if (item.badge) {
+          <ion-badge>{{ item.badge }}</ion-badge>
+        }
+      </div>
+    }
+  }
+</div>

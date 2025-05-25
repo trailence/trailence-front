@@ -28,8 +28,7 @@ describe('Trails list', () => {
 
   it('Import an invalid file', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/app/app.ts'));
     const modal = new ErrorsModal(await App.waitModal());
     expect(await modal.getTitle()).toBe('Error');
@@ -41,8 +40,7 @@ describe('Trails list', () => {
 
   it('Import a simple GPX file', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
@@ -68,8 +66,7 @@ describe('Trails list', () => {
 
   it('Import a GPX file with Tag 1 and Tag 2', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-002.gpx'));
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');
@@ -108,8 +105,7 @@ describe('Trails list', () => {
 
   it('Import a GPX file with Tag 2 and Tag 3', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-003.gpx'));
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');
@@ -136,8 +132,7 @@ describe('Trails list', () => {
 
   it('Import a GPX file with Tag 1 and Tag 4, but do not import Tag 4', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-004.gpx'));
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');
@@ -165,8 +160,7 @@ describe('Trails list', () => {
 
   it('Import a ZIP with 2 trails, Tag 1 and Tag 4', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-zip-001.zip'));
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');
@@ -202,8 +196,7 @@ describe('Trails list', () => {
 
   it('Import a ZIP file with 1 trail, Tag 2, and 1 photo', async () => {
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = await trailsList.getToolbarButton('add-circle');
-    await importButton.click();
+    await trailsList.toolbar.clickByIcon('add-circle');
     await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-zip-002.zip'));
     const popup = new ImportTagsPopup(await App.waitModal());
     expect(await popup.getTitle()).toBe('Import tags');

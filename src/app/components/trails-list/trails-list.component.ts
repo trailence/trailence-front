@@ -1,19 +1,18 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Trail, TrailLoopType } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
-import { IconLabelButtonComponent } from '../icon-label-button/icon-label-button.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
-  IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, PopoverController, IonSegment, IonSegmentButton, IonInput } from "@ionic/angular/standalone";
+  IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, IonSegment, IonSegmentButton, IonInput, IonSpinner } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
-import { MenuContentComponent } from '../menu-content/menu-content.component';
+import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { FilterEnum, FilterNumeric, FilterTags, NumericFilterConfig } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -27,9 +26,10 @@ import { FilterTagsComponent } from '../filters/filter-tags/filter-tags.componen
 import { List } from 'immutable';
 import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { MenuItem } from 'src/app/utils/menu-item';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { TrailOverviewCondensedComponent } from '../trail-overview/condensed/trail-overview-condensed.component';
 import { HorizontalGestureDirective } from 'src/app/utils/horizontal-gesture.directive';
+import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -101,24 +101,24 @@ interface TrailWithInfo {
     templateUrl: './trails-list.component.html',
     styleUrls: ['./trails-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [IonInput, IonList, IonSelect, IonSelectOption,
+    imports: [IonSpinner, IonInput, IonList, IonSelect, IonSelectOption,
         IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
         IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal, IonSegment, IonSegmentButton,
         CommonModule,
         TrailOverviewComponent,
         TrailOverviewCondensedComponent,
-        IconLabelButtonComponent,
         ToggleChoiceComponent,
         MenuContentComponent,
         FilterNumericComponent,
         FilterTagsComponent,
         I18nPipe,
         HorizontalGestureDirective,
+        ToolbarComponent,
     ]
 })
 export class TrailsListComponent extends AbstractComponent {
 
-  @Input() trails: List<Trail> = List();
+  @Input() trails?: List<Trail>;
   @Input() collectionUuid?: string;
   @Input() listType?: string;
 
@@ -140,13 +140,20 @@ export class TrailsListComponent extends AbstractComponent {
   allTrails: TrailWithInfo[] = [];
   mapTrails: TrailWithInfo[] = [];
   listTrails: List<TrailWithInfo> = List();
-  moreMenu: MenuItem[] = [];
   searchOpen = false;
 
   durationFormatter = (value: number) => this.i18n.hoursToString(value);
   isPositive = (value: any) => typeof value === 'number' && value > 0;
 
   loopTypes = Object.values(TrailLoopType);
+
+  toolbar: MenuItem[] = [];
+  emptyListTools = [
+    new MenuItem().setIcon('add-circle').setI18nLabel('tools.import').setAction(() => this.import())
+  ];
+
+  @ViewChild('sortModal') sortModal?: IonModal;
+  @ViewChild('filtersModal') filtersModal?: IonModal;
 
   constructor(
     injector: Injector,
@@ -219,24 +226,45 @@ export class TrailsListComponent extends AbstractComponent {
     if (newState?.collectionUuid !== previousState?.collectionUuid)
       this.loadState();
 
-    this.moreMenu = this.trailMenuService.getTrailsMenu(this.trails.toArray(), false, this.collectionUuid, true);
-    // remove import as it is on the toolbar
+    new MenuItem().setIcon('add-circle').setI18nLabel('tools.import').setAction(() => {}),
+    new MenuItem().setIcon('share').setI18nLabel('tools.share').setAction(() => {}),
+
+    this.toolbar = this.trailMenuService.getTrailsMenu(this.trails?.toArray() ?? [], false, this.collectionUuid, true);
+    this.toolbar.splice(0, 0,
+      new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
+        .setAction(() => this.sortModal?.present()),
+      new MenuItem().setIcon('filters').setI18nLabel('tools.filters')
+        .setAction(() => this.filtersModal?.present())
+        .setBadge(() => {
+          const nb = this.nbActiveFilters();
+          if (nb === 0) return undefined;
+          return '' + nb;
+        }),
+    );
+
+    // put import after filters on the toolbar
     if (this.size !== 'small') {
-      let index = this.moreMenu.findIndex(a => a.i18nLabel === 'tools.import');
-      if (index >= 0) this.moreMenu.splice(index, 1);
+      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.import');
+      if (index >= 0) {
+        const items = this.toolbar.splice(index, 1);
+        this.toolbar.splice(2, 0, items[0]);
+      }
     }
-    // remove share as it is on the toolbar
+    // put share on the toolbar
     if (this.size === 'large') {
-      let index = this.moreMenu.findIndex(a => a.i18nLabel === 'tools.share');
-      if (index >= 0) this.moreMenu.splice(index - 1, 2); // 2 because it has a separator before
+      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.share');
+      if (index >= 0) {
+        const items = this.toolbar.splice(index - 1, 2); // 2 because it has a separator before
+        this.toolbar.splice(3, 0, items[1]);
+      }
     }
 
     // if no active filter, we can early emit the list of trails to the map
-    if (!this.trails.isEmpty() && this.nbActiveFilters() === 0)
+    if (this.trails && !this.trails.isEmpty() && this.nbActiveFilters() === 0)
       this.mapFilteredTrails.emit(this.trails.toArray());
 
     this.byStateAndVisible.subscribe(
-      this.trails.isEmpty() ? of([]) : combineLatest(
+      (!this.trails || this.trails.isEmpty()) ? of([]) : combineLatest(
         this.trails.map(
           trail => combineLatest([
             trail.currentTrackUuid$.pipe(
@@ -292,9 +320,11 @@ export class TrailsListComponent extends AbstractComponent {
         if (state === previous && mapCenter === previousMapCenter && mapZoom === previousMapZoom) return;
         if (state.filters !== previous.filters || mapCenter !== previousMapCenter || mapZoom !== previousMapZoom) {
           this.applySort(this.applyFilters());
+          this.toolbar = [...this.toolbar];
           this.changeDetector.detectChanges();
         } else if (state.sortAsc !== previous.sortAsc || state.sortBy !== previous.sortBy) {
           this.applySort(this.listTrails);
+          this.toolbar = [...this.toolbar];
           this.changeDetector.detectChanges();
         }
         previous = state;
@@ -616,21 +646,6 @@ export class TrailsListComponent extends AbstractComponent {
 
   share(): void {
     import('../share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, this.collectionUuid!, []));
-  }
-
-  showMoreMenu(event: any): void {
-    this.injector.get(PopoverController).create({
-      component: MenuContentComponent,
-      componentProps: {
-        menu: this.moreMenu
-      },
-      event: event,
-      side: 'bottom',
-      dismissOnSelect: true,
-      arrow: true,
-    }).then(p => {
-      p.present();
-    });
   }
 
   removeFromList(trailWithInfo: TrailWithInfo): void {
