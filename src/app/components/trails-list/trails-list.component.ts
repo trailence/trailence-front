@@ -30,6 +30,7 @@ import { MenuItem } from 'src/app/components/menus/menu-item';
 import { TrailOverviewCondensedComponent } from '../trail-overview/condensed/trail-overview-condensed.component';
 import { HorizontalGestureDirective } from 'src/app/utils/horizontal-gesture.directive';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
+import { HighlightService } from 'src/app/services/highlight/highlight.service';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -166,6 +167,7 @@ export class TrailsListComponent extends AbstractComponent {
     private readonly tagService: TagService,
     private readonly authService:AuthService,
     componentElement: ElementRef,
+    private readonly highlightService: HighlightService,
   ) {
     super(injector);
     changeDetector.detach();
@@ -225,9 +227,6 @@ export class TrailsListComponent extends AbstractComponent {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState?.collectionUuid !== previousState?.collectionUuid)
       this.loadState();
-
-    new MenuItem().setIcon('add-circle').setI18nLabel('tools.import').setAction(() => {}),
-    new MenuItem().setIcon('share').setI18nLabel('tools.share').setAction(() => {}),
 
     this.toolbar = this.trailMenuService.getTrailsMenu(this.trails?.toArray() ?? [], false, this.collectionUuid, true);
     this.toolbar.splice(0, 0,
@@ -339,6 +338,10 @@ export class TrailsListComponent extends AbstractComponent {
     if (changes['message']) this.changeDetector.detectChanges();
   }
 
+  protected override destroyComponent(): void {
+    this.clearHighlights();
+  }
+
   private applyFilters(): TrailWithInfo[] {
     const filters = this.state$.value.filters;
     const distanceConverter = this.preferences.preferences.distanceUnit === 'METERS' ? 1000 : 5280;
@@ -348,11 +351,16 @@ export class TrailsListComponent extends AbstractComponent {
     const maxPosEle = filters.positiveElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.to);
     const minNegEle = filters.negativeElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from);
     const maxNegEle = filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to);
+    this.clearHighlights();
+    const searchTextRanges = new Map<string, {length: number, name: number, location: number}>();
     this.mapTrails = this.allTrails.filter(
       t => { // NOSONAR
         if (filters.search.trim().length > 0) {
           const s = filters.search.trim().toLowerCase();
-          if (t.trail.name.toLowerCase().indexOf(s) < 0 && t.trail.location.toLowerCase().indexOf(s) < 0) return false;
+          const inName = t.trail.name.toLowerCase().indexOf(s);
+          const inLocation = t.trail.location.toLowerCase().indexOf(s);
+          if (inName < 0 && inLocation < 0) return false;
+          searchTextRanges.set(t.trail.uuid + '-' + t.trail.owner, {length: s.length, name: inName, location: inLocation});
         }
         if (filters.duration.from !== undefined || filters.duration.to !== undefined) {
           let duration = t.track?.duration;
@@ -390,6 +398,7 @@ export class TrailsListComponent extends AbstractComponent {
         return true;
       }
     );
+    this.refreshHighlights(searchTextRanges);
     const mapBounds = this.map?.getBounds();
     this.mapFilteredTrails.emit(this.mapTrails.map(t => t.trail));
     if (filters.onlyVisibleOnMap && mapBounds) {
@@ -682,6 +691,47 @@ export class TrailsListComponent extends AbstractComponent {
       ...this.state$.value,
       filters: { ...this.state$.value.filters, search: '' }
     });
+  }
+
+  private highlightRanges: Range[] = [];
+  private clearHighlights(): void {
+    for (const r of this.highlightRanges) this.highlightService.removeSearchText(r);
+    this.highlightRanges = [];
+  }
+
+  private highlightTimeout: any;
+  private refreshHighlights(ranges: Map<string, {length: number, name: number, location: number}>): void {
+    if (this.highlightTimeout) clearTimeout(this.highlightTimeout);
+    this.highlightTimeout = setTimeout(() => {
+      this.clearHighlights();
+      console.log(ranges);
+      ranges.forEach((pos, key) => {
+        const trailElement = document.getElementById('trail-list-' + this.id + '-trail-' + key);
+        if (!trailElement) return;
+        if (pos.name >= 0) {
+          const trailName = trailElement.getElementsByClassName('trail-name');
+          if (trailName.length > 0) {
+            const element = trailName.item(0)!.firstChild!;
+            const range = new Range();
+            range.setStart(element, pos.name);
+            range.setEnd(element, pos.name + pos.length);
+            this.highlightRanges.push(range);
+            this.highlightService.addSearchText(range);
+          }
+        }
+        if (pos.location >= 0) {
+          const trailLocation = trailElement.getElementsByClassName('trail-location');
+          if (trailLocation.length > 0) {
+            const element = trailLocation.item(0)!.firstChild!;
+            const range = new Range();
+            range.setStart(element, pos.location);
+            range.setEnd(element, pos.location + pos.length);
+            this.highlightRanges.push(range);
+            this.highlightService.addSearchText(range);
+          }
+        }
+      });
+    }, 0);
   }
 
 }

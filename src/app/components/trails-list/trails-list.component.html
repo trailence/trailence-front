@@ -99,7 +99,7 @@
     }
   }
 </div>
-<div class="search-container" [ngClass]="{'open': searchOpen}" *ngIf="listTrails.size > 0">
+<div class="search-container" [ngClass]="{'open': searchOpen}" *ngIf="trails?.size">
   <div class="search-bar">
     <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
       [value]="state$.value.filters.search"

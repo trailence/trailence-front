@@ -123,3 +123,8 @@ ion-button a, a.inherit {
 .donation-color {
   color: var(--donation-color);
 }
+
+::highlight(search-text) {
+  background-color: #ffae00;
+  color: black;
+}
