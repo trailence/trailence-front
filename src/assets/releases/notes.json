@@ -38,5 +38,9 @@
         "Quelques améliorations et correctifs"
       ]
     }
+  },
+  "001601": {
+    "en": {"message": "Bug fix"},
+    "fr": {"message": "Correctif"}
   }
 }
