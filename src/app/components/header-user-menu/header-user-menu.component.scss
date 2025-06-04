@@ -29,6 +29,25 @@ ion-button.user-button {
     height: 18px;
     color: white;
   }
+
+  &.status-sync {
+    ion-icon {
+      background-color: yellow;
+      color: black;
+      border-radius: 9px;
+      animation: lds-dual-ring 1s linear infinite;
+    }
+  }
+  &.status-offline {
+    ion-icon {
+      color: var(--ion-color-danger);
+    }
+  }
+  &.status-duration {
+    ion-icon {
+      animation: opacity-animation 3s linear infinite;
+    }
+  }
 }
 
 .synchro {

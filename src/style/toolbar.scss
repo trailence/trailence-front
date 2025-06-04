@@ -65,6 +65,10 @@ app-toolbar {
       &:hover:not(.disabled) {
         background: rgba(var(--ion-text-color-rgb), 0.1);
       }
+
+      &.no-space {
+        --item-space: 0px;
+      }
     }
 
     &.horizontal div.toolbar-item + div.toolbar-item {

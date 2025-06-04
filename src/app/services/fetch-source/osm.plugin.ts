@@ -9,7 +9,7 @@ import { SearchResult } from './fetch-source.interfaces';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { HttpService } from '../http/http.service';
 import { I18nService } from '../i18n/i18n.service';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Arrays } from 'src/app/utils/arrays';
 

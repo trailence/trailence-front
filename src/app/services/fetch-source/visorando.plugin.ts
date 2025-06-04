@@ -1,7 +1,7 @@
 import { Injector, SecurityContext } from '@angular/core';
 import { XmlUtils } from 'src/app/utils/xml-utils';
 import { populateWayPointInfo, SearchResult, TrailInfo } from './fetch-source.interfaces';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';

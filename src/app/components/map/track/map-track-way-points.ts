@@ -3,7 +3,7 @@ import { MapAnchor } from '../markers/map-anchor';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { Subscription } from 'rxjs';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { Color } from 'src/app/utils/color';
 
 export const anchorBorderColor = '#d00000';

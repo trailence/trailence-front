@@ -4,7 +4,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import * as C from 'chart.js';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { getRelativePosition } from 'chart.js/helpers';
 import { _DeepPartialObject } from 'chart.js/dist/types/utils';
 import { I18nService } from 'src/app/services/i18n/i18n.service';

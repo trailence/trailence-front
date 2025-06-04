@@ -1,5 +1,5 @@
 import { Track } from 'src/app/model/track';
-import L from 'leaflet';
+import * as L from 'leaflet';
 
 export function getDistancesForAnalysis(track: Track) {
   const trackDistance = track.metadata.distance;

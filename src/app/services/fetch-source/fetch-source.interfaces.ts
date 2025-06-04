@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { Trail } from 'src/app/model/trail';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
 import { ComputedWayPoint, Track } from 'src/app/model/track';

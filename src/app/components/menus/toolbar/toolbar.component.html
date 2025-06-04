@@ -7,7 +7,7 @@
     } @else if (item.item.customContentSelector) {
       <ng-content [select]="item.item.customContentSelector"></ng-content>
     } @else {
-      <div class="toolbar-item"
+      <div class="toolbar-item {{item.cssClass}}"
         [ngClass]="{'disabled': item.disabled}"
         [ngStyle]="{'background-color': item.backgroundColor?.length ? 'var(--ion-color-' + item.backgroundColor + ')' : ''}"
         (click)="itemClick(item, $event)"

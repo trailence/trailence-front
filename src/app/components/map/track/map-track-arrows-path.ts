@@ -1,6 +1,6 @@
 import { Track } from 'src/app/model/track';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
-import L from 'leaflet';
+import * as L from 'leaflet';
 
 export class MapTrackArrowPath {
 

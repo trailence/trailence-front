@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { MapTool } from './tool.interface';
 import { MapComponent } from '../map.component';
 import { Injector } from '@angular/core';

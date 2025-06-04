@@ -23,7 +23,7 @@ export class AppMenu extends Component {
 
   public async getCollectionName(item: WebdriverIO.Element | ChainablePromiseElement) {
     const title = item.$('.item-title a');
-    return await title.getText();
+    return (await title.getText()).trim();
   }
 
   public async getCollections(): Promise<string[]> {
@@ -89,7 +89,7 @@ export class AppMenu extends Component {
     const items = section.$$('.menu-item');
     const shares: string[][] = [];
     for (const item of await items.getElements()) {
-      const name = await item.$('.item-title').getText();
+      const name = (await item.$('.item-title a').getText()).trim();
       const email = await item.$('.item-sub-title').getText();
       shares.push([name, email]);
     }
@@ -100,7 +100,7 @@ export class AppMenu extends Component {
     await this.openShareSection(section);
     const items = section.$$('.menu-item');
     for (const item of await items.getElements()) {
-      const name = await item.$('.item-title').getText();
+      const name = (await item.$('.item-title a').getText()).trim();
       if (name === shareName) {
         const menuButton = new IonicButton(item.$('.item-title ion-button'));
         await menuButton.click();

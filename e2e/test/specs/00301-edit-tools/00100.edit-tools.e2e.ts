@@ -1,7 +1,6 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { EditTools } from '../../components/edit-tools.component';
-import { IonicButton } from '../../components/ionic/ion-button';
 import { MapComponent } from '../../components/map.component';
 import { ChainablePromiseElement} from 'webdriverio';
 import { TestUtils } from '../../utils/test-utils';
@@ -33,15 +32,17 @@ describe('Edit tools', () => {
   });
 
   const selectPoint = async (arrowIndex: number) => {
-    const arrow = await TestUtils.retry(async () => {
-      const elements = map.getPathsWithClass('track-arrow');
-      const arrow = elements[arrowIndex];
-      if (await arrow.isExisting()) return await arrow.getElement();
-      throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
+    return await TestUtils.retry(async () => {
+      const arrow = await TestUtils.retry(async () => {
+        const elements = map.getPathsWithClass('track-arrow');
+        const arrow = elements[arrowIndex];
+        if (await arrow.isExisting()) return await arrow.getElement();
+        throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
+      }, 2, 1000);
+      const pos = await map.getPathPosition(arrow);
+      await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
+      return await tools.waitSelectionTool();
     }, 2, 1000);
-    const pos = await map.getPathPosition(arrow);
-    await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
-    return await tools.waitSelectionTool();
   }
 
   it('Add and remove a way point', async () => {

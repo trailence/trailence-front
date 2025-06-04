@@ -31,7 +31,7 @@ import { Arrays } from 'src/app/utils/arrays';
 import { MapPhoto } from '../map/markers/map-photo';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
@@ -96,6 +96,7 @@ export class TrailComponent extends AbstractComponent {
   tagsNames1: string[] | undefined;
   tagsNames2: string[] | undefined;
   photos: Photo[] | undefined;
+  photosHavingPosition: {photos: Photo[], point: L.LatLngExpression}[] | undefined;
   elevationTrack1?: Track;
   elevationTrack2?: Track;
   elevationGraphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
@@ -188,7 +189,7 @@ export class TrailComponent extends AbstractComponent {
     this.visible$.subscribe(() => this.updateDisplay());
     setTimeout(() => this.updateDisplay(), 0);
     const showPhotoTool = new MenuItem().setIcon('photos')
-      .setVisible(() => !!this.photos?.length)
+      .setVisible(() => !!this.photosHavingPosition?.length)
       .setTextColor(() => this.showPhotos$.value ? 'light' : 'dark')
       .setBackgroundColor(() => this.showPhotos$.value ? 'dark' : '')
       .setAction(() => {
@@ -474,7 +475,8 @@ export class TrailComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$, this.trail2$ ?? of(null), this.showPhotos$]).pipe(
         switchMap(([trail1, trail2, showPhotos]) => {
-          if (!trail1 || trail2 || !showPhotos) return of([]);
+          this.photosHavingPosition = undefined;
+          if (!trail1 || trail2) return of([]);
           return this.photoService.getTrailPhotos(trail1).pipe(
             switchMap(photos => {
               const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
@@ -504,7 +506,8 @@ export class TrailComponent extends AbstractComponent {
               return photosWithPoint;
             }),
             switchMap(photosWithPoint => {
-              if (photosWithPoint.length === 0) return of([]);
+              this.photosHavingPosition = photosWithPoint;
+              if (photosWithPoint.length === 0 || !showPhotos) return of([]);
               const markers$: Observable<{key: string, marker: L.Marker, alreadyOnMap: boolean}>[] = [];
               photosByKey.clear();
               for (const p of photosWithPoint) {
@@ -980,7 +983,7 @@ export class TrailComponent extends AbstractComponent {
       setTimeout(() => {
         this.elevationGraph?.resetChart();
         this.map?.invalidateSize();
-      }, 0);
+      }, 500);
     }
     this.changesDetector.detectChanges();
   }

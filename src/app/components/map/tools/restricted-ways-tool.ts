@@ -1,5 +1,5 @@
 import { Injector } from '@angular/core';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { MapAdditionsService } from 'src/app/services/map/map-additions.service';
 import { WayPermission } from 'src/app/services/geolocation/way';
 import { I18nService } from 'src/app/services/i18n/i18n.service';

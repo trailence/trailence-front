@@ -24,7 +24,9 @@
     "instrument": "nyc instrument www/browser www/browser --exclude-after-remap=false --complete-copy --in-place --exclude=**/polyfills*.js --exclude=**/scripts*.js --exclude=**/swipe-back*.js --exclude=**/shadow-css*.js --exclude=**/jszip*.js --exclude=**/ios.transition*.js --exclude=**/md.transition*.js --exclude=**/input-shims*.js --exclude=**/hardward-back-button*.js --exclude=**/focus-visible*.js --exclude=**/keyboard2*.js --exclude=**/status-tap*.js",
     "analyze-bundle": "ng build --configuration=analyze-bundle --progress=false --stats-json > build.output && node ./scripts/extract-initial-bundle.js ./build.output",
     "generate-public-pages": "cd scripts && node --import=tsx generate-public-pages.ts && cd ..",
-    "generate-local-nginx": "cd docker/local && node --import=tsx generate-local-nginx.ts && cd ../.."
+    "generate-local-nginx": "cd docker/local && node --import=tsx generate-local-nginx.ts && cd ../..",
+    "make-leaflet-esm": "node ./scripts/make-leaflet-esm.js",
+    "postinstall": "node ./scripts/make-leaflet-esm.js"
   },
   "license": "Apache-2.0",
   "private": true,

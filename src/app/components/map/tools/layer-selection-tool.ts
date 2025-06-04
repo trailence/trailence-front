@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { Injector } from '@angular/core';
 import { ModalController } from '@ionic/angular/standalone';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';

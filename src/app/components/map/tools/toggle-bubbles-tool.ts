@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { BehaviorSubject, of } from 'rxjs';
 import { Injector } from '@angular/core';
 import { MapTool } from './tool.interface';

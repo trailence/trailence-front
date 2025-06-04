@@ -60,8 +60,9 @@ function removeUnprobablePointsBasedOnBigMovesOnShortTime(segment: Segment, poin
     for (let i = pointIndex - 3; i >= 0; --i) {
       const point = points[i];
       if (point.time === undefined) break;
+      const t = points[i + 1].time;
+      if (t === undefined || latestPoint.time - t > 15000) break;
       if (point.distanceTo(latestPoint.pos) <= 20) {
-        if (latestPoint.time - points[i + 1].time! > 15000) break;
         // remove points between i + 1 and the latest
         segment.removeMany(points.slice(i + 1, pointIndex));
         state.removedPoints(i + 1, pointIndex);

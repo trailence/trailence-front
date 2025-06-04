@@ -30,11 +30,11 @@ export class TrailSelection {
     this._mapAnchorSubscription = combineLatest([map$, this.selection$])
     .subscribe(([map, sel]) => {
       if (!map) return;
-      if (!sel || sel.length !== 1 || !(sel[0] instanceof PointReference)) {
-        map.removeFromMap(this.selectedPointAnchor.marker);
-      } else {
+      if (sel && sel.length > 0 && (sel[0] instanceof PointReference)) {
         this.selectedPointAnchor.marker.setLatLng(sel[0].point.pos);
         map.addToMap(this.selectedPointAnchor.marker);
+      } else {
+        map.removeFromMap(this.selectedPointAnchor.marker);
       }
     })
   }

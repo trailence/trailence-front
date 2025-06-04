@@ -3,7 +3,7 @@ import { SimpleStore } from './simple-store';
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
 import { Share } from 'src/app/model/share';
 import { DatabaseService, SHARE_TABLE_NAME } from './database.service';
-import { combineLatest, EMPTY, map, Observable, of, tap, zip } from 'rxjs';
+import { combineLatest, EMPTY, map, Observable, of, switchMap, tap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
@@ -18,6 +18,7 @@ import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { QuotaService } from '../auth/quota.service';
 import { Arrays } from 'src/app/utils/arrays';
+import { Trail } from 'src/app/model/trail';
 
 @Injectable({
   providedIn: 'root'
@@ -132,6 +133,38 @@ export class ShareService {
     this._store.triggerSyncFromServer();
   }
 
+  public getTrailsByShare(shares: Share[]): Observable<Map<Share, Trail[]>> {
+    return this.injector.get(AuthService).auth$.pipe(
+      switchMap(auth => {
+        if (!auth) return of(new Map<Share, Trail[]>());
+        const user = auth.email;
+        const needTags = !!shares.find(s => s.owner === user && s.type === ShareElementType.TAG);
+        return combineLatest([
+          this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items()),
+          needTags ? this.injector.get(TagService).getAllTrailsTags$().pipe(collection$items()) : of([]),
+        ]).pipe(
+          map(([trails, tags]) => {
+            const result = new Map<Share, Trail[]>();
+            shares.forEach(share => {
+              if (share.owner === user) {
+                if (share.type === ShareElementType.TRAIL)
+                  result.set(share, trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.uuid) >= 0));
+                else if (share.type === ShareElementType.COLLECTION)
+                  result.set(share, trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.collectionUuid) >= 0));
+                else {
+                  const tagsUuids = tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid);
+                  result.set(share, trails.filter(trail => trail.owner === share.owner && tagsUuids.indexOf(trail.uuid) >= 0));
+                }
+              } else {
+                result.set(share, trails.filter(trail => trail.owner === share.owner && share.trails.indexOf(trail.uuid) >= 0));
+              }
+            });
+            return result;
+          })
+        );
+      })
+    );
+  }
 }
 
 class ShareStore extends SimpleStore<ShareDto, Share> {

@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { first } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { NetworkService } from 'src/app/services/network/network.service';

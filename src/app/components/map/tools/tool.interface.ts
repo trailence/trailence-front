@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { MapComponent } from '../map.component';
 import { Injector } from '@angular/core';
-import L from 'leaflet';
+import * as L from 'leaflet';
 
 export abstract class MapTool {
 

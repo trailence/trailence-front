@@ -1,5 +1,5 @@
 import { Injectable, Injector } from "@angular/core";
-import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, tap, throwError } from "rxjs";
+import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty, first, map, of, switchMap, tap, throwError, timeout } from "rxjs";
 import { TrailCollection } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { TrailCollectionDto, TrailCollectionType } from "src/app/model/dto/trail-collection";
@@ -22,6 +22,7 @@ import { PreferencesService } from '../preferences/preferences.service';
 import { QuotaService } from '../auth/quota.service';
 import { ShareService } from './share.service';
 import { AuthService } from '../auth/auth.service';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
     providedIn: 'root'
@@ -80,12 +81,18 @@ export class TrailCollectionService {
   }
 
   public delete(collection: TrailCollection, progress: Progress): void {
+    this.injector.get(DatabaseService).pauseSync();
     progress.workAmount = 100 + 1000 + 1;
-    this.injector.get(TagService).deleteAllTagsFromCollection(collection.uuid, collection.owner, progress, 100).subscribe(() => {
-      this.injector.get(TrailService).deleteAllTrailsFromCollection(collection.uuid, collection.owner, progress, 1000).subscribe(() => {
+    this.injector.get(TagService).deleteAllTagsFromCollection(collection.uuid, collection.owner, progress, 100)
+    .pipe(defaultIfEmpty(false), timeout(15000), catchError(e => { Console.error('Error deleting tags', e); return of(false); }))
+    .subscribe(() => {
+      this.injector.get(TrailService).deleteAllTrailsFromCollection(collection.uuid, collection.owner, progress, 1000)
+      .pipe(defaultIfEmpty(false), timeout(30000), catchError(e => { Console.error('Error deleting trails', e); return of(false); }))
+      .subscribe(() => {
         this._store.delete(collection);
         progress.addWorkDone(1);
         progress.done();
+        this.injector.get(DatabaseService).resumeSync();
       });
     });
   }

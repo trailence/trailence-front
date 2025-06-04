@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, switchMap, tap, timer, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { Arrays } from 'src/app/utils/arrays';
 import { Place } from './place';
 import { Way, WayPermission } from './way';

@@ -1,6 +1,6 @@
 import { Track } from 'src/app/model/track';
 import { buildClosePointsFromTrack, getDistancesForAnalysis } from './build-close-points';
-import L from 'leaflet';
+import * as L from 'leaflet';
 
 export function estimateSimilarity(track1: Track, track2: Track): number {
   const bounds1 = track1.metadata.bounds;

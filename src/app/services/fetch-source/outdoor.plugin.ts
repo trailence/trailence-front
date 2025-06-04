@@ -6,7 +6,7 @@ import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { catchError, firstValueFrom, from, map, merge, Observable, of, switchMap, zip } from 'rxjs';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { TrackMetadataSnapshot } from '../database/track-database';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';

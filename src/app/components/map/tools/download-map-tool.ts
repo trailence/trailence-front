@@ -1,5 +1,5 @@
 import { Injector } from '@angular/core';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { Trail } from 'src/app/model/trail';
 import { MapTool } from './tool.interface';
 import { MapComponent } from '../map.component';

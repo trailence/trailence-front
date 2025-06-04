@@ -108,6 +108,7 @@ function adjustLongBreakDetected(segment: Segment, segmentIndex: number, maxDist
       bestDiff = diff;
     }
   }
+  let realBestPoint = bestPoint;
   if (bestDiff === undefined) bestPoint = startIndex + Math.floor((endIndex - startIndex) / 2);
   else if (bestPoint > startIndex) bestPoint--;
 
@@ -146,5 +147,5 @@ function adjustLongBreakDetected(segment: Segment, segmentIndex: number, maxDist
   }
   if (i >= bestPoint) endIndex = i;
 
-  return {segmentIndex, startIndex, endIndex, pointIndex: bestPoint};
+  return {segmentIndex, startIndex, endIndex, pointIndex: realBestPoint};
 }

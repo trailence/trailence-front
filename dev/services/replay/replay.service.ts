@@ -82,11 +82,11 @@ export class ReplayService {
         toJSON: function() {},
       });
       pointIndex++;
-      setTimeout(() => sendNextPoint(success, error), 150);
+      setTimeout(() => sendNextPoint(success, error), (pointIndex % 10) == 0 ? 150 : 50);
     };
 
     window.navigator.geolocation.watchPosition = function(success, error) {
-      setTimeout(() => sendNextPoint(success, error), 5000);
+      setTimeout(() => sendNextPoint(success, error), 2500);
       return 1;
     };
 

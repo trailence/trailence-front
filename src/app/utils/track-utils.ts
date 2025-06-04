@@ -1,5 +1,5 @@
 import { Point, PointDescriptor, samePositionRound } from '../model/point';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { ComputedWayPoint, Track } from '../model/track';
 import { Segment } from '../model/segment';
 import { PreferencesService } from '../services/preferences/preferences.service';

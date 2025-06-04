@@ -26,6 +26,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   status?: string;
   lastSync?: number;
   hasLocalChanges = false;
+  icon = 'duration';
 
   id: string;
   loggingOut = false;
@@ -66,6 +67,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
       ([s, localChanges, lastSync, auth]) => {
         this.status = s;
         this.hasLocalChanges = localChanges;
+        this.icon = s === 'online' && localChanges ? 'duration' : s;
         this.lastSync = lastSync;
         const email = auth?.email;
         this.userLetter = email ? email.substring(0, 1) : '';

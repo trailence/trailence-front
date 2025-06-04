@@ -21,7 +21,7 @@ import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AuthResponse } from 'src/app/services/auth/auth-response';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -146,35 +146,9 @@ export class TrailsPage extends AbstractPage {
             () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
             () => this.injector.get(ShareService).getShare$(shareId, sharedBy),
           );
-          if (share.owner === this.injector.get(AuthService).email) {
-            if (share.type === ShareElementType.TRAIL)
-              return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-                collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.uuid) >= 0)),
-                map(trails => ({share, trails}))
-              );
-            if (share.type === ShareElementType.COLLECTION)
-              return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-                collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.collectionUuid) >= 0)),
-                map(trails => ({share, trails}))
-              );
-            return this.injector.get(TagService).getAllTrailsTags$().pipe(
-              collection$items(),
-              map(tags => tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid)),
-              switchMap(uuids => this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-                collection$items(),
-                map(trails => trails.filter(trail => trail.owner === share.owner && uuids.indexOf(trail.uuid) >= 0)),
-                map(trails => ({share, trails}))
-              ))
-            )
-          } else {
-            return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-              collection$items(),
-              map(trails => trails.filter(trail => trail.owner === share.owner && share.trails.indexOf(trail.uuid) >= 0)),
-              map(trails => ({share, trails}))
-            );
-          }
+          return this.injector.get(ShareService).getTrailsByShare([share]).pipe(
+            map(result => ({share, trails: result.get(share) ?? []}))
+          );
         })
       ), (result: {share: Share, trails: Trail[]}) => {
         this.ngZone.run(() => {

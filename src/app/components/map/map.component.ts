@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector,
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, first, map, of, switchMap } from 'rxjs';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
 import { MapTrack } from './track/map-track';
@@ -545,7 +545,10 @@ export class MapComponent extends AbstractComponent {
       zoom: this._mapState.zoom,
       layers: [layer.create()],
       zoomControl: false,
+      //zoomSnap: 0.5,
+      //zoomDelta: 1,
     });
+    map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
 
     map.on('resize', () => this.mapChanged(map));
     map.on('move', e => {
@@ -743,8 +746,8 @@ export class MapComponent extends AbstractComponent {
   leftToolsItems: MenuItem[] = [];
   defaultLeftToolsItems: MenuItem[] = [
     this.toMenuItem(new ZoomInTool()),
-    this.toMenuItem(new ZoomLevelTool()).setTextSize('11px'),
-    this.toMenuItem(new ZoomOutTool()),
+    this.toMenuItem(new ZoomLevelTool()).setTextSize('11px').setCssClass('no-space'),
+    this.toMenuItem(new ZoomOutTool()).setCssClass('no-space'),
     new MenuItem(),
     this.toMenuItem(new MapFitBoundsTool()),
     new MenuItem(),

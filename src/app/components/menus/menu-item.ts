@@ -19,6 +19,7 @@ export class MenuItem {
   public visible?: boolean | (() => boolean);
   public badge?: string | (() => string | undefined);
   public customContentSelector?: string;
+  public cssClass?: string | (() => string | undefined);
 
   public setIcon(icon?: string | (() => string | undefined)): this {
     this.icon = icon;
@@ -47,6 +48,11 @@ export class MenuItem {
 
   public setTextColor(color?: string | (() => string | undefined)): this {
     this.textColor = color;
+    return this;
+  }
+
+  public setCssClass(css?: string | (() => string | undefined)): this {
+    this.cssClass = css;
     return this;
   }
 
@@ -146,6 +152,11 @@ export class MenuItem {
   public getTextSize(): string | undefined {
     if (typeof this.textSize === 'function') return this.textSize();
     return this.textSize;
+  }
+
+  public getCssClass(): string | undefined {
+    if (typeof this.cssClass === 'function') return this.cssClass();
+    return this.cssClass;
   }
 
 }
@@ -338,6 +349,7 @@ export class ComputedMenuItem {
   public sectionTitle: boolean = false;
   public onlyText = false;
   public onlyIcon = false;
+  public cssClass: string = '';
 
   private i18nKey?: string;
   private fixedLabel?: string;
@@ -388,6 +400,7 @@ export class ComputedMenuItem {
     changed = this.setValue(this.onlyText, this.icon === undefined, v => this.onlyText = v) || changed;
     changed = this.setValue(this.onlyIcon, !!this.icon && (!this.item.label || !this.item.i18nLabel), v => this.onlyIcon = v) || changed;
     changed = this.setValue(this.textSize, this.item.getTextSize(), v => this.textSize = v) || changed;
+    changed = this.setValue(this.cssClass, this.item.getCssClass(), v => this.cssClass = v ?? '') || changed;
     if (this.item.action || this.separator || (!this.item.children && !this.item.childrenProvider)) {
       changed = this.setValue(this.clickable, !!this.item.action, v => this.clickable = v) || changed;
     }

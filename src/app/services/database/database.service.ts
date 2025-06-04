@@ -239,7 +239,8 @@ export class DatabaseService {
         if (syncAgain) {
           Console.info(store.name + ' needs to sync again to complete');
           registered.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
-          store.fireSyncStatus();
+          registered.syncTimeoutDate = Date.now() + 2000;
+          registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), 2000);
         }
       });
     });

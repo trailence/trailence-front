@@ -1,5 +1,5 @@
 import { Injector } from '@angular/core';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { MapTool } from './tool.interface';
 import { Observable, of } from 'rxjs';

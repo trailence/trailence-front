@@ -37,7 +37,7 @@
   .version {
     font-size: 12px;
     text-align: center;
-    color: rgba(var(--ion-color-medium-rgb), 0.75);
+    color: rgba(var(--ion-color-tertiary-rgb), 0.75);
   }
 }
 
@@ -134,7 +134,7 @@
         max-width: 100%;
         overflow: hidden;
 
-        :first-child {
+        >:first-child {
           flex: 1 1 100%;
           text-overflow: ellipsis;
           overflow: hidden;
@@ -170,4 +170,25 @@
   margin: 8px 5px 8px 0px;
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.75);
   height: 0;
+}
+
+.name-and-count {
+  display: flex;
+  flex-direction:row;
+  align-items: center;
+
+  .name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .count {
+    margin-left: 8px;
+    font-size: 10px;
+    background-color: rgba(var(--ion-color-dark-rgb), 0.2);
+    color: rgba(var(--ion-text-color-rgb), 0.66);
+    border-radius: 10px;
+    padding: 2px 4px;
+  }
+
 }

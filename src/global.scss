@@ -128,3 +128,15 @@ ion-button a, a.inherit {
   background-color: #ffae00;
   color: black;
 }
+
+@keyframes opacity-animation {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}

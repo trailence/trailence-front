@@ -4,7 +4,7 @@ import { copyPoint, Point, PointDescriptor, PointDtoMapper } from './point';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 import { WayPoint } from './way-point';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { BehaviorSubjectOnDemand } from '../utils/rxjs/behavior-subject-ondemand';
 import { Arrays } from '../utils/arrays';
 import { TypeUtils } from '../utils/type-utils';

@@ -704,7 +704,6 @@ export class TrailsListComponent extends AbstractComponent {
     if (this.highlightTimeout) clearTimeout(this.highlightTimeout);
     this.highlightTimeout = setTimeout(() => {
       this.clearHighlights();
-      console.log(ranges);
       ranges.forEach((pos, key) => {
         const trailElement = document.getElementById('trail-list-' + this.id + '-trail-' + key);
         if (!trailElement) return;

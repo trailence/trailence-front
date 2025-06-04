@@ -52,8 +52,8 @@ export class EditTools extends Component {
     return await $('div.edit-tool.selection-tool').isExisting();
   }
 
-  public async waitSelectionTool() {
-    await browser.waitUntil(() => this.isSelectionTool());
+  public async waitSelectionTool(timeout?: number) {
+    await browser.waitUntil(() => this.isSelectionTool(), {timeout});
     return new EditToolSelection($('div.edit-tool.selection-tool'));
   }
 

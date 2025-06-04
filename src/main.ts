@@ -7,6 +7,12 @@ import { routes } from './app/routes/routes';
 import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { provideHttpClient } from '@angular/common/http';
+import { Console } from './app/utils/console';
+
+window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+    Console.error('Unhandled error at ' + url + ' line ' + lineNumber + ': ', errorMsg);
+    return false;
+}
 
 if (environment.production) {
   enableProdMode();

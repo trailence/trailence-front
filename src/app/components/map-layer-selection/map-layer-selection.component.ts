@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { CommonModule } from '@angular/common';
 import { IonRadio, IonRadioGroup, IonCheckbox, IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController } from "@ionic/angular/standalone";
 import { environment } from 'src/environments/environment';

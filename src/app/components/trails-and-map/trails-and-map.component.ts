@@ -16,7 +16,7 @@ import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/services
 import { CollectionMapper } from 'src/app/utils/arrays';
 import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
-import L from 'leaflet';
+import * as L from 'leaflet';
 import { MapBubble } from '../map/bubble/map-bubble';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';

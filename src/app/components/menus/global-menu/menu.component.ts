@@ -3,7 +3,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverController } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
-import { combineLatest, map } from 'rxjs';
+import { combineLatest, concat, map, of, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
@@ -17,6 +17,8 @@ import { trailenceAppVersionName } from 'src/app/trailence-version';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TrailService } from 'src/app/services/database/trail.service';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 @Component({
     selector: 'app-menu',
@@ -31,9 +33,9 @@ export class MenuComponent {
 
   versionName = trailenceAppVersionName;
 
-  collections: List<TrailCollection> = List();
-  sharedWithMe: List<Share> = List();
-  sharedByMe: List<Share> = List();
+  collections: List<CollectionWithInfo> = List();
+  sharedWithMe: List<ShareWithInfo> = List();
+  sharedByMe: List<ShareWithInfo> = List();
 
   collectionsOpen = true;
   sharedWithMeOpen = false;
@@ -45,30 +47,70 @@ export class MenuComponent {
     public readonly i18n: I18nService,
     public readonly collectionService: TrailCollectionService,
     public readonly shareService: ShareService,
+    readonly trailService: TrailService,
     private readonly router: Router,
     public readonly menuController: MenuController,
     public readonly traceRecorder: TraceRecorderService,
-    authService: AuthService,
+    readonly authService: AuthService,
     public readonly update: UpdateService,
     public readonly fetchSourceService: FetchSourceService,
-    platform: Platform,
+    readonly platform: Platform,
     private readonly injector: Injector,
+    readonly preferences: PreferencesService,
   ) {
     collectionService.getAll$().pipe(
       collection$items(),
-      map(list => collectionService.sort(list))
+      map(list => collectionService.sort(list)),
+      switchMap(collections => {
+        const withInfo: CollectionWithInfo[] = collections.map(c => new CollectionWithInfo(c));
+        if (collections.length === 0) return of([]);
+        return concat(
+          of(withInfo),
+          trailService.getAllWhenLoaded$().pipe(
+            collection$items(),
+            map(trails => {
+              withInfo.forEach(c => c.nbTrails = 0);
+              trails.forEach(t => {
+                const c = withInfo.find(i => i.collection.uuid === t.collectionUuid && t.owner === i.collection.owner);
+                if (c) c.nbTrails!++;
+              })
+              return withInfo;
+            })
+          )
+        );
+      }),
+      debounceTimeExtended(0, 10),
     )
     .subscribe(list => this.collections = List(list));
-    combineLatest([authService.auth$, shareService.getAll$().pipe(collection$items())])
+    combineLatest([
+      authService.auth$,
+      shareService.getAll$().pipe(
+        collection$items(),
+        map(shares => {
+          shares.sort((s1,s2) => s1.name.localeCompare(s2.name, preferences.preferences.lang));
+          return shares;
+        }),
+        switchMap(shares => {
+          const withInfo: ShareWithInfo[] = shares.map(s => new ShareWithInfo(s));
+          if (shares.length === 0) return of([]);
+          return concat(
+            of(withInfo),
+            shareService.getTrailsByShare(shares).pipe(
+              map(result => {
+                withInfo.forEach(s => s.nbTrails = (result.get(s.share) ?? []).length);
+                return withInfo;
+              })
+            )
+          );
+        }),
+        debounceTimeExtended(0, 10),
+      )
+    ])
     .subscribe(([auth, shares]) => {
-      this.sharedByMe = List(shares.filter(share => share.owner === auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
-      this.sharedWithMe = List(shares.filter(share => share.owner !== auth?.email).sort((s1, s2) => this.compareShares(s1, s2)));
+      this.sharedByMe = List(shares.filter(share => share.share.owner === auth?.email));
+      this.sharedWithMe = List(shares.filter(share => share.share.owner !== auth?.email));
       this.isAdmin = !!auth?.admin && !platform.is('capacitor');
     });
-  }
-
-  private compareShares(s1: Share, s2: Share): number {
-    return s2.createdAt - s1.createdAt;
   }
 
   goTo(url: string): void {
@@ -159,5 +201,23 @@ export class MenuComponent {
       arrow: true,
     }).then(p => p.present());
   }
+
+}
+
+class CollectionWithInfo {
+
+  constructor(
+    public collection: TrailCollection,
+    public nbTrails: number | undefined = undefined
+  ) {}
+
+}
+
+class ShareWithInfo {
+
+  constructor(
+    public share: Share,
+    public nbTrails: number | undefined = undefined
+  ) {}
 
 }
