@@ -12,7 +12,7 @@
   @for (item of items; track item.index) {
     <div class="photo-item" [ngStyle]="{'left': (item.index * screenWidth - scroll) + 'px'}">
       <div class="photo-container">
-        <app-photo [maxWidth]="screenWidth" [maxHeight]="screenHeight > 300 ? screenHeight - 45 : screenHeight" [photo]="item.loaded ? item.photo : undefined"></app-photo>
+        <app-photo [maxWidth]="screenWidth" [maxHeight]="screenHeight > 300 ? screenHeight - 45 : screenHeight" [photo]="item.loaded ? item.photo : undefined" [zoomable]="zoomable"></app-photo>
       </div>
       <div class="photo-description">
         <div>{{ item.photo.description }}</div>

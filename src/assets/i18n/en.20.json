@@ -641,7 +641,9 @@
       "stop_message": "Please confirm the end of the track"
     },
     "saving": "Saving track",
-    "empty_trail": "Your track is empty, so it has not been saved"
+    "empty_trail": "Your track is empty, so it has not been saved",
+    "follow_this_trail": "Follow this trail?",
+    "follow_this_trail_confirmation": "Do you want to follow the trail {{1}} ?"
   },
   "waiting_for_gps": "Waiting for GPS signal...",
   "bytes": {

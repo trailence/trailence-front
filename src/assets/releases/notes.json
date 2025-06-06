@@ -42,5 +42,21 @@
   "001601": {
     "en": {"message": "Bug fix"},
     "fr": {"message": "Correctif"}
+  },
+  "001602": {
+    "en": {
+      "items": [
+        "Zoom on photos",
+        "Change followed trail during a trace",
+        "Some improvements and fixes"
+      ]
+    },
+    "fr": {
+      "items": [
+        "Possibilité de zoomer sur les photos",
+        "Possibilité de changer le parcours suivi pendant une trace",
+        "Quelques améliorations et correctifs"
+      ]
+    }
   }
 }

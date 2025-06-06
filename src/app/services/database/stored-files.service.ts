@@ -42,6 +42,13 @@ export class StoredFilesService {
     if (this.table) this.table.delete(this.getKey(owner, type, uuid));
   }
 
+  public deleteMany(type: string, toDelete: {owner: string, uuid: string}[]): void {
+    if (this.table && toDelete.length > 0) {
+      const keys = toDelete.map(d => this.getKey(d.owner, type, d.uuid));
+      this.table.bulkDelete(keys);
+    }
+  }
+
   private getKey(owner: string, type: string, uuid: string): string {
     return owner + '#' + type + '#' + uuid;
   }

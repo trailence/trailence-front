@@ -330,6 +330,10 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     return of(false);
   }
 
+  protected override createdLocallyCanBeRemoved(entity: Share): Observable<boolean> {
+    return of(false);
+  }
+
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
     return of(false);
   }

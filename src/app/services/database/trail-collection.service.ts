@@ -83,10 +83,10 @@ export class TrailCollectionService {
   public delete(collection: TrailCollection, progress: Progress): void {
     this.injector.get(DatabaseService).pauseSync();
     progress.workAmount = 100 + 1000 + 1;
-    this.injector.get(TagService).deleteAllTagsFromCollection(collection.uuid, collection.owner, progress, 100)
+    this.injector.get(TagService).deleteAllTagsFromCollections([{uuid: collection.uuid, owner: collection.owner}], progress, 100)
     .pipe(defaultIfEmpty(false), timeout(15000), catchError(e => { Console.error('Error deleting tags', e); return of(false); }))
     .subscribe(() => {
-      this.injector.get(TrailService).deleteAllTrailsFromCollection(collection.uuid, collection.owner, progress, 1000)
+      this.injector.get(TrailService).deleteAllTrailsFromCollections([{uuid: collection.uuid, owner: collection.owner}], progress, 1000)
       .pipe(defaultIfEmpty(false), timeout(30000), catchError(e => { Console.error('Error deleting trails', e); return of(false); }))
       .subscribe(() => {
         this._store.delete(collection);
@@ -97,9 +97,10 @@ export class TrailCollectionService {
     });
   }
 
-  propagateDelete(collection: TrailCollection): void {
-    this.injector.get(TagService).deleteAllTagsFromCollection(collection.uuid, collection.owner, undefined, 100).subscribe(() => {
-      this.injector.get(TrailService).deleteAllTrailsFromCollection(collection.uuid, collection.owner, undefined, 1000).subscribe();
+  propagateDelete(collections: TrailCollection[]): void {
+    const list = collections.map(c => ({owner: c.owner, uuid: c.uuid}));
+    this.injector.get(TagService).deleteAllTagsFromCollections(list, undefined, 100).subscribe(() => {
+      this.injector.get(TrailService).deleteAllTrailsFromCollections(list, undefined, 1000).subscribe();
     });
   }
 
@@ -232,6 +233,10 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
       return of(true);
     }
 
+    protected override createdLocallyCanBeRemoved(entity: TrailCollection): Observable<boolean> {
+      return of(false);
+    }
+
     protected override createOnServer(items: TrailCollectionDto[]): Observable<TrailCollectionDto[]> {
       return this.http.post<TrailCollectionDto[]>(environment.apiBaseUrl + '/trail-collection/v1/_bulkCreate', items).pipe(
         tap(created => this.quotaService.updateQuotas(q => q.collectionsUsed += created.length)),
@@ -254,8 +259,9 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
       );
     }
 
-    protected override deleted(item$: BehaviorSubject<TrailCollection | null> | undefined, item: TrailCollection): void {
-      this.injector.get(TrailCollectionService).propagateDelete(item);
+    protected override deleted(deleted: {item$: BehaviorSubject<TrailCollection | null> | undefined, item: TrailCollection}[]): void {
+      this.injector.get(TrailCollectionService).propagateDelete(deleted.map(d => d.item));
+      super.deleted(deleted);
     }
 
     protected override signalDeleted(deleted: { uuid: string; owner: string; }[]): void {

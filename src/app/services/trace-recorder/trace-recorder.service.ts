@@ -138,6 +138,16 @@ export class TraceRecorderService {
     });
   }
 
+  public setFollowedTrail(owner?: string, uuid?: string, trackUuid?: string): void {
+    const recording = this._recording$.value;
+    if (!recording) return;
+    recording.followingTrailUuid = uuid;
+    recording.followingTrailOwner = owner;
+    recording.followingTrackUuid = trackUuid;
+    this.save(recording);
+    this._recording$.next(recording);
+  }
+
   public pause(): void {
     const recording = this._recording$.value;
     if (!recording) return;

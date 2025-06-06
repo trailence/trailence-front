@@ -136,15 +136,18 @@ export function importGpx(injector: Injector, file: ArrayBuffer, owner: string, 
     const imported = GpxFormat.importGpx(file, owner, collectionUuid, injector.get(PreferencesService));
     if (imported.tracks.length === 1) {
       const improved = injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
-      imported.trail.currentTrackUuid = improved.uuid;
-      imported.tracks.push(improved);
+      if (!improved.isEquals(imported.tracks[0])) {
+        imported.trail.currentTrackUuid = improved.uuid;
+        imported.tracks.push(improved);
+      }
     }
     let result$: Promise<any> = Promise.resolve(true);
     injector.get(TrackEditionService).computeFinalMetadata(imported.trail, imported.tracks[imported.tracks.length - 1]);
     const dbDone = new Promise<any>(resolve => {
       const done = new CompositeOnDone(() => resolve(true));
       injector.get(TrackService).create(imported.tracks[0], done.add());
-      injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1], done.add());
+      if (imported.tracks.length > 1)
+        injector.get(TrackService).create(imported.tracks[imported.tracks.length - 1], done.add());
       injector.get(TrailService).create(imported.trail, done.add());
       done.start();
     });

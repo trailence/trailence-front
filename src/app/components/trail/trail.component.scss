@@ -56,9 +56,11 @@
       flex-direction: row;
       align-items: center;
       justify-content: center;
+      flex-wrap: wrap;
 
       ion-button:not(:first-child) {
         margin-left: 8px;
+        white-space: nowrap;
       }
     }
   }

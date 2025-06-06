@@ -5,7 +5,7 @@ import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router } from '@angular/router';
-import { combineLatest, filter, first, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, filter, first, firstValueFrom, from, Observable, of, switchMap, tap, timeout } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';
@@ -85,6 +85,17 @@ export class AppComponent {
         ).subscribe(() => this.loadServices().then(() => {}));
         setTimeout(() => this.loadServices(), 1000);
       } else {
+        combineLatest([
+          auth.auth$,
+          from(this.loadServices()).pipe(
+            timeout(10000),
+            switchMap(allDatabasesLoaded => allDatabasesLoaded()),
+            catchError(e => {
+              Console.error('Error loading services', e);
+              return of(true);
+            })
+          )
+        ])
         this.loadServices().then(allDatabasesLoaded => {
           combineLatest([auth.auth$, allDatabasesLoaded()]).pipe(
             filter(([a, l]) => !a || l),

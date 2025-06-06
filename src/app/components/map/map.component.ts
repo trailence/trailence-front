@@ -280,12 +280,20 @@ export class MapComponent extends AbstractComponent {
         });
         toRemove.forEach(track => track.remove());
         this._currentTracks = [...tracks];
-        // if the state of the map is the initial one, zoom on the tracks
-        if (tracks.length > 0 && this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) {
-          this.fitTracksBounds(map, tracks);
-        }
+        this.initMapZoom(map, tracks);
       }
     ));
+  }
+
+  private _initZoomTimestamp?: number;
+  private initMapZoom(map: L.Map, tracks: MapTrack[]): void {
+    // if the state of the map is the initial one, zoom on the tracks
+    if (tracks.length === 0) return;
+    if ((this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) || // initial state
+        (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
+      this.fitTracksBounds(map, tracks);
+      this._initZoomTimestamp = Date.now();
+    }
   }
 
   private _currentBubbles: MapBubble[] = [];

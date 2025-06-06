@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, concat, defaultIfEmpty, filter, first, from, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, filter, first, from, map, of, switchMap, tap } from 'rxjs';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
@@ -90,13 +90,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return true;
   }
 
-  protected override deleted(item$: BehaviorSubject<ENTITY | null> | undefined, item: ENTITY): void {
-    super.deleted(item$, item);
-    const createdIndex = this._createdLocally.findIndex($item => $item === item$ || $item.value === item);
-    if (createdIndex >= 0)
-      this._createdLocally.splice(createdIndex, 1);
-  }
-
   /** Called when items are deleted from the server. */
   protected signalDeleted(deleted: {uuid: string, owner: string}[]): void {
     // nothing by default
@@ -174,6 +167,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     this.injector.get(DependenciesService).operationDone(this.tableName, 'update', dtosToUpdate.map(d => d.id_owner));
     const deletedKeys: string[] = [];
     const deletedItems: BehaviorSubject<ENTITY | null>[] = [];
+    const callDeleted: {item$: BehaviorSubject<ENTITY | null>, item: ENTITY}[] = [];
     deleted.forEach(deletedItem => {
       const key = deletedItem.uuid + '#' + deletedItem.owner;
       deletedKeys.push(key);
@@ -187,10 +181,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       const item$ = this._store.value.find(item$ => item$.value?.uuid === deletedItem.uuid && item$.value?.owner === deletedItem.owner);
       if (item$) {
         deletedItems.push(item$);
-        if (item$.value)
-          this.deleted(item$, item$.value);
+        if (item$.value) callDeleted.push({item$, item: item$.value});
       }
     });
+    if (callDeleted.length > 0)
+      this.deleted(callDeleted);
     if (deleted.length > 0)
       this.signalDeleted(deleted);
     if (entitiesToAdd.length !== 0 || deletedItems.length !== 0) {
@@ -305,7 +300,19 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return ready$.pipe(
       switchMap(readyEntities => {
         const notReady = toCreate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
-        for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
+        if (notReady.length > 0) {
+          for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
+          combineLatest(notReady.map(item => this.createdLocallyCanBeRemoved(item).pipe(map(remove => ({item, remove})))))
+          .pipe(first())
+          .subscribe(result => {
+            for (const r of result) {
+              if (r.remove) {
+                const index = this._createdLocally.findIndex(c => !!c?.value && this.getKey(c.value) === this.getKey(r.item));
+                if (index >= 0) this._createdLocally.splice(index, 1);
+              }
+            }
+          });
+        }
         if (readyEntities.length === 0) {
           Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
           return of(false);

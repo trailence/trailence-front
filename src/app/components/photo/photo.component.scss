@@ -1,0 +1,8 @@
+div.photo-img-container img {
+  pointer-events: all;
+  draggable: false;
+  user-drag: none;
+  -webkit-user-drag: none;
+	-moz-user-select: none;
+  touch-action: none;
+}

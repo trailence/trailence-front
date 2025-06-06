@@ -229,7 +229,7 @@ export class PhotoService {
       if (ondone) ondone();
       return;
     }
-    this.store.deleteIf(item => !!photos.find(p => p.uuid === item.uuid), ondone);
+    this.store.deleteIf('deleted photos', item => !!photos.find(p => p.uuid === item.uuid), ondone);
   }
 
   public deleteForTrail(owner: string, trailUuid: string, ondone?: () => void): void {
@@ -391,8 +391,13 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
     );
   }
 
-  protected override deleted(item$: BehaviorSubject<Photo | null> | undefined, item: Photo): void {
-    this.files.delete(item.owner, 'photo', item.uuid);
+  protected override createdLocallyCanBeRemoved(entity: Photo): Observable<boolean> {
+    return this.trails.getTrail$(entity.trailUuid, entity.owner).pipe(map(t => !t));
+  }
+
+  protected override deleted(deleted: {item$: BehaviorSubject<Photo | null> | undefined, item: Photo}[]): void {
+    super.deleted(deleted);
+    this.files.deleteMany('photo', deleted.map(d => ({owner: d.item.owner, uuid: d.item.uuid})));
   }
 
   protected override doCleaning(email: string, db: Dexie): Observable<any> {

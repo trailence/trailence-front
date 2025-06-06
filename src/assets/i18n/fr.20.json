@@ -641,7 +641,9 @@
       "stop_message": "Veuillez confirmer la fin du parcours"
     },
     "saving": "Enregistrement du parcours",
-    "empty_trail": "Votre parcours étant vide, il n'a pas été sauvegardé"
+    "empty_trail": "Votre parcours étant vide, il n'a pas été sauvegardé",
+    "follow_this_trail": "Suivre ce parcours ?",
+    "follow_this_trail_confirmation": "Souhaitez-vous suivre le parcours {{1}} ?"
   },
   "waiting_for_gps": "En attente du signal GPS...",
   "bytes": {

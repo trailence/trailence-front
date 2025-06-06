@@ -18,6 +18,8 @@ export interface StoreSyncStatus {
     lastUpdateFromServer?: number;
 }
 
+const DEBUG_OPERATIONS = false;
+
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
   protected _db?: Dexie;
@@ -48,6 +50,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract readyToSave(entity: STORE_ITEM): boolean;
   protected abstract readyToSave$(entity: STORE_ITEM): Observable<boolean>;
+  protected abstract createdLocallyCanBeRemoved(entity: STORE_ITEM): Observable<boolean>;
 
   protected abstract isDeletedLocally(item: DB_ITEM): boolean;
   protected abstract isCreatedLocally(item: DB_ITEM): boolean;
@@ -93,6 +96,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     ).subscribe(() => {
       if (this._db === db && db)
         this.performOperation(
+          'trigger sync from server',
           () => false,
           () => of(true),
           status => {
@@ -185,6 +189,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected readonly operationsQueue$ = new BehaviorSubject<((resolve: (done: boolean) => void) => void)[]>([]);
 
   protected performOperation(
+    description: string,
     storeUpdater: () => void,
     tableUpdater: (db: Dexie) => Observable<any>,
     statusUpdater: (status: SYNCSTATUS) => boolean,
@@ -193,6 +198,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   ): void {
     const db = this._db!;
     const operationExecution = (resolve: (done: boolean) => void) => {
+      if (DEBUG_OPERATIONS) Console.debug('Operation on store ' + this.tableName + ': ' + description);
       if (this._db !== db) {
         if (oncancelled) oncancelled();
         resolve(false);
@@ -290,6 +296,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     let existing = false;
     let recovered = false;
     this.performOperation(
+      'create item',
       () => {
         existing = !!this._store.value.find(value => value.value && this.areSame(value.value, item));
         if (!existing) {
@@ -323,6 +330,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     let recoveredList: STORE_ITEM[] = [];
     let nbNew = 0;
     this.performOperation(
+      'create multiple items',
       () => {
         let storeChanged = false;
         for (const item of items) {
@@ -369,11 +377,16 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
   }
 
-  protected deleted(item$: BehaviorSubject<STORE_ITEM | null> | undefined, item: STORE_ITEM): void {
-    const key = this.getKey(item);
-    const updatedIndex = this._updatedLocally.indexOf(key);
-    if (updatedIndex >= 0)
-      this._updatedLocally.splice(updatedIndex, 1);
+  protected deleted(deleted: {item$: BehaviorSubject<STORE_ITEM | null> | undefined, item: STORE_ITEM}[]): void {
+    for (const deletedItem of deleted) {
+      const key = this.getKey(deletedItem.item);
+      const updatedIndex = this._updatedLocally.indexOf(key);
+      if (updatedIndex >= 0)
+        this._updatedLocally.splice(updatedIndex, 1);
+      const createdIndex = deletedItem.item$ ? this._createdLocally.indexOf(deletedItem.item$) : -1;
+      if (createdIndex >= 0)
+        this._createdLocally.splice(createdIndex, 1);
+    }
   }
 
   protected abstract updated(item: STORE_ITEM): void;
@@ -387,6 +400,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   public delete(item: STORE_ITEM, ondone?: () => void): void {
     this.performOperation(
+      'delete item',
       () => {
         const index = this._store.value.findIndex(item$ => item$.value && this.areSame(item$.value, item));
         const entity$ = index >= 0 ? this._store.value[index] : undefined;
@@ -401,7 +415,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         }
         if (this._deletedLocally.indexOf(item) < 0 && !createdLocally)
           this._deletedLocally.push(item);
-        this.deleted(entity$, item);
+        this.deleted([{item$: entity$, item}]);
         if (index >= 0) {
           this._store.value.splice(index, 1);
           this._store.next(this._store.value);
@@ -413,12 +427,14 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
   }
 
-  public deleteIf(predicate: (item: STORE_ITEM) => boolean, ondone?: () => void): void {
+  public deleteIf(description: string, predicate: (item: STORE_ITEM) => boolean, ondone?: () => void): void {
     let items: STORE_ITEM[] = [];
     this.performOperation(
+      'delete items if: ' + description,
       () => {
         const toDelete = this._store.value.filter(item$ => item$.value && predicate(item$.value));
         if (toDelete.length === 0) return;
+        const deleted: {item$: BehaviorSubject<STORE_ITEM | null>, item: STORE_ITEM}[] = [];
         toDelete.forEach(item$ => {
           const item = item$.value!;
           items.push(item);
@@ -427,7 +443,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           if (this._deletedLocally.indexOf(item) < 0 && created < 0)
             this._deletedLocally.push(item);
           item$.next(null);
-          this.deleted(item$, item);
+          deleted.push({item$, item});
+        });
+        this.deleted(deleted);
+        toDelete.forEach(item$ => {
           const index = this._store.value.indexOf(item$);
           if (index >= 0) this._store.value.splice(index, 1);
         });
@@ -472,6 +491,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     const key = this.getKey(item);
     this.updated(item);
     this.performOperation(
+      'update item',
       () => {
         const createdLocally = this._createdLocally.find(item$ => item$.value && this.areSame(item$.value, item));
         if (!createdLocally && this._updatedLocally.indexOf(key) < 0)
@@ -494,6 +514,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         return;
       }
       this.performOperation(
+        'database cleaning',
         () => {},
         dbo => this.doCleaning(email, dbo),
         () => false,

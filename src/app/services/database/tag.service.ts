@@ -65,7 +65,7 @@ export class TagService {
   }
 
   public delete(tag: Tag, ondone?: () => void): void {
-    this._trailTagStore.deleteIf(trailTag => trailTag.tagUuid === tag.uuid, () => {
+    this._trailTagStore.deleteIf('delete single tag', trailTag => trailTag.tagUuid === tag.uuid, () => {
       this._tagStore.delete(tag, ondone);
     });
   }
@@ -75,13 +75,13 @@ export class TagService {
       if (ondone) ondone();
       return;
     }
-    this._trailTagStore.deleteIf(trailTag => !!tags.find(t => trailTag.tagUuid === t.uuid), () => {
-      this._tagStore.deleteIf(tag => !!tags.find(t => tag.uuid === t.uuid), ondone);
+    this._trailTagStore.deleteIf('delete multiple tags', trailTag => !!tags.find(t => trailTag.tagUuid === t.uuid), () => {
+      this._tagStore.deleteIf('delete multiple tags', tag => !!tags.find(t => tag.uuid === t.uuid), ondone);
     });
   }
 
   public deleteTrailTagsForTrail(trailUuid: string, ondone?: () => void): void {
-    this._trailTagStore.deleteIf(trailTag => trailTag.trailUuid === trailUuid, ondone);
+    this._trailTagStore.deleteIf('delete single trail', trailTag => trailTag.trailUuid === trailUuid, ondone);
   }
 
   public deleteTrailTagsForTrails(trailUuids: string[], ondone?: () => void): void {
@@ -89,15 +89,15 @@ export class TagService {
       if (ondone) ondone();
       return;
     }
-    this._trailTagStore.deleteIf(trailTag => !!trailUuids.find(u => u === trailTag.trailUuid), ondone);
+    this._trailTagStore.deleteIf('delete multiple trails', trailTag => !!trailUuids.find(u => u === trailTag.trailUuid), ondone);
   }
 
-  public deleteAllTagsFromCollection(collectionUuid: string, owner: string, progress: Progress | undefined, progressWork: number): Observable<any> {
+  public deleteAllTagsFromCollections(collections: {owner: string, uuid: string}[], progress: Progress | undefined, progressWork: number): Observable<any> {
     return this._tagStore.getAll$().pipe(
       first(),
       switchMap(tags$ => tags$.length === 0 ? of([]) : zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
       switchMap(tags => {
-        const toRemove = tags.filter(tag => !!tag && tag.collectionUuid === collectionUuid && tag.owner === owner) as Tag[];
+        const toRemove = tags.filter(tag => !!tag && !!collections.find(c =>tag.collectionUuid === c.uuid && tag.owner === c.owner)) as Tag[];
         if (toRemove.length === 0) {
           progress?.addWorkDone(progressWork)
           return of(true);
@@ -229,10 +229,14 @@ class TagStore extends OwnedStore<TagDto, Tag> {
 
   protected override readyToSave$(entity: Tag): Observable<boolean> {
     const parentReady$ = entity.parentUuid ? this.getItem$(entity.parentUuid, entity.owner).pipe(map(tag => !!tag?.isSavedOnServerAndNotDeletedLocally())) : of(true);
-    const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(track => !!track?.isSavedOnServerAndNotDeletedLocally()));
+    const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
     return combineLatest([parentReady$, collectionReady$]).pipe(
       map(readiness => readiness.indexOf(false) < 0)
     );
+  }
+
+  protected override createdLocallyCanBeRemoved(entity: Tag): Observable<boolean> {
+    return this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(c => !c));
   }
 
   protected override createOnServer(items: TagDto[]): Observable<TagDto[]> {
@@ -359,6 +363,13 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
     return combineLatest([tagReady$, trailReady$]).pipe(
       map(readiness => readiness.indexOf(false) < 0)
     );
+  }
+
+  protected override createdLocallyCanBeRemoved(entity: TrailTag): Observable<boolean> {
+    return combineLatest([
+       this.tagService.getTag$(entity.tagUuid),
+       this.trailService.getTrail$(entity.trailUuid, this.auth.email!)
+    ]).pipe(map(([tag, trail]) => !tag || !trail));
   }
 
   protected override createOnServer(items: TrailTagDto[]): Observable<TrailTagDto[]> {

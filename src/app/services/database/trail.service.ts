@@ -133,25 +133,31 @@ export class TrailService {
     let photosWork = remainingProgress / 2;
     this.injector.get(PhotoService).deleteForTrails(trails, doneHandler.add(() => progress?.addWorkDone(photosWork)));
     const trailWork = remainingProgress - tagsWork - photosWork;
-    this._store.deleteIf(trail => !!trails.find(t => t.uuid === trail.uuid && t.owner === trail.owner), doneHandler.add(() => progress?.addWorkDone(trailWork)));
+    this._store.deleteIf('delete multiple trails', trail => !!trails.find(t => t.uuid === trail.uuid && t.owner === trail.owner), doneHandler.add(() => progress?.addWorkDone(trailWork)));
     doneHandler.start();
   }
 
-  propagateDelete(trail: Trail): void {
-    this.trackService.deleteByUuidAndOwner(trail.originalTrackUuid, trail.owner);
-    if (trail.currentTrackUuid !== trail.originalTrackUuid)
-      this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner);
-    if (trail.owner === this.injector.get(AuthService).email)
-      this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid);
-    this.injector.get(PhotoService).deleteForTrail(trail.owner, trail.uuid);
+  propagateDelete(trails: Trail[]): void {
+    const tracksIds: {uuid: string, owner: string}[] = [];
+    for (const trail of trails) {
+      tracksIds.push({uuid: trail.originalTrackUuid, owner: trail.owner});
+      if (trail.currentTrackUuid !== trail.originalTrackUuid)
+        tracksIds.push({uuid: trail.currentTrackUuid, owner: trail.owner});
+    }
+    this.trackService.deleteMany(tracksIds, undefined, 100);
+    const email = this.injector.get(AuthService).email;
+    const ownedTrails = trails.filter(t => t.owner === email).map(t => t.uuid);
+    if (ownedTrails.length > 0)
+      this.injector.get(TagService).deleteTrailTagsForTrails(ownedTrails);
+    this.injector.get(PhotoService).deleteForTrails(trails);
   }
 
-  public deleteAllTrailsFromCollection(collectionUuid: string, owner: string, progress: Progress | undefined, progressWork: number): Observable<any> {
+  public deleteAllTrailsFromCollections(collections: {owner: string, uuid: string}[], progress: Progress | undefined, progressWork: number): Observable<any> {
     return this._store.getAll$().pipe(
       first(),
       switchMap(trails$ => trails$.length === 0 ? of([]) : zip(trails$.map(trail$ => trail$.pipe(firstTimeout(t => !!t, 1000, () => null as Trail | null))))),
       switchMap(trail => {
-        const toRemove = trail.filter(trail => !!trail && trail.collectionUuid === collectionUuid && trail.owner === owner) as Trail[];
+        const toRemove = trail.filter(trail => !!trail && !!collections.find(c =>trail.collectionUuid === c.uuid && trail.owner === c.owner)) as Trail[];
         if (toRemove.length === 0) {
           progress?.addWorkDone(progressWork);
           return of(true);
@@ -236,6 +242,10 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     );
   }
 
+  protected override createdLocallyCanBeRemoved(entity: Trail): Observable<boolean> {
+    return this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !col));
+  }
+
   protected override createOnServer(items: TrailDto[]): Observable<TrailDto[]> {
     return this.http.post<TrailDto[]>(environment.apiBaseUrl + '/trail/v1/_bulkCreate', items).pipe(
       tap(created => this.quotaService.updateQuotas(q => q.trailsUsed += created.length)),
@@ -258,8 +268,9 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     );
   }
 
-  protected override deleted(item$: BehaviorSubject<Trail | null> | undefined, item: Trail): void {
-    this.injector.get(TrailService).propagateDelete(item);
+  protected override deleted(deleted: {item$: BehaviorSubject<Trail | null> | undefined, item: Trail}[]): void {
+    this.injector.get(TrailService).propagateDelete(deleted.map(d => d.item));
+    super.deleted(deleted);
   }
 
   protected override signalDeleted(deleted: { uuid: string; owner: string; }[]): void {

@@ -123,13 +123,15 @@ describe('Edit tools', () => {
     await tools.undo();
 
     // select a point on graph
-    await browser.action('pointer')
-      .move({x: 50, y: 25, origin: await graph.getElement().$('canvas').getElement()})
-      .pause(10)
-      .down()
-      .pause(10)
-      .up()
-      .perform();
+    await TestUtils.retry(async () => {
+      await browser.action('pointer')
+        .move({x: 50, y: 25, origin: await (await trailPage.trailComponent.showElevationGraph()).getElement().$('canvas').getElement()})
+        .pause(10)
+        .down()
+        .pause(10)
+        .up()
+        .perform();
+    }, 2, 1000);
     await tools.waitSelectionTool();
     await tools.removeSelectedPoint();
     await tools.undo();

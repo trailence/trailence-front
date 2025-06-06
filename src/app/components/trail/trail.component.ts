@@ -36,7 +36,7 @@ import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { I18nPipe, TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
@@ -1002,6 +1002,34 @@ export class TrailComponent extends AbstractComponent {
       this.elevationGraphZoomButtonPosition.next(pos);
       this.changesDetector.detectChanges();
     }
+  }
+
+  confirmFollowThisTrail(): void {
+    this.injector.get(AlertController).create({
+      header: this.i18n.texts.trace_recorder.follow_this_trail,
+      message: new TranslatedString('trace_recorder.follow_this_trail_confirmation', [this.trail1?.name]).translate(this.i18n),
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: () => {
+            this.traceRecorder.setFollowedTrail(this.trail1?.owner, this.trail1?.uuid, this.trail1?.currentTrackUuid);
+            this.injector.get(AlertController).dismiss();
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss();
+          }
+        }
+      ]
+    }).then(p => {
+      p.present();
+      setTimeout(() => {
+        if ((p as any).presented) p.dismiss(); // NOSONAR
+      }, 10000);
+    });
   }
 
 }
