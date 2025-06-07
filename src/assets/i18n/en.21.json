@@ -135,6 +135,7 @@
         "negative_elevation": "Negative elevation",
         "loopType": "Track type",
         "loopTypePlaceholder": "Select types",
+        "select_activities_button": "Click to select",
         "tags": "Tags",
         "onlyVisibleOnMap": "Show in list only tracks visible on map",
         "reset_button": "Reset all filters"
@@ -176,6 +177,7 @@
           "name": "Name"
         },
         "edit_location": "Edit location",
+        "edit_activity": "Set activity",
         "copy_photos_alert": {
           "title": "Copy photos",
           "message_singular": "The copied track contains photos. Would you like to make a copy of the photos as well?",
@@ -694,6 +696,20 @@
     "sl": "Small loop",
     "ob": "Out and back"
   },
+  "activity": {
+    "walking": "Walking",
+    "hiking": "Hiking",
+    "moutain-biking": "Moutain Biking",
+    "road-biking": "Road Biking",
+    "snowshoeing": "Snowshoeing",
+    "on-water": "On Water",
+    "skiing": "Skiing",
+    "running": "Running",
+    "horseback-riding": "Horseback Riding",
+    "via-ferrata": "Via Ferrata",
+    "rock-climbing": "Rock Climbing",
+    "unspecified": "Unspecified"
+  },
   "tags_filter": {
     "onlyWithAnyTag": "Tracks having at least one tag",
     "onlyWithoutAnyTag": "Tracks having no tag",
@@ -728,6 +744,7 @@
     "trail_date": "Track date",
     "trail_location": "Location",
     "loop_type": "Type",
+    "activity": "Activity",
     "duration": "Duration",
     "distance": "Distance",
     "positiveElevation": "Ascent",
@@ -796,7 +813,8 @@
     "trails_tags": "You have reached the maximum number of tagged tracks",
     "photos": "You have reached the maximum number of photos",
     "shares": "You have reached the maximum number of shares",
-    "photos_max": "Your quota for photos is {{1}} and you already have {{2}}: you cannot add {{3}} new one(s)"
+    "photos_max": "Your quota for photos is {{1}} and you already have {{2}}: you cannot add {{3}} new one(s)",
+    "photos_max_by_trail": "There is already {{1}}/{{2}} photos on this trail: you cannot add {{3}} new one(s)"
   },
   "obsolete_message": {
     "title": "Update required",

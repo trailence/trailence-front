@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, map, of, skip, switchMap, timeout, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, map, of, skip, switchMap, timeout, timer } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -23,6 +23,7 @@ import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import Trailence from '../trailence.service';
 import { Segment } from 'src/app/model/segment';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({
   providedIn: 'root'
@@ -206,6 +207,21 @@ export class TraceRecorderService {
             return 2;
           })
         )),
+        switchMap(() => {
+          if (!recording.followingTrailUuid || !recording.followingTrailOwner) return of(3);
+          return this.trailService.getTrail$(recording.followingTrailUuid, recording.followingTrailOwner).pipe(
+            filterDefined(),
+            timeout(15000),
+            catchError(e => of(undefined)),
+            first(),
+            map(followedTrail => {
+              if (!followedTrail) return 3;
+              recording.trail.location ??= followedTrail.location;
+              recording.trail.activity ??= followedTrail.activity;
+              return 4;
+            }),
+          )
+        }),
         switchMap(() => {
           this.trackService.create(recording.rawTrack, () => progress.addWorkDone(1));
           this.trackService.create(recording.track, () => progress.addWorkDone(1));

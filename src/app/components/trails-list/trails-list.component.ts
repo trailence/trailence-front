@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Trail, TrailLoopType } from 'src/app/model/trail';
+import { Trail, TrailActivity, TrailLoopType } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
@@ -48,6 +48,7 @@ interface Filters {
   positiveElevation: FilterNumeric;
   negativeElevation: FilterNumeric;
   loopTypes: FilterEnum<TrailLoopType>;
+  activities: FilterEnum<TrailActivity | undefined>;
   onlyVisibleOnMap: boolean;
   tags: FilterTags;
   search: string;
@@ -79,6 +80,9 @@ const defaultState: State = {
       to: undefined,
     },
     loopTypes: {
+      selected: undefined
+    },
+    activities: {
       selected: undefined
     },
     onlyVisibleOnMap: false,
@@ -377,6 +381,7 @@ export class TrailsListComponent extends AbstractComponent {
         if (minNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < minNegEle)) return false;
         if (maxNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > maxNegEle)) return false;
         if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || filters.loopTypes.selected.indexOf(t.trail.loopType) < 0)) return false;
+        if (filters.activities.selected !== undefined && filters.activities.selected.indexOf(t.trail.activity) < 0) return false;
         if (filters.tags.type === 'onlyWithAnyTag') {
           if (t.tags.length === 0) return false;
         } else if (filters.tags.type === 'onlyWithoutAnyTag') {
@@ -444,6 +449,7 @@ export class TrailsListComponent extends AbstractComponent {
       }
       if (valid) {
         newState.filters.search ??= '';
+        newState.filters.activities ??= { selected: undefined };
         this.state$.next(newState);
         if (newState.filters.search) this.searchOpen = true;
       } else
@@ -543,6 +549,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (filters.positiveElevation.from !== undefined || filters.positiveElevation.to !== undefined) nb++;
     if (filters.negativeElevation.from !== undefined || filters.negativeElevation.to !== undefined) nb++;
     if (filters.loopTypes.selected) nb++;
+    if (filters.activities.selected) nb++;
     if (filters.onlyVisibleOnMap) nb++;
     if (filters.tags.type === 'onlyWithAnyTag' || filters.tags.type === 'onlyWithoutAnyTag' || filters.tags.tagsUuids.length !== 0) nb++;
     return nb;
@@ -561,6 +568,7 @@ export class TrailsListComponent extends AbstractComponent {
     filters.negativeElevation.from = undefined;
     filters.negativeElevation.to = undefined;
     filters.loopTypes.selected = undefined;
+    filters.activities.selected = undefined;
     filters.onlyVisibleOnMap = false;
     filters.tags.type = 'include_and';
     filters.tags.tagsUuids = [];
@@ -599,6 +607,30 @@ export class TrailsListComponent extends AbstractComponent {
         formatter: (value: number) => value + ' ft'
       }
     }
+  }
+
+  getSelectedActivitiesButtonTest(): string {
+    if (this.state$.value.filters.activities.selected?.length) {
+      return this.state$.value.filters.activities.selected.map(activity => this.i18n.texts.activity[activity ?? 'unspecified']).join(', ');
+    }
+    return this.i18n.texts.pages.trails.filters.select_activities_button;
+  }
+
+  openActivitiesDialog(): void {
+    import('../activity-popup/activity-popup.component')
+    .then(m => m.openActivitiesSelectionPopup(
+      this.injector,
+      this.state$.value.filters.activities.selected || [],
+      newSelection => {
+        const filter = this.state$.value.filters.activities;
+        if (filter.selected === newSelection) return;
+        filter.selected = newSelection;
+        this.state$.next({
+          ...this.state$.value,
+          filters: { ...this.state$.value.filters }
+        });
+      }
+    ));
   }
 
   private trailClicked?: Trail;

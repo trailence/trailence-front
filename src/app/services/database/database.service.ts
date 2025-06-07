@@ -359,4 +359,25 @@ export class DatabaseService {
     });
   }
 
+  storeInternalData(storeName: string, key: string, value: any): Promise<any> {
+    const db = this._db.value?.db;
+    if (!db) return Promise.resolve();
+    return db.transaction('rw', [INTERNAL_TABLE_NAME], () => {
+      const table = db.table(INTERNAL_TABLE_NAME);
+      return table.get('store_' + storeName)
+      .then(storeData => {
+        storeData ??= { key: 'store_' + storeName };
+        storeData[key] = value;
+        return table.put(storeData);
+      });
+    });
+  }
+
+  getInternalData(storeName: string, key: string): Promise<any> {
+    const db = this._db.value?.db;
+    if (!db) return Promise.resolve();
+    return db.table(INTERNAL_TABLE_NAME).get('store_' + storeName)
+    .then(storeData => storeData ? storeData[key] : undefined);
+  }
+
 }

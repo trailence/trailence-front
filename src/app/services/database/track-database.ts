@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, switchMap, tap, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, switchMap, tap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -485,28 +485,31 @@ export class TrackDatabase {
       const simplified = TrackDatabase.simplify(track);
       const metadata = TrackDatabase.toMetadata(track);
       const stepsDone = new CompositeOnDone(ondone);
+      const onDbDone = stepsDone.add();
       this.operation(() => {
         if (!this.db) return Promise.reject();
-        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
-          const onDone1 = stepsDone.add();
-          this.fullTrackTable?.add({
+        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
+          const promise1 = this.fullTrackTable?.add({
             key,
             uuid: dto.uuid,
             owner: dto.owner,
             version: dto.version,
             updatedLocally: 0,
             track: dto,
-          }).then(onDone1);
-          const onDone2 = stepsDone.add();
-          this.simplifiedTrackTable?.add({
+          });
+          const promise2 = this.simplifiedTrackTable?.add({
             ...simplified,
             key,
-          }).then(onDone2);
-          const onDone3 = stepsDone.add();
-          this.metadataTable?.add({
+          });
+          const promise3 = this.metadataTable?.add({
             ...metadata,
             key,
-          }).then(onDone3);
+          });
+          return Promise.all([promise1, promise2, promise3])
+          .catch(e => {
+            Console.error("Error storing track in database", e);
+            return Promise.resolve();
+          });
         });
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
@@ -517,14 +520,16 @@ export class TrackDatabase {
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-        if (!this.syncStatus$.value!.hasLocalCreates) {
-          this.syncStatus$.value!.hasLocalCreates = true;
-          this.syncStatus$.next(this.syncStatus$.value);
-        }
         const onDone4 = stepsDone.add();
         stepsDone.start();
         onDone4();
-        return tx;
+        return tx.then(() => {
+          if (!this.syncStatus$.value!.hasLocalCreates) {
+            this.syncStatus$.value!.hasLocalCreates = true;
+            this.syncStatus$.next(this.syncStatus$.value);
+          }
+          onDbDone();
+        });
       });
     });
   }
@@ -538,8 +543,9 @@ export class TrackDatabase {
       const metadata = TrackDatabase.toMetadata(track);
       this.operation(() => {
         if (!this.db) return Promise.reject();
-        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], tx => {
-          this.fullTrackTable?.put({
+        Console.info('Create track in database');
+        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
+          const promise1 = this.fullTrackTable?.put({
             key,
             uuid: dto.uuid,
             owner: dto.owner,
@@ -547,13 +553,18 @@ export class TrackDatabase {
             updatedLocally: 1,
             track: dto,
           });
-          this.simplifiedTrackTable?.put({
+          const promise2 = this.simplifiedTrackTable?.put({
             ...simplified,
             key,
           });
-          this.metadataTable?.put({
+          const promise3 = this.metadataTable?.put({
             ...metadata,
             key,
+          });
+          return Promise.all([promise1, promise2, promise3])
+          .catch(e => {
+            Console.error("Error updating track in database", e);
+            return Promise.resolve();
           });
         });
         const full$ = this.fullTracks.get(key);
@@ -565,11 +576,13 @@ export class TrackDatabase {
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-        if (!this.syncStatus$.value!.hasLocalUpdates) {
-          this.syncStatus$.value!.hasLocalUpdates = true;
-          this.syncStatus$.next(this.syncStatus$.value);
-        }
-        return tx;
+        return tx.then(() => {
+          Console.info('Track created in database');
+          if (!this.syncStatus$.value!.hasLocalUpdates) {
+            this.syncStatus$.value!.hasLocalUpdates = true;
+            this.syncStatus$.next(this.syncStatus$.value);
+          }
+        });
       });
     });
   }
@@ -689,7 +702,7 @@ export class TrackDatabase {
     return new Promise<T>((resolve, reject) => {
       setTimeout(() => {
         this._pendingOperation$.next(this._pendingOperation$.value + 1);
-        firstValueFrom(this.syncStatus$.pipe(filter(s => !s?.inProgress)))
+        firstValueFrom(this.syncStatus$.pipe(debounceTime(10), filter(s => !s?.inProgress)))
         .then(() => {
           if (db != this.db) return Promise.reject();
           return op().then(r => {
@@ -720,6 +733,7 @@ export class TrackDatabase {
       const db = this.db!;
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
+      Console.info("Store tracks sync start: ", this.syncStatus$.value, this._pendingOperation$.value);
       return this.syncCreatedLocally(db).pipe(
         switchMap(r => r ? (this.db === db ? this.syncDeletedLocally(db) : EMPTY) : of(false)),
         switchMap(r => r ? (this.db === db ? this.syncUpdatesFromServer(db) : EMPTY) : of(false)),
@@ -735,6 +749,7 @@ export class TrackDatabase {
           status.inProgress = false;
           status.needsUpdateFromServer = !syncComplete;
           status.lastUpdateFromServer = syncComplete ? Date.now() : 0;
+          Console.info("Store tracks sync done: ", status, this._pendingOperation$.value);
           this.syncStatus$.next(status);
           return !syncComplete;
         })

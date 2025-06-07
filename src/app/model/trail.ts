@@ -9,6 +9,7 @@ export class Trail extends Owned {
   private readonly _description$: BehaviorSubject<string>;
   private readonly _location$: BehaviorSubject<string>;
   private readonly _loopType$: BehaviorSubject<TrailLoopType | undefined>;
+  private readonly _activity$: BehaviorSubject<TrailActivity | undefined>;
 
   private readonly _originalTrackUuid$: BehaviorSubject<string>;
   private readonly _currentTrackUuid$: BehaviorSubject<string>;
@@ -23,6 +24,7 @@ export class Trail extends Owned {
     this._description$ = new BehaviorSubject<string>(dto.description ?? '');
     this._location$ = new BehaviorSubject<string>(dto.location ?? '');
     this._loopType$ = new BehaviorSubject<TrailLoopType | undefined>(TypeUtils.valueToEnum(dto.loopType, TrailLoopType));
+    this._activity$ = new BehaviorSubject<TrailActivity | undefined>(TypeUtils.valueToEnum(dto.activity, TrailActivity));
     if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
     this._originalTrackUuid$ = new BehaviorSubject<string>(dto.originalTrackUuid);
     if (!dto.currentTrackUuid) throw new Error('Missing currentTrackUuid');
@@ -47,6 +49,10 @@ export class Trail extends Owned {
   public get loopType$(): Observable<TrailLoopType | undefined> { return this._loopType$; }
   public set loopType(value: TrailLoopType | undefined) { this.setValue(value, this._loopType$); }
 
+  public get activity(): TrailActivity | undefined { return this._activity$.value; }
+  public get activity$(): Observable<TrailActivity | undefined> { return this._activity$; }
+  public set activity(value: TrailActivity | undefined) { this.setValue(value, this._activity$); }
+
   public get originalTrackUuid(): string { return this._originalTrackUuid$.value; }
   public get originalTrackUuid$(): Observable<string> { return this._originalTrackUuid$; }
   public set originalTrackUuid(value: string) { this.setValue(value, this._originalTrackUuid$); }
@@ -60,7 +66,7 @@ export class Trail extends Owned {
   public set collectionUuid(value: string) { this.setValue(value, this._collectionUuid$); }
 
   public get changes$(): Observable<any> {
-    return combineLatest([this.name$, this.description$, this.location$, this.loopType$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
+    return combineLatest([this.name$, this.description$, this.location$, this.loopType$, this.activity$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
       skip(1),
     );
   }
@@ -77,6 +83,7 @@ export class Trail extends Owned {
       description: this.description,
       location: this.location,
       loopType: this.loopType,
+      activity: this.activity,
       originalTrackUuid: this.originalTrackUuid,
       currentTrackUuid: this.currentTrackUuid,
       collectionUuid: this.collectionUuid,
@@ -91,4 +98,18 @@ export enum TrailLoopType {
   HALF_LOOP = 'hl',
   SMALL_LOOP = 'sl',
   OUT_AND_BACK = 'ob',
+}
+
+export enum TrailActivity {
+  WALKING = 'walking',
+  HIKING = 'hiking',
+  RUNNING = 'running',
+  MOUNTAIN_BIKING = 'moutain-biking',
+  ROAD_BIKING = 'road-biking',
+  HORSEBACK_RIDING = 'horseback-riding',
+  SKIING = 'skiing',
+  SNOWSHOEING = 'snowshoeing',
+  ON_WATER = 'on-water',
+  VIA_FERRATA = 'via-ferrata',
+  ROCK_CLIMBING = 'rock-climbing',
 }

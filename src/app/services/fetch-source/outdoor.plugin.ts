@@ -150,6 +150,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
             uuid: ot.id,
             name: ot.title ?? undefined,
             description: ot.description ?? undefined,
+            activity: ot.activity ?? undefined,
             originalTrackUuid: ot.id + '-original',
             currentTrackUuid: ot.id + '-original',
             collectionUuid: this.owner,
@@ -197,4 +198,5 @@ interface OutdoorTrail {
   points: {lat: number, lng: number, ele?: number, time?: number}[];
   photos?: {id: string, title: string, point?: {lat: number, lng: number, ele?: number, time?: number}}[] | null;
   rating?: number | null;
+  activity?: string;
 }

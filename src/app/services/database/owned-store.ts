@@ -217,6 +217,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override beforeEmittingStoreLoaded(): void {
+    this._forceUpdateFromServerChecked = false;
     const status = this._syncStatus$.value;
     status.needsUpdateFromServer = true;
     status.inProgress = false;
@@ -242,6 +243,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     );
   }
 
+  private _forceUpdateFromServerChecked = false;
   private _sync(): Observable<boolean> {
     return this.ngZone.runOutsideAngular(() => {
       const db = this._db;
@@ -258,6 +260,22 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         }),
         switchMap(() => {
           if (!stillValid()) return of(false);
+          if (!this._forceUpdateFromServerChecked && this._createdLocally.length === 0 && this._deletedLocally.length === 0 && this._updatedLocally.length === 0) {
+            return from(this.shouldForceUpdateFromServer()).pipe(
+              switchMap(force => {
+                if (!force) return this.syncUpdateFromServer(stillValid);
+                return this.forceUpdateFromServer(stillValid).pipe(
+                  switchMap(done => {
+                    if (done) {
+                      this._forceUpdateFromServerChecked = true;
+                      return from(this.markStoreToForceUpdateFromServer(false)).pipe(map(() => true));
+                    }
+                    return of(true);
+                  })
+                );
+              }),
+            );
+          }
           return this.syncUpdateFromServer(stillValid);
         }),
         switchMap(() => {
@@ -348,6 +366,31 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       }),
       catchError(error => {
         Console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.tableName, error);
+        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
+        return of(false);
+      })
+    );
+  }
+
+  private forceUpdateFromServer(stillValid: () => boolean): Observable<boolean> {
+    return this.getUpdatesFromServer([]).pipe(
+      switchMap(result => {
+        if (!stillValid()) return of(false);
+        Console.info('Force update from server: received ' + result.created.length + ' items of ' + this.tableName);
+        const dtosToUpdate: StoredItem<DTO>[] = [];
+        result.created.forEach(dto => {
+          const key = dto.uuid + '#' + dto.owner;
+          const entity = this.fromDTO(dto);
+          const item$ = this._store.value.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
+          if (!item$) return;
+          item$.next(entity);
+          dtosToUpdate.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
+        });
+        if (dtosToUpdate.length === 0) return of(true);
+        return from(this._db!.table<StoredItem<DTO>>(this.tableName).bulkPut(dtosToUpdate).then(() => true));
+      }),
+      catchError(error => {
+        Console.error('Error requesting all updates from server for ' + this.tableName, error);
         this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
         return of(false);
       })

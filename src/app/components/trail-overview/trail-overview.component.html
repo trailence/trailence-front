@@ -73,23 +73,36 @@
 </ng-container>
 <ng-template #metadata>
   <div id="track-metadata-{{id}}"></div>
-  <ng-container *ngIf="meta.loopTypeString">
-    <div class="metadata-item-container">
-      <div class="metadata-item">
-        <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
-        <div class="metadata-content">
-          <div class="metadata-value">
-            <div class="metadata-primary">{{ meta.loopTypeString }}</div>
+  @if (meta.loopTypeString || meta.activityString) {
+    @if (meta.loopTypeString) {
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+          <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{ meta.loopTypeString }}</div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <ng-container *ngIf="photos.length === 0">
+    }
+    @if (meta.activityString) {
       <div class="metadata-item-container">
         <div class="metadata-item">
-          <!-- Empty until another meta -->
+          <ion-icon [name]="meta.activityIconString"></ion-icon>
+          <div class="metadata-content">
+            <div class="metadata-value">
+              <div class="metadata-primary">{{ meta.activityString }}</div>
+            </div>
+          </div>
         </div>
       </div>
-    </ng-container>
-  </ng-container>
+    }
+    @if ((!meta.loopTypeString || !meta.activityString) && photos.length === 0) {
+      <div class="metadata-item-container">
+        <div class="metadata-item">
+        </div>
+      </div>
+    }
+  }
 </ng-template>

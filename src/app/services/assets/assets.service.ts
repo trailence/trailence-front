@@ -23,11 +23,14 @@ export class AssetsService {
       'arrow-down': 'assets/arrow-down.1.svg', // arrow-down
       'arrow-forward': 'assets/arrow-forward.1.svg', // arrow-forward
       'arrow-up': 'assets/arrow-up.1.svg', // arrow-up
+      'bicycle': 'assets/bicycle.1.svg',
+      'boat': 'assets/boat.1.svg',
       'browser-chrome': 'assets/browser-chrome.1.svg', // logo-chrome
       'browser-firefox': 'assets/browser-firefox.1.svg', // logo-firefox
       'browser-edge': 'assets/browser-edge.1.svg', // logo-edge
       'bubbles': 'assets/bubbles.1.svg',
       'car': 'assets/car.1.svg', // car
+      'carabiner': 'assets/carabiner.1.svg',
       'caret-back': 'assets/caret-back.1.svg', // caret-back
       'caret-down': 'assets/caret-down.1.svg', // caret-down
       'caret-forward': 'assets/caret-forward.1.svg', // caret-forward
@@ -42,6 +45,7 @@ export class AssetsService {
       'chevron-up': 'assets/chevron-up.1.svg', // chevron-up-outline
       'chrono': 'assets/chrono.1.svg', // stopwatch-outline
       'cleaning': 'assets/cleaning.1.svg',
+      'climbing': 'assets/climbing.1.svg',
       'collection': 'assets/collection.1.svg',
       'collection-copy': 'assets/collection-copy.1.svg',
       'collection-move': 'assets/collection-move.1.svg',
@@ -63,6 +67,8 @@ export class AssetsService {
       'half-loop': 'assets/half-loop.1.svg',
       'heart-outline': 'assets/heart-outline.1.svg', // heart-outline
       'highest-point': 'assets/highest-point.1.svg',
+      'hiking': 'assets/hiking.1.svg',
+      'horse-riding': 'assets/horse-riding.1.svg',
       'hourglass': 'assets/hourglass.1.svg', // hourglass-outline
       'i18n': 'assets/language.1.svg', // language-outline
       'info': 'assets/info-circle.1.svg', // information-circle-outline
@@ -79,23 +85,23 @@ export class AssetsService {
       'mail': 'assets/mail.1.svg', // mail-outline
       'map': 'assets/map.1.svg', // map
       'menu': 'assets/menu.1.svg', // menu
+      'merge': 'assets/merge.1.svg', // git-merge-outline
+      'minus': 'assets/minus.1.svg', // remove
       'mobile': 'assets/mobile.1.svg',
       'more-menu': 'assets/more-menu.1.svg', // ellipsis-horizontal
+      'negative-elevation': 'assets/negative-elevation.1.svg',
       'offline': 'assets/exclamation-circle.1.svg', // alert-circle-outline
       'one-way': 'assets/point-to-point.1.svg',
       'online': 'assets/online.1.svg', // checkmark-circle-outline
       'out-and-back': 'assets/out-and-back.1.svg',
-      'pin': 'assets/pin.1.svg',
-      'pin-off': 'assets/pin-off.1.svg',
-      'plus': 'assets/add.1.svg', // add
-      'merge': 'assets/merge.1.svg', // git-merge-outline
-      'minus': 'assets/minus.1.svg', // remove
-      'negative-elevation': 'assets/negative-elevation.1.svg',
       'path': 'assets/path.1.svg',
       'pause': 'assets/pause.1.svg', // pause-outline
       'pause-circle': 'assets/pause-circle.1.svg', // pause-circle-outline
       'phone-lock': 'assets/phone-lock.2.svg',
       'photos': 'assets/photos.1.svg', // images-outline
+      'pin': 'assets/pin.1.svg',
+      'pin-off': 'assets/pin-off.1.svg',
+      'plus': 'assets/add.1.svg', // add
       'planner': 'assets/calendar-outline.1.svg', // calendar-outline
       'play': 'assets/play.1.svg', // play-outline
       'play-circle': 'assets/play-circle.1.svg', // play-circle-outline
@@ -104,6 +110,8 @@ export class AssetsService {
       'question': 'assets/question.1.svg', // help-outline
       'redo': 'assets/redo.1.svg', // arrow-redo-outline
       'reset': 'assets/reset.1.svg', // refresh-outline
+      'road-bike': 'assets/road-bike.1.svg',
+      'running': 'assets/running.1.svg',
       'save': 'assets/save.1.svg', // save
       'search': 'assets/search.1.svg', // search-outline
       'selection': 'assets/selection.1.svg',
@@ -113,7 +121,9 @@ export class AssetsService {
       'settings': 'assets/settings.1.svg', // settings
       'share': 'assets/share.1.svg', // share-social
       'share-outline': 'assets/share-outline.1.svg',  // share-social-outline
+      'ski': 'assets/ski.1.svg',
       'small-loop': 'assets/small-loop.1.svg',
+      'snow': 'assets/snow.1.svg',
       'speed': 'assets/speed.1.svg', // speedometer-outline
       'star-empty': 'assets/star-empty.1.svg', // star-outline
       'star-half': 'assets/star-half.1.svg', // star-half
@@ -131,6 +141,7 @@ export class AssetsService {
       'theme-dark': 'assets/theme-dark.1.svg', // moon-outline
       'theme-system': 'assets/theme-system.1.svg', // cog-outline
       'undo': 'assets/undo.1.svg', // arrow-undo-outline
+      'walk': 'assets/walk.1.svg',
       'warning': 'assets/warning.2.svg', // warning-outline
       'web': 'assets/web.1.svg', // globe-outline
       'windows': 'assets/windows.1.svg', // logo-windows

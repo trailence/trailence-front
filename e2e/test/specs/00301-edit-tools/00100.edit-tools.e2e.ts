@@ -94,10 +94,13 @@ describe('Edit tools', () => {
   });
 
   it('Select range, delete it, then undo', async () => {
-    let selectionTool = await selectPoint(3);
-    await selectionTool.extendSelection();
-    await selectPoint(4);
-    await tools.removeSelectedRange();
+    await TestUtils.retry(async () => {
+      await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(100).down().pause(100).up().perform();
+      let selectionTool = await selectPoint(3);
+      await selectionTool.extendSelection();
+      await selectPoint(4);
+      await tools.removeSelectedRange();
+    }, 3, 1000);
     details = await trailPage.trailComponent.openDetails();
     const d1 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
     const d2 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', false);

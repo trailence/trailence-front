@@ -135,6 +135,7 @@
         "negative_elevation": "Dénivelé négatif",
         "loopType": "Type de parcours",
         "loopTypePlaceholder": "Sélectionnez les types",
+        "select_activities_button": "Cliquez pour sélectionner",
         "tags": "Tags",
         "onlyVisibleOnMap": "Afficher dans la liste uniquement les parcours visibles sur la carte",
         "reset_button": "Enlever tous les filtres"
@@ -176,6 +177,7 @@
           "name": "Nom"
         },
         "edit_location": "Modifier l'emplacement",
+        "edit_activity": "Modifier l'activité",
         "copy_photos_alert": {
           "title": "Copie des photos",
           "message_singular": "Le parcours copié contient des photos. Souhaitez-vous également faire une copie des photos ?",
@@ -694,6 +696,20 @@
     "sl": "Petite boucle",
     "ob": "Aller retour"
   },
+  "activity": {
+    "walking": "Marche",
+    "hiking": "Randonnée",
+    "moutain-biking": "VTT",
+    "road-biking": "Vélo de route",
+    "snowshoeing": "Raquettes",
+    "on-water": "Sur l'eau",
+    "skiing": "Ski",
+    "running": "Course",
+    "horseback-riding": "Cheval",
+    "via-ferrata": "Via Ferrata",
+    "rock-climbing": "Escalade",
+    "unspecified": "Non spécifié"
+  },
   "tags_filter": {
     "onlyWithAnyTag": "Parcours ayant au moins un tag",
     "onlyWithoutAnyTag": "Parcours sans aucun tag",
@@ -728,6 +744,7 @@
     "trail_date": "Date du parcours",
     "trail_location": "Emplacement",
     "loop_type": "Type",
+    "activity": "Activité",
     "duration": "Durée",
     "distance": "Distance",
     "positiveElevation": "Dénivelé positif",
@@ -796,7 +813,8 @@
     "trails_tags": "Vous avez atteint le nombre maximum de parcours taggués",
     "photos": "Vous avez atteint le nombre maximum de photos",
     "shares": "Vous avez atteint le nombre maximum de partages",
-    "photos_max": "Votre quota de photos est {{1}} et vous en avez déjà {{2}}: vous ne pouvez pas en ajouter {{3}} nouvelle(s)"
+    "photos_max": "Votre quota de photos est {{1}} et vous en avez déjà {{2}}: vous ne pouvez pas en ajouter {{3}} nouvelle(s)",
+    "photos_max_by_trail": "Il y a déjà {{1}}/{{2}} photos sur ce parcours: vous ne pouvez pas en ajouter {{3}} nouvelle(s)"
   },
   "obsolete_message": {
     "title": "Mise à jour nécessaire",

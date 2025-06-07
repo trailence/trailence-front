@@ -217,6 +217,15 @@
           <ion-select-option  *ngFor="let lt of loopTypes" [value]="lt">{{ i18n.texts.loopType[lt] }}</ion-select-option>
         </ion-select>
       </div>
+      <div class="filter-header">
+        <ion-icon name="hiking"></ion-icon>
+        <div>{{ i18n.texts.metadata.activity }}</div>
+      </div>
+      <div class="filter-value">
+        <ion-button (click)="openActivitiesDialog()" fill="clear" color="dark" style="text-transform: none; letter-spacing: inherit;">
+          {{ getSelectedActivitiesButtonTest() }}
+        </ion-button>
+      </div>
       <ng-container *ngIf="collectionUuid">
         <div class="filter-header">
           <ion-icon name="tags"></ion-icon>

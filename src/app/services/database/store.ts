@@ -293,12 +293,13 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   public create(item: STORE_ITEM, ondone?: () => void): Observable<STORE_ITEM | null> {
     const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
-    let existing = false;
+    let existing: BehaviorSubject<STORE_ITEM | null> | undefined = undefined;
     let recovered = false;
+    const inStore$ = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null> | undefined>(undefined);
     this.performOperation(
       'create item',
       () => {
-        existing = !!this._store.value.find(value => value.value && this.areSame(value.value, item));
+        existing = this._store.value.find(value => value.value && this.areSame(value.value, item));
         if (!existing) {
           const deleted = this._deletedLocally.findIndex(value => this.areSame(value, item));
           if (deleted < 0) {
@@ -311,7 +312,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
             this._store.next(this._store.value);
             recovered = true;
           }
+          inStore$.next(item$);
+        } else {
+          inStore$.next(existing);
         }
+        inStore$.complete();
       },
       db => existing ? of(true)
         : recovered ? this.markUndeletedInDb(db.table<DB_ITEM>(this.tableName), item)
@@ -322,7 +327,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       },
       ondone
     );
-    return item$;
+    return inStore$.pipe(
+      filter(inStore => !!inStore),
+      switchMap(inStore => inStore)
+    );
   }
 
   public createMany(items: STORE_ITEM[], ondone?: () => void): void {
@@ -531,5 +539,13 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected abstract doCleaning(email: string, db: Dexie): Observable<any>;
+
+  protected markStoreToForceUpdateFromServer(force: boolean): Promise<any> {
+    return this.injector.get(DatabaseService).storeInternalData(this.tableName, 'forceUpdateFromServer', force);
+  }
+
+  protected shouldForceUpdateFromServer(): Promise<boolean> {
+    return this.injector.get(DatabaseService).getInternalData(this.tableName, 'forceUpdateFromServer').then(data => data === true);
+  }
 
 }

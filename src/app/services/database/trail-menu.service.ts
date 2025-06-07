@@ -49,6 +49,8 @@ export class TrailMenuService {
             menu.push(new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location')
               .setAction(() => import('../../components/location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trails[0]))));
           }
+          menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
+            .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
           menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
             .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
         }
@@ -96,9 +98,10 @@ export class TrailMenuService {
       inImportExportSection = true;
       menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('tools.import')
         .setAction(() => import('../functions/import').then(m => m.openImportTrailsDialog(this.injector, fromCollection))));
-      if (this.injector.get(FetchSourceService).canImportFromUrl) {
-        menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title').setAction(() => this.importFromUrl(fromCollection)));
-      }
+      menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title')
+        .setAction(() => this.importFromUrl(fromCollection))
+        .setVisible(() => this.injector.get(FetchSourceService).canImportFromUrl)
+      );
     }
 
     if (trails.length > 0) {

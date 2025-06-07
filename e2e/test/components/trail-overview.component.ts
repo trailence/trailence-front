@@ -8,7 +8,15 @@ export class TrailOverview extends Component {
 
   public async getTrailName() {
     const nameDiv = this.getElement().$('div.trail-name');
-    return await nameDiv.getText();
+    let name = await nameDiv.getText();
+    if (name.trim().length > 0) return name;
+    try {
+      await browser.waitUntil(async () => {
+        name = await this.getElement().$('div.trail-name').getText();
+        return name.trim().length > 0;
+      }, { timeout: 5000 });
+    } catch (e) {}
+    return name;
   }
 
   public async getTags() {

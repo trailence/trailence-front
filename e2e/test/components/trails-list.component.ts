@@ -38,24 +38,39 @@ export class TrailsList extends Component {
       if (await overview.getElement().isExisting()) return overview;
     } catch (e) {}
     // not found, we may need to scroll
-    for (const element of await this.getElement().$$('div.trail-name').getElements()) {
-      await element.scrollIntoView({block: 'center', inline: 'center'});
-      // try again
-      overview = new TrailOverview(this.getElement().$('div.trail-name=' + trailName).parentElement().parentElement());
+    for (const item of await this.items.getElements()) {
       try {
-        if (!await overview.getElement().isExisting()) {
-          return undefined;
+        const overview = await this.getItemTrailOverview(item);
+        let name = (await overview.getTrailName()).trim();
+        if (name === trailName.trim()) return overview;
+        if (name.length === 0) {
+          try {
+            await browser.waitUntil(async () => {
+              await overview.getElement().scrollIntoView({block: 'center', inline: 'center'});
+              name = (await overview.getTrailName()).trim();
+              return name.length > 0;
+            }, { timeout: 5000 });
+          } catch (e) {}
         }
-        return overview;
+        if (name === trailName.trim()) return overview;
       } catch (e) {
-        return undefined;
+        // ignore
       }
     }
     return undefined;
   }
 
   public async getTrailsNames() {
-    return await this.getElement().$('div.trails').$$('div.metadata-container.trail div.trail-name').map(e => e.getText());
+    const names: string[] = [];
+    for (const item of await this.items.getElements()) {
+      try {
+        const overview = await this.getItemTrailOverview(item);
+        names.push(await overview.getTrailName());
+      } catch (e) {
+        // ignore
+      }
+    }
+    return names;
   }
 
   public async waitTrail(trailName: string) {

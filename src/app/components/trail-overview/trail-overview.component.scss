@@ -93,6 +93,10 @@ div.metadata-with-photos.photo-left {
 
       ::ng-deep div.metadata-item-container {
         margin-bottom: 3px;
+
+        &:nth-child(7) {
+          padding-right: 20px;
+        }
       }
     }
   }

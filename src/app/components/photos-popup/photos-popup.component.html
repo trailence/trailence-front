@@ -95,7 +95,7 @@
 <ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
-      <ion-button color="success" (click)="addPhotos()" *ngIf="canEdit">{{i18n.texts.pages.photos_popup.add_photos_buttons}}</ion-button>
+      <ion-button color="success" (click)="addPhotos()" *ngIf="canEdit" [disabled]="!loaded || photos.length >= 25">{{i18n.texts.pages.photos_popup.add_photos_buttons}}</ion-button>
       <ion-button *ngIf="popup" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
     </ion-buttons>
   </ion-toolbar>

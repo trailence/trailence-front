@@ -1,4 +1,4 @@
-import { Trail } from '../../model/trail';
+import { Trail, TrailActivity } from '../../model/trail';
 import { Track } from '../../model/track';
 import { Point, PointDescriptor } from '../../model/point';
 import { XmlUtils } from '../xml-utils';
@@ -46,6 +46,8 @@ export class GpxFormat {
       if (extensions) {
         const location = XmlUtils.getChildText(extensions, 'location');
         if (location && location.length > 0) trailDto.location = location;
+        const activity = XmlUtils.getChildText(extensions, 'activity');
+        if (activity && activity.length > 0) trailDto.activity = TypeUtils.valueToEnum(activity, TrailActivity);
         const tags = XmlUtils.getChild(extensions, 'tags');
         if (tags) {
           for (const tag of XmlUtils.getChildren(tags, 'tag')) {
@@ -261,6 +263,9 @@ export class GpxFormat {
         gpx += '<extensions>';
         if (trail.location.length > 0) {
           gpx += '<ext:location>' + XmlUtils.escapeHtml(trail.location) + '</ext:location>';
+        }
+        if (trail.activity?.length) {
+          gpx += '<ext:activity>' + XmlUtils.escapeHtml(trail.activity) + '</ext:activity>';
         }
         if (tags.length > 0) {
           gpx += '<ext:tags>';

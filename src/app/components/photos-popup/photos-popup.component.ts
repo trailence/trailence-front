@@ -145,6 +145,9 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
       multiple: true,
       description: this.i18n.texts.pages.photos_popup.importing,
       onstartreading: (nbFiles: number) => {
+        if (this.photos.length + nbFiles > 25) {
+          return Promise.reject(new Error(new TranslatedString('quota_reached.photos_max_by_trail', [this.photos.length, 25, nbFiles]).translate(this.i18n)));
+        }
         const quota = this.photoService.getQuota();
         if (quota.current + nbFiles > quota.max)
           return Promise.reject(new Error(new TranslatedString('quota_reached.photos_max', [quota.max, quota.current, nbFiles]).translate(this.i18n)));

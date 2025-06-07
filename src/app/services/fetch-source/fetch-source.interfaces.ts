@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { Trail } from 'src/app/model/trail';
+import { Trail, TrailActivity } from 'src/app/model/trail';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../preferences/preferences';
@@ -54,6 +54,7 @@ export interface TrailInfo {
 
   description?: string;
   location?: string;
+  activity?: TrailActivity;
   wayPoints?: WayPointInfo[];
   photos?: PhotoInfo[];
   key?: string;

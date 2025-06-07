@@ -51,7 +51,11 @@ export class FetchSourceService {
         if (!this.plugins$.value.find(p => p.name === 'Open Street Map'))
           promises.push(import('./osm.plugin').then(m => new m.OsmPlugin(injector)));
         Promise.all(promises).then(list => {
-          this.plugins$.next([...this.plugins$.value, ...list].filter(
+          const newPlugins = [...this.plugins$.value];
+          for (const p of list) {
+            if (!newPlugins.find(pi => pi.name === p.name)) newPlugins.push(p);
+          }
+          this.plugins$.next(newPlugins.filter(
             plugin => {
               if (plugin.name === 'Visorando' && visorandoAvailable !== true) return false;
               if (plugin.name === 'Outdoor Active' && outdooractiveAvailable !== true) return false;

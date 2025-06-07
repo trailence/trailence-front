@@ -2,9 +2,9 @@ import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, tap, zip } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, defaultIfEmpty, first, map, of, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Trail, TrailLoopType } from 'src/app/model/trail';
+import { Trail, TrailActivity, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackService } from './track.service';
 import { TrailCollectionService } from './trail-collection.service';
@@ -133,7 +133,11 @@ export class TrailService {
     let photosWork = remainingProgress / 2;
     this.injector.get(PhotoService).deleteForTrails(trails, doneHandler.add(() => progress?.addWorkDone(photosWork)));
     const trailWork = remainingProgress - tagsWork - photosWork;
-    this._store.deleteIf('delete multiple trails', trail => !!trails.find(t => t.uuid === trail.uuid && t.owner === trail.owner), doneHandler.add(() => progress?.addWorkDone(trailWork)));
+    this._store.deleteIf(
+      'delete multiple trails (' + trails.length + ')',
+      trail => !!trails.find(t => t.uuid === trail.uuid && t.owner === trail.owner),
+      doneHandler.add(() => progress?.addWorkDone(trailWork))
+    );
     doneHandler.start();
   }
 
@@ -183,6 +187,23 @@ export class TrailService {
     }
   }
 
+  public getActivityIcon(activity: TrailActivity | undefined): string {
+    if (activity === undefined) return 'question';
+    switch (activity) {
+      case TrailActivity.WALKING: return 'walk';
+      case TrailActivity.HIKING: return 'hiking';
+      case TrailActivity.MOUNTAIN_BIKING: return 'bicycle';
+      case TrailActivity.ROAD_BIKING: return 'road-bike';
+      case TrailActivity.SNOWSHOEING: return 'snow';
+      case TrailActivity.ON_WATER: return 'boat';
+      case TrailActivity.SKIING: return 'ski';
+      case TrailActivity.RUNNING: return 'running';
+      case TrailActivity.HORSEBACK_RIDING: return 'horse-riding';
+      case TrailActivity.VIA_FERRATA: return 'carabiner';
+      case TrailActivity.ROCK_CLIMBING: return 'climbing';
+    }
+  }
+
   public cleanDatabase(db: Dexie, email: string): Observable<any> {
     return this._store.cleanDatabase(db, email);
   }
@@ -214,6 +235,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   }
 
   protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+    if (fromVersion < 1700) return this.markStoreToForceUpdateFromServer(true).then(() => undefined);
     return Promise.resolve(undefined);
   }
 
@@ -243,7 +265,22 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   }
 
   protected override createdLocallyCanBeRemoved(entity: Trail): Observable<boolean> {
-    return this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !col));
+    return this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(
+      map(col => !col),
+      switchMap(colRemoved => {
+        if (colRemoved) return of(true);
+        if (entity.updatedAt > Date.now() - 120000) return of(false);
+        return combineLatest([
+          this.trackService.getFullTrackReady$(entity.originalTrackUuid, entity.owner).pipe(defaultIfEmpty(undefined)),
+          this.trackService.getFullTrackReady$(entity.currentTrackUuid, entity.owner).pipe(defaultIfEmpty(undefined))
+        ]).pipe(
+          map(([t1, t2]) => {
+            if (!t1 && !t2) return true;
+            return false;
+          })
+        );
+      })
+    );
   }
 
   protected override createOnServer(items: TrailDto[]): Observable<TrailDto[]> {

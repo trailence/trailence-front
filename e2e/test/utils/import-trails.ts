@@ -133,7 +133,8 @@ export async function expectListContains(list: TrailsList, expectedTrails: Expec
   for (const expected of expectedTrails) {
     const trail = await list.findItemByTrailName(expected.name);
     expect(trail).withContext('Expected trail ' + expected.name).toBeDefined();
-    const tags = await TestUtils.retry(async () => {
+    const tags = await TestUtils.retry(async (trial) => {
+      if (trial > 1) await trail!.getElement().scrollIntoView({block: 'center', inline: 'center'});
       let list = await trail!.getTags();
       if (list.length !== expected.tags.length) return Promise.reject(new Error('Expected tags ' + expected.tags + ' found ' + list + ' on trail ' + expected.name));
       return list;
@@ -142,11 +143,15 @@ export async function expectListContains(list: TrailsList, expectedTrails: Expec
     for (const expectedTag of expected.tags) {
       expect(tags).withContext('Trails tags ' + expected.name).toContain(expectedTag);
     }
-    if (expected.photos > 0)
-      await browser.waitUntil(async () => {
+    if (expected.photos > 0) {
+      let hasSlider = false;
+      await TestUtils.retry(async (trial) => {
+        if (trial > 1) await trail!.getElement().scrollIntoView({block: 'center', inline: 'center'});
         const slider = trail!.getPhotosSliderElement();
-        return await slider.isExisting() && await slider.isDisplayed();
-      }, { timeoutMsg: 'Trails expected photos: ' + expected.name });
+        hasSlider = await slider.isExisting() && await slider.isDisplayed();
+        if (!hasSlider) throw Error('Trails expected photos: ' + expected.name);
+      }, 10, 1000);
+    }
   }
 }
 

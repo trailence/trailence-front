@@ -39,6 +39,8 @@ describe('Test Gpx Format', () => {
   const compareTrails = (trail1: Trail, trail2: Trail) => {
     expect(trail2.name).toBe(trail1.name);
     expect(trail2.description).toBe(trail1.description);
+    expect(trail2.location).toBe(trail1.location);
+    expect(trail2.activity).toBe(trail1.activity);
   }
 
   const comparePoints = (point1: Point, point2: Point) => {

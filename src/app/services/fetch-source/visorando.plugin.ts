@@ -4,7 +4,7 @@ import { populateWayPointInfo, SearchResult, TrailInfo } from './fetch-source.in
 import * as L from 'leaflet';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
-import { Trail } from 'src/app/model/trail';
+import { Trail, TrailActivity } from 'src/app/model/trail';
 import { from, Observable, switchMap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
@@ -66,13 +66,32 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       if (content) result.description = this.sanitize(content) ?? undefined;
     }
 
-    // location
+    // location + activity
     const images = doc.querySelectorAll('img');
     for (let imageIndex = 0; imageIndex < images.length; imageIndex++) {
       const img = images.item(imageIndex)!; // NOSONAR
-      if (img.src?.endsWith('municipality.svg')) {
-        const link = img.parentElement?.querySelector('a');
-        if (link) result.location = this.sanitize(link.textContent) ?? undefined;
+      const src = img.src;
+      if (src) {
+        if (src.endsWith('municipality.svg')) {
+          const link = img.parentElement?.querySelector('a');
+          if (link) result.location = this.sanitize(link.textContent) ?? undefined;
+        }
+        const i = src.indexOf('/mode-');
+        if (i > 0) {
+          const j = src.indexOf('.', i);
+          if (j > 0) {
+            const mode = src.substring(i + 6, j);
+            switch (mode) {
+              case 'pied': result.activity = TrailActivity.HIKING; break;
+              case 'vtt': result.activity = TrailActivity.MOUNTAIN_BIKING; break;
+              case 'ski': result.activity = TrailActivity.SKIING; break;
+              case 'cheval': result.activity = TrailActivity.HORSEBACK_RIDING; break;
+              case 'raquettes': result.activity = TrailActivity.SNOWSHOEING; break;
+              case 'canoe': result.activity = TrailActivity.ON_WATER; break;
+              case 'veloroute': case 'route': result.activity = TrailActivity.ROAD_BIKING; break;
+            }
+          }
+        }
       }
     }
 
@@ -272,6 +291,9 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       }
       if (info.location && info.location.length > 0 && gpx.trail.location.length === 0) {
         gpx.trail.location = info.location;
+      }
+      if (info.activity && !gpx.trail.activity) {
+        gpx.trail.activity = info.activity;
       }
       const prepare = this.prepareTrailToStore(gpx.trail, gpx.tracks[0], idTrail);
       this.storeTrails([prepare]);

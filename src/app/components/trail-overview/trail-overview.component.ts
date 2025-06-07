@@ -37,6 +37,10 @@ class Meta {
   loopTypeString?: string;
   loopTypeIconValue?: string;
   loopTypeIconString?: string;
+  activityValue?: string;
+  activityString?: string;
+  activityIconValue?: string;
+  activityIconString?: string;
 }
 
 @Component({
@@ -121,12 +125,13 @@ export class TrailOverviewComponent extends AbstractComponent {
               this.trail!.name$,
               this.trail!.location$,
               this.trail!.loopType$,
+              this.trail!.activity$,
               this.trackData$(this.trail!, owner),
             ])
           ),
           debounceTimeExtended(0, 10)
         ),
-        ([i18nState, trailName, trailLocation, loopType, [track, startDate]]) => {
+        ([i18nState, trailName, trailLocation, loopType, activity, [track, startDate]]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
@@ -139,6 +144,8 @@ export class TrailOverviewComponent extends AbstractComponent {
           if (this.updateMeta(this.meta, 'date', startDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
           if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
           if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
+          if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;
+          if (this.updateMeta(this.meta, 'activityIcon', activity, activity => this.trailService.getActivityIcon(activity), force)) changed = true;
           if (changed) this.changeDetector.detectChanges();
           if (!this._trackMetadataInitialized && track) this.initTrackMetadata();
         },
