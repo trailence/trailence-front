@@ -950,6 +950,12 @@ export class TrailComponent extends AbstractComponent {
     import('../location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trail));
   }
 
+  openActivityDialog(): void {
+    if (this.trail2 || !this.trail1 || !this.editable) return;
+    const trail = this.trail1;
+    import('../activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, [trail]));
+  }
+
   canEdit(): boolean {
     if (this.toolsEnabled) return false;
     if (this.trail2) return false;

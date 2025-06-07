@@ -4,7 +4,7 @@ import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
 import { BehaviorSubject, Observable, combineLatest, first, map, of, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Trail, TrailLoopType } from 'src/app/model/trail';
+import { Trail, TrailActivity, TrailLoopType } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackService } from './track.service';
 import { TrailCollectionService } from './trail-collection.service';
@@ -180,6 +180,23 @@ export class TrailService {
       case TrailLoopType.HALF_LOOP: return 'half-loop';
       case TrailLoopType.SMALL_LOOP: return 'small-loop';
       case TrailLoopType.OUT_AND_BACK: return 'out-and-back';
+    }
+  }
+
+  public getActivityIcon(activity: TrailActivity | undefined): string {
+    if (activity === undefined) return 'question';
+    switch (activity) {
+      case TrailActivity.WALKING: return 'walk';
+      case TrailActivity.HIKING: return 'hiking';
+      case TrailActivity.MOUNTAIN_BIKING: return 'bicycle';
+      case TrailActivity.ROAD_BIKING: return 'road-bike';
+      case TrailActivity.SNOWSHOEING: return 'snow';
+      case TrailActivity.ON_WATER: return 'boat';
+      case TrailActivity.SKIING: return 'ski';
+      case TrailActivity.RUNNING: return 'running';
+      case TrailActivity.HORSEBACK_RIDING: return 'horse-riding';
+      case TrailActivity.VIA_FERRATA: return 'carabiner';
+      case TrailActivity.ROCK_CLIMBING: return 'climbing';
     }
   }
 

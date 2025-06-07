@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.texts.metadata.activity}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ion-list>
+    @if (multiple) {
+      @for (item of list; track item.activity) {
+        <ion-item>
+          <ion-checkbox slot="start" [checked]="item.selected" (ionChange)="setSelected(item, $event.detail.checked)" color="tertiary"></ion-checkbox>
+          <ion-icon slot="start" [name]="item.icon" color="secondary"></ion-icon>
+          <ion-label>{{ i18n.texts.activity[item.activity ?? 'unspecified'] }}</ion-label>
+        </ion-item>
+      }
+    } @else {
+      <ion-radio-group [value]="(selection.length > 0 ? selection[0] : undefined) ?? ''" (ionChange)="setSelection([$event.detail.value])">
+        @for (item of list; track item.activity) {
+          <ion-item>
+            <ion-radio slot="start" [value]="item.activity ?? ''" color="tertiary"></ion-radio>
+            <ion-icon slot="start" [name]="item.icon" color="secondary"></ion-icon>
+            <ion-label>{{ i18n.texts.activity[item.activity ?? 'unspecified'] }}</ion-label>
+          </ion-item>
+        }
+      </ion-radio-group>
+    }
+  </ion-list>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="close(false)">{{ i18n.texts.buttons.apply }}</ion-button>
+      <ion-button color="medium" (click)="close(true)">{{ i18n.texts.buttons.cancel }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

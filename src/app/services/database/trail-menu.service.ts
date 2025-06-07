@@ -49,6 +49,8 @@ export class TrailMenuService {
             menu.push(new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location')
               .setAction(() => import('../../components/location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trails[0]))));
           }
+          menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
+            .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
           menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
             .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
         }

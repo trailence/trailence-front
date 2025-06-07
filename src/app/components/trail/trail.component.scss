@@ -466,12 +466,12 @@
 
     &.one-column .metadata-item-container {
       margin: 3px 0;
+    }
 
-      &.clickable {
-        cursor: pointer;
-        &:hover {
-          background-color: rgba(var(--ion-color-secondary-rgb), 0.1);
-        }
+    .metadata-item-container.clickable {
+      cursor: pointer;
+      &:hover {
+        background-color: rgba(var(--ion-color-secondary-rgb), 0.1);
       }
     }
   }

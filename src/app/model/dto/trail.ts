@@ -6,6 +6,7 @@ export interface TrailDto extends OwnedDto {
   description?: string;
   location?: string;
   loopType?: string;
+  activity?: string;
 
   originalTrackUuid?: string;
   currentTrackUuid?: string;
