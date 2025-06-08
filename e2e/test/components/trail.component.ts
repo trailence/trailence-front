@@ -225,25 +225,22 @@ export class TrailComponent extends Component {
   }
 
   public async pauseRecordingFromMap() {
-    await this.openMap();
-    const button = new IonicButton(this.getElement().$('div.map-container div.map-top-buttons ion-button[color=medium]'));
-    await button.click();
+    const map = await this.openMap();
+    await map.topToolbar.clickByIcon('pause-circle');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('confirm');
   }
 
   public async resumeRecordingFromMap() {
-    await this.openMap();
-    const button = new IonicButton(this.getElement().$('div.map-container div.map-top-buttons ion-button'));
-    await button.click();
+    const map = await this.openMap();
+    await map.topToolbar.clickByIcon('play-circle');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('confirm');
   }
 
   public async stopRecordingFromMap() {
-    await this.openMap();
-    const button = new IonicButton(this.getElement().$('div.map-container div.map-top-buttons ion-button[color=danger]'));
-    await button.click();
+    const map = await this.openMap();
+    await map.topToolbar.clickByIcon('stop-circle');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('confirm');
   }

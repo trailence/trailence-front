@@ -92,28 +92,25 @@ export class MapTrackArrowPath {
     const MINIMUM_PIXELS_BETWEEN_ARROWS = 10;
     const FIRST_ARROW_MINIMUM_PIXELS = 10;
 
-    let previousPoint = map.latLngToLayerPoint(points[0]);
-    let lastArrow = previousPoint;
+    let lastArrow = this.toPointNotRounded(points[0], map);
     const arrows: L.Point[] = [];
-    for (let i = 1; i < points.length; ++i) {
+    for (let i = 1; i < points.length - 1; ++i) {
       const point = points[i];
-      const p = map.latLngToLayerPoint(point);
-      const middle = L.point(previousPoint.x + (p.x - previousPoint.x) / 2, previousPoint.y + (p.y - previousPoint.y) / 2);
-      const middleDistance = middle.distanceTo(lastArrow);
-      if ((arrows.length === 0 && middleDistance >= FIRST_ARROW_MINIMUM_PIXELS) ||
-          (arrows.length > 0 && middleDistance >= PIXELS_BETWEEN_ARROWS)) {
+      const p = this.toPointNotRounded(point, map);
+      const distance = p.distanceTo(lastArrow);
+      if ((arrows.length === 0 && distance >= FIRST_ARROW_MINIMUM_PIXELS) ||
+          (arrows.length > 0 && distance >= PIXELS_BETWEEN_ARROWS)) {
         // it is eligible => check if another arrow is too closed
-        if (!this.isTooClosed(middle, arrows, MINIMUM_PIXELS_BETWEEN_ARROWS)) {
+        if (!this.isTooClosed(p, arrows, MINIMUM_PIXELS_BETWEEN_ARROWS)) {
           // it's ok !
           result.push(
-            this.drawArrow(middle, p, 5, map)
+            this.drawArrow(points, i, p, 5, map)
             .setStyle({color: 'black', weight: 2, className: 'track-arrow'})
           );
-          arrows.push(middle);
-          lastArrow = middle;
+          arrows.push(p);
+          lastArrow = p;
         }
       }
-      previousPoint = p;
     }
 
     return result;
@@ -128,8 +125,14 @@ export class MapTrackArrowPath {
     return false;
   }
 
-  private drawArrow(p: L.Point, p2: L.Point, d: number, map: L.Map): L.Polyline {
-    const a = Math.atan2(p2.y - p.y, p2.x - p.x);
+  private drawArrow(points: L.LatLngLiteral[], index: number, p: L.Point, d: number, map: L.Map): L.Polyline {
+    let start = this.toPointNotRounded(points[index - 1], map);
+    for (let i = 2; p.distanceTo(start) < 5 && index - i >= 0; ++i)
+      start = this.toPointNotRounded(points[index - i], map);
+    let end = this.toPointNotRounded(points[index + 1], map);
+    for (let i = 2; p.distanceTo(end) < 5 && index + i < points.length; ++i)
+      end = this.toPointNotRounded(points[index + i], map);
+    const a = Math.atan2(end.y - start.y, end.x - start.x);
 
     const a_left = a + Math.PI - Math.PI/6;
     const a_right = a + Math.PI + Math.PI/6;
@@ -139,6 +142,10 @@ export class MapTrackArrowPath {
       map.layerPointToLatLng([p.x, p.y]),
       map.layerPointToLatLng([p.x + d * Math.cos(a_right), p.y + d * Math.sin(a_right)])
     ]);
+  }
+
+  private toPointNotRounded(point: L.LatLngLiteral, map: L.Map): L.Point {
+    return map.project(point).subtract(map.getPixelOrigin());
   }
 
   public bringToFront(): void {

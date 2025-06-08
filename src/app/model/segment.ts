@@ -101,6 +101,21 @@ export class Segment {
     return this;
   }
 
+  public reverseDto(): SegmentDto {
+    const nb = this.points.length;
+    const dto: SegmentDto = {p: new Array(nb)};
+    let previousPoint: Point | undefined = undefined;
+    for (let i = 0; i < nb; ++i) {
+      const pointDto = PointDtoMapper.toDto(this.points[nb - i - 1], previousPoint);
+      pointDto.t = undefined;
+      pointDto.h = undefined;
+      pointDto.s = undefined;
+      previousPoint = this.points[nb - i - 1];
+      dto.p![i] = pointDto;
+    }
+    return dto;
+  }
+
   public toDto(): SegmentDto {
     const nb = this.points.length;
     const dto: SegmentDto = {p: new Array(nb)};

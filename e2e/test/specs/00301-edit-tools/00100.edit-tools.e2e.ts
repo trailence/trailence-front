@@ -26,8 +26,8 @@ describe('Edit tools', () => {
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     trailPage = await trailsList.openTrail(trail);
-    map = await trailPage.trailComponent.openMap();
     details = await trailPage.trailComponent.openDetails();
+    map = await trailPage.trailComponent.openMap();
     tools = await trailPage.trailComponent.openEditTools();
   });
 

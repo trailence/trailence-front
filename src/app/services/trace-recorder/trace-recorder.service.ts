@@ -156,6 +156,7 @@ export class TraceRecorderService {
     recording.paused = true;
     this.stopRecording(recording);
     this.save(recording);
+    this._recording$.next(recording);
   }
 
   public resume(): Promise<any> {
@@ -168,6 +169,7 @@ export class TraceRecorderService {
     recording.state = new ImprovmentRecordingState();
     recording.status = new RecordingStatus(0, undefined, undefined, undefined);
     this.save(recording);
+    this._recording$.next(recording);
     return this.startRecording(recording);
   }
 
@@ -511,9 +513,9 @@ export class Recording {
   }
 
   static fromDto(dto: RecordingDto, preferencesService: PreferencesService): Recording {
-    const rawTrack = new Track(dto.track, preferencesService);
-    const improvedTrack = new Track(dto.rawTrack, preferencesService);
-    return new Recording(
+    const rawTrack = new Track(dto.rawTrack, preferencesService);
+    const improvedTrack = new Track(dto.track, preferencesService);
+    const r = new Recording(
       new Trail(dto.trail),
       rawTrack,
       improvedTrack,
@@ -529,6 +531,7 @@ export class Recording {
       dto.followingTrailOwner,
       dto.followingTrackUuid,
     );
+    return r;
   }
 
   private static createRecordingPoint(segment: Segment, pointIndex: number): RecordingPoint {

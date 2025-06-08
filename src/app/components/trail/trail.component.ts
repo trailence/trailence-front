@@ -81,6 +81,7 @@ export class TrailComponent extends AbstractComponent {
   showOriginal$ = new BehaviorSubject<boolean>(false);
   showBreaks$ = new BehaviorSubject<boolean>(false);
   showPhotos$ = new BehaviorSubject<boolean>(false);
+  reverseWay$ = new BehaviorSubject<boolean>(false);
 
   trail1: Trail | null = null;
   trail2: Trail | null = null;
@@ -159,11 +160,32 @@ export class TrailComponent extends AbstractComponent {
 
   @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
   mapToolbarTopRightItems: MenuItem[] = [
+    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
+      .setVisible(() => !!this.recording?.paused)
+      .setAction(() => this.togglePauseRecordingWithConfirmation()),
+    new MenuItem().setIcon('pause-circle').setI18nLabel('trace_recorder.pause')
+      .setVisible(() => !!this.recording && !this.recording.paused)
+      .setAction(() => this.togglePauseRecordingWithConfirmation()),
+    new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setTextColor('danger')
+      .setVisible(() => !!this.recording && !this.recording.paused)
+      .setAction(() => this.stopRecordingWithConfirmation()),
+    new MenuItem().setIcon('star-filled').setI18nLabel('trace_recorder.follow_this_trail')
+      .setVisible(() => !!this.recording && !!this.trail1 && !this.trail2 && (this.recording.followingTrailUuid !== this.trail1.uuid || this.recording.followingTrailOwner !== this.trail1.owner))
+      .setAction(() => this.togglePauseRecordingWithConfirmation()),
+    new MenuItem(),
+    new MenuItem().setIcon('reverse-way').setI18nLabel('pages.trail.reverse_way')
+      .setTextColor(() => this.reverseWay$.value ? 'light' : 'dark')
+      .setBackgroundColor(() => this.reverseWay$.value ? 'dark' : '')
+      .setAction(() => this.reverseWay$.next(!this.reverseWay$.value)),
+    new MenuItem(),
     new MenuItem().setIcon('tool').setI18nLabel('track_edit_tools.title')
-      .setAction(() => this.enableEditTools())
+      .setVisible(() => this.canEdit())
+      .setAction(() => this.enableEditTools()),
   ];
+  private refreshMapToolbarTop() { this.mapToolbarTopRightItems = [...this.mapToolbarTopRightItems]; this.changesDetector.detectChanges(); }
 
-  mapToolbarRightItems: MenuItem[] = [];
+  mapToolbarRightItems: MenuItem[] = [
+  ];
   private refreshMapToolbarRight() { this.mapToolbarRightItems = [...this.mapToolbarRightItems]; this.changesDetector.detectChanges(); }
 
   constructor(
@@ -378,6 +400,7 @@ export class TrailComponent extends AbstractComponent {
         if (toolsModifiedTrack)
           this.elevationGraph?.resetChart();
         this.toolbar?.refresh();
+        this.refreshMapToolbarTop();
         this.changesDetector.detectChanges();
       }, true
     );
@@ -389,13 +412,14 @@ export class TrailComponent extends AbstractComponent {
     return trail$.pipe(
       switchMap(trail => {
         if (!trail) return of(([null, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined]);
-        return this.showOriginal$.pipe(
-          switchMap(original => {
+        return combineLatest([this.showOriginal$, this.reverseWay$]).pipe(
+          switchMap(([original, reverse]) => {
             const uuid$ = original ? trail.originalTrackUuid$ : trail.currentTrackUuid$;
             return uuid$.pipe(
               switchMap(uuid => this.trackService.getFullTrack$(uuid, trail.owner)),
               map(track => {
                 if (!track) return ([trail, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined];
+                if (reverse) track = track.reverse();
                 const mapTrack = new MapTrack(trail, track, 'red', 1, false, this.i18n);
                 mapTrack.showArrowPath();
                 return ([trail, track, mapTrack]) as [Trail | null, Track | undefined, MapTrack | undefined];
@@ -961,7 +985,7 @@ export class TrailComponent extends AbstractComponent {
     if (this.trail2) return false;
     if (this.trail1?.owner !== this.auth.email) return false;
     if (this.recording) return false;
-    return this.browser.width >= 1500 && this.browser.height >= 500;
+    return true;
   }
 
   public enableEditTools() {

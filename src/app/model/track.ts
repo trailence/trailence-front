@@ -132,6 +132,15 @@ export class Track extends Owned {
     this._segments.next(this._segments.value);
   }
 
+  public reverse(): Track {
+    return new Track({
+      ...super.toDto(),
+      s: this.segments.reverse().map(segment => segment.reverseDto()),
+      wp: this.wayPoints.map(wp => wp.toDto()),
+      sizeUsed: this.sizeUsed
+    }, this.preferencesService);
+  }
+
   public override toDto(): TrackDto {
     return {
       ...super.toDto(),

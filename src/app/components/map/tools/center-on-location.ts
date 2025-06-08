@@ -13,7 +13,8 @@ export class MapCenterOnPositionTool extends MapTool {
     super();
     this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => getVisible();
     this.icon = 'center-on-location';
-    this.color = () => following$.value ? 'danger' : '';
+    this.color = () => following$.value ? 'light' : 'dark';
+    this.backgroundColor = () => following$.value ? 'dark' : '';
     this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       mapComponent.toggleCenterOnLocation();
       return of(true);

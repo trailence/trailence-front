@@ -131,6 +131,7 @@ export class AssetsService {
       'sort': 'assets/sort.1.svg', // swap-vertical-outline
       'stop': 'assets/stop.1.svg', // stop-outline
       'stop-circle': 'assets/stop-circle.1.svg', // stop-circle-outline
+      'reverse-way': 'assets/compare.1.svg', // swap-horizontal-outline
       'sync': 'assets/sync.1.svg', // sync-circle-outline
       'tags': 'assets/tags.1.svg', // pricetags-outline
       'text': 'assets/text.1.svg', // reader-outline
