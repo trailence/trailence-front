@@ -148,7 +148,8 @@
       "empty_list": {
         "collection": "Aucun parcours dans cette collection pour l'instant",
         "share": "Aucun parcours dans ce partage",
-        "filter": "Aucun parcours ne correspond à vos filtres"
+        "filter": "Aucun parcours ne correspond à vos filtres",
+        "all_collections": "Vous n'avez aucun parcours pour l'instant"
       },
       "search_trail_placeholder": "Chercher un parcours",
       "actions": {
@@ -559,6 +560,7 @@
     "deleting": "Supression de la collection"
   },
   "my_trails": "Mes Parcours",
+  "all_collections": "Toutes les collections",
   "buttons": {
     "apply": "Appliquer",
     "cancel": "Annuler",

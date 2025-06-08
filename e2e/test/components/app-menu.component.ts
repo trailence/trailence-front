@@ -31,7 +31,8 @@ export class AppMenu extends Component {
     await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0));
     const names: string[] = [];
     for (const item of await items.getElements()) {
-      names.push(await this.getCollectionName(item));
+      if ((await item.getAttribute('class')).indexOf('all-collections') < 0)
+        names.push(await this.getCollectionName(item));
     }
     return names;
   }

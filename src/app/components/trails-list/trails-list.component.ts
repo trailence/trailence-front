@@ -232,7 +232,7 @@ export class TrailsListComponent extends AbstractComponent {
     if (newState?.collectionUuid !== previousState?.collectionUuid)
       this.loadState();
 
-    this.toolbar = this.trailMenuService.getTrailsMenu(this.trails?.toArray() ?? [], false, this.collectionUuid, true);
+    this.toolbar = this.trailMenuService.getTrailsMenu(this.trails?.toArray() ?? [], false, this.collectionUuid, true, this.listType === 'all-collections');
     this.toolbar.splice(0, 0,
       new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
         .setAction(() => this.sortModal?.present()),

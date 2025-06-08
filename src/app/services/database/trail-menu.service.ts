@@ -20,7 +20,7 @@ export class TrailMenuService {
 
   public trailToCompare: Trail | undefined;
 
-  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: string | undefined = undefined, onlyGlobal: boolean = false): MenuItem[] { // NOSONAR
+  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: string | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false): MenuItem[] { // NOSONAR
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email!;
 
@@ -110,12 +110,14 @@ export class TrailMenuService {
       menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export')
         .setAction(() => import('../functions/export').then(m => m.exportTrails(this.injector, trails))));
 
-      menu.push(new MenuItem());
-      menu.push(
-        new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
-        .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email),
-          (col) => import('../functions/copy-trails').then(m => m.copyTrailsTo(this.injector, trails, col, email, fromTrail)))
-        ));
+      if (!isAll) {
+        menu.push(new MenuItem());
+        menu.push(
+          new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
+          .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email),
+            (col) => import('../functions/copy-trails').then(m => m.copyTrailsTo(this.injector, trails, col, email, fromTrail)))
+          ));
+      }
     }
 
     if (trails.length > 0 && fromCollection && onlyGlobal) {

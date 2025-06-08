@@ -36,6 +36,7 @@ export class MenuComponent {
   collections: List<CollectionWithInfo> = List();
   sharedWithMe: List<ShareWithInfo> = List();
   sharedByMe: List<ShareWithInfo> = List();
+  allCollectionsTrails = 0;
 
   collectionsOpen = true;
   sharedWithMeOpen = false;
@@ -70,6 +71,7 @@ export class MenuComponent {
             collection$items(),
             map(trails => {
               withInfo.forEach(c => c.nbTrails = 0);
+              this.allCollectionsTrails = trails.length;
               trails.forEach(t => {
                 const c = withInfo.find(i => i.collection.uuid === t.collectionUuid && t.owner === i.collection.owner);
                 if (c) c.nbTrails!++;

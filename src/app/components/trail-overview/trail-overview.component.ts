@@ -57,6 +57,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() trail?: Trail;
   @Input() refreshMode: 'live' | 'snapshot' = 'snapshot';
   @Input() fromCollection = true;
+  @Input() isAllCollections = false;
   @Input() trackSnapshot: TrackMetadataSnapshot | null | undefined;
 
   @Input() selectable = false;
@@ -272,7 +273,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.popoverController.create({
       component: MenuContentComponent,
       componentProps: {
-        menu: this.trailMenuService.getTrailsMenu([this.trail!], false, this.fromCollection ? this.trail!.collectionUuid : undefined)
+        menu: this.trailMenuService.getTrailsMenu([this.trail!], false, this.fromCollection ? this.trail!.collectionUuid : undefined, false, this.isAllCollections)
       },
       cssClass: 'tight-menu',
       event: event,

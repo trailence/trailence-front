@@ -49,6 +49,8 @@
         </div>
       } @else if (listType === 'share') {
         <div>{{i18n.texts.pages.trails.empty_list.share}}</div>
+      } @else if (listType === 'all-collections') {
+        <div>{{i18n.texts.pages.trails.empty_list.all_collections}}</div>
       }
     </div>
   } @else if (listTrails.size === 0) {
@@ -71,6 +73,7 @@
               (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
               (click)="onTrailClick(trailWithInfo.trail)"
               [fromCollection]="!!collectionUuid"
+              [isAllCollections]="listType === 'all-collections'"
               [trackSnapshot]="trailWithInfo.track"
               [delayLoading]="$index >= 10"
               [photoCanBeOnLeft]="size !== 'small'"

@@ -84,7 +84,7 @@ export class MapComponent extends Component {
   public async selectLayer(name: string) {
     await this.rightToolbar.clickByIcon('layers');
     const modal = await App.waitModal();
-    await modal.$('div.layer.layer-' + name).isDisplayed();
+    await browser.waitUntil(() => modal.$('div.layer.layer-' + name).isDisplayed());
     await modal.$('div.layer.layer-' + name).click();
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
   }

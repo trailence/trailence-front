@@ -89,6 +89,7 @@ export class TrailsPage extends AbstractPage {
       case 'collection': this.initCollection(newState.id); break;
       case 'share': this.initShare(newState.id, newState.from); break;
       case 'search': this.initSearch(); break;
+      case 'all-collections': this.initAllCollections(); break;
       default: this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
   }
@@ -132,6 +133,27 @@ export class TrailsPage extends AbstractPage {
             actions.splice(0, 0, new MenuItem());
           trailsActions = actions;
           this.actions = [...collectionActions, ...trailsActions];
+          this.ngZone.run(() => this.trails$.next(newList));
+        }
+      }
+    );
+  }
+
+  private initAllCollections(): void {
+    this.viewId = 'all-collections';
+    this.actions = [];
+    // title
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.all_collections)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    // trails
+    let first = true;
+    this.byStateAndVisible.subscribe(
+      this.injector.get(TrailService).getAllWhenLoaded$().pipe(
+        collection$items()
+      ),
+      trails => {
+        const newList = List(trails);
+        if (first || !newList.equals(this.trails$.value)) {
+          first = false;
           this.ngZone.run(() => this.trails$.next(newList));
         }
       }
