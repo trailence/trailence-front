@@ -301,17 +301,16 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       () => {
         existing = this._store.value.find(value => value.value && this.areSame(value.value, item));
         if (!existing) {
+          this._createdLocally.push(item$);
           const deleted = this._deletedLocally.findIndex(value => this.areSame(value, item));
           if (deleted < 0) {
-            this._createdLocally.push(item$);
             this._store.value.push(item$);
-            this._store.next(this._store.value);
           } else {
             this._deletedLocally.splice(deleted, 1);
             this._store.value.push(item$);
-            this._store.next(this._store.value);
             recovered = true;
           }
+          this._store.next(this._store.value);
           inStore$.next(item$);
         } else {
           inStore$.next(existing);
@@ -319,10 +318,12 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         inStore$.complete();
       },
       db => existing ? of(true)
-        : recovered ? this.markUndeletedInDb(db.table<DB_ITEM>(this.tableName), item)
-        : from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item))),
-      status => {
-        if (existing || recovered) return false;
+        : (recovered ?
+             this.markUndeletedInDb(db.table<DB_ITEM>(this.tableName), item)
+             : from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item)))
+          )
+      , status => {
+        if (existing) return false;
         return this.updateStatusWithLocalCreate(status);
       },
       ondone
@@ -359,8 +360,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
             }
           }
           if (existing) existingList.push(item);
-          else if (recovered) recoveredList.push(item);
-          else nbNew++;
+          else {
+            if (recovered) recoveredList.push(item);
+            nbNew++;
+          }
         }
         if (storeChanged) this._store.next(this._store.value);
       },

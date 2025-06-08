@@ -155,7 +155,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     return from(this._db!.transaction('rw', table, () => {
       table.get(key).then(dbItem => {
         if (!dbItem) return Promise.resolve(true);
-        return table.put({...dbItem, deletedLocally: false}, key);
+        return table.put({...dbItem, deletedLocally: false, createdLocally: true}, key);
       });
     }));
   }
