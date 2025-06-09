@@ -89,7 +89,7 @@ export class TrailPlannerPage extends AbstractPage {
     new MenuItem(),
     new MenuItem().setIcon('undo').setI18nLabel('pages.trailplanner.undo')
       .setVisible(() => !!this.trackBuilder?.track)
-      .setDisabled(() => this.trackBuilder?.anchors.length === 0)
+      .setDisabled(() => this.trackBuilder?.points.length === 0)
       .setAction(() => { this.trackBuilder?.undo(); this.toolbar?.refresh(); }),
     new MenuItem().setIcon('reset').setI18nLabel('pages.trailplanner.reset').setTextColor('danger')
       .setVisible(() => !!this.trackBuilder?.track)
@@ -98,7 +98,7 @@ export class TrailPlannerPage extends AbstractPage {
     new MenuItem(),
     new MenuItem().setIcon('save').setI18nLabel('buttons.save').setTextColor('success')
       .setVisible(() => !!this.trackBuilder?.track)
-      .setDisabled(() => !this.trackBuilder || this.trackBuilder.anchors.length < 2)
+      .setDisabled(() => !this.trackBuilder || this.trackBuilder.points.length < 2)
       .setAction(() => this.openSaveModal())
   ];
 
@@ -156,7 +156,7 @@ export class TrailPlannerPage extends AbstractPage {
   }
 
   openSaveModal(): void {
-    if (!this.trackBuilder || this.trackBuilder.anchors.length < 2) return;
+    if (!this.trackBuilder || this.trackBuilder.points.length < 2) return;
     this.saveModal?.present();
   }
 

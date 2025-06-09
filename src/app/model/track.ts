@@ -519,7 +519,7 @@ export class ComputedWayPoint {
         true, false, undefined, -1, 0, 0, track
       )];
       this.addBreaks(track, preferences, result);
-      if (track.arrivalPoint!.distanceTo(track.departurePoint.pos) <= 25) {
+      if (track.arrivalPoint!.distanceTo(track.departurePoint.pos) <= 25 && track.metadata.distance > 25) {
         result[0]._isArrival = true;
         return result;
       }

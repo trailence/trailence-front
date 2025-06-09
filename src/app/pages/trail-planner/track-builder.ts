@@ -45,8 +45,7 @@ export class TrackBuilder {
   public estimatedTime = 0;
   public hasElevation = false;
 
-  public anchors: MapAnchor[] = [];
-  public anchorsPoints: Point[][] = [];
+  public points: Point[][] = [];
   public putAnchors = false;
   public putFreeAnchor = false;
 
@@ -91,9 +90,7 @@ export class TrackBuilder {
       this.disableFreeAnchor();
     this.cancelWays();
     this.track = undefined;
-    this.anchors.forEach(a => this.map?.removeFromMap(a.marker));
-    this.anchors = [];
-    this.anchorsPoints = [];
+    this.points = [];
     this.currentMapTrack$.next(undefined);
     this.estimatedTime = 0;
     this.hasElevation = false;
@@ -109,22 +106,25 @@ export class TrackBuilder {
   }
 
   undo(): void {
-    if (this.anchors.length === 0) return;
-    if (this.anchors.length === 1) {
-      this.map.removeFromMap(this.anchors[0].marker);
-      this.anchors = [];
+    if (this.points.length === 0) return;
+    if (this.points.length === 1) {
+      this.points = [];
       this.start();
     } else {
-      this.track!.lastSegment.removeMany(this.anchorsPoints[this.anchorsPoints.length - 1]);
-      this.anchorsPoints.splice(this.anchorsPoints.length - 1, 1);
-      const anchor = this.anchors.splice(this.anchors.length - 1, 1)[0];
-      this.map.removeFromMap(anchor.marker);
+      this.track!.lastSegment.removeMany(this.points[this.points.length - 1]);
+      this.points.splice(this.points.length - 1, 1);
       this.updateCurrentMapTrack();
-      const matching = this.getMatchingWays(this.anchors[this.anchors.length - 1].point);
+      const matching = this.getMatchingWays(this.getLastPoint()!.pos);
       this.updateMapTracks(matching);
       this.hasElevation = this.track!.forEachPoint(p => p.ele !== undefined) ?? false;
     }
     this.changeDetector.detectChanges();
+  }
+
+  private getLastPoint(): Point | undefined {
+    if (this.points.length === 0) return undefined;
+    const p = this.points[this.points.length - 1];
+    return p[p.length - 1];
   }
 
   public mapChanged() {
@@ -140,6 +140,7 @@ export class TrackBuilder {
   }
 
   private setHighlightedWays(tracks: MapTrack[]): void {
+    if (Arrays.sameContent(this.highlightedWays, tracks)) return;
     this.highlightedWays.forEach(t => t.color = this.getWayColor(t.data?.element));
     this.highlightedWays = tracks;
     this.highlightedWays.forEach(t => {
@@ -165,10 +166,10 @@ export class TrackBuilder {
         this.changeDetector.detectChanges();
         return;
       }
-      this.setHighlightedWays([]);
       const ref = this.getEligiblePoint(refs);
       if (!ref?.ref?.point) {
         this.map.removeFromMap(this._addAnchor!.marker);
+        this.setHighlightedWays([]);
         this.possibleWaysFromCursor$.next([]);
       } else {
         const pos = ref.ref.position!;
@@ -246,9 +247,9 @@ export class TrackBuilder {
 
   private getEligiblePoint(refs: MapTrackPointReference[]): {ref: MapTrackPointReference | undefined, using: MapTrack | undefined} | undefined {
     if (refs.length === 0) return undefined;
-    if (this.anchors.length === 0) return {ref: MapTrackPointReference.closest(refs), using: undefined};
-    const previousPos = this.anchors[this.anchors.length - 1].point;
-    const previousPosMapTracks = this.getMatchingMapTracksIn(previousPos, this.possibleWaysFromLastAnchor$.value);
+    const previousPos = this.getLastPoint();
+    if (!previousPos) return {ref: MapTrackPointReference.closest(refs), using: undefined};
+    const previousPosMapTracks = this.getMatchingMapTracksIn(previousPos.pos, this.possibleWaysFromLastAnchor$.value);
     const linkToPrevious = refs.filter(r => r.point !== undefined && previousPosMapTracks.indexOf(r.track) >= 0).sort(MapTrackPointReference.distanceComparator);
     let best: {ref: MapTrackPointReference, using: MapTrack | undefined} | undefined = undefined;
     let bestWays: Way[] = [];
@@ -262,7 +263,7 @@ export class TrackBuilder {
         }
       }
     }
-    if (!best && linkToPrevious.length === 0 && ((this.anchorsPoints.length > 0 && this.anchorsPoints[this.anchorsPoints.length - 1].length === 1) || (this.anchorsPoints.length === 0 && this.anchors.length === 1))) {
+    if (!best && linkToPrevious.length === 0 && this.points.length > 0 && this.points[this.points.length - 1].length === 1) {
       // seems to be a free point
       return {ref: MapTrackPointReference.closest(refs), using: undefined};
     }
@@ -300,21 +301,20 @@ export class TrackBuilder {
   }
 
   private newPoint(pos: L.LatLngLiteral, using: MapTrack | undefined): void {
-    const anchor = this.createAnchor(pos, '' + (this.anchors.length + 1), true);
-    if (this.anchors.length === 0) {
+    const previousPos = this.getLastPoint();
+    console.log(previousPos, this.points)
+    if (!previousPos) {
       // first point
       const segment = this.track!.newSegment();
-      segment.append({pos});
+      this.points.push([ segment.append({pos}) ]);
     } else if (using) {
-      const previousPos = this.anchors[this.anchors.length - 1].point;
       const points = (using.track as SimplifiedTrackSnapshot).points;
-      this.goTo(previousPos, pos, points);
+      this.goTo(previousPos.pos, pos, points);
     } else {
       // free point
-      this.anchorsPoints.push([ this.track!.lastSegment.append({pos}) ]);
+      this.points.push([ this.track!.lastSegment.append({pos}) ]);
     }
-    this.anchors.push(anchor);
-    this.map.addToMap(anchor.marker);
+    console.log(this.track, this.points)
     const matching = this.getMatchingWays(pos);
     this.updateMapTracks(matching);
     this.updateCurrentMapTrack();
@@ -332,16 +332,17 @@ export class TrackBuilder {
     for (let i = fromIndex + increment; i != toIndex + increment; i = i + increment) {
       result.push({pos: { lat: points[i].lat, lng: points[i].lng } });
     }
-    this.anchorsPoints.push( this.track!.lastSegment.appendMany(result) );
+    this.points.push( this.track!.lastSegment.appendMany(result) );
   }
 
 
   private updateWaysFromService(ways: Way[]): void {
     this.ways = ways;
-    if (this.anchors.length === 0) {
+    const previousPos = this.getLastPoint();
+    if (!previousPos) {
       this.updateMapTracks(this.ways);
     } else {
-      const matching = this.getMatchingWays(this.anchors[this.anchors.length - 1].point);
+      const matching = this.getMatchingWays(previousPos.pos);
       if (matching.length === 0)
         this.updateMapTracks(this.ways);
       else
@@ -393,9 +394,10 @@ export class TrackBuilder {
       undefined,
       this.track!,
       '#FF000080',
-      1, false, this.injector.get(I18nService)
+      1, false, this.injector.get(I18nService), 4
     );
     mt.showArrowPath();
+    mt.showDepartureAndArrivalAnchors();
     this.currentMapTrack$.next(mt);
     this.getElevation().subscribe(() => {
       this.saveToLocalStorage();
@@ -421,14 +423,10 @@ export class TrackBuilder {
       this.track = new Track(dto, this.injector.get(PreferencesService));
       for (let i = 0; i < points.length; ++i) {
         const p = points[i];
-        const point = this.track.segments[p.s].points[p.p];
-        const a = this.createAnchor(point.pos, '' + (this.anchors.length + 1), true);
-        this.anchors.push(a);
-        this.map.addToMap(a.marker);
         if (i > 0) {
           const prev = points[i - 1];
-          if (p.s != prev.s) this.anchorsPoints.push([]);
-          else this.anchorsPoints.push(this.track.segments[p.s].points.slice(prev.p + 1, p.p + 1));
+          if (p.s != prev.s) this.points.push([]);
+          else this.points.push(this.track.segments[p.s].points.slice(prev.p + 1, p.p + 1));
         }
       }
       this.updateCurrentMapTrack();
@@ -447,12 +445,12 @@ export class TrackBuilder {
     const points: {s: number, p: number}[] = [{s: 0, p: 0}];
     let segmentIndex = 0;
     let pointIndex = 0;
-    for (const ap of this.anchorsPoints) {
-      if (ap.length === 0) {
+    for (const p of this.points) {
+      if (p.length === 0) {
         segmentIndex++;
         pointIndex = 0;
       } else {
-        pointIndex += ap.length;
+        pointIndex += p.length;
         points.push({s: segmentIndex, p: pointIndex});
       }
     }

@@ -56,11 +56,18 @@ app-map {
     left: 56px;
     right: 56px;
     z-index: 1000;
+    pointer-events: none;
+    overflow: hidden;
+
+    app-toolbar {
+      max-width: 100%;
+    }
 
     div.map-top-controls {
       display: flex;
       flex-direction: row;
       align-items: center;
+      pointer-events: none;
 
       &.center {
         justify-content: center;
@@ -78,13 +85,27 @@ app-map {
     position: absolute;
     top: 5px;
     right: 5px;
+    bottom: 5px;
     z-index: 1000;
+    pointer-events: none;
+    overflow: hidden;
+
+    app-toolbar {
+      max-height: 100%;
+    }
   }
   div.map-left-controls-container {
     position: absolute;
     top: 5px;
     left: 5px;
+    bottom: 5px;
     z-index: 1000;
+    pointer-events: none;
+    overflow: hidden;
+
+    app-toolbar {
+      max-height: 100%;
+    }
   }
 
   app-toolbar {
@@ -93,6 +114,7 @@ app-map {
     border: 2px solid rgba(0, 0, 0, 0.2);
     background-clip: padding-box;
     display: block;
+    pointer-events: all;
   }
 
 }

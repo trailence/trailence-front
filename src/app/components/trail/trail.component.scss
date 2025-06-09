@@ -588,6 +588,12 @@
   .cover {
     align-self: center;
     z-index: 1;
+
+    ::ng-deep img {
+      border: 2px solid rgba(var(--ion-color-secondary-rgb), 0.66);
+      border-radius: 10px;
+      padding: 2px;
+    }
   }
 
   ion-button.edit {
