@@ -234,7 +234,6 @@
       "comparison_message": "Ces parcours sont similaires à {{1}}%",
       "sections": {
         "description": {
-          "title": "Description du parcours",
           "placeholder": "Entrez une description ici"
         },
         "waypoints": {

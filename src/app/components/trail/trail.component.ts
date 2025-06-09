@@ -947,7 +947,7 @@ export class TrailComponent extends AbstractComponent {
 
   endEditDescription(text: string | null | undefined): void {
     this.editingDescription = false;
-    if (text && this.trail1) {
+    if (text !== null && text !== undefined && this.trail1) {
       text = text.trim();
       if (this.trail1.description !== text && this._lockForDescription) {
         this.trail1.description = text;

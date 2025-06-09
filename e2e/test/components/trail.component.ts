@@ -167,7 +167,9 @@ export class TrailComponent extends Component {
     const textArea = new IonicTextArea(element.$('ion-textarea'));
     await textArea.waitDisplayed();
     await textArea.setValue(text);
-    await browser.action('pointer').move({origin: element.previousElement()}).pause(100).down().pause(100).up().perform();
+    const title = details.$('div.section-title');
+    await title.scrollIntoView({block: 'center', inline: 'center'});
+    await title.click();
     await browser.waitUntil(() => textArea.isDisplayed().then(d => !d));
   }
 

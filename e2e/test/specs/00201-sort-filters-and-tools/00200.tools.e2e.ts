@@ -10,7 +10,7 @@ describe('Trails Tools', () => {
   let collectionPage: TrailsPage;
   let EXPECTED_TRAILS: ExpectedTrail[];
 
-  it('Login, create collection, import trails', async () => {
+  it('Login, open collection, import trails', async () => {
     App.init();
     const loginPage = await App.start();
     await loginPage.loginAndWaitMyTrailsCollection();

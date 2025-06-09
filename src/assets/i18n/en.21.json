@@ -234,7 +234,6 @@
       "comparison_message": "These paths are {{1}}% similar",
       "sections": {
         "description": {
-          "title": "Description",
           "placeholder": "Describe the trail here"
         },
         "waypoints": {

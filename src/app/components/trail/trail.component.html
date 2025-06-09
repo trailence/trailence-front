@@ -198,7 +198,40 @@
           </ion-button>
         </ng-container>
       </div>
+      @if (trail1 && !trail2) {
+        @if (trail1.description || editable) {
+          <div class="description-text">
+            @if (!editable) {
+              <span>{{ trail1.description }}</span>
+            } @else {
+              @if (!editingDescription) {
+                <div class="edit-description" (click)="startEditDescription()">
+                  <span *ngIf="trail1.description.trim().length === 0" class="no-description">
+                    {{ i18n.texts.pages.trail.sections.description.placeholder }}
+                  </span>
+                  <span *ngIf="trail1.description.trim().length > 0">
+                    {{ trail1.description }}
+                  </span>
+                </div>
+              } @else {
+                <ion-textarea class="description-text"
+                  #descriptionEditor
+                  [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
+                  [maxlength]="50000"
+                  [autoGrow]="true"
+                  [value]="trail1.description"
+                  (ionChange)="endEditDescription($event.detail.value)"
+                  (ionBlur)="endEditDescription(undefined)"
+                  color="tertiary"
+                ></ion-textarea>
+              }
+            }
+          </div>
+        }
+      }
+
       <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="openTags(trail1)">
+        <ion-icon name="tags" color="secondary"></ion-icon>
         <span *ngIf="tagsNames1.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
         <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
       </div>
@@ -276,42 +309,8 @@
           </div>
         </div>
       }
-      <ng-container *ngIf="trail1 && !trail2">
-        <ng-container *ngIf="trail1.description || editable">
-          <div class="section-title">
-            <ion-icon name="text"></ion-icon>
-            <div>{{ i18n.texts.pages.trail.sections.description.title }}</div>
-          </div>
-          <div class="description-text">
-            <ng-container *ngIf="!editable">
-              <span>{{ trail1.description }}</span>
-            </ng-container>
-            <ng-container *ngIf="editable">
-              <ng-container *ngIf="!editingDescription">
-                <div (click)="startEditDescription()">
-                  <span *ngIf="trail1.description.trim().length === 0">
-                    {{ i18n.texts.pages.trail.sections.description.placeholder }}
-                  </span>
-                  <span *ngIf="trail1.description.trim().length > 0">
-                    {{ trail1.description }}
-                  </span>
-                </div>
-              </ng-container>
-              <ng-container *ngIf="editingDescription">
-                <ion-textarea class="description-text"
-                  #descriptionEditor
-                  [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"
-                  [maxlength]="50000"
-                  [autoGrow]="true"
-                  [value]="trail1.description"
-                  (ionChange)="endEditDescription($event.detail.value)"
-                  (ionBlur)="endEditDescription(undefined)"
-                ></ion-textarea>
-              </ng-container>
-            </ng-container>
-          </div>
-        </ng-container>
 
+      @if (!trail2) {
         <div class="section-title">
           <ion-icon name="location"></ion-icon>
           <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
@@ -364,7 +363,7 @@
             </div>
           </div>
         </ng-template>
-      </ng-container>
+      }
     </div>
     <div class="elevation-container">
       <app-elevation-graph

@@ -20,10 +20,12 @@ app-toolbar {
       flex-direction: row;
       max-width: 100%;
       overflow-x: auto;
+      overflow-y: hidden;
     }
     &.vertical {
       flex-direction: column;
       max-height: 100%;
+      overflow-x: hidden;
       overflow-y: auto;
     }
 
