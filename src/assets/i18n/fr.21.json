@@ -243,7 +243,8 @@
       },
       "remaining_metadata_title": "Restant",
       "created_in_trailence_on": "Créé dans Trailence le",
-      "last_update_on": "Dernière mise à jour le"
+      "last_update_on": "Dernière mise à jour le",
+      "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours"
     },
     "collection_form": {
       "title": "Collection",
@@ -493,7 +494,13 @@
       "add_photos_buttons": "Ajouter des photos",
       "selected_plural": "photos sélectionnées",
       "selected_single": "photo sélectionnée",
-      "deleting": "Suppression des photos"
+      "deleting": "Suppression des photos",
+      "position": {
+        "available": "Localisée sur le parcours",
+        "not_available": "Non localisée sur le parcours",
+        "clear_title": "Supprimer la position de la photo",
+        "clear_message": "Etes-vous sûr de vouloir supprimer la position de cette photo ?"
+      }
     },
     "import_from_url": {
       "title": "Importer depuis une URL",

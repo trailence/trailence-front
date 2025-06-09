@@ -19,12 +19,12 @@ app-toolbar {
     &.horizontal {
       flex-direction: row;
       max-width: 100%;
-      overflow: hidden;
+      overflow-x: auto;
     }
     &.vertical {
       flex-direction: column;
       max-height: 100%;
-      overflow: hidden;
+      overflow-y: auto;
     }
 
     div.toolbar-item {
@@ -37,7 +37,9 @@ app-toolbar {
       padding-top: var(--item-padding-top, '0');
       padding-bottom: var(--item-padding-bottom, '0');
       min-width: var(--item-min-width, var(--item-fixed-width, ''));
-      max-width: var(--item-max-width, var(--item-fixed-width, ''));
+      &:not(.section-title) {
+        max-width: var(--item-max-width, var(--item-fixed-width, ''));
+      }
       position: relative;
 
       &:not(.disabled) {
@@ -98,7 +100,9 @@ app-toolbar {
       padding-left: calc(var(--item-padding-left, '0') / var(--small-size-divider, 2));
       padding-right: calc(var(--item-padding-right, '0') / var(--small-size-divider, 2));
       min-width: var(--item-min-width-small, var(--item-min-width, var(--item-fixed-width, '')));
-      max-width: var(--item-max-width-small, var(--item-max-width, var(--item-fixed-width, '')));
+      &:not(.section-title) {
+        max-width: var(--item-max-width-small, var(--item-max-width, var(--item-fixed-width, '')));
+      }
 
       + div.toolbar-item {
         margin-left: calc(var(--item-space, 4px) / var(--small-size-divider, 2));

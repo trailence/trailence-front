@@ -123,6 +123,29 @@ export class TrackUtils {
     return closestIndex;
   }
 
+  public static findClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number = -1): {segmentIndex: number, pointIndex: number} | undefined {
+    let closestSegmentIndex = -1;
+    let closestPointIndex = -1;
+    let closestDistance = -1;
+    const p = L.latLng(pos);
+    const segments = track.segments;
+    for (let si = 0; si < segments.length; ++si) {
+      const points = segments[si].points;
+      for (let pi = 0; pi < points.length; ++pi) {
+        const p2 = points[pi].pos;
+        if (p.lat === p2.lat && p.lng === p2.lng) return {segmentIndex: si, pointIndex: pi};
+        const d = p.distanceTo(p2);
+        if (d <= 0.1) return {segmentIndex: si, pointIndex: pi};
+        if ((maxDistance < 0 || d <= maxDistance) && (closestDistance === -1 || d < closestDistance)) {
+          closestSegmentIndex = si;
+          closestPointIndex = pi;
+          closestDistance = d;
+        }
+      }
+    }
+    return closestSegmentIndex >= 0 ? {segmentIndex: closestSegmentIndex, pointIndex: closestPointIndex} : undefined;
+  }
+
   public static findLastClosePointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number): {segmentIndex: number, pointIndex: number} | undefined {
     let closestIndex: {segmentIndex: number, pointIndex: number} | undefined = undefined;
     let closestDistance = -1;

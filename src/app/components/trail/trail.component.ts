@@ -211,7 +211,7 @@ export class TrailComponent extends AbstractComponent {
     this.visible$.subscribe(() => this.updateDisplay());
     setTimeout(() => this.updateDisplay(), 0);
     const showPhotoTool = new MenuItem().setIcon('photos')
-      .setVisible(() => !!this.photosHavingPosition?.length)
+      .setVisible(() => !!this.photosHavingPosition?.length && !this.positionningOnMap$.value)
       .setTextColor(() => this.showPhotos$.value ? 'light' : 'dark')
       .setBackgroundColor(() => this.showPhotos$.value ? 'dark' : '')
       .setAction(() => {
@@ -219,7 +219,7 @@ export class TrailComponent extends AbstractComponent {
         this.refreshMapToolbarRight();
       });
     const showBreaksTool = new MenuItem().setIcon('hourglass')
-      .setVisible(() => !this.recording && !!this.wayPoints.find(wp => wp.breakPoint))
+      .setVisible(() => !this.recording && !!this.wayPoints.find(wp => wp.breakPoint) && !this.positionningOnMap$.value)
       .setTextColor(() => this.showBreaks$.value ? 'light' : 'dark')
       .setBackgroundColor(() => this.showBreaks$.value ? 'dark' : '')
       .setAction(() => {
@@ -766,7 +766,58 @@ export class TrailComponent extends AbstractComponent {
   }
 
   openPhotos(): void {
-    this.photoService.openPopupForTrail(this.trail1!.owner, this.trail1!.uuid);
+    this.photoService.openPopupForTrail(this.trail1!.owner, this.trail1!.uuid)
+    .then(photo => {
+      if (photo) this.positionPhotoOnMap(photo);
+    });
+  }
+
+  positionningOnMap$ = new BehaviorSubject<Photo | undefined>(undefined);
+  mapToolbarPositionningPhotoItems: MenuItem[] = [
+    new MenuItem().setSectionTitle(true).setI18nLabel('pages.trail.select_photo_position').setTextColor('secondary').setTextSize('12px'),
+    new MenuItem().setIcon('checkmark').setTextColor('success').setI18nLabel('buttons.save')
+      .setDisabled(() => this.tracks$.value.length === 0 || !this.selection.getSinglePointOf(this.tracks$.value[0]))
+      .setAction(() => {
+        const pt = this.selection.getSinglePointOf(this.tracks$.value[0]);
+        if (pt) {
+          const photo = this.positionningOnMap$.value!;
+          this.photoService.update(photo, p => {
+            p.latitude = pt.point.pos.lat;
+            p.longitude = pt.point.pos.lng;
+          });
+        }
+        this.positionningOnMap$.next(undefined);
+      }),
+    new MenuItem().setIcon('cross').setI18nLabel('buttons.cancel')
+      .setAction(() => this.positionningOnMap$.next(undefined)),
+  ];
+  positionPhotoOnMap(photo: Photo): void {
+    if (this.isSmall) this.setTab('map');
+
+    const showBreaksBefore = this.showBreaks$.value;
+    if (showBreaksBefore) this.showBreaks$.next(false);
+    const showPhotosBefore = this.showPhotos$.value;
+    if (showPhotosBefore) this.showPhotos$.next(false);
+    const showOriginalBefore = this.showOriginal$.value;
+    if (showOriginalBefore) this.showOriginal$.next(false);
+
+    this.selection.cancelSelection();
+    console.log(photo)
+    this.positionningOnMap$.next(photo);
+    this.refreshMapToolbarRight();
+    this.changesDetector.detectChanges();
+    const subscription = this.selection.selection$.subscribe(() => this.mapToolbarPositionningPhotoItems = [...this.mapToolbarPositionningPhotoItems]);
+    this.positionningOnMap$.pipe(filter(p => !p), first()).subscribe(() => {
+      subscription.unsubscribe();
+      if (showBreaksBefore) this.showBreaks$.next(true);
+      if (showPhotosBefore) this.showPhotos$.next(true);
+      if (showOriginalBefore) this.showOriginal$.next(true);
+      console.log('done !!')
+      this.refreshMapToolbarRight();
+      this.changesDetector.detectChanges();
+      if (this.isSmall) this.setTab('photos');
+      else this.openPhotos();
+    });
   }
 
   openSlider(): void {

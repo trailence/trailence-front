@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea } from "@ionic/angular/standalone";
-import { firstValueFrom } from 'rxjs';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController } from "@ionic/angular/standalone";
+import { combineLatest, firstValueFrom, map, of, switchMap } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { FileService } from 'src/app/services/file/file.service';
@@ -15,12 +15,17 @@ import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
+import { TrailService } from 'src/app/services/database/trail.service';
+import { TrackService } from 'src/app/services/database/track.service';
+import { TrackUtils } from 'src/app/utils/track-utils';
+import { Track } from 'src/app/model/track';
 
 interface PhotoWithInfo {
   photo: Photo;
   selected: boolean;
   editing: string | null;
   blobSize: number | undefined;
+  positionOnMap: boolean;
 }
 
 @Component({
@@ -47,6 +52,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   @Input() owner!: string;
   @Input() trailUuid!: string;
   @Input() popup = true;
+  @Output() positionOnMapRequested = new EventEmitter<Photo>();
 
   loaded = false;
   photos: PhotoWithInfo[] = [];
@@ -73,6 +79,9 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     private readonly modalController: ModalController,
     private readonly changesDetector: ChangeDetectorRef,
     private readonly errorService: ErrorService,
+    private readonly trailService: TrailService,
+    private readonly trackService: TrackService,
+    private readonly alertController: AlertController,
   ) {
     this.updateSize(browser);
     this.subscriptions.add(browser.resize$.subscribe(() => this.updateSize(browser)));
@@ -86,29 +95,65 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.subscriptions.add(this.auth.auth$.subscribe(auth => this.canEdit = auth?.email === this.owner));
-    this.subscriptions.add(this.photoService.getPhotosForTrail(this.owner, this.trailUuid).subscribe(photos => {
-      photos.sort((p1, p2) => p1.index - p2.index);
-      this.photos = photos.map(p => {
-        return {
-          photo: p,
-          selected: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.selected ?? false,
-          editing: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.editing ?? null,
-          blobSize: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.blobSize,
-        } as PhotoWithInfo;
-      });
-      this.nbSelected = this.photos.reduce((p, pi) => p + (pi.selected ? 1 : 0), 0);
-      this.loaded = true;
-      this.changesDetector.detectChanges();
-    }));
+    this.subscriptions.add(
+      combineLatest([
+        this.auth.auth$.pipe(
+          switchMap(a => {
+            if (a?.email === this.owner)
+              return this.trailService.getTrail$(this.trailUuid, this.owner).pipe(
+                switchMap(trail => trail ? this.trackService.getFullTrack$(trail.currentTrackUuid, this.owner) : of(undefined)),
+                map(track => ({track, canEdit: true}))
+              );
+            return of({track: undefined, canEdit: false});
+          })
+        ),
+        this.photoService.getPhotosForTrail(this.owner, this.trailUuid),
+      ])
+      .subscribe(([at, photos]) => {
+        this.canEdit = at.canEdit;
+        photos.sort((p1, p2) => p1.index - p2.index);
+        this.photos = photos.map(p => {
+          return {
+            photo: p,
+            selected: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.selected ?? false,
+            editing: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.editing ?? null,
+            blobSize: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.blobSize,
+            positionOnMap: !!this.getPhotoPosition(p, at.track),
+          } as PhotoWithInfo;
+        });
+        this.nbSelected = this.photos.reduce((p, pi) => p + (pi.selected ? 1 : 0), 0);
+        this.loaded = true;
+        this.changesDetector.detectChanges();
+      })
+    );
+  }
+
+  private readonly _dateToPosCache = new Map<number, L.LatLngLiteral | null>();
+  private getPhotoPosition(photo: Photo, track: Track | null | undefined): L.LatLngLiteral | undefined {
+    if (photo.latitude !== undefined && photo.longitude !== undefined) {
+      const pos = {lat: photo.latitude, lng: photo.longitude};
+      if (!track) return pos;
+      const ref = TrackUtils.findClosestPointInTrack(pos, track, 100);
+      if (ref) return track.segments[ref.segmentIndex].points[ref.pointIndex].pos;
+    }
+    if (photo.dateTaken !== undefined) {
+      let point: L.LatLngLiteral | null | undefined = this._dateToPosCache.get(photo.dateTaken);
+      if (point === undefined && track) {
+        const closest = TrackUtils.findClosestPointForTime(track, photo.dateTaken);
+        point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
+        this._dateToPosCache.set(photo.dateTaken, point);
+      }
+      return point ?? undefined;
+    }
+    return undefined;
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
-  close(): void {
-    this.modalController.dismiss(null, 'close');
+  close(data: Photo | null = null): void {
+    this.modalController.dismiss(data, 'close');
   }
 
   setBlobSize(p: PhotoWithInfo, size: number): void {
@@ -127,6 +172,42 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     this.photos.forEach(p => p.selected = selected);
     if (selected) this.nbSelected = this.photos.length; else this.nbSelected = 0;
     this.changesDetector.detectChanges();
+  }
+
+  positionOnMap(photo: Photo): void {
+    if (this.popup) this.close(photo);
+    else this.positionOnMapRequested.emit(photo);
+  }
+
+  clearPosition(photo: PhotoWithInfo): void {
+    if (!photo.positionOnMap) {
+      this.photoService.update(photo.photo, p => { p.latitude = undefined; p.longitude = undefined; });
+      return;
+    }
+    this.alertController.create({
+      header: this.i18n.texts.pages.photos_popup.position.clear_title,
+      message: this.i18n.texts.pages.photos_popup.position.clear_message,
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'danger',
+          handler: () => {
+            this.alertController.dismiss();
+            this.photoService.update(photo.photo, p => {
+              if (p.latitude !== undefined && p.longitude !== undefined) {
+                p.latitude = undefined;
+                p.longitude = undefined;
+              } else {
+                p.dateTaken = undefined;
+              }
+            });
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel'
+        }
+      ]
+    }).then(a => a.present());
   }
 
   addPhotos(): void {

@@ -240,7 +240,7 @@ export class PhotoService {
     this.getPhotosForTrailsReady(trails.map(t => ({owner: t.owner, uuid: t.uuid}))).subscribe(photos => this.deleteMany(photos, ondone));
   }
 
-  public async openPopupForTrail(owner: string, uuid: string) {
+  public async openPopupForTrail(owner: string, uuid: string): Promise<Photo | null> {
     const module = await import('../../components/photos-popup/photos-popup.component');
     const modal = await this.injector.get(ModalController).create({
       component: module.PhotosPopupComponent,
@@ -250,7 +250,8 @@ export class PhotoService {
       },
       cssClass: 'large-modal',
     });
-    modal.present();
+    await modal.present();
+    return modal.onDidDismiss().then(result => result.data);
   }
 
   public async openSliderPopup(photos: Photo[], index: number) {

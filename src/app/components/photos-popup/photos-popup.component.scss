@@ -53,6 +53,21 @@
         }
       }
     }
+
+    .position-on-map {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      img {
+        width: 16px;
+        height: 16px;
+      }
+      span {
+        font-size: 13px;
+        color: var(--ion-color-dark);
+      }
+    }
   }
 
 }

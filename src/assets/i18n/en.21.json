@@ -243,7 +243,8 @@
       },
       "remaining_metadata_title": "Remaining",
       "created_in_trailence_on": "Created in Trailence on",
-      "last_update_on": "Last updated on"
+      "last_update_on": "Last updated on",
+      "select_photo_position": "Select where the photo was taken on the track"
     },
     "collection_form": {
       "title": "Collection",
@@ -493,7 +494,13 @@
       "add_photos_buttons": "Add photos",
       "selected_plural": "selected photos",
       "selected_single": "selected photo",
-      "deleting": "Deleting photos"
+      "deleting": "Deleting photos",
+      "position": {
+        "available": "Located on the track",
+        "not_available": "Not located on the track",
+        "clear_title": "Remove photo position",
+        "clear_message": "Are you sure you want to remove this photo's position?"
+      }
     },
     "import_from_url": {
       "title": "Import from URL",
