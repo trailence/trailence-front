@@ -2,6 +2,7 @@ import { App } from '../app/app';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicRange } from './ionic/ion-range';
+import { SearchPlace } from './search-place.component';
 import { ToolbarComponent } from './toolbar.component';
 
 export class MapComponent extends Component {
@@ -46,14 +47,25 @@ export class MapComponent extends Component {
   }
 
   public async goTo(lat: number, lng: number, zoom: number) {
-    await browser.execute(u => window.location.hash = u, '#zoom=' + zoom + '&center=' + lat + ',' + lng);
-    await browser.pause(1500); // wait for the hash to be taken into account
-    const newHash = await browser.execute(() => window.location.hash);
-    if (newHash.indexOf('zoom=' + zoom) < 0 || newHash.indexOf('center=' + lat + ',' + lng) < 0) {
-      // failed, may be the map was still initializing => try again
-      await browser.execute(u => window.location.hash = u, '#zoom=' + zoom + '&center=' + lat + ',' + lng);
-      await browser.pause(1500); // wait for the hash to be taken into account
-    }
+    const search = await this.openSearchTool();
+    const result = await search.searchPlace('' + lat + ' ' + lng);
+    await result[0].click();
+    await this.closeSearchTool();
+    await browser.pause(2000); // wait for map to go to the position
+    await this.zoomTo(zoom);
+  }
+
+  public async openSearchTool() {
+    const button = this.topToolbar.getButtonByIcon('search');
+    if (await button.isDisplayed()) await button.click();
+    const search = new SearchPlace(this.topToolbar.getElement().$('app-search-place'));
+    await browser.waitUntil(() => search.getElement().isDisplayed());
+    return search;
+  }
+
+  public async closeSearchTool() {
+    const button = this.topToolbar.getButtonByIcon('chevron-left');
+    if (await button.isDisplayed()) await button.click();
   }
 
   public async fitBounds() {

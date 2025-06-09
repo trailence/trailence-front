@@ -43,7 +43,7 @@ describe('Collection map', () => {
 
   it('Can select a trail from map', async () => {
     const map = await collectionPage.trailsAndMap.openMap();
-    await browser.execute(() => window.location.hash = '#zoom=16&center=43.01415572012757,6.39906406402588');
+    await map.goTo(43.01415572012757,6.39906406402588,16);
 
     const mapRect = await map.getMapPosition();
     let found = false;

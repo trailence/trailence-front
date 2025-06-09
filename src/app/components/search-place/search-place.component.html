@@ -5,9 +5,10 @@
   (ionChange)="inputChanged($event)"
   (ionFocus)="focus = true"
   (ionBlur)="focus = false"
+  (keypress)="onKey($event)"
 >
 </ion-searchbar>
-<div class="tip" *ngIf="!searching && !searched && focus">{{i18n.texts.search_place.tap_enter}}</div>
+<div class="tip" *ngIf="!searching && focus">{{i18n.texts.search_place.tap_enter}}</div>
 <ion-popover #dropdown size="cover" side="bottom" reference="trigger" trigger="{{id}}" triggerAction="context-menu" [showBackdrop]="false">
   <ng-template>
     <ion-spinner *ngIf="searching" name="dots"></ion-spinner>

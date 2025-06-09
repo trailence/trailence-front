@@ -42,13 +42,4 @@ export class TypeUtils {
     return key ? enumType[key] : undefined;
   }
 
-  public static convertDMSToDD(direction: string, degrees: number, minutes: number, seconds: number): number {
-    const dd = degrees + minutes/60.0 + seconds/(60.0*60);
-
-    if (direction == "S" || direction == "W") {
-        return -dd;
-    }
-    return dd; // N or E
-  }
-
 }

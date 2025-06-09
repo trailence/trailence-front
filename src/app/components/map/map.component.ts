@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, first, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, first, map, of, tap } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -22,7 +22,6 @@ import { Trail } from 'src/app/model/trail';
 import { MapBubble } from './bubble/map-bubble';
 import { MapToggleBubblesTool } from './tools/toggle-bubbles-tool';
 import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
-import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { RestrictedWaysTool } from './tools/restricted-ways-tool';
 import { PhoneLockTool } from './tools/phone-lock-tool';
@@ -108,38 +107,23 @@ export class MapComponent extends AbstractComponent {
       e = e.parentElement;
     }
     if (!this.isEmbedded)
-      this.loadState();
+      this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
     this.updateTracks();
     this.updateBubbles();
     if (!this.isEmbedded) {
       this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$]).pipe(debounceTime(1000)),
-        () => this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId),
-        true
-      );
-      this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoom$])
-        .pipe(debounceTime(500)),
-        ([center, zoom]) => {
+        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$])
+        .pipe(
+          debounceTime(100),
+          tap(() => this.refreshTools()),
+          debounceTime(1000),
+        ),
+        ([center, zoom, layer]) => {
           if (!this._mapState.live) return;
           this.mapAdditions.pushState(center, zoom);
-          this.refreshTools();
-          this.updateHashFromMap();
-        }, true);
-      this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoom$]).pipe(
-          switchMap(([c,z]) => this.browser.hash$.pipe(map(h => ([c,z,h] as [L.LatLngLiteral, number, Map<string,string>])))),
-          debounceTime(750),
-        ), ([c,z,hash]) => {
-          if (!this._mapState.live) return;
-          const h = this.browser.getHashes();
-          if (h.has('zoom') && h.has('center') && c.lat === this._mapState.center.lat && c.lng === this._mapState.center.lng && z === this._mapState.zoom) {
-            const currentZoom = '' + this._mapState.zoom;
-            const currentCenter = '' + this._mapState.center.lat + ',' + this._mapState.center.lng;
-            if (currentZoom !== h.get('zoom') || currentCenter !== h.get('center'))
-              this.updateStateFromHash(h.get('zoom')!, h.get('center')!); // NOSONAR
-          }
-        }, true
+          this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
+        },
+        true
       );
     }
     this.initTools();
@@ -164,7 +148,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
-    if (changes['mapId']) this.loadState();
+    if (changes['mapId']) this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
     if (changes['tracks$']) this.updateTracks();
     if (changes['bubbles$']) this.updateBubbles();
     if (changes['rightTools'] || changes['leftTools']) this.updateTools();
@@ -195,8 +179,12 @@ export class MapComponent extends AbstractComponent {
     return this._map$.value?.getBounds();
   }
 
-  public goTo(lat: number, lng: number, zoom?: number) {
+  public goTo(lat: number, lng: number, zoom?: number): void {
     this._map$.value?.setView({lat, lng}, zoom);
+  }
+
+  public goToBounds(north: number, south: number, east: number, west: number): void {
+    this._map$.value?.fitBounds([[south, west], [north, east]]);
   }
 
   public get ready$(): Observable<boolean> {
@@ -209,50 +197,6 @@ export class MapComponent extends AbstractComponent {
 
   public removeFromMap(element: L.Layer): void {
     this.ngZone.runOutsideAngular(() => element.remove());
-  }
-
-  private loadState(): void {
-    const hash = this.browser.decodeHash(window.location.hash);
-    if (hash.has('zoom') && hash.has('center') && this.updateStateFromHash(hash.get('zoom')!, hash.get('center')!)) return;
-    this._mapState.load(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
-  }
-
-  private updateHashFromMap(): void {
-    const zoom = this._mapState.zoom;
-    const center = this._mapState.center;
-    Console.info('Update hash from map ' + this.mapId + ': ' + zoom + ',' + center.lat + ',' + center.lng);
-    this.browser.setHashes(
-      'zoom', '' + zoom,
-      'center', '' + center.lat + ',' + center.lng,
-    );
-    const map = this._map$.value;
-    if (map) {
-      const bounds = map.getBounds();
-      this.browser.setHash('bounds', '' + bounds.getSouth() + ',' + bounds.getEast() + ',' + bounds.getNorth() + ',' + bounds.getWest());
-    }
-  }
-
-  private updateStateFromHash(zoom: string, center: string): boolean {
-    try {
-      const zoomValue = parseInt(zoom);
-      const coords = center.split(',');
-      const lat = parseFloat(coords[0]);
-      const lng = parseFloat(coords[1]);
-      if (!isNaN(zoomValue) && zoomValue >= 0 && zoomValue <= 19 && !isNaN(lat) && !isNaN(lng)) {
-        if (this._mapState.zoom !== zoomValue || this._mapState.center.lat !== lat || this._mapState.center.lng !== lng) {
-          Console.info('Update map ' + this.mapId + ' from hash: zoom from ' + this._mapState.zoom + ' to ' + zoomValue + ' and center from ' + this._mapState.center.lat + ',' + this._mapState.center.lng + ' to ' + lat + ',' + lng);
-          if (this._map$.value) {
-            this._map$.value.setView({lat, lng}, zoomValue);
-          }
-          this._mapState.zoom = zoomValue;
-          this._mapState.center = {lat, lng};
-        }
-        return true;
-      }
-    } catch (e) { // NOSONAR
-      // ignore
-    }
-    return false;
   }
 
   private mapChanged(map: L.Map): void {
@@ -602,8 +546,6 @@ export class MapComponent extends AbstractComponent {
     }
 
     this._map$.next(map);
-    if (!this.isEmbedded)
-      this.updateHashFromMap();
 
     let distanceUnit: DistanceUnit | undefined = undefined;
     let scale: L.Control.Scale | undefined = undefined;

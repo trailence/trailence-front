@@ -1,7 +1,7 @@
 import { TranslatedString } from '../services/i18n/i18n-string';
 import { Console } from './console';
+import { convertDMSToDD } from './coordinates-parser';
 import { DataUtils } from './data-utils';
-import { TypeUtils } from './type-utils';
 
 export class ImageUtils {
 
@@ -284,8 +284,8 @@ export class ImageUtils {
     }
     if (latRef && lat && lngRef && lng) {
       return {
-        lat: TypeUtils.convertDMSToDD(String.fromCharCode(latRef), lat[0] / lat[1], lat[2] / lat[3], lat[4] / lat[5]),
-        lng: TypeUtils.convertDMSToDD(String.fromCharCode(lngRef), lng[0] / lng[1], lng[2] / lng[3], lng[4] / lng[5]),
+        lat: convertDMSToDD(String.fromCharCode(latRef), lat[0] / lat[1], lat[2] / lat[3], lat[4] / lat[5]),
+        lng: convertDMSToDD(String.fromCharCode(lngRef), lng[0] / lng[1], lng[2] / lng[3], lng[4] / lng[5]),
       }
     }
     return undefined;

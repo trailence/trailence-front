@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { IonSearchbar, IonPopover, IonList, IonItem, IonLabel, IonSpinner } from "@ionic/angular/standalone";
-import { BehaviorSubject, catchError, filter, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, debounceTime, filter, map, of, switchMap, tap } from 'rxjs';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { Place } from 'src/app/services/geolocation/place';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -24,10 +24,9 @@ export class SearchPlaceComponent {
   id = IdGenerator.generateId();
   places: Place[] = [];
   searching = false;
-  searched = false;
   focus = false;
 
-  private readonly name$ = new BehaviorSubject<IonSearchbarCustomEvent<SearchbarChangeEventDetail> | undefined>(undefined);
+  private readonly name$ = new BehaviorSubject<string | IonSearchbarCustomEvent<SearchbarChangeEventDetail> | undefined | null>(undefined);
 
   @ViewChild('searchBar') searchbar!: IonSearchbar;
   @ViewChild('dropdown') dropdown!: IonPopover;
@@ -40,9 +39,15 @@ export class SearchPlaceComponent {
     this.name$.pipe(
       filterDefined(),
       tap(() => this.resetPlaces()),
-      filter(event => (event?.detail.value ?? '').trim().length > 2),
-      tap(event => this.startSearching(event)),
-      switchMap(event => geo.findPlacesByName(event.detail.value!)), // NOSONAR
+      map(event => {
+        if (!event) return undefined;
+        if (typeof event === 'string') return {value: event};
+        return {event, value: event.detail.value};
+      }),
+      filter(event => (event?.value ?? '').trim().length > 2),
+      debounceTime(10),
+      tap(event => this.startSearching(event!.event)),
+      switchMap(event => geo.findPlacesByName(event!.value!)), // NOSONAR
       catchError(e => {
         errorService.addTechnicalError(e, 'errors.search_places', []);
         Console.error(e);
@@ -55,16 +60,18 @@ export class SearchPlaceComponent {
     this.name$.next(event);
   }
 
+  onKey(event: KeyboardEvent): void {
+    if (event.key === 'Enter') this.name$.next(this.searchbar.value);
+  }
+
   private resetPlaces(): void {
     this.searching = false;
-    this.searched = false;
     this.places = [];
     this.dropdown.dismiss();
   }
 
-  private startSearching(event: IonSearchbarCustomEvent<SearchbarChangeEventDetail>): void {
+  private startSearching(event?: IonSearchbarCustomEvent<SearchbarChangeEventDetail>): void {
     this.searching = true;
-    this.searched = true;
     this.dropdown.present(event);
   }
 

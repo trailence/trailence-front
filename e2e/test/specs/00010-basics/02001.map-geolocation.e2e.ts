@@ -30,7 +30,6 @@ describe('Locate me on map', () => {
     await browser.waitUntil(() => map.getGeolocationMarker().isDisplayed());
     expect(await map.hasCenterOnGeolocation()).toBeTrue();
     await map.centerOnGeolocation();
-    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('center=9.157015,124.669407') > 0));
     await map.toggleGeolocation();
     await browser.waitUntil(() => map.getGeolocationMarker().isDisplayed().then(d => !d));
     expect(await map.hasCenterOnGeolocation()).toBeFalse();

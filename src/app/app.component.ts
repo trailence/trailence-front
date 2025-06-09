@@ -5,7 +5,7 @@ import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router } from '@angular/router';
-import { catchError, combineLatest, filter, first, firstValueFrom, from, Observable, of, switchMap, tap, timeout } from 'rxjs';
+import { catchError, combineLatest, filter, first, from, Observable, of, switchMap, tap, timeout } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';

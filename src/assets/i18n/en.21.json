@@ -890,5 +890,6 @@
       "title": "Close trace editor",
       "message": "You have unsaved changes. Are you sure you want to close the trace editor?"
     }
-  }
+  },
+  "go_to_position": "Go to this position"
 }

@@ -52,7 +52,6 @@ export async function openActivitiesSelectionPopup(
 
 @Component({
   templateUrl: './activity-popup.component.html',
-  styleUrl: './activity-popup.component.scss',
   imports: [
     IonRadioGroup, IonCheckbox, IonRadio, IonItem, IonList, IonButton, IonButtons, IonFooter, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonContent,
   ]

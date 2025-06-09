@@ -890,5 +890,6 @@
       "title": "Fermer l'éditeur de trace",
       "message": "Vous n'avez pas enregistré vos modifications. Etes-vous sûr de vouloir fermer l'éditeur de la trace ?"
     }
-  }
+  },
+  "go_to_position": "Aller à cette position"
 }

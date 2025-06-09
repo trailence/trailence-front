@@ -8,11 +8,12 @@ import { Place } from './place';
 import { Way, WayPermission } from './way';
 import { Track } from 'src/app/model/track';
 import { Segment } from 'src/app/model/segment';
-import { Point, PointDescriptor, samePositionRound } from 'src/app/model/point';
+import { PointDescriptor, samePositionRound } from 'src/app/model/point';
 import { PreferencesService } from '../preferences/preferences.service';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
+import { parseCoordinates } from 'src/app/utils/coordinates-parser';
 
 @Injectable({
   providedIn: 'root'
@@ -46,6 +47,8 @@ export class GeoService {
   }
 
   public findPlacesByName(name: string): Observable<Place[]> {
+    const pos = parseCoordinates(name);
+    if (pos !== undefined) return of([{...pos, north: undefined, south: undefined, east: undefined, west: undefined, names: [name, this.i18n.texts.go_to_position]}]);
     return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name) + '&lang=' + this.prefService.preferences.lang);
   }
 

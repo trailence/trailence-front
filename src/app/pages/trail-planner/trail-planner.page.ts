@@ -174,7 +174,10 @@ export class TrailPlannerPage extends AbstractPage {
   }
 
   goToPlace(place: Place): void {
-    this.map?.goTo(place.lat, place.lng, 14);
+    if (place.north && place.south && place.east && place.west)
+      this.map?.goToBounds(place.north, place.south, place.east, place.west);
+    else if (place.lat && place.lng)
+      this.map?.goTo(place.lat, place.lng, 14);
   }
 
   updateElevationGraph(track: Track): void {
