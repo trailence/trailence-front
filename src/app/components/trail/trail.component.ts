@@ -174,6 +174,7 @@ export class TrailComponent extends AbstractComponent {
       .setAction(() => this.togglePauseRecordingWithConfirmation()),
     new MenuItem(),
     new MenuItem().setIcon('reverse-way').setI18nLabel('pages.trail.reverse_way')
+      .setVisible(() => !!this.trail1 && !this.trail2)
       .setTextColor(() => this.reverseWay$.value ? 'light' : 'dark')
       .setBackgroundColor(() => this.reverseWay$.value ? 'dark' : '')
       .setAction(() => this.reverseWay$.next(!this.reverseWay$.value)),

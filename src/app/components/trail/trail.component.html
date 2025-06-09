@@ -41,23 +41,24 @@
               separatorSpace="4px"
             ></app-toolbar>
           </div>
-        } @else {
-          <div class="map-top-controls right">
-            <app-toolbar #mapToolbarTopRight
-              [items]="mapToolbarTopRightItems"
-              [iconSize]="16"
-              textSize="9px"
-              [itemMinWidth]="40"
-              [itemMaxWidth]="50"
-              itemSpace="2px"
-              itemPaddingTop="1px"
-              itemPaddingBottom="1px"
-              itemPaddingLeft="4px"
-              itemPaddingRight="4px"
-              separatorSpace="4px"
-            ></app-toolbar>
-          </div>
         }
+      }
+      @if (!toolsEnabled && !positionningOnMap$.value) {
+        <div class="map-top-controls right">
+          <app-toolbar #mapToolbarTopRight
+            [items]="mapToolbarTopRightItems"
+            [iconSize]="16"
+            textSize="9px"
+            [itemMinWidth]="40"
+            [itemMaxWidth]="50"
+            itemSpace="2px"
+            itemPaddingTop="1px"
+            itemPaddingBottom="1px"
+            itemPaddingLeft="4px"
+            itemPaddingRight="4px"
+            separatorSpace="4px"
+          ></app-toolbar>
+        </div>
       }
     </app-map>
   </div>

@@ -89,6 +89,12 @@ export class UserMenu extends Component {
     await label.click();
   }
 
+  public async clickByIcon(iconName: string) {
+    const icon = this.getElement().$('ion-icon[name=' + iconName + ']');
+    await icon.waitForDisplayed();
+    await icon.click();
+  }
+
   public async getUser() {
     const item = this.getElement().$('>>>ion-item#item-user');
     return (await item.getText()).trim();

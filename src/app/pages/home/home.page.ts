@@ -12,6 +12,17 @@ import { PublicPage } from '../public.page';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Router } from '@angular/router';
 
+class Slide {
+  constructor(
+    public desktopImages: string[],
+    public mobileImages: string[],
+  ) {
+    this.hasImages = desktopImages.length > 0;
+  }
+
+  public readonly hasImages: boolean;
+}
+
 @Component({
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
@@ -21,12 +32,35 @@ import { Router } from '@angular/router';
 })
 export class HomePage extends PublicPage {
 
-  slide = 0;
-  slideInterval?: any;
-  slides: Slide[] = [];
-  mask: string = '';
   id = IdGenerator.generateId();
+  slides: Slide[] = [
+    new Slide(
+      ['trail-list_1'],
+      ['trail-list_1', 'trail-list_2'],
+    ),
+    new Slide(
+      ['trace_1'],
+      ['trace_1'],
+    ),
+    new Slide(
+      ['trail-details_1'],
+      ['trail-details_1', 'trail-details_2'],
+    ),
+    new Slide(
+      ['photos-on-map_1'],
+      ['photos-on-map_1'],
+    ),
+    new Slide([], [])
+  ];
+  currentSlideIndex = 0;
+  currentSlideImageIndex = 0;
+  mode!: 'desktop' | 'mobile';
+  desktopMaskSize!: number;
 
+  ssUrl = environment.assetsUrl + '/home-page/ss.1';
+  maskUrl = environment.assetsUrl + '/home-page/mask.1';
+
+  private slideInterval?: any;
   private gesture?: Gesture;
 
   constructor(
@@ -41,11 +75,12 @@ export class HomePage extends PublicPage {
     injector: Injector,
   ) {
     super(injector);
-    this.whenVisible.subscribe(this.i18n.texts$, () => this.updateSlides());
-    this.whenVisible.subscribe(this.browser.resize$, () => this.updateSlides());
+    this.whenVisible.subscribe(this.i18n.texts$, () => this.changeDetector.markForCheck());
+    this.updateSize();
+    this.whenVisible.subscribe(this.browser.resize$, () => this.updateSize());
     this.visible$.subscribe(visible => {
       if (visible && !this.slideInterval) {
-        this.slideInterval = setInterval(() => this.nextSlide(), 7500);
+        this.setupInterval();
       } else if (!visible && this.slideInterval) {
         clearInterval(this.slideInterval);
         this.slideInterval = undefined;
@@ -59,57 +94,221 @@ export class HomePage extends PublicPage {
     });
   }
 
-  protected override initComponent(): void {
-    this.setSlide(0);
+  private setupInterval(): void {
+    if (this.slideInterval) return;
+    this.slideInterval = setInterval(() => this.moveNext(false), 7500);
   }
 
-  /*
-  override ionViewWillEnter(): void {
-    if (!this.route.snapshot.params['lang']) {
-      this.navController.navigateRoot('/home/' + this.preferences.preferences.lang);
+  private updateSize(): void {
+    const width = this.browser.width;
+    const height = this.browser.height;
+    if (width >= 800 && height >= 717) {
+      this.mode = 'desktop';
+      this.desktopMaskSize = 800;
+    } else if (width >= 600 && height >= 610) {
+      this.mode = 'desktop';
+      this.desktopMaskSize = 600;
+    } else {
+      this.mode = 'mobile';
+    }
+    this.setSlide(0, 0, true, false);
+    this.changeDetector.markForCheck();
+  }
+
+  protected override initComponent(): void {
+    this.setSlide(0, 0, true, false);
+  }
+
+  setSlide(slideIndex: number, slideImageIndex: number, fromLeft: boolean, stopInterval: boolean): void {
+    const currentSlide = document.getElementById(this.getSlideId(this.currentSlideIndex));
+    const currentImage = document.getElementById(this.getSlideImageId(this.currentSlideIndex, this.currentSlideImageIndex));
+    const newSlide = document.getElementById(this.getSlideId(slideIndex));
+    const newImage = document.getElementById(this.getSlideImageId(slideIndex, slideImageIndex));
+
+    if (!currentSlide || !currentImage || !newSlide || !newImage) {
+      setTimeout(() => this.setSlide(slideIndex, slideImageIndex, fromLeft, stopInterval), 10);
       return;
     }
-    this.preferences.setLanguage(this.route.snapshot.params['lang']);
-    super.ionViewWillEnter();
-  }*/
+
+    if (slideIndex === this.currentSlideIndex) {
+      // move image inside same slide
+      // make sure the current is the current
+      currentSlide.classList.add('current');
+      currentImage.classList.add('current');
+      // prepare next
+      if (currentImage !== newImage) {
+        newImage.classList.remove('at-left', 'at-right');
+        newImage.classList.add(fromLeft ? 'at-right' : 'at-left');
+        setTimeout(() => {
+          currentImage.classList.remove('current', 'at-right', 'at-left');
+          currentImage.classList.add(fromLeft ? 'at-left' : 'at-right');
+          newImage.classList.add('current');
+          newImage.classList.remove('at-right', 'at-left');
+        }, 0);
+      }
+    } else {
+      // move slide
+      newSlide.classList.remove('at-left', 'at-right');
+      newSlide.classList.add(fromLeft ? 'at-right' : 'at-left');
+      const allImages = newSlide.getElementsByClassName('slider-item-image');
+      for (let i = 0; i < allImages.length; ++i) {
+        const image = allImages.item(i)!;
+        image.classList.remove('current', 'at-left', 'at-right');
+      }
+      newImage.classList.add('current');
+      setTimeout(() => {
+        currentSlide.classList.remove('current', 'at-right', 'at-left');
+        currentSlide.classList.add(fromLeft ? 'at-left' : 'at-right');
+        newSlide.classList.add('current');
+        newSlide.classList.remove('at-right', 'at-left');
+      }, 0);
+    }
+    this.currentSlideIndex = slideIndex;
+    this.currentSlideImageIndex = slideImageIndex;
+
+    if (stopInterval && this.slideInterval) {
+      clearInterval(this.slideInterval);
+      this.slideInterval = undefined;
+    }
+  }
+
+  private getSlideId(index: number): string {
+    return 'slider-' + this.id + '-slide-' + index;
+  }
+
+  private getSlideImageId(slideIndex: number, imageIndex: number): string {
+    return this.getSlideId(slideIndex) + '-image-' + imageIndex;
+  }
+
+  private getSlideNbImages(slideIndex: number): number {
+    const slide = this.slides[slideIndex];
+    return slide.hasImages ? this.mode === 'desktop' ? slide.desktopImages.length + 1 : slide.mobileImages.length : 1;
+  }
+
+  private moveNext(stopInterval: boolean): void {
+    if (this.currentSlideImageIndex === this.getSlideNbImages(this.currentSlideIndex) - 1) {
+      if (this.currentSlideIndex === this.slides.length - 1)
+        this.setSlide(0, 0, true, stopInterval);
+      else
+        this.setSlide(this.currentSlideIndex + 1, 0, true, stopInterval);
+    } else {
+      this.setSlide(this.currentSlideIndex, this.currentSlideImageIndex + 1, true, stopInterval);
+    }
+  }
+
+  private movePrevious(stopInterval: boolean): void {
+    if (this.currentSlideImageIndex === 0) {
+      const newSlideIndex = this.currentSlideIndex === 0 ? this.slides.length - 1 : this.currentSlideIndex - 1;
+      this.setSlide(newSlideIndex, this.getSlideNbImages(newSlideIndex) - 1, false, stopInterval);
+    } else {
+      this.setSlide(this.currentSlideIndex, this.currentSlideImageIndex - 1, false, stopInterval);
+    }
+  }
 
   setupGesture(): void {
     setTimeout(() => {
-      const element = document.getElementById('slider-' + this.id)!;
+      let elementsToMoveWhenGoingBackward: string[];
+      let elementsToMoveWhenGoingForward: string[];
+      let putIntervalBack = false;
+      const slider = document.getElementById('slider-' + this.id)!;
       const start = (detail: GestureDetail) => {
-        detail.event.stopPropagation()
+        if (this.slideInterval) {
+          clearInterval(this.slideInterval);
+          this.slideInterval = undefined;
+          putIntervalBack = true;
+        }
+        slider.style.setProperty('--transition', 'none');
+        detail.event.stopPropagation();
+        elementsToMoveWhenGoingForward = [];
+        elementsToMoveWhenGoingBackward = [];
+        // prepare next and previous
+        if (this.currentSlideImageIndex < this.getSlideNbImages(this.currentSlideIndex) - 1) {
+          // next is the image
+          elementsToMoveWhenGoingForward.push(this.getSlideImageId(this.currentSlideIndex, this.currentSlideImageIndex));
+          const nextImageId = this.getSlideImageId(this.currentSlideIndex, this.currentSlideImageIndex + 1);
+          elementsToMoveWhenGoingForward.push(nextImageId);
+          const nextImage = document.getElementById(nextImageId)!;
+          nextImage.classList.remove('at-left', 'at-right');
+          setTimeout(() => nextImage.classList.add('at-right'), 0);
+        } else {
+          // next is the slide with first image
+          elementsToMoveWhenGoingForward.push(this.getSlideId(this.currentSlideIndex));
+          const nextSlideIndex = this.currentSlideIndex === this.slides.length - 1 ? 0 : this.currentSlideIndex + 1;
+          const nextSlideId = this.getSlideId(nextSlideIndex);
+          elementsToMoveWhenGoingForward.push(nextSlideId);
+          const nextSlide = document.getElementById(nextSlideId)!;
+          nextSlide.classList.remove('at-left', 'at-right');
+          for (let i = this.getSlideNbImages(nextSlideIndex) - 1; i >= 0; --i) {
+            document.getElementById(this.getSlideImageId(nextSlideIndex, i))!.classList.remove('current', 'at-left', 'at-right');
+          }
+          setTimeout(() => {
+            nextSlide.classList.add('at-right');
+            document.getElementById(this.getSlideImageId(nextSlideIndex, 0))!.classList.add('current');
+          }, 0);
+        }
+        if (this.currentSlideImageIndex > 0) {
+          // previous is the image
+          elementsToMoveWhenGoingBackward.push(this.getSlideImageId(this.currentSlideIndex, this.currentSlideImageIndex));
+          const previousImageId = this.getSlideImageId(this.currentSlideIndex, this.currentSlideImageIndex - 1);
+          elementsToMoveWhenGoingBackward.push(previousImageId);
+          const previousImage = document.getElementById(previousImageId)!;
+          previousImage.classList.remove('at-left', 'at-right');
+          setTimeout(() => previousImage.classList.add('at-left'), 0);
+        } else {
+          // previous is the slide with last image
+          elementsToMoveWhenGoingBackward.push(this.getSlideId(this.currentSlideIndex));
+          const previousSlideIndex = this.currentSlideIndex === 0 ? this.slides.length - 1 : this.currentSlideIndex - 1;
+          const previousSlideId = this.getSlideId(previousSlideIndex);
+          elementsToMoveWhenGoingBackward.push(previousSlideId);
+          const previousSlide = document.getElementById(previousSlideId)!;
+          previousSlide.classList.remove('at-left', 'at-right');
+          for (let i = this.getSlideNbImages(previousSlideIndex) - 1; i >= 0; --i) {
+            document.getElementById(this.getSlideImageId(previousSlideIndex, i))!.classList.remove('current', 'at-left', 'at-right');
+          }
+          setTimeout(() => {
+            previousSlide.classList.add('at-left');
+            document.getElementById(this.getSlideImageId(previousSlideIndex, this.getSlideNbImages(previousSlideIndex) - 1))!.classList.add('current');
+          }, 0);
+        }
       };
       const move = (detail: GestureDetail) => {
-        const current = this.element.nativeElement.getElementsByClassName('current') as HTMLCollection;
-        if (current.length === 1) {
-          if (this.slideInterval) {
-            clearInterval(this.slideInterval);
-            this.slideInterval = undefined;
+        const diff = detail.currentX - detail.startX;
+        if (diff < 0) {
+          // moving forward
+          for (const elementId of elementsToMoveWhenGoingBackward)
+            document.getElementById(elementId)?.style.setProperty('--moving', '0px');
+          for (const elementId of elementsToMoveWhenGoingForward) {
+            document.getElementById(elementId)?.style.setProperty('--moving', diff + 'px');
           }
-          const item = current.item(0) as HTMLElement;
-          item.style.left = -(detail.startX - detail.currentX) + 'px';
-          item.style.transition = 'none';
+        } else {
+          // moving backward
+          for (const elementId of elementsToMoveWhenGoingForward)
+            document.getElementById(elementId)?.style.setProperty('--moving', '0px');
+          for (const elementId of elementsToMoveWhenGoingBackward)
+            document.getElementById(elementId)?.style.setProperty('--moving', diff + 'px');
         }
         this.changeDetector.detectChanges();
         detail.event.stopPropagation();
         detail.event.preventDefault();
       };
       const end = (detail: GestureDetail) => {
-        const current = (this.element.nativeElement.getElementsByClassName('current') as HTMLCollection).item(0) as HTMLElement;
-        if (current) {
-          current.style.left = '';
-          current.style.transition = '';
-          const diff = detail.currentX - detail.startX;
-          if (Math.abs(diff) > 15) {
-            if (diff < 0) this.nextSlide();
-            else this.previousSlide();
-          }
+        for (const elementId of elementsToMoveWhenGoingForward)
+            document.getElementById(elementId)?.style.setProperty('--moving', '0px');
+        for (const elementId of elementsToMoveWhenGoingBackward)
+          document.getElementById(elementId)?.style.setProperty('--moving', '0px');
+        slider.style.setProperty('--transition', 'left 0.5s ease-in-out');
+        const diff = detail.currentX - detail.startX;
+        if (Math.abs(diff) > 15) {
+          if (diff < 0) this.moveNext(true);
+          else this.movePrevious(true);
+        } else if (putIntervalBack) {
+          this.setupInterval();
         }
         detail.event.stopPropagation();
         detail.event.preventDefault();
       };
       this.gesture = this.gestureController.create({
-        el: element,
+        el: slider,
         threshold: 15,
         direction: 'x',
         gestureName: 'home-slider',
@@ -121,63 +320,4 @@ export class HomePage extends PublicPage {
     }, 0);
   }
 
-  private updateSlides(): void {
-    const width = this.browser.width;
-    const height = this.browser.height;
-    let mask = '';
-    if (width >= 800 && height >= 650) {
-      mask = '800';
-    } else if (width >= 600 && height >= 540) {
-      mask = '600';
-    } else {
-      mask = '600';
-    }
-    this.mask = environment.assetsUrl + '/home-page/mask_' + mask + '.png';
-    this.slides = this.i18n.texts.pages.home.slides.map((slide: any) => ({
-      header: slide.header,
-      footer: slide.footer
-    }));
-    this.slides[0].image = environment.assetsUrl + '/home-page/list-and-map.png';
-    this.slides[1].image = environment.assetsUrl + '/home-page/build-trace.png';
-    this.slides[2].image = environment.assetsUrl + '/home-page/trail-details.png';
-    this.slides[3].image = environment.assetsUrl + '/home-page/photos-on-map.png';
-    this.changeDetector.markForCheck();
-  }
-
-  nextSlide(): void {
-    if (this.slide >= this.slides.length - 1) this.setSlide(0); else this.setSlide(this.slide + 1);
-  }
-
-  previousSlide(): void {
-    if (this.slide === 0) this.setSlide(this.slides.length - 1); else this.setSlide(this.slide - 1);
-  }
-
-  setSlide(index: number, stopInterval: boolean = false): void {
-    const previous = this.slide;
-    this.slide = index;
-    const items = this.element.nativeElement.getElementsByClassName('slider-item') as HTMLCollection;
-    for (let i = 0; i < items.length; ++i) {
-      const item = items.item(i)!;
-      if (i === index) {
-        item.classList.add('current');
-        item.classList.remove('previous', 'from-left', 'from-right');
-      } else if (i === previous) {
-        item.classList.remove('current');
-        item.classList.add('previous', previous < index ? 'from-left' : 'from-right');
-      } else {
-        item.classList.remove('current', 'previous', 'from-left', 'from-right');
-      }
-    }
-    if (stopInterval && this.slideInterval) {
-      clearInterval(this.slideInterval);
-      this.slideInterval = undefined;
-    }
-  }
-
-}
-
-interface Slide {
-  header: string;
-  footer: string[];
-  image?: string;
 }

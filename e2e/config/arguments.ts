@@ -56,11 +56,12 @@ export function parseArguments(): TestArguments {
       result.nativeDevice = arg.substring(16);
     else if (arg.startsWith('--test-instance='))
       result.instance = parseInt(arg.substring(16));
-    else if (arg.startsWith('--tests=')) {
+    else if (arg.startsWith('--tests='))
       result.specs = arg.substring(8).trim().split(',').map(s => '../test/specs/' + s);
-    } else if (arg.startsWith('--exclude-tests=')) {
+    else if (arg.startsWith('--exclude-tests='))
       result.excludeSpecs = arg.substring(16).trim().split(',').map(s => '../test/specs/' + s);
-    }
+    else if (arg === '--demo')
+      result.specs = ['../test/demo/demo.ts'];
   }
 
   return result;

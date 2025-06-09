@@ -23,6 +23,10 @@ export class MenuContent extends Component {
     throw new Error('Cannot find item with color ' + color + ' and text ' + text);
   }
 
+  public async clickItemWithColor(color: string) {
+    await this.getElement().$('ion-item.ion-color-' + color).click();
+  }
+
   public async hasItem(text: string) {
     return await this.getElement().$('ion-label=' + text).isExisting();
   }

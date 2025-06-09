@@ -170,6 +170,7 @@ export class App {
       d.style.zIndex = '10000';
       d.style.borderRadius = '10px';
       d.style.border = '2px solid black';
+      d.id = 'test-mouse-cursor';
       document.body.appendChild(d);
       window.addEventListener('mousemove', e => {
         d.style.top = e.pageY + 'px';

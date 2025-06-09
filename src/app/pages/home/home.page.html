@@ -4,23 +4,55 @@
     <h1>{{i18n.texts.pages.home.title}}</h1>
     <h2>{{i18n.texts.pages.home.subTitle}}</h2>
     <div class="slider" id="slider-{{id}}">
-      <ng-container *ngFor="let s of slides; let index = index">
-        <div class="slider-item {{index === slide ? 'current' : ''}}">
-          <div class="slider-item-header">{{ s.header }}</div>
-          <div class="slider-item-image" *ngIf="s.image">
-            <div class="mask"><img [src]="mask" draggable="false" /></div>
-            <div class="screen"><img [src]="s.image" draggable="false" /></div>
+      @for (slide of slides; track $index; let index = $index) {
+        <div class="slider-item" id="slider-{{id}}-slide-{{index}}">
+          <div class="slider-item-header">{{ i18n.texts.pages.home.slides[index].header }}</div>
+          <div class="slider-item-image-container {{slide.hasImages ? '' : 'no-image'}}">
+            @if (mode === 'desktop') {
+              @for (img of slide.desktopImages; track $index; let imgIndex = $index) {
+                <div class="slider-item-image desktop" id="slider-{{id}}-slide-{{index}}-image-{{imgIndex}}">
+                  <div class="screen"><img [src]="ssUrl + '/ss_' + img + '.' + prefs.preferences.lang + '.desktop.png'" draggable="false" /></div>
+                  <div class="mask"><img [src]="maskUrl + '/' + desktopMaskSize + '.png'" draggable="false" /></div>
+                </div>
+              }
+              <div class="slider-item-image mobile multiple" id="slider-{{id}}-slide-{{index}}-image-{{slide.desktopImages.length}}">
+                @for (img of slide.mobileImages; track $index; let imgIndex = $index) {
+                  <div class="slider-item-image-item">
+                    <div class="screen"><img [src]="ssUrl + '/ss_' + img + '.' + prefs.preferences.lang + '.mobile.png'" draggable="false" /></div>
+                    <div class="mask"><img [src]="maskUrl + '/mobile.png'" draggable="false" /></div>
+                  </div>
+                }
+              </div>
+            } @else {
+              @for (img of slide.mobileImages; track $index; let imgIndex = $index) {
+                <div class="slider-item-image mobile" id="slider-{{id}}-slide-{{index}}-image-{{imgIndex}}">
+                  <div class="screen"><img [src]="ssUrl + '/ss_' + img + '.' + prefs.preferences.lang + '.mobile.png'" draggable="false" /></div>
+                  <div class="mask"><img [src]="maskUrl + '/mobile.png'" draggable="false" /></div>
+                </div>
+              }
+            }
           </div>
-          <div class="slider-item-footer {{s.image ? '' : 'no-image'}}">
-            <div *ngFor="let f of s.footer">{{ f }}</div>
+          <div class="slider-item-footer {{slide.hasImages ? '' : 'no-image'}}">
+            @for (footerItem of i18n.texts.pages.home.slides[index].footer; track $index) {
+              <div>{{ footerItem }}</div>
+            }
           </div>
         </div>
-      </ng-container>
+      }
     </div>
     <div class="slider-buttons">
-      <ng-container *ngFor="let s of slides; let index = index">
-        <div class="slider-button" [ngClass]="{'selected': slide === index}" (click)="setSlide(index, true)"></div>
-      </ng-container>
+      @for (slide of slides; track $index; let slideIndex = $index) {
+        @if (mode === 'desktop') {
+          @for (img of slide.desktopImages; track $index; let imgIndex = $index) {
+            <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex && imgIndex === currentSlideImageIndex}" (click)="setSlide(slideIndex, imgIndex, currentSlideIndex < slideIndex || currentSlideIndex === slideIndex && currentSlideImageIndex < imgIndex, true)"></div>
+          }
+          <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex && currentSlideImageIndex === slide.desktopImages.length}" (click)="setSlide(slideIndex, slide.desktopImages.length, currentSlideIndex < slideIndex || currentSlideIndex === slideIndex && currentSlideImageIndex < slide.desktopImages.length, true)"></div>
+        } @else {
+          @for (img of slide.mobileImages; track $index; let imgIndex = $index) {
+            <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex && imgIndex === currentSlideImageIndex}" (click)="setSlide(slideIndex, imgIndex, currentSlideIndex < slideIndex || currentSlideIndex === slideIndex && currentSlideImageIndex < imgIndex, true)"></div>
+          }
+        }
+      }
     </div>
     <div class="download">
       <a href="/{{prefs.preferences.lang}}/install-apk" (click)="$event.preventDefault()">

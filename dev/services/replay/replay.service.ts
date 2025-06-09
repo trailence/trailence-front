@@ -43,6 +43,7 @@ export class ReplayService {
     let segmentIndex = 0;
     let pointIndex = 0;
     const sendNextPoint = (success: PositionCallback, error: PositionErrorCallback | null | undefined) => {
+      if ((window as any)['_isDemo'] && pointIndex >= 50) return;
       if (segmentIndex >= track.segments.length) return;
       const segment = track.segments[segmentIndex];
       if (pointIndex >= segment.points.length) {

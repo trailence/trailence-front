@@ -347,9 +347,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           let recovered = false;
           if (!existing) {
             const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
+            this._createdLocally.push(item$);
             const deleted = this._deletedLocally.findIndex(value => this.areSame(value, item));
             if (deleted < 0) {
-              this._createdLocally.push(item$);
               this._store.value.push(item$);
               storeChanged = true;
             } else {

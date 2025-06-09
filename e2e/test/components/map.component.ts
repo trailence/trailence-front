@@ -29,7 +29,7 @@ export class MapComponent extends Component {
       const zoomOutTool = this.leftToolbar.getButtonByIcon('minus');
       while (zoom > level) {
         await zoomOutTool.click();
-        await browser.pause(2000); // wait for the animation to be done
+        await browser.pause(1000); // wait for the animation to be done
         zoom = await this.getZoom();
       }
       expect(zoom).toBe(level);
@@ -39,7 +39,7 @@ export class MapComponent extends Component {
       const zoomInTool = this.leftToolbar.getButtonByIcon('plus');
       while (zoom < level) {
         await zoomInTool.click();
-        await browser.pause(2000); // wait for the animation to be done
+        await browser.pause(1000); // wait for the animation to be done
         zoom = await this.getZoom();
       }
     }

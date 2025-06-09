@@ -1,7 +1,9 @@
 <app-toolbar
   [items]="toolbar"
   [maxItems]="size === 'small' ? 2 : size === 'large' ? 4 : 3"
-  itemPadding="4px"
+  [itemPaddingLeft]="size === 'medium' ? '2px' : '4px'"
+  [itemPaddingRight]="size === 'medium' ? '2px' : '4px'"
+  [itemSpace]="size === 'medium' ? '2px' : '4px'"
   [itemMinWidth]="60"
 ></app-toolbar>
 <div class="message" *ngIf="message">
