@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, SecurityContext, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, from, map, of, skip, switchMap, take } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
@@ -36,7 +36,7 @@ import { ImageUtils } from 'src/app/utils/image-utils';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
-import { I18nPipe, TranslatedString } from 'src/app/services/i18n/i18n-string';
+import { CompositeI18nString, DateTimeI18nString, I18nPipe, I18nString, TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
@@ -46,6 +46,8 @@ import { PointReference } from 'src/app/model/point-reference';
 import { samePositionRound } from 'src/app/model/point';
 import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
+import { TrailSourceType } from 'src/app/model/dto/trail';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
     selector: 'app-trail',
@@ -133,8 +135,10 @@ export class TrailComponent extends AbstractComponent {
   selection = new TrailSelection(this.map$, this.elevationGraph$);
 
   isExternal = false;
+  isExternalOnly = false;
   externalUrl?: string;
   externalAppName?: string;
+  sourceString?: Observable<string>;
 
   comparison: number | undefined = undefined;
   trail1CollectionName?: string;
@@ -251,8 +255,10 @@ export class TrailComponent extends AbstractComponent {
     this.trail1 = null;
     this.trail2 = null;
     this.isExternal = false;
+    this.isExternalOnly = false;
     this.externalUrl = undefined;
     this.externalAppName = undefined;
+    this.sourceString = undefined;
     this.recording = null;
     this.tagsNames1 = undefined;
     this.tagsNames2 = undefined;
@@ -283,19 +289,65 @@ export class TrailComponent extends AbstractComponent {
             this._lockForDescription = undefined;
             this.editingDescription = false;
           }
+          this.sourceString = undefined;
+          let src: I18nString[] = [];
+          if (trail1[0]?.sourceType) {
+            switch (trail1[0]?.sourceType) {
+              case TrailSourceType.TRAILENCE_RECORDER:
+                src.push(new TranslatedString('pages.trail.source.trailence_recorder', []));
+                if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
+                  src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
+                if (trail1[0].source && trail1[0].source !== this.auth.email)
+                  src.push(new TranslatedString('pages.trail.source.with_owner', [trail1[0].source]));
+                break;
+              case TrailSourceType.TRAILENCE_PLANNER:
+                src.push(new TranslatedString('pages.trail.source.trailence_planner', []));
+                if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
+                  src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
+                if (trail1[0].source && trail1[0].source !== this.auth.email)
+                  src.push(new TranslatedString('pages.trail.source.with_owner', [trail1[0].source]));
+                break;
+              case TrailSourceType.FILE_IMPORT:
+                if (trail1[0].source)
+                  src.push(new TranslatedString('pages.trail.source.file_import', [trail1[0].source]));
+                else
+                  src.push(new TranslatedString('pages.trail.source.file_import_unknown', []));
+                if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
+                  src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
+                break;
+              case TrailSourceType.EXTERNAL: {
+                const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail1[0].source);
+                if (pluginName) {
+                  src.push(new TranslatedString('pages.trail.source.external', [pluginName]));
+                  if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
+                    src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
+                }
+                break;
+              }
+            }
+          }
+          if (src.length === 1)
+            this.sourceString = src[0].translate$(this.i18n);
+          else if (src.length > 1)
+            this.sourceString = new CompositeI18nString(src).translate$(this.i18n);
         }
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
-        this.isExternal = !!this.trail1 && this.trail1.owner.indexOf('@') < 0 && !this.trail2;
-        if (this.isExternal)
+        this.isExternal = !!this.trail1 && !this.trail2 && this.trail1.sourceType === TrailSourceType.EXTERNAL;
+        this.isExternalOnly = this.isExternal && this.trail1!.owner.indexOf('@') < 0;
+        this.externalUrl = this.isExternal ? this.trail1!.source : undefined;
+        if (this.externalUrl && !this.externalUrl.startsWith('http')) {
+          this.externalUrl = undefined;
           this.injector.get(FetchSourceService).getExternalUrl$(this.trail1!.owner, this.trail1!.uuid)
           .pipe(first())
           .subscribe(url => {
             if (this.trail1 !== trail1[0]) return; // already changed
             this.externalUrl = url ?? undefined;
+            if (this.externalUrl) this.injector.get(DomSanitizer).sanitize(SecurityContext.URL, this.externalUrl);
             this.changesDetector.detectChanges();
           });
-        this.externalAppName = this.isExternal ? this.injector.get(FetchSourceService).getName(this.trail1!.owner) : undefined;
+        }
+        this.externalAppName = this.isExternal && this.externalUrl ? this.injector.get(FetchSourceService).getPluginNameByUrl(this.externalUrl) : undefined;
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];

@@ -243,7 +243,16 @@
       "remaining_metadata_title": "Restant",
       "created_in_trailence_on": "Créé dans Trailence le",
       "last_update_on": "Dernière mise à jour le",
-      "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours"
+      "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours",
+      "source": {
+        "trailence_recorder": "Trace enregistrée dans Trailence",
+        "trailence_planner": "Parcours plannifié dans Trailence",
+        "with_date": " le {{1}}",
+        "with_owner": " par {{1}}",
+        "file_import": "Importé depuis le fichier {{1}}",
+        "file_import_unknown": "Importé depuis un fichier",
+        "external": "Trouvé dans {{1}}"
+      }
     },
     "collection_form": {
       "title": "Collection",

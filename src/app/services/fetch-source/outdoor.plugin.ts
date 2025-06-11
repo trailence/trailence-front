@@ -11,6 +11,7 @@ import { TrackMetadataSnapshot } from '../database/track-database';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Arrays } from 'src/app/utils/arrays';
+import { TrailSourceType } from 'src/app/model/dto/trail';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -28,6 +29,10 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
   public override readonly owner = 'outdooractive';
   public override readonly canFetchFromUrl = true;
 
+  protected override checkAllowed$(): Observable<boolean> {
+    return this.injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/outdooractive/available').pipe(catchError(e => of(false)));
+  }
+
   public override canFetchTrailInfoByUrl(url: string): boolean {
     return this.idFromUrl(url) !== undefined;
   }
@@ -44,13 +49,14 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
 
   private idFromUrl(url: string): string | undefined {
     if (!url.startsWith('https://www.outdooractive.com/')) return undefined;
-    url = url.substring('https://www.outdooractive.com/'.length);
-    if (url.indexOf('/route/') < 0 && url.indexOf('/track/') < 0) return undefined;
+    url = url.substring('https://www.outdooractive.com'.length);
+    if (url.indexOf('/route/') < 0 && url.indexOf('/track/') < 0 && url.indexOf('/routes/') < 0 && url.indexOf('/tracks/') < 0) return undefined;
     let i = url.indexOf('?');
     if (i > 0) url = url.substring(0, i);
     i = url.indexOf('#');
     if (i > 0) url = url.substring(0, i);
     if (url.endsWith('/')) url = url.substring(0, url.length - 1);
+    url = url.substring(1);
     i = url.lastIndexOf('/');
     const id = url.substring(i + 1);
     if (isNaN(parseInt(id))) return undefined;
@@ -154,6 +160,9 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
             originalTrackUuid: ot.id + '-original',
             currentTrackUuid: ot.id + '-original',
             collectionUuid: this.owner,
+            sourceType: TrailSourceType.EXTERNAL,
+            source: 'https://www.outdooractive.com/routes/' + ot.id,
+            sourceDate: Date.now(),
           });
           const track = new Track({
             owner: this.owner,

@@ -15,6 +15,7 @@ import { ProgressService } from 'src/app/services/progress/progress.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { TrailSourceType } from 'src/app/model/dto/trail';
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -83,7 +84,7 @@ export class PlatformService {
             const progress = this.injector.get(ProgressService).create(i18n.texts.tools.importing, 1);
             import('src/app/services/functions/import')
             .then(importer => {
-              importer.importGpx(this.injector, buffer, owner, collectionUuid).allDone
+              importer.importGpx(this.injector, buffer, owner, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).allDone
               .then(imported => {
                 progress.done();
                 importer.finishImport(this.injector, [imported], collectionUuid).then(

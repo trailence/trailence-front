@@ -16,6 +16,10 @@ export class Trail extends Owned {
 
   private readonly _collectionUuid$: BehaviorSubject<string>;
 
+  public readonly sourceType?: string;
+  public readonly source?: string;
+  public readonly sourceDate?: number;
+
   constructor(
     dto: Partial<TrailDto>
   ) {
@@ -31,6 +35,9 @@ export class Trail extends Owned {
     this._currentTrackUuid$ = new BehaviorSubject<string>(dto.currentTrackUuid);
     if (!dto.collectionUuid) throw new Error('Missing collectionUuid');
     this._collectionUuid$ = new BehaviorSubject<string>(dto.collectionUuid);
+    this.sourceType = dto.sourceType ?? undefined;
+    this.source = (dto.source ? (dto.source.length < 2000 ? dto.source : dto.source.substring(0, 2000)) : undefined);
+    this.sourceDate = dto.sourceDate ?? undefined;
   }
 
   public get name(): string { return this._name$.value; }
@@ -84,6 +91,8 @@ export class Trail extends Owned {
       location: this.location,
       loopType: this.loopType,
       activity: this.activity,
+      sourceType: this.sourceType,
+      source: this.source,
       originalTrackUuid: this.originalTrackUuid,
       currentTrackUuid: this.currentTrackUuid,
       collectionUuid: this.collectionUuid,

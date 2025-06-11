@@ -23,6 +23,7 @@ import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { Console } from 'src/app/utils/console';
 import { TrackDto } from 'src/app/model/dto/track';
 import { estimateTimeForTrack } from 'src/app/services/track-edition/time/time-estimation';
+import { TrailSourceType } from 'src/app/model/dto/trail';
 
 export const WAY_MAPTRACK_DEFAULT_COLOR = '#0000FF80'
 export const WAY_MAPTRACK_HIGHLIGHTED_COLOR = '#000080FF'
@@ -98,7 +99,16 @@ export class TrackBuilder {
   }
 
   save(collectionUuid: string, trailName: string): Trail {
-    const trail = new Trail({owner: this.track!.owner, collectionUuid: collectionUuid, name: trailName, originalTrackUuid: this.track!.uuid, currentTrackUuid: this.track!.uuid});
+    const trail = new Trail({
+      owner: this.track!.owner,
+      collectionUuid: collectionUuid,
+      name: trailName,
+      originalTrackUuid: this.track!.uuid,
+      currentTrackUuid: this.track!.uuid,
+      sourceType: TrailSourceType.TRAILENCE_PLANNER,
+      source: this.track!.owner,
+      sourceDate: Date.now(),
+    });
     this.injector.get(TrackEditionService).computeFinalMetadata(trail, this.track!);
     this.injector.get(TrackService).create(this.track!);
     this.injector.get(TrailService).create(trail);
@@ -302,7 +312,6 @@ export class TrackBuilder {
 
   private newPoint(pos: L.LatLngLiteral, using: MapTrack | undefined): void {
     const previousPos = this.getLastPoint();
-    console.log(previousPos, this.points)
     if (!previousPos) {
       // first point
       const segment = this.track!.newSegment();
@@ -314,7 +323,6 @@ export class TrackBuilder {
       // free point
       this.points.push([ this.track!.lastSegment.append({pos}) ]);
     }
-    console.log(this.track, this.points)
     const matching = this.getMatchingWays(pos);
     this.updateMapTracks(matching);
     this.updateCurrentMapTrack();

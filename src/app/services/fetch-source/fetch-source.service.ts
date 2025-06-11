@@ -1,18 +1,14 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
-import { BehaviorSubject, catchError, combineLatest, from, map, merge, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, map, merge, Observable, of, switchMap } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
 import { Track } from 'src/app/model/track';
 import { Photo } from 'src/app/model/photo';
-import { NetworkService } from '../network/network.service';
-import { HttpService } from '../http/http.service';
-import { environment } from 'src/environments/environment';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { Console } from 'src/app/utils/console';
 import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
-import { AuthService } from '../auth/auth.service';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class FetchSourceService {
@@ -20,61 +16,51 @@ export class FetchSourceService {
   private readonly ready$ = new BehaviorSubject<boolean>(false);
   private readonly plugins$ = new BehaviorSubject<FetchSourcePlugin[]>([]);
 
-  private get _visorandoLoaded(): boolean { return !!this.plugins$.value.find(p => p.name === 'Visorando'); }
-  private get _outdooractiveLoaded(): boolean { return !!this.plugins$.value.find(p => p.name === 'Outdoor Active'); }
-
   constructor(
-    readonly injector: Injector,
+    private readonly injector: Injector,
   ) {
-    injector.get(AuthService).auth$.pipe(
-      switchMap(auth => !auth ? of([undefined, undefined]) :
-        injector.get(NetworkService).server$.pipe(
-          switchMap(serverAvailable => !serverAvailable ? of([this._visorandoLoaded ? true : undefined, this._outdooractiveLoaded ? true : undefined]) :
-            combineLatest([
-              injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/visorando/available').pipe(catchError(e => of(null))),
-              injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/outdooractive/available').pipe(catchError(e => of(null))),
-            ])
-          )
-        )
-      )
-    ).subscribe(
-      ([visorandoAvailable, outdooractiveAvailable]) => {
-        Console.info("available sources: Visorando = " + visorandoAvailable + ", Outdoor Active = " + outdooractiveAvailable);
-        const ready =
-          visorandoAvailable !== undefined && visorandoAvailable !== null &&
-          outdooractiveAvailable !== undefined && outdooractiveAvailable !== null;
-        const promises: Promise<FetchSourcePlugin>[] = [];
-        if (visorandoAvailable === true && !this._visorandoLoaded)
-          promises.push(import('./visorando.plugin').then(m => new m.VisorandoPlugin(injector)));
-        if (outdooractiveAvailable === true && !this._outdooractiveLoaded)
-          promises.push(import('./outdoor.plugin').then(m => new m.OutdoorPlugin(injector)));
-        if (!this.plugins$.value.find(p => p.name === 'Open Street Map'))
-          promises.push(import('./osm.plugin').then(m => new m.OsmPlugin(injector)));
-        Promise.all(promises).then(list => {
-          const newPlugins = [...this.plugins$.value];
-          for (const p of list) {
-            if (!newPlugins.find(pi => pi.name === p.name)) newPlugins.push(p);
-          }
-          this.plugins$.next(newPlugins.filter(
-            plugin => {
-              if (plugin.name === 'Visorando' && visorandoAvailable !== true) return false;
-              if (plugin.name === 'Outdoor Active' && outdooractiveAvailable !== true) return false;
-              return true;
-            }
-          ));
-          if (ready) this.ready$.next(true);
-        });
-      }
-    );
+    this.load();
   }
 
-  public getPlugins$(): Observable<FetchSourcePlugin[]> {
+  private load(): void {
+    Promise.all([
+      import('./visorando.plugin').then(m => new m.VisorandoPlugin(this.injector)),
+      import('./outdoor.plugin').then(m => new m.OutdoorPlugin(this.injector)),
+      import('./osm.plugin').then(m => new m.OsmPlugin(this.injector)),
+    ])
+    .then(list => {
+      const newPlugins = [...this.plugins$.value];
+      for (const p of list) {
+        if (!newPlugins.find(pi => pi.name === p.name)) newPlugins.push(p);
+      }
+      this.plugins$.next(newPlugins);
+      this.ready$.next(true);
+    });
+  }
+
+  public getAllPlugins$(): Observable<FetchSourcePlugin[]> {
     return this.plugins$;
+  }
+
+  public getAllowedPlugins$(): Observable<FetchSourcePlugin[]> {
+    return this.plugins$.pipe(
+      switchMap(plugins =>
+        (plugins.length === 0 ? of([]) : combineLatest(plugins.map(p => p.allowed$))).pipe(
+          map(allowed => {
+            const result: FetchSourcePlugin[] = [];
+            for (let i = 0; i < plugins.length; ++i)
+              if (allowed[i]) result.push(plugins[i]);
+            return result;
+          })
+        )
+      )
+    );
   }
 
   public get canSearch$(): Observable<boolean> {
     return this.plugins$.pipe(
-      map(plugins => plugins.length > 1)
+      switchMap(plugins => plugins.length === 0 ? of([]) : combineLatest(plugins.map(p => p.allowed$))),
+      map(allowed => allowed.filter(a => !!a).length > 1)
     );
   }
 
@@ -250,16 +236,33 @@ export class FetchSourceService {
     )));
   }
 
-  public getExternalUrl$(owner: string, uuid: string): Observable<string | null> {
-    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getInfo(uuid).then(i => i?.externalUrl ?? null)) : of(null)));
-  }
-
   public getTrailInfo$(owner: string, uuid: string): Observable<TrailInfo | null> {
     return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getInfo(uuid)) : of(null)));
   }
 
-  public getName(owner: string): string | undefined {
+  public getPluginNameByOwner(owner: string): string | undefined {
     return this.plugins$.value.find(p => p.owner === owner)?.name;
+  }
+
+  public getPluginNameByUrl(url: string): string | undefined {
+    for (const plugin of this.plugins$.value) {
+      if (plugin.canFetchTrailInfoByUrl(url) || plugin.canFetchTrailByUrl(url))
+        return plugin.name;
+    }
+    return undefined;
+  }
+
+  public getPluginNameBySource(source?: string): string | undefined {
+    if (!source) return undefined;
+    for (const plugin of this.plugins$.value) {
+      if (plugin.name === source || plugin.owner === source || plugin.canFetchTrailInfoByUrl(source) || plugin.canFetchTrailByUrl(source))
+        return plugin.name;
+    }
+    return undefined;
+  }
+
+  public getExternalUrl$(owner: string, uuid: string): Observable<string | null> {
+    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getInfo(uuid).then(i => i?.externalUrl ?? null)) : of(null)));
   }
 
 }

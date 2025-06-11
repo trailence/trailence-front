@@ -398,7 +398,7 @@ export class ComputedMenuItem {
     changed = this.setValue(this.badge, this.item.getBadge(), v => this.badge = v) || changed;
     changed = this.setValue(this.sectionTitle, this.item.isSectionTitle(), v => this.sectionTitle = v) || changed;
     changed = this.setValue(this.onlyText, this.icon === undefined, v => this.onlyText = v) || changed;
-    changed = this.setValue(this.onlyIcon, !!this.icon && (!this.item.label || !this.item.i18nLabel), v => this.onlyIcon = v) || changed;
+    changed = this.setValue(this.onlyIcon, !!this.icon && !this.item.label && !this.item.i18nLabel, v => this.onlyIcon = v) || changed;
     changed = this.setValue(this.textSize, this.item.getTextSize(), v => this.textSize = v) || changed;
     changed = this.setValue(this.cssClass, this.item.getCssClass(), v => this.cssClass = v ?? '') || changed;
     if (this.item.action || this.separator || (!this.item.children && !this.item.childrenProvider)) {

@@ -4,7 +4,7 @@ import { Point, PointDescriptor } from '../../model/point';
 import { XmlUtils } from '../xml-utils';
 import { TypeUtils } from '../type-utils';
 import { WayPoint } from 'src/app/model/way-point';
-import { TrailDto } from 'src/app/model/dto/trail';
+import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { BinaryContent } from '../binary-content';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { I18nError } from 'src/app/services/i18n/i18n-string';
@@ -22,14 +22,14 @@ export interface ImportedTrail {
 
 export class GpxFormat {
 
-  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService): ImportedTrail { // NOSONAR
+  public static importGpx(file: ArrayBuffer, user: string, collectionUuid: string, preferencesService: PreferencesService, trailSourceType: TrailSourceType | undefined, trailSource: string | undefined, trailSourceDate: number | undefined): ImportedTrail { // NOSONAR
     const fileContent = new TextDecoder().decode(file);
     const parser = new DOMParser();
     const doc = parser.parseFromString(fileContent, "application/xml");
     if (doc.documentElement.nodeName.toLowerCase() !== 'gpx')
       throw new I18nError('errors.import.not_gpx');
 
-    const trailDto = {owner: user, collectionUuid, name: '', description: ''} as TrailDto;
+    const trailDto = {owner: user, collectionUuid, name: '', description: '', sourceType: trailSourceType, source: trailSource, sourceDate: trailSourceDate} as TrailDto;
     const tracks: Track[] = [];
     const importedTags: string[][] = [];
     const photos: Partial<PhotoDto>[] = [];
@@ -48,6 +48,18 @@ export class GpxFormat {
         if (location && location.length > 0) trailDto.location = location;
         const activity = XmlUtils.getChildText(extensions, 'activity');
         if (activity && activity.length > 0) trailDto.activity = TypeUtils.valueToEnum(activity, TrailActivity);
+        const source = XmlUtils.getChild(extensions, 'source');
+        if (source) {
+          const sourceType = XmlUtils.getChildText(source, 'type');
+          const sourceDate = XmlUtils.getChildText(source, 'date');
+          const sourceValue = XmlUtils.getChildText(source, 'value');
+          if (sourceType) trailDto.sourceType = sourceType;
+          if (sourceDate) {
+            const date = parseInt(sourceDate);
+            if (!isNaN(date)) trailDto.sourceDate = date;
+          }
+          if (sourceValue) trailDto.source = sourceValue;
+        }
         const tags = XmlUtils.getChild(extensions, 'tags');
         if (tags) {
           for (const tag of XmlUtils.getChildren(tags, 'tag')) {
@@ -259,13 +271,19 @@ export class GpxFormat {
     gpx += '<metadata>';
       gpx += '<name>' + XmlUtils.escapeHtml(trail.name) + '</name>';
       gpx += '<desc>' + XmlUtils.escapeHtml(trail.description) + '</desc>';
-      if (trail.location.length > 0 || tags.length > 0 || photos.length > 0) {
+      if (trail.location.length > 0 || tags.length > 0 || photos.length > 0 || trail.activity?.length || trail.sourceType) {
         gpx += '<extensions>';
         if (trail.location.length > 0) {
           gpx += '<ext:location>' + XmlUtils.escapeHtml(trail.location) + '</ext:location>';
         }
         if (trail.activity?.length) {
           gpx += '<ext:activity>' + XmlUtils.escapeHtml(trail.activity) + '</ext:activity>';
+        }
+        if (trail.sourceType) {
+          gpx += '<ext:source><type>' + XmlUtils.escapeHtml(trail.sourceType) + '</type>';
+          if (trail.sourceDate) gpx += '<date>' + trail.sourceDate + '</date>';
+          if (trail.source) gpx += '<value>' + XmlUtils.escapeHtml(trail.source) + '</value>';
+          gpx += '</ext:source>';
         }
         if (tags.length > 0) {
           gpx += '<ext:tags>';

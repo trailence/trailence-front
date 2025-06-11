@@ -22,7 +22,7 @@ describe('Test improvments while recording', () => {
 
   it('gpx-001 improvments are same when importing and while recording', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
 
     const track = imported.tracks[0];
     const improved = trackEdition.applyDefaultImprovments(track);

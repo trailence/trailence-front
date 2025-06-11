@@ -106,7 +106,21 @@ export class CompositeI18nString implements I18nString {
 
   translate$(i18n: I18nService): Observable<string> {
     if (this.parts.length === 0) return of('');
-    return combineLatest(this.parts.map(part => translate$(part, i18n))).pipe(map(strings => strings.join()));
+    return combineLatest(this.parts.map(part => translate$(part, i18n))).pipe(map(strings => strings.join('')));
+  }
+
+}
+
+export class DateTimeI18nString implements I18nString {
+
+  constructor(private readonly date: number) {}
+
+  translate(i18n: I18nService): string {
+    return i18n.timestampToDateTimeString(this.date);
+  }
+
+  translate$(i18n: I18nService): Observable<string> {
+    return i18n.texts$.pipe(map(() => this.translate(i18n)));
   }
 
 }

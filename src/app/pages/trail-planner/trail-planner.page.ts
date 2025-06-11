@@ -113,7 +113,7 @@ export class TrailPlannerPage extends AbstractPage {
     this.whenAlive.add(collectionService.getAll$().pipe(
       collection$items(),
     ).subscribe(
-      collections => this.collections = collections
+      collections => this.collections = collectionService.sort(collections)
     ));
   }
 

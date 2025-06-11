@@ -83,7 +83,7 @@ describe('Find Trail', () => {
   it('Check trail from Open Street Map', async () => {
     trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
-    await browser.waitUntil(() => details.$('a=Open in Open Street Map').isExisting());
+    await browser.waitUntil(() => details.$('div.external-link').isExisting());
   });
 
   it('Go back', async () => {

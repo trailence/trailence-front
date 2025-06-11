@@ -18,7 +18,11 @@ export class HeaderComponent extends Component {
   }
 
   public async getTitle() {
-    return await this.getElement().$('div.header-title div.title-text').getText();
+    try {
+      return await this.getElement().$('div.header-title div.title-text').getText();
+    } catch (e) {
+      return '';
+    }
   }
 
   public async openUserMenu() {

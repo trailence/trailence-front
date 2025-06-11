@@ -22,7 +22,7 @@ describe('Test Gpx Format', () => {
 
   it('Import gpx-001', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
     expect(imported).not.toBeNull();
     const trail = imported.trail;
     expect(trail.name).toBe('Randonnée du 05/06/2023 à 08:58');
@@ -80,9 +80,9 @@ describe('Test Gpx Format', () => {
 
   it('Import gpx-001, then export, then import again', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
     const exported = await GpxFormat.exportGpx(imported.trail, imported.tracks, [], [], new Map<Photo,string>()).toArrayBuffer();
-    const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0', preferencesService);
+    const imported2 = GpxFormat.importGpx(exported, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
     expect(imported2).not.toBeNull();
     compareTrails(imported.trail, imported2.trail);
     expect(imported.tracks.length).toBe(imported2.tracks.length);

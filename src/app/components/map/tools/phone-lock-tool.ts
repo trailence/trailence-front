@@ -1,10 +1,12 @@
 import Trailence from 'src/app/services/trailence.service';
 import { MapTool } from './tool.interface';
 import { Observable } from 'rxjs';
+import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.service';
 
 export class PhoneLockTool extends MapTool {
 
   constructor(
+    service: ScreenLockService
   ) {
     super();
     this.visible = false;
@@ -14,8 +16,8 @@ export class PhoneLockTool extends MapTool {
     this.execute = () => {
       const newValue = !this.enabled;
       return new Observable(subscriber => {
-        Trailence.setKeepOnScreenLock({enabled: newValue}).then(response => {
-          if (response.success) this.enabled = newValue;
+        service.set(newValue).then(result => {
+          this.enabled = result;
           subscriber.complete();
         });
       });

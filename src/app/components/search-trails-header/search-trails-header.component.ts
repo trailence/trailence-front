@@ -32,7 +32,7 @@ export class SearchTrailsHeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subscription = this.fetchSourceService.getPlugins$().subscribe(list => this.availablePlugins = list);
+    this.subscription = this.fetchSourceService.getAllowedPlugins$().subscribe(list => this.availablePlugins = list);
   }
 
   ngOnDestroy(): void {

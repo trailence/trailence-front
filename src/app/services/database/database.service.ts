@@ -212,7 +212,8 @@ export class DatabaseService {
           if (this._syncNowRequestedAt >= registered.lastSync) return true;
         }
         this.ngZone.runOutsideAngular(() => {
-          const nextTimeout = Date.now() - this._syncPaused < 60000 ? 5000 : Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync));
+          let nextTimeout = Date.now() - this._syncPaused < 60000 ? 5000 : Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync));
+          if (nextTimeout > MINIMUM_SYNC_INTERVAL) nextTimeout = MINIMUM_SYNC_INTERVAL;
           const nextDate = Date.now() + nextTimeout;
           if (registered.syncTimeout && registered.syncTimeoutDate > nextDate) {
             clearTimeout(registered.syncTimeout);

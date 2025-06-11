@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, map, of, skip, switchMap, timeout, timer } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
-import { TrailDto } from 'src/app/model/dto/trail';
+import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
 import { AuthService } from '../auth/auth.service';
@@ -21,9 +21,9 @@ import { ImprovmentRecordingState, ImprovmentRecordingStateDto, TrackEditionServ
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
-import Trailence from '../trailence.service';
 import { Segment } from 'src/app/model/segment';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { ScreenLockService } from '../screen-lock/screen-lock.service';
 
 @Injectable({
   providedIn: 'root'
@@ -51,6 +51,7 @@ export class TraceRecorderService {
     private readonly ngZone: NgZone,
     private readonly progressService: ProgressService,
     private readonly errorService: ErrorService,
+    private readonly screenLockService: ScreenLockService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -120,6 +121,9 @@ export class TraceRecorderService {
             collectionUuid: myTrails.uuid,
             originalTrackUuid: rawTrack.uuid,
             currentTrackUuid: track.uuid,
+            sourceType: TrailSourceType.TRAILENCE_RECORDER,
+            source: this._email,
+            sourceDate: Date.now(),
           });
           const recording = new Recording(
             trail,
@@ -179,7 +183,6 @@ export class TraceRecorderService {
     this.stopRecording(recording);
     Console.info('Recording stopped');
     this._recording$.next(null);
-    Trailence.setKeepOnScreenLock({enabled: false});
     if (this._table) this._table.delete(1);
     if (save && this._email) {
       const progress = this.progressService.create(this.i18n.texts.trace_recorder.saving, 5);
@@ -286,6 +289,7 @@ export class TraceRecorderService {
           this.ngZone.runOutsideAngular(() => this.newPositionReceived(position, recording));
         }
         this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
+        this.screenLockService.set(true);
         return Promise.resolve(recording);
       }
     });
@@ -459,6 +463,7 @@ export class TraceRecorderService {
     this._geolocationListener = undefined;
     if (recording.track.segments.length > 0)
       this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments[recording.track.segments.length - 1], recording.state, true);
+    this.screenLockService.set(false);
   }
 
   private save(recording: Recording): void {
@@ -517,8 +522,8 @@ export class Recording {
     const improvedTrack = new Track(dto.track, preferencesService);
     const r = new Recording(
       new Trail(dto.trail),
-      rawTrack,
       improvedTrack,
+      rawTrack,
       dto.paused,
       ImprovmentRecordingState.fromDto(dto.state),
       new RecordingStatus(

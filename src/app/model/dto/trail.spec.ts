@@ -50,7 +50,7 @@ describe('Test Trail and Track DTOs', () => {
 
   it('gpx-001', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));
-    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService);
+    const imported = GpxFormat.importGpx(file, 'test@example.com', '0', preferencesService, undefined, undefined, undefined);
     expect(imported).not.toBeNull();
     expect(imported.tracks.length).toBe(1);
     const trailDto = imported.trail.toDto();

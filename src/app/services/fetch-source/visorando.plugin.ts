@@ -5,12 +5,13 @@ import * as L from 'leaflet';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Trail, TrailActivity } from 'src/app/model/trail';
-import { from, Observable, switchMap, zip } from 'rxjs';
+import { catchError, from, Observable, of, switchMap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
+import { TrailSourceType } from 'src/app/model/dto/trail';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   keyNumber: string;
@@ -28,6 +29,10 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     injector: Injector,
   ) {
     super(injector, 'visorando', 'keyNumber, keyGpx, url', 'keyNumber');
+  }
+
+  protected override checkAllowed$(): Observable<boolean> {
+    return this.injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/visorando/available').pipe(catchError(e => of(false)));
   }
 
   public override canFetchTrailInfoByUrl(url: string): boolean {
@@ -282,7 +287,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   private fetchGpx(idTrail: string, idGpx: string, info: TrailInfo) {
     return window.fetch('https://www.visorando.com/visorando-' + idGpx + '.gpx')
     .then(response => response.arrayBuffer())
-    .then(gpx => GpxFormat.importGpx(gpx, 'visorando', 'visorando', this.injector.get(PreferencesService)))
+    .then(gpx => GpxFormat.importGpx(gpx, 'visorando', 'visorando', this.injector.get(PreferencesService), TrailSourceType.EXTERNAL, info.externalUrl, Date.now()))
     .then(gpx => {
       if (info.description && info.description.length > 0 && (gpx.trail.description ?? '').length === 0)
         gpx.trail.description = info.description;

@@ -25,13 +25,13 @@ import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-databas
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { RestrictedWaysTool } from './tools/restricted-ways-tool';
 import { PhoneLockTool } from './tools/phone-lock-tool';
-import Trailence from 'src/app/services/trailence.service';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
 import { MapTool } from './tools/tool.interface';
 import { ZoomInTool, ZoomLevelTool, ZoomOutTool } from './tools/zoom-tools';
 import { MapAdditionsService } from 'src/app/services/map/map-additions.service';
 import { GoBackTool } from './tools/go-back-tool';
+import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -621,7 +621,8 @@ export class MapComponent extends AbstractComponent {
     }
     this.defaultRightToolsItems.push(new MenuItem());
     this.defaultRightToolsItems.push(this.toMenuItem(new DownloadMapTool(this.downloadMapTrail)));
-    const phoneLockTool = new PhoneLockTool();
+    const screenLockService = this.injector.get(ScreenLockService);
+    const phoneLockTool = new PhoneLockTool(screenLockService);
     this.defaultRightToolsItems.push(this.toMenuItem(phoneLockTool));
     if (this.enableShowRestrictedWays) {
       const tool = new RestrictedWaysTool(this.mapId);
@@ -643,14 +644,19 @@ export class MapComponent extends AbstractComponent {
         this.mapGeolocation.position$,
         this.mapGeolocation.recorder.current$,
         this.mapGeolocation.showPosition$,
+        screenLockService.available$,
+        screenLockService.enabled$,
       ]).subscribe(
-        ([live, position, recording, showPosition]) => {
+        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled]) => {
           if (!live) return;
           // show position tool only if not recording
           // show phone lock only if recording
           const positionToolWasVisible = toolShowPosition.visible;
           const positionToolWasActive = toolShowPosition.icon === 'pin-off';
           const phoneLockToolWasVisible = phoneLockTool.visible;
+          const phoneLockToolWasActive = phoneLockTool.enabled;
+          phoneLockTool.available = screenLockAvailable;
+          phoneLockTool.enabled = screenLockEnabled;
           if (recording) {
             toolShowPosition.visible = false;
             phoneLockTool.visible = phoneLockTool.available;
@@ -665,23 +671,13 @@ export class MapComponent extends AbstractComponent {
           } else {
             this.hideLocation();
           }
-          if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible)
+          if (toolShowPosition.visible !== positionToolWasVisible || (positionToolWasVisible && showPosition !== positionToolWasActive) || phoneLockTool.visible !== phoneLockToolWasVisible || phoneLockToolWasActive !== phoneLockTool.enabled)
             this.refreshTools();
         }
       )
     );
 
     this.updateTools();
-
-    Trailence.canKeepOnScreenLock({}).then(response => {
-      if (response.allowed) {
-        phoneLockTool.available = true;
-        Trailence.getKeepOnScreenLock({}).then(response => {
-          phoneLockTool.enabled = response.enabled;
-          this.refreshTools();
-        });
-      }
-    });
   }
 
   private updateTools(): void {

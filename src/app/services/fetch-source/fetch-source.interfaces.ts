@@ -5,7 +5,9 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../preferences/preferences';
 import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
+import { NetworkService } from '../network/network.service';
 
 export abstract class FetchSourcePlugin {
 
@@ -13,14 +15,24 @@ export abstract class FetchSourcePlugin {
     protected readonly injector: Injector,
   ) {
     this.sanitizer = injector.get(DomSanitizer);
+    combineLatest([injector.get(AuthService).auth$, injector.get(NetworkService).server$])
+    .pipe(
+      switchMap(([auth, server]) => auth && server ? this.checkAllowed$() : of(false))
+    ).subscribe(allowed => {
+      if (this._allowed$.value !== allowed) this._allowed$.next(allowed);
+    });
   }
 
   protected readonly sanitizer: DomSanitizer;
+  private readonly _allowed$ = new BehaviorSubject<boolean>(false);
+  public get allowed$(): Observable<boolean> { return this._allowed$; }
 
   public readonly abstract name: string;
   public readonly abstract owner: string;
 
   public readonly abstract canFetchFromUrl: boolean;
+
+  protected abstract checkAllowed$(): Observable<boolean>;
 
   public canFetchTrailInfoByUrl(url: string): boolean { return false };
   public fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> { return Promise.resolve(null); };

@@ -488,6 +488,7 @@ export class TrackDatabase {
       const onDbDone = stepsDone.add();
       this.operation(() => {
         if (!this.db) return Promise.reject();
+        Console.info('Create track in database');
         const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
           const promise1 = this.fullTrackTable?.add({
             key,
@@ -524,10 +525,9 @@ export class TrackDatabase {
         stepsDone.start();
         onDone4();
         return tx.then(() => {
-          if (!this.syncStatus$.value!.hasLocalCreates) {
-            this.syncStatus$.value!.hasLocalCreates = true;
-            this.syncStatus$.next(this.syncStatus$.value);
-          }
+          Console.info('Track created in database');
+          this.syncStatus$.value!.hasLocalCreates = true;
+          this.syncStatus$.next(this.syncStatus$.value);
           onDbDone();
         });
       });
@@ -543,7 +543,7 @@ export class TrackDatabase {
       const metadata = TrackDatabase.toMetadata(track);
       this.operation(() => {
         if (!this.db) return Promise.reject();
-        Console.info('Create track in database');
+        Console.info('Update track in database');
         const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
           const promise1 = this.fullTrackTable?.put({
             key,
@@ -577,11 +577,9 @@ export class TrackDatabase {
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
         return tx.then(() => {
-          Console.info('Track created in database');
-          if (!this.syncStatus$.value!.hasLocalUpdates) {
-            this.syncStatus$.value!.hasLocalUpdates = true;
-            this.syncStatus$.next(this.syncStatus$.value);
-          }
+          Console.info('Track updated in database');
+          this.syncStatus$.value!.hasLocalUpdates = true;
+          this.syncStatus$.next(this.syncStatus$.value);
         });
       });
     });
@@ -589,74 +587,74 @@ export class TrackDatabase {
 
   public delete(uuid: string, owner: string, ondone?: () => void): void {
     this.ngZone.runOutsideAngular(() => {
-      const key = uuid + '#' + owner;
-      let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
-        await this.fullTrackTable?.put({
-          key,
-          uuid: uuid,
-          owner: owner,
-          version: -1,
-          updatedLocally: 0,
-          track: undefined,
+      this.operation(() => {
+        const key = uuid + '#' + owner;
+        let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
+          await this.fullTrackTable?.put({
+            key,
+            uuid: uuid,
+            owner: owner,
+            version: -1,
+            updatedLocally: 0,
+            track: undefined,
+          });
+          await this.simplifiedTrackTable?.delete(key);
+          await this.metadataTable?.delete(key);
         });
-        await this.simplifiedTrackTable?.delete(key);
-        await this.metadataTable?.delete(key);
-      });
-      const full$ = this.fullTracks.get(key);
-      if (full$) full$.newValue(null);
-      const simplified$ = this.simplifiedTracks.get(key);
-      if (simplified$) simplified$.newValue(null);
-      const metadata$ = this.metadata.get(key);
-      if (metadata$) metadata$.newValue(null);
-      dbUpdated ??= Promise.resolve();
-      return dbUpdated.then(() => {
-        if (!this.syncStatus$.value!.hasLocalDeletes) {
-          this.syncStatus$.value!.hasLocalDeletes = true;
-          this.syncStatus$.next(this.syncStatus$.value);
-        }
-        if (ondone) ondone();
-      });
-    });
-  }
-
-  public deleteMany(ids: {uuid: string, owner: string}[], progress: Progress | undefined, progressWork: number, ondone?: () => void): void {
-    this.ngZone.runOutsideAngular(() => {
-      const keys = ids.map(id => id.uuid + '#' + id.owner);
-      let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
-        await this.fullTrackTable?.bulkPut(ids.map(id => ({
-          key: id.uuid + '#' + id.owner,
-          uuid: id.uuid,
-          owner: id.owner,
-          version: -1,
-          updatedLocally: 0,
-          track: undefined,
-        })));
-        await this.simplifiedTrackTable?.bulkDelete(keys);
-        await this.metadataTable?.bulkDelete(keys);
-      });
-      const progressDb = progressWork / 3;
-      let progress2 = progressWork - progressDb;
-      let remaining = keys.length;
-      for (const key of keys) {
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(null);
         const simplified$ = this.simplifiedTracks.get(key);
         if (simplified$) simplified$.newValue(null);
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(null);
-        let work = progress2 / remaining;
-        progress2 -= work;
-        remaining--;
-        progress?.addWorkDone(work);
-      }
-      dbUpdated ??= Promise.resolve();
-      return dbUpdated.then(() => {
-        progress?.addWorkDone(progressDb);
-        if (!this.syncStatus$.value!.hasLocalDeletes) {
+        dbUpdated ??= Promise.resolve();
+        return dbUpdated.then(() => {
           this.syncStatus$.value!.hasLocalDeletes = true;
           this.syncStatus$.next(this.syncStatus$.value);
+          if (ondone) ondone();
+        });
+      });
+    });
+  }
+
+  public deleteMany(ids: {uuid: string, owner: string}[], progress: Progress | undefined, progressWork: number, ondone?: () => void): void {
+    this.ngZone.runOutsideAngular(() => {
+      this.operation(() => {
+        const keys = ids.map(id => id.uuid + '#' + id.owner);
+        let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
+          await this.fullTrackTable?.bulkPut(ids.map(id => ({
+            key: id.uuid + '#' + id.owner,
+            uuid: id.uuid,
+            owner: id.owner,
+            version: -1,
+            updatedLocally: 0,
+            track: undefined,
+          })));
+          await this.simplifiedTrackTable?.bulkDelete(keys);
+          await this.metadataTable?.bulkDelete(keys);
+        });
+        const progressDb = progressWork / 3;
+        let progress2 = progressWork - progressDb;
+        let remaining = keys.length;
+        for (const key of keys) {
+          const full$ = this.fullTracks.get(key);
+          if (full$) full$.newValue(null);
+          const simplified$ = this.simplifiedTracks.get(key);
+          if (simplified$) simplified$.newValue(null);
+          const metadata$ = this.metadata.get(key);
+          if (metadata$) metadata$.newValue(null);
+          let work = progress2 / remaining;
+          progress2 -= work;
+          remaining--;
+          progress?.addWorkDone(work);
         }
-        if (ondone) ondone();
+        dbUpdated ??= Promise.resolve();
+        return dbUpdated.then(() => {
+          progress?.addWorkDone(progressDb);
+          this.syncStatus$.value!.hasLocalDeletes = true;
+          this.syncStatus$.next(this.syncStatus$.value);
+          if (ondone) ondone();
+        });
       });
     });
   }
@@ -713,7 +711,11 @@ export class TrackDatabase {
             return Promise.reject(e);
           });
         })
-        .then(resolve).catch(reject);
+        .then(resolve)
+        .catch(e => {
+          Console.error('Error in track database operation', e);
+          reject(e);
+        });
       }, 0);
     });
   }
@@ -751,7 +753,7 @@ export class TrackDatabase {
           status.lastUpdateFromServer = syncComplete ? Date.now() : 0;
           Console.info("Store tracks sync done: ", status, this._pendingOperation$.value);
           this.syncStatus$.next(status);
-          return !syncComplete;
+          return !syncComplete || !!this.syncStatus$.value?.hasLocalChanges;
         })
       );
     });

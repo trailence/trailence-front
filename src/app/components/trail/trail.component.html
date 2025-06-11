@@ -29,7 +29,6 @@
           <div class="map-top-controls center">
             <app-toolbar
               [items]="mapToolbarPositionningPhotoItems"
-              [iconSize]="16"
               textSize="9px"
               [itemMinWidth]="40"
               [itemMaxWidth]="50"
@@ -47,7 +46,6 @@
         <div class="map-top-controls right">
           <app-toolbar #mapToolbarTopRight
             [items]="mapToolbarTopRightItems"
-            [iconSize]="16"
             textSize="9px"
             [itemMinWidth]="40"
             [itemMaxWidth]="50"
@@ -296,19 +294,32 @@
         <div *ngIf="!toolsEnabled" style="padding: 5px 3px 10px 8px">
           <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
         </div>
-        <div *ngIf="externalUrl" class="external-link">
-          <a href="{{externalUrl}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{externalAppName}}</a>
+        <div class="trail-dates" *ngIf="trail1 && !trail2">
+          @if (!isExternalOnly) {
+            <div>
+              <span class="trail-date-title">{{i18n.texts.pages.trail.created_in_trailence_on}} </span>
+              <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
+            </div>
+            @if (trail1.createdAt !== trail1.updatedAt) {
+              <div>
+                <span class="trail-date-title">{{i18n.texts.pages.trail.last_update_on}} </span>
+                <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.updatedAt)}}</span>
+              </div>
+            }
+          }
+          @if (sourceString) {
+            <span class="trail-date-title">{{ sourceString | async }}</span>
+          }
         </div>
-        <div class="trail-dates" *ngIf="trail1 && !trail2 && !isExternal">
-          <div>
-            <span class="trail-date-title">{{i18n.texts.pages.trail.created_in_trailence_on}} </span>
-            <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
+        @if (externalUrl && externalAppName) {
+          <div class="external-link">
+            <a href="{{externalUrl}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{externalAppName}}</a>
           </div>
-          <div *ngIf="trail1.createdAt !== trail1.updatedAt">
-            <span class="trail-date-title">{{i18n.texts.pages.trail.last_update_on}} </span>
-            <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.updatedAt)}}</span>
+        } @else if (externalUrl) {
+          <div class="external-link">
+            <a href="{{externalUrl}}" target="_blank">{{ externalUrl }}</a>
           </div>
-        </div>
+        }
       }
 
       @if (!trail2) {

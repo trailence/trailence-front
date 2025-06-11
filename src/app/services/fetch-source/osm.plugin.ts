@@ -1,8 +1,7 @@
 import { Trail } from 'src/app/model/trail';
 import { PluginWithDb, TrailInfoBaseDto, TrailToStore } from './abstract-plugin-with-db';
 import { Injector } from '@angular/core';
-import { GeoService } from '../geolocation/geo.service';
-import { from, map, merge, Observable, switchMap } from 'rxjs';
+import { from, map, merge, Observable, of, switchMap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { SearchResult } from './fetch-source.interfaces';
@@ -12,6 +11,7 @@ import { I18nService } from '../i18n/i18n.service';
 import * as L from 'leaflet';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Arrays } from 'src/app/utils/arrays';
+import { TrailSourceType } from 'src/app/model/dto/trail';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -27,12 +27,14 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
     injector: Injector,
   ) {
     super(injector, 'osm_routes', 'id', 'id');
-    this.geoService = injector.get(GeoService);
     this.i18n = injector.get(I18nService);
   }
 
-  private readonly geoService: GeoService;
   private readonly i18n: I18nService;
+
+  protected override checkAllowed$(): Observable<boolean> {
+    return of(true);
+  }
 
   public override canSearchByArea(): boolean {
     return true;
@@ -106,6 +108,9 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
       collectionUuid: this.owner,
       originalTrackUuid: circuit.id + '-original',
       currentTrackUuid: circuit.id + '-original',
+      sourceType: TrailSourceType.EXTERNAL,
+      source: 'Open Street Map',
+      sourceDate: Date.now(),
     });
     const track = new Track({ owner: this.owner, uuid: circuit.id + '-original' }, this.injector.get(PreferencesService));
     this.fillTrack(track, members);

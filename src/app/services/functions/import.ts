@@ -18,6 +18,7 @@ import { ModalController } from '@ionic/angular/standalone';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { DatabaseService } from '../database/database.service';
+import { TrailSourceType } from 'src/app/model/dto/trail';
 
 export function openImportTrailsDialog(injector: Injector, collectionUuid: string): void {
   const i18n = injector.get(I18nService);
@@ -68,7 +69,7 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
                 const gpxFile = gpxFiles[entryIndex];
                 return gpxFile.async('arraybuffer')
                 .then(arraybuffer => {
-                  const r = importGpx(injector, arraybuffer, email, collectionUuid, zip);
+                  const r = importGpx(injector, arraybuffer, email, collectionUuid, zip, TrailSourceType.FILE_IMPORT, filename + '/' + gpxFile.name, Date.now());
                   allDone.push(r.allDone.catch(e => null));
                   r.allDone.then(() => {
                     progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
@@ -102,7 +103,7 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
           });
         }
       }
-      return importGpx(injector, file, email, collectionUuid).allDone
+      return importGpx(injector, file, email, collectionUuid, undefined, TrailSourceType.FILE_IMPORT, filename, Date.now()).allDone
       .then(result => {
         allDone.push(Promise.resolve(result));
         progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
@@ -128,12 +129,12 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
   });
 }
 
-export function importGpx(injector: Injector, file: ArrayBuffer, owner: string, collectionUuid: string, zip?: any): {
+export function importGpx(injector: Injector, file: ArrayBuffer, owner: string, collectionUuid: string, zip: any, sourceType: TrailSourceType | undefined, source: string | undefined, sourceDate: number | undefined): { // NOSONAR
   imported: Promise<{trailUuid: string, tags: string[][], source?: string}>,
   allDone: Promise<{trailUuid: string, tags: string[][], source?: string}>
 } {
   try {
-    const imported = GpxFormat.importGpx(file, owner, collectionUuid, injector.get(PreferencesService));
+    const imported = GpxFormat.importGpx(file, owner, collectionUuid, injector.get(PreferencesService), sourceType, source, sourceDate);
     if (imported.tracks.length === 1) {
       const improved = injector.get(TrackEditionService).applyDefaultImprovments(imported.tracks[0]);
       if (!improved.isEquals(imported.tracks[0])) {
