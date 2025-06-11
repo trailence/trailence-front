@@ -7,6 +7,7 @@ import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { StoreErrors } from './store-errors';
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
+import { StoreOperations } from './store-operations';
 
 export interface StoreSyncStatus {
 
@@ -34,17 +35,26 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   private readonly _storeLoaded$ = new BehaviorSubject<boolean>(false);
 
-  protected readonly _operationInProgress$ = new BehaviorSubject<boolean>(false);
+  protected operations: StoreOperations;
+
+  protected readonly _syncStatus$: BehaviorSubject<SYNCSTATUS>;
 
   constructor(
     protected tableName: string,
     protected injector: Injector,
+    initialStatus: SYNCSTATUS,
   ) {
     this.ngZone = injector.get(NgZone);
     this._errors = new StoreErrors(injector, tableName, () => this.isQuotaReached());
+    this._syncStatus$ = new BehaviorSubject(initialStatus);
+    this.operations = new StoreOperations(tableName, this._storeLoaded$, this._syncStatus$, this.ngZone);
   }
 
   public get loaded$() { return this._storeLoaded$; }
+
+  public get syncStatus$() { return this._syncStatus$; }
+  public get syncStatus() { return this._syncStatus$.value; }
+  protected set syncStatus(status: SYNCSTATUS) { this._syncStatus$.next(status); }
 
   protected abstract isQuotaReached(): boolean;
 
@@ -75,7 +85,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       name,
       status$: this.syncStatus$,
       loaded$: this._storeLoaded$,
-      hasPendingOperations$: combineLatest([this._operationInProgress$, this.operationsQueue$]).pipe(map(([progress, queue]) => progress || queue.length > 0)),
+      hasPendingOperations$: this.operations.hasPendingOperations$,
       syncFromServer: () => this.triggerSyncFromServer(),
       fireSyncStatus: () => this.syncStatus = this.syncStatus, // NOSONAR
       doSync: () => this.sync(),
@@ -107,10 +117,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  public abstract get syncStatus$(): Observable<SYNCSTATUS>;
-  public abstract get syncStatus(): SYNCSTATUS;
-  protected abstract set syncStatus(status: SYNCSTATUS);
-
   protected abstract migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined>;
 
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
@@ -122,6 +128,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected close(): void {
     if (!this._db) return;
     this.ngZone.runOutsideAngular(() => {
+      this.operations.reset();
       this._errors.reset();
       this._locks = new SynchronizationLocks();
       this._db = undefined;
@@ -186,8 +193,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract afterClosed(): void;
 
-  protected readonly operationsQueue$ = new BehaviorSubject<((resolve: (done: boolean) => void) => void)[]>([]);
-
   protected performOperation(
     description: string,
     storeUpdater: () => void,
@@ -197,8 +202,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     oncancelled?: () => void,
   ): void {
     const db = this._db!;
-    const operationExecution = (resolve: (done: boolean) => void) => {
-      if (DEBUG_OPERATIONS) Console.debug('Operation on store ' + this.tableName + ': ' + description);
+    const operation = () => new Promise(resolve => {
       if (this._db !== db) {
         if (oncancelled) oncancelled();
         resolve(false);
@@ -230,49 +234,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         if (ondone) ondone();
         resolve(true);
       });
-    };
-    this.operationsQueue$.value.push(operationExecution);
-    if (this._operationInProgress$.value) return;
-    if (this._storeLoaded$.value) {
-      this.launchOperationQueue();
-      return;
-    }
-    if (this.operationsQueue$.value.length === 1) {
-      this.operationsQueue$.next(this.operationsQueue$.value);
-      this._storeLoaded$.pipe(
-        filter(loaded => loaded),
-        first()
-      ).subscribe(() => this.launchOperationQueue());
-    }
-  }
-
-  private launchOperationQueue(): void {
-    this._operationInProgress$.next(true);
-    this.operationsQueue$.next(this.operationsQueue$.value);
-    this.ngZone.runOutsideAngular(() => {
-      this.syncStatus$.pipe(
-        filter(s => !s.inProgress),
-        first(),
-      ).subscribe(() => setTimeout(() => this.executeNextOperation(Date.now(), 0), 0));
     });
-  }
-
-  private executeNextOperation(startTime: number, deep: number): void {
-    if (this.operationsQueue$.value.length === 0) {
-      this._operationInProgress$.next(false);
-      return;
-    }
-    const operation = this.operationsQueue$.value.splice(0, 1)[0];
-    operation(() => {
-      this.ngZone.runOutsideAngular(() => {
-        this.operationsQueue$.next(this.operationsQueue$.value);
-        if (Date.now() - startTime > 1000 || deep > 100) {
-          Console.info('Store ' + this.tableName + ': still ' + this.operationsQueue$.value.length + ' operations pending');
-          setTimeout(() => this.executeNextOperation(Date.now(), 0), 0);
-        } else
-          this.executeNextOperation(startTime, deep + 1);
-      });
-    });
+    this.operations.push(description, operation);
   }
 
   protected waitReadyWithTimeout(entities: STORE_ITEM[]): Observable<STORE_ITEM[]> {

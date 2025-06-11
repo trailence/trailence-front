@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, filter, first, from, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, first, from, map, of, switchMap, tap } from 'rxjs';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
@@ -10,13 +10,11 @@ import { DependenciesService } from './dependencies.service';
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 
-  private readonly _syncStatus$ = new BehaviorSubject<OwnedStoreSyncStatus>(new OwnedStoreSyncStatus());
-
   constructor(
     tableName: string,
     injector: Injector,
   ) {
-    super(tableName, injector);
+    super(tableName, injector, new OwnedStoreSyncStatus());
     this._initStore(tableName);
   }
 
@@ -27,10 +25,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   protected abstract getUpdatesFromServer(knownItems: OwnedDto[]): Observable<UpdatesResponse<DTO>>;
   protected abstract sendUpdatesToServer(items: DTO[]): Observable<DTO[]>;
   protected abstract deleteFromServer(uuids: string[]): Observable<void>;
-
-  public override get syncStatus$() { return this._syncStatus$; }
-  public override get syncStatus() { return this._syncStatus$.value; }
-  protected override set syncStatus(status: OwnedStoreSyncStatus) { this._syncStatus$.next(status); }
 
   protected override getKey(item: ENTITY): string {
     return item.uuid + '#' + item.owner;
@@ -233,14 +227,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   protected override sync(): Observable<boolean> {
     const db = this._db;
-    return this._operationInProgress$.pipe(
-      filter(p => {
-        if (p) Console.info('Store ' + this.tableName + ' waiting for ' + this.operationsQueue$.value.length + ' operations to finish before sync');
-        return !p;
-      }),
-      first(),
-      switchMap(() => this._db === db ? this._sync() : EMPTY),
-    );
+    return this.operations.requestSync(() => this._db === db ? this._sync() : EMPTY);
   }
 
   private _forceUpdateFromServerChecked = false;

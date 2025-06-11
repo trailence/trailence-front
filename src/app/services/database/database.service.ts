@@ -222,6 +222,7 @@ export class DatabaseService {
           if (!registered.syncTimeout) {
             registered.syncTimeoutDate = nextDate;
             registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), nextTimeout);
+            Console.info('Will trigger store update', registered.name, nextTimeout);
           }
         });
         return false;
@@ -230,6 +231,7 @@ export class DatabaseService {
       debounceTimeExtended(0, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2] || n[3]), // sync requested or db changed or syncAgain requested
     )
     .subscribe(() => {
+      Console.info('Trigger store updates: ', registered.name);
       registered.syncAgain = false;
       registered.lastSync = Date.now();
       if (registered.syncTimeout) clearTimeout(registered.syncTimeout);

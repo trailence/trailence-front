@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, from, map, of, switchMap } from "rxjs";
 import { Store, StoreSyncStatus } from "./store";
 import { Table } from "dexie";
 import { Injector } from "@angular/core";
@@ -29,19 +29,13 @@ export class SimpleStoreSyncStatus implements StoreSyncStatus {
 
 export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStoreItem<DTO>, SimpleStoreSyncStatus> {
 
-  private readonly _syncStatus$ = new BehaviorSubject<SimpleStoreSyncStatus>(new SimpleStoreSyncStatus());
-
   constructor(
     tableName: string,
     injector: Injector,
   ) {
-    super(tableName, injector);
+    super(tableName, injector, new SimpleStoreSyncStatus());
     this._initStore(tableName);
   }
-
-  public override get syncStatus$() { return this._syncStatus$; }
-  public override get syncStatus() { return this._syncStatus$.value; }
-  protected override set syncStatus(status: SimpleStoreSyncStatus) { this._syncStatus$.next(status); }
 
   protected abstract fromDTO(dto: DTO): ENTITY;
   protected abstract toDTO(entity: ENTITY): DTO;
@@ -184,11 +178,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
   protected override sync(): Observable<boolean> {
     const db = this._db;
-    return this._operationInProgress$.pipe(
-      filter(p => !p),
-      first(),
-      switchMap(() => this._db === db ? this._sync() : EMPTY),
-    );
+    return this.operations.requestSync(() => this._db === db ? this._sync() : EMPTY);
   }
 
   private _sync(): Observable<boolean> {

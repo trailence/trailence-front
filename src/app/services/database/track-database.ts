@@ -24,6 +24,7 @@ import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { QuotaService } from '../auth/quota.service';
 import { StoreErrors } from './store-errors';
+import { StoreOperations } from './store-operations';
 
 export interface TrackMetadataSnapshot {
   uuid: string;
@@ -70,8 +71,6 @@ interface TrackItem {
   track?: TrackDto;
 }
 
-const MINIMUM_SYNC_INTERVAL = 30 * 1000;
-
 export class TrackDatabase {
 
   constructor(
@@ -81,11 +80,18 @@ export class TrackDatabase {
     this.subjectService = injector.get(DatabaseSubjectService);
     this.quotaService = injector.get(QuotaService);
     this._errors = new StoreErrors(injector, 'tracks', () => this.isQuotaReached());
+    this.syncStatus$.pipe(map(s => !!s), distinctUntilChanged()).subscribe(loaded => this.loaded$.next(loaded));
+    this.operations = new StoreOperations(
+      'tracks',
+      this.loaded$,
+      this.syncStatus$,
+      this.ngZone
+    );
     injector.get(DatabaseService).registerStore({
       name: 'tracks',
       status$: this.syncStatus$,
-      loaded$: this.syncStatus$.pipe(map(s => !!s), distinctUntilChanged()),
-      hasPendingOperations$: this._pendingOperation$.pipe(map(nb => nb > 0)),
+      loaded$: this.loaded$,
+      hasPendingOperations$: this.operations.hasPendingOperations$,
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
       syncFromServer: () => this.triggerSyncFromServer(),
       doSync: () => this.sync(),
@@ -106,8 +112,9 @@ export class TrackDatabase {
   private preferencesSubscription?: Subscription;
   private readonly ngZone: NgZone;
   private readonly syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
-  private readonly _pendingOperation$ = new BehaviorSubject<number>(0);
   private readonly _errors: StoreErrors;
+  private readonly operations: StoreOperations;
+  private readonly loaded$ = new BehaviorSubject<boolean>(false);
 
   private isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
@@ -118,11 +125,11 @@ export class TrackDatabase {
     this.ngZone.runOutsideAngular(() => {
       if (this.db) {
         Console.info('Close track DB')
+        this.operations.reset();
         this.db.close();
         this.openEmail = undefined;
         this.db = undefined;
         this.syncStatus$.next(null);
-        this._pendingOperation$.next(0);
         this.preferencesSubscription?.unsubscribe();
         this.preferencesSubscription = undefined;
         this.metadataKeysToLoad.clear();
@@ -152,7 +159,6 @@ export class TrackDatabase {
       this.metadataTable = db.table<MetadataItem, string>('metadata');
       this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks');
       this.fullTrackTable = db.table<TrackItem, string>('full_tracks');
-      this._pendingOperation$.next(0);
       this.db = db;
       this.initStatus();
       this.listenPreferences();
@@ -211,7 +217,7 @@ export class TrackDatabase {
         if (speedChanged || breaksChanged) {
           if (!this.db || !this.metadataTable || !this.fullTrackTable) return;
           Console.info('Preferences changed, recompute estimated time/breaks duration of trails', speedChanged, breaksChanged);
-          this.operation(() => this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
+          this.operations.push('Update trails metadata', () => this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
             let count = 0;
             let countInMemory = 0;
             return this.fullTrackTable?.each(trackItem => {
@@ -486,9 +492,8 @@ export class TrackDatabase {
       const metadata = TrackDatabase.toMetadata(track);
       const stepsDone = new CompositeOnDone(ondone);
       const onDbDone = stepsDone.add();
-      this.operation(() => {
+      this.operations.push('Create track', () => {
         if (!this.db) return Promise.reject();
-        Console.info('Create track in database');
         const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
           const promise1 = this.fullTrackTable?.add({
             key,
@@ -525,7 +530,6 @@ export class TrackDatabase {
         stepsDone.start();
         onDone4();
         return tx.then(() => {
-          Console.info('Track created in database');
           this.syncStatus$.value!.hasLocalCreates = true;
           this.syncStatus$.next(this.syncStatus$.value);
           onDbDone();
@@ -541,9 +545,8 @@ export class TrackDatabase {
       const dto = track.toDto();
       const simplified = TrackDatabase.simplify(track);
       const metadata = TrackDatabase.toMetadata(track);
-      this.operation(() => {
+      this.operations.push('Update track', () => {
         if (!this.db) return Promise.reject();
-        Console.info('Update track in database');
         const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
           const promise1 = this.fullTrackTable?.put({
             key,
@@ -577,7 +580,6 @@ export class TrackDatabase {
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
         return tx.then(() => {
-          Console.info('Track updated in database');
           this.syncStatus$.value!.hasLocalUpdates = true;
           this.syncStatus$.next(this.syncStatus$.value);
         });
@@ -587,7 +589,7 @@ export class TrackDatabase {
 
   public delete(uuid: string, owner: string, ondone?: () => void): void {
     this.ngZone.runOutsideAngular(() => {
-      this.operation(() => {
+      this.operations.push('Delete track', () => {
         const key = uuid + '#' + owner;
         let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
           await this.fullTrackTable?.put({
@@ -619,7 +621,7 @@ export class TrackDatabase {
 
   public deleteMany(ids: {uuid: string, owner: string}[], progress: Progress | undefined, progressWork: number, ondone?: () => void): void {
     this.ngZone.runOutsideAngular(() => {
-      this.operation(() => {
+      this.operations.push('Delete multiple tracks', () => {
         const keys = ids.map(id => id.uuid + '#' + id.owner);
         let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
           await this.fullTrackTable?.bulkPut(ids.map(id => ({
@@ -695,39 +697,10 @@ export class TrackDatabase {
     }
   }
 
-  private operation<T>(op: () => Promise<T>): Promise<T> {
-    const db = this.db;
-    return new Promise<T>((resolve, reject) => {
-      setTimeout(() => {
-        this._pendingOperation$.next(this._pendingOperation$.value + 1);
-        firstValueFrom(this.syncStatus$.pipe(debounceTime(10), filter(s => !s?.inProgress)))
-        .then(() => {
-          if (db != this.db) return Promise.reject();
-          return op().then(r => {
-            this._pendingOperation$.next(this._pendingOperation$.value - 1);
-            return r;
-          }).catch(e => {
-            this._pendingOperation$.next(this._pendingOperation$.value - 1);
-            return Promise.reject(e);
-          });
-        })
-        .then(resolve)
-        .catch(e => {
-          Console.error('Error in track database operation', e);
-          reject(e);
-        });
-      }, 0);
-    });
-  }
-
   private sync(): Observable<boolean> {
     if (!this.db) return EMPTY;
     const db = this.db;
-    return this._pendingOperation$.pipe(
-      filter(nb => nb === 0),
-      first(),
-      switchMap(() => this.db === db ? this.doSync() : EMPTY),
-    );
+    return this.operations.requestSync(() => this.db === db ? this.doSync() : EMPTY);
   }
 
   private doSync(): Observable<boolean> {
@@ -735,7 +708,7 @@ export class TrackDatabase {
       const db = this.db!;
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
-      Console.info("Store tracks sync start: ", this.syncStatus$.value, this._pendingOperation$.value);
+      Console.info("Store tracks sync start: ", this.syncStatus$.value, this.operations.pendingOperations);
       return this.syncCreatedLocally(db).pipe(
         switchMap(r => r ? (this.db === db ? this.syncDeletedLocally(db) : EMPTY) : of(false)),
         switchMap(r => r ? (this.db === db ? this.syncUpdatesFromServer(db) : EMPTY) : of(false)),
@@ -751,9 +724,9 @@ export class TrackDatabase {
           status.inProgress = false;
           status.needsUpdateFromServer = !syncComplete;
           status.lastUpdateFromServer = syncComplete ? Date.now() : 0;
-          Console.info("Store tracks sync done: ", status, this._pendingOperation$.value);
+          Console.info("Store tracks sync done: ", status, this.operations.pendingOperations);
           this.syncStatus$.next(status);
-          return !syncComplete || !!this.syncStatus$.value?.hasLocalChanges;
+          return !syncComplete;
         })
       );
     });

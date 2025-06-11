@@ -19,6 +19,9 @@ import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { DatabaseService } from '../database/database.service';
 import { TrailSourceType } from 'src/app/model/dto/trail';
+import { Console } from 'src/app/utils/console';
+
+const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
 
 export function openImportTrailsDialog(injector: Injector, collectionUuid: string): void {
   const i18n = injector.get(I18nService);
@@ -50,7 +53,18 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
         if (String.fromCharCode(first2bytes[0]) === 'P' &&
             String.fromCharCode(first2bytes[1]) === 'K') {
           // zip file
-          return import('jszip').then(JSZip => JSZip.default.loadAsync(file)).then(zip => {
+          return import('jszip').then(JSZip => JSZip.default.loadAsync(file, {
+            decodeFileName: (bytes: string[] | Uint8Array | Buffer) => {
+              if (Array.isArray(bytes))
+                return '';
+              const utf8 = new TextDecoder().decode(bytes);
+              if (utf8.indexOf('�') < 0) return utf8;
+              let result = '';
+	            for (let byte of bytes)
+		            result += CP437[byte];
+              return result;
+            }
+          })).then(zip => {
             const gpxFiles = zip.filter((path, entry) => !entry.dir && entry.name.toLowerCase().endsWith('.gpx'));
             if (gpxFiles.length === 0) {
               progress.subTitle = '' + (index + 1 + zipEntries) + '/' + (nbFiles + zipEntries);
@@ -118,10 +132,14 @@ export function openImportTrailsDialog(injector: Injector, collectionUuid: strin
     ondone: (progress: Progress | undefined, imported: ({trailUuid: string, tags: string[][], source?: string})[][], errors: any[]) => {
       Promise.all(allDone).then(() => {
         progress?.done();
-        if (errors.length > 0)
+        if (errors.length > 0) {
+          Console.error('Error importing files', errors);
           injector.get(ErrorService).addErrors(errors);
-        if (zipErrors.length > 0)
+        }
+        if (zipErrors.length > 0) {
+          Console.error('Error importing zip', zipErrors);
           injector.get(ErrorService).addErrors(zipErrors);
+        }
         const importedTrails = Arrays.flatMap(imported, a => a);
         finishImport(injector, importedTrails, collectionUuid);
       });

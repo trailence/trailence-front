@@ -19,17 +19,17 @@ export class ImportTagsPopup extends ModalComponent {
 
   public async importAll() {
     await new IonicButton(this.contentElement.$('>>>div.buttons').$('ion-button.import-all')).click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d), { timeout: 5000});
   }
 
   public async importOnlyExisting() {
     await new IonicButton(this.contentElement.$('>>>div.buttons').$('ion-button.import-existing-only')).click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d), { timeout: 5000});
   }
 
   public async doNotImportTags() {
     await new IonicButton(this.contentElement.$('>>>div.buttons').$('ion-button.import-none')).click();
-    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d));
+    await browser.waitUntil(() => this.getElement().isDisplayed().then(d => !d), { timeout: 5000});
   }
 
 }

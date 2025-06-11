@@ -58,5 +58,25 @@
         "Quelques améliorations et correctifs"
       ]
     }
+  },
+  "001700": {
+    "en": {
+      "items": [
+        "Adding activity type to a trail",
+        "Possibility of reversing the direction of a track",
+        "Menu to see the trails from all collections",
+        "Feature to manually position a photo on a track",
+        "Some improvements and fixes"
+      ]
+    },
+    "fr": {
+      "items": [
+        "Ajout du type d'activité sur un parcours",
+        "Possibilité d'inverser le sens d'un parcours",
+        "Menu pour voir les parcours de toutes les collections",
+        "Fonctionnalité pour positionner manuellement une photo sur un parcours",
+        "Quelques améliorations et correctifs"
+      ]
+    }
   }
 }
