@@ -48,6 +48,7 @@ import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { DomSanitizer } from '@angular/platform-browser';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
     selector: 'app-trail',
@@ -204,6 +205,7 @@ export class TrailComponent extends AbstractComponent {
     private readonly tagService: TagService,
     private readonly photoService: PhotoService,
     private readonly changesDetector: ChangeDetectorRef,
+    private readonly preferencesService: PreferencesService,
   ) {
     super(injector);
     changesDetector.detach();
@@ -515,8 +517,8 @@ export class TrailComponent extends AbstractComponent {
           (n1 === undefined && n2 === undefined) ||
           (n1 !== undefined && n2 !== undefined && Arrays.sameContent(n1, n2));
         if (same(this.tagsNames1, names1) && same(this.tagsNames2, names2)) return;
-        this.tagsNames1 = names1;
-        this.tagsNames2 = names2;
+        this.tagsNames1 = names1?.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));;
+        this.tagsNames2 = names2?.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));;
         this.changesDetector.detectChanges();
       }, true
     );

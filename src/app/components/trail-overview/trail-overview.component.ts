@@ -27,6 +27,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 class Meta {
   name?: string;
@@ -95,6 +96,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly domController: DomController,
     private readonly photoService: PhotoService,
     private readonly router: Router,
+    private readonly preferencesService: PreferencesService,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -160,7 +162,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           ),
           tagsNames => {
             if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
-              this.tagsNames = tagsNames;
+              this.tagsNames = tagsNames.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));
               this.changeDetector.detectChanges();
             }
           },
