@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angul
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, combineLatest, map, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -41,7 +41,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @Input() viewId!: string;
 
-  @Input() trails: List<Trail> = List();
+  @Input() trails$: List<Observable<Trail | null>> = List();
   @Input() collectionUuid?: string;
   @Input() type?: string;
 
@@ -168,14 +168,6 @@ export class TrailsAndMapComponent extends AbstractComponent {
         ).filter(p => !!p), result.zoom));
       }
     );
-  }
-
-  protected override getComponentState() {
-    return {trails: this.trails}
-  }
-
-  protected override onComponentStateChanged(previousState: any, newState: any): void {
-    this.mapTrails$.next(this.trails);
   }
 
   private readonly mapTrails$ = new BehaviorSubject<List<Trail>>(List());

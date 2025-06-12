@@ -92,6 +92,10 @@ export class ActivityPopup implements OnInit {
 
   setSelected(item: Item, selected: boolean): void {
     item.selected = selected;
+    if (!this.multiple)
+      this.list.forEach(i => {
+        if (i !== item) i.selected = false;
+      });
     this.selection = this.list.filter(item => item.selected).map(item => item.activity);
   }
 

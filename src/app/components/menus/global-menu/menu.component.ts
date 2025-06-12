@@ -59,16 +59,20 @@ export class MenuComponent {
     private readonly injector: Injector,
     readonly preferences: PreferencesService,
   ) {
-    collectionService.getAll$().pipe(
-      collection$items(),
-      map(list => collectionService.sort(list)),
-      switchMap(collections => {
+    combineLatest([
+      authService.auth$,
+      collectionService.getAll$().pipe(
+        collection$items(),
+        map(list => collectionService.sort(list)),
+      )
+    ]).pipe(
+      switchMap(([auth, collections]) => {
         const withInfo: CollectionWithInfo[] = collections.map(c => new CollectionWithInfo(c));
         if (collections.length === 0) return of([]);
         return concat(
           of(withInfo),
           trailService.getAllWhenLoaded$().pipe(
-            collection$items(),
+            collection$items(t => t.owner === auth?.email),
             map(trails => {
               withInfo.forEach(c => c.nbTrails = 0);
               this.allCollectionsTrails = trails.length;

@@ -11,10 +11,8 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-and-map.component';
 import { CommonModule } from '@angular/common';
 import { MenuItem } from 'src/app/components/menus/menu-item';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { collection$items$ } from 'src/app/utils/rxjs/collection$items';
 import { ShareService } from 'src/app/services/database/share.service';
-import { ShareElementType } from 'src/app/model/dto/share';
-import { TagService } from 'src/app/services/database/tag.service';
 import { Share } from 'src/app/model/share';
 import { List } from 'immutable';
 import { Console } from 'src/app/utils/console';
@@ -48,7 +46,7 @@ export class TrailsPage extends AbstractPage {
   @Input() trailsFrom?: string;
 
   title$ = new BehaviorSubject<string>('');
-  trails$ = new BehaviorSubject<List<Trail> | undefined>(undefined);
+  trails$ = new BehaviorSubject<List<Observable<Trail | null>> | undefined>(undefined);
   actions: MenuItem[] = [];
 
   viewId?: string;
@@ -120,15 +118,15 @@ export class TrailsPage extends AbstractPage {
     let first = true;
     this.byStateAndVisible.subscribe(
       this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-        collection$items(trail => trail.collectionUuid === collectionUuid)
+        collection$items$(trail => trail.collectionUuid === collectionUuid)
       ),
       trails => {
-        const newList = List(trails);
+        const newList = List(trails.map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           const index = this.actions.findIndex(a => a.isSeparator());
           if (index > 0) this.actions.splice(index, this.actions.length - index);
-          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails, false, collectionUuid, true);
+          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails.map(t => t.item), false, collectionUuid, true);
           if (actions.length > 0)
             actions.splice(0, 0, new MenuItem());
           trailsActions = actions;
@@ -147,11 +145,10 @@ export class TrailsPage extends AbstractPage {
     // trails
     let first = true;
     this.byStateAndVisible.subscribe(
-      this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-        collection$items()
-      ),
-      trails => {
-        const newList = List(trails);
+      this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items$()),
+      all => {
+        const owner = this.injector.get(AuthService).email;
+        const newList = List(all.filter(t => t.item.owner === owner).map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           this.ngZone.run(() => this.trails$.next(newList));
@@ -164,7 +161,7 @@ export class TrailsPage extends AbstractPage {
     this.byStateAndVisible.subscribe(
       this.injector.get(ShareService).getShare$(shareId, sharedBy).pipe(
         switchMap(share => {
-          if (!share) return this.onItemEmpty<{share: Share, trails: Trail[]}>(
+          if (!share) return this.onItemEmpty<{share: Share, trails: Observable<Trail | null>[]}>(
             () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
             () => this.injector.get(ShareService).getShare$(shareId, sharedBy),
           );
@@ -172,7 +169,7 @@ export class TrailsPage extends AbstractPage {
             map(result => ({share, trails: result.get(share) ?? []}))
           );
         })
-      ), (result: {share: Share, trails: Trail[]}) => {
+      ), (result: {share: Share, trails: Observable<Trail | null>[]}) => {
         this.ngZone.run(() => {
           this.title$.next(result.share.name);
           const newList = List(result.trails);
@@ -224,7 +221,8 @@ export class TrailsPage extends AbstractPage {
     let firstResult = true;
     const fillResults = (result: SearchResult) => {
       Console.info('search result', result.trails.length, result.end, result.tooManyResults);
-      const newList = List(firstResult ? result.trails : [...(this.trails$.value ?? []), ...result.trails]);
+      const newTrails = result.trails.map(t => of(t));
+      const newList = List(firstResult ? newTrails : [...(this.trails$.value ?? []), ...newTrails]);
       firstResult = false;
       this.ngZone.run(() => {
         if (!newList.equals(this.trails$.value))

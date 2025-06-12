@@ -7,7 +7,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
   IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, IonSegment, IonSegmentButton, IonInput, IonSpinner } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, debounceTime, map, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -123,7 +123,7 @@ interface TrailWithInfo {
 })
 export class TrailsListComponent extends AbstractComponent {
 
-  @Input() trails?: List<Trail>;
+  @Input() trails$?: List<Observable<Trail | null>>;
   @Input() collectionUuid?: string;
   @Input() listType?: string;
 
@@ -223,7 +223,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   protected override getComponentState() {
     return {
-      trails: this.trails,
+      trails$: this.trails$,
       collectionUuid: this.collectionUuid,
     }
   }
@@ -232,60 +232,35 @@ export class TrailsListComponent extends AbstractComponent {
     if (newState?.collectionUuid !== previousState?.collectionUuid)
       this.loadState();
 
-    this.toolbar = this.trailMenuService.getTrailsMenu(this.trails?.toArray() ?? [], false, this.collectionUuid, true, this.listType === 'all-collections');
-    this.toolbar.splice(0, 0,
-      new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
-        .setAction(() => this.sortModal?.present()),
-      new MenuItem().setIcon('filters').setI18nLabel('tools.filters')
-        .setAction(() => this.filtersModal?.present())
-        .setBadge(() => {
-          const nb = this.nbActiveFilters();
-          if (nb === 0) return undefined;
-          return '' + nb;
-        }),
-    );
-
-    // put import after filters on the toolbar
-    if (this.size !== 'small') {
-      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.import');
-      if (index >= 0) {
-        const items = this.toolbar.splice(index, 1);
-        this.toolbar.splice(2, 0, items[0]);
-      }
-    }
-    // put share on the toolbar
-    if (this.size === 'large') {
-      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.share');
-      if (index >= 0) {
-        const items = this.toolbar.splice(index - 1, 2); // 2 because it has a separator before
-        this.toolbar.splice(3, 0, items[1]);
-      }
-    }
-
-    // if no active filter, we can early emit the list of trails to the map
-    if (this.trails && !this.trails.isEmpty() && this.nbActiveFilters() === 0)
-      this.mapFilteredTrails.emit(this.trails.toArray());
-
+    const trails$ = this.trails$ ? this.trails$.toArray() : [];
     this.byStateAndVisible.subscribe(
-      (!this.trails || this.trails.isEmpty()) ? of([]) : combineLatest(
-        this.trails.map(
-          trail => combineLatest([
-            trail.currentTrackUuid$.pipe(
-              switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
-              filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
-            ),
-            trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([])
-          ]).pipe(
-            map(([track, tags]) => ({
-              trail,
-              track,
-              tags,
-              selected: false,
-            }) as TrailWithInfo)
-          )
-        ).toArray()
-      ).pipe(
-        debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length)
+      (trails$.length === 0 ? of([]) : combineLatest(trails$)).pipe(
+        map(trails => trails.filter(t => !!t)),
+        debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
+        map(trails => {
+          this.updateToolbar(trails);
+          // if no active filter, we can early emit the list of trails to the map
+          if (this.trails$ && this.nbActiveFilters() === 0)
+            this.mapFilteredTrails.emit(trails);
+          return trails.map(
+            trail => combineLatest([
+              trail.currentTrackUuid$.pipe(
+                switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
+                filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
+              ),
+              trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([])
+            ]).pipe(
+              map(([track, tags]) => ({
+                trail,
+                track,
+                tags,
+                selected: false,
+              }) as TrailWithInfo)
+            )
+          );
+        }),
+        switchMap(trailsWithInfo$ => trailsWithInfo$.length > 0 ? combineLatest(trailsWithInfo$) : of([])),
+        debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
       ),
       (trailsWithInfo) => {
         for (const t of trailsWithInfo) {
@@ -336,6 +311,38 @@ export class TrailsListComponent extends AbstractComponent {
       },
       true
     );
+  }
+
+  private updateToolbar(trails: Trail[]): void {
+    this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collectionUuid, true, this.listType === 'all-collections');
+    this.toolbar.splice(0, 0,
+      new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
+        .setAction(() => this.sortModal?.present()),
+      new MenuItem().setIcon('filters').setI18nLabel('tools.filters')
+        .setAction(() => this.filtersModal?.present())
+        .setBadge(() => {
+          const nb = this.nbActiveFilters();
+          if (nb === 0) return undefined;
+          return '' + nb;
+        }),
+    );
+
+    // put import after filters on the toolbar
+    if (this.size !== 'small') {
+      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.import');
+      if (index >= 0) {
+        const items = this.toolbar.splice(index, 1);
+        this.toolbar.splice(2, 0, items[0]);
+      }
+    }
+    // put share on the toolbar
+    if (this.size === 'large') {
+      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.share');
+      if (index >= 0) {
+        const items = this.toolbar.splice(index - 1, 2); // 2 because it has a separator before
+        this.toolbar.splice(3, 0, items[1]);
+      }
+    }
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
@@ -450,6 +457,8 @@ export class TrailsListComponent extends AbstractComponent {
       if (valid) {
         newState.filters.search ??= '';
         newState.filters.activities ??= { selected: undefined };
+        if (newState.filters.activities.selected)
+          newState.filters.activities.selected = (newState.filters.activities.selected as (string | null)[]).map(value => value ?? undefined);
         this.state$.next(newState);
         if (newState.filters.search) this.searchOpen = true;
       } else
@@ -458,6 +467,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private saveState(): void {
+    console.log('save', this.state$.value)
     const state = this.state$.value;
     if (state === defaultState) localStorage.removeItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId);
     else localStorage.setItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId, JSON.stringify(state));
@@ -622,9 +632,10 @@ export class TrailsListComponent extends AbstractComponent {
       this.injector,
       this.state$.value.filters.activities.selected || [],
       newSelection => {
+        const newValue = newSelection.length === 0 ? undefined : newSelection;
         const filter = this.state$.value.filters.activities;
-        if (filter.selected === newSelection) return;
-        filter.selected = newSelection;
+        if (filter.selected === newValue) return;
+        filter.selected = newValue;
         this.state$.next({
           ...this.state$.value,
           filters: { ...this.state$.value.filters }

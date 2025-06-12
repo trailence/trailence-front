@@ -15,7 +15,7 @@ import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import Dexie from 'dexie';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { collection$items, collection$items$ } from 'src/app/utils/rxjs/collection$items';
 import { QuotaService } from '../auth/quota.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { Trail } from 'src/app/model/trail';
@@ -133,31 +133,33 @@ export class ShareService {
     this._store.triggerSyncFromServer();
   }
 
-  public getTrailsByShare(shares: Share[]): Observable<Map<Share, Trail[]>> {
+  public getTrailsByShare(shares: Share[]): Observable<Map<Share, Observable<Trail | null>[]>> {
     return this.injector.get(AuthService).auth$.pipe(
       switchMap(auth => {
-        if (!auth) return of(new Map<Share, Trail[]>());
+        if (!auth) return of(new Map<Share, Observable<Trail | null>[]>());
         const user = auth.email;
         const needTags = !!shares.find(s => s.owner === user && s.type === ShareElementType.TAG);
         return combineLatest([
-          this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items()),
+          this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items$()),
           needTags ? this.injector.get(TagService).getAllTrailsTags$().pipe(collection$items()) : of([]),
         ]).pipe(
           map(([trails, tags]) => {
-            const result = new Map<Share, Trail[]>();
+            const result = new Map<Share, Observable<Trail | null>[]>();
             shares.forEach(share => {
+              let filter: (trail: {item: Trail, item$: Observable<Trail | null>}) => boolean;
               if (share.owner === user) {
                 if (share.type === ShareElementType.TRAIL)
-                  result.set(share, trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.uuid) >= 0));
+                  filter = trail => trail.item.owner === share.owner && share.elements.indexOf(trail.item.uuid) >= 0;
                 else if (share.type === ShareElementType.COLLECTION)
-                  result.set(share, trails.filter(trail => trail.owner === share.owner && share.elements.indexOf(trail.collectionUuid) >= 0));
+                  filter = trail => trail.item.owner === share.owner && share.elements.indexOf(trail.item.collectionUuid) >= 0;
                 else {
                   const tagsUuids = tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid);
-                  result.set(share, trails.filter(trail => trail.owner === share.owner && tagsUuids.indexOf(trail.uuid) >= 0));
+                  filter = trail => trail.item.owner === share.owner && tagsUuids.indexOf(trail.item.uuid) >= 0;
                 }
               } else {
-                result.set(share, trails.filter(trail => trail.owner === share.owner && share.trails.indexOf(trail.uuid) >= 0));
+                filter = trail => trail.item.owner === share.owner && share.trails.indexOf(trail.item.uuid) >= 0;
               }
+              result.set(share, trails.filter(filter).map(t => t.item$));
             });
             return result;
           })

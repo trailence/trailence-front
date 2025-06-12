@@ -36,11 +36,11 @@
   </div>
 </div>
 <div class="trails">
-  @if (trails === undefined) {
+  @if (trails$ === undefined) {
     <div style="display: flex; flex-direction: row; justify-content: center; margin: 10px;">
       <ion-spinner name="dots"></ion-spinner>
     </div>
-  } @else if (trails && trails.size === 0) {
+  } @else if (trails$ && trails$.size === 0) {
     <div class="empty-list">
       @if (listType === 'collection') {
         <div>{{i18n.texts.pages.trails.empty_list.collection}}</div>
@@ -104,7 +104,7 @@
     }
   }
 </div>
-<div class="search-container" [ngClass]="{'open': searchOpen}" *ngIf="trails?.size">
+<div class="search-container" [ngClass]="{'open': searchOpen}" *ngIf="trails$?.size">
   <div class="search-bar">
     <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
       [value]="state$.value.filters.search"

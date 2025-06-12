@@ -9,8 +9,8 @@
   <ion-list>
     @if (multiple) {
       @for (item of list; track item.activity) {
-        <ion-item>
-          <ion-checkbox slot="start" [checked]="item.selected" (ionChange)="setSelected(item, $event.detail.checked)" color="tertiary"></ion-checkbox>
+        <ion-item (click)="setSelected(item, !item.selected)">
+          <ion-checkbox slot="start" [checked]="item.selected" (ionChange)="setSelected(item, $event.detail.checked)" color="tertiary" (click)="$event.stopPropagation()"></ion-checkbox>
           <ion-icon slot="start" [name]="item.icon" color="secondary"></ion-icon>
           <ion-label>{{ i18n.texts.activity[item.activity ?? 'unspecified'] }}</ion-label>
         </ion-item>
@@ -18,7 +18,7 @@
     } @else {
       <ion-radio-group [value]="(selection.length > 0 ? selection[0] : undefined) ?? ''" (ionChange)="setSelection([$event.detail.value])">
         @for (item of list; track item.activity) {
-          <ion-item>
+          <ion-item (click)="setSelected(item, true)">
             <ion-radio slot="start" [value]="item.activity ?? ''" color="tertiary"></ion-radio>
             <ion-icon slot="start" [name]="item.icon" color="secondary"></ion-icon>
             <ion-label>{{ i18n.texts.activity[item.activity ?? 'unspecified'] }}</ion-label>
