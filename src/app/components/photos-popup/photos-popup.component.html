@@ -51,54 +51,56 @@
                 (ionInput)="descriptionChanging(photoWithInfo, $event.detail.value)"
                 (ionBlur)="exitEditDescription(photoWithInfo)"
               ></ion-textarea>
-              <div class="metadata-container one-column">
-                <div class="metadata-item-container" *ngIf="photoWithInfo.photo.dateTaken">
-                  <div class="metadata-item">
-                    <ion-icon name="date"></ion-icon>
-                    <div class="metadata-content">
-                      <div class="metadata-value">
-                        <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
+              <div class="photo-footer">
+                <div class="metadata-container one-column">
+                  <div class="metadata-item-container" *ngIf="photoWithInfo.photo.dateTaken">
+                    <div class="metadata-item">
+                      <ion-icon name="date"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="metadata-item-container" *ngIf="photoWithInfo.photo.latitude">
+                    <div class="metadata-item">
+                      <ion-icon name="location"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="metadata-item-container" *ngIf="photoWithInfo.blobSize">
+                    <div class="metadata-item">
+                      <ion-icon name="file"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="metadata-item-container" *ngIf="photoWithInfo.photo.latitude">
-                  <div class="metadata-item">
-                    <ion-icon name="location"></ion-icon>
-                    <div class="metadata-content">
-                      <div class="metadata-value">
-                        <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
-                      </div>
-                    </div>
-                  </div>
+                <div class="position-on-map">
+                  @if (photoWithInfo.positionOnMap) {
+                    <ion-icon name="checkmark" color="success"></ion-icon>
+                    <span>{{ i18n.texts.pages.photos_popup.position.available }}</span>
+                  } @else {
+                    <ion-icon name="cross" color="danger"></ion-icon>
+                    <span>{{ i18n.texts.pages.photos_popup.position.not_available }}</span>
+                  }
+                  @if (canEdit) {
+                    <ion-button fill="clear" size="small" color="tertiary" (click)="positionOnMap(photoWithInfo.photo)">
+                      <ion-icon slot="icon-only" name="center-on-location"></ion-icon>
+                    </ion-button>
+                    <ion-button fill="clear" size="small" color="danger" (click)="clearPosition(photoWithInfo)" [disabled]="!photoWithInfo.positionOnMap && (photoWithInfo.photo.latitude === undefined || photoWithInfo.photo.longitude === undefined)">
+                      <ion-icon slot="icon-only" name="trash"></ion-icon>
+                    </ion-button>
+                  }
                 </div>
-                <div class="metadata-item-container" *ngIf="photoWithInfo.blobSize">
-                  <div class="metadata-item">
-                    <ion-icon name="file"></ion-icon>
-                    <div class="metadata-content">
-                      <div class="metadata-value">
-                        <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="position-on-map">
-                @if (photoWithInfo.positionOnMap) {
-                  <ion-icon name="checkmark" color="success"></ion-icon>
-                  <span>{{ i18n.texts.pages.photos_popup.position.available }}</span>
-                } @else {
-                  <ion-icon name="cross" color="danger"></ion-icon>
-                  <span>{{ i18n.texts.pages.photos_popup.position.not_available }}</span>
-                }
-                @if (canEdit) {
-                  <ion-button fill="clear" size="small" color="tertiary" (click)="positionOnMap(photoWithInfo.photo)">
-                    <ion-icon slot="icon-only" name="center-on-location"></ion-icon>
-                  </ion-button>
-                  <ion-button fill="clear" size="small" color="danger" (click)="clearPosition(photoWithInfo)" [disabled]="!photoWithInfo.positionOnMap && (photoWithInfo.photo.latitude === undefined || photoWithInfo.photo.longitude === undefined)">
-                    <ion-icon slot="icon-only" name="trash"></ion-icon>
-                  </ion-button>
-                }
               </div>
             </div>
           </div>

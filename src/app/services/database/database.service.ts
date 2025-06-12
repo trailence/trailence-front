@@ -174,17 +174,14 @@ export class DatabaseService {
   }
 
   public pauseSync(): void {
+    Console.info("Pause sync");
     this._syncPaused = Date.now();
   }
 
   public resumeSync(): void {
+    Console.info("Resume sync");
     this._syncPaused = 0;
-    this._stores.value.forEach(s => {
-      if (s.syncTimeout) clearTimeout(s.syncTimeout);
-      s.syncTimeout = undefined;
-      s.syncTimeoutDate = 0;
-      s.fireSyncStatus();
-    });
+    this._stores.value.forEach(s => s.fireSyncStatus());
   }
 
   registerStore(store: StoreRegistration): void {
@@ -221,7 +218,11 @@ export class DatabaseService {
           }
           if (!registered.syncTimeout) {
             registered.syncTimeoutDate = nextDate;
-            registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), nextTimeout);
+            registered.syncTimeout = setTimeout(() => {
+              registered.syncTimeout = undefined;
+              registered.syncTimeoutDate = 0;
+              store.fireSyncStatus();
+            }, nextTimeout);
             Console.info('Will trigger store update', registered.name, nextTimeout);
           }
         });

@@ -3,14 +3,14 @@
   flex-direction: row;
   flex-wrap: wrap;
   align-content: flex-start;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: flex-start;
   padding: 8px;
 
   .photo-container {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
     border: 1px solid var(--ion-color-light);
     border-radius: 8px;
     padding: 8px;
@@ -33,6 +33,14 @@
 
       ion-textarea {
         align-self: stretch;
+      }
+
+      .photo-footer {
+        flex: 1 1 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-end;
       }
     }
 

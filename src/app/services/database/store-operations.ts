@@ -64,6 +64,7 @@ export class StoreOperations {
 
   private executeNextOperation(startTime: number, deep: number): void {
     if (this._queue$.value.length === 0) {
+      Console.debug('No more operations on store ' + this.name);
       this._inProgress$.next(false);
       return;
     }
