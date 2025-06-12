@@ -467,7 +467,6 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private saveState(): void {
-    console.log('save', this.state$.value)
     const state = this.state$.value;
     if (state === defaultState) localStorage.removeItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId);
     else localStorage.setItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId, JSON.stringify(state));

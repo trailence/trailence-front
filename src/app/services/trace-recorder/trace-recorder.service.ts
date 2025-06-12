@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, map, of, skip, switchMap, timeout, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, first, map, of, skip, switchMap, takeLast, tap, timeout, timer } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -24,6 +24,8 @@ import { Console } from 'src/app/utils/console';
 import { Segment } from 'src/app/model/segment';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { ScreenLockService } from '../screen-lock/screen-lock.service';
+import { CompositeOnDone } from 'src/app/utils/callback-utils';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 @Injectable({
   providedIn: 'root'
@@ -183,65 +185,76 @@ export class TraceRecorderService {
     this.stopRecording(recording);
     Console.info('Recording stopped');
     this._recording$.next(null);
-    if (this._table) this._table.delete(1);
-    if (save && this._email) {
-      const progress = this.progressService.create(this.i18n.texts.trace_recorder.saving, 5);
-      return timer(1).pipe(
-        switchMap(() => {
-          recording.rawTrack.removeEmptySegments();
-          recording.track.removeEmptySegments();
-          if (recording.rawTrack.segments.length === 0 || recording.track.segments.length === 0) {
-            progress.done();
-            this.alertController.create({
-              header: this.i18n.texts.trace_recorder.saving,
-              message: this.i18n.texts.trace_recorder.empty_trail,
-              buttons: [{
-                text: this.i18n.texts.buttons.ok,
-                role: 'cancel'
-              }]
-            }).then(a => a.present());
-            return EMPTY;
-          }
-          progress.addWorkDone(1);
-          return of(1);
-        }),
-        switchMap(() => timer(1).pipe(
-          map(() => {
-            this.trackEdition.computeFinalMetadata(recording.trail, recording.track);
-            progress.addWorkDone(1);
-            return 2;
-          })
-        )),
-        switchMap(() => {
-          if (!recording.followingTrailUuid || !recording.followingTrailOwner) return of(3);
-          return this.trailService.getTrail$(recording.followingTrailUuid, recording.followingTrailOwner).pipe(
-            filterDefined(),
-            timeout(15000),
-            catchError(e => of(undefined)),
-            first(),
-            map(followedTrail => {
-              if (!followedTrail) return 3;
-              recording.trail.location ??= followedTrail.location;
-              recording.trail.activity ??= followedTrail.activity;
-              return 4;
-            }),
-          )
-        }),
-        switchMap(() => {
-          this.trackService.create(recording.rawTrack, () => progress.addWorkDone(1));
-          this.trackService.create(recording.track, () => progress.addWorkDone(1));
-          return this.trailService.create(recording.trail, () => progress.addWorkDone(1));
-        }),
-        catchError(e => {
-          Console.error('Error saving recorded trail', e);
-          this.errorService.addError(e);
-          progress.done();
-          return EMPTY;
-        }),
-        defaultIfEmpty(null),
-      );
+    if (!save) {
+      if (this._table) this._table.delete(1);
+      return of(null);
     }
-    return of(null);
+    if (!this._email) return of(null);
+    this.save(recording);
+    const progress = this.progressService.create(this.i18n.texts.trace_recorder.saving, 5);
+    return timer(1).pipe(
+      switchMap(() => {
+        recording.rawTrack.removeEmptySegments();
+        recording.track.removeEmptySegments();
+        if (recording.rawTrack.segments.length === 0 || recording.track.segments.length === 0) {
+          progress.done();
+          this.alertController.create({
+            header: this.i18n.texts.trace_recorder.saving,
+            message: this.i18n.texts.trace_recorder.empty_trail,
+            buttons: [{
+              text: this.i18n.texts.buttons.ok,
+              role: 'cancel'
+            }]
+          }).then(a => a.present());
+          return EMPTY;
+        }
+        progress.addWorkDone(1);
+        return of(1);
+      }),
+      switchMap(() => timer(1).pipe(
+        map(() => {
+          this.trackEdition.computeFinalMetadata(recording.trail, recording.track);
+          progress.addWorkDone(1);
+          return 2;
+        })
+      )),
+      switchMap(() => {
+        if (!recording.followingTrailUuid || !recording.followingTrailOwner) return of(3);
+        return this.trailService.getTrail$(recording.followingTrailUuid, recording.followingTrailOwner).pipe(
+          filterDefined(),
+          timeout(15000),
+          catchError(e => of(undefined)),
+          first(),
+          map(followedTrail => {
+            if (!followedTrail) return 3;
+            recording.trail.location ??= followedTrail.location;
+            recording.trail.activity ??= followedTrail.activity;
+            return 4;
+          }),
+        )
+      }),
+      switchMap(() =>
+        new Observable<Observable<Trail | null>>(subscriber => {
+          const onSaved = new CompositeOnDone(() => subscriber.complete());
+          this.trackService.create(recording.rawTrack, onSaved.add(() => progress.addWorkDone(1)));
+          this.trackService.create(recording.track, onSaved.add(() => progress.addWorkDone(1)));
+          const trail$ = this.trailService.create(recording.trail, onSaved.add(() => progress.addWorkDone(1)));
+          subscriber.next(trail$);
+          onSaved.start();
+        }).pipe(
+          takeLast(1),
+          switchMap(trail$ => trail$),
+        )
+      ),
+      defaultIfEmpty(null),
+      tap(() => { if (this._table) this._table.delete(1); }),
+      catchError(e => {
+        Console.error('Error saving recorded trail', e);
+        this.errorService.addError(e);
+        progress.done();
+        return of (null);
+      }),
+    );
   }
 
   private _geolocationListener?: (position: PointDto) => void;
@@ -282,7 +295,7 @@ export class TraceRecorderService {
             concat(of(true), recording.trail.changes$),
             concat(of(true), recording.track.changes$)
           ])
-          .pipe(skip(1), debounceTime(1000))
+          .pipe(skip(1), debounceTimeExtended(1000, 5000, 25))
           .subscribe(() => this.save(recording))
         );
         this._geolocationListener = (position: PointDto) => {

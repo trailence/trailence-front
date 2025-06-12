@@ -278,7 +278,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         } else {
           inStore$.next(existing);
         }
-        inStore$.complete();
       },
       db => existing ? of(true)
         : (recovered ?
@@ -293,7 +292,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
     return inStore$.pipe(
       filter(inStore => !!inStore),
-      switchMap(inStore => inStore)
+      switchMap(inStore => inStore),
+      first(),
     );
   }
 
