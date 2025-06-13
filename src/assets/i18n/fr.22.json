@@ -625,8 +625,6 @@
     "precision": "Précision",
     "speed": "Vitesse"
   },
-  "downloading_map": "Téléchargement de la carte",
-  "preparing_download": "Préparation du téléchargement...",
   "offline_map": {
     "download_trail": "Les cartes correspondant au parcours vont être téléchargées pour être disponibles hors ligne",
     "download_map": "Les cartes de la zone affichée actuellement vont être téléchargées pour être disponibles hors ligne",
@@ -637,7 +635,11 @@
     "max_zoom_reco": "Une valeur entre 15 et 17 est recommendée. En deça de 15, le niveau de détail est souvent trop faible pour bien voir les petits chemins. Au dessus de 17, la taille du téléchargement est importante, et n'est générallement pas nécessaire pour parfaitement suivre un itinéraire.",
     "padding": "Etendre la zone à télécharger (%)",
     "padding_explaination_for_trail": "Pourcentage de la zone à télécharger autour de la zone du parcours (100% veut dire pas plus que le parcours). Permet de voir d'avantage autour du parcours en mode hors-ligne.",
-    "padding_explaination_for_map": "Pourcentage de la zone à télécharger autour de la zone actuellement affichée (100% veut dire pas plus que le parcours). Permet de voir une zone un peu plus large en mode hors-ligne."
+    "padding_explaination_for_map": "Pourcentage de la zone à télécharger autour de la zone actuellement affichée (100% veut dire pas plus que le parcours). Permet de voir une zone un peu plus large en mode hors-ligne.",
+    "downloading": {
+      "progress_title": "Téléchargement de {{1}}",
+      "calculating": "Calcul des éléments à télécharger"
+    }
   },
   "layers_popup": {
     "title": "Fond de carte"

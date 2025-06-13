@@ -4,6 +4,9 @@ import { handleMapOffline } from './map-tiles-layer-offline';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';
 import { ExtensionsService } from '../database/extensions.service';
+import { Observable } from 'rxjs';
+import { HttpService } from '../http/http.service';
+import { HttpClient } from '@angular/common/http';
 
 const LOCALSTORAGE_KEY_DARKMAP = 'trailence.dark-map';
 
@@ -18,6 +21,7 @@ export interface MapLayer {
 
   maxConcurrentRequests: number;
   doNotUseNativeHttp: boolean;
+  tileSize: number;
 
 }
 
@@ -31,7 +35,7 @@ export class MapLayersService {
 
   private _darkMap = false;
 
-  constructor(injector: Injector) {
+  constructor(private readonly injector: Injector) {
     this.layers = [
       createDefaultLayer(injector, 'osm', 'Open Street Map', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>', 2, true),
       //createDefaultLayer(injector, 'osmfr', 'Open Street Map French', 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.fr" target="_blank">OpenStreetMap</a>', 2, false),
@@ -69,6 +73,13 @@ export class MapLayersService {
 
   public getDefaultLayer(): string {
     return 'osm';
+  }
+
+  public getBlob(layer: MapLayer, url: string): Observable<Blob> {
+    if (layer.doNotUseNativeHttp) {
+      return this.injector.get(HttpClient).get(url, {responseType: 'blob'});
+    }
+    return this.injector.get(HttpService).getBlob(url);
   }
 
   public get darkMapEnabled(): boolean { return this._darkMap; }
@@ -138,7 +149,8 @@ function createDefaultLayer( // NOSONAR
       return L.Util.template((layer as any)._url, L.Util.extend(data, layer.options));
     },
     maxConcurrentRequests,
-    doNotUseNativeHttp
+    doNotUseNativeHttp,
+    tileSize: 256,
   };
 }
 
@@ -169,5 +181,6 @@ function createIgnLayer(
     },
     maxConcurrentRequests,
     doNotUseNativeHttp: false,
+    tileSize: 256,
   };
 }
