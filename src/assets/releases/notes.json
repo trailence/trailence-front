@@ -82,5 +82,9 @@
   "001701": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "001702": {
+    "en": {"message": "Some improvements and fixes"},
+    "fr": {"message": "Quelques améliorations et correctifs"}
   }
 }

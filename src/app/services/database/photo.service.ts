@@ -134,6 +134,7 @@ export class PhotoService {
     dateTaken?: number, latitude?: number, longitude?: number,
     isCover?: boolean
   ): Observable<Photo | null> {
+    if (description.length > 100) description = description.substring(0, 100);
     const arr = new Uint8Array(content);
     let info: ImageInfo | undefined;
     if (ImageUtils.isJpeg(arr)) {

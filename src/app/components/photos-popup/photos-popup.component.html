@@ -44,7 +44,7 @@
               </div>
               <ion-textarea #descriptionEditor
                 *ngIf="photoWithInfo.editing"
-                [maxlength]="5000"
+                [maxlength]="100"
                 [autoGrow]="true"
                 [value]="photoWithInfo.editing"
                 (ionChange)="descriptionChanged(photoWithInfo, $event.detail.value)"
