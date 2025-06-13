@@ -354,7 +354,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
             if (this._db !== db) return EMPTY;
             const headers: any = {
               'Content-Type': 'application/octet-stream',
-              'X-Description': dto.description,
+              'X-Description': encodeURIComponent(dto.description),
               'X-Cover': dto.isCover ? 'true' : 'false',
               'X-Index': dto.index,
             };
