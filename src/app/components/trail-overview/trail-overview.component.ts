@@ -127,6 +127,7 @@ export class TrailOverviewComponent extends AbstractComponent {
               this.i18n.stateChanged$,
               this.trail!.name$,
               this.trail!.location$,
+              this.trail!.date$,
               this.trail!.loopType$,
               this.trail!.activity$,
               this.trackData$(this.trail!, owner),
@@ -134,7 +135,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           ),
           debounceTimeExtended(0, 10)
         ),
-        ([i18nState, trailName, trailLocation, loopType, activity, [track, startDate]]) => {
+        ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate]]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
@@ -144,7 +145,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           }
           if (this.updateMeta(this.meta, 'name', trailName, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
-          if (this.updateMeta(this.meta, 'date', startDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
+          if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
           if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
           if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
           if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;
@@ -271,20 +272,28 @@ export class TrailOverviewComponent extends AbstractComponent {
     const y = event.pageY;
     const h = this.browser.height;
     const remaining = h - y - 15;
+    const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, this.fromCollection ? this.trail!.collectionUuid : undefined, false, this.isAllCollections);
+    let estimatedHeight = 16;
+    for (const item of menu) {
+      if (item.isSeparator()) estimatedHeight += 6;
+      else estimatedHeight += 31;
+    }
+    const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 10, remaining - estimatedHeight);
+    const maxHeight = remaining - offsetY;
+    console.log('y', y, 'h', h, 'remaining', remaining, 'estimated', estimatedHeight, 'offset', offsetY, 'max', maxHeight)
 
     this.popoverController.create({
       component: MenuContentComponent,
       componentProps: {
-        menu: this.trailMenuService.getTrailsMenu([this.trail!], false, this.fromCollection ? this.trail!.collectionUuid : undefined, false, this.isAllCollections)
+        menu,
       },
-      cssClass: 'tight-menu',
+      cssClass: 'always-tight-menu',
       event: event,
       side: 'right',
       dismissOnSelect: true,
-      arrow: true,
     }).then(p => {
-      p.style.setProperty('--offset-y', remaining < 300 ? (-300 + remaining) + 'px' : '0px');
-      p.style.setProperty('--max-height', remaining < 300 ? '300px' : (h - y - 10) + 'px');
+      p.style.setProperty('--offset-y', offsetY + 'px');
+      p.style.setProperty('--max-height', maxHeight + 'px');
       p.present();
     });
   }

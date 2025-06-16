@@ -435,6 +435,10 @@ export class TrailsListComponent extends AbstractComponent {
       let d2 = b.track?.duration;
       if (d2 !== undefined && b.track?.breaksDuration !== undefined) d2 -= b.track?.breaksDuration;
       diff = ObjectUtils.compare(d1, d2);
+    } else if (field === 'track.startDate') {
+      const d1 = a.trail.date ?? a.track?.startDate;
+      const d2 = b.trail.date ?? b.track?.startDate;
+      diff = ObjectUtils.compare(d1, d2);
     } else {
       diff = ObjectUtils.compare(ObjectUtils.extractField(a, field), ObjectUtils.extractField(b, field));
     }

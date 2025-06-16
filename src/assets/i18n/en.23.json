@@ -173,6 +173,7 @@
         "moving": "Moving",
         "export": "Export",
         "rename": "Rename",
+        "edit_date": "Change date",
         "rename_popup": {
           "title": "Rename track",
           "name": "Name"
@@ -592,6 +593,7 @@
     "quit": "Quit",
     "save": "Save",
     "start": "Start",
+    "reset": "Reset",
     "retry": "Retry",
     "understood": "Understood",
     "undo": "Undo",
@@ -908,5 +910,8 @@
       "message": "You have unsaved changes. Are you sure you want to close the trace editor?"
     }
   },
-  "go_to_position": "Go to this position"
+  "go_to_position": "Go to this position",
+  "datetime_popup": {
+    "time": "Time"
+  }
 }

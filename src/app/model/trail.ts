@@ -8,6 +8,7 @@ export class Trail extends Owned {
   private readonly _name$: BehaviorSubject<string>;
   private readonly _description$: BehaviorSubject<string>;
   private readonly _location$: BehaviorSubject<string>;
+  private readonly _date$: BehaviorSubject<number | undefined>;
   private readonly _loopType$: BehaviorSubject<TrailLoopType | undefined>;
   private readonly _activity$: BehaviorSubject<TrailActivity | undefined>;
 
@@ -27,6 +28,7 @@ export class Trail extends Owned {
     this._name$ = new BehaviorSubject<string>(dto.name ?? '');
     this._description$ = new BehaviorSubject<string>(dto.description ?? '');
     this._location$ = new BehaviorSubject<string>(dto.location ?? '');
+    this._date$ = new BehaviorSubject<number | undefined>(dto.date);
     this._loopType$ = new BehaviorSubject<TrailLoopType | undefined>(TypeUtils.valueToEnum(dto.loopType, TrailLoopType));
     this._activity$ = new BehaviorSubject<TrailActivity | undefined>(TypeUtils.valueToEnum(dto.activity, TrailActivity));
     if (!dto.originalTrackUuid) throw new Error('Missing originalTrackUuid');
@@ -52,6 +54,10 @@ export class Trail extends Owned {
   public get location$(): Observable<string> { return this._location$; }
   public set location(value: string) { this.setValue(value.trim(), this._location$); }
 
+  public get date(): number | undefined { return this._date$.value; }
+  public get date$(): Observable<number | undefined> { return this._date$; }
+  public set date(value: number) { this.setValue(value, this._date$); }
+
   public get loopType(): TrailLoopType | undefined { return this._loopType$.value; }
   public get loopType$(): Observable<TrailLoopType | undefined> { return this._loopType$; }
   public set loopType(value: TrailLoopType | undefined) { this.setValue(value, this._loopType$); }
@@ -73,7 +79,7 @@ export class Trail extends Owned {
   public set collectionUuid(value: string) { this.setValue(value, this._collectionUuid$); }
 
   public get changes$(): Observable<any> {
-    return combineLatest([this.name$, this.description$, this.location$, this.loopType$, this.activity$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
+    return combineLatest([this.name$, this.description$, this.location$, this.date$, this.loopType$, this.activity$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
       skip(1),
     );
   }
@@ -89,6 +95,7 @@ export class Trail extends Owned {
       name: this.name,
       description: this.description,
       location: this.location,
+      date: this.date,
       loopType: this.loopType,
       activity: this.activity,
       sourceType: this.sourceType,

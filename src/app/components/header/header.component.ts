@@ -35,6 +35,7 @@ export class HeaderComponent extends AbstractComponent {
   id = IdGenerator.generateId();
   small: boolean;
   publicUrl?: string;
+  alwaysTightMenu = false;
 
   constructor(
     injector: Injector,
@@ -80,6 +81,7 @@ export class HeaderComponent extends AbstractComponent {
         desc.setAttribute('content', this.description);
       }
     }, true);
+    this.alwaysTightMenu = this.actions ? this.actions.reduce((p, i) => p + (i.isSeparator() ? 0 : 1), 0) > 10 : false;
   }
 
 }

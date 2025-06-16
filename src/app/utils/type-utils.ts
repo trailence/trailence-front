@@ -1,3 +1,5 @@
+import { StringUtils } from './string-utils';
+
 export class TypeUtils {
 
   public static toFloat(s: string | null | undefined): number | undefined {
@@ -28,6 +30,16 @@ export class TypeUtils {
     }
     const d = new Date(s);
     return d;
+  }
+
+  public static toIso8601NoTimezone(date: Date): string {
+    return StringUtils.padLeft('' + date.getFullYear(), 4, '0') + '-' +
+      StringUtils.padLeft('' + (date.getMonth() + 1), 2, '0') + '-' +
+      StringUtils.padLeft('' + date.getDate(), 2, '0') + 'T' +
+      StringUtils.padLeft('' + date.getHours(), 2, '0') + ':' +
+      StringUtils.padLeft('' + date.getMinutes(), 2, '0') + ':' +
+      StringUtils.padLeft('' + date.getSeconds(), 2, '0') + '.' +
+      StringUtils.padLeft('' + date.getMilliseconds(), 3, '0');
   }
 
   public static addOrUndefined(n1: number | undefined, n2: number | undefined): number | undefined {

@@ -238,14 +238,14 @@
         <ion-spinner name="dots"></ion-spinner>
       } @else {
         <div class="metadata-container one-column with-title">
-          <div class="metadata-item-container">
+          <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openDateDialog()">
             <div class="metadata-item">
               <ion-icon name="date"></ion-icon>
               <div class="metadata-content">
                 <div class="metadata-title">{{ i18n.texts.metadata.trail_date }}</div>
                 <div class="metadata-value">
-                  <div class="metadata-primary">{{ i18n.timestampToDateTimeString(tracks[0].metadata.startDate) }}</div>
-                  <div class="metadata-secondary" *ngIf="tracks[1]">{{ i18n.timestampToDateTimeString(tracks[1].metadata.startDate) }}</div>
+                  <div class="metadata-primary">{{ i18n.timestampToDateTimeString(trail1?.date ?? tracks[0].metadata.startDate) }}</div>
+                  <div class="metadata-secondary" *ngIf="tracks[1]">{{ i18n.timestampToDateTimeString(trail2?.date ?? tracks[1].metadata.startDate) }}</div>
                 </div>
               </div>
             </div>

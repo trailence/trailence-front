@@ -49,6 +49,7 @@ import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { DomSanitizer } from '@angular/platform-browser';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 
 @Component({
     selector: 'app-trail',
@@ -1078,6 +1079,10 @@ export class TrailComponent extends AbstractComponent {
     if (this.trail2 || !this.trail1 || !this.editable) return;
     const trail = this.trail1;
     import('../location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trail));
+  }
+
+  openDateDialog(): void {
+    this.injector.get(TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]);
   }
 
   openActivityDialog(): void {

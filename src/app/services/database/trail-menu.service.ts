@@ -5,11 +5,16 @@ import { ModalController } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
-import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, first, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { Track } from 'src/app/model/track';
+import { TrackMetadataSnapshot } from './track-database';
+import { TrackService } from './track.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { TrailService } from './trail.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -46,6 +51,8 @@ export class TrailMenuService {
           if (trails.length === 1) {
             menu.push(new MenuItem().setIcon('edit').setI18nLabel('pages.trails.actions.rename')
               .setAction(() => import('../functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trails[0]))));
+            menu.push(new MenuItem().setIcon('date').setI18nLabel('pages.trails.actions.edit_date')
+              .setAction(() => this.openTrailDatePopup(trails[0], undefined)));
             menu.push(new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location')
               .setAction(() => import('../../components/location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trails[0]))));
           }
@@ -217,6 +224,29 @@ export class TrailMenuService {
       backdropDismiss: true,
     });
     modal.present();
+  }
+
+  public openTrailDatePopup(trail: Trail, track: Track | TrackMetadataSnapshot | undefined): void {
+    const getTrackDate$ = track ? of(track.startDate) : this.injector.get(TrackService).getMetadata$(trail.currentTrackUuid, trail.owner).pipe(filterDefined(), map(t => t?.startDate), first());
+    Promise.all([
+      firstValueFrom(getTrackDate$),
+      import('../../components/datetime-popup/datetime-popup.component'),
+    ]).then(([defaultDate, module]) => this.injector.get(ModalController).create({
+      component: module.DateTimePopup,
+      componentProps: {
+        timestamp: trail.date ?? defaultDate,
+        defaultTimestamp: defaultDate,
+      },
+      backdropDismiss: true,
+      cssClass: 'small-modal',
+    }))
+    .then(modal => {
+      modal.onDidDismiss().then(result => {
+        if (result.role === 'ok')
+          this.injector.get(TrailService).doUpdate(trail, t => t.date = result.data);
+      });
+      modal.present();
+    });
   }
 
 }

@@ -43,11 +43,12 @@
 
 @media (max-height: 600px) {
   .tight-menu app-menu-content ion-list ion-item {
-    --min-height: 34px;
+    --min-height: 30px;
 
-    ::slotted(ion-label), ion-label {
-      margin-top: 6px;
-      margin-bottom: 6px;
+    ::slotted(ion-label), ion-label, ion-label.sc-ion-label-md-s {
+      margin-top: 4px;
+      margin-bottom: 4px;
+      font-size: 14px;
     }
 
     ion-icon {
@@ -59,12 +60,12 @@
 }
 
 .always-tight-menu app-menu-content ion-list ion-item {
-  --min-height: 34px;
-  font-size: 14px;
+  --min-height: 30px;
 
-  ::slotted(ion-label), ion-label {
-    margin-top: 6px;
-    margin-bottom: 6px;
+  ::slotted(ion-label), ion-label, ion-label.sc-ion-label-md-s {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    font-size: 14px;
   }
 
   ion-icon {

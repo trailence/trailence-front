@@ -173,6 +173,7 @@
         "moving": "Déplacement",
         "export": "Exporter",
         "rename": "Renommer",
+        "edit_date": "Modifier la date",
         "rename_popup": {
           "title": "Renommer le parcours",
           "name": "Nom"
@@ -592,6 +593,7 @@
     "quit": "Quitter",
     "save": "Enregistrer",
     "start": "Démarrer",
+    "reset": "Réinitialiser",
     "retry": "Réessayer",
     "understood": "Compris",
     "undo": "Revenir",
@@ -908,5 +910,8 @@
       "message": "Vous n'avez pas enregistré vos modifications. Etes-vous sûr de vouloir fermer l'éditeur de la trace ?"
     }
   },
-  "go_to_position": "Aller à cette position"
+  "go_to_position": "Aller à cette position",
+  "datetime_popup": {
+    "time": "Heure"
+  }
 }
