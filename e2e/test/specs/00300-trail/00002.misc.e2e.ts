@@ -40,7 +40,7 @@ describe('Trail page', () => {
     // zoom button should be displayed
     await browser.waitUntil(() => graph.zoomButton.isDisplayed());
     // map should contain the selection
-    await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') >= 0));
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') >= 0));
     let zoom = await map.getZoom();
     // zoom on selection
     await graph.zoomButton.click();
@@ -55,7 +55,7 @@ describe('Trail page', () => {
     await browser.action('pointer').move({x: 40, y: 25, origin: await graph.getElement(true).$('canvas').getElement()}).pause(10).down().pause(10).up().perform();
     await browser.waitUntil(() => graph.zoomButton.isDisplayed().then(d => !d));
     // map should not contain selection anymore
-    await browser.waitUntil(() => map.paths.map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') < 0));
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') < 0));
   });
 
   it('Go to departure', async () => {

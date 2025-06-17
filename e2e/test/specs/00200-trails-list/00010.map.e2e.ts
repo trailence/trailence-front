@@ -18,7 +18,7 @@ describe('Collection map', () => {
     const map = await collectionPage.trailsAndMap.openMap();
 
     // map should contain only trails
-    let paths = await map.paths.map(e => e.getAttribute('stroke'));
+    let paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
     expect(paths.length).toBeGreaterThan(0);
     expect(paths.every(p => p === 'red'));
     let bubbles = await map.markers.map(m => m.getAttribute('class'));
@@ -26,7 +26,7 @@ describe('Collection map', () => {
 
     await map.toggleBubbles();
     // map should contain only bubbles
-    paths = await map.paths.map(e => e.getAttribute('stroke'));
+    paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
     expect(paths.length).toBe(0);
     bubbles = await map.markers.map(m => m.getAttribute('class'));
     expect(bubbles.length).toBeGreaterThan(0);
@@ -34,7 +34,7 @@ describe('Collection map', () => {
 
     await map.toggleBubbles();
     // map should contain only trails
-    paths = await map.paths.map(e => e.getAttribute('stroke'));
+    paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
     expect(paths.length).toBeGreaterThan(0);
     expect(paths.every(p => p === 'red'));
     bubbles = await map.markers.map(m => m.getAttribute('class'));

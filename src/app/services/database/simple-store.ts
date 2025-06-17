@@ -192,7 +192,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       return this.syncCreateNewItems(stillValid)
       .pipe(
         switchMap(result => {
-          if (!stillValid()) return of(false);
+          if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           if (result && this._syncStatus$.value.localCreates) {
             this._syncStatus$.value.localCreates = false;
             this._syncStatus$.next(this._syncStatus$.value);
@@ -200,7 +200,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           return this.syncLocalDeleteToServer(stillValid);
         }),
         switchMap(result => {
-          if (!stillValid()) return of(false);
+          if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           if (result && this._syncStatus$.value.localDeletes) {
             this._syncStatus$.value.localDeletes = false;
             this._syncStatus$.next(this._syncStatus$.value);
@@ -208,7 +208,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           return this.syncGetAllFromServer(stillValid);
         }),
         switchMap(result => {
-          if (!stillValid()) return of(false);
+          if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           if (result) {
             this._syncStatus$.value.needsUpdateFromServer = false;
             this._syncStatus$.value.lastUpdateFromServer = Date.now();

@@ -140,10 +140,8 @@ export class MapComponent extends Component {
     await App.waitNoProgress();
   }
 
-  public get paths() { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path'); }
-
+  public getAllPaths() { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path'); }
   public getPathsWithColor(stroke: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path[stroke=' + stroke + ']'); }
-
   public getPathsWithClass(className: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path.' + className); }
 
   public async getMapPosition() {

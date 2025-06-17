@@ -242,11 +242,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       return this.syncCreateNewItems(stillValid)
       .pipe(
         switchMap(() => {
-          if (!stillValid()) return of(false);
+          if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           return this.syncLocalDeleteToServer(stillValid);
         }),
         switchMap(() => {
-          if (!stillValid()) return of(false);
+          if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           if (!this._forceUpdateFromServerChecked && this._createdLocally.length === 0 && this._deletedLocally.length === 0 && this._updatedLocally.length === 0) {
             return from(this.shouldForceUpdateFromServer()).pipe(
               switchMap(force => {
@@ -266,7 +266,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           return this.syncUpdateFromServer(stillValid);
         }),
         switchMap(() => {
-          if (!stillValid()) return of(false);
+          if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           return this.syncUpdateToServer(stillValid);
         }),
         switchMap(() => {

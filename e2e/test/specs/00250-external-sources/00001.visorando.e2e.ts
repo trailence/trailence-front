@@ -2,6 +2,7 @@ import { App } from '../../app/app';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { ImportFromURLModal } from '../../components/import-from-url.modal';
 import { ModalComponent } from '../../components/modal';
+import { TrailsList } from '../../components/trails-list.component';
 import { FilesUtils } from '../../utils/files-utils';
 import { OpenFile } from '../../utils/open-file';
 import { Key } from 'webdriverio'
@@ -69,17 +70,26 @@ describe('Import data from Visorando', () => {
     expect(await list.items.length).toBe(0);
   });
 
+  let list: TrailsList;
   it('Import trails from user page', async () => {
-    const list = await collectionPage.trailsAndMap.openTrailsList();
+    list = await collectionPage.trailsAndMap.openTrailsList();
     (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     const modal = new ImportFromURLModal(await App.waitModal());
     await modal.urlInput.setValue('https://www.visorando.com/page-jean-paul-m3/');
     await modal.importFrom('Visorando');
+    try { await App.waitNoProgress(); } catch (e) {}
+  });
+
+  it('Check trails are there', async () => {
     await browser.waitUntil(() => list.items.length.then(l => l > 5));
     expect(await list.items.length).toBeGreaterThan(5);
     await list.waitTrail('Circuit des balcons des Gorges de Daluis');
     await list.waitTrail('Cime du Mont Meras');
+    try { await App.waitNoProgress(); } catch (e) {}
+  });
 
+  it('Remove all imported trails', async () => {
+    await App.waitNoProgress();
     await list.selectAllCheckbox.setSelected(true);
     await list.selectionMenu('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
@@ -87,7 +97,6 @@ describe('Import data from Visorando', () => {
   });
 
   it('Import from clipboard', async () => {
-    const list = await collectionPage.trailsAndMap.openTrailsList();
     (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     let modal = new ImportFromURLModal(await App.waitModal());
 
@@ -138,7 +147,6 @@ describe('Import data from Visorando', () => {
   });
 
   it('Import with unknown URL', async () => {
-    const list = await collectionPage.trailsAndMap.openTrailsList();
     (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
     const modal = new ImportFromURLModal(await App.waitModal());
     await modal.urlInput.setValue('https://www.google.com');

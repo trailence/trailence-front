@@ -747,10 +747,15 @@ export class TrackDatabase {
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
       Console.info("Store tracks sync start: ", this.syncStatus$.value, this.operations.pendingOperations);
+      const nextStep = (previousComplete: boolean, nextOp: (db: Dexie) => Observable<boolean>) => {
+        if (this.db !== db) return EMPTY;
+        if (!previousComplete || this.operations.pendingOperations > 0) return of(false);
+        return nextOp(db);
+      };
       return this.syncCreatedLocally(db).pipe(
-        switchMap(r => r ? (this.db === db ? this.syncDeletedLocally(db) : EMPTY) : of(false)),
-        switchMap(r => r ? (this.db === db ? this.syncUpdatesFromServer(db) : EMPTY) : of(false)),
-        switchMap(r => r ? (this.db === db ? this.syncUpdatesToServer(db) : EMPTY) : of(false)),
+        switchMap(r => nextStep(r, db => this.syncDeletedLocally(db))),
+        switchMap(r => nextStep(r, db => this.syncUpdatesFromServer(db))),
+        switchMap(r => nextStep(r, db => this.syncUpdatesToServer(db))),
         switchMap(r => this.db === db ? this.getLocalChanges().pipe(map(l => ([l, r] as [{create: boolean, update: boolean, delete: boolean}, boolean]))) : EMPTY),
         map(([hasLocalChanges, syncComplete]) => {
           if (this.db !== db) return false;

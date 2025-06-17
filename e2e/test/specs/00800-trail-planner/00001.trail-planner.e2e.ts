@@ -57,15 +57,15 @@ describe('Trail Planner', () => {
   });
 
   it('I can see the trail imported from Osm', async () => {
-    expect(await map.paths.length).toBe(0);
+    expect(await map.getPathsWithClass('track-path').length).toBe(0);
     await page.setDisplayMyTrails(true);
-    await browser.waitUntil(() => map.paths.length.then(nb => nb === 1));
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb === 1));
     await page.setDisplayMyTrails(false);
-    await browser.waitUntil(() => map.paths.length.then(nb => nb === 0));
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb === 0));
   });
 
   const putAnchor = async (pathIndex: number, currentMarkers: number) => {
-    const path = (await map.paths.filter(e => e.getAttribute('stroke').then(s => s === '#0000FF80'))).at(pathIndex);
+    const path = (await map.getPathsWithClass('track-path').filter(e => e.getAttribute('stroke').then(s => s === '#0000FF80'))).at(pathIndex);
     const pos = await map.getPathPosition(path!);
     for (let x = Math.floor(pos.x); x < pos.x + pos.w; x += 5) {
       for (let y = Math.floor(pos.y); y < pos.y + pos.h; y += 5) {
@@ -81,12 +81,12 @@ describe('Trail Planner', () => {
 
   it('Start and put 2 points', async () => {
     await page.start();
-    await browser.waitUntil(() => map.paths.length.then(nb => nb > 0));
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb > 0));
     await putAnchor(0, 0);
     await page.stop();
-    await browser.waitUntil(() => map.paths.length.then(nb => nb === 1));
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb === 1));
     await page.resume();
-    await browser.waitUntil(() => map.paths.length.then(nb => nb > 1), { timeout: 5000});
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb > 1), { timeout: 5000});
     await putAnchor(0, 1);
     let distance = await TestUtils.waitFor(async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')), d => d > 1000);
     expect(distance).toBeGreaterThan(1000);
