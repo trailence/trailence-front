@@ -1,3 +1,4 @@
+<form (ngSubmit)="apply()">
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title>
@@ -8,6 +9,8 @@
 </ion-header>
 <ion-content class="ion-padding">
   <ion-input
+    #input
+    name="name"
     fill="outline"
     label="{{i18n.texts.pages.collection_form.collection_name}}"
     label-placement="floating"
@@ -20,8 +23,9 @@
 <ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
-      <ion-button color="success" (click)="apply()" [disabled]="!canApply() || applying">{{!!uuid ? i18n.texts.buttons.save : i18n.texts.buttons.create}}</ion-button>
+      <ion-button color="success" (click)="apply()" [disabled]="!canApply() || applying" type="submit">{{!!uuid ? i18n.texts.buttons.save : i18n.texts.buttons.create}}</ion-button>
       <ion-button color="medium" (click)="close(null)" [disabled]="applying">{{i18n.texts.buttons.cancel}}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
+</form>

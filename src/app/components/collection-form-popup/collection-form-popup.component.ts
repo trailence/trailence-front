@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -26,6 +26,8 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
   name = '';
   applying = false;
 
+  @ViewChild('input') input?: IonInput;
+
   constructor(
     public i18n: I18nService,
     private readonly modalController: ModalController,
@@ -46,6 +48,7 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
     this.uuid = this.collection?.uuid;
     this.name = this.collection?.name ?? '';
     if (this.collection?.type === TrailCollectionType.MY_TRAILS && this.collection?.name === '') this.name = this.i18n.texts.my_trails;
+    setTimeout(() => this.input?.setFocus(), 250);
   }
 
   canApply(): boolean {
@@ -53,6 +56,7 @@ export class CollectionFormPopupComponent implements OnInit, OnChanges {
   }
 
   apply(): void {
+    if (!this.canApply()) return;
     this.applying = true;
     if (!this.uuid) {
       this.collectionService.create(new TrailCollection({

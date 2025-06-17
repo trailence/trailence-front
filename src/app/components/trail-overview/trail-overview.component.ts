@@ -280,7 +280,6 @@ export class TrailOverviewComponent extends AbstractComponent {
     }
     const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 10, remaining - estimatedHeight);
     const maxHeight = remaining - offsetY;
-    console.log('y', y, 'h', h, 'remaining', remaining, 'estimated', estimatedHeight, 'offset', offsetY, 'max', maxHeight)
 
     this.popoverController.create({
       component: MenuContentComponent,
