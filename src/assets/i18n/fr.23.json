@@ -915,5 +915,6 @@
   "datetime_popup": {
     "time": "Heure"
   },
-  "recompute_metadata": "Recalcul des estimations de vos parcours"
+  "recompute_metadata": "Recalcul des estimations de vos parcours",
+  "you_are_offline": "Vous n'êtes pas connecté"
 }

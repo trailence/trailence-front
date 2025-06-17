@@ -96,11 +96,11 @@ describe('Map offline', () => {
     await browser.setNetworkConditions({}, 'No throttling');
     await browser.waitUntil(async () => {
       const tiles = await map.tiles.getElements();
-      if (tiles.length === 0) return false;
+      if (tiles.length === 0) throw Error('No tile');
       for (const tile of tiles) {
         const c = await tile.getAttribute('class');
-        if (c.indexOf('map-tile-offline') >= 0) return false;
-        if (c.indexOf('map-tile-fallback') >= 0) return false;
+        if (c.indexOf('map-tile-offline') >= 0) throw Error('There is a tile offline');
+        if (c.indexOf('map-tile-fallback') >= 0) throw Error('There is a tile fallback');
       }
       return true;
     });

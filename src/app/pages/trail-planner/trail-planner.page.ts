@@ -28,6 +28,7 @@ import { GraphPointReference } from 'src/app/components/trail-graph/graph-events
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { ToolbarComponent } from 'src/app/components/menus/toolbar/toolbar.component';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 @Component({
     selector: 'app-trail-planner',
@@ -102,11 +103,14 @@ export class TrailPlannerPage extends AbstractPage {
       .setAction(() => this.openSaveModal())
   ];
 
+  connected$: Observable<boolean>;
+
   constructor(
     injector: Injector,
     public i18n: I18nService,
     collectionService: TrailCollectionService,
     private readonly changeDetector: ChangeDetectorRef,
+    networkService: NetworkService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(() => this.map, () => this.graph);
@@ -115,6 +119,7 @@ export class TrailPlannerPage extends AbstractPage {
     ).subscribe(
       collections => this.collections = collectionService.sort(collections)
     ));
+    this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
   }
 
   protected override initComponent(): void {

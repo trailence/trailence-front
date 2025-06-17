@@ -5,7 +5,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../preferences/preferences';
 import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, first, Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
 
@@ -15,9 +15,13 @@ export abstract class FetchSourcePlugin {
     protected readonly injector: Injector,
   ) {
     this.sanitizer = injector.get(DomSanitizer);
-    combineLatest([injector.get(AuthService).auth$, injector.get(NetworkService).server$])
-    .pipe(
-      switchMap(([auth, server]) => auth && server ? this.checkAllowed$() : of(false))
+    injector.get(AuthService).auth$.pipe(
+      switchMap(a => !a ? of(false) :
+        injector.get(NetworkService).server$.pipe(
+          switchMap(n => n ? this.checkAllowed$() : EMPTY),
+          first(),
+        )
+      )
     ).subscribe(allowed => {
       if (this._allowed$.value !== allowed) this._allowed$.next(allowed);
     });

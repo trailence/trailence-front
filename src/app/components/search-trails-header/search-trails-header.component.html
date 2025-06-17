@@ -1,18 +1,22 @@
 <div class="source-selection">
-  <ion-select
-    [multiple]="true"
-    [value]="selectedPlugins"
-    (ionChange)="setPlugins($event.detail.value)"
-    [label]="i18n.texts.pages.trails.search.sources"
-    labelPlacement="fixed"
-  >
-    <ion-select-option *ngFor="let plugin of availablePlugins" [value]="plugin.name" [disabled]="searching">{{plugin.name}}</ion-select-option>
-  </ion-select>
-  <ion-button (click)="launchSearch()" [disabled]="selectedPlugins.length === 0 || !searchEnabled" size="small">
-    <ion-icon name="search" *ngIf="!searching" slot="icon-only"></ion-icon>
-    <ion-spinner *ngIf="searching" name="circular"></ion-spinner>
-  </ion-button>
-  <ion-button (click)="launchClear()" [disabled]="!clearEnabled || searching" size="small">
-    <ion-icon name="trash" slot="icon-only"></ion-icon>
-  </ion-button>
+  @if (connected$ | async) {
+    <ion-select
+      [multiple]="true"
+      [value]="selectedPlugins"
+      (ionChange)="setPlugins($event.detail.value)"
+      [label]="i18n.texts.pages.trails.search.sources"
+      labelPlacement="fixed"
+    >
+      <ion-select-option *ngFor="let plugin of availablePlugins" [value]="plugin.name" [disabled]="searching">{{plugin.name}}</ion-select-option>
+    </ion-select>
+    <ion-button (click)="launchSearch()" [disabled]="selectedPlugins.length === 0 || !searchEnabled" size="small">
+      <ion-icon name="search" *ngIf="!searching" slot="icon-only"></ion-icon>
+      <ion-spinner *ngIf="searching" name="circular"></ion-spinner>
+    </ion-button>
+    <ion-button (click)="launchClear()" [disabled]="!clearEnabled || searching" size="small">
+      <ion-icon name="trash" slot="icon-only"></ion-icon>
+    </ion-button>
+  } @else {
+    <div class="disconnected-message">{{ i18n.texts.you_are_offline }}</div>
+  }
 </div>

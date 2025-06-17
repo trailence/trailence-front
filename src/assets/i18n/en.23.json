@@ -915,5 +915,6 @@
   "datetime_popup": {
     "time": "Time"
   },
-  "recompute_metadata": "Recalculating estimates of your tracks"
+  "recompute_metadata": "Recalculating estimates of your tracks",
+  "you_are_offline": "You are offline"
 }

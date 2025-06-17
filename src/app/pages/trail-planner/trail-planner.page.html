@@ -8,32 +8,36 @@
       (mouseClickPoint)="mapClickPoint($event)"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
     >
-      @if (trackBuilder) {
-        <div class="map-top-controls center">
-          <div style="display: flex; flex-direction: column; align-items: center">
-            <app-toolbar #toolbar
-              [items]="tools"
-              [iconSize]="16"
-              textSize="9px"
-              [itemMinWidth]="40"
-              [itemMaxWidth]="50"
-              itemSpace="2px"
-              itemPaddingTop="1px"
-              itemPaddingBottom="1px"
-              itemPaddingLeft="4px"
-              itemPaddingRight="4px"
-              separatorSpace="4px"
-            >
-              <app-search-place (placeSelected)="goToPlace($event)"></app-search-place>
-            </app-toolbar>
-            @if (mapState && mapState.zoom < minZoom) {
-              <div class="message-zoom">
-                {{ i18n.texts.pages.trailplanner.please_zoom }} {{ minZoom }}
-              </div>
-            }
-          </div>
-        </div>
-      }
+      <div class="map-top-controls center">
+        @if (connected$ | async) {
+          @if (trackBuilder) {
+            <div style="display: flex; flex-direction: column; align-items: center">
+              <app-toolbar #toolbar
+                [items]="tools"
+                [iconSize]="16"
+                textSize="9px"
+                [itemMinWidth]="40"
+                [itemMaxWidth]="50"
+                itemSpace="2px"
+                itemPaddingTop="1px"
+                itemPaddingBottom="1px"
+                itemPaddingLeft="4px"
+                itemPaddingRight="4px"
+                separatorSpace="4px"
+              >
+                <app-search-place (placeSelected)="goToPlace($event)"></app-search-place>
+              </app-toolbar>
+              @if (mapState && mapState.zoom < minZoom) {
+                <div class="message-zoom">
+                  {{ i18n.texts.pages.trailplanner.please_zoom }} {{ minZoom }}
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <div class="disconnected-message">{{ i18n.texts.you_are_offline }}</div>
+        }
+      </div>
     </app-map>
   </div>
   <div class="elevation-graph-container">
