@@ -43,7 +43,8 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
                 img.src = originalSrc;
               }, 0);
             });
-            fallbackTile(img, coords, tiles, done);
+            if (!img._loaded)
+              fallbackTile(img, coords, tiles, done);
           } else {
             binary.toBase64().then(base64 => {
               img.src = 'data:' + binary.getContentType() + ';base64,' + base64;

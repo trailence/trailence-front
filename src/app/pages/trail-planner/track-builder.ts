@@ -387,7 +387,9 @@ export class TrackBuilder {
       this.cancelWays();
       return;
     }
-    this.injector.get(GeoService).findWays(this.map!.getBounds()!).subscribe(ways => this.updateWaysFromService(ways)); // NOSONAR
+    this.injector.get(GeoService)
+      .findWays(this.map.getBounds()!)
+      .subscribe(ways => this.updateWaysFromService(this.injector.get(GeoService).mergeWays(ways))); // NOSONAR
   }
 
   private cancelWays(): void {
