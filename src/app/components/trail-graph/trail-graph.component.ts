@@ -11,17 +11,21 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Color } from 'src/app/utils/color';
 import { AnyObject } from 'chart.js/dist/types/basic';
 import { HoverVerticalLine } from './plugins/hover-vertical-line';
-import { ElevationGraphPointReference, ElevationGraphRange } from './elevation-graph-events';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { GraphPointReference, GraphRange } from './graph-events';
 import { BackgroundPlugin } from './plugins/background';
 import { RangeSelection, RangeSelectionEvent, SelectedRange } from './plugins/range-selection';
 import { Point } from 'src/app/model/point';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
-import { LegendPlugin } from './plugins/elevation-legend';
+import { ElevationLegendPlugin } from './plugins/elevation-legend';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
+import { ESTIMATED_SMALL_BREAK_EVERY, estimateSmallBreakTime, estimateSpeedInMetersByHour } from 'src/app/services/track-edition/time/time-estimation';
+import { SpeedLegendPlugin } from './plugins/speed-legend';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
+
+const SPEED_ESTIMATION_COLOR = '#C0C040';
 
 export interface DataPoint {
   x: number;
@@ -30,38 +34,45 @@ export interface DataPoint {
   pointIndex: number;
   time?: number;
   timeSinceStart?: number;
+  timeSinceLastSpeed: number;
   lat: number;
   lng: number;
   ele?: number;
   distanceMeters: number;
   distanceFromPrevious: number;
+  distanceSinceLastSpeed: number;
   grade: {gradeBefore: number | undefined; gradeAfter: number | undefined};
   eleAccuracy?: number;
   posAccuracy?: number;
+  speedInMeters: number;
+  isBreakPoint?: boolean;
 }
 
+export type GraphType = 'elevation' | 'speed';
+
 @Component({
-    selector: 'app-elevation-graph',
-    templateUrl: './elevation-graph.component.html',
-    styleUrls: ['./elevation-graph.component.scss'],
+    selector: 'app-trail-graph',
+    templateUrl: './trail-graph.component.html',
+    styleUrls: ['./trail-graph.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
         CommonModule,
         BaseChartDirective
     ]
 })
-export class ElevationGraphComponent extends AbstractComponent {
+export class TrailGraphComponent extends AbstractComponent {
 
   @Input() track1!: Track
   @Input() track2?: Track;
   @Input() selectable = false;
   @Input() selection?: RangeReference[] | PointReference[];
+  @Input() graphType!: GraphType;
 
-  @Output() pointHover = new EventEmitter<ElevationGraphPointReference[]>();
-  @Output() pointClick = new EventEmitter<ElevationGraphPointReference[]>();
+  @Output() pointHover = new EventEmitter<GraphPointReference[]>();
+  @Output() pointClick = new EventEmitter<GraphPointReference[]>();
 
-  @Output() selecting = new EventEmitter<ElevationGraphRange[] | undefined>();
-  @Output() selected = new EventEmitter<ElevationGraphRange[] | undefined>();
+  @Output() selecting = new EventEmitter<GraphRange[] | undefined>();
+  @Output() selected = new EventEmitter<GraphRange[] | undefined>();
 
   @Output() zoomButtonPosition = new EventEmitter<{x: number, y: number} | undefined>();
 
@@ -78,7 +89,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     injector: Injector,
     browser: BrowserService,
     private readonly i18n: I18nService,
-    preferencesService: PreferencesService,
+    private readonly preferencesService: PreferencesService,
     private readonly changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
@@ -97,6 +108,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       track1: this.track1,
       track2: this.track2,
       selectable: this.selectable,
+      graphType: this.graphType,
     }
   }
 
@@ -226,12 +238,17 @@ export class ElevationGraphComponent extends AbstractComponent {
         datasets: []
       }
       if (this.track1 && this.track2) {
-        this.buildDataSet(this.track1, this.primaryColor, 0.33, false);
-        this.buildDataSet(this.track2, this.secondaryColor, 1, false);
+        this.buildDataSet(this.track1, this.primaryColor, 0.33, false, false);
+        this.buildDataSet(this.track2, this.secondaryColor, 1, false, false);
       } else if (this.track1) {
-        this.buildDataSet(this.track1, this.primaryColor, 1, true);
-        if (!this.chartPlugins.find(p => p instanceof LegendPlugin))
-          this.chartPlugins.push(new LegendPlugin(this.gradeColors, this.gradeLegend));
+        this.buildDataSet(this.track1, this.primaryColor, 1, this.graphType === 'elevation', this.graphType === 'speed');
+        if (this.graphType === 'elevation') {
+          if (!this.chartPlugins.find(p => p instanceof ElevationLegendPlugin))
+            this.chartPlugins.push(new ElevationLegendPlugin(this.gradeColors, this.gradeLegend));
+        } else if (this.graphType === 'speed') {
+          if (!this.chartPlugins.find(p => p instanceof SpeedLegendPlugin))
+            this.chartPlugins.push(new SpeedLegendPlugin(SPEED_ESTIMATION_COLOR, this.contrastColor, this.i18n.texts.trailGraph.legend_estimated_speed));
+        }
       }
       this.updateMinMaxAxis(false);
       setTimeout(() => {
@@ -296,7 +313,9 @@ export class ElevationGraphComponent extends AbstractComponent {
           min: 0,
           max: 0,
           title: {
-            text: this.i18n.texts.elevationGraph.distance + ' (' + this.i18n.shortUserElevationGraphDistanceUnit() + ')',
+            text: this.graphType === 'elevation' ?
+              this.i18n.texts.trailGraph.distance + ' (' + this.i18n.shortUserElevationGraphDistanceUnit() + ')' :
+              this.i18n.texts.trailGraph.time_duration,
             display: true,
             color: this.contrastColor,
             padding: { top: -5, bottom: 0, y: 0 },
@@ -310,6 +329,9 @@ export class ElevationGraphComponent extends AbstractComponent {
           },
           ticks: {
             color: this.contrastColor,
+            callback: this.graphType === 'elevation' ?
+              value => (typeof value === 'number' ? value : parseInt(value ?? '0')).toLocaleString(this.preferencesService.preferences.lang, {maximumFractionDigits: 2}) :
+              value => this.i18n.durationToString(typeof value === 'number' ? value : parseInt(value ?? '0'), true, false),
           }
         },
         y: {
@@ -317,20 +339,20 @@ export class ElevationGraphComponent extends AbstractComponent {
           min: 0,
           max: 0,
           title: {
-            text: this.i18n.texts.elevationGraph.elevation + ' (' + this.i18n.shortUserElevationUnit() + ')',
+            text: this.i18n.texts.trailGraph[this.graphType] + ' (' + (this.graphType === 'elevation' ? this.i18n.shortUserElevationUnit() : this.i18n.shortUserSpeedUnit()) + ')',
             display: true,
             color: this.contrastColor,
             padding: { top: 0, bottom: 0, y: 0 },
           },
           grid: {
-            color: new Color(this.contrastColor).setAlpha(0.33).toString()
+            color: new Color(this.contrastColor).setAlpha(0.33).toString(),
           },
           border: {
             color: this.contrastColor
           },
           ticks: {
-            color: this.contrastColor
-          }
+            color: this.contrastColor,
+          },
         }
       },
       interaction: {
@@ -354,6 +376,10 @@ export class ElevationGraphComponent extends AbstractComponent {
               return;
             }
             const points: any[] = context.tooltip.dataPoints.filter((p: any) => p.raw.lat !== undefined);
+            if (points.length === 0) {
+              container.style.display = 'none';
+              return;
+            }
             container.style.display = 'block';
             let html = '<table>';
             if (points.length > 1) {
@@ -377,14 +403,14 @@ export class ElevationGraphComponent extends AbstractComponent {
               for (const point of points) html += '<td>' + text(point) + '</td>';
               html += '</tr>';
             };
-            addInfo(this.i18n.texts.elevationGraph.elevation, pt => {
+            addInfo(this.i18n.texts.trailGraph.elevation, pt => {
               let s = this.i18n.elevationToString(pt.raw.ele);
               if (pt.raw.eleAccuracy !== undefined) {
-                s += '<br/>(± ' + this.i18n.elevationToString(pt.raw.eleAccuracy) + ')';
+                s += ' (± ' + this.i18n.elevationToString(pt.raw.eleAccuracy) + ')';
               }
               return s;
             });
-            addInfo(this.i18n.texts.elevationGraph.elevation_grade, pt => {
+            addInfo(this.i18n.texts.trailGraph.elevation_grade, pt => {
               let s = '';
               if (pt.raw.grade.gradeBefore !== undefined) s = Math.floor(pt.raw.grade.gradeBefore * 100) + '%';
               if (pt.raw.grade.gradeAfter !== undefined) {
@@ -393,14 +419,15 @@ export class ElevationGraphComponent extends AbstractComponent {
               }
               return s;
             });
-            addInfo(this.i18n.texts.elevationGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters))
-            addInfo(this.i18n.texts.elevationGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
-            html += '<tr><th>' + this.i18n.texts.elevationGraph.location + '</th>';
+            addInfo(this.i18n.texts.trailGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters));
+            addInfo(this.i18n.texts.trailGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
+            addInfo(this.i18n.texts.trailGraph.speed, pt => this.i18n.getSpeedStringInUserUnit(pt.raw.speedInMeters));
+            html += '<tr><th>' + this.i18n.texts.trailGraph.location + '</th>';
             for (const point of points) {
               html += '<td>';
               html += this.i18n.coordToString(point.raw.lat) + '<br/>' + this.i18n.coordToString(point.raw.lng)
               if (point.raw.posAccuracy !== undefined) {
-                html += '<br/>(± ' + this.i18n.distanceToString(point.raw.posAccuracy) + ')';
+                html += ' (± ' + this.i18n.distanceToString(point.raw.posAccuracy) + ')';
               }
               html += '</td>';
             }
@@ -428,7 +455,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
       onHover: (event:any, elements: C.ActiveElement[], chart: any) => {
         const references = this.canvas!.chart!.getActiveElements().map(element => {
-          if ((this.chartData!.datasets[element.datasetIndex] as any).isGrade) return null;
+          if ((this.chartData!.datasets[element.datasetIndex] as any).isNotData) return null;
           if ((element.element as any).$context) // NOSONAR
             return this.activeElementToPointReference(element);
           return null;
@@ -439,7 +466,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       onClick: (event:any, elements: C.ActiveElement[], chart: any) => {
         if (event.type !== 'click' || (this.selection && this.selection.length > 0)) return;
         const references = this.canvas!.chart!.getActiveElements().map(element => {
-          if ((this.chartData!.datasets[element.datasetIndex] as any).isGrade) return null;
+          if ((this.chartData!.datasets[element.datasetIndex] as any).isNotData) return null;
           if ((element.element as any).$context) // NOSONAR
             return this.activeElementToPointReference(element);
           return null;
@@ -450,7 +477,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     };
   }
 
-  private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean) {
+  private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean, withSpeedEstimation: boolean) {
     const color = new Color(colorBase).setAlpha(lineAlpha).toString();
     const ds = {
       borderColor: color,
@@ -470,6 +497,9 @@ export class ElevationGraphComponent extends AbstractComponent {
       ds.backgroundColor = new Color(colorBase).setAlpha(0.2).toString();
       ds.fillColor = color;
       this.chartData!.datasets.push(ds);
+      if (withSpeedEstimation) {
+        this.chartData!.datasets.push(this.buildSpeedEstimationDataset(track, ds.data));
+      }
     }
   }
 
@@ -477,7 +507,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const points = track.segments[segmentIndex].points;
       for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
-        (ds.data as any[]).push(this.createDataPoint(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, points));
+        (ds.data as any[]).push(...this.createDataPoints(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, points, ds.data, ds.data.length));
       }
     }
   }
@@ -524,6 +554,7 @@ export class ElevationGraphComponent extends AbstractComponent {
     if (ds.length === 0 || ds[ds.length - 1].backgroundColor !== color) {
       ds.push({
         isGrade: true,
+        isNotData: true,
         backgroundColor: color,
         borderColor: color,
         pointColor: color,
@@ -577,17 +608,17 @@ export class ElevationGraphComponent extends AbstractComponent {
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const points = track.segments[segmentIndex].points;
       for (let pointIndex = 0; pointIndex < points.length; ++pointIndex) {
+        const dataPoints = this.createDataPoints(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points, ds.data, pointCount);
         if (pointCount < ds.data.length) {
-          // existing
-          if (ds.data[pointCount].ele !== points[pointIndex].ele || ds.data[pointCount].distanceFromPrevious !== points[pointIndex].distanceFromPreviousPoint) {
-            // update
-            ds.data[pointCount] = this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points);
-          }
+          // existing => update
+          let nb = 1;
+          for (; pointCount + nb < ds.data.length && ds.data[pointCount + nb].pointIndex === pointIndex && ds.data[pointCount + nb].segmentIndex === segmentIndex; ++nb);
+          ds.data.splice(pointCount, nb, ...dataPoints);
         } else {
-          // new point
-          ds.data.push(this.createDataPoint(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points));
+          // new points
+          ds.data.push(...this.createDataPoints(pointCount === 0 ? undefined : ds.data[pointCount - 1], segmentIndex, pointIndex, track, points, ds.data, ds.data.length));
         }
-        pointCount++;
+        pointCount += dataPoints.length;
       }
     }
     if (pointCount < ds.data.length) {
@@ -605,7 +636,7 @@ export class ElevationGraphComponent extends AbstractComponent {
       const ds = this.chartData.datasets[datasetIndex];
       ds.data = [];
       this.fillDataSet(ds, track);
-      if (this.chartPlugins.find(p => p instanceof LegendPlugin)) {
+      if (this.chartPlugins.find(p => p instanceof ElevationLegendPlugin)) {
         for (let i = 0; i < this.chartData.datasets.length; ++i) {
           if ((this.chartData.datasets[i] as any).isGrade) {
             this.chartData.datasets.splice(i, 1);
@@ -619,10 +650,142 @@ export class ElevationGraphComponent extends AbstractComponent {
     });
   }
 
-  private createDataPoint(previous: DataPoint | undefined, segmentIndex: number, pointIndex: number, track: Track, points: Point[]): DataPoint {
-    const point = points[pointIndex];
+  private buildSpeedEstimationDataset(track: Track, originalData: DataPoint[]): any {
+    const color = SPEED_ESTIMATION_COLOR;
+    const ds = {
+      isSpeedEstimation: true,
+      isNotData: true,
+      borderColor: color,
+      pointColor: color,
+      strokeColor: color,
+      pointStyle: false,
+      parsing: false,
+      tension: 0.02,
+      data: []
+    } as any;
+    const prefs = this.preferencesService.preferences;
+    let distance = 0;
+    let duration = 0;
+    let estimatedDuration = 0;
+    let durationSincePreviousBreak = 0;
+    let index = 0;
+    const segments = track.segments;
+    for (const segment of segments) {
+      const points = segment.points;
+      durationSincePreviousBreak = 0;
+      const segmentDuration = segment.duration;
+      let durationSinceSegmentStart = 0;
+      for (const point of points) {
+        const distanceFromPreviousPoint = point.distanceFromPreviousPoint;
+        distance += distanceFromPreviousPoint;
+        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs) : 0;
+        const estimatedTime = speed > 0 ? distanceFromPreviousPoint * (60 * 60 * 1000) / speed : 0;
+        estimatedDuration += estimatedTime;
+        let timeFromPreviousPoint = point.durationFromPreviousPoint ?? estimatedTime;
+        duration += timeFromPreviousPoint;
+        durationSincePreviousBreak += timeFromPreviousPoint;
+        durationSinceSegmentStart += timeFromPreviousPoint;
+        while (originalData[index].isBreakPoint) {
+          ds.data.push({
+            isBreakPoint: true,
+            x: originalData[index].x,
+            y: null,
+          });
+          index++;
+        }
+        ds.data.push({
+          x: duration,
+          y: this.i18n.distanceInLongUserUnit(speed),
+          distance,
+          duration,
+          speed,
+          distanceFromPreviousPoint,
+          timeFromPreviousPoint,
+        });
+        index++;
+        if (durationSincePreviousBreak >= ESTIMATED_SMALL_BREAK_EVERY && distanceFromPreviousPoint > 0 && (!segmentDuration || segmentDuration - durationSinceSegmentStart > ESTIMATED_SMALL_BREAK_EVERY)) {
+          const breakTime = estimateSmallBreakTime(duration);
+          let t = 0;
+          for (let i = ds.data.length - 1; i >= 0 && i >= ds.data.length - 100; --i) {
+            if (ds.data[i].timeFromPreviousPoint === undefined) continue;
+            t += ds.data[i].timeFromPreviousPoint;
+            if (t <= breakTime) ds.data[i].speed = 0;
+            else {
+              const tDelta = 1 - (t - breakTime) / ds.data[i].timeFromPreviousPoint;
+              ds.data[i].speed *= tDelta;
+              break;
+            }
+          }
+          estimatedDuration += breakTime;
+          durationSincePreviousBreak = 0;
+        }
+      }
+    }
+    // 2. split data by section of at least 10 points and 1 minute
+    let startIndex = 0;
+    let previousMiddle = -1;
+    let previousMiddleRemainingDistance = 0;
+    let previousAverageSpeed = 0;
+    while (startIndex < ds.data.length) {
+      let sectionDistance = 0;
+      let sectionTime = 0;
+      let sectionSpeed = 0;
+      let endIndex = startIndex + 1;
+      for (; endIndex < ds.data.length; ++endIndex) {
+        if (ds.data[endIndex].isBreakPoint) continue;
+        sectionDistance += ds.data[endIndex].distanceFromPreviousPoint;
+        sectionTime += ds.data[endIndex].timeFromPreviousPoint;
+        sectionSpeed += ds.data[endIndex].speed * ds.data[endIndex].distanceFromPreviousPoint;
+        if (endIndex - startIndex >= 10 && sectionTime >= 60 * 1000) {
+          break;
+        }
+      }
+      const averageSpeed = sectionSpeed / sectionDistance;
+      let middleIndex = startIndex;
+      let middleDistance = 0;
+      while (middleIndex < endIndex && middleDistance < sectionDistance / 2) {
+        middleIndex++;
+        if (ds.data[middleIndex].isBreakPoint) continue;
+        middleDistance += ds.data[middleIndex].distanceFromPreviousPoint;
+      }
+      if (previousMiddle === -1) {
+        let d = 0;
+        for (let i = startIndex; i <= middleIndex && i < ds.data.length; ++i) {
+          if (ds.data[i].isBreakPoint) continue;
+          d += ds.data[i].distanceFromPreviousPoint;
+          const x = d / middleDistance;
+          const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2;
+          ds.data[i].y = this.i18n.distanceInLongUserUnit(averageSpeed * easeInOut);
+        }
+      } else {
+        let d = 0;
+        for (let i = previousMiddle + 1; i <= middleIndex; ++i) {
+          if (ds.data[i].isBreakPoint) continue;
+          d += ds.data[i].distanceFromPreviousPoint;
+          const x = d / (previousMiddleRemainingDistance + middleDistance);
+          const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2;
+          ds.data[i].y = this.i18n.distanceInLongUserUnit(previousAverageSpeed + (averageSpeed - previousAverageSpeed) * easeInOut);
+        }
+      }
+      startIndex = endIndex + 1;
+      previousMiddle = middleIndex;
+      previousMiddleRemainingDistance = sectionDistance - middleDistance;
+      previousAverageSpeed = averageSpeed;
+    }
+    // finally fill the end
+    for (let i = previousMiddle + 1; i < ds.data.length; ++i) {
+      if (ds.data[i].isBreakPoint) continue;
+      ds.data[i].y = this.i18n.distanceInLongUserUnit(previousAverageSpeed);
+    }
+    return ds;
+  }
+
+  private createDataPoints(previous: DataPoint | undefined, trackSegmentIndex: number, trackPointIndex: number, track: Track, points: Point[], dataPoints: DataPoint[], dataIndex: number): DataPoint[] {
+    const point = points[trackPointIndex];
+
     let distance = previous?.distanceMeters ?? 0;
-    if (pointIndex > 0) distance += point.distanceFromPreviousPoint;
+    if (trackPointIndex > 0) distance += point.distanceFromPreviousPoint;
+
     let timeSinceStart = undefined;
     if (previous?.timeSinceStart && previous.time && point.time)
       timeSinceStart = previous.timeSinceStart + (point.time - previous.time);
@@ -630,22 +793,105 @@ export class ElevationGraphComponent extends AbstractComponent {
       const start = track.startDate;
       if (start) timeSinceStart = point.time - start;
     }
-    return {
-      x: this.i18n.elevationGraphDistanceValue(this.i18n.distanceInUserUnit(distance)),
-      y: point.ele !== undefined ? this.i18n.elevationInUserUnit(point.ele) : null,
-      segmentIndex,
-      pointIndex,
+
+    const isBreak = trackPointIndex > 0 && point.durationFromPreviousPoint && point.durationFromPreviousPoint > 60 * 1000;
+
+    let distanceSinceLastSpeed = (previous?.distanceSinceLastSpeed ?? 0) + (trackPointIndex > 0 ? point.distanceFromPreviousPoint : 0);
+    let timeSinceLastSpeed = (previous?.timeSinceLastSpeed ?? 0) + (trackPointIndex > 0 && point.durationFromPreviousPoint ? point.durationFromPreviousPoint : 0);
+    let speedInMeters = previous?.speedInMeters ?? 0;
+    if (timeSinceLastSpeed >= 60 * 1000 || (timeSinceLastSpeed > 2000 && (distanceSinceLastSpeed * (60 * 60 * 1000) / timeSinceLastSpeed) < 100)) {
+      speedInMeters = distanceSinceLastSpeed * (60 * 60 * 1000) / timeSinceLastSpeed;
+      for (let start = dataIndex - 1; start >= 0; --start) {
+        if (dataPoints[start].timeSinceLastSpeed === 0) {
+          const startSpeed = dataPoints[start].speedInMeters;
+          for (let i = start + 1; i < dataIndex; ++i) {
+            if (dataPoints[i].distanceSinceLastSpeed > 0) {
+              const x = dataPoints[i].distanceSinceLastSpeed / distanceSinceLastSpeed;
+              const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2
+              dataPoints[i].speedInMeters = startSpeed + (speedInMeters - startSpeed) * easeInOut;
+              if (this.graphType === 'speed')
+                dataPoints[i].y = this.i18n.distanceInLongUserUnit(dataPoints[i].speedInMeters);
+            }
+          }
+          break;
+        }
+      }
+      distanceSinceLastSpeed = 0;
+      timeSinceLastSpeed = 0;
+    }
+
+    const dataPoint: DataPoint = {
+      x: this.graphType === 'elevation' ?
+           this.i18n.elevationGraphDistanceValue(this.i18n.distanceInUserUnit(distance)) :
+           timeSinceStart ?? 0,
+      y: this.graphType === 'elevation' ?
+          (point.ele !== undefined ? this.i18n.elevationInUserUnit(point.ele) : null) :
+          this.i18n.distanceInLongUserUnit(speedInMeters),
+      segmentIndex: trackSegmentIndex,
+      pointIndex: trackPointIndex,
       time: point.time,
       timeSinceStart,
+      timeSinceLastSpeed,
       lat: point.pos.lat,
       lng: point.pos.lng,
       ele: point.ele,
       distanceMeters: distance,
       distanceFromPrevious: point.distanceFromPreviousPoint,
-      grade: TrackUtils.elevationGrade(points, pointIndex),
+      distanceSinceLastSpeed,
+      grade: TrackUtils.elevationGrade(points, trackPointIndex),
       eleAccuracy: point.eleAccuracy,
       posAccuracy: point.posAccuracy,
+      speedInMeters,
     };
+    if (isBreak && this.graphType === 'speed') {
+      // insert points with speed 0
+      const previous = dataPoints[dataIndex - 1];
+      return [
+        {
+          x: previous.x + 1,
+          y: 0,
+          segmentIndex: trackSegmentIndex,
+          pointIndex: trackPointIndex,
+          time: previous.x + 1,
+          timeSinceStart: previous.timeSinceStart ? previous.timeSinceStart + 1 : undefined,
+          timeSinceLastSpeed: previous.timeSinceLastSpeed + 1,
+          lat: previous.lat,
+          lng: previous.lng,
+          ele: previous.ele,
+          distanceMeters: previous.distanceMeters,
+          distanceFromPrevious: 0,
+          distanceSinceLastSpeed: previous.distanceSinceLastSpeed,
+          grade: { gradeBefore: undefined, gradeAfter: undefined },
+          eleAccuracy: previous.eleAccuracy,
+          posAccuracy: previous.posAccuracy,
+          speedInMeters: 0,
+          isBreakPoint: true,
+        }, {
+          x: dataPoint.x - 1,
+          y: 0,
+          segmentIndex: trackSegmentIndex,
+          pointIndex: trackPointIndex,
+          time: dataPoint.x - 1,
+          timeSinceStart: dataPoint.timeSinceStart,
+          timeSinceLastSpeed: dataPoint.timeSinceLastSpeed,
+          lat: dataPoint.lat,
+          lng: dataPoint.lng,
+          ele: dataPoint.ele,
+          distanceMeters: dataPoint.distanceMeters,
+          distanceFromPrevious: dataPoint.distanceFromPrevious,
+          distanceSinceLastSpeed: dataPoint.distanceSinceLastSpeed,
+          grade: { gradeBefore: undefined, gradeAfter: undefined },
+          eleAccuracy: dataPoint.eleAccuracy,
+          posAccuracy: dataPoint.posAccuracy,
+          speedInMeters: 0,
+          isBreakPoint: true,
+        },
+        { ...dataPoint,
+          distanceFromPrevious: 0,
+        }
+      ]
+    }
+    return [dataPoint];
   }
 
   public showCursorForPosition(lat: number, lng: number): void {
@@ -677,10 +923,10 @@ export class ElevationGraphComponent extends AbstractComponent {
     });
   }
 
-  private activeElementToPointReference(element: C.ActiveElement): ElevationGraphPointReference {
+  private activeElementToPointReference(element: C.ActiveElement): GraphPointReference {
     const pt: DataPoint = (element.element as any).$context.raw;
     const e: C.PointElement = element.element as C.PointElement;
-    return new ElevationGraphPointReference(
+    return new GraphPointReference(
       element.datasetIndex === 0 ? this.track1 : this.track2!,
       pt.segmentIndex,
       pt.pointIndex,
@@ -699,8 +945,8 @@ export class ElevationGraphComponent extends AbstractComponent {
     }
     const events = [];
     for (const ds of event.datasets) {
-      if ((this.chartData!.datasets[ds.datasetIndex] as any).isGrade) continue;
-      events.push(new ElevationGraphRange(
+      if ((this.chartData!.datasets[ds.datasetIndex] as any).isNotData) continue;
+      events.push(new GraphRange(
         ds.datasetIndex === 0 ? this.track1 : this.track2!,
         this.activeElementToPointReference(ds.start),
         this.activeElementToPointReference(ds.end),

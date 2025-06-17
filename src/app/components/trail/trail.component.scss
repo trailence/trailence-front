@@ -4,7 +4,6 @@
 
   --tabs-height: 36px;
   --bottom-sheet-button-height: 20px;
-  --bottom-sheet-large-height: 180px;
   --details-width: 350px;
   --bottom-sheet-tabs-width: 30px;
   --bottom-sheet-tab-icon-size: 24px;
@@ -54,7 +53,7 @@
     position: absolute;
   }
 
-  .elevation-container {
+  .graph-container {
     position: absolute;
     z-index: 1000;
 
@@ -72,7 +71,7 @@
 
   &.small-height {
     --bottom-sheet-tab-content-height: 80px;
-    &.bottom-sheet-tab-open-elevation {
+    &.bottom-sheet-tab-open-elevation, &.bottom-sheet-tab-open-speed {
       --bottom-sheet-tab-content-height: 150px;
     }
   }
@@ -122,42 +121,75 @@
     }
   }
 
+  &.bottom-sheet-closed {
+    .bottom-sheet-container {
+      height: var(--bottom-sheet-button-height);
+    }
+    .map-container {
+      bottom: calc(var(--bottom-sheet-button-height) + var(--edit-tools-bottom-height));
+    }
+    .graph-container {
+      top: 100%;
+    }
+  }
+  &.bottom-sheet-open {
+    .bottom-sheet-container {
+      height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
+    }
+    .map-container {
+      bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height) + var(--edit-tools-bottom-height));
+    }
+    .graph-container {
+      top: calc(100% - var(--bottom-sheet-tab-content-height));
+    }
+    .bottom-sheet-button {
+      border-bottom: 1px solid var(--ion-color-light);
+    }
+    .bottom-sheet-tabs {
+      position: absolute;
+      top: var(--bottom-sheet-button-height);
+      bottom: 0;
+      left: 0;
+      width: var(--bottom-sheet-tabs-width);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .bottom-sheet-tab {
+        flex: 1 1 100%;
+        border-right: 2px solid var(--ion-color-light);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: stretch;
+
+        ion-icon {
+          width: var(--bottom-sheet-tab-icon-size);
+          height: var(--bottom-sheet-tab-icon-size);
+          color: var(--ion-color-medium);
+        }
+
+        &.tab-selected {
+          background-color: var(--ion-color-light);
+          border-color: var(--ion-color-secondary);
+          ion-icon {
+            color: var(--ion-color-secondary);
+          }
+        }
+      }
+    }
+  }
+
+
+
   &.large {
+    --bottom-sheet-tab-content-height: 180px;
+
     .tabs-container {
       display: none;
     }
-
     .bottom-sheet-container {
       left: var(--details-width);
-    }
-    &.bottom-sheet-closed {
-      .bottom-sheet-container {
-        height: var(--bottom-sheet-button-height);
-      }
-      .map-container {
-        bottom: calc(var(--bottom-sheet-button-height) + var(--edit-tools-bottom-height));
-      }
-      .elevation-container {
-        top: 100%;
-      }
-    }
-    &.bottom-sheet-open {
-      .bottom-sheet-container {
-        height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height));
-      }
-      .map-container {
-        bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-large-height) + var(--edit-tools-bottom-height));
-      }
-      .elevation-container {
-        top: calc(100% - var(--bottom-sheet-large-height));
-      }
-    }
-
-    .bottom-sheet-info-content {
-      display: none;
-    }
-    .bottom-sheet-tabs {
-      display: none;
     }
     .trail-details {
       top: 0;
@@ -171,9 +203,9 @@
       left: var(--details-width);
       right: var(--edit-tools-right-side-width);
     }
-    .elevation-container {
+    .graph-container {
       bottom: 0;
-      left: var(--details-width);
+      left: calc(var(--details-width) + var(--bottom-sheet-tabs-width));
       right: var(--edit-tools-right-side-width);
       height: var(--bottom-sheet-large-height);
       background-color: var(--ion-color-light);
@@ -196,10 +228,7 @@
       .bottom-sheet-container {
         display: none;
       }
-      .bottom-sheet-info-content {
-        display: none;
-      }
-      .elevation-container {
+      .graph-container {
         display: none;
       }
       .edit-tools-container {
@@ -220,10 +249,7 @@
       .bottom-sheet-container {
         display: none;
       }
-      .bottom-sheet-info-content {
-        display: none;
-      }
-      .elevation-container {
+      .graph-container {
         display: none;
       }
       .trail-details {
@@ -276,87 +302,27 @@
           overflow-x: auto;
         }
       }
-      .elevation-container {
+      .graph-container {
         left: var(--bottom-sheet-tabs-width);
         right: var(--edit-tools-right-side-width);
-        top: 100%;
         height: var(--bottom-sheet-tab-content-height);
         transition: top 0.3s ease-in-out;
       }
-
       .bottom-sheet-container {
         left: 0;
       }
 
-      &.bottom-sheet-closed {
-        .bottom-sheet-container {
-          height: var(--bottom-sheet-button-height);
-        }
-        .map-container {
-          bottom: calc(var(--bottom-sheet-button-height) + var(--edit-tools-bottom-height));
-        }
-        .bottom-sheet-tabs {
-          display: none;
-        }
-      }
 
       &.bottom-sheet-open {
-        .bottom-sheet-container {
-          height: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height));
-        }
-        .map-container {
-          bottom: calc(var(--bottom-sheet-button-height) + var(--bottom-sheet-tab-content-height) + var(--edit-tools-bottom-height));
-        }
-        .bottom-sheet-button {
-          border-bottom: 1px solid var(--ion-color-light);
-        }
-        .bottom-sheet-tabs {
-          position: absolute;
-          top: var(--bottom-sheet-button-height);
-          bottom: 0;
-          left: 0;
-          width: var(--bottom-sheet-tabs-width);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-
-          .bottom-sheet-tab {
-            flex: 1 1 100%;
-            border-right: 2px solid var(--ion-color-light);
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: stretch;
-
-            ion-icon {
-              width: var(--bottom-sheet-tab-icon-size);
-              height: var(--bottom-sheet-tab-icon-size);
-              color: var(--ion-color-medium);
-            }
-
-            &.tab-selected {
-              background-color: var(--ion-color-light);
-              border-color: var(--ion-color-secondary);
-              ion-icon {
-                color: var(--ion-color-secondary);
-              }
-            }
-          }
-        }
-        .elevation-container {
-          top: calc(100% - var(--bottom-sheet-tab-content-height));
-        }
-
         &.bottom-sheet-info {
           .bottom-sheet-info-content {
             height: var(--bottom-sheet-tab-content-height);
           }
-          .elevation-container {
+          .graph-container {
             display: none;
           }
         }
-
-        &.bottom-sheet-elevation {
+        &:not(.bottom-sheet-info) {
           .bottom-sheet-info-content {
             display: none;
           }

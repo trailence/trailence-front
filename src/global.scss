@@ -75,7 +75,7 @@
 }
 
 .graph-tooltip {
-  font-size: 12px;
+  font-size: 11px;
   background-color: rgba(var(--ion-background-color-rgb), 0.8);
   padding: 3px;
   border-radius: 5px;
@@ -84,9 +84,13 @@
     td, th {
       padding: 1px 5px;
       text-align: left;
+      white-space: nowrap;
     }
     tr.header th {
       text-align: center;
+    }
+    th {
+      color: var(--ion-color-tertiary);
     }
   }
 }

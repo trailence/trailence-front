@@ -618,14 +618,15 @@
     "description_placeholder": "Description",
     "name_placeholder": "Nom"
   },
-  "elevationGraph": {
+  "trailGraph": {
     "distance": "Distance",
     "elevation": "Altitude",
     "time_duration": "Temps",
     "elevation_grade": "Pente",
     "location": "Position",
     "precision": "Précision",
-    "speed": "Vitesse"
+    "speed": "Vitesse",
+    "legend_estimated_speed": "Vitesse estimée"
   },
   "offline_map": {
     "download_trail": "Les cartes correspondant au parcours vont être téléchargées pour être disponibles hors ligne",
@@ -913,5 +914,6 @@
   "go_to_position": "Aller à cette position",
   "datetime_popup": {
     "time": "Heure"
-  }
+  },
+  "recompute_metadata": "Recalcul des estimations de vos parcours"
 }

@@ -618,14 +618,15 @@
     "description_placeholder": "Description",
     "name_placeholder": "Name"
   },
-  "elevationGraph": {
+  "trailGraph": {
     "distance": "Distance",
     "elevation": "Altitude",
     "time_duration": "Time",
     "elevation_grade": "Grade",
     "location": "Location",
     "precision": "Accuracy",
-    "speed": "Speed"
+    "speed": "Speed",
+    "legend_estimated_speed": "Estimated speed"
   },
   "offline_map": {
     "download_trail": "Maps corresponding to the track will be downloaded to be available offline",
@@ -913,5 +914,6 @@
   "go_to_position": "Go to this position",
   "datetime_popup": {
     "time": "Time"
-  }
+  },
+  "recompute_metadata": "Recalculating estimates of your tracks"
 }

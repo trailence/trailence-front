@@ -50,6 +50,7 @@ class RegisteredStore implements StoreRegistration {
   syncTimeout?: any;
   syncTimeoutDate = 0;
   syncAgain = false;
+  inProgress = false;
 
   constructor(
     registration: StoreRegistration
@@ -232,20 +233,28 @@ export class DatabaseService {
       debounceTimeExtended(0, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2] || n[3]), // sync requested or db changed or syncAgain requested
     )
     .subscribe(() => {
+      if (registered.inProgress) return;
+      registered.inProgress = true;
       Console.info('Trigger store updates: ', registered.name);
       registered.syncAgain = false;
       registered.lastSync = Date.now();
       if (registered.syncTimeout) clearTimeout(registered.syncTimeout);
       registered.syncTimeout = undefined;
       registered.syncTimeoutDate = 0;
-      store.doSync().subscribe(syncAgain => {
-        registered.syncAgain = syncAgain;
-        if (syncAgain) {
-          Console.info(store.name + ' needs to sync again to complete');
-          registered.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
-          registered.syncTimeoutDate = Date.now() + 2000;
-          registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), 2000);
-        }
+      store.doSync()
+      .subscribe({
+        next: syncAgain => {
+          registered.inProgress = false;
+          registered.syncAgain = syncAgain;
+          if (syncAgain) {
+            Console.info(store.name + ' needs to sync again to complete');
+            registered.lastSync = Date.now() - MINIMUM_SYNC_INTERVAL + 1000;
+            registered.syncTimeoutDate = Date.now() + 2000;
+            registered.syncTimeout = setTimeout(() => store.fireSyncStatus(), 2000);
+          }
+        },
+        complete: () => registered.inProgress = false,
+        error: () => registered.inProgress = false,
       });
     });
     // monitoring
@@ -341,6 +350,10 @@ export class DatabaseService {
   public saveTableVersion(tableName: string, newVersion?: number): Promise<void> {
     const db = this._db.value;
     if (!db) return Promise.resolve();
+    if (newVersion !== undefined) {
+      db.tablesVersion[tableName] = newVersion;
+      if (tableName === 'appVersion') db.appVersion = newVersion;
+    }
     return db.db.transaction('rw', [INTERNAL_TABLE_NAME], () => {
       const table = db.db.table(INTERNAL_TABLE_NAME);
       return table.get('version').then(result => {

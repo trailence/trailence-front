@@ -226,8 +226,12 @@
         <table>
           <tr>
             <th>{{i18n.texts.pages.preferences.offline_maps.items}}</th>
-            <td>
-              {{offlineMapCounters?.items}}
+            <td id="{{id}}-offline-map-counters">
+              @if (offlineMapCounters === undefined) {
+                <ion-spinner name="dots"></ion-spinner>
+              } @else {
+                {{offlineMapCounters.items}}
+              }
             </td>
           </tr>
           <tr>
@@ -349,8 +353,12 @@
         <table>
           <tr>
             <th>{{i18n.texts.pages.preferences.photos_cache_total}}</th>
-            <td>
-              {{i18n.sizeToString(photoCacheSize?.total)}}
+            <td id="{{id}}-photo-cache-size">
+              @if (photoCacheSize === undefined) {
+                <ion-spinner name="dots"></ion-spinner>
+              } @else {
+                {{i18n.sizeToString(photoCacheSize.total)}}
+              }
             </td>
           </tr>
           <tr>

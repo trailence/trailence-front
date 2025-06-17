@@ -159,6 +159,13 @@ export class I18nService {
     return this.longDistanceUnit(this.prefService.preferences.distanceUnit);
   }
 
+  public shortUserSpeedUnit(): string {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return 'km/h';
+      case 'IMPERIAL': return 'mi/h';
+    }
+  }
+
   public getSpeedStringInUserUnit(speed?: number): string {
     if (speed === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {

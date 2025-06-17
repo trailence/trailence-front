@@ -2,9 +2,9 @@ import { BehaviorSubject, combineLatest, of, Subscription, switchMap } from 'rxj
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
 import { Track } from 'src/app/model/track';
 import { MapComponent } from '../map/map.component';
-import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
+import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
-import { ElevationGraphPointReference, ElevationGraphRange } from '../elevation-graph/elevation-graph-events';
+import { GraphPointReference, GraphRange } from '../trail-graph/graph-events';
 import { MapAnchor } from '../map/markers/map-anchor';
 
 export class TrailSelection {
@@ -16,15 +16,15 @@ export class TrailSelection {
 
   constructor(
     public readonly map$: BehaviorSubject<MapComponent | undefined>,
-    public readonly elevationGraph$: BehaviorSubject<ElevationGraphComponent | undefined>,
+    public readonly graph$: BehaviorSubject<TrailGraphComponent | undefined>,
   ) {
     this._mapClickSubscription = map$.pipe(
       switchMap(map => map?.mouseClickPoint ?? of(undefined))
     ).subscribe(click => this.mapClick(click));
-    this._elevationGraphClickSubscription = elevationGraph$.pipe(
+    this._elevationGraphClickSubscription = graph$.pipe(
       switchMap(graph => graph?.pointClick ?? of(undefined))
     ).subscribe(click => this.graphClick(click));
-    this._elevationGraphSelectedSubscription = elevationGraph$.pipe(
+    this._elevationGraphSelectedSubscription = graph$.pipe(
       switchMap(graph => graph?.selected ?? of(undefined))
     ).subscribe(range => this.graphRange(range));
     this._mapAnchorSubscription = combineLatest([map$, this.selection$])
@@ -252,7 +252,7 @@ export class TrailSelection {
     this.selectPoint(newSelection);
   }
 
-  private graphClick(event: ElevationGraphPointReference[] | undefined): void {
+  private graphClick(event: GraphPointReference[] | undefined): void {
     if (!event || event.length === 0) {
       this.cancelSelection();
       return;
@@ -261,7 +261,7 @@ export class TrailSelection {
     this.selectPoint(points);
   }
 
-  private graphRange(event: ElevationGraphRange[] | undefined): void {
+  private graphRange(event: GraphRange[] | undefined): void {
     if (!event || event.length === 0) {
       this.cancelSelection();
       return;

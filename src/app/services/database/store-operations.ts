@@ -12,21 +12,22 @@ export class StoreOperations {
     private readonly ngZone: NgZone,
   ) {}
 
-  public push(description: string, operation: () => Promise<any>): void {
-    this._queue$.value.push({description, operation});
-    if (this._inProgress$.value) return;
-    if (this.storeLoaded$.value) {
-      this.launch();
-      return;
-    }
-    if (this._queue$.value.length === 1) {
-      this._queue$.next(this._queue$.value);
-      this.storeLoaded$.pipe(
-        filter(loaded => loaded),
-        first()
-      ).subscribe(() => this.launch());
-    }
-
+  public push(description: string, operation: () => Promise<any>): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this._queue$.value.push({description, operation: () => operation().then(resolve).catch(reject)});
+      if (this._inProgress$.value) return;
+      if (this.storeLoaded$.value) {
+        this.launch();
+        return;
+      }
+      if (this._queue$.value.length === 1) {
+        this._queue$.next(this._queue$.value);
+        this.storeLoaded$.pipe(
+          filter(loaded => loaded),
+          first()
+        ).subscribe(() => this.launch());
+      }
+    });
   }
 
   public get hasPendingOperations$() { return combineLatest([this._inProgress$, this._queue$]).pipe(map(([progress, queue]) => progress || queue.length > 0)); }

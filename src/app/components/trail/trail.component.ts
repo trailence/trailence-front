@@ -10,9 +10,9 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
-import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
+import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
-import { ElevationGraphPointReference } from '../elevation-graph/elevation-graph-events';
+import { GraphPointReference } from '../trail-graph/graph-events';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
@@ -67,7 +67,7 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
         CommonModule,
         MapComponent,
         TrackMetadataComponent,
-        ElevationGraphComponent,
+        TrailGraphComponent,
         PhotoComponent,
         PhotosPopupComponent,
         I18nPipe,
@@ -102,9 +102,9 @@ export class TrailComponent extends AbstractComponent {
   tagsNames2: string[] | undefined;
   photos: Photo[] | undefined;
   photosHavingPosition: {photos: Photo[], point: L.LatLngExpression}[] | undefined;
-  elevationTrack1?: Track;
-  elevationTrack2?: Track;
-  elevationGraphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
+  graphTrack1?: Track;
+  graphTrack2?: Track;
+  graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
 
   @ViewChild(MapComponent)
   set map(child: MapComponent | undefined) {
@@ -116,15 +116,15 @@ export class TrailComponent extends AbstractComponent {
 
   map$ = new BehaviorSubject<MapComponent | undefined>(undefined);
 
-  @ViewChild(ElevationGraphComponent)
-  set elevationGraph(child: ElevationGraphComponent | undefined) {
-    this.elevationGraph$.next(child ?? undefined);
+  @ViewChild(TrailGraphComponent)
+  set graph(child: TrailGraphComponent | undefined) {
+    this.graph$.next(child ?? undefined);
   }
-  get elevationGraph() {
-    return this.elevationGraph$.value;
+  get graph() {
+    return this.graph$.value;
   }
 
-  elevationGraph$ = new BehaviorSubject<ElevationGraphComponent | undefined>(undefined);
+  graph$ = new BehaviorSubject<TrailGraphComponent | undefined>(undefined);
 
   displayMode = 'loading';
   bottomSheetOpen = true;
@@ -134,7 +134,7 @@ export class TrailComponent extends AbstractComponent {
   editable = false;
 
   hover: TrailHoverCursor;
-  selection = new TrailSelection(this.map$, this.elevationGraph$);
+  selection = new TrailSelection(this.map$, this.graph$);
 
   isExternal = false;
   isExternalOnly = false;
@@ -210,7 +210,7 @@ export class TrailComponent extends AbstractComponent {
   ) {
     super(injector);
     changesDetector.detach();
-    this.hover = new TrailHoverCursor(() => this.map, () => this.elevationGraph);
+    this.hover = new TrailHoverCursor(() => this.map, () => this.graph);
   }
 
   protected override initComponent(): void {
@@ -354,8 +354,8 @@ export class TrailComponent extends AbstractComponent {
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];
-        this.elevationTrack1 = undefined;
-        this.elevationTrack2 = undefined;
+        this.graphTrack1 = undefined;
+        this.graphTrack2 = undefined;
         if (trail1[1] && trail2[1])
           this.comparison = Math.floor(estimateSimilarity(trail1[1], trail2[1]) * 100);
         else
@@ -363,7 +363,7 @@ export class TrailComponent extends AbstractComponent {
 
         if (toolsBaseTrack && !recordingWithTrack && !trail2[0]) {
           tracks.push(toolsBaseTrack);
-          this.elevationTrack1 = toolsBaseTrack;
+          this.graphTrack1 = toolsBaseTrack;
           if (!hideBaseTrack || !toolsModifiedTrack) {
             const mapTrack = new MapTrack(undefined, toolsBaseTrack, 'red', 1, false, this.i18n);
             mapTrack.showArrowPath();
@@ -378,7 +378,7 @@ export class TrailComponent extends AbstractComponent {
         if (trail1[1] && !toolsBaseTrack) {
           tracks.push(trail1[1]);
           if (!toolsModifiedTrack || !hideBaseTrack)
-            this.elevationTrack1 = trail1[1];
+            this.graphTrack1 = trail1[1];
           if (trail1[2] && (!toolsModifiedTrack || !hideBaseTrack)) {
             mapTracks.push(trail1[2]);
             if (!toolsModifiedTrack) {
@@ -389,7 +389,7 @@ export class TrailComponent extends AbstractComponent {
           }
           if (trail2[1]) {
             tracks.push(trail2[1]);
-            this.elevationTrack2 = trail2[1];
+            this.graphTrack2 = trail2[1];
             if (trail2[2]) {
               trail2[2].color = 'blue';
               mapTracks.push(trail2[2]);
@@ -403,9 +403,9 @@ export class TrailComponent extends AbstractComponent {
         if (recordingWithTrack && !trail2[0]) {
           tracks.push(recordingWithTrack.track);
           if (trail1[1])
-            this.elevationTrack2 = recordingWithTrack.track;
+            this.graphTrack2 = recordingWithTrack.track;
           else
-            this.elevationTrack1 = recordingWithTrack.track;
+            this.graphTrack1 = recordingWithTrack.track;
           const mapTrack = new MapTrack(recordingWithTrack.recording.trail, recordingWithTrack.track, 'blue', 1, true, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
           mapTrack.showArrowPath();
@@ -416,10 +416,10 @@ export class TrailComponent extends AbstractComponent {
           this.toolsOriginalTrack$.next(trail1[1]);
           if (toolsModifiedTrack) {
             tracks.push(toolsModifiedTrack);
-            if (this.elevationTrack1)
-              this.elevationTrack2 = toolsModifiedTrack;
+            if (this.graphTrack1)
+              this.graphTrack2 = toolsModifiedTrack;
             else
-              this.elevationTrack1 = toolsModifiedTrack;
+              this.graphTrack1 = toolsModifiedTrack;
             const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n, hideBaseTrack ? 3 : 2);
             mapTrack.showDepartureAndArrivalAnchors();
             mapTrack.showWayPointsAnchors();
@@ -439,8 +439,8 @@ export class TrailComponent extends AbstractComponent {
               if (bounds === undefined) bounds = track.metadata.bounds;
               else bounds = bounds.extend(track.metadata.bounds);
             }
-            if (i === 0) this.elevationTrack1 = track;
-            else if (i === 1) this.elevationTrack2 = track;
+            if (i === 0) this.graphTrack1 = track;
+            else if (i === 1) this.graphTrack2 = track;
           }
           if (bounds) {
             bounds = bounds.pad(0.05);
@@ -454,7 +454,7 @@ export class TrailComponent extends AbstractComponent {
 
         this.editable = !this.trail2 && !!this.trail1 && this.trail1.owner === this.auth.email;
         if (toolsModifiedTrack)
-          this.elevationGraph?.resetChart();
+          this.graph?.resetChart();
         this.toolbar?.refresh();
         this.refreshMapToolbarTop();
         this.changesDetector.detectChanges();
@@ -675,8 +675,8 @@ export class TrailComponent extends AbstractComponent {
       r => {
         previousDistance = r ? r.track.metadata.distance : 0;
         const pt = r?.track.arrivalPoint;
-        if (pt && this.elevationGraph) {
-          this.elevationGraph.updateRecording(r.track);
+        if (pt && this.graph) {
+          this.graph.updateRecording(r.track);
         }
       }, true
     );
@@ -759,6 +759,7 @@ export class TrailComponent extends AbstractComponent {
       this.displayMode = 'large edit-tools-on-right';
       this.toolsVertical = true;
       this.isSmall = false;
+      if (this.bottomSheetTab === 'info') this.bottomSheetTab = 'elevation';
       this.updateVisibility(true, this.bottomSheetOpen);
     } else {
       this.displayMode = h > 500 || w < 500 ? 'small' : 'small small-height bottom-sheet-tab-open-' + this.bottomSheetTab;
@@ -770,7 +771,7 @@ export class TrailComponent extends AbstractComponent {
         this.toolsVertical = true;
       }
       this.isSmall = true;
-      this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation');
+      this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
     }
     this.changesDetector.detectChanges();
   }
@@ -778,7 +779,7 @@ export class TrailComponent extends AbstractComponent {
   private updateVisibility(mapVisible: boolean, graphVisible: boolean): void {
     this._children$.value.forEach(child => {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
-      else if (child instanceof ElevationGraphComponent) child.setVisible(graphVisible);
+      else if (child instanceof TrailGraphComponent) child.setVisible(graphVisible);
       else if (child instanceof TrackMetadataComponent) {
         // nothing
       }
@@ -813,8 +814,8 @@ export class TrailComponent extends AbstractComponent {
     this.hover.mouseOverPointOnMap(MapTrackPointReference.closest(event));
   }
 
-  elevationGraphPointHover(references: ElevationGraphPointReference[]) {
-    this.hover.elevationGraphPointHover(references);
+  elevationGraphPointHover(references: GraphPointReference[]) {
+    this.hover.graphPointHover(references);
   }
 
   mouseClickOnMap(event: MapTrackPointReference[]) {
@@ -1122,7 +1123,7 @@ export class TrailComponent extends AbstractComponent {
     this.toolsStack = stack;
     if (hadTools != hasTools) {
       setTimeout(() => {
-        this.elevationGraph?.resetChart();
+        this.graph?.resetChart();
         this.map?.invalidateSize();
       }, 500);
     }
@@ -1137,10 +1138,10 @@ export class TrailComponent extends AbstractComponent {
   }
 
   setZoomButtonPosition(pos: {x: number, y: number} | undefined): void {
-    if ((pos && !this.elevationGraphZoomButtonPosition.value) ||
-        (!pos && this.elevationGraphZoomButtonPosition.value) ||
-        (pos && this.elevationGraphZoomButtonPosition.value && pos.x !== this.elevationGraphZoomButtonPosition.value.x && pos.y !== this.elevationGraphZoomButtonPosition.value.y)) {
-      this.elevationGraphZoomButtonPosition.next(pos);
+    if ((pos && !this.graphZoomButtonPosition.value) ||
+        (!pos && this.graphZoomButtonPosition.value) ||
+        (pos && this.graphZoomButtonPosition.value && pos.x !== this.graphZoomButtonPosition.value.x && pos.y !== this.graphZoomButtonPosition.value.y)) {
+      this.graphZoomButtonPosition.next(pos);
       this.changesDetector.detectChanges();
     }
   }

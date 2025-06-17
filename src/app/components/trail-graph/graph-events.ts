@@ -1,6 +1,6 @@
 import { Track } from 'src/app/model/track';
 
-export class ElevationGraphPointReference {
+export class GraphPointReference {
 
   constructor(
     public track: Track,
@@ -16,10 +16,10 @@ export class ElevationGraphPointReference {
 
 }
 
-export class ElevationGraphRange {
+export class GraphRange {
   constructor(
     public track: Track,
-    public start: ElevationGraphPointReference,
-    public end: ElevationGraphPointReference,
+    public start: GraphPointReference,
+    public end: GraphPointReference,
   ) {}
 }

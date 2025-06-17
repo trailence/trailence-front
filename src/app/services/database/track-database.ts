@@ -1,4 +1,4 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, switchMap, tap, zip } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, distinctUntilChanged, first, from, map, of, switchMap, tap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
 import { DatabaseService } from "./database.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
@@ -110,6 +110,7 @@ export class TrackDatabase {
   private db?: Dexie;
   private openEmail?: string;
   private preferencesSubscription?: Subscription;
+  private databaseServiceSubscription?: Subscription;
   private readonly ngZone: NgZone;
   private readonly syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
   private readonly _errors: StoreErrors;
@@ -132,6 +133,8 @@ export class TrackDatabase {
         this.syncStatus$.next(null);
         this.preferencesSubscription?.unsubscribe();
         this.preferencesSubscription = undefined;
+        this.databaseServiceSubscription?.unsubscribe();
+        this.databaseServiceSubscription = undefined;
         this.metadataKeysToLoad.clear();
         this.simplifiedKeysToLoad.clear();
         for (const s of this.metadata.values()) s.close();
@@ -160,8 +163,23 @@ export class TrackDatabase {
       this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks');
       this.fullTrackTable = db.table<TrackItem, string>('full_tracks');
       this.db = db;
-      this.initStatus();
-      this.listenPreferences();
+      let init = false;
+      this.databaseServiceSubscription = this.injector.get(DatabaseService).db$.subscribe(
+        versionedDb => {
+          if (init || !versionedDb) return;
+          init = true;
+          this.initStatus();
+          const currentVersion = versionedDb.tablesVersion['tracks'];
+          console.log(currentVersion, versionedDb.tablesVersion)
+          let promise$ = Promise.resolve();
+          if (!currentVersion || currentVersion < 1703) {
+            promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1703));
+          }
+          promise$.then(() => {
+            this.listenPreferences();
+          });
+        }
+      );
     });
   }
 
@@ -215,39 +233,59 @@ export class TrackDatabase {
         }
 
         if (speedChanged || breaksChanged) {
-          if (!this.db || !this.metadataTable || !this.fullTrackTable) return;
-          Console.info('Preferences changed, recompute estimated time/breaks duration of trails', speedChanged, breaksChanged);
-          this.operations.push('Update trails metadata', () => this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
-            let count = 0;
-            let countInMemory = 0;
-            return this.fullTrackTable?.each(trackItem => {
-              if (!trackItem.track || trackItem.version === -1) return;
-              count++;
-              const track = new Track(trackItem.track, this.injector.get(PreferencesService));
-              let meta$ = this.metadata.get(trackItem.key);
-              if (meta$?.loadedValue) {
-                countInMemory++;
-                const meta = meta$.loadedValue;
-                if (speedChanged) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
-                if (breaksChanged) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
-                meta$.newValue({...meta});
-                this.metadataTable?.put({
-                  key: trackItem.key,
-                  ...meta
-                });
-              } else {
-                this.metadataTable?.put({
-                  key: trackItem.key,
-                  ...TrackDatabase.toMetadata(track)
-                });
-              }
-            }).then(() => {
-              Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
-            });
-          }));
+          this.recomputeMetadata(speedChanged, breaksChanged);
         }
       }
     );
+  }
+
+  public recomputeMetadata(updateTimeEstimation: boolean, updateBreakTime: boolean): Promise<any> {
+    if (!this.db || !this.metadataTable || !this.fullTrackTable) return Promise.resolve();
+    Console.info('Preferences changed, recompute estimated time/breaks duration of trails', updateTimeEstimation, updateBreakTime);
+    let workAmount = 1000;
+    const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.recompute_metadata, workAmount);
+    return this.operations.push('Update trails metadata', () => {
+      let count = 0;
+      let countInMemory = 0;
+      return this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
+        return this.metadataTable?.count()
+        .then(countFromTable => {
+          const step = countFromTable > 0 ? workAmount * 1.0 / countFromTable : workAmount;
+          return this.fullTrackTable?.each(trackItem => {
+            if (!trackItem.track || trackItem.version === -1) return;
+            count++;
+            const track = new Track(trackItem.track, this.injector.get(PreferencesService));
+            let meta$ = this.metadata.get(trackItem.key);
+            if (meta$?.loadedValue) {
+              countInMemory++;
+              const meta = meta$.loadedValue;
+              if (updateTimeEstimation) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
+              if (updateBreakTime) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
+              meta$.newValue({...meta});
+              this.metadataTable?.put({
+                key: trackItem.key,
+                ...meta
+              });
+            } else {
+              this.metadataTable?.put({
+                key: trackItem.key,
+                ...TrackDatabase.toMetadata(track)
+              });
+            };
+            progress.addWorkDone(Math.min(workAmount, step));
+            workAmount -= step;
+          });
+        });
+      })
+      .then(() => {
+        Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
+        progress.done();
+      })
+      .catch(e => {
+        Console.error('Error updating tracks metadata', e);
+        progress.done();
+      });
+    });
   }
 
   public cleanDatabase(db: Dexie, email: string): Observable<any> {

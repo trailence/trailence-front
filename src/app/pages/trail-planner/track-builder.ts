@@ -412,7 +412,7 @@ export class TrackBuilder {
       this.estimatedTime = estimateTimeForTrack(this.track!, this.injector.get(PreferencesService).preferences);
       this.hasElevation = this.track!.forEachPoint(p => p.ele !== undefined) ?? false;
       if (this.hasElevation)
-        this.planner.updateElevationGraph(this.track!);
+        this.planner.updateGraph(this.track!);
     });
   }
 

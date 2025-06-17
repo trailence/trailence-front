@@ -99,6 +99,7 @@ export class OfflineMapService {
   }
 
   public computeContent(): Observable<{items: number, size: number}> {
+    const startTime = Date.now();
     return combineLatest(this.layers.layers.map(layer => this.computeLayerContent(layer.name))).pipe(
       map(list => {
         const result = {items: 0, size: 0};
@@ -106,6 +107,7 @@ export class OfflineMapService {
           result.items += layer.items;
           result.size += layer.size;
         }
+        Console.info('Offline map counters computed in ' + (Date.now() - startTime) + 'ms.', result);
         return result;
       })
     );
@@ -119,11 +121,11 @@ export class OfflineMapService {
       result.items = count;
       if (count === 0) return result;
       const next = (i: number): Promise<void> => {
-        const next$ = t.offset(i).limit(i + 10000 > count ? count - i : 10000).toArray()
+        const next$ = t.offset(i).limit(i + 50000 > count ? count - i : 50000).toArray()
           .then(items => {
             for (const item of items) result.size += item.size;
           });
-        return i + 10000 > count ? next$ : next$.then(() => next(i + 10000));
+        return i + 50000 > count ? next$ : next$.then(() => next(i + 50000));
       };
       return next(0).then(() => result);
     }));
@@ -133,7 +135,7 @@ export class OfflineMapService {
     this.geoService.findWays(bounds, true).subscribe(
       ways => {
         if (!this._db) return;
-        this._db.table('osm_restricted_ways').bulkAdd(ways.map(w => ({...w, date: Date.now()})));
+        this._db.table('osm_restricted_ways').bulkPut(ways.map(w => ({...w, date: Date.now()})));
       }
     );
   }
@@ -375,7 +377,7 @@ class Saver {
         return;
       }
       const nbPoints = Math.min(100, paths.length - index);
-      const workAmount = index + nbPoints === paths.length ? work : nbPoints * paths.length - index / work;
+      const workAmount = index + nbPoints === paths.length ? work : nbPoints * work / (paths.length - index);
       work -= workAmount;
       for (let i = index; i < index + nbPoints; ++i) {
         const pos = paths[i];
@@ -431,7 +433,7 @@ class Saver {
       for (let i = startIndex; i < startIndex + 1000 && i < tiles.length; ++i) {
         const c = tiles[i];
         (c as any)['z'] = zoomLevel;
-        const key = '' + zoomLevel + '_' + c.y + '_' + c.x;
+        const key = this.getDbKey(c.x, c.y, zoomLevel);
         requests.push(this.limiter.add(() =>
           this.mapLayerService.getBlob(this.layer, this.layer.getTileUrl(this.tileLayer, c as L.Coords, this.crs))
           .pipe(

@@ -31,6 +31,7 @@ export class PreferencesPage extends PageWithHeader {
   }
 
   public async getPhotosSizes() {
+    await this.getElement().$('ion-button#button-remove-all-photos').scrollIntoView({block: 'center', inline: 'center'});
     const cells = await this.getElement().$('div.title=Downloaded photos').parentElement().$$('table tr td').getElements();
     const sizes: string[] = [];
     for (const cell of cells) {

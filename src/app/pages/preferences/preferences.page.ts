@@ -1,7 +1,7 @@
 import { Component, NgZone, OnDestroy } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput } from "@ionic/angular/standalone";
+import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput, IonSpinner } from "@ionic/angular/standalone";
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DateFormat, DistanceUnit, HourFormat, ThemeType } from 'src/app/services/preferences/preferences';
 import { FormsModule } from '@angular/forms';
@@ -13,12 +13,13 @@ import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-numeric-custom/filter-numeric-custom.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { IdGenerator } from 'src/app/utils/component-utils';
 
 @Component({
     selector: 'app-preferences',
     templateUrl: './preferences.page.html',
     styleUrls: ['./preferences.page.scss'],
-    imports: [
+    imports: [IonSpinner,
       IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon,
       HeaderComponent, FormsModule, CommonModule,
       FilterNumericCustomComponent,
@@ -26,6 +27,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 })
 export class PreferencesPage implements OnDestroy {
 
+  id = IdGenerator.generateId();
   timestamp = new Date(2001, 11, 27, 18, 36, 42).getTime();
   minutesFormatter = (value: number) => (value / 60000).toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits:0}) + 'm';
   fileSizeFormatter = (value: number) => this.i18n.sizeToString(value * 1024, 0, 2);
@@ -182,6 +184,7 @@ export class PreferencesPage implements OnDestroy {
   }
 
   private updateOfflineMapCounters(): void {
+    this.offlineMapCounters = undefined;
     this.compute('offline-map-counters', () => new Promise(resolve => {
       this.offlineMaps.computeContent().subscribe({
         next: counters => {
@@ -218,6 +221,7 @@ export class PreferencesPage implements OnDestroy {
   }
 
   private updatePhotoCacheSize(): void {
+    this.photoCacheSize = undefined;
     this.compute('photo-cache-size', () => new Promise(resolve => {
       this.ngZone.runOutsideAngular(() => {
         this.photoService.getTotalCacheSize(Date.now() - this.preferences.preferences.photoCacheDays * 24 * 60 * 60 * 1000)
@@ -240,8 +244,29 @@ export class PreferencesPage implements OnDestroy {
 
   private compute$ = Promise.resolve(true);
   private computeCounter: {[key: string]: number} = {};
+  private computeObservers: {[key: string]: IntersectionObserver} = {};
 
   private compute(type: string, operation: () => Promise<boolean>): void {
+    const element = document.getElementById(this.id + '-' + type);
+    if (!element) {
+      setTimeout(() => this.compute(type, operation), 100);
+      return;
+    }
+    let observer = this.computeObservers[type];
+    if (observer) return;
+    observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        observer.disconnect();
+        setTimeout(() => this.doCompute(observer, type, operation), 0);
+      }
+    });
+    this.computeObservers[type] = observer;
+    observer.observe(element);
+  }
+
+  private doCompute(observer: IntersectionObserver, type: string, operation: () => Promise<boolean>): void {
+    if (this.computeObservers[type] !== observer) return;
+    delete this.computeObservers[type];
     const counter = (this.computeCounter[type] ?? 0) + 1;
     this.computeCounter[type] = counter;
     this.compute$ = this.compute$.then(() => {

@@ -37,9 +37,10 @@
     </app-map>
   </div>
   <div class="elevation-graph-container">
-    <app-elevation-graph [track1]="trackBuilder!.track!" *ngIf="!!trackBuilder?.hasElevation && bottomTab === 'elevation'"
-      (pointHover)="elevationGraphPointHover($event)"
-    ></app-elevation-graph>
+    <app-trail-graph [track1]="trackBuilder!.track!" *ngIf="!!trackBuilder?.hasElevation && bottomTab === 'elevation'"
+      (pointHover)="graphPointHover($event)"
+      graphType="elevation"
+    ></app-trail-graph>
   </div>
 
   <div class="left-pane {{leftPaneOpen ? 'open': 'closed'}}">

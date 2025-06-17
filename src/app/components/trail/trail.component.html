@@ -71,12 +71,15 @@
     <div class="bottom-sheet-button" (click)="toggleBottomSheet()">
       <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'"></ion-icon>
     </div>
-    <div class="bottom-sheet-tabs" *ngIf="isSmall">
-      <div class="bottom-sheet-tab {{bottomSheetTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('info')">
+    <div class="bottom-sheet-tabs" *ngIf="bottomSheetOpen">
+      <div class="bottom-sheet-tab {{bottomSheetTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('info')" *ngIf="isSmall">
         <ion-icon name="info"></ion-icon>
       </div>
       <div class="bottom-sheet-tab {{bottomSheetTab === 'elevation' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('elevation')">
         <ion-icon name="elevation"></ion-icon>
+      </div>
+      <div class="bottom-sheet-tab {{bottomSheetTab === 'speed' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('speed')">
+        <ion-icon name="speed"></ion-icon>
       </div>
     </div>
   </div>
@@ -377,20 +380,21 @@
         </ng-template>
       }
     </div>
-    <div class="elevation-container">
-      <app-elevation-graph
-        #elevationGraph
-        [track1]="elevationTrack1 || tracks[0]"
-        [track2]="elevationTrack2"
+    <div class="graph-container">
+      <app-trail-graph
+        #graph
+        [track1]="graphTrack1 || tracks[0]"
+        [track2]="graphTrack2"
         (pointHover)="elevationGraphPointHover($event)"
         [selectable]="!selection.zoom$.value"
         [selection]="selection.selection$.value"
+        [graphType]="bottomSheetTab === 'speed' ? 'speed' : 'elevation'"
         (zoomButtonPosition)="setZoomButtonPosition($event)"
-      ></app-elevation-graph>
+      ></app-trail-graph>
       <ion-button
-        *ngIf="elevationGraphZoomButtonPosition.value !== undefined"
+        *ngIf="graphZoomButtonPosition.value !== undefined"
         class="zoom-button"
-        [ngStyle]="{'top': elevationGraphZoomButtonPosition.value.y + 'px', 'left': elevationGraphZoomButtonPosition.value.x + 'px'}"
+        [ngStyle]="{'top': graphZoomButtonPosition.value.y + 'px', 'left': graphZoomButtonPosition.value.x + 'px'}"
         shape="round"
         size="small"
         (click)="selection.toggleZoom()"
@@ -398,8 +402,8 @@
         <ion-icon [name]="selection.zoom$.value ? 'zoom-out' : 'zoom-in'" slot="icon-only"></ion-icon>
       </ion-button>
     </div>
-    <div class="bottom-sheet-info-content">
-      <div class="metadata-container tiles" *ngIf="tracks[0] && isSmall && bottomSheetTab === 'info'">
+    <div class="bottom-sheet-info-content" *ngIf="tracks[0] && isSmall && bottomSheetTab === 'info' && tab === 'map'">
+      <div class="metadata-container tiles">
         <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>

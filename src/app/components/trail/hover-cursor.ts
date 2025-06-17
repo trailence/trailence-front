@@ -1,5 +1,5 @@
-import { ElevationGraphPointReference } from '../elevation-graph/elevation-graph-events';
-import { ElevationGraphComponent } from '../elevation-graph/elevation-graph.component';
+import { GraphPointReference } from '../trail-graph/graph-events';
+import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapComponent } from '../map/map.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 
@@ -7,7 +7,7 @@ export class TrailHoverCursor {
 
   constructor(
     private readonly getMap: () => MapComponent | undefined,
-    private readonly getElevationGraph: () => ElevationGraphComponent | undefined,
+    private readonly getGraph: () => TrailGraphComponent | undefined,
   ) {}
 
   private _hoverCursor: {pos: L.LatLngExpression}[] = [];
@@ -21,18 +21,18 @@ export class TrailHoverCursor {
 
   mouseOverPointOnMap(event?: MapTrackPointReference) {
     this.resetHover();
-    this.getElevationGraph()?.hideCursor();
+    this.getGraph()?.hideCursor();
     if (event) {
       const pos = event.position;
       if (pos) {
         this.getMap()?.cursors.addCursor(pos);
-        this.getElevationGraph()?.showCursorForPosition(pos.lat, pos.lng);
+        this.getGraph()?.showCursorForPosition(pos.lat, pos.lng);
         this._hoverCursor.push({pos});
       }
     }
   }
 
-  elevationGraphPointHover(references: ElevationGraphPointReference[]) {
+  graphPointHover(references: GraphPointReference[]) {
     this.resetHover();
     references.forEach(pt => {
       const pos = pt.pos;

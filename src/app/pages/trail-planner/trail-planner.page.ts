@@ -18,13 +18,13 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Router } from '@angular/router';
-import { ElevationGraphComponent } from 'src/app/components/elevation-graph/elevation-graph.component';
+import { TrailGraphComponent } from 'src/app/components/trail-graph/trail-graph.component';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailOverviewCondensedComponent } from 'src/app/components/trail-overview/condensed/trail-overview-condensed.component';
 import { TrackBuilder, WAY_MAPTRACK_FORBIDDEN_COLOR, WAY_MAPTRACK_PERMISSIVE_COLOR } from './track-builder';
 import { Trails } from './trails';
 import { TrailHoverCursor } from 'src/app/components/trail/hover-cursor';
-import { ElevationGraphPointReference } from 'src/app/components/elevation-graph/elevation-graph-events';
+import { GraphPointReference } from 'src/app/components/trail-graph/graph-events';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { ToolbarComponent } from 'src/app/components/menus/toolbar/toolbar.component';
@@ -36,7 +36,7 @@ import { ToolbarComponent } from 'src/app/components/menus/toolbar/toolbar.compo
     imports: [
       IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader,
       IonModal, IonLabel, IonToggle, IonIcon, IonButton,
-      HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, ElevationGraphComponent,
+      HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, TrailGraphComponent,
       TrailOverviewCondensedComponent, ToolbarComponent
     ]
 })
@@ -51,7 +51,7 @@ export class TrailPlannerPage extends AbstractPage {
   minZoom = 14;
 
   map?: MapComponent;
-  @ViewChild(ElevationGraphComponent) elevationGraph?: ElevationGraphComponent;
+  @ViewChild(TrailGraphComponent) graph?: TrailGraphComponent;
 
   trailName = '';
   collectionUuid?: string;
@@ -109,7 +109,7 @@ export class TrailPlannerPage extends AbstractPage {
     private readonly changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
-    this.hover = new TrailHoverCursor(() => this.map, () => this.elevationGraph);
+    this.hover = new TrailHoverCursor(() => this.map, () => this.graph);
     this.whenAlive.add(collectionService.getAll$().pipe(
       collection$items(),
     ).subscribe(
@@ -180,8 +180,8 @@ export class TrailPlannerPage extends AbstractPage {
       this.map?.goTo(place.lat, place.lng, 14);
   }
 
-  updateElevationGraph(track: Track): void {
-    const graph = this._children$.value.find(c => c instanceof ElevationGraphComponent) as ElevationGraphComponent;
+  updateGraph(track: Track): void {
+    const graph = this._children$.value.find(c => c instanceof TrailGraphComponent) as TrailGraphComponent;
     if (graph) {
       graph.updateTrack(track);
     }
@@ -218,8 +218,8 @@ export class TrailPlannerPage extends AbstractPage {
       this.hover.mouseOverPointOnMap(closest);
   }
 
-  elevationGraphPointHover(references: ElevationGraphPointReference[]) {
-    this.hover.elevationGraphPointHover(references);
+  graphPointHover(references: GraphPointReference[]) {
+    this.hover.graphPointHover(references);
   }
 
   setBottomTab(tab: 'info' | 'elevation'): void {

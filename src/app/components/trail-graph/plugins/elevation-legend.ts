@@ -6,9 +6,9 @@ const width = 25;
 const height = 15;
 const space = 1;
 
-export class LegendPlugin implements C.Plugin<"line"> {
+export class ElevationLegendPlugin implements C.Plugin<"line"> {
 
-  id = 'trailence-legend';
+  id = 'trailence-elevation-legend';
 
   constructor(
     private readonly gradeColors: string[],

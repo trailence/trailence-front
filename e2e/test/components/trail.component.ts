@@ -270,7 +270,7 @@ export class TrailComponent extends Component {
     } else {
       await this.openBottomSheet();
     }
-    const graph = new ElevationGraph(this.getElement().$('div.elevation-container app-elevation-graph'));
+    const graph = new ElevationGraph(this.getElement().$('div.graph-container app-trail-graph'));
     await graph.waitDisplayed(true);
     return graph;
   }
