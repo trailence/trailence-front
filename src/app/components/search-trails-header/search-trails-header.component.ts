@@ -20,6 +20,8 @@ export class SearchTrailsHeaderComponent implements OnInit, OnDestroy {
   @Input() searching!: boolean;
   @Input() searchEnabled!: boolean;
   @Output() search = new EventEmitter<string[]>();
+  @Input() clearEnabled!: boolean;
+  @Output() clear = new EventEmitter<any>();
 
   availablePlugins: FetchSourcePlugin[] = [];
   selectedPlugins: string[] = [];
@@ -45,6 +47,10 @@ export class SearchTrailsHeaderComponent implements OnInit, OnDestroy {
 
   launchSearch(): void {
     this.search.emit(this.selectedPlugins);
+  }
+
+  launchClear(): void {
+    this.clear.emit(true);
   }
 
 }

@@ -5,6 +5,8 @@
     [searching]="searching"
     [searchEnabled]="canSearch"
     (search)="doSearch($event)"
+    [clearEnabled]="hasSearchResult"
+    (clear)="clearSearchResult()"
   >
   </app-search-trails-header>
 }

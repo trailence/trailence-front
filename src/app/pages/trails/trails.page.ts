@@ -54,6 +54,7 @@ export class TrailsPage extends AbstractPage {
   searching = false;
   canSearch = false;
   searchMessage?: string;
+  hasSearchResult = false;
 
   private readonly _trailsAndMap$ = new BehaviorSubject<TrailsAndMapComponent | undefined>(undefined);
 
@@ -232,12 +233,14 @@ export class TrailsPage extends AbstractPage {
           this.setSearchBounds(this.searchBounds);
         }
         if (result.tooManyResults) this.searchMessage = 'pages.trails.search.too_much_results';
+        if (result.trails.length > 0) this.hasSearchResult = true;
       });
     };
     this.ngZone.run(() => {
       this.searching = true;
       this.canSearch = false;
       this.searchMessage = undefined;
+      this.hasSearchResult = false;
     });
     this.injector.get(FetchSourceService).searchByArea(this.searchBounds!, 200, plugins).subscribe({ // NOSONAR
       next: result => fillResults(result),
@@ -247,6 +250,13 @@ export class TrailsPage extends AbstractPage {
         this.searching = false;
         this.setSearchBounds(this.searchBounds);
       }
+    });
+  }
+
+  clearSearchResult(): void {
+    this.ngZone.run(() => {
+      this.hasSearchResult = false;
+      this.trails$.next(List());
     });
   }
 
