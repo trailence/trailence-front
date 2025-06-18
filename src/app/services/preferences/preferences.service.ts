@@ -25,7 +25,7 @@ const defaultPreferences: {[key:string]: Preferences} = {
 
 const LOCALSTORAGE_PREFERENCES_KEY = 'trailence.preferences';
 
-const DEFAULT_TRACE_MIN_METERS = 5;
+const DEFAULT_TRACE_MIN_METERS = 3;
 const DEFAULT_TRACE_MIN_MILLIS = 5000;
 
 const DEFAULT_OFFLINE_MAP_MAX_KEEP_DAYS = 300;

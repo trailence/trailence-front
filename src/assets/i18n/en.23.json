@@ -347,7 +347,7 @@
       "traceMinMeters": "Minimum distance between each recorded point",
       "traceMinMeters_explaination": "If the value is too low, the track quality may decrease due to GPS imprecision.<br/>A value that is too high also lead to a low-quality track with long straight lines.<br/>Additionally, shorter distances result in more recorded points, which can increase battery consumption.<br/>We recommend setting the value between 5 and 15 meters (approximately 16 to 50 foot) for a good balance.",
       "traceMinMillis": "Minimum time between each recorded point",
-      "traceMinMillis_explaination": "To limit the number of recorded points and reduce battery consumption, you can increase the minimum time between each point. Both the minimum time and minimum distance must be met before recording a new point.<br/>We recommend setting it to 5 seconds.",
+      "traceMinMillis_explaination": "To limit the number of recorded points and reduce battery consumption, you can increase the minimum time between each point. Both the minimum time and minimum distance must be met before recording a new point.<br/>We recommend setting it between 2 and 5 seconds.",
       "offline_map": "Offline maps",
       "offlineMapMaxKeepDays": "Number of days a downloaded map is valid",
       "offlineMapMaxKeepDays_explaination": "When you download a map to make it available offline, this setting defines how long it will be retained. It also prevents re-downloading a map if it was recently downloaded, saving time.",
@@ -376,10 +376,10 @@
       "time_calculation": {
         "title": "Calculation of hike duration",
         "base_speed": "Speed on flat terrain",
-        "base_speed_explaination": "This speed is used to estimate the hike duration. It is weighted according to the elevation and duration.",
+        "base_speed_explaination": "This speed is used to estimate the hike duration. It is weighted according to the elevation and duration. By default the value is 3.1 mi/h (5 km/h), which corresponds to the average speed of a hiker.",
         "long_breaks_title": "Detection of long stops",
-        "long_break_explaination": "A stop is considered long if you remain within the configured perimeter for longer than the minimum stop time. During a long stop, we count the minimum time as part of the hike duration, while the rest is treated as stop time.",
-        "long_break_minimum_duration": "Minimum stop time",
+        "long_break_explaination": "When displaying a hike's duration, we distinguish short stops (to take a break, admire the view, etc.) and long stops (like a picnic).<br/><br/>Short stops are included in the total duration, as it's normal to have brief pauses. However, when a long stop is detected, it's duration is deducted from the hike time so the time shown doesn't depend on how long you took a nap 😉. The deducted time appears in the <i>Breaks</i> section.<br/><br/>To detect long stops, you can configure two parameters: a perimeter and a minimum duration. A stop is considered long when you stay within this perimeter for at least the set minimum time.",
+        "long_break_minimum_duration": "Minimum stop duration",
         "long_break_maximum_distance": "Maximum perimeter"
       },
       "reset_all": "Restore all settings to default"

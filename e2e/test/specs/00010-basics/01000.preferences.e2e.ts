@@ -85,7 +85,7 @@ describe('Preferences', () => {
 
   it('Change speed', async () => {
     const preferences = await goToPreferences('Preferences');
-    await (await preferences.getRangeByTitle('Speed on flat terrain')).setValue(10);
+    await (await preferences.getInputByTitle('Speed on flat terrain')).setValue('4.35');
     const collection = await goToCollection('My Trails');
     await TestUtils.retry(
       async () => await checkTrail(await collection.trailsAndMap.openTrailsList(), expectedDateEn, 'Duration', '3h12 (≈ 1h45)', 'Distance', '5.335 mi', 'Ascent', '+ 1,007 ft', 'Descent', '- 925 ft'),

@@ -156,11 +156,20 @@
       <div class="title">{{i18n.texts.pages.preferences.time_calculation.base_speed}}</div>
       <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.time_calculation.base_speed_explaination"></div>
       <div class="value">
-        <app-filter-numeric-custom
-          [config]="baseSpeedConfig"
-          [value]="preferences.preferences.estimatedBaseSpeed"
-          (valueChange)="setEstimatedBaseSpeed($event)"
-        ></app-filter-numeric-custom>
+        <ion-input
+          type="number"
+          step="0.1"
+          min="0.1"
+          max="99.9"
+          [value]="i18n.getSpeedInUserUnit(preferences.preferences.estimatedBaseSpeed)"
+          [label]="i18n.shortUserSpeedUnit()"
+          labelPlacement="end"
+          fill="solid"
+          class="small"
+          style="width: 175px;"
+          color="tertiary"
+          (ionChange)="setEstimatedBaseSpeed($event.detail.value)"
+        ></ion-input>
       </div>
     </div>
   </div>

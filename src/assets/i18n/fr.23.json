@@ -347,7 +347,7 @@
       "traceMinMeters": "Distance minimum entre chaque point enregistré",
       "traceMinMeters_explaination": "Une valeur trop faible risque de donner une trace de mauvaise qualité dû à l'imprécision des GPS.<br/>Une valeur trop élevée risque également de donner une trace de mauvaise qualité avec de grands traits.<br/>Il faut également prendre en compte que plus la distance est faible, plus le nombre de points enregistrés sera élevé, ce qui peut avoir un impact sur la consommation de la batterie pendant l'enregistrement.<br/>Pour un bon compromis, nous recommendons un valeur entre 5 et 15 mètres (soit environ 16 à 50 pieds).",
       "traceMinMillis": "Temps minimum entre chaque point enregistré",
-      "traceMinMillis_explaination": "Si vous souhaitez limiter le nombre de points enregistrés, afin de réduire la consommation de la batterie, vous pouvez utiliser un temps minimum plus long entre chaque point.<br/>La distance minimum entre chaque point est également prise en compte, il faudra alors que la distance minimum soit atteinte ET que le temps minimum soit atteint avant d'enregistrer un nouveau point.<br/>Nous recommendons une valeur de 5 secondes.",
+      "traceMinMillis_explaination": "Si vous souhaitez limiter le nombre de points enregistrés, afin de réduire la consommation de la batterie, vous pouvez utiliser un temps minimum plus long entre chaque point.<br/>La distance minimum entre chaque point est également prise en compte, il faudra alors que la distance minimum soit atteinte ET que le temps minimum soit atteint avant d'enregistrer un nouveau point.<br/>Nous recommendons une valeur entre 2 et 5 secondes.",
       "offline_map": "Cartes hors-ligne",
       "offlineMapMaxKeepDays": "Nombre de jours de validité d'une carte téléchargée",
       "offlineMapMaxKeepDays_explaination": "Lorsque vous téléchargez une carte pour la rendre disponible hors-ligne, ce paramètre indique combien de jours elle sera conservée. Cela permet également de ne pas télécharger un élément de carte s'il a déjà été téléchargé récemment, faisant ainsi gagner du temps lors du téléchargement.",
@@ -376,10 +376,10 @@
       "time_calculation": {
         "title": "Calcul des temps de parcours",
         "base_speed": "Vitesse de base sur un terrain plat",
-        "base_speed_explaination": "Cette vitesse est utilisée pour l'estimation des temps de parcours. Elle est pondérée en fonction du dénivelé et du temps de parcours.",
-        "long_breaks_title": "Détection des arrêts longs",
-        "long_break_explaination": "Un arrêt est considéré comme long lorsque vous êtes resté dans le périmètre configuré pendant plus du temps minimum d'arrêt. Lorsqu'un arrêt long est détecté, nous conservons le temps minimum dans le temps normal de parcours, le reste est considéré comme un temps d'arrêt en dehors du temps normal de parcours.",
-        "long_break_minimum_duration": "Temps minimum d'arrêt",
+        "base_speed_explaination": "Cette vitesse est utilisée pour l'estimation des temps de parcours. Elle est pondérée en fonction du dénivelé et du temps de parcours. Par défaut la valeur est de 5 km/h (3.1 mi/h), ce qui correspond à la vitesse moyenne d'un randonneur.",
+        "long_breaks_title": "Détection des pauses longues",
+        "long_break_explaination": "Lorsque nous affichons le temps d'un parcours, nous distinguons les pauses courtes (par exemple pour se rafraîchir, admirer la vue, ...) et les pauses longues (par exemple pour pique-niquer).<br/><br/>Les pauses courtes font partie du temps de parcours affiché, car il est normal de les inclure. En revanche, lorsqu'une pause longue est détectée, son temps est déduit du temps de parcours, afin que le temps affiché ne dépende pas de la durée de votre sieste 😉. Le temps ainsi décompté est affiché dans la partie <i>Pauses</i>.<br/><br/>Pour détecter les pauses longues, vous pouvez configurez 2 paramètres: un périmètre et une durée minimum. Une pause sera alors considérée comme longue si vous êtes resté dans ce périmètre pendant au moins la durée minimum configurée.",
+        "long_break_minimum_duration": "Durée minimum d'une pause longue",
         "long_break_maximum_distance": "Périmètre maximum"
       },
       "reset_all": "Réinitialiser tout aux valeurs par défaut"

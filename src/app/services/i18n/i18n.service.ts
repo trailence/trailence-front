@@ -166,6 +166,20 @@ export class I18nService {
     }
   }
 
+  public getSpeedInUserUnit(speedInMetersPerHour: number): number {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return Math.floor((speedInMetersPerHour / 10)) / 100;
+      case 'IMPERIAL': return Math.floor(this.metersToMiles(speedInMetersPerHour) * 100) / 100;
+    }
+  }
+
+  public getSpeedInMetersFromUserUnit(speedInUserUnit: number): number {
+    switch (this.prefService.preferences.distanceUnit) {
+      case 'METERS': return Math.floor(speedInUserUnit * 1000);
+      case 'IMPERIAL': return Math.round(this.milesToMeters(speedInUserUnit));
+    }
+  }
+
   public getSpeedStringInUserUnit(speed?: number): string {
     if (speed === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {

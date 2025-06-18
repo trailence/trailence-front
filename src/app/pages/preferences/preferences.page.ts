@@ -89,7 +89,6 @@ export class PreferencesPage implements OnDestroy {
 
   private currentDistanceUnit?: DistanceUnit;
   traceMinMetersConfig!: NumericFilterCustomConfig;
-  baseSpeedConfig!: NumericFilterCustomConfig;
   longBreakMaximumDistanceConfig!: NumericFilterCustomConfig;
 
   refresh(): void {
@@ -101,11 +100,6 @@ export class PreferencesPage implements OnDestroy {
             range: false,
             values: [1, 2, 3, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100],
             formatter: (value: number) => value + 'm',
-          };
-          this.baseSpeedConfig = {
-            range: false,
-            values: [2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 20000],
-            formatter: (value: number) => this.i18n.getSpeedStringInUserUnit(value)
           };
           this.longBreakMaximumDistanceConfig = {
             range: false,
@@ -120,12 +114,6 @@ export class PreferencesPage implements OnDestroy {
             realValues: [1, 2, 3, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100],
             formatter: (value: number) => value + 'ft',
           };
-          this.baseSpeedConfig = {
-            range: false,
-            values: [1.24, 1.55, 1.86, 2.17, 2.48, 2.80, 3.10, 3.42, 3.73, 4.04, 4.35, 4.66, 4.97, 5.59, 6.21, 6.83, 7.46, 8.08, 8.70, 9.32, 12.43],
-            realValues: [2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 20000],
-            formatter: (value: number) => this.i18n.getSpeedStringInUserUnit(value)
-          }
           this.longBreakMaximumDistanceConfig = {
             range: false,
             values: [50, 65, 82, 98, 131, 164, 246, 328, 492, 656],
@@ -161,8 +149,12 @@ export class PreferencesPage implements OnDestroy {
     this.preferences.setTraceMinMillis(millis as number);
   }
 
-  setEstimatedBaseSpeed(speed: number | FilterNumeric): void {
-    this.preferences.setEstimatedBaseSpeed(speed as number);
+  setEstimatedBaseSpeed(speed: string | null | undefined): void {
+    if (!speed) return;
+    const value = parseFloat(speed);
+    if (isNaN(value) || value < 0.1 || value > 99.9) return;
+    const meters = this.i18n.getSpeedInMetersFromUserUnit(value);
+    this.preferences.setEstimatedBaseSpeed(meters);
   }
 
   setLongBreakMinimumDuration(value: number): void {
