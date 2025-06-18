@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { MenuItem } from 'src/app/components/menus/menu-item';
-import { AuthService } from '../auth/auth.service';
+import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
@@ -127,7 +127,7 @@ export class TrailMenuService {
       }
     }
 
-    if (trails.length > 0 && fromCollection && onlyGlobal) {
+    if (trails.length > 0 && fromCollection && onlyGlobal && trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0) {
       menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share')
         .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, fromCollection, []))));
@@ -142,9 +142,11 @@ export class TrailMenuService {
             .setChildrenProvider(() => this.getCollectionsMenuItems([collectionUuid],
               (col) => import('../functions/copy-trails').then(m => m.moveTrailsTo(this.injector, trails, col, email)))
             ));
-          menu.push(new MenuItem());
-          menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share')
-            .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, collectionUuid, trails))));
+          if (trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0) {
+            menu.push(new MenuItem());
+            menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share')
+              .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, collectionUuid, trails))));
+          }
         }
         menu.push(new MenuItem());
         menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger')

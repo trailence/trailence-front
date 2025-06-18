@@ -1,58 +1,60 @@
 <app-header [title]="i18n.texts.pages.contact.title" [description]="i18n.texts.pages.contact.meta_description" [useH1]="true"></app-header>
 <div class="page-container">
-  <div class="form-container">
-    <div class="form-value" *ngIf="!auth.auth">
-      <ion-input
-        type="email"
-        fill="outline"
-        label="{{i18n.texts.pages.contact.email}}"
-        label-placement="floating"
-        [disabled]="sending"
-        [(ngModel)]="email"
-      ></ion-input>
-    </div>
-    <div class="form-value">
-      <ion-select
-        fill="outline"
-        label="{{i18n.texts.pages.contact.type}}"
-        label-placement="floating"
-        [disabled]="sending"
-        [(ngModel)]="type"
-      >
-        <ion-select-option value="question">{{ i18n.texts.pages.contact.types.question }}</ion-select-option>
-        <ion-select-option value="bug">{{ i18n.texts.pages.contact.types.bug }}</ion-select-option>
-        <ion-select-option value="feature">{{ i18n.texts.pages.contact.types.feature }}</ion-select-option>
-        <ion-select-option value="other">{{ i18n.texts.pages.contact.types.other }}</ion-select-option>
-      </ion-select>
-    </div>
-    <div class="form-value">
-      <ion-textarea
-        fill="outline"
-        label="{{i18n.texts.pages.contact.message}}"
-        label-placement="floating"
-        [disabled]="sending"
-        [autoGrow]="true"
-        maxlength="50000"
-        [(ngModel)]="message"
-      ></ion-textarea>
-    </div>
-    <div class="captcha-container">
-      <div id="captcha-contact"></div>
-    </div>
-    <div class="network-needed" *ngIf="!networkAvailable">
-      {{ i18n.texts.pages.contact.network_needed }}
-    </div>
-    <div class="buttons">
-      <ion-button [disabled]="sending || !isValid()" (click)="send()">
-        <ion-icon name="send-message" slot="start"></ion-icon>
-        {{ i18n.texts.pages.contact.send_button }}
-      </ion-button>
-    </div>
-    <div class="error" *ngIf="!sending && error">
-      {{ i18n.texts.pages.contact.error }}
-    </div>
-    <div class="success" *ngIf="!sending && sent">
-      {{ i18n.texts.pages.contact.sent }}
+  <div class="content-container">
+    <div class="form-container">
+      <div class="form-value" *ngIf="!auth.auth">
+        <ion-input
+          type="email"
+          fill="outline"
+          label="{{i18n.texts.pages.contact.email}}"
+          label-placement="floating"
+          [disabled]="sending"
+          [(ngModel)]="email"
+        ></ion-input>
+      </div>
+      <div class="form-value">
+        <ion-select
+          fill="outline"
+          label="{{i18n.texts.pages.contact.type}}"
+          label-placement="floating"
+          [disabled]="sending"
+          [(ngModel)]="type"
+        >
+          <ion-select-option value="question">{{ i18n.texts.pages.contact.types.question }}</ion-select-option>
+          <ion-select-option value="bug">{{ i18n.texts.pages.contact.types.bug }}</ion-select-option>
+          <ion-select-option value="feature">{{ i18n.texts.pages.contact.types.feature }}</ion-select-option>
+          <ion-select-option value="other">{{ i18n.texts.pages.contact.types.other }}</ion-select-option>
+        </ion-select>
+      </div>
+      <div class="form-value">
+        <ion-textarea
+          fill="outline"
+          label="{{i18n.texts.pages.contact.message}}"
+          label-placement="floating"
+          [disabled]="sending"
+          [autoGrow]="true"
+          maxlength="50000"
+          [(ngModel)]="message"
+        ></ion-textarea>
+      </div>
+      <div class="captcha-container">
+        <div id="captcha-contact"></div>
+      </div>
+      <div class="network-needed" *ngIf="!networkAvailable">
+        {{ i18n.texts.pages.contact.network_needed }}
+      </div>
+      <div class="buttons">
+        <ion-button [disabled]="sending || !isValid()" (click)="send()">
+          <ion-icon name="send-message" slot="start"></ion-icon>
+          {{ i18n.texts.pages.contact.send_button }}
+        </ion-button>
+      </div>
+      <div class="error" *ngIf="!sending && error">
+        {{ i18n.texts.pages.contact.error }}
+      </div>
+      <div class="success" *ngIf="!sending && sent">
+        {{ i18n.texts.pages.contact.sent }}
+      </div>
     </div>
   </div>
 </div>

@@ -51,16 +51,33 @@
           @for (img of slide.mobileImages; track $index; let imgIndex = $index) {
             <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex && imgIndex === currentSlideImageIndex}" (click)="setSlide(slideIndex, imgIndex, currentSlideIndex < slideIndex || currentSlideIndex === slideIndex && currentSlideImageIndex < imgIndex, true)"></div>
           }
+          @if (slide.mobileImages.length === 0) {
+            <div class="slider-button" [ngClass]="{'selected': slideIndex === currentSlideIndex}" (click)="setSlide(slideIndex, 0, currentSlideIndex < slideIndex, true)"></div>
+          }
         }
       }
     </div>
-    <div class="download">
-      <a href="/{{prefs.preferences.lang}}/install-apk" (click)="$event.preventDefault()">
-        <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/install-apk')">{{i18n.texts.pages.home.download_apk}}</ion-button>
-      </a>
-      <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
-        <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/register')">{{i18n.texts.pages.register.title}}</ion-button>
-      </a>
+    <div class="footer">
+      {{ i18n.texts.pages.home.available_on }}
     </div>
+  </div>
+</div>
+
+<div class="buttons">
+  <div>
+    <a href="/{{prefs.preferences.lang}}/install-apk" (click)="$event.preventDefault()">
+      <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/install-apk')">{{i18n.texts.pages.home.download_apk}}</ion-button>
+    </a>
+  </div>
+  <div>
+    <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
+      <ion-button (click)="router.navigateByUrl('/' + prefs.preferences.lang + '/register')">{{i18n.texts.pages.register.title}}</ion-button>
+    </a>
+  </div>
+  <div>
+    <a href="/try" (click)="$event.preventDefault()">
+      <ion-button (click)="router.navigateByUrl('/try')">{{i18n.texts.pages.home.try_app1}}</ion-button>
+    </a>
+    <div class="under-button">{{i18n.texts.pages.home.try_app2}}</div>
   </div>
 </div>

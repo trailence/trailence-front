@@ -192,3 +192,24 @@
   }
 
 }
+
+.info {
+  background-color: #A0A0FF;
+  color: black;
+  border-radius: 5px;
+  padding: 2px;
+  margin: 2px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+
+  ion-icon {
+    flex: none;
+  }
+  span {
+    flex: 1 1 100%;
+    margin-left: 5px;
+    font-size: 11px;
+    font-style: italic;
+  }
+}

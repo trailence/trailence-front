@@ -31,7 +31,10 @@
           "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "And more !"]
         }
       ],
-      "download_apk": "Download Android App"
+      "download_apk": "Download Android App",
+      "try_app1": "Try the app now",
+      "try_app2": "No account needed!",
+      "available_on": "Available on Android and web application"
     },
     "installApk": {
       "title": "Android App",
@@ -75,6 +78,7 @@
       "locked_message": "Your account has been locked, please use the forgot password button",
       "forgot_password": "Forgot password?",
       "create_account": "Create an account",
+      "try_without_account": "Try without account",
       "reset_password": {
         "title": "Reset password",
         "email": "E-Mail",
@@ -438,6 +442,7 @@
       },
       "delete_me": {
         "button": "Delete my account",
+        "button_new": "Delete my data",
         "confirm_message": "Do you confirm that you want to permanently delete your account and all your data from Trailence?",
         "code_message": "We have just sent a 6-digit code to your email address, please enter it below",
         "done": "Your account and data have been deleted."
@@ -565,7 +570,9 @@
     "start_trace": "Start a trace",
     "current_trace": "Trace in progress",
     "planner": "Plan a trail",
-    "search_trail": "Find a trail"
+    "search_trail": "Find a trail",
+    "no_share_for_anonymous": "Sharing features are not available without an account",
+    "anonymous_account": "Trial without account"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -916,5 +923,6 @@
     "time": "Time"
   },
   "recompute_metadata": "Recalculating estimates of your tracks",
-  "you_are_offline": "You are offline"
+  "you_are_offline": "You are offline",
+  "toast_anonymous_account": "When using the app without an account, your data is stored only in your browser and may be automatically deleted if your browser runs out of space. To save and sync your data, you can export it, create an account, and then import it again."
 }

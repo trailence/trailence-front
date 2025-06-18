@@ -43,6 +43,7 @@ export class MenuComponent {
   sharedByMeOpen = false;
 
   isAdmin = false;
+  isAnonymous = false;
 
   constructor(
     public readonly i18n: I18nService,
@@ -116,6 +117,7 @@ export class MenuComponent {
       this.sharedByMe = List(shares.filter(share => share.share.owner === auth?.email));
       this.sharedWithMe = List(shares.filter(share => share.share.owner !== auth?.email));
       this.isAdmin = !!auth?.admin && !platform.is('capacitor');
+      this.isAnonymous = !!auth?.isAnonymous;
     });
   }
 

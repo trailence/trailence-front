@@ -14,6 +14,7 @@ import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { UserQuotas } from 'src/app/services/auth/user-quotas';
 import { QuotaService } from 'src/app/services/auth/quota.service';
 import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-myaccount',
@@ -25,6 +26,7 @@ export class MyaccountPage implements OnDestroy, OnInit {
 
   email: string;
   complete: boolean;
+  anonymous: boolean;
   quotas?: UserQuotas;
 
   keysProvider = () => this.network.server$.pipe(
@@ -46,14 +48,19 @@ export class MyaccountPage implements OnDestroy, OnInit {
     quotaService: QuotaService,
     private readonly modalController: ModalController,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly router: Router,
   ) {
     this.email = auth.email!;
     this.complete = auth.auth?.complete || false;
+    this.anonymous = auth.auth?.complete || false;
     this.subscriptions.add(auth.auth$.subscribe(a => {
-      const newValue = a?.complete ?? false;
-      if (this.complete !== newValue) {
-        this.complete = newValue;
-        this.changeDetector.detectChanges();
+      const newComplete = a?.complete ?? false;
+      const newAnonymous = a?.isAnonymous ?? false;
+      if (this.complete !== newComplete || this.anonymous !== newAnonymous) {
+        this.complete = newComplete;
+        this.anonymous = newAnonymous;
+        if (this._init)
+          this.changeDetector.detectChanges();
       }
     }));
     this.subscriptions.add(quotaService.quotas$.subscribe(q => {
@@ -78,6 +85,10 @@ export class MyaccountPage implements OnDestroy, OnInit {
   }
 
   async changePassword() {
+    if (this.anonymous) {
+      this.router.navigateByUrl('/register');
+      return;
+    }
     const module = await import('./change-password/change-password.component');
     const modal = await this.modalController.create({
       component: module.ChangePasswordComponent

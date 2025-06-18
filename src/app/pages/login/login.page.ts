@@ -177,4 +177,8 @@ export class LoginPage extends PublicPage {
     this.router.navigateByUrl('/' + this.prefs.preferences.lang + '/register');
   }
 
+  tryWithoutAccount(): void {
+    this.router.navigateByUrl('/try');
+  }
+
 }

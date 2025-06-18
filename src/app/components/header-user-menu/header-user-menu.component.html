@@ -7,51 +7,58 @@
   <ng-template>
     <ion-content>
       <ion-list>
-        <ion-item id="item-user">
-          {{ auth.email }}
-        </ion-item>
-        <ion-item button [detail]="true" id="item-synchro" [disabled]="status !== 'online'">
-          <ion-icon slot="start" name="sync"></ion-icon>
-          <div class="synchro">
-            @switch(status) {
-              @case('offline') {
-                <div>{{i18n.texts.synchro.offline}}</div>
+        @if (isAnonymous) {
+          <ion-item color="secondary">
+            {{ i18n.texts.menu.anonymous_account }}
+          </ion-item>
+        } @else {
+          <ion-item id="item-user" color="secondary">
+            {{ auth.email }}
+          </ion-item>
+          <ion-item button [detail]="true" id="item-synchro" [disabled]="status !== 'online'" lines="none">
+            <ion-icon slot="start" name="sync"></ion-icon>
+            <div class="synchro">
+              @switch(status) {
+                @case('offline') {
+                  <div>{{i18n.texts.synchro.offline}}</div>
+                }
+                @case('sync') {
+                  <div>{{i18n.texts.synchro.in_progress}}</div>
+                }
+                @case('online') {
+                  <div class="title">{{i18n.texts.synchro.last_sync}}</div>
+                  <div class="value">{{lastSync ? i18n.timestampToTimeString(lastSync) : i18n.texts.synchro.not_yet}}</div>
+                  <div class="title">{{i18n.texts.synchro.local_changes}}</div>
+                  <div *ngIf="hasLocalChanges" class="value invalid">{{i18n.texts.synchro.yes}}</div>
+                  <div *ngIf="!hasLocalChanges" class="value valid">{{i18n.texts.synchro.no}}</div>
+                }
               }
-              @case('sync') {
-                <div>{{i18n.texts.synchro.in_progress}}</div>
-              }
-              @case('online') {
-                <div class="title">{{i18n.texts.synchro.last_sync}}</div>
-                <div class="value">{{lastSync ? i18n.timestampToTimeString(lastSync) : i18n.texts.synchro.not_yet}}</div>
-                <div class="title">{{i18n.texts.synchro.local_changes}}</div>
-                <div *ngIf="hasLocalChanges" class="value invalid">{{i18n.texts.synchro.yes}}</div>
-                <div *ngIf="!hasLocalChanges" class="value valid">{{i18n.texts.synchro.no}}</div>
-              }
-            }
-          </div>
-        </ion-item>
-        <ion-item button id="item-language" [detail]="true">
+            </div>
+          </ion-item>
+          <div class="separator"></div>
+        }
+        <ion-item button id="item-language" [detail]="true" lines="full">
           <ion-icon slot="start" name="i18n"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.language}}</ion-label>
         </ion-item>
-        <ion-item button id="item-theme" [detail]="true">
+        <ion-item button id="item-theme" [detail]="true" lines="full">
           <ion-icon slot="start" name="theme"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.theme}}</ion-label>
         </ion-item>
-        <ion-item button (click)="router.navigateByUrl('/preferences'); accountPopover.dismiss();">
+        <ion-item button (click)="router.navigateByUrl('/preferences'); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="settings"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.title}}</ion-label>
         </ion-item>
-        <ion-item button (click)="router.navigateByUrl('/myaccount'); accountPopover.dismiss();">
+        <ion-item button (click)="router.navigateByUrl('/myaccount'); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="account"></ion-icon>
           <ion-label>{{i18n.texts.pages.myaccount.title}}</ion-label>
         </ion-item>
-        <ion-item button (click)="logout(); accountPopover.dismiss();">
+        <ion-item button (click)="logout(); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="logout"></ion-icon>
           <ion-label>{{i18n.texts.logout.title}}</ion-label>
         </ion-item>
 
-        <ion-popover trigger="item-synchro" [dismissOnSelect]="true" side="start">
+        <ion-popover trigger="item-synchro" [dismissOnSelect]="true" side="start" *ngIf="!isAnonymous">
           <ng-template>
             <ion-content>
               <ion-list>
@@ -70,10 +77,10 @@
           <ng-template>
             <ion-content>
               <ion-list>
-                <ion-item button (click)="preferences.setLanguage('en')">
+                <ion-item button (click)="preferences.setLanguage('en')" lines="full">
                   <ion-label>English</ion-label>
                 </ion-item>
-                <ion-item button (click)="preferences.setLanguage('fr')">
+                <ion-item button (click)="preferences.setLanguage('fr')" lines="full">
                   <ion-label>Français</ion-label>
                 </ion-item>
               </ion-list>
@@ -85,15 +92,15 @@
           <ng-template>
             <ion-content>
               <ion-list>
-                <ion-item button (click)="preferences.setTheme('LIGHT')">
+                <ion-item button (click)="preferences.setTheme('LIGHT')" lines="full">
                   <ion-icon slot="start" name="theme-light"></ion-icon>
                   <ion-label>{{i18n.texts.pages.preferences.themes.light}}</ion-label>
                 </ion-item>
-                <ion-item button (click)="preferences.setTheme('DARK')">
+                <ion-item button (click)="preferences.setTheme('DARK')" lines="full">
                   <ion-icon slot="start" name="theme-dark"></ion-icon>
                   <ion-label>{{i18n.texts.pages.preferences.themes.dark}}</ion-label>
                 </ion-item>
-                <ion-item button (click)="preferences.setTheme('SYSTEM')">
+                <ion-item button (click)="preferences.setTheme('SYSTEM')" lines="full">
                   <ion-icon slot="start" name="theme-system"></ion-icon>
                   <ion-label>{{i18n.texts.pages.preferences.themes.system}}</ion-label>
                 </ion-item>

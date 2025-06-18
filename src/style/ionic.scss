@@ -125,6 +125,9 @@
   --graph-selecting-color: #4040F0;
   --graph-selection-color: #2020FF;
   --graph-single-selection-color: #4080FF;
+
+  --centered-outside-background: var(--ion-background-color);
+  --centered-inside-background: rgba(var(--ion-text-color-rgb), 0.1);
 }
 
 .light-theme {
@@ -135,12 +138,12 @@
 	--ion-color-primary-shade: #008d00;
 	--ion-color-primary-tint: #1aaa1a;
 
-	--ion-color-secondary: #A07953;
-	--ion-color-secondary-rgb: 160,121,83;
-	--ion-color-secondary-contrast: #ffffff;
-	--ion-color-secondary-contrast-rgb: 255,255,255;
-	--ion-color-secondary-shade: #8d6a49;
-	--ion-color-secondary-tint: #aa8664;
+	--ion-color-secondary: #B88858;
+	--ion-color-secondary-rgb: 184,136,88;
+	--ion-color-secondary-contrast: #FFFFFF;
+	--ion-color-secondary-contrast-rgb: 255, 255, 255;
+	--ion-color-secondary-shade: #a2784d;
+	--ion-color-secondary-tint: #bf9469;
 
 	--ion-color-tertiary: #48A0F0;
 	--ion-color-tertiary-rgb: 72,160,240;
@@ -253,6 +256,9 @@
   --graph-selecting-color: #4040F0;
   --graph-selection-color: #0000FF;
   --graph-single-selection-color: #6060FF;
+
+  --centered-outside-background: rgba(0, 0, 0, 0.1);
+  --centered-inside-background: #FFFFFF;
 }
 
 .ion-color-footer {

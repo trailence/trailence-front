@@ -15,6 +15,10 @@ ion-button.user-button {
     }
 }
 
+ion-content > ion-list {
+  padding: 0;
+}
+
 .status {
   position: absolute;
   right: 0;
@@ -52,9 +56,10 @@ ion-button.user-button {
 
 .synchro {
   font-size: 12px;
+  padding: 5px 0;
 
   .title {
-    color: rgba(var(--ion-text-color-rgb), 0.7);
+    color: rgba(var(--ion-text-color-rgb), 0.5);
   }
   .value {
     &.valid {
@@ -64,4 +69,13 @@ ion-button.user-button {
       color: var(--ion-color-danger);
     }
   }
+}
+
+div.separator {
+  width: 100%;
+  border-bottom: 2px solid rgba(var(--ion-color-tertiary-rgb), 0.7);
+}
+
+ion-item ion-icon {
+  color: var(--ion-color-secondary);
 }

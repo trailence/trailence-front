@@ -31,6 +31,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   id: string;
   loggingOut = false;
   userLetter = '';
+  isAnonymous = false;
 
   @ViewChild('logoutModal') logoutModal?: IonModal;
   @ViewChild('accountPopover') accountPopover?: IonPopover;
@@ -65,12 +66,13 @@ export class HeaderUserMenuComponent extends AbstractComponent {
         this.auth.auth$
       ]),
       ([s, localChanges, lastSync, auth]) => {
+        this.isAnonymous = !!auth?.isAnonymous;
         this.status = s;
-        this.hasLocalChanges = localChanges;
-        this.icon = s === 'online' && localChanges ? 'duration' : s;
+        this.hasLocalChanges = localChanges && !this.isAnonymous;
+        this.icon = s === 'online' && this.hasLocalChanges ? 'duration' : s;
         this.lastSync = lastSync;
         const email = auth?.email;
-        this.userLetter = email ? email.substring(0, 1) : '';
+        this.userLetter = email ? (this.isAnonymous ? '?' : email.substring(0, 1)) : '';
         this.changeDetector.detectChanges();
       }
     );

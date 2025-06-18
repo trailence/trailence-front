@@ -16,7 +16,7 @@ export abstract class FetchSourcePlugin {
   ) {
     this.sanitizer = injector.get(DomSanitizer);
     injector.get(AuthService).auth$.pipe(
-      switchMap(a => !a ? of(false) :
+      switchMap(a => !a || a.isAnonymous ? of(false) :
         injector.get(NetworkService).server$.pipe(
           switchMap(n => n ? this.checkAllowed$() : EMPTY),
           first(),
@@ -30,6 +30,7 @@ export abstract class FetchSourcePlugin {
   protected readonly sanitizer: DomSanitizer;
   private readonly _allowed$ = new BehaviorSubject<boolean>(false);
   public get allowed$(): Observable<boolean> { return this._allowed$; }
+  public get allowed(): boolean { return this._allowed$.value; }
 
   public readonly abstract name: string;
   public readonly abstract owner: string;

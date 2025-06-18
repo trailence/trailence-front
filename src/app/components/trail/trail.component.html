@@ -190,7 +190,10 @@
 
       </div>
       <div class="trail-photos" *ngIf="photos !== undefined && !isSmall && (editable || photos.length !== 0)" (click)="openSlider()">
-        <div *ngIf="photos.length === 0" class="no-photo">{{i18n.texts.pages.trail.no_photo_message}}</div>
+        <div *ngIf="photos.length === 0" class="no-photo">
+          <ion-icon name="photos" color="secondary"></ion-icon>
+          <span>{{i18n.texts.pages.trail.no_photo_message}}</span>
+        </div>
         <ng-container *ngIf="photos.length !== 0">
           <div class="cover">
             <app-photo [photo]="photos[0]" [maxWidth]="300" [maxHeight]="200"></app-photo>
@@ -200,6 +203,14 @@
           </ion-button>
         </ng-container>
       </div>
+      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="openTags(trail1)">
+        <ion-icon name="tags" color="secondary"></ion-icon>
+        <span *ngIf="tagsNames1.length === 0" class="no-tag">
+          <span>{{i18n.texts.pages.trail.no_tag_message}}</span>
+        </span>
+        <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
+      </div>
+
       @if (trail1 && !trail2) {
         @if (trail1.description || editable) {
           <div class="description-text">
@@ -231,12 +242,6 @@
           </div>
         }
       }
-
-      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="openTags(trail1)">
-        <ion-icon name="tags" color="secondary"></ion-icon>
-        <span *ngIf="tagsNames1.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
-        <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
-      </div>
       @if (!tracks[0]) {
         <ion-spinner name="dots"></ion-spinner>
       } @else {

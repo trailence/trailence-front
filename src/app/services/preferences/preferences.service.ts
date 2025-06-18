@@ -113,7 +113,7 @@ export class PreferencesService {
     });
     this.subscription = combineLatest([this.injector.get(NetworkService).server$, this.injector.get(AuthService).auth$, this._saveNeeded$]).subscribe(
       ([connected, auth, saveNeeded]) => {
-        if (connected && auth?.preferences && saveNeeded === auth?.email) {
+        if (connected && auth?.preferences && saveNeeded === auth?.email && !auth?.isAnonymous) {
           const body = {...auth.preferences};
           this.injector.get(HttpService).put(environment.apiBaseUrl + '/preferences/v1', body).subscribe(() => {
             Console.info('Preferences saved for user', body);
@@ -270,7 +270,8 @@ export class PreferencesService {
         auth.preferences ??= {};
         (auth.preferences as any)[field] = value;
         authService.preferencesUpdated();
-        this._saveNeeded$.next(auth.email);
+        if (!auth.isAnonymous)
+          this._saveNeeded$.next(auth.email);
       }
     }
     if ((this._prefs$.value as any)[field] !== value) {
@@ -285,7 +286,8 @@ export class PreferencesService {
     if (auth) {
       auth.preferences = {};
       authService.preferencesUpdated();
-      this._saveNeeded$.next(auth.email);
+      if (!auth.isAnonymous)
+        this._saveNeeded$.next(auth.email);
     }
     this._prefs$.next({});
   }

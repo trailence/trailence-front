@@ -7,7 +7,8 @@ import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { I18nService } from '../i18n/i18n.service';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
@@ -83,7 +84,7 @@ export class DatabaseService {
   private _syncPaused = 0;
 
   constructor(
-    auth: AuthService,
+    private readonly auth: AuthService,
     private readonly ngZone: NgZone,
     private readonly network: NetworkService,
     private readonly injector: Injector,
@@ -91,7 +92,25 @@ export class DatabaseService {
     auth.auth$.subscribe(
       auth => {
         if (!auth) this.close();
-        else this.open(auth.email);
+        else {
+          this.open(auth.email);
+          if (auth.isAnonymous) {
+            const i18n = injector.get(I18nService);
+            injector.get(ToastController).create({
+              message: i18n.texts.toast_anonymous_account,
+              color: 'warning',
+              position: 'bottom',
+              duration: 60000,
+              swipeGesture: "vertical",
+              mode: "ios",
+              layout: "stacked",
+              buttons: [{
+                text: i18n.texts.buttons.close,
+                role: 'cancel',
+              }]
+            }).then(t => t.present());
+          }
+        }
       }
     );
   }
@@ -192,9 +211,10 @@ export class DatabaseService {
       store.loaded$,         // local database is loaded
       this.network.server$,  // network is connected
       store.status$,         // there is something to sync and we are not syncing
+      this.auth.auth$,            // authenticated and not anonymous
       this.db$,
     ]).pipe(
-      map(([storeLoaded, networkConnected, syncStatus, db]) => [storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress, syncStatus?.needsUpdateFromServer, db]),
+      map(([storeLoaded, networkConnected, syncStatus, auth, db]) => [storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress && auth && !auth.isAnonymous, syncStatus?.needsUpdateFromServer, db]),
       tap(r => {
         if (!r[2]) {
           if (registered.syncTimeout) clearTimeout(registered.syncTimeout);

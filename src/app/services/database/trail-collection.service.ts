@@ -21,7 +21,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from '../preferences/preferences.service';
 import { QuotaService } from '../auth/quota.service';
 import { ShareService } from './share.service';
-import { AuthService } from '../auth/auth.service';
+import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
 import { Console } from 'src/app/utils/console';
 
 @Injectable({
@@ -207,6 +207,16 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
     }
 
     private readonly quotaService: QuotaService;
+
+    protected override beforeEmittingStoreLoaded(): void {
+      if (this._store.value.length === 0 && this.injector.get(AuthService).email === ANONYMOUS_USER) {
+        this.create(new TrailCollection({
+          type: TrailCollectionType.MY_TRAILS,
+          owner: ANONYMOUS_USER,
+        }));
+      }
+      super.beforeEmittingStoreLoaded();
+    }
 
     protected override isQuotaReached(): boolean {
       const q = this.quotaService.quotas;

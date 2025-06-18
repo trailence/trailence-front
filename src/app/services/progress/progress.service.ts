@@ -122,7 +122,6 @@ export class ProgressService {
   public done(div: HTMLDivElement): void {
     if (div.parentElement !== this._container) return;
     div.style.opacity = '0';
-    console.log(div.offsetHeight)
     div.style.height = div.offsetHeight + 'px';
     div.style.overflow = 'hidden';
     div.style.marginTop = '-6px';

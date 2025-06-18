@@ -66,12 +66,13 @@ export class FetchSourceService {
 
   public get canImportFromUrl$(): Observable<boolean> {
     return this.plugins$.pipe(
-      map(plugins => !!plugins.find(p => p.canFetchFromUrl))
+      switchMap(plugins => plugins.length === 0 ? of([]) : combineLatest(plugins.map(p => p.allowed$.pipe(map(a => ({p, a})))))),
+      map(plugins => !!plugins.find(p => p.a && p.p.canFetchFromUrl))
     );
   }
 
   public get canImportFromUrl(): boolean {
-    return !!this.plugins$.value.find(p => p.canFetchFromUrl);
+    return !!this.plugins$.value.find(p => p.allowed && p.canFetchFromUrl);
   }
 
   public waitReady$(): Observable<boolean> {

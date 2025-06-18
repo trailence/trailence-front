@@ -326,7 +326,7 @@ export class ComputedMenuItems {
     }
     if (!this._moreComputed || this._moreComputed.item !== this._moreItem)
       this._moreComputed = new ComputedMenuItem(this._moreItem!, this.i18n);
-    this._moreComputed.visible = this._moreItem!.children.length > 0;
+    this._moreComputed.visible = this._moreItem!.children.filter(item => !item.isSeparator() && item.isVisible()).length > 0;
     if (this._moreComputed.visible) this._allItems.push(this._moreComputed);
   }
 

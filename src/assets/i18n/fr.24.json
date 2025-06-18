@@ -31,7 +31,10 @@
           "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "Et bien plus !"]
         }
       ],
-      "download_apk": "Télécharger l'app Android"
+      "download_apk": "Télécharger l'app Android",
+      "try_app1": "Testez maintenant",
+      "try_app2": "Pas besoin de compte !",
+      "available_on": "Disponible sur Android et comme application web"
     },
     "installApk": {
       "title": "App Android",
@@ -75,6 +78,7 @@
       "locked_message": "Votre compte a été bloqué, veuillez utiliser le bouton Mot de passe oublié",
       "forgot_password": "Mot de passe oublié ?",
       "create_account": "Créer un compte",
+      "try_without_account": "Essayer sans compte",
       "reset_password": {
         "title": "Mot de passe oublié",
         "email": "E-Mail",
@@ -438,6 +442,7 @@
       },
       "delete_me": {
         "button": "Supprimer mon compte",
+        "button_new": "Supprimer mes données",
         "confirm_message": "Confirmez-vous vouloir définitivement supprimer votre compte et toutes vos données sur Trailence ?",
         "code_message": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
         "done": "Votre compte et vos données ont été supprimés."
@@ -565,7 +570,9 @@
     "start_trace": "Démarrer une trace",
     "current_trace": "Trace en cours",
     "planner": "Plannifier un parcours",
-    "search_trail": "Trouver un parcours"
+    "search_trail": "Trouver un parcours",
+    "no_share_for_anonymous": "Les fonctionnalités de partage ne sont pas disponibles sans compte",
+    "anonymous_account": "Essai sans compte"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -916,5 +923,6 @@
     "time": "Heure"
   },
   "recompute_metadata": "Recalcul des estimations de vos parcours",
-  "you_are_offline": "Vous n'êtes pas connecté"
+  "you_are_offline": "Vous n'êtes pas connecté",
+  "toast_anonymous_account": "Lorsque vous utilisez l'application sans compte, vos données restent uniquement dans votre navigateur et peuvent être supprimées automatiquement si le navigateur manque d'espace. Pour sauvegarder et synchroniser vos données, vous pouvez les exporter, créer un compte, puis les importer à nouveau."
 }

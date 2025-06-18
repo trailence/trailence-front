@@ -21,6 +21,10 @@ export const appPublicRoutes: Routes = [
     path: 'contact',
     loadComponent: () => import('../../pages/contact/contact.page').then(m => m.ContactPage)
   },
+  {
+    path: 'try',
+    loadComponent: () => import('../../pages/try/try.page').then(m => m.TryPage)
+  },
 ];
 
 export const appDefaultPublicRoute = 'login';

@@ -17,6 +17,8 @@ import { Console } from 'src/app/utils/console';
 import { UserQuotas } from './user-quotas';
 import { publicRoutes } from 'src/app/routes/package.routes';
 
+export const ANONYMOUS_USER = 'anonymous@trailence.org';
+
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const DB_SECURITY_PREFIX = 'trailence_security_';
 const DB_SECURITY_TABLE = 'security';
@@ -229,6 +231,44 @@ export class AuthService {
     );
   }
 
+  public loginAnonymous(): Observable<AuthResponse> {
+    const response: AuthResponse = {
+      accessToken: 'anonymous',
+      expires: 99999999999999,
+      email: ANONYMOUS_USER,
+      keyId: '1',
+      keyCreatedAt: Date.now(),
+      keyExpiresAt: 99999999999999,
+      preferences: {}, // TODO ?
+      complete: false,
+      admin: false,
+      quotas: {
+        collectionsUsed: 0,
+        collectionsMax: 10,
+        trailsUsed: 0,
+        trailsMax: 10000,
+        tracksUsed: 0,
+        tracksMax: 25000,
+        tracksSizeUsed: 0,
+        tracksSizeMax: 100000000,
+        photosUsed: 0,
+        photosMax: 1000,
+        photosSizeUsed: 0,
+        photosSizeMax: 1000000000,
+        tagsUsed: 0,
+        tagsMax: 1000,
+        trailTagsUsed: 0,
+        trailTagsMax: 100000,
+        sharesUsed: 0,
+        sharesMax: 0,
+      },
+      allowedExtensions: [],
+      isAnonymous: true,
+    };
+    this._auth$.next(response);
+    return of(response);
+  }
+
   public logout(withDelete: boolean): Observable<any> {
     const email = this.email;
     if (!email) return of(true);
@@ -261,7 +301,7 @@ export class AuthService {
   private doLogout(): Observable<any> {
     localStorage.removeItem(LOCALSTORAGE_KEY_AUTH);
     const auth = this._auth$.value;
-    if (auth) {
+    if (auth && !auth.isAnonymous) {
       this.http.delete(environment.apiBaseUrl + '/auth/v1/mykeys/' + auth.keyId).subscribe();
     }
     if (this.db) {

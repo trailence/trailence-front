@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { GestureController, IonButton } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -67,7 +67,6 @@ export class HomePage extends PublicPage {
     public readonly i18n: I18nService,
     public readonly prefs: PreferencesService,
     public readonly router: Router,
-    private readonly element: ElementRef,
     private readonly browser: BrowserService,
     private readonly changeDetector: ChangeDetectorRef,
     public readonly auth: AuthService,
@@ -102,10 +101,10 @@ export class HomePage extends PublicPage {
   private updateSize(): void {
     const width = this.browser.width;
     const height = this.browser.height;
-    if (width >= 800 && height >= 717) {
+    if ((width >= 1030 && height >= 690 && height <= 760) || (width >= 800 && height >= 760)) {
       this.mode = 'desktop';
       this.desktopMaskSize = 800;
-    } else if (width >= 600 && height >= 610) {
+    } else if ((width >= 830 && height >= 623 && height <= 645) || (width >= 600 && height >= 680)) {
       this.mode = 'desktop';
       this.desktopMaskSize = 600;
     } else {
@@ -125,25 +124,27 @@ export class HomePage extends PublicPage {
     const newSlide = document.getElementById(this.getSlideId(slideIndex));
     const newImage = document.getElementById(this.getSlideImageId(slideIndex, slideImageIndex));
 
-    if (!currentSlide || !currentImage || !newSlide || !newImage) {
+    if (!currentSlide || (!currentImage && this.slides[this.currentSlideIndex].hasImages) || !newSlide || (!newImage && this.slides[slideIndex].hasImages)) {
       setTimeout(() => this.setSlide(slideIndex, slideImageIndex, fromLeft, stopInterval), 10);
       return;
     }
+
+    this.resetSlides();
 
     if (slideIndex === this.currentSlideIndex) {
       // move image inside same slide
       // make sure the current is the current
       currentSlide.classList.add('current');
-      currentImage.classList.add('current');
+      currentImage?.classList.add('current');
       // prepare next
       if (currentImage !== newImage) {
-        newImage.classList.remove('at-left', 'at-right');
-        newImage.classList.add(fromLeft ? 'at-right' : 'at-left');
+        newImage!.classList.remove('at-left', 'at-right');
+        newImage!.classList.add(fromLeft ? 'at-right' : 'at-left');
         setTimeout(() => {
-          currentImage.classList.remove('current', 'at-right', 'at-left');
-          currentImage.classList.add(fromLeft ? 'at-left' : 'at-right');
-          newImage.classList.add('current');
-          newImage.classList.remove('at-right', 'at-left');
+          currentImage!.classList.remove('current', 'at-right', 'at-left');
+          currentImage!.classList.add(fromLeft ? 'at-left' : 'at-right');
+          newImage!.classList.add('current');
+          newImage!.classList.remove('at-right', 'at-left');
         }, 0);
       }
     } else {
@@ -155,7 +156,7 @@ export class HomePage extends PublicPage {
         const image = allImages.item(i)!;
         image.classList.remove('current', 'at-left', 'at-right');
       }
-      newImage.classList.add('current');
+      newImage?.classList.add('current');
       setTimeout(() => {
         currentSlide.classList.remove('current', 'at-right', 'at-left');
         currentSlide.classList.add(fromLeft ? 'at-left' : 'at-right');
@@ -169,6 +170,18 @@ export class HomePage extends PublicPage {
     if (stopInterval && this.slideInterval) {
       clearInterval(this.slideInterval);
       this.slideInterval = undefined;
+    }
+  }
+
+  private resetSlides(): void {
+    for (let i = 0; i < this.slides.length; ++i) {
+      if (i !== this.currentSlideIndex) document.getElementById(this.getSlideId(i))?.classList.remove('current', 'at-right', 'at-left');
+      for (let j = 0; true; ++j) {
+        const img = document.getElementById(this.getSlideImageId(i, j));
+        if (!img) break;
+        if (j !== this.currentSlideImageIndex)
+          img.classList.remove('current', 'at-right', 'at-left');
+      }
     }
   }
 
@@ -217,6 +230,7 @@ export class HomePage extends PublicPage {
           this.slideInterval = undefined;
           putIntervalBack = true;
         }
+        this.resetSlides();
         slider.style.setProperty('--transition', 'none');
         detail.event.stopPropagation();
         elementsToMoveWhenGoingForward = [];
@@ -239,11 +253,11 @@ export class HomePage extends PublicPage {
           const nextSlide = document.getElementById(nextSlideId)!;
           nextSlide.classList.remove('at-left', 'at-right');
           for (let i = this.getSlideNbImages(nextSlideIndex) - 1; i >= 0; --i) {
-            document.getElementById(this.getSlideImageId(nextSlideIndex, i))!.classList.remove('current', 'at-left', 'at-right');
+            document.getElementById(this.getSlideImageId(nextSlideIndex, i))?.classList.remove('current', 'at-left', 'at-right');
           }
           setTimeout(() => {
             nextSlide.classList.add('at-right');
-            document.getElementById(this.getSlideImageId(nextSlideIndex, 0))!.classList.add('current');
+            document.getElementById(this.getSlideImageId(nextSlideIndex, 0))?.classList.add('current');
           }, 0);
         }
         if (this.currentSlideImageIndex > 0) {
@@ -263,11 +277,11 @@ export class HomePage extends PublicPage {
           const previousSlide = document.getElementById(previousSlideId)!;
           previousSlide.classList.remove('at-left', 'at-right');
           for (let i = this.getSlideNbImages(previousSlideIndex) - 1; i >= 0; --i) {
-            document.getElementById(this.getSlideImageId(previousSlideIndex, i))!.classList.remove('current', 'at-left', 'at-right');
+            document.getElementById(this.getSlideImageId(previousSlideIndex, i))?.classList.remove('current', 'at-left', 'at-right');
           }
           setTimeout(() => {
             previousSlide.classList.add('at-left');
-            document.getElementById(this.getSlideImageId(previousSlideIndex, this.getSlideNbImages(previousSlideIndex) - 1))!.classList.add('current');
+            document.getElementById(this.getSlideImageId(previousSlideIndex, this.getSlideNbImages(previousSlideIndex) - 1))?.classList.add('current');
           }, 0);
         }
       };

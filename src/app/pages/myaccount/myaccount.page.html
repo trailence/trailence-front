@@ -12,23 +12,25 @@
       <ion-button (click)="changePassword()">
         {{ complete ? i18n.texts.pages.myaccount.change_password.button : i18n.texts.pages.myaccount.change_password.button_new }}
       </ion-button>
-      <ion-button color="danger" (click)="deleteMe()">
-        {{ i18n.texts.pages.myaccount.delete_me.button }}
+      <ion-button color="danger" (click)="deleteMe()" *ngIf="!anonymous">
+        {{ complete ? i18n.texts.pages.myaccount.delete_me.button : i18n.texts.pages.myaccount.delete_me.button_new }}
       </ion-button>
     </div>
 
-    <ng-container *ngIf="quotas">
+    <ng-container *ngIf="quotas && !anonymous">
       <div class="page-section-title">
         {{i18n.texts.pages.myaccount.quotas.title}}
       </div>
       <app-user-quotas [quotas]="quotas"></app-user-quotas>
     </ng-container>
 
-    <div class="page-section-title">
-      {{i18n.texts.pages.myaccount.devices}}
-    </div>
+    <ng-container *ngIf="!anonymous">
+      <div class="page-section-title">
+        {{i18n.texts.pages.myaccount.devices}}
+      </div>
 
-    <app-user-keys [keysProvider]="keysProvider" [keyDelete]="keyDelete"></app-user-keys>
+      <app-user-keys [keysProvider]="keysProvider" [keyDelete]="keyDelete"></app-user-keys>
+    </ng-container>
 
   } @else {
     <div class="no-network">{{i18n.texts.pages.myaccount.not_connected}}</div>

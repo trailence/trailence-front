@@ -5,13 +5,18 @@ div.page-container {
   display: flex;
   flex-direction: column;
   align-items: center;
+  background-color: var(--centered-outside-background);
+  padding: 0;
+
+  div.content-container {
+    min-width: calc(min(95%, 500px));
+    max-width: calc(min(100%, 500px));
+    background-color: var(--centered-inside-background);
+    padding: 10px;
+  }
 }
 
 div.form-container {
-  min-width: calc(min(95%, 500px));
-  max-width: calc(min(100%, 500px));
-  margin-top: 10px;
-
   div.form-value {
     margin-bottom: 16px;
   }
