@@ -86,5 +86,21 @@
   "001702": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "001703": {
+    "en": {
+      "items": [
+        "Added a speed graph to a trail",
+        "You can now change the date of a hike",
+        "Few improvements and fixes"
+      ]
+    },
+    "fr": {
+      "items": [
+        "Ajout d'un graphique de vitesse sur un parcours",
+        "Possibilité de changer la date d'un parcours",
+        "Quelques améliorations et correctifs"
+      ]
+    }
   }
 }

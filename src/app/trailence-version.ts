@@ -1,2 +1,2 @@
-export const trailenceAppVersionName="0.17.2";
-export const trailenceAppVersionCode=1702;
+export const trailenceAppVersionName="0.17.3";
+export const trailenceAppVersionCode=1703;
