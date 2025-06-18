@@ -46,6 +46,12 @@ jobs:
           npm ci
           npm run build -- --configuration=production
           npm run generate-public-pages
+      - name: Store web app
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-app
+          path: www/browser
+          retention-days: 30
   build-android:
     name: Build - Android App
     runs-on: ubuntu-latest
@@ -72,6 +78,18 @@ jobs:
         run: |
           npm install -g @ionic/cli @angular/cli cpy-cli rimraf
           npm ci
+      - name: Trust store
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'trailence.jks'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
+      - name: Keys
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'keys.gradle'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build Android
         run: |
           ionic capacitor sync android --configuration=android-prod
@@ -80,9 +98,14 @@ jobs:
           cpy . ../..
           cd ../../..
           cd android
-          echo "ext { jkspass = '' }" > keys.gradle
           chmod 777 ./gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
+      - name: Store APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
   unit-tests-web-app:
     name: Unit Tests - Web App
     runs-on: ubuntu-latest
