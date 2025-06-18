@@ -46,6 +46,8 @@ jobs:
           npm ci
           npm run build -- --configuration=production
           npm run generate-public-pages
+          rm www/browser/media/*
+          rmdir www/browser/media
       - name: Store web app
         uses: actions/upload-artifact@v4
         with:
@@ -94,6 +96,9 @@ jobs:
         run: |
           ionic capacitor sync android --configuration=android-prod
           rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
           cd android/environments/prod
           cpy . ../..
           cd ../../..
