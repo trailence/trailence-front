@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { I18nService } from '../i18n/i18n.service';
+import { GestureController } from '@ionic/angular/standalone';
 
 export class Progress {
 
@@ -15,7 +16,7 @@ export class Progress {
     _title: string,
     private _workAmount: number,
     i18n: I18nService,
-    private readonly _oncancel?: () => void,
+    _oncancel?: () => void,
   ) {
     _container.className = 'progress-item';
     this._divTitle = document.createElement('DIV') as HTMLDivElement;
@@ -99,11 +100,15 @@ export class ProgressService {
 
   private readonly _container: HTMLDivElement;
 
-  constructor(private readonly i18n: I18nService) {
+  constructor(
+    private readonly i18n: I18nService,
+    private readonly gestureController: GestureController,
+  ) {
     this._container = document.createElement('DIV') as HTMLDivElement;
     this._container.className = 'progress-container';
     this._container.style.display = 'none';
     window.document.body.appendChild(this._container);
+    this.setupGesture();
   }
 
   public create(title: string, workAmount: number, oncancel?: () => void): Progress {
@@ -117,10 +122,50 @@ export class ProgressService {
   public done(div: HTMLDivElement): void {
     if (div.parentElement !== this._container) return;
     div.style.opacity = '0';
+    console.log(div.offsetHeight)
+    div.style.height = div.offsetHeight + 'px';
+    div.style.overflow = 'hidden';
+    div.style.marginTop = '-6px';
+    setTimeout(() => { div.style.height = '0px'; }, 500);
     setTimeout(() => {
       if (div.parentElement !== this._container) return;
       this._container.removeChild(div);
     }, 1000);
+  }
+
+  private setupGesture(): void {
+    let isOnTop = true;
+    let startY = 0;
+    const gesture = this.gestureController.create({
+      el: this._container,
+      threshold: 10,
+      direction: 'y',
+      gestureName: 'progress-move',
+      onStart: detail => {
+        startY = detail.currentY;
+      },
+      onMove: detail => {
+        const diff = detail.currentY - startY;
+        if (isOnTop) {
+          this._container.style.setProperty('--move-y', Math.max(0, diff) + 'px');
+        } else {
+          this._container.style.setProperty('--move-y', Math.max(0, -diff) + 'px');
+        }
+      },
+      onEnd: detail => {
+        this._container.style.setProperty('--move-y', '0px');
+        const diff = detail.currentY - startY;
+        if (isOnTop && diff > 10) {
+          this._container.classList.add('at-bottom');
+          isOnTop = false;
+        } else if (!isOnTop && diff < -10) {
+          this._container.classList.remove('at-bottom');
+          isOnTop = true;
+        }
+      },
+      passive: false,
+    }, true);
+    gesture.enable();
   }
 
 }

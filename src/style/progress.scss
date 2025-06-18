@@ -1,28 +1,50 @@
 .progress-container {
+  --move-y: 0px;
   position: fixed;
-  top: calc(var(--header-height) + 15px);
+  top: calc(var(--header-height) + 5px + var(--move-y));
   left: calc(50vw - 125px);
   right: calc(50vw - 125px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  &.at-bottom {
+    top: unset;
+    bottom: calc(10px + var(--move-y));
+    justify-content: flex-end;
+  }
 
   .progress-item {
     background-color: rgba(var(--ion-color-primary-rgb), 0.75);
     border-radius: 5px;
     padding: 3px 8px;
     opacity: 1;
-    transition: opacity 1s ease-in-out;
-
-    &:not(:first-child) {
-      margin-top: 8px;
-    }
+    margin-top: 8px;
+    transition: opacity 1s ease-in-out, height 0.5s ease-in-out, margin-top 1s ease-in-out;
+    pointer-events: none;
+    -webkit-user-select: none;
+    user-select: none;
+	  -webkit-user-drag: none;
+	  -webkit-app-region: no-drag;
 
     .progress-title {
       font-size: 12px;
+      pointer-events: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-app-region: no-drag;
     }
     .progress-footer {
       display: flex;
       flex-direction: row;
       align-items: center;
       font-size: 10px;
+      pointer-events: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-app-region: no-drag;
 
       .progress-sub-title {
         flex: 1 1 100%;
@@ -31,6 +53,7 @@
       .cancel-button {
         flex: none;
         color: var(--ion-color-secondary);
+        pointer-events: all;
       }
     }
     .progress-bar {
@@ -39,6 +62,11 @@
       border: 1px solid rgba(0, 0, 0, 0.5);
       border-radius: 3px;
       margin: 2px 0px;
+      pointer-events: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-app-region: no-drag;
 
       .progress-bar-inner {
         height: 100%;
