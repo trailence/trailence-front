@@ -324,6 +324,10 @@ export class AuthService {
     );
   }
 
+  public forceRenew(): void {
+    this.renewAuth().subscribe();
+  }
+
   private renewAuth(): Observable<AuthResponse | null> {
     return new Observable<AuthResponse | null>(
       subscriber => {

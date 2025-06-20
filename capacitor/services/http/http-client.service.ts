@@ -63,12 +63,13 @@ export class HttpClientService implements IHttpClient {
 
   private toResponse(request: TrailenceHttpRequest, response: HttpResponse): Promise<TrailenceHttpResponse<any>> {
     if ((response as any)['error']) {
+      const isApiError = !!response.data && !!response.data['errorCode'] && !!response.data['errorMessage'];
       return Promise.resolve(new TrailenceHttpResponse(
         request,
-        undefined,
+        isApiError ? response.data : undefined,
         {},
         response.status,
-        response.data
+        isApiError ? response.data['errorMessage'] : response.data
       ));
     }
     return this.body(response.data, request.responseType, response.headers).then(body => {

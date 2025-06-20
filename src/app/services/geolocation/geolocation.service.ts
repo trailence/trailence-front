@@ -22,6 +22,7 @@ export class GeolocationService implements IGeolocationService {
 
   constructor() { }
 
+  public readonly isNative = false;
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
 

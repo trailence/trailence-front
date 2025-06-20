@@ -36,10 +36,13 @@ export class NetworkService implements INetworkService {
     });
     httpService.addResponseInterceptor(response => {
       if (response.status === 0) {
-        if (this._server$.value) {
-          this._server$.next(false);
-          this.checkServerConnection(++this.countPing, 1);
-        }
+        if (this._server$.value)
+          setTimeout(() => {
+            if (this._server$.value) {
+              this._server$.next(false);
+              setTimeout(() => this.checkServerConnection(++this.countPing, 1), 1000);
+            }
+          }, 0);
       }
       return response;
     });

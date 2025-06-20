@@ -45,6 +45,7 @@ export class ContactPage extends PublicPage {
   captchaNeeded = false;
   sending = false;
   error = false;
+  retryWithCaptcha = false;
   sent = false;
   networkAvailable = false;
   networkSubscription?: Subscription;
@@ -83,6 +84,7 @@ export class ContactPage extends PublicPage {
     this.sending = false;
     this.sent = false;
     this.error = false;
+    this.retryWithCaptcha = false;
   }
 
   private destroy(): void {
@@ -132,6 +134,7 @@ export class ContactPage extends PublicPage {
     this.sending = true;
     this.error = false;
     this.sent = false;
+    this.retryWithCaptcha = false;
     this.http.post(environment.apiBaseUrl + '/contact/v1', request).subscribe({
       complete: () => {
         this.captchaNeeded = false;
@@ -147,6 +150,9 @@ export class ContactPage extends PublicPage {
           if (!this.captchaInit && this.networkAvailable) {
             this.initCaptcha();
           }
+          this.sending = false;
+          this.retryWithCaptcha = true;
+          return;
         }
         this.sending = false;
         this.error = true;

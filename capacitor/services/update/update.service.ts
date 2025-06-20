@@ -11,6 +11,8 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class UpdateService {
@@ -26,8 +28,11 @@ export class UpdateService {
     if (this.platform.is('android')) this.checkApkUpdate();
   }
 
+  private failures = 0;
+
   private checkApkUpdate(): void {
     this.network.server$.pipe(
+      debounceTimeExtended(0, 120000, 10, () => this.failures < 3),
       switchMap(connected => !connected ? of(null) : this.checkApk()),
       filterDefined(),
       first(),
@@ -44,13 +49,21 @@ export class UpdateService {
   }
 
   private checkApk(): Observable<boolean | null> {
+    Console.info('Check APK version, previous failures: ' + this.failures);
     return this.http.get(environment.baseUrl + '/assets/apk/metadata.json').pipe(
       map((metadata: any) => {
-        if (Array.isArray(metadata?.elements) && metadata.elements[0].versionCode && metadata.elements[0].versionCode > trailenceAppVersionCode)
+        Console.info('Check APK version response', metadata);
+        if (Array.isArray(metadata?.elements) && metadata.elements[0].versionCode && metadata.elements[0].versionCode > trailenceAppVersionCode) {
+          this.failures = 0;
           return true;
+        }
         return false;
       }),
-      catchError(() => of(null))
+      catchError(() => {
+        this.failures++;
+        Console.info('Check APK version failed: ' + this.failures);
+        return of(null);
+      })
     );
   }
 

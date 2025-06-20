@@ -7,7 +7,7 @@ import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
-import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController, Platform } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
 
 const DB_PREFIX = 'trailence_data_';
@@ -94,7 +94,7 @@ export class DatabaseService {
         if (!auth) this.close();
         else {
           this.open(auth.email);
-          if (auth.isAnonymous) {
+          if (auth.isAnonymous && !this.injector.get(Platform).is('capacitor')) {
             const i18n = injector.get(I18nService);
             injector.get(ToastController).create({
               message: i18n.texts.toast_anonymous_account,
@@ -360,6 +360,7 @@ export class DatabaseService {
               cssClass: 'small-modal',
             }))
             .then(m => m.present());
+            this.auth.forceRenew();
           }
           this.saveTableVersion('appVersion', trailenceAppVersionCode);
         });

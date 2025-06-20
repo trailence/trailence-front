@@ -14,12 +14,12 @@ const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("Backg
 })
 export class GeolocationService implements IGeolocationService {
 
-  private _waitingForGps$ = new BehaviorSubject<boolean>(false);
+  private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
 
   private watchBackgroundId?: string;
-  private watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
+  private readonly watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
 
-  private options: PositionOptions = {
+  private readonly options: PositionOptions = {
     enableHighAccuracy: true,
     maximumAge: GEOLOCATION_MAX_AGE,
     timeout: GEOLOCATION_TIMEOUT
@@ -28,6 +28,7 @@ export class GeolocationService implements IGeolocationService {
   constructor(
   ) { }
 
+  public readonly isNative = true;
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
 

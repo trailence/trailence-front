@@ -138,8 +138,7 @@ export class MenuComponent {
         this.goTo('/trail');
       }
     } else {
-      this.traceRecorder.start();
-      this.goTo('/trail');
+      this.traceRecorder.start().then(() => this.goTo('/trail'));
     }
   }
 

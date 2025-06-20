@@ -263,6 +263,14 @@ export class App {
     await browser.waitUntil(() => $('div.progress-container').$$('div').length.then(nb => nb === 0), { timeout });
   }
 
+  public static async waitToastAndCloseIt() {
+    const toast = $('ion-app>ion-toast');
+    await browser.waitUntil(() => toast.isDisplayed());
+    const button = toast.$('>>>button');
+    await button.click();
+    await browser.waitUntil(() => toast.isDisplayed().then(d => !d));
+  }
+
   public static async openMenu() {
     const menu = $('app-root ion-menu').$('>>>app-menu').$('div.menu-content');
     if (await menu.isDisplayed()) {

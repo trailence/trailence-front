@@ -558,6 +558,7 @@
       "send_button": "Send",
       "sent": "Your message has been sent",
       "error": "An error occurred, please try again",
+      "retry_with_captcha": "We need to check you are not a robot, please click again on Send",
       "network_needed": "Please connect to Internet to send a message"
     }
   },
@@ -675,7 +676,8 @@
     "saving": "Saving track",
     "empty_trail": "Your track is empty, so it has not been saved",
     "follow_this_trail": "Follow this trail",
-    "follow_this_trail_confirmation": "Do you want to follow the trail {{1}} ?"
+    "follow_this_trail_confirmation": "Do you want to follow the trail {{1}} ?",
+    "not_native_message": "It’s recommended to use the Android app to record a track. Using the web app may lead to limitations: lower GPS accuracy, and especially the risk of recording stopping when you’re no longer on the app (screen off, switching to another page, or using a different app), as the browser may stop sending GPS coordinates."
   },
   "waiting_for_gps": "Waiting for GPS signal...",
   "bytes": {

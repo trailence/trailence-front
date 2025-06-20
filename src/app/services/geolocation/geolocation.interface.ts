@@ -12,6 +12,8 @@ export enum GeolocationState {
 
 export interface IGeolocationService {
 
+  isNative: boolean;
+
   waitingForGps$: Observable<boolean>;
   waitingForGps: boolean;
 

@@ -170,10 +170,9 @@ export class TrackDatabase {
           init = true;
           this.initStatus();
           const currentVersion = versionedDb.tablesVersion['tracks'];
-          console.log(currentVersion, versionedDb.tablesVersion)
           let promise$ = Promise.resolve();
-          if (!currentVersion || currentVersion < 1703) {
-            promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1703));
+          if (!currentVersion || currentVersion < 1705) {
+            promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
           }
           promise$.then(() => {
             this.listenPreferences();

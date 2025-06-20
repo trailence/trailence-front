@@ -41,7 +41,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   @Input() viewId!: string;
 
-  @Input() trails$: List<Observable<Trail | null>> = List();
+  @Input() trails$?: List<Observable<Trail | null>>;
   @Input() collectionUuid?: string;
   @Input() type?: string;
 
@@ -168,6 +168,18 @@ export class TrailsAndMapComponent extends AbstractComponent {
         ).filter(p => !!p), result.zoom));
       }
     );
+  }
+
+  protected override getComponentState() {
+    return { trails$: this.trails$ }
+  }
+
+  protected override onComponentStateChanged(previousState: any, newState: any): void {
+    if (previousState?.trails$ === undefined && this.trails$ !== undefined && this.trails$.size === 0) {
+      if (this.isSmall && this.tab === 'map') {
+        this.setTab('list');
+      }
+    }
   }
 
   private readonly mapTrails$ = new BehaviorSubject<List<Trail>>(List());

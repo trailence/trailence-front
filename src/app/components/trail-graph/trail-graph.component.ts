@@ -46,6 +46,8 @@ export interface DataPoint {
   posAccuracy?: number;
   speedInMeters: number;
   isBreakPoint?: boolean;
+  estimatedSpeed?: number;
+  originalDataIndex?: number;
 }
 
 export type GraphType = 'elevation' | 'speed';
@@ -421,7 +423,17 @@ export class TrailGraphComponent extends AbstractComponent {
             });
             addInfo(this.i18n.texts.trailGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters));
             addInfo(this.i18n.texts.trailGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
-            addInfo(this.i18n.texts.trailGraph.speed, pt => this.i18n.getSpeedStringInUserUnit(pt.raw.speedInMeters));
+            addInfo(this.i18n.texts.trailGraph.speed, pt => {
+              const s1 = pt.raw.speedInMeters ? this.i18n.getSpeedStringInUserUnit(pt.raw.speedInMeters) : '';
+              const s2 = pt.raw.estimatedSpeed ? this.i18n.getSpeedStringInUserUnit(pt.raw.estimatedSpeed) : '';
+              if (s1.length === 0) {
+                if (s2.length === 0) return '';
+                return '≈ ' + s2;
+              } else {
+                if (s2.length === 0) return s1;
+                return s1 + ' (≈ ' + s2 + ')';
+              }
+            });
             html += '<tr><th>' + this.i18n.texts.trailGraph.location + '</th>';
             for (const point of points) {
               html += '<td>';
@@ -669,6 +681,7 @@ export class TrailGraphComponent extends AbstractComponent {
     let estimatedDuration = 0;
     let durationSincePreviousBreak = 0;
     let index = 0;
+    const trackDistance = track.metadata.distance;
     const segments = track.segments;
     for (const segment of segments) {
       const points = segment.points;
@@ -678,7 +691,7 @@ export class TrailGraphComponent extends AbstractComponent {
       for (const point of points) {
         const distanceFromPreviousPoint = point.distanceFromPreviousPoint;
         distance += distanceFromPreviousPoint;
-        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs) : 0;
+        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs) : ds.data.length === 0 ? 0 : ds.data[ds.data.length - 1].speed;
         const estimatedTime = speed > 0 ? distanceFromPreviousPoint * (60 * 60 * 1000) / speed : 0;
         estimatedDuration += estimatedTime;
         let timeFromPreviousPoint = point.durationFromPreviousPoint ?? estimatedTime;
@@ -701,18 +714,31 @@ export class TrailGraphComponent extends AbstractComponent {
           speed,
           distanceFromPreviousPoint,
           timeFromPreviousPoint,
+          originalDataIndex: index,
         });
+        originalData[index].estimatedSpeed = speed;
+        if (originalData[index].x === 0) originalData[index].x = duration;
         index++;
-        if (durationSincePreviousBreak >= ESTIMATED_SMALL_BREAK_EVERY && distanceFromPreviousPoint > 0 && (!segmentDuration || segmentDuration - durationSinceSegmentStart > ESTIMATED_SMALL_BREAK_EVERY)) {
+        if (durationSincePreviousBreak >= ESTIMATED_SMALL_BREAK_EVERY &&
+          distanceFromPreviousPoint > 0 &&
+          (!segmentDuration || segmentDuration - durationSinceSegmentStart > ESTIMATED_SMALL_BREAK_EVERY / 2) && // no break if less than 30 minutes remaining
+          (segmentDuration || (trackDistance > 0 && trackDistance - distance > prefs.estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
+        ) {
           const breakTime = estimateSmallBreakTime(duration);
+          console.log('small break of ' + breakTime + ' after ' + this.i18n.durationToString(duration) + ' / ' + distance)
           let t = 0;
           for (let i = ds.data.length - 1; i >= 0 && i >= ds.data.length - 100; --i) {
             if (ds.data[i].timeFromPreviousPoint === undefined) continue;
             t += ds.data[i].timeFromPreviousPoint;
-            if (t <= breakTime) ds.data[i].speed = 0;
-            else {
+            if (t <= breakTime) {
+              ds.data[i].speed = 0;
+              ds.data[i].y = 0;
+              originalData[ds.data[i].originalDataIndex].estimatedSpeed = 0;
+            } else {
               const tDelta = 1 - (t - breakTime) / ds.data[i].timeFromPreviousPoint;
               ds.data[i].speed *= tDelta;
+              ds.data[i].y *= tDelta;
+              originalData[ds.data[i].originalDataIndex].estimatedSpeed = ds.data[i].speed;
               break;
             }
           }
@@ -727,11 +753,20 @@ export class TrailGraphComponent extends AbstractComponent {
     let previousMiddleRemainingDistance = 0;
     let previousAverageSpeed = 0;
     while (startIndex < ds.data.length) {
+      if (ds.data[startIndex].speed === 0) {
+        startIndex++;
+        previousMiddle = -1;
+        continue;
+      }
       let sectionDistance = 0;
       let sectionTime = 0;
       let sectionSpeed = 0;
       let endIndex = startIndex + 1;
       for (; endIndex < ds.data.length; ++endIndex) {
+        if (ds.data[endIndex].speed === 0) {
+          endIndex--;
+          break;
+        }
         if (ds.data[endIndex].isBreakPoint) continue;
         sectionDistance += ds.data[endIndex].distanceFromPreviousPoint;
         sectionTime += ds.data[endIndex].timeFromPreviousPoint;
@@ -739,6 +774,11 @@ export class TrailGraphComponent extends AbstractComponent {
         if (endIndex - startIndex >= 10 && sectionTime >= 60 * 1000) {
           break;
         }
+      }
+      if (endIndex === startIndex) {
+        startIndex++;
+        previousMiddle = -1;
+        continue;
       }
       const averageSpeed = sectionSpeed / sectionDistance;
       let middleIndex = startIndex;
@@ -755,7 +795,10 @@ export class TrailGraphComponent extends AbstractComponent {
           d += ds.data[i].distanceFromPreviousPoint;
           const x = d / middleDistance;
           const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2;
-          ds.data[i].y = this.i18n.distanceInLongUserUnit(averageSpeed * easeInOut);
+          const speed = averageSpeed * easeInOut;
+          ds.data[i].y = this.i18n.distanceInLongUserUnit(speed);
+          ds.data[i].speed = speed;
+          originalData[ds.data[i].originalDataIndex].estimatedSpeed = speed;
         }
       } else {
         let d = 0;
@@ -764,7 +807,10 @@ export class TrailGraphComponent extends AbstractComponent {
           d += ds.data[i].distanceFromPreviousPoint;
           const x = d / (previousMiddleRemainingDistance + middleDistance);
           const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2;
-          ds.data[i].y = this.i18n.distanceInLongUserUnit(previousAverageSpeed + (averageSpeed - previousAverageSpeed) * easeInOut);
+          const speed = previousAverageSpeed + (averageSpeed - previousAverageSpeed) * easeInOut;
+          ds.data[i].y = this.i18n.distanceInLongUserUnit(speed);
+          ds.data[i].speed = speed;
+          originalData[ds.data[i].originalDataIndex].estimatedSpeed = speed;
         }
       }
       startIndex = endIndex + 1;

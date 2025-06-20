@@ -71,10 +71,10 @@ export class TrailPage extends AbstractPage {
         if (t2) {
           this.title$.next(texts.pages.trail.title_compare + ' ' + t1 + ' ' + texts.pages.trail.title_compare_and + ' ' + t2);
         } else {
-          this.title$.next(t1);
+          this.title$.next(t1 + (rec ? ' - ' + texts.menu.current_trace : ''));
         }
       } else if (rec) {
-        this.title$.next(rec);
+        this.title$.next(rec + ' - ' + texts.menu.current_trace);
       } else {
         this.title$.next('');
       }

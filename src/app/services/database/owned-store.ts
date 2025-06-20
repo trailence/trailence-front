@@ -227,6 +227,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
 
   protected override sync(): Observable<boolean> {
     const db = this._db;
+    this.startSync();
+    this.syncStep('waiting operations');
     return this.operations.requestSync(() => this._db === db ? this._sync() : EMPTY);
   }
 
@@ -239,15 +241,18 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       this._syncStatus$.value.inProgress = true;
       this._syncStatus$.next(this._syncStatus$.value);
 
+      this.syncStep('create local new items to server');
       return this.syncCreateNewItems(stillValid)
       .pipe(
         switchMap(() => {
           if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
+          this.syncStep('send deleted local items to server');
           return this.syncLocalDeleteToServer(stillValid);
         }),
         switchMap(() => {
           if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           if (!this._forceUpdateFromServerChecked && this._createdLocally.length === 0 && this._deletedLocally.length === 0 && this._updatedLocally.length === 0) {
+            this.syncStep('forced update from server');
             return from(this.shouldForceUpdateFromServer()).pipe(
               switchMap(force => {
                 if (!force) return this.syncUpdateFromServer(stillValid);
@@ -263,14 +268,17 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
               }),
             );
           }
+          this.syncStep('request updates from server');
           return this.syncUpdateFromServer(stillValid);
         }),
         switchMap(() => {
           if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
+          this.syncStep('send local updates to server');
           return this.syncUpdateToServer(stillValid);
         }),
         switchMap(() => {
           if (!stillValid()) return EMPTY;
+          this.syncEnd();
           const status = this._syncStatus$.value;
           status.localCreates = this._createdLocally.length !== 0;
           status.localDeletes = this._deletedLocally.length !== 0;

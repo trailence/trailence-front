@@ -1,33 +1,33 @@
-import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../../preferences/preferences';
 import { Point } from 'src/app/model/point';
 
-export function estimateTimeForTrack(track: Track, preferences: ComputedPreferences): number {
-  let total = 0;
-  for (const segment of track.segments)
-    total += estimateTimeForSegment(segment, preferences);
-  return total;
-}
-
 export const ESTIMATED_SMALL_BREAK_EVERY = 60 * 60 * 1000;
 
-export function estimateTimeForSegment(segment: Segment, preferences: ComputedPreferences): number {
+export function estimateTimeForTrack(track: Track, preferences: ComputedPreferences): number {
   let duration = 0;
-  let durationSincePeviousBreak = 0;
-  const segmentDuration = segment.duration;
-  const nb = segment.points.length;
-  for (let i = 1; i < nb; ++i) {
-    const sp = segment.points[i];
-    const distance = sp.distanceFromPreviousPoint;
-    if (distance === 0) continue;
-    const speedMetersByHour = estimateSpeedInMetersByHour(sp, duration, preferences);
-    const estimatedTime = speedMetersByHour > 0 ? distance * (60 * 60 * 1000) / speedMetersByHour : 0;
-    duration += estimatedTime;
-    durationSincePeviousBreak += estimatedTime;
-    if (durationSincePeviousBreak >= ESTIMATED_SMALL_BREAK_EVERY && (!segmentDuration || segmentDuration - duration > ESTIMATED_SMALL_BREAK_EVERY)) {
-      duration += estimateSmallBreakTime(duration);
-      durationSincePeviousBreak = 0;
+  let totalDistance = 0;
+  const trackDistance = track.metadata.distance;
+  for (const segment of track.segments) {
+    let durationSincePeviousBreak = 0;
+    const segmentDuration = segment.duration;
+    const nb = segment.points.length;
+    for (let i = 1; i < nb; ++i) {
+      const sp = segment.points[i];
+      const distance = sp.distanceFromPreviousPoint;
+      if (distance === 0) continue;
+      totalDistance += distance;
+      const speedMetersByHour = estimateSpeedInMetersByHour(sp, duration, preferences);
+      const estimatedTime = speedMetersByHour > 0 ? distance * (60 * 60 * 1000) / speedMetersByHour : 0;
+      duration += estimatedTime;
+      durationSincePeviousBreak += estimatedTime;
+      if (durationSincePeviousBreak >= ESTIMATED_SMALL_BREAK_EVERY &&
+        (!segmentDuration || segmentDuration - duration > ESTIMATED_SMALL_BREAK_EVERY / 2) && // no break if less than 30 minutes remaining
+        (segmentDuration || (trackDistance > 0 && trackDistance - totalDistance > preferences.estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
+      ) {
+        duration += estimateSmallBreakTime(duration);
+        durationSincePeviousBreak = 0;
+      }
     }
   }
   if (duration > 15 * 60 * 1000) {

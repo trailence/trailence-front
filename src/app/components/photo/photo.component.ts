@@ -96,8 +96,8 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   }
 
   private _mouseMove = false;
-  private readonly _pointers: {id: number, x: number, y: number}[] = [];
-  private _pinchZoomStartState?: {scale: number, translateX: number, translateY: number};
+  private readonly _pointers: {id: number, x: number, y: number, inPinch: boolean, startX: number, startY: number}[] = [];
+  private _pinchZoomState?: {scale: number, translateX: number, translateY: number, diff: number, centerX: number, centerY: number};
   onDown(event: MouseEvent): void {
     if (this.zoomScale > 1) {
       event.preventDefault();
@@ -105,9 +105,15 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     }
     if (event instanceof PointerEvent && event.pointerType === 'touch') {
       this._mouseMove = false;
-      this._pointers.push({id: event.pointerId, x: event.layerX, y: event.layerY});
+      this._pointers.push({id: event.pointerId, x: event.screenX, y: event.screenY, inPinch: false, startX: event.layerX, startY: event.layerY});
       if (this._pointers.length === 2) {
-        this._pinchZoomStartState = {scale: this.zoomScale, translateX: this.zoomTranslateX, translateY: this.zoomTranslateY};
+        this._pointers[0].inPinch = true;
+        this._pointers[1].inPinch = true;
+        let x1 = this._pointers[0].startX < this._pointers[1].startX ? this._pointers[0].startX : this._pointers[1].startX;
+        let y1 = this._pointers[0].startY < this._pointers[1].startY ? this._pointers[0].startY : this._pointers[1].startY;
+        let x2 = this._pointers[0].startX < this._pointers[1].startX ? this._pointers[1].startX : this._pointers[0].startX;
+        let y2 = this._pointers[0].startY < this._pointers[1].startY ? this._pointers[1].startY : this._pointers[0].startY;
+        this._pinchZoomState = {scale: this.zoomScale, translateX: this.zoomTranslateX, translateY: this.zoomTranslateY, diff: 0, centerX: x1 + (x2 - x1) / 2, centerY: y1 + (y2 - y1) / 2};
       }
     } else if (this.zoomScale > 1) {
       this._mouseMove = true;
@@ -120,7 +126,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     if (event instanceof PointerEvent && event.pointerType === 'touch') {
       const p = this._pointers.find(p => p.id === event.pointerId);
       if (!p || this._pointers.length > 2) return;
-      if (this.zoomScale > 1) {
+      if (this.zoomScale > 1 || this._pointers.length === 2) {
         event.stopPropagation();
         event.preventDefault();
       }
@@ -128,37 +134,34 @@ export class PhotoComponent implements OnChanges, OnDestroy {
         // pinch zoom
         const other = this._pointers.find(p => p.id !== event.pointerId)!;
         let diff = 0;
-        let centerX, centerY;
         if (p.x >= other.x) {
-          diff += event.layerX - p.x;
-          centerX = other.x + (event.layerX - other.x) / 2;
+          diff += event.screenX - p.x;
         } else {
-          diff -= event.layerX - p.x;
-          centerX = event.layerX + (other.x - event.layerX) / 2;
+          diff -= event.screenX - p.x;
         }
         if (p.y >= other.y) {
-          diff += event.layerY - p.y;
-          centerY = other.y + (event.layerY - other.y) / 2;
+          diff += event.screenY - p.y;
         } else {
-          diff -= event.layerY - p.y;
-          centerY = event.layerY + (other.y - event.layerY) / 2;
+          diff -= event.screenY - p.y;
         }
-        const scale = 1 + Math.abs(diff) * 1.5 / (image.width + image.height);
-        if (Math.abs(diff) > 1) {
-          centerX = (centerX - (-(((image.width * this._pinchZoomStartState!.scale) - image.width) / 2) + this._pinchZoomStartState!.translateX)) / this._pinchZoomStartState!.scale;
-          centerY = (centerY - (-(((image.height * this._pinchZoomStartState!.scale) - image.height) / 2) + this._pinchZoomStartState!.translateY)) / this._pinchZoomStartState!.scale;
-          if (diff > 0) this.zoomIn(image, centerX, centerY, scale);
+        this._pinchZoomState!.diff += diff;
+        const scale = 1 + Math.abs(this._pinchZoomState!.diff) * 1.5 / (image.width + image.height);
+        if (Math.abs(this._pinchZoomState!.diff) > 1) {
+          const centerX = (this._pinchZoomState!.centerX - (-(((image.width * this._pinchZoomState!.scale) - image.width) / 2) + this._pinchZoomState!.translateX)) / this._pinchZoomState!.scale;
+          const centerY = (this._pinchZoomState!.centerY - (-(((image.height * this._pinchZoomState!.scale) - image.height) / 2) + this._pinchZoomState!.translateY)) / this._pinchZoomState!.scale;
+          if (this._pinchZoomState!.diff > 0) this.zoomIn(image, centerX, centerY, scale);
           else this.zoomOut(image, centerX, centerY, scale);
-          p.x = event.layerX;
-          p.y = event.layerY;
+          this._pinchZoomState!.diff = 0;
         }
-      } else {
+        p.x = event.screenX;
+        p.y = event.screenY;
+      } else if (!p.inPinch) {
         // move
         if (this.zoomScale > 1) {
           this._mouseMove = true;
-          this.doMove(image, event.layerX - p.x, event.layerY - p.y);
-          p.x = event.layerX;
-          p.y = event.layerY;
+          this.doMove(image, event.screenX - p.x, event.screenY - p.y);
+          p.x = event.screenX;
+          p.y = event.screenY;
         }
       }
     } else if (this._mouseMove && this.zoomScale > 1) {
@@ -176,12 +179,14 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     this._mouseMove = false;
     if (event instanceof PointerEvent && event.pointerType === 'touch') {
       const i = this._pointers.findIndex(p => p.id === event.pointerId);
-      if (i >= 0) this._pointers.splice(i, 1);
+      if (i >= 0) {
+        this._pointers.splice(i, 1);
+      }
     }
   }
 
   onTouch(event: TouchEvent): void {
-    if (this._mouseMove) {
+    if (this._mouseMove || this._pointers.length === 2) {
       event.stopPropagation();
       event.preventDefault();
     }
@@ -200,7 +205,14 @@ export class PhotoComponent implements OnChanges, OnDestroy {
 
   zoomOut(image: HTMLImageElement, x: number, y: number, scale: number): void {
     this.zoomScale /= scale;
-    if (this.zoomScale <= 1) this.onUp();
+    if (this.zoomScale <= 1) {
+      this.onUp();
+      this.zoomTranslateX = 0;
+      this.zoomTranslateY = 0;
+      this.zoomScale = 1;
+      this.applyZoom(image);
+      return;
+    }
     this.centerZoom(image, x, y);
     this.applyZoom(image);
   }

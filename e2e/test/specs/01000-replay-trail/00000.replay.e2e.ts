@@ -99,6 +99,7 @@ describe('Replay trail', () => {
   it('Start trail', async () => {
     let startButton = await trailPage.trailComponent.getStartTrailButton();
     await startButton.click();
+    await App.waitToastAndCloseIt();
   });
 
   it('Go to map and wait until pause', async () => {

@@ -558,6 +558,7 @@
       "send_button": "Envoyer",
       "sent": "Votre message a été envoyé",
       "error": "Une erreur s'est produite, veuillez réessayer",
+      "retry_with_captcha": "Nous devons vérifier que vous n'êtes pas un robot, merci de cliquer de nouveau sur Envoyer",
       "network_needed": "Veuillez vous connecter à Internet pour envoyer un message"
     }
   },
@@ -675,7 +676,8 @@
     "saving": "Enregistrement du parcours",
     "empty_trail": "Votre parcours étant vide, il n'a pas été sauvegardé",
     "follow_this_trail": "Suivre ce parcours",
-    "follow_this_trail_confirmation": "Souhaitez-vous suivre le parcours {{1}} ?"
+    "follow_this_trail_confirmation": "Souhaitez-vous suivre le parcours {{1}} ?",
+    "not_native_message": "Il est recommandé d'utiliser l'application Android pour enregistrer une trace. En utilisant l'application web, cela peut entraîner des limitations : une précision GPS moindre, et surtout l'arrêt de l'enregistrement lorsque vous n'êtes plus sur l'application (écran en veille, changement de page ou passage à une autre application), car le navigateur peut alors cesser d'envoyer des coordonnées GPS."
   },
   "waiting_for_gps": "En attente du signal GPS...",
   "bytes": {

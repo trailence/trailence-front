@@ -13,7 +13,7 @@
 <app-trails-and-map
   #trailsAndMap
   *ngIf="viewId"
-  [trails$]="(trails$ | async)!"
+  [trails$]="(trails$ | async) ?? undefined"
   [viewId]="viewId"
   [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"
   [type]="trailsType"

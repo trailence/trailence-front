@@ -5,7 +5,7 @@
 <div class="photo-img-container" *ngIf="blob">
   <img #image
     [src]="blob"
-    [ngStyle]="{ 'max-width': maxWidth + 'px', 'max-height': maxHeight + 'px' }"
+    [ngStyle]="{ 'max-width': maxWidth + 'px', 'max-height': maxHeight + 'px', 'touch-action': zoomable ? 'none' : '' }"
     (wheel)="onWheel($event)"
     (pointerdown)="onDown($event)"
     (pointermove)="onMove($event)"

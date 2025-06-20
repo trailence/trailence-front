@@ -52,6 +52,9 @@
       <div class="error" *ngIf="!sending && error">
         {{ i18n.texts.pages.contact.error }}
       </div>
+      <div *ngIf="!sending && retryWithCaptcha">
+        {{ i18n.texts.pages.contact.retry_with_captcha }}
+      </div>
       <div class="success" *ngIf="!sending && sent">
         {{ i18n.texts.pages.contact.sent }}
       </div>

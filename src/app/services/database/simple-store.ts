@@ -178,6 +178,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
   protected override sync(): Observable<boolean> {
     const db = this._db;
+    this.startSync();
+    this.syncStep('waiting operations');
     return this.operations.requestSync(() => this._db === db ? this._sync() : EMPTY);
   }
 
@@ -189,6 +191,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       this._syncStatus$.value.inProgress = true;
       this._syncStatus$.next(this._syncStatus$.value);
 
+      this.syncStep('create local new items to server');
       return this.syncCreateNewItems(stillValid)
       .pipe(
         switchMap(result => {
@@ -197,6 +200,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             this._syncStatus$.value.localCreates = false;
             this._syncStatus$.next(this._syncStatus$.value);
           }
+          this.syncStep('send deleted local items to server');
           return this.syncLocalDeleteToServer(stillValid);
         }),
         switchMap(result => {
@@ -205,6 +209,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             this._syncStatus$.value.localDeletes = false;
             this._syncStatus$.next(this._syncStatus$.value);
           }
+          this.syncStep('request all items from server');
           return this.syncGetAllFromServer(stillValid);
         }),
         switchMap(result => {
@@ -213,10 +218,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             this._syncStatus$.value.needsUpdateFromServer = false;
             this._syncStatus$.value.lastUpdateFromServer = Date.now();
           }
+          this.syncStep('send local updates to server');
           return this.syncLocalUpdateToServer(stillValid);
         }),
         switchMap(result => {
           if (!stillValid()) return EMPTY;
+          this.syncEnd();
           if (result && this._syncStatus$.value.localUpdates) {
             this._syncStatus$.value.localUpdates = false;
           }

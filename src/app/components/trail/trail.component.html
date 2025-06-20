@@ -258,13 +258,13 @@
               </div>
             </div>
           </div>
-          <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openLocationDialog()">
+          <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openLocationDialog()" *ngIf="trail1">
             <div class="metadata-item">
               <ion-icon name="location"></ion-icon>
               <div class="metadata-content">
                 <div class="metadata-title">{{ i18n.texts.metadata.trail_location }}</div>
                 <div class="metadata-value">
-                  <div class="metadata-primary">{{ trail1?.location ?? '' }}</div>
+                  <div class="metadata-primary">{{ trail1.location }}</div>
                   <div class="metadata-secondary" *ngIf="trail2?.location">{{ trail2?.location ?? '' }}</div>
                 </div>
               </div>
@@ -273,30 +273,32 @@
         </div>
         <div class="metadata-container two-columns with-title">
           <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
-          <div class="metadata-item-container">
-            <div class="metadata-item">
-              <ion-icon [name]="trailService.getLoopTypeIcon(trail1?.loopType)"></ion-icon>
-              <div class="metadata-content">
-                <div class="metadata-title">{{ i18n.texts.metadata.loop_type }}</div>
-                <div class="metadata-value">
-                  <div class="metadata-primary" *ngIf="trail1?.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
-                  <div class="metadata-secondary" *ngIf="trail2?.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
+          @if (trail1) {
+            <div class="metadata-item-container">
+              <div class="metadata-item">
+                <ion-icon [name]="trailService.getLoopTypeIcon(trail1.loopType)"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-title">{{ i18n.texts.metadata.loop_type }}</div>
+                  <div class="metadata-value">
+                    <div class="metadata-primary" *ngIf="trail1.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
+                    <div class="metadata-secondary" *ngIf="trail2?.loopType as lt">{{ i18n.texts.loopType[lt] }}</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openActivityDialog()">
-            <div class="metadata-item">
-              <ion-icon [name]="trailService.getActivityIcon(trail1?.activity)"></ion-icon>
-              <div class="metadata-content">
-                <div class="metadata-title">{{ i18n.texts.metadata.activity }}</div>
-                <div class="metadata-value">
-                  <div class="metadata-primary" *ngIf="trail1?.activity as act">{{ i18n.texts.activity[act] }}</div>
-                  <div class="metadata-secondary" *ngIf="trail2?.activity as act">{{ i18n.texts.activity[act] }}</div>
+            <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openActivityDialog()">
+              <div class="metadata-item">
+                <ion-icon [name]="trailService.getActivityIcon(trail1.activity)"></ion-icon>
+                <div class="metadata-content">
+                  <div class="metadata-title">{{ i18n.texts.metadata.activity }}</div>
+                  <div class="metadata-value">
+                    <div class="metadata-primary" *ngIf="trail1.activity as act">{{ i18n.texts.activity[act] }}</div>
+                    <div class="metadata-secondary" *ngIf="trail2?.activity as act">{{ i18n.texts.activity[act] }}</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          }
           <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
         </div>
         <div *ngIf="!toolsEnabled" style="padding: 5px 3px 10px 8px">

@@ -19,6 +19,12 @@ export interface StoreSyncStatus {
     lastUpdateFromServer?: number;
 }
 
+export interface StoreSyncProgress {
+  step: string;
+  startedAt: number;
+  syncCounter: number;
+}
+
 const DEBUG_OPERATIONS = false;
 
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
@@ -39,6 +45,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected readonly _syncStatus$: BehaviorSubject<SYNCSTATUS>;
 
+  private readonly _syncProgress$ = new BehaviorSubject<StoreSyncProgress | undefined>(undefined);
+  private _syncProgressCounter = 0;
+
   constructor(
     protected tableName: string,
     protected injector: Injector,
@@ -48,6 +57,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     this._errors = new StoreErrors(injector, tableName, () => this.isQuotaReached());
     this._syncStatus$ = new BehaviorSubject(initialStatus);
     this.operations = new StoreOperations(tableName, this._storeLoaded$, this._syncStatus$, this.ngZone);
+    this._syncProgress$.subscribe(p => {
+      Console.debug('Store ' + tableName + ' -- ', p);
+    });
   }
 
   public get loaded$() { return this._storeLoaded$; }
@@ -77,6 +89,37 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         return this._store;
       })
     );
+  }
+
+  protected startSync(): void {
+    if (this._syncProgress$.value) {
+      Console.warn('Store start a sync while already in progress', this.tableName, this._syncProgress$.value);
+    }
+    this._syncProgress$.next({
+      step: 'Starting',
+      startedAt: Date.now(),
+      syncCounter: ++this._syncProgressCounter,
+    });
+  }
+
+  protected syncStep(step: string): void {
+    if (!this._syncProgress$.value) {
+      Console.warn('Store indicates a progress, but there is no progress !!', step);
+      return;
+    }
+    this._syncProgress$.next({
+      step,
+      startedAt: Date.now(),
+      syncCounter: this._syncProgress$.value.syncCounter,
+    })
+  }
+
+  protected syncEnd(): void {
+    if (!this._syncProgress$.value) {
+      Console.warn('Store indicates the end of sync, but there is no progress !!');
+    } else {
+      this._syncProgress$.next(undefined);
+    }
   }
 
   protected _initStore(name: string): void {

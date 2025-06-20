@@ -16,7 +16,7 @@ import { TrackService } from '../database/track.service';
 import { TrailService } from '../database/trail.service';
 import * as L from 'leaflet';
 import { GeolocationState } from '../geolocation/geolocation.interface';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController, ToastController } from '@ionic/angular/standalone';
 import { ImprovmentRecordingState, ImprovmentRecordingStateDto, TrackEditionService } from '../track-edition/track-edition.service';
 import { ProgressService } from '../progress/progress.service';
 import { ErrorService } from '../progress/error.service';
@@ -54,6 +54,7 @@ export class TraceRecorderService {
     private readonly progressService: ProgressService,
     private readonly errorService: ErrorService,
     private readonly screenLockService: ScreenLockService,
+    private readonly toastController: ToastController,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -303,6 +304,21 @@ export class TraceRecorderService {
         }
         this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
         this.screenLockService.set(true);
+        if (!this.geolocation.isNative) {
+          this.toastController.create({
+            message: this.i18n.texts.trace_recorder.not_native_message,
+            color: 'warning',
+            position: 'bottom',
+            duration: 60000,
+            swipeGesture: "vertical",
+            mode: "ios",
+            layout: "stacked",
+            buttons: [{
+              text: this.i18n.texts.buttons.close,
+              role: 'cancel',
+            }]
+          }).then(t => t.present());
+        }
         return Promise.resolve(recording);
       }
     });
