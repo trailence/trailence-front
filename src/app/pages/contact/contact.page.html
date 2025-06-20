@@ -37,6 +37,10 @@
           [(ngModel)]="message"
         ></ion-textarea>
       </div>
+      <div class="form-value" *ngIf="type === 'bug'">
+        <ion-checkbox [(ngModel)]="includeData" labelPlacement="end">{{ i18n.texts.pages.contact.accept_send_data }}</ion-checkbox>
+        <a href='#' (click)="$event.preventDefault(); showData();">{{ i18n.texts.pages.contact.show_data }}</a>
+      </div>
       <div class="captcha-container">
         <div id="captcha-contact"></div>
       </div>

@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox, AlertController, Platform } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
@@ -14,11 +14,12 @@ import { Subscription } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { FormsModule } from '@angular/forms';
 import { PublicPage } from '../public.page';
+import { trailenceAppVersionName } from 'src/app/trailence-version';
 
 @Component({
   templateUrl: './contact.page.html',
   styleUrl: './contact.page.scss',
-  imports: [
+  imports: [IonCheckbox,
     CommonModule, FormsModule,
     HeaderComponent,
     IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon,
@@ -33,6 +34,7 @@ export class ContactPage extends PublicPage {
     private readonly changeDetector: ChangeDetectorRef,
     private readonly http: HttpService,
     private readonly networkService: NetworkService,
+    private readonly platform: Platform,
     injector: Injector,
   ) {
     super(injector);
@@ -50,6 +52,8 @@ export class ContactPage extends PublicPage {
   networkAvailable = false;
   networkSubscription?: Subscription;
   captchaInit = false;
+  includeData = false;
+  data = '';
 
   protected override initComponent(): void {
     this.init();
@@ -85,6 +89,7 @@ export class ContactPage extends PublicPage {
     this.sent = false;
     this.error = false;
     this.retryWithCaptcha = false;
+    this.data = ' --- Technical data ---\nVersion: ' + trailenceAppVersionName + '\nPlatform: ' + window.navigator.userAgent + ' / ' + this.platform.platforms().join() + '\n --- Logs ---\n' + Console.getHistory();
   }
 
   private destroy(): void {
@@ -125,10 +130,14 @@ export class ContactPage extends PublicPage {
   }
 
   send(): void {
+    let message = this.message;
+    if (this.type === 'bug' && this.includeData) {
+      message += this.data;
+    }
     const request = {
       email: this.auth.email ?? this.email,
       type: this.type,
-      message: this.message,
+      message,
       captcha: this.captchaToken
     };
     this.sending = true;
@@ -158,6 +167,21 @@ export class ContactPage extends PublicPage {
         this.error = true;
       },
     });
+  }
+
+  showData(): void {
+    this.injector.get(AlertController).create({
+      header: this.i18n.texts.pages.contact.show_data,
+      cssClass: 'large',
+      inputs: [{
+        type: 'textarea',
+        value: this.data,
+      }],
+      buttons: [{
+        text: this.i18n.texts.buttons.close,
+        role: 'cancel'
+      }]
+    }).then(a => a.present());
   }
 
 }

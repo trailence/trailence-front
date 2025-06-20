@@ -9,6 +9,17 @@ export enum ConsoleLevel {
 
 export class Console {
 
+  private static readonly _history: {log: string, date: number, level: ConsoleLevel}[] = [];
+
+  public static getHistory(): string {
+    let s = '';
+    for (let i = this._history.length - 1; i >= 0; --i) {
+      s = this._history[i].log + '\n' + s;
+      if (s.length > 1000000) break;
+    }
+    return s;
+  }
+
   public static debug(...args: any): void {
     Console.log(ConsoleLevel.DEBUG, ...args);
   }
@@ -38,32 +49,11 @@ export class Console {
     if (navigator.webdriver) {
       const w = window as any;
       w._consoleHistory ??= [];
-      const convert = (a: any, done: any[], deep: number) => { // NOSONAR
-        try {
-          if (deep > 3) return '<too deep>';
-          if (Array.isArray(a)) {
-            if (done.indexOf(a) >= 0) return '<duplicate>';
-            let s = '[';
-            for (const element of a) {
-              s += convert(element, [...done, a], deep + 1) + ',';
-            }
-            return s + ']';
-          }
-          if (a && typeof a === 'object') {
-            if (done.indexOf(a) >= 0) return '<duplicate>';
-            let s = '{';
-            for (const key of Object.getOwnPropertyNames(a)) {
-              let v = typeof a[key] === 'function' ? 'function' : a[key];
-              s += key + ': ' + convert(v, [...done, a], deep + 1) + ',';
-            }
-            return s + '}';
-          }
-          return '' + a;
-        } catch (e) {
-          return '<cannot convert: ' + e + '>';
-        }
-      };
-      w._consoleHistory.push(Console.header(level) + args.map(a => convert(a, [], 0)).join(' - '));
+      w._consoleHistory.push(this.generateForHistory(level, args));
+    } else {
+      this._history.push({log: this.generateForHistory(level, args), date: Date.now(), level});
+      if ((this._history.length >= 1000) && (this._history.length % 100) === 0)
+        this.cleanHistory();
     }
   }
 
@@ -78,6 +68,53 @@ export class Console {
       StringUtils.padLeft('' + d.getSeconds(), 2, '0') + '.' +
       StringUtils.padLeft('' + d.getMilliseconds(), 3, '0') +
     ']' + ' ' + level + ' ';
+  }
+
+  private static cleanHistory(): void {
+    if (this._history.length > 15000) this._history.splice(0, this._history.length - 15000);
+    const errorsTimes: number[] = [];
+    for (const h of this._history) if (h.level === ConsoleLevel.ERROR) errorsTimes.push(h.date);
+    const now = Date.now();
+    const maxTime = now - 15 * 60 * 1000;
+    for (let i = 0; i < this._history.length - 250; ++i) {
+      const h = this._history[i];
+      if (h.date < maxTime && !errorsTimes.find(t => t > h.date - 60000 && t < h.date + 60000)) {
+        this._history.splice(i, 1);
+        i--;
+      }
+    }
+  }
+
+  private static generateForHistory(level: ConsoleLevel, args: any[]): string {
+    const convert = (a: any, done: any[], deep: number) => { // NOSONAR
+      try {
+        if (deep > 3) return '<too deep>';
+        if (Array.isArray(a)) {
+          if (done.indexOf(a) >= 0) return '<duplicate>';
+          let s = '[';
+          for (const element of a) {
+            s += convert(element, [...done, a], deep + 1) + ',';
+          }
+          return s + ']';
+        }
+        if (a && typeof a === 'object') {
+          if (a instanceof Date) {
+            return a.toString();
+          }
+          if (done.indexOf(a) >= 0) return '<duplicate>';
+          let s = '{';
+          for (const key of Object.getOwnPropertyNames(a)) {
+            let v = typeof a[key] === 'function' ? 'function' : a[key];
+            s += key + ': ' + convert(v, [...done, a], deep + 1) + ',';
+          }
+          return s + '}';
+        }
+        return '' + a;
+      } catch (e) {
+        return '<cannot convert: ' + e + '>';
+      }
+    };
+    return Console.header(level) + args.map(a => convert(a, [], 0)).join(' - ')
   }
 
 }

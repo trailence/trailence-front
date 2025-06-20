@@ -559,7 +559,9 @@
       "sent": "Votre message a été envoyé",
       "error": "Une erreur s'est produite, veuillez réessayer",
       "retry_with_captcha": "Nous devons vérifier que vous n'êtes pas un robot, merci de cliquer de nouveau sur Envoyer",
-      "network_needed": "Veuillez vous connecter à Internet pour envoyer un message"
+      "network_needed": "Veuillez vous connecter à Internet pour envoyer un message",
+      "accept_send_data": "J'accepte d'envoyer des données techniques de l'application afin d'aider à résoudre le problème",
+      "show_data": "Voir ces données"
     }
   },
   "menu": {

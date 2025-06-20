@@ -20,6 +20,7 @@ import { publicRoutes } from 'src/app/routes/package.routes';
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
+const LOCALSTORAGE_KEY_ANONYMOUS_PREFS = 'trailence.anonymous_preferences';
 const DB_SECURITY_PREFIX = 'trailence_security_';
 const DB_SECURITY_TABLE = 'security';
 
@@ -131,6 +132,8 @@ export class AuthService {
     const auth = this.auth;
     if (auth) {
       localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
+      if (auth.isAnonymous)
+        localStorage.setItem(LOCALSTORAGE_KEY_ANONYMOUS_PREFS, JSON.stringify(auth.preferences));
     }
   }
 
@@ -232,6 +235,10 @@ export class AuthService {
   }
 
   public loginAnonymous(): Observable<AuthResponse> {
+    let preferences = {};
+    try {
+      preferences = JSON.parse(localStorage.getItem(LOCALSTORAGE_KEY_ANONYMOUS_PREFS) ?? '{}');
+    } catch (e) { /* ignore */ } // NOSONAR
     const response: AuthResponse = {
       accessToken: 'anonymous',
       expires: 99999999999999,
@@ -239,7 +246,7 @@ export class AuthService {
       keyId: '1',
       keyCreatedAt: Date.now(),
       keyExpiresAt: 99999999999999,
-      preferences: {}, // TODO ?
+      preferences,
       complete: false,
       admin: false,
       quotas: {

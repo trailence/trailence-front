@@ -176,7 +176,7 @@ export class HomePage extends PublicPage {
   private resetSlides(): void {
     for (let i = 0; i < this.slides.length; ++i) {
       if (i !== this.currentSlideIndex) document.getElementById(this.getSlideId(i))?.classList.remove('current', 'at-right', 'at-left');
-      for (let j = 0; true; ++j) {
+      for (let j = 0; true; ++j) { // NOSONAR
         const img = document.getElementById(this.getSlideImageId(i, j));
         if (!img) break;
         if (j !== this.currentSlideImageIndex)

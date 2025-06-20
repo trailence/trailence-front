@@ -304,7 +304,7 @@ export class TraceRecorderService {
         }
         this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
         this.screenLockService.set(true);
-        if (!this.geolocation.isNative) {
+        if (!this.geolocation.isNative && recording.rawTrack.metadata.distance === 0) {
           this.toastController.create({
             message: this.i18n.texts.trace_recorder.not_native_message,
             color: 'warning',

@@ -39,7 +39,7 @@ export class AdminMessagesPage {
       new TableColumn('admin.messages.date').withSortableField('sentAt', date => this.i18n.timestampToDateTimeString(date)).styleFromRowData(this.styleProvider),
       new TableColumn('admin.messages.from').withSortableField('email').styleFromRowData(this.styleProvider),
       new TableColumn('admin.messages.type').withSortableField('type', type => this.i18n.texts.pages.contact.types[type]).styleFromRowData(this.styleProvider),
-      new TableColumn('admin.messages.message').withField('message'),
+      new TableColumn('admin.messages.message').withField('message', msg => msg.length < 200 ? msg : msg.substring(0, 200) + '...'),
     ],
     (request: PageRequest) => this.messagesService.getMessages(request),
     'admin.messages.error'

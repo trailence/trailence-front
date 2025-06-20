@@ -1,6 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { I18nService } from './i18n.service';
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { Console } from 'src/app/utils/console';
 
 export interface I18nString {
 
@@ -36,7 +37,7 @@ export class TranslatedString implements I18nString {
     let t = i18n.texts;
     for (const name of path) t = t ? t[name] : undefined;
     if (typeof t !== 'string') {
-      console.error('Invalid i18n key', this.i18nKey, path, t, i18n.texts);
+      Console.error('Invalid i18n key', this.i18nKey, path, t, i18n.texts);
       return 'Invalid i18nkey: ' + this.i18nKey;
     }
     for (let i = 0; i < this.args.length; ++i) {
@@ -53,7 +54,7 @@ export class TranslatedString implements I18nString {
         let t = texts;
         for (const name of path) t = t ? t[name] : undefined;
         if (typeof t !== 'string') {
-          console.error('Invalid i18n key', this.i18nKey, path, t, i18n.texts);
+          Console.error('Invalid i18n key', this.i18nKey, path, t, i18n.texts);
           return of('Invalid i18nkey: ' + this.i18nKey);
         }
         if (this.args.length === 0) return of(t);

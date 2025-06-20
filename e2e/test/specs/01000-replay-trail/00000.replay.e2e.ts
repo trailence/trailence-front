@@ -99,13 +99,13 @@ describe('Replay trail', () => {
   it('Start trail', async () => {
     let startButton = await trailPage.trailComponent.getStartTrailButton();
     await startButton.click();
-    await App.waitToastAndCloseIt();
   });
 
   it('Go to map and wait until pause', async () => {
     await browser.execute(() => (window as any)._startTrail = true);
     await trailPage.trailComponent.openMap();
     await browser.waitUntil(() => browser.execute(() => (window as any)._resumeSegment !== undefined), { interval: 2000, timeout: 45000 });
+    await App.waitToastAndCloseIt();
   });
 
   it('Pause then resume', async () => {

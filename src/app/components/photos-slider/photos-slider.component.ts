@@ -49,7 +49,6 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
       if (this.destroyed) return;
       let lastTimestamp = 0;
       const move = (detail: GestureDetail) => {
-        console.log('gesture', detail.event, detail.event.defaultPrevented, (detail.event as any)['toto'])
         this.scroll = this.index * this.screenWidth + detail.startX - detail.currentX;
         this.changesDetector.detectChanges();
         detail.event.stopPropagation();

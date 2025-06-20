@@ -2,7 +2,6 @@ import { ActivatedRouteSnapshot, RouterStateSnapshot, Routes } from '@angular/ro
 import { authRoutes, defaultAuthRoute, defaultPublicRoute, publicRoutes } from './package.routes';
 import { AuthService } from '../services/auth/auth.service';
 import { inject } from '@angular/core';
-import { startWith } from 'rxjs';
 
 export const routes: Routes = [
   {

@@ -859,7 +859,6 @@ export class TrailComponent extends AbstractComponent {
     if (showOriginalBefore) this.showOriginal$.next(false);
 
     this.selection.cancelSelection();
-    console.log(photo)
     this.positionningOnMap$.next(photo);
     this.refreshMapToolbarRight();
     this.changesDetector.detectChanges();
@@ -869,7 +868,6 @@ export class TrailComponent extends AbstractComponent {
       if (showBreaksBefore) this.showBreaks$.next(true);
       if (showPhotosBefore) this.showPhotos$.next(true);
       if (showOriginalBefore) this.showOriginal$.next(true);
-      console.log('done !!')
       this.refreshMapToolbarRight();
       this.changesDetector.detectChanges();
       if (this.isSmall) this.setTab('photos');

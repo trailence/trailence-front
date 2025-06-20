@@ -1,5 +1,4 @@
 div.page-container {
-  padding: 10px;
   height: 100%;
   overflow-y: auto;
   display: flex;
@@ -48,4 +47,12 @@ div.form-container {
     margin-top: 10px;
     text-align: center;
   }
+}
+
+ion-checkbox::part(label) {
+  white-space: wrap;
+}
+a, a:hover, a:active {
+  margin: 0 0 0 35px;
+  color: var(--ion-color-secondary);
 }

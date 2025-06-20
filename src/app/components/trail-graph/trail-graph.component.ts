@@ -725,7 +725,6 @@ export class TrailGraphComponent extends AbstractComponent {
           (segmentDuration || (trackDistance > 0 && trackDistance - distance > prefs.estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
         ) {
           const breakTime = estimateSmallBreakTime(duration);
-          console.log('small break of ' + breakTime + ' after ' + this.i18n.durationToString(duration) + ' / ' + distance)
           let t = 0;
           for (let i = ds.data.length - 1; i >= 0 && i >= ds.data.length - 100; --i) {
             if (ds.data[i].timeFromPreviousPoint === undefined) continue;

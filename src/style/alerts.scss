@@ -22,3 +22,13 @@ button.alert-button.alert-button-role-success {
     text-align: center;
   }
 }
+
+ion-alert.large {
+  --max-width: 90vw;
+
+  .alert-input-group textarea {
+    min-width: 80vw;
+    height: 50vh;
+  }
+
+}
