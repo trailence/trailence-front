@@ -106,5 +106,9 @@
   "001704": {
     "en": { "items": ["Try the app without account"]},
     "fr": { "items": ["Essai de l'application sans compte"]}
+  },
+  "001705": {
+    "en": {"message": "Some improvements and fixes"},
+    "fr": {"message": "Quelques améliorations et correctifs"}
   }
 }
