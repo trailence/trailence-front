@@ -1,0 +1,51 @@
+<html>
+<head>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+div.header {
+  flex: none;
+}
+div.content-container {
+  flex: 1 1 100%;
+}
+div.content {
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-width: 800px;
+  margin: auto;
+}
+</style>
+</head>
+<body>
+  <div class="header">
+    TODO header
+  </div>
+  <div class="content-container">
+    <div class="content">
+      <div class="trail-title">{{name}}</div>
+      <div class="photos-and-description">
+        <div class="photos"></div>
+        <div class="trail-description">{{description}}</div>
+      </div>
+      <div class="meta-and-map">
+        <div class="map"></div>
+        <div class="meta"></div>
+      </div>
+      <div class="waypoints"></div>
+      <div class="comments"></div>
+    </div>
+  </div>
+</body>
+</html>

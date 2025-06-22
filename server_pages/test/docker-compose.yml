@@ -1,0 +1,9 @@
+name: trailence-public-test
+
+services:
+  nginx:
+    build:
+      context: ..
+      dockerfile: test/Dockerfile
+    ports:
+      - 80:80
