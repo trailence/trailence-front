@@ -1,0 +1,11 @@
+server {
+  listen       80;
+  listen [::]:80;
+
+  js_path "/usr/share/nginx/njs/";
+  js_import trail_page from generate_trail_page.js;
+
+  location /public/trail {
+    js_content trail_page.generate;
+  }
+}
