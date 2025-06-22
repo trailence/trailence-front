@@ -177,7 +177,7 @@ export class TrailComponent extends AbstractComponent {
       .setAction(() => this.stopRecordingWithConfirmation()),
     new MenuItem().setIcon('star-filled').setI18nLabel('trace_recorder.follow_this_trail')
       .setVisible(() => !!this.recording && !!this.trail1 && !this.trail2 && (this.recording.followingTrailUuid !== this.trail1.uuid || this.recording.followingTrailOwner !== this.trail1.owner))
-      .setAction(() => this.togglePauseRecordingWithConfirmation()),
+      .setAction(() => this.confirmFollowThisTrail()),
     new MenuItem(),
     new MenuItem().setIcon('reverse-way').setI18nLabel('pages.trail.reverse_way')
       .setVisible(() => !!this.trail1 && !this.trail2)

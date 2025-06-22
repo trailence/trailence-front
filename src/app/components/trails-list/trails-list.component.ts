@@ -7,7 +7,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
   IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, IonSegment, IonSegmentButton, IonInput, IonSpinner } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, debounceTime, map, Observable, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -225,6 +225,7 @@ export class TrailsListComponent extends AbstractComponent {
     return {
       trails$: this.trails$,
       collectionUuid: this.collectionUuid,
+      map: this.map,
     }
   }
 
@@ -233,8 +234,10 @@ export class TrailsListComponent extends AbstractComponent {
       this.loadState();
 
     const trails$ = this.trails$ ? this.trails$.toArray() : [];
-    this.byStateAndVisible.subscribe(
-      (trails$.length === 0 ? of([]) : combineLatest(trails$)).pipe(
+    this.byState.add(this.ngZone.runOutsideAngular(() =>
+      combineLatest([this.visible$, this.map?.visible$ ?? of(false)]).pipe(
+        filter(([thisVisible, mapVisible]) => thisVisible || mapVisible),
+        switchMap(() => (trails$.length === 0 ? of([]) : combineLatest(trails$))),
         map(trails => trails.filter(t => !!t)),
         debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
         map(trails => {
@@ -261,8 +264,7 @@ export class TrailsListComponent extends AbstractComponent {
         }),
         switchMap(trailsWithInfo$ => trailsWithInfo$.length > 0 ? combineLatest(trailsWithInfo$) : of([])),
         debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
-      ),
-      (trailsWithInfo) => {
+      ).subscribe((trailsWithInfo) => {
         for (const t of trailsWithInfo) {
           const current = this.allTrails.find(c => c.trail.uuid === t.trail.uuid && c.trail.owner === t.trail.owner);
           if (current?.selected) t.selected = true;
@@ -275,9 +277,8 @@ export class TrailsListComponent extends AbstractComponent {
           this.highlighted = ti?.trail;
         }
         this.changeDetector.detectChanges();
-      },
-      true
-    );
+      })
+    ));
 
     let previous = this.state$.value;
     let previousMapCenter: L.LatLngLiteral | undefined = undefined;

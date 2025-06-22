@@ -152,6 +152,9 @@ export class TrailGraphComponent extends AbstractComponent {
         clearTimeout(this._visibilityTimeout);
         this._visibilityTimeout = undefined;
       }
+      const container = document.getElementById('graph-tooltip-' + this.id);
+      if (container)
+        container.style.display = 'none';
       if (!this.initializing)
         this.ngZone.run(() => this.changeDetector.detectChanges());
       if (!this.track1) return;
