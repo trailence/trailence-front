@@ -1,5 +1,16 @@
 <div class="trail-name-row" *ngIf="trail">
   <ion-checkbox class="trail-checkbox" *ngIf="selectable" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
+  @if (navigationCount && navigationIndex !== undefined) {
+    <div class="navigation">
+      <ion-button size="small" fill="clear" color="dark" (click)="navigationPrevious()">
+        <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
+      </ion-button>
+      <span>{{navigationIndex + 1}} / {{navigationCount}}</span>
+      <ion-button size="small" fill="clear" color="dark" (click)="navigationNext()">
+        <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
+      </ion-button>
+    </div>
+  }
   <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}">{{ meta.name }}</div>
   <ng-container *ngIf="external && external.oscmSymbol">
     <ng-container *ngIf="generateRouteSymbol(external.oscmSymbol) as svg">

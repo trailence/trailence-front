@@ -213,6 +213,7 @@ export class MapComponent extends AbstractComponent {
       ([tracks, live, map]) => {
         if (!map || !live) return;
         const toRemove = [...this._currentTracks];
+        const highlighted: MapTrack[] = [];
         tracks.forEach(track => {
           const index = toRemove.indexOf(track);
           if (index >= 0) {
@@ -221,8 +222,10 @@ export class MapComponent extends AbstractComponent {
           } else {
             track.addTo(map);
           }
+          if (track.highlighted) highlighted.push(track);
         });
         toRemove.forEach(track => track.remove());
+        highlighted.forEach(track => track.bringToFront());
         this._currentTracks = [...tracks];
         this.initMapZoom(map, tracks);
       }

@@ -10,6 +10,7 @@ import * as L from 'leaflet';
 export class MapTrack {
 
   public data: any;
+  public highlighted = false;
 
   constructor(
     private readonly _trail: Trail | undefined,

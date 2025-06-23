@@ -71,6 +71,10 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() delayLoading = false;
 
+  @Input() navigationIndex?: number;
+  @Input() navigationCount?: number;
+  @Output() navigationIndexChange = new EventEmitter<number>();
+
   id = IdGenerator.generateId();
   meta: Meta = new Meta();
   track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
@@ -313,6 +317,18 @@ export class TrailOverviewComponent extends AbstractComponent {
     this._symbol = symbol;
     this._generatedSymbol = this.injector.get(DomSanitizer).bypassSecurityTrustHtml(svg);
     return this._generatedSymbol;
+  }
+
+  navigationPrevious(): void {
+    if (this.navigationIndex === undefined || !this.navigationCount) return;
+    if (--this.navigationIndex < 0) this.navigationIndex = this.navigationCount - 1;
+    this.navigationIndexChange.emit(this.navigationIndex);
+  }
+
+  navigationNext(): void {
+    if (this.navigationIndex === undefined || !this.navigationCount) return;
+    if (++this.navigationIndex >= this.navigationCount) this.navigationIndex = 0;
+    this.navigationIndexChange.emit(this.navigationIndex);
   }
 
 }

@@ -57,6 +57,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
   isSmall = false;
 
   highlightedTrail?: Trail;
+  bottomSheetTrails?: Trail[];
+  bottomSheetTrailsIndex = 0;
   mapTracksMapper = new CollectionMapper<{trail: Trail, data: SimplifiedTrackSnapshot}, MapTrack>(
     trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, 'red', 4, false, this.i18n),
     (t1, t2) => t1.data === t2.data
@@ -271,7 +273,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     // no
   }
 
-  toggleHighlightedTrail(trail: Trail): void {
+  toggleHighlightedTrail(trail: Trail, others?: Trail[]): void {
     if (this.highlightedTrail === trail) {
       this.highlight(trail, false);
       this.highlightedTrail = undefined;
@@ -280,6 +282,19 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.highlightedTrail = trail;
       this.highlight(trail, true);
     }
+    this.bottomSheetTrails = others && others.length > 0 ? [trail, ...others] : undefined;
+    this.bottomSheetTrailsIndex = 0;
+    this.changeDetector.detectChanges();
+  }
+
+  navigateBottomSheetTrail(index: number): void {
+    if (!this.bottomSheetTrails) return;
+    const nb = this.bottomSheetTrails.length;
+    this.bottomSheetTrailsIndex = index < 0 ? 0 : index >= nb ? nb - 1 : index;
+    if (this.highlightedTrail)
+      this.highlight(this.highlightedTrail, false);
+    this.highlightedTrail = this.bottomSheetTrails[this.bottomSheetTrailsIndex];
+    this.highlight(this.highlightedTrail, true);
     this.changeDetector.detectChanges();
   }
 
@@ -288,6 +303,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     if (mapTrack) {
       mapTrack.color = highlight ? '#4040FF' : 'red';
       mapTrack.showDepartureAndArrivalAnchors(highlight);
+      mapTrack.highlighted = highlight;
       if (highlight)
         mapTrack.bringToFront();
       else
@@ -297,20 +313,30 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   onTrailClickOnList(trail: Trail): void {
-    this.toggleHighlightedTrail(trail);
-    if (this.tab === 'list' && this.mode.indexOf('large') < 0) {
-      this.setTab('map');
-      this.changeDetector.detectChanges();
-    }
     const mt = this.mapTracks$.value.find(t => t.trail?.owner === trail.owner && t.trail?.uuid === trail.uuid);
     if (mt && this.map)
       this.map.ensureVisible(mt);
+    if (this.tab === 'list' && this.mode.indexOf('large') < 0) {
+      if (this.highlightedTrail !== trail) this.toggleHighlightedTrail(trail);
+      this.setTab('map');
+      this.changeDetector.detectChanges();
+    } else {
+      this.toggleHighlightedTrail(trail);
+    }
   }
 
   onTrailClickOnMap(event: MapTrackPointReference[]): void {
     const closest = MapTrackPointReference.closest(event);
     if (closest?.track.trail) {
-      this.toggleHighlightedTrail(closest.track.trail);
+      const trail = closest?.track.trail;
+      const otherTrails: Trail[] = [];
+      for (const ref of event) {
+        const t = ref.track.trail;
+        if (t && t !== trail && !otherTrails.find(ot => ot === t)) {
+          otherTrails.push(t);
+        }
+      }
+      this.toggleHighlightedTrail(trail, otherTrails);
     } else if (this.highlightedTrail) {
       this.toggleHighlightedTrail(this.highlightedTrail);
     }
