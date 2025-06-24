@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <div>
+      <ion-icon name="web" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.publications.publish}}</ion-label>
+    </div>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <h1>{{i18n.texts.publications.start_popup.header}}</h1>
+  <div>{{i18n.texts.publications.start_popup.text_before}}</div>
+  <ul>
+    @for (bullet of i18n.texts.publications.start_popup.bullets; track $index) {
+      <ng-container *ngTemplateOutlet="bulletTemplate; context: { bullet: bullet }"></ng-container>
+    }
+  </ul>
+  <h2>{{i18n.texts.publications.start_popup.text_after}}</h2>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" (click)="create()" [disabled]="creating">{{i18n.texts.buttons.understood}}</ion-button>
+      <ion-button color="medium" (click)="cancel()" [disabled]="creating">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
+<ng-template #bulletTemplate let-bullet="bullet">
+  <li>
+    {{bullet.text}}
+    @if (bullet.bullets) {
+      <ul>
+        @for (subBullet of bullet.bullets; track $index) {
+          <ng-container *ngTemplateOutlet="bulletTemplate; context: { bullet: subBullet }"></ng-container>
+        }
+      </ul>
+    }
+  </li>
+</ng-template>

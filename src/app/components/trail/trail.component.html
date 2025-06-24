@@ -146,7 +146,7 @@
             </div>
           </div>
 
-          <ng-container *ngIf="tagsNames1 !== undefined || tagsNames2 !== undefined">
+          <ng-container *ngIf="!isPublication && trail1Collection && (tagsNames1 !== undefined || tagsNames2 !== undefined)">
             <div class="metadata-item-container" style="padding-right: 2px">
               <div class="metadata-item">
                 <div class="metadata-content">
@@ -203,7 +203,7 @@
           </ion-button>
         </ng-container>
       </div>
-      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="openTags(trail1)">
+      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2 && trail1Collection && !isPublication" (click)="openTags(trail1)">
         <ion-icon name="tags" color="secondary"></ion-icon>
         <span *ngIf="tagsNames1.length === 0" class="no-tag">
           <span>{{i18n.texts.pages.trail.no_tag_message}}</span>
@@ -417,7 +417,7 @@
     </div>
   </ng-container>
   <div class="trail-photos-tab" *ngIf="photos !== undefined && isSmall && tab === 'photos'">
-    <app-photos-popup [owner]="trail1!.owner" [trailUuid]="trail1!.uuid" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
+    <app-photos-popup [trail]="trail1!" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
   </div>
 </div>
 

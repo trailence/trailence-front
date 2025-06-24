@@ -74,7 +74,7 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.collection = this.collectionService.getCollection(this.collectionUuid, this.auth.email!)!;
-    this.subscriptions.add(this.collectionService.getAll$().pipe(collection$items()).subscribe(
+    this.subscriptions.add(this.collectionService.getMyCollectionsReady$().subscribe(
       list => this.otherCollections = this.collectionService.sort(list.filter(c => c.uuid !== this.collectionUuid))
     ));
   }

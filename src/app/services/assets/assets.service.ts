@@ -36,6 +36,7 @@ export class AssetsService {
       'caret-forward': 'assets/caret-forward.1.svg', // caret-forward
       'celebration': 'assets/celebration.1.svg',
       'center-on-location': 'assets/center-on-location.1.svg',
+      'check-list': 'assets/check-list.1.svg',
       'checkmark': 'assets/checkmark.1.svg', // checkmark-outline
       'chevron-down': 'assets/chevron-down.1.svg', // chevron-down-outline
       'chevron-first': 'assets/admin/chevron-first.1.svg',
@@ -108,12 +109,15 @@ export class AssetsService {
       'points-distance': 'assets/points-distance.1.svg',
       'positive-elevation': 'assets/positive-elevation.1.svg',
       'question': 'assets/question.1.svg', // help-outline
+      'radio-group': 'assets/radio-group.1.svg',
       'redo': 'assets/redo.1.svg', // arrow-redo-outline
       'reset': 'assets/reset.1.svg', // refresh-outline
       'road-bike': 'assets/road-bike.1.svg',
       'running': 'assets/running.1.svg',
       'save': 'assets/save.1.svg', // save
       'search': 'assets/search.1.svg', // search-outline
+      'search-map': 'assets/search-map.1.svg',
+      'search-position': 'assets/search-position.1.svg',
       'selection': 'assets/selection.1.svg',
       'selection-add': 'assets/selection-add.1.svg',
       'selection-off': 'assets/selection-off.1.svg',

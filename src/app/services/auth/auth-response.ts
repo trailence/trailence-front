@@ -15,5 +15,6 @@ export interface AuthResponse {
   quotas: UserQuotas;
   allowedExtensions: string[];
   isAnonymous?: boolean;
+  roles?: string[];
 
 }

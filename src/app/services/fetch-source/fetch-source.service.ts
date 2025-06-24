@@ -24,6 +24,7 @@ export class FetchSourceService {
 
   private load(): void {
     Promise.all([
+      import('./trailence.plugin').then(m => new m.TrailencePlugin(this.injector)),
       import('./visorando.plugin').then(m => new m.VisorandoPlugin(this.injector)),
       import('./outdoor.plugin').then(m => new m.OutdoorPlugin(this.injector)),
       import('./osm.plugin').then(m => new m.OsmPlugin(this.injector)),
@@ -60,7 +61,7 @@ export class FetchSourceService {
   public get canSearch$(): Observable<boolean> {
     return this.plugins$.pipe(
       switchMap(plugins => plugins.length === 0 ? of([]) : combineLatest(plugins.map(p => p.allowed$))),
-      map(allowed => allowed.filter(a => !!a).length > 1)
+      map(allowed => allowed.filter(a => !!a).length > 0)
     );
   }
 

@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angul
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
-import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
@@ -24,6 +24,8 @@ import { SearchPlaceComponent } from '../search-place/search-place.component';
 import { Place } from 'src/app/services/geolocation/place';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -48,6 +50,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @Input() message?: string;
   @Input() enableRemoveByGesture = false;
   @Input() enableSearchPlace = false;
+
+  @Input() mapTopToolbar$?: Observable<MenuItem[]>;
 
   mode =  '';
   listSize: 'large' | 'medium' | 'small' = 'large';
@@ -77,12 +81,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @ViewChild(MapComponent) set mapComponent(v: MapComponent) { this._map$.next(v); }
   @ViewChild(SearchPlaceComponent) searchPlace?: SearchPlaceComponent;
 
-  @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
-  mapToolbarTopRightItems: MenuItem[] = [
-    new MenuItem().setIcon('search').setAction(() => this.expandSearchPlace()).setVisible(() => !this.searchPlaceExpanded),
-    new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => this.searchPlaceExpanded),
-    new MenuItem().setIcon('chevron-left').setAction(() => this.collapseSearchPlace()).setVisible(() => this.searchPlaceExpanded),
-  ];
+  @ViewChild('mapToolbarTop') mapToolbarTop?: ToolbarComponent;
+  mapToolbarTopItems: MenuItem[] = [];
 
   constructor(
     injector: Injector,
@@ -91,10 +91,12 @@ export class TrailsAndMapComponent extends AbstractComponent {
     private readonly trackService: TrackService,
     private readonly router: Router,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly networkService: NetworkService,
   ) {
     super(injector);
     this.whenVisible.subscribe(browser.resize$, () => this.updateMode());
     this.visible$.subscribe(() => this.updateMode());
+    this.whenVisible.subscribe(combineLatest([networkService.internet$, networkService.server$]), () => this.mapToolbarTop?.refresh());
   }
 
   protected override initComponent(): void {
@@ -125,7 +127,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
             trails.map(
               trail => trail.currentTrackUuid$.pipe(
                 switchMap(trackUuid => {
-                  if (zoom === undefined) return this.trackService.getSimplifiedTrack$(trackUuid, trail.owner);
+                  if (zoom === undefined) return trail.fromModeration ? this.injector.get(ModerationService).getSimplifiedTrack$(trail.uuid, trail.owner, trackUuid) : this.trackService.getSimplifiedTrack$(trackUuid, trail.owner);
                   return this.trackService.getMetadata$(trackUuid, trail.owner);
                 }),
                 filterDefined(),
@@ -171,14 +173,33 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   protected override getComponentState() {
-    return { trails$: this.trails$ }
+    return { trails$: this.trails$, mapTopToolbar$: this.mapTopToolbar$, enableSearchPlace: this.enableSearchPlace }
   }
+
+  private mapTopToolbarSubscription?: Subscription;
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (previousState?.trails$ === undefined && this.trails$ !== undefined && this.trails$.size === 0) {
       if (this.isSmall && this.tab === 'map') {
         this.setTab('list');
       }
+    }
+    const searchPlaceItems = this.enableSearchPlace ? [
+      new MenuItem().setIcon('search-position')
+        .setI18nLabel(this.mapTopToolbar$ ? 'search_place.placeholder' : undefined)
+        .setDisabled(() => !this.networkService.internet || !this.networkService.server)
+        .setAction(() => this.expandSearchPlace()).setVisible(() => !this.searchPlaceExpanded),
+      new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => this.searchPlaceExpanded),
+      new MenuItem().setIcon('chevron-left').setAction(() => this.collapseSearchPlace()).setVisible(() => this.searchPlaceExpanded),
+    ] : [];
+    this.mapToolbarTopItems = [...searchPlaceItems];
+    this.mapTopToolbarSubscription?.unsubscribe();
+    this.mapTopToolbarSubscription = undefined;
+    if (this.mapTopToolbar$) {
+      this.mapTopToolbarSubscription = this.mapTopToolbar$.subscribe(items => {
+        this.mapToolbarTopItems = [...items.map(item => item.addVisibleCondition(() => !this.searchPlaceExpanded)), new MenuItem(), ...searchPlaceItems];
+        this.mapToolbarTop?.refresh();
+      });
     }
   }
 
@@ -322,7 +343,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   expandSearchPlace(): void {
     this.searchPlaceExpanded = true;
-    this.mapToolbarTopRight?.refresh();
+    this.mapToolbarTop?.refresh();
     this.changeDetector.detectChanges();
     setTimeout(() => {
       this.searchPlace?.setFocus();
@@ -331,7 +352,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   collapseSearchPlace(): void {
     this.searchPlaceExpanded = false;
-    this.mapToolbarTopRight?.refresh();
+    this.mapToolbarTop?.refresh();
     this.changeDetector.detectChanges();
   }
 

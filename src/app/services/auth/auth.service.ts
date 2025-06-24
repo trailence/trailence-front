@@ -127,6 +127,8 @@ export class AuthService {
   public get auth(): AuthResponse | null { return this._auth$.value ?? null; }
 
   public get email(): string | undefined { return this.auth?.email; }
+  public hasRole(role: string): boolean { return !!this.auth?.roles?.find(r => r === role); }
+  public hasRole$(role: string): Observable<boolean> { return this.auth$.pipe(map(a => !!a?.roles?.find(r => r === role))); }
 
   public preferencesUpdated(): void {
     const auth = this.auth;

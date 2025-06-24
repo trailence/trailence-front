@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -23,10 +23,10 @@ import * as L from 'leaflet';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { SearchTrailsHeaderComponent } from 'src/app/components/search-trails-header/search-trails-header.component';
-import { SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { FetchSourcePlugin, SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { AlertController } from '@ionic/angular/standalone';
 
 @Component({
     selector: 'app-trails-page',
@@ -36,7 +36,6 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
         CommonModule,
         HeaderComponent,
         TrailsAndMapComponent,
-        SearchTrailsHeaderComponent,
     ]
 })
 export class TrailsPage extends AbstractPage {
@@ -55,6 +54,13 @@ export class TrailsPage extends AbstractPage {
   canSearch = false;
   searchMessage?: string;
   hasSearchResult = false;
+  availableSearchPlugins: FetchSourcePlugin[] = [];
+  selectedSearchPlugins: string[] = [];
+  searchPluginsSubscription?: Subscription;
+
+  connected$: Observable<boolean>;
+
+  mapTopToolbar$ = new BehaviorSubject<MenuItem[]>([]);
 
   private readonly _trailsAndMap$ = new BehaviorSubject<TrailsAndMapComponent | undefined>(undefined);
 
@@ -63,8 +69,10 @@ export class TrailsPage extends AbstractPage {
   constructor(
     injector: Injector,
     public readonly i18n: I18nService,
+    readonly networkService: NetworkService,
   ) {
     super(injector);
+    this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
   }
 
   protected override getComponentState() {
@@ -89,8 +97,13 @@ export class TrailsPage extends AbstractPage {
       case 'share': this.initShare(newState.id, newState.from); break;
       case 'search': this.initSearch(); break;
       case 'all-collections': this.initAllCollections(); break;
+      case 'moderation': this.initModeration(); break;
       default: this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
+  }
+
+  protected override destroyComponent(): void {
+    this.reset();
   }
 
   private initCollection(collectionUuid: string): void {
@@ -109,25 +122,28 @@ export class TrailsPage extends AbstractPage {
         // menu
         collectionActions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
         this.actions = [...collectionActions, ...trailsActions];
-        if (collection.name.length > 0) return of(collection.name);
-        if (collection.type === TrailCollectionType.MY_TRAILS)
-          return this.i18n.texts$.pipe(map(texts => texts.my_trails));
-        return of('');
+        return this.injector.get(TrailCollectionService).getTrailCollectionName$(collection);
       })
     ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
     // trails from collection
     let first = true;
     this.byStateAndVisible.subscribe(
-      this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-        collection$items$(trail => trail.collectionUuid === collectionUuid)
-      ),
-      trails => {
+      combineLatest([
+        this.injector.get(AuthService).auth$.pipe(
+          switchMap(auth => auth ? this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email) : of(undefined)),
+          filterDefined(),
+        ),
+        this.injector.get(TrailService).getAllWhenLoaded$().pipe(
+          collection$items$(trail => trail.collectionUuid === collectionUuid)
+        ),
+      ]),
+      ([collection, trails]) => {
         const newList = List(trails.map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           const index = this.actions.findIndex(a => a.isSeparator());
           if (index > 0) this.actions.splice(index, this.actions.length - index);
-          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails.map(t => t.item), false, collectionUuid, true);
+          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails.map(t => t.item), false, collection, true);
           if (actions.length > 0)
             actions.splice(0, 0, new MenuItem());
           trailsActions = actions;
@@ -199,6 +215,50 @@ export class TrailsPage extends AbstractPage {
       ),
       bounds => this.setSearchBounds(bounds)
     );
+    // map toolbar
+    this.mapTopToolbar$.next([
+      new MenuItem()
+        .setIcon('search-map')
+        .setI18nLabel(() => this.searching ? 'pages.trails.search.searching' : 'pages.trails.search.search_in_this_area')
+        .setDisabled(() => this.searching || !this.networkService.internet || !this.networkService.server)
+        .setAction(() => {
+          if (!this.searching && this.selectedSearchPlugins.length > 0 && this.networkService.internet && this.networkService.server)
+            this.doSearch(this.selectedSearchPlugins);
+        }),
+      new MenuItem()
+        .setIcon('trash').setI18nLabel('pages.trails.search.clear_search_results')
+        .setVisible(() => this.hasSearchResult)
+        .setAction(() => this.clearSearchResult()),
+      new MenuItem()
+        .setIcon('radio-group').setI18nLabel('pages.trails.search.sources')
+        .setVisible(() => this.availableSearchPlugins.length > 1)
+        .setAction(() => {
+          this.injector.get(AlertController).create({
+            header: this.i18n.texts.pages.trails.search.sources,
+            inputs: this.availableSearchPlugins.map(plugin => ({
+              label: plugin.name,
+              value: plugin.name,
+              type: 'radio',
+              checked: this.selectedSearchPlugins.indexOf(plugin.name) >= 0,
+            })),
+            buttons: [{
+              text: this.i18n.texts.buttons.ok,
+              role: 'ok',
+              handler: (value) => {
+                if (value)
+                  this.selectedSearchPlugins = [value];
+                this.injector.get(AlertController).dismiss();
+              },
+            }]
+          }).then(a => a.present());
+        }),
+    ]);
+    // available plugins
+    this.searchPluginsSubscription = this.injector.get(FetchSourceService).getAllowedPlugins$().subscribe(list => {
+      this.availableSearchPlugins = list;
+      this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+    });
+    this.selectedSearchPlugins = ['Trailence'];
   }
 
   private searchBounds?: L.LatLngBounds;
@@ -242,6 +302,8 @@ export class TrailsPage extends AbstractPage {
       this.searchMessage = undefined;
       this.hasSearchResult = false;
     });
+    this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+    Console.info('Start search on bounds ', this.searchBounds, 'using plugins', plugins);
     this.injector.get(FetchSourceService).searchByArea(this.searchBounds!, 200, plugins).subscribe({ // NOSONAR
       next: result => fillResults(result),
       error: e => {
@@ -249,6 +311,7 @@ export class TrailsPage extends AbstractPage {
         this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
         this.searching = false;
         this.setSearchBounds(this.searchBounds);
+        this.mapTopToolbar$.next(this.mapTopToolbar$.value);
       }
     });
   }
@@ -259,6 +322,26 @@ export class TrailsPage extends AbstractPage {
       this.trails$.next(List());
     });
   }
+
+  private initModeration(): void {
+    this.viewId = 'moderation';
+    this.actions = [];
+    // title
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.moderation.menu_title)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    // trails
+    let first = true;
+    this.byStateAndVisible.subscribe(
+      this.injector.get(ModerationService).getTrailsToReview(),
+      trails => {
+        const newList = List(trails);
+        if (first || !newList.equals(this.trails$.value)) {
+          first = false;
+          this.ngZone.run(() => this.trails$.next(newList));
+        }
+      }
+    );
+  }
+
 
   private onItemEmpty<T>(storeReady$: () => Observable<boolean>, getItem$: (auth: AuthResponse) => Observable<any>): Observable<T> {
     return this.injector.get(AuthService).auth$.pipe(
@@ -289,6 +372,11 @@ export class TrailsPage extends AbstractPage {
     this.searching = false;
     this.searchMessage = undefined;
     this.canSearch = false;
+    this.mapTopToolbar$.next([]);
+    this.searchPluginsSubscription?.unsubscribe();
+    this.searchPluginsSubscription = undefined;
+    this.availableSearchPlugins = [];
+    this.selectedSearchPlugins = [];
   }
 
 }

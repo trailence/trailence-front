@@ -65,7 +65,7 @@ export class Trails {
           first(),
           switchMap(trails =>
             combineLatest([
-              trails.length === 0 ? of([]) : this.injector.get(TrailCollectionService).getAll$().pipe(collection$items(), first()),
+              trails.length === 0 ? of([]) : this.injector.get(TrailCollectionService).getMyCollectionsReady$().pipe(first()),
               trails.length === 0 ? of([]) : this.injector.get(ShareService).getAll$().pipe(collection$items(), first()),
               trails.length === 0 ? of([]) : combineLatest(trails.map(trail => this.injector.get(TrackService).getFullTrackReady$(trail.currentTrackUuid, trail.owner)))
             ])

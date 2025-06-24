@@ -22,7 +22,8 @@ export class Trail extends Owned {
   public readonly sourceDate?: number;
 
   constructor(
-    dto: Partial<TrailDto>
+    dto: Partial<TrailDto>,
+    public readonly fromModeration = false,
   ) {
     super(dto);
     this._name$ = new BehaviorSubject<string>(dto.name ?? '');

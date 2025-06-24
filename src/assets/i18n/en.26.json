@@ -207,10 +207,12 @@
       },
       "search": {
         "sources": "Sources",
-        "searching": "Searching",
+        "searching": "Searching...",
         "error": "Error searching tracks",
         "needs_zoom": "Map too wide, zoom in more",
-        "too_much_results": "Too many results"
+        "too_much_results": "Too many results",
+        "search_in_this_area": "Search in this area",
+        "clear_search_results": "Clear results"
       }
     },
     "trail": {
@@ -570,6 +572,7 @@
     "nothing_shared_with_me": "No track shared with you",
     "shared_by_me": "Shared by me",
     "nothing_shared_by_me": "You don't share any track",
+    "my_publications": "My publications",
     "start_trace": "Start a trace",
     "current_trace": "Trace in progress",
     "planner": "Plan a trail",
@@ -588,6 +591,116 @@
   },
   "my_trails": "My Trails",
   "all_collections": "All collections",
+  "publications": {
+    "draft_name": "Drafts",
+    "submit_name": "Under review",
+    "reject_name": "Changes requested",
+    "publish": "Publish",
+    "publish_confirmation": "By confirming the publication of this track, you affirm that you have complied with the rules and confirm that this track can be made public",
+    "checklist": "Checklist",
+    "start_popup": {
+      "header": "Thank you for contributing to the Trailence community!",
+      "text_before": "You’re about to publish your track, which will make it visible to all users. Here’s some important information about how publishing works:",
+      "bullets": [
+        {
+          "text": "The published track is a copy of your original track. This means any changes you make to the track you’re about to publish will not affect your original, private track. Likewise, if you later modify your original track, it won’t affect the published version."
+        }, {
+          "text": "At first, the track will be saved as a “Draft”. This lets you prepare it for publication and make any adjustments you’d like before submitting it."
+        }, {
+          "text": "During this phase, you’ll be guided by a checklist to help you review key points before publishing. Among them:",
+          "bullets": [
+            {
+              "text": "Any offensive, abusive, or discriminatory content is strictly forbidden."
+            }, {
+              "text": "Remove any personal information you don’t wish to make public."
+            }, {
+              "text": "Do not include photos where people are recognizable."
+            }
+          ]
+        }, {
+          "text": "Once your draft is ready, you can submit it for review. A moderator may then check it to ensure the rules are respected."
+        }, {
+          "text": "After validation, your track will be visible to the entire community!"
+        }, {
+          "text": "You’ll still be able to edit or remove your published track at any time if you wish."
+        }
+      ],
+      "text_after": "Thank you for your participation — and happy publishing!"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "Copyright and permissions",
+        "description_start": "©️ Make sure you are the author of the information you publish, or that you have obtained explicit permission from the author to publish it on Trailence."
+      },
+      "name": {
+        "title": "Trail name",
+        "description_start": "The name should be short and clearly describe the goal of the track. Here are a few examples:",
+        "description_bullets": [
+          "<b>Emerald Lake and Yoho Valley</b>: clear and to the point.",
+          "<b>Mount Hood via Timberline Trail</b>: indicates both the destination and the chosen route if there are several options.",
+          "<b>From Bondi to Coogee via the Coastal Walk</b>: describes the starting point, destination, and route if relevant."
+        ]
+      },
+      "description": {
+        "title": "Trail description",
+        "description_start": "The description should help users quickly understand what to expect along the track. Make sure to include:",
+        "description_bullets": [
+          "Any potential difficulties (type and where they occur)",
+          "Viewpoints, points of interest, or notable features",
+          "The type of path (trail, wide track, road…) and an idea of the proportions if necessary",
+          "Whether the track is mostly in the forest, open terrain, mountainous…",
+          "Useful advice on the best time of year to hike it",
+          "If the track is varied, a description of the main stages (e.g. forest at the start, chapel halfway, panoramic ridge at the end…)",
+          "Finish with practical information if relevant: parking availability, water points, etc."
+        ]
+      },
+      "date": {
+        "title": "Date provided",
+        "set_date": "Set date"
+      },
+      "location": {
+        "title": "Location provided",
+        "set_location": "Set location"
+      },
+      "activity": {
+        "title": "Type of activity provided",
+        "description_start": "Make sure to clearly distinguish between walking and hiking: If the track is short, with little elevation gain and few difficulties, or if it’s an urban route, it’s more appropriate to classify it as walking. Hiking usually refers to tracks in nature, typically over an hour long, often with elevation gain..."
+      },
+      "track": {
+        "title": "Track quality",
+        "description_start": "If possible, try to improve the quality of your track:",
+        "description_bullets": [
+          "Fix any elevation values that seem incorrect.",
+          "If you left the main route (for a short technical break 🤭 for example), try to remove those sections from the track."
+        ],
+        "description_end": "👉 To do this, use the Edit button on the map."
+      },
+      "waypoints": {
+        "title": "Waypoints",
+        "description_start": "Consider adding waypoints to your track:",
+        "description_bullets": [
+          "They can be used to mark specific spots: a viewpoint, a landmark, a water source…",
+          "Most importantly, they help give direction instructions, especially at places where the route isn’t obvious on site (like at a crossroads, or if the trail is poorly marked)."
+        ],
+        "description_end": "👉 To do this, use the Edit button on the map, select the desired location, and open the Waypoint menu."
+      },
+      "photos": {
+        "title": "Photos",
+        "description_start": "Consider adding photos that make people want to follow your track: beautiful landscapes, scenic viewpoints, unusual spots…",
+        "description_bullets": [
+          "📍 Check that each photo is correctly positioned on the track if this wasn’t done automatically.",
+          "⚠️ Do not publish photos where people are recognizable.",
+          "🙏 Also avoid sharing photos of private property without permission."
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "Moderation",
+      "publishing": "Publishing",
+      "error_publishing": "Error while publishing",
+      "publish_confirmation": "Do you confirm this trail can be made public?"
+    }
+  },
   "buttons": {
     "apply": "Apply",
     "cancel": "Cancel",

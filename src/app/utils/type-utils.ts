@@ -54,4 +54,9 @@ export class TypeUtils {
     return key ? enumType[key] : undefined;
   }
 
+  public static floor(n: number | undefined | null): number | undefined {
+    if (n === undefined || n === null || isNaN(n)) return undefined;
+    return Math.floor(n);
+  }
+
 }

@@ -31,6 +31,9 @@ import { TrailOverviewCondensedComponent } from '../trail-overview/condensed/tra
 import { HorizontalGestureDirective } from 'src/app/utils/horizontal-gesture.directive';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { HighlightService } from 'src/app/services/highlight/highlight.service';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollection } from 'src/app/model/trail-collection';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -142,6 +145,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   state$ = new BehaviorSubject<State>(defaultState);
 
+  collection?: TrailCollection;
   allTrails: TrailWithInfo[] = [];
   mapTrails: TrailWithInfo[] = [];
   listTrails: List<TrailWithInfo> = List();
@@ -234,10 +238,15 @@ export class TrailsListComponent extends AbstractComponent {
 
     const trails$ = this.trails$ ? this.trails$.toArray() : [];
     this.byStateAndVisible.subscribe(
-      (trails$.length === 0 ? of([]) : combineLatest(trails$)).pipe(
-        map(trails => trails.filter(t => !!t)),
-        debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
-        map(trails => {
+      combineLatest([
+        this.collectionUuid && this.authService.email ? this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid, this.authService.email) : of(undefined),
+        (trails$.length === 0 ? of([]) : combineLatest(trails$)).pipe(
+          map(trails => trails.filter(t => !!t)),
+          debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
+        ),
+      ]).pipe(
+        map(([collection, trails]) => {
+          this.collection = collection ?? undefined;
           this.updateToolbar(trails);
           // if no active filter, we can early emit the list of trails to the map
           if (this.trails$ && this.nbActiveFilters() === 0)
@@ -245,7 +254,7 @@ export class TrailsListComponent extends AbstractComponent {
           return trails.map(
             trail => combineLatest([
               trail.currentTrackUuid$.pipe(
-                switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
+                switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getTrackMetadata$(trail.uuid, trail.owner, trackUuid) : this.trackService.getMetadata$(trackUuid, trail.owner)),
                 filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
               ),
               trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([])
@@ -314,16 +323,16 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private updateToolbar(trails: Trail[]): void {
-    this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collectionUuid, true, this.listType === 'all-collections');
+    this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collection, true, this.listType === 'all-collections');
     this.toolbar.splice(0, 0,
       new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
         .setAction(() => this.sortModal?.present()),
       new MenuItem().setIcon('filters').setI18nLabel('tools.filters')
         .setAction(() => this.filtersModal?.present())
-        .setBadge(() => {
+        .setBadgeTopRight(() => {
           const nb = this.nbActiveFilters();
           if (nb === 0) return undefined;
-          return '' + nb;
+          return { text: '' + nb, color: 'success', fill: true };
         }),
     );
 

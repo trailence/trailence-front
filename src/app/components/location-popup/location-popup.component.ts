@@ -19,7 +19,8 @@ export async function openLocationDialog(injector: Injector, trail: Trail) {
       trail,
     }
   });
-  modal.present();
+  await modal.present();
+  return await modal.onDidDismiss();
 }
 
 @Component({

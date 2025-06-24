@@ -47,6 +47,10 @@ export const appAuthRoutes: Routes = [
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
   },
   {
+    path: 'trail/:trailOwner/:trailId/:trailType',
+    loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
+  },
+  {
     path: 'trail/:trailOwner/:trailId',
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
   },

@@ -1,10 +1,9 @@
 import { Track } from 'src/app/model/track';
-import { ComputedPreferences } from '../../preferences/preferences';
 import { Point } from 'src/app/model/point';
 
 export const ESTIMATED_SMALL_BREAK_EVERY = 60 * 60 * 1000;
 
-export function estimateTimeForTrack(track: Track, preferences: ComputedPreferences): number {
+export function estimateTimeForTrack(track: Track, estimatedBaseSpeed: number): number {
   let duration = 0;
   let totalDistance = 0;
   const trackDistance = track.metadata.distance;
@@ -17,13 +16,13 @@ export function estimateTimeForTrack(track: Track, preferences: ComputedPreferen
       const distance = sp.distanceFromPreviousPoint;
       if (distance === 0) continue;
       totalDistance += distance;
-      const speedMetersByHour = estimateSpeedInMetersByHour(sp, duration, preferences);
+      const speedMetersByHour = estimateSpeedInMetersByHour(sp, duration, estimatedBaseSpeed);
       const estimatedTime = speedMetersByHour > 0 ? distance * (60 * 60 * 1000) / speedMetersByHour : 0;
       duration += estimatedTime;
       durationSincePeviousBreak += estimatedTime;
       if (durationSincePeviousBreak >= ESTIMATED_SMALL_BREAK_EVERY &&
         (!segmentDuration || segmentDuration - duration > ESTIMATED_SMALL_BREAK_EVERY / 2) && // no break if less than 30 minutes remaining
-        (segmentDuration || (trackDistance > 0 && trackDistance - totalDistance > preferences.estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
+        (segmentDuration || (trackDistance > 0 && trackDistance - totalDistance > estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
       ) {
         duration += estimateSmallBreakTime(duration);
         durationSincePeviousBreak = 0;
@@ -38,8 +37,8 @@ export function estimateTimeForTrack(track: Track, preferences: ComputedPreferen
   return duration;
 }
 
-export function estimateSpeedInMetersByHour(point: Point, durationSinceStart: number, preferences: ComputedPreferences): number {
-  let baseSpeed = preferences.estimatedBaseSpeed;
+export function estimateSpeedInMetersByHour(point: Point, durationSinceStart: number, estimatedBaseSpeed: number): number {
+  let baseSpeed = estimatedBaseSpeed;
   const hrs = Math.floor(durationSinceStart / (60 * 60 * 1000));
   // after 3 hours, reduce speed by 1%, then 1% more every 2 hours, with a maximum of 5%
   if (hrs > 2) {

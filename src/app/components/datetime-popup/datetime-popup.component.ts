@@ -20,6 +20,7 @@ import { TypeUtils } from 'src/app/utils/type-utils';
     [locale]="pref.preferences.lang"
     [hourCycle]="pref.preferences.hourFormat === 'H12' ? 'h12' : 'h23'"
     [value]="dateIso8601"
+    [max]="maxIso8601"
     (ionChange)="setDate($event.detail.value)"
   >
     <span slot="time-label">{{ i18n.texts.datetime_popup.time }}</span>
@@ -45,8 +46,10 @@ export class DateTimePopup implements OnInit {
 
   @Input() timestamp?: number;
   @Input() defaultTimestamp?: number;
+  @Input() maxTimestamp?: number;
 
   dateIso8601?: string;
+  maxIso8601?: string;
 
   @ViewChild('ion-datetime') ionDateTime?: IonDatetime;
 
@@ -57,15 +60,15 @@ export class DateTimePopup implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.setDateFromTimestamp(this.timestamp ?? this.defaultTimestamp);
+    this.dateIso8601 = this.getDateIso8601FromTimestamp(this.timestamp ?? this.defaultTimestamp) ?? '';
+    this.maxIso8601 = this.getDateIso8601FromTimestamp(this.maxTimestamp);
   }
 
-  setDateFromTimestamp(timestamp?: number): void {
+  getDateIso8601FromTimestamp(timestamp?: number): string | undefined {
     if (timestamp) {
-      this.dateIso8601 = TypeUtils.toIso8601NoTimezone(new Date(timestamp));
-    } else {
-      this.dateIso8601 = '';
+      return TypeUtils.toIso8601NoTimezone(new Date(timestamp));
     }
+    return undefined;
   }
 
   setDate(date: string | string[] | null | undefined): void {
@@ -73,7 +76,7 @@ export class DateTimePopup implements OnInit {
   }
 
   reset(): void {
-    this.setDateFromTimestamp(this.defaultTimestamp);
+    this.dateIso8601 = this.getDateIso8601FromTimestamp(this.defaultTimestamp) ?? '';
   }
 
   close(cancel: boolean): void {

@@ -3,35 +3,63 @@ import { I18nService } from "../../services/i18n/i18n.service";
 import { ObjectUtils } from "../../utils/object-utils";
 import { IdGenerator } from 'src/app/utils/component-utils';
 
+export type Attribute<T> = T | undefined | (() => T | undefined);
+
+export interface BadgeConfig {
+  text: Attribute<string>;
+  color: Attribute<string>;
+  fill: Attribute<boolean>;
+}
+
+export interface BadgesConfig {
+  topLeft: Attribute<BadgeConfig>;
+  topRight: Attribute<BadgeConfig>;
+  bottomLeft: Attribute<BadgeConfig>;
+  bottomRight: Attribute<BadgeConfig>;
+}
+
+export interface Badge {
+  text: string;
+  color: string;
+  fill: boolean;
+}
+
+export interface Badges {
+  topLeft?: Badge;
+  topRight?: Badge;
+  bottomLeft?: Badge;
+  bottomRight?: Badge;
+}
+
 export class MenuItem {
 
-  public icon?: string | (() => string | undefined);
-  public i18nLabel?: string | (() => string);
-  public label?: string | (() => string);
-  public action?: () => void
-  public backgroundColor?: string | (() => string | undefined);
-  public textColor?: string | (() => string | undefined);
-  public textSize: string | undefined | (() => string | undefined);
+  public icon: Attribute<string>;
+  public i18nLabel: Attribute<string>;
+  public label: Attribute<string>;
+  public backgroundColor: Attribute<string>;
+  public textColor: Attribute<string>;
+  public textSize: Attribute<string>;
+  public disabled: Attribute<boolean>;
+  public visible: Attribute<boolean>;
+  public badges: Attribute<BadgesConfig>;
+  public cssClass: Attribute<string>;
   public sectionTitle?: boolean;
   public children?: MenuItem[];
   public childrenProvider?: () => Observable<MenuItem[]>;
-  public disabled?: boolean | (() => boolean);
-  public visible?: boolean | (() => boolean);
-  public badge?: string | (() => string | undefined);
   public customContentSelector?: string;
-  public cssClass?: string | (() => string | undefined);
+  public action?: () => void
 
-  public setIcon(icon?: string | (() => string | undefined)): this {
+  public setIcon(icon: Attribute<string>): this {
     this.icon = icon;
     return this;
   }
 
-  public setFixedLabel(label?: string | (() => string)): this {
+  public setFixedLabel(label: Attribute<string>): this {
     this.label = label;
     return this;
   }
 
-  public setI18nLabel(label?: string | (() => string)): this {
+  public setI18nLabel(label: Attribute<string>): this {
     this.i18nLabel = label;
     return this;
   }
@@ -41,17 +69,17 @@ export class MenuItem {
     return this;
   }
 
-  public setBackgroundColor(color?: string | (() => string | undefined)): this {
+  public setBackgroundColor(color: Attribute<string>): this {
     this.backgroundColor = color;
     return this;
   }
 
-  public setTextColor(color?: string | (() => string | undefined)): this {
+  public setTextColor(color: Attribute<string>): this {
     this.textColor = color;
     return this;
   }
 
-  public setCssClass(css?: string | (() => string | undefined)): this {
+  public setCssClass(css: Attribute<string>): this {
     this.cssClass = css;
     return this;
   }
@@ -71,18 +99,52 @@ export class MenuItem {
     return this;
   }
 
-  public setDisabled(disabled?: boolean | (() => boolean)): this {
+  public setDisabled(disabled: Attribute<boolean>): this {
     this.disabled = disabled;
     return this;
   }
 
-  public setVisible(visible?: boolean | (() => boolean)): this {
+  public setVisible(visible: Attribute<boolean>): this {
     this.visible = visible;
     return this;
   }
 
-  public setBadge(badge?: string | (() => string | undefined)): this {
-    this.badge = badge;
+  public addVisibleCondition(visible: Attribute<boolean>): this {
+    const previous = this.visible;
+    if (previous === undefined) return this.setVisible(visible);
+    return this.setVisible(() => {
+      const v = typeof visible === 'function' ? visible() : visible;
+      if (!v) return false;
+      return typeof previous === 'function' ? previous(): previous;
+    });
+  }
+
+  public setBadges(badges: Attribute<BadgesConfig>): this {
+    this.badges = badges;
+    return this;
+  }
+
+  public setBadgeTopRight(badge: Attribute<BadgeConfig>): this {
+    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
+    (this.badges as BadgesConfig).topRight = badge;
+    return this;
+  }
+
+  public setBadgeTopLeft(badge: Attribute<BadgeConfig>): this {
+    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
+    (this.badges as BadgesConfig).topLeft = badge;
+    return this;
+  }
+
+  public setBadgeBottomRight(badge: Attribute<BadgeConfig>): this {
+    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
+    (this.badges as BadgesConfig).bottomRight = badge;
+    return this;
+  }
+
+  public setBadgeBottomLeft(badge: Attribute<BadgeConfig>): this {
+    this.badges ??= {topRight: undefined, topLeft: undefined, bottomRight: undefined, bottomLeft: undefined};
+    (this.badges as BadgesConfig).bottomLeft = badge;
     return this;
   }
 
@@ -91,7 +153,7 @@ export class MenuItem {
     return this;
   }
 
-  public setTextSize(size: string | undefined | (() => string | undefined)): this {
+  public setTextSize(size: Attribute<string>): this {
     this.textSize = size;
     return this;
   }
@@ -135,18 +197,34 @@ export class MenuItem {
   }
 
   public isDisabled(): boolean {
-    return this.disabled === undefined ? false : (typeof this.disabled === 'function' ? this.disabled() : this.disabled);
+    return this.disabled === undefined ? false : (typeof this.disabled === 'function' ? !!this.disabled() : this.disabled);
   }
 
   public isVisible(): boolean {
-    return this.visible === undefined ? true : (typeof this.visible === 'function' ? this.visible() : this.visible);
+    return this.visible === undefined ? true : (typeof this.visible === 'function' ? !!this.visible() : this.visible);
   }
 
-  public getBadge(): string | undefined {
-    if (this.badge === undefined) return undefined;
-    const value = typeof this.badge === 'function' ? this.badge() : this.badge;
-    if (value === undefined || value.length === 0) return undefined;
-    return value;
+  public getBadges(): Badges {
+    const badges: Badges = { topLeft: undefined, topRight: undefined, bottomLeft: undefined, bottomRight: undefined };
+    const config = this.badges === undefined ? undefined : typeof this.badges === 'function' ? this.badges() : this.badges;
+    if (config === undefined) return badges;
+    badges.topLeft = this.resolveBadge(config.topLeft);
+    badges.topRight = this.resolveBadge(config.topRight);
+    badges.bottomLeft = this.resolveBadge(config.bottomLeft);
+    badges.bottomRight = this.resolveBadge(config.bottomRight);
+    return badges;
+  }
+
+  private resolveBadge(badge: Attribute<BadgeConfig>): Badge | undefined {
+    const config = badge === undefined ? undefined : typeof badge === 'function' ? badge() : badge;
+    if (config === undefined) return undefined;
+    const result: Badge = {
+      text: (typeof config.text === 'function' ? config.text() : config.text) ?? '',
+      color: (typeof config.color === 'function' ? config.color() : config.color) ?? '',
+      fill: (typeof config.fill === 'function' ? config.fill() : config.fill) ?? false,
+    };
+    if (result.text === '') return undefined;
+    return result;
   }
 
   public getTextSize(): string | undefined {
@@ -335,7 +413,7 @@ export class ComputedMenuItems {
 export class ComputedMenuItem {
 
   public id = IdGenerator.generateId();
-  public separator: boolean = false;
+  public readonly separator: boolean;
   public clickable: boolean = true;
   public children = new ComputedMenuItems(this.i18n);
   public disabled: boolean = false;
@@ -345,7 +423,7 @@ export class ComputedMenuItem {
   public textColor?: string;
   public textSize: string | undefined | (() => string | undefined);
   public backgroundColor?: string;
-  public badge?: string;
+  public badges: Badges = { topLeft: undefined, topRight: undefined, bottomLeft: undefined, bottomRight: undefined };
   public sectionTitle: boolean = false;
   public onlyText = false;
   public onlyIcon = false;
@@ -358,6 +436,7 @@ export class ComputedMenuItem {
     public item: MenuItem,
     private readonly i18n: I18nService,
   ) {
+    this.separator = item.isSeparator();
   }
 
   public refreshVisible$(): Observable<boolean> {
@@ -390,17 +469,20 @@ export class ComputedMenuItem {
     if (this.i18nKey) this.text$ = this.i18n.texts$.pipe(map(texts => ObjectUtils.extractField(texts, this.i18nKey ?? 'x')));
     else if (this.fixedLabel) this.text$ = of(this.fixedLabel);
     else this.text$ = undefined;
-    changed = this.setValue(this.separator, this.item.isSeparator(), v => this.separator = v) || changed;
     changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
     changed = this.setValue(this.icon, this.item.getIcon(), v => this.icon = v) || changed;
     changed = this.setValue(this.textColor, this.disabled ? 'medium' : this.item.getTextColor(), v => this.textColor = v) || changed;
     changed = this.setValue(this.backgroundColor, this.disabled ? undefined : this.item.getBackgroundColor(), v => this.backgroundColor = v) || changed;
-    changed = this.setValue(this.badge, this.item.getBadge(), v => this.badge = v) || changed;
     changed = this.setValue(this.sectionTitle, this.item.isSectionTitle(), v => this.sectionTitle = v) || changed;
     changed = this.setValue(this.onlyText, this.icon === undefined, v => this.onlyText = v) || changed;
     changed = this.setValue(this.onlyIcon, !!this.icon && !this.item.label && !this.item.i18nLabel, v => this.onlyIcon = v) || changed;
     changed = this.setValue(this.textSize, this.item.getTextSize(), v => this.textSize = v) || changed;
     changed = this.setValue(this.cssClass, this.item.getCssClass(), v => this.cssClass = v ?? '') || changed;
+    let newBadges = this.item.getBadges();
+    changed = this.setBadge(this.badges.topLeft, newBadges.topLeft, v => this.badges.topLeft = v) || changed;
+    changed = this.setBadge(this.badges.topRight, newBadges.topRight, v => this.badges.topRight = v) || changed;
+    changed = this.setBadge(this.badges.bottomLeft, newBadges.bottomLeft, v => this.badges.bottomLeft = v) || changed;
+    changed = this.setBadge(this.badges.bottomRight, newBadges.bottomRight, v => this.badges.bottomRight = v) || changed;
     if (this.item.action || this.separator || (!this.item.children && !this.item.childrenProvider)) {
       changed = this.setValue(this.clickable, !!this.item.action, v => this.clickable = v) || changed;
     }
@@ -409,6 +491,17 @@ export class ComputedMenuItem {
 
   private setValue<T>(previous: T, newValue: T, setter: (value: T) => void): boolean {
     if (newValue === previous) return false;
+    setter(newValue);
+    return true;
+  }
+
+  private setBadge(current: Badge | undefined, newValue: Badge | undefined, setter: (v: Badge | undefined) => void): boolean {
+    if (current === newValue) return false;
+    if (current === undefined || newValue === undefined) {
+      setter(newValue);
+      return true;
+    }
+    if (current.text === newValue.text && current.color === newValue.color && current.fill === newValue.fill) return false;
     setter(newValue);
     return true;
   }
