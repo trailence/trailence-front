@@ -11,10 +11,17 @@ export interface TrailDto extends OwnedDto {
   sourceType?: string;
   source?: string;
   sourceDate?: number;
+  followedUuid?: string;
+  followedOwner?: string;
+  followedUrl?: string;
 
   originalTrackUuid?: string;
   currentTrackUuid?: string;
   collectionUuid?: string;
+
+  publishedFromUuid?: string;
+  publicationMessageFromAuthor?: string;
+  publicationMessageFromModerator?: string;
 
 }
 

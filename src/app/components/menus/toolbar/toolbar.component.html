@@ -25,8 +25,19 @@
             [ngStyle]="{'font-size': item.textSize ?? textSize, 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
           >{{ item.text$ | async }}</ion-label>
         }
-        @if (item.badge) {
-          <ion-badge>{{ item.badge }}</ion-badge>
+        @if (item.badges) {
+          @if (item.badges.topLeft) {
+            <ion-badge class="badge-top-left badge-{{item.badges.topLeft.color}}">{{ item.badges.topLeft.text }}</ion-badge>
+          }
+          @if (item.badges.topRight) {
+            <ion-badge class="badge-top-right badge-{{item.badges.topRight.color}}">{{ item.badges.topRight.text }}</ion-badge>
+          }
+          @if (item.badges.bottomLeft) {
+            <ion-badge class="badge-bottom-left badge-{{item.badges.bottomLeft.color}}">{{ item.badges.bottomLeft.text }}</ion-badge>
+          }
+          @if (item.badges.bottomRight) {
+            <ion-badge class="badge-bottom-right badge-{{item.badges.bottomRight.color}}">{{ item.badges.bottomRight.text }}</ion-badge>
+          }
         }
       </div>
     }

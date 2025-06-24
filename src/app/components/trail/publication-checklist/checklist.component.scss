@@ -1,0 +1,68 @@
+ion-toolbar > div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 1.25rem;
+  padding: 0 10px;
+
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
+div.item {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  &:not(:first-child) {
+    margin-top: 10px;
+  }
+
+  > ion-checkbox {
+    flex: none;
+    margin-right: 15px;
+  }
+
+  div.item-container {
+    flex: 1 1 100%;
+
+    div.item-title {
+      font-size: 16px;
+      color: var(--ion-color-tertiary);
+    }
+
+    div.item-content {
+      max-height: 500px;
+      transition: max-height 0.5s ease-in-out;
+      overflow: hidden;
+
+      div.item-value {
+        margin: 3px 0;
+      }
+
+      div.item-description {
+        font-size: 14px;
+        color: rgba(var(--ion-text-color-rgb), 0.75);
+        background-color: rgba(96, 96, 200, 0.25);
+        padding: 4px 8px;
+        border-radius: 5px;
+        margin-top: 10px;
+
+        ::ng-deep ul {
+          margin-block-start: 3px;
+          margin-block-end: 3px;
+          padding-inline-start: 15px;
+        }
+      }
+    }
+  }
+
+  &.checked {
+    div.item-container {
+      div.item-content {
+        max-height: 0;
+      }
+    }
+  }
+}
+

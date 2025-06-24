@@ -8,6 +8,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, EMPTY, first, Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
+import { Filters } from 'src/app/components/trails-list/trails-list.component';
 
 export abstract class FetchSourcePlugin {
 
@@ -60,6 +61,9 @@ export abstract class FetchSourcePlugin {
   public canSearchByArea(): boolean { return false };
   public searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> { return of({trails: [], end: true, tooManyResults: false}); }
 
+  public canSearchBubbles(): boolean { return false; };
+  public searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters): Observable<SearchBubblesResult[]> { return of([]); }
+
   public abstract getInfo(uuid: string): Promise<TrailInfo | null>;
   public abstract getTrail(uuid: string): Promise<Trail | null>;
   public abstract getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null>;
@@ -78,6 +82,7 @@ export interface TrailInfo {
   externalUrl?: string;
   rating?: number; // 0 to 5
   oscmSymbol?: string;
+  author?: string;
 
 }
 
@@ -101,6 +106,11 @@ export interface SearchResult {
   trails: Trail[];
   end: boolean;
   tooManyResults: boolean;
+}
+
+export interface SearchBubblesResult {
+  pos: L.LatLngLiteral;
+  count: number;
 }
 
 export function populateWayPointInfo(track: Track, fetched: WayPointInfo[], preferences: ComputedPreferences): boolean { // NOSONAR

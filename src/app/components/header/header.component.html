@@ -13,9 +13,9 @@
         <app-header-user-menu></app-header-user-menu>
       </ion-buttons>
     } @else {
-      <div class="trailence-title" slot="start" (click)="home()">
+      <div class="trailence-title {{neverShowTrailenceTitle ? 'no-trailence-title' : ''}}" slot="start" (click)="home()">
         <ion-icon name="logo" size="large"></ion-icon>
-        <ion-label class="{{title.length === 0 ? 'no-title' : ''}}">Trailence</ion-label>
+        <ion-label class="{{title.length === 0 ? 'no-title' : ''}}" *ngIf="!neverShowTrailenceTitle">Trailence</ion-label>
       </div>
       <ion-buttons slot="end" class="public-buttons">
         @if (prefs.preferences.lang !== 'en') {
@@ -33,6 +33,9 @@
         </ng-container>
         @if (!small) {
           <div class="separator"></div>
+          <a href="/search-route" (click)="$event.preventDefault()">
+            <ion-button (click)="goTo('/search-route')"><ion-icon slot="icon-only" name="search"></ion-icon></ion-button>
+          </a>
           <a href="/{{prefs.preferences.lang}}/donation" (click)="$event.preventDefault()">
             <ion-button (click)="goTo('/' + prefs.preferences.lang + '/donation')"><ion-icon slot="icon-only" name="heart-outline" class="donation-color"></ion-icon></ion-button>
           </a>
@@ -48,6 +51,12 @@
             <ng-template>
               <ion-content>
                 <ion-list>
+                  <a href="/search-route" (click)="$event.preventDefault()">
+                    <ion-item (click)="goTo('/search-route')">
+                      <ion-icon slot="start" name="search"></ion-icon>
+                      <ion-label>{{i18n.texts.menu.search_trail}}</ion-label>
+                    </ion-item>
+                  </a>
                   <a href="/{{prefs.preferences.lang}}/contact" (click)="$event.preventDefault()">
                     <ion-item (click)="goTo('/' + prefs.preferences.lang + '/contact')">
                       <ion-icon slot="start" name="mail"></ion-icon>
@@ -80,7 +89,7 @@
         </ion-button>
       </div>
       <div class="title-text {{auth.email ? '' : 'not-logged'}}">
-        <span *ngIf="!auth.email && title.length > 0 && !small" class="separator">-</span>
+        <span *ngIf="!auth.email && title.length > 0 && !small && !neverShowTrailenceTitle" class="separator">-</span>
         @if (useH1) {
           <h1>{{title}}</h1>
           <h2>{{description}}</h2>

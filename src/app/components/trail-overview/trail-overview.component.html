@@ -65,7 +65,7 @@
   </ng-container>
   <div class="open-trail" *ngIf="trail">
     <ion-button size="small" fill="clear" color="dark" (click)="openTrail(); $event.stopPropagation()">
-      <a href="/trail/{{trail.owner + '/' + trail.uuid }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+      <a href="{{ openUrl }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
         <ion-icon name="enter" slot="icon-only"></ion-icon>
       </a>
     </ion-button>

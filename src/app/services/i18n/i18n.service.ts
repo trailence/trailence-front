@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, SecurityContext } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
 import { BehaviorSubject, combineLatest, map, Observable, of } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -6,6 +6,8 @@ import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences
 import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
 import { Console } from 'src/app/utils/console';
+import { DomSanitizer } from '@angular/platform-browser';
+import { TranslatedString } from './i18n-string';
 
 const TEXTS_VERSION = '26';
 
@@ -38,6 +40,7 @@ export class I18nService {
   constructor(
     private readonly prefService: PreferencesService,
     private readonly assets: AssetsService,
+    private readonly sanitizer: DomSanitizer,
   ) {
     let state = '';
     prefService.preferences$.subscribe(p => {
@@ -272,6 +275,16 @@ export class I18nService {
     return this.timestampToDateString(timestamp) + ' ' + this.timestampToTimeString(timestamp);
   }
 
+  public timestampToRelativeDate(timestamp?: number): string {
+    if (!timestamp) return '';
+    const now = Date.now();
+    if (now - timestamp < 60000) return this.texts.relativeDates.justNow;
+    if (now - timestamp < 120000) return this.texts.relativeDates.minuteAgo;
+    if (now - timestamp < 60 * 60 * 1000) return new TranslatedString('relativeDates.minutesAgo', [Math.floor((now - timestamp) / (60 * 1000))]).translate(this);
+    if (now - timestamp < 4 * 60 * 60 * 1000) return new TranslatedString('relativeDates.ago', [this.durationToString(now - timestamp, false, false)]).translate(this);
+    return this.timestampToDateTimeString(timestamp);
+  }
+
   public timestampToDateString(timestamp?: number): string {
     if (!timestamp) return '';
     return this.getDateForFormat(timestamp, this.prefService.preferences.dateFormat);
@@ -320,6 +333,25 @@ export class I18nService {
     if (size < 1024 * 1024) return (kbFractionalDigits ? (size / 1024).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: kbFractionalDigits}) : Math.floor(size / 1024)) + ' ' + this.texts.bytes.kb;
     if (size < 1024 * 1024 * 1024) return (mbFractionalDigits ? (size / (1024 * 1024)).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: mbFractionalDigits}) : Math.floor(size / (1024 * 1024))) + ' ' + this.texts.bytes.mb;
     return (gbFractionalDigits ? (size / (1024 * 1024 * 1024)).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: gbFractionalDigits}) : Math.floor(size / (1024 * 1024 * 1024))) + ' ' + this.texts.bytes.gb;
+  }
+
+  public textToHtml(text: string): (string | {link: string, text: string})[] {
+    let s: (string | {link: string, text: string})[] = [];
+    let i = 0;
+    let linkPos;
+    while ((linkPos = text.indexOf(':*:', i)) >= 0) {
+      const endLink = text.indexOf(':*:', linkPos + 3);
+      const endText = text.indexOf(':*:', endLink + 3);
+      if (endLink < 0 || endText < 0) break;
+      s.push(text.substring(i, linkPos));
+      let link = text.substring(linkPos + 3, endLink);
+      if (link.startsWith(environment.baseUrl)) link = link.substring(environment.baseUrl.length);
+      s.push({link: this.sanitizer.sanitize(SecurityContext.URL, link) ?? '', text: text.substring(endLink + 3, endText) ?? ''});
+      i = endText + 3;
+    }
+    if (i < text.length)
+      s.push(text.substring(i));
+    return s;
   }
 
   private _loading?: string;

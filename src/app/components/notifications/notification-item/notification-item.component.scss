@@ -1,0 +1,40 @@
+::ng-deep a, a:active {
+  color: var(--ion-color-tertiary);
+}
+
+div.read-status {
+  min-width: 10px;
+  max-width: 10px;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  > div {
+    min-width: 5px;
+    max-width: 5px;
+    min-height: 5px;
+    max-height: 5px;
+    border-radius: 5px;
+
+    &.read-status-unread {
+      background-color: var(--ion-color-danger);
+    }
+    &.read-status-read {
+      background-color: var(--ion-color-medium);
+    }
+  }
+}
+
+div.item-content {
+  display: flex;
+  flex-direction: column;
+
+  ion-note {
+    font-size: 11px;
+  }
+  ion-label {
+    font-size: 14px;
+  }
+}

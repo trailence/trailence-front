@@ -41,6 +41,15 @@ export class DelayedTable<DTO, K> {
     })
   }
 
+  public getBy(keyName: string, keyValue: any): Promise<DTO | undefined> {
+    for (const value of this.delayedItems.values()) {
+      if ((value as any)[keyName] === keyValue) return Promise.resolve(value);
+    }
+    const criteria: {[key: string]: any} = {};
+    criteria[keyName] = keyValue;
+    return this.table.get(criteria);
+  }
+
   public put(item: DTO): void {
     this.delayedItems.set((item as any)[this.keyName], item);
     this.delay ??= setTimeout(() => this.processDelayed(), this.initialDelay);

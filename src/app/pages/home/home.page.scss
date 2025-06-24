@@ -243,6 +243,7 @@ div.buttons {
   flex-direction: row;
   align-items: flex-start;
   justify-content: center;
+  flex-wrap: wrap;
 
   > div {
     display: flex;

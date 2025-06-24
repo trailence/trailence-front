@@ -20,13 +20,11 @@ export async function openActivityDialog(injector: Injector, trails: Trail[]) {
       multiple: false,
     }
   });
-  modal.onDidDismiss().then(event => {
-    if (event.role === 'ok' && event.data !== undefined) {
-      for (const trail of trails)
-        injector.get(TrailService).doUpdate(trail, t => t.activity = event.data[0]);
-    }
-  });
-  modal.present();
+  await modal.present();
+  const event = await modal.onDidDismiss();
+  if (event.role !== 'ok' || event.data === undefined) return Promise.resolve();
+  const promises = trails.map(trail => new Promise(resolve => injector.get(TrailService).doUpdate(trail, t => t.activity = event.data[0], () => resolve(true))));
+  await Promise.all(promises);
 }
 
 export async function openActivitiesSelectionPopup(

@@ -16,7 +16,6 @@ import { Place } from 'src/app/services/geolocation/place';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Router } from '@angular/router';
 import { TrailGraphComponent } from 'src/app/components/trail-graph/trail-graph.component';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -114,9 +113,8 @@ export class TrailPlannerPage extends AbstractPage {
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(() => this.map, () => this.graph);
-    this.whenAlive.add(collectionService.getAll$().pipe(
-      collection$items(),
-    ).subscribe(
+    this.whenAlive.add(collectionService.getMyCollectionsReady$()
+    .subscribe(
       collections => this.collections = collectionService.sort(collections)
     ));
     this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));

@@ -155,7 +155,7 @@ class ImportGpxPopupComponent {
     private readonly collectionService: TrailCollectionService,
     private readonly changeDetector: ChangeDetectorRef,
   ) {
-    this.collectionService.getAll$().pipe(collection$items()).subscribe(collections => {
+    this.collectionService.getMyCollectionsReady$().subscribe(collections => {
       this.collections = collections;
       this.changeDetector.detectChanges();
     });

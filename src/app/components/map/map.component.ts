@@ -32,6 +32,7 @@ import { ZoomInTool, ZoomLevelTool, ZoomOutTool } from './tools/zoom-tools';
 import { MapAdditionsService } from 'src/app/services/map/map-additions.service';
 import { GoBackTool } from './tools/go-back-tool';
 import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.service';
+import { HttpService } from 'src/app/services/http/http.service';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -52,6 +53,7 @@ export class MapComponent extends AbstractComponent {
   @Input() downloadMapTrail?: Trail;
   @Input() bubbles$: Observable<MapBubble[]> = of([]);
   @Input() showBubbles$?: BehaviorSubject<boolean>;
+  @Input() bubblesToolAvailable$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   @Input() enableShowRestrictedWays = false;
   @Input() leftTools: MenuItem[] = [];
   @Input() rightTools: MenuItem[] = [];
@@ -232,11 +234,21 @@ export class MapComponent extends AbstractComponent {
   private _initZoomTimestamp?: number;
   private initMapZoom(map: L.Map, tracks: MapTrack[]): void {
     // if the state of the map is the initial one, zoom on the tracks
-    if (tracks.length === 0) return;
     if ((this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) || // initial state
         (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
-      this.fitTracksBounds(map, tracks);
-      this._initZoomTimestamp = Date.now();
+      if (tracks.length > 0) {
+        this.fitTracksBounds(map, tracks);
+        this._initZoomTimestamp = Date.now();
+      } else {
+        const init = Date.now();
+        this._initZoomTimestamp = init;
+        this.injector.get(HttpService).get('https://free.freeipapi.com/api/json')
+        .subscribe((response: any) => {
+          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init) {
+            this._map$.value?.setView({lat: response['latitude'], lng: response['longitude']}, 10);
+          }
+        });
+      }
     }
   }
 
@@ -317,9 +329,9 @@ export class MapComponent extends AbstractComponent {
     let bounds;
     for (const t of bubbles) {
       if (!bounds) {
-        bounds = L.latLngBounds(t.center, t.center);
+        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
       } else {
-        bounds.extend(t.center);
+        bounds.extend(t.associatedBounds);
       }
     }
     if (bounds) {
@@ -342,9 +354,9 @@ export class MapComponent extends AbstractComponent {
     }
     for (const t of this._currentBubbles) {
       if (!bounds) {
-        bounds = L.latLngBounds(t.bounds.getSouthWest(), t.bounds.getNorthEast());
+        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
       } else {
-        bounds.extend(L.latLngBounds(t.bounds.getSouthWest(), t.bounds.getNorthEast()));
+        bounds.extend(L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast()));
       }
     }
     if (bounds) {
@@ -616,8 +628,8 @@ export class MapComponent extends AbstractComponent {
 
   private initTools(): void {
     if (this.showBubbles$) {
-      this.defaultRightToolsItems.push(this.toMenuItem(new MapToggleBubblesTool(this.showBubbles$)));
-      this.whenVisible.subscribe(this.showBubbles$, () => this.refreshTools(), true);
+      this.defaultRightToolsItems.push(this.toMenuItem(new MapToggleBubblesTool(this.showBubbles$, this.bubblesToolAvailable$)));
+      this.whenVisible.subscribe(combineLatest([this.showBubbles$, this.bubblesToolAvailable$]), () => this.refreshTools(), true);
     }
     this.defaultRightToolsItems.push(new MenuItem());
     this.defaultRightToolsItems.push(this.toMenuItem(new DownloadMapTool(this.downloadMapTrail)));

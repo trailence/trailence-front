@@ -230,6 +230,12 @@ export class TraceRecorderService {
             if (!followedTrail) return 3;
             recording.trail.location ??= followedTrail.location;
             recording.trail.activity ??= followedTrail.activity;
+            recording.trail.followedUuid = followedTrail.uuid;
+            recording.trail.followedOwner = followedTrail.owner;
+            recording.trail.followedUrl =
+              followedTrail.sourceType === TrailSourceType.EXTERNAL ? followedTrail.source :
+              followedTrail.sourceType === TrailSourceType.TRAILENCE_RECORDER ? followedTrail.followedUrl :
+              undefined;
             return 4;
           }),
         )

@@ -25,6 +25,16 @@ export const appPublicRoutes: Routes = [
     path: 'try',
     loadComponent: () => import('../../pages/try/try.page').then(m => m.TryPage)
   },
+  {
+    path: 'search-route',
+    data: { 'trailsType': 'search' },
+    loadComponent: () => import('../../pages/trails/trails.page').then(m => m.TrailsPage)
+  },
+  {
+    path: 'trail/trailence/:trailId',
+    data: { 'trailOwner': 'trailence' },
+    loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
+  }
 ];
 
 export const appDefaultPublicRoute = 'login';
@@ -47,6 +57,10 @@ export const appAuthRoutes: Routes = [
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
   },
   {
+    path: 'trail/:trailOwner/:trailId/:trailType',
+    loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
+  },
+  {
     path: 'trail/:trailOwner/:trailId',
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
   },
@@ -65,6 +79,10 @@ export const appAuthRoutes: Routes = [
   {
     path: 'trail-planner',
     loadComponent: () => import('../../pages/trail-planner/trail-planner.page').then(m => m.TrailPlannerPage)
+  },
+  {
+    path: 'notifications',
+    loadComponent: () => import('../../pages/notifications/notifications.page').then(m => m.NotificationsPage)
   },
 ];
 

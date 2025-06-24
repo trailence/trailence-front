@@ -25,6 +25,8 @@ export interface Preferences {
 	photoMaxQuality?: number;
 	photoMaxSizeKB?: number;
   photoCacheDays?: number;
+
+  alias?: string;
 }
 
 export interface ComputedPreferences extends Preferences {
@@ -49,5 +51,7 @@ export interface ComputedPreferences extends Preferences {
 	photoMaxQuality: number;
 	photoMaxSizeKB: number;
   photoCacheDays: number;
+
+  alias: string;
 
 }

@@ -268,7 +268,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
     return zip([
       this.getAll$().pipe(collection$items()),
-      this.collectionService.getAll$().pipe(collection$items()),
+      this.collectionService.getMyCollectionsReady$(),
     ]).pipe(
       first(),
       switchMap(([tags, collections]) => {

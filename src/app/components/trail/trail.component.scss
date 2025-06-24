@@ -596,7 +596,7 @@ div.trail-dates {
   }
 }
 
-a, a:active {
+::ng-deep a, a:active {
   color: var(--ion-color-tertiary);
 }
 
@@ -651,4 +651,16 @@ a, a:active {
 }
 .no-tag {
   margin-left: 5px;
+}
+
+div.moderation-messages {
+  h3 {
+    color: var(--ion-color-tertiary);
+    font-size: 14px;
+    margin: 5px 8px 5px 8px;
+  }
+  div {
+    font-size: 12px;
+    margin: 5px 8px 5px 8px;
+  }
 }

@@ -14,7 +14,8 @@ export class Photo extends Owned {
   private readonly _index$: BehaviorSubject<number>;
 
   constructor(
-    dto: Partial<PhotoDto>
+    dto: Partial<PhotoDto>,
+    public readonly fromModeration = false,
   ) {
     super(dto);
     if (!dto.trailUuid) throw Error('Missing trail uuid');

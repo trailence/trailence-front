@@ -411,7 +411,8 @@ export class TrackBuilder {
     this.currentMapTrack$.next(mt);
     this.getElevation().subscribe(() => {
       this.saveToLocalStorage();
-      this.estimatedTime = estimateTimeForTrack(this.track!, this.injector.get(PreferencesService).preferences);
+      const prefs = this.injector.get(PreferencesService).preferences;
+      this.estimatedTime = estimateTimeForTrack(this.track!, prefs.estimatedBaseSpeed);
       this.hasElevation = this.track!.forEachPoint(p => p.ele !== undefined) ?? false;
       if (this.hasElevation)
         this.planner.updateGraph(this.track!);

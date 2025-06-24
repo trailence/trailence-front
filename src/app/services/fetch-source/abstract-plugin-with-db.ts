@@ -56,23 +56,66 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   protected readonly tableMetadata: DelayedTable<TrackMetadataSnapshot, string>;
 
   public override getTrail(uuid: string): Promise<Trail | null> {
-    return this.tableTrails.get(uuid).then(t => t ? new Trail(t) : null);
+    return this.tableTrails.get(uuid).then(t => t ? new Trail(t) : this.fetchTrailById(uuid));
+  }
+
+  public getTrails(uuids: string[]): Promise<Trail[]> {
+    return this.tableTrails.bulkGet(uuids)
+    .then(dtos => {
+      const result: Trail[] = [];
+      const toFetch: string[] = [];
+      for (let i = 0; i < dtos.length; ++i)  {
+        const dto = dtos[i];
+        if (!dto) toFetch.push(uuids[i]);
+        else result.push(new Trail(dto));
+      }
+      if (toFetch.length === 0) return result;
+      return this.fetchTrailsByIds(toFetch)
+      .then(fetched => {
+        result.push(...fetched);
+        return result;
+      })
+    })
+  }
+
+  protected fetchTrailById(uuid: string): Promise<Trail | null> {
+    return Promise.resolve(null);
+  }
+
+  protected fetchTrailsByIds(uuids: string[]): Promise<Trail[]> {
+    return Promise.resolve([]);
   }
 
   public override getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null> {
-    return this.tableMetadata.get(uuid).then(t => t ?? null);
+    return this.tableMetadata.get(uuid).then(t => t ?? this.fetchMetadataById(uuid));
+  }
+
+  protected fetchMetadataById(uuid: string): Promise<TrackMetadataSnapshot | null> {
+    return Promise.resolve(null);
   }
 
   public override getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null> {
     return this.tableSimplifiedTracks.get(uuid).then(t => t ?? null);
   }
 
+  protected fetchSimplifiedTrackById(uuid: string): Promise<SimplifiedTrackSnapshot | null> {
+    return Promise.resolve(null);
+  }
+
   public override getFullTrack(uuid: string): Promise<Track | null> {
-    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService)) : null);
+    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService)) : this.fetchFullTrackById(uuid));
+  }
+
+  protected fetchFullTrackById(uuid: string): Promise<Track | null> {
+    return Promise.resolve(null);
   }
 
   public override getInfo(uuid: string): Promise<TrailInfo | null> {
-    return this.tableInfos.get(uuid).then(t => t?.info ?? null);
+    return this.tableInfos.get(uuid).then(t => t?.info ?? this.fetchInfoById(uuid));
+  }
+
+  protected fetchInfoById(uuid: string): Promise<TrailInfo | null> {
+    return Promise.resolve(null);
   }
 
   protected prepareTrailToStore(trail: Trail, originalTrack: Track, uuid: string, overrideMetadata: Partial<TrackMetadataSnapshot> = {}, skipImprovment: boolean = false): TrailToStore {

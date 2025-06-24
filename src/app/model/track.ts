@@ -430,11 +430,11 @@ export class TrackComputedMetadata {
       debounceTimeExtended(250, 250, 100),
     )]);
     this._breaksDuration$ = new BehaviorSubjectOnDemand<number>(
-      () => calculateLongBreaksFromTrack(track, preferencesService.preferences),
+      () => calculateLongBreaksFromTrack(track, preferencesService.preferences.longBreakMinimumDuration, preferencesService.preferences.longBreakMaximumDistance),
       changes$
     );
     this._estimatedDuration$ = new BehaviorSubjectOnDemand<number>(
-      () => estimateTimeForTrack(track, preferencesService.preferences),
+      () => estimateTimeForTrack(track, preferencesService.preferences.estimatedBaseSpeed),
       changes$
     );
   }

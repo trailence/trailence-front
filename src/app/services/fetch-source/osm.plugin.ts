@@ -12,6 +12,7 @@ import * as L from 'leaflet';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Arrays } from 'src/app/utils/arrays';
 import { TrailSourceType } from 'src/app/model/dto/trail';
+import { AuthService } from '../auth/auth.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -33,7 +34,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
   private readonly i18n: I18nService;
 
   protected override checkAllowed$(): Observable<boolean> {
-    return of(true);
+    return this.injector.get(AuthService).auth$.pipe(map(a => !!a?.admin));
   }
 
   public override canSearchByArea(): boolean {

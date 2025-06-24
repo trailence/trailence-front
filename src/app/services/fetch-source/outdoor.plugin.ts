@@ -108,7 +108,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
           if (unknowns.length > 0) {
             trails$.push(
               ...Arrays.chunk(unknowns, 10)
-              .map(chunck => this.fetchTrailsByIds(chunck, 10).pipe(
+              .map(chunck => this.fetchTrailsByIds$(chunck, 10).pipe(
                 map(result => result.filter(r => r.metadata.bounds && bounds.overlaps(r.metadata.bounds)).map(r => r.trail))
               ))
             );
@@ -126,7 +126,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
     );
   }
 
-  private fetchTrailsByIds(ids: string[], chunkSize: number = 10): Observable<{trail: Trail, metadata: TrackMetadataSnapshot}[]> {
+  private fetchTrailsByIds$(ids: string[], chunkSize: number = 10): Observable<{trail: Trail, metadata: TrackMetadataSnapshot}[]> {
     if (ids.length === 0) return of([]);
     return zip(
       Arrays.chunk(ids, chunkSize).map(chunk =>
@@ -134,7 +134,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
         .pipe(
           catchError(e => {
             if (chunkSize > 1)
-              return this.fetchTrailsByIds(chunk, 1);
+              return this.fetchTrailsByIds$(chunk, 1);
             return of([]);
           })
         )

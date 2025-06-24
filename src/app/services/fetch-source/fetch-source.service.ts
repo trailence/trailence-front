@@ -24,6 +24,7 @@ export class FetchSourceService {
 
   private load(): void {
     Promise.all([
+      import('./trailence.plugin').then(m => new m.TrailencePlugin(this.injector)),
       import('./visorando.plugin').then(m => new m.VisorandoPlugin(this.injector)),
       import('./outdoor.plugin').then(m => new m.OutdoorPlugin(this.injector)),
       import('./osm.plugin').then(m => new m.OsmPlugin(this.injector)),
@@ -35,6 +36,7 @@ export class FetchSourceService {
       }
       this.plugins$.next(newPlugins);
       this.ready$.next(true);
+      Console.info('Fetch plugins loaded', newPlugins.map(p => p.name));
     });
   }
 
@@ -60,7 +62,7 @@ export class FetchSourceService {
   public get canSearch$(): Observable<boolean> {
     return this.plugins$.pipe(
       switchMap(plugins => plugins.length === 0 ? of([]) : combineLatest(plugins.map(p => p.allowed$))),
-      map(allowed => allowed.filter(a => !!a).length > 1)
+      map(allowed => allowed.filter(a => !!a).length > 0)
     );
   }
 
@@ -78,6 +80,8 @@ export class FetchSourceService {
   public waitReady$(): Observable<boolean> {
     return this.ready$.pipe(filterTimeout(r => r, 10000, () => false));
   }
+
+  public get isReady$(): Observable<boolean> { return this.ready$; }
 
   public getSource(url: string): FetchSourcePlugin | undefined {
     for (const plugin of this.plugins$.value) {
@@ -192,7 +196,7 @@ export class FetchSourceService {
     );
   }
 
-  private plugin$(name: string): Observable<FetchSourcePlugin | undefined> {
+  public plugin$(name: string): Observable<FetchSourcePlugin | undefined> {
     return this.plugins$.pipe(
       firstTimeout(plugins => !!plugins?.find(p => p.owner === name), 5000, () => undefined as FetchSourcePlugin[] | undefined),
       filterDefined(),
@@ -260,6 +264,14 @@ export class FetchSourceService {
         return plugin.name;
     }
     return undefined;
+  }
+
+  public getPluginByName(name: string): FetchSourcePlugin | undefined {
+    return this.plugins$.value.find(p => p.name === name);
+  }
+
+  public getPluginsByName(names: string[]): FetchSourcePlugin[] {
+    return this.plugins$.value.filter(p => names.indexOf(p.name) >= 0);
   }
 
   public getExternalUrl$(owner: string, uuid: string): Observable<string | null> {

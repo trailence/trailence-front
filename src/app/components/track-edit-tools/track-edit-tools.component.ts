@@ -38,6 +38,7 @@ import { SetElevationOnRangeManuallyTool, SetElevationOnRangeSmoothTool, SetElev
 import { ApplyDefaultImprovementsTool } from './tools/track/apply-default-improvements';
 import { MergeSegementsTool } from './tools/path/merge-segments';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
 
 interface TrackEditToolsState {
   baseTrack?: Track;
@@ -329,8 +330,9 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   public modify<T>(mayNotChange: boolean, modification: (track: Track) => Observable<T>): Observable<T | undefined> {
     return this.getCurrentTrack().pipe(
       switchMap(originalTrack => {
-        const copy = originalTrack.copy(this.auth.email!);
-        const before = mayNotChange ? copy.copy(this.auth.email!) : undefined;
+        const email = this.trail.fromModeration ? originalTrack.owner : this.auth.email!;
+        const copy = originalTrack.copy(email);
+        const before = mayNotChange ? copy.copy(email) : undefined;
         const originalSelection = this.selection.getSelectionForTrack(originalTrack);
         const copySelectionStart =
           originalSelection instanceof PointReference ?
@@ -379,9 +381,10 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       switchMap(fullTrack => {
         const sel = this.selection.getSubTrackOf(fullTrack);
         if (!sel) return this.modify(mayNotChange, modification);
+        const email = this.trail.fromModeration ? fullTrack.owner : this.auth.email!;
         const subTrack = sel.subTrack;
         const range = sel.range;
-        const before = mayNotChange ? subTrack.copy(this.auth.email!) : undefined;
+        const before = mayNotChange ? subTrack.copy(email) : undefined;
         return modification(subTrack).pipe(
           defaultIfEmpty(undefined),
           map(result => {
@@ -393,7 +396,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
               .then(toast => toast.present());
             } else {
               this.selection.removeSelectionForTrack(fullTrack);
-              const newTrack = fullTrack.copy(this.auth.email!)
+              const newTrack = fullTrack.copy(email)
               const newSelectionStart = new PointReference(newTrack, range.start.segmentIndex, range.start.pointIndex);
               const newSelectionEnd = newTrack.replace(range.start.segmentIndex, range.start.pointIndex, range.end.segmentIndex, range.end.pointIndex, subTrack);
               if (!newSelectionEnd) {
@@ -426,6 +429,19 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     this.changesDetector.detectChanges();
     setTimeout(() => {
       let track = (this.modifiedTrack$.value ?? this.baseTrack$.value)!;
+      if (this.trail.fromModeration) {
+        track = track.copy(this.trail.owner);
+        progress.addWorkDone(1);
+        this.injector.get(ModerationService).updateTrack(this.trail, track)
+        .pipe(first()).subscribe(() => {
+          this.saving = false;
+          this.modifiedTrack$.next(undefined);
+          this.baseTrack$.next(undefined);
+          this.currentTrackChanged();
+          progress.done();
+        });
+        return;
+      }
       track = track.copy(this.auth.email!);
       progress.addWorkDone(1);
       this.injector.get(TrackService).create(track, () => progress.addWorkDone(1));

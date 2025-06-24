@@ -64,7 +64,7 @@ export class AuthService {
     this._auth$.subscribe(auth => {
       if (auth === null) {
         const url = window.location.pathname;
-        if (url.indexOf('/login') < 0 && url.indexOf('/link') < 0) {
+        if (url.indexOf('/login') < 0 && url.indexOf('/link') < 0 && url !== '/search-route' && !url.startsWith('/trail/trailence/')) {
           if (!publicRoutes.find(r => '/' + r.path === url || '/fr/' + r.path === url || '/en/' + r.path === url)) {
             if (url === '/')
               navController.navigateRoot(['/home']);
@@ -127,6 +127,8 @@ export class AuthService {
   public get auth(): AuthResponse | null { return this._auth$.value ?? null; }
 
   public get email(): string | undefined { return this.auth?.email; }
+  public hasRole(role: string): boolean { return !!this.auth?.roles?.find(r => r === role); }
+  public hasRole$(role: string): Observable<boolean> { return this.auth$.pipe(map(a => !!a?.roles?.find(r => r === role))); }
 
   public preferencesUpdated(): void {
     const auth = this.auth;
@@ -440,6 +442,7 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/user/v1/resetPassword' ||
       request.url === environment.apiBaseUrl + '/user/v1/sendRegisterCode' ||
       request.url === environment.apiBaseUrl + '/user/v1/registerNewUser' ||
+      request.url.startsWith(environment.apiBaseUrl + '/public/') ||
       (request.url.startsWith(environment.apiBaseUrl + '/user/v1/changePassword') && request.method === 'DELETE') ||
       (request.url.startsWith(environment.apiBaseUrl + '/user/v1/sendDeletionCode') && request.method === 'DELETE')) {
         return request;

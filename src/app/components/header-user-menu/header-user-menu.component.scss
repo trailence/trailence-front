@@ -3,16 +3,22 @@
 }
 
 ion-button.user-button {
-    width: calc(var(--min-height) - 8px);
-    height: calc(var(--min-height) - 8px);
-    font-size: 0px;
-    --padding-start: 0;
-    --padding-end: 0;
-    margin-right: 8px;
+  width: calc(var(--min-height) - 8px);
+  height: calc(var(--min-height) - 8px);
+  font-size: 0px;
+  --padding-start: 0;
+  --padding-end: 0;
+  margin-right: 8px;
 
-    div {
-        font-size: calc(var(--min-height) / 2);
-    }
+  div {
+      font-size: calc(var(--min-height) / 2);
+  }
+}
+
+ion-badge.notif-badge {
+  position: absolute;
+  top: -2px;
+  left: -5px;
 }
 
 ion-content > ion-list {

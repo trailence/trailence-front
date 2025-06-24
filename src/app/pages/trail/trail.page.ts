@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, combineLatest, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { TrailComponent } from 'src/app/components/trail/trail.component';
 import { Trail } from 'src/app/model/trail';
@@ -15,6 +15,10 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { Console } from 'src/app/utils/console';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { ReplayService } from 'src/app/services/replay/replay.service';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { ShareService } from 'src/app/services/database/share.service';
 
 @Component({
     selector: 'app-trail-page',
@@ -32,6 +36,7 @@ export class TrailPage extends AbstractPage {
   @Input() trailId?: string;
   @Input() trailOwner2?: string;
   @Input() trailId2?: string;
+  @Input() trailType?: string;
 
   trail$ = new BehaviorSubject<Trail | null>(null);
   trail2$ = new BehaviorSubject<Trail | null>(null);
@@ -47,6 +52,7 @@ export class TrailPage extends AbstractPage {
     route: ActivatedRoute,
     private readonly trailMenuService: TrailMenuService,
     private readonly trailService: TrailService,
+    trailCollectionService: TrailCollectionService,
     traceRecorder: TraceRecorderService,
   ) {
     super(injector);
@@ -63,15 +69,31 @@ export class TrailPage extends AbstractPage {
     });
     this.whenVisible.subscribe(combineLatest([
       this.recording$.pipe(switchMap(t => t?.trail ? t.trail.name$ : of(undefined))),
-      this.trail$.pipe(switchMap(t => t ? t.name$ : of(undefined))),
+      this.trail$.pipe(
+        switchMap(t => t ?
+          t.name$.pipe(
+            switchMap(name => (
+                t.fromModeration || t.owner.indexOf('@') < 0 ? of(undefined) as Observable<string | undefined> :
+                t.owner === this.injector.get(AuthService).email ?
+                  trailCollectionService.getCollectionName$(t.collectionUuid, t.owner) :
+                  this.injector.get(ShareService).getSharesFromTrailSharedWithMe(t.uuid, t.owner).pipe(map(list => list.map(s => s.name).join(', ')))
+              ).pipe(
+                map(cn => ({trail: t, trailName: name, collectionName: cn}))
+              )
+            )
+          ) : of(undefined))),
       this.trail2$.pipe(switchMap(t => t ? t.name$ : of(undefined))),
       this.injector.get(I18nService).texts$,
     ]), ([rec, t1, t2, texts]) => {
       if (t1) {
         if (t2) {
-          this.title$.next(texts.pages.trail.title_compare + ' ' + t1 + ' ' + texts.pages.trail.title_compare_and + ' ' + t2);
+          this.title$.next(texts.pages.trail.title_compare + ' ' + t1.trailName + ' ' + texts.pages.trail.title_compare_and + ' ' + t2);
         } else {
-          this.title$.next(t1 + (rec ? ' - ' + texts.menu.current_trace : ''));
+          const colName = rec ? texts.menu.current_trace :
+            (t1.collectionName ?? (
+              t1.trail.fromModeration ? texts.publications.moderation.menu_title : ''
+            ));
+          this.title$.next(t1.trailName + (colName.length > 0 ? ' - ' + colName : ''));
         }
       } else if (rec) {
         this.title$.next(rec + ' - ' + texts.menu.current_trace);
@@ -95,8 +117,12 @@ export class TrailPage extends AbstractPage {
     if (newState.owner && newState.uuid) {
       this.byStateAndVisible.subscribe(
         combineLatest([
-          this.trailService.getTrail$(newState.uuid, newState.owner),
-          newState.owner2 && newState.uuid2 ? this.trailService.getTrail$(newState.uuid2, newState.owner2) : of(null)
+          this.trailType === 'moderation' ?
+            this.injector.get(ModerationService).getTrail$(newState.uuid, newState.owner) :
+            this.trailService.getTrail$(newState.uuid, newState.owner),
+          newState.owner2 && newState.uuid2 ?
+            this.trailService.getTrail$(newState.uuid2, newState.owner2) :
+            of(null)
         ]).pipe(
           switchMap(([t1, t2]) => {
             if (t1) return of([t1, t2]);
@@ -117,10 +143,21 @@ export class TrailPage extends AbstractPage {
                 return of([null, null]);
               })
             )
-          })
+          }),
+          switchMap(([t1, t2]) =>
+            t1 ?
+              this.injector.get(AuthService).auth$.pipe(
+                switchMap(auth => auth && t1.owner === auth.email ? this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, t1.owner) : of(undefined)),
+                map(col => ({t1, t2, col}))
+              )
+              : of({t1, t2, col: undefined})
+          )
         ),
-        ([t1, t2]) => {
-          this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, t1?.collectionUuid);
+        result => {
+          const t1 = result.t1;
+          const t2 = result.t2;
+          const collection = result.col;
+          this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, collection ?? undefined);
           if (t1 && this.injector.get(ReplayService).canReplay) {
             this.menu.push(new MenuItem());
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));

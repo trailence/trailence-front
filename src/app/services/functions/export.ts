@@ -20,7 +20,7 @@ import { BinaryContent } from 'src/app/utils/binary-content';
 
 export function exportTrails(injector: Injector, trails: Trail[]) {
   if (trails.length === 0) return;
-  zip(trails.map(trail => injector.get(PhotoService).getPhotosForTrailReady(trail.owner, trail.uuid).pipe(map(photos => ({trail, photos})))))
+  zip(trails.map(trail => injector.get(PhotoService).getPhotosForTrailReady$(trail).pipe(map(photos => ({trail, photos})))))
   .pipe(first(), map(tp => tp.filter(e => e.photos.length > 0)))
   .subscribe(trailsPhotos => {
     import('../../components/export-popup/export-popup.component').then(module => {
@@ -110,7 +110,7 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
     }
     progress.subTitle = i18n.texts.export.photo + ' ' + (photoIndex + 1) + '/' + photosToExport.length;
     const photo = photosToExport[photoIndex++];
-    photoService.getFile$(photo.owner, photo.uuid)
+    photoService.getFile$(photo)
     .pipe(
       catchError(e => EMPTY),
       defaultIfEmpty(null)

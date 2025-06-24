@@ -1,20 +1,19 @@
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
-import { ComputedPreferences } from '../../preferences/preferences';
 
-export function calculateLongBreaksFromTrack(track: Track, preferences: ComputedPreferences): number {
+export function calculateLongBreaksFromTrack(track: Track, longBreakMinimumDuration: number, longBreakMaximumDistance: number): number {
   const segments = track.segments;
   if (segments.length === 0) return 0;
-  let breaks = calculateLongBreaksFromSegment(segments[0], 0, preferences);
+  let breaks = calculateLongBreaksFromSegment(segments[0], 0, longBreakMinimumDuration, longBreakMaximumDistance);
   for (let i = 1; i < segments.length; ++i) {
     const segment = segments[i];
-    breaks += calculateLongBreaksFromSegment(segment, i, preferences);
+    breaks += calculateLongBreaksFromSegment(segment, i, longBreakMinimumDuration, longBreakMaximumDistance);
   }
   return breaks;
 }
 
-export function calculateLongBreaksFromSegment(segment: Segment, segmentIndex: number, preferences: ComputedPreferences): number {
-  const breaks = detectLongBreaksFromSegment(segment, segmentIndex, preferences.longBreakMinimumDuration, preferences.longBreakMaximumDistance);
+export function calculateLongBreaksFromSegment(segment: Segment, segmentIndex: number, longBreakMinimumDuration: number, longBreakMaximumDistance: number): number {
+  const breaks = detectLongBreaksFromSegment(segment, segmentIndex, longBreakMinimumDuration, longBreakMaximumDistance);
   if (breaks.length === 0) return 0;
   const points = segment.points;
   let duration = 0;
