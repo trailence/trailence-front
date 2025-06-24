@@ -1,0 +1,48 @@
+h2 {
+  color: var(--ion-color-tertiary);
+  font-size: 18px;
+}
+
+div.rating {
+  display: flex;
+  flex-direction: row;
+
+  div.rate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 5px;
+
+    &.selected {
+      ion-icon {
+        color: var(--star-color);
+      }
+    }
+
+    ion-icon {
+      font-size: 24px;
+
+      &[name=thumbs-down], &[name=thumbs-down-filled] {
+        font-size: 22px;
+        margin-top: 2px;
+      }
+    }
+    span {
+      font-size: 14px;
+      margin-top: 4px;
+    }
+  }
+}
+
+div.comment-advise {
+  font-size: 14px;
+  border: 1px solid rgba(var(--ion-color-tertiary-rgb), 0.25);
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.1);
+  border-radius: 5px;
+  padding: 5px;
+
+  ul {
+    margin: 5px 0;
+    padding-inline-start: 20px;
+  }
+}

@@ -167,6 +167,12 @@ export class ShareService {
       })
     );
   }
+
+  public getSharesFromTrailSharedWithMe(trailUuid: string, trailOwner: string): Observable<Share[]> {
+    return this.getAll$().pipe(
+      collection$items(share => share.owner === trailOwner && share.trails.indexOf(trailUuid) >= 0),
+    );
+  }
 }
 
 class ShareStore extends SimpleStore<ShareDto, Share> {

@@ -1,0 +1,15 @@
+.content-container {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--centered-outside-background);
+}
+.content {
+  padding: 10px;
+  max-width: 800px;
+  width: min(800px, 100%);
+  background-color: var(--centered-inside-background);
+}

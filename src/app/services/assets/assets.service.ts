@@ -36,6 +36,8 @@ export class AssetsService {
       'caret-forward': 'assets/caret-forward.1.svg', // caret-forward
       'celebration': 'assets/celebration.1.svg',
       'center-on-location': 'assets/center-on-location.1.svg',
+      'chat-bubbles': 'assets/chatbubbles.1.svg', // chatbubbles-outline
+      'check-list': 'assets/check-list.1.svg',
       'checkmark': 'assets/checkmark.1.svg', // checkmark-outline
       'chevron-down': 'assets/chevron-down.1.svg', // chevron-down-outline
       'chevron-first': 'assets/admin/chevron-first.1.svg',
@@ -90,6 +92,7 @@ export class AssetsService {
       'mobile': 'assets/mobile.1.svg',
       'more-menu': 'assets/more-menu.1.svg', // ellipsis-horizontal
       'negative-elevation': 'assets/negative-elevation.1.svg',
+      'notification': 'assets/notification.1.svg', // notifications-outline
       'offline': 'assets/exclamation-circle.1.svg', // alert-circle-outline
       'one-way': 'assets/point-to-point.1.svg',
       'online': 'assets/online.1.svg', // checkmark-circle-outline
@@ -107,13 +110,17 @@ export class AssetsService {
       'play-circle': 'assets/play-circle.1.svg', // play-circle-outline
       'points-distance': 'assets/points-distance.1.svg',
       'positive-elevation': 'assets/positive-elevation.1.svg',
+      'privacy': 'assets/eye.1.svg', //eye-outline
       'question': 'assets/question.1.svg', // help-outline
+      'radio-group': 'assets/radio-group.1.svg',
       'redo': 'assets/redo.1.svg', // arrow-redo-outline
       'reset': 'assets/reset.1.svg', // refresh-outline
       'road-bike': 'assets/road-bike.1.svg',
       'running': 'assets/running.1.svg',
       'save': 'assets/save.1.svg', // save
       'search': 'assets/search.1.svg', // search-outline
+      'search-map': 'assets/search-map.1.svg',
+      'search-position': 'assets/search-position.1.svg',
       'selection': 'assets/selection.1.svg',
       'selection-add': 'assets/selection-add.1.svg',
       'selection-off': 'assets/selection-off.1.svg',
@@ -141,6 +148,8 @@ export class AssetsService {
       'theme-light': 'assets/theme-light.1.svg', // sunny-outline
       'theme-dark': 'assets/theme-dark.1.svg', // moon-outline
       'theme-system': 'assets/theme-system.1.svg', // cog-outline
+      'thumbs-down': 'assets/thumbs-down.1.svg', // thumbs-down-outline
+      'thumbs-down-filled': 'assets/thumbs-down-filled.1.svg', // thumbs-down
       'undo': 'assets/undo.1.svg', // arrow-undo-outline
       'walk': 'assets/walk.1.svg',
       'warning': 'assets/warning.2.svg', // warning-outline

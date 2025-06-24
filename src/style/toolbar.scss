@@ -63,9 +63,32 @@ app-toolbar {
 
       ion-badge {
         position: absolute;
-        right: 0;
-        top: 0;
-        --background: rgba(var(--ion-color-success-rgb), 0.75);
+
+        &.badge-top-right {
+          top: 0;
+          right: 0;
+        }
+        &.badge-top-left {
+          top: 0;
+          left: 0;
+        }
+        &.badge-bottom-right {
+          bottom: 0;
+          right: 0;
+        }
+        &.badge-bottom-left {
+          bottom: 0;
+          left: 0;
+        }
+
+        &.badge-success {
+          --background: rgba(var(--ion-color-success-rgb), 0.75);
+          --color: var(--ion-color-success-contrast);
+        }
+        &.badge-warning {
+          --background: rgba(var(--ion-color-warning-rgb), 0.75);
+          --color: var(--ion-color-warning-contrast);
+        }
       }
 
       &:hover:not(.disabled) {

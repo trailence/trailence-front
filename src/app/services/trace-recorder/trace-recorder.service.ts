@@ -26,6 +26,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { ScreenLockService } from '../screen-lock/screen-lock.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -230,6 +231,13 @@ export class TraceRecorderService {
             if (!followedTrail) return 3;
             recording.trail.location ??= followedTrail.location;
             recording.trail.activity ??= followedTrail.activity;
+            recording.trail.followedUuid = followedTrail.uuid;
+            recording.trail.followedOwner = followedTrail.owner;
+            recording.trail.followedUrl =
+              followedTrail.sourceType === TrailSourceType.EXTERNAL ? followedTrail.source :
+              followedTrail.sourceType === TrailSourceType.TRAILENCE_RECORDER ?
+                (followedTrail.publishedFromUuid ? environment.baseUrl + '/trail/trailence/' + followedTrail.publishedFromUuid : followedTrail.followedUrl)  :
+              undefined;
             return 4;
           }),
         )

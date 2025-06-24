@@ -6,7 +6,7 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, firstValueFrom, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -28,6 +28,9 @@ import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces
 import { OsmcSymbolService } from 'src/app/services/geolocation/osmc-symbol.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { RateComponent } from '../trail/rate-and-comments/rate/rate.component';
+import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 
 class Meta {
   name?: string;
@@ -49,9 +52,12 @@ class Meta {
     templateUrl: './trail-overview.component.html',
     styleUrls: ['./trail-overview.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [IonSpinner, IonButton, IonCheckbox, IonIcon,
-        CommonModule,
-        PhotosSliderComponent]
+    imports: [
+      IonSpinner, IonButton, IonCheckbox, IonIcon,
+      CommonModule,
+      PhotosSliderComponent,
+      RateComponent,
+    ]
 })
 export class TrailOverviewComponent extends AbstractComponent {
 
@@ -71,6 +77,8 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() delayLoading = false;
 
+  @Input() showPublished = false;
+
   @Input() navigationIndex?: number;
   @Input() navigationCount?: number;
   @Output() navigationIndexChange = new EventEmitter<number>();
@@ -80,10 +88,12 @@ export class TrailOverviewComponent extends AbstractComponent {
   track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
   tagsNames: string[] = [];
   photos: Photo[] = [];
+  openUrl?: string;
   load$ = new BehaviorSubject<boolean>(false);
   observer?: IntersectionObserver;
 
   external?: TrailInfo;
+  publicTrailUuid?: string;
 
   constructor(
     injector: Injector,
@@ -121,6 +131,8 @@ export class TrailOverviewComponent extends AbstractComponent {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.reset();
     if (this.trail) {
+      this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
+      if (this.trail.fromModeration) this.openUrl += '/moderation';
       let previousI18nState = 0;
       const owner = this.trail.owner;
       this.byStateAndVisible.subscribe(
@@ -178,7 +190,7 @@ export class TrailOverviewComponent extends AbstractComponent {
         this.byStateAndVisible.subscribe(
           this.load$.pipe(
             filterDefined(),
-            switchMap(() => this.photoService.getPhotosForTrail(this.trail!.owner, this.trail!.uuid))
+            switchMap(() => this.photoService.getTrailPhotos$(this.trail!))
           ),
           photos => {
             photos.sort((p1, p2) => {
@@ -201,6 +213,21 @@ export class TrailOverviewComponent extends AbstractComponent {
             if (this.external === info) return;
             this.external = info ?? undefined;
             this.changeDetector.detectChanges();
+          }
+        );
+      }
+      if (this.showPublished) {
+        this.byStateAndVisible.subscribe(
+          this.load$.pipe(
+            filterDefined(),
+            switchMap(() => this.injector.get(MyPublicTrailsService).myPublicTrails$)
+          ),
+          myPublicTrails => {
+            const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
+            if (newValue !== this.publicTrailUuid) {
+              this.publicTrailUuid = newValue;
+              this.changeDetector.detectChanges();
+            }
           }
         );
       }
@@ -249,6 +276,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.tagsNames = [];
     this.photos = [];
     this.external = undefined;
+    this.publicTrailUuid = undefined;
     if (!this.delayLoading && !this.load$.value)
       this.load$.next(true);
   }
@@ -271,12 +299,16 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.selectedChange.emit(selected);
   }
 
-  openMenu(event: MouseEvent): void {
+  async openMenu(event: MouseEvent) {
     event.stopPropagation();
     const y = event.pageY;
     const h = this.browser.height;
     const remaining = h - y - 15;
-    const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, this.fromCollection ? this.trail!.collectionUuid : undefined, false, this.isAllCollections);
+    const collection = this.fromCollection ?
+      await firstValueFrom(
+        this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.injector.get(AuthService).email ?? '').pipe(filterDefined())
+      ) : undefined;
+    const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, collection, false, this.isAllCollections);
     let estimatedHeight = 16;
     for (const item of menu) {
       if (item.isSeparator()) estimatedHeight += 6;
@@ -285,7 +317,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 10, remaining - estimatedHeight);
     const maxHeight = remaining - offsetY;
 
-    this.popoverController.create({
+    const popover = await this.popoverController.create({
       component: MenuContentComponent,
       componentProps: {
         menu,
@@ -294,11 +326,10 @@ export class TrailOverviewComponent extends AbstractComponent {
       event: event,
       side: 'right',
       dismissOnSelect: true,
-    }).then(p => {
-      p.style.setProperty('--offset-y', offsetY + 'px');
-      p.style.setProperty('--max-height', maxHeight + 'px');
-      p.present();
     });
+    popover.style.setProperty('--offset-y', offsetY + 'px');
+    popover.style.setProperty('--max-height', maxHeight + 'px');
+    await popover.present();
   }
 
   openPhotos(slider: PhotosSliderComponent): void {
@@ -306,7 +337,15 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   openTrail(): void {
-    this.router.navigate(['trail', this.trail!.owner, this.trail!.uuid], {queryParams: { from: this.router.url }});
+    if (this.trail?.fromModeration)
+      this.router.navigate(['trail', this.trail.owner, this.trail.uuid, 'moderation'], {queryParams: { from: this.router.url }});
+    else
+      this.router.navigate(['trail', this.trail!.owner, this.trail!.uuid], {queryParams: { from: this.router.url }});
+  }
+
+  openPublicTrail(): void {
+    if (!this.publicTrailUuid) return;
+    this.router.navigate(['trail', 'trailence', this.publicTrailUuid], {queryParams: { from: this.router.url }});
   }
 
   private _symbol?: string;

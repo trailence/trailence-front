@@ -19,6 +19,8 @@ import { MenuContentComponent } from '../menu-content/menu-content.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { MyPublicTrail, MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 
 @Component({
     selector: 'app-menu',
@@ -37,13 +39,19 @@ export class MenuComponent {
   sharedWithMe: List<ShareWithInfo> = List();
   sharedByMe: List<ShareWithInfo> = List();
   allCollectionsTrails = 0;
+  pubDraft?: CollectionWithInfo;
+  pubSubmit?: CollectionWithInfo;
+  pubReject?: CollectionWithInfo;
+  myPublicTrails: MyPublicTrail[] = [];
 
   collectionsOpen = true;
   sharedWithMeOpen = false;
   sharedByMeOpen = false;
+  publicationsOpen = false;
 
   isAdmin = false;
   isAnonymous = false;
+  isModerator = false;
 
   constructor(
     public readonly i18n: I18nService,
@@ -59,11 +67,11 @@ export class MenuComponent {
     readonly platform: Platform,
     private readonly injector: Injector,
     readonly preferences: PreferencesService,
+    readonly myPublicTrailsService: MyPublicTrailsService,
   ) {
     combineLatest([
       authService.auth$,
-      collectionService.getAll$().pipe(
-        collection$items(),
+      collectionService.getAllCollectionsReady$().pipe(
         map(list => collectionService.sort(list)),
       )
     ]).pipe(
@@ -88,7 +96,12 @@ export class MenuComponent {
       }),
       debounceTimeExtended(0, 10),
     )
-    .subscribe(list => this.collections = List(list));
+    .subscribe(list => {
+      this.collections = List(list.filter(c => !isPublicationCollection(c.collection.type)));
+      this.pubDraft = list.find(c => c.collection.type === TrailCollectionType.PUB_DRAFT);
+      this.pubSubmit = list.find(c => c.collection.type === TrailCollectionType.PUB_SUBMIT);
+      this.pubReject = list.find(c => c.collection.type === TrailCollectionType.PUB_REJECT);
+    });
     combineLatest([
       authService.auth$,
       shareService.getAll$().pipe(
@@ -118,7 +131,9 @@ export class MenuComponent {
       this.sharedWithMe = List(shares.filter(share => share.share.owner !== auth?.email));
       this.isAdmin = !!auth?.admin && !platform.is('capacitor');
       this.isAnonymous = !!auth?.isAnonymous;
+      this.isModerator = !!auth?.roles?.find(r => r === 'moderator');
     });
+    myPublicTrailsService.myPublicTrails$.subscribe(list => this.myPublicTrails = list);
   }
 
   goTo(url: string): void {

@@ -12,6 +12,7 @@ import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { TrailSourceType } from 'src/app/model/dto/trail';
+import { Console } from 'src/app/utils/console';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -69,7 +70,10 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
 
   public override fetchTrailByUrl(url: string): Promise<Trail | null> {
     const id = this.idFromUrl(url);
-    if (!id) return Promise.resolve(null);
+    if (!id) {
+      Console.info('Outdoor active: cannot determine ID from url: ', url);
+      return Promise.resolve(null);
+    }
     return this.tableTrails.get(id)
     .then(trail => trail ? new Trail(trail) :
       firstValueFrom(this.requestTrailsByIds([id]))
@@ -108,7 +112,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
           if (unknowns.length > 0) {
             trails$.push(
               ...Arrays.chunk(unknowns, 10)
-              .map(chunck => this.fetchTrailsByIds(chunck, 10).pipe(
+              .map(chunck => this.fetchTrailsByIds$(chunck, 10).pipe(
                 map(result => result.filter(r => r.metadata.bounds && bounds.overlaps(r.metadata.bounds)).map(r => r.trail))
               ))
             );
@@ -126,7 +130,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
     );
   }
 
-  private fetchTrailsByIds(ids: string[], chunkSize: number = 10): Observable<{trail: Trail, metadata: TrackMetadataSnapshot}[]> {
+  private fetchTrailsByIds$(ids: string[], chunkSize: number = 10): Observable<{trail: Trail, metadata: TrackMetadataSnapshot}[]> {
     if (ids.length === 0) return of([]);
     return zip(
       Arrays.chunk(ids, chunkSize).map(chunk =>
@@ -134,7 +138,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
         .pipe(
           catchError(e => {
             if (chunkSize > 1)
-              return this.fetchTrailsByIds(chunk, 1);
+              return this.fetchTrailsByIds$(chunk, 1);
             return of([]);
           })
         )
@@ -193,6 +197,10 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
         this.storeTrails(prepared);
         this.tableInfos.bulkPut(infos);
         return infos.map((info, index) => ({trail: prepared[index].trail, metadata: prepared[index].currentMetadata ?? prepared[index].originalMetadata, info: info.info}));
+      }),
+      catchError(e => {
+        Console.error('Error retrieving trails from Outdoor Active', e);
+        return of([]);
       })
     );
   }

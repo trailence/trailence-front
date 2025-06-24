@@ -1,0 +1,88 @@
+server {
+    listen       80;
+    listen [::]:80;
+    server_name  ${TRAILENCE_HOSTNAME} www.${TRAILENCE_HOSTNAME};
+    server_tokens off;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+map $http_referer $allow_referer {
+  default 0;
+  ~^https://${TRAILENCE_HOSTNAME} 1;
+  "" 1;
+}
+
+server {
+    listen 443 default_server ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name ${TRAILENCE_HOSTNAME};
+    server_tokens off;
+
+    ssl_certificate /etc/nginx/ssl/live/${TRAILENCE_HOSTNAME}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${TRAILENCE_HOSTNAME}/privkey.pem;
+
+    subrequest_output_buffer_size 512k;
+
+    js_path "/usr/share/nginx/njs/";
+    js_import trail_page from generate_trail_page.js;
+
+    location ~* ^/(en|fr)/trail/ {
+      js_content trail_page.generate;
+    }
+
+    location ~* ^/(en|fr)/([a-z\-]+)$ {
+      root   /usr/share/nginx/html;
+      add_header Cache-Control no-cache;
+      expires 0;
+      try_files /index_$1_$2.html @index;
+    }
+
+    location / {
+        root   /usr/share/nginx/html;
+        index do-not-use-me.html;
+        add_header Cache-Control "public, max-age=31536000";
+        expires 365d;
+        try_files $uri @index;
+    }
+    location ~ \.(js|svg|css|png)$ {
+        if ($allow_referer = 0) {
+          return 499;
+        }
+        root   /usr/share/nginx/html;
+        add_header Cache-Control "public, max-age=31536000";
+        expires 365d;
+        try_files $uri =404;
+    }
+    location @index {
+        root   /usr/share/nginx/html;
+        add_header Cache-Control no-cache;
+        expires 0;
+        try_files /index.html =404;
+    }
+    location /assets/apk {
+      root   /usr/share/nginx/html;
+      add_header Cache-Control no-cache;
+      expires 0;
+      try_files $uri =404;
+    }
+    location /assets/releases {
+      root   /usr/share/nginx/html;
+      add_header Cache-Control no-cache;
+      expires 0;
+      try_files $uri =404;
+    }
+
+    location /api {
+      proxy_pass http://${TRAILENCE_BACK_NAME}:${TRAILENCE_BACK_PORT};
+      client_body_buffer_size 64k;
+      client_max_body_size 50m;
+    }
+}

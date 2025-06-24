@@ -49,5 +49,8 @@
     <loc>https://${TRAILENCE_HOSTNAME}/en/donation</loc>
     <lastmod>${BUILD_TIME}</lastmod>
   </url>
+  <url>
+    <loc>https://${TRAILENCE_HOSTNAME}/api/public/trails/v1/random</loc>
+  </url>
 
 </urlset>

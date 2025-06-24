@@ -22,8 +22,11 @@ describe('Find Trail', () => {
     page = await menu.openTrailFinder();
     const map = await page.trailsAndMap.openMap();
     await map.goTo(43.50436332683977, 7.046184539794922, 14);
-    await page.searchSources.selectByText('Visorando');
-    await page.searchButton.click();
+    await map.topToolbar.clickByIcon('radio-group');
+    const alert = await App.waitAlert();
+    await alert.clickRadioButtonByLabel('Visorando');
+    await alert.clickButtonWithText('Ok');
+    await map.topToolbar.clickByIcon('search-map');
     const list = await page.trailsAndMap.openTrailsList();
     const trail = await list.waitTrail('Tour de l\'Île Saint-Honorat');
     trail.expectRatingPresent();
@@ -36,21 +39,20 @@ describe('Find Trail', () => {
     expect(wayPoints.length).toBe(6);
     expect(wayPoints[0].name).toBe('Débarcadère');
     expect(wayPoints[0].description).toBe("En descendant du bateau, emprunter la rampe qui monte légèrement sur la gauche et suivre le chemin principal. En arrivant à une patte d'oie au bout de quelques mètres, emprunter le chemin de droite et arriver au niveau d'une chapelle surmontée d'une Vierge.");
+    await trailPage.header.goBack();
   });
 
-  it('Unselect Visorando, zoom fo Outdoor Active', async () => {
-    await trailPage.header.goBack();
-    await page.searchSources.selectByText('Visorando');
+  it('Search with Outdoor Active', async () => {
     const map = await page.trailsAndMap.openMap();
     if (App.config.mode === 'mobile')
       await map.goTo(43.497514901391675,7.046356201171876, 14);
     else
       await map.goTo(43.50748766288276,7.047182321548463, 17);
-  });
-
-  it('search with Outdoor Active', async () => {
-    await page.searchSources.selectByText('Outdoor Active');
-    await page.searchButton.click();
+    await map.topToolbar.clickByIcon('radio-group');
+    const alert = await App.waitAlert();
+    await alert.clickRadioButtonByLabel('Outdoor Active');
+    await alert.clickButtonWithText('Ok');
+    await map.topToolbar.clickByIcon('search-map');
     list = await page.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
     trail = await list.waitTrail('20201025-Saint Honorat');
@@ -60,21 +62,20 @@ describe('Find Trail', () => {
     trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('a=Open in Outdoor Active').isExisting());
+    await trailPage.header.goBack();
   });
 
-  it('Unselect Outdoor Active, zoom fo Open Street Map', async () => {
-    await trailPage.header.goBack();
-    await page.searchSources.selectByText('Outdoor Active');
+  it('Search with Open Street Map', async () => {
     const map = await page.trailsAndMap.openMap();
     if (App.config.mode === 'mobile')
       await map.goTo(43.497514901391675,7.046356201171876, 14);
     else
       await map.goTo(43.50748766288276,7.047182321548463, 16);
-  });
-
-  it('Search with Open Street Map', async () => {
-    await page.searchSources.selectByText('Open Street Map');
-    await page.searchButton.click();
+    await map.topToolbar.clickByIcon('radio-group');
+    const alert = await App.waitAlert();
+    await alert.clickRadioButtonByLabel('Open Street Map');
+    await alert.clickButtonWithText('Ok');
+    await map.topToolbar.clickByIcon('search-map');
     list = await page.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
     trail = await list.waitTrail('Île Saint-Honorat');
@@ -84,9 +85,6 @@ describe('Find Trail', () => {
     trailPage = await list.openTrail(trail);
     const details = await trailPage.trailComponent.openDetails();
     await browser.waitUntil(() => details.$('div.external-link').isExisting());
-  });
-
-  it('Go back', async () => {
     await trailPage.header.goBack();
   });
 

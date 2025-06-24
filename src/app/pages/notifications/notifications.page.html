@@ -1,0 +1,10 @@
+<app-header
+  [title]="i18n.texts.notifications.menu.no_unread"
+></app-header>
+<div class="content-container"><div class="content">
+  <ion-list>
+    @for (notif of notifications.notifications$ | async; track notif.uuid) {
+      <app-notification-item [notification]="notif"></app-notification-item>
+    }
+  </ion-list>
+</div></div>

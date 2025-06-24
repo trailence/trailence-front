@@ -210,7 +210,9 @@
         "searching": "Recherche",
         "error": "Erreur lors de la recherche",
         "needs_zoom": "Carte trop large, zoomez d'avantage",
-        "too_much_results": "Trop de résultats"
+        "too_much_results": "Trop de résultats",
+        "search_in_this_area": "Lancer la recherche",
+        "clear_search_results": "Effacer les résultats"
       }
     },
     "trail": {
@@ -225,6 +227,7 @@
       "show_breaks": "Afficher les pauses",
       "reverse_way": "Sens inversé",
       "open_in_app": "Ouvrir dans",
+      "open_in_trailence": "Voir le parcours d'origine",
       "actions": {
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",
@@ -243,11 +246,58 @@
         },
         "waypoints": {
           "title": "Points de passage"
+        },
+        "comments": {
+          "title": "Avis",
+          "you": "Vous",
+          "rate": {
+            "global": "Note moyenne :",
+            "global_on_nb": " sur {{1}} avis",
+            "no_rate": "Aucune note pour l'instant",
+            "yours": "Votre note :",
+            "write_a_review": "⭐ Noter et commenter ce parcours",
+            "change_rate_or_review": "Changer ma note ou ajouter un commentaire",
+            "modal": {
+              "title": "Noter et commenter",
+              "rate_title": "Attribuez une note",
+              "comment_title": "Laissez un commentaire",
+              "comment_advise": {
+                "header": "Quelques règles et conseils avant de commenter :",
+                "items": [
+                  "Partagez brièvement votre ressenti global sur le parcours.",
+                  "Mentionnez si vous avez rencontré des difficultés.",
+                  "Signalez les passages qui nécessitent une attention particulière.",
+                  "N’hésitez pas à indiquer ce que vous avez aimé ou moins aimé pour aider la communauté.",
+                  "Restez courtois et respectueux : aucun propos injurieux, offensant ou discriminatoire."
+                ],
+                "footer": "🙏 Merci pour votre contribution !"
+              },
+              "send_error": "Erreur lors de l'envoi de votre commentaire"
+            }
+          },
+          "delete_comment_confirmation": {
+            "title": "Supprimer le commentaire",
+            "message": "Êtes-vous sûr de vouloir supprimer ce commentaire ?"
+          },
+          "delete_reply_confirmation": {
+            "title": "Supprimer la réponse",
+            "message": "Êtes-vous sûr de vouloir supprimer cette réponse ?"
+          },
+          "reply": "Répondre",
+          "reply_placeholder": "Entrez votre réponse ici",
+          "reply_send_error": "Erreur lors de l'envoi de votre réponse",
+          "load_more_comments": "Voir plus de commentaires",
+          "has_done_this_trail": "a suivi ce parcours ✅",
+          "show_reviews_with_rate": "Filtre actif : notes de {{1}}/5",
+          "not_authenticated": "Connectez-vous pour voir les commentaires",
+          "not_connected": "Connexion internet requise pour récupérer les avis"
         }
       },
       "remaining_metadata_title": "Restant",
       "created_in_trailence_on": "Créé dans Trailence le",
       "last_update_on": "Dernière mise à jour le",
+      "published_on": "Publié le",
+      "published_by": "par",
       "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours",
       "source": {
         "trailence_recorder": "Trace enregistrée dans Trailence",
@@ -256,7 +306,18 @@
         "with_owner": " par {{1}}",
         "file_import": "Importé depuis le fichier {{1}}",
         "file_import_unknown": "Importé depuis un fichier",
-        "external": "Trouvé dans {{1}}"
+        "external": "Trouvé dans {{1}}",
+        "following": " en suivant :*:{{1}}:*:{{2}}:*:",
+        "initially_found_on": " initiallement trouvé dans :*:{{1}}:*:{{2}}:*:",
+        "following_found_on": " en suivant un parcours trouvé sur :*:{{1}}:*:{{2}}:*:"
+      },
+      "my_feedback": {
+        "you_leave_a_rate": "Vous avez noté ce parcours {{1}}/5 le {{2}}",
+        "you_leave_a_comment": "Vous avez laissé un commentaire sur ce parcours le {{1}}",
+        "you_leave_a_rate_and_a_comment_same_date": "Vous avez noté ce parcours {{1}}/5 avec un commentaire le {{2}}",
+        "you_leave_a_rate_and_a_comment_different_date": "Vous avez noté ce parcours {{1}}/5 le {{2}} et laissé un commentaire le {{3}}",
+        "invite_to_rate_title": "🙏 Participez à la communauté !",
+        "invite_to_rate_button": "⭐ Notez ce parcours"
       }
     },
     "collection_form": {
@@ -347,6 +408,11 @@
       },
       "date_format": "Format de date",
       "time_format": "Format d'heure",
+      "privacy": "Vie privée",
+      "alias": "Comment souhaitez-vous apparaître publiquement ?",
+      "alias_explaination": "Lorsque vous publiez un parcours ou que vous laissez un commentaire sur un parcours public, vous pouvez choisir de rester anonyme ou d'afficher le nom de votre choix. Si vous choisissez un nom, veillez à ce qu'il ne contienne aucun terme injurieux, offensant ou discriminatoire.",
+      "anonymous": "Anonyme",
+      "alias_name": "Avec le nom",
       "trace_recorder": "Enregistrement de trace",
       "traceMinMeters": "Distance minimum entre chaque point enregistré",
       "traceMinMeters_explaination": "Une valeur trop faible risque de donner une trace de mauvaise qualité dû à l'imprécision des GPS.<br/>Une valeur trop élevée risque également de donner une trace de mauvaise qualité avec de grands traits.<br/>Il faut également prendre en compte que plus la distance est faible, plus le nombre de points enregistrés sera élevé, ce qui peut avoir un impact sur la consommation de la batterie pendant l'enregistrement.<br/>Pour un bon compromis, nous recommendons un valeur entre 5 et 15 mètres (soit environ 16 à 50 pieds).",
@@ -570,6 +636,7 @@
     "nothing_shared_with_me": "Aucun parcours partagé avec vous",
     "shared_by_me": "Partagé par moi",
     "nothing_shared_by_me": "Vous ne partagez aucun parcours",
+    "my_publications": "Mes publications",
     "start_trace": "Démarrer une trace",
     "current_trace": "Trace en cours",
     "planner": "Plannifier un parcours",
@@ -588,6 +655,124 @@
   },
   "my_trails": "Mes Parcours",
   "all_collections": "Toutes les collections",
+  "publications": {
+    "draft_name": "Brouillons",
+    "submit_name": "En cours de revue",
+    "reject_name": "Changements demandés",
+    "my_public_trails_name": "Publiés",
+    "publish": "Publier",
+    "publish_confirmation": "En confirmant la publication de ce parcours, vous affirmez avoir respecté les règles, et confirmez que ce parcours peut être rendu public",
+    "publish_message_placeholder": "Si vous souhaitez laisser un message au modérateur qui examinera votre parcours, vous pouvez le saisir ici.",
+    "reject_to_draft": "Améliorer",
+    "checklist": "Check-list",
+    "start_popup": {
+      "header": "Merci de contribuer à la communauté Trailence !",
+      "text_before": "Vous souhaitez publier votre parcours, ce qui le rendra visible par tous les utilisateurs. Voici quelques informations importantes concernant la publication :",
+      "bullets": [
+        {
+          "text": "Le parcours publié devient une copie de votre parcours original. Cela signifie que les modifications que vous apporterez sur le parcours à publier ne seront pas appliquées à votre parcours personnel, qui restera privé. De même, si vous modifiez ultérieurement votre parcours original, cela n'affectera pas le parcours publié."
+        }, {
+          "text": "Dans un premier temps, le parcours sera en état « Brouillon ». Cela vous permettra de le préparer avant sa publication et d’apporter des ajustements par rapport à votre parcours original."
+        }, {
+          "text": "Pendant cette phase, vous serez accompagné d’une check-list, qui vous aidera à valider les points importants avant publication. Parmi ces éléments :",
+          "bullets": [
+            {
+              "text": "Les propos injurieux, offensants ou discriminatoires sont strictement interdits."
+            }, {
+              "text": "Veillez à retirer toute information personnelle que vous ne souhaitez pas rendre publique."
+            }, {
+              "text": "N’ajoutez pas de photos où des personnes sont reconnaissables."
+            }
+          ]
+        }, {
+          "text": "Une fois prêt, vous pourrez soumettre votre parcours. Il pourra alors être revu par un modérateur, qui vérifiera le respect des règles."
+        }, {
+          "text": "Une fois validé, il sera visible par toute la communauté !"
+        }, {
+          "text": "Vous pourrez ensuite, si vous le souhaitez, modifier ou retirer votre publication à tout moment."
+        }
+      ],
+      "text_after": "Merci pour votre participation et bonne publication !"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "Droits d’auteur et autorisations",
+        "description_start": "©️ Assurez-vous d’être bien l’auteur des informations que vous publiez, ou d’avoir obtenu l’autorisation explicite de l’auteur pour les publier sur Trailence."
+      },
+      "name": {
+        "title": "Nom du parcours",
+        "description_start": "Le nom doit être court et décrire clairement l'objectif du trajet. Voici quelques exemples :",
+        "description_bullets": [
+          "<b>Les Lacs Palluel et Faravel</b> : l'objectif est clair et concis.",
+          "<b>Mont Dauphin par le sentier des marmottes</b> : le sommet est précisé ainsi que l’itinéraire emprunté s’il existe plusieurs options.",
+          "<b>D'Argelès à Collioure par le sentier côtier</b> : on indique le départ, l’arrivée et le chemin suivi si pertinent."
+        ]
+      },
+      "description": {
+        "title": "Description du parcours",
+        "description_start": "La description doit permettre de comprendre rapidement à quoi s’attendre sur le parcours. Pensez à inclure :",
+        "description_bullets": [
+          "Les éventuelles difficultés (type et localisation)",
+          "Les points de vue, points d’intérêt ou curiosités à ne pas manquer",
+          "Le type de chemin (sentier, piste, route…) et une idée de la proportion si nécessaire",
+          "Si le parcours se fait en forêt, à découvert, en altitude, etc.",
+          "D’éventuels conseils sur la meilleure période pour le faire",
+          "Si le parcours est varié, une description des grandes étapes (ex : départ en forêt, passage par une chapelle, crête panoramique…)",
+          "Finissez par des informations pratiques si pertinent : stationnement, points d’eau disponibles, etc."
+        ]
+      },
+      "date": {
+        "title": "Date renseignée",
+        "set_date": "Mettre une date"
+      },
+      "location": {
+        "title": "Emplacement renseigné",
+        "set_location": "Mettre un emplacement"
+      },
+      "activity": {
+        "title": "Type d'activité renseigné",
+        "description_start": "Pensez à distinguer la marche de la randonnée: si le parcours est court, avec peu de dénivelé et peu de difficulté, ou s'il s'agit d'un parcours urbain, cela correspond davantage à de la marche. La randonnée conerne plutôt les parcours en pleine nature, souvent de plus d'une heure..."
+      },
+      "track": {
+        "title": "Qualité de la trace",
+        "description_start": "Si possible, essayez d’améliorer la qualité de la trace :",
+        "description_bullets": [
+          "Corrigez les altitudes si certaines valeurs semblent incohérentes.",
+          "Si vous êtes sorti du parcours normal (par exemple pour une petite pause technique 🤭), essayez de supprimer ces sections de la trace."
+        ],
+        "description_end": "👉 Pour cela, utilisez le bouton Éditer sur la carte."
+      },
+      "waypoints": {
+        "title": "Points de passage",
+        "description_start": "Pensez à ajouter des points de passage à votre parcours :",
+        "description_bullets": [
+          "Ils peuvent servir à indiquer un point particulier : un point de vue, une curiosité, une source…",
+          "Mais surtout, ils permettent de donner des indications de direction, notamment aux endroits où l’itinéraire n’est pas évident sur place (par exemple à un croisement, ou quand le sentier est mal marqué)."
+        ],
+        "description_end": "👉 Pour cela, utilisez le bouton Éditer sur la carte, sélectionnez l’emplacement souhaité, et utilisez le menu Point de passage."
+      },
+      "photos": {
+        "title": "Photos",
+        "description_start": "Pensez à inclure des photos qui donnent envie de suivre votre parcours : de beaux paysages, des points de vue, des lieux insolites…",
+        "description_bullets": [
+          "📍 Vérifiez que chaque photo est bien positionnée sur le parcours si cela n’a pas été fait automatiquement.",
+          "⚠️ Ne mettez pas de photos où des personnes sont reconnaissables.",
+          "🙏 Évitez également de partager des photos de propriétés privées sans autorisation."
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "Modération",
+      "publishing": "Publication",
+      "error_publishing": "Erreur lors de la publication",
+      "publish_confirmation": "Confirmez-vous que ce parcours peut être rendu public ?",
+      "reject": "Refuser",
+      "reject_message_placeholder": "Rédigez ici un message pour expliquer la raison du refus de ce parcours.",
+      "message_from_author": "Message de l'auteur",
+      "previous_moderator_message": "Précédent message du modérateur",
+      "moderator_message": "Message du modérateur"
+    }
+  },
   "buttons": {
     "apply": "Appliquer",
     "cancel": "Annuler",
@@ -602,6 +787,7 @@
     "previous": "Revenir",
     "quit": "Quitter",
     "save": "Enregistrer",
+    "send": "Envoyer",
     "start": "Démarrer",
     "reset": "Réinitialiser",
     "retry": "Réessayer",
@@ -928,5 +1114,53 @@
   },
   "recompute_metadata": "Recalcul des estimations de vos parcours",
   "you_are_offline": "Vous n'êtes pas connecté",
-  "toast_anonymous_account": "Lorsque vous utilisez l'application sans compte, vos données restent uniquement dans votre navigateur et peuvent être supprimées automatiquement si le navigateur manque d'espace. Pour sauvegarder et synchroniser vos données, vous pouvez les exporter, créer un compte, puis les importer à nouveau."
+  "toast_anonymous_account": "Lorsque vous utilisez l'application sans compte, vos données restent uniquement dans votre navigateur et peuvent être supprimées automatiquement si le navigateur manque d'espace. Pour sauvegarder et synchroniser vos données, vous pouvez les exporter, créer un compte, puis les importer à nouveau.",
+  "notifications": {
+    "menu": {
+      "no_unread": "Notifications",
+      "unread_single": "1 notification non lue",
+      "unread_plural": "{{1}} notifications non lues",
+      "none": "Aucune notification"
+    },
+    "view_all": "Voir toutes",
+    "items": {
+      "publications": {
+        "accepted": {
+          "text": "Votre parcours :*:/trail/trailence/{{2}}:*:{{1}}:*: a été publié ! Merci pour votre contribution à la communauté 🎉"
+        },
+        "rejected": {
+          "text": "La publication de votre parcours :*:/trail/{{3}}/{{2}}:*:{{1}}:*: a été refusée. Consultez-le pour connaître la raison et apporter les améliorations nécessaires."
+        }
+      },
+      "shares": {
+        "new_share_with_you": {
+          "text": "{{1}} a créé un nouveau partage avec vous : :*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:"
+        },
+        "new_trails_in_share": {
+          "text": "{{1}} a ajouté {{2}} parcours dans le partage :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        }
+      },
+      "comments": {
+        "someone_leave_a_rate": {
+          "text": "Quelqu'un a noté votre parcours :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_comment": {
+          "text": "Quelqu'un a laissé un commentaire sur votre parcours :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_rate_with_comment": {
+          "text": "Quelqu'un a noté et commenté votre parcours :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "reply": {
+          "text": "Quelqu'un a répondu à votre commentaire sur le parcours :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        }
+      }
+    }
+  },
+  "relativeDates": {
+    "justNow": "A l'instant",
+    "fewSecondsAgo": "Il y a quelques secondes",
+    "minuteAgo": "Il y'a 1 minute",
+    "minutesAgo": "Il y'a {{1}} minutes",
+    "ago": "Il y'a {{1}}"
+  }
 }

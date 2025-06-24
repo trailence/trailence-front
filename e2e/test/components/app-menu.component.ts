@@ -120,7 +120,7 @@ export class AppMenu extends Component {
   }
 
   public async openTrailFinder() {
-    await this.getElement().$('ion-icon[name=search]').parentElement().click();
+    await this.getElement().$('ion-icon[name=search-map]').parentElement().click();
     const page = new TrailsPage(TrailsPageType.SEARCH);
     await page.waitDisplayed();
     return page;

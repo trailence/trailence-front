@@ -21,6 +21,8 @@ import { PhotoService } from './photo.service';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { QuotaService } from '../auth/quota.service';
+import { ModerationService } from '../moderation/moderation.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({
   providedIn: 'root'
@@ -70,10 +72,22 @@ export class TrailService {
 
   public update(trail: Trail, ondone?: () => void): void {
     this.check(trail);
+    if (trail.fromModeration) {
+      this.injector.get(ModerationService).saveTrail(trail).subscribe();
+      if (ondone) ondone();
+      return;
+    }
     this._store.updateWithoutLock(trail, ondone);
   }
 
   public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void, ondone?: (trail: Trail) => void): void {
+    if (trail.fromModeration) {
+      updater(trail);
+      this.injector.get(ModerationService).saveTrail(trail).pipe(filterDefined(), first()).subscribe(t => {
+        if (ondone) ondone(t);
+      });
+      return;
+    }
     this.lock(trail.uuid, trail.owner, (locked, unlock) => {
       if (!locked) {
         if (ondone) ondone(trail);
@@ -108,7 +122,7 @@ export class TrailService {
     if (trail.currentTrackUuid !== trail.originalTrackUuid)
       this.trackService.deleteByUuidAndOwner(trail.currentTrackUuid, trail.owner, doneHandler.add());
     this.injector.get(TagService).deleteTrailTagsForTrail(trail.uuid, doneHandler.add());
-    this.injector.get(PhotoService).deleteForTrail(trail.owner, trail.uuid, doneHandler.add());
+    this.injector.get(PhotoService).deleteForTrail(trail, doneHandler.add());
     this._store.delete(trail, doneHandler.add());
     doneHandler.start();
   }
@@ -317,7 +331,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
     return zip([
       this.getAll$().pipe(collection$items()),
-      this.collectionService.getAll$().pipe(collection$items()),
+      this.collectionService.getAllCollectionsReady$(),
       this.injector.get(ShareService).getAll$().pipe(collection$items()),
     ]).pipe(
       first(),

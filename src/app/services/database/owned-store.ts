@@ -128,6 +128,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return true;
   }
 
+  protected newItemFromServer(dto: DTO, entity: ENTITY): void {
+    // nothing by default
+  }
+
   private updatedDtosFromServer(dtos: DTO[], deleted: {uuid: string; owner: string;}[] = []): Observable<boolean> {
     if (dtos.length === 0 && deleted.length === 0) return of(true);
     this._errors.itemsSuccess(dtos.map(dto => dto.uuid + '#' + dto.owner));
@@ -143,6 +147,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         if (this._deletedLocally.find(deleted => deleted.uuid === dto.uuid && deleted.owner === dto.owner)) {
           // updated from server, but deleted locally => ignore item from server
         } else {
+          this.newItemFromServer(dto, entity);
           entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
           dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
         }

@@ -12,6 +12,8 @@ import * as L from 'leaflet';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Arrays } from 'src/app/utils/arrays';
 import { TrailSourceType } from 'src/app/model/dto/trail';
+import { AuthService } from '../auth/auth.service';
+import { FetchSourceService } from './fetch-source.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -32,8 +34,26 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
 
   private readonly i18n: I18nService;
 
+  protected override listenAllowed(): void {
+    this.injector.get(AuthService).auth$.pipe(
+      map(a => !!a?.admin),
+      switchMap(a => {
+        if (a) return of(true);
+        return this.injector.get(FetchSourceService).getAllPlugins$().pipe(
+          switchMap(plugins => {
+            const visorando = plugins.find(p => p.name === 'Visorando');
+            if (!visorando) return of(false);
+            return visorando.allowed$;
+          })
+        )
+      })
+    ).subscribe(allowed => {
+      if (this._allowed$.value !== allowed) this._allowed$.next(allowed);
+    });
+  }
+
   protected override checkAllowed$(): Observable<boolean> {
-    return of(true);
+    return this.allowed$;
   }
 
   public override canSearchByArea(): boolean {

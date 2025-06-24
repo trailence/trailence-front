@@ -1,0 +1,19 @@
+<ion-item (click)="markAsRead()">
+  <div slot="start" class="read-status">
+    <div class="read-status-{{notification.read ? 'read' : 'unread'}}"></div>
+  </div>
+  <div class="item-content">
+    <ion-note color="medium"><app-relative-date [date]="notification.date"></app-relative-date></ion-note>
+    <ion-label>
+      @for (element of text; track element) {
+        @if (typeof element === 'string') {
+          <span>{{ element }}</span>
+        } @else if (element.link.startsWith('/')) {
+          <a [routerLink]="element.link">{{ element.text }}</a>
+        } @else if (element.link) {
+          <a target="_blank" [href]="element.link">{{ element.text }}</a>
+        }
+      }
+    </ion-label>
+  </div>
+</ion-item>

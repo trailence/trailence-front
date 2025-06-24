@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, SecurityContext, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, from, map, of, skip, switchMap, take } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, tap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -17,7 +17,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { Recording, TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { TrailHoverCursor } from './hover-cursor';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MapAnchor } from '../map/markers/map-anchor';
 import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColor, anchorBorderColor, anchorBreakBorderColor, anchorBreakFillColor, anchorBreakTextColor, anchorDepartureBorderColor, anchorDepartureFillColor, anchorDepartureTextColor, anchorFillColor, anchorTextColor, MapTrackWayPoints } from '../map/track/map-track-way-points';
 import { TagService } from 'src/app/services/database/tag.service';
@@ -38,7 +38,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { estimateSimilarity } from 'src/app/services/track-edition/path-analysis/similarity';
 import { CompositeI18nString, DateTimeI18nString, I18nPipe, I18nString, TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
 import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools/tools/track-edit-tools-stack';
 import { TrailSelection } from './trail-selection';
@@ -47,9 +47,26 @@ import { samePositionRound } from 'src/app/model/point';
 import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { TrailSourceType } from 'src/app/model/dto/trail';
-import { DomSanitizer } from '@angular/platform-browser';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
+import { TrailCollection } from 'src/app/model/trail-collection';
+import { PublicationChecklist } from './publication-checklist/checklist';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { environment } from 'src/environments/environment';
+import { FeedbackService, MyFeedback } from 'src/app/services/feedback/feedback.service';
+import { RateAndCommentsComponent } from './rate-and-comments/rate-and-comments.component';
+import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { NetworkService } from 'src/app/services/network/network.service';
+
+interface TrailSource {
+  isExternal: boolean;
+  isExternalOnly: boolean;
+  externalUrl?: string;
+  externalAppName?: string;
+  sourceString?: string;
+  author?: string;
+  info?: TrailInfo;
+}
 
 @Component({
     selector: 'app-trail',
@@ -73,6 +90,8 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
         I18nPipe,
         TrackEditToolsComponent,
         ToolbarComponent,
+        RouterLink,
+        RateAndCommentsComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -105,6 +124,7 @@ export class TrailComponent extends AbstractComponent {
   graphTrack1?: Track;
   graphTrack2?: Track;
   graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
+  myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
 
   @ViewChild(MapComponent)
   set map(child: MapComponent | undefined) {
@@ -136,15 +156,13 @@ export class TrailComponent extends AbstractComponent {
   hover: TrailHoverCursor;
   selection = new TrailSelection(this.map$, this.graph$);
 
-  isExternal = false;
-  isExternalOnly = false;
-  externalUrl?: string;
-  externalAppName?: string;
-  sourceString?: Observable<string>;
-
   comparison: number | undefined = undefined;
   trail1CollectionName?: string;
+  trail1Collection?: TrailCollection;
   trail2CollectionName?: string;
+  isPublication = false;
+  publicationChecklist?: PublicationChecklist;
+  source?: TrailSource;
 
   private _lockForDescription?: () => void;
   editingDescription = false;
@@ -156,12 +174,46 @@ export class TrailComponent extends AbstractComponent {
 
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
   toolbarItems: MenuItem[] = [
-    new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map').setAction(() => this.downloadMap()),
-    new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure').setAction(() => this.goToDeparture()),
-    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail').setAction(() => this.startTrail()).setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled),
-    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume').setAction(() => this.togglePauseRecordingWithoutConfirmation()).setVisible(() => !!this.recording && this.recording.paused),
-    new MenuItem().setIcon('pause-circle').setI18nLabel('trace_recorder.pause').setAction(() => this.togglePauseRecordingWithoutConfirmation()).setVisible(() => !!this.recording && !this.recording.paused),
-    new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setAction(() => this.stopRecordingWithoutConfirmation()).setVisible(() => !!this.recording),
+    new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
+      .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
+      .setAction(() => this.downloadMap()),
+    new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure')
+      .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
+      .setAction(() => this.goToDeparture()),
+    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
+      .setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
+      .setAction(() => this.startTrail()),
+    new MenuItem().setIcon('check-list').setI18nLabel('publications.checklist')
+      .setVisible(() => !this.trail2 && !!this.publicationChecklist)
+      .setBadgeTopRight(() => ({ text: this.publicationChecklist?.nbUnchecked === 0 ? '✔' : '' + this.publicationChecklist?.nbChecked, color: 'success', fill: true }))
+      .setBadgeTopLeft(() => this.publicationChecklist?.nbUnchecked ? ({ text: '' + this.publicationChecklist?.nbUnchecked, color: 'warning', fill: true }) : undefined)
+      .setAction(() => this.openChecklist()),
+    new MenuItem().setIcon('web').setI18nLabel('publications.publish')
+      .setVisible(() => !this.trail2 && (this.trail1?.fromModeration || !!this.publicationChecklist))
+      .setDisabled(() => !this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0)
+      .setTextColor('success')
+      .setAction(() => this.publish()),
+    new MenuItem().setIcon('cross').setI18nLabel('publications.moderation.reject')
+      .setVisible(() => !this.trail2 && this.trail1?.fromModeration)
+      .setTextColor('danger')
+      .setAction(() => this.rejectPublication()),
+    new MenuItem().setIcon('undo').setI18nLabel('publications.reject_to_draft')
+      .setVisible(() => !!this.trail1 && !this.trail2 && this.trail1Collection?.type === TrailCollectionType.PUB_REJECT)
+      .setTextColor('success')
+      .setAction(() => this.rejectToDraft()),
+    new MenuItem().setIcon('trash').setI18nLabel('buttons.delete')
+      .setVisible(() => !!this.trail1 && !this.trail2 && (this.trail1Collection?.type === TrailCollectionType.PUB_DRAFT || this.trail1Collection?.type === TrailCollectionType.PUB_REJECT))
+      .setTextColor('danger')
+      .setAction(() => import('../../services/functions/delete-trails').then(m => m.confirmDeleteTrails(this.injector, [this.trail1!], true)).then(d => {if (d) this.publicationChecklist?.delete()})),
+    new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
+      .setVisible(() => !!this.recording && this.recording.paused)
+      .setAction(() => this.togglePauseRecordingWithoutConfirmation()),
+    new MenuItem().setIcon('pause-circle').setI18nLabel('trace_recorder.pause')
+      .setVisible(() => !!this.recording && !this.recording.paused)
+      .setAction(() => this.togglePauseRecordingWithoutConfirmation()),
+    new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop')
+      .setVisible(() => !!this.recording)
+      .setAction(() => this.stopRecordingWithoutConfirmation()),
   ];
 
   @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
@@ -180,7 +232,7 @@ export class TrailComponent extends AbstractComponent {
       .setAction(() => this.confirmFollowThisTrail()),
     new MenuItem(),
     new MenuItem().setIcon('reverse-way').setI18nLabel('pages.trail.reverse_way')
-      .setVisible(() => !!this.trail1 && !this.trail2)
+      .setVisible(() => !!this.trail1 && !this.trail2 && !this.isPublication && !this.trail1.fromModeration)
       .setTextColor(() => this.reverseWay$.value ? 'light' : 'dark')
       .setBackgroundColor(() => this.reverseWay$.value ? 'dark' : '')
       .setAction(() => this.reverseWay$.next(!this.reverseWay$.value)),
@@ -257,11 +309,7 @@ export class TrailComponent extends AbstractComponent {
     this.editingDescription = false;
     this.trail1 = null;
     this.trail2 = null;
-    this.isExternal = false;
-    this.isExternalOnly = false;
-    this.externalUrl = undefined;
-    this.externalAppName = undefined;
-    this.sourceString = undefined;
+    this.source = undefined;
     this.recording = null;
     this.tagsNames1 = undefined;
     this.tagsNames2 = undefined;
@@ -277,6 +325,8 @@ export class TrailComponent extends AbstractComponent {
     this.listenForRecordingUpdates();
     this.listenForLanguageChange();
     this.listenForCollections();
+    this.listenForSource();
+    this.listenMyFeedback();
   }
 
   private listenForTracks(): void {
@@ -292,65 +342,9 @@ export class TrailComponent extends AbstractComponent {
             this._lockForDescription = undefined;
             this.editingDescription = false;
           }
-          this.sourceString = undefined;
-          let src: I18nString[] = [];
-          if (trail1[0]?.sourceType) {
-            switch (trail1[0]?.sourceType) {
-              case TrailSourceType.TRAILENCE_RECORDER:
-                src.push(new TranslatedString('pages.trail.source.trailence_recorder', []));
-                if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
-                  src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
-                if (trail1[0].source && trail1[0].source !== this.auth.email)
-                  src.push(new TranslatedString('pages.trail.source.with_owner', [trail1[0].source]));
-                break;
-              case TrailSourceType.TRAILENCE_PLANNER:
-                src.push(new TranslatedString('pages.trail.source.trailence_planner', []));
-                if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
-                  src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
-                if (trail1[0].source && trail1[0].source !== this.auth.email)
-                  src.push(new TranslatedString('pages.trail.source.with_owner', [trail1[0].source]));
-                break;
-              case TrailSourceType.FILE_IMPORT:
-                if (trail1[0].source)
-                  src.push(new TranslatedString('pages.trail.source.file_import', [trail1[0].source]));
-                else
-                  src.push(new TranslatedString('pages.trail.source.file_import_unknown', []));
-                if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
-                  src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
-                break;
-              case TrailSourceType.EXTERNAL: {
-                const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail1[0].source);
-                if (pluginName) {
-                  src.push(new TranslatedString('pages.trail.source.external', [pluginName]));
-                  if (trail1[0].sourceDate && trail1[0].sourceDate !== trail1[0].createdAt)
-                    src.push(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail1[0].sourceDate)]));
-                }
-                break;
-              }
-            }
-          }
-          if (src.length === 1)
-            this.sourceString = src[0].translate$(this.i18n);
-          else if (src.length > 1)
-            this.sourceString = new CompositeI18nString(src).translate$(this.i18n);
         }
         this.trail1 = trail1[0];
         this.trail2 = trail2[0];
-        this.isExternal = !!this.trail1 && !this.trail2 && this.trail1.sourceType === TrailSourceType.EXTERNAL;
-        this.isExternalOnly = this.isExternal && this.trail1!.owner.indexOf('@') < 0;
-        this.externalUrl = this.isExternal ? this.trail1!.source : undefined;
-        if (this.externalUrl && !this.externalUrl.startsWith('http')) {
-          this.externalUrl = undefined;
-          this.injector.get(FetchSourceService).getExternalUrl$(this.trail1!.owner, this.trail1!.uuid)
-          .pipe(first())
-          .subscribe(url => {
-            if (this.trail1 !== trail1[0]) return; // already changed
-            this.externalUrl = url ?? undefined;
-            if (this.externalUrl) this.injector.get(DomSanitizer).sanitize(SecurityContext.URL, this.externalUrl);
-            this.changesDetector.detectChanges();
-          });
-        }
-        this.externalAppName = this.isExternal && this.externalUrl ? this.injector.get(FetchSourceService).getPluginNameByUrl(this.externalUrl) : undefined;
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];
@@ -452,7 +446,8 @@ export class TrailComponent extends AbstractComponent {
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
 
-        this.editable = !this.trail2 && !!this.trail1 && this.trail1.owner === this.auth.email;
+        this.editable = !this.trail2 && !!this.trail1 &&
+          (this.trail1.fromModeration || (this.trail1.owner === this.auth.email && this.trail1Collection?.type !== TrailCollectionType.PUB_SUBMIT));
         if (toolsModifiedTrack)
           this.graph?.resetChart();
         this.toolbar?.refresh();
@@ -472,7 +467,10 @@ export class TrailComponent extends AbstractComponent {
           switchMap(([original, reverse]) => {
             const uuid$ = original ? trail.originalTrackUuid$ : trail.currentTrackUuid$;
             return uuid$.pipe(
-              switchMap(uuid => this.trackService.getFullTrack$(uuid, trail.owner)),
+              switchMap(uuid => trail.fromModeration ?
+                this.injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, uuid) :
+                this.trackService.getFullTrack$(uuid, trail.owner)
+              ),
               map(track => {
                 if (!track) return ([trail, undefined, undefined]) as [Trail | null, Track | undefined, MapTrack | undefined];
                 if (reverse) track = track.reverse();
@@ -484,6 +482,135 @@ export class TrailComponent extends AbstractComponent {
           })
         )
       })
+    );
+  }
+
+  private listenForSource(): void {
+    this.byStateAndVisible.subscribe(
+      combineLatest([
+        this.trail1$ ?? of(null),
+        this.trail2$ ?? of(null),
+        this.injector.get(FetchSourceService).isReady$,
+      ]).pipe(
+        switchMap(([trail1, trail2]) => {
+          if (!trail1 || trail2) return of(undefined);
+          const source: TrailSource = {
+            isExternal: false,
+            isExternalOnly: false,
+            externalAppName: undefined,
+            externalUrl: undefined,
+            sourceString: undefined,
+          }
+          source.isExternal = trail1.sourceType === TrailSourceType.EXTERNAL;
+          if (source.isExternal) {
+            source.isExternalOnly = trail1.owner.indexOf('@') < 0;
+            source.externalUrl = trail1.source;
+            if (source.externalUrl?.startsWith(environment.baseUrl)) {
+              if (trail1.owner === 'trailence')
+                source.externalUrl = undefined;
+            }
+            source.externalAppName = source.externalUrl ? this.injector.get(FetchSourceService).getPluginNameByUrl(source.externalUrl) : undefined;
+            if (source.externalAppName === 'Trailence' && source.externalUrl?.startsWith(environment.baseUrl))
+              source.externalUrl = source.externalUrl.substring(environment.baseUrl.length);
+          }
+          return combineLatest([
+            this.getSourceString(trail1),
+            trail1.owner.indexOf('@') < 0 ? this.injector.get(FetchSourceService).getTrailInfo$(trail1.owner, trail1.uuid) : of(null),
+          ]).pipe(
+            map(([sourceString, info]) => {
+              if (source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http'))
+                source.externalUrl = info?.externalUrl;
+              source.sourceString = sourceString;
+              source.author = info?.author;
+              source.info = info ?? undefined;
+              return source;
+            })
+          );
+        }),
+      ),
+      source => this.source = source
+    );
+  }
+
+  private getSourceString(trail: Trail): Observable<string | undefined> {
+    let src: Observable<I18nString | null | undefined>[] = [];
+    switch (trail.sourceType) {
+      case TrailSourceType.TRAILENCE_RECORDER:
+        src.push(of(new TranslatedString('pages.trail.source.trailence_recorder', [])));
+        if (trail.sourceDate && trail.sourceDate !== trail.createdAt)
+          src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
+        if (trail.source && trail.source !== this.auth.email)
+          src.push(of(new TranslatedString('pages.trail.source.with_owner', [trail.source])));
+        if (trail.followedUuid && trail.followedOwner && trail.followedOwner.indexOf('@') > 0) {
+          src.push(this.trailService.getTrail$(trail.followedUuid, trail.followedOwner).pipe(
+            map(followedTrail => followedTrail ?
+              new TranslatedString('pages.trail.source.following', ['/trail/' + trail.followedOwner + '/' + trail.followedUuid, followedTrail.name])
+              : null
+            ),
+            map(s => {
+              if (!trail.followedUrl) return s;
+              const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail.followedUrl);
+              if (!pluginName) return s;
+              return new CompositeI18nString([s, new TranslatedString('pages.trail.source.initially_found_on', [trail.followedUrl, pluginName])]);
+            })
+          ));
+        } else if (trail.followedUrl) {
+          const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail.followedUrl);
+          if (pluginName)
+            src.push(of(new TranslatedString('pages.trail.source.following_found_on', [trail.followedUrl, pluginName])));
+        }
+        break;
+      case TrailSourceType.TRAILENCE_PLANNER:
+        src.push(of(new TranslatedString('pages.trail.source.trailence_planner', [])));
+        if (trail.sourceDate && trail.sourceDate !== trail.createdAt)
+          src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
+        if (trail.source && trail.source !== this.auth.email)
+          src.push(of(new TranslatedString('pages.trail.source.with_owner', [trail.source])));
+        break;
+      case TrailSourceType.FILE_IMPORT:
+        if (trail.source)
+          src.push(of(new TranslatedString('pages.trail.source.file_import', [trail.source])));
+        else
+          src.push(of(new TranslatedString('pages.trail.source.file_import_unknown', [])));
+        if (trail.sourceDate && trail.sourceDate !== trail.createdAt)
+          src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
+        break;
+      case TrailSourceType.EXTERNAL: {
+        const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail.source);
+        if (pluginName) {
+          src.push(of(new TranslatedString('pages.trail.source.external', [pluginName])));
+          if (trail.sourceDate && trail.sourceDate !== trail.createdAt)
+            src.push(of(new TranslatedString('pages.trail.source.with_date', [new DateTimeI18nString(trail.sourceDate)])));
+        }
+        break;
+      }
+    }
+    if (src.length === 0) return of(undefined);
+    return combineLatest(src).pipe(
+      switchMap(strings => {
+        const notNull = strings.filter(s => !!s);
+        return notNull.length === 1 ? notNull[0].translate$(this.i18n) : new CompositeI18nString(notNull).translate$(this.i18n)
+      })
+    );
+  }
+
+  private listenMyFeedback(): void {
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null)]).pipe(
+        switchMap(([trail1, trail2, recording]) => {
+          if (!trail2 && !recording && trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/')) {
+            return this.injector.get(NetworkService).server$.pipe(
+              switchMap(connected => {
+                if (!connected) return of(null);
+                return this.injector.get(FeedbackService).getMyFeedback(trail1.followedUrl!.substring(environment.baseUrl.length + 17));
+              }),
+              takeWhile(v => !v, true),
+            );
+          }
+          return of(null);
+        })
+      ),
+      myFeedback => this.myFeedback$.next(myFeedback ?? undefined)
     );
   }
 
@@ -529,7 +656,7 @@ export class TrailComponent extends AbstractComponent {
     if (!this.trail1$) return;
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$, this.trail2$ ?? of(null)]).pipe(
-        switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos(trail1) : of(undefined))
+        switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos$(trail1) : of(undefined))
       ),
       photos => {
         if (photos === undefined)
@@ -555,9 +682,11 @@ export class TrailComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$, this.trail2$ ?? of(null), this.showPhotos$]).pipe(
         switchMap(([trail1, trail2, showPhotos]) => {
-          this.photosHavingPosition = undefined;
-          if (!trail1 || trail2) return of([]);
-          return this.photoService.getTrailPhotos(trail1).pipe(
+          if (!trail1 || trail2) {
+            this.photosHavingPosition = undefined;
+            return of([]);
+          }
+          return this.photoService.getTrailPhotos$(trail1).pipe(
             switchMap(photos => {
               const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
               const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
@@ -614,6 +743,7 @@ export class TrailComponent extends AbstractComponent {
           photosOnMap.set(element.key, element.marker);
           if (!element.alreadyOnMap) this.map.addToMap(element.marker);
         }
+        this.refreshMapToolbarRight();
       }, true
     );
   }
@@ -644,7 +774,7 @@ export class TrailComponent extends AbstractComponent {
   }
 
   private createPhotoMarker(point: L.LatLngExpression, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string) {
-    return this.photoService.getFile$(photos[0].owner, photos[0].uuid).pipe(
+    return this.photoService.getFile$(photos[0]).pipe(
       switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 75, 0.7))),
       switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
         map(base64 => {
@@ -712,38 +842,48 @@ export class TrailComponent extends AbstractComponent {
   private listenForLanguageChange(): void {
     this.whenVisible.subscribe(
       this.injector.get(I18nService).texts$.pipe(skip(1)),
-      () => this.changesDetector.detectChanges(),
+      () => {
+        this.toolbarItems = [...this.toolbarItems];
+        this.refreshMapToolbarTop();
+        this.refreshMapToolbarRight();
+        this.changesDetector.detectChanges();
+      },
       true
     );
   }
 
   private listenForCollections(): void {
     this.whenVisible.subscribe(
-      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.auth.auth$, this.i18n.texts$]).pipe(
-        switchMap(([trail1, trail2, auth]) => {
-          if (!trail1 || !trail2 || trail1.collectionUuid === trail2.collectionUuid || !auth || trail1.owner !== auth.email || trail2.owner !== auth.email) return of([null, null]);
-          return combineLatest([
-            this.injector.get(TrailCollectionService).getCollection$(trail1.collectionUuid, trail1.owner),
-            this.injector.get(TrailCollectionService).getCollection$(trail2.collectionUuid, trail2.owner)
-          ]);
-        })
-      ),
-      ([col1, col2]) => {
-        if (!col1 || !col2) {
-          if (this.trail1CollectionName || this.trail2CollectionName) {
-            this.trail1CollectionName = undefined;
-            this.trail2CollectionName = undefined;
-            this.changesDetector.detectChanges();
-          }
-          return;
+      combineLatest([
+        this.auth.auth$,
+        combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null)]).pipe(
+          switchMap(([trail1, trail2]) => {
+            if (!trail1) return of({col1: null, col2: null, trail1, trail2, track: null});
+            return combineLatest([
+              this.injector.get(TrailCollectionService).getCollectionWithName$(trail1.collectionUuid, trail1.owner),
+              trail2 ? this.injector.get(TrailCollectionService).getCollectionWithName$(trail2.collectionUuid, trail2.owner) : of(null),
+              this.trackService.getFullTrackReady$(trail1.currentTrackUuid, trail1.owner),
+            ]).pipe(
+              map(([col1, col2, track]) => ({col1, col2, track, trail1, trail2}))
+            );
+          }),
+        ),
+      ]),
+      ([auth, result]) => {
+        this.trail1Collection = result.col1?.collection ?? undefined;
+        this.trail1CollectionName = result.col1?.name ?? undefined;
+        this.isPublication = isPublicationCollection(this.trail1Collection?.type);
+        if (result.col1?.collection !== result.col2?.collection && auth && result.col1?.collection.owner === auth.email && result.col2?.collection.owner === auth.email) {
+          this.trail2CollectionName = result.col2.collection.name;
         }
-        const name1 = col1.type === TrailCollectionType.MY_TRAILS && col1.name.length === 0 ? this.i18n.texts.my_trails : col1.name;
-        const name2 = col2.type === TrailCollectionType.MY_TRAILS && col2.name.length === 0 ? this.i18n.texts.my_trails : col2.name;
-        if (this.trail1CollectionName !== name1 || this.trail2CollectionName !== name2) {
-          this.trail1CollectionName = name1;
-          this.trail2CollectionName = name2;
-          this.changesDetector.detectChanges();
-      }
+        if (result.trail1 && result.track && this.trail1Collection?.type === TrailCollectionType.PUB_DRAFT) {
+          if (!this.publicationChecklist || this.publicationChecklist.trailUuid !== result.trail1.uuid || this.publicationChecklist.trailOwner !== result.trail1.owner)
+            this.publicationChecklist = PublicationChecklist.load(result.trail1, result.track, this.trailService);
+        } else {
+          this.publicationChecklist = undefined;
+        }
+        if (result.col1?.collection.type === TrailCollectionType.PUB_SUBMIT) this.editable = false;
+        this.changesDetector.detectChanges();
       }
     );
   }
@@ -823,7 +963,7 @@ export class TrailComponent extends AbstractComponent {
   }
 
   openPhotos(): void {
-    this.photoService.openPopupForTrail(this.trail1!.owner, this.trail1!.uuid)
+    this.photoService.openPopupForTrail(this.trail1!)
     .then(photo => {
       if (photo) this.positionPhotoOnMap(photo);
     });
@@ -1081,6 +1221,7 @@ export class TrailComponent extends AbstractComponent {
   }
 
   openDateDialog(): void {
+    if (this.trail2 || !this.trail1 || !this.editable) return;
     this.injector.get(TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]);
   }
 
@@ -1091,9 +1232,10 @@ export class TrailComponent extends AbstractComponent {
   }
 
   canEdit(): boolean {
+    if (!this.editable) return false;
     if (this.toolsEnabled) return false;
     if (this.trail2) return false;
-    if (this.trail1?.owner !== this.auth.email) return false;
+    if (this.trail1?.owner !== this.auth.email && !this.trail1?.fromModeration) return false;
     if (this.recording) return false;
     return true;
   }
@@ -1170,6 +1312,131 @@ export class TrailComponent extends AbstractComponent {
         if ((p as any).presented) p.dismiss(); // NOSONAR
       }, 10000);
     });
+  }
+
+  rateThisTrail(): void {
+    if (this.source?.externalUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
+      this.injector.get(Router).navigateByUrl(this.source.externalUrl.substring(environment.baseUrl.length));
+    else if (this.trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
+      this.injector.get(Router).navigateByUrl(this.trail1.followedUrl.substring(environment.baseUrl.length));
+  }
+
+  private async openChecklist() {
+    const module = await import('./publication-checklist/checklist.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.CheckListComponent,
+      componentProps: {
+        checklist: this.publicationChecklist,
+        trail$: this.trail1$!,
+        track$: this.tracks$.pipe(map(tracks => tracks.length > 0 ? tracks[0] : null)),
+      },
+      cssClass: 'large-modal'
+    });
+    modal.onWillDismiss().then(() => {
+      this.toolbarItems = [...this.toolbarItems];
+      this.changesDetector.detectChanges();
+    });
+    await modal.present();
+  }
+
+  private async publish() {
+    const confirm = await this.injector.get(AlertController).create({
+      header: this.i18n.texts.publications.publish,
+      message: this.trail1?.fromModeration ? this.i18n.texts.publications.moderation.publish_confirmation : this.i18n.texts.publications.publish_confirmation,
+      inputs: this.trail1?.fromModeration ? [] : [{
+        type: 'textarea',
+        placeholder: this.i18n.texts.publications.publish_message_placeholder,
+        attributes: {
+          maxlength: 50000,
+          counter: true,
+        }
+      }],
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: (result) => {
+            const message = result ? result[0].trim() : '';
+            this.injector.get(AlertController).dismiss(message, 'confirm');
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss(false, 'cancel');
+          }
+        }
+      ]
+    });
+    await confirm.present();
+    const result = await confirm.onDidDismiss();
+    if (result.role !== 'confirm') return;
+
+    if (this.trail1?.fromModeration) {
+      const trail = this.trail1;
+      const service = this.injector.get(ModerationService);
+      combineLatest([
+        service.getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid).pipe(first()),
+        service.getPhotos$(trail.owner, trail.uuid).pipe(first()),
+      ]).subscribe(([track, photos]) => {
+        service.validateAndPublish(trail, track, photos, (ok) => {
+          if (ok)
+            this.injector.get(Router).navigateByUrl('/trails/moderation');
+        });
+      });
+    } else {
+      this.publicationChecklist?.delete();
+      const collection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit());
+      const copyModule = await import('../../services/functions/copy-trails');
+      copyModule.moveTrailsTo(this.injector, [this.trail1!], collection, this.trail1!.owner, t => t.publicationMessageFromAuthor = result.data, true);
+      this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1Collection!.uuid + '/' + this.trail1Collection!.owner);
+    }
+  }
+
+  private async rejectPublication() {
+    const confirm = await this.injector.get(AlertController).create({
+      header: this.i18n.texts.publications.moderation.reject,
+      inputs: [{
+        type: 'textarea',
+        placeholder: this.i18n.texts.publications.reject_message_placeholder,
+        attributes: {
+          maxlength: 50000,
+          counter: true,
+        }
+      }],
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: (result) => {
+            const message = result[0].trim();
+            if (message.length > 10)
+              this.injector.get(AlertController).dismiss(message, 'confirm');
+            return false;
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss(false, 'cancel');
+          }
+        }
+      ]
+    });
+    await confirm.present();
+    const result = await confirm.onDidDismiss();
+    if (result.role !== 'confirm') return;
+
+    const trail = this.trail1!;
+    const service = this.injector.get(ModerationService);
+    service.reject(trail, result.data as string, this.photos);
+    this.injector.get(Router).navigateByUrl('/trails/moderation');
+  }
+
+  private async rejectToDraft() {
+    const collection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationDraft());
+    const copyModule = await import('../../services/functions/copy-trails');
+    copyModule.moveTrailsTo(this.injector, [this.trail1!], collection, this.trail1!.owner);
   }
 
 }

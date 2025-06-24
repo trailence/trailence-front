@@ -1,7 +1,7 @@
 import { Component, NgZone, OnDestroy } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput, IonSpinner } from "@ionic/angular/standalone";
+import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput, IonSpinner, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DateFormat, DistanceUnit, HourFormat, ThemeType } from 'src/app/services/preferences/preferences';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +19,7 @@ import { IdGenerator } from 'src/app/utils/component-utils';
     selector: 'app-preferences',
     templateUrl: './preferences.page.html',
     styleUrls: ['./preferences.page.scss'],
-    imports: [IonSpinner,
+    imports: [IonRadioGroup, IonRadio, IonSpinner,
       IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon,
       HeaderComponent, FormsModule, CommonModule,
       FilterNumericCustomComponent,
@@ -37,6 +37,7 @@ export class PreferencesPage implements OnDestroy {
   tfoApiKey?: string;
   tfoAllowed = false;
   photoCacheSize?: {total: number, expired: number};
+  aliasType: 'anonymous' | 'name' = 'anonymous';
 
   private readonly extensionsSubscription: Subscription;
   private readonly preferencesSubscription: Subscription;
@@ -92,6 +93,7 @@ export class PreferencesPage implements OnDestroy {
   longBreakMaximumDistanceConfig!: NumericFilterCustomConfig;
 
   refresh(): void {
+    this.aliasType = this.preferences.preferences.alias.length > 0 ? 'name' : 'anonymous';
     if (this.currentDistanceUnit !== this.preferences.preferences.distanceUnit) {
       this.currentDistanceUnit = this.preferences.preferences.distanceUnit
       switch (this.currentDistanceUnit) {
@@ -139,6 +141,17 @@ export class PreferencesPage implements OnDestroy {
 
   setHourFormat(s?: string): void {
     this.preferences.setHourFormat(s as HourFormat);
+  }
+
+  setAlias(s: string | null | undefined): void {
+    let alias = s ?? '';
+    alias = alias.trim();
+    this.aliasType = alias.length > 0 ? 'name' : 'anonymous';
+    this.preferences.setAlias(alias);
+  }
+
+  aliasTypeChanged(value: any): void {
+    if (value === 'anonymous') this.setAlias('');
   }
 
   setTraceMinimumDistance(value: number | FilterNumeric): void {

@@ -19,6 +19,7 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { Track } from 'src/app/model/track';
+import { Trail } from 'src/app/model/trail';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -49,8 +50,7 @@ interface PhotoWithInfo {
 })
 export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
-  @Input() owner!: string;
-  @Input() trailUuid!: string;
+  @Input() trail!: Trail;
   @Input() popup = true;
   @Output() positionOnMapRequested = new EventEmitter<Photo>();
 
@@ -62,6 +62,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   width!: number;
   height!: number;
   canEdit = false;
+  canAdd = false;
   nbSelected = 0;
   sliderIndex = 0;
 
@@ -99,18 +100,19 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
       combineLatest([
         this.auth.auth$.pipe(
           switchMap(a => {
-            if (a?.email === this.owner)
-              return this.trailService.getTrail$(this.trailUuid, this.owner).pipe(
-                switchMap(trail => trail ? this.trackService.getFullTrack$(trail.currentTrackUuid, this.owner) : of(undefined)),
-                map(track => ({track, canEdit: true}))
+            if (a?.email === this.trail.owner)
+              return this.trailService.getTrail$(this.trail.uuid, this.trail.owner).pipe(
+                switchMap(trail => trail ? this.trackService.getFullTrack$(trail.currentTrackUuid, this.trail.owner) : of(undefined)),
+                map(track => ({track, canEdit: true, canAdd: true}))
               );
-            return of({track: undefined, canEdit: false});
+            return of({track: undefined, canEdit: this.trail.fromModeration, canAdd: false});
           })
         ),
-        this.photoService.getPhotosForTrail(this.owner, this.trailUuid),
+        this.photoService.getTrailPhotos$(this.trail),
       ])
       .subscribe(([at, photos]) => {
         this.canEdit = at.canEdit;
+        this.canAdd = at.canAdd;
         photos.sort((p1, p2) => p1.index - p2.index);
         this.photos = photos.map(p => {
           return {
@@ -237,7 +239,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
         return Promise.resolve(progress);
       },
       onfileread: (index: number, nbFiles: number, progress: Progress, filename: string, file: ArrayBuffer) => {
-        return firstValueFrom(this.photoService.addPhoto(this.owner, this.trailUuid, filename, photoIndex++, file))
+        return firstValueFrom(this.photoService.addPhoto(this.trail.owner, this.trail.uuid, filename, photoIndex++, file))
         .then(p => {
           progress.subTitle = '' + (index + 1) + '/' + nbFiles;
           progress.addWorkDone(1);

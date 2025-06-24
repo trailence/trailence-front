@@ -46,7 +46,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.setBlob(undefined);
       if (this.photo) {
         const loadPhoto = (photo: Photo) => {
-          this.subscription = this.photoService.getBlobUrl$(photo.owner, photo.uuid).subscribe({
+          this.subscription = this.photoService.getBlobUrl$(photo).subscribe({
             next: blob => {
               this.setBlob(blob);
             },

@@ -6,53 +6,56 @@ const BUBBLE_MIN_PIXELS = 20;
 export class MapBubble {
 
   private _map?: L.Map;
-  private readonly _marker: L.Marker;
+  private readonly _overlay: L.SVGOverlay;
+  private _onclick: (map: L.Map) => void = map => map.fitBounds(this._associatedBounds);
 
   constructor(
-    private readonly _center: L.LatLng,
-    private readonly _bounds: L.LatLngBounds,
-    size: number,
+    private readonly _bubbleBounds: L.LatLngBounds,
+    private readonly _associatedBounds: L.LatLngBounds,
+    bgColor: string,
+    borderColor: string,
     text: string,
+    textSize: number,
+    textColor: string,
   ) {
-    this._marker = L.marker(
-      _center,
-      {
-        icon: L.icon({
-          iconUrl: MapBubble.createDataIcon(size, text),
-          iconSize: [size, size],
-          iconAnchor: [size / 2, size / 2],
-          className: 'bubble',
-        })
-      }
-    );
-    this._marker.on('click', () => {
-      if (this._map)
-        this._map.setView(_center, this._map.getZoom() + 1);
+    this._overlay = L.svgOverlay(MapBubble.createSvgElement(100, bgColor, borderColor, text, textSize, textColor), _bubbleBounds, {
+      interactive: true,
+      className: 'bubble',
+    });
+    this._overlay.on('click', () => {
+      if (this._map) this._onclick(this._map);
     });
   }
 
-  public get center(): L.LatLng { return this._center; }
-  public get bounds(): L.LatLngBounds { return this._bounds; }
+  public get bubbleBounds(): L.LatLngBounds { return this._bubbleBounds; }
+  public get associatedBounds(): L.LatLngBounds { return this._associatedBounds; }
+
+  public onClick(onclick: (map: L.Map) => void): this {
+    this._onclick = onclick;
+    return this;
+  }
 
   addTo(map: L.Map): void {
     if (this._map) return;
     this._map = map;
-    this._marker.addTo(map);
+    this._overlay.addTo(map);
   }
 
   remove(): void {
     if (!this._map) return;
-    this._marker.removeFrom(this._map);
+    this._overlay.removeFrom(this._map);
     this._map = undefined;
   }
 
-  private static createDataIcon(size: number, text: string): string {
-    let svg = '<?xml version="1.0" encoding="utf-8"?>';
-    svg += '<svg width="' + size + 'px" height="' + size + 'px" viewBox="0 0 ' + size + ' ' + size + '" xmlns="http://www.w3.org/2000/svg">';
-    svg += '<circle cx="' + (size / 2) + '" cy="' + (size / 2) + '" r="' + (size / 2) + '" fill="#FF000060" stroke="#FF000080" />';
-    svg += '<text x="' + (size / 2) + '" y="' + (size / 2 + 1) + '" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="' + (size > 25 ? 20 : 14) + 'px" font-weight="bold" fill="#000000">' + text + '</text>';
-    svg += '</svg>';
-    return 'data:image/svg+xml;base64,' + btoa(svg);
+  private static createSvgElement(size: number, bgColor: string, borderColor: string, text: string, textSize: number, textColor: string): SVGElement {
+    const e = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    e.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    e.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
+    let svg = '';
+    svg += '<circle cx="' + (size / 2) + '" cy="' + (size / 2) + '" r="' + (size / 2 - 1) + '" fill="' + bgColor + '" stroke="' + borderColor + '" />';
+    svg += '<text x="' + (size / 2) + '" y="' + (size / 2 + textSize / 10) + '" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="' + textSize + 'px" font-weight="bold" fill="' + textColor + '">' + text + '</text>';
+    e.innerHTML = svg;
+    return e;
   }
 
   public static build(points: L.LatLng[], zoom: number): MapBubble[] {
@@ -91,7 +94,12 @@ export class MapBubble {
             size = Math.min(d * 2, BUBBLE_MAX_PIXELS);
         }
       }
-      return new MapBubble(b.bounds.getCenter(), b.bounds, size, '' + b.content.length);
+      const bubbleBounds = L.latLngBounds(
+        L.CRS.EPSG3857.pointToLatLng(L.point(center.x - size / 2, center.y + size / 2), zoom),
+        L.CRS.EPSG3857.pointToLatLng(L.point(center.x + size / 2, center.y - size / 2), zoom)
+      );
+      const text = '' + b.content.length;
+      return new MapBubble(bubbleBounds, b.bounds.pad(0.5), '#FF000060', '#FF000080', text, size < 25 ? 125 / (text.length + 1) : 100 / (text.length + 1), '#000000');
     });
   }
 

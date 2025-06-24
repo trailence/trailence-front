@@ -1,0 +1,55 @@
+div.feedback {
+  display: block;
+  background-color: rgba(var(--ion-color-medium-rgb), 0.2);
+  border: 1px solid rgba(var(--ion-color-medium-rgb), 0.33);
+  border-radius: 8px;
+  padding: 5px;
+
+  &.reply {
+    margin-left: 25px;
+    margin-top: 2px;
+    background-color: rgba(var(--ion-color-medium-rgb), 0.1);
+  }
+}
+div.date {
+  color: var(--ion-color-medium);
+  font-size: 11px;
+}
+div.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  app-rate {
+    margin-right: 5px;
+  }
+
+  div.author {
+    font-size: 12px;
+    color: var(--ion-color-tertiary);
+
+    span.you {
+      color: var(--ion-color-secondary);
+    }
+  }
+}
+div.comment {
+  margin-top: 3px;
+  font-size: 14px;
+}
+div.followed {
+  font-size: 14px;
+  margin-left: 5px;
+}
+div.footer {
+  display: flex;
+  flex-flow: row-reverse;
+  align-items: flex-end;
+
+  ion-button {
+    --padding-top: 0;
+    --padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}

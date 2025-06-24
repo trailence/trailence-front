@@ -24,8 +24,11 @@ describe('Trail Planner', () => {
     else
       await map.goTo(43.50748766288276,7.047182321548463, 16);
 
-    await trailFinder.searchSources.selectByText('Open Street Map');
-    await trailFinder.searchButton.click();
+    await map.topToolbar.clickByIcon('radio-group');
+    const alert = await App.waitAlert();
+    await alert.clickRadioButtonByLabel('Open Street Map');
+    await alert.clickButtonWithText('Ok');
+    await map.topToolbar.clickByIcon('search-map');
     const list = await trailFinder.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
     const trail = await list.waitTrail('Île Saint-Honorat');

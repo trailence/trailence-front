@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.texts.pages.trail.sections.comments.rate.modal.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <h2>{{i18n.texts.pages.trail.sections.comments.rate.modal.rate_title}}</h2>
+  <div class="rating">
+    <div class="rate" *ngFor="let r of [0,1,2,3,4,5]" [ngClass]="{'selected': rate !== undefined && ((r === 0 && rate === 0) || (r > 0 && rate >= r))}" (click)="setRate(r);">
+      <ion-icon [name]="r === 0 ? (rate === 0 ? 'thumbs-down-filled' : 'thumbs-down') : (rate !== undefined && rate > 0 && rate >= r ? 'star-filled' : 'star-empty')"></ion-icon>
+      <span>{{ r }}</span>
+    </div>
+  </div>
+
+  <h2>{{i18n.texts.pages.trail.sections.comments.rate.modal.comment_title}}</h2>
+  <ion-textarea
+    fill="outline"
+    color="secondary"
+    [autoGrow]="true"
+    [maxlength]="50000"
+    [counter]="true"
+    [(ngModel)]="comment"
+  ></ion-textarea>
+  <div class="comment-advise">
+    <div>{{ i18n.texts.pages.trail.sections.comments.rate.modal.comment_advise.header }}</div>
+    <ul>
+      <li *ngFor="let item of i18n.texts.pages.trail.sections.comments.rate.modal.comment_advise.items">{{ item }}</li>
+    </ul>
+    <div>{{ i18n.texts.pages.trail.sections.comments.rate.modal.comment_advise.footer }}</div>
+  </div>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" [disabled]="sending || !validate()" (click)="ok()">
+        @if (sending) {
+          <ion-spinner color="secondary"></ion-spinner>
+        } @else {
+          {{i18n.texts.buttons.send}}
+        }
+      </ion-button>
+      <ion-button (click)="cancel()" [disabled]="sending">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

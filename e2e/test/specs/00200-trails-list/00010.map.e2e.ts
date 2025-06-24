@@ -1,5 +1,6 @@
 import { App } from '../../app/app';
 import { TrailsPage } from '../../app/pages/trails-page';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Collection map', () => {
 
@@ -16,28 +17,29 @@ describe('Collection map', () => {
 
   it('Map bubbles', async () => {
     const map = await collectionPage.trailsAndMap.openMap();
+    await map.fitBounds();
 
     // map should contain only trails
     let paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
     expect(paths.length).toBeGreaterThan(0);
     expect(paths.every(p => p === 'red'));
-    let bubbles = await map.markers.map(m => m.getAttribute('class'));
+    let bubbles = await map.getOverlaysSvgsWithClass('bubble').map(e => e.getAttribute('stroke'));
     expect(bubbles.length).toBe(0);
 
-    await map.toggleBubbles();
+    await map.setBubblesMode();
     // map should contain only bubbles
     paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
     expect(paths.length).toBe(0);
-    bubbles = await map.markers.map(m => m.getAttribute('class'));
+    bubbles = await map.getOverlaysSvgsWithClass('bubble').map(m => m.getAttribute('class'));
     expect(bubbles.length).toBeGreaterThan(0);
     expect(bubbles.every(c => c.indexOf('bubble') >= 0));
 
-    await map.toggleBubbles();
+    await map.setPathMode();
     // map should contain only trails
     paths = await map.getPathsWithClass('track-path').map(e => e.getAttribute('stroke'));
     expect(paths.length).toBeGreaterThan(0);
     expect(paths.every(p => p === 'red'));
-    bubbles = await map.markers.map(m => m.getAttribute('class'));
+    bubbles = await map.getOverlaysSvgsWithClass('bubble').map(m => m.getAttribute('class'));
     expect(bubbles.length).toBe(0);
   });
 

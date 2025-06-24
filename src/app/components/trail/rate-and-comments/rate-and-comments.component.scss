@@ -1,0 +1,102 @@
+div.rating {
+  margin: 5px 8px;
+  border: 1px solid rgba(var(--ion-color-secondary-rgb), 0.33);
+  border-radius: 5px;
+  padding: 5px;
+
+  table {
+    th {
+      color: var(--ion-color-secondary);
+      font-size: 14px;
+      font-weight: bold;
+      text-align: left;
+      padding-right: 8px;
+    }
+    td {
+      app-rate {
+        display: inline-block;
+      }
+      span {
+        font-size: 12px;
+        color: var(--ion-color-secondary);
+        margin-left: 3px;
+      }
+    }
+  }
+
+  div.count-by-rate {
+    margin-top: 5px;
+
+    > div {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      app-rate {
+        flex: none;
+        margin-right: 8px;
+      }
+      app-progress-bar {
+        flex: 1 1 100%;
+      }
+
+      &:not(:last-child) {
+        margin-bottom: 4px;
+      }
+
+      &:hover {
+        background-color: rgba(var(--ion-color-medium-rgb), 0.25);
+      }
+    }
+  }
+
+  div.no-rate {
+    font-style: italic;
+    color: rgba(var(--ion-color-medium-rgb), 0.75);
+    font-size: 12px;
+  }
+}
+
+div.rate-and-comment-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+div.comments {
+  margin: 5px 8px;
+
+  div.filter {
+    border: 2px solid var(--ion-color-primary);
+    border-radius: 8px;
+    padding: 4px;
+    font-size: 14px;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 5px;
+
+    span { flex: 1 1 100%; }
+    ion-icon { cursor: pointer; }
+  }
+
+  app-feedback {
+    display: block;
+    &:not(:first-child) {
+      margin-top: 3px;
+    }
+  }
+
+  div.load-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+div.disconnected-message {
+  font-size: 14px;
+  padding: 5px 10px;
+  color: var(--ion-color-warning);
+  text-align: center;
+}

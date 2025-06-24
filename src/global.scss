@@ -115,16 +115,6 @@ ion-button a, a.inherit {
   }
 }
 
-.rating-stars {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  ion-icon {
-    color: yellow;
-  }
-}
-
 .donation-color {
   color: var(--donation-color);
 }

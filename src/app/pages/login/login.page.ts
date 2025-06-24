@@ -13,7 +13,6 @@ import { ApiError } from 'src/app/services/http/api-error';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { Console } from 'src/app/utils/console';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { PublicPage } from '../public.page';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
@@ -108,7 +107,7 @@ export class LoginPage extends PublicPage {
         combineLatest([
           this.auth.auth$,
           this.injector.get(DatabaseService).allLoaded(),
-          this.injector.get(TrailCollectionService).getAll$().pipe(collection$items())
+          this.injector.get(TrailCollectionService).getMyCollectionsReady$()
         ]).pipe(
           filter(([a,l,c]) => {
             if (a) this.progressMessage = this.i18n.texts.pages.login.downloading_data;

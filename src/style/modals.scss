@@ -19,6 +19,11 @@ ion-modal.small-modal {
   }
 }
 
+ion-modal.medium-modal {
+  --width: calc(min(66%, 1000px));
+  --height: calc(min(95%, 500px));
+}
+
 ion-modal.large-modal {
   --width: 95%;
   --height: 95%;

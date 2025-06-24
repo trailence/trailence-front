@@ -8,6 +8,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, EMPTY, first, Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
+import { Filters } from 'src/app/components/trails-list/trails-list.component';
 
 export abstract class FetchSourcePlugin {
 
@@ -15,9 +16,13 @@ export abstract class FetchSourcePlugin {
     protected readonly injector: Injector,
   ) {
     this.sanitizer = injector.get(DomSanitizer);
-    injector.get(AuthService).auth$.pipe(
+    this.listenAllowed();
+  }
+
+  protected listenAllowed(): void {
+    this.injector.get(AuthService).auth$.pipe(
       switchMap(a => !a || a.isAnonymous ? of(false) :
-        injector.get(NetworkService).server$.pipe(
+        this.injector.get(NetworkService).server$.pipe(
           switchMap(n => n ? this.checkAllowed$() : EMPTY),
           first(),
         )
@@ -28,7 +33,7 @@ export abstract class FetchSourcePlugin {
   }
 
   protected readonly sanitizer: DomSanitizer;
-  private readonly _allowed$ = new BehaviorSubject<boolean>(false);
+  protected readonly _allowed$ = new BehaviorSubject<boolean>(false);
   public get allowed$(): Observable<boolean> { return this._allowed$; }
   public get allowed(): boolean { return this._allowed$.value; }
 
@@ -60,11 +65,16 @@ export abstract class FetchSourcePlugin {
   public canSearchByArea(): boolean { return false };
   public searchByArea(bounds: L.LatLngBounds, limit: number): Observable<SearchResult> { return of({trails: [], end: true, tooManyResults: false}); }
 
+  public canSearchBubbles(): boolean { return false; };
+  public searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters): Observable<SearchBubblesResult[]> { return of([]); }
+
   public abstract getInfo(uuid: string): Promise<TrailInfo | null>;
   public abstract getTrail(uuid: string): Promise<Trail | null>;
   public abstract getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null>;
   public abstract getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null>;
   public abstract getFullTrack(uuid: string): Promise<Track | null>;
+
+  public abstract forceRefresh(uuid: string): Promise<Trail | null>;
 }
 
 export interface TrailInfo {
@@ -77,7 +87,17 @@ export interface TrailInfo {
   key?: string;
   externalUrl?: string;
   rating?: number; // 0 to 5
+  nbRate0?: number;
+  nbRate1?: number;
+  nbRate2?: number;
+  nbRate3?: number;
+  nbRate4?: number;
+  nbRate5?: number;
+  nbRates?: number;
   oscmSymbol?: string;
+  author?: string;
+  myUuid?: string;
+  itsMine?: boolean;
 
 }
 
@@ -101,6 +121,11 @@ export interface SearchResult {
   trails: Trail[];
   end: boolean;
   tooManyResults: boolean;
+}
+
+export interface SearchBubblesResult {
+  pos: L.LatLngLiteral;
+  count: number;
 }
 
 export function populateWayPointInfo(track: Track, fetched: WayPointInfo[], preferences: ComputedPreferences): boolean { // NOSONAR

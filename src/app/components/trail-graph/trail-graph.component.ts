@@ -694,7 +694,7 @@ export class TrailGraphComponent extends AbstractComponent {
       for (const point of points) {
         const distanceFromPreviousPoint = point.distanceFromPreviousPoint;
         distance += distanceFromPreviousPoint;
-        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs) : ds.data.length === 0 ? 0 : ds.data[ds.data.length - 1].speed;
+        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs.estimatedBaseSpeed) : ds.data.length === 0 ? 0 : ds.data[ds.data.length - 1].speed;
         const estimatedTime = speed > 0 ? distanceFromPreviousPoint * (60 * 60 * 1000) / speed : 0;
         estimatedDuration += estimatedTime;
         let timeFromPreviousPoint = point.durationFromPreviousPoint ?? estimatedTime;

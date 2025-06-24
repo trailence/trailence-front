@@ -1,8 +1,8 @@
 import { Injectable, Injector } from "@angular/core";
-import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty, first, map, of, switchMap, tap, throwError, timeout } from "rxjs";
+import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty, first, map, of, switchMap, takeWhile, tap, throwError, timeout } from "rxjs";
 import { TrailCollection } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
-import { TrailCollectionDto, TrailCollectionType } from "src/app/model/dto/trail-collection";
+import { isPublicationCollection, TrailCollectionDto, TrailCollectionType } from "src/app/model/dto/trail-collection";
 import { DatabaseService, TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./database.service";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
@@ -23,6 +23,7 @@ import { QuotaService } from '../auth/quota.service';
 import { ShareService } from './share.service';
 import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
 import { Console } from 'src/app/utils/console';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
 
 @Injectable({
     providedIn: 'root'
@@ -38,8 +39,15 @@ export class TrailCollectionService {
     this._store = new TrailCollectionStore(injector, http);
   }
 
-  public getAll$(): Observable<Observable<TrailCollection | null>[]> {
-    return this._store.getAll$();
+  public getMyCollectionsReady$(): Observable<TrailCollection[]> {
+    return this._store.getAll$().pipe(
+      collection$items(),
+      map(collections => collections.filter(c => !isPublicationCollection(c.type))),
+    );
+  }
+
+  public getAllCollectionsReady$(): Observable<TrailCollection[]> {
+    return this._store.getAll$().pipe(collection$items());
   }
 
   public getCollection$(uuid: string, owner: string): Observable<TrailCollection | null> {
@@ -51,7 +59,7 @@ export class TrailCollectionService {
   }
 
   public getMyTrails$(): Observable<TrailCollection> {
-    return this.getAll$().pipe(
+    return this._store.getAll$().pipe(
       switchMap(collections => collections.length === 0 ? of([]) : combineLatest(collections)),
       map(collections => collections.find(collection => collection?.type === TrailCollectionType.MY_TRAILS)),
       filterDefined(),
@@ -59,15 +67,62 @@ export class TrailCollectionService {
     );
   }
 
-  public getCollectionName$(uuid: string, owner?: string): Observable<string> {
-    return this.getCollection$(uuid, owner ?? this.injector.get(AuthService).email ?? '').pipe(
+  public getOrCreatePublicationDraft(): Observable<TrailCollection> {
+    return this._store.getAllWhenLoaded$().pipe(
+      collection$items(),
+      switchMap(collections => {
+        const col = collections.find(c => c.type === TrailCollectionType.PUB_DRAFT);
+        if (col) return of(col);
+        return this.create(new TrailCollection({
+          owner: this.injector.get(AuthService).email,
+          type: TrailCollectionType.PUB_DRAFT,
+        }))
+      }),
       filterDefined(),
-      switchMap(col => {
-        if (col.name.length === 0 && col.type === TrailCollectionType.MY_TRAILS)
-          return this.injector.get(I18nService).texts$.pipe(map(texts => texts.my_trails));
-        return of(col.name);
-      })
+      first(),
     );
+  }
+
+  public getOrCreatePublicationSubmit(): Observable<TrailCollection> {
+    return this._store.getAllWhenLoaded$().pipe(
+      collection$items(),
+      switchMap(collections => {
+        const col = collections.find(c => c.type === TrailCollectionType.PUB_SUBMIT);
+        if (col) return of(col);
+        return this.create(new TrailCollection({
+          owner: this.injector.get(AuthService).email,
+          type: TrailCollectionType.PUB_SUBMIT,
+        }))
+      }),
+      filterDefined(),
+      first(),
+    );
+  }
+
+  public getCollectionName$(uuid: string, owner?: string): Observable<string> {
+    return this.getCollection$Name$(this.getCollection$(uuid, owner ?? this.injector.get(AuthService).email ?? ''));
+  }
+
+  public getCollection$Name$(col: Observable<TrailCollection | null>): Observable<string> {
+    return col.pipe(
+      filterDefined(),
+      switchMap(col => this.getTrailCollectionName$(col)),
+    );
+  }
+
+  public getTrailCollectionName$(col: TrailCollection): Observable<string> {
+    if (col.name.length === 0 && col.type === TrailCollectionType.MY_TRAILS)
+      return this.injector.get(I18nService).texts$.pipe(map(texts => texts.my_trails));
+    if (col.type === TrailCollectionType.PUB_DRAFT) return this.injector.get(I18nService).texts$.pipe(map(texts => texts.publications.draft_name));
+    if (col.type === TrailCollectionType.PUB_SUBMIT) return this.injector.get(I18nService).texts$.pipe(map(texts => texts.publications.submit_name));
+    if (col.type === TrailCollectionType.PUB_REJECT) return this.injector.get(I18nService).texts$.pipe(map(texts => texts.publications.reject_name));
+    return of(col.name);
+  }
+
+  public getCollectionWithName$(uuid: string, owner?: string): Observable<{collection: TrailCollection, name: string} | null> {
+    return this.getCollection$(uuid, owner ?? this.injector.get(AuthService).email ?? '').pipe(
+      switchMap(collection => collection ? this.getTrailCollectionName$(collection).pipe(map(name => ({collection, name}))) : of(null)),
+    )
   }
 
   public create(collection: TrailCollection, ondone?: () => void): Observable<TrailCollection | null> {
@@ -106,7 +161,8 @@ export class TrailCollectionService {
 
   public getCollectionMenu(collection: TrailCollection): MenuItem[] {
     const menu: MenuItem[] = [];
-    menu.push(new MenuItem().setIcon('edit').setI18nLabel('buttons.edit').setAction(() => this.collectionPopup(collection)));
+    if (!isPublicationCollection(collection.type))
+      menu.push(new MenuItem().setIcon('edit').setI18nLabel('buttons.edit').setAction(() => this.collectionPopup(collection)));
     if (collection.type === TrailCollectionType.CUSTOM) {
       menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger').setAction(() => this.confirmDelete(collection)));
     }
@@ -280,6 +336,24 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override doCleaning(email: string, db: Dexie): Observable<any> {
       return of(false);
+    }
+
+    protected override newItemFromServer(dto: TrailCollectionDto, entity: TrailCollection): void {
+      // if a publication collection is new on server, and we have it created locally
+      // move all trails from the local to the one from the server, and delete the local
+      if (!isPublicationCollection(entity.type)) return;
+      const local = this._store.value.find(c$ => c$.value && c$.value.type === entity.type && c$.value.isCreatedLocally() && !c$.value.isDeletedLocally())?.value;
+      if (!local) return;
+      const trailService = this.injector.get(TrailService);
+      trailService.getAllWhenLoaded$().pipe(
+        collection$items(),
+        map(trails => trails.filter(t => t.collectionUuid === local.uuid)),
+        takeWhile(trails => trails.length > 0),
+      ).subscribe(trails => {
+        trails.forEach(trail => {
+          trailService.doUpdate(trail, t => t.collectionUuid = entity.uuid);
+        });
+      });
     }
 
   }

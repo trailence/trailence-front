@@ -11,6 +11,7 @@ import { TrackEditionService } from '../track-edition/track-edition.service';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { DelayedTable } from 'src/app/utils/delayed-table';
 import { Console } from 'src/app/utils/console';
+import { AuthService } from '../auth/auth.service';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -29,50 +30,116 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   constructor(
     injector: Injector,
     dbName: string,
-    trailInfosKeys: string,
-    trailInfoId: string,
+    private readonly trailInfosKeys: string,
+    private readonly trailInfoId: string,
+    dbByUser: boolean = false,
+    private readonly refreshAfter?: number,
   ) {
     super(injector);
-    const db = new Dexie(dbName);
+    if (dbByUser) injector.get(AuthService).auth$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
+    else this.openDb(dbName);
+  }
+
+  private db?: Dexie;
+  protected tableInfos!: DelayedTable<TRAIL_INFO_DTO, string>;
+  protected tableTrails!: DelayedTable<TrailDto, string>;
+  protected tableFullTracks!: DelayedTable<TrackDto, string>;
+  protected tableSimplifiedTracks!: DelayedTable<SimplifiedTrackDto, string>;
+  protected tableMetadata!: DelayedTable<TrackMetadataSnapshot, string>;
+
+  private openDb(name: string): void {
+    if (this.db?.name === name) return;
+    Console.info('Opening DB ' + name);
+    this.db = new Dexie(name);
     const schemaV1: any = {};
-    schemaV1['infos'] = trailInfosKeys + ', fetchDate';
+    schemaV1['infos'] = this.trailInfosKeys + ', fetchDate';
     schemaV1['trails'] = 'uuid';
     schemaV1['full_tracks'] = 'uuid';
     schemaV1['simplified_tracks'] = 'uuid';
     schemaV1['metadata'] = 'uuid';
-    db.version(1).stores(schemaV1);
-    this.tableFullTracks = new DelayedTable(db.table<TrackDto, string>('full_tracks'), 'uuid', 5, 1000, 250);
-    this.tableSimplifiedTracks = new DelayedTable(db.table<SimplifiedTrackDto, string>('simplified_tracks'), 'uuid', 10, 2000, 500);
-    this.tableMetadata = new DelayedTable(db.table<TrackMetadataSnapshot, string>('metadata'), 'uuid', 100, 15000, 5000);
-    this.tableTrails = new DelayedTable(db.table<TrailDto, string>('trails'), 'uuid', 100, 20000, 10000);
-    this.tableInfos = new DelayedTable(db.table<TRAIL_INFO_DTO, string>('infos'), trailInfoId, 100, 20000, 10000);
-    injector.get(NgZone).runOutsideAngular(() => setTimeout(() => this.clean(), 10000));
+    this.db.version(1).stores(schemaV1);
+    this.tableFullTracks = new DelayedTable(this.db.table<TrackDto, string>('full_tracks'), 'uuid', 5, 1000, 250);
+    this.tableSimplifiedTracks = new DelayedTable(this.db.table<SimplifiedTrackDto, string>('simplified_tracks'), 'uuid', 10, 2000, 500);
+    this.tableMetadata = new DelayedTable(this.db.table<TrackMetadataSnapshot, string>('metadata'), 'uuid', 100, 15000, 5000);
+    this.tableTrails = new DelayedTable(this.db.table<TrailDto, string>('trails'), 'uuid', 100, 20000, 10000);
+    this.tableInfos = new DelayedTable(this.db.table<TRAIL_INFO_DTO, string>('infos'), this.trailInfoId, 100, 20000, 10000);
+    this.injector.get(NgZone).runOutsideAngular(() => setTimeout(() => this.clean(), 10000));
   }
 
-  protected readonly tableInfos: DelayedTable<TRAIL_INFO_DTO, string>;
-  protected readonly tableTrails: DelayedTable<TrailDto, string>;
-  protected readonly tableFullTracks: DelayedTable<TrackDto, string>;
-  protected readonly tableSimplifiedTracks: DelayedTable<SimplifiedTrackDto, string>;
-  protected readonly tableMetadata: DelayedTable<TrackMetadataSnapshot, string>;
-
   public override getTrail(uuid: string): Promise<Trail | null> {
-    return this.tableTrails.get(uuid).then(t => t ? new Trail(t) : null);
+    return this.tableTrails.get(uuid).then(t => t ? new Trail(t) : this.fetchTrailById(uuid));
+  }
+
+  public getTrails(uuids: string[]): Promise<Trail[]> {
+    return this.tableTrails.bulkGet(uuids)
+    .then(dtos => {
+      const result: Trail[] = [];
+      const toFetch: string[] = [];
+      for (let i = 0; i < dtos.length; ++i)  {
+        const dto = dtos[i];
+        if (!dto) toFetch.push(uuids[i]);
+        else result.push(new Trail(dto));
+      }
+      if (toFetch.length === 0) return result;
+      return this.fetchTrailsByIds(toFetch)
+      .then(fetched => {
+        result.push(...fetched);
+        return result;
+      })
+    })
+  }
+
+  public override forceRefresh(uuid: string): Promise<Trail | null> {
+    return this.fetchTrailById(uuid);
+  }
+
+  protected fetchTrailById(uuid: string): Promise<Trail | null> {
+    return Promise.resolve(null);
+  }
+
+  protected fetchTrailsByIds(uuids: string[]): Promise<Trail[]> {
+    return Promise.resolve([]);
   }
 
   public override getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null> {
-    return this.tableMetadata.get(uuid).then(t => t ?? null);
+    return this.tableMetadata.get(uuid).then(t => t ?? this.fetchMetadataById(uuid));
+  }
+
+  protected fetchMetadataById(uuid: string): Promise<TrackMetadataSnapshot | null> {
+    return Promise.resolve(null);
   }
 
   public override getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null> {
     return this.tableSimplifiedTracks.get(uuid).then(t => t ?? null);
   }
 
+  protected fetchSimplifiedTrackById(uuid: string): Promise<SimplifiedTrackSnapshot | null> {
+    return Promise.resolve(null);
+  }
+
   public override getFullTrack(uuid: string): Promise<Track | null> {
-    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService)) : null);
+    return this.tableFullTracks.get(uuid).then(t => t ? new Track(t, this.injector.get(PreferencesService)) : this.fetchFullTrackById(uuid));
+  }
+
+  protected fetchFullTrackById(uuid: string): Promise<Track | null> {
+    return Promise.resolve(null);
   }
 
   public override getInfo(uuid: string): Promise<TrailInfo | null> {
-    return this.tableInfos.get(uuid).then(t => t?.info ?? null);
+    return this.tableInfos.get(uuid)
+    .then(t => {
+      if (!t) return this.fetchInfoById(uuid);
+      if (this.refreshAfter !== undefined && Date.now() - t.fetchDate > this.refreshAfter) {
+        return this.fetchInfoById(uuid).catch(e => null).then(trail => {
+          return trail ?? t.info;
+        })
+      }
+      return t.info;
+    });
+  }
+
+  protected fetchInfoById(uuid: string): Promise<TrailInfo | null> {
+    return Promise.resolve(null);
   }
 
   protected prepareTrailToStore(trail: Trail, originalTrack: Track, uuid: string, overrideMetadata: Partial<TrackMetadataSnapshot> = {}, skipImprovment: boolean = false): TrailToStore {

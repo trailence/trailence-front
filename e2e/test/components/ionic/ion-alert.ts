@@ -32,6 +32,12 @@ export class IonicAlert extends Component {
     await this.input.setValue(value);
   }
 
+  public async clickRadioButtonByLabel(label: string) {
+    const l = this.getElement().$('div.alert-radio-label=' + label);
+    await l.waitForDisplayed();
+    await l.click();
+  }
+
   public async getTitle() {
     return await this.getElement().$('h2.alert-title').getText();
   }

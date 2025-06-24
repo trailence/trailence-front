@@ -65,9 +65,10 @@
       <ion-segment-button value="details" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.details}}</ion-segment-button>
       <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trail.tabs.map}}</ion-segment-button>
       <ion-segment-button value="photos" style="min-height: 36px;" *ngIf="!trail2">{{i18n.texts.pages.trail.tabs.photos}}</ion-segment-button>
+      <ion-segment-button value="reviews" style="min-height: 36px;" *ngIf="!trail2 && trail1 && source?.isExternalOnly && (trail1.owner === 'trailence' || source?.info !== undefined)">{{i18n.texts.pages.trail.sections.comments.title}}</ion-segment-button>
     </ion-segment>
   </div>
-  <div class="bottom-sheet-container">
+  <div class="bottom-sheet-container" *ngIf="!isSmall || tab === 'map'">
     <div class="bottom-sheet-button" (click)="toggleBottomSheet()">
       <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'"></ion-icon>
     </div>
@@ -146,7 +147,7 @@
             </div>
           </div>
 
-          <ng-container *ngIf="tagsNames1 !== undefined || tagsNames2 !== undefined">
+          <ng-container *ngIf="!isPublication && trail1Collection && (tagsNames1 !== undefined || tagsNames2 !== undefined)">
             <div class="metadata-item-container" style="padding-right: 2px">
               <div class="metadata-item">
                 <div class="metadata-content">
@@ -189,6 +190,25 @@
         </div>
 
       </div>
+
+      @if (trail1?.fromModeration) {
+        <div class="moderation-messages">
+          @if (trail1?.publicationMessageFromModerator) {
+            <h3>{{ i18n.texts.publications.moderation.previous_moderator_message }}</h3>
+            <div>{{ trail1?.publicationMessageFromModerator }}</div>
+          }
+          @if (trail1?.publicationMessageFromAuthor) {
+            <h3>{{ i18n.texts.publications.moderation.message_from_author }}</h3>
+            <div>{{ trail1?.publicationMessageFromAuthor }}</div>
+          }
+        </div>
+      } @else if (trail1?.publicationMessageFromModerator && (trail1Collection?.type === 'PUB_REJECT' || trail1Collection?.type === 'PUB_DRAFT')) {
+        <div class="moderation-messages">
+          <h3>{{ i18n.texts.publications.moderation.moderator_message }}</h3>
+          <div>{{ trail1?.publicationMessageFromModerator }}</div>
+        </div>
+      }
+
       <div class="trail-photos" *ngIf="photos !== undefined && !isSmall && (editable || photos.length !== 0)" (click)="openSlider()">
         <div *ngIf="photos.length === 0" class="no-photo">
           <ion-icon name="photos" color="secondary"></ion-icon>
@@ -203,7 +223,7 @@
           </ion-button>
         </ng-container>
       </div>
-      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2" (click)="openTags(trail1)">
+      <div class="trail-tags-row editable" *ngIf="tagsNames1 && trail1 && !trail2 && trail1Collection && !isPublication" (click)="openTags(trail1)">
         <ion-icon name="tags" color="secondary"></ion-icon>
         <span *ngIf="tagsNames1.length === 0" class="no-tag">
           <span>{{i18n.texts.pages.trail.no_tag_message}}</span>
@@ -301,11 +321,11 @@
           }
           <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
         </div>
-        <div *ngIf="!toolsEnabled" style="padding: 5px 3px 10px 8px">
+        <div *ngIf="!toolsEnabled && (trail1?.originalTrackUuid !== trail1?.currentTrackUuid || trail2?.originalTrackUuid !== trail2?.currentTrackUuid)" style="padding: 5px 3px 10px 8px">
           <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
         </div>
         <div class="trail-dates" *ngIf="trail1 && !trail2">
-          @if (!isExternalOnly) {
+          @if (!source?.isExternalOnly) {
             <div>
               <span class="trail-date-title">{{i18n.texts.pages.trail.created_in_trailence_on}} </span>
               <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
@@ -317,20 +337,73 @@
               </div>
             }
           }
-          @if (sourceString) {
-            <span class="trail-date-title">{{ sourceString | async }}</span>
+          <span class="trail-date-title" *ngIf="source?.sourceString as source">
+            <ng-container *ngFor="let element of i18n.textToHtml(source)">
+              @if (typeof element === 'string') {
+                <span>{{ element }}</span>
+              } @else if (element.link.startsWith('/')) {
+                <a [routerLink]="element.link">{{ element.text }}</a>
+              } @else if (element.link) {
+                <a target="_blank" [href]="element.link">{{ element.text }}</a>
+              }
+            </ng-container>
+          </span>
+          @if (source?.isExternalOnly && trail1.owner === 'trailence') {
+            <div>
+              <span class="trail-date-title">{{i18n.texts.pages.trail.published_on}} </span>
+              <span class="trail-date-value">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
+              @if (source?.author) {
+                <span class="trail-date-title"> {{i18n.texts.pages.trail.published_by}} </span>
+                <span class="trail-date-value">{{source?.author}}</span>
+              }
+            </div>
           }
         </div>
-        @if (externalUrl && externalAppName) {
-          <div class="external-link">
-            <a href="{{externalUrl}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{externalAppName}}</a>
+        <ng-container *ngIf="source?.externalUrl as url">
+          <div class="external-link" *ngIf="source?.externalAppName as name">
+            @if (name === 'Trailence') {
+              <a [routerLink]="url">{{i18n.texts.pages.trail.open_in_trailence}}</a>
+            } @else {
+              <a href="{{url}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{name}}</a>
+            }
           </div>
-        } @else if (externalUrl) {
-          <div class="external-link">
-            <a href="{{externalUrl}}" target="_blank">{{ externalUrl }}</a>
+          <div class="external-link" *ngIf="!source?.externalAppName">
+              <a href="{{url}}" target="_blank">{{ url }}</a>
+          </div>
+        </ng-container>
+      }
+
+      <ng-container *ngIf="(myFeedback$ | async) as myFeedback">
+        @if (myFeedback.rateDate !== undefined) {
+          @if (myFeedback.latestCommentDate !== undefined) {
+            @if (i18n.timestampToDateString(myFeedback.latestCommentDate) === i18n.timestampToDateString(myFeedback.rateDate)) {
+              <div class="my-feedback">
+                🙏 {{ 'pages.trail.my_feedback.you_leave_a_rate_and_a_comment_same_date' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.rateDate) }}
+              </div>
+            } @else {
+              <div class="my-feedback">
+                🙏 {{ 'pages.trail.my_feedback.you_leave_a_rate_and_a_comment_different_date' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.rateDate):i18n.timestampToDateString(myFeedback.latestCommentDate) }}
+              </div>
+            }
+          } @else {
+            <div class="my-feedback">
+              🙏 {{ 'pages.trail.my_feedback.you_leave_a_rate' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.rateDate) }}
+            </div>
+          }
+        } @else {
+          @if (myFeedback.latestCommentDate !== undefined) {
+            <div class="my-feedback">
+              {{ 'pages.trail.my_feedback.you_leave_a_comment' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.latestCommentDate) }}
+            </div>
+          }
+          <div class="leave-feedback">
+            <div>{{ i18n.texts.pages.trail.my_feedback.invite_to_rate_title }}</div>
+            <ion-button shape="round" size="small" (click)="rateThisTrail()">
+              {{ i18n.texts.pages.trail.my_feedback.invite_to_rate_button }}
+            </ion-button>
           </div>
         }
-      }
+      </ng-container>
 
       @if (!trail2) {
         <div class="section-title">
@@ -385,6 +458,14 @@
             </div>
           </div>
         </ng-template>
+
+        @if (trail1 && source?.isExternalOnly && (trail1.owner === 'trailence' || source?.info !== undefined) && !isSmall) {
+          <div class="section-title">
+            <ion-icon name="chat-bubbles"></ion-icon>
+            <div>{{ i18n.texts.pages.trail.sections.comments.title }}</div>
+          </div>
+          <app-rate-and-comments [trail]="trail1!"></app-rate-and-comments>
+        }
       }
     </div>
     <div class="graph-container">
@@ -417,7 +498,10 @@
     </div>
   </ng-container>
   <div class="trail-photos-tab" *ngIf="photos !== undefined && isSmall && tab === 'photos'">
-    <app-photos-popup [owner]="trail1!.owner" [trailUuid]="trail1!.uuid" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
+    <app-photos-popup [trail]="trail1!" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
+  </div>
+  <div class="trail-reviews-tab" *ngIf="isSmall && tab === 'reviews'">
+    <app-rate-and-comments [trail]="trail1!"></app-rate-and-comments>
   </div>
 </div>
 

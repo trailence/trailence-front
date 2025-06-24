@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { IonIcon, IonButton, IonCheckbox, PopoverController } from '@ionic/angular/standalone';
@@ -11,9 +11,11 @@ import { CommonModule } from '@angular/common';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
-import { of, switchMap } from 'rxjs';
+import { firstValueFrom, of, switchMap } from 'rxjs';
 import { TagService } from 'src/app/services/database/tag.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Component({
   selector: 'app-trail-overview-condensed',
@@ -30,6 +32,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
   @Input() track!: TrackMetadataSnapshot | null;
 
   @Input() fromCollection = true;
+  @Input() isAllCollections = false;
 
   @Input() selectable = false;
   @Input() selected = false;
@@ -53,6 +56,8 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
 
   tags: string[] = [];
 
+  openUrl?: string;
+
   private readonly subscriptions = new Subscriptions();
 
   constructor(
@@ -67,6 +72,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     private readonly changeDetector: ChangeDetectorRef,
     private readonly ngZone: NgZone,
     private readonly prefService: PreferencesService,
+    private readonly injector: Injector,
   ) {}
 
   ngOnInit(): void {
@@ -81,6 +87,8 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     this.subscriptions.add(
       this.trail.name$.subscribe(() => this.ngZone.run(() => this.changeDetector.detectChanges()))
     );
+    this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
+    if (this.trail.fromModeration) this.openUrl += '/moderation';
   }
 
   ngOnDestroy(): void {
@@ -110,29 +118,44 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     this.selectedChange.emit(selected);
   }
 
-  openMenu(event: MouseEvent): void {
+  async openMenu(event: MouseEvent) {
     const y = event.pageY;
     const h = this.browser.height;
     const remaining = h - y - 15;
 
-    this.popoverController.create({
+    const collection = this.fromCollection ?
+      await firstValueFrom(
+        this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.injector.get(AuthService).email ?? '').pipe(filterDefined())
+      ) : undefined;
+    const menu = this.trailMenuService.getTrailsMenu([this.trail], false, collection, false, this.isAllCollections);
+    let estimatedHeight = 16;
+    for (const item of menu) {
+      if (item.isSeparator()) estimatedHeight += 6;
+      else estimatedHeight += 31;
+    }
+    const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 10, remaining - estimatedHeight);
+    const maxHeight = remaining - offsetY;
+
+    const popover = await this.popoverController.create({
       component: MenuContentComponent,
       componentProps: {
-        menu: this.trailMenuService.getTrailsMenu([this.trail], false, this.fromCollection ? this.trail.collectionUuid : undefined)
+        menu
       },
       cssClass: 'tight-menu',
       event: event,
       side: 'right',
       dismissOnSelect: true,
       arrow: true,
-    }).then(p => {
-      p.style.setProperty('--offset-y', remaining < 300 ? (-300 + remaining) + 'px' : '0px');
-      p.style.setProperty('--max-height', remaining < 300 ? '300px' : (h - y - 10) + 'px');
-      p.present();
     });
+    popover.style.setProperty('--offset-y', offsetY + 'px');
+    popover.style.setProperty('--max-height', maxHeight + 'px');
+    await popover.present();
   }
 
   openTrail(): void {
-    this.router.navigate(['trail', this.trail.owner, this.trail.uuid], {queryParams: { from: this.router.url }});
+    if (this.trail.fromModeration)
+      this.router.navigate(['trail', this.trail.owner, this.trail.uuid, 'moderation'], {queryParams: { from: this.router.url }});
+    else
+      this.router.navigate(['trail', this.trail.owner, this.trail.uuid], {queryParams: { from: this.router.url }});
   }
 }

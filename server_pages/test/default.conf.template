@@ -2,10 +2,23 @@ server {
   listen       80;
   listen [::]:80;
 
+  subrequest_output_buffer_size 512k;
+
   js_path "/usr/share/nginx/njs/";
   js_import trail_page from generate_trail_page.js;
 
-  location /public/trail {
+  location ~* ^/(en|fr)/trail/ {
     js_content trail_page.generate;
+  }
+
+  location /api {
+    proxy_pass http://host.docker.internal:8080;
+    client_body_buffer_size 64k;
+    client_max_body_size 50m;
+  }
+
+  location /assets {
+    proxy_pass http://host.docker.internal:8100;
+    proxy_set_header Host localhost;
   }
 }

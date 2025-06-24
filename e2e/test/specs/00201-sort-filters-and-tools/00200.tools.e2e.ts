@@ -120,7 +120,7 @@ describe('Trails Tools', () => {
     await trail!.selectTrail();
 
     await (await list.openSelectionMenu()).clickItemWithText('Merge these tracks');
-    const trailPage = await TrailPage.waitForName('Merged track');
+    const trailPage = await TrailPage.waitForName('Merged track', 'Test SortFilter');
     await trailPage.trailComponent.openDetails();
     const duration = await trailPage.trailComponent.getMetadataValueByTitle('Duration' ,true);
 

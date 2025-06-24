@@ -53,6 +53,10 @@
   ion-button.trail-menu-button {
     margin: 0;
   }
+  ion-button.public-trail-button {
+    margin: 0;
+    min-width: 20px;
+  }
 
 }
 
@@ -68,18 +72,8 @@
   }
 }
 
-.rating-stars {
+.app-rate {
   margin-bottom: 2px;
-
-  ion-icon {
-    width: 12px;
-    height: 12px;
-  }
-
-  span {
-    margin-left: 5px;
-    font-size: 12px;
-  }
 }
 
 div.metadata-with-photos.photo-left {

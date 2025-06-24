@@ -2,5 +2,6 @@
   [title]="(title$ | async) || ''"
   [backUrl]="backUrl"
   [actions]="menu"
+  [neverShowTrailenceTitle]="true"
 ></app-header>
 <app-trail [trail1$]="trail$" [trail2$]="trail2$" [recording$]="recording$" #trailComponent></app-trail>

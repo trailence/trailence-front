@@ -1,23 +1,24 @@
 <app-header [title]="title$ ? (title$ | async) || '' : ''" [actions]="actions"></app-header>
-@defer (when trailsType === 'search') {
-  <app-search-trails-header
-    *ngIf="trailsType === 'search'"
-    [searching]="searching"
-    [searchEnabled]="canSearch"
-    (search)="doSearch($event)"
-    [clearEnabled]="hasSearchResult"
-    (clear)="clearSearchResult()"
-  >
-  </app-search-trails-header>
+@if (trailsType === 'search') {
+  @if (!(connected$ | async)) {
+    <div class="disconnected-message">
+      <div>{{ i18n.texts.you_are_offline }}</div>
+    </div>
+  }
 }
 <app-trails-and-map
   #trailsAndMap
   *ngIf="viewId"
   [trails$]="(trails$ | async) ?? undefined"
+  [bubbles$]="bubbles$"
+  [showBubbles$]="showBubbles$"
+  [bubblesToolAvailable$]="bubblesToolAvailable$"
   [viewId]="viewId"
   [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"
   [type]="trailsType"
   [message]="searchMessage"
   [enableRemoveByGesture]="trailsType === 'search'"
   [enableSearchPlace]="true"
+  [mapTopToolbar$]="trailsType === 'search' ? mapTopToolbar$ : undefined"
+  [showPublished]="trailsType === 'collection' || trailsType === 'all-collections'"
 ></app-trails-and-map>

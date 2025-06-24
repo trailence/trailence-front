@@ -107,6 +107,42 @@
 
 
   <div class="page-section-title">
+    {{i18n.texts.pages.preferences.privacy}}
+  </div>
+
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="privacy"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.alias}}</div>
+      <div class="explaination" [innerHTML]="i18n.texts.pages.preferences.alias_explaination"></div>
+      <div class="value">
+        <ion-radio-group [(ngModel)]="aliasType" (ionChange)="aliasTypeChanged($event.detail.value)">
+          <div>
+            <ion-radio value="anonymous" labelPlacement="end">{{i18n.texts.pages.preferences.anonymous}}</ion-radio>
+          </div>
+          <div>
+            <ion-radio value="name" labelPlacement="end">
+              <div style="display: flex; flex-direction: row; align-items: center">
+                {{i18n.texts.pages.preferences.alias_name}}
+                <ion-input
+                  [value]="preferences.preferences.alias"
+                  [disabled]="aliasType === 'anonymous'"
+                  (ionChange)="setAlias($event.detail.value)"
+                  fill="outline"
+                  class="small"
+                  style="margin-left: 8px;"
+                ></ion-input>
+              </div>
+            </ion-radio>
+          </div>
+        </ion-radio-group>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-section-title">
     {{i18n.texts.pages.preferences.trace_recorder}}
   </div>
 

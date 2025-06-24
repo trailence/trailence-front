@@ -21,8 +21,17 @@ export class Trail extends Owned {
   public readonly source?: string;
   public readonly sourceDate?: number;
 
+  public followedUuid?: string;
+  public followedOwner?: string;
+  public followedUrl?: string;
+
+  public publishedFromUuid?: string;
+  public publicationMessageFromAuthor?: string;
+  public publicationMessageFromModerator?: string;
+
   constructor(
-    dto: Partial<TrailDto>
+    dto: Partial<TrailDto>,
+    public readonly fromModeration = false,
   ) {
     super(dto);
     this._name$ = new BehaviorSubject<string>(dto.name ?? '');
@@ -40,6 +49,12 @@ export class Trail extends Owned {
     this.sourceType = dto.sourceType ?? undefined;
     this.source = (dto.source ? (dto.source.length < 2000 ? dto.source : dto.source.substring(0, 2000)) : undefined);
     this.sourceDate = dto.sourceDate ?? undefined;
+    this.followedUuid = dto.followedUuid ?? undefined;
+    this.followedOwner = dto.followedOwner ?? undefined;
+    this.followedUrl = dto.followedUrl ?? undefined;
+    this.publishedFromUuid = dto.publishedFromUuid ?? undefined;
+    this.publicationMessageFromAuthor = dto.publicationMessageFromAuthor ?? undefined;
+    this.publicationMessageFromModerator = dto.publicationMessageFromModerator ?? undefined;
   }
 
   public get name(): string { return this._name$.value; }
@@ -100,9 +115,16 @@ export class Trail extends Owned {
       activity: this.activity,
       sourceType: this.sourceType,
       source: this.source,
+      sourceDate: this.sourceDate,
+      followedUuid: this.followedUuid,
+      followedOwner: this.followedOwner,
+      followedUrl: this.followedUrl,
       originalTrackUuid: this.originalTrackUuid,
       currentTrackUuid: this.currentTrackUuid,
       collectionUuid: this.collectionUuid,
+      publishedFromUuid: this.publishedFromUuid,
+      publicationMessageFromAuthor: this.publicationMessageFromAuthor,
+      publicationMessageFromModerator: this.publicationMessageFromModerator,
     };
   }
 

@@ -1,0 +1,80 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <div>
+      <ion-icon name="check-list" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.publications.checklist}}</ion-label>
+    </div>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'iam_author' }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'name', value: nameInput }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'description', value: descriptionInput }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'date', value: dateInput }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'location', value: locationInput }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'activity', value: activityInput }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'track' }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'waypoints' }"></ng-container>
+  <ng-container *ngTemplateOutlet="itemTemplate; context: { item: 'photos' }"></ng-container>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
+
+<ng-template #itemTemplate let-item="item" let-value="value">
+  <div class="item {{checklist.items[item] ? 'checked' : ''}}">
+    <ion-checkbox [disabled]="!itemCorrect(item)" [checked]="checklist.items[item]" (ionChange)="check(item, $event.detail.checked)"></ion-checkbox>
+    <div class="item-container">
+      <div class="item-title">{{ i18n.texts.publications.checklist_items[item].title }}</div>
+      <div class="item-content">
+        <div class="item-value" *ngIf="value"><ng-container *ngTemplateOutlet="value"></ng-container></div>
+        <div class="item-description" *ngIf="i18n.texts.publications.checklist_items[item].description_start || i18n.texts.publications.checklist_items[item].description_bullets || i18n.texts.publications.checklist_items[item].description_end">
+          <div *ngIf="i18n.texts.publications.checklist_items[item].description_start as text">{{ text }}</div>
+          <ul *ngIf="i18n.texts.publications.checklist_items[item].description_bullets as bullets">
+            <li *ngFor="let bullet of bullets" [innerHTML]="bullet"></li>
+          </ul>
+          <div *ngIf="i18n.texts.publications.checklist_items[item].description_end as text">{{ text }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #nameInput>
+  <ion-input
+    *ngIf="trail"
+    color="secondary"
+    fill="outline"
+    [value]="trail.name"
+    [maxlength]="200"
+    [counter]="true"
+    (ionChange)="updateTrailName($event.detail.value)"
+  ></ion-input>
+</ng-template>
+<ng-template #descriptionInput>
+  <ion-textarea
+    *ngIf="trail"
+    color="secondary"
+    fill="outline"
+    [maxlength]="50000"
+    [autoGrow]="true"
+    [value]="trail.description"
+    (ionChange)="updateTrailDescription($event.detail.value)"
+  ></ion-textarea>
+</ng-template>
+<ng-template #dateInput>
+  <ion-button *ngIf="trail" (click)="openDateDialog()">{{ trail.date ? i18n.timestampToDateTimeString(trail.date) : i18n.texts.publications.checklist_items.date.set_date }}</ion-button>
+</ng-template>
+<ng-template #locationInput>
+  <ion-button *ngIf="trail" (click)="openLocationDialog()">{{ trail.location.length > 0 ? trail.location : i18n.texts.publications.checklist_items.location.set_location }}</ion-button>
+</ng-template>
+<ng-template #activityInput>
+  <ion-button *ngIf="trail" (click)="openActivityDialog()">
+    <ion-icon [name]="trailService.getActivityIcon(trail.activity)" slot="start"></ion-icon>
+    <ion-label>{{ trail.activity ? i18n.texts.activity[trail.activity] : '' }}</ion-label>
+  </ion-button>
+</ng-template>

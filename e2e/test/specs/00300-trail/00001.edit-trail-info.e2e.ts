@@ -25,7 +25,7 @@ describe('Trail - Edit infos', () => {
   });
 
   it('Edit trail name', async () => {
-    await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Randonnée du 05/06/2023 à 08:58'));
+    await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Randonnée du 05/06/2023 à 08:58 - Test Trail'));
     const menu = await trailPage.header.openActionsMenu()
     await menu.clickItemWithText('Rename');
     const alert = await App.waitAlert();
@@ -33,7 +33,7 @@ describe('Trail - Edit infos', () => {
     await alert.setInputValue('My test trail')
     await alert.clickButtonWithRole('ok');
     await browser.waitUntil(() => alert.isDisplayed().then(d => !d));
-    await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).header.getTitle().then(title => title === 'My test trail'));
+    await browser.waitUntil(() => new TrailPage(trailPage.owner, trailPage.uuid).header.getTitle().then(title => title === 'My test trail - Test Trail'));
     trailPage = new TrailPage(trailPage.owner, trailPage.uuid);
   });
 

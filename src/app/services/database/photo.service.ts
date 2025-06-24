@@ -25,6 +25,8 @@ import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { QuotaService } from '../auth/quota.service';
+import { ModerationService } from '../moderation/moderation.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -38,20 +40,18 @@ export class PhotoService {
     this.store = new PhotoStore(injector);
   }
 
-  public getTrailPhotos(trail: Trail): Observable<Photo[]> {
-    return this.getPhotosForTrail(trail.owner, trail.uuid);
-  }
-
-  public getPhotosForTrail(owner: string, uuid: string): Observable<Photo[]> {
-    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(owner, uuid);
+  public getTrailPhotos$(trail: Trail): Observable<Photo[]> {
+    if (trail.owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(trail.owner, trail.uuid);
+    if (trail.fromModeration) return this.injector.get(ModerationService).getPhotos$(trail.owner, trail.uuid);
     return this.store.getAll$().pipe(
       collection$items(),
-      map(photos => photos.filter(p => p.owner === owner && p.trailUuid === uuid))
+      map(photos => photos.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid))
     );
   }
 
-  public getPhotosForTrailReady(owner: string, uuid: string): Observable<Photo[]> {
-    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(owner, uuid);
+  public getPhotosForTrailReady$(trail: Trail): Observable<Photo[]> {
+    if (trail.owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(trail.owner, trail.uuid);
+    if (trail.fromModeration) return this.injector.get(ModerationService).getPhotos$(trail.owner, trail.uuid);
     return this.store.getAll$().pipe(
       switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
         photos$.map(item$ => item$.pipe(
@@ -59,11 +59,11 @@ export class PhotoService {
           switchMap(p => p ? of(p) : EMPTY),
         ))
       )),
-      map(photos => photos.filter(p => p.owner === owner && p.trailUuid === uuid))
+      map(photos => photos.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid))
     );
   }
 
-  public getPhotosForTrailsReady(ids: {owner: string, uuid: string}[]): Observable<Photo[]> {
+  private getPhotosForTrailsReady$(ids: {owner: string, uuid: string}[]): Observable<Photo[]> {
     const external = ids.filter(id => id.owner.indexOf('@') < 0);
     const internal = ids.filter(id => id.owner.indexOf('@') >= 0);
     const external$ = external.length === 0 ? of([]) : zip(external.map(id => this.injector.get(FetchSourceService).getPhotos$(id.owner, id.uuid)));
@@ -82,33 +82,35 @@ export class PhotoService {
   }
 
   private readonly _retrievingFiles = new Map<string, Observable<Blob>>();
-  public getFile$(owner: string, uuid: string): Observable<Blob> {
-    if (owner.indexOf('@') < 0)
-      return from(window.fetch(uuid).then(response => response.blob()));
-    return this.injector.get(StoredFilesService).getFile$(owner, 'photo', uuid).pipe(
+  public getFile$(photo: Photo): Observable<Blob> {
+    if (photo.owner.indexOf('@') < 0)
+      return from(window.fetch(photo.uuid).then(response => response.blob()));
+    if (photo.fromModeration)
+      return this.injector.get(ModerationService).getPhotoBlob$(photo.uuid, photo.owner);
+    return this.injector.get(StoredFilesService).getFile$(photo.owner, 'photo', photo.uuid).pipe(
       catchError(e => {
-        const doing = this._retrievingFiles.get(owner + '#' + uuid);
+        const doing = this._retrievingFiles.get(photo.owner + '#' + photo.uuid);
         if (doing) return doing;
-        const request = this.injector.get(HttpService).getBlob(environment.apiBaseUrl + '/photo/v1/' + encodeURIComponent(owner) + '/' + uuid).pipe(
-          switchMap(blob => this.injector.get(StoredFilesService).store(owner, 'photo', uuid, blob).pipe(map(() => blob))),
-          tap(() => this._retrievingFiles.delete(owner + '#' + uuid)),
+        const request = this.injector.get(HttpService).getBlob(environment.apiBaseUrl + '/photo/v1/' + encodeURIComponent(photo.owner) + '/' + photo.uuid).pipe(
+          switchMap(blob => this.injector.get(StoredFilesService).store(photo.owner, 'photo', photo.uuid, blob).pipe(map(() => blob))),
+          tap(() => this._retrievingFiles.delete(photo.owner + '#' + photo.uuid)),
           share()
         );
-        this._retrievingFiles.set(owner + '#' + uuid, request);
+        this._retrievingFiles.set(photo.owner + '#' + photo.uuid, request);
         return request;
       })
     );
   }
 
   private readonly _blobUrls = new Map<string, DatabaseSubject<{url: string, blobSize: number}>>();
-  public getBlobUrl$(owner: string, uuid: string): Observable<{url: string, blobSize?: number} | null> {
-    if (owner.indexOf('@') < 0) return of({url: uuid});
-    const key = owner + '#' + uuid;
+  public getBlobUrl$(photo: Photo): Observable<{url: string, blobSize?: number} | null> {
+    if (photo.owner.indexOf('@') < 0) return of({url: photo.uuid});
+    const key = photo.owner + '#' + photo.uuid;
     const existing = this._blobUrls.get(key);
     if (existing) return existing.asObservable();
     const subject = this.injector.get(DatabaseSubjectService).create(
       'PhotoBlobUrl',
-      () => firstValueFrom(this.getFile$(owner, uuid).pipe(map(blob => ({url: URL.createObjectURL(blob), blobSize: blob.size})))),
+      () => firstValueFrom(this.getFile$(photo).pipe(map(blob => ({url: URL.createObjectURL(blob), blobSize: blob.size})))),
       item => {
         URL.revokeObjectURL(item.url);
         this._blobUrls.delete(key);
@@ -210,10 +212,23 @@ export class PhotoService {
   }
 
   public update(photo: Photo, updater: (photo: Photo) => void, ondone?: (photo: Photo) => void): void {
+    if (photo.fromModeration) {
+      updater(photo);
+      this.injector.get(ModerationService).updatePhoto(photo).pipe(filterDefined(), first()).subscribe(p => {
+        if (ondone) ondone(p);
+      });
+      return;
+    }
     this.store.updateWithLock(photo, updater, ondone);
   }
 
   public delete(photo: Photo, ondone?: () => void): void {
+    if (photo.fromModeration) {
+      this.injector.get(ModerationService).deletePhoto(photo).pipe(first()).subscribe(() => {
+        if (ondone) ondone();
+      });
+      return;
+    }
     this.store.delete(photo, () => {
       const key = photo.owner + '#' + photo.uuid;
       const blob = this._blobUrls.get(key);
@@ -233,21 +248,20 @@ export class PhotoService {
     this.store.deleteIf('deleted photos', item => !!photos.find(p => p.uuid === item.uuid), ondone);
   }
 
-  public deleteForTrail(owner: string, trailUuid: string, ondone?: () => void): void {
-    this.getPhotosForTrailReady(owner, trailUuid).subscribe(photos => this.deleteMany(photos, ondone));
+  public deleteForTrail(trail: Trail, ondone?: () => void): void {
+    this.getPhotosForTrailReady$(trail).subscribe(photos => this.deleteMany(photos, ondone));
   }
 
   public deleteForTrails(trails: Trail[], ondone?: () => void): void {
-    this.getPhotosForTrailsReady(trails.map(t => ({owner: t.owner, uuid: t.uuid}))).subscribe(photos => this.deleteMany(photos, ondone));
+    this.getPhotosForTrailsReady$(trails.map(t => ({owner: t.owner, uuid: t.uuid}))).subscribe(photos => this.deleteMany(photos, ondone));
   }
 
-  public async openPopupForTrail(owner: string, uuid: string): Promise<Photo | null> {
+  public async openPopupForTrail(trail: Trail): Promise<Photo | null> {
     const module = await import('../../components/photos-popup/photos-popup.component');
     const modal = await this.injector.get(ModalController).create({
       component: module.PhotosPopupComponent,
       componentProps: {
-        owner: owner,
-        trailUuid: uuid,
+        trail,
       },
       cssClass: 'large-modal',
     });

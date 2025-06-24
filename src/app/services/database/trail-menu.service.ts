@@ -5,11 +5,11 @@ import { ModalController } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
-import { combineLatest, first, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
+import { first, firstValueFrom, map, Observable, of } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { Track } from 'src/app/model/track';
 import { TrackMetadataSnapshot } from './track-database';
 import { TrackService } from './track.service';
@@ -25,11 +25,11 @@ export class TrailMenuService {
 
   public trailToCompare: Trail | undefined;
 
-  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: string | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false): MenuItem[] { // NOSONAR
+  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: TrailCollection | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false): MenuItem[] { // NOSONAR
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email!;
 
-    if (!onlyGlobal && trails.length > 0) {
+    if (!onlyGlobal && trails.length > 0 && !isPublicationCollection(fromCollection?.type)) {
       menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
         .setAction(() => import('../functions/map-download').then(m => m.openMapDownloadDialog(this.injector, trails))));
       if (trails.length === 1) {
@@ -60,6 +60,12 @@ export class TrailMenuService {
             .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
           menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
             .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
+          if (trails.length === 1) {
+            menu.push(new MenuItem());
+            menu.push(new MenuItem().setIcon('web').setI18nLabel('publications.publish')
+              .setDisabled(() => email === ANONYMOUS_USER)
+              .setAction(() => this.startPublication(trails[0])))
+          }
         }
       }
 
@@ -89,24 +95,24 @@ export class TrailMenuService {
           }));
         }
       }
-      if (trails.length > 1 && fromCollection) {
+      if (trails.length > 1 && fromCollection && !isPublicationCollection(fromCollection.type)) {
         menu.push(new MenuItem());
         menu.push(new MenuItem().setIcon('merge').setI18nLabel('pages.trail.actions.merge_trails')
-          .setAction(() => import('../functions/merge-trails').then(m => m.mergeTrails(this.injector, trails, fromCollection))));
+          .setAction(() => import('../functions/merge-trails').then(m => m.mergeTrails(this.injector, trails, fromCollection.uuid))));
       }
     }
 
     let inImportExportSection = false;
 
-    if (onlyGlobal && fromCollection) {
+    if (onlyGlobal && fromCollection && !isPublicationCollection(fromCollection.type)) {
       menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
-        .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, null, fromCollection))));
+        .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, null, fromCollection.uuid))));
       menu.push(new MenuItem());
       inImportExportSection = true;
       menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('tools.import')
-        .setAction(() => import('../functions/import').then(m => m.openImportTrailsDialog(this.injector, fromCollection))));
+        .setAction(() => import('../functions/import').then(m => m.openImportTrailsDialog(this.injector, fromCollection.uuid))));
       menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title')
-        .setAction(() => this.importFromUrl(fromCollection))
+        .setAction(() => this.importFromUrl(fromCollection.uuid))
         .setVisible(() => this.injector.get(FetchSourceService).canImportFromUrl)
       );
     }
@@ -117,7 +123,7 @@ export class TrailMenuService {
       menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export')
         .setAction(() => import('../functions/export').then(m => m.exportTrails(this.injector, trails))));
 
-      if (!isAll) {
+      if (!isAll && !isPublicationCollection(fromCollection?.type)) {
         menu.push(new MenuItem());
         menu.push(
           new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
@@ -127,16 +133,16 @@ export class TrailMenuService {
       }
     }
 
-    if (trails.length > 0 && fromCollection && onlyGlobal && trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0) {
+    if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && onlyGlobal && trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0) {
       menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share')
-        .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, fromCollection, []))));
+        .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, fromCollection.uuid, []))));
     }
 
-    if (fromCollection !== undefined && !onlyGlobal && trails.length > 0) {
+    if (fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal && trails.length > 0) {
       if (trails.every(t => t.owner === email)) {
         const collectionUuid = this.getUniqueCollectionUuid(trails);
-        if (fromCollection === collectionUuid) {
+        if (fromCollection.uuid === collectionUuid) {
           menu.push(
             new MenuItem().setIcon('collection-move').setI18nLabel('pages.trails.actions.move_to_collection')
             .setChildrenProvider(() => this.getCollectionsMenuItems([collectionUuid],
@@ -157,17 +163,16 @@ export class TrailMenuService {
     if (fromCollection && onlyGlobal && trails.length > 0) {
       menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.title')
-        .setAction(() => import('../../components/find-duplicates/find-duplicates.component').then(m => m.openFindDuplicates(this.injector, fromCollection))));
+        .setAction(() => import('../../components/find-duplicates/find-duplicates.component').then(m => m.openFindDuplicates(this.injector, fromCollection.uuid))));
     }
     return menu;
   }
 
   private getCollectionsMenuItems(excludeUuids: string[], action: (col: TrailCollection) => void): Observable<MenuItem[]> {
     const collectionService = this.injector.get(TrailCollectionService);
-    return collectionService.getAll$().pipe(
-      switchMap(cols => cols.length === 0 ? of([]) : combineLatest(cols)),
+    return collectionService.getMyCollectionsReady$().pipe(
       map(cols => {
-        const list = cols.filter(col => !!col && excludeUuids.indexOf(col.uuid) < 0) as TrailCollection[];
+        const list = cols.filter(col => excludeUuids.indexOf(col.uuid) < 0);
         collectionService.sort(list);
         return list.map(
           col => {
@@ -228,9 +233,9 @@ export class TrailMenuService {
     modal.present();
   }
 
-  public openTrailDatePopup(trail: Trail, track: Track | TrackMetadataSnapshot | undefined): void {
+  public async openTrailDatePopup(trail: Trail, track: Track | TrackMetadataSnapshot | undefined) {
     const getTrackDate$ = track ? of(track.startDate) : this.injector.get(TrackService).getMetadata$(trail.currentTrackUuid, trail.owner).pipe(filterDefined(), map(t => t?.startDate), first());
-    Promise.all([
+    const modal = await Promise.all([
       firstValueFrom(getTrackDate$),
       import('../../components/datetime-popup/datetime-popup.component'),
     ]).then(([defaultDate, module]) => this.injector.get(ModalController).create({
@@ -238,17 +243,27 @@ export class TrailMenuService {
       componentProps: {
         timestamp: trail.date ?? defaultDate,
         defaultTimestamp: defaultDate,
+        maxTimestamp: Date.now(),
       },
       backdropDismiss: true,
       cssClass: 'small-modal',
-    }))
-    .then(modal => {
-      modal.onDidDismiss().then(result => {
-        if (result.role === 'ok')
-          this.injector.get(TrailService).doUpdate(trail, t => t.date = result.data);
-      });
-      modal.present();
+    }));
+    await modal.present();
+    const result = await modal.onDidDismiss();
+    if (result.role !== 'ok') return Promise.resolve(false);
+    return new Promise<boolean>(resolve => this.injector.get(TrailService).doUpdate(trail, t => t.date = result.data, () => resolve(true)));
+  }
+
+  public async startPublication(trail: Trail) {
+    const module = await import('../../components/trail/start-publication-modal/start-publication-modal.component');
+    const modal = await this.injector.get(ModalController).create({
+      component: module.StartPublicationModal,
+      componentProps: {
+        trail
+      },
+      cssClass: 'medium-modal'
     });
+    await modal.present();
   }
 
 }

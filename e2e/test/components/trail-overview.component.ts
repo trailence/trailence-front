@@ -49,7 +49,7 @@ export class TrailOverview extends Component {
   }
 
   public async expectRatingPresent() {
-    expect(await this.getElement().$('div.rating-stars').isDisplayed()).toBeTrue();
+    expect(await this.getElement().$('app-rate').isDisplayed()).toBeTrue();
   }
 
   public async clickMenuItem(item: string) {

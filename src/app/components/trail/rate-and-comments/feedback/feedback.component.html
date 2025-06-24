@@ -1,0 +1,76 @@
+@if (feedback) {
+  <div class="feedback">
+    <div class="date"><app-relative-date [date]="feedback.date"></app-relative-date></div>
+    <div class="header">
+      @if (feedback.rate !== undefined) {
+        <app-rate [rate]="feedback.rate" [showValue]="false"></app-rate>
+      }
+      <div class="author">
+        {{ feedback.alias || i18n.texts.pages.preferences.anonymous }}
+        @if (feedback.you) {
+          <span class="you"> ({{ i18n.texts.pages.trail.sections.comments.you }})</span>
+        }
+      </div>
+      @if (!feedback.comment && feedback.rate === undefined) {
+        <div class="followed">{{ i18n.texts.pages.trail.sections.comments.has_done_this_trail }}</div>
+      }
+    </div>
+    @if (feedback.comment) {
+      <div class="comment">{{ feedback.comment }}</div>
+    }
+    <div class="footer">
+      @if (!feedback.you || feedback.replies.length > 0) {
+        <ion-button size="small" fill="clear" mode="ios" color="secondary" (click)="reply()">
+          <span>{{i18n.texts.pages.trail.sections.comments.reply}}</span>
+        </ion-button>
+      }
+      @if ((feedback.you || moderator) && feedback.comment) {
+        <ion-button size="small" fill="clear" mode="ios" color="danger" (click)="delete()">
+          <span>{{i18n.texts.buttons.delete}}</span>
+        </ion-button>
+      }
+    </div>
+  </div>
+  @for (reply of feedback.replies; track reply.uuid) {
+    <div class="feedback reply">
+      <div class="date"><app-relative-date [date]="reply.date"></app-relative-date></div>
+      <div class="header">
+        <div class="author">
+          {{ reply.alias || i18n.texts.pages.preferences.anonymous }}
+          @if (reply.you) {
+            <span class="you"> ({{ i18n.texts.pages.trail.sections.comments.you }})</span>
+          }
+        </div>
+      </div>
+      <div class="comment">{{ reply.comment }}</div>
+      <div class="footer">
+        @if (reply.you || moderator) {
+          <ion-button size="small" fill="clear" mode="ios" color="danger" (click)="deleteReply(reply.uuid)">
+            <span>{{i18n.texts.buttons.delete}}</span>
+          </ion-button>
+        }
+      </div>
+    </div>
+  }
+  @if (replyShown) {
+    <div class="feedback reply">
+      <div class="comment">
+        <ion-textarea
+          #replyTextArea
+          fill="outline"
+          [placeholder]="i18n.texts.pages.trail.sections.comments.reply_placeholder"
+          [(ngModel)]="replyText"
+          (ionInput)="replyTextChanged()"
+        ></ion-textarea>
+      </div>
+      <div class="footer">
+        <ion-button size="small" fill="clear" mode="ios" color="medium" (click)="cancelReply()">
+          <span>{{i18n.texts.buttons.cancel}}</span>
+        </ion-button>
+        <ion-button size="small" fill="clear" mode="ios" color="success" [disabled]="replyText.length < 5 || sending" (click)="sendReply()">
+          <span>{{i18n.texts.buttons.send}}</span>
+        </ion-button>
+      </div>
+    </div>
+  }
+}

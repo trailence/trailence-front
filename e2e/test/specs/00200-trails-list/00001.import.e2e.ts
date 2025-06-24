@@ -48,7 +48,7 @@ describe('Trails list', () => {
   });
 
   it('Open trail, it has the original track and an improved track', async () => {
-    await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Randonnée du 05/06/2023 à 08:58'));
+    await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Randonnée du 05/06/2023 à 08:58 - Test Import'));
     const trail = trailPage.trailComponent;
     const improvedAscent = await TestUtils.waitFor(() => trail.getMetadataValueByTitle('Ascent', true), value => !!value && value.length > 0);
     expect(improvedAscent).toBeDefined();
@@ -92,7 +92,7 @@ describe('Trails list', () => {
   });
 
   it('Open trail, it has the 2 tags', async () => {
-    await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Tour de Port-Cros'));
+    await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Tour de Port-Cros - Test Import'));
     const trail = trailPage.trailComponent;
     await browser.waitUntil(async () => {
       const tags = await trail.getTags();

@@ -210,7 +210,9 @@
         "searching": "Searching",
         "error": "Error searching tracks",
         "needs_zoom": "Map too wide, zoom in more",
-        "too_much_results": "Too many results"
+        "too_much_results": "Too many results",
+        "search_in_this_area": "Search in this area",
+        "clear_search_results": "Clear results"
       }
     },
     "trail": {
@@ -225,6 +227,7 @@
       "show_breaks": "Show breaks",
       "reverse_way": "Reverse direction",
       "open_in_app": "Open in",
+      "open_in_trailence": "View original trail",
       "actions": {
         "go_to_departure": "Go to departure",
         "download_map": "Download map",
@@ -243,11 +246,58 @@
         },
         "waypoints": {
           "title": "Way Points"
+        },
+        "comments": {
+          "title": "Reviews",
+          "you": "You",
+          "rate": {
+            "global": "Average rating:",
+            "global_on_nb": " on {{1}} reviews",
+            "no_rate": "No review so far",
+            "yours": "Your rating:",
+            "write_a_review": "⭐ Rate and review this trail",
+            "change_rate_or_review": "Edit my rating or add a comment",
+            "modal": {
+              "title": "Rate and review",
+              "rate_title": "Give a rating",
+              "comment_title": "Leave a comment",
+              "comment_advise": {
+                "header": "A few guidelines and tips before posting:",
+                "items": [
+                  "Briefly share your overall impression of the trail.",
+                  "Mention any difficulties you encountered.",
+                  "Highlight any sections that require extra attention.",
+                  "Feel free to point out what you particularly liked or disliked to help the community.",
+                  "Be polite and respectful: no offensive, abusive, or discriminatory language."
+                ],
+                "footer": "🙏 Thank you for your contribution!"
+              },
+              "send_error": "Error while sending your feedback"
+            }
+          },
+          "delete_comment_confirmation": {
+            "title": "Delete Comment",
+            "message": "Are you sure you want to delete this comment?"
+          },
+          "delete_reply_confirmation": {
+            "title": "Delete Reply",
+            "message": "Are you sure you want to delete this reply?"
+          },
+          "reply": "Reply",
+          "reply_placeholder": "Enter your reply here",
+          "reply_send_error": "Error while sending your reply",
+          "load_more_comments": "Show more comments",
+          "has_done_this_trail": "followed this trail ✅",
+          "show_reviews_with_rate": "Active filter: ratings of {{1}}/5",
+          "not_authenticated": "Log in to see the reviews",
+          "not_connected": "Internet connection required to fetch reviews"
         }
       },
       "remaining_metadata_title": "Remaining",
       "created_in_trailence_on": "Created in Trailence on",
       "last_update_on": "Last updated on",
+      "published_on": "Published on",
+      "published_by": "by",
       "select_photo_position": "Select where the photo was taken on the track",
       "source": {
         "trailence_recorder": "Track recorded in Trailence",
@@ -256,7 +306,18 @@
         "with_owner": " by {{1}}",
         "file_import": "Imported from file {{1}}",
         "file_import_unknown": "Imported from a file",
-        "external": "Found on {{1}}"
+        "external": "Found on {{1}}",
+        "following": " by following :*:{{1}}:*:{{2}}:*:",
+        "initially_found_on": " initially found on :*:{{1}}:*:{{2}}:*:",
+        "following_found_on": " by following a track found on :*:{{1}}:*:{{2}}:*:"
+      },
+      "my_feedback": {
+        "you_leave_a_rate": "You rated this route {{1}}/5 on {{2}}",
+        "you_leave_a_comment": "You left a comment on this route on {{1}}",
+        "you_leave_a_rate_and_a_comment_same_date": "You rated this route {{1}}/5 with a comment on {{2}}",
+        "you_leave_a_rate_and_a_comment_different_date": "You rated this route {{1}}/5 on {{2}} and left a comment on {{3}}",
+        "invite_to_rate_title": "🙏 Join the community!",
+        "invite_to_rate_button": "⭐ Rate this route"
       }
     },
     "collection_form": {
@@ -347,6 +408,11 @@
       },
       "date_format": "Date format",
       "time_format": "Time format",
+      "privacy": "Privacy",
+      "alias": "How would you like to appear publicly?",
+      "alias_explaination": "When you publish a track or leave a comment on a public track, you can choose to remain anonymous or display a name of your choice. If you choose a name, please make sure it does not contain any offensive, abusive, or discriminatory language.",
+      "anonymous": "Anonymous",
+      "alias_name": "Using name",
       "trace_recorder": "Trace recording",
       "traceMinMeters": "Minimum distance between each recorded point",
       "traceMinMeters_explaination": "If the value is too low, the track quality may decrease due to GPS imprecision.<br/>A value that is too high also lead to a low-quality track with long straight lines.<br/>Additionally, shorter distances result in more recorded points, which can increase battery consumption.<br/>We recommend setting the value between 5 and 15 meters (approximately 16 to 50 foot) for a good balance.",
@@ -570,6 +636,7 @@
     "nothing_shared_with_me": "No track shared with you",
     "shared_by_me": "Shared by me",
     "nothing_shared_by_me": "You don't share any track",
+    "my_publications": "My publications",
     "start_trace": "Start a trace",
     "current_trace": "Trace in progress",
     "planner": "Plan a trail",
@@ -588,6 +655,124 @@
   },
   "my_trails": "My Trails",
   "all_collections": "All collections",
+  "publications": {
+    "draft_name": "Drafts",
+    "submit_name": "Under review",
+    "reject_name": "Changes requested",
+    "my_public_trails_name": "Published",
+    "publish": "Publish",
+    "publish_confirmation": "By confirming the publication of this track, you affirm that you have complied with the rules and confirm that this track can be made public",
+    "publish_message_placeholder": "If you would like to leave a message for the moderator who will review your track, you can enter it here.",
+    "reject_to_draft": "Improve",
+    "checklist": "Checklist",
+    "start_popup": {
+      "header": "Thank you for contributing to the Trailence community!",
+      "text_before": "You’re about to publish your track, which will make it visible to all users. Here’s some important information about how publishing works:",
+      "bullets": [
+        {
+          "text": "The published track is a copy of your original track. This means any changes you make to the track you’re about to publish will not affect your original, private track. Likewise, if you later modify your original track, it won’t affect the published version."
+        }, {
+          "text": "At first, the track will be saved as a “Draft”. This lets you prepare it for publication and make any adjustments you’d like before submitting it."
+        }, {
+          "text": "During this phase, you’ll be guided by a checklist to help you review key points before publishing. Among them:",
+          "bullets": [
+            {
+              "text": "Any offensive, abusive, or discriminatory content is strictly forbidden."
+            }, {
+              "text": "Remove any personal information you don’t wish to make public."
+            }, {
+              "text": "Do not include photos where people are recognizable."
+            }
+          ]
+        }, {
+          "text": "Once your draft is ready, you can submit it for review. A moderator may then check it to ensure the rules are respected."
+        }, {
+          "text": "After validation, your track will be visible to the entire community!"
+        }, {
+          "text": "You’ll still be able to edit or remove your published track at any time if you wish."
+        }
+      ],
+      "text_after": "Thank you for your participation — and happy publishing!"
+    },
+    "checklist_items": {
+      "iam_author": {
+        "title": "Copyright and permissions",
+        "description_start": "©️ Make sure you are the author of the information you publish, or that you have obtained explicit permission from the author to publish it on Trailence."
+      },
+      "name": {
+        "title": "Trail name",
+        "description_start": "The name should be short and clearly describe the goal of the track. Here are a few examples:",
+        "description_bullets": [
+          "<b>Emerald Lake and Yoho Valley</b>: clear and to the point.",
+          "<b>Mount Hood via Timberline Trail</b>: indicates both the destination and the chosen route if there are several options.",
+          "<b>From Bondi to Coogee via the Coastal Walk</b>: describes the starting point, destination, and route if relevant."
+        ]
+      },
+      "description": {
+        "title": "Trail description",
+        "description_start": "The description should help users quickly understand what to expect along the track. Make sure to include:",
+        "description_bullets": [
+          "Any potential difficulties (type and where they occur)",
+          "Viewpoints, points of interest, or notable features",
+          "The type of path (trail, wide track, road…) and an idea of the proportions if necessary",
+          "Whether the track is mostly in the forest, open terrain, mountainous…",
+          "Useful advice on the best time of year to hike it",
+          "If the track is varied, a description of the main stages (e.g. forest at the start, chapel halfway, panoramic ridge at the end…)",
+          "Finish with practical information if relevant: parking availability, water points, etc."
+        ]
+      },
+      "date": {
+        "title": "Date provided",
+        "set_date": "Set date"
+      },
+      "location": {
+        "title": "Location provided",
+        "set_location": "Set location"
+      },
+      "activity": {
+        "title": "Type of activity provided",
+        "description_start": "Make sure to clearly distinguish between walking and hiking: If the track is short, with little elevation gain and few difficulties, or if it’s an urban route, it’s more appropriate to classify it as walking. Hiking usually refers to tracks in nature, typically over an hour long, often with elevation gain..."
+      },
+      "track": {
+        "title": "Track quality",
+        "description_start": "If possible, try to improve the quality of your track:",
+        "description_bullets": [
+          "Fix any elevation values that seem incorrect.",
+          "If you left the main route (for a short technical break 🤭 for example), try to remove those sections from the track."
+        ],
+        "description_end": "👉 To do this, use the Edit button on the map."
+      },
+      "waypoints": {
+        "title": "Waypoints",
+        "description_start": "Consider adding waypoints to your track:",
+        "description_bullets": [
+          "They can be used to mark specific spots: a viewpoint, a landmark, a water source…",
+          "Most importantly, they help give direction instructions, especially at places where the route isn’t obvious on site (like at a crossroads, or if the trail is poorly marked)."
+        ],
+        "description_end": "👉 To do this, use the Edit button on the map, select the desired location, and open the Waypoint menu."
+      },
+      "photos": {
+        "title": "Photos",
+        "description_start": "Consider adding photos that make people want to follow your track: beautiful landscapes, scenic viewpoints, unusual spots…",
+        "description_bullets": [
+          "📍 Check that each photo is correctly positioned on the track if this wasn’t done automatically.",
+          "⚠️ Do not publish photos where people are recognizable.",
+          "🙏 Also avoid sharing photos of private property without permission."
+        ]
+      }
+    },
+    "moderation": {
+      "menu_title": "Moderation",
+      "publishing": "Publishing",
+      "error_publishing": "Error while publishing",
+      "publish_confirmation": "Do you confirm this trail can be made public?",
+      "reject": "Decline",
+      "reject_message_placeholder": "Please enter a message here to explain why this track cannot be published.",
+      "message_from_author": "Author's message",
+      "previous_moderator_message": "Previous message from moderator",
+      "moderator_message": "Moderator's message"
+    }
+  },
   "buttons": {
     "apply": "Apply",
     "cancel": "Cancel",
@@ -602,6 +787,7 @@
     "previous": "Back",
     "quit": "Quit",
     "save": "Save",
+    "send": "Send",
     "start": "Start",
     "reset": "Reset",
     "retry": "Retry",
@@ -928,5 +1114,53 @@
   },
   "recompute_metadata": "Recalculating estimates of your tracks",
   "you_are_offline": "You are offline",
-  "toast_anonymous_account": "When using the app without an account, your data is stored only in your browser and may be automatically deleted if your browser runs out of space. To save and sync your data, you can export it, create an account, and then import it again."
+  "toast_anonymous_account": "When using the app without an account, your data is stored only in your browser and may be automatically deleted if your browser runs out of space. To save and sync your data, you can export it, create an account, and then import it again.",
+  "notifications": {
+    "menu": {
+      "no_unread": "Notifications",
+      "unread_single": "1 unread notification",
+      "unread_plural": "{{1}} unread notifications",
+      "none": "No notifications"
+    },
+    "view_all": "View all",
+    "items": {
+      "publications": {
+        "accepted": {
+          "text": "Your trail :*:/trail/trailence/{{2}}:*:{{1}}:*: has been published! Thank you for contributing to the community 🎉"
+        },
+        "rejected": {
+          "text": "The publication of your trail :*:/trail/{{3}}/{{2}}:*:{{1}}:*: has been declined. Check it to see the reason and make the necessary improvements."
+        }
+      },
+      "shares": {
+        "new_share_with_you": {
+          "text": "{{1}} has shared something new with you: :*:/trails/share/{{3}}/{{1}}:*:{{2}}:*:"
+        },
+        "new_trails_in_share": {
+          "text": "{{1}} added {{2}} track(s) to the share :*:/trails/share/{{3}}/{{1}}:*:{{4}}:*:"
+        }
+      },
+      "comments": {
+        "someone_leave_a_rate": {
+          "text": "Someone rated your trail :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_comment": {
+          "text": "Someone left a comment on your trail :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "someone_leave_a_rate_with_comment": {
+          "text": "Someone rated and commented on your trail :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        },
+        "reply": {
+          "text": "Someone replied to your comment on the trail :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        }
+      }
+    }
+  },
+  "relativeDates": {
+    "justNow": "Just now",
+    "fewSecondsAgo": "Few seconds ago",
+    "minuteAgo": "1 minute ago",
+    "minutesAgo": "{{1}} minutes ago",
+    "ago": "{{1}} ago"
+  }
 }

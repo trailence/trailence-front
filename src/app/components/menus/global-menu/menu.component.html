@@ -132,6 +132,77 @@
     </div>
   }
 
+  @if ((pubDraft && pubDraft.nbTrails) || (pubSubmit && pubSubmit.nbTrails) || (pubReject && pubReject.nbTrails) || myPublicTrails.length > 0) {
+    <div class="menu-separator"></div>
+
+    <div class="menu-section" id="section-publications">
+      <div class="menu-section-header">
+        <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="publicationsOpen = !publicationsOpen">
+          <ion-icon slot="icon-only" [name]="publicationsOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
+        </ion-button>
+        <ion-icon name="web"></ion-icon>
+        <div class="section-title">{{ i18n.texts.menu.my_publications }}</div>
+      </div>
+      @if (publicationsOpen) {
+        @if (pubDraft) {
+          <div class="menu-item" (click)="goTo('/trails/collection/' + pubDraft.collection.uuid + '/' + pubDraft.collection.owner); close();">
+            <div class="item-title-container">
+              <div class="item-title">
+                <div class="name-and-count">
+                  <a href="/trails/collection/{{pubDraft.collection.uuid}}/{{pubDraft.collection.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                    {{ i18n.texts.publications.draft_name }}
+                  </a>
+                  <div *ngIf="pubDraft.nbTrails !== undefined" class="count">{{pubDraft.nbTrails}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        @if (pubSubmit) {
+          <div class="menu-item" (click)="goTo('/trails/collection/' + pubSubmit.collection.uuid + '/' + pubSubmit.collection.owner); close();">
+            <div class="item-title-container">
+              <div class="item-title">
+                <div class="name-and-count">
+                  <a href="/trails/collection/{{pubSubmit.collection.uuid}}/{{pubSubmit.collection.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                    {{ i18n.texts.publications.submit_name }}
+                  </a>
+                  <div *ngIf="pubSubmit.nbTrails !== undefined" class="count">{{pubSubmit.nbTrails}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        @if (pubReject) {
+          <div class="menu-item" (click)="goTo('/trails/collection/' + pubReject.collection.uuid + '/' + pubReject.collection.owner); close();">
+            <div class="item-title-container">
+              <div class="item-title">
+                <div class="name-and-count">
+                  <a href="/trails/collection/{{pubReject.collection.uuid}}/{{pubReject.collection.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                    {{ i18n.texts.publications.reject_name }}
+                  </a>
+                  <div *ngIf="pubReject.nbTrails !== undefined" class="count">{{pubReject.nbTrails}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        <div class="menu-item" (click)="goTo('/trails/my-publications'); close();">
+          <div class="item-title-container">
+            <div class="item-title">
+              <div class="name-and-count">
+                <a href="/trails/my-publications" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                  {{ i18n.texts.publications.my_public_trails_name }}
+                </a>
+                <div class="count">{{myPublicTrails.length}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+  }
+
   <div class="menu-separator"></div>
 
   <div class="menu-item" (click)="goToRecordTrace(); close();">
@@ -150,16 +221,22 @@
 
   <ng-container *ngIf="fetchSourceService.canSearch$ | async">
     <div class="menu-item" (click)="goTo('/trails/search'); close();">
-      <ion-icon name="search"></ion-icon>
+      <ion-icon name="search-map"></ion-icon>
       <div class="item-title-container">
         <div class="item-title">{{ i18n.texts.menu.search_trail }}</div>
       </div>
     </div>
   </ng-container>
 
-  <ng-container *ngIf="isAdmin">
+  <ng-container *ngIf="isAdmin || isModerator">
     <div class="menu-separator"></div>
-    <div class="menu-item" (click)="goTo('/admin'); close();">
+    <div class="menu-item" (click)="goTo('/trails/moderation'); close();">
+      <ion-icon name="web"></ion-icon>
+      <div class="item-title-container">
+        <div class="item-title">{{ i18n.texts.publications.moderation.menu_title }}</div>
+      </div>
+    </div>
+    <div class="menu-item" (click)="goTo('/admin'); close();" *ngIf="isAdmin">
       <ion-icon name="tool"></ion-icon>
       <div class="item-title-container">
         <div class="item-title">{{ i18n.texts.administration }}</div>

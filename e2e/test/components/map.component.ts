@@ -1,4 +1,5 @@
 import { App } from '../app/app';
+import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicRange } from './ionic/ion-range';
@@ -56,7 +57,7 @@ export class MapComponent extends Component {
   }
 
   public async openSearchTool() {
-    const button = this.topToolbar.getButtonByIcon('search');
+    const button = this.topToolbar.getButtonByIcon('search-position');
     if (await button.isDisplayed()) await button.click();
     const search = new SearchPlace(this.topToolbar.getElement().$('app-search-place'));
     await browser.waitUntil(() => search.getElement().isDisplayed());
@@ -111,13 +112,20 @@ export class MapComponent extends Component {
     return result;
   }
 
-  public async toggleBubbles() {
-    let button = this.rightToolbar.getButtonByIcon('bubbles');
-    if (await button.isExisting()) await button.click();
-    else {
-      button = this.rightToolbar.getButtonByIcon('path');
-      await button.click();
-    }
+  public async setBubblesMode() {
+    await TestUtils.retry(async () => {
+      let button = this.rightToolbar.getButtonByIcon('bubbles');
+      if (await button.isExisting()) await button.click();
+      await browser.waitUntil(() => this.rightToolbar.getButtonByIcon('path').isDisplayed(), {timeout: 3000});
+    }, 3, 100);
+  }
+
+  public async setPathMode() {
+    await TestUtils.retry(async () => {
+      let button = this.rightToolbar.getButtonByIcon('path');
+      if (await button.isExisting()) await button.click();
+      await browser.waitUntil(() => this.rightToolbar.getButtonByIcon('bubbles').isDisplayed(), {timeout: 3000});
+    }, 3, 100);
   }
 
   public async downloadMapOffline(layers: string[], zoomLevel: number) {
@@ -143,6 +151,8 @@ export class MapComponent extends Component {
   public getAllPaths() { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path'); }
   public getPathsWithColor(stroke: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path[stroke=' + stroke + ']'); }
   public getPathsWithClass(className: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('path.' + className); }
+
+  public getOverlaysSvgsWithClass(className: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('svg.' + className); }
 
   public async getMapPosition() {
     const location = await this.getElement().getLocation();

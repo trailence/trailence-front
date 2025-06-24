@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, Subscription, catchError, from } from 'rxjs';
 import { Router } from '@angular/router';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -23,10 +23,17 @@ import * as L from 'leaflet';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { SearchTrailsHeaderComponent } from 'src/app/components/search-trails-header/search-trails-header.component';
-import { SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { FetchSourcePlugin, SearchBubblesResult, SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
-import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { AlertController } from '@ionic/angular/standalone';
+import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
+import { EMPTY_FILTERS, Filters } from 'src/app/components/trails-list/trails-list.component';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
+import { TrailencePlugin } from 'src/app/services/fetch-source/trailence.plugin';
+
+const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
 @Component({
     selector: 'app-trails-page',
@@ -36,7 +43,6 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
         CommonModule,
         HeaderComponent,
         TrailsAndMapComponent,
-        SearchTrailsHeaderComponent,
     ]
 })
 export class TrailsPage extends AbstractPage {
@@ -47,24 +53,47 @@ export class TrailsPage extends AbstractPage {
 
   title$ = new BehaviorSubject<string>('');
   trails$ = new BehaviorSubject<List<Observable<Trail | null>> | undefined>(undefined);
+  bubbles$ = new BehaviorSubject<MapBubble[]>([]);
   actions: MenuItem[] = [];
 
   viewId?: string;
 
   searching = false;
-  canSearch = false;
+  searchMode: 'trails' | 'bubbles' | undefined = undefined;
   searchMessage?: string;
   hasSearchResult = false;
+  availableSearchPlugins: FetchSourcePlugin[] = [];
+  selectedSearchPlugins: string[] = [];
+  searchPluginsSubscription?: Subscription;
+
+  connected$: Observable<boolean>;
+
+  readonly mapTopToolbar$ = new BehaviorSubject<MenuItem[]>([]);
+  readonly showBubbles$ = new BehaviorSubject<boolean>(false);
+  readonly bubblesToolAvailable$ = new BehaviorSubject<boolean>(true);
 
   private readonly _trailsAndMap$ = new BehaviorSubject<TrailsAndMapComponent | undefined>(undefined);
-
   @ViewChild('trailsAndMap', { read: TrailsAndMapComponent }) set trailsAndMap(v: TrailsAndMapComponent) { this._trailsAndMap$.next(v); }
+
+  private readonly filters$: Observable<Filters | undefined>;
+  private searchFiltersSubscription?: Subscription;
 
   constructor(
     injector: Injector,
     public readonly i18n: I18nService,
+    readonly networkService: NetworkService,
   ) {
     super(injector);
+    this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
+    combineLatest([this.bubblesToolAvailable$, this.showBubbles$]).subscribe(
+      ([available, show]) => {
+        if (this.viewId && available) localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(show));
+      }
+    );
+    this.filters$ = this._trailsAndMap$.pipe(
+      switchMap(tm => tm ? tm.trailsList$ : of(undefined)),
+      switchMap(tl => tl ? tl.filters$ : of(undefined))
+    );
   }
 
   protected override getComponentState() {
@@ -89,7 +118,32 @@ export class TrailsPage extends AbstractPage {
       case 'share': this.initShare(newState.id, newState.from); break;
       case 'search': this.initSearch(); break;
       case 'all-collections': this.initAllCollections(); break;
+      case 'moderation': this.initModeration(); break;
+      case 'my-publications': this.initMyPublications(); break;
       default: this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
+    }
+  }
+
+  protected override destroyComponent(): void {
+    this.reset();
+  }
+
+  private initView(id: string): void {
+    this.viewId = id;
+    this.loadShowBubbleState();
+  }
+
+  private loadShowBubbleState(): void {
+    const showBubblesState = localStorage.getItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId);
+    if (showBubblesState) {
+      try {
+        this.showBubbles$.next(!!JSON.parse(showBubblesState));
+      } catch (e) { // NOSONAR
+        // ignore
+        this.showBubbles$.next(false);
+      }
+    } else {
+      this.showBubbles$.next(false);
     }
   }
 
@@ -105,29 +159,32 @@ export class TrailsPage extends AbstractPage {
           () => this.injector.get(TrailCollectionService).storeLoadedAndServerUpdates$(),
           auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)
         );
-        this.viewId = 'collection-' + collection.uuid + '-' + collection.owner;
+        this.initView('collection-' + collection.uuid + '-' + collection.owner);
         // menu
         collectionActions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
         this.actions = [...collectionActions, ...trailsActions];
-        if (collection.name.length > 0) return of(collection.name);
-        if (collection.type === TrailCollectionType.MY_TRAILS)
-          return this.i18n.texts$.pipe(map(texts => texts.my_trails));
-        return of('');
+        return this.injector.get(TrailCollectionService).getTrailCollectionName$(collection);
       })
     ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
     // trails from collection
     let first = true;
     this.byStateAndVisible.subscribe(
-      this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-        collection$items$(trail => trail.collectionUuid === collectionUuid)
-      ),
-      trails => {
+      combineLatest([
+        this.injector.get(AuthService).auth$.pipe(
+          switchMap(auth => auth ? this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email) : of(undefined)),
+          filterDefined(),
+        ),
+        this.injector.get(TrailService).getAllWhenLoaded$().pipe(
+          collection$items$(trail => trail.collectionUuid === collectionUuid)
+        ),
+      ]),
+      ([collection, trails]) => {
         const newList = List(trails.map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           const index = this.actions.findIndex(a => a.isSeparator());
           if (index > 0) this.actions.splice(index, this.actions.length - index);
-          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails.map(t => t.item), false, collectionUuid, true);
+          const actions = this.injector.get(TrailMenuService).getTrailsMenu(trails.map(t => t.item), false, collection, true);
           if (actions.length > 0)
             actions.splice(0, 0, new MenuItem());
           trailsActions = actions;
@@ -139,7 +196,7 @@ export class TrailsPage extends AbstractPage {
   }
 
   private initAllCollections(): void {
-    this.viewId = 'all-collections';
+    this.initView('all-collections');
     this.actions = [];
     // title
     this.byState.add(this.i18n.texts$.pipe(map(texts => texts.all_collections)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
@@ -176,7 +233,7 @@ export class TrailsPage extends AbstractPage {
           const newList = List(result.trails);
           if (!newList.equals(this.trails$.value))
             this.trails$.next(newList);
-          this.viewId = "share-" + result.share.uuid + "-" + result.share.owner;
+          this.initView('share-' + result.share.uuid + '-' + result.share.owner);
           this.actions = this.injector.get(ShareService).getShareMenu(result.share);
         });
       }
@@ -190,37 +247,134 @@ export class TrailsPage extends AbstractPage {
       this.i18n.texts$,
       i18n => this.title$.next(i18n.menu.search_trail)
     );
-    this.viewId = 'search-trails';
+    this.initView('search-trails');
     // search trails
     this.byStateAndVisible.subscribe(
       this._trailsAndMap$.pipe(
         switchMap(c => c ? c.map$ : of(undefined)),
-        switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoom$]).pipe(debounceTime(200), map(() => c.getBounds())) : of(undefined))
+        switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoom$, this.injector.get(FetchSourceService).getAllowedPlugins$()]).pipe(
+          debounceTime(200),
+          map(() => ({bounds: c.getBounds(), zoom: c.getState().zoom}))
+        ) : of(undefined))
       ),
-      bounds => this.setSearchBounds(bounds)
+      state => this.setSearchBounds(state?.bounds, state?.zoom)
     );
+    // map toolbar
+    this.mapTopToolbar$.next([
+      new MenuItem()
+        .setIcon('search-map')
+        .setI18nLabel(() => this.searching ? 'pages.trails.search.searching' : 'pages.trails.search.search_in_this_area')
+        .setDisabled(() => this.searching || !this.networkService.internet || !this.networkService.server || this.searchMode === undefined || this.selectedSearchPlugins.length === 0)
+        .setAction(() => {
+          if (!this.searching && this.selectedSearchPlugins.length > 0 && this.networkService.internet && this.networkService.server && this.searchMode !== undefined)
+            this.doSearch(this.selectedSearchPlugins);
+        }),
+      new MenuItem()
+        .setIcon('trash').setI18nLabel('pages.trails.search.clear_search_results')
+        .setVisible(() => this.hasSearchResult)
+        .setAction(() => this.clearSearchResult()),
+      new MenuItem()
+        .setIcon('radio-group').setI18nLabel('pages.trails.search.sources')
+        .setVisible(() => this.availableSearchPlugins.length > 1)
+        .setAction(() => {
+          this.injector.get(AlertController).create({
+            header: this.i18n.texts.pages.trails.search.sources,
+            inputs: this.availableSearchPlugins.map(plugin => ({
+              label: plugin.name,
+              value: plugin.name,
+              type: 'radio',
+              checked: this.selectedSearchPlugins.indexOf(plugin.name) >= 0,
+            })),
+            buttons: [{
+              text: this.i18n.texts.buttons.ok,
+              role: 'ok',
+              handler: (value) => {
+                if (value) {
+                  this.selectedSearchPlugins = [value];
+                  this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+                }
+                this.injector.get(AlertController).dismiss();
+              },
+            }]
+          }).then(a => a.present());
+        }),
+    ]);
+    // available plugins
+    this.searchPluginsSubscription = this.injector.get(FetchSourceService).getAllowedPlugins$().subscribe(list => {
+      Console.info('Allowed search plugins: ', list.map(p => p.name));
+      this.availableSearchPlugins = list;
+      this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
+    });
+    this.selectedSearchPlugins = ['Trailence'];
   }
 
   private searchBounds?: L.LatLngBounds;
-  private setSearchBounds(bounds?: L.LatLngBounds): void {
+  private searchZoom?: number;
+  private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number): void {
     this.ngZone.run(() => {
       this.searchBounds = bounds;
-      if (!bounds ||
-        bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
-        bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000
+      this.searchZoom = zoom;
+      this.searchMessage = undefined;
+      let changed = false;
+      if (!bounds || !zoom) {
+        if (this.searchMode !== undefined) {
+          this.searchMode = undefined;
+          changed = true;
+        }
+      } else if (
+        zoom <= 10 && (
+          bounds.getSouthEast().distanceTo(bounds.getSouthWest()) > 100000 ||
+          bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000
+        )
       ) {
-        this.canSearch = false;
-        this.searchMessage = 'pages.trails.search.needs_zoom';
+        if (this.injector.get(FetchSourceService).getPluginsByName(this.selectedSearchPlugins).filter(p => p.canSearchBubbles()).length > 0) {
+          if (this.searchMode !== 'bubbles') {
+            this.searchMode = 'bubbles';
+            changed = true;
+          }
+        } else {
+          if (this.searchMode !== undefined) {
+            this.searchMode = undefined;
+            this.searchMessage = 'pages.trails.search.needs_zoom';
+            changed = true;
+          }
+        }
       } else {
-        this.canSearch = true;
-        this.searchMessage = undefined;
+        if (this.searchMode !== 'trails') {
+          this.searchMode = 'trails';
+          changed = true;
+        }
+      }
+      if (changed) {
+        this.mapTopToolbar$.next(this.mapTopToolbar$.value);
       }
     });
   }
 
   doSearch(plugins: string[]): void {
+    if (this.searchMode === undefined) return;
+    this.ngZone.run(() => {
+      this.searching = true;
+      this.searchMessage = undefined;
+      this.hasSearchResult = false;
+    });
+    this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+    if (this.searchMode === 'trails')
+      this.doSearchTrails(plugins);
+    else
+      this.doSearchBubbles(plugins);
+  }
+
+  private doSearchTrails(plugins: string[]): void {
     let firstResult = true;
+    if (!this.bubblesToolAvailable$.value) {
+      this.loadShowBubbleState();
+      this.bubblesToolAvailable$.next(true);
+    }
+    this.searchFiltersSubscription?.unsubscribe();
+    this.searchFiltersSubscription = undefined;
     const fillResults = (result: SearchResult) => {
+      if (firstResult) this.bubbles$.next([]);
       Console.info('search result', result.trails.length, result.end, result.tooManyResults);
       const newTrails = result.trails.map(t => of(t));
       const newList = List(firstResult ? newTrails : [...(this.trails$.value ?? []), ...newTrails]);
@@ -230,26 +384,89 @@ export class TrailsPage extends AbstractPage {
           this.trails$.next(newList);
         if (result.end) {
           this.searching = false;
-          this.setSearchBounds(this.searchBounds);
+          this.setSearchBounds(this.searchBounds, this.searchZoom);
         }
         if (result.tooManyResults) this.searchMessage = 'pages.trails.search.too_much_results';
         if (result.trails.length > 0) this.hasSearchResult = true;
       });
     };
-    this.ngZone.run(() => {
-      this.searching = true;
-      this.canSearch = false;
-      this.searchMessage = undefined;
-      this.hasSearchResult = false;
-    });
+    Console.info('Start search on bounds ', this.searchBounds, 'using plugins', plugins);
     this.injector.get(FetchSourceService).searchByArea(this.searchBounds!, 200, plugins).subscribe({ // NOSONAR
       next: result => fillResults(result),
       error: e => {
         Console.error('Error searching trails on ' + plugins.join(',') + ' with bounds', this.searchBounds, 'error', e);
         this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
         this.searching = false;
-        this.setSearchBounds(this.searchBounds);
+        this.setSearchBounds(this.searchBounds, this.searchZoom);
+        this.mapTopToolbar$.next(this.mapTopToolbar$.value);
       }
+    });
+  }
+
+  private doSearchBubbles(plugins: string[]): void {
+    this.bubblesToolAvailable$.next(false);
+    this.showBubbles$.next(true);
+    const bounds = this.searchBounds!;
+    const zoom = this.searchZoom!;
+    Console.info('Start search bubbles on bounds ', bounds, 'zoom', zoom, 'using plugins', plugins);
+    this.searchFiltersSubscription?.unsubscribe();
+    let searchCount = 0;
+    this.searchFiltersSubscription = this.filters$.pipe(
+      debounceTimeExtended(0, 1000),
+      switchMap(filters => {
+        const count = ++searchCount;
+        this.ngZone.run(() => {
+          this.searching = true;
+        });
+        return (this.injector.get(FetchSourceService).getPluginByName(plugins[0])?.searchBubbles(bounds, zoom, filters ?? EMPTY_FILTERS) ?? of([])).pipe(
+          catchError(e => {
+            Console.error('Error searching bubbles on ' + plugins.join(',') + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
+            this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
+            if (searchCount === count) {
+              this.searching = false;
+              this.setSearchBounds(bounds, zoom);
+              this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+            }
+            return EMPTY;
+          }),
+          map(result => ([result, count]) as [SearchBubblesResult[], number]),
+        );
+      })
+    ).subscribe(([result, count]) => {
+      this.ngZone.run(() => {
+        if (searchCount !== count) return;
+        this.trails$.next(List());
+        this.bubbles$.next(result.map(r => {
+          const pos = L.latLng(r.pos);
+          const centerPoint = L.CRS.EPSG3857.latLngToPoint(pos, zoom);
+          const bubbleBoundsPoint = L.bounds(L.point(centerPoint.x - 50, centerPoint.y - 50), L.point(centerPoint.x + 50, centerPoint.y + 50));
+          const bubbleBounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getTopRight(), zoom));
+          const boundsPoint = L.bounds(L.point(centerPoint.x - 64, centerPoint.y - 64), L.point(centerPoint.x + 64, centerPoint.y + 64));
+          const bounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(boundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(boundsPoint.getTopRight(), zoom));
+          return new MapBubble(
+            bubbleBounds,
+            bounds,
+            '#80808080',
+            '#C0C0C0C0',
+            '' + r.count,
+            20,
+            '#000000',
+          ).onClick(map => {
+            const listener = () => {
+              this.doSearch(this.selectedSearchPlugins);
+              map.removeEventListener('zoomend', listener);
+            };
+            map.addEventListener('zoomend', listener);
+            map.fitBounds(bounds);
+          });
+        }));
+        this.searching = false;
+        this.hasSearchResult = result.length > 0;
+        this.setSearchBounds(bounds, zoom);
+        this.searchMessage = 'pages.trails.search.needs_zoom';
+        this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+        console.log('Search bubbles result', result);
+      });
     });
   }
 
@@ -257,8 +474,53 @@ export class TrailsPage extends AbstractPage {
     this.ngZone.run(() => {
       this.hasSearchResult = false;
       this.trails$.next(List());
+      this.bubbles$.next([]);
     });
   }
+
+  private initModeration(): void {
+    this.viewId = 'moderation';
+    this.actions = [];
+    // title
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.moderation.menu_title)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    // trails
+    let first = true;
+    this.byStateAndVisible.subscribe(
+      this.injector.get(ModerationService).getTrailsToReview(),
+      trails => {
+        const newList = List(trails);
+        if (first || !newList.equals(this.trails$.value)) {
+          first = false;
+          this.ngZone.run(() => this.trails$.next(newList));
+        }
+      }
+    );
+  }
+
+  private initMyPublications(): void {
+    this.viewId = 'my-publications';
+    this.actions = [];
+    // title
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.my_public_trails_name)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    // trails
+    let first = true;
+    this.byStateAndVisible.subscribe(
+      this.injector.get(MyPublicTrailsService).myPublicTrails$.pipe(
+        switchMap(ids => this.injector.get(FetchSourceService).plugin$('trailence').pipe(
+          switchMap(plugin => plugin ? from((plugin as TrailencePlugin).getTrails(ids.map(pair => pair.publicUuid))) : of([] as Trail[])),
+          map(trails => trails.map(trail => of(trail))),
+        ))
+      ),
+      trails => {
+        const newList = List(trails);
+        if (first || !newList.equals(this.trails$.value)) {
+          first = false;
+          this.ngZone.run(() => this.trails$.next(newList));
+        }
+      }
+    );
+  }
+
 
   private onItemEmpty<T>(storeReady$: () => Observable<boolean>, getItem$: (auth: AuthResponse) => Observable<any>): Observable<T> {
     return this.injector.get(AuthService).auth$.pipe(
@@ -285,10 +547,20 @@ export class TrailsPage extends AbstractPage {
     this.viewId = undefined;
     this.title$.next('');
     this.trails$.next(undefined);
+    this.bubbles$.next([]);
+    this.bubblesToolAvailable$.next(true);
+    this.showBubbles$.next(false);
     this.actions = [];
     this.searching = false;
     this.searchMessage = undefined;
-    this.canSearch = false;
+    this.searchMode = undefined;
+    this.mapTopToolbar$.next([]);
+    this.searchPluginsSubscription?.unsubscribe();
+    this.searchPluginsSubscription = undefined;
+    this.availableSearchPlugins = [];
+    this.selectedSearchPlugins = [];
+    this.searchFiltersSubscription?.unsubscribe();
+    this.searchFiltersSubscription = undefined;
   }
 
 }

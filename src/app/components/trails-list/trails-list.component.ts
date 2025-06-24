@@ -31,6 +31,9 @@ import { TrailOverviewCondensedComponent } from '../trail-overview/condensed/tra
 import { HorizontalGestureDirective } from 'src/app/utils/horizontal-gesture.directive';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { HighlightService } from 'src/app/services/highlight/highlight.service';
+import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollection } from 'src/app/model/trail-collection';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -41,7 +44,7 @@ interface State {
   filters: Filters;
 }
 
-interface Filters {
+export interface Filters {
   duration: FilterNumeric;
   estimatedDuration: FilterNumeric;
   distance: FilterNumeric;
@@ -54,44 +57,46 @@ interface Filters {
   search: string;
 }
 
+export const EMPTY_FILTERS: Filters = {
+  duration: {
+    from: undefined,
+    to: undefined,
+  },
+  estimatedDuration: {
+    from: undefined,
+    to: undefined,
+  },
+  distance: {
+    from: undefined,
+    to: undefined,
+  },
+  positiveElevation: {
+    from: undefined,
+    to: undefined,
+  },
+  negativeElevation: {
+    from: undefined,
+    to: undefined,
+  },
+  loopTypes: {
+    selected: undefined
+  },
+  activities: {
+    selected: undefined
+  },
+  onlyVisibleOnMap: false,
+  tags: {
+    tagsUuids: [],
+    type: 'include_and',
+  },
+  search: ''
+};
+
 const defaultState: State = {
   mode: 'detailed',
   sortAsc: false,
   sortBy: 'track.startDate',
-  filters: {
-    duration: {
-      from: undefined,
-      to: undefined,
-    },
-    estimatedDuration: {
-      from: undefined,
-      to: undefined,
-    },
-    distance: {
-      from: undefined,
-      to: undefined,
-    },
-    positiveElevation: {
-      from: undefined,
-      to: undefined,
-    },
-    negativeElevation: {
-      from: undefined,
-      to: undefined,
-    },
-    loopTypes: {
-      selected: undefined
-    },
-    activities: {
-      selected: undefined
-    },
-    onlyVisibleOnMap: false,
-    tags: {
-      tagsUuids: [],
-      type: 'include_and',
-    },
-    search: ''
-  }
+  filters: EMPTY_FILTERS
 }
 
 interface TrailWithInfo {
@@ -133,6 +138,7 @@ export class TrailsListComponent extends AbstractComponent {
   @Input() listId!: string;
   @Input() message?: string;
   @Input() enableRemoveByGesture = false;
+  @Input() showPublished = false;
 
   id = IdGenerator.generateId();
   highlighted?: Trail;
@@ -141,7 +147,9 @@ export class TrailsListComponent extends AbstractComponent {
   @Output() mapFilteredTrails = new EventEmitter<Trail[]>();
 
   state$ = new BehaviorSubject<State>(defaultState);
+  filters$ = new BehaviorSubject<Filters | undefined>(undefined);
 
+  collection?: TrailCollection;
   allTrails: TrailWithInfo[] = [];
   mapTrails: TrailWithInfo[] = [];
   listTrails: List<TrailWithInfo> = List();
@@ -221,6 +229,16 @@ export class TrailsListComponent extends AbstractComponent {
     });
   }
 
+  protected override initComponent(): void {
+    let previousFilters: Filters | undefined = undefined;
+    this.state$.subscribe(state => {
+      if (state.filters !== previousFilters) {
+        previousFilters = state.filters;
+        this.filters$.next(this.filtersToSystemUnit(state.filters));
+      }
+    });
+  }
+
   protected override getComponentState() {
     return {
       trails$: this.trails$,
@@ -237,10 +255,15 @@ export class TrailsListComponent extends AbstractComponent {
     this.byState.add(this.ngZone.runOutsideAngular(() =>
       combineLatest([this.visible$, this.map?.visible$ ?? of(false)]).pipe(
         filter(([thisVisible, mapVisible]) => thisVisible || mapVisible),
-        switchMap(() => (trails$.length === 0 ? of([]) : combineLatest(trails$))),
-        map(trails => trails.filter(t => !!t)),
-        debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
-        map(trails => {
+        switchMap(() => combineLatest([
+          this.collectionUuid && this.authService.email ? this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid, this.authService.email) : of(undefined),
+          (trails$.length === 0 ? of([]) : combineLatest(trails$)).pipe(
+            map(trails => trails.filter(t => !!t)),
+            debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
+          ),
+        ])),
+        map(([collection, trails]) => {
+          this.collection = collection ?? undefined;
           this.updateToolbar(trails);
           // if no active filter, we can early emit the list of trails to the map
           if (this.trails$ && this.nbActiveFilters() === 0)
@@ -248,7 +271,7 @@ export class TrailsListComponent extends AbstractComponent {
           return trails.map(
             trail => combineLatest([
               trail.currentTrackUuid$.pipe(
-                switchMap(trackUuid => this.trackService.getMetadata$(trackUuid, trail.owner)),
+                switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getTrackMetadata$(trail.uuid, trail.owner, trackUuid) : this.trackService.getMetadata$(trackUuid, trail.owner)),
                 filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
               ),
               trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([])
@@ -315,16 +338,17 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private updateToolbar(trails: Trail[]): void {
-    this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collectionUuid, true, this.listType === 'all-collections');
+    this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collection, true, this.listType === 'all-collections');
     this.toolbar.splice(0, 0,
       new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
+        .setDisabled(() => trails.length === 0)
         .setAction(() => this.sortModal?.present()),
       new MenuItem().setIcon('filters').setI18nLabel('tools.filters')
         .setAction(() => this.filtersModal?.present())
-        .setBadge(() => {
+        .setBadgeTopRight(() => {
           const nb = this.nbActiveFilters();
           if (nb === 0) return undefined;
-          return '' + nb;
+          return { text: '' + nb, color: 'success', fill: true };
         }),
     );
 
@@ -354,15 +378,27 @@ export class TrailsListComponent extends AbstractComponent {
     this.clearHighlights();
   }
 
-  private applyFilters(): TrailWithInfo[] {
-    const filters = this.state$.value.filters;
+  private filtersToSystemUnit(filters: Filters): Filters {
     const distanceConverter = this.preferences.preferences.distanceUnit === 'METERS' ? 1000 : 5280;
-    const minDistance = filters.distance.from === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.from * distanceConverter);
-    const maxDistance = filters.distance.to === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.to * distanceConverter);
-    const minPosEle = filters.positiveElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.from);
-    const maxPosEle = filters.positiveElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.to);
-    const minNegEle = filters.negativeElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from);
-    const maxNegEle = filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to);
+    return {
+      ...filters,
+      distance: {
+        from: filters.distance.from === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.from * distanceConverter),
+        to: filters.distance.to === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.to * distanceConverter),
+      },
+      positiveElevation: {
+        from: filters.positiveElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.from),
+        to: filters.positiveElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.to),
+      },
+      negativeElevation: {
+        from: filters.negativeElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.from),
+        to: filters.negativeElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.negativeElevation.to),
+      }
+    };
+  }
+
+  private applyFilters(): TrailWithInfo[] {
+    const filters = this.filtersToSystemUnit(this.state$.value.filters);
     this.clearHighlights();
     const searchTextRanges = new Map<string, {length: number, name: number, location: number}>();
     this.mapTrails = this.allTrails.filter(
@@ -382,12 +418,12 @@ export class TrailsListComponent extends AbstractComponent {
         }
         if (filters.estimatedDuration.from !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration < filters.estimatedDuration.from * 60 * 60 * 1000)) return false;
         if (filters.estimatedDuration.to !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration > filters.estimatedDuration.to * 60 * 60 * 1000)) return false;
-        if (minDistance !== undefined && (t.track?.distance === undefined || t.track.distance < minDistance)) return false;
-        if (maxDistance !== undefined && (t.track?.distance === undefined || t.track.distance > maxDistance)) return false;
-        if (minPosEle !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation < minPosEle)) return false;
-        if (maxPosEle !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation > maxPosEle)) return false;
-        if (minNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < minNegEle)) return false;
-        if (maxNegEle !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > maxNegEle)) return false;
+        if (filters.distance.from !== undefined && (t.track?.distance === undefined || t.track.distance < filters.distance.from)) return false;
+        if (filters.distance.to !== undefined && (t.track?.distance === undefined || t.track.distance > filters.distance.to)) return false;
+        if (filters.positiveElevation.from !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation < filters.positiveElevation.from)) return false;
+        if (filters.positiveElevation.to !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation > filters.positiveElevation.to)) return false;
+        if (filters.negativeElevation.from !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < filters.negativeElevation.from)) return false;
+        if (filters.negativeElevation.to !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > filters.negativeElevation.to)) return false;
         if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || filters.loopTypes.selected.indexOf(t.trail.loopType) < 0)) return false;
         if (filters.activities.selected !== undefined && filters.activities.selected.indexOf(t.trail.activity) < 0) return false;
         if (filters.tags.type === 'onlyWithAnyTag') {

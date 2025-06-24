@@ -100,7 +100,7 @@
   .bottom-info {
     position: absolute;
   }
-  .trail-photos-tab {
+  .trail-photos-tab, .trail-reviews-tab {
     display: none;
     position: absolute;
   }
@@ -242,7 +242,7 @@
       }
     }
 
-    &.tab-photos {
+    &.tab-photos, &.tab-reviews {
       .map-container {
         display: none;
       }
@@ -258,7 +258,7 @@
       .edit-tools-container {
         display: none;
       }
-      .trail-photos-tab {
+      .trail-photos-tab, .trail-reviews-tab {
         display: block;
         top: calc(var(--tabs-height) + 10px);
         left: 0;
@@ -271,6 +271,9 @@
           width: 100%;
           height: 100%;
         }
+      }
+      .trail-reviews-tab {
+        overflow-y: auto;
       }
     }
 
@@ -596,7 +599,14 @@ div.trail-dates {
   }
 }
 
-a, a:active {
+div.my-feedback {
+  font-size: 12px;
+  padding: 0 8px;
+  margin-top: 3px;
+  color: rgba(var(--ion-text-color-rgb), 0.75);
+}
+
+::ng-deep a, a:active {
   color: var(--ion-color-tertiary);
 }
 
@@ -651,4 +661,26 @@ a, a:active {
 }
 .no-tag {
   margin-left: 5px;
+}
+
+div.moderation-messages {
+  h3 {
+    color: var(--ion-color-tertiary);
+    font-size: 14px;
+    margin: 5px 8px 5px 8px;
+  }
+  div {
+    font-size: 12px;
+    margin: 5px 8px 5px 8px;
+  }
+}
+
+div.leave-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.13);
+  border: 1px solid rgba(var(--ion-color-tertiary-rgb), 0.5);
+  border-radius: 5px;
+  margin: 5px 8px 0 8px;
 }

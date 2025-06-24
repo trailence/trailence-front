@@ -12,6 +12,11 @@
     </div>
   }
   <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}">{{ meta.name }}</div>
+  @if (publicTrailUuid) {
+    <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
+      <ion-icon name="web" slot="icon-only"></ion-icon>
+    </ion-button>
+  }
   <ng-container *ngIf="external && external.oscmSymbol">
     <ng-container *ngIf="generateRouteSymbol(external.oscmSymbol) as svg">
       <div class="ocsm-symbol" [innerHTML]="svg"></div>
@@ -25,14 +30,9 @@
   <div class="trail-tags-row" [ngClass]="{'nowrap': hasFixedHeight}">
     <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
   </div>
-  <div class="rating-stars" *ngIf="external && external.rating !== undefined">
-    <ion-icon [name]="external.rating < 0.5 ? 'star-empty' : external.rating >= 1 ? 'star-filled' : 'star-half'"></ion-icon>
-    <ion-icon [name]="external.rating < 1.5 ? 'star-empty' : external.rating >= 2 ? 'star-filled' : 'star-half'"></ion-icon>
-    <ion-icon [name]="external.rating < 2.5 ? 'star-empty' : external.rating >= 3 ? 'star-filled' : 'star-half'"></ion-icon>
-    <ion-icon [name]="external.rating < 3.5 ? 'star-empty' : external.rating >= 4 ? 'star-filled' : 'star-half'"></ion-icon>
-    <ion-icon [name]="external.rating < 4.5 ? 'star-empty' : external.rating >= 5 ? 'star-filled' : 'star-half'"></ion-icon>
-    <span>{{ external.rating | number:'1.0-1' }} / 5</span>
-  </div>
+  <ng-container *ngIf="external && external.rating !== undefined">
+    <app-rate [rate]="external!.rating!" [nbRates]="external.nbRates"></app-rate>
+  </ng-container>
 
   <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined)}">
     <ng-container *ngIf="meta.dateString || meta.location">
@@ -76,7 +76,7 @@
   </ng-container>
   <div class="open-trail" *ngIf="trail">
     <ion-button size="small" fill="clear" color="dark" (click)="openTrail(); $event.stopPropagation()">
-      <a href="/trail/{{trail.owner + '/' + trail.uuid }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+      <a href="{{ openUrl }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
         <ion-icon name="enter" slot="icon-only"></ion-icon>
       </a>
     </ion-button>

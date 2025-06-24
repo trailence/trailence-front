@@ -22,7 +22,7 @@
     <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true" class="tight-menu">
       <ng-template>
         <ion-content>
-          <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collectionUuid)"></app-menu-content>
+          <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collection)"></app-menu-content>
         </ion-content>
       </ng-template>
     </ion-popover>
@@ -79,6 +79,7 @@
               [trackSnapshot]="trailWithInfo.track"
               [delayLoading]="$index >= 10"
               [photoCanBeOnLeft]="size !== 'small'"
+              [showPublished]="showPublished"
             ></app-trail-overview>
           </div>
         }
@@ -94,6 +95,7 @@
             [selected]="trailWithInfo.selected"
             (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
             [fromCollection]="!!collectionUuid"
+            [isAllCollections]="listType === 'all-collections'"
             [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
             (click)="onTrailClick(trailWithInfo.trail)"
             [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"

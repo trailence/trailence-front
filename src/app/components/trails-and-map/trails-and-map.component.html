@@ -5,12 +5,13 @@
       [tracks$]="mapTracks$"
       [bubbles$]="mapBubbles$"
       [showBubbles$]="showBubbles$"
+      [bubblesToolAvailable$]="bubblesToolAvailable$"
       (mouseClickPoint)="onTrailClickOnMap($event)"
     >
-      @if (enableSearchPlace) {
+      @if (mapToolbarTopItems.length > 0) {
         <div class="map-top-controls right">
-          <app-toolbar #mapToolbarTopRight
-            [items]="mapToolbarTopRightItems"
+          <app-toolbar #mapToolbarTop
+            [items]="mapToolbarTopItems"
             [iconSize]="24"
             [iconOnlySize]="24"
             textSize="9px"
@@ -41,6 +42,7 @@
       (mapFilteredTrails)="updateMap($event)"
       [message]="message"
       [enableRemoveByGesture]="enableRemoveByGesture"
+      [showPublished]="showPublished"
     ></app-trails-list>
   </div>
   <div class="tabs-container">

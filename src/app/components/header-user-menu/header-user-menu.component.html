@@ -1,9 +1,10 @@
-<ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button">
+<ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button" #userButton>
   <div slot="icon-only" style="pointer-events: none;">{{userLetter}}</div>
 </ion-button>
+<ion-badge class="notif-badge" color="danger" *ngIf="nbUnreadNotifications > 0" (click)="transferEvent($event, userButton)">{{nbUnreadNotifications}}</ion-badge>
 <div class="status status-{{icon}}"><ion-icon [name]="icon"></ion-icon></div>
 
-<ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click">
+<ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click" style="--width: calc(min(90%, 350px))">
   <ng-template>
     <ion-content>
       <ion-list>
@@ -48,6 +49,10 @@
         <ion-item button (click)="router.navigateByUrl('/preferences'); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="settings"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.title}}</ion-label>
+        </ion-item>
+        <ion-item button id="item-notifications" [detail]="true" lines="full" *ngIf="!isAnonymous">
+          <ion-icon slot="start" name="notification"></ion-icon>
+          <ion-label>{{notificationsMenuTitle}}</ion-label>
         </ion-item>
         <ion-item button (click)="router.navigateByUrl('/myaccount'); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="account"></ion-icon>
@@ -104,6 +109,27 @@
                   <ion-icon slot="start" name="theme-system"></ion-icon>
                   <ion-label>{{i18n.texts.pages.preferences.themes.system}}</ion-label>
                 </ion-item>
+              </ion-list>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+
+        <ion-popover trigger="item-notifications" [dismissOnSelect]="true" side="start" alignment="center" *ngIf="!isAnonymous"  style="--width: calc(min(90%, 350px))">
+          <ng-template>
+            <ion-content>
+              <ion-list>
+                @for (notif of (notifications.first5$ | async); track notif.uuid) {
+                  <app-notification-item [notification]="notif"></app-notification-item>
+                }
+                @if (notifications.notifications$.value.length > 5) {
+                  <ion-item>
+                    <a routerLink="/notifications">{{i18n.texts.notifications.view_all}}</a>
+                  </ion-item>
+                } @else if (notifications.notifications$.value.length === 0) {
+                  <ion-item [disabled]="true">
+                    {{ i18n.texts.notifications.menu.none }}
+                  </ion-item>
+                }
               </ion-list>
             </ion-content>
           </ng-template>

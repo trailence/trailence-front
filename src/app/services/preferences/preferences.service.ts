@@ -78,6 +78,7 @@ export class PreferencesService {
           photoMaxQuality: parsed['photoMaxQuality'],
           photoMaxSizeKB: parsed['photoMaxSizeKB'],
           photoCacheDays: parsed['photoCacheDays'],
+          alias: parsed['alias'] ?? '',
         }
       }
     } catch (e) {} // NOSONAR
@@ -106,6 +107,7 @@ export class PreferencesService {
     });
     this.injector.get(AuthService).auth$.subscribe(auth => {
       if (auth?.preferences) {
+        Console.info("Preferences from login", auth.preferences);
         const prefs = {...auth.preferences};
         this.complete(prefs, this._prefs$.value);
         this._prefs$.next(prefs);
@@ -148,6 +150,7 @@ export class PreferencesService {
     toComplete.photoMaxQuality ??= DEFAULT_PHOTO_MAX_QUALITY;
     toComplete.photoMaxSizeKB ??= DEFAULT_PHOTO_MAX_SIZE;
     toComplete.photoCacheDays ??= DEFAULT_PHOTO_CACHE_DAYS;
+    toComplete.alias ??= '';
   }
 
   private completeEnum<T>(value: string | undefined, defaultValue: T, allowedValues: string[]): T {
@@ -259,6 +262,10 @@ export class PreferencesService {
 
   public setPhotoCacheDays(value: number): void {
     this.setPreference('photoCacheDays', value);
+  }
+
+  public setAlias(value: string): void {
+    this.setPreference('alias', value);
   }
 
   private setPreference(field: string, value: any): void {

@@ -1,5 +1,3 @@
-import { IonicButton } from '../../components/ionic/ion-button';
-import { IonicSelect } from '../../components/ionic/ion-select';
 import { TrailsAndMapComponent } from '../../components/trails-and-map.component';
 import { PageWithHeader } from './page';
 
@@ -16,10 +14,6 @@ export class TrailsPage extends PageWithHeader {
   }
 
   public get trailsAndMap() { return new TrailsAndMapComponent(this.getElement().$('app-trails-and-map')); }
-
-  public get searchSources() { return new IonicSelect(this.getElement().$('app-search-trails-header'), 'ion-select', true); }
-
-  public get searchButton() { return new IonicButton(this.getElement().$('app-search-trails-header'), 'ion-button'); }
 
   protected override expectedUrl(url: string): boolean {
     switch (this.type) {
