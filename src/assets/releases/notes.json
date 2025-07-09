@@ -110,5 +110,9 @@
   "001705": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "001800": {
+    "en": {"message": "Publish your trails!"},
+    "fr": {"message": "Publiez vos parcours !"}
   }
 }
