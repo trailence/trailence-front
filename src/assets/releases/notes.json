@@ -114,5 +114,9 @@
   "001800": {
     "en": {"message": "Publish your trails!"},
     "fr": {"message": "Publiez vos parcours !"}
+  },
+  "001801": {
+    "en": {"message": "Some improvements and fixes"},
+    "fr": {"message": "Quelques améliorations et correctifs"}
   }
 }

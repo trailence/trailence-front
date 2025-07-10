@@ -63,15 +63,15 @@ function fillTemplate(data, template) {
       name = name.substring(sep + 1);
     }
     if (pos < i) s += template.substring(pos, i);
-    let value = resolveVariable(name, data);
     if (!fct) {
-      s += escapeHtml(value || '');
+      const value = resolveVariable(name, data);
+      s += escapeHtml(value ? (typeof value === 'string' ? value : '' + value) : '');
       pos = j + 2;
     } else {
       const end = template.indexOf('{{/' + fct + '}}', j + 2);
       if (end < 0) break;
       const content = template.substring(j + 2, end);
-      s += applyFunction(fct, value, content, data);
+      s += applyFunction(fct, name, content, data);
       pos = end + 5 + fct.length;
     }
   }
@@ -101,15 +101,22 @@ function resolveVariable(name, data) {
 
 function applyFunction(fctName, fctValue, fctContent, data) {
   if (fctName === 'if') {
+    fctValue = fctValue.startsWith('!') ? !resolveVariable(fctValue.substring(1), data) : resolveVariable(fctValue, data);
     if (!fctValue) return '';
-    return fillTemplate(data, fctContent)
+    return fillTemplate(data, fctContent);
   } else if (fctName === 'distance') {
+    fctValue = resolveVariable(fctValue, data);
     if (fctValue < 1000) return '' + fctValue + ' m';
     else return (fctValue/1000).toFixed(2) + ' km';
   } else if (fctName === 'duration') {
+    fctValue = resolveVariable(fctValue, data);
     return durationToString(fctValue, data.i18n);
   } else if (fctName === 'elevation') {
+    fctValue = resolveVariable(fctValue, data);
     return '' + fctValue + ' m';
+  } else if (fctName === 'json') {
+    fctValue = resolveVariable(fctValue, data);
+    return JSON.stringify(fctValue);
   }
   return '';
 }
