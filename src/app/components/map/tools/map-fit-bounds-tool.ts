@@ -13,6 +13,9 @@ export class MapFitBoundsTool extends MapTool {
       mapComponent.fitMapBounds(map);
       return of(true);
     };
+    this.disabled = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
+      return !mapComponent.canFitMapBounds();
+    };
   }
 
 }

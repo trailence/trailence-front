@@ -54,6 +54,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @Input() enableRemoveByGesture = false;
   @Input() enableSearchPlace = false;
   @Input() showPublished = false;
+  @Input() searching = false;
 
   @Input() mapTopToolbar$?: Observable<MenuItem[]>;
 
@@ -148,6 +149,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
             return;
           }
           this.mapTracks$.next(this.mapTracksMapper.update(result.trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
+          if (this.highlightedTrail) this.highlight(this.highlightedTrail, true);
           return;
         }
         if (this.mapTracks$.value.length > 0)

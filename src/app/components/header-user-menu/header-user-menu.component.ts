@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge } from '@ionic/angular/standalone';
 import { combineLatest, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -11,7 +11,6 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { NotificationsService } from 'src/app/services/notifications/notifications.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
-import { NotificationItemComponent } from '../notifications/notification-item/notification-item.component';
 
 @Component({
     selector: 'app-header-user-menu',
@@ -22,8 +21,6 @@ import { NotificationItemComponent } from '../notifications/notification-item/no
         IonButton,
         IonPopover,
         CommonModule,
-        NotificationItemComponent,
-        RouterLink,
     ]
 })
 export class HeaderUserMenuComponent extends AbstractComponent {
@@ -125,6 +122,10 @@ export class HeaderUserMenuComponent extends AbstractComponent {
 
   resetAll(): void {
     this.databaseService.resetAll();
+  }
+
+  goToNotifications(): void {
+    this.router.navigateByUrl('/notifications');
   }
 
 }

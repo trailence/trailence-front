@@ -9,7 +9,7 @@ import { first, firstValueFrom, map, Observable, of } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
-import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, isPublicationLockedCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { Track } from 'src/app/model/track';
 import { TrackMetadataSnapshot } from './track-database';
 import { TrackService } from './track.service';
@@ -25,11 +25,11 @@ export class TrailMenuService {
 
   public trailToCompare: Trail | undefined;
 
-  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: TrailCollection | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false): MenuItem[] { // NOSONAR
+  public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: TrailCollection | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false, isModeration: boolean = false): MenuItem[] { // NOSONAR
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email!;
 
-    if (!onlyGlobal && trails.length > 0 && !isPublicationCollection(fromCollection?.type)) {
+    if (!onlyGlobal && trails.length > 0 && !isPublicationLockedCollection(fromCollection?.type)) {
       menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
         .setAction(() => import('../functions/map-download').then(m => m.openMapDownloadDialog(this.injector, trails))));
       if (trails.length === 1) {
@@ -44,7 +44,7 @@ export class TrailMenuService {
         }));
       }
 
-      if (trails.every(t => t.owner === email)) {
+      if (trails.every(t => t.owner === email) && !isModeration) {
         const collectionUuid = this.getUniqueCollectionUuid(trails);
         if (collectionUuid) {
           menu.push(new MenuItem());
@@ -58,13 +58,15 @@ export class TrailMenuService {
           }
           menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
             .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
-          menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
-            .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
-          if (trails.length === 1) {
-            menu.push(new MenuItem());
-            menu.push(new MenuItem().setIcon('web').setI18nLabel('publications.publish')
-              .setDisabled(() => email === ANONYMOUS_USER)
-              .setAction(() => this.startPublication(trails[0])))
+          if (!isPublicationCollection(fromCollection?.type)) {
+            menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
+              .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
+            if (trails.length === 1) {
+              menu.push(new MenuItem());
+              menu.push(new MenuItem().setIcon('web').setI18nLabel('publications.publish')
+                .setDisabled(() => email === ANONYMOUS_USER)
+                .setAction(() => this.startPublication(trails[0])))
+            }
           }
         }
       }

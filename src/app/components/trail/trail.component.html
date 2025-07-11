@@ -235,16 +235,14 @@
         @if (trail1.description || editable) {
           <div class="description-text">
             @if (!editable) {
-              <span>{{ trail1.description }}</span>
+              <app-text [text]="trail1.description"></app-text>
             } @else {
               @if (!editingDescription) {
                 <div class="edit-description" (click)="startEditDescription()">
                   <span *ngIf="trail1.description.trim().length === 0" class="no-description">
                     {{ i18n.texts.pages.trail.sections.description.placeholder }}
                   </span>
-                  <span *ngIf="trail1.description.trim().length > 0">
-                    {{ trail1.description }}
-                  </span>
+                  <app-text *ngIf="trail1.description.trim().length > 0" [text]="trail1.description"></app-text>
                 </div>
               } @else {
                 <ion-textarea class="description-text"

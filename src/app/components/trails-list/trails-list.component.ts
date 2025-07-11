@@ -139,6 +139,8 @@ export class TrailsListComponent extends AbstractComponent {
   @Input() message?: string;
   @Input() enableRemoveByGesture = false;
   @Input() showPublished = false;
+  @Input() searching = false;
+  @Input() onlyBubbles = false;
 
   id = IdGenerator.generateId();
   highlighted?: Trail;

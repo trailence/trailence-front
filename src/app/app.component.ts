@@ -76,6 +76,7 @@ export class AppComponent {
     ]).subscribe(([a, t]) => {
       this.loadMenu = true;
       const startup = document.getElementById('startup')!;
+      startup.style.opacity = '0.75';
       document.getElementById('root')!.style.display = '';
       if (!a) {
         this.ready(startup);

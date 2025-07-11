@@ -57,6 +57,7 @@ import { FeedbackService, MyFeedback } from 'src/app/services/feedback/feedback.
 import { RateAndCommentsComponent } from './rate-and-comments/rate-and-comments.component';
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { TextComponent } from '../text/text.component';
 
 interface TrailSource {
   isExternal: boolean;
@@ -92,6 +93,7 @@ interface TrailSource {
         ToolbarComponent,
         RouterLink,
         RateAndCommentsComponent,
+        TextComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent {

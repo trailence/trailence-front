@@ -374,6 +374,10 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
+  public canFitMapBounds(): boolean {
+    return this._currentTracks.length > 0 || this._currentBubbles.length > 0;
+  }
+
   public ensureVisible(track: MapTrack): void {
     const map = this._map$.value;
     if (!map) return;

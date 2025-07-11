@@ -12,7 +12,7 @@ export class MapToggleBubblesTool extends MapTool {
   ) {
     super();
     this.icon = (map: L.Map, mapComponent: MapComponent, injector: Injector) => activated$.value ? 'path' : 'bubbles';
-    this.visible = () => available$.value;
+    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => available$.value && mapComponent.canFitMapBounds();
     this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       activated$.next(!activated$.value);
       return of(true);

@@ -117,6 +117,9 @@ function applyFunction(fctName, fctValue, fctContent, data) {
   } else if (fctName === 'json') {
     fctValue = resolveVariable(fctValue, data);
     return JSON.stringify(fctValue);
+  } else if (fctName === 'text') {
+    fctValue = resolveVariable(fctValue, data);
+    return (''+fctValue).replace(/\n/g, '<br/>');
   }
   return '';
 }

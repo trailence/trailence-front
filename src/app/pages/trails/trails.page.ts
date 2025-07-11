@@ -241,7 +241,6 @@ export class TrailsPage extends AbstractPage {
   }
 
   private initSearch(): void {
-    if (this.trails$.value === undefined) this.trails$.next(List());
     // title
     this.byStateAndVisible.subscribe(
       this.i18n.texts$,
@@ -306,11 +305,15 @@ export class TrailsPage extends AbstractPage {
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
     this.selectedSearchPlugins = ['Trailence'];
+    // refresh toolbar when network change
+    this.byStateAndVisible.subscribe(this.connected$, () => {
+      this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
+    });
   }
 
   private searchBounds?: L.LatLngBounds;
   private searchZoom?: number;
-  private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number): void {
+  private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number, forceRefresh: boolean = false): void {
     this.ngZone.run(() => {
       this.searchBounds = bounds;
       this.searchZoom = zoom;
@@ -345,8 +348,8 @@ export class TrailsPage extends AbstractPage {
           changed = true;
         }
       }
-      if (changed) {
-        this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+      if (changed || forceRefresh) {
+        this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
       }
     });
   }
@@ -384,7 +387,7 @@ export class TrailsPage extends AbstractPage {
           this.trails$.next(newList);
         if (result.end) {
           this.searching = false;
-          this.setSearchBounds(this.searchBounds, this.searchZoom);
+          this.setSearchBounds(this.searchBounds, this.searchZoom, true);
         }
         if (result.tooManyResults) this.searchMessage = 'pages.trails.search.too_much_results';
         if (result.trails.length > 0) this.hasSearchResult = true;
@@ -397,8 +400,7 @@ export class TrailsPage extends AbstractPage {
         Console.error('Error searching trails on ' + plugins.join(',') + ' with bounds', this.searchBounds, 'error', e);
         this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
         this.searching = false;
-        this.setSearchBounds(this.searchBounds, this.searchZoom);
-        this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+        this.setSearchBounds(this.searchBounds, this.searchZoom, true);
       }
     });
   }
@@ -424,8 +426,7 @@ export class TrailsPage extends AbstractPage {
             this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
             if (searchCount === count) {
               this.searching = false;
-              this.setSearchBounds(bounds, zoom);
-              this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+              this.setSearchBounds(bounds, zoom, true);
             }
             return EMPTY;
           }),
@@ -462,9 +463,7 @@ export class TrailsPage extends AbstractPage {
         }));
         this.searching = false;
         this.hasSearchResult = result.length > 0;
-        this.setSearchBounds(bounds, zoom);
-        this.searchMessage = 'pages.trails.search.needs_zoom';
-        this.mapTopToolbar$.next(this.mapTopToolbar$.value);
+        this.setSearchBounds(bounds, zoom, true);
         console.log('Search bubbles result', result);
       });
     });
@@ -473,7 +472,7 @@ export class TrailsPage extends AbstractPage {
   clearSearchResult(): void {
     this.ngZone.run(() => {
       this.hasSearchResult = false;
-      this.trails$.next(List());
+      this.trails$.next(undefined);
       this.bubbles$.next([]);
     });
   }

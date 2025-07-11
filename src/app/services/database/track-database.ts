@@ -241,11 +241,11 @@ export class TrackDatabase {
   public recomputeMetadata(updateTimeEstimation: boolean, updateBreakTime: boolean): Promise<any> {
     if (!this.db || !this.metadataTable || !this.fullTrackTable) return Promise.resolve();
     Console.info('Preferences changed, recompute estimated time/breaks duration of trails', updateTimeEstimation, updateBreakTime);
-    let workAmount = 1000;
-    const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.recompute_metadata, workAmount);
     return this.operations.push('Update trails metadata', () => {
       let count = 0;
       let countInMemory = 0;
+      let workAmount = 1000;
+      const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.recompute_metadata, workAmount);
       return this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
         return this.metadataTable?.count()
         .then(countFromTable => {

@@ -65,6 +65,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() refreshMode: 'live' | 'snapshot' = 'snapshot';
   @Input() fromCollection = true;
   @Input() isAllCollections = false;
+  @Input() isModeration = false;
   @Input() trackSnapshot: TrackMetadataSnapshot | null | undefined;
 
   @Input() selectable = false;
@@ -308,7 +309,7 @@ export class TrailOverviewComponent extends AbstractComponent {
       await firstValueFrom(
         this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.injector.get(AuthService).email ?? '').pipe(filterDefined())
       ) : undefined;
-    const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, collection, false, this.isAllCollections);
+    const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, collection, false, this.isAllCollections, this.isModeration);
     let estimatedHeight = 16;
     for (const item of menu) {
       if (item.isSeparator()) estimatedHeight += 6;

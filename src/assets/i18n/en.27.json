@@ -153,7 +153,10 @@
         "collection": "No trail yet in this collection",
         "share": "No trail in this share",
         "filter": "No trail match your filters",
-        "all_collections": "You have no trail at the moment"
+        "all_collections": "You have no trail at the moment",
+        "search": "No trails found in this area.",
+        "launch_search": "Move around the map to the area where you want to search for trails, then click “Search in this area”.",
+        "only_bubbles": "Zoom in on the map and click “Search in this area”, or click directly on the bubbles to see available trails."
       },
       "search_trail_placeholder": "Search a trail",
       "actions": {
@@ -1119,8 +1122,7 @@
     "menu": {
       "no_unread": "Notifications",
       "unread_single": "1 unread notification",
-      "unread_plural": "{{1}} unread notifications",
-      "none": "No notifications"
+      "unread_plural": "{{1}} unread notifications"
     },
     "view_all": "View all",
     "items": {

@@ -63,7 +63,7 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
             switchMap(([auth, connected]) => {
               this.authenticated = !!auth && !auth.isAnonymous;
               this.connected = connected;
-              if (this.authenticated && this.connected && this.trail)
+              if (this.authenticated && this.connected && this.trail && this.trail.owner === 'trailence')
                 return this.feedbackService.getMyFeedback(this.trail.uuid);
               return EMPTY;
             })

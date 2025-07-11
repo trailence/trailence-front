@@ -257,10 +257,13 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         switchMap(() => {
           if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
           if (!this._forceUpdateFromServerChecked && this._createdLocally.length === 0 && this._deletedLocally.length === 0 && this._updatedLocally.length === 0) {
-            this.syncStep('forced update from server');
             return from(this.shouldForceUpdateFromServer()).pipe(
               switchMap(force => {
-                if (!force) return this.syncUpdateFromServer(stillValid);
+                if (!force) {
+                  this.syncStep('request updates from server');
+                  return this.syncUpdateFromServer(stillValid);
+                }
+                this.syncStep('forced update from server');
                 return this.forceUpdateFromServer(stillValid).pipe(
                   switchMap(done => {
                     if (done) {

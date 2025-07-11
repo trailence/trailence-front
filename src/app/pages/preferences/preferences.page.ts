@@ -38,6 +38,7 @@ export class PreferencesPage implements OnDestroy {
   tfoAllowed = false;
   photoCacheSize?: {total: number, expired: number};
   aliasType: 'anonymous' | 'name' = 'anonymous';
+  isAnonymous = false;
 
   private readonly extensionsSubscription: Subscription;
   private readonly preferencesSubscription: Subscription;
@@ -63,6 +64,7 @@ export class PreferencesPage implements OnDestroy {
     this.preferencesSubscription = preferences.preferences$.subscribe(() => this.refresh());
     this.authSubscription = auth.auth$.subscribe(a => {
       this.tfoAllowed = !!a && a.allowedExtensions.indexOf('thunderforest.com') >= 0;
+      this.isAnonymous = a?.isAnonymous ?? false;
     });
   }
 

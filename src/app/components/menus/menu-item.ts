@@ -471,7 +471,7 @@ export class ComputedMenuItem {
     else this.text$ = undefined;
     changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
     changed = this.setValue(this.icon, this.item.getIcon(), v => this.icon = v) || changed;
-    changed = this.setValue(this.textColor, this.disabled ? 'medium' : this.item.getTextColor(), v => this.textColor = v) || changed;
+    changed = this.setValue(this.textColor, this.disabled ? 'disabled' : this.item.getTextColor(), v => this.textColor = v) || changed;
     changed = this.setValue(this.backgroundColor, this.disabled ? undefined : this.item.getBackgroundColor(), v => this.backgroundColor = v) || changed;
     changed = this.setValue(this.sectionTitle, this.item.isSectionTitle(), v => this.sectionTitle = v) || changed;
     changed = this.setValue(this.onlyText, this.icon === undefined, v => this.onlyText = v) || changed;

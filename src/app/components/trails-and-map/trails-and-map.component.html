@@ -43,6 +43,8 @@
       [message]="message"
       [enableRemoveByGesture]="enableRemoveByGesture"
       [showPublished]="showPublished"
+      [searching]="searching"
+      [onlyBubbles]="!!(bubbles$ | async)?.length"
     ></app-trails-list>
   </div>
   <div class="tabs-container">

@@ -9,37 +9,53 @@
 <div class="message" *ngIf="message">
   {{message | i18nString}}
 </div>
-<div class="selection list-{{size}}">
-  <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
-  <ng-template let-selected="nbSelected" let-total="nbShown" #templateSelectionButton>
-    <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event.detail.checked)"></ion-checkbox>
-    <ion-button color="light" size="small" id="trail-list-{{id}}-selection-button" [disabled]="selected === 0">
-      <ion-label>
-        {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
-      </ion-label>
-      <ion-icon slot="end" name="caret-down"></ion-icon>
-    </ion-button>
-    <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true" class="tight-menu">
-      <ng-template>
-        <ion-content>
-          <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collection)"></app-menu-content>
-        </ion-content>
-      </ng-template>
-    </ion-popover>
-  </ng-template>
-  <div class="space"></div>
-  <div class="view-selection">
-    <ion-segment mode="ios" [value]="state$.value.mode" (ionChange)="setListMode($event.detail.value)">
-      <ion-segment-button value="detailed"><ion-icon name="list-detailed"></ion-icon></ion-segment-button>
-      <ion-segment-button value="condensed"><ion-icon name="list-condensed"></ion-icon></ion-segment-button>
-    </ion-segment>
+@if (trails$ !== undefined && trails$.size > 0) {
+  <div class="selection list-{{size}}">
+    <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
+    <ng-template let-selected="nbSelected" let-total="nbShown" #templateSelectionButton>
+      <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event.detail.checked)"></ion-checkbox>
+      <ion-button color="light" size="small" id="trail-list-{{id}}-selection-button" [disabled]="selected === 0">
+        <ion-label>
+          {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
+        </ion-label>
+        <ion-icon slot="end" name="caret-down"></ion-icon>
+      </ion-button>
+      <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true" class="tight-menu">
+        <ng-template>
+          <ion-content>
+            <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collection)"></app-menu-content>
+          </ion-content>
+        </ng-template>
+      </ion-popover>
+    </ng-template>
+    <div class="space"></div>
+    <div class="view-selection">
+      <ion-segment mode="ios" [value]="state$.value.mode" (ionChange)="setListMode($event.detail.value)">
+        <ion-segment-button value="detailed"><ion-icon name="list-detailed"></ion-icon></ion-segment-button>
+        <ion-segment-button value="condensed"><ion-icon name="list-condensed"></ion-icon></ion-segment-button>
+      </ion-segment>
+    </div>
   </div>
-</div>
+}
 <div class="trails">
-  @if (trails$ === undefined) {
+  @if (searching) {
     <div style="display: flex; flex-direction: row; justify-content: center; margin: 10px;">
       <ion-spinner name="dots"></ion-spinner>
     </div>
+  }
+  @if (trails$ === undefined) {
+    @if (listType === 'search') {
+      <div class="empty-list">
+        <div>
+          <div>Déplacez vous sur la carte dans la zone dans laquelle vous souhaitez chercher des parcours, puis cliquez sur "Lancer la recherche"</div>
+          <ion-icon name="search-map" color="dark" style="width: 24px; height: 24px;"></ion-icon>
+        </div>
+      </div>
+    } @else {
+      <div style="display: flex; flex-direction: row; justify-content: center; margin: 10px;">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
+    }
   } @else if (trails$ && trails$.size === 0) {
     <div class="empty-list">
       @if (listType === 'collection') {
@@ -53,6 +69,12 @@
         <div>{{i18n.texts.pages.trails.empty_list.share}}</div>
       } @else if (listType === 'all-collections') {
         <div>{{i18n.texts.pages.trails.empty_list.all_collections}}</div>
+      } @else if (listType === 'search') {
+        @if (onlyBubbles) {
+          <div>{{i18n.texts.pages.trails.empty_list.only_bubbles}}</div>
+        } @else {
+          <div>{{i18n.texts.pages.trails.empty_list.search}}</div>
+        }
       }
     </div>
   } @else if (listTrails.size === 0) {
@@ -76,6 +98,7 @@
               (click)="onTrailClick(trailWithInfo.trail)"
               [fromCollection]="!!collectionUuid"
               [isAllCollections]="listType === 'all-collections'"
+              [isModeration]="listType === 'moderation'"
               [trackSnapshot]="trailWithInfo.track"
               [delayLoading]="$index >= 10"
               [photoCanBeOnLeft]="size !== 'small'"

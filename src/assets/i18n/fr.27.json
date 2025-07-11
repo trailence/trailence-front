@@ -153,7 +153,10 @@
         "collection": "Aucun parcours dans cette collection pour l'instant",
         "share": "Aucun parcours dans ce partage",
         "filter": "Aucun parcours ne correspond à vos filtres",
-        "all_collections": "Vous n'avez aucun parcours pour l'instant"
+        "all_collections": "Vous n'avez aucun parcours pour l'instant",
+        "search": "Aucun parcours trouvé dans cette zone.",
+        "launch_search": "Déplacez-vous sur la carte jusqu’à la zone où vous souhaitez rechercher des parcours, puis cliquez sur « Lancer la recherche ».",
+        "only_bubbles": "Zoomez sur la carte et cliquez sur « Lancer la recherche », ou cliquez directement sur les bulles pour voir les parcours disponibles."
       },
       "search_trail_placeholder": "Chercher un parcours",
       "actions": {
@@ -207,7 +210,7 @@
       },
       "search": {
         "sources": "Sources",
-        "searching": "Recherche",
+        "searching": "Recherche en cours",
         "error": "Erreur lors de la recherche",
         "needs_zoom": "Carte trop large, zoomez d'avantage",
         "too_much_results": "Trop de résultats",
@@ -1119,8 +1122,7 @@
     "menu": {
       "no_unread": "Notifications",
       "unread_single": "1 notification non lue",
-      "unread_plural": "{{1}} notifications non lues",
-      "none": "Aucune notification"
+      "unread_plural": "{{1}} notifications non lues"
     },
     "view_all": "Voir toutes",
     "items": {
@@ -1159,8 +1161,8 @@
   "relativeDates": {
     "justNow": "A l'instant",
     "fewSecondsAgo": "Il y a quelques secondes",
-    "minuteAgo": "Il y'a 1 minute",
-    "minutesAgo": "Il y'a {{1}} minutes",
-    "ago": "Il y'a {{1}}"
+    "minuteAgo": "Il y a 1 minute",
+    "minutesAgo": "Il y a {{1}} minutes",
+    "ago": "Il y a {{1}}"
   }
 }

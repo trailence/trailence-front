@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
-import { BehaviorSubject, map, Observable, of, switchMap, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, Observable, of, switchMap, timer } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
@@ -12,6 +12,7 @@ export interface Notification {
   read: boolean;
   text: string;
   textElements: string[] | null | undefined;
+  email: string;
 }
 
 @Injectable({providedIn: 'root'})
@@ -21,8 +22,8 @@ export class NotificationsService {
 
   constructor(
     private readonly http: HttpService,
-    readonly network: NetworkService,
-    readonly auth: AuthService,
+    private readonly network: NetworkService,
+    private readonly auth: AuthService,
   ) {
     auth.auth$.pipe(
       switchMap(auth => {
@@ -42,7 +43,7 @@ export class NotificationsService {
   private refreshNotifications(): void {
     this.http.get<Notification[]>(environment.apiBaseUrl + '/notifications/v1').subscribe(list => {
       Console.info('Received ' + list.length + ' notifications');
-      this.notifications$.next(list.sort((n1, n2) => n2.date - n1.date));
+      this.notifications$.next(list.sort((n1, n2) => n2.date - n1.date).map(n => ({...n, email: this.auth.email!})));
     });
   }
 
@@ -50,27 +51,25 @@ export class NotificationsService {
     return this.notifications$.pipe(map(list => list.reduce((p,v) => p + (v.read ? 0 : 1), 0)));
   }
 
-  public get first5$(): Observable<Notification[]> {
-    return this.notifications$.pipe(
-      map(list => {
-        const result = [...list];
-        if (result.length > 5) result.splice(5, result.length - 5);
-        return result;
-      })
-    );
-  }
-
   public markAsRead(notification: Notification): void {
     notification.read = true;
-    this.http.put<Notification>(environment.apiBaseUrl + '/notifications/v1/' + notification.uuid, notification).subscribe(
-      result => {
-        const i = this.notifications$.value.findIndex(n => n.uuid === result.uuid);
-        if (i >= 0) {
-          this.notifications$.value[i] = result;
-          this.notifications$.next(this.notifications$.value);
-        }
+    this.notifications$.next(this.notifications$.value);
+    this.auth.auth$.pipe(
+      switchMap(auth => {
+        if (!auth || auth.isAnonymous || auth.email !== notification.email) return EMPTY;
+        return this.network.server$;
+      }),
+      switchMap(connected => {
+        if (!connected) return EMPTY;
+        return this.http.put<Notification>(environment.apiBaseUrl + '/notifications/v1/' + notification.uuid, {...notification, email: undefined});
+      }),
+    ).subscribe(result => {
+      const i = this.notifications$.value.findIndex(n => n.uuid === result.uuid);
+      if (i >= 0) {
+        this.notifications$.value[i] = result;
+        this.notifications$.next(this.notifications$.value);
       }
-    );
+    });
   }
 
 }
