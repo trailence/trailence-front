@@ -9,7 +9,7 @@ import { Console } from 'src/app/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
 import { TranslatedString } from './i18n-string';
 
-const TEXTS_VERSION = '27';
+const TEXTS_VERSION = '28';
 
 interface TextToLoad {
   filePath: string;
