@@ -1,4 +1,4 @@
 ext {
-  versionCode = 1803
-  versionName = '0.18.3'
+  versionCode = 1804
+  versionName = '0.18.4'
 }

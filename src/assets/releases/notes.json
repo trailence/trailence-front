@@ -126,5 +126,9 @@
   "001803": {
     "en": {"message": "New Features for Track Editing"},
     "fr": {"message": "Nouvelles fonctionnalités d’édition de trace"}
+  },
+  "001804": {
+    "en": {"message": "New Features for Track Editing"},
+    "fr": {"message": "Nouvelles fonctionnalités d’édition de trace"}
   }
 }
