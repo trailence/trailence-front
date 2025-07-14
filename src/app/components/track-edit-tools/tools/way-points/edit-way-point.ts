@@ -2,6 +2,7 @@ import { Observable, of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { ModalController } from '@ionic/angular/standalone';
+import { WayPoint } from 'src/app/model/way-point';
 
 export class EditWayPointTool implements TrackEditTool {
 
@@ -15,7 +16,9 @@ export class EditWayPointTool implements TrackEditTool {
     if (!currentTrack) return false;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return false;
-    return TrackUtils.getWayPointAt(ctx.currentTrack$.value, point.point.pos) !== undefined;
+    return TrackUtils.getWayPointAt(currentTrack, point.point.pos) !== undefined ||
+      (point.segmentIndex === 0 && point.pointIndex === 0) ||
+      (point.segmentIndex === currentTrack.segments.length - 1 && point.pointIndex === currentTrack.segments[point.segmentIndex].points.length - 1);
   }
 
   execute(ctx: TrackEditToolContext) {
@@ -24,7 +27,15 @@ export class EditWayPointTool implements TrackEditTool {
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return;
     ctx.modifyTrack(true, track => {
-      const w = TrackUtils.getWayPointAt(track, point.point.pos);
+      let w = TrackUtils.getWayPointAt(track, point.point.pos);
+      let isNew = false;
+      if (!w) {
+        if ((point.pointIndex === 0 && point.segmentIndex === 0) || (point.segmentIndex === track.segments.length - 1 && point.pointIndex === track.segments[point.segmentIndex].points.length - 1)) {
+          // departure or arrival point
+          w = new WayPoint(point.point, '', '');
+          isNew = true;
+        }
+      }
       if (!w) return of(true);
       return new Observable<boolean>(subscriber => {
         import('./way-point-edit/way-point-edit.component')
@@ -32,11 +43,14 @@ export class EditWayPointTool implements TrackEditTool {
           component: module.WayPointEditModal,
           componentProps: {
             wayPoint: w,
-            isNew: false,
+            isNew,
           }
         }))
         .then(modal => {
           modal.onDidDismiss().then(result => {
+            if (result.role === 'ok' && isNew) {
+              track.appendWayPoint(w);
+            }
             subscriber.complete();
           });
           modal.present();
