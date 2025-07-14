@@ -1055,7 +1055,8 @@
       "elevation_provider": "Utiliser un fournisseur d'altitude",
       "join_departure_and_arrival": "Relier le départ à l'arrivée",
       "improvements": "Améliorations",
-      "set_elevation_on_range": "Modifier l'altitude"
+      "set_elevation_on_range": "Modifier l'altitude",
+      "time": "Temps"
     },
     "tools": {
       "remove_unprobable_elevations": "Ajuster les altitudes improbables",
@@ -1077,13 +1078,22 @@
       },
       "remove_selection": {
         "button_single_label": "Supprimer le point sélectionné",
-        "button_multiple_label": "Supprimer la section sélectionnée"
+        "button_multiple_label": "Supprimer la section sélectionnée",
+        "button_single_label_and_join": "Supprimer le point sélectionné et relier le tracé",
+        "button_multiple_label_and_join": "Supprimer la section sélectionnée et relier le tracé",
+        "button_single_label_and_open": "Supprimer le point sélectionné et couper le tracé en deux",
+        "button_multiple_label_and_open": "Supprimer la section sélectionnée et couper le tracé en deux"
       },
       "replace_elevation_with_provider": "Remplacer les altitudes",
       "improve_elevation_with_provider": "Améliorer les altitudes",
       "arrival_to_departure": "Terminer au même endroit que le départ",
       "departure_to_arrival": "Démarrer au même endroit que l'arrivée",
+      "start_from_arrival": "Créer le début manquant en rejoignant le point d’arrivée par le chemin retour",
+      "back_to_departure": "Créer un retour au départ en suivant le même itinéraire",
       "back_to_original_track": "Revenir à la trace d'origine sans amélioration",
+      "remove_time": "Supprimer les informations de temps",
+      "link_to_next_segment_with_line": "Relier à la section suivante par une ligne directe",
+      "link_to_next_segment_follow": "Relier à la section suivante en suivant le chemin",
       "toggle_show_only_modified_track": {
         "button_label_hide": "N'afficher que la trace modifiée (bleue)",
         "button_label_show": "Afficher la trace non modifiée"

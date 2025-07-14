@@ -234,6 +234,13 @@ export class TrailSelection {
     return sel.find(s => s.track === track);
   }
 
+  public getRangeOf(track: Track): RangeReference | undefined {
+    const sel = this.selection$.value;
+    if (!sel || sel.length === 0 || !(sel[0] instanceof RangeReference)) return undefined;
+    for (const s of sel) if (s.track === track) return s as RangeReference;
+    return undefined;
+  }
+
 
   private mapClick(event: MapTrackPointReference[] | undefined): void {
     if (!event || event.length === 0) {

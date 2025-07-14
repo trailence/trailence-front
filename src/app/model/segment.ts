@@ -391,6 +391,8 @@ export class PointImpl implements Point {
     const newDurationFromPrevious = p && this._time !== undefined ? (this._time - p._time!) : undefined;
     if (newDurationFromPrevious !== undefined)
       this.meta?.addDuration(newDurationFromPrevious - (this._durationFromPrevious ?? 0));
+    else if (this._durationFromPrevious)
+      this.meta?.addDuration(-this._durationFromPrevious);
     this._durationFromPrevious = newDurationFromPrevious;
     if (!init && this._currentTime !== this._time) {
       this._currentTime = this._time;

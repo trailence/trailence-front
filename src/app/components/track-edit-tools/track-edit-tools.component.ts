@@ -39,8 +39,13 @@ import { ApplyDefaultImprovementsTool } from './tools/track/apply-default-improv
 import { MergeSegementsTool } from './tools/path/merge-segments';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { BackToDeparture } from './tools/path/back-to-departure';
+import { RemoveTime } from './tools/track/remove-time';
+import { LinkToNextSegment } from './tools/selection/link-to-next-segment';
+import { StartFromArrival } from './tools/path/start-from-arrival';
 
 interface TrackEditToolsState {
+  originalTrack?: Track;
   baseTrack?: Track;
   modifiedTrack?: Track;
   selection?: PointReference[] | RangeReference[];
@@ -85,7 +90,11 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         new MenuItem().setIcon('selection').setI18nLabel('track_edit_tools.categories.selection').setTextColor('secondary'),
         this.toMenuItem(new CloseSelectionTool()),
         new MenuItem(),
-        this.toMenuItem(new RemoveSelectionTool()),
+        this.toMenuItem(new LinkToNextSegment(false)),
+        this.toMenuItem(new LinkToNextSegment(true)),
+        new MenuItem(),
+        this.toMenuItem(new RemoveSelectionTool(false)),
+        this.toMenuItem(new RemoveSelectionTool(true)),
         this.toMenuItem(new RemoveBeforeSelectedPointTool()),
         this.toMenuItem(new RemoveAfterSelectedPointTool()),
       ]),
@@ -95,6 +104,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new BackToOriginalTrack()),
         this.toMenuItem(new ToogleShowOnlyModifiedTrack()),
         this.toMenuItem(new ApplyDefaultImprovementsTool()),
+        new MenuItem().setIcon('duration').setI18nLabel('track_edit_tools.categories.time'),
+        this.toMenuItem(new RemoveTime()),
       ]),
     new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point')
       .setChildren([
@@ -125,6 +136,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         new MenuItem().setI18nLabel('track_edit_tools.categories.join_departure_and_arrival').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new JoinArrivalToDeparture()),
         this.toMenuItem(new JoinDepartureToArrival()),
+        this.toMenuItem(new BackToDeparture()),
+        this.toMenuItem(new StartFromArrival()),
         new MenuItem().setI18nLabel('track_edit_tools.categories.improvements').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new RemoveUnprobablePointsTool()),
         this.toMenuItem(new RemoveBreaksMovesTool()),
@@ -249,6 +262,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   }
 
   undo(): void {
+    console.log(this.statesStack.length)
     if (this.statesStack.length === 0) return;
     const state = this.statesStack.splice(this.statesStack.length - 1, 1)[0];
     this.undoneStack.push(this.getCurrentState());
@@ -265,6 +279,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
 
   private getCurrentState(): TrackEditToolsState {
     return {
+      originalTrack: this.originalTrack$.value,
       baseTrack: this.baseTrack$.value,
       modifiedTrack: this.modifiedTrack$.value,
       selection: this.selection.selection$.value,
@@ -279,7 +294,13 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   private setState(state: TrackEditToolsState): void {
     const previousState = this.getCurrentState();
     this.baseTrack$.next(state.baseTrack);
-    this.modifiedTrack$.next(state.modifiedTrack);
+    if (state.modifiedTrack) {
+      this.modifiedTrack$.next(state.modifiedTrack);
+    } else if (state.originalTrack && this.trail.currentTrackUuid !== state.originalTrack.uuid) {
+      this.modifiedTrack$.next(state.originalTrack);
+    } else {
+      this.modifiedTrack$.next(undefined);
+    }
     if (previousState.modifiedTrack) {
       if (state.modifiedTrack !== previousState.modifiedTrack)
         this.currentTrackChanged();
@@ -300,6 +321,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     } else {
       this.selection.cancelSelection();
     }
+    this.refreshTools();
   }
 
   private getCurrentTrack(): Observable<Track> {

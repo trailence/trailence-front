@@ -34,6 +34,7 @@ import { HighlightService } from 'src/app/services/highlight/highlight.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { Console } from 'src/app/utils/console';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -785,37 +786,46 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private highlightTimeout: any;
-  private refreshHighlights(ranges: Map<string, {length: number, name: number, location: number}>): void {
+  private refreshHighlights(ranges: Map<string, {length: number, name: number, location: number}>, delay: number = 0): void {
     if (this.highlightTimeout) clearTimeout(this.highlightTimeout);
     this.highlightTimeout = setTimeout(() => {
       this.clearHighlights();
+      let retry = false;
       ranges.forEach((pos, key) => {
         const trailElement = document.getElementById('trail-list-' + this.id + '-trail-' + key);
         if (!trailElement) return;
-        if (pos.name >= 0) {
-          const trailName = trailElement.getElementsByClassName('trail-name');
-          if (trailName.length > 0) {
-            const element = trailName.item(0)!.firstChild!;
-            const range = new Range();
-            range.setStart(element, pos.name);
-            range.setEnd(element, pos.name + pos.length);
-            this.highlightRanges.push(range);
-            this.highlightService.addSearchText(range);
+        try {
+          if (pos.name >= 0) {
+            const trailName = trailElement.getElementsByClassName('trail-name');
+            if (trailName.length > 0) {
+              const element = trailName.item(0)!.firstChild!;
+              const range = new Range();
+              range.setStart(element, pos.name);
+              range.setEnd(element, pos.name + pos.length);
+              this.highlightRanges.push(range);
+              this.highlightService.addSearchText(range);
+            }
           }
-        }
-        if (pos.location >= 0) {
-          const trailLocation = trailElement.getElementsByClassName('trail-location');
-          if (trailLocation.length > 0) {
-            const element = trailLocation.item(0)!.firstChild!;
-            const range = new Range();
-            range.setStart(element, pos.location);
-            range.setEnd(element, pos.location + pos.length);
-            this.highlightRanges.push(range);
-            this.highlightService.addSearchText(range);
+          if (pos.location >= 0) {
+            const trailLocation = trailElement.getElementsByClassName('trail-location');
+            if (trailLocation.length > 0) {
+              const element = trailLocation.item(0)!.firstChild!;
+              const range = new Range();
+              range.setStart(element, pos.location);
+              range.setEnd(element, pos.location + pos.length);
+              this.highlightRanges.push(range);
+              this.highlightService.addSearchText(range);
+            }
           }
+        } catch (e) {
+          Console.warn('Cannot select range, may be not yet loaded, will try');
+          retry = true;
         }
       });
-    }, 0);
+      if (retry) {
+        this.refreshHighlights(ranges, 100);
+      }
+    }, delay);
   }
 
 }

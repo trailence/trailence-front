@@ -1055,7 +1055,8 @@
       "elevation_provider": "Use an elevation provider",
       "join_departure_and_arrival": "Join departure and arrival",
       "improvements": "Improvements",
-      "set_elevation_on_range": "Change elevation"
+      "set_elevation_on_range": "Change elevation",
+      "time": "Time"
     },
     "tools": {
       "remove_unprobable_elevations": "Adjust unprobable elevations",
@@ -1076,14 +1077,23 @@
         "remove_all_previous_points": "Remove all points before this one"
       },
       "remove_selection": {
-        "button_single_label": "Remove selected point",
-        "button_multiple_label": "Remove selected path"
+        "button_single_label": "Delete the selected point",
+        "button_multiple_label": "Delete the selected section",
+        "button_single_label_and_join": "Delete the selected point and reconnect the track",
+        "button_multiple_label_and_join": "Delete the selected section and reconnect the track",
+        "button_single_label_and_open": "Delete the selected point and split the track into two",
+        "button_multiple_label_and_open": "Delete the selected section and split the track into two"
       },
       "replace_elevation_with_provider": "Replace elevations",
       "improve_elevation_with_provider": "Improve elevations",
       "arrival_to_departure": "Finish at the departure point",
       "departure_to_arrival": "Start at the arrival point",
+      "back_to_departure": "Create a return to the start by following the same route",
+      "start_from_arrival": "Fill in the missing start by following the return path back to the finish",
       "back_to_original_track": "Back to original trace without improvements",
+      "remove_time": "Remove time data",
+      "link_to_next_segment_with_line": "Connect to the next section with a straight line",
+      "link_to_next_segment_follow": "Connect to the next section by following the path",
       "toggle_show_only_modified_track": {
         "button_label_hide": "Show only modified track (blue)",
         "button_label_show": "Show unmodified track"

@@ -226,5 +226,69 @@ export class TrackUtils {
     return true;
   }
 
+  // Path
+
+  public static findPath(track: Track, startPos: L.LatLng, endPos: L.LatLng): PointDescriptor[] | undefined {
+    let best: PointDescriptor[] | undefined = undefined;
+    let bestDistance: number | undefined;
+    for (const segment of track.segments) {
+      for (let pi = 0; pi < segment.points.length; pi++) {
+        if (segment.points[pi].pos.distanceTo(startPos) < 25) {
+          const startPointIndex = this.findBestPoint(segment, pi, startPos, 1);
+          const path = this.findPathFrom(segment, startPointIndex, endPos);
+          if (!path) {
+            pi = startPointIndex;
+            continue;
+          }
+          const distance = TrackUtils.distanceBetween(path, 0, path.length - 1);
+          if (best === undefined || distance < bestDistance!) {
+            best = path;
+            bestDistance = distance;
+          }
+          pi = startPointIndex;
+        }
+      }
+    }
+    return best;
+  }
+
+  private static findBestPoint(segment: Segment, pi: number, pos: L.LatLng, direction: number): number {
+    let bestIndex = pi;
+    let bestDist = segment.points[pi].pos.distanceTo(pos);
+    for (let i = pi + direction; pi >= 0 && pi < segment.points.length; pi += direction) {
+      const p = segment.points[pi];
+      const d = p.pos.distanceTo(pos);
+      if (d <= bestDist) {
+        bestIndex = i;
+        bestDist = d;
+      } else {
+        break;
+      }
+    }
+    return bestIndex;
+  }
+
+  private static findPathFrom(segment: Segment, startIndex: number, target: L.LatLng): PointDescriptor[] | undefined {
+    // may be forward, or backward
+    const forward = this.getPath(segment, startIndex, target, 1);
+    const backward = this.getPath(segment, startIndex, target, -1);
+    if (!forward) return backward;
+    if (!backward) return forward;
+    const fd = TrackUtils.distanceBetween(forward, 0, forward.length - 1);
+    const bd = TrackUtils.distanceBetween(backward, 0, backward.length - 1);
+    if (fd < bd) return forward;
+    return backward;
+  }
+
+  private static getPath(segment: Segment, startIndex: number, target: L.LatLng, direction: number): PointDescriptor[] | undefined {
+    for (let endIndex = startIndex + direction; endIndex >= 0 && endIndex < segment.points.length - 1; endIndex += direction) {
+      const p = segment.points[endIndex];
+      if (p.pos.distanceTo(target) < 25) {
+        const bestEnd = this.findBestPoint(segment, endIndex, target, direction);
+        return direction > 0 ? segment.points.slice(startIndex, bestEnd + 1) : segment.points.slice(bestEnd, startIndex + 1).reverse();
+      }
+    }
+    return undefined;
+  }
 
 }

@@ -95,12 +95,12 @@ export class EditTools extends Component {
 
   public async removeSelectedPoint() {
     const menu = await this.toolbar.clickByIconAndGetMenu('selection');
-    await menu.clickItemWithText('Remove selected point');
+    await menu.clickItemWithText('Delete the selected point');
   }
 
   public async removeSelectedRange() {
     const menu = await this.toolbar.clickByIconAndGetMenu('selection');
-    await menu.clickItemWithText('Remove selected path');
+    await menu.clickItemWithText('Delete the selected section');
   }
 
 }
