@@ -668,6 +668,8 @@
     "publish_message_placeholder": "Si vous souhaitez laisser un message au modérateur qui examinera votre parcours, vous pouvez le saisir ici.",
     "reject_to_draft": "Améliorer",
     "checklist": "Check-list",
+    "modify": "Modifier",
+    "compare_current": "Comparer à la publication actuelle",
     "start_popup": {
       "header": "Merci de contribuer à la communauté Trailence !",
       "text_before": "Vous souhaitez publier votre parcours, ce qui le rendra visible par tous les utilisateurs. Voici quelques informations importantes concernant la publication :",
@@ -696,6 +698,10 @@
         }
       ],
       "text_after": "Merci pour votre participation et bonne publication !"
+    },
+    "edit_popup": {
+      "title": "Edition d'un parcours publié",
+      "message": "Le parcours sera copié dans vos brouillons. La modification fonctionne comme pour une première publication : une fois vos modifications effectuées, elles seront revues par un modérateur. Confirmez-vous vouloir modifier cette publication ?"
     },
     "checklist_items": {
       "iam_author": {

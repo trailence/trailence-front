@@ -146,6 +146,24 @@
               </div>
             </div>
           </div>
+          <div class="metadata-item-container trail1name" style="padding-right: 2px">
+            <div class="metadata-item">
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-primary"><app-text [text]="trail1.description"></app-text></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="metadata-item-container trail2name" style="padding-left: 2px">
+            <div class="metadata-item">
+              <div class="metadata-content">
+                <div class="metadata-value">
+                  <div class="metadata-secondary"><app-text [text]="trail2.description"></app-text></div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <ng-container *ngIf="!isPublication && trail1Collection && (tagsNames1 !== undefined || tagsNames2 !== undefined)">
             <div class="metadata-item-container" style="padding-right: 2px">

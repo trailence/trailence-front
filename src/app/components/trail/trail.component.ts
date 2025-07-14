@@ -58,6 +58,7 @@ import { RateAndCommentsComponent } from './rate-and-comments/rate-and-comments.
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { TextComponent } from '../text/text.component';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 interface TrailSource {
   isExternal: boolean;
@@ -165,6 +166,7 @@ export class TrailComponent extends AbstractComponent {
   isPublication = false;
   publicationChecklist?: PublicationChecklist;
   source?: TrailSource;
+  currentPublicTrailUuid?: string;
 
   private _lockForDescription?: () => void;
   editingDescription = false;
@@ -190,6 +192,9 @@ export class TrailComponent extends AbstractComponent {
       .setBadgeTopRight(() => ({ text: this.publicationChecklist?.nbUnchecked === 0 ? '✔' : '' + this.publicationChecklist?.nbChecked, color: 'success', fill: true }))
       .setBadgeTopLeft(() => this.publicationChecklist?.nbUnchecked ? ({ text: '' + this.publicationChecklist?.nbUnchecked, color: 'warning', fill: true }) : undefined)
       .setAction(() => this.openChecklist()),
+    new MenuItem().setIcon('compare').setI18nLabel('publications.compare_current')
+      .setVisible(() => !!this.currentPublicTrailUuid)
+      .setAction(() => this.compareToPublicTrail()),
     new MenuItem().setIcon('web').setI18nLabel('publications.publish')
       .setVisible(() => !this.trail2 && (this.trail1?.fromModeration || !!this.publicationChecklist))
       .setDisabled(() => !this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0)
@@ -203,10 +208,17 @@ export class TrailComponent extends AbstractComponent {
       .setVisible(() => !!this.trail1 && !this.trail2 && this.trail1Collection?.type === TrailCollectionType.PUB_REJECT)
       .setTextColor('success')
       .setAction(() => this.rejectToDraft()),
+    new MenuItem().setIcon('web').setI18nLabel('publications.modify').setTextColor('secondary')
+      .setVisible(() => !!this.source?.info?.itsMine && !!this.trail1 && !this.trail2)
+      .setAction(() => this.editPublication()),
     new MenuItem().setIcon('trash').setI18nLabel('buttons.delete')
-      .setVisible(() => !!this.trail1 && !this.trail2 && (this.trail1Collection?.type === TrailCollectionType.PUB_DRAFT || this.trail1Collection?.type === TrailCollectionType.PUB_REJECT))
+      .setVisible(() => !!this.trail1 && !this.trail2 &&
+        (this.trail1Collection?.type === TrailCollectionType.PUB_DRAFT || this.trail1Collection?.type === TrailCollectionType.PUB_REJECT
+          //|| !!this.source?.info?.itsMine
+        )
+      )
       .setTextColor('danger')
-      .setAction(() => import('../../services/functions/delete-trails').then(m => m.confirmDeleteTrails(this.injector, [this.trail1!], true)).then(d => {if (d) this.publicationChecklist?.delete()})),
+      .setAction(() => this.deletePublication()),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
       .setVisible(() => !!this.recording && this.recording.paused)
       .setAction(() => this.togglePauseRecordingWithoutConfirmation()),
@@ -317,6 +329,7 @@ export class TrailComponent extends AbstractComponent {
     this.tagsNames2 = undefined;
     this.photos = undefined;
     this.comparison = undefined;
+    this.currentPublicTrailUuid = undefined;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
     this.listenForTracks();
@@ -329,6 +342,7 @@ export class TrailComponent extends AbstractComponent {
     this.listenForCollections();
     this.listenForSource();
     this.listenMyFeedback();
+    this.listenCurrentPublic();
   }
 
   private listenForTracks(): void {
@@ -530,7 +544,11 @@ export class TrailComponent extends AbstractComponent {
           );
         }),
       ),
-      source => this.source = source
+      source => {
+        this.source = source;
+        this.toolbarItems = [...this.toolbarItems];
+        this.changesDetector.detectChanges();
+      }
     );
   }
 
@@ -612,8 +630,28 @@ export class TrailComponent extends AbstractComponent {
           return of(null);
         })
       ),
-      myFeedback => this.myFeedback$.next(myFeedback ?? undefined)
+      myFeedback => {
+        const newValue = myFeedback ?? undefined;
+        if (newValue !== this.myFeedback$.value) {
+          this.myFeedback$.next(newValue);
+          this.changesDetector.detectChanges();
+        }
+      }
     );
+  }
+
+  private listenCurrentPublic(): void {
+    if (!this.trail1$) return;
+    this.trail1$.pipe(
+      filterDefined(),
+      filter(t => t.fromModeration && !!t.publishedFromUuid),
+      switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)),
+      first(),
+    ).subscribe(uuid => {
+      this.currentPublicTrailUuid = uuid;
+      this.toolbarItems = [...this.toolbarItems];
+      this.changesDetector.detectChanges();
+    })
   }
 
   private listenForWayPoints(): void {
@@ -1439,6 +1477,50 @@ export class TrailComponent extends AbstractComponent {
     const collection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationDraft());
     const copyModule = await import('../../services/functions/copy-trails');
     copyModule.moveTrailsTo(this.injector, [this.trail1!], collection, this.trail1!.owner);
+  }
+
+  private async editPublication() {
+    const alert = await this.injector.get(AlertController).create({
+      header: this.i18n.texts.publications.edit_popup.title,
+      message: this.i18n.texts.publications.edit_popup.message,
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'success',
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+        }
+      ]
+    });
+    alert.onDidDismiss().then(result => {
+      if (result.role === 'success') {
+        this.injector.get(TrailCollectionService)
+        .getOrCreatePublicationDraft()
+        .subscribe(col => {
+          import('../../services/functions/copy-trails')
+          .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, col.owner, true, true, true, (newTrails) => {
+            this.injector.get(TrailService).doUpdate(newTrails[0], t => t.publishedFromUuid = this.source?.info?.myUuid);
+          }))
+        });
+      }
+    });
+    await alert.present();
+  }
+
+  private async deletePublication() {
+    const module = await import('../../services/functions/delete-trails');
+    const confirm = await module.confirmDeleteTrails(this.injector, [this.trail1!], true);
+    if (confirm) this.publicationChecklist?.delete();
+  }
+
+  private async compareToPublicTrail() {
+    const trailence = this.injector.get(FetchSourceService).getPluginByName('Trailence');
+    const trail = await trailence?.getTrail(this.currentPublicTrailUuid!);
+    if (trail) {
+      this.trail2 = trail;
+      this.changesDetector.detectChanges();
+    }
   }
 
 }

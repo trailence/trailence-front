@@ -284,6 +284,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           this.syncStep('send local updates to server');
           return this.syncUpdateToServer(stillValid);
         }),
+        catchError(error => {
+          // should never happen
+          Console.error('Error synchronizing ' + this.tableName, error);
+          return of(false);
+        }),
         switchMap(() => {
           if (!stillValid()) return EMPTY;
           this.syncEnd();
@@ -302,11 +307,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
             this._deletedLocally.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false)).length > 0 ||
             this._updatedLocally.filter(item => this._errors.canProcess(item, false)).length > 0;
           return of(isIncomplete);
-        }),
-        catchError(error => {
-          // should never happen
-          Console.error(error);
-          return of(false);
         }),
       );
     });

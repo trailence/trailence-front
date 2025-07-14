@@ -389,6 +389,14 @@ export class TrailsListComponent extends AbstractComponent {
         from: filters.distance.from === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.from * distanceConverter),
         to: filters.distance.to === undefined ? undefined : this.i18n.distanceInMetersFromUserUnit(filters.distance.to * distanceConverter),
       },
+      duration: {
+        from: filters.duration.from === undefined ? undefined : filters.duration.from * 60 * 60 * 1000,
+        to: filters.duration.to === undefined ? undefined : filters.duration.to * 60 * 60 * 1000,
+      },
+      estimatedDuration: {
+        from: filters.estimatedDuration.from === undefined ? undefined : filters.estimatedDuration.from * 60 * 60 * 1000,
+        to: filters.estimatedDuration.to === undefined ? undefined : filters.estimatedDuration.to * 60 * 60 * 1000,
+      },
       positiveElevation: {
         from: filters.positiveElevation.from === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.from),
         to: filters.positiveElevation.to === undefined ? undefined : this.i18n.elevationInMetersFromUserUnit(filters.positiveElevation.to),
@@ -416,11 +424,11 @@ export class TrailsListComponent extends AbstractComponent {
         if (filters.duration.from !== undefined || filters.duration.to !== undefined) {
           let duration = t.track?.duration;
           if (duration !== undefined && t.track?.breaksDuration !== undefined) duration -= t.track.breaksDuration;
-          if (filters.duration.from !== undefined && (duration === undefined || duration < filters.duration.from * 60 * 60 * 1000)) return false;
-          if (filters.duration.to !== undefined && (duration === undefined || duration > filters.duration.to * 60 * 60 * 1000)) return false;
+          if (filters.duration.from !== undefined && (duration === undefined || duration < filters.duration.from)) return false;
+          if (filters.duration.to !== undefined && (duration === undefined || duration > filters.duration.to)) return false;
         }
-        if (filters.estimatedDuration.from !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration < filters.estimatedDuration.from * 60 * 60 * 1000)) return false;
-        if (filters.estimatedDuration.to !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration > filters.estimatedDuration.to * 60 * 60 * 1000)) return false;
+        if (filters.estimatedDuration.from !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration < filters.estimatedDuration.from)) return false;
+        if (filters.estimatedDuration.to !== undefined && (t.track?.estimatedDuration === undefined || t.track.estimatedDuration > filters.estimatedDuration.to)) return false;
         if (filters.distance.from !== undefined && (t.track?.distance === undefined || t.track.distance < filters.distance.from)) return false;
         if (filters.distance.to !== undefined && (t.track?.distance === undefined || t.track.distance > filters.distance.to)) return false;
         if (filters.positiveElevation.from !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation < filters.positiveElevation.from)) return false;

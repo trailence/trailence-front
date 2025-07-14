@@ -231,25 +231,29 @@ export class MapComponent extends AbstractComponent {
         toRemove.forEach(track => track.remove());
         highlighted.forEach(track => track.bringToFront());
         this._currentTracks = [...tracks];
-        this.initMapZoom(map, tracks);
+        this.initMapZoom(map);
+        this.refreshTools();
       }
     ));
   }
 
   private _initZoomTimestamp?: number;
-  private initMapZoom(map: L.Map, tracks: MapTrack[]): void {
+  private initMapZoom(map: L.Map): void {
     // if the state of the map is the initial one, zoom on the tracks
     if ((this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) || // initial state
         (this._initZoomTimestamp && Date.now() - this._initZoomTimestamp < 2500)) {
-      if (tracks.length > 0) {
-        this.fitTracksBounds(map, tracks);
+      if (this._currentTracks.length > 0) {
+        this.fitTracksBounds(map, this._currentTracks);
+        this._initZoomTimestamp = Date.now();
+      } else if (this._currentBubbles.length > 0) {
+        this.fitTracksBubbles(map, this._currentBubbles);
         this._initZoomTimestamp = Date.now();
       } else {
         const init = Date.now();
         this._initZoomTimestamp = init;
         this.injector.get(HttpService).get('https://free.freeipapi.com/api/json')
         .subscribe((response: any) => {
-          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init) {
+          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentTracks.length === 0 && this._currentBubbles.length === 0) {
             this._map$.value?.setView({lat: response['latitude'], lng: response['longitude']}, 10);
           }
         });
@@ -276,10 +280,8 @@ export class MapComponent extends AbstractComponent {
         });
         toRemove.forEach(bubble => bubble.remove());
         this._currentBubbles = [...bubbles];
-        // if the state of the map is the initial one, zoom on the tracks
-        if (bubbles.length > 0 && this._mapState.center.lat === 0 && this._mapState.center.lng === 0 && this._mapState.zoom <= 2) {
-          this.fitTracksBubbles(map, bubbles);
-        }
+        this.initMapZoom(map);
+        this.refreshTools();
       }
     ));
   }

@@ -101,7 +101,7 @@ describe('Edit tools', () => {
       let selectionTool = await selectPoint(3);
       await selectionTool.extendSelection();
       await selectPoint(4);
-      await tools.removeSelectedRange();
+      await tools.removeSelectedRangeAndReconnect();
     }, 3, 1000);
     details = await trailPage.trailComponent.openDetails();
     const d1 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
@@ -124,7 +124,7 @@ describe('Edit tools', () => {
       .up()
       .perform();
     await tools.waitSelectionTool();
-    await tools.removeSelectedRange();
+    await tools.removeSelectedRangeAndReconnect();
     await tools.undo();
 
     // select a point on graph
@@ -138,7 +138,7 @@ describe('Edit tools', () => {
         .perform();
     }, 2, 1000);
     await tools.waitSelectionTool();
-    await tools.removeSelectedPoint();
+    await tools.removeSelectedPointAndReconnect();
     await tools.undo();
 
     await map.fitBounds();

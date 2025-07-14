@@ -668,6 +668,8 @@
     "publish_message_placeholder": "If you would like to leave a message for the moderator who will review your track, you can enter it here.",
     "reject_to_draft": "Improve",
     "checklist": "Checklist",
+    "modify": "Edit",
+    "compare_current": "Compare to current publication",
     "start_popup": {
       "header": "Thank you for contributing to the Trailence community!",
       "text_before": "You’re about to publish your track, which will make it visible to all users. Here’s some important information about how publishing works:",
@@ -696,6 +698,10 @@
         }
       ],
       "text_after": "Thank you for your participation — and happy publishing!"
+    },
+    "edit_popup": {
+      "title": "Edit a Published Trail",
+      "message": "The trail will be copied to your drafts. Editing works just like for a first publication: once your changes are made, they will be reviewed by a moderator. Do you confirm you want to edit this publication?"
     },
     "checklist_items": {
       "iam_author": {

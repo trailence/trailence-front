@@ -93,14 +93,14 @@ export class EditTools extends Component {
     await menu.clickItemWithText('Remove all points before this one');
   }
 
-  public async removeSelectedPoint() {
+  public async removeSelectedPointAndReconnect() {
     const menu = await this.toolbar.clickByIconAndGetMenu('selection');
-    await menu.clickItemWithText('Delete the selected point');
+    await menu.clickItemWithText('Delete the selected point and reconnect the track');
   }
 
-  public async removeSelectedRange() {
+  public async removeSelectedRangeAndReconnect() {
     const menu = await this.toolbar.clickByIconAndGetMenu('selection');
-    await menu.clickItemWithText('Delete the selected section');
+    await menu.clickItemWithText('Delete the selected section and reconnect the track');
   }
 
 }

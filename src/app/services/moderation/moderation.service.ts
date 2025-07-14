@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, combineLatest, defaultIfEmpty, from, map, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, defaultIfEmpty, EMPTY, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { environment } from 'src/environments/environment';
@@ -280,6 +280,15 @@ export class ModerationService {
       response => {
         this.endOfModeration(trail, photos ?? []);
       },
+    );
+  }
+
+  public getPublicUuid(trailUuid: string, trailOwner: string): Observable<string> {
+    return this.http.getString(environment.apiBaseUrl + '/moderation/v1/trailToReview/' + trailUuid + '/' + trailOwner + '/currentPublic').pipe(
+      switchMap(uuid => {
+        if (uuid.length > 0) return of(uuid);
+        return EMPTY;
+      })
     );
   }
 

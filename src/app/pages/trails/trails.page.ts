@@ -440,7 +440,7 @@ export class TrailsPage extends AbstractPage {
         this.bubbles$.next(result.map(r => {
           const pos = L.latLng(r.pos);
           const centerPoint = L.CRS.EPSG3857.latLngToPoint(pos, zoom);
-          const bubbleBoundsPoint = L.bounds(L.point(centerPoint.x - 50, centerPoint.y - 50), L.point(centerPoint.x + 50, centerPoint.y + 50));
+          const bubbleBoundsPoint = L.bounds(L.point(centerPoint.x - 60, centerPoint.y - 60), L.point(centerPoint.x + 60, centerPoint.y + 60));
           const bubbleBounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getTopRight(), zoom));
           const boundsPoint = L.bounds(L.point(centerPoint.x - 64, centerPoint.y - 64), L.point(centerPoint.x + 64, centerPoint.y + 64));
           const bounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(boundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(boundsPoint.getTopRight(), zoom));
