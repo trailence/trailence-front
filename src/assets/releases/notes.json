@@ -119,16 +119,22 @@
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
   },
-  "001802": {
-    "en": {"message": "Some improvements and fixes"},
-    "fr": {"message": "Quelques améliorations et correctifs"}
-  },
   "001803": {
     "en": {"message": "New Features for Track Editing"},
     "fr": {"message": "Nouvelles fonctionnalités d’édition de trace"}
   },
-  "001804": {
-    "en": {"message": "New Features for Track Editing"},
-    "fr": {"message": "Nouvelles fonctionnalités d’édition de trace"}
+  "001806": {
+    "en": {
+      "items": [
+        "Added *My Selection*: you can now add trails (yours or those from the search) to your selection. Perfect when planning a trip or a weekend. The selection lets you keep interesting trails handy without copying them into a collection.",
+        "Public trail descriptions are now translated into both French and English."
+      ]
+    },
+    "fr": {
+      "items": [
+        "Ajout de *Ma sélection* : vous pouvez ajouter des parcours (parmi les vôtres ou ceux trouvés via la recherche) dans votre sélection. Idéal lorsque vous préparez un voyage ou un week-end. La sélection permet de garder des parcours sous la main sans avoir à les copier dans une collection.",
+        "La description des parcours publics est désormais traduite en français et en anglais."
+      ]
+    }
   }
 }
