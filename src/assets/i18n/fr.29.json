@@ -154,6 +154,7 @@
         "share": "Aucun parcours dans ce partage",
         "filter": "Aucun parcours ne correspond à vos filtres",
         "all_collections": "Vous n'avez aucun parcours pour l'instant",
+        "my_selection": "Vous n'avez aucun parcours dans votre sélection",
         "search": "Aucun parcours trouvé dans cette zone.",
         "launch_search": "Déplacez-vous sur la carte jusqu’à la zone où vous souhaitez rechercher des parcours, puis cliquez sur « Lancer la recherche ».",
         "only_bubbles": "Zoomez sur la carte et cliquez sur « Lancer la recherche », ou cliquez directement sur les bulles pour voir les parcours disponibles."
@@ -658,6 +659,7 @@
   },
   "my_trails": "Mes Parcours",
   "all_collections": "Toutes les collections",
+  "my_selection": "Ma sélection",
   "publications": {
     "draft_name": "Brouillons",
     "submit_name": "En cours de revue",

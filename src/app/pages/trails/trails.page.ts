@@ -32,6 +32,7 @@ import { EMPTY_FILTERS, Filters } from 'src/app/components/trails-list/trails-li
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { TrailencePlugin } from 'src/app/services/fetch-source/trailence.plugin';
+import { MySelectionService } from 'src/app/services/database/my-selection.service';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -120,6 +121,7 @@ export class TrailsPage extends AbstractPage {
       case 'all-collections': this.initAllCollections(); break;
       case 'moderation': this.initModeration(); break;
       case 'my-publications': this.initMyPublications(); break;
+      case 'my-selection': this.initMySelection(); break;
       default: this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
   }
@@ -207,6 +209,28 @@ export class TrailsPage extends AbstractPage {
       all => {
         const owner = this.injector.get(AuthService).email;
         const newList = List(all.filter(t => t.item.owner === owner).map(t => t.item$));
+        if (first || !newList.equals(this.trails$.value)) {
+          first = false;
+          this.ngZone.run(() => this.trails$.next(newList));
+        }
+      }
+    );
+  }
+
+  private initMySelection(): void {
+    this.initView('my-selection');
+    this.actions = [];
+    // title
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.my_selection)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    // trails
+    let first = true;
+    this.byStateAndVisible.subscribe(
+      this.injector.get(MySelectionService).getMySelection()
+      .pipe(
+        map(selection => selection.map(s => this.injector.get(TrailService).getTrail$(s.uuid, s.owner))),
+      ),
+      trails => {
+        const newList = List(trails);
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           this.ngZone.run(() => this.trails$.next(newList));

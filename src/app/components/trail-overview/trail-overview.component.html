@@ -11,6 +11,9 @@
       </ion-button>
     </div>
   }
+  <ion-button class="my-selection" color="my-selection" size="small" fill="clear" (click)="toggleMySelection(); $event.stopPropagation();">
+    <ion-icon slot="icon-only" [name]="meta.isInMySelection ? 'star-filled' : 'star-empty'"></ion-icon>
+  </ion-button>
   <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}">{{ meta.name }}</div>
   @if (publicTrailUuid) {
     <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">

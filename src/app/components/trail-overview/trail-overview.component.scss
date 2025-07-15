@@ -10,7 +10,7 @@
   align-items: center;
 
   ion-checkbox.trail-checkbox {
-    padding-right: 8px;
+    padding-right: 2px;
     padding-top: 4px;
     padding-bottom: 2px;
   }
@@ -31,6 +31,14 @@
       margin-inline-start: 0;
       margin-inline-end: 0;
     }
+  }
+
+  ion-button.my-selection {
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    min-width: 24px;
   }
 
   .trail-name {

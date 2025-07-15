@@ -21,6 +21,7 @@ import { TrailService } from 'src/app/services/database/trail.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { MyPublicTrail, MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
+import { MySelectionService } from 'src/app/services/database/my-selection.service';
 
 @Component({
     selector: 'app-menu',
@@ -39,6 +40,7 @@ export class MenuComponent {
   sharedWithMe: List<ShareWithInfo> = List();
   sharedByMe: List<ShareWithInfo> = List();
   allCollectionsTrails = 0;
+  mySelectionCount = 0;
   pubDraft?: CollectionWithInfo;
   pubSubmit?: CollectionWithInfo;
   pubReject?: CollectionWithInfo;
@@ -68,6 +70,7 @@ export class MenuComponent {
     private readonly injector: Injector,
     readonly preferences: PreferencesService,
     readonly myPublicTrailsService: MyPublicTrailsService,
+    readonly mySelectionService: MySelectionService,
   ) {
     combineLatest([
       authService.auth$,
@@ -134,6 +137,7 @@ export class MenuComponent {
       this.isModerator = !!auth?.roles?.find(r => r === 'moderator');
     });
     myPublicTrailsService.myPublicTrails$.subscribe(list => this.myPublicTrails = list);
+    mySelectionService.getMySelection().subscribe(list => this.mySelectionCount = list.length);
   }
 
   goTo(url: string): void {

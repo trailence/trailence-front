@@ -19,6 +19,7 @@ export const TRAIL_TAG_TABLE_NAME = 'trails_tags';
 export const EXTENSIONS_TABLE_NAME = 'extensions';
 export const SHARE_TABLE_NAME = 'shares';
 export const PHOTO_TABLE_NAME = 'photos';
+export const MY_SELECTION_TABLE_NAME = 'my_selection';
 export const DEPENDENCIES_TABLE_NAME = 'dependencies';
 const INTERNAL_TABLE_NAME = 'internal';
 
@@ -319,6 +320,7 @@ export class DatabaseService {
         storesV1[TRAIL_COLLECTION_TABLE_NAME] = 'id_owner';
         storesV1[TAG_TABLE_NAME] = 'id_owner';
         storesV1[TRAIL_TAG_TABLE_NAME] = 'key';
+        storesV1[MY_SELECTION_TABLE_NAME] = 'key';
         storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
         storesV1[SHARE_TABLE_NAME] = 'key';
         storesV1[PHOTO_TABLE_NAME] = 'id_owner';

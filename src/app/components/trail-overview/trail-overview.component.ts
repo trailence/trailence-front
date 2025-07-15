@@ -6,7 +6,7 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, firstValueFrom, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -31,6 +31,7 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { RateComponent } from '../trail/rate-and-comments/rate/rate.component';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
+import { MySelectionService } from 'src/app/services/database/my-selection.service';
 
 class Meta {
   name?: string;
@@ -45,6 +46,7 @@ class Meta {
   activityString?: string;
   activityIconValue?: string;
   activityIconString?: string;
+  isInMySelection?: boolean;
 }
 
 @Component({
@@ -112,6 +114,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly photoService: PhotoService,
     private readonly router: Router,
     private readonly preferencesService: PreferencesService,
+    private readonly mySelectionService: MySelectionService,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -148,11 +151,14 @@ export class TrailOverviewComponent extends AbstractComponent {
               this.trail!.loopType$,
               this.trail!.activity$,
               this.trackData$(this.trail!, owner),
+              this.mySelectionService.getMySelection().pipe(
+                map(sel => sel.findIndex(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid) >= 0),
+              )
             ])
           ),
           debounceTimeExtended(0, 10)
         ),
-        ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate]]) => {
+        ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
@@ -167,6 +173,10 @@ export class TrailOverviewComponent extends AbstractComponent {
           if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
           if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;
           if (this.updateMeta(this.meta, 'activityIcon', activity, activity => this.trailService.getActivityIcon(activity), force)) changed = true;
+          if (this.meta.isInMySelection !== isInMySelection) {
+            this.meta.isInMySelection = isInMySelection;
+            changed = true;
+          }
           if (changed) this.changeDetector.detectChanges();
           if (!this._trackMetadataInitialized && track) this.initTrackMetadata();
         },
@@ -369,6 +379,17 @@ export class TrailOverviewComponent extends AbstractComponent {
     if (this.navigationIndex === undefined || !this.navigationCount) return;
     if (++this.navigationIndex >= this.navigationCount) this.navigationIndex = 0;
     this.navigationIndexChange.emit(this.navigationIndex);
+  }
+
+  toggleMySelection(): void {
+    if (!this.trail) return;
+    const newValue = !this.meta.isInMySelection;
+    this.meta.isInMySelection = newValue;
+    if (!newValue)
+      this.mySelectionService.deleteSelection(this.trail.owner, this.trail.uuid);
+    else
+      this.mySelectionService.addSelection(this.trail.owner, this.trail.uuid);
+    this.changeDetector.detectChanges();
   }
 
 }

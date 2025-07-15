@@ -54,6 +54,19 @@
           </div>
         </div>
       </div>
+      <div class="menu-item user-selection" (click)="goTo('/trails/my-selection'); close();" style="color: var(--ion-color-my-selection)">
+        <div class="item-title-container">
+          <div class="item-title">
+            <div class="name-and-count">
+              <ion-icon name="star-filled"></ion-icon>
+              <a href="/trails/my-selection" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                {{ i18n.texts.my_selection }}
+              </a>
+              <div class="count">{{mySelectionCount}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
     }
   </div>
 

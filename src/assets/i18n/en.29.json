@@ -154,6 +154,7 @@
         "share": "No trail in this share",
         "filter": "No trail match your filters",
         "all_collections": "You have no trail at the moment",
+        "my_selection": "You don't have any trails in your selection",
         "search": "No trails found in this area.",
         "launch_search": "Move around the map to the area where you want to search for trails, then click “Search in this area”.",
         "only_bubbles": "Zoom in on the map and click “Search in this area”, or click directly on the bubbles to see available trails."
@@ -658,6 +659,7 @@
   },
   "my_trails": "My Trails",
   "all_collections": "All collections",
+  "my_selection": "My selection",
   "publications": {
     "draft_name": "Drafts",
     "submit_name": "Under review",
