@@ -17,6 +17,7 @@ import { TrackDto } from 'src/app/model/dto/track';
 import * as L from 'leaflet';
 import { Filters } from 'src/app/components/trails-list/trails-list.component';
 import { TypeUtils } from 'src/app/utils/type-utils';
+import { PendingRequests, PendingRequestsMultiple } from 'src/app/utils/pending-requests';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   uuid: string;
@@ -28,6 +29,9 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   public override readonly name = 'Trailence';
   public override readonly owner = 'trailence';
   public override readonly canFetchFromUrl = true;
+
+  private readonly _pending = new PendingRequestsMultiple<Trail>((results: Trail[], key: string) => results.find(t => t.uuid === key) ?? null);
+  private readonly _pendingFullTrack = new PendingRequests<Track>();
 
   constructor(
     injector: Injector,
@@ -72,7 +76,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
             }
             const nextItems = (startIndex: number) => {
               const bunch = toFetch.length - startIndex <= 25 ? toFetch.slice(startIndex) : toFetch.slice(startIndex, startIndex + 25);
-              this.fetchTrailsByIds$(bunch).subscribe(trails => {
+              this.fetchTrailsByIds(bunch).then(trails => {
                 subscriber.next({trails, end: startIndex + bunch.length >= toFetch.length, tooManyResults: searchResponse.hasMoreResults});
                 if (startIndex + bunch.length >= toFetch.length) {
                   subscriber.complete();
@@ -89,45 +93,44 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   protected override fetchTrailsByIds(uuids: string[]): Promise<Trail[]> {
-    return firstValueFrom(this.fetchTrailsByIds$(uuids));
-  }
-
-  private fetchTrailsByIds$(uuids: string[]): Observable<Trail[]> {
-    return this.injector.get(HttpService).post<PublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/trailsByIds', uuids)
-    .pipe(
-      switchMap(result => {
-        if (result.length === 0) return of([]);
-        const trailDtos: TrailDto[] = [];
-        const metadataDtos: TrackMetadataSnapshot[] = [];
-        const simplifiedTrackDtos: SimplifiedTrackDto[] = [];
-        const infoDtos: TrailInfoDto[] = [];
-        result.forEach(pt => {
-          const dtos = this.publicTrailToDtos(pt);
-          trailDtos.push(dtos.trailDto);
-          metadataDtos.push(dtos.metadataDto);
-          simplifiedTrackDtos.push(dtos.simplifiedTrackDto);
-          infoDtos.push(dtos.infoDto);
-        });
-        return from(Promise.all([
-          this.tableTrails.bulkPut(trailDtos),
-          this.tableMetadata.bulkPut(metadataDtos),
-          this.tableSimplifiedTracks.bulkPut(simplifiedTrackDtos),
-          this.tableInfos.bulkPut(infoDtos),
-        ])).pipe(map(() => trailDtos.map(t => new Trail(t))));
-      }),
-      catchError(e => {
-        Console.error('Error fetching public trails', uuids, e);
-        // try by smaller bunches
-        if (uuids.length < 2) return of([]);
-        const middle = uuids.length / 2;
-        const bunch1 = uuids.slice(0, middle);
-        const bunch2 = uuids.slice(middle);
-        return combineLatest([
-          this.fetchTrailsByIds(bunch1),
-          this.fetchTrailsByIds(bunch2),
-        ]).pipe(map(([t1,t2]) => [...t1, ...t2]));
-      }),
-    );
+    return this._pending.requestMultiple(uuids, (keys) =>
+      firstValueFrom(
+        this.injector.get(HttpService).post<PublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/trailsByIds', uuids)
+      .pipe(
+        switchMap(result => {
+          if (result.length === 0) return of([]);
+          const trailDtos: TrailDto[] = [];
+          const metadataDtos: TrackMetadataSnapshot[] = [];
+          const simplifiedTrackDtos: SimplifiedTrackDto[] = [];
+          const infoDtos: TrailInfoDto[] = [];
+          result.forEach(pt => {
+            const dtos = this.publicTrailToDtos(pt);
+            trailDtos.push(dtos.trailDto);
+            metadataDtos.push(dtos.metadataDto);
+            simplifiedTrackDtos.push(dtos.simplifiedTrackDto);
+            infoDtos.push(dtos.infoDto);
+          });
+          return from(Promise.all([
+            this.tableTrails.bulkPut(trailDtos),
+            this.tableMetadata.bulkPut(metadataDtos),
+            this.tableSimplifiedTracks.bulkPut(simplifiedTrackDtos),
+            this.tableInfos.bulkPut(infoDtos),
+          ])).pipe(map(() => trailDtos.map(t => new Trail(t))));
+        }),
+        catchError(e => {
+          Console.error('Error fetching public trails', uuids, e);
+          // try by smaller bunches
+          if (uuids.length < 2) return of([]);
+          const middle = uuids.length / 2;
+          const bunch1 = uuids.slice(0, middle);
+          const bunch2 = uuids.slice(middle);
+          return combineLatest([
+            this.fetchTrailsByIds(bunch1),
+            this.fetchTrailsByIds(bunch2),
+          ]).pipe(map(([t1,t2]) => [...t1, ...t2]));
+        }),
+      )
+    ));
   }
 
   private publicTrailToDtos(pt: PublicTrail): {trailDto: TrailDto, metadataDto: TrackMetadataSnapshot, simplifiedTrackDto: SimplifiedTrackDto, infoDto: TrailInfoDto} {
@@ -216,39 +219,43 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
       // we may have the slug locally
       return this.tableInfos.getBy('slug', uuid).then(info => {
         if (info) return this.getTrail(info.uuid);
-        return firstValueFrom(this.injector.get(HttpService).get<PublicTrail>(environment.apiBaseUrl + '/public/trails/v1/trailBySlug/' + uuid).pipe(
-          switchMap(pt => {
-            const dtos = this.publicTrailToDtos(pt);
-            return from(Promise.all([
-              this.tableTrails.put(dtos.trailDto),
-              this.tableMetadata.put(dtos.metadataDto),
-              this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto),
-              this.tableInfos.put(dtos.infoDto),
-            ])).pipe(map(() => new Trail(dtos.trailDto)));
-          }),
-          catchError(e => {
-            Console.error('Error getting public trail from slug', uuid, e);
-            return of(null);
-          }),
-          defaultIfEmpty(null),
+        return this._pending.requestSingle(uuid, () => firstValueFrom(
+          this.injector.get(HttpService).get<PublicTrail>(environment.apiBaseUrl + '/public/trails/v1/trailBySlug/' + uuid).pipe(
+            switchMap(pt => {
+              const dtos = this.publicTrailToDtos(pt);
+              return from(Promise.all([
+                this.tableTrails.put(dtos.trailDto),
+                this.tableMetadata.put(dtos.metadataDto),
+                this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto),
+                this.tableInfos.put(dtos.infoDto),
+              ])).pipe(map(() => new Trail(dtos.trailDto)));
+            }),
+            catchError(e => {
+              Console.error('Error getting public trail from slug', uuid, e);
+              return of(null);
+            }),
+            defaultIfEmpty(null),
+          )
         ));
       });
     }
-    return firstValueFrom(this.injector.get(HttpService).get<PublicTrail>(environment.apiBaseUrl + '/public/trails/v1/trailById/' + uuid).pipe(
-      switchMap(pt => {
-        const dtos = this.publicTrailToDtos(pt);
-        return from(Promise.all([
-          this.tableTrails.put(dtos.trailDto),
-          this.tableMetadata.put(dtos.metadataDto),
-          this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto),
-          this.tableInfos.put(dtos.infoDto),
-        ])).pipe(map(() => new Trail(dtos.trailDto)));
-      }),
-      catchError(e => {
-        Console.error('Error getting public trail from uuid', uuid, e);
-        return of(null);
-      }),
-      defaultIfEmpty(null),
+    return this._pending.requestSingle(uuid, () => firstValueFrom(
+      this.injector.get(HttpService).get<PublicTrail>(environment.apiBaseUrl + '/public/trails/v1/trailById/' + uuid).pipe(
+        switchMap(pt => {
+          const dtos = this.publicTrailToDtos(pt);
+          return from(Promise.all([
+            this.tableTrails.put(dtos.trailDto),
+            this.tableMetadata.put(dtos.metadataDto),
+            this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto),
+            this.tableInfos.put(dtos.infoDto),
+          ])).pipe(map(() => new Trail(dtos.trailDto)));
+        }),
+        catchError(e => {
+          Console.error('Error getting public trail from uuid', uuid, e);
+          return of(null);
+        }),
+        defaultIfEmpty(null),
+      )
     ));
   }
 
@@ -274,19 +281,21 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   protected override fetchFullTrackById(uuid: string): Promise<Track | null> {
-    return firstValueFrom(this.injector.get(HttpService).get<PublicTrack>(environment.apiBaseUrl + '/public/trails/v1/track/' + uuid))
-    .then(pt => {
-      const dto: TrackDto = {
-        ...pt,
-        owner: 'trailence',
-        uuid: uuid,
-        version: 1,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }
-      this.tableFullTracks.put(dto);
-      return new Track(dto, this.injector.get(PreferencesService));
-    });
+    return this._pendingFullTrack.request(uuid, () =>
+      firstValueFrom(this.injector.get(HttpService).get<PublicTrack>(environment.apiBaseUrl + '/public/trails/v1/track/' + uuid))
+      .then(pt => {
+        const dto: TrackDto = {
+          ...pt,
+          owner: 'trailence',
+          uuid: uuid,
+          version: 1,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }
+        this.tableFullTracks.put(dto);
+        return new Track(dto, this.injector.get(PreferencesService));
+      })
+    );
   }
 
   public override canSearchBubbles(): boolean {
@@ -294,7 +303,6 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   public override searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters): Observable<SearchBubblesResult[]> {
-    // TODO cache
     const topLeft = L.CRS.EPSG3857.latLngToPoint(bounds.getNorthWest(), zoom);
     const bottomRight = L.CRS.EPSG3857.latLngToPoint(bounds.getSouthEast(), zoom);
     const startY = Math.floor(topLeft.y / 128);

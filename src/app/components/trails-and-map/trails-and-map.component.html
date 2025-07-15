@@ -54,8 +54,23 @@
     </ion-segment>
   </div>
   <div class="trail-sheet {{trailSheetMode}} {{highlightedTrail ? '' : 'none'}} metadata-container {{trailSheetMetadataClass}}">
-    <ng-container *ngIf="highlightedTrail">
+    <ng-container *ngIf="highlightedTrail && trailSheetMode !== 'none'">
       <app-trail-overview [trail]="highlightedTrail" [photoEnabled]="false" [hasFixedHeight]="true" [navigationCount]="bottomSheetTrails?.length" [navigationIndex]="bottomSheetTrailsIndex" (navigationIndexChange)="navigateBottomSheetTrail($event)"></app-trail-overview>
     </ng-container>
   </div>
+  @if (trailSheetMode === 'none' && bottomSheetTrails && bottomSheetTrails.length > 1) {
+    <div class="large-trails-navigation">
+      <div>
+        <ion-button size="small" fill="clear" color="dark" [disabled]="bottomSheetTrailsIndex === 0" (click)="navigateBottomSheetTrail(bottomSheetTrailsIndex - 1)">
+          <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
+        </ion-button>
+        <div>
+          {{bottomSheetTrailsIndex + 1}} / {{bottomSheetTrails.length}}
+        </div>
+        <ion-button size="small" fill="clear" color="dark" [disabled]="bottomSheetTrailsIndex === bottomSheetTrails.length - 1" (click)="navigateBottomSheetTrail(bottomSheetTrailsIndex + 1)">
+          <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  }
 </div>

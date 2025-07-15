@@ -60,7 +60,7 @@
     <ng-container *ngIf="photoEnabled">
       <div class="metadata-with-photos {{photoCanBeOnLeft ? 'photo-left' : 'photo-block'}}">
         <div class="photos" *ngIf="photos.length > 0">
-          <app-photos-slider #slider [photos]="photos" [width]="photoCanBeOnLeft ? 100 : 140" [height]="80" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
+          <app-photos-slider #slider [photos]="photos" [width]="photoCanBeOnLeft ? 100 : 140" [height]="80" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
         </div>
         <div class="metadata" [ngClass]="{'with-photos': photos.length > 0}">
           <ng-container *ngTemplateOutlet="metadata"></ng-container>

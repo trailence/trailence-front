@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, map, Observable, of, Subscription, switchMap } from 'rxjs';
-import { IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonButton, IonIcon } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
@@ -33,7 +33,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
     selector: 'app-trails-and-map',
     templateUrl: './trails-and-map.component.html',
     styleUrls: ['./trails-and-map.component.scss'],
-    imports: [
+    imports: [IonIcon, IonButton,
       IonSegmentButton, IonSegment,
       TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule, SearchPlaceComponent,
       ToolbarComponent,
@@ -307,6 +307,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     this.bottomSheetTrails = others && others.length > 0 ? [trail, ...others] : undefined;
     this.bottomSheetTrailsIndex = 0;
+    console.log('others = ', others?.length);
     this.changeDetector.detectChanges();
   }
 

@@ -20,6 +20,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
   @Input() width?: number;
   @Input() height?: number;
   @Input() zoomable = false;
+  @Input() preLoadNext = true;
 
   items: Item[] = [];
   screenWidth = 1;
@@ -106,7 +107,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
     this.items = this.photos.map((p, index) => ({
       photo: p,
       index,
-      loaded: index === this.index || index === this.index - 1 || index === this.index + 1,
+      loaded: index === this.index || (this.preLoadNext && (index === this.index - 1 || index === this.index + 1)),
     }));
     this.scroll = this.index * this.screenWidth;
   }
@@ -125,6 +126,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
 
   private updateLoadedTimeout: any;
   private indexChanged(): void {
+    this.preLoadNext = true;
     if (this.updateLoadedTimeout) {
       clearTimeout(this.updateLoadedTimeout);
     }
@@ -132,7 +134,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
     this.changesDetector.detectChanges();
     this.updateLoadedTimeout = setTimeout(() => {
       this.updateLoadedTimeout = undefined;
-      for (const item of this.items) item.loaded = item.index === this.index || item.index === this.index - 1 || item.index === this.index + 1;
+      for (const item of this.items) item.loaded = item.index === this.index || (this.preLoadNext && (item.index === this.index - 1 || item.index === this.index + 1));
       this.changesDetector.detectChanges();
     }, 500);
   }
