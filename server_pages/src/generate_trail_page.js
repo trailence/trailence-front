@@ -42,9 +42,13 @@ function retrieveData(request, slug) {
 }
 
 function translateData(data, i18n, lang) {
-  data.lang = lang;
+  if (data.lang !== lang) {
+    if (data.nameTranslations[lang]) data.name = data.nameTranslations[lang];
+    if (data.descriptionTranslations[lang]) data.description = data.descriptionTranslations[lang];
+  }
   data.i18n = i18n;
   data.activity = i18n.activity[data.activity];
+  data.lang = lang;
   return data;
 }
 

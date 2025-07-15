@@ -41,6 +41,10 @@ export class HttpService {
     return this.send(new TrailenceHttpRequest(HttpMethod.POST, url, headers ?? {}, body, ResponseType.JSON));
   }
 
+  public postString(url: string, body: any, headers?: any): Observable<string> {
+    return this.send(new TrailenceHttpRequest(HttpMethod.POST, url, headers ?? {}, body, ResponseType.TEXT));
+  }
+
   public put<T>(url: string, body: any, headers?: any): Observable<T> {
     return this.send(new TrailenceHttpRequest(HttpMethod.PUT, url, headers ?? {}, body, ResponseType.JSON));
   }

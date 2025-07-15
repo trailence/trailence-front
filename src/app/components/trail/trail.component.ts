@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, IonInput } from "@ionic/angular/standalone";
 import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -59,6 +59,7 @@ import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces
 import { NetworkService } from 'src/app/services/network/network.service';
 import { TextComponent } from '../text/text.component';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { FormsModule } from '@angular/forms';
 
 interface TrailSource {
   isExternal: boolean;
@@ -76,6 +77,7 @@ interface TrailSource {
     styleUrls: ['./trail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
+        IonInput,
         IonSpinner,
         IonCheckbox,
         IonTextarea,
@@ -84,6 +86,7 @@ interface TrailSource {
         IonSegmentButton,
         IonSegment,
         CommonModule,
+        FormsModule,
         MapComponent,
         TrackMetadataComponent,
         TrailGraphComponent,
@@ -128,6 +131,10 @@ export class TrailComponent extends AbstractComponent {
   graphTrack2?: Track;
   graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
   myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
+
+  detectedLanguage?: string;
+  nameTranslations?: {[key: string]: string};
+  descriptionTranslations?: {[key: string]: string};
 
   @ViewChild(MapComponent)
   set map(child: MapComponent | undefined) {
@@ -197,7 +204,10 @@ export class TrailComponent extends AbstractComponent {
       .setAction(() => this.compareToPublicTrail()),
     new MenuItem().setIcon('web').setI18nLabel('publications.publish')
       .setVisible(() => !this.trail2 && (this.trail1?.fromModeration || !!this.publicationChecklist))
-      .setDisabled(() => !this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0)
+      .setDisabled(() =>
+        (!this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0) ||
+        (!!this.trail1?.fromModeration && (!this.detectedLanguage || !this.nameTranslations || !this.descriptionTranslations))
+      )
       .setTextColor('success')
       .setAction(() => this.publish()),
     new MenuItem().setIcon('cross').setI18nLabel('publications.moderation.reject')
@@ -1419,7 +1429,7 @@ export class TrailComponent extends AbstractComponent {
         service.getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid).pipe(first()),
         service.getPhotos$(trail.owner, trail.uuid).pipe(first()),
       ]).subscribe(([track, photos]) => {
-        service.validateAndPublish(trail, track, photos, (ok) => {
+        service.validateAndPublish(trail, track, photos, this.detectedLanguage!, this.nameTranslations!, this.descriptionTranslations!, (ok) => {
           if (ok)
             this.injector.get(Router).navigateByUrl('/trails/moderation');
         });
@@ -1521,6 +1531,41 @@ export class TrailComponent extends AbstractComponent {
       this.trail2 = trail;
       this.changesDetector.detectChanges();
     }
+  }
+
+  detectLanguage(): void {
+    this.injector.get(ModerationService).detectLanguage(this.trail1?.description ?? '')
+    .subscribe(lang => this.setLanguage(lang));
+  }
+
+  setLanguage(lang: string): void {
+    this.detectedLanguage = lang.length > 0 && (lang === 'fr' || lang === 'en') ? lang : undefined;
+    this.nameTranslations = undefined;
+    this.descriptionTranslations = undefined;
+    if (this.detectedLanguage) {
+      if (lang !== 'fr') {
+        this.doTranslation(lang, 'fr');
+      }
+      if (lang !== 'en') {
+        this.doTranslation(lang, 'en');
+      }
+    }
+    this.changesDetector.detectChanges();
+  }
+
+  doTranslation(from: string, to: string): void {
+    this.injector.get(ModerationService).translate(this.trail1?.name ?? '', from, to)
+    .subscribe(translation => {
+      this.nameTranslations ??= {};
+      this.nameTranslations[to] = translation;
+      this.changesDetector.detectChanges();
+    });
+    this.injector.get(ModerationService).translate(this.trail1?.description ?? '', from, to)
+    .subscribe(translation => {
+      this.descriptionTranslations ??= {};
+      this.descriptionTranslations[to] = translation;
+      this.changesDetector.detectChanges();
+    });
   }
 
 }

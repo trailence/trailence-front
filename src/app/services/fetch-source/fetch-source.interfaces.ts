@@ -99,6 +99,10 @@ export interface TrailInfo {
   myUuid?: string;
   itsMine?: boolean;
 
+  lang?: string;
+  nameTranslations?: {[key: string]: string};
+  descriptionTranslations?: {[key: string]: string};
+
 }
 
 export interface WayPointInfo {

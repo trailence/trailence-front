@@ -292,7 +292,15 @@ export class ModerationService {
     );
   }
 
-  public async validateAndPublish(trail: Trail, track: Track, photos: Photo[], ondone?: (success: boolean) => void) {
+  public detectLanguage(text: string): Observable<string> {
+    return this.http.postString(environment.apiBaseUrl + '/moderation/v1/detectLanguage', text);
+  }
+
+  public translate(text: string, from: string, to: string): Observable<string> {
+    return this.http.postString(environment.apiBaseUrl + '/moderation/v1/translate?from=' + from + '&to=' + to, text);
+  }
+
+  public async validateAndPublish(trail: Trail, track: Track, photos: Photo[], lang: string, nameTranslations: {[key: string]: string}, descriptionTranslations: {[key: string]: string}, ondone?: (success: boolean) => void) {
     const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.publications.moderation.publishing, 9);
     const step = <T>(work: number, op: () => T) => new Promise<T>(resolve => {
       setTimeout(() => {
@@ -387,6 +395,9 @@ export class ModerationService {
       fullTrack: fullTrack.s!,
       wayPoints: fullTrack.wp!,
       photos: photosDtos,
+      lang,
+      nameTranslations,
+      descriptionTranslations,
     };
 
     this.http.post(environment.apiBaseUrl + '/moderation/v1/publish', dto).subscribe({
@@ -457,6 +468,10 @@ interface CreatePublicTrailDto {
   wayPoints: WayPointDto[];
 
   photos: CreatePublicTrailPhotoDto[];
+
+  lang: string;
+  nameTranslations: {[key: string]: string};
+  descriptionTranslations: {[key: string]: string};
 
 }
 

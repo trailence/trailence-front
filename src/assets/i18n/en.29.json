@@ -1182,5 +1182,10 @@
     "minuteAgo": "1 minute ago",
     "minutesAgo": "{{1}} minutes ago",
     "ago": "{{1}} ago"
+  },
+  "translations": {
+    "translated_from_fr": "Translated from French",
+    "view_original": "View original text",
+    "view_translated": "Translate in English"
   }
 }

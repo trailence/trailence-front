@@ -1182,5 +1182,10 @@
     "minuteAgo": "Il y a 1 minute",
     "minutesAgo": "Il y a {{1}} minutes",
     "ago": "Il y a {{1}}"
+  },
+  "translations": {
+    "translated_from_en": "Traduit de l'anglais",
+    "view_original": "Voir le texte d'origine",
+    "view_translated": "Traduire en français"
   }
 }

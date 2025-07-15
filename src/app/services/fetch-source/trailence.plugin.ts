@@ -209,6 +209,9 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
           nbRate5: pt.nbRate5,
           nbRates,
           rating: rating,
+          lang: pt.lang ?? undefined,
+          nameTranslations: pt.nameTranslations ?? undefined,
+          descriptionTranslations: pt.descriptionTranslations ?? undefined,
         }
       }
     };
@@ -373,6 +376,10 @@ interface PublicTrail {
 
   simplifiedPath: number[];
   photos: PublicPhoto[];
+
+  lang: string;
+  nameTranslations?: {[key: string]: string};
+  descriptionTranslations?: {[key: string]: string};
 }
 
 interface PublicPhoto {
