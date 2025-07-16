@@ -1186,6 +1186,14 @@
   "translations": {
     "translated_from_fr": "Translated from French",
     "view_original": "View original text",
-    "view_translated": "Translate in English"
+    "view_translated": "Translate in English",
+    "trail_moderation": {
+      "title": "Translations",
+      "original_language": "Used language",
+      "detect": "Detect",
+      "needed_translations": "Required translations",
+      "name": "Trail name",
+      "description": "Description"
+    }
   }
 }

@@ -1,0 +1,17 @@
+div.source-lang {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  ion-button {
+    margin-left: 5px;
+  }
+}
+
+ion-input {
+  margin-top: 8px;
+}
+
+ion-textarea {
+  margin-top: 8px;
+}

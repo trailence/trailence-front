@@ -276,26 +276,7 @@
               }
             }
             @if (trail1.fromModeration) {
-              <div>
-                Language:
-                <select [ngModel]="detectedLanguage" (ngModelChange)="setLanguage($event)">
-                  <option value=""></option>
-                  <option value="fr">Français</option>
-                  <option value="en">English</option>
-                </select>
-                <span> </span>
-                <button (click)="detectLanguage()">Detect</button>
-              </div>
-              @if (detectedLanguage && nameTranslations && descriptionTranslations) {
-                @if (detectedLanguage !== 'fr') {
-                  <ion-input [(ngModel)]="nameTranslations['fr']"></ion-input>
-                  <ion-textarea [(ngModel)]="descriptionTranslations['fr']"></ion-textarea>
-                }
-                @if (detectedLanguage !== 'en') {
-                  <ion-input [(ngModel)]="nameTranslations['en']"></ion-input>
-                  <ion-textarea [(ngModel)]="descriptionTranslations['en']"></ion-textarea>
-                }
-              }
+              <app-moderation-translations [trail]="trail1" [translations]="translations"></app-moderation-translations>
             }
           </div>
         }

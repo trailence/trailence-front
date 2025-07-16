@@ -1,0 +1,50 @@
+<hr/>
+<div class="page-section-title">{{ i18n.texts.translations.trail_moderation.title }}</div>
+<div class="page-section-sub-title">{{ i18n.texts.translations.trail_moderation.original_language }}</div>
+@if (sourceLanguages) {
+<div class="source-lang">
+  <select [ngModel]="translations.detectedLanguage" (ngModelChange)="setLanguage($event)" [disabled]="detecting">
+    <option value=""></option>
+    @for (sl of sourceLanguages; track sl.code) {
+      <option [value]="sl.code">{{sl.name}}</option>
+    }
+  </select>
+  <ion-button (click)="detectLanguage()" size="small" [disabled]="detecting">
+    @if (detecting) {
+      <ion-spinner></ion-spinner>
+    } @else {
+      {{ i18n.texts.translations.trail_moderation.detect }}
+    }
+  </ion-button>
+</div>
+}
+@if (translations.detectedLanguage) {
+  <div class="page-section-sub-title">{{ i18n.texts.translations.trail_moderation.needed_translations }}</div>
+  @if (translating > 0) {
+    <ion-spinner name="dots"></ion-spinner>
+  }
+  <select [ngModel]="displayTarget" (ngModelChange)="setDisplayTarget($event)">
+    <option value=""></option>
+    @for (tl of targetLanguages; track tl.code) {
+      @if (translations.detectedLanguage !== tl.code) {
+        <option [value]="tl.code">{{ tl.name }}</option>
+      }
+    }
+  </select>
+  @if (displayTarget && displayTarget.length > 0 && translations.nameTranslations && translations.descriptionTranslations) {
+    <ion-input
+      [(ngModel)]="translations.nameTranslations[displayTarget]"
+      fill="outline"
+      [label]="i18n.texts.translations.trail_moderation.name"
+      labelPlacement="stacked"
+    ></ion-input>
+    <ion-textarea
+      [(ngModel)]="translations.descriptionTranslations[displayTarget]"
+      fill="outline"
+      [label]="i18n.texts.translations.trail_moderation.description"
+      labelPlacement="stacked"
+      [autoGrow]="true"
+    ></ion-textarea>
+  }
+}
+<hr/>

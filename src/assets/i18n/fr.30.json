@@ -1186,6 +1186,14 @@
   "translations": {
     "translated_from_en": "Traduit de l'anglais",
     "view_original": "Voir le texte d'origine",
-    "view_translated": "Traduire en français"
+    "view_translated": "Traduire en français",
+    "trail_moderation": {
+      "title": "Traductions",
+      "original_language": "Langue utilisée",
+      "detect": "Détecter",
+      "needed_translations": "Traductions nécessaires",
+      "name": "Nom du parcours",
+      "description": "Description"
+    }
   }
 }
