@@ -32,6 +32,7 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { RateComponent } from '../trail/rate-and-comments/rate/rate.component';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
+import { LongPressDirective } from 'src/app/utils/long-press.directive';
 
 class Meta {
   name?: string;
@@ -59,6 +60,7 @@ class Meta {
       CommonModule,
       PhotosSliderComponent,
       RateComponent,
+      LongPressDirective,
     ]
 })
 export class TrailOverviewComponent extends AbstractComponent {
@@ -87,6 +89,14 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() navigationIndex?: number;
   @Input() navigationCount?: number;
   @Output() navigationIndexChange = new EventEmitter<number>();
+
+  @Input() renameOnTrailNamePress = false;;
+  trailNamePressed(): void {
+    if(this.renameOnTrailNamePress && this.trail)
+      import('../../services/functions/trail-rename').then(m => {
+        if (this.trail) m.openRenameTrailDialog(this.injector, this.trail);
+      });
+  }
 
   id = IdGenerator.generateId();
   meta: Meta = new Meta();

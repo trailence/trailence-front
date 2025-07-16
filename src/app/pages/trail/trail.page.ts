@@ -45,6 +45,12 @@ export class TrailPage extends AbstractPage {
   recording$ = new BehaviorSubject<Recording | null>(null);
   menu: MenuItem[] = [];
 
+  titleLongPress = () => {
+    const trail = this.trail$.value;
+    if (trail && !this.trail2$.value && trail.owner === this.injector.get(AuthService).email)
+      import('../../services/functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trail));
+  }
+
   @ViewChild('trailComponent') trailComponent?: TrailComponent;
 
   constructor(

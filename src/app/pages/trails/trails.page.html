@@ -1,4 +1,4 @@
-<app-header [title]="title$ ? (title$ | async) || '' : ''" [actions]="actions"></app-header>
+<app-header [title]="title$ ? (title$ | async) || '' : ''" [actions]="actions" [titleLongPress]="titleLongPressEvent"></app-header>
 @if (trailsType === 'search') {
   @if (!(connected$ | async)) {
     <div class="disconnected-message">

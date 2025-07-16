@@ -58,6 +58,7 @@ export class TrailsPage extends AbstractPage {
   actions: MenuItem[] = [];
 
   viewId?: string;
+  titleLongPressEvent?: () => void;
 
   searching = false;
   searchMode: 'trails' | 'bubbles' | undefined = undefined;
@@ -165,6 +166,9 @@ export class TrailsPage extends AbstractPage {
         // menu
         collectionActions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
         this.actions = [...collectionActions, ...trailsActions];
+        this.titleLongPressEvent = () => {
+          this.injector.get(TrailCollectionService).collectionPopup(collection, false);
+        };
         return this.injector.get(TrailCollectionService).getTrailCollectionName$(collection);
       })
     ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
@@ -584,6 +588,7 @@ export class TrailsPage extends AbstractPage {
     this.selectedSearchPlugins = [];
     this.searchFiltersSubscription?.unsubscribe();
     this.searchFiltersSubscription = undefined;
+    this.titleLongPressEvent = undefined;
   }
 
 }

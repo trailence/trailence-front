@@ -13,6 +13,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { publicRoutes } from 'src/app/routes/package.routes';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { LongPressDirective } from 'src/app/utils/long-press.directive';
 
 @Component({
     selector: 'app-header',
@@ -21,7 +22,7 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
     imports: [IonItem, IonList,
       IonBadge, IonContent, IonPopover, IonButton, IonHeader, IonToolbar, IonButtons, IonIcon, IonLabel, IonMenuButton,
       HeaderUserMenuComponent, MenuContentComponent,
-      CommonModule,
+      CommonModule, LongPressDirective,
     ]
 })
 export class HeaderComponent extends AbstractComponent {
@@ -32,6 +33,7 @@ export class HeaderComponent extends AbstractComponent {
   @Input() description?: string;
   @Input() useH1 = false;
   @Input() neverShowTrailenceTitle = false;
+  @Input() titleLongPress?: () => void;
 
   id = IdGenerator.generateId();
   small: boolean;
@@ -55,6 +57,10 @@ export class HeaderComponent extends AbstractComponent {
 
   back(): void {
     this.router.navigateByUrl(this.backUrl!);
+  }
+
+  titlePress(): void {
+    if (this.titleLongPress) this.titleLongPress();
   }
 
   goTo(url: string): void {
