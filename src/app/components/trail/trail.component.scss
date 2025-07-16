@@ -470,6 +470,12 @@
     font-size: 11pt;
     line-height: 1.5em;
 
+    h2 {
+      font-size: 11pt;
+      line-height: 1.5em;
+      margin: 0;
+    }
+
     div.edit-description {
       cursor: pointer;
       &:hover {

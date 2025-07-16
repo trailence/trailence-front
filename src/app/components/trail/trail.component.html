@@ -253,7 +253,9 @@
         @if (trail1.description || editable) {
           <div class="description-text">
             @if (!editable) {
-              <app-text [text]="trail1.description" [lang]="source?.info?.lang" [translations]="source?.info?.descriptionTranslations"></app-text>
+              <h2>
+                <app-text [text]="trail1.description" [lang]="source?.info?.lang" [translations]="source?.info?.descriptionTranslations"></app-text>
+              </h2>
             } @else {
               @if (!editingDescription) {
                 <div class="edit-description" (click)="startEditDescription()">

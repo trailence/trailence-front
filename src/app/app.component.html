@@ -1,5 +1,8 @@
 <ng-container *ngIf="i18nLoaded">
   <ion-app>
+    <ion-content id="content">
+      <ion-router-outlet [animated]="false"></ion-router-outlet>
+    </ion-content>
     @defer(when loadMenu) {
       <ion-menu contentId="content" #appMenu [maxEdgeStart]="0">
         @defer(when loadMenuContent) {
@@ -7,9 +10,6 @@
         }
       </ion-menu>
     }
-    <ion-content id="content">
-      <ion-router-outlet [animated]="false"></ion-router-outlet>
-    </ion-content>
   </ion-app>
   <div class="waiting-for-gps" *ngIf="waitingForGps">
     <div>{{ waitingForGpsText }}</div>

@@ -136,5 +136,9 @@
         "La description des parcours publics est désormais traduite en français et en anglais."
       ]
     }
+  },
+  "001807": {
+    "en": {"message": "Some improvements and fixes"},
+    "fr": {"message": "Quelques améliorations et correctifs"}
   }
 }

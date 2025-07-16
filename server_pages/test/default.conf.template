@@ -6,9 +6,13 @@ server {
 
   js_path "/usr/share/nginx/njs/";
   js_import trail_page from generate_trail_page.js;
+  js_import no_description from index_without_description.js;
 
   location ~* ^/(en|fr)/trail/ {
     js_content trail_page.generate;
+  }
+  location ~* ^/trail/trailence/ {
+    js_content no_description.generate;
   }
 
   location /api {
@@ -18,6 +22,10 @@ server {
   }
 
   location /assets {
+    proxy_pass http://host.docker.internal:8100;
+    proxy_set_header Host localhost;
+  }
+  location /index.html {
     proxy_pass http://host.docker.internal:8100;
     proxy_set_header Host localhost;
   }

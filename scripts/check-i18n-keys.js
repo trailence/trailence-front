@@ -8,6 +8,7 @@ function readI18nDir(path, withFlagsIcons) {
   try {
     let entry;
     while ((entry = dir.readSync()) !== null) {
+      if (entry.name.startsWith('languages.') && entry.name.endsWith('.json')) continue;
       const i = entry.name.indexOf('.');
       const j = entry.name.lastIndexOf('.');
       if (i < 0 || j < 0) throw 'Unexpected file: ' + entry.name;
