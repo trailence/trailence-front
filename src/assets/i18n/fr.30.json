@@ -129,7 +129,9 @@
         "duration": "Durée",
         "estimatedDuration": "Durée estimée de randonnée",
         "positive_elevation": "Dénivelé positif",
-        "negative_elevation": "Dénivelé négatif"
+        "negative_elevation": "Dénivelé négatif",
+        "highest_altitude": "Point le plus haut",
+        "lowest_altitude": "Point le plus bas"
       },
       "filters": {
         "duration": "Durée",

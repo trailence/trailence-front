@@ -9,7 +9,7 @@ import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { CommonModule } from '@angular/common';
 import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController } from "@ionic/angular/standalone";
-import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
+import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { GraphPointReference } from '../trail-graph/graph-events';
@@ -133,6 +133,15 @@ export class TrailComponent extends AbstractComponent {
   graphTrack2?: Track;
   graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
   myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
+
+  metadataConfig: TrackMetadataConfig = {
+    mergeDurationAndEstimated: false,
+    showBreaksDuration: true,
+    showHighestAndLowestAltitude: true,
+    allowSmallOnOneLine: false,
+    mayHave2Values: true,
+    alwaysShowElevation: true,
+  };
 
   translations = new TrailTranslations();
 

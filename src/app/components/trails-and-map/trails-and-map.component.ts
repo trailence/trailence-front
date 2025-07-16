@@ -28,6 +28,7 @@ import { ModerationService } from 'src/app/services/moderation/moderation.servic
 import { NetworkService } from 'src/app/services/network/network.service';
 import { ANONYMOUS_USER, AuthService } from 'src/app/services/auth/auth.service';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 
 @Component({
     selector: 'app-trails-and-map',
@@ -68,6 +69,14 @@ export class TrailsAndMapComponent extends AbstractComponent {
   highlightedTrail?: Trail;
   bottomSheetTrails?: Trail[];
   bottomSheetTrailsIndex = 0;
+  bottomSheetMetadataConfig: TrackMetadataConfig = {
+    mergeDurationAndEstimated: true,
+    showBreaksDuration: false,
+    showHighestAndLowestAltitude: false,
+    allowSmallOnOneLine: true,
+    mayHave2Values: false,
+    alwaysShowElevation: false,
+  };
   mapTracksMapper = new CollectionMapper<{trail: Trail, data: SimplifiedTrackSnapshot}, MapTrack>(
     trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, 'red', 4, false, this.i18n),
     (t1, t2) => t1.data === t2.data
@@ -307,7 +316,6 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     this.bottomSheetTrails = others && others.length > 0 ? [trail, ...others] : undefined;
     this.bottomSheetTrailsIndex = 0;
-    console.log('others = ', others?.length);
     this.changeDetector.detectChanges();
   }
 

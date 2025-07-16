@@ -311,7 +311,7 @@
           </div>
         </div>
         <div class="metadata-container two-columns with-title">
-          <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
+          <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [config]="metadataConfig"></app-track-metadata>
           @if (trail1) {
             <div class="metadata-item-container">
               <div class="metadata-item">
@@ -511,7 +511,7 @@
     </div>
     <div class="bottom-sheet-info-content" *ngIf="tracks[0] && isSmall && bottomSheetTab === 'info' && tab === 'map'">
       <div class="metadata-container tiles">
-        <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]" [detailed]="true"></app-track-metadata>
+        <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]" [config]="metadataConfig"></app-track-metadata>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
     </div>

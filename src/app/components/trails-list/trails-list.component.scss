@@ -145,6 +145,10 @@ app-toolbar {
   margin-bottom: 5px;
 }
 
+ion-item ion-radio ion-icon {
+  margin-bottom: -2px;
+}
+
 div.search-container {
   position: absolute;
   bottom: 0;

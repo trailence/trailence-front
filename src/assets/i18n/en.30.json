@@ -129,7 +129,9 @@
         "duration": "Duration",
         "estimatedDuration": "Estimated hiking duration",
         "positive_elevation": "Positive elevation",
-        "negative_elevation": "Negative elevation"
+        "negative_elevation": "Negative elevation",
+        "highest_altitude": "Highest point",
+        "lowest_altitude": "Lowest point"
       },
       "filters": {
         "duration": "Duration",

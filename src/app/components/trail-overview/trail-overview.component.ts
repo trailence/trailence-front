@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
-import { TrackMetadataComponent } from '../track-metadata/track-metadata.component';
+import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
@@ -74,9 +74,11 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() selected = false;
   @Output() selectedChange = new EventEmitter<boolean>();
 
+  @Input() config?: TrackMetadataConfig;
   @Input() photoEnabled = true;
   @Input() hasFixedHeight = false;
   @Input() photoCanBeOnLeft = true;
+  @Input() alwaysShowLocation = false;
 
   @Input() delayLoading = false;
 
@@ -301,7 +303,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   private initTrackMetadata(): void {
     this._trackMetadataInitialized = true;
     const element = document.getElementById('track-metadata-' + this.id);
-    TrackMetadataComponent.init(element!.parentElement!, element!, this.track$, of(undefined), false, this.assets, this.i18n, this.whenVisible, this.domController);
+    TrackMetadataComponent.init(element!.parentElement!, element!, this.track$, of(undefined), this.config!, this.assets, this.i18n, this.whenVisible, this.domController);
   }
 
   setSelected(selected: boolean) {

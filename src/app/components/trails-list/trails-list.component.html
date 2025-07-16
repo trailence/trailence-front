@@ -105,6 +105,7 @@
               [delayLoading]="$index >= 10"
               [photoCanBeOnLeft]="size !== 'small'"
               [showPublished]="showPublished"
+              [config]="metadataConfig"
             ></app-trail-overview>
           </div>
         }
@@ -310,6 +311,8 @@
           <ion-item><ion-radio value="track.estimatedDuration"><ion-icon name="chrono"></ion-icon> {{i18n.texts.pages.trails.sorts.estimatedDuration}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.positiveElevation"><ion-icon name="positive-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.positive_elevation}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.negativeElevation"><ion-icon name="negative-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.negative_elevation}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.highestAltitude"><ion-icon name="highest-point"></ion-icon> {{i18n.texts.pages.trails.sorts.highest_altitude}}</ion-radio></ion-item>
+          <ion-item><ion-radio value="track.lowestAltitude"><ion-icon name="lowest-point"></ion-icon> {{i18n.texts.pages.trails.sorts.lowest_altitude}}</ion-radio></ion-item>
         </ion-radio-group>
       </ion-list>
     </ion-content>

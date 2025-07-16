@@ -55,7 +55,16 @@
   </div>
   <div class="trail-sheet {{trailSheetMode}} {{highlightedTrail ? '' : 'none'}} metadata-container {{trailSheetMetadataClass}}">
     <ng-container *ngIf="highlightedTrail && trailSheetMode !== 'none'">
-      <app-trail-overview [trail]="highlightedTrail" [photoEnabled]="false" [hasFixedHeight]="true" [navigationCount]="bottomSheetTrails?.length" [navigationIndex]="bottomSheetTrailsIndex" (navigationIndexChange)="navigateBottomSheetTrail($event)"></app-trail-overview>
+      <app-trail-overview
+        [trail]="highlightedTrail"
+        [photoEnabled]="false"
+        [hasFixedHeight]="true"
+        [config]="bottomSheetMetadataConfig"
+        [alwaysShowLocation]="true"
+        [navigationCount]="bottomSheetTrails?.length"
+        [navigationIndex]="bottomSheetTrailsIndex"
+        (navigationIndexChange)="navigateBottomSheetTrail($event)"
+      ></app-trail-overview>
     </ng-container>
   </div>
   @if (trailSheetMode === 'none' && bottomSheetTrails && bottomSheetTrails.length > 1) {

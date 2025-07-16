@@ -35,6 +35,7 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { Console } from 'src/app/utils/console';
+import { TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -170,6 +171,15 @@ export class TrailsListComponent extends AbstractComponent {
 
   @ViewChild('sortModal') sortModal?: IonModal;
   @ViewChild('filtersModal') filtersModal?: IonModal;
+
+  metadataConfig: TrackMetadataConfig = {
+    mergeDurationAndEstimated: true,
+    showBreaksDuration: false,
+    showHighestAndLowestAltitude: true,
+    allowSmallOnOneLine: true,
+    mayHave2Values: false,
+    alwaysShowElevation: false,
+  };
 
   constructor(
     injector: Injector,

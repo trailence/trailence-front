@@ -49,7 +49,7 @@
           </div>
         </div>
       </div>
-      <div class="metadata-item-container" *ngIf="meta.location">
+      <div class="metadata-item-container" *ngIf="meta.location || alwaysShowLocation">
         <div class="metadata-item nowrap">
           <ion-icon name="location"></ion-icon>
           <div class="metadata-content">
