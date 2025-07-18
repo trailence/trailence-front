@@ -137,8 +137,18 @@
       ]
     }
   },
-  "001808": {
-    "en": {"message": "Some improvements and fixes"},
-    "fr": {"message": "Quelques améliorations et correctifs"}
+  "001809": {
+    "en": {
+      "message": "New Features for Track Editing",
+      "items": [
+        "You can fill missing parts of your track by adding free points or following OpenStreetMap paths"
+      ]
+    },
+    "fr": {
+      "message": "Nouvelles fonctionnalités d’édition de trace",
+      "items": [
+        "Vous pouvez maintenant compléter une trace en ajoutant des points libres ou en suivant les chemins OpenStreetMap"
+      ]
+    }
   }
 }
