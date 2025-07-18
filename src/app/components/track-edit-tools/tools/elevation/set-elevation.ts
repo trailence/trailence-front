@@ -87,10 +87,10 @@ export class SetElevationOnRangeSmoothTool implements TrackEditTool {
   }
 }
 
-export class SetElevationOnRangeManuallyTool implements TrackEditTool {
+export class SetElevationOnRangeManualValueTool implements TrackEditTool {
 
   labelKey(ctx: TrackEditToolContext): string {
-    return 'set_elevation_on_range.manually';
+    return 'set_elevation_on_range.manual_value';
   }
 
   isAvailable(ctx: TrackEditToolContext): boolean {
@@ -127,6 +127,59 @@ export class SetElevationOnRangeManuallyTool implements TrackEditTool {
             ctx.modifySelectedRange(true, track => {
               track.forEachPoint(p => {
                 p.ele = elevation;
+                return undefined;
+              });
+              return of(true);
+            }).subscribe();
+          }
+        }
+      });
+      alert.present();
+    });
+  }
+
+}
+
+export class SetElevationOnRangeManualDiffTool implements TrackEditTool {
+
+  labelKey(ctx: TrackEditToolContext): string {
+    return 'set_elevation_on_range.manual_diff';
+  }
+
+  isAvailable(ctx: TrackEditToolContext): boolean {
+    return ctx.selection.isRange();
+  }
+
+  execute(ctx: TrackEditToolContext): void {
+    const i18n = ctx.injector.get(I18nService);
+    ctx.injector.get(AlertController).create({
+      header: i18n.texts.track_edit_tools.categories.set_elevation_on_range,
+      inputs: [
+        {
+          type: 'number',
+          attributes: {
+            step: 'any'
+          }
+        }
+      ],
+      buttons: [
+        {
+          text: i18n.texts.buttons.apply,
+          role: 'ok'
+        },
+        {
+          text: i18n.texts.buttons.cancel,
+          role: 'cancel'
+        }
+      ]
+    }).then(alert => {
+      alert.onDidDismiss().then(result => {
+        if (result.role === 'ok') {
+          const elevation = parseFloat(result.data?.values[0]);
+          if (!isNaN(elevation)) {
+            ctx.modifySelectedRange(true, track => {
+              track.forEachPoint(p => {
+                p.ele = (p.ele ?? 0) + elevation;
                 return undefined;
               });
               return of(true);

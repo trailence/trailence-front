@@ -24,6 +24,7 @@ import { Console } from 'src/app/utils/console';
 import { TrackDto } from 'src/app/model/dto/track';
 import { estimateTimeForTrack } from 'src/app/services/track-edition/time/time-estimation';
 import { TrailSourceType } from 'src/app/model/dto/trail';
+import { WayUtils } from 'src/app/services/geolocation/way-utils';
 
 export const WAY_MAPTRACK_DEFAULT_COLOR = '#0000FF80'
 export const WAY_MAPTRACK_HIGHLIGHTED_COLOR = '#000080FF'
@@ -124,7 +125,7 @@ export class TrackBuilder {
       this.track!.lastSegment.removeMany(this.points[this.points.length - 1]);
       this.points.splice(this.points.length - 1, 1);
       this.updateCurrentMapTrack();
-      const matching = this.getMatchingWays(this.getLastPoint()!.pos);
+      const matching = WayUtils.getMatchingWays(this.getLastPoint()!.pos, this.ways, MATCHING_MAX_DISTANCE);
       this.updateMapTracks(matching);
       this.hasElevation = this.track!.forEachPoint(p => p.ele !== undefined) ?? false;
     }
@@ -186,7 +187,7 @@ export class TrackBuilder {
         this._addAnchor!.marker.setLatLng(pos);
         this.map.addToMap(this._addAnchor!.marker);
 
-        const matchingWays = this.getMatchingWays(pos);
+        const matchingWays = WayUtils.getMatchingWays(pos, this.ways, MATCHING_MAX_DISTANCE);
         const matchingMapTracks = this.getMatchingMapTracksIn(pos, [...this.possibleWaysFromLastAnchor$.value, ...this.possibleWaysFromCursor$.value]);
         const missingWays = matchingWays.filter(way => !matchingMapTracks.find(mt => mt.data.element === way));
         // new possible ways from cursor = matchingMapTracks present in current possible ways + missingWays
@@ -266,7 +267,7 @@ export class TrackBuilder {
     for (const ref of linkToPrevious) {
       const matching = this.getMatchingMapTracksIn(ref.position!, previousPosMapTracks); // NOSONAR
       if (matching.length === 1) {
-        const ways = this.getMatchingWays(ref.position!); // NOSONAR
+        const ways = WayUtils.getMatchingWays(ref.position!, this.ways, MATCHING_MAX_DISTANCE); // NOSONAR
         if (best === undefined || (ways.length > bestWays.length && Arrays.containsAll(ways, bestWays))) {
           best = {ref, using: matching[0]};
           bestWays = ways;
@@ -295,17 +296,6 @@ export class TrackBuilder {
     return matching;
   }
 
-  private getMatchingWays(pos: L.LatLngLiteral): Way[] {
-    const matching: Way[] = [];
-    const p = L.latLng(pos.lat, pos.lng);
-    for (const way of this.ways) {
-      if (way.points.find(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
-        matching.push(way);
-      }
-    }
-    return matching;
-  }
-
   private createAnchor(pos: L.LatLngLiteral, text: string, canRotate: boolean): MapAnchor {
     return new MapAnchor(pos, '#d00000', text, undefined, '#ffffff', '#d00000', undefined, canRotate);
   }
@@ -323,7 +313,7 @@ export class TrackBuilder {
       // free point
       this.points.push([ this.track!.lastSegment.append({pos}) ]);
     }
-    const matching = this.getMatchingWays(pos);
+    const matching = WayUtils.getMatchingWays(pos, this.ways, MATCHING_MAX_DISTANCE);
     this.updateMapTracks(matching);
     this.updateCurrentMapTrack();
     this.saveToLocalStorage();
@@ -350,7 +340,7 @@ export class TrackBuilder {
     if (!previousPos) {
       this.updateMapTracks(this.ways);
     } else {
-      const matching = this.getMatchingWays(previousPos.pos);
+      const matching = WayUtils.getMatchingWays(previousPos.pos, this.ways, MATCHING_MAX_DISTANCE);
       if (matching.length === 0)
         this.updateMapTracks(this.ways);
       else
@@ -389,7 +379,7 @@ export class TrackBuilder {
     }
     this.injector.get(GeoService)
       .findWays(this.map.getBounds()!)
-      .subscribe(ways => this.updateWaysFromService(this.injector.get(GeoService).mergeWays(ways))); // NOSONAR
+      .subscribe(ways => this.updateWaysFromService(WayUtils.mergeWays(ways))); // NOSONAR
   }
 
   private cancelWays(): void {

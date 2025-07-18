@@ -177,6 +177,8 @@ export class MapComponent extends AbstractComponent {
     return this._mapState;
   }
 
+  public getMap() { return this._map$.value; }
+
   public getBounds(): L.LatLngBounds | undefined {
     return this._map$.value?.getBounds();
   }
@@ -605,7 +607,18 @@ export class MapComponent extends AbstractComponent {
     if (fromTrack) {
       result.push(new MapTrackPointReference(fromTrack, undefined, undefined, undefined, undefined, undefined))
     }
-    for (const mapTrack of this._currentTracks) {
+    const allTracks = [...this._currentTracks];
+    const overlay = map.getPanes().overlayPane.firstElementChild?.firstElementChild; // svg > g > path
+    if (overlay) {
+      for (let i = 0; i < overlay.children.length; ++i) {
+        const o = overlay.children.item(i);
+        if ((o as any)?._mapTrack) {
+          const mt = (o as any)._mapTrack;
+          if (allTracks.indexOf(mt) < 0) allTracks.push(mt);
+        }
+      }
+    }
+    for (const mapTrack of allTracks) {
       if (!mapTrack.bounds?.pad(1).contains(e.latlng)) {
         continue;
       }

@@ -1068,6 +1068,7 @@
       "set_elevation_on_range": "Change elevation",
       "time": "Time"
     },
+    "stop_interactive": "Stop",
     "tools": {
       "remove_unprobable_elevations": "Adjust unprobable elevations",
       "remove_unprobable_points": "Remove unprobable points",
@@ -1120,10 +1121,19 @@
         "with_start": "Using the one from the first selected point",
         "with_end": "Using the one from the last selected point",
         "smoothing": "By smoothing from the first to the last selected point",
-        "manually": "By entering a value manually"
+        "manual_value": "By entering a fixed altitude manually",
+        "manual_diff": "By entering a difference to apply"
       },
       "apply_default_improvements": "Apply default enhancements (those used when creating a trace)",
-      "merge_segments": "Connect pause and resume points"
+      "merge_segments": "Connect pause and resume points",
+      "add_points": {
+        "free": {
+          "title": "Add free points"
+        },
+        "osm": {
+          "title": "Add points using OpenStreetMap paths"
+        }
+      }
     },
     "no_modification":"No changes were made by this function",
     "close_confirmation": {

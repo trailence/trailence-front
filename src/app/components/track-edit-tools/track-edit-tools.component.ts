@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { ToastController, AlertController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
+import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { BehaviorSubject, debounceTime, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -34,7 +34,7 @@ import { TrackEditionService } from 'src/app/services/track-edition/track-editio
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { RemoveUnprobablePointsTool } from './tools/path/remove-unprobable-points';
 import { RemoveBreaksMovesTool } from './tools/path/remove-breaks-moves';
-import { SetElevationOnRangeManuallyTool, SetElevationOnRangeSmoothTool, SetElevationOnRangeWithEndTool, SetElevationOnRangeWithStartTool } from './tools/elevation/set-elevation';
+import { SetElevationOnRangeManualDiffTool, SetElevationOnRangeManualValueTool, SetElevationOnRangeSmoothTool, SetElevationOnRangeWithEndTool, SetElevationOnRangeWithStartTool } from './tools/elevation/set-elevation';
 import { ApplyDefaultImprovementsTool } from './tools/track/apply-default-improvements';
 import { MergeSegementsTool } from './tools/path/merge-segments';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
@@ -43,6 +43,9 @@ import { BackToDeparture } from './tools/path/back-to-departure';
 import { RemoveTime } from './tools/track/remove-time';
 import { LinkToNextSegment } from './tools/selection/link-to-next-segment';
 import { StartFromArrival } from './tools/path/start-from-arrival';
+import { AddFreePoints } from './tools/path/manual/add-free-points';
+import { AddOsmPath } from './tools/path/manual/add-osm-path';
+import { MapComponent } from '../map/map.component';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -68,9 +71,12 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   @Input() modifiedTrack$!: BehaviorSubject<Track | undefined>;
   @Input() baseTrack$!: BehaviorSubject<Track | undefined>;
   @Input() hideBaseTrack$!: BehaviorSubject<boolean>;
+  @Input() map$!: BehaviorSubject<MapComponent | undefined>;
 
   @Output() toolsStackChange = new EventEmitter<TrackEditToolsStack | undefined>();
   @Output() onClose = new EventEmitter<boolean>();
+
+  private interactiveTool?: InteractiveToolContext;
 
   private toMenuItem(tool: TrackEditTool): MenuItem {
     return new MenuItem()
@@ -86,6 +92,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   }
   toolsItems: MenuItem[] = [
     new MenuItem().setIcon('selection').setI18nLabel('track_edit_tools.categories.selection')
+      .setVisible(() => !this.interactiveTool)
       .setChildren([
         new MenuItem().setIcon('selection').setI18nLabel('track_edit_tools.categories.selection').setTextColor('secondary'),
         this.toMenuItem(new CloseSelectionTool()),
@@ -99,6 +106,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new RemoveAfterSelectedPointTool()),
       ]),
     new MenuItem().setIcon('distance').setI18nLabel('track_edit_tools.categories.track')
+      .setVisible(() => !this.interactiveTool)
       .setChildren([
         new MenuItem().setIcon('distance').setI18nLabel('track_edit_tools.categories.track').setTextColor('secondary'),
         this.toMenuItem(new BackToOriginalTrack()),
@@ -108,6 +116,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new RemoveTime()),
       ]),
     new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point')
+      .setVisible(() => !this.interactiveTool)
       .setChildren([
         new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point').setTextColor('secondary'),
         this.toMenuItem(new CreateWayPointTool()),
@@ -115,13 +124,15 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new RemoveWayPointTool()),
       ]),
     new MenuItem().setIcon('elevation').setI18nLabel('track_edit_tools.categories.elevation')
+      .setVisible(() => !this.interactiveTool)
       .setChildren([
         new MenuItem().setIcon('elevation').setI18nLabel('track_edit_tools.categories.elevation').setTextColor('secondary'),
         new MenuItem().setI18nLabel('track_edit_tools.categories.set_elevation_on_range').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new SetElevationOnRangeWithStartTool()),
         this.toMenuItem(new SetElevationOnRangeWithEndTool()),
         this.toMenuItem(new SetElevationOnRangeSmoothTool()),
-        this.toMenuItem(new SetElevationOnRangeManuallyTool()),
+        this.toMenuItem(new SetElevationOnRangeManualValueTool()),
+        this.toMenuItem(new SetElevationOnRangeManualDiffTool()),
         new MenuItem().setI18nLabel('track_edit_tools.categories.improvements').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new RemoveUnprobableElevation()),
         this.toMenuItem(new SlopeThreshold()),
@@ -130,9 +141,12 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new ReplaceElevationWithProvider()),
       ]),
     new MenuItem().setIcon('path').setI18nLabel('track_edit_tools.categories.path')
+      .setVisible(() => !this.interactiveTool)
       .setChildren([
         new MenuItem().setIcon('path').setI18nLabel('track_edit_tools.categories.path').setTextColor('secondary'),
         this.toMenuItem(new MergeSegementsTool()),
+        this.toMenuItem(new AddFreePoints()),
+        this.toMenuItem(new AddOsmPath()),
         new MenuItem().setI18nLabel('track_edit_tools.categories.join_departure_and_arrival').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new JoinArrivalToDeparture()),
         this.toMenuItem(new JoinDepartureToArrival()),
@@ -143,12 +157,24 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new RemoveBreaksMovesTool()),
       ]),
     new MenuItem(),
+    new MenuItem()
+      .setI18nLabel('track_edit_tools.stop_interactive')
+      .setIcon('stop')
+      .setVisible(() => !!this.interactiveTool)
+      .setAction(() => this.interactiveTool!.stop()),
+    new MenuItem(),
     new MenuItem().setIcon('undo').setI18nLabel('buttons.undo').setDisabled(() => this.statesStack.length === 0).setAction(() => this.undo()),
     new MenuItem().setIcon('redo').setI18nLabel('buttons.redo').setDisabled(() => this.undoneStack.length === 0).setAction(() => this.redo()),
     new MenuItem(),
-    new MenuItem().setIcon('save').setI18nLabel('buttons.save').setDisabled(() => !this.canSave()).setTextColor('success').setAction(() => this.save()),
+    new MenuItem().setIcon('save').setI18nLabel('buttons.save')
+      .setDisabled(() => !this.canSave())
+      .setVisible(() => !this.interactiveTool)
+      .setTextColor('success')
+      .setAction(() => this.save()),
     new MenuItem(),
-    new MenuItem().setIcon('cross').setI18nLabel('buttons.close').setAction(() => this.close()),
+    new MenuItem().setIcon('cross').setI18nLabel('buttons.close')
+      .setVisible(() => !this.interactiveTool)
+      .setAction(() => this.close()),
   ];
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
 
@@ -238,6 +264,42 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         return this.toolsStack?.components.find(c => c.component === component)?.instance;
       },
       refreshTools: () => this.refreshTools(),
+
+      startInteractiveTool: (onStop) => new Promise(resolve => {
+        let endEdit: (() => void) | undefined = undefined;
+        const ctx = {
+          map: this.map$.value!,
+          startEditTrack: () => new Promise(resolve => {
+            this.modify(true, track => new Observable(subscriber => {
+              endEdit = () => {
+                subscriber.next(true);
+                subscriber.complete();
+              };
+              resolve(track);
+            })).subscribe();
+          }),
+          trackModified() {
+            return new Promise(resolve => {
+              if (!endEdit) return;
+              endEdit();
+              this.startEditTrack().then(resolve);
+            });
+          },
+          endEditTrack: () => {
+            if (!endEdit) return;
+            endEdit();
+            endEdit = undefined;
+          },
+          stop: () => {
+            onStop(ctx);
+            this.interactiveTool = undefined;
+            this.refreshTools();
+          },
+        } as InteractiveToolContext;
+        this.interactiveTool = ctx;
+        resolve(ctx);
+        this.refreshTools();
+      }),
     };
     this.currentTrackChanged();
     this.selectionSubscription = this.selection.selection$.pipe(debounceTime(1)).subscribe(sel => {
@@ -262,7 +324,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   }
 
   undo(): void {
-    console.log(this.statesStack.length)
     if (this.statesStack.length === 0) return;
     const state = this.statesStack.splice(this.statesStack.length - 1, 1)[0];
     this.undoneStack.push(this.getCurrentState());

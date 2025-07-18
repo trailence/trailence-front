@@ -255,11 +255,11 @@ export class TrackUtils {
   private static findBestPoint(segment: Segment, pi: number, pos: L.LatLng, direction: number): number {
     let bestIndex = pi;
     let bestDist = segment.points[pi].pos.distanceTo(pos);
-    for (let i = pi + direction; pi >= 0 && pi < segment.points.length; pi += direction) {
+    for (pi = pi + direction; pi >= 0 && pi < segment.points.length; pi += direction) {
       const p = segment.points[pi];
       const d = p.pos.distanceTo(pos);
       if (d <= bestDist) {
-        bestIndex = i;
+        bestIndex = pi;
         bestDist = d;
       } else {
         break;

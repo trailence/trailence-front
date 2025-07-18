@@ -31,6 +31,10 @@ export class MapTrackPath {
       this._path.on('click', e => {
         (e.originalEvent as any).fromTrack = this.fromTrack; // NOSONAR
       });
+      this._path.on('add', () => {
+        const el = this._path?.getElement();
+        if (el) (el as any)._mapTrack = this.fromTrack;
+      });
       if (!this._subscription && this._track instanceof Track) {
         this._subscription = this._track.segmentChanges$.pipe(
           debounceTimeExtended(100, 100, 100),

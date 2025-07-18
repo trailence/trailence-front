@@ -4,6 +4,7 @@ import { Track } from 'src/app/model/track';
 import { TrackEditToolComponent } from './track-edit-tools-stack';
 import { Trail } from 'src/app/model/trail';
 import { TrailSelection } from '../../trail/trail-selection';
+import { MapComponent } from '../../map/map.component';
 
 export interface TrackEditTool {
 
@@ -38,5 +39,19 @@ export interface TrackEditToolContext {
   removeTool(component: Type<any>): void;
   getTool<T>(component: Type<T>): T | undefined;
   refreshTools(): void;
+
+  startInteractiveTool(onStop: (ctx: InteractiveToolContext) => void): Promise<InteractiveToolContext>;
+
+}
+
+export interface InteractiveToolContext {
+
+  map: MapComponent;
+
+  startEditTrack(): Promise<Track>;
+  trackModified(): Promise<Track>;
+  endEditTrack(): void;
+
+  stop(): void;
 
 }
