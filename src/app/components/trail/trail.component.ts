@@ -1542,4 +1542,9 @@ export class TrailComponent extends AbstractComponent {
     }
   }
 
+  translationsChanged(): void {
+    this.toolbarItems = [...this.toolbarItems];
+    this.changesDetector.detectChanges();
+  }
+
 }

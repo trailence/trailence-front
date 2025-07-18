@@ -42,6 +42,8 @@ body {
   --centered-outside-background: rgba(0, 0, 0, 0.1);
   --centered-inside-background: #FFFFFF;
 
+  --star-color: #d29711;
+
   background-color: var(--ion-background-color);
   color: var(--ion-text-color);
 }
@@ -69,6 +71,8 @@ body {
     --ion-text-color-rgb: 255, 255, 255;
     --centered-outside-background: var(--ion-background-color);
     --centered-inside-background: rgba(var(--ion-text-color-rgb), 0.1);
+
+    --star-color: yellow;
   }
 }
 svg.ionicon {
@@ -197,6 +201,31 @@ div.meta div.value {
     max-width: 49%;
   }
 }
+div.rating {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  color: var(--ion-color-secondary);
+  margin-top: 8px;
+  font-size: 14px;
+}
+div.rating div.icon {
+  color: var(--star-color);
+  width: 12px;
+  height: 12px;
+}
+div.rating div.icon svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+div.stars {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0 8px;
+}
 div.map-container {
   position: relative;
   width: var(--map-size);
@@ -239,6 +268,7 @@ div.open-app-button a, div.open-app-button a:active {
   font-size: 18px;
 }
 </style>
+<script type="application/jd+json">{{json:jdJson}}{{/json}}</script>
 </head>
 <body>
   <div class="content-container">
@@ -325,6 +355,19 @@ div.open-app-button a, div.open-app-button a:active {
                 <div class="value">{{elevation:negativeElevation}}{{/elevation}}</div>
               </div>
             </div>
+          </div>
+          {{/if}}
+          {{if:nbRates}}
+          <div class="rating">
+            <span>{{i18n.pages.trail.sections.comments.rate.global}}</span>
+            <div class="stars">
+              <div class="icon" data="star-{{star1}}.1"></div>
+              <div class="icon" data="star-{{star2}}.1"></div>
+              <div class="icon" data="star-{{star3}}.1"></div>
+              <div class="icon" data="star-{{star4}}.1"></div>
+              <div class="icon" data="star-{{star5}}.1"></div>
+            </div>
+            <span>{{rate}}</span>
           </div>
           {{/if}}
           <div class="open-app-button">
@@ -430,6 +473,57 @@ svg.setAttribute('viewBox', '0 0 ' + mapSize + ' ' + mapSize);
 svg.innerHTML = '<path d="' + svgPath + '" stroke="red" stroke-width="3" fill="none"/>';
 document.getElementById('map-path-layer').appendChild(svg);
 
+function createAnchor(borderColor, text, textColor, fillColor, fillColor2) {
+  let svg = '';
+  if (fillColor) {
+    fillColor2 ??= fillColor;
+    svg += '<path d="m957,1579.09c0,-3.33 6.67,-1516.67 5,-1516.67c-1.67,0 -571.67,40 -570,590c1.67,550 258.33,456.67 276.67,490c18.33,33.33 288.33,436.67 288.33,436.67z"';
+    svg += ' fill="' + fillColor + '" stroke="' + fillColor + '"/>';
+    svg += '<path d="m958,1572.42c0,0 3.33,-1510 1.67,-1510c-1.67,0 578.33,76.67 550,586.67c-28.33,510 -271.67,550 -273.33,550c-1.67,0 -278.33,373.33 -278.33,373.33z"';
+    svg += ' fill="' + fillColor2 + '" stroke="' + fillColor2 + '"/>';
+  }
+  svg += '<path d="M1290 1083.396c-114.12 113.16-253.68 269.88-332.04 466.8-76.92-199.08-215.16-354.84-327.96-466.92-141.36-140.04-210-279.48-210-426.48 0-295.92 240.84-536.76 543.12-536.76 296.04 0 536.88 240.84 536.88 536.76 0 147-68.64 286.44-210 426.6M956.88.036C594.72.036 300 294.636 300 656.796c0 180.6 80.28 348 245.4 511.68 239.76 237.84 351.48 457.56 351.48 691.56v60h120v-60c0-232.92 110.4-446.16 357.72-691.44 165.12-163.8 245.4-331.2 245.4-511.8C1620 294.636 1325.28.036 956.88.036" fill-rule="evenodd"';
+  svg += ' fill="' + borderColor + '" class="anchor-border"'
+  svg += '/>';
+  textColor ??= borderColor;
+  svg += '<text x="960" y="700" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="600px" font-weight="bold" fill="' + textColor + '" stroke="' + textColor + '">' +text + '</text>';
+  const element = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  element.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  element.setAttribute('viewBox', '0 0 1920 1920');
+  element.innerHTML = svg;
+  return element;
+}
+
+const departure = {x: pathPtX(0), y: pathPtY(0)};
+const arrival = {x: pathPtX(geo.path.length / 2 - 1), y: pathPtY(geo.path.length / 2 - 1)};
+
+const departureArrivalDistance = Math.sqrt((departure.x - arrival.x) * (departure.x - arrival.x) + (departure.y - arrival.y) * (departure.y - arrival.y));
+console.log('distance', departureArrivalDistance)
+if (departureArrivalDistance < 15) {
+  const anchor = createAnchor('rgba(64, 128, 0, 0.75)', 'D/A', '#ffffff', 'rgba(0, 128, 0, 0.75)', 'rgba(196, 0, 0, 0.75)');
+  anchor.style.position = 'absolute';
+  anchor.style.width = '40px';
+  anchor.style.height = '40px';
+  anchor.style.top = (departure.y - 40) + 'px';
+  anchor.style.left = (departure.x - 20) + 'px';
+  document.getElementById('map-path-layer').appendChild(anchor);
+} else {
+  const dep = createAnchor('rgba(0, 128, 0, 0.75)', 'D', '#ffffff', 'rgba(0, 128, 0, 0.75)', undefined);
+  const arr = createAnchor('rgba(196, 0, 0, 0.75)', 'A', '#ffffff', 'rgba(196, 0, 0, 0.75)', undefined);
+  dep.style.position = 'absolute';
+  dep.style.width = '40px';
+  dep.style.height = '40px';
+  dep.style.top = (departure.y - 40) + 'px';
+  dep.style.left = (departure.x - 20) + 'px';
+  document.getElementById('map-path-layer').appendChild(dep);
+  arr.style.position = 'absolute';
+  arr.style.width = '40px';
+  arr.style.height = '40px';
+  arr.style.top = (arrival.y - 40) + 'px';
+  arr.style.left = (arrival.x - 20) + 'px';
+  document.getElementById('map-path-layer').appendChild(arr);
+}
+
 </script>
 
 <script type="text/javascript">
@@ -443,7 +537,7 @@ function getIcon(name) {
 }
 function getIconNameForLooptType(lt) {
   switch (lt) {
-    case 'ow': return 'one-way.1';
+    case 'ow': return 'point-to-point.1';
     case 'lp': return 'loop.1';
     case 'hl': return 'half-loop.1';
     case 'sl': return 'small-loop.1';

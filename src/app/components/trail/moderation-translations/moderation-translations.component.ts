@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { IonInput, IonTextarea, IonButton, IonSpinner } from "@ionic/angular/standalone";
 import { TrailTranslations, translationsTargetLanguages } from '../trail-translations';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
@@ -21,6 +21,7 @@ export class ModerationTranslationsComponent implements OnInit {
 
   @Input() trail!: Trail;
   @Input() translations!: TrailTranslations;
+  @Output() translationsUpdated = new EventEmitter();
 
   sourceLanguages?: {code: string, name: string}[];
   targetLanguages = translationsTargetLanguages;
@@ -72,6 +73,7 @@ export class ModerationTranslationsComponent implements OnInit {
     }
     if (availTargets.length === 1) this.displayTarget = availTargets[0];
     this.changesDetector.detectChanges();
+    this.translationsUpdated.emit();
   }
 
   doTranslation(from: string, to: string): void {
@@ -83,6 +85,7 @@ export class ModerationTranslationsComponent implements OnInit {
         this.translations.nameTranslations[to] = translation;
         this.translating--;
         this.changesDetector.detectChanges();
+        this.translationsUpdated.emit();
       },
       error: e => {
         this.translating--;
@@ -98,6 +101,7 @@ export class ModerationTranslationsComponent implements OnInit {
         this.translations.descriptionTranslations[to] = translation;
         this.translating--;
         this.changesDetector.detectChanges();
+        this.translationsUpdated.emit();
       },
       error: e => {
         this.translating--;
@@ -111,6 +115,10 @@ export class ModerationTranslationsComponent implements OnInit {
   setDisplayTarget(target: string): void {
     this.displayTarget = target;
     this.changesDetector.detectChanges();
+  }
+
+  translationChanged(): void {
+    this.translationsUpdated.emit();
   }
 
 }

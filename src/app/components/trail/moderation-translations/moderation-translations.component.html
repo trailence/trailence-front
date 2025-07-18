@@ -34,12 +34,14 @@
   @if (displayTarget && displayTarget.length > 0 && translations.nameTranslations && translations.descriptionTranslations) {
     <ion-input
       [(ngModel)]="translations.nameTranslations[displayTarget]"
+      (ionChange)="translationChanged()"
       fill="outline"
       [label]="i18n.texts.translations.trail_moderation.name"
       labelPlacement="stacked"
     ></ion-input>
     <ion-textarea
       [(ngModel)]="translations.descriptionTranslations[displayTarget]"
+      (ionChange)="translationChanged()"
       fill="outline"
       [label]="i18n.texts.translations.trail_moderation.description"
       labelPlacement="stacked"

@@ -49,8 +49,50 @@ function translateData(data, i18n, lang) {
   data.i18n = i18n;
   data.activity = i18n.activity[data.activity];
   data.lang = lang;
+  const nbRates = data.nbRate0 + data.nbRate1 + data.nbRate2 + data.nbRate3 + data.nbRate4 + data.nbRate5;
+  if (nbRates > 0) {
+    data.nbRates = nbRates;
+    const rate = (data.nbRate1 + (data.nbRate2 * 2) + (data.nbRate3 * 3) + (data.nbRate4 * 4) + (data.nbRate5 * 5)) / nbRates;
+    data.rate = '' + Math.floor(rate) + '.' + Math.floor((rate * 10) % 10) + ' / 5 ' + i18n.pages.trail.sections.comments.rate.global_on_nb.replace('{{1}}', nbRates);
+    data.star1 = rate < 0.5 ? 'empty' : rate >= 1 ? 'filled' : 'half';
+    data.star2 = rate < 1.5 ? 'empty' : rate >= 2 ? 'filled' : 'half';
+    data.star3 = rate < 2.5 ? 'empty' : rate >= 3 ? 'filled' : 'half';
+    data.star4 = rate < 3.5 ? 'empty' : rate >= 4 ? 'filled' : 'half';
+    data.star5 = rate < 4.5 ? 'empty' : rate >= 5 ? 'filled' : 'half';
+  }
+  const jd = {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": data.name,
+    "description": data.description,
+    "geo": {
+      "@type":"GeoCoordinates",
+      "latitude": '' + data.simplifiedPath[0],
+      "longitude": '' + data.simplifiedPath[1]
+    },
+  };
+  if (nbRates > 0) {
+    const rate = (data.nbRate1 + (data.nbRate2 * 2) + (data.nbRate3 * 3) + (data.nbRate4 * 4) + (data.nbRate5 * 5)) / nbRates;
+    jd['aggregateRating'] = {
+      "@type": "AggregateRating",
+      "ratingValue": Math.floor(rate) + '.' + Math.floor((rate * 10) % 10),
+      "ratingCount": nbRates,
+      "worstRating":"0",
+      "bestRating":"5"
+    };
+  }
+  if (data.photos && data.photos.length > 0) {
+    jd['image'] = ['https://trailence.org/api/public/trails/v1/photo/' + data.uuid + '/' + data.photos[0].uuid];
+  }
+  data.jdJson = jd;
   return data;
 }
+/*
+All Trails
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","@id":"/fr/randonnee/france/alpes-de-haute-provence/col-de-la-cayolle","address":{"@type":"PostalAddress","addressLocality":"Barcelonnette, Alpes-de-Haute-Provence, France"},"geo":{"@type":"GeoCoordinates","latitude":"44.25961","longitude":"6.74396"},"name":"Col de la Cayolle","description":"Partez découvrir cet itinéraire en boucle de 8,7-km près de Barcelonnette, Alpes-de-Haute-Provence. Généralement considéré comme un parcours difficile, il faut en moyenne 3 h 9 min pour le parcourir. C’est un endroit très prisé pour la randonnée, vous croiserez donc probablement du monde pendant votre excursion. La meilleure période de visite est de mai à octobre. Vous devrez laisser votre chien à la maison car ils ne sont pas autorisés sur ce sentier.","aggregateRating":{"@type":"AggregateRating","ratingValue":4.6,"reviewCount":90,"worstRating":"0","bestRating":"5"},"image":["https://images.alltrails.com/eyJidWNrZXQiOiJhc3NldHMuYWxsdHJhaWxzLmNvbSIsImtleSI6InVwbG9hZHMvcGhvdG8vaW1hZ2UvMzkwNjQwNDkvZWI3MmZhODMwY2UxZDY4ZTc3M2VlN2Y0MjFjODIwMDguanBnIiwiZWRpdHMiOnsidG9Gb3JtYXQiOiJ3ZWJwIiwicmVzaXplIjp7IndpZHRoIjo1MDAsImhlaWdodCI6NTAwLCJmaXQiOiJpbnNpZGUifSwicm90YXRlIjpudWxsLCJqcGVnIjp7InRyZWxsaXNRdWFudGlzYXRpb24iOnRydWUsIm92ZXJzaG9vdERlcmluZ2luZyI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZSwicXVhbnRpc2F0aW9uVGFibGUiOjN9fX0="]}</script>
+ClimbFinder
+<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"SportsActivityLocation","name":"Col de la Cayolle depuis Barcelonnette","image":"https:\/\/climbfinder.com\/https:\/\/image.climbfinder.com\/col-de-la-cayolle-barcelonnette.png","AggregateRating":{"@type":"aggregateRating","worstRating":1,"bestRating":5,"ratingValue":"5.0","ratingCount":"30"}}</script>
+*/
 
 function fillTemplate(data, template) {
   let i = 0;

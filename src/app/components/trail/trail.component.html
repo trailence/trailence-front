@@ -278,7 +278,7 @@
               }
             }
             @if (trail1.fromModeration) {
-              <app-moderation-translations [trail]="trail1" [translations]="translations"></app-moderation-translations>
+              <app-moderation-translations [trail]="trail1" [translations]="translations" (translationsUpdated)="translationsChanged()"></app-moderation-translations>
             }
           </div>
         }

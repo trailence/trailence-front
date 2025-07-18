@@ -78,7 +78,8 @@ export class DonationPage extends PublicPage {
   }
 
   private refreshTimeout(): void {
-    this._refreshTimeout = setTimeout(() => this.refresh(), 60000);
+    if (this.visible)
+      this._refreshTimeout = setTimeout(() => this.refresh(), 60000);
   }
 
   amountFormatter = (v: number) => v.toLocaleString(this.prefs.preferences.lang, {minimumFractionDigits: 0, maximumFractionDigits: 2});
