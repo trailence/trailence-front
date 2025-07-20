@@ -418,12 +418,14 @@
               {{ 'pages.trail.my_feedback.you_leave_a_comment' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.latestCommentDate) }}
             </div>
           }
-          <div class="leave-feedback">
-            <div>{{ i18n.texts.pages.trail.my_feedback.invite_to_rate_title }}</div>
-            <ion-button shape="round" size="small" (click)="rateThisTrail()">
-              {{ i18n.texts.pages.trail.my_feedback.invite_to_rate_button }}
-            </ion-button>
-          </div>
+          @if (source && !source.followedInfo?.itsMine) {
+            <div class="leave-feedback">
+              <div>{{ i18n.texts.pages.trail.my_feedback.invite_to_rate_title }}</div>
+              <ion-button shape="round" size="small" (click)="rateThisTrail()">
+                {{ i18n.texts.pages.trail.my_feedback.invite_to_rate_button }}
+              </ion-button>
+            </div>
+          }
         }
       </ng-container>
 

@@ -196,7 +196,8 @@
           "message_plural": "The copied tracks contain photos. Would you like to make a copy of the photos as well?"
         },
         "copying_photos": "Copying photos",
-        "copy_photo_error": "Error copying photo {{1}}"
+        "copy_photo_error": "Error copying photo {{1}}",
+        "add_to_my_selection": "Add to my selection"
       },
       "tags": {
         "menu_item": "Tags",

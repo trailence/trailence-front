@@ -5,7 +5,7 @@ import { ModalController } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
-import { first, firstValueFrom, map, Observable, of } from 'rxjs';
+import { combineLatest, first, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
@@ -15,6 +15,8 @@ import { TrackMetadataSnapshot } from './track-database';
 import { TrackService } from './track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailService } from './trail.service';
+import { MyPublicTrailsService } from './my-public-trails.service';
+import { MySelectionService } from './my-selection.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -61,7 +63,7 @@ export class TrailMenuService {
           if (!isPublicationCollection(fromCollection?.type)) {
             menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
               .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
-            if (trails.length === 1) {
+            if (trails.length === 1 && !this.injector.get(MyPublicTrailsService).myPublicTrails$.value.find(p => p.privateUuid === trails[0].uuid)) {
               menu.push(new MenuItem());
               menu.push(new MenuItem().setIcon('web').setI18nLabel('publications.publish')
                 .setDisabled(() => email === ANONYMOUS_USER)
@@ -69,6 +71,14 @@ export class TrailMenuService {
             }
           }
         }
+      }
+
+      if (!onlyGlobal) {
+        menu.push(new MenuItem());
+        menu.push(new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
+          .setTextColor('my-selection')
+          .setAction(() => this.addToMySelection(trails))
+        );
       }
 
       if (trails.length === 2) {
@@ -266,6 +276,17 @@ export class TrailMenuService {
       cssClass: 'medium-modal'
     });
     await modal.present();
+  }
+
+  public addToMySelection(trails: Trail[]): void {
+    this.injector.get(MySelectionService).getMySelection().pipe(
+      first(),
+      switchMap(current => {
+        const newSelection = trails.filter(t => !current.find(c => c.owner === t.owner && c.uuid === t.uuid)).map(t => ({owner: t.owner, uuid: t.uuid}));
+        if (newSelection.length === 0) return of([]);
+        return combineLatest(newSelection.map(s => this.injector.get(MySelectionService).addSelection(s.owner, s.uuid).pipe(first())));
+      })
+    ).subscribe();
   }
 
 }

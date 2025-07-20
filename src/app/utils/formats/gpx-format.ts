@@ -60,6 +60,16 @@ export class GpxFormat {
           }
           if (sourceValue) trailDto.source = sourceValue;
         }
+        const followed_trail = XmlUtils.getChild(extensions, 'followed_trail');
+        if (followed_trail) {
+          const owner = XmlUtils.getChildText(followed_trail, 'owner');
+          const uuid = XmlUtils.getChildText(followed_trail, 'uuid');
+          trailDto.followedOwner = owner;
+          trailDto.followedUuid = uuid;
+        }
+        const followed_url = XmlUtils.getChild(extensions, 'followed_url');
+        if (followed_url)
+          trailDto.followedUrl = followed_url.textContent ?? undefined;
         const tags = XmlUtils.getChild(extensions, 'tags');
         if (tags) {
           for (const tag of XmlUtils.getChildren(tags, 'tag')) {
@@ -284,6 +294,12 @@ export class GpxFormat {
           if (trail.sourceDate) gpx += '<date>' + trail.sourceDate + '</date>';
           if (trail.source) gpx += '<value>' + XmlUtils.escapeHtml(trail.source) + '</value>';
           gpx += '</ext:source>';
+        }
+        if (trail.followedOwner && trail.followedUuid) {
+          gpx += '<ext:followed_trail><owner>' + XmlUtils.escapeHtml(trail.followedOwner) + '</owner><uuid>' + trail.followedUuid + '</uuid></ext:followed_trail>';
+        }
+        if (trail.followedUrl) {
+          gpx += '<ext:followed_url>' + XmlUtils.escapeHtml(trail.followedUrl) + '</ext:followed_url>';
         }
         if (tags.length > 0) {
           gpx += '<ext:tags>';

@@ -44,7 +44,21 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   public override canFetchTrailByUrl(url: string): boolean {
-    return url.startsWith(environment.baseUrl);
+    return url.startsWith(environment.baseUrl + '/trail/trailence/');
+  }
+
+  public override fetchTrailByUrl(url: string): Promise<Trail | null> {
+    const slugOrUuid = url.substring(environment.baseUrl.length + 17);
+    return this.getTrail(slugOrUuid);
+  }
+
+  public override canFetchTrailInfoByUrl(url: string): boolean {
+    return url.startsWith(environment.baseUrl + '/trail/trailence/');
+  }
+
+  public override fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
+    const slugOrUuid = url.substring(environment.baseUrl.length + 17);
+    return this.getInfo(slugOrUuid);
   }
 
   public override canSearchByArea(): boolean { return true };

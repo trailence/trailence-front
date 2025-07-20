@@ -71,6 +71,7 @@ interface TrailSource {
   sourceString?: string;
   author?: string;
   info?: TrailInfo;
+  followedInfo?: TrailInfo;
 }
 
 @Component({
@@ -548,16 +549,27 @@ export class TrailComponent extends AbstractComponent {
             if (source.externalAppName === 'Trailence' && source.externalUrl?.startsWith(environment.baseUrl))
               source.externalUrl = source.externalUrl.substring(environment.baseUrl.length);
           }
+          let followedTrail: Observable<TrailInfo | null> = of(null);
+          if (trail1.followedUrl) {
+            const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail1.followedUrl);
+            console.log('plugin', pluginName, trail1.followedUrl)
+            if (pluginName === 'Trailence')
+              followedTrail = this.injector.get(FetchSourceService).plugin$('trailence').pipe(
+                switchMap(p => p ? from(p.fetchTrailInfoByUrl(trail1.followedUrl!)) : of(null)),
+              );
+          }
           return combineLatest([
             this.getSourceString(trail1),
             trail1.owner.indexOf('@') < 0 ? this.injector.get(FetchSourceService).getTrailInfo$(trail1.owner, trail1.uuid) : of(null),
+            followedTrail,
           ]).pipe(
-            map(([sourceString, info]) => {
+            map(([sourceString, info, followedInfo]) => {
               if (source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http'))
                 source.externalUrl = info?.externalUrl;
               source.sourceString = sourceString;
               source.author = info?.author;
               source.info = info ?? undefined;
+              source.followedInfo = followedInfo ?? undefined;
               return source;
             })
           );

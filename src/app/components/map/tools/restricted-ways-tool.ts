@@ -62,8 +62,19 @@ export class RestrictedWaysTool extends MapTool {
       ondone();
       return;
     }
+    let bounds;
+    try {
+      bounds = map.getBounds();
+    } catch (e) {
+      bounds = undefined;
+    }
+    if (!bounds) {
+      this.updateLegend(injector);
+      ondone();
+      return;
+    }
     const count = ++this._refreshCount;
-    injector.get(MapAdditionsService).findRestrictedWays(map.getBounds()).subscribe(
+    injector.get(MapAdditionsService).findRestrictedWays(bounds).subscribe(
       ways => {
         if (this._refreshCount !== count) return;
         for (const way of ways) {

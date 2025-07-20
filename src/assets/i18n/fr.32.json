@@ -196,7 +196,8 @@
           "message_plural": "Les parcours copiés contiennent des photos. Souhaitez-vous également faire une copie des photos ?"
         },
         "copying_photos": "Copie des photos",
-        "copy_photo_error": "Erreur lors de la copie de la photo {{1}}"
+        "copy_photo_error": "Erreur lors de la copie de la photo {{1}}",
+        "add_to_my_selection": "Ajouter à ma séléection"
       },
       "tags": {
         "menu_item": "Tags",

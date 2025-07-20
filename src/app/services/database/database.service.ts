@@ -20,6 +20,7 @@ export const EXTENSIONS_TABLE_NAME = 'extensions';
 export const SHARE_TABLE_NAME = 'shares';
 export const PHOTO_TABLE_NAME = 'photos';
 export const MY_SELECTION_TABLE_NAME = 'my_selection';
+export const MY_PUBLICATIONS_TABLE_NAME = 'my_publications';
 export const DEPENDENCIES_TABLE_NAME = 'dependencies';
 const INTERNAL_TABLE_NAME = 'internal';
 
@@ -70,6 +71,7 @@ class RegisteredStore implements StoreRegistration {
 
 export interface VersionedDb {
   db: Dexie;
+  email: string;
   appVersion?: number;
   tablesVersion: {[key: string]: number};
 }
@@ -324,6 +326,7 @@ export class DatabaseService {
         storesV1[EXTENSIONS_TABLE_NAME] = 'extension';
         storesV1[SHARE_TABLE_NAME] = 'key';
         storesV1[PHOTO_TABLE_NAME] = 'id_owner';
+        storesV1[MY_PUBLICATIONS_TABLE_NAME] = 'publicUuid';
         storesV1[DEPENDENCIES_TABLE_NAME] = 'key';
         db.version(1).stores(storesV1);
         db.table(INTERNAL_TABLE_NAME).get('version')
@@ -349,6 +352,7 @@ export class DatabaseService {
           Console.info("Database loaded with versions", versions);
           const versionedDb = {
             db,
+            email: this._openEmail,
             appVersion,
             tablesVersion: versions,
           } as VersionedDb;
