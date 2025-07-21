@@ -5,6 +5,8 @@
     font-size: var(--metadata-font-size, 13px);
     min-height: 24px;
     width: 75px;
+    --padding-start: 0;
+    --padding-end: 0;
   }
 }
 
@@ -22,6 +24,8 @@
 
       ion-button {
         margin: 0;
+        min-width: 24px;
+        min-height: 24px;
       }
     }
 

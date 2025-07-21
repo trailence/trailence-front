@@ -52,9 +52,9 @@ app-map {
 
   div.map-top-controls-container {
     position: absolute;
-    top: 5px;
-    left: 50px;
-    right: 50px;
+    top: 3px;
+    left: 43px;
+    right: 43px;
     z-index: 1000;
     pointer-events: none;
     overflow: hidden;
@@ -84,9 +84,9 @@ app-map {
 
   div.map-right-controls-container {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    bottom: 5px;
+    top: 3px;
+    right: 3px;
+    bottom: 20px;
     z-index: 1000;
     pointer-events: none;
     overflow: hidden;
@@ -97,9 +97,9 @@ app-map {
   }
   div.map-left-controls-container {
     position: absolute;
-    top: 5px;
-    left: 5px;
-    bottom: 5px;
+    top: 3px;
+    left: 3px;
+    bottom: 23px;
     z-index: 1000;
     pointer-events: none;
     overflow: hidden;
@@ -116,32 +116,6 @@ app-map {
     background-clip: padding-box;
     pointer-events: all;
     display: flex;
-  }
-
-}
-
-@media (max-width: 450px) {
-
-  app-map {
-
-    div.leaflet-container {
-
-      div.leaflet-control-container {
-
-        div.leaflet-right div.leaflet-control.leaflet-control-button {
-          svg {
-            width: 24px;
-            height: 24px;
-            margin: 3px 3px -2px 3px;
-          }
-        }
-      }
-    }
-
-    div.map-top-controls-container {
-      right: 56px;
-    }
-
   }
 
 }

@@ -43,7 +43,7 @@
               <ion-icon name="date"></ion-icon>
               <div class="metadata-content">
                 <div class="metadata-value">
-                  <div class="metadata-primary">{{i18n.timestampToDateTimeString(point1.point.time)}}</div>
+                  <div class="metadata-primary">{{i18n.timestampToDateTimeString(point1.point.time, true)}}</div>
                 </div>
               </div>
             </div>
@@ -65,7 +65,7 @@
               <ion-icon name="duration"></ion-icon>
               <div class="metadata-content">
                 <div class="metadata-value">
-                  <div class="metadata-primary">{{i18n.durationToString(point1.point.durationFromStart(point1.track))}}</div>
+                  <div class="metadata-primary">{{i18n.durationToString(point1.point.durationFromStart(point1.track), true, true)}}</div>
                 </div>
               </div>
             </div>
@@ -76,7 +76,7 @@
                 <ion-icon name="duration"></ion-icon>
                 <div class="metadata-content">
                   <div class="metadata-value">
-                    <div class="metadata-primary">{{i18n.durationToString(point2.point.durationFromStart(point2.track))}}</div>
+                    <div class="metadata-primary">{{i18n.durationToString(point2.point.durationFromStart(point2.track), true, true)}}</div>
                   </div>
                 </div>
               </div>
@@ -133,6 +133,7 @@
             color="dark"
             class="very-small"
             step="any"
+            fill="solid"
             [value]="elevationInputValue(point.point!.ele)"
             (ionChange)="setElevation(point, $event.detail.value)"
           >

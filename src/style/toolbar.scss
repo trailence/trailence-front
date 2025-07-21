@@ -30,6 +30,7 @@ app-toolbar {
     }
 
     div.toolbar-item {
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       align-items: center;

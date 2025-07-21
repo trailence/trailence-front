@@ -223,6 +223,8 @@ export class TrailGraphComponent extends AbstractComponent {
     }
   }
 
+  private isSelecting = false;
+
   private createChart(): void {
     this.ngZone.runOutsideAngular(() => {
       if (!this.chartOptions) this.buildOptions();
@@ -232,7 +234,10 @@ export class TrailGraphComponent extends AbstractComponent {
           new BackgroundPlugin(this.backgroundColor),
           new RangeSelection(
             this.selectingColor, this.selectionColor, this.singleSelectionColor,
-            event => this.selecting.emit(this.rangeSelectionToEvent(event)),
+            event => {
+              this.isSelecting = event !== undefined;
+              this.selecting.emit(this.rangeSelectionToEvent(event))
+            },
             event => this.selected.emit(this.rangeSelectionToEvent(event)),
             () => this.selectable,
             (pos) => this.zoomButtonPosition.emit(pos),
@@ -381,7 +386,7 @@ export class TrailGraphComponent extends AbstractComponent {
               return;
             }
             const points: any[] = context.tooltip.dataPoints.filter((p: any) => p.raw.lat !== undefined);
-            if (points.length === 0) {
+            if (points.length === 0 || this.isSelecting) {
               container.style.display = 'none';
               return;
             }
@@ -457,13 +462,16 @@ export class TrailGraphComponent extends AbstractComponent {
               container.style.right = (chartRect.width - context.tooltip._eventPosition.x + 15) + 'px';
               container.style.left = '';
             }
+            /*
             if (context.tooltip._eventPosition.y < chartRect.height * 0.3) {
               container.style.top = (context.tooltip._eventPosition.y + 5) + 'px';
               container.style.bottom = '';
             } else {
               container.style.bottom = (chartRect.height - context.tooltip._eventPosition.y + 5) + 'px';
               container.style.top = '';
-            }
+            }*/
+           container.style.top = '5px';
+           container.style.bottom = '';
           }
         }
       },

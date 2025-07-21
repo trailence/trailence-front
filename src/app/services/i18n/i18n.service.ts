@@ -270,9 +270,9 @@ export class I18nService {
     return '' + hours + this.texts.duration.hours;
   }
 
-  public timestampToDateTimeString(timestamp?: number): string {
+  public timestampToDateTimeString(timestamp?: number, showSeconds: boolean = false): string {
     if (!timestamp) return '';
-    return this.timestampToDateString(timestamp) + ' ' + this.timestampToTimeString(timestamp);
+    return this.timestampToDateString(timestamp) + ' ' + this.timestampToTimeString(timestamp, showSeconds);
   }
 
   public timestampToRelativeDate(timestamp?: number): string {
@@ -290,9 +290,9 @@ export class I18nService {
     return this.getDateForFormat(timestamp, this.prefService.preferences.dateFormat);
   }
 
-  public timestampToTimeString(timestamp?: number): string {
+  public timestampToTimeString(timestamp?: number, showSeconds: boolean = false): string {
     if (!timestamp) return '';
-    return this.getTimeForFormat(timestamp, this.prefService.preferences.hourFormat);
+    return this.getTimeForFormat(timestamp, this.prefService.preferences.hourFormat, showSeconds);
   }
 
   public getDateForFormat(timestamp: number, format: DateFormat): string {
@@ -306,7 +306,7 @@ export class I18nService {
       ;
   }
 
-  public getTimeForFormat(timestamp: number, format: HourFormat): string {
+  public getTimeForFormat(timestamp: number, format: HourFormat, showSeconds: boolean = false): string {
     const date = new Date(timestamp);
     const h = date.getHours();
     let s = '';
@@ -321,6 +321,10 @@ export class I18nService {
     }
     s += ':';
     s += StringUtils.padLeft('' + date.getMinutes(), 2, '0');
+    if (showSeconds) {
+      s += ':';
+      s += StringUtils.padLeft('' + date.getSeconds(), 2, '0');
+    }
     if (format === 'H12') {
       s += ' ' + (h >= 12 ? 'PM' : 'AM');
     }

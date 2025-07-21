@@ -42,6 +42,10 @@ div.edit-tool {
 
     div.metadata-container.two-columns {
       max-width: 300px;
+      line-height: 15px;
+    }
+    div.metadata-container.one-column div.metadata-item-container {
+      margin-bottom: 2px;
     }
 
     div.edit-tool-header {

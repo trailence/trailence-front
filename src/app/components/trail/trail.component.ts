@@ -42,7 +42,7 @@ import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/
 import { TrackEditToolsComponent } from '../track-edit-tools/track-edit-tools.component';
 import { TrackEditToolComponent, TrackEditToolsStack } from '../track-edit-tools/tools/track-edit-tools-stack';
 import { TrailSelection } from './trail-selection';
-import { PointReference } from 'src/app/model/point-reference';
+import { PointReference, RangeReference } from 'src/app/model/point-reference';
 import { samePositionRound } from 'src/app/model/point';
 import { MenuItem } from '../menus/menu-item';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
@@ -297,6 +297,15 @@ export class TrailComponent extends AbstractComponent {
     super(injector);
     changesDetector.detach();
     this.hover = new TrailHoverCursor(() => this.map, () => this.graph);
+    this.selection.selection$.subscribe(sel => {
+      if (sel && sel.length > 0) {
+        if (sel[0] instanceof RangeReference) {
+          this.hover.mouseOverPointOnMap();
+        } else {
+          this.hover.pointSelected(sel[0]);
+        }
+      }
+    });
   }
 
   protected override initComponent(): void {
