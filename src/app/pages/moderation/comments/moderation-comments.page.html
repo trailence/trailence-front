@@ -1,0 +1,31 @@
+<app-header
+  [title]="i18n.texts.publications.moderation.menu_comments + ' - ' + i18n.texts.publications.moderation.menu_title"
+></app-header>
+<div class="content-container">
+  <div class="content">
+    <div class="refresh">
+      @if (loading) {
+        <ion-spinner></ion-spinner>
+      } @else {
+        <ion-button (click)="load()">
+          <ion-icon name="reset"></ion-icon>
+        </ion-button>
+      }
+    </div>
+    @if (toReview) {
+      @for (trail of toReview; track trail.trailUuid) {
+        <div class="trail">
+          <div class="trail-link">
+            <a [routerLink]="'/trail/trailence/' + trail.trailUuid">{{ trail.trailName }}</a>
+          </div>
+          <div class="trail-description"> {{ trail.trailDescription }}</div>
+          <div class="feedbacks">
+            @for (fb of trail.feedbacks; track fb.uuid) {
+              <app-feedback [feedback]="fb" [trailUuid]="trail.trailUuid"></app-feedback>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

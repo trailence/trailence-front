@@ -84,6 +84,15 @@ export const appAuthRoutes: Routes = [
     path: 'notifications',
     loadComponent: () => import('../../pages/notifications/notifications.page').then(m => m.NotificationsPage)
   },
+  {
+    path: 'moderation',
+    children: [
+      {
+        path: 'comments',
+        loadComponent: () => import('../../pages/moderation/comments/moderation-comments.page').then(m => m.ModerationCommentsPage)
+      },
+    ]
+  },
 ];
 
 export const appDefaultAuthRoute = 'trails/collection/my_trails';

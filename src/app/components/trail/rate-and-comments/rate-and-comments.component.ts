@@ -108,8 +108,8 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
       const index = this.feedbacks?.indexOf(before) ?? -1;
       if (index < 0) return;
       this.feedbacks!.splice(index, 1);
-      this.changeDetector.detectChanges();
     }
+    this.changeDetector.detectChanges();
   }
 
   setFilterRate(filter?: number): void {

@@ -103,6 +103,7 @@ export interface Feedback {
   rate?: number;
   comment?: string;
   replies: FeedbackReply[];
+  reviewed: boolean;
 }
 
 export interface FeedbackReply {
@@ -111,4 +112,5 @@ export interface FeedbackReply {
   you: boolean;
   date: number;
   comment: string;
+  reviewed: boolean;
 }

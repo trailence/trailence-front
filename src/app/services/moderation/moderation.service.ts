@@ -23,6 +23,7 @@ import { Console } from 'src/app/utils/console';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { TypeUtils } from 'src/app/utils/type-utils';
 import { PointDtoMapper } from 'src/app/model/point';
+import { Feedback, FeedbackReply } from '../feedback/feedback.service';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -431,6 +432,29 @@ export class ModerationService {
     }
   }
 
+  public getFeedbacksToReview(): Observable<FeedbackToReview[]> {
+    return this.http.get<FeedbackToReview[]>(environment.apiBaseUrl + '/moderation/v1/commentsToReview');
+  }
+
+  public validateFeedback(feedback: Feedback): Observable<Feedback> {
+    return this.http.put<void>(environment.apiBaseUrl + '/moderation/v1/commentsToReview/validate/' + feedback.uuid, {}).pipe(
+      defaultIfEmpty(true),
+      map(() => {
+        feedback.reviewed = true;
+        return feedback;
+      }),
+    );
+  }
+
+  public validateFeedbackReply(reply: FeedbackReply): Observable<FeedbackReply> {
+    return this.http.put<void>(environment.apiBaseUrl + '/moderation/v1/commentsToReview/reply/validate/' + reply.uuid, {}).pipe(
+      defaultIfEmpty(true),
+      map(() => {
+        reply.reviewed = true;
+        return reply;
+      }),
+    );
+  }
 }
 
 interface CreatePublicTrailDto {
@@ -482,4 +506,11 @@ interface CreatePublicTrailPhotoDto {
   lng?: number;
   date?: number;
   description: string;
+}
+
+export interface FeedbackToReview {
+  trailUuid: string;
+  trailName: string;
+  trailDescription: string;
+  feedbacks: Feedback[];
 }

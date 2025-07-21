@@ -243,18 +243,36 @@
 
   <ng-container *ngIf="isAdmin || isModerator">
     <div class="menu-separator"></div>
-    <div class="menu-item" (click)="goTo('/trails/moderation'); close();">
-      <ion-icon name="web"></ion-icon>
-      <div class="item-title-container">
-        <div class="item-title">{{ i18n.texts.publications.moderation.menu_title }}</div>
+    <div class="menu-section" id="section-moderation">
+      <div class="menu-section-header">
+        <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="moderationOpen = !moderationOpen">
+          <ion-icon slot="icon-only" [name]="moderationOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
+        </ion-button>
+        <ion-icon name="web"></ion-icon>
+        <div class="section-title">{{ i18n.texts.publications.moderation.menu_title }}</div>
       </div>
+      @if (moderationOpen) {
+        <div class="menu-item" (click)="goTo('/trails/moderation'); close();">
+          <div class="item-title-container">
+            <div class="item-title">{{ i18n.texts.publications.moderation.menu_trails }}</div>
+          </div>
+        </div>
+        <div class="menu-item" (click)="goTo('/moderation/comments'); close();">
+          <div class="item-title-container">
+            <div class="item-title">{{ i18n.texts.publications.moderation.menu_comments }}</div>
+          </div>
+        </div>
+      }
     </div>
-    <div class="menu-item" (click)="goTo('/admin'); close();" *ngIf="isAdmin">
-      <ion-icon name="tool"></ion-icon>
-      <div class="item-title-container">
-        <div class="item-title">{{ i18n.texts.administration }}</div>
+    @if (isAdmin && !isNative) {
+      <div class="menu-separator"></div>
+      <div class="menu-item" (click)="goTo('/admin'); close();">
+        <ion-icon name="tool"></ion-icon>
+        <div class="item-title-container">
+          <div class="item-title">{{ i18n.texts.administration }}</div>
+        </div>
       </div>
-    </div>
+    }
   </ng-container>
 
   <div class="menu-separator"></div>

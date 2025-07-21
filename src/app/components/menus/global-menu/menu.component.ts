@@ -50,10 +50,12 @@ export class MenuComponent {
   sharedWithMeOpen = false;
   sharedByMeOpen = false;
   publicationsOpen = false;
+  moderationOpen = false;
 
   isAdmin = false;
   isAnonymous = false;
   isModerator = false;
+  isNative: boolean;
 
   constructor(
     public readonly i18n: I18nService,
@@ -72,6 +74,7 @@ export class MenuComponent {
     readonly myPublicTrailsService: MyPublicTrailsService,
     readonly mySelectionService: MySelectionService,
   ) {
+    this.isNative = platform.is('capacitor');
     combineLatest([
       authService.auth$,
       collectionService.getAllCollectionsReady$().pipe(
@@ -132,7 +135,7 @@ export class MenuComponent {
     .subscribe(([auth, shares]) => {
       this.sharedByMe = List(shares.filter(share => share.share.owner === auth?.email));
       this.sharedWithMe = List(shares.filter(share => share.share.owner !== auth?.email));
-      this.isAdmin = !!auth?.admin && !platform.is('capacitor');
+      this.isAdmin = !!auth?.admin;
       this.isAnonymous = !!auth?.isAnonymous;
       this.isModerator = !!auth?.roles?.find(r => r === 'moderator');
     });

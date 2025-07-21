@@ -29,6 +29,11 @@
           <span>{{i18n.texts.buttons.delete}}</span>
         </ion-button>
       }
+      @if (moderator && !feedback.reviewed) {
+        <ion-button size="small" fill="clear" mode="ios" color="success" (click)="feedbackReviewed()">
+          <span>{{i18n.texts.publications.moderation.comments.reviewed_button}}</span>
+        </ion-button>
+      }
     </div>
   </div>
   @for (reply of feedback.replies; track reply.uuid) {
@@ -47,6 +52,11 @@
         @if (reply.you || moderator) {
           <ion-button size="small" fill="clear" mode="ios" color="danger" (click)="deleteReply(reply.uuid)">
             <span>{{i18n.texts.buttons.delete}}</span>
+          </ion-button>
+        }
+        @if (moderator && !reply.reviewed) {
+          <ion-button size="small" fill="clear" mode="ios" color="success" (click)="replyReviewed(reply)">
+            <span>{{i18n.texts.publications.moderation.comments.reviewed_button}}</span>
           </ion-button>
         }
       </div>

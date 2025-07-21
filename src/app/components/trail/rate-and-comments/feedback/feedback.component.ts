@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { Feedback, FeedbackService } from 'src/app/services/feedback/feedback.service';
+import { Feedback, FeedbackReply, FeedbackService } from 'src/app/services/feedback/feedback.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { RateComponent } from '../rate/rate.component';
 import { IonButton, AlertController, IonTextarea } from "@ionic/angular/standalone";
@@ -7,6 +7,7 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { FormsModule } from '@angular/forms';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { RelativeDateComponent } from 'src/app/components/relative-date/relative-date.component';
+import { ModerationService } from 'src/app/services/moderation/moderation.service';
 
 @Component({
   selector: 'app-feedback',
@@ -41,6 +42,7 @@ export class FeedbackComponent {
     private readonly alertController: AlertController,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly errorService: ErrorService,
+    private readonly moderationService: ModerationService,
   ) {
     this.moderator = !!authService.auth?.admin || (authService.auth?.roles ?? []).indexOf('moderator') >= 0;
   }
@@ -137,6 +139,20 @@ export class FeedbackComponent {
         m.present();
       });
     }
+  }
+
+  feedbackReviewed(): void {
+    if (!this.feedback) return;
+    this.moderationService.validateFeedback(this.feedback).subscribe(f => {
+      this.feedback = f;
+      this.feedbackChange.emit(f);
+    });
+  }
+
+  replyReviewed(reply: FeedbackReply): void {
+    this.moderationService.validateFeedbackReply(reply).subscribe(r => {
+      this.feedbackChange.emit(this.feedback);
+    });
   }
 
 }

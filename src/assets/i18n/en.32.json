@@ -777,6 +777,8 @@
     },
     "moderation": {
       "menu_title": "Moderation",
+      "menu_trails": "Trails",
+      "menu_comments": "Comments",
       "publishing": "Publishing",
       "error_publishing": "Error while publishing",
       "publish_confirmation": "Do you confirm this trail can be made public?",
@@ -784,7 +786,10 @@
       "reject_message_placeholder": "Please enter a message here to explain why this track cannot be published.",
       "message_from_author": "Author's message",
       "previous_moderator_message": "Previous message from moderator",
-      "moderator_message": "Moderator's message"
+      "moderator_message": "Moderator's message",
+      "comments": {
+        "reviewed_button": "Validate"
+      }
     }
   },
   "buttons": {

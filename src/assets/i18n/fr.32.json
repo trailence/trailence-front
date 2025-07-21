@@ -777,6 +777,8 @@
     },
     "moderation": {
       "menu_title": "Modération",
+      "menu_trails": "Parcours",
+      "menu_comments": "Commentaires",
       "publishing": "Publication",
       "error_publishing": "Erreur lors de la publication",
       "publish_confirmation": "Confirmez-vous que ce parcours peut être rendu public ?",
@@ -784,7 +786,10 @@
       "reject_message_placeholder": "Rédigez ici un message pour expliquer la raison du refus de ce parcours.",
       "message_from_author": "Message de l'auteur",
       "previous_moderator_message": "Précédent message du modérateur",
-      "moderator_message": "Message du modérateur"
+      "moderator_message": "Message du modérateur",
+      "comments": {
+        "reviewed_button": "Valider"
+      }
     }
   },
   "buttons": {
