@@ -1155,7 +1155,8 @@
       "unread_single": "1 unread notification",
       "unread_plural": "{{1}} unread notifications"
     },
-    "view_all": "View all",
+    "load_more": "See more",
+    "error_loading": "Error loading notifications",
     "items": {
       "publications": {
         "accepted": {

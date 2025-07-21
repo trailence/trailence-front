@@ -13,3 +13,9 @@
   width: min(800px, 100%);
   background-color: var(--centered-inside-background);
 }
+.load_more {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}

@@ -282,6 +282,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected waitReadyWithTimeout(entities: STORE_ITEM[]): Observable<STORE_ITEM[]> {
+    if (entities.length === 0) return of([]);
     return combineLatest(
       entities.map(entity => this.readyToSave$(entity).pipe(
         filter(ready => ready),

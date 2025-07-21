@@ -822,7 +822,10 @@ export class TrailComponent extends AbstractComponent {
   private getPhotoPositionFromDate(trail1: Trail, photos: Photo[], dateToPoint: { trackUuid: string | undefined, cache: Map<number, L.LatLngExpression | null> }) {
     return this.showOriginal$.pipe(
       switchMap(showOriginal => showOriginal ? trail1.originalTrackUuid$ : trail1.currentTrackUuid$),
-      switchMap(trackUuid => this.trackService.getFullTrack$(trackUuid, trail1.owner)),
+      switchMap(trackUuid =>
+        trail1.fromModeration ? this.injector.get(ModerationService).getFullTrack$(trail1.uuid, trail1.owner, trackUuid)
+        : this.trackService.getFullTrack$(trackUuid, trail1.owner)
+      ),
       map(track => {
         if (!track) return [];
         if (track.uuid !== dateToPoint.trackUuid) {

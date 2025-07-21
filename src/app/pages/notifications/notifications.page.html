@@ -1,10 +1,23 @@
 <app-header
   [title]="i18n.texts.notifications.menu.no_unread"
 ></app-header>
-<div class="content-container"><div class="content">
-  <ion-list>
-    @for (notif of notifications.notifications$ | async; track notif.uuid) {
-      <app-notification-item [notification]="notif"></app-notification-item>
+<div class="content-container">
+  <div class="content">
+    <ion-list>
+      @for (notif of notifications.notifications$ | async; track notif.uuid) {
+        <app-notification-item [notification]="notif"></app-notification-item>
+      }
+    </ion-list>
+    @if (notifications.mayHaveMore) {
+      <div class="load_more">
+        @if (loading) {
+          <ion-spinner></ion-spinner>
+        } @else {
+          <ion-button fill="clear" color="tertiary" (click)="loadMore()">
+            {{ i18n.texts.notifications.load_more }}
+          </ion-button>
+        }
+      </div>
     }
-  </ion-list>
-</div></div>
+  </div>
+</div>
