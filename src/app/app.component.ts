@@ -4,8 +4,8 @@ import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
-import { NavigationEnd, Router } from '@angular/router';
-import { catchError, combineLatest, filter, first, from, Observable, of, switchMap, tap, timeout } from 'rxjs';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { catchError, combineLatest, filter, first, from, map, Observable, of, switchMap, tap, timeout } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';
@@ -13,6 +13,7 @@ import { PlatformService } from './services/platform/platform.service';
 import { NetworkService } from './services/network/network.service';
 import { filterDefined } from './utils/rxjs/filter-defined';
 import { QuotaService } from './services/auth/quota.service';
+import { TraceRecorderService } from './services/trace-recorder/trace-recorder.service';
 
 @Component({
     selector: 'app-root',
@@ -25,6 +26,7 @@ import { QuotaService } from './services/auth/quota.service';
         IonRouterOutlet,
         CommonModule,
         MenuComponent,
+        RouterLink,
     ]
 })
 export class AppComponent {
@@ -32,9 +34,11 @@ export class AppComponent {
   loadMenu = false;
   loadMenuContent = false;
   waitingForGps = false;
+  traceInProgress?: string;
 
   i18nLoaded = false;
   waitingForGpsText = '';
+  traceInProgressText = '';
 
   constructor(
     private readonly injector: Injector,
@@ -70,6 +74,7 @@ export class AppComponent {
         tap(texts => {
           this.i18nLoaded = true;
           this.waitingForGpsText = texts.waiting_for_gps;
+          this.traceInProgressText = texts.menu.current_trace;
         }),
         first(),
       ),
@@ -111,7 +116,28 @@ export class AppComponent {
         this.injector.get(ChangeDetectorRef).detectChanges();
       }));
     });
-    i18n.texts$.subscribe(texts => this.waitingForGpsText = texts?.waiting_for_gps);
+    i18n.texts$.subscribe(texts => {
+      this.waitingForGpsText = texts?.waiting_for_gps ?? '';
+      this.traceInProgressText = texts?.menu.current_trace ?? '';
+    });
+    combineLatest([
+      this.injector.get(Router).events.pipe(
+        filter(e => e instanceof NavigationEnd),
+        map(e => e.url)
+      ),
+      this.injector.get(TraceRecorderService).current$
+    ]).subscribe(([url, trace]) => {
+      const newValue = trace ?
+        (trace.followingTrailUuid ?
+          (!url.startsWith('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid) ? '/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid : undefined)
+          : (url !== '/trail' ? '/trail' : undefined)
+        ) : undefined;
+      if (newValue !== this.traceInProgress) {
+        this.traceInProgress = newValue;
+        this.injector.get(ChangeDetectorRef).detectChanges();
+      }
+    });
+
   }
 
   private loadServices(): Promise<() => Observable<boolean>> {

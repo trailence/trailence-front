@@ -94,7 +94,7 @@
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="!isSmall || tab === 'details'">
-      <app-toolbar #toolbar *ngIf="trail1"
+      <app-toolbar #toolbar *ngIf="trail1 && !trail2"
         [items]="toolbarItems"
         [iconSize]="28"
         textSize="11px"

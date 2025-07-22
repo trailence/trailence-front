@@ -633,10 +633,16 @@ export class MapComponent extends AbstractComponent {
   }
 
   private getEventTrack(track: Track, map: L.Map, mouse: L.Point, mapTrack: MapTrack, result: MapTrackPointReference[]): void {
+    const mouseLatLng = map.layerPointToLatLng(mouse);
+    const mouseDiffLatLng = map.layerPointToLatLng([mouse.x + this.eventPixelMaxDistance, mouse.y + this.eventPixelMaxDistance]);
+    const maxLatDiff = Math.abs(mouseDiffLatLng.lat - mouseLatLng.lat);
+    const maxLngDiff = Math.abs(mouseDiffLatLng.lng - mouseLatLng.lng);
+
     for (let segmentIndex = 0; segmentIndex < track.segments.length; ++segmentIndex) {
       const segment = track.segments[segmentIndex];
       for (let pointIndex = 0; pointIndex < segment.points.length; ++pointIndex) {
         const pt = segment.points[pointIndex];
+        if (Math.abs(pt.pos.lat - mouseLatLng.lat) > maxLatDiff || Math.abs(pt.pos.lng - mouseLatLng.lng) > maxLngDiff) continue;
         const pixel = map.latLngToLayerPoint(pt.pos);
         const distance = mouse.distanceTo(pixel);
         if (distance <= this.eventPixelMaxDistance) {

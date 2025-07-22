@@ -22,6 +22,10 @@ export class MySelectionService {
     return this.store.getAllWhenLoaded$().pipe(collection$items());
   }
 
+  public getMySelectionNow(): SelectedTrail[] {
+    return this.store.getAllNow();
+  }
+
   public addSelection(owner: string, uuid: string): Observable<SelectedTrail | null> {
     return this.store.create({owner, uuid});
   }

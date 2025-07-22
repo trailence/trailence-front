@@ -74,11 +74,29 @@ export class TrailMenuService {
       }
 
       if (!onlyGlobal) {
-        menu.push(new MenuItem());
-        menu.push(new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
-          .setTextColor('my-selection')
-          .setAction(() => this.addToMySelection(trails))
-        );
+        const sel = this.injector.get(MySelectionService).getMySelectionNow();
+        let hasAbsent = false;
+        let hasPresent = false;
+        for (const trail of trails) {
+          const isInSelection = !!sel.find(s => s.owner === trail.owner && s.uuid === trail.uuid);
+          if (isInSelection) hasPresent = true;
+          else hasAbsent = true;
+        }
+        if (hasPresent || hasAbsent) {
+          menu.push(new MenuItem());
+          if (hasAbsent) {
+            menu.push(new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
+              .setTextColor('my-selection')
+              .setAction(() => this.addToMySelection(trails))
+            );
+          }
+          if (hasPresent) {
+            menu.push(new MenuItem().setIcon('star-empty').setI18nLabel('pages.trails.actions.remove_from_my_selection')
+              .setTextColor('my-selection')
+              .setAction(() => this.removeFromMySelection(trails))
+            );
+          }
+        }
       }
 
       if (trails.length === 2) {
@@ -287,6 +305,17 @@ export class TrailMenuService {
         return combineLatest(newSelection.map(s => this.injector.get(MySelectionService).addSelection(s.owner, s.uuid).pipe(first())));
       })
     ).subscribe();
+  }
+
+  public removeFromMySelection(trails: Trail[]): void {
+    this.injector.get(MySelectionService).getMySelection().pipe(
+      first(),
+    ).subscribe(current => {
+      for (const s of current) {
+        if (trails.find(t => t.owner === s.owner && t.uuid === s.uuid))
+          this.injector.get(MySelectionService).deleteSelection(s.owner, s.uuid);
+      }
+    });
   }
 
 }

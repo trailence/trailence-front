@@ -197,7 +197,8 @@
         },
         "copying_photos": "Copying photos",
         "copy_photo_error": "Error copying photo {{1}}",
-        "add_to_my_selection": "Add to my selection"
+        "add_to_my_selection": "Add to my selection",
+        "remove_from_my_selection": "Remove frome my selection"
       },
       "tags": {
         "menu_item": "Tags",

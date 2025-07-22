@@ -11,7 +11,15 @@
       </ion-menu>
     }
   </ion-app>
-  <div class="waiting-for-gps" *ngIf="waitingForGps">
-    <div>{{ waitingForGpsText }}</div>
-  </div>
+  @if (waitingForGps) {
+    <div class="waiting-for-gps">
+      <div>{{ waitingForGpsText }}</div>
+    </div>
+  } @else if (traceInProgress) {
+    <div class="trace-in-progress">
+      <div>
+        <a [routerLink]="traceInProgress">{{ traceInProgressText }}</a>
+      </div>
+    </div>
+  }
 </ng-container>

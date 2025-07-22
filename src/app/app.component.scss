@@ -1,4 +1,4 @@
-.waiting-for-gps {
+.waiting-for-gps, .trace-in-progress {
   position: fixed;
   top: 5px;
   left: 0;
@@ -15,6 +15,12 @@
     padding: 3px 8px;
     font-size: 14px;
     border-radius: 5px;
+
+    a, a:hover {
+      color: white;
+      text-decoration: underline;
+      pointer-events: all;
+    }
   }
 }
 

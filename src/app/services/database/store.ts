@@ -91,6 +91,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     );
   }
 
+  public getAllNow(): STORE_ITEM[] {
+    return (this._store.value?.map(item$ => item$.value).filter(item => !!item) ?? []) as STORE_ITEM[];
+  }
+
   protected startSync(): void {
     if (this._syncProgress$.value) {
       Console.warn('Store start a sync while already in progress', this.tableName, this._syncProgress$.value);

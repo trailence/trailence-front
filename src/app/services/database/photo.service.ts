@@ -104,7 +104,6 @@ export class PhotoService {
 
   private readonly _blobUrls = new Map<string, DatabaseSubject<{url: string, blobSize: number}>>();
   public getBlobUrl$(photo: Photo): Observable<{url: string, blobSize?: number} | null> {
-    if (photo.owner.indexOf('@') < 0) return of({url: photo.uuid});
     const key = photo.owner + '#' + photo.uuid;
     const existing = this._blobUrls.get(key);
     if (existing) return existing.asObservable();

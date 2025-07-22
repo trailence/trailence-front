@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, first, map, of, skip, switchMap, takeLast, tap, timeout, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, first, firstValueFrom, map, of, skip, switchMap, takeLast, tap, timeout, timer } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -269,6 +269,9 @@ export class TraceRecorderService {
   private _geolocationListener?: (position: PointDto) => void;
 
   private startRecording(recording: Recording): Promise<Recording> {
+    if (!this.i18n.texts) {
+      return firstValueFrom(this.i18n.texts$.pipe(filterDefined())).then(() => this.startRecording(recording));
+    }
     return this.geolocation.getState()
     .then(state => {
       if (state === GeolocationState.DISABLED) {

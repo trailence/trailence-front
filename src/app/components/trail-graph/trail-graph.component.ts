@@ -22,6 +22,7 @@ import { PointReference, RangeReference } from 'src/app/model/point-reference';
 import { ESTIMATED_SMALL_BREAK_EVERY, estimateSmallBreakTime, estimateSpeedInMetersByHour } from 'src/app/services/track-edition/time/time-estimation';
 import { SpeedLegendPlugin } from './plugins/speed-legend';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { debounceTime } from 'rxjs';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -96,7 +97,11 @@ export class TrailGraphComponent extends AbstractComponent {
   ) {
     super(injector);
     changeDetector.detach();
-    this.whenVisible.subscribe(browser.resize$, () => this.resetChart());
+    this.whenVisible.subscribe(browser.resize$.pipe(debounceTime(300)), () => {
+      if (this.width && this.height && this.width === this.canvas?.chart?.canvas?.parentElement?.clientWidth && this.height === this.canvas?.chart?.canvas?.parentElement?.clientHeight)
+        return;
+      this.resetChart();
+    });
     this.visible$.subscribe(() => this.resetChart());
     this.whenVisible.subscribe(preferencesService.preferences$, () => {
       this.backgroundColor = '';
@@ -951,31 +956,53 @@ export class TrailGraphComponent extends AbstractComponent {
   }
 
   public showCursorForPosition(lat: number, lng: number): void {
-    this.ngZone.runOutsideAngular(() => {
-      if (!this.canvas?.chart || !this.chartData) {
-        return;
+    if (!this.canvas?.chart || !this.chartData) {
+      return;
+    }
+    const elements: C.ActiveElement[] = [];
+    for (let dsIndex = 0; dsIndex < this.chartData.datasets.length; dsIndex++) {
+      const pointIndex = this.chartData.datasets[dsIndex].data.findIndex((pt: any) => pt.lat === lat && pt.lng === lng);
+      if (pointIndex >= 0) {
+        elements.push({element: this.canvas?.chart.getDatasetMeta(dsIndex).data[pointIndex], datasetIndex: dsIndex, index: pointIndex});
       }
-      const elements: C.ActiveElement[] = [];
-      for (let dsIndex = 0; dsIndex < this.chartData.datasets.length; dsIndex++) {
-        const pointIndex = this.chartData.datasets[dsIndex].data.findIndex((pt: any) => pt.lat === lat && pt.lng === lng);
-        if (pointIndex >= 0) {
-          elements.push({element: this.canvas?.chart.getDatasetMeta(dsIndex).data[pointIndex], datasetIndex: dsIndex, index: pointIndex});
-        }
-      }
-      this.canvas.chart.setActiveElements(elements);
-      if (elements.length > 0)
-        this.canvas.chart.tooltip!.setActiveElements(elements, elements[0].element);
-      this.canvas.chart.update();
-    });
+    }
+    this.updateElements(elements, elements.length === 0 ? undefined : elements[0].element);
   }
 
   public hideCursor(): void {
+    this.updateElements([]);
+  }
+
+  private _updateElements?: {elements: C.ActiveElement[], position?: C.Point};
+  private _updateElementsTimeout?: any;
+  private updateElements(elements: C.ActiveElement[], position?: C.Point): void {
+    this._updateElements = {elements, position};
+    if (this._updateElementsTimeout) {
+      return;
+    }
     this.ngZone.runOutsideAngular(() => {
-      if (this.canvas?.chart) {
-        this.canvas.chart.setActiveElements([]);
-        this.canvas.chart.tooltip!.setActiveElements([], {x: 0, y: 0});
-        this.canvas.chart.update();
-      }
+      this._updateElementsTimeout = setTimeout(() => {
+        this._updateElementsTimeout = undefined;
+        const value = this._updateElements;
+        this.ngZone.runOutsideAngular(() => {
+          if (!value || !this.canvas?.chart) return;
+          if (value.elements.length === 0 && this.canvas.chart.getActiveElements().length === 0) return;
+          this.canvas.chart.setActiveElements(value.elements);
+          this.canvas.chart.tooltip!.setActiveElements(value.elements, value.position ?? {x: 0, y: 0});
+          this.updateChart();
+        });
+      }, 10);
+    });
+  }
+
+  private _updateChartTimeout?: any;
+  private updateChart(): void {
+    if (this._updateChartTimeout) return;
+    this.ngZone.runOutsideAngular(() => {
+      this._updateChartTimeout = setTimeout(() => {
+        this._updateChartTimeout = undefined;
+        this.canvas?.chart?.update();
+      }, 25);
     });
   }
 

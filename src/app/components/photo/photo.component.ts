@@ -1,10 +1,11 @@
 import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { EMPTY, first, Subscription, switchMap, timer } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
 import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { Console } from 'src/app/utils/console';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 @Component({
     selector: 'app-photo',
@@ -27,11 +28,13 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   blob?: string;
   error = false;
   private subscription?: Subscription;
+  private reloadSubscription?: Subscription;
 
   constructor(
     private readonly photoService: PhotoService,
     private readonly changesDetector: ChangeDetectorRef,
     private readonly elementRef: ElementRef,
+    private readonly network: NetworkService,
   ) { }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -42,6 +45,8 @@ export class PhotoComponent implements OnChanges, OnDestroy {
           return;
       this.subscription?.unsubscribe();
       this.subscription = undefined;
+      this.reloadSubscription?.unsubscribe();
+      this.reloadSubscription = undefined;
       this.error = false;
       this.setBlob(undefined);
       if (this.photo) {
@@ -53,6 +58,8 @@ export class PhotoComponent implements OnChanges, OnDestroy {
             error: e => {
               Console.error('Error loading photo', e);
               this.error = true;
+              this.subscription = undefined;
+              this.reloadError(loadPhoto, photo);
               this.changesDetector.detectChanges();
             }
           });
@@ -75,6 +82,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+    this.reloadSubscription?.unsubscribe();
   }
 
   private setBlob(blob: {url: string, blobSize?: number} | undefined | null) {
@@ -84,6 +92,26 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.blobSize.emit(blob.blobSize);
     }
     this.changesDetector.detectChanges();
+  }
+
+  private reloadError(loader: (photo: Photo) => void, photo: Photo): void {
+    this.reloadSubscription?.unsubscribe();
+    let firstInternetCheck = true;
+    this.reloadSubscription = this.network.internet$.pipe(
+      switchMap(internet => {
+        if (firstInternetCheck) {
+          firstInternetCheck = false;
+          if (!internet) return EMPTY;
+          return timer(5000);
+        }
+        if (!internet) return EMPTY;
+        return timer(5000);
+      }),
+      first(),
+    ).subscribe(() => {
+      if (this.photo?.owner !== photo.owner || this.photo?.uuid !== photo.uuid) return;
+      loader(photo);
+    });
   }
 
   onWheel(event: WheelEvent): void {
