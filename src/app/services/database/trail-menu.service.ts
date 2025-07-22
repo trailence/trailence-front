@@ -29,7 +29,7 @@ export class TrailMenuService {
 
   public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: TrailCollection | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false, isModeration: boolean = false): MenuItem[] { // NOSONAR
     const menu: MenuItem[] = [];
-    const email = this.injector.get(AuthService).email!;
+    const email = this.injector.get(AuthService).email;
 
     if (!onlyGlobal && trails.length > 0 && !isPublicationLockedCollection(fromCollection?.type)) {
       menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
@@ -73,7 +73,7 @@ export class TrailMenuService {
         }
       }
 
-      if (!onlyGlobal) {
+      if (!isPublicationCollection(fromCollection?.type) && email) {
         const sel = this.injector.get(MySelectionService).getMySelectionNow();
         let hasAbsent = false;
         let hasPresent = false;
@@ -99,7 +99,7 @@ export class TrailMenuService {
         }
       }
 
-      if (trails.length === 2) {
+      if (trails.length === 2 && email) {
         menu.push(new MenuItem());
         menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare')
           .setAction(() => {
@@ -119,7 +119,7 @@ export class TrailMenuService {
             const router = this.injector.get(Router);
             router.navigateByUrl('/trail/' + encodeURIComponent(trail1.owner) + '/' + trail1.uuid + '/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '?from=' + encodeURIComponent(router.url));
           }));
-        } else {
+        } else if (email) {
           menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare_with').setAction(() => {
             this.trailToCompare = trails[0];
           }));
@@ -153,7 +153,7 @@ export class TrailMenuService {
       menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export')
         .setAction(() => import('../functions/export').then(m => m.exportTrails(this.injector, trails))));
 
-      if (!isAll && !isPublicationCollection(fromCollection?.type)) {
+      if (!isAll && !isPublicationCollection(fromCollection?.type) && email) {
         menu.push(new MenuItem());
         menu.push(
           new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
@@ -169,7 +169,7 @@ export class TrailMenuService {
         .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, fromCollection.uuid, []))));
     }
 
-    if (fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal && trails.length > 0) {
+    if (fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal && trails.length > 0 && email) {
       if (trails.every(t => t.owner === email)) {
         const collectionUuid = this.getUniqueCollectionUuid(trails);
         if (fromCollection.uuid === collectionUuid) {

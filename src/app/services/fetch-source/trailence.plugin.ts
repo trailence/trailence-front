@@ -39,6 +39,10 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     super(injector, 'trailence_public', 'uuid, slug', 'uuid', true, 120000);
   }
 
+  protected override listenAllowed(): void {
+    this._allowed$.next(true);
+  }
+
   protected override checkAllowed$(): Observable<boolean> {
     return of(true);
   }

@@ -19,14 +19,22 @@
       </div>
       <ion-buttons slot="end" class="public-buttons">
         @if (prefs.preferences.lang !== 'en') {
-          <a href="/en/{{publicUrl}}" (click)="$event.preventDefault()">
-            <ion-button (click)="goTo('/en/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/en.1.png" /></ion-button>
-          </a>
+          @if (publicUrl) {
+            <a href="/en/{{publicUrl}}" (click)="$event.preventDefault()">
+              <ion-button (click)="goTo('/en/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/en.1.png" /></ion-button>
+            </a>
+          } @else {
+            <ion-button (click)="setLanguage('en')"><img slot="icon-only" src="/assets/i18n/en.1.png" /></ion-button>
+          }
         }
         @if (prefs.preferences.lang !== 'fr') {
-          <a href="/fr/{{publicUrl}}" (click)="$event.preventDefault()">
-            <ion-button (click)="goTo('/fr/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/fr.1.png" /></ion-button>
-          </a>
+          @if (publicUrl) {
+            <a href="/fr/{{publicUrl}}" (click)="$event.preventDefault()">
+              <ion-button (click)="goTo('/fr/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/fr.1.png" /></ion-button>
+            </a>
+          } @else {
+            <ion-button (click)="setLanguage('fr')"><img slot="icon-only" src="/assets/i18n/fr.1.png" /></ion-button>
+          }
         }
         <ng-container *ngIf="prefs.getResolvedTheme() as theme">
           <ion-button (click)="prefs.setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')"><ion-icon slot="icon-only" [name]="theme === 'DARK' ? 'theme-light' : 'theme-dark'"></ion-icon></ion-button>

@@ -91,7 +91,7 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
   }
 
   private resetComments(): void {
-    if (this.trail?.owner === 'trailence') {
+    if (this.trail?.owner === 'trailence' && this.authService.auth && !this.authService.auth.isAnonymous) {
       this.filterRate = undefined;
       this.loadingComments = true;
       this.feedbackService.getFeedbacks(this.trail.uuid, 0, []).subscribe(list => {
@@ -113,7 +113,7 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
   }
 
   setFilterRate(filter?: number): void {
-    if (this.filterRate === filter || !this.trail) return;
+    if (this.filterRate === filter || !this.trail || !this.authService.auth || !!this.authService.auth.isAnonymous) return;
     this.filterRate = filter;
     this.loadingComments = true;
     this.feedbackService.getFeedbacks(this.trail.uuid, 0, [], filter).subscribe(list => {

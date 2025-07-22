@@ -74,6 +74,10 @@ export class HeaderComponent extends AbstractComponent {
       this.goTo('/');
   }
 
+  setLanguage(lang: string): void {
+    this.prefs.setLanguage(lang);
+  }
+
   protected override getComponentState() {
     return this.title;
   }

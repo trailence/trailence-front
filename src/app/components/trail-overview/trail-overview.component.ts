@@ -117,7 +117,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly changeDetector: ChangeDetectorRef,
     public trailMenuService: TrailMenuService,
     private readonly tagService: TagService,
-    private readonly auth: AuthService,
+    public readonly auth: AuthService,
     private readonly trailService: TrailService,
     private readonly browser: BrowserService,
     private readonly assets: AssetsService,
@@ -163,9 +163,10 @@ export class TrailOverviewComponent extends AbstractComponent {
               this.trail!.loopType$,
               this.trail!.activity$,
               this.trackData$(this.trail!, owner),
-              this.mySelectionService.getMySelection().pipe(
-                map(sel => sel.findIndex(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid) >= 0),
-              )
+              this.auth.auth ?
+                this.mySelectionService.getMySelection().pipe(
+                  map(sel => sel.findIndex(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid) >= 0),
+                ) : of(false)
             ])
           ),
           debounceTimeExtended(0, 10)

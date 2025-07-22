@@ -361,7 +361,7 @@ export class AuthService {
 
   private doRenewAuth(): Observable<AuthResponse | null> {
     const current = this._auth$.value;
-    if (!current) return of(null);
+    if (!current || current.isAnonymous) return of(null);
     Console.info('Authenticating ' + current.email);
     return from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(current.email)))
     .pipe(

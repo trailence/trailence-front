@@ -1,7 +1,7 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, map, of, switchMap, tap, timeout } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, debounceTime, filter, first, map, of, switchMap, tap, timeout } from 'rxjs';
 import { StoreSyncStatus } from './store';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
@@ -9,6 +9,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
 import { ModalController, ToastController, Platform } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 const DB_PREFIX = 'trailence_data_';
 export const TRACK_TABLE_NAME = 'tracks';
@@ -26,6 +27,8 @@ const INTERNAL_TABLE_NAME = 'internal';
 
 const AUTO_UPDATE_FROM_SERVER_EVERY = 30 * 60 * 1000;
 const MINIMUM_SYNC_INTERVAL = 15 * 1000;
+
+const ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY = 'trailence.anonymous_toast_last_time';
 
 export interface StoreRegistration {
   name: string;
@@ -98,20 +101,27 @@ export class DatabaseService {
         else {
           this.open(auth.email);
           if (auth.isAnonymous && !this.injector.get(Platform).is('capacitor')) {
-            const i18n = injector.get(I18nService);
-            injector.get(ToastController).create({
-              message: i18n.texts.toast_anonymous_account,
-              color: 'warning',
-              position: 'bottom',
-              duration: 60000,
-              swipeGesture: "vertical",
-              mode: "ios",
-              layout: "stacked",
-              buttons: [{
-                text: i18n.texts.buttons.close,
-                role: 'cancel',
-              }]
-            }).then(t => t.present());
+            const lastTimeStr = localStorage.getItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY);
+            const lastTime = lastTimeStr ? parseInt(lastTimeStr) : 0;
+            if (isNaN(lastTime) || Date.now() - lastTime > 3 * 60 * 60 * 1000) {
+              localStorage.setItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY, '' + Date.now());
+              const i18n = injector.get(I18nService);
+              i18n.texts$.pipe(filterDefined(), first()).subscribe(() => {
+                injector.get(ToastController).create({
+                  message: i18n.texts.toast_anonymous_account,
+                  color: 'warning',
+                  position: 'bottom',
+                  duration: 60000,
+                  swipeGesture: "vertical",
+                  mode: "ios",
+                  layout: "stacked",
+                  buttons: [{
+                    text: i18n.texts.buttons.close,
+                    role: 'cancel',
+                  }]
+                }).then(t => t.present());
+              });
+            }
           }
         }
       }

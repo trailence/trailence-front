@@ -1,6 +1,6 @@
 import { Injectable, SecurityContext } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
-import { BehaviorSubject, combineLatest, map, Observable, of, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, Observable, of, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
@@ -36,6 +36,11 @@ export class I18nService {
   private readonly _toLoad: TextToLoad[] = [
     { filePath: '/i18n', fileVersion: TEXTS_VERSION, textPath: '' }
   ];
+
+  public readonly langLoaded$ = this._textsLoaded$.pipe(
+    filter(t => t.length > 0),
+    map(t => t[0].lang)
+  );
 
   constructor(
     private readonly prefService: PreferencesService,

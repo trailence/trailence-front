@@ -40,6 +40,7 @@
     margin-top: 0;
     margin-bottom: 0;
     min-width: 24px;
+    margin-right: -2px;
   }
 
   .trail-name {
@@ -47,6 +48,7 @@
     color: var(--ion-color-tertiary);
     font-size: 15px;
     max-width: calc(100% - 45px);
+    margin-left: 2px;
 
     &:not(.selectable) {
       max-width: calc(100% - 28px);

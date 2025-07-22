@@ -561,7 +561,6 @@ export class TrailComponent extends AbstractComponent {
           let followedTrail: Observable<TrailInfo | null> = of(null);
           if (trail1.followedUrl) {
             const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail1.followedUrl);
-            console.log('plugin', pluginName, trail1.followedUrl)
             if (pluginName === 'Trailence')
               followedTrail = this.injector.get(FetchSourceService).plugin$('trailence').pipe(
                 switchMap(p => p ? from(p.fetchTrailInfoByUrl(trail1.followedUrl!)) : of(null)),
@@ -656,9 +655,9 @@ export class TrailComponent extends AbstractComponent {
 
   private listenMyFeedback(): void {
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null)]).pipe(
-        switchMap(([trail1, trail2, recording]) => {
-          if (!trail2 && !recording && trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/')) {
+      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null), this.auth.auth$]).pipe(
+        switchMap(([trail1, trail2, recording, auth]) => {
+          if (!trail2 && !recording && trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/') && auth && !auth.isAnonymous) {
             return this.injector.get(NetworkService).server$.pipe(
               switchMap(connected => {
                 if (!connected) return of(null);

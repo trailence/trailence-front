@@ -7,7 +7,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
   IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, IonSegment, IonSegmentButton, IonInput, IonSpinner } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, debounceTime, filter, map, Observable, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -197,6 +197,7 @@ export class TrailsListComponent extends AbstractComponent {
     super(injector);
     changeDetector.detach();
     let currentDistanceUnit = preferences.preferences.distanceUnit;
+    let currentLang = preferences.preferences.lang;
     this.whenVisible.subscribe(preferences.preferences$,
       prefs => {
         let changed = false;
@@ -209,6 +210,13 @@ export class TrailsListComponent extends AbstractComponent {
         }
         if (changed)
           this.state$.next({...this.state$.value, filters: {...this.state$.value.filters}});
+        if (currentLang !== prefs.lang) {
+          currentLang = prefs.lang;
+          i18n.langLoaded$.pipe(first(l => l === currentLang)).subscribe(() => {
+            this.toolbar = [...this.toolbar];
+            this.changeDetector.detectChanges();
+          });
+        }
       },
       true
     );
