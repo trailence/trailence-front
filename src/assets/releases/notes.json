@@ -150,5 +150,9 @@
         "Vous pouvez maintenant compléter une trace en ajoutant des points libres ou en suivant les chemins OpenStreetMap"
       ]
     }
+  },
+  "001810": {
+    "en": {"message": "Some improvements and fixes"},
+    "fr": {"message": "Quelques améliorations et correctifs"}
   }
 }

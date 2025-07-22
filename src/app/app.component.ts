@@ -13,7 +13,6 @@ import { PlatformService } from './services/platform/platform.service';
 import { NetworkService } from './services/network/network.service';
 import { filterDefined } from './utils/rxjs/filter-defined';
 import { QuotaService } from './services/auth/quota.service';
-import { TraceRecorderService } from './services/trace-recorder/trace-recorder.service';
 
 @Component({
     selector: 'app-root',
@@ -125,7 +124,7 @@ export class AppComponent {
         filter(e => e instanceof NavigationEnd),
         map(e => e.url)
       ),
-      this.injector.get(TraceRecorderService).current$
+      from(import('./services/trace-recorder/trace-recorder.service').then(s => this.injector.get(s.TraceRecorderService))).pipe(switchMap(t => t.current$)),
     ]).subscribe(([url, trace]) => {
       const newValue = trace ?
         (trace.followingTrailUuid ?
