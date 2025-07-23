@@ -1,0 +1,20 @@
+@if (config) {
+  <div class="config-container">
+    <ion-accordion-group [value]="accordionValue" (ionChange)="resize($event.detail.value)">
+      <ion-accordion value="config">
+        <ion-item slot="header">
+          <ion-icon name="settings"></ion-icon>
+          <ion-label>{{ i18n.texts.pages.stats.config_title }}</ion-label>
+        </ion-item>
+        <div slot="content">
+          <app-stats-config [config]="config"></app-stats-config>
+        </div>
+      </ion-accordion>
+    </ion-accordion-group>
+  </div>
+  <div class="graph-container">
+    @if (!resetChart) {
+      <app-stats-graph [statsConfig]="config"></app-stats-graph>
+    }
+  </div>
+}

@@ -636,6 +636,52 @@
       "network_needed": "Veuillez vous connecter à Internet pour envoyer un message",
       "accept_send_data": "J'accepte d'envoyer des données techniques de l'application afin d'aider à résoudre le problème",
       "show_data": "Voir ces données"
+    },
+    "stats": {
+      "title": "Mes Statistiques",
+      "config_title": "Configuration",
+      "type_title": "Statistiques sur",
+      "time_unit_title": "Par",
+      "source_title": "Parmi",
+      "filter_title": "En prenant en compte uniquement les parcours",
+      "activity_filter_title": "avec l'activité",
+      "types": {
+        "nb_trails": {
+          "title": "Le nombre de parcours"
+        },
+        "distance": {
+          "title": "La distance"
+        },
+        "positive-elevation": {
+          "title": "Le dénivelé positif"
+        },
+        "negative-elevation": {
+          "title": "Le dénivelé négatif"
+        },
+        "duration": {
+          "title": "La durée"
+        }
+      },
+      "time_units": {
+        "year": {
+          "title": "Année"
+        },
+        "month": {
+          "title": "Mois"
+        },
+        "month_of_year": {
+          "title": "Mois toute année confondue"
+        }
+      },
+      "sources": {
+        "collection_single": "La collection",
+        "collection_plural": "collections"
+      },
+      "activities": {
+        "all": "(Toutes)",
+        "or": "ou",
+        "n_activities": "activités"
+      }
     }
   },
   "menu": {
@@ -1215,5 +1261,8 @@
       "name": "Nom du parcours",
       "description": "Description"
     }
-  }
+  },
+  "months": [
+    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+  ]
 }

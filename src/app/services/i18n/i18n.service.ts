@@ -243,32 +243,34 @@ export class I18nService {
     }
   }
 
-  public durationToString(duration?: number, showZeroHour: boolean = true, showSeconds: boolean = false): string {
+  public durationToString(duration?: number, showZeroHour: boolean = true, showSeconds: boolean = false, showZeroMinutes: boolean = true): string {
     if (duration === undefined) return '';
     const minutes = Math.floor(duration / (1000 * 60));
     const days = Math.floor(minutes / (24 * 60));
     const hours = Math.floor((minutes - days * 24 * 60) / 60);
     const min = minutes - (days * 24 * 60) - (hours * 60);
     const seconds = Math.floor((duration - minutes * 60000) / 1000);
-    let minS = min.toString();
-    if (!showZeroHour && hours === 0 && days === 0) {
-      minS += this.texts.duration.minutes;
-      if (showSeconds) {
-        if (seconds < 10) minS += '0';
-        minS += seconds;
-      }
-      return minS;
+    let s = '';
+    if (days > 0) {
+      s = days.toString() + this.texts.duration.days;
     }
-    if (minS.length < 2) minS = '0' + minS;
+    if (days > 0 || hours > 0 || showZeroHour) {
+      let hourS = hours.toString() + this.texts.duration.hours;
+      if (hourS.length < 2) hourS = '0' + hourS;
+      s += hourS;
+    }
+    if (minutes > 0 || (days === 0 && hours === 0) || showZeroMinutes) {
+      let minS = min.toString();
+      if (minS.length === 1 && (days > 0 || hours > 0)) minS = '0' + minS;
+      s += minS;
+      if (showSeconds) s += this.texts.duration.minutes;
+    }
     if (showSeconds) {
-      minS += this.texts.duration.minutes;
-      if (seconds < 10) minS += '0';
-      minS += seconds;
+      let secS = seconds.toString();
+      if (secS.length === 1) secS = '0' + secS;
+      s += secS;
     }
-    let hourS = hours.toString();
-    if (days === 0) return hourS + this.texts.duration.hours + minS;
-    if (hourS.length < 2) hourS = '0' + hourS;
-    return days.toString() + this.texts.duration.days + hourS + this.texts.duration.hours + minS;
+    return s;
   }
 
   public hoursToString(hours: number): string {

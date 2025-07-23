@@ -1,0 +1,19 @@
+div.graph-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+
+  div.navigation-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    padding-bottom: 50px;
+
+    ion-button {
+      min-width: 25px;
+      max-width: 25px;
+      margin-inline-start: 0;
+      margin-inline-end: 0;
+    }
+  }
+}

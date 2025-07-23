@@ -1,0 +1,26 @@
+<div class="graph-container">
+  @if (chartConfig && height) {
+    @if (hasNavigation) {
+      <div class="navigation-container">
+        <ion-button fill="clear" color="dark" [disabled]="navigationOffset === 0" (click)="navigation(-1)">
+          <ion-icon name="chevron-left" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    }
+    <canvas baseChart [height]="height" [width]="width" [ngStyle]="{ 'width': width + 'px', 'height': height + 'px' }"
+      #canvas
+      [type]="chartConfig.type"
+      [data]="chartConfig.data"
+      [options]="chartConfig.options"
+      [plugins]="[]"
+      [legend]="false">
+    </canvas>
+    @if (hasNavigation) {
+      <div class="navigation-container">
+        <ion-button fill="clear" color="dark" [disabled]="navigationOffset === maxNavigationOffset" (click)="navigation(1)">
+          <ion-icon name="chevron-right" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    }
+  }
+</div>

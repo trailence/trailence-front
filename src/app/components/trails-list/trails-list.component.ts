@@ -688,7 +688,7 @@ export class TrailsListComponent extends AbstractComponent {
     }
   }
 
-  getSelectedActivitiesButtonTest(): string {
+  getSelectedActivitiesButtonText(): string {
     if (this.state$.value.filters.activities.selected?.length) {
       return this.state$.value.filters.activities.selected.map(activity => this.i18n.texts.activity[activity ?? 'unspecified']).join(', ');
     }

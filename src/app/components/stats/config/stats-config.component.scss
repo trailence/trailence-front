@@ -1,0 +1,39 @@
+div.container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+div.config-horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  span {
+    margin-right: 10px;
+  }
+}
+::ng-deep ion-select {
+  color: var(--ion-color-secondary);
+  width: auto;
+  min-height: 30px;
+  margin-right: 5px;
+}
+
+div.fake-select {
+  position: relative;
+  ion-select {
+    pointer-events: none;
+    z-index: 0;
+  }
+  div.overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    pointer-events: all;
+    cursor: pointer;
+  }
+}

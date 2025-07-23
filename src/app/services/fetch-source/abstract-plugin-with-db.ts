@@ -105,6 +105,24 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     return this.tableMetadata.get(uuid).then(t => t ?? this.fetchMetadataById(uuid));
   }
 
+  public override getMetadataList(uuids: string[]): Promise<TrackMetadataSnapshot[]> {
+    return this.tableMetadata.bulkGet(uuids)
+    .then(known => {
+      const result: TrackMetadataSnapshot[] = [];
+      const unknown: string[] = [];
+      for (let i = 0; i < uuids.length; ++i) {
+        if (known[i]) result.push(known[i]!);
+        else unknown.push(uuids[i]);
+      }
+      if (unknown.length === 0) return result;
+      return Promise.all(unknown.map(uuid => this.fetchMetadataById(uuid)))
+      .then(fetchResult => {
+        result.push(...fetchResult.filter(r => !!r));
+        return result;
+      });
+    });
+  }
+
   protected fetchMetadataById(uuid: string): Promise<TrackMetadataSnapshot | null> {
     return Promise.resolve(null);
   }

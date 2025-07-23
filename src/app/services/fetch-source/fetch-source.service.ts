@@ -212,6 +212,28 @@ export class FetchSourceService {
     return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getMetadata(uuid)) : of(null)));
   }
 
+  public getMetadataList$(list: {owner: string, uuid: string}[]): Observable<TrackMetadataSnapshot[]> {
+    const byPlugin = new Map<string, string[]>();
+    for (const item of list) {
+      let list = byPlugin.get(item.owner);
+      if (!list) {
+        list = [];
+        byPlugin.set(item.owner, list);
+      }
+      list.push(item.uuid);
+    }
+    const result: Observable<TrackMetadataSnapshot[]>[] = [];
+    for (const entry of byPlugin.entries()) {
+      result.push(this.plugin$(entry[0]).pipe(switchMap(plugin => plugin ? from(plugin.getMetadataList(entry[1])) : of([]))));
+    }
+    if (result.length === 0) return of([]);
+    return combineLatest(result).pipe(map(lists => {
+      const all: TrackMetadataSnapshot[] = [];
+      for (const l of lists) all.push(...l);
+      return all;
+    }))
+  }
+
   public getSimplifiedTrack$(owner: string, uuid: string): Observable<SimplifiedTrackSnapshot | null> {
     return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getSimplifiedTrack(uuid)) : of(null)));
   }

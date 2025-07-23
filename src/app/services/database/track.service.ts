@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
-import { EMPTY, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, EMPTY, map, Observable, of, switchMap } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
 import Dexie from 'dexie';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
@@ -28,6 +28,20 @@ export class TrackService {
   public getMetadata$(uuid: string, owner: string): Observable<TrackMetadataSnapshot | null> {
     if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getMetadata$(owner, uuid);
     return this.db.getMetadata$(uuid, owner);
+  }
+
+  public getMetadataList$(tracks: {uuid: string, owner: string}[]): Observable<Observable<TrackMetadataSnapshot | null>[]> {
+    const externals: {uuid: string, owner: string}[] = [];
+    const internals: {uuid: string, owner: string}[] = [];
+    for (const t of tracks) {
+      if (t.owner.indexOf('@') < 0) externals.push(t);
+      else internals.push(t);
+    }
+    const externalTracks = externals.length === 0 ? of([]) : this.injector.get(FetchSourceService).getMetadataList$(externals);
+    const internalTracks = internals.map(i => this.db.getMetadata$(i.uuid, i.owner));
+    return externalTracks.pipe(
+      map(externalList => [...externalList.map(e => of(e)), ...internalTracks]),
+    );
   }
 
   public getAllMetadata$(): Observable<Observable<TrackMetadataSnapshot | null>[]> {

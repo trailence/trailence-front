@@ -218,6 +218,15 @@
 
   <div class="menu-separator"></div>
 
+  <div class="menu-item" (click)="goTo('/stats'); close();">
+    <ion-icon name="stats"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{ i18n.texts.pages.stats.title }}</div>
+    </div>
+  </div>
+
+  <div class="menu-separator"></div>
+
   <div class="menu-item" (click)="goToRecordTrace(); close();">
     <ion-icon name="play"></ion-icon>
     <div class="item-title-container">

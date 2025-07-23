@@ -1,0 +1,38 @@
+:host {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+div.config-container {
+  flex: none;
+  padding: 0 10px;
+  margin-bottom: 10px;
+
+  ion-accordion ion-item {
+    ion-icon {
+      margin-right: 8px;
+    }
+    ion-label {
+      color: var(--ion-color-secondary);
+    }
+  }
+
+  app-stats-config {
+    display: block;
+    padding: 10px;
+    border: 2px solid var(--ion-color-light);
+    border-top-width: 0;
+  }
+}
+div.graph-container {
+  flex: 1 1 100%;
+  padding: 0 10px;
+  min-height: 200px;
+
+  app-stats-graph {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}

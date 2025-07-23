@@ -135,6 +135,7 @@ export class AssetsService {
       'star-empty': 'assets/star-empty.1.svg', // star-outline
       'star-half': 'assets/star-half.1.svg', // star-half
       'star-filled': 'assets/star-filled.1.svg', // star
+      'stats': 'assets/stats.1.svg', // bar-chart
       'sort': 'assets/sort.1.svg', // swap-vertical-outline
       'stop': 'assets/stop.1.svg', // stop-outline
       'stop-circle': 'assets/stop-circle.1.svg', // stop-circle-outline

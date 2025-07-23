@@ -636,6 +636,9 @@
       "network_needed": "Please connect to Internet to send a message",
       "accept_send_data": "I accept to send technical data about the application to help solving the issue",
       "show_data": "Show this data"
+    },
+    "stats": {
+      "title": "My Statistics"
     }
   },
   "menu": {
@@ -1215,5 +1218,8 @@
       "name": "Trail name",
       "description": "Description"
     }
-  }
+  },
+  "months": [
+    "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+  ]
 }

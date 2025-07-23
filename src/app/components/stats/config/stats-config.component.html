@@ -1,0 +1,43 @@
+<div class="container">
+  <div class="config-horizontal">
+    <span>{{ i18n.texts.pages.stats.type_title }}</span>
+    <ion-select
+      [(ngModel)]="config.value"
+      [interfaceOptions]="{header: i18n.texts.pages.stats.type_title}"
+      [okText]="i18n.texts.buttons.ok"
+      [cancelText]="i18n.texts.buttons.cancel"
+    >
+      @for (type of types; track type) {
+        <ion-select-option [value]="type">{{ i18n.texts.pages.stats.types[type].title }}</ion-select-option>
+      }
+    </ion-select>
+  </div>
+  <div class="config-horizontal">
+    <span>{{ i18n.texts.pages.stats.time_unit_title }}</span>
+    <ion-select
+      [(ngModel)]="config.timeUnit"
+      [interfaceOptions]="{header: i18n.texts.pages.stats.time_unit_title}"
+      [okText]="i18n.texts.buttons.ok"
+      [cancelText]="i18n.texts.buttons.cancel"
+    >
+      @for (unit of timeUnits; track unit) {
+        <ion-select-option [value]="unit">{{ i18n.texts.pages.stats.time_units[unit].title }}</ion-select-option>
+      }
+    </ion-select>
+  </div>
+  <div class="config-horizontal">
+    <span>{{ i18n.texts.pages.stats.source_title }}</span>
+    <app-stats-source-selection [(source)]="config.source"></app-stats-source-selection>
+  </div>
+  <div class="config-horizontal">
+    <span>{{ i18n.texts.pages.stats.filter_title }}</span>
+    <span>{{ i18n.texts.pages.stats.activity_filter_title }}</span>
+    <div class="fake-select">
+      <ion-select
+        multiple="true"
+        [selectedText]="getActivityFilterText()"
+      ></ion-select>
+      <div class="overlay" (click)="openActivitiesFilter($event)"></div>
+    </div>
+  </div>
+</div>

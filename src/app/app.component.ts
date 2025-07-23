@@ -78,7 +78,6 @@ export class AppComponent {
         first(),
       ),
     ]).subscribe(([a, t]) => {
-      this.loadMenu = true;
       const startup = document.getElementById('startup')!;
       startup.style.opacity = '0.75';
       document.getElementById('root')!.style.display = '';
@@ -87,9 +86,13 @@ export class AppComponent {
         auth.auth$.pipe(
           filterDefined(),
           first(),
-        ).subscribe(() => this.loadServices().then(() => {}));
+        ).subscribe(() => {
+          this.loadMenu = true;
+          this.loadServices().then(() => {});
+        });
         setTimeout(() => this.loadServices(), 1000);
       } else {
+        this.loadMenu = true;
         combineLatest([
           auth.auth$,
           from(this.loadServices()).pipe(
