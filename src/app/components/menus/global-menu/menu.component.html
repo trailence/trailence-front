@@ -298,6 +298,14 @@
     </div>
   </div>
 
+  <div class="menu-separator"></div>
+  <div class="links">
+    <a href="/privacy-policy" (click)="$event.preventDefault(); goToPublicPage('/privacy-policy'); close();">
+      {{ i18n.texts.pages.privacy_policy.title }}
+    </a>
+  </div>
+
+
 </div>
 <div class="menu-footer">
   <div class="menu-item" (click)="update.availableDownload.launch(); close();" *ngIf="update.availableDownload">

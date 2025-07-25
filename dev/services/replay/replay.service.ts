@@ -42,6 +42,7 @@ export class ReplayService {
 
     let segmentIndex = 0;
     let pointIndex = 0;
+    let timeDiff: number | undefined = undefined;
     const sendNextPoint = (success: PositionCallback, error: PositionErrorCallback | null | undefined) => {
       if ((window as any)['_isDemo'] && pointIndex >= 50) return;
       if (segmentIndex >= track.segments.length) return;
@@ -68,6 +69,7 @@ export class ReplayService {
         } else
           time += (pointIndex - first) * 100;
       }
+      timeDiff ??= Date.now() - time;
       success({
         coords: {
           latitude: point.pos.lat,
@@ -79,7 +81,7 @@ export class ReplayService {
           speed: point.speed ?? null,
           toJSON: function() {},
         },
-        timestamp: time,
+        timestamp: time + timeDiff,
         toJSON: function() {},
       });
       pointIndex++;

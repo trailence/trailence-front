@@ -21,7 +21,7 @@ div.page-content {
   --mobile-image-max-height: calc(var(--mobile-mask-height) - var(--mobile-image-top) - 15);
   --mobile-image-radius: 25px;
 
-  --slide-content-size: calc(max(175px, calc(100vh - var(--slide-header-height) - var(--slide-footer-height) - 210px)));
+  --slide-content-size: calc(max(175px, calc(100vh - var(--slide-header-height) - var(--slide-footer-height) - 216px)));
   --mobile-size-ratio: calc(var(--slide-content-size) / var(--mobile-mask-height));
 
   div.content-container {
@@ -232,9 +232,20 @@ div.page-content {
     text-align: center;
     font-style: italic;
     margin-top: 12px;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: var(--ion-color-tertiary);
+    margin-bottom: 1px;
+
+    div.available-on {
+      font-size: 14px;
+      color: var(--ion-color-tertiary);
+    }
+    div.legal {
+      font-size: 11px;
+      color: var(--ion-color-medium);
+      margin-top: 2px;
+      a, a:active {
+        color: var(--ion-color-secondary);
+      }
+    }
   }
 }
 

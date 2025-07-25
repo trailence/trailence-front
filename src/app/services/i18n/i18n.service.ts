@@ -261,7 +261,7 @@ export class I18nService {
     }
     if (minutes > 0 || (days === 0 && hours === 0) || showZeroMinutes) {
       let minS = min.toString();
-      if (minS.length === 1 && (days > 0 || hours > 0)) minS = '0' + minS;
+      if (minS.length === 1 && (days > 0 || hours > 0 || showZeroHour)) minS = '0' + minS;
       s += minS;
       if (showSeconds) s += this.texts.duration.minutes;
     }

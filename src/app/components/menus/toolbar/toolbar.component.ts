@@ -32,6 +32,7 @@ export class ToolbarComponent implements OnInit, OnChanges {
   @Input() itemFixedWidth?: number;
   @Input() maxItems?: number;
   @Input() smallSizeDivider = 2;
+  @Input() noScroll = false;
 
   computed = new ComputedMenuItems(this.i18n);
   moreMenu: MenuItem[] = [];

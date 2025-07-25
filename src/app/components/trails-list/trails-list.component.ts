@@ -359,7 +359,11 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private updateToolbar(trails: Trail[]): void {
-    this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collection, true, this.listType === 'all-collections');
+    if (this.listType === 'search') {
+      this.toolbar = [];
+    } else {
+      this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collection, true, this.listType === 'all-collections');
+    }
     this.toolbar.splice(0, 0,
       new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
         .setDisabled(() => trails.length === 0)

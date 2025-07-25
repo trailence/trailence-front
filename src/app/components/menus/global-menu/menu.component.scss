@@ -219,3 +219,11 @@
     font-style: italic;
   }
 }
+.links {
+  padding: 0 10px;
+
+  a, a:active {
+    color: var(--ion-color-secondary);
+    font-size: 12px;
+  }
+}

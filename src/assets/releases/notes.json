@@ -151,8 +151,20 @@
       ]
     }
   },
-  "001810": {
-    "en": {"message": "Some improvements and fixes"},
-    "fr": {"message": "Quelques améliorations et correctifs"}
+  "001900": {
+    "en": {
+      "message": "Statistics!",
+      "items": [
+        "The 'My Statistics' page now lets you view a numerical summary of your trails",
+        "Some improvements and bug fixes are also included in this version"
+      ]
+    },
+    "fr": {
+      "message": "Statistiques !",
+      "items": [
+        "La page Mes Statistiques vous permet à présent d'avoir une vue en chiffres de vos parcours",
+        "Quelques améliorations et correctifs ont également été apportés dans cette version"
+      ]
+    }
   }
 }

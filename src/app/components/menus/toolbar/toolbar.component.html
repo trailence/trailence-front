@@ -1,4 +1,4 @@
-<div class="toolbar-items-container {{ direction }} align-{{ align }}"
+<div class="toolbar-items-container {{ direction }} align-{{ align }} {{noScroll ? 'no-scroll' : ''}}"
   [ngStyle]="styles"
 >
   @for (item of computed.items; track item.id) {

@@ -23,6 +23,10 @@ export function exportTrails(injector: Injector, trails: Trail[]) {
   zip(trails.map(trail => injector.get(PhotoService).getPhotosForTrailReady$(trail).pipe(map(photos => ({trail, photos})))))
   .pipe(first(), map(tp => tp.filter(e => e.photos.length > 0)))
   .subscribe(trailsPhotos => {
+    if (trailsPhotos.length === 0 && trails.every(t => t.originalTrackUuid === t.currentTrackUuid)) {
+      doExport(injector, trails, 'original', false, []);
+      return;
+    }
     import('../../components/export-popup/export-popup.component').then(module => {
       injector.get(ModalController).create({
         component: module.ExportPopupComponent,
@@ -91,7 +95,7 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
         progress.done();
         return;
       }
-      progress.addWorkDone(1);
+      progress.addWorkDone(2);
       fileService.saveBinaryData(StringUtils.toFilename(data.name) + '.gpx', data.gpx).then(() => progress.done());
     });
     return;

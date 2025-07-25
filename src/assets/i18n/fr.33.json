@@ -28,7 +28,7 @@
           "footer": ["Mettez des photos sur vos parcours", "Visualisez les photos sur la carte"]
         }, {
           "header": "Mais aussi...",
-          "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "Et bien plus !"]
+          "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "Statistiques", "Et bien plus !"]
         }
       ],
       "download_apk": "Télécharger l'app Android",
@@ -682,6 +682,9 @@
         "or": "ou",
         "n_activities": "activités"
       }
+    },
+    "privacy_policy": {
+      "title": "Politique de confidentialité"
     }
   },
   "menu": {

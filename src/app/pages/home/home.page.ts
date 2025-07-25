@@ -60,6 +60,8 @@ export class HomePage extends PublicPage {
   ssUrl = environment.assetsUrl + '/home-page/ss.2';
   maskUrl = environment.assetsUrl + '/home-page/mask.1';
 
+  year = new Date().getFullYear();
+
   private slideInterval?: any;
   private gesture?: Gesture;
 

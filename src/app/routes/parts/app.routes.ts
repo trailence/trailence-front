@@ -34,6 +34,10 @@ export const appPublicRoutes: Routes = [
     path: 'trail/trailence/:trailId',
     data: { 'trailOwner': 'trailence' },
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
+  },
+  {
+    path: 'privacy-policy',
+    loadComponent: () => import('../../pages/privacy-policy/privacy-policy.page').then(m => m.PrivacyPolicyPage)
   }
 ];
 

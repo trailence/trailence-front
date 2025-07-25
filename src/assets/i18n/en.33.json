@@ -28,7 +28,7 @@
           "footer": ["Attach photos to your tracks", "View them on the map"]
         }, {
           "header": "But also...",
-          "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "And more !"]
+          "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "Statistics", "And more !"]
         }
       ],
       "download_apk": "Download Android App",
@@ -638,7 +638,53 @@
       "show_data": "Show this data"
     },
     "stats": {
-      "title": "My Statistics"
+      "title": "My Statistics",
+      "config_title": "Configuration",
+      "type_title": "Statistics on",
+      "time_unit_title": "By",
+      "source_title": "Among",
+      "filter_title": "Taking into account only routes",
+      "activity_filter_title": "with activity",
+      "types": {
+        "nb_trails": {
+          "title": "Number of routes"
+        },
+        "distance": {
+          "title": "Distance"
+        },
+        "positive-elevation": {
+          "title": "Positive elevation"
+        },
+        "negative-elevation": {
+          "title": "Negative elevation"
+        },
+        "duration": {
+          "title": "Duration"
+        }
+      },
+      "time_units": {
+        "year": {
+          "title": "Year"
+        },
+        "month": {
+          "title": "Month"
+        },
+        "month_of_year": {
+          "title": "Month all years combined"
+        }
+      },
+      "sources": {
+        "collection_single": "The collection",
+        "collection_plural": "collections"
+      },
+      "activities": {
+        "all": "(All)",
+        "or": "or",
+        "n_activities": "activities"
+      }
+    },
+    "privacy_policy": {
+      "title": "Privacy Policy"
     }
   },
   "menu": {

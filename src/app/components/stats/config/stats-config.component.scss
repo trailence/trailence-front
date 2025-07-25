@@ -13,7 +13,7 @@ div.config-horizontal {
     margin-right: 10px;
   }
 }
-::ng-deep ion-select {
+::ng-deep app-stats-config div.config-horizontal ion-select {
   color: var(--ion-color-secondary);
   width: auto;
   min-height: 30px;

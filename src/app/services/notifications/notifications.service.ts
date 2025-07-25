@@ -24,6 +24,7 @@ export class NotificationsService {
   public readonly notifications$ = new BehaviorSubject<Notification[]>([]);
   private _lastNb = 0;
   private _email = '';
+  private _read: string[] = [];
 
   constructor(
     private readonly http: HttpService,
@@ -41,6 +42,7 @@ export class NotificationsService {
         if (this._email !== auth.email) {
           this._email = auth.email;
           this._lastNb = 0;
+          this._read = [];
           this.notifications$.next([]);
         }
         return network.server$;
@@ -91,7 +93,9 @@ export class NotificationsService {
   }
 
   private toDto(n: Notification, email: string): Notification {
-    return {...n, email};
+    const dto = {...n, email};
+    if (this._read.indexOf(n.uuid) >= 0) dto.read = true;
+    return dto;
   }
 
   public get nbUnread$(): Observable<number> {
@@ -102,6 +106,7 @@ export class NotificationsService {
 
   public markAsRead(notification: Notification): void {
     notification.read = true;
+    this._read.push(notification.uuid);
     this.notifications$.next(this.notifications$.value);
     this.auth.auth$.pipe(
       switchMap(auth => {
@@ -113,7 +118,9 @@ export class NotificationsService {
         return this.http.put<Notification>(environment.apiBaseUrl + '/notifications/v1/' + notification.uuid, {...notification, email: undefined});
       }),
     ).subscribe(result => {
-      const i = this.notifications$.value.findIndex(n => n.uuid === result.uuid);
+      let i = this._read.indexOf(notification.uuid);
+      if (i >= 0) this._read.splice(i, 1);
+      i = this.notifications$.value.findIndex(n => n.uuid === result.uuid);
       if (i >= 0) {
         this.notifications$.value[i] = result;
         this.notifications$.next(this.notifications$.value);

@@ -65,6 +65,15 @@ server {
         expires 365d;
         try_files $uri =404;
     }
+    location ~* ^/assets/mentions-legales.(\d+).html$ {
+        if ($allow_referer = 0) {
+          return 499;
+        }
+        root   /usr/share/nginx/html;
+        add_header Cache-Control "public, max-age=31536000";
+        expires 365d;
+        try_files $uri =404;
+    }
     location @index {
         root   /usr/share/nginx/html;
         add_header Cache-Control no-cache;

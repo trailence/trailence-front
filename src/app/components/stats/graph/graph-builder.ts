@@ -161,7 +161,7 @@ export class GraphBuilder {
             },
             ticks: {
               color: textColor,
-            }
+            },
           }
         },
         events: [],
@@ -169,7 +169,7 @@ export class GraphBuilder {
           onComplete: function() {
             const ctx = this.ctx;
 
-            ctx.font = C.defaults.font.size + ' ' + C.defaults.font.family;
+            ctx.font = ((C.defaults.font.size ?? 12) + 2) + 'px ' + C.defaults.font.family;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
 
@@ -180,10 +180,10 @@ export class GraphBuilder {
                 const data = dataset.data[index] as number;
                 if (bar.y <= meta.yScale!.top + 15) {
                   ctx.fillStyle = textColor;
-                  ctx.fillText('' + data, bar.x, bar.y + 15);
+                  ctx.fillText('' + data, bar.x, bar.y + 17);
                 } else {
                   ctx.fillStyle = valueColor;
-                  ctx.fillText('' + data, bar.x, bar.y - 3);
+                  ctx.fillText('' + data, bar.x, bar.y - 2);
                 }
               });
             });
@@ -197,6 +197,7 @@ export class GraphBuilder {
           backgroundColor: 'rgba(' + styles.getPropertyValue('--ion-color-tertiary-rgb') + ', 0.66)',
           borderColor: styles.getPropertyValue('--ion-color-tertiary'),
           borderWidth: 1,
+          maxBarThickness: 200,
         }]
       },
       maxDataShown: this.getMaxDataShown(cfg, minMax.min, minMax.max, width),

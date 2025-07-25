@@ -28,6 +28,13 @@ app-toolbar {
       overflow-x: hidden;
       overflow-y: auto;
     }
+    &.no-scroll {
+      overflow-x: hidden;
+      overflow-y: hidden;
+      div.toolbar-item {
+        flex-shrink: 1;
+      }
+    }
 
     div.toolbar-item {
       flex-shrink: 0;

@@ -5,6 +5,7 @@
   [itemPaddingRight]="size === 'medium' ? '2px' : '4px'"
   [itemSpace]="size === 'medium' ? '2px' : '4px'"
   [itemMinWidth]="60"
+  [noScroll]="true"
 ></app-toolbar>
 <div class="message" *ngIf="message">
   {{message | i18nString}}
