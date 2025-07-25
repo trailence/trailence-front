@@ -84,6 +84,19 @@ export class GraphBuilder {
     }
   }
 
+  private getMax(cfg: StatsConfig, max: number): number {
+    switch (cfg.value) {
+      case StatsValue.NB_TRAILS: return max;
+      case StatsValue.DISTANCE: return max >= 2000 ? (Math.floor(max / 1000) + 1) * 1000 : (Math.floor(max / 100) + 1) * 100;
+      case StatsValue.POSITIVE_ELEVATION: return max >= 300 ? (Math.floor(max / 50) + 1) * 50 : (Math.floor(max / 10) + 1) * 10;
+      case StatsValue.NEGATIVE_ELEVATION: return max >= 300 ? (Math.floor(max / 50) + 1) * 50 : (Math.floor(max / 10) + 1) * 10;
+      case StatsValue.DURATION:
+        return max >= 2 * 24 * 60 * 60 * 1000 ? (Math.floor(max / (24 * 60 * 60 * 1000)) + 1) * 24 * 60 * 60 * 1000 :
+          max >= 3 * 60 * 60 * 1000 ? (Math.floor(max / (60 * 60 * 1000)) + 1) * 60 * 60 * 1000 :
+          (Math.floor(max / (15 * 60 * 1000)) + 1) * 15 * 60 * 1000;
+    }
+  }
+
   private getTickLabel(cfg: StatsConfig, value: number): string {
     switch (cfg.value) {
       case StatsValue.NB_TRAILS: return '' + value;
@@ -131,6 +144,7 @@ export class GraphBuilder {
     }
     const textColor = styles.getPropertyValue('--ion-text-color');
     const valueColor = styles.getPropertyValue('--ion-color-tertiary');
+    const that = this;
     return {
       type: 'bar',
       options: {
@@ -140,7 +154,7 @@ export class GraphBuilder {
           y: {
             beginAtZero: true,
             min: 0,
-            max: maxValue,
+            max: this.getMax(cfg, maxValue),
             border: {
               color: textColor,
             },
@@ -178,12 +192,13 @@ export class GraphBuilder {
               const meta = chart.getDatasetMeta(i);
               meta.data.forEach(function(bar, index) {
                 const data = dataset.data[index] as number;
+                const str = that.getTickLabel(cfg, data);
                 if (bar.y <= meta.yScale!.top + 15) {
                   ctx.fillStyle = textColor;
-                  ctx.fillText('' + data, bar.x, bar.y + 17);
+                  ctx.fillText(str, bar.x, bar.y + 17);
                 } else {
                   ctx.fillStyle = valueColor;
-                  ctx.fillText('' + data, bar.x, bar.y - 2);
+                  ctx.fillText(str, bar.x, bar.y - 2);
                 }
               });
             });

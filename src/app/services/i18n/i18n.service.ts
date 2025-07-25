@@ -92,7 +92,7 @@ export class I18nService {
 
   private metersToMetersOrKilometers(meters: number): string {
     if (meters < 1000) return meters.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
-    return (meters / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 2}) + ' km';
+    return (meters / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: meters > 100000 ? 0 : meters > 10000 ? 1 : 2}) + ' km';
   }
 
   private footToFootOrMiles(foot: number): string {
@@ -199,7 +199,7 @@ export class I18nService {
   public elevationToString(elevation: number | undefined): string {
     if (elevation === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {
-      case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' m';
+      case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: elevation > 1000 ? 0 : 1}) + ' m';
       case 'IMPERIAL': return this.metersToFoot(elevation).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';
     }
   }
@@ -252,7 +252,7 @@ export class I18nService {
     const seconds = Math.floor((duration - minutes * 60000) / 1000);
     let s = '';
     if (days > 0) {
-      s = days.toString() + this.texts.duration.days;
+      s = days.toString() + this.texts.duration.days + ' ';
     }
     if (days > 0 || hours > 0 || showZeroHour) {
       let hourS = hours.toString() + this.texts.duration.hours;
