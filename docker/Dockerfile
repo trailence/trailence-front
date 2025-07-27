@@ -1,4 +1,4 @@
-FROM node:20-alpine AS build-app
+FROM node:22-alpine AS build-app
 WORKDIR /build
 RUN npm install -g @ionic/cli @angular/cli cpy-cli rimraf && apk --no-cache add git
 COPY ./ /build/
