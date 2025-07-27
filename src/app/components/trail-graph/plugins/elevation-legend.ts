@@ -1,5 +1,4 @@
 import * as C from 'chart.js';
-import { EmptyObject, AnyObject } from 'chart.js/dist/types/basic';
 import { Color } from 'src/app/utils/color';
 
 const width = 25;
@@ -15,7 +14,7 @@ export class ElevationLegendPlugin implements C.Plugin<"line"> {
     private readonly gradeLegend: string[],
   ) {}
 
-  afterDraw(chart: C.Chart<'line', (number | C.Point | null)[], unknown>, args: EmptyObject, options: AnyObject): void {
+  afterDraw(chart: C.Chart<'line', (number | C.Point | null)[], unknown>): void {
     let xAxis = chart.scales['x'];
     if (xAxis.width < 225) return;
     let ctx = chart.ctx;

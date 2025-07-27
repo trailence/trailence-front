@@ -25,7 +25,7 @@ export class BehaviorSubjectOnDemand<T> {
           for (const o of list) o.next(value);
         });
       } else {
-        observer.next(this.lastValue);
+        observer.next(this.lastValue!);
       }
       return () => {
         const index = this.observers.indexOf(observer);

@@ -1,5 +1,4 @@
 import * as C from 'chart.js';
-import { EmptyObject, AnyObject } from 'chart.js/dist/types/basic';
 
 export class SpeedLegendPlugin implements C.Plugin<"line"> {
 
@@ -11,7 +10,7 @@ export class SpeedLegendPlugin implements C.Plugin<"line"> {
     private readonly text: string,
   ) {}
 
-  afterDraw(chart: C.Chart<'line', (number | C.Point | null)[], unknown>, args: EmptyObject, options: AnyObject): void {
+  afterDraw(chart: C.Chart<'line', (number | C.Point | null)[], unknown>): void {
     let xAxis = chart.scales['x'];
     let ctx = chart.ctx;
     ctx.save();

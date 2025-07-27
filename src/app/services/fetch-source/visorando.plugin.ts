@@ -107,8 +107,8 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       const article = XmlUtils.getChild(section, 'article');
       if (article) {
         const paragraphs = XmlUtils.getChildren(article, 'p');
-        for (let pIndex = 0; pIndex < paragraphs.length; pIndex++) {
-          const strongs = paragraphs.at(pIndex)!.querySelectorAll('strong'); // NOSONAR
+        for (const paragraph of paragraphs) {
+          const strongs = paragraph.querySelectorAll('strong'); // NOSONAR
           for (let strongIndex = 0; strongIndex < strongs.length; strongIndex++) {
             const strong = strongs.item(strongIndex)!; // NOSONAR
             const n = strong.textContent!; // NOSONAR

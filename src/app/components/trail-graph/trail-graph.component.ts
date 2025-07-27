@@ -6,10 +6,8 @@ import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import * as C from 'chart.js';
 import * as L from 'leaflet';
 import { getRelativePosition } from 'chart.js/helpers';
-import { _DeepPartialObject } from 'chart.js/dist/types/utils';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Color } from 'src/app/utils/color';
-import { AnyObject } from 'chart.js/dist/types/basic';
 import { HoverVerticalLine } from './plugins/hover-vertical-line';
 import { GraphPointReference, GraphRange } from './graph-events';
 import { BackgroundPlugin } from './plugins/background';
@@ -79,9 +77,9 @@ export class TrailGraphComponent extends AbstractComponent {
 
   @Output() zoomButtonPosition = new EventEmitter<{x: number, y: number} | undefined>();
 
-  chartOptions?: _DeepPartialObject<C.CoreChartOptions<"line"> & C.ElementChartOptions<"line"> & C.PluginChartOptions<"line"> & C.DatasetChartOptions<"line"> & C.ScaleChartOptions<"line"> & C.LineControllerChartOptions>;
-  chartData?: C.ChartData<"line", (number | C.Point | null)[]>;
-  chartPlugins: C.Plugin<"line", AnyObject>[] = [];
+  chartOptions?: C.ChartConfiguration<'line'>['options'];
+  chartData?: C.ChartData<'line', (number | C.Point | null)[]>;
+  chartPlugins: C.Plugin<'line', any>[] = [];
   width?: number;
   height?: number;
   id = IdGenerator.generateId();

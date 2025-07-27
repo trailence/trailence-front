@@ -1,5 +1,4 @@
 import * as C from 'chart.js';
-import { AnyObject } from 'chart.js/dist/types/basic';
 import { Color } from 'src/app/utils/color';
 
 export class RangeEvent {
@@ -45,7 +44,7 @@ export class RangeSelection implements C.Plugin<"line"> {
     this.selected = selection;
   }
 
-  beforeEvent(chart: C.Chart<'line', (number | C.Point | null)[], unknown>, args: { event: C.ChartEvent; replay: boolean; cancelable: true; inChartArea: boolean; }, options: AnyObject): boolean | void {
+  beforeEvent(chart: C.Chart<'line', (number | C.Point | null)[], unknown>, args: { event: C.ChartEvent; replay: boolean; cancelable: true; inChartArea: boolean; }): boolean | void {
     if (args.event.type === 'click' && this.selected && this.selected.endX === args.event.x) {
       // prevent click if from a range selection
       args.event.native?.preventDefault();
