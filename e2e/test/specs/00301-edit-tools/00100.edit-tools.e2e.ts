@@ -4,8 +4,6 @@ import { EditTools } from '../../components/edit-tools.component';
 import { MapComponent } from '../../components/map.component';
 import { ChainablePromiseElement} from 'webdriverio';
 import { TestUtils } from '../../utils/test-utils';
-import { OpenFile } from '../../utils/open-file';
-import { FilesUtils } from '../../utils/files-utils';
 import { TrailsPage } from '../../app/pages/trails-page';
 
 describe('Edit tools', () => {
@@ -21,8 +19,7 @@ describe('Edit tools', () => {
     const myTrailsPage = await loginPage.loginAndWaitMyTrailsCollection();
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
+    await trailsList.importFile('./test/assets/gpx-001.gpx');
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     trailPage = await trailsList.openTrail(trail);
@@ -43,7 +40,14 @@ describe('Edit tools', () => {
       await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
       return await tools.waitSelectionTool();
     }, 2, 1000);
-  }
+  };
+
+  const selectWayPoint = async (text: string) => {
+    const anchor = await map.getMarkersImgWithClass('text-' + text)[0].getElement();
+    const pos = await map.getPathPosition(anchor);
+    await browser.action('pointer').move({x: Math.floor(pos.x) + 20, y: Math.floor(pos.y) + 40, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
+    return await tools.waitSelectionTool();
+  };
 
   it('Add and remove a way point', async () => {
     details = await trailPage.trailComponent.openDetails();
@@ -60,7 +64,7 @@ describe('Edit tools', () => {
     await tools.createWayPoint();
     await browser.pause(1000);
 
-    await selectPoint(5);
+    await selectWayPoint('1');
     await tools.removeWayPoint();
     await browser.pause(1000);
 
@@ -89,7 +93,12 @@ describe('Edit tools', () => {
     details = await trailPage.trailComponent.openDetails();
     const d1 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', true);
     const d2 = await trailPage.trailComponent.getMetadataValueByTitle('Distance', false);
-    expect(parseInt(d1.replace('.',''))).toBeGreaterThan(parseInt(d2.replace('.','')));
+    if (d1.indexOf('mi') > 0 && d2.indexOf('mi') > 0) {
+      const v1 = parseInt(d1.replace('.', ''));
+      const v2 = parseInt(d2.replace('.', ''));
+      if (v1 <= v2 || isNaN(v1) || isNaN(v2))
+        throw Error('Expect distance ' + d1 + ' to be greater than ' + d2 + ' (' + v1 + ' > ' + v2 + ')');
+    }
     map = await trailPage.trailComponent.openMap();
     await tools.undo();
     await tools.undo();

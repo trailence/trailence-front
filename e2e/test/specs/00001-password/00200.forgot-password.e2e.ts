@@ -14,7 +14,7 @@ describe('Forgot password', () => {
     await loginPage.loginButton.click();
     await browser.waitUntil(() => loginPage.errorMessage.isDisplayed());
     const message = await loginPage.errorMessage.getText();
-    expect(message).toBe('Invalid e-mail or password');
+    expect(message).toBe('Invalid email or password');
   });
 
   it('Forgot password', async () => {

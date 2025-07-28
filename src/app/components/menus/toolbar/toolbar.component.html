@@ -1,7 +1,7 @@
 <div class="toolbar-items-container {{ direction }} align-{{ align }} {{noScroll ? 'no-scroll' : ''}}"
   [ngStyle]="styles"
 >
-  @for (item of computed.items; track item.id) {
+  @for (item of showItems; track item.id) {
     @if (item.separator) {
       <div class="separator"></div>
     } @else if (item.item.customContentSelector) {
@@ -15,7 +15,7 @@
         @if (item.icon) {
           <ion-icon
             [name]="item.icon"
-            [color]="item.textColor"
+            [color]="item.textColor ?? defaultIconColor"
             [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
           ></ion-icon>
         }

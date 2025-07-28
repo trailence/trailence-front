@@ -80,7 +80,7 @@
     <ion-spinner name="dots"></ion-spinner>
   </ng-container>
   <div class="open-trail" *ngIf="trail">
-    <ion-button size="small" fill="clear" color="dark" (click)="openTrail(); $event.stopPropagation()">
+    <ion-button size="small" fill="clear" color="secondary" (click)="openTrail(); $event.stopPropagation()">
       <a href="{{ openUrl }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
         <ion-icon name="enter" slot="icon-only"></ion-icon>
       </a>

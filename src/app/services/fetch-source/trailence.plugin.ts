@@ -15,9 +15,9 @@ import { SegmentDto } from 'src/app/model/dto/segment';
 import { WayPointDto } from 'src/app/model/dto/way-point';
 import { TrackDto } from 'src/app/model/dto/track';
 import * as L from 'leaflet';
-import { Filters } from 'src/app/components/trails-list/trails-list.component';
 import { TypeUtils } from 'src/app/utils/type-utils';
 import { PendingRequests, PendingRequestsMultiple } from 'src/app/utils/pending-requests';
+import { Filters } from 'src/app/components/trails-list/filters';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   uuid: string;
@@ -343,6 +343,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
       negativeElevation: filters.negativeElevation,
       loopTypes: filters.loopTypes.selected,
       activities: filters.activities.selected,
+      rate: filters.rate
     };
     return this.injector.get(HttpService).post<{trailsByTile: {tile: number, nbTrails: number}[]}>(environment.apiBaseUrl + '/public/trails/v1/countByTile', {zoom, tiles, filters: searchFilters}).pipe(
       map(result => result.trailsByTile.map(r => ({

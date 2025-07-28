@@ -1,7 +1,5 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
-import { FilesUtils } from '../../utils/files-utils';
-import { OpenFile } from '../../utils/open-file';
 import { TestUtils } from '../../utils/test-utils';
 
 describe('Trail - Edit infos', () => {
@@ -17,8 +15,7 @@ describe('Trail - Edit infos', () => {
     const collectionPage = await menu.addCollection('Test Trail');
     expect(await collectionPage.header.getTitle()).toBe('Test Trail');
     const trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
+    await trailsList.importFile('./test/assets/gpx-001.gpx');
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     trailPage = await trailsList.openTrail(trail);
@@ -27,7 +24,7 @@ describe('Trail - Edit infos', () => {
   it('Edit trail name', async () => {
     await browser.waitUntil(() => trailPage.header.getTitle().then(title => title === 'Randonnée du 05/06/2023 à 08:58 - Test Trail'));
     const menu = await trailPage.header.openActionsMenu()
-    await menu.clickItemWithText('Rename');
+    await menu.clickItemWithIcon('edit-text');
     const alert = await App.waitAlert();
     expect(await alert.getInputValue()).toBe('Randonnée du 05/06/2023 à 08:58');
     await alert.setInputValue('My test trail')

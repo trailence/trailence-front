@@ -1,0 +1,19 @@
+.choice-title {
+  color: var(--ion-color-tertiary);
+  margin-bottom: 8px;
+
+  &:not(:first-child) {
+    margin-top: 16px;
+  }
+}
+
+ion-input {
+  margin-top: 12px;
+}
+
+.message-container {
+  margin-top: 15px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ion-color-dark);
+}

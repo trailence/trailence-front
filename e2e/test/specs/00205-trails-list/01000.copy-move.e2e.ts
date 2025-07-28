@@ -22,9 +22,11 @@ describe('Copy / Move Trails', () => {
   it('Copy full collection to new collection', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb === EXPECTED_TRAILS.length));
-    const menu = await list.toolbar.moreMenu();
+    await list.selectAllCheckbox.toggle();
+    const menu = await list.openSelectionMenu();
     await menu.clickItemWithText('Copy into...');
     await menu.getElement().$('ion-list-header').waitForDisplayed();
+    await browser.waitUntil(() => menu.getItemWithText('New collection...').isDisplayed());
     await menu.clickItemWithText('New collection...');
     const newCollectionModal = new CollectionModal(await App.waitModal());
     await newCollectionModal.setName('Copy 1');
@@ -65,6 +67,7 @@ describe('Copy / Move Trails', () => {
     const selectionMenu = await list.openSelectionMenu();
     await selectionMenu.clickItemWithText('Move to...');
     await selectionMenu.getElement().$('ion-list-header').waitForDisplayed();
+    await browser.waitUntil(() => selectionMenu.getItemWithText('New collection...').isDisplayed());
     await selectionMenu.clickItemWithText('New collection...');
     const newCollectionModal = new CollectionModal(await App.waitModal());
     await newCollectionModal.setName('Move 1');
@@ -93,6 +96,7 @@ describe('Copy / Move Trails', () => {
     const selectionMenu = await list.openSelectionMenu();
     await selectionMenu.clickItemWithText('Move to...');
     await selectionMenu.getElement().$('ion-list-header').waitForDisplayed();
+    await browser.waitUntil(() => selectionMenu.getItemWithText('Test List').isDisplayed());
     await selectionMenu.clickItemWithText('Test List');
     const copyTagsModal = new ImportTagsPopup(await App.waitModal());
     await copyTagsModal.waitDisplayed(true);

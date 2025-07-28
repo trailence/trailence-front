@@ -5,6 +5,7 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import { PublicPage } from '../public.page';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   template: `
@@ -63,7 +64,7 @@ export class PrivacyPolicyPage extends PublicPage {
         this.title = this.injector.get(I18nService).texts.pages.privacy_policy.title;
         this.page = undefined;
         this.injector.get(ChangeDetectorRef).detectChanges();
-        this.injector.get(HttpService).getString(environment.assetsUrl + '/privacy-policy.1.' + lang + '.html')
+        this.injector.get(HttpClient).get(environment.assetsUrl + '/privacy-policy.1.' + lang + '.html', {responseType: 'text'})
         .subscribe(html => {
           this.page = html;
           this.injector.get(ChangeDetectorRef).detectChanges();

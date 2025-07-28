@@ -169,10 +169,14 @@ export class TrackDatabase {
           if (init || !versionedDb) return;
           init = true;
           this.initStatus();
-          const currentVersion = versionedDb.tablesVersion['tracks'];
           let promise$ = Promise.resolve();
-          if (!currentVersion || currentVersion < 1705) {
-            promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
+          if (versionedDb.isNewDb) {
+            promise$ = promise$.then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
+          } else {
+            const currentVersion = versionedDb.tablesVersion['tracks'];
+            if (!currentVersion || currentVersion < 1705) {
+              promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
+            }
           }
           promise$.then(() => {
             this.listenPreferences();

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from '../menu-item';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonLabel, PopoverController, IonBadge } from "@ionic/angular/standalone";
@@ -15,6 +15,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 export class ToolbarComponent implements OnInit, OnChanges {
 
   @Input() items?: MenuItem[];
+  @Input() computedItems?: ComputedMenuItem[];
 
   @Input() direction: 'horizontal' | 'vertical' = 'horizontal';
   @Input() iconSize = 20;
@@ -33,10 +34,13 @@ export class ToolbarComponent implements OnInit, OnChanges {
   @Input() maxItems?: number;
   @Input() smallSizeDivider = 2;
   @Input() noScroll = false;
+  @Input() defaultIconColor?: string;
+  @Output() itemSelected = new EventEmitter();
 
   computed = new ComputedMenuItems(this.i18n);
   moreMenu: MenuItem[] = [];
   styles: any = {};
+  showItems: ComputedMenuItem[] = [];
 
   constructor(
     public readonly i18n: I18nService,
@@ -45,16 +49,21 @@ export class ToolbarComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit(): void {
-    this.computed.setMoreMenu(this.maxItems);
-    this.setMenu(this.items);
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['maxItems']) {
+    if (this.computedItems) {
+      this.showItems = this.computedItems;
+    } else {
       this.computed.setMoreMenu(this.maxItems);
       this.setMenu(this.items);
     }
-    else if (changes['items']) this.setMenu(this.items);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['maxItems'] && !this.computedItems) {
+      this.computed.setMoreMenu(this.maxItems);
+      this.setMenu(this.items);
+    }
+    else if (changes['items'] && !this.computedItems) this.setMenu(this.items);
+    else if (changes['computedItems'] && this.computedItems) this.showItems = this.computedItems;
     this.styles = {
       '--item-space': this.itemSpace,
       '--item-padding-top': this.itemPaddingTop,
@@ -78,6 +87,7 @@ export class ToolbarComponent implements OnInit, OnChanges {
   }
 
   private onRefresh(refresh: boolean): void {
+    this.showItems = this.computedItems ?? this.computed.items;
     if (refresh) {
       this.changesDetector.detectChanges();
     }
@@ -88,6 +98,7 @@ export class ToolbarComponent implements OnInit, OnChanges {
     event.stopPropagation();
     if (item.disabled) return;
     if (item.item.action) {
+      this.itemSelected.emit();
       item.item.action();
     } else if (item.children.items.length > 0) {
       import('../menu-content/menu-content.component')

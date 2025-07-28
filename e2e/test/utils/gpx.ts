@@ -1,5 +1,5 @@
-import { TypeUtils } from '../../../src/app/utils/type-utils';
-import { XmlUtils } from '../../../src/app/utils/xml-utils';
+import { TypeUtils } from './type-utils';
+import { XmlUtils } from './xml-utils';
 
 export interface GpxPoint {
   lat: number;

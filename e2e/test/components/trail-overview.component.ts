@@ -60,6 +60,14 @@ export class TrailOverview extends Component {
     await menu.clickItemWithText(item);
   }
 
+  public async clickMenuItemWithIcon(icon: string) {
+    this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
+    await button.click();
+    const menu = new MenuContent(await App.waitPopover());
+    await menu.clickItemWithIcon(icon);
+  }
+
   public async clickMenuItemWithColorAndText(color: string, text: string) {
     const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
     await button.click();

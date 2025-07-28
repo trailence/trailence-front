@@ -77,6 +77,7 @@ export interface VersionedDb {
   email: string;
   appVersion?: number;
   tablesVersion: {[key: string]: number};
+  isNewDb: boolean;
 }
 
 @Injectable({
@@ -88,6 +89,7 @@ export class DatabaseService {
   private _openEmail?: string;
   private readonly _stores = new BehaviorSubject<RegisteredStore[]>([]);
   private _syncPaused = 0;
+  private _dbCreated = false;
 
   constructor(
     private readonly auth: AuthService,
@@ -224,7 +226,7 @@ export class DatabaseService {
       store.loaded$,         // local database is loaded
       this.network.server$,  // network is connected
       store.status$,         // there is something to sync and we are not syncing
-      this.auth.auth$,            // authenticated and not anonymous
+      this.auth.auth$,       // authenticated and not anonymous
       this.db$,
     ]).pipe(
       map(([storeLoaded, networkConnected, syncStatus, auth, db]) => [storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress && auth && !auth.isAnonymous, syncStatus?.needsUpdateFromServer, db]),
@@ -263,7 +265,7 @@ export class DatabaseService {
         return false;
       }),
       map(value => [...value, registered.syncAgain] as [boolean | undefined, boolean | undefined, Dexie | undefined, boolean]),
-      debounceTimeExtended(0, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2] || n[3]), // sync requested or db changed or syncAgain requested
+      debounceTimeExtended(this._dbCreated ? 0 : 3000, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2] || n[3]), // sync requested or db changed or syncAgain requested
     )
     .subscribe(() => {
       if (registered.inProgress) return;
@@ -323,6 +325,7 @@ export class DatabaseService {
     this.ngZone.runOutsideAngular(() => {
       Dexie.exists(DB_PREFIX + email)
       .then(exists => {
+        this._dbCreated = !exists;
         const initialVersion = exists ? 1100 : trailenceAppVersionCode;
         const db = new Dexie(DB_PREFIX + email);
         const storesV1: any = {};
@@ -365,6 +368,7 @@ export class DatabaseService {
             email: this._openEmail,
             appVersion,
             tablesVersion: versions,
+            isNewDb: !exists,
           } as VersionedDb;
           this._db.next(versionedDb);
           this.initAutoUpdateFromServer();

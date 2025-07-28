@@ -3,21 +3,28 @@
 ></app-header>
 <div class="content-container">
   <div class="content">
-    <ion-list>
-      @for (notif of notifications.notifications$ | async; track notif.uuid) {
-        <app-notification-item [notification]="notif"></app-notification-item>
-      }
-    </ion-list>
-    @if (notifications.mayHaveMore) {
-      <div class="load_more">
-        @if (loading) {
-          <ion-spinner></ion-spinner>
-        } @else {
-          <ion-button fill="clear" color="tertiary" (click)="loadMore()">
-            {{ i18n.texts.notifications.load_more }}
-          </ion-button>
+    @if (!online) {
+      <div class="disconnected-message">{{ i18n.texts.you_are_offline }}</div>
+    }
+    @if (loaded) {
+      <ion-list>
+        @for (notif of notifications.notifications$ | async; track notif.uuid) {
+          <app-notification-item [notification]="notif"></app-notification-item>
         }
-      </div>
+      </ion-list>
+      @if (notifications.mayHaveMore) {
+        <div class="load_more">
+          @if (loading) {
+            <ion-spinner></ion-spinner>
+          } @else {
+            <ion-button fill="clear" color="tertiary" (click)="loadMore()">
+              {{ i18n.texts.notifications.load_more }}
+            </ion-button>
+          }
+        </div>
+      }
+    } @else if (online) {
+      <ion-spinner name="dots"></ion-spinner>
     }
   </div>
 </div>

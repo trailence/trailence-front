@@ -569,10 +569,6 @@
 
   &:hover {
     background-color: rgba(var(--ion-text-color-rgb), 0.05);
-
-    ion-button.edit {
-      opacity: 1;
-    }
   }
 
   .cover {
@@ -591,8 +587,6 @@
     bottom: 0;
     right: 0;
     z-index: 10;
-    opacity: 0;
-    transition: opacity 0.25s ease-in-out;
   }
 }
 

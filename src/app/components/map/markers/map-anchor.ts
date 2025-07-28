@@ -22,7 +22,7 @@ export class MapAnchor {
         iconUrl: MapAnchor.createDataIcon(borderColor, text, textColor, fillColor, fillColor2),
         iconSize: [40, 40],
         iconAnchor: [20, 40],
-        className: 'anchor',
+        className: 'anchor text-' + text.replace('/', '_'),
       }),
       title
     });

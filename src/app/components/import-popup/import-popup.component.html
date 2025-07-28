@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.texts.pages.import_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="choice-title">
+    {{ i18n.texts.pages.import_popup.from_file_title }}
+  </div>
+  <div class="from-file-container">
+    <ion-button (click)="fromFile()" [disabled]="inProgress">{{ i18n.texts.pages.import_popup.from_file_button }}</ion-button>
+  </div>
+  <div class="choice-title">
+    {{ i18n.texts.pages.import_popup.from_url_title }}
+  </div>
+  <div class="url-container">
+    <ion-input
+      labelPlacement="floating"
+      label="{{i18n.texts.pages.import_popup.url_placeholder}}"
+      fill="outline"
+      [value]="url"
+      (ionInput)="updateUrl($event.detail.value ?? '')"
+      [clearInput]="true"
+      [disabled]="inProgress"
+    ></ion-input>
+    @if (urlMessage) {
+      <div class="message-container">
+        {{ urlMessage }}
+      </div>
+    } @else if (urlDetectedSource) {
+      <ion-button (click)="doImport()">{{'pages.import_popup.button_import' | i18nString:urlDetectedSource}}</ion-button>
+    }
+  </div>
+  <div class="choice-title">
+    {{ i18n.texts.pages.import_popup.from_clipboard_title }}
+  </div>
+  <div class="clipboard-container">
+    <ion-button (click)="importClipboard()" [disabled]="inProgress">
+      {{i18n.texts.pages.import_popup.from_clipboard_button}}
+    </ion-button>
+    @if (clipboardMessage) {
+      <div class="message-container">
+        {{ clipboardMessage }}
+      </div>
+    }
+  </div>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="medium" (click)="close()" [disabled]="inProgress">{{i18n.texts.buttons.cancel}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

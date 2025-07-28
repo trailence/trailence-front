@@ -154,6 +154,8 @@ export class MapComponent extends Component {
 
   public getOverlaysSvgsWithClass(className: string) { return this.getElement().$('div.leaflet-pane.leaflet-overlay-pane').$$('svg.' + className); }
 
+  public getMarkersImgWithClass(className: string) { return this.getElement().$('div.leaflet-pane.leaflet-marker-pane').$$('img.' + className); }
+
   public async getMapPosition() {
     const location = await this.getElement().getLocation();
     const size = await this.getElement().getSize();

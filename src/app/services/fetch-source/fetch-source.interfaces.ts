@@ -8,7 +8,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { BehaviorSubject, EMPTY, first, Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
-import { Filters } from 'src/app/components/trails-list/trails-list.component';
+import { Filters } from 'src/app/components/trails-list/filters';
 
 export abstract class FetchSourcePlugin {
 

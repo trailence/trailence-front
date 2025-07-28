@@ -18,7 +18,12 @@
     [counter]="true"
   ></ion-input>
 
-  <ion-button *ngIf="!proposedPlaces && !searchingPlaces" (click)="searchPlaces()">{{i18n.texts.pages.location_popup.search_from_departure}}</ion-button>
+  @if (!proposedPlaces && !searchingPlaces) {
+    <ion-button (click)="searchPlaces()" [disabled]="!online">{{i18n.texts.pages.location_popup.search_from_departure}}</ion-button>
+    @if (!online) {
+      <div style="color: var(--ion-color-danger)">{{i18n.texts.you_are_offline}}</div>
+    }
+  }
   <ion-spinner name="dots" *ngIf="searchingPlaces"></ion-spinner>
   <ul *ngIf="proposedPlaces && !searchingPlaces">
     <li *ngFor="let place of proposedPlaces">

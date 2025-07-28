@@ -2,6 +2,7 @@ import { App } from '../app/app';
 import { TrailPage } from '../app/pages/trail-page';
 import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
+import { ImportModal } from './import.modal';
 import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicSegment } from './ionic/ion-segment';
@@ -134,6 +135,21 @@ export class TrailsList extends Component {
     for (const name of names) {
       await (await this.findItemByTrailName(name))!.selectTrail();
     }
+  }
+
+  public async openImportModal() {
+    await this.toolbar.clickByIcon('add-circle');
+    return new ImportModal(await App.waitModal());
+  }
+
+  public async importFile(path: string) {
+    const modal = await this.openImportModal();
+    await modal.importFile(path);
+  }
+
+  public async importFiles(paths: string[]) {
+    const modal = await this.openImportModal();
+    await modal.importFiles(paths);
   }
 
 }

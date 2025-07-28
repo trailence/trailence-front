@@ -37,7 +37,7 @@ describe('Collections', () => {
   it('Update collection name', async () => {
     const page = new TrailsPage();
     const menu = await page.header.openActionsMenu();
-    await menu.clickItemWithText('Edit');
+    await menu.clickItemWithIcon('edit-text');
     const modal = new CollectionModal(await App.waitModal());
     expect(await modal.getTitle()).toBe('Collection');
     await modal.setName('Test first Collection UPDATE 1');
@@ -70,7 +70,7 @@ describe('Collections', () => {
   it('Update collection name 2', async () => {
     const page = new TrailsPage();
     const menu = await page.header.openActionsMenu();
-    await menu.clickItemWithText('Edit');
+    await menu.clickItemWithIcon('edit-text');
     const modal = new CollectionModal(await App.waitModal());
     expect(await modal.getTitle()).toBe('Collection');
     await modal.setName('Test first Collection UPDATE 2');
@@ -90,7 +90,7 @@ describe('Collections', () => {
   it('Delete collection', async () => {
     const page = new TrailsPage();
     const menu = await page.header.openActionsMenu();
-    await menu.clickItemWithText('Delete');
+    await menu.clickItemWithIcon('trash');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
     const newPage = new TrailsPage();

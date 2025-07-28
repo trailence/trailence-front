@@ -172,7 +172,7 @@ export class AppComponent {
       setTimeout(() => this.ready(startup), 10);
       return;
     }
-    Console.info('Starting app: ready in ' + (Date.now() - (window as any)._trailenceStart) + 'ms.');
+    Console.info('-- Starting app: ready in ' + (Date.now() - (window as any)._trailenceStart) + 'ms. --------------------------------');
     const startupContent = document.getElementById('startup-content');
     startupContent?.parentElement?.removeChild(startupContent);
     startup.style.opacity = '0';

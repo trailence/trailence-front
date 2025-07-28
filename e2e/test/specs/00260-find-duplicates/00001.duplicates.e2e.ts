@@ -5,8 +5,6 @@ import { CollectionModal } from '../../components/collection.modal';
 import { FindDuplicatesModal } from '../../components/find-duplicates.modal';
 import { HeaderComponent } from '../../components/header.component';
 import { TrailsList } from '../../components/trails-list.component';
-import { FilesUtils } from '../../utils/files-utils';
-import { OpenFile } from '../../utils/open-file';
 
 describe('Find Duplicates', () => {
 
@@ -20,11 +18,7 @@ describe('Find Duplicates', () => {
     const menu = await App.openMenu();
     collectionPage = await menu.addCollection('Duplicates');
     list = await collectionPage.trailsAndMap.openTrailsList();
-    const importButton = list.toolbar.getButtonByIcon('add-circle');
-    await importButton.click();
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
-    await importButton.click();
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001-bis.gpx'));
+    await list.importFiles(['./test/assets/gpx-001.gpx', './test/assets/gpx-001-bis.gpx']);
     await list.waitTrail('Randonnée du 05/06/2023 à 08:58');
     await list.waitTrail('Phare de la Madonetta, Îlot de Fazzio, plage de Paragan depuis Bonifacio');
   });
@@ -32,7 +26,7 @@ describe('Find Duplicates', () => {
   let modal: FindDuplicatesModal;
 
   it('Find duplicates with at least 90%, does not detect anything', async () => {
-    await (await list.toolbar.moreMenu()).clickItemWithText('Search for similar tracks');
+    await (await list.toolbar.moreMenu()).clickItemWithIcon('compare');
     modal = new FindDuplicatesModal(await App.waitModal());
     await modal.selectOption('inside');
     await modal.setSimilarityPercent(90);
@@ -50,18 +44,21 @@ describe('Find Duplicates', () => {
   });
 
   it('Copy trails to another collection', async () => {
-    const menu = await list.toolbar.moreMenu();
+    await list.selectAllCheckbox.toggle();
+    const menu = await list.openSelectionMenu();
     await menu.clickItemWithText('Copy into...');
+    await browser.waitUntil(() => menu.getItemWithText('New collection...').isDisplayed());
     await menu.clickItemWithText('New collection...');
     const collectionModal = new CollectionModal(await App.waitModal());
     await collectionModal.setName('Copy');
     await collectionModal.clickCreate();
     await collectionModal.waitNotDisplayed();
     await App.waitNoProgress();
+    await list.selectAllCheckbox.toggle();
   });
 
   it('Compare trails between the 2 collections with threshold of 90%', async () => {
-    await (await list.toolbar.moreMenu()).clickItemWithText('Search for similar tracks');
+    await (await list.toolbar.moreMenu()).clickItemWithIcon('compare');
     modal = new FindDuplicatesModal(await App.waitModal());
     await modal.selectOption('two');
     await modal.selectOtherCollection('Copy');

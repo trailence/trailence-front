@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-right: -3px;
 
   ion-checkbox.trail-checkbox {
     padding-right: 2px;
@@ -63,6 +64,8 @@
 
   ion-button.trail-menu-button {
     margin: 0;
+    margin-inline-end: 0;
+    min-width: 24px;
   }
   ion-button.public-trail-button {
     margin: 0;
@@ -151,9 +154,16 @@ div.metadata-with-photos.photo-block {
   position: absolute;
   bottom: 0px;
   right: 0px;
+  margin-right: -3px;
 
   ion-icon {
     width: 20px;
     height: 20px;
+  }
+
+  ion-button {
+    margin-inline-end: 0;
+    min-width: 22px;
+    min-height: 22px;
   }
 }

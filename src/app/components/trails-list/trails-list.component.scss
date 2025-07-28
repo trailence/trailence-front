@@ -33,8 +33,15 @@ app-toolbar {
     margin-left: 5px;
   }
 
-  ion-button {
+  div.nb-selected {
+    font-size: 14px;
+    white-space: nowrap;
+    color: rgba(var(--ion-color-dark-rgb), 0.8);
+  }
+
+  ion-button.selection-button {
     flex: none;
+    min-height: 25px;
   }
   &.list-medium {
     ion-checkbox {
@@ -98,7 +105,12 @@ app-toolbar {
   flex: 1 1 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 25px;
+
+  div.list-bottom {
+    height: 40px;
+    width: 100%;
+    background-color: rgba(var(--ion-color-footer-rgb), 0.5);
+  }
 
   .trail {
     padding: 3px 5px;

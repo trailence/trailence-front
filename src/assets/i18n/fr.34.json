@@ -68,7 +68,7 @@
     "login": {
       "meta_description": "Connexion à votre compte Trailence",
       "title": "Connexion",
-      "email": "E-Mail",
+      "email": "Email",
       "password": "Mot de passe",
       "signin_button": "Se Connecter",
       "offline": "Veuillez vous connecter à Internet pour vous connecter sur Trailence",
@@ -81,7 +81,7 @@
       "try_without_account": "Essayer sans compte",
       "reset_password": {
         "title": "Mot de passe oublié",
-        "email": "E-Mail",
+        "email": "Email",
         "new_password1": "Nouveau mot de passe",
         "new_password2": "Confirmez le nouveau mot de passe",
         "verification_code_explaination": "Nous venons d'envoyer un code à 6 chiffres sur votre adresse mail, veuillez le rentrer ci-dessous",
@@ -103,10 +103,10 @@
       "title": "Créer un compte",
       "offline": "Veuillez vous connecter à Internet afin de pouvoir créer un compte sur Trailence",
       "step1": "Entrez vos informations",
-      "email": "E-Mail",
+      "email": "Email",
       "password1": "Mot de passe",
       "password2": "Confirmez votre mot de passe",
-      "step2": "Confirmez votre E-Mail",
+      "step2": "Confirmez votre Email",
       "code_text": "Un mail vous a été envoyé avec un code de confirmation à 6 chiffres, veuillez le rentrer ci-dessous",
       "step3": "Compte créé",
       "connection": "Connection...",
@@ -143,6 +143,7 @@
         "loopTypePlaceholder": "Sélectionnez les types",
         "select_activities_button": "Cliquez pour sélectionner",
         "tags": "Tags",
+        "rate": "Note",
         "onlyVisibleOnMap": "Afficher dans la liste uniquement les parcours visibles sur la carte",
         "reset_button": "Enlever tous les filtres"
       },
@@ -181,15 +182,19 @@
         "new_collection": "Nouvelle collection...",
         "copying": "Copie",
         "moving": "Déplacement",
+        "edit_collection": "Renommer",
         "export": "Exporter",
-        "rename": "Renommer",
-        "edit_date": "Modifier la date",
+        "export_collection": "Exporter la collection",
+        "prepare": "Préparer",
+        "modify": "Modifier",
+        "rename": "Titre",
+        "edit_date": "Date",
         "rename_popup": {
           "title": "Renommer le parcours",
           "name": "Nom"
         },
-        "edit_location": "Modifier l'emplacement",
-        "edit_activity": "Modifier l'activité",
+        "edit_location": "Lieu",
+        "edit_activity": "Activité",
         "copy_photos_alert": {
           "title": "Copie des photos",
           "message_singular": "Le parcours copié contient des photos. Souhaitez-vous également faire une copie des photos ?",
@@ -202,6 +207,7 @@
       },
       "tags": {
         "menu_item": "Tags",
+        "collection_menu_item": "Editer les tags",
         "popup": {
           "title": "Tags",
           "add_tag_label": "Nouveau tag",
@@ -237,6 +243,7 @@
       "open_in_app": "Ouvrir dans",
       "open_in_trailence": "Voir le parcours d'origine",
       "actions": {
+        "open": "Ouvrir le parcours",
         "go_to_departure": "Aller au départ",
         "download_map": "Télécharger la carte",
         "compare": "Comparer",
@@ -333,8 +340,8 @@
       "collection_name": "Nom"
     },
     "location_popup": {
-      "title": "Emplacement du parcours",
-      "location": "Emplacement",
+      "title": "Lieu du parcours",
+      "location": "Lieu",
       "search_from_departure": "Proposer des lieux par rapport au départ"
     },
     "import_gpx_popup": {
@@ -590,13 +597,16 @@
         "clear_message": "Etes-vous sûr de vouloir supprimer la position de cette photo ?"
       }
     },
-    "import_from_url": {
-      "title": "Importer depuis une URL",
+    "import_popup": {
+      "title": "Importer",
+      "from_file_title": "Depuis un fichier GPX ou ZIP",
+      "from_file_button": "Choisir...",
+      "from_url_title": "Depuis une URL",
       "url_placeholder": "URL",
       "unknown_source": "Aucune source supportée ne correspond à cette URL",
       "fetch_error": "Le parcours n'a pas pu être récupéré correctement",
-      "or": "Ou",
-      "from_clipboard": "Depuis le presse-papier",
+      "from_clipboard_title": "Depuis le presse-papier",
+      "from_clipboard_button": "Lire le presse-papier",
       "nothing_found_in_clipboard": "Aucun parcours trouvé dans le presse papier",
       "button_import": "Importer depuis {{1}}"
     },
@@ -620,7 +630,7 @@
     "contact": {
       "meta_description": "Formulaire de contact, question, signaler un problème...",
       "title": "Contact",
-      "email": "Votre E-Mail pour vous répondre",
+      "email": "Votre Email pour vous répondre",
       "type": "Type de demande",
       "types": {
         "question": "Question",
@@ -790,8 +800,8 @@
         "set_date": "Mettre une date"
       },
       "location": {
-        "title": "Emplacement renseigné",
-        "set_location": "Mettre un emplacement"
+        "title": "Lieu renseigné",
+        "set_location": "Mettre un lieu"
       },
       "activity": {
         "title": "Type d'activité renseigné",
@@ -950,6 +960,7 @@
   },
   "logout": {
     "title": "Déconnexion",
+    "title_anonymous": "Quitter le mode essai",
     "text": "Souhaitez-vous également supprimer toutes vos données de ce périphérique ?",
     "text_info": "Vos données sont conservées sur nos serveurs et seront téléchargées à votre prochaine connexion",
     "text_warning": "Vous avez des données locales qui seront perdues si vous supprimez !",
@@ -1031,7 +1042,7 @@
   },
   "metadata": {
     "trail_date": "Date du parcours",
-    "trail_location": "Emplacement",
+    "trail_location": "Lieu",
     "loop_type": "Type",
     "activity": "Activité",
     "duration": "Durée",

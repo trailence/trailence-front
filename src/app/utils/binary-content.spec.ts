@@ -6,14 +6,14 @@ describe('Binary Content', () => {
     const a = await b.toArrayBuffer();
     expect(a.byteLength).toBe(8);
     const bytes = new Uint8Array(a);
-    expect(bytes.at(0)).toBe(1);
-    expect(bytes.at(1)).toBe(2);
-    expect(bytes.at(2)).toBe(3);
-    expect(bytes.at(3)).toBe(4);
-    expect(bytes.at(4)).toBe(10);
-    expect(bytes.at(5)).toBe(20);
-    expect(bytes.at(6)).toBe(30);
-    expect(bytes.at(7)).toBe(40);
+    expect(bytes[0]).toBe(1);
+    expect(bytes[1]).toBe(2);
+    expect(bytes[2]).toBe(3);
+    expect(bytes[3]).toBe(4);
+    expect(bytes[4]).toBe(10);
+    expect(bytes[5]).toBe(20);
+    expect(bytes[6]).toBe(30);
+    expect(bytes[7]).toBe(40);
     expect(b.getContentType()).toBe(expectedType);
   }
 

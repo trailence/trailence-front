@@ -1,6 +1,5 @@
 import { App } from '../../app/app';
 import { TrailsPage } from '../../app/pages/trails-page';
-import { ImportFromURLModal } from '../../components/import-from-url.modal';
 
 describe('Import data from Outdoor Active', () => {
 
@@ -16,10 +15,9 @@ describe('Import data from Outdoor Active', () => {
 
   it('Import trail from URL', async () => {
     const list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.toolbar.moreMenu()).clickItemWithText('Import from URL');
-    const modal = new ImportFromURLModal(await App.waitModal());
+    const modal = await list.openImportModal();
     await modal.urlInput.setValue('https://www.outdooractive.com/en/route/snowshoeing/france/pic-de-l-aiglo/235939239/');
-    await modal.importFrom('Outdoor Active');
+    await modal.importFromUrl('Outdoor Active');
 
     const trail = await list.waitTrail('Pic de l’Aiglo');
     await trail.expectPhotos();

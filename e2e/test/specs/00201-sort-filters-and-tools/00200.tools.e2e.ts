@@ -145,14 +145,16 @@ describe('Trails Tools', () => {
 
   it('Edit tags', async () => {
     list = await collectionPage.trailsAndMap.openTrailsList();
-    (await list.toolbar.moreMenu()).clickItemWithText('Tags');
+    await list.selectAllCheckbox.toggle();
+    await list.selectAllCheckbox.toggle();
+    (await list.toolbar.moreMenu()).clickItemWithIcon('tags');
     let tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2', 'Tag 2 edited');
     await tags.cancel();
 
     await expectListContains(list, EXPECTED_TRAILS);
 
-    (await list.toolbar.moreMenu()).clickItemWithText('Tags');
+    (await list.toolbar.moreMenu()).clickItemWithIcon('tags');
     tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2', 'Tag 2 edited');
     await tags.save();
@@ -161,7 +163,7 @@ describe('Trails Tools', () => {
       return {...t, tags: t.tags.map(tag => tag === 'Tag 2' ? 'Tag 2 edited' : tag)};
     }));
 
-    (await list.toolbar.moreMenu()).clickItemWithText('Tags');
+    (await list.toolbar.moreMenu()).clickItemWithIcon('tags');
     tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2 edited', 'Tag 2');
     await tags.save();
@@ -169,7 +171,7 @@ describe('Trails Tools', () => {
     await expectListContains(list, EXPECTED_TRAILS);
 
     let trail = await list.findItemByTrailName('Tour de Port-Cros');
-    await trail!.clickMenuItem('Tags');
+    await trail!.clickMenuItemWithIcon('tags');
     tags = new TagsPopup('selection', await App.waitModal());
     await tags.editMode();
     await tags.editName('Tag 1', 'Tag 1 edited');
@@ -181,7 +183,7 @@ describe('Trails Tools', () => {
     }));
 
     trail = await list.findItemByTrailName('Tour de Port-Cros');
-    await trail!.clickMenuItem('Tags');
+    await trail!.clickMenuItemWithIcon('tags');
     tags = new TagsPopup('selection', await App.waitModal());
     await tags.editMode();
     await tags.editName('Tag 1 edited', 'Tag 1');
@@ -191,7 +193,7 @@ describe('Trails Tools', () => {
     await expectListContains(list, EXPECTED_TRAILS);
 
     trail = await list.findItemByTrailName('Tour de Port-Cros');
-    await trail!.clickMenuItem('Tags');
+    await trail!.clickMenuItemWithIcon('tags');
     tags = new TagsPopup('selection', await App.waitModal());
     await tags.editMode();
     await tags.editName('Tag 1', 'Tag 1 edited');

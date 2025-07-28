@@ -29,7 +29,7 @@ describe('Export', () => {
     let collectionPage = new TrailsPage();
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     let trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
-    await trail.clickMenuItem('Export');
+    await trail.clickMenuItemWithIcon('export');
     const popup = new ExportTrailModal(await App.waitModal());
     await popup.exportTypeRadioGroup.selectValue('original');
     await (await popup.getFooterButtonWithText('Ok')).click();
@@ -40,8 +40,7 @@ describe('Export', () => {
     collectionPage = await menu.openCollection('Reimport');
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/Randonnée du 05_06_2023 à 08_58.gpx'));
+    await trailsList.importFile(App.config.downloadPath + '/Randonnée du 05_06_2023 à 08_58.gpx');
     await App.waitNoProgress();
     await expectListContains(trailsList, EXPECTED_TRAILS.filter(t => t.name === 'Randonnée du 05/06/2023 à 08:58'));
     trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
@@ -55,7 +54,7 @@ describe('Export', () => {
     expect(await collectionPage.header.getTitle()).toBe('Test List');
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     let trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
-    await trail.clickMenuItem('Export');
+    await trail.clickMenuItemWithIcon('export');
     const popup = new ExportTrailModal(await App.waitModal());
     await popup.exportTypeRadioGroup.selectValue('both');
     await (await popup.getFooterButtonWithText('Ok')).click();
@@ -66,8 +65,7 @@ describe('Export', () => {
     collectionPage = await menu.openCollection('Reimport');
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/Col et lacs de la Cayolle.gpx'));
+    await trailsList.importFile(App.config.downloadPath + '/Col et lacs de la Cayolle.gpx');
     await App.waitNoProgress();
     const tagsPopup = new ImportTagsPopup(await App.waitModal());
     await tagsPopup.doNotImportTags();
@@ -85,7 +83,7 @@ describe('Export', () => {
     expect(await collectionPage.header.getTitle()).toBe('Test List');
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     let trail = await trailsList.waitTrail('Col et lacs de la Cayolle');
-    await trail.clickMenuItem('Export');
+    await trail.clickMenuItemWithIcon('export');
     const popup = new ExportTrailModal(await App.waitModal());
     await popup.exportTypeRadioGroup.selectValue('both');
     await popup.includePhotosCheckbox.setSelected(true);
@@ -97,8 +95,7 @@ describe('Export', () => {
     collectionPage = await menu.openCollection('Reimport');
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/Col et lacs de la Cayolle.zip'));
+    await trailsList.importFile(App.config.downloadPath + '/Col et lacs de la Cayolle.zip');
     await App.waitNoProgress();
     const tagsPopup = new ImportTagsPopup(await App.waitModal());
     await tagsPopup.doNotImportTags();
@@ -116,7 +113,7 @@ describe('Export', () => {
     let trailsList = await collectionPage.trailsAndMap.openTrailsList();
     await trailsList.selectAllCheckbox.setSelected(true);
     const selectionMenu = await trailsList.openSelectionMenu();
-    await selectionMenu.clickItemWithText('Export');
+    await selectionMenu.clickItemWithIcon('export');
     const popup = new ExportTrailModal(await App.waitModal());
     await popup.exportTypeRadioGroup.selectValue('both');
     await popup.includePhotosCheckbox.setSelected(true);
@@ -128,8 +125,7 @@ describe('Export', () => {
     collectionPage = await menu.openCollection('Reimport');
     expect(await collectionPage.header.getTitle()).toBe('Reimport');
     trailsList = await collectionPage.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync(App.config.downloadPath + '/trailence-export.zip'));
+    await trailsList.importFile(App.config.downloadPath + '/trailence-export.zip');
     await App.waitNoProgress();
     const tagsPopup = new ImportTagsPopup(await App.waitModal());
     await tagsPopup.importAll();

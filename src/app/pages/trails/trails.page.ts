@@ -28,11 +28,12 @@ import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { AlertController } from '@ionic/angular/standalone';
 import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
-import { EMPTY_FILTERS, Filters } from 'src/app/components/trails-list/trails-list.component';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { TrailencePlugin } from 'src/app/services/fetch-source/trailence.plugin';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
+import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
+import { MapLayersService } from 'src/app/services/map/map-layers.service';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -84,6 +85,7 @@ export class TrailsPage extends AbstractPage {
     injector: Injector,
     public readonly i18n: I18nService,
     readonly networkService: NetworkService,
+    public readonly mapLayerService: MapLayersService,
   ) {
     super(injector);
     this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
@@ -448,7 +450,7 @@ export class TrailsPage extends AbstractPage {
         this.ngZone.run(() => {
           this.searching = true;
         });
-        return (this.injector.get(FetchSourceService).getPluginByName(plugins[0])?.searchBubbles(bounds, zoom, filters ?? EMPTY_FILTERS) ?? of([])).pipe(
+        return (this.injector.get(FetchSourceService).getPluginByName(plugins[0])?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty()) ?? of([])).pipe(
           catchError(e => {
             Console.error('Error searching bubbles on ' + plugins.join(',') + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
             this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);

@@ -133,15 +133,17 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
       if (item.isSeparator()) estimatedHeight += 6;
       else estimatedHeight += 31;
     }
-    const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 10, remaining - estimatedHeight);
+    estimatedHeight -= 8 * 31;
+    const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 25, remaining - estimatedHeight);
     const maxHeight = remaining - offsetY;
 
     const popover = await this.popoverController.create({
       component: MenuContentComponent,
       componentProps: {
-        menu
+        menu,
+        enableToolbarsForSections: 2,
       },
-      cssClass: 'tight-menu',
+      cssClass: 'always-tight-menu',
       event: event,
       side: 'right',
       dismissOnSelect: true,

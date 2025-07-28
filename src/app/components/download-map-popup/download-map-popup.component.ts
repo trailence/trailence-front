@@ -8,6 +8,7 @@ import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import * as L from 'leaflet';
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 @Component({
     selector: 'app-download-map-popup',
@@ -30,6 +31,7 @@ export class DownloadMapPopupComponent {
     public preferencesService: PreferencesService,
     private readonly modalController: ModalController,
     private readonly offlineMap: OfflineMapService,
+    public readonly networkService: NetworkService,
   ) { }
 
   close(): Promise<boolean> {

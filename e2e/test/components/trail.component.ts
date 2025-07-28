@@ -129,15 +129,10 @@ export class TrailComponent extends Component {
     // desktop mode
     const section = this.getElement().$('div.top-container>div.trail-details>div.trail-photos');
     const noPhoto = section.$('.no-photo');
-    const editButton = section.$('ion-button.edit');
-    await section.scrollIntoView({block: 'center', inline: 'center'});
+    const editPhotos = section.$('ion-button.edit');
     await browser.waitUntil(async () => {
-      if (await editButton.isExisting()) {
-        await browser.action('pointer', { parameters: { pointerType: 'mouse' }})
-          .move({origin: editButton})
-          .pause(100)
-          .down(0).pause(10).up(0)
-          .perform();
+      if (await editPhotos.isExisting()) {
+        await new IonicButton(editPhotos).click();
         return true;
       }
       if (await noPhoto.isExisting()) {

@@ -51,7 +51,11 @@
 <ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
-      <ion-button color="success" [disabled]="downloadLayersSelection.selection.length === 0" (click)="launchDownloadMap(downloadLayersSelection.getSelectedLayers())">{{i18n.texts.buttons.download}}</ion-button>
+      @if (networkService.internet$ | async) {
+        <ion-button color="success" [disabled]="downloadLayersSelection.selection.length === 0" (click)="launchDownloadMap(downloadLayersSelection.getSelectedLayers())">{{i18n.texts.buttons.download}}</ion-button>
+      } @else {
+        <div style="color: var(--ion-color-danger)">{{i18n.texts.you_are_offline}}</div>
+      }
       <ion-button (click)="close()">{{i18n.texts.buttons.cancel}}</ion-button>
     </ion-buttons>
   </ion-toolbar>

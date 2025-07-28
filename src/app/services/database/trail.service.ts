@@ -48,6 +48,10 @@ export class TrailService {
     return this._store.getAllWhenLoaded$();
   }
 
+  public getAllNow(): Trail[] {
+    return this._store.getAllNow();
+  }
+
   public getTrail$(uuid: string, owner: string): Observable<Trail | null> {
     if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getTrail$(owner, uuid);
     return this._store.getItem$(uuid, owner);

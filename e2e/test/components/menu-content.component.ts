@@ -27,6 +27,10 @@ export class MenuContent extends Component {
     await this.getElement().$('ion-item.ion-color-' + color).click();
   }
 
+  public async clickItemWithIcon(icon: string) {
+    await this.getElement().$('ion-icon[name=' + icon + ']').click();
+  }
+
   public async hasItem(text: string) {
     return await this.getElement().$('ion-label=' + text).isExisting();
   }

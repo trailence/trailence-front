@@ -23,7 +23,23 @@ import { Console } from 'src/app/utils/console';
 
 const CP437 = "\0☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ".split("");
 
-export function openImportTrailsDialog(injector: Injector, collectionUuid: string): void {
+export async function openImportTrailsDialog(injector: Injector, collectionUuid: string) {
+  if (!injector.get(FetchSourceService).canImportFromUrl) {
+    openImportTrailsFileDialog(injector, collectionUuid);
+    return;
+  }
+  const module = await import('../../components/import-popup/import-popup.component');
+  const modal = await injector.get(ModalController).create({
+    component: module.ImportPopupComponent,
+    componentProps: {
+      collectionUuid,
+    },
+    backdropDismiss: true,
+  });
+  modal.present();
+}
+
+export function openImportTrailsFileDialog(injector: Injector, collectionUuid: string): void {
   const i18n = injector.get(I18nService);
   const email = injector.get(AuthService).email!;
   let zipEntries = 0;

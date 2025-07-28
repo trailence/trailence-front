@@ -15,16 +15,16 @@
     <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
     <ng-template let-selected="nbSelected" let-total="nbShown" #templateSelectionButton>
       <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event.detail.checked)"></ion-checkbox>
-      <ion-button color="light" size="small" id="trail-list-{{id}}-selection-button" [disabled]="selected === 0">
-        <ion-label>
-          {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
-        </ion-label>
-        <ion-icon slot="end" name="caret-down"></ion-icon>
+      <div class="nb-selected">
+        {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
+      </div>
+      <ion-button color="dark" fill="clear" class="selection-button" id="trail-list-{{id}}-selection-button" [disabled]="selected === 0">
+        <ion-icon slot="icon-only" name="more-menu"></ion-icon>
       </ion-button>
-      <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true" class="tight-menu">
+      <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true" class="always-tight-menu">
         <ng-template>
           <ion-content>
-            <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collection)"></app-menu-content>
+            <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collection)" [enableToolbarsForSections]="2"></app-menu-content>
           </ion-content>
         </ng-template>
       </ion-popover>
@@ -48,7 +48,7 @@
     @if (listType === 'search') {
       <div class="empty-list">
         <div>
-          <div>Déplacez vous sur la carte dans la zone dans laquelle vous souhaitez chercher des parcours, puis cliquez sur "Lancer la recherche"</div>
+          <div>{{ i18n.texts.pages.trails.empty_list.launch_search }}</div>
           <ion-icon name="search-map" color="dark" style="width: 24px; height: 24px;"></ion-icon>
         </div>
       </div>
@@ -95,6 +95,7 @@
           >
             <app-trail-overview
               [trail]="trailWithInfo.trail"
+              [trailInfo]="trailWithInfo.info"
               [selectable]="true"
               [selected]="trailWithInfo.selected"
               (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
@@ -132,6 +133,7 @@
       }
     }
   }
+  <div class="list-bottom"></div>
 </div>
 <div class="search-container" [ngClass]="{'open': searchOpen}" *ngIf="trails$?.size">
   <div class="search-bar">
@@ -234,6 +236,20 @@
             [maxValueLabel]="config.formatter(config.max) + '+'"></app-filter-numeric>
         </div>
       </ng-container>
+      @if (listType === 'search' || listType === 'my-selection' || listType === 'my-publications') {
+        <div class="filter-header">
+          <ion-icon name="star-filled"></ion-icon>
+          <div>{{ i18n.texts.pages.trails.filters.rate }}</div>
+        </div>
+        <div class="filter-value">
+          <app-filter-numeric
+            [minValue]="0" [maxValue]="5" [step]="0.5"
+            [selectedMinValue]="state$.value.filters.rate.from || 0" [selectedMaxValue]="state$.value.filters.rate.to || 5"
+            (selectionChange)="updateNumericFilter(state$.value.filters.rate, $event)"
+            [valueFormatter]="formatRate"
+            ></app-filter-numeric>
+        </div>
+      }
       <div class="filter-header">
         <ion-icon name="loop"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.loopType }}</div>

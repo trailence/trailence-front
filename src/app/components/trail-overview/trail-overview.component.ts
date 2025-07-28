@@ -71,6 +71,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() isAllCollections = false;
   @Input() isModeration = false;
   @Input() trackSnapshot: TrackMetadataSnapshot | null | undefined;
+  @Input() trailInfo: TrailInfo | null | undefined;
 
   @Input() selectable = false;
   @Input() selected = false;
@@ -137,6 +138,7 @@ export class TrailOverviewComponent extends AbstractComponent {
       trail: this.trail,
       trackSnapshot: this.trackSnapshot,
       mode: this.refreshMode,
+      trailInfo: this.trailInfo,
     }
   }
 
@@ -228,14 +230,17 @@ export class TrailOverviewComponent extends AbstractComponent {
         );
       }
       if (this.trail.owner.indexOf('@') < 0) {
+        if (this.trailInfo !== undefined) this.external = this.trailInfo ?? undefined;
+        else
         this.byStateAndVisible.subscribe(
           this.load$.pipe(
             filterDefined(),
             switchMap(() => this.injector.get(FetchSourceService).getTrailInfo$(this.trail!.owner, this.trail!.uuid))
           ),
           info => {
-            if (this.external === info) return;
-            this.external = info ?? undefined;
+            const v = info ?? undefined;
+            if (this.external === v) return;
+            this.external = v;
             this.changeDetector.detectChanges();
           }
         );
@@ -338,13 +343,15 @@ export class TrailOverviewComponent extends AbstractComponent {
       if (item.isSeparator()) estimatedHeight += 6;
       else estimatedHeight += 31;
     }
-    const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 10, remaining - estimatedHeight);
+    estimatedHeight -= 8 * 31;
+    const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 25, remaining - estimatedHeight);
     const maxHeight = remaining - offsetY;
 
     const popover = await this.popoverController.create({
       component: MenuContentComponent,
       componentProps: {
         menu,
+        enableToolbarsForSections: 2,
       },
       cssClass: 'always-tight-menu',
       event: event,

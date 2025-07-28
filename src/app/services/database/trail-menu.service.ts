@@ -31,7 +31,22 @@ export class TrailMenuService {
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email;
 
+    let inTools = false;
+    let addTools = () => {
+      if (inTools) return;
+      menu.push(new MenuItem());
+      inTools = true;
+    };
+
+    if (!onlyGlobal && !fromTrail && trails.length === 1) {
+      menu.push(new MenuItem().setIcon('enter').setI18nLabel('pages.trail.actions.open')
+        .setAction(() => this.openTrail(trails[0])))
+    }
+
     if (!onlyGlobal && trails.length > 0 && !isPublicationLockedCollection(fromCollection?.type)) {
+      if (menu.length > 0 || trails.length === 1)
+        menu.splice(0,0, new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.prepare').setTextColor('medium'));
+
       menu.push(new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
         .setAction(() => import('../functions/map-download').then(m => m.openMapDownloadDialog(this.injector, trails))));
       if (trails.length === 1) {
@@ -46,12 +61,13 @@ export class TrailMenuService {
         }));
       }
 
+      let hasPublish = false;
       if (trails.every(t => t.owner === email) && !isModeration) {
         const collectionUuid = this.getUniqueCollectionUuid(trails);
         if (collectionUuid) {
-          menu.push(new MenuItem());
+          menu.push(new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.modify').setTextColor('medium'));
           if (trails.length === 1) {
-            menu.push(new MenuItem().setIcon('edit').setI18nLabel('pages.trails.actions.rename')
+            menu.push(new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.rename')
               .setAction(() => import('../functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trails[0]))));
             menu.push(new MenuItem().setIcon('date').setI18nLabel('pages.trails.actions.edit_date')
               .setAction(() => this.openTrailDatePopup(trails[0], undefined)));
@@ -63,11 +79,15 @@ export class TrailMenuService {
           if (!isPublicationCollection(fromCollection?.type)) {
             menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
               .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
-            if (trails.length === 1 && !this.injector.get(MyPublicTrailsService).myPublicTrails$.value.find(p => p.privateUuid === trails[0].uuid)) {
+            if (trails.length === 1 &&
+              !this.injector.get(MyPublicTrailsService).myPublicTrails$.value.find(p => p.privateUuid === trails[0].uuid) &&
+              !this.injector.get(TrailService).getAllNow().find(t => t.publishedFromUuid === trails[0].uuid)
+            ) {
               menu.push(new MenuItem());
               menu.push(new MenuItem().setIcon('web').setI18nLabel('publications.publish')
                 .setDisabled(() => email === ANONYMOUS_USER)
-                .setAction(() => this.startPublication(trails[0])))
+                .setAction(() => this.startPublication(trails[0])));
+              hasPublish = true;
             }
           }
         }
@@ -83,7 +103,9 @@ export class TrailMenuService {
           else hasAbsent = true;
         }
         if (hasPresent || hasAbsent) {
-          menu.push(new MenuItem());
+          if (!hasPublish) {
+            menu.push(new MenuItem());
+          }
           if (hasAbsent) {
             menu.push(new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
               .setTextColor('my-selection')
@@ -100,7 +122,7 @@ export class TrailMenuService {
       }
 
       if (trails.length === 2 && email) {
-        menu.push(new MenuItem());
+        addTools();
         menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare')
           .setAction(() => {
             this.trailToCompare = undefined;
@@ -111,8 +133,8 @@ export class TrailMenuService {
       }
 
       if (trails.length === 1) {
-        menu.push(new MenuItem());
         if (this.trailToCompare) {
+          addTools();
           menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare_with_this_one').setAction(() => {
             const trail1 = this.trailToCompare!;
             this.trailToCompare = undefined;
@@ -120,53 +142,49 @@ export class TrailMenuService {
             router.navigateByUrl('/trail/' + encodeURIComponent(trail1.owner) + '/' + trail1.uuid + '/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '?from=' + encodeURIComponent(router.url));
           }));
         } else if (email) {
+          addTools();
           menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare_with').setAction(() => {
             this.trailToCompare = trails[0];
           }));
         }
       }
       if (trails.length > 1 && fromCollection && !isPublicationCollection(fromCollection.type)) {
-        menu.push(new MenuItem());
+        addTools();
         menu.push(new MenuItem().setIcon('merge').setI18nLabel('pages.trail.actions.merge_trails')
           .setAction(() => import('../functions/merge-trails').then(m => m.mergeTrails(this.injector, trails, fromCollection.uuid))));
       }
     }
 
-    let inImportExportSection = false;
-
     if (onlyGlobal && fromCollection && !isPublicationCollection(fromCollection.type)) {
-      menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
+      addTools();
+      menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.collection_menu_item')
         .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, null, fromCollection.uuid))));
-      menu.push(new MenuItem());
-      inImportExportSection = true;
       menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('tools.import')
         .setAction(() => import('../functions/import').then(m => m.openImportTrailsDialog(this.injector, fromCollection.uuid))));
-      menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('pages.import_from_url.title')
-        .setAction(() => this.importFromUrl(fromCollection.uuid))
-        .setVisible(() => this.injector.get(FetchSourceService).canImportFromUrl)
-      );
     }
 
     if (trails.length > 0) {
-      if (menu.length > 0 && !inImportExportSection)
-        menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export')
+      addTools();
+      menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export' + (onlyGlobal ? '_collection' : ''))
         .setAction(() => import('../functions/export').then(m => m.exportTrails(this.injector, trails))));
-
-      if (!isAll && !isPublicationCollection(fromCollection?.type) && email) {
-        menu.push(new MenuItem());
-        menu.push(
-          new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
-          .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email),
-            (col) => import('../functions/copy-trails').then(m => m.copyTrailsTo(this.injector, trails, col, email, fromTrail)))
-          ));
-      }
     }
 
-    if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && onlyGlobal && trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0) {
-      menu.push(new MenuItem());
+    if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0 &&
+      (onlyGlobal || fromCollection.uuid === this.getUniqueCollectionUuid(trails))) {
+      addTools();
       menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share')
-        .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, fromCollection.uuid, []))));
+        .setAction(() => import('../../components/share-popup/share-popup.component')
+          .then(m => m.openSharePopup(this.injector, fromCollection.uuid, onlyGlobal ? [] : trails))
+        ));
+    }
+
+    if (trails.length > 0 && !isAll && !isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {
+      menu.push(new MenuItem());
+      menu.push(
+        new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
+        .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email),
+          (col) => import('../functions/copy-trails').then(m => m.copyTrailsTo(this.injector, trails, col, email, fromTrail)))
+        ));
     }
 
     if (fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal && trails.length > 0 && email) {
@@ -178,14 +196,9 @@ export class TrailMenuService {
             .setChildrenProvider(() => this.getCollectionsMenuItems([collectionUuid],
               (col) => import('../functions/copy-trails').then(m => m.moveTrailsTo(this.injector, trails, col, email)))
             ));
-          if (trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0) {
-            menu.push(new MenuItem());
-            menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share')
-              .setAction(() => import('../../components/share-popup/share-popup.component').then(m => m.openSharePopup(this.injector, collectionUuid, trails))));
-          }
         }
         menu.push(new MenuItem());
-        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger')
+        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setTextColor('danger')
           .setAction(() => import('../functions/delete-trails').then(m => m.confirmDeleteTrails(this.injector, trails, fromTrail))));
       }
     }
@@ -251,18 +264,6 @@ export class TrailMenuService {
     return result;
   }
 
-  public async importFromUrl(collectionUuid: string) {
-    const module = await import('../../components/import-from-url/import-from-url.component');
-    const modal = await this.injector.get(ModalController).create({
-      component: module.ImportFromUrlComponent,
-      componentProps: {
-        collectionUuid,
-      },
-      backdropDismiss: true,
-    });
-    modal.present();
-  }
-
   public async openTrailDatePopup(trail: Trail, track: Track | TrackMetadataSnapshot | undefined) {
     const getTrackDate$ = track ? of(track.startDate) : this.injector.get(TrackService).getMetadata$(trail.currentTrackUuid, trail.owner).pipe(filterDefined(), map(t => t?.startDate), first());
     const modal = await Promise.all([
@@ -316,6 +317,11 @@ export class TrailMenuService {
           this.injector.get(MySelectionService).deleteSelection(s.owner, s.uuid);
       }
     });
+  }
+
+  public openTrail(trail: Trail): void {
+    const router = this.injector.get(Router);
+    router.navigate(['trail', trail.owner, trail.uuid], {queryParams: { from: router.url }});
   }
 
 }

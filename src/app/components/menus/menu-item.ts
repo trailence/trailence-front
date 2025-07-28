@@ -47,7 +47,7 @@ export class MenuItem {
   public children?: MenuItem[];
   public childrenProvider?: () => Observable<MenuItem[]>;
   public customContentSelector?: string;
-  public action?: () => void
+  public action?: () => void;
 
   public setIcon(icon: Attribute<string>): this {
     this.icon = icon;

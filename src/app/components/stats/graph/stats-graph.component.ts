@@ -2,13 +2,13 @@ import { ChangeDetectorRef, Component, ElementRef, Injector, Input, NgZone, View
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfig } from './chart-config';
 import { CommonModule } from '@angular/common';
-import { AbstractComponent } from 'src/app/utils/component-utils';
+import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { combineLatest, debounceTime, Subscription } from 'rxjs';
 import { GraphBuilder } from './graph-builder';
 import { StatsConfig } from '../stats-config';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { IonButton, IonIcon } from "@ionic/angular/standalone";
+import { IonButton, IonIcon, GestureController, Gesture } from "@ionic/angular/standalone";
 
 @Component({
   selector: 'app-stats-graph',
@@ -25,6 +25,7 @@ export class StatsGraphComponent extends AbstractComponent {
   chartConfig?: ChartConfig;
   width?: number;
   height?: number;
+  id = IdGenerator.generateId();
 
   private readonly builder: GraphBuilder;
   private subscription?: Subscription;
@@ -36,6 +37,7 @@ export class StatsGraphComponent extends AbstractComponent {
     injector: Injector,
     browser: BrowserService,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly gestureController: GestureController,
   ) {
     super(injector);
     changeDetector.detach();
@@ -74,6 +76,10 @@ export class StatsGraphComponent extends AbstractComponent {
       this.styles = undefined;
       this.subscription?.unsubscribe();
       this.subscription = undefined;
+      this.gesture?.destroy();
+      this.gesture = undefined;
+      this.scrollElement?.removeEventListener('scroll', this.scrollListener);
+      this.scrollElement = undefined;
       if (this._visibilityTimeout) {
         clearTimeout(this._visibilityTimeout);
         this._visibilityTimeout = undefined;
@@ -121,6 +127,10 @@ export class StatsGraphComponent extends AbstractComponent {
       this.navigationOffset = 0;
       this.maxNavigationOffset = 0;
       this.allData = [];
+      this.gesture?.destroy();
+      this.gesture = undefined;
+      this.scrollElement?.removeEventListener('scroll', this.scrollListener);
+      this.scrollElement = undefined;
       if (cfg) {
         this.allData = cfg.data!.datasets.map(ds => ds.data as number[]);
         this.allLabels = cfg.data!.labels as string[];
@@ -134,11 +144,14 @@ export class StatsGraphComponent extends AbstractComponent {
       this.chartConfig = cfg;
       if (this.hasNavigation) {
         this.width = width - 50;
+        this.height = height - 20;
         this.moveDataWithOffset();
+        this.createGesture();
+        this.updateScrollBar();
       } else {
         this.width = width;
+        this.height = height;
       }
-      this.height = height;
       this.changeDetector.detectChanges();
     });
   }
@@ -150,12 +163,72 @@ export class StatsGraphComponent extends AbstractComponent {
     this.chartConfig!.data!.labels = this.allLabels.slice(this.navigationOffset, this.navigationOffset + this.chartConfig!.maxDataShown);
   }
 
-  navigation(diff: number): void {
+  navigation(diff: number, fromScrollbar = false): void {
     if (!this.canvas?.chart) return;
     this.navigationOffset += diff;
     this.moveDataWithOffset();
+    if (!fromScrollbar)
+      this.updateScrollBar();
     this.canvas.chart.update('none');
     this.changeDetector.detectChanges();
+  }
+
+  private scrollElement?: HTMLElement;
+  private readonly scrollListener = (event: Event) => {
+    if (!this.scrollElement) return;
+    const offset = Math.floor(this.scrollElement.scrollLeft / 20);
+    if (offset !== this.navigationOffset) {
+      this.navigation(offset - this.navigationOffset, true);
+    }
+  };
+  updateScrollBar(): void {
+    setTimeout(() => {
+      const element = document.getElementById('navigation-scroll-bar-' + this.id);
+      if (!element) return;
+      element.scrollLeft = this.navigationOffset * 20;
+      if (this.scrollElement !== element) {
+        this.scrollElement?.removeEventListener('scroll', this.scrollListener);
+      }
+      this.scrollElement = element;
+      this.scrollElement.addEventListener('scroll', this.scrollListener);
+    }, 0);
+  }
+
+  private gesture?: Gesture;
+  private createGesture(): void {
+    if (this.gesture) return;
+    const element = document.getElementById(this.id);
+    if (!element) {
+      setTimeout(() => this.createGesture(), 10);
+      return;
+    }
+    const threshold = this.canvas!.chart!.chartArea.width / this.chartConfig!.maxDataShown;
+    let initialOffset = this.navigationOffset;
+    this.gesture = this.gestureController.create({
+      el: element,
+      threshold,
+      direction: 'x',
+      gestureName: 'stats-graph-scroll',
+      onStart: detail => {
+        initialOffset = this.navigationOffset;
+        detail.event.stopPropagation();
+        detail.event.preventDefault();
+      },
+      onMove: detail => {
+        const move = Math.floor((detail.currentX - detail.startX) / threshold);
+        const newOffset = Math.max(0, Math.min(initialOffset - move, this.maxNavigationOffset));
+        if (newOffset !== this.navigationOffset) {
+          this.navigation(newOffset - this.navigationOffset);
+        }
+        detail.event.stopPropagation();
+        detail.event.preventDefault();
+      },
+      onEnd: detail => {
+        detail.event.stopPropagation();
+        detail.event.preventDefault();
+      },
+    });
+    this.gesture.enable();
   }
 
 }

@@ -112,7 +112,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new BackToOriginalTrack()),
         this.toMenuItem(new ToogleShowOnlyModifiedTrack()),
         this.toMenuItem(new ApplyDefaultImprovementsTool()),
-        new MenuItem().setIcon('duration').setI18nLabel('track_edit_tools.categories.time'),
+        new MenuItem().setIcon('duration').setI18nLabel('track_edit_tools.categories.time').setTextColor('secondary'),
         this.toMenuItem(new RemoveTime()),
       ]),
     new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point')

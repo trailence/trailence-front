@@ -1,8 +1,6 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
 import { MapComponent } from '../../components/map.component';
-import { FilesUtils } from '../../utils/files-utils';
-import { OpenFile } from '../../utils/open-file';
 
 describe('Map offline', () => {
 
@@ -17,8 +15,7 @@ describe('Map offline', () => {
     await browser.waitUntil(() => myTrailsPage.header.getTitle().then(title => title === 'My Trails'));
     // import trail
     const trailsList = await myTrailsPage.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-001.gpx'));
+    await trailsList.importFile('./test/assets/gpx-001.gpx');
     const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     // go to trail page

@@ -112,7 +112,7 @@
         <ion-popover trigger="header-title-actions-button-{{id}}" [dismissOnSelect]="true" [ngClass]="{'always-tight-menu': alwaysTightMenu}">
           <ng-template>
             <ion-content>
-              <app-menu-content [menu]="actions"></app-menu-content>
+              <app-menu-content [menu]="actions" [enableToolbarsForSections]="actionsEnableToolbars"></app-menu-content>
             </ion-content>
           </ng-template>
         </ion-popover>

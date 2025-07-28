@@ -68,11 +68,11 @@
     "login": {
       "meta_description": "Connect to your Trailence account",
       "title": "Sign in",
-      "email": "E-Mail",
+      "email": "Email",
       "password": "Password",
       "signin_button": "Sign In",
       "offline": "Please connect to the Internet to sign in",
-      "incorrect_message": "Invalid e-mail or password",
+      "incorrect_message": "Invalid email or password",
       "error_message": "Authentication error, please retry",
       "captcha_message": "Following several attempts, we need to check you are not a robot",
       "locked_message": "Your account has been locked, please use the forgot password button",
@@ -81,14 +81,14 @@
       "try_without_account": "Try without account",
       "reset_password": {
         "title": "Reset password",
-        "email": "E-Mail",
+        "email": "Email",
         "new_password1": "New password",
         "new_password2": "Confirm your password",
         "verification_code_explaination": "We have just sent a 6-digit code to your email address. Please enter it below",
         "in_progress": "Resetting password...",
         "error": "An error occurred, please go back and retry",
         "errors": {
-          "email": "Please enter a valid e-mail",
+          "email": "Please enter a valid email",
           "password": "Must contain at least 8 characters",
           "passwordsDontMatch": "Passwords don't match",
           "mail_already_sent": "A request was already made for your account less than 10 minutes ago.",
@@ -103,10 +103,10 @@
       "title": "Create an account",
       "offline": "Please connect to Internet to create an account on Trailence",
       "step1": "Enter your information",
-      "email": "E-Mail",
+      "email": "Email",
       "password1": "Password",
       "password2": "Confirm the password",
-      "step2": "Confirm your E-Mail",
+      "step2": "Confirm your Email",
       "code_text": "We have just sent a 6-digit code to your email address. Please enter it below",
       "step3": "Account created",
       "connection": "Signing in...",
@@ -115,7 +115,7 @@
       "errors": {
         "network": "An error has occurred, please try again",
         "passwordsDontMatch": "The passwords don't match",
-        "invalidEmail": "Please enter a valid e-mail address"
+        "invalidEmail": "Please enter a valid email address"
       }
     },
     "trails": {
@@ -143,6 +143,7 @@
         "loopTypePlaceholder": "Select types",
         "select_activities_button": "Click to select",
         "tags": "Tags",
+        "rate": "Rating",
         "onlyVisibleOnMap": "Show in list only tracks visible on map",
         "reset_button": "Reset all filters"
       },
@@ -182,14 +183,18 @@
         "copying": "Copying",
         "moving": "Moving",
         "export": "Export",
-        "rename": "Rename",
-        "edit_date": "Change date",
+        "export_collection": "Export collection",
+        "edit_collection": "Rename",
+        "modify": "Edit",
+        "prepare": "Prepare",
+        "rename": "Title",
+        "edit_date": "Date",
         "rename_popup": {
           "title": "Rename track",
           "name": "Name"
         },
-        "edit_location": "Edit location",
-        "edit_activity": "Set activity",
+        "edit_location": "Location",
+        "edit_activity": "Activity",
         "copy_photos_alert": {
           "title": "Copy photos",
           "message_singular": "The copied track contains photos. Would you like to make a copy of the photos as well?",
@@ -202,6 +207,7 @@
       },
       "tags": {
         "menu_item": "Tags",
+        "collection_menu_item": "Edit Tags",
         "popup": {
           "title": "Tags",
           "add_tag_label": "New tag",
@@ -237,6 +243,7 @@
       "open_in_app": "Open in",
       "open_in_trailence": "View original trail",
       "actions": {
+        "open": "Open trail",
         "go_to_departure": "Go to departure",
         "download_map": "Download map",
         "compare": "Compare",
@@ -382,9 +389,9 @@
       "includePhotos": "Share photos with tracks",
       "photos_info": "Photos associated with shared tracks will be visible to the person you are sharing with, but cannot be modified",
       "email": "Email",
-      "email_info": "An e-mail will be sent to inform about this share",
-      "language": "In which language should we send the e-mail?",
-      "recipient_error": "Please enter a valid e-mail address",
+      "email_info": "A mail will be sent to inform about this share",
+      "language": "In which language should we send the mail?",
+      "recipient_error": "Please enter a valid email address",
       "share_description": {
         "COLLECTION": "Share the whole collection {{1}}",
         "TRAIL": "Share {{1}} trail(s)",
@@ -590,13 +597,16 @@
         "clear_message": "Are you sure you want to remove this photo's position?"
       }
     },
-    "import_from_url": {
-      "title": "Import from URL",
+    "import_popup": {
+      "title": "Import",
+      "from_file_title": "From a GPX or ZIP file",
+      "from_file_button": "Choose...",
+      "from_url_title": "From URL",
       "url_placeholder": "URL",
       "unknown_source": "No supported source matches this URL",
       "fetch_error": "The trail could not be retrieved correctly",
-      "or": "Or",
-      "from_clipboard": "From clipboard",
+      "from_clipboard_title": "From clipboard",
+      "from_clipboard_button": "Read clipboard",
       "nothing_found_in_clipboard": "No trail found in the clipboard",
       "button_import": "Import from {{1}}"
     },
@@ -620,7 +630,7 @@
     "contact": {
       "meta_description": "Contact form, question, report a problem...",
       "title": "Contact",
-      "email": "Your E-Mail to reply to you",
+      "email": "Your email to reply to you",
       "type": "Type of request",
       "types": {
         "question": "Question",
@@ -950,6 +960,7 @@
   },
   "logout": {
     "title": "Sign out",
+    "title_anonymous": "Leave trial mode",
     "text": "Do you also want to delete all your data on this device?",
     "text_info": "Your data is stored on our servers and will be downloaded the next time you log in.",
     "text_warning": "You have local data that will be lost if you delete it!",

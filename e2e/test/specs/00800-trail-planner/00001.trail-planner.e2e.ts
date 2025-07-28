@@ -36,6 +36,7 @@ describe('Trail Planner', () => {
     const selectionMenu = await list.openSelectionMenu();
     await selectionMenu.clickItemWithText('Copy into...');
     await selectionMenu.getElement().$('ion-list-header').waitForDisplayed();
+    await browser.waitUntil(() => selectionMenu.getItemWithText('New collection...').isDisplayed());
     await selectionMenu.clickItemWithText('New collection...');
     const newCollectionModal = new CollectionModal(await App.waitModal());
     await newCollectionModal.setName('Wish list');

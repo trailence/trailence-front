@@ -60,8 +60,9 @@ export class AssetsService {
       'download': 'assets/download.1.svg', // cloud-download
       'duration': 'assets/duration.1.svg', // time-outline
       'edit': 'assets/edit.1.svg', // create-outline
+      'edit-text': 'assets/edit-text.1.svg', // text-outline
       'elevation': 'assets/elevation.1.svg', // analytics-outline
-      'enter': 'assets/enter.1.svg', // enter-outline
+      'enter': 'assets/eye.1.svg', // eye
       'error': 'assets/exclamation-circle.1.svg', // alert-circle-outline
       'export': 'assets/export.1.svg', // download-outline
       'file': 'assets/file.1.svg', // document-outline

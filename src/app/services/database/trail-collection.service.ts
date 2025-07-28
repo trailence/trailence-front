@@ -161,10 +161,13 @@ export class TrailCollectionService {
 
   public getCollectionMenu(collection: TrailCollection): MenuItem[] {
     const menu: MenuItem[] = [];
-    if (!isPublicationCollection(collection.type))
-      menu.push(new MenuItem().setIcon('edit').setI18nLabel('buttons.edit').setAction(() => this.collectionPopup(collection)));
+    if (!isPublicationCollection(collection.type)) {
+      menu.push(new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.edit_collection').setAction(() => this.collectionPopup(collection)));
+      menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.collection_menu_item')
+        .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, null, collection.uuid))));
+    }
     if (collection.type === TrailCollectionType.CUSTOM) {
-      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setBackgroundColor('danger').setAction(() => this.confirmDelete(collection)));
+      menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setTextColor('danger').setAction(() => this.confirmDelete(collection)));
     }
     return menu;
   }

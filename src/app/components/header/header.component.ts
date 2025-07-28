@@ -34,6 +34,7 @@ export class HeaderComponent extends AbstractComponent {
   @Input() useH1 = false;
   @Input() neverShowTrailenceTitle = false;
   @Input() titleLongPress?: () => void;
+  @Input() actionsEnableToolbars = 0;
 
   id = IdGenerator.generateId();
   small: boolean;

@@ -7,7 +7,7 @@
         </ion-button>
       </div>
     }
-    <canvas baseChart [height]="height" [width]="width" [ngStyle]="{ 'width': width + 'px', 'height': height + 'px' }"
+    <canvas baseChart [height]="height" [width]="width" [ngStyle]="{ 'width': width + 'px', 'height': height + 'px' }" id="{{id}}"
       #canvas
       [type]="chartConfig.type"
       [data]="chartConfig.data"
@@ -24,3 +24,8 @@
     }
   }
 </div>
+@if (hasNavigation && width) {
+  <div class="navigation-scroll-bar" id="navigation-scroll-bar-{{id}}">
+    <div [ngStyle]="{width: (width + (maxNavigationOffset * 20)) + 'px'}"></div>
+  </div>
+}

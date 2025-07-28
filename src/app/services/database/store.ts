@@ -58,7 +58,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     this._syncStatus$ = new BehaviorSubject(initialStatus);
     this.operations = new StoreOperations(tableName, this._storeLoaded$, this._syncStatus$, this.ngZone);
     this._syncProgress$.subscribe(p => {
-      Console.debug('Store ' + tableName + ' -- ', p);
+      Console.debug('Store ' + tableName + ' -- sync: ', p);
     });
   }
 
@@ -193,11 +193,12 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   private load(dbService: DatabaseService, db: VersionedDb): void {
     if (this._db) this.close();
     this.ngZone.runOutsideAngular(() => {
-      this.migrateIfNeeded(dbService, db.tablesVersion[this.tableName] ?? trailenceAppVersionCode)
+      this.migrateIfNeeded(dbService, db.tablesVersion[this.tableName] ?? trailenceAppVersionCode, db.isNewDb)
       .then(() => {
         if (dbService.db !== db) return;
         this._db = db.db;
         this._locks = new SynchronizationLocks();
+        Console.info('Loading data from store', this.tableName);
         from(db.db.table<DB_ITEM>(this.tableName).toArray()).subscribe({
           next: items => {
             if (this._db !== db.db) return;
@@ -212,6 +213,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
                 newStore.push(item$);
               }
             });
+            Console.info('Data loaded from store', this.tableName);
             this._store.next(newStore);
             this.beforeEmittingStoreLoaded();
             this._storeLoaded$.next(true);
@@ -224,13 +226,13 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  private migrateIfNeeded(dbService: DatabaseService, currentVersion: number): Promise<void> {
-    if (currentVersion >= trailenceAppVersionCode) return Promise.resolve();
+  private migrateIfNeeded(dbService: DatabaseService, currentVersion: number, isNewDb: boolean): Promise<void> {
+    if (currentVersion >= trailenceAppVersionCode || isNewDb) return Promise.resolve();
     return this.migrate(currentVersion, dbService)
     .then(migrationResult => {
       const newVersion = migrationResult ?? trailenceAppVersionCode;
       return dbService.saveTableVersion(this.tableName, newVersion)
-      .then(() => this.migrateIfNeeded(dbService, newVersion));
+      .then(() => this.migrateIfNeeded(dbService, newVersion, isNewDb));
     });
   }
 

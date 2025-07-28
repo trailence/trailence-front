@@ -50,7 +50,7 @@
           <ion-icon slot="start" name="settings"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.title}}</ion-label>
         </ion-item>
-        <ion-item button id="item-notifications" lines="full" *ngIf="!isAnonymous" (click)="goToNotifications()">
+        <ion-item button id="item-notifications" lines="full" *ngIf="!isAnonymous" (click)="goToNotifications(); accountPopover.dismiss();">
           <ion-icon slot="start" name="notification"></ion-icon>
           <ion-label>{{notificationsMenuTitle}}</ion-label>
         </ion-item>
@@ -60,7 +60,7 @@
         </ion-item>
         <ion-item button (click)="logout(); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="logout"></ion-icon>
-          <ion-label>{{i18n.texts.logout.title}}</ion-label>
+          <ion-label>{{ isAnonymous ? i18n.texts.logout.title_anonymous : i18n.texts.logout.title}}</ion-label>
         </ion-item>
 
         <ion-popover trigger="item-synchro" [dismissOnSelect]="true" side="start" *ngIf="!isAnonymous">

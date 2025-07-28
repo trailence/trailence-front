@@ -4,7 +4,6 @@ import { TrailPage } from '../../app/pages/trail-page';
 import { HeaderComponent } from '../../components/header.component';
 import { FilesUtils } from '../../utils/files-utils';
 import { importGpx } from '../../utils/gpx';
-import { OpenFile } from '../../utils/open-file';
 
 describe('Replay trail', () => {
 
@@ -19,8 +18,7 @@ describe('Replay trail', () => {
     const page = await menu.addCollection('Replay');
     expect(await page.header.getTitle()).toBe('Replay');
     const trailsList = await page.trailsAndMap.openTrailsList();
-    await trailsList.toolbar.clickByIcon('add-circle');
-    await OpenFile.openFile((await FilesUtils.fs()).realpathSync('./test/assets/gpx-005.gpx'));
+    await trailsList.importFile('./test/assets/gpx-005.gpx');
     const trail = await trailsList.waitTrail('Lac de l\'Avellan');
     trailPage = await trailsList.openTrail(trail);
   });

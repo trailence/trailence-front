@@ -25,6 +25,7 @@ export class NotificationsService {
   private _lastNb = 0;
   private _email = '';
   private _read: string[] = [];
+  private _loaded = false;
 
   constructor(
     private readonly http: HttpService,
@@ -36,6 +37,7 @@ export class NotificationsService {
         if (!auth || auth.isAnonymous) {
           this._lastNb = 0;
           this._email = '';
+          this._loaded = false;
           this.notifications$.next([]);
           return of(false);
         }
@@ -43,6 +45,7 @@ export class NotificationsService {
           this._email = auth.email;
           this._lastNb = 0;
           this._read = [];
+          this._loaded = false;
           this.notifications$.next([]);
         }
         return network.server$;
@@ -55,11 +58,14 @@ export class NotificationsService {
     });
   }
 
+  public get loaded(): boolean { return this._loaded; }
+
   private loadFirstNotifications(): void {
     const email = this._email;
     this.http.get<Notification[]>(environment.apiBaseUrl + '/notifications/v1?page=0&size=' + PAGE_SIZE).subscribe(list => {
       Console.info('Received ' + list.length + ' notifications from page 0');
       this._lastNb = list.length;
+      this._loaded = true;
       this.notifications$.next(list.map(n => this.toDto(n, email)));
     });
   }

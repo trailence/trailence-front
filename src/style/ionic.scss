@@ -397,3 +397,9 @@ ion-checkbox:focus {
   --border-color: rgb(var(--ion-text-color-rgb, 0, 0, 0), 0.9);
   --border-color-checked: rgb(var(--ion-text-color-rgb, 0, 0, 0), 0.9);
 }
+
+ion-header ion-toolbar ion-title {
+  ion-icon {
+    margin-bottom: -5px;
+  }
+}

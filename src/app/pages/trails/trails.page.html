@@ -1,7 +1,7 @@
 <app-header [title]="title$ ? (title$ | async) || '' : ''" [actions]="actions" [titleLongPress]="titleLongPressEvent"></app-header>
 @if (trailsType === 'search') {
   @if (!(connected$ | async)) {
-    <div class="disconnected-message">
+    <div class="disconnected-message {{mapLayerService.darkMapEnabled ? 'dark-theme' : 'light-theme'}}">
       <div>{{ i18n.texts.you_are_offline }}</div>
     </div>
   }

@@ -1,5 +1,5 @@
 <ion-list>
-  <ng-container *ngIf="parents.length > 0">
+  @if (parents.length > 0) {
     <ng-container *ngIf="parents[parents.length - 1] as parent">
       <ion-list-header>
         <ion-button shape="round" fill="clear" color="secondary" (click)="back($event)">
@@ -9,22 +9,61 @@
         <ion-label *ngIf="parent.from.text$">{{ parent.from.text$ | async }}</ion-label>
       </ion-list-header>
     </ng-container>
-  </ng-container>
-  @for (item of computed.items; track item.id; let index = $index) {
-    @if (item.separator) {
-      <div class="separator"></div>
-    } @else {
-      <ion-item
-        [button]="item.clickable"
-        [detail]="item.item.children || item.item.childrenProvider"
-        [color]="item.item.backgroundColor"
-        (click)="clicked(item, $event)"
-        [disabled]="item.disabled"
-        [lines]="index < computed.items.length - 1 && !computed.items[index + 1].separator ? 'full' : 'none'"
-      >
-        <ion-icon *ngIf="item.icon" [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'secondary')"></ion-icon>
-        <ion-label *ngIf="item.text$" [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>
-      </ion-item>
+    @if (content.length > 0) {
+      <ng-container *ngTemplateOutlet="menuSection; context: { items: content[0].items }"></ng-container>
+    }
+  } @else {
+    @for (section of content; track $index; let index = $index) {
+      @if (section.type === 'toolbar') {
+        @if (index > 0 && content[index - 1].type !== 'toolbar') {
+          <div class="separator"></div>
+        }
+        <app-toolbar
+          [computedItems]="section.items"
+          [noScroll]="true"
+          itemPaddingLeft="2px"
+          itemPaddingRight="2px"
+          itemSpace="4px"
+          [itemMinWidth]="section.items.length < 4 ? 55 : section.items.length < 5 ? 50 : 40"
+          textSize="12px"
+          defaultIconColor="secondary"
+          (itemSelected)="close()"
+        ></app-toolbar>
+        @if (section.title) {
+          <ng-container *ngTemplateOutlet="menuItem; context: { item: section.title, isLast: true, nextSeparator: true, className: 'toolbar-title'}"></ng-container>
+        }
+      } @else {
+        <ng-container *ngTemplateOutlet="menuSection; context: { items: section.items }"></ng-container>
+      }
     }
   }
 </ion-list>
+
+<ng-template #menuSection let-items="items">
+@for (item of items; track item.id; let index = $index) {
+  <ng-container *ngTemplateOutlet="menuItem; context: { item: item, nextSeparator: index === items.length - 1 || items[index + 1].separator}"></ng-container>
+}
+</ng-template>
+
+<ng-template #menuItem let-item="item" let-nextSeparator="nextSeparator" let-className="className">
+@if (item.separator) {
+  <div class="separator"></div>
+} @else if (item.sectionTitle) {
+  <div class="section-title {{className}}">
+    <ion-icon *ngIf="item.icon" [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'dark')"></ion-icon>
+    <ion-label *ngIf="item.text$" [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>
+  </div>
+} @else {
+  <ion-item
+    [button]="item.clickable"
+    [detail]="item.item.children || item.item.childrenProvider"
+    [color]="item.item.backgroundColor"
+    (click)="clicked(item, $event)"
+    [disabled]="item.disabled"
+    [lines]="!nextSeparator ? 'full' : 'none'"
+  >
+    <ion-icon *ngIf="item.icon" [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'secondary')"></ion-icon>
+    <ion-label *ngIf="item.text$" [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>
+  </ion-item>
+}
+</ng-template>

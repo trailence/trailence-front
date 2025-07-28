@@ -5,7 +5,7 @@ import { ToggleChoice } from './toggle-choice.component';
 export class SortTrailsPopup extends ModalComponent {
 
   public async setAscending(ascending: boolean) {
-    const toggle = new ToggleChoice(this.getElement().$('>>>app-toggle-choice[ng-reflect-label1=Ascending]'));
+    const toggle = new ToggleChoice(this.getElement().$('>>>app-toggle-choice'));
     await toggle.selectValue(!ascending);
   }
 
