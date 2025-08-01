@@ -191,7 +191,6 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       this._syncStatus$.value.inProgress = true;
       this._syncStatus$.next(this._syncStatus$.value);
 
-      this.syncStep('create local new items to server');
       return this.syncCreateNewItems(stillValid)
       .pipe(
         switchMap(result => {
@@ -200,7 +199,6 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             this._syncStatus$.value.localCreates = false;
             this._syncStatus$.next(this._syncStatus$.value);
           }
-          this.syncStep('send deleted local items to server');
           return this.syncLocalDeleteToServer(stillValid);
         }),
         switchMap(result => {
@@ -218,18 +216,18 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             this._syncStatus$.value.needsUpdateFromServer = false;
             this._syncStatus$.value.lastUpdateFromServer = Date.now();
           }
-          this.syncStep('send local updates to server');
           return this.syncLocalUpdateToServer(stillValid);
         }),
+        defaultIfEmpty(false),
         switchMap(result => {
-          if (!stillValid()) return EMPTY;
-          this.syncEnd();
+          if (stillValid()) this.syncEnd();
           if (result && this._syncStatus$.value.localUpdates) {
             this._syncStatus$.value.localUpdates = false;
           }
           this._syncStatus$.value.quotaReached = this.isQuotaReached();
           this._syncStatus$.value.inProgress = false;
           this._syncStatus$.next(this._syncStatus$.value);
+          if (!stillValid()) return EMPTY;
           const isIncomplete =
             this._createdLocally.filter(item => item.value && this._errors.canProcess(this.getKey(item.value), true)).length > 0 ||
             this._updatedLocally.filter(item => this._errors.canProcess(item, false)).length > 0 ||
@@ -249,6 +247,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     if (this._createdLocally.length === 0) return of(true);
     const toCreate = this._createdLocally.filter(item$ => !!item$.value).map(item$ => item$.value!).filter(item => this._errors.canProcess(this.getKey(item), true));
     if (toCreate.length === 0) return of(true);
+    this.syncStep('create local new items to server');
     const ready = toCreate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
     return ready$.pipe(
@@ -285,6 +284,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     if (this._deletedLocally.length === 0) return of(true);
     const toDelete = [...this._deletedLocally.filter(item => this._errors.canProcess(this.getKey(item), false))];
     if (toDelete.length === 0) return of(true);
+    this.syncStep('send deleted local items to server');
     return this.deleteFromServer(toDelete.map(entity => this.toDTO(entity))).pipe(
       defaultIfEmpty(true),
       switchMap(() => {
@@ -311,6 +311,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     if (this._updatedLocally.length === 0) return of(true);
     const toUpdate = [...this._updatedLocally.filter(item => this._errors.canProcess(item, false))];
     if (toUpdate.length === 0) return of(true);
+    this.syncStep('send local updates to server');
     const entities = this._store.value.filter(item$ => item$.value && toUpdate.indexOf(this.getKey(item$.value)) >= 0).map(item$ => item$.value!);
     const ready = entities.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(entities)

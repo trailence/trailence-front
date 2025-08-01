@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { distinctUntilChanged } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
-import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { environment } from 'src/environments/environment';
 import { PublicPage } from '../public.page';

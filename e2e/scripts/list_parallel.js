@@ -40,7 +40,7 @@ async function generateCommandLines() {
     if (preparation) {
       username = 'a@a.com';
       password = 'b';
-    } else if (test.admin) {
+    } else if (test.admin && !test.user && test.roles.length === 0) {
       username = admin_username;
       password = admin_password;
     } else {
@@ -65,7 +65,13 @@ async function generateCommandLines() {
       }
       mode += ' --exclude-tests=**/*.e2e.ts';
     }
-    console.log('--trailence-username=' + username + ' --trailence-password=' + password + mode + ' --tests=' + test.specs.join(',') + other_args);
+    let cmd = '--trailence-username=' + username + ' --trailence-password=' + password;
+    if (test.admin && (test.user || test.roles.length > 0)) {
+      cmd += ' --trailence-admin-username=' + admin_username + ' --trailence-admin-password=' + admin_password;
+    }
+    cmd += mode;
+    cmd += ' --tests=' + test.specs.join(',') + other_args;
+    console.log(cmd);
   }
 }
 

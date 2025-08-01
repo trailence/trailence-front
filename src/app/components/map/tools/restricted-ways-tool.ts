@@ -65,7 +65,7 @@ export class RestrictedWaysTool extends MapTool {
     let bounds;
     try {
       bounds = map.getBounds();
-    } catch (e) {
+    } catch (e) { // NOSONAR
       bounds = undefined;
     }
     if (!bounds) {

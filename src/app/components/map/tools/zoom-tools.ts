@@ -11,6 +11,7 @@ export class ZoomInTool extends MapTool {
     this.disabled = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() >= map.getMaxZoom();
     this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       map.zoomIn();
+      mapComponent.zoomed();
       return of(true);
     }
   }
@@ -22,9 +23,10 @@ export class ZoomOutTool extends MapTool {
   constructor() {
     super();
     this.icon = 'minus';
-    this.disabled = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() <= 1;
+    this.disabled = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() <= 0;
     this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       map.zoomOut();
+      mapComponent.zoomed();
       return of(true);
     }
   }

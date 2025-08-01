@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { Feedback, FeedbackReply, FeedbackService } from 'src/app/services/feedback/feedback.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { RateComponent } from '../rate/rate.component';

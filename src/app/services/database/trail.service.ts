@@ -252,8 +252,8 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     return !q || q.trailsUsed >= q.trailsMax;
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-    if (fromVersion < 1703) return this.markStoreToForceUpdateFromServer(true).then(() => undefined);
+  protected override migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined> {
+    if (fromVersion < 1703 && !isNewDb) return this.markStoreToForceUpdateFromServer(true).then(() => undefined);
     return Promise.resolve(undefined);
   }
 

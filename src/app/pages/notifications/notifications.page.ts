@@ -10,6 +10,7 @@ import { combineLatest, Subscription } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
 
 @Component({
+  selector: 'app-notifications',
   templateUrl: './notifications.page.html',
   styleUrl: './notifications.page.scss',
   imports: [IonButton,

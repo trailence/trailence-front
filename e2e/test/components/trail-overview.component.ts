@@ -52,8 +52,12 @@ export class TrailOverview extends Component {
     expect(await this.getElement().$('app-rate').isDisplayed()).toBeTrue();
   }
 
+  public async expectIsPublished() {
+    await browser.waitUntil(() => this.getElement().$('ion-button.public-trail-button').isDisplayed());
+  }
+
   public async clickMenuItem(item: string) {
-    this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
     const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
     await button.click();
     const menu = new MenuContent(await App.waitPopover());
@@ -61,7 +65,7 @@ export class TrailOverview extends Component {
   }
 
   public async clickMenuItemWithIcon(icon: string) {
-    this.getElement().scrollIntoView({block: 'center', inline: 'center'});
+    await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
     const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
     await button.click();
     const menu = new MenuContent(await App.waitPopover());

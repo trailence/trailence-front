@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Injector, Input, NgZone, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Injector, Input, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfig } from './chart-config';
 import { CommonModule } from '@angular/common';

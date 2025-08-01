@@ -1,4 +1,5 @@
 import { App } from '../app/app';
+import { ActivityModal } from './activity.modal';
 import { Component } from './component';
 import { EditTools } from './edit-tools.component';
 import { ElevationGraph } from './elevation-graph.component';
@@ -7,7 +8,9 @@ import { IonicInput } from './ionic/ion-input';
 import { IonicSegment } from './ionic/ion-segment';
 import { IonicTextArea } from './ionic/ion-textarea';
 import { MapComponent } from './map.component';
+import { ModalComponent } from './modal';
 import { PhotosPopup } from './photos-popup.component';
+import { PublicationChecklistModal } from './publication-checklist.modal';
 import { TagsPopup } from './tags-popup';
 import { ToolbarComponent } from './toolbar.component';
 
@@ -189,6 +192,14 @@ export class TrailComponent extends Component {
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
   }
 
+  public async setActivity(activity?: string) {
+    const element = await this.getMetadataContentByTitle('Activity');
+    await element.click();
+    const modal = new ActivityModal(await App.waitModal());
+    await modal.select(activity);
+    await modal.apply();
+  }
+
   public async openMap() {
     if (await this.hasTabs()) {
       // mobile mode
@@ -240,6 +251,44 @@ export class TrailComponent extends Component {
     await map.topToolbar.clickByIcon('stop-circle');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('confirm');
+  }
+
+  public async openPublicationCheckList() {
+    const details = await (await this.openDetails()).getElement();
+    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('check-list').click();
+    return new PublicationChecklistModal(await App.waitModal());
+  }
+
+  public async publishDraft(message: string) {
+    const details = await (await this.openDetails()).getElement();
+    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
+    const alert = await App.waitAlert();
+    await alert.setTextareaValue(message);
+    await alert.clickButtonWithRole('confirm');
+    await alert.waitNotDisplayed();
+  }
+
+  public async rejectPublication(message: string) {
+    const details = await (await this.openDetails()).getElement();
+    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('cross').click();
+    const alert = await App.waitAlert();
+    await alert.setTextareaValue(message);
+    await alert.clickButtonWithRole('confirm');
+    await alert.waitNotDisplayed();
+  }
+
+  public async acceptPublication() {
+    const details = await (await this.openDetails()).getElement();
+    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
+    const alert = await App.waitAlert();
+    await alert.clickButtonWithRole('confirm');
+    await alert.waitNotDisplayed();
+    await App.waitNoProgress();
+  }
+
+  public async improvePublication() {
+    const details = await (await this.openDetails()).getElement();
+    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('undo').click();
   }
 
   public async isBottomSheetOpen() {

@@ -1,5 +1,6 @@
 import { App } from '../../app/app';
 import { TrailPage } from '../../app/pages/trail-page';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Trail page', () => {
 
@@ -21,8 +22,10 @@ describe('Trail page', () => {
     const map = await trailPage.trailComponent.openMap();
     let graph = await trailPage.trailComponent.showElevationGraph();
     // mouse over graph => tooltip should be displayed
-    await browser.action('pointer').move({x: 25, y: 25, origin: await graph.getElement().$('canvas').getElement()}).pause(10).perform();
-    await browser.waitUntil(() => graph.tooltip.isDisplayed());
+    await TestUtils.retry(async (trial) => {
+      await browser.action('pointer').move({x: 25 + trial, y: 25 + trial, origin: await graph.getElement().$('canvas').getElement()}).pause(10).perform();
+      await browser.waitUntil(() => graph.tooltip.isDisplayed(), {timeout: 5000});
+    }, 2, 100);
     // mouse out => tooltip should be removed
     await browser.action('pointer').move({x: 1, y: 1, origin: 'viewport'}).pause(10).perform();
     await browser.waitUntil(() => graph.tooltip.isDisplayed().then(d => !d));

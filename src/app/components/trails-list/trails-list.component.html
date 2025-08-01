@@ -18,16 +18,9 @@
       <div class="nb-selected">
         {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
       </div>
-      <ion-button color="dark" fill="clear" class="selection-button" id="trail-list-{{id}}-selection-button" [disabled]="selected === 0">
+      <ion-button color="dark" fill="clear" class="selection-button" [disabled]="selected === 0" (click)="openSelectionMenu($event)">
         <ion-icon slot="icon-only" name="more-menu"></ion-icon>
       </ion-button>
-      <ion-popover trigger="trail-list-{{id}}-selection-button" [dismissOnSelect]="true" class="always-tight-menu">
-        <ng-template>
-          <ion-content>
-            <app-menu-content [menu]="trailMenuService.getTrailsMenu(getSelectedTrails(), false, collection)" [enableToolbarsForSections]="2"></app-menu-content>
-          </ion-content>
-        </ng-template>
-      </ion-popover>
     </ng-template>
     <div class="space"></div>
     <div class="view-selection">

@@ -183,6 +183,7 @@ describe('Replay trail', () => {
     await menu.clickItemWithText('Delete');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
+    await App.waitNoProgress();
     await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My Trails'));
   });
 
@@ -191,12 +192,10 @@ describe('Replay trail', () => {
     await (await page.header.openActionsMenu()).clickItemWithText('Delete');
     const alert = await App.waitAlert();
     await alert.clickButtonWithRole('danger');
+    await App.waitNoProgress();
     await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === 'My Trails'));
-    await App.synchronize();
+    await App.synchronize(true);
   });
 
-  it('End', async () => {
-    await App.logout(false);
-    await App.end();
-  });
+  it('End', async () => await App.end());
 });

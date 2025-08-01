@@ -173,11 +173,8 @@ describe('Import data from Visorando', () => {
     await (await collectionPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await App.waitNoProgress();
-    await App.synchronize();
+    await App.synchronize(true);
   });
 
-  it('End', async () => {
-    await App.logout(false);
-    await App.end();
-  });
+  it('End', async () => await App.end());
 });

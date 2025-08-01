@@ -31,6 +31,8 @@ export const config = {
   trailence: {
     username: args.trailenceUsername,
     password: args.trailencePassword,
+    adminUsername: args.adminUsername,
+    adminPassword: args.adminPassword,
     dbUsername: args.dbUsername,
     dbPassword: args.dbPassword,
     browserSize: args.browserSize,

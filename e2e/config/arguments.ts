@@ -5,6 +5,8 @@ export type NativePlatform = 'Android';
 export interface TestArguments {
   trailenceUsername: string;
   trailencePassword: string;
+  adminUsername?: string;
+  adminPassword?: string;
   dbUsername: string;
   dbPassword: string;
   browser?: BrowserName;
@@ -40,6 +42,10 @@ export function parseArguments(): TestArguments {
       result.trailenceUsername = arg.substring(21);
     else if (arg.startsWith('--trailence-password='))
       result.trailencePassword = arg.substring(21);
+    else if (arg.startsWith('--trailence-admin-username='))
+      result.adminUsername = arg.substring(27);
+    else if (arg.startsWith('--trailence-admin-password='))
+      result.adminPassword = arg.substring(27);
     else if (arg.startsWith('--db-username='))
       result.dbUsername = arg.substring(14);
     else if (arg.startsWith('--db-password='))

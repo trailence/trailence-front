@@ -152,7 +152,7 @@ export class AddOsmPath extends AddPointsTool {
     return matching.map(w => ways.find(wm => wm.way === w)!);
   }
 
-  private getPoints(from: L.LatLngLiteral, to: L.LatLngLiteral, way: L.LatLngLiteral[], isForward: boolean): PointDescriptor[] | undefined {
+  private getPoints(from: L.LatLngLiteral, to: L.LatLngLiteral, way: L.LatLngLiteral[], isForward: boolean): PointDescriptor[] | undefined { // NOSONAR
     const toIndex = way.findIndex(p => p.lat === to.lat && p.lng === to.lng);
     if (toIndex < 0) return undefined;
     const f = L.latLng(from);
@@ -179,12 +179,10 @@ export class AddOsmPath extends AddPointsTool {
         } else {
           for (let i = toIndex; i < bestIndex; ++i) points.push({pos: way[i]});
         }
+      } else if (isForward) {
+        for (let i = bestIndex + 1; i <= toIndex; ++i) points.push({pos: way[i]});
       } else {
-        if (isForward) {
-          for (let i = bestIndex + 1; i <= toIndex; ++i) points.push({pos: way[i]});
-        } else {
-          for (let i = toIndex; i > bestIndex; --i) points.push({pos: way[i]});
-        }
+        for (let i = toIndex; i > bestIndex; --i) points.push({pos: way[i]});
       }
       return points;
     }
@@ -204,12 +202,10 @@ export class AddOsmPath extends AddPointsTool {
       } else {
         for (let i = toIndex; i <= bestIndex; ++i) points.push({pos: way[i]});
       }
+    } else if (isForward) {
+      for (let i = bestIndex; i <= toIndex; ++i) points.push({pos: way[i]});
     } else {
-      if (isForward) {
-        for (let i = bestIndex; i <= toIndex; ++i) points.push({pos: way[i]});
-      } else {
-        for (let i = toIndex; i >= bestIndex; --i) points.push({pos: way[i]});
-      }
+      for (let i = toIndex; i >= bestIndex; --i) points.push({pos: way[i]});
     }
     return points;
   }

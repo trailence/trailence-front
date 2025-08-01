@@ -291,16 +291,8 @@ export class ComputedMenuItems {
         changed = changed || itemsChanged.reduce((p, n) => p || n, false);
         this.hideEmptySections();
         this.hideConsecutiveSeparators();
-        do {
-          const item = this.firstVisible();
-          if (!item?.separator) break;
-          item.visible = false;
-        } while (true);
-        do {
-          const item = this.lastVisible();
-          if (!item?.separator) break;
-          item.visible = false;
-        } while (true);
+        this.hideFirstSeparators();
+        this.hideLastSeparators();
         if (this.isOnlyTitles()) {
           for (const item of this._allItems) {
             if (item.visible) {
@@ -332,9 +324,25 @@ export class ComputedMenuItems {
     );
   }
 
+  private hideFirstSeparators() {
+    do {
+      const item = this.firstVisible();
+      if (!item?.separator) break;
+      item.visible = false;
+    } while (true);
+  }
+
   private firstVisible(): ComputedMenuItem | undefined {
     for (const item of this._allItems) if (item.visible) return item;
     return undefined;
+  }
+
+  private hideLastSeparators() {
+    do {
+      const item = this.lastVisible();
+      if (!item?.separator) break;
+      item.visible = false;
+    } while (true);
   }
 
   private lastVisible(): ComputedMenuItem | undefined {
@@ -462,7 +470,7 @@ export class ComputedMenuItem {
     );
   }
 
-  public refresh(): boolean {
+  public refresh(): boolean { // NOSONAR
     let changed = false;
     changed = this.setValue(this.i18nKey, this.item.i18nLabel ? typeof this.item.i18nLabel === 'string' ? this.item.i18nLabel : this.item.i18nLabel() : undefined, v => this.i18nKey = v) || changed;
     changed = this.setValue(this.fixedLabel, this.i18nKey ? undefined : this.item.label ? typeof this.item.label === 'string' ? this.item.label : this.item.label() : undefined, v => this.fixedLabel = v) || changed;

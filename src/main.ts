@@ -1,4 +1,4 @@
-import { enableProdMode } from '@angular/core';
+import { enableProdMode, ErrorHandler } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter, withComponentInputBinding } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
@@ -14,6 +14,12 @@ window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
     return false;
 }
 
+class MyErrorHandler implements ErrorHandler {
+  handleError(error: any): void {
+    Console.error('Angular error', error);
+  }
+}
+
 if (environment.production) {
   enableProdMode();
 }
@@ -24,5 +30,6 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular({mode: 'md', swipeBackEnabled: false}),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(),
+    { provide: ErrorHandler, useClass: MyErrorHandler }
   ],
 });

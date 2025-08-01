@@ -124,7 +124,7 @@ export class TrailsList extends Component {
   public async openSelectionMenu() {
     await this.getElement().$('div.selection ion-button').click();
     const popover = await App.waitPopover();
-    return new MenuContent(popover.$('>>>app-menu-content'));
+    return new MenuContent(popover);
   }
 
   public async selectionMenu(itemName: string) {

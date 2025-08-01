@@ -120,8 +120,7 @@ describe('Copy / Move Trails', () => {
   });
 
   it('Synchronize and logout', async () => {
-    await App.synchronize();
-    await App.logout();
+    await App.synchronize(true);
   });
 
   it('End', async () => await App.end());

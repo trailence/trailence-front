@@ -209,8 +209,8 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     item.updatedAt = Date.now();
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-    if (fromVersion < 1300) return import('./migrations/sharev1_sharev2').then(m => m.ShareV1ToShareV2.migrate(dbService)).then(() => 1300);
+  protected override migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined> {
+    if (fromVersion < 1300 && !isNewDb) return import('./migrations/sharev1_sharev2').then(m => m.ShareV1ToShareV2.migrate(dbService)).then(() => undefined);
     return Promise.resolve(undefined);
   }
 

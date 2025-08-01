@@ -11,7 +11,9 @@
   <div>{{i18n.texts.publications.start_popup.text_before}}</div>
   <ul>
     @for (bullet of i18n.texts.publications.start_popup.bullets; track $index) {
-      <ng-container *ngTemplateOutlet="bulletTemplate; context: { bullet: bullet }"></ng-container>
+      <li>
+        <ng-container *ngTemplateOutlet="bulletTemplate; context: { bullet: bullet }"></ng-container>
+      </li>
     }
   </ul>
   <h2>{{i18n.texts.publications.start_popup.text_after}}</h2>
@@ -25,14 +27,12 @@
   </ion-toolbar>
 </ion-footer>
 <ng-template #bulletTemplate let-bullet="bullet">
-  <li>
-    {{bullet.text}}
-    @if (bullet.bullets) {
-      <ul>
-        @for (subBullet of bullet.bullets; track $index) {
-          <ng-container *ngTemplateOutlet="bulletTemplate; context: { bullet: subBullet }"></ng-container>
-        }
-      </ul>
-    }
-  </li>
+  {{bullet.text}}
+  @if (bullet.bullets) {
+    <ul>
+      @for (subBullet of bullet.bullets; track $index) {
+        <ng-container *ngTemplateOutlet="bulletTemplate; context: { bullet: subBullet }"></ng-container>
+      }
+    </ul>
+  }
 </ng-template>

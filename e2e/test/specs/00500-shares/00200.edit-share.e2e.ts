@@ -64,8 +64,7 @@ describe('Shares - Edit', () => {
   });
 
   it('Synchronize and logout', async () => {
-    await App.synchronize();
-    await App.logout();
+    await App.synchronize(true);
   });
 
   it('Friend 1 can see the new name', async () => {

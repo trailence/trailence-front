@@ -264,11 +264,11 @@ export class DatabaseService {
         });
         return false;
       }),
-      map(value => [...value, registered.syncAgain] as [boolean | undefined, boolean | undefined, Dexie | undefined, boolean]),
+      map(value => [...value, registered.syncAgain] as [boolean | undefined, boolean | undefined, VersionedDb | undefined, boolean]),
       debounceTimeExtended(this._dbCreated ? 0 : 3000, 5000, 5, (p, n) => !!n[1] || p[2] !== n[2] || n[3]), // sync requested or db changed or syncAgain requested
     )
-    .subscribe(() => {
-      if (registered.inProgress) return;
+    .subscribe(v => {
+      if (registered.inProgress || !v[2] || v[2] !== this._db.value) return;
       registered.inProgress = true;
       Console.info('Trigger store updates: ', registered.name);
       registered.syncAgain = false;
@@ -279,6 +279,7 @@ export class DatabaseService {
       store.doSync()
       .subscribe({
         next: syncAgain => {
+          if (v[2] !== this._db.value) return;
           registered.inProgress = false;
           registered.syncAgain = syncAgain;
           if (syncAgain) {
@@ -314,6 +315,14 @@ export class DatabaseService {
       this._openEmail = undefined;
       this._db.next(undefined);
       db.db.close();
+      this._stores.value.forEach(store => {
+        store.inProgress = false;
+        store.lastSync = 0;
+        store.syncAgain = false;
+        store.syncTimeout = undefined;
+        store.syncTimeoutDate = 0;
+        store.resetErrors();
+      });
     }
   }
 

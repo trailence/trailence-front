@@ -1,4 +1,4 @@
-import { Component, Injector } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, NgZone, OnInit } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverController } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
@@ -32,7 +32,7 @@ import { MySelectionService } from 'src/app/services/database/my-selection.servi
       IonBadge, IonButton, IonIcon,
     ]
 })
-export class MenuComponent {
+export class MenuComponent implements OnInit {
 
   versionName = trailenceAppVersionName;
 
@@ -57,6 +57,8 @@ export class MenuComponent {
   isModerator = false;
   isNative: boolean;
 
+  isInit = false;
+
   constructor(
     public readonly i18n: I18nService,
     public readonly collectionService: TrailCollectionService,
@@ -73,7 +75,13 @@ export class MenuComponent {
     readonly preferences: PreferencesService,
     readonly myPublicTrailsService: MyPublicTrailsService,
     readonly mySelectionService: MySelectionService,
+    readonly changeDetector: ChangeDetectorRef,
+    readonly ngZone: NgZone,
   ) {
+    const refresh = () => {
+      if (!this.isInit) return;
+      ngZone.run(() => changeDetector.detectChanges());
+    };
     this.isNative = platform.is('capacitor');
     combineLatest([
       authService.auth$,
@@ -107,6 +115,7 @@ export class MenuComponent {
       this.pubDraft = list.find(c => c.collection.type === TrailCollectionType.PUB_DRAFT);
       this.pubSubmit = list.find(c => c.collection.type === TrailCollectionType.PUB_SUBMIT);
       this.pubReject = list.find(c => c.collection.type === TrailCollectionType.PUB_REJECT);
+      refresh();
     });
     combineLatest([
       authService.auth$,
@@ -138,9 +147,20 @@ export class MenuComponent {
       this.isAdmin = !!auth?.admin;
       this.isAnonymous = !!auth?.isAnonymous;
       this.isModerator = !!auth?.roles?.find(r => r === 'moderator');
+      refresh();
     });
-    myPublicTrailsService.myPublicTrails$.subscribe(list => this.myPublicTrails = list);
-    mySelectionService.getMySelection().subscribe(list => this.mySelectionCount = list.length);
+    myPublicTrailsService.myPublicTrails$.subscribe(list => {
+      this.myPublicTrails = list;
+      refresh();
+    });
+    mySelectionService.getMySelection().subscribe(list => {
+      this.mySelectionCount = list.length;
+      refresh();
+    });
+  }
+
+  ngOnInit(): void {
+    this.isInit = true;
   }
 
   goTo(url: string): void {

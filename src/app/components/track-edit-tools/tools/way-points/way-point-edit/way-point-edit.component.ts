@@ -5,7 +5,6 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Component({
   templateUrl: './way-point-edit.component.html',
-  styleUrl: './way-point-edit.component.scss',
   imports: [IonTextarea, IonInput, IonIcon, IonButton, IonButtons, IonFooter, IonLabel, IonTitle, IonToolbar, IonHeader, IonContent, ]
 })
 export class WayPointEditModal implements OnInit {

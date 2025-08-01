@@ -164,7 +164,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  protected abstract migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined>;
+  protected abstract migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined>;
 
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
   protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
@@ -227,8 +227,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   private migrateIfNeeded(dbService: DatabaseService, currentVersion: number, isNewDb: boolean): Promise<void> {
-    if (currentVersion >= trailenceAppVersionCode || isNewDb) return Promise.resolve();
-    return this.migrate(currentVersion, dbService)
+    if (currentVersion >= trailenceAppVersionCode) return Promise.resolve();
+    return this.migrate(currentVersion, dbService, isNewDb)
     .then(migrationResult => {
       const newVersion = migrationResult ?? trailenceAppVersionCode;
       return dbService.saveTableVersion(this.tableName, newVersion)

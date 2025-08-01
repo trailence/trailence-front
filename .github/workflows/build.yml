@@ -143,13 +143,17 @@ jobs:
       matrix:
         test:
           - "1:browser:chrome:desktop:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "2:browser:chrome:desktop:00200+00201+00250+00205+00260,01000+00500"
+          - "2:browser:chrome:desktop:00200+00250+00205+00260,01000+00500"
           - "3:browser:chrome:mobile:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "4:browser:chrome:mobile:00200+00201+00250+00205+00260,01000+00500"
+          - "4:browser:chrome:mobile:00200+00250+00205+00260,01000+00500"
           - "5:browser:firefox:desktop:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "6:browser:firefox:desktop:00200+00201+00250+00205+00260,01000+00500"
+          - "6:browser:firefox:desktop:00200+00250+00205+00260,01000+00500"
           - "7:browser:firefox:mobile:00000+00010,00100+00300+00001,00301+00400,00800+00900+50000"
-          - "8:browser:firefox:mobile:00200+00201+00250+00205+00260,01000+00500"
+          - "8:browser:firefox:mobile:00200+00250+00205+00260,01000+00500"
+          - "9:browser:chrome:desktop:05000+00201"
+          - "10:browser:chrome:mobile:05000+00201"
+          - "11:browser:firefox:desktop:05000+00201"
+          - "12:browser:firefox:mobile:05000+00201"
     name: E2E ${{matrix.test}}
     runs-on: ubuntu-latest
     steps:

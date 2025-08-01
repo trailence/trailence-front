@@ -246,12 +246,10 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       this._syncStatus$.value.inProgress = true;
       this._syncStatus$.next(this._syncStatus$.value);
 
-      this.syncStep('create local new items to server');
       return this.syncCreateNewItems(stillValid)
       .pipe(
         switchMap(() => {
           if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
-          this.syncStep('send deleted local items to server');
           return this.syncLocalDeleteToServer(stillValid);
         }),
         switchMap(() => {
@@ -281,7 +279,6 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         }),
         switchMap(() => {
           if (!stillValid() || this.operations.pendingOperations > 0) return of(false);
-          this.syncStep('send local updates to server');
           return this.syncUpdateToServer(stillValid);
         }),
         catchError(error => {
@@ -289,9 +286,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           Console.error('Error synchronizing ' + this.tableName, error);
           return of(false);
         }),
+        defaultIfEmpty(false),
         switchMap(() => {
-          if (!stillValid()) return EMPTY;
-          this.syncEnd();
+          if (stillValid()) this.syncEnd();
           const status = this._syncStatus$.value;
           status.localCreates = this._createdLocally.length !== 0;
           status.localDeletes = this._deletedLocally.length !== 0;
@@ -302,6 +299,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           status.lastUpdateFromServer = Date.now();
           Console.info('Store ' + this.tableName + ' sync: ' + (status.hasLocalChanges ? 'still ' + this._createdLocally.length + ' to create, ' + this._deletedLocally.length + ' to delete, ' + this._updatedLocally.length + ' to update' : 'no more local changes'))
           this._syncStatus$.next(status);
+          if (!stillValid()) return EMPTY;
           const isIncomplete =
             this._createdLocally.filter(item => this._errors.canProcess(item.value?.uuid + '#' + item.value?.owner, true)).length > 0 ||
             this._deletedLocally.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false)).length > 0 ||
@@ -315,6 +313,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   private syncCreateNewItems(stillValid: () => boolean): Observable<boolean> {
     const canCreate = this._createdLocally.filter($item => !!$item.value && this._errors.canProcess($item.value.uuid + '#' + $item.value.owner, true));
     if (canCreate.length === 0) return of(true);
+    this.syncStep('create local new items to server');
     const toCreate = canCreate.map(item$ => item$.value!).filter(item => this._locks.startSync(item.uuid + '#' + item.owner));
     const ready = toCreate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
@@ -411,6 +410,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         this._locks.startSync(item.uuid + '#' + item.owner)
       ) as ENTITY[];
     if (toUpdate.length === 0) return of(true);
+    this.syncStep('send local updates to server');
     const ready = toUpdate.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate)
     return ready$.pipe(
@@ -465,6 +465,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
     const toDelete = this._deletedLocally.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false));
     if (toDelete.length === 0) return of(true);
+    this.syncStep('send deleted local items to server');
     return from(this.injector.get(DependenciesService).canDo(this.tableName, 'delete', toDelete.map(item => item.uuid + '#' + item.owner))).pipe(
       switchMap(canDelete => {
         if (canDelete.length === 0) {

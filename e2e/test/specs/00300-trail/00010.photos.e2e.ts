@@ -159,11 +159,8 @@ describe('Trail - Photos', () => {
     await newPage.waitDisplayed();
     await newPage.header.getElement().waitForDisplayed();
     expect(await newPage.header.getTitle()).toBe('My Trails');
-    await App.synchronize();
+    await App.synchronize(true);
   });
 
-  it('End', async () => {
-    await App.logout(false);
-    await App.end();
-  });
+  it('End', async () => await App.end());
 });

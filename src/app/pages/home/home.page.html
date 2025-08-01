@@ -83,13 +83,13 @@
     </a>
   </div>
   <div>
-    <a href="/try" (click)="$event.preventDefault()">
+    <a href="/try" (click)="$event.preventDefault()" class="home-page-try-app-button">
       <ion-button (click)="router.navigateByUrl('/try')">{{i18n.texts.pages.home.try_app1}}</ion-button>
     </a>
     <div class="under-button">{{i18n.texts.pages.home.try_app2}}</div>
   </div>
   <div>
-    <a href="/search-route" (click)="$event.preventDefault()">
+    <a href="/search-route" (click)="$event.preventDefault()" class="home-page-search-route-button">
       <ion-button (click)="router.navigateByUrl('/search-route')">{{i18n.texts.menu.search_trail}}</ion-button>
     </a>
   </div>

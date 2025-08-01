@@ -232,11 +232,8 @@ describe('Edit tools', () => {
     await menu.clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
     await new TrailsPage().waitDisplayed();
-    await App.synchronize();
+    await App.synchronize(true);
   });
 
-  it('End', async () => {
-    await App.logout(false);
-    await App.end();
-  });
+  it('End', async () => await App.end());
 });

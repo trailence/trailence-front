@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { Feedback, FeedbackService } from 'src/app/services/feedback/feedback.service';
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
@@ -11,7 +11,7 @@ import { ProgressBarComponent } from '../../progress-bar/progress-bar.component'
 import { IonButton, ModalController, IonSpinner, IonIcon } from "@ionic/angular/standalone";
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { FeedbackComponent } from './feedback/feedback.component';
-import { combineLatest, EMPTY, Subscription, switchMap, tap } from 'rxjs';
+import { combineLatest, EMPTY, Subscription, switchMap } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
 
 @Component({

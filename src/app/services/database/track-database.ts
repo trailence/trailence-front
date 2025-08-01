@@ -760,9 +760,14 @@ export class TrackDatabase {
         switchMap(r => nextStep(r, db => this.syncUpdatesFromServer(db))),
         switchMap(r => nextStep(r, db => this.syncUpdatesToServer(db))),
         switchMap(r => this.db === db ? this.getLocalChanges().pipe(map(l => ([l, r] as [{create: boolean, update: boolean, delete: boolean}, boolean]))) : EMPTY),
+        defaultIfEmpty([undefined, false] as [{create: boolean, update: boolean, delete: boolean} | undefined, boolean]),
         map(([hasLocalChanges, syncComplete]) => {
-          if (this.db !== db) return false;
           const status = this.syncStatus$.value!;
+          if (!hasLocalChanges || this.db !== db) {
+            status.inProgress = false;
+            this.syncStatus$.next(status);
+            return false;
+          }
           status.hasLocalCreates = hasLocalChanges.create;
           status.hasLocalUpdates = hasLocalChanges.update;
           status.hasLocalDeletes = hasLocalChanges.delete;

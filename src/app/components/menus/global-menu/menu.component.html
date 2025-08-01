@@ -162,7 +162,7 @@
             <div class="item-title-container">
               <div class="item-title">
                 <div class="name-and-count">
-                  <a href="/trails/collection/{{pubDraft.collection.uuid}}/{{pubDraft.collection.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                  <a href="/trails/collection/{{pubDraft.collection.uuid}}/{{pubDraft.collection.owner}}" target="_blank" class="inherit name pub-draft" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                     {{ i18n.texts.publications.draft_name }}
                   </a>
                   <div *ngIf="pubDraft.nbTrails !== undefined" class="count">{{pubDraft.nbTrails}}</div>
@@ -176,7 +176,7 @@
             <div class="item-title-container">
               <div class="item-title">
                 <div class="name-and-count">
-                  <a href="/trails/collection/{{pubSubmit.collection.uuid}}/{{pubSubmit.collection.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                  <a href="/trails/collection/{{pubSubmit.collection.uuid}}/{{pubSubmit.collection.owner}}" target="_blank" class="inherit name pub-submit" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                     {{ i18n.texts.publications.submit_name }}
                   </a>
                   <div *ngIf="pubSubmit.nbTrails !== undefined" class="count">{{pubSubmit.nbTrails}}</div>
@@ -190,7 +190,7 @@
             <div class="item-title-container">
               <div class="item-title">
                 <div class="name-and-count">
-                  <a href="/trails/collection/{{pubReject.collection.uuid}}/{{pubReject.collection.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                  <a href="/trails/collection/{{pubReject.collection.uuid}}/{{pubReject.collection.owner}}" target="_blank" class="inherit name pub-reject" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                     {{ i18n.texts.publications.reject_name }}
                   </a>
                   <div *ngIf="pubReject.nbTrails !== undefined" class="count">{{pubReject.nbTrails}}</div>
@@ -203,7 +203,7 @@
           <div class="item-title-container">
             <div class="item-title">
               <div class="name-and-count">
-                <a href="/trails/my-publications" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                <a href="/trails/my-publications" target="_blank" class="inherit name published" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                   {{ i18n.texts.publications.my_public_trails_name }}
                 </a>
                 <div class="count">{{myPublicTrails.length}}</div>
@@ -263,12 +263,12 @@
       @if (moderationOpen) {
         <div class="menu-item" (click)="goTo('/trails/moderation'); close();">
           <div class="item-title-container">
-            <div class="item-title">{{ i18n.texts.publications.moderation.menu_trails }}</div>
+            <div class="item-title trails-moderation">{{ i18n.texts.publications.moderation.menu_trails }}</div>
           </div>
         </div>
         <div class="menu-item" (click)="goTo('/moderation/comments'); close();">
           <div class="item-title-container">
-            <div class="item-title">{{ i18n.texts.publications.moderation.menu_comments }}</div>
+            <div class="item-title comments-moderation">{{ i18n.texts.publications.moderation.menu_comments }}</div>
           </div>
         </div>
       }

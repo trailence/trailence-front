@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
-import { BehaviorSubject, combineLatest, from, map, merge, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, from, map, merge, Observable, of, switchMap } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
 import { Track } from 'src/app/model/track';
 import { Photo } from 'src/app/model/photo';
@@ -190,6 +190,10 @@ export class FetchSourceService {
             tooMany ||= result.tooManyResults;
             if (result.end) end.push(plugin.owner);
             return {trails: result.trails, end: end.length === list.length, tooManyResults: tooMany};
+          }),
+          catchError(e => {
+            Console.error('Error searching trails on ', plugin.name, e);
+            return of({trails: [], end: true, tooManyResults: false});
           })
         )
       )

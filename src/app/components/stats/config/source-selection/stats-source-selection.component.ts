@@ -11,7 +11,6 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-stats-source-selection',
   templateUrl: './stats-source-selection.component.html',
-  styleUrl: './stats-source-selection.component.scss',
   imports: [
     IonSelect, IonSelectOption,
     CommonModule,

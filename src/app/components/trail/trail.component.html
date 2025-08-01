@@ -215,17 +215,17 @@
         <div class="moderation-messages">
           @if (trail1?.publicationMessageFromModerator) {
             <h3>{{ i18n.texts.publications.moderation.previous_moderator_message }}</h3>
-            <div>{{ trail1?.publicationMessageFromModerator }}</div>
+            <div class="moderator-message">{{ trail1?.publicationMessageFromModerator }}</div>
           }
           @if (trail1?.publicationMessageFromAuthor) {
             <h3>{{ i18n.texts.publications.moderation.message_from_author }}</h3>
-            <div>{{ trail1?.publicationMessageFromAuthor }}</div>
+            <div class="author-message">{{ trail1?.publicationMessageFromAuthor }}</div>
           }
         </div>
       } @else if (trail1?.publicationMessageFromModerator && (trail1Collection?.type === 'PUB_REJECT' || trail1Collection?.type === 'PUB_DRAFT')) {
         <div class="moderation-messages">
           <h3>{{ i18n.texts.publications.moderation.moderator_message }}</h3>
-          <div>{{ trail1?.publicationMessageFromModerator }}</div>
+          <div class="moderator-message">{{ trail1?.publicationMessageFromModerator }}</div>
         </div>
       }
 

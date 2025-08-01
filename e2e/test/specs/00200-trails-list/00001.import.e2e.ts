@@ -215,12 +215,9 @@ describe('Trails list', () => {
   });
 
   it('Synchronize', async () => {
-    await App.synchronize();
+    await App.synchronize(true);
   });
 
-  it('End', async () => {
-    await App.logout(false);
-    await App.end();
-  });
+  it('End', async () => await App.end());
 
 });

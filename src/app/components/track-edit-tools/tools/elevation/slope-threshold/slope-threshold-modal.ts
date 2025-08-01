@@ -2,8 +2,6 @@ import { Component } from "@angular/core";
 import { IonHeader, IonToolbar, IonTitle, IonRange, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController } from '@ionic/angular/standalone'
 import { I18nService } from "src/app/services/i18n/i18n.service";
 import { PreferencesService } from "src/app/services/preferences/preferences.service";
-import { applyElevationThresholdToTrack } from "src/app/services/track-edition/elevation/elevation-threshold";
-import { of } from "rxjs";
 
 @Component({
     templateUrl: './slope-threshold-modal.html',

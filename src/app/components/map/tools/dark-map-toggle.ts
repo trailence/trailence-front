@@ -2,7 +2,7 @@ import { Injector } from '@angular/core';
 import * as L from 'leaflet';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { MapTool } from './tool.interface';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { MapComponent } from '../map.component';
 
 export class DarkMapToggleTool extends MapTool {

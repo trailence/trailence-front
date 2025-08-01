@@ -60,6 +60,7 @@ export function parseTests(tests) {
       result.push({
         ...test,
         admin: specs.reduce((p,n) => p || n.admin, false),
+        user: specs.reduce((p,n) => p || n.user, false),
         roles: specs.reduce((p,n) => {
           const r = [...p];
           for (const role of n.roles) if (r.indexOf(role) < 0) r.push(role);
@@ -86,16 +87,15 @@ function listTests() {
         dir: entry.name,
         tests: listDirTests('../test/specs/' + entry.name),
         admin: fs.existsSync('../test/specs/' + entry.name + '/admin.needed'),
+        user: fs.existsSync('../test/specs/' + entry.name + '/user.needed'),
         roles: [],
       };
       if (tests.tests.length === 0) continue;
-      if (!tests.admin) {
-        if (fs.existsSync('../test/specs/' + entry.name + '/user.role')) {
-          const testRoles = fs.readFileSync('../test/specs/' + entry.name + '/user.role', {encoding: 'utf8'}).split('\n');
-          for (const role of testRoles) {
-            const r = role.trim();
-            if (r.length > 0 && tests.roles.indexOf(r) < 0) tests.roles.push(r);
-          }
+      if (fs.existsSync('../test/specs/' + entry.name + '/user.role')) {
+        const testRoles = fs.readFileSync('../test/specs/' + entry.name + '/user.role', {encoding: 'utf8'}).split('\n');
+        for (const role of testRoles) {
+          const r = role.trim();
+          if (r.length > 0 && tests.roles.indexOf(r) < 0) tests.roles.push(r);
         }
       }
       result.push(tests);
@@ -148,6 +148,7 @@ function getTestsToRun(allSpecs, specStr) {
       result.push({
         spec: dir.dir + '/' + spec,
         admin: dir.admin,
+        user: dir.user,
         roles: dir.roles,
       });
     }

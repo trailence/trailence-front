@@ -33,6 +33,7 @@ import { MapAdditionsService } from 'src/app/services/map/map-additions.service'
 import { GoBackTool } from './tools/go-back-tool';
 import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.service';
 import { HttpService } from 'src/app/services/http/http.service';
+import { Console } from 'src/app/utils/console';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -250,12 +251,13 @@ export class MapComponent extends AbstractComponent {
       } else if (this._currentBubbles.length > 0) {
         this.fitTracksBubbles(map, this._currentBubbles);
         this._initZoomTimestamp = Date.now();
-      } else {
+      } else if (!this._initZoomTimestamp) {
         const init = Date.now();
         this._initZoomTimestamp = init;
         this.injector.get(HttpService).get('https://free.freeipapi.com/api/json')
         .subscribe((response: any) => {
-          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentTracks.length === 0 && this._currentBubbles.length === 0) {
+          if (response && response['latitude'] && response['longitude'] && this._initZoomTimestamp === init && this._currentTracks.length === 0 && this._currentBubbles.length === 0) { // NOSONAR
+            Console.info('Move map to user position', response, this._initZoomTimestamp, this._currentTracks.length, this._currentBubbles.length, this._mapState);
             this._map$.value?.setView({lat: response['latitude'], lng: response['longitude']}, 10);
           }
         });
@@ -315,6 +317,10 @@ export class MapComponent extends AbstractComponent {
 
   public centerAndZoomOn(bounds: L.LatLngBounds): void {
     this.ngZone.runOutsideAngular(() => this._map$.value?.fitBounds(bounds));
+  }
+
+  public zoomed(): void {
+    this._initZoomTimestamp = 1;
   }
 
   private fitTracksBounds(map: L.Map, tracks: MapTrack[], padding: number = 0.05): void {
@@ -600,7 +606,7 @@ export class MapComponent extends AbstractComponent {
     this.refreshTools();
   }
 
-  private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] {
+  private getEvent(map: L.Map, e: L.LeafletMouseEvent): MapTrackPointReference[] { // NOSONAR
     const mouse = e.layerPoint;
     const result: MapTrackPointReference[] = [];
     const fromTrack = (e.originalEvent as any).fromTrack as MapTrack | undefined;

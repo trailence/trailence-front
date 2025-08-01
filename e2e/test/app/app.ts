@@ -1,11 +1,12 @@
 import { AppMenu } from '../components/app-menu.component';
-import { HeaderComponent } from '../components/header.component';
+import { HeaderComponent, UserMenu } from '../components/header.component';
 import { IonicAlert } from '../components/ionic/ion-alert';
 import { LoginPage } from './pages/login-page';
 import { Page } from './pages/page';
 import { ChainablePromiseElement, WaitUntilOptions } from 'webdriverio';
 import { TrailsPage, TrailsPageType } from './pages/trails-page';
 import { TestUtils } from '../utils/test-utils';
+import { HomePage } from './pages/home-page';
 
 export class App {
 
@@ -17,6 +18,8 @@ export class App {
     App.config = {
       username: trailence.username,
       password: trailence.password,
+      adminUsername: trailence.adminUsername,
+      adminPassword: trailence.adminPassword,
       mode: trailence.native ? 'native' : trailence.browserSize ?? 'desktop',
       instance: instance,
       downloadPath: './tmp-data/' + instance + '/downloads',
@@ -158,6 +161,20 @@ export class App {
     await browser.url(url);
     const loginPage = new LoginPage();
     await loginPage.waitDisplayed();
+    await this.initBrowser();
+    return loginPage;
+  }
+
+  public static async startHome() {
+    await App.startMode();
+    await browser.url(browser.options.baseUrl!);
+    const homePage = new HomePage();
+    await homePage.waitDisplayed();
+    await this.initBrowser();
+    return homePage;
+  }
+
+  private static async initBrowser() {
     await browser.execute(() => {
       const d = document.createElement('DIV');
       d.style.pointerEvents = 'none';
@@ -177,7 +194,6 @@ export class App {
         d.style.left = e.pageX + 'px';
       });
     });
-    return loginPage;
   }
 
   public static async startLink(link: string) {
@@ -284,13 +300,20 @@ export class App {
     return await header.openAppMenu();
   }
 
-  public static async synchronize() {
-    const page = await Page.getActivePageElement();
-    const header = new HeaderComponent(page);
-    await header.waitDisplayed();
+  public static async synchronize(andLogout: boolean = false) {
+    const header = await TestUtils.retry(async () => {
+      const page = await Page.getActivePageElement();
+      const header = new HeaderComponent(page);
+      await header.waitDisplayed(false, 5000);
+      return header;
+    }, 2, 100);
     const menu = await header.openUserMenu();
     await menu.synchronizeLocalChanges();
-    await menu.close();
+    if (!andLogout) {
+      await menu.close();
+      return;
+    }
+    await this.handleLogout(menu, false);
   }
 
   public static async logout(withDelete: boolean = false) {
@@ -298,6 +321,10 @@ export class App {
     const header = new HeaderComponent(page);
     await header.waitDisplayed();
     const userMenu = await header.openUserMenu();
+    return await this.handleLogout(userMenu, withDelete);
+  }
+
+  private static async handleLogout(userMenu: UserMenu, withDelete: boolean) {
     const logoutPopup = await userMenu.clickLogout();
     expect(await logoutPopup.getTitle()).toBe('Sign out');
     if (withDelete)
@@ -314,6 +341,8 @@ export class App {
 export interface AppConfig {
   username: string;
   password: string;
+  adminUsername?: string,
+  adminPassword?: string,
   mode: string;
   instance: string;
   downloadPath: string;

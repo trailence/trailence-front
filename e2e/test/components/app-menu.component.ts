@@ -138,6 +138,39 @@ export class AppMenu extends Component {
     return page;
   }
 
+  public async openMyPublications() {
+    const section = this.getElement().$('div.menu-content div.menu-section#section-publications');
+    const openButton = section.$('.menu-section-header ion-button');
+    const iconName = await openButton.$('>>>ion-icon').getAttribute('name');
+    if (iconName === 'chevron-right') {
+      await openButton.click();
+    }
+  }
+
+  public async openRejectedPublications() {
+    await this.openMyPublications();
+    await this.getElement().$('div.menu-content div.menu-section#section-publications a.pub-reject').click();
+  }
+
+  public async openPublishedTrails() {
+    await this.openMyPublications();
+    await this.getElement().$('div.menu-content div.menu-section#section-publications a.published').click();
+  }
+
+  public async openModerationSection() {
+    const section = this.getElement().$('div.menu-content div.menu-section#section-moderation');
+    const openButton = section.$('.menu-section-header ion-button');
+    const iconName = await openButton.$('>>>ion-icon').getAttribute('name');
+    if (iconName === 'chevron-right') {
+      await openButton.click();
+    }
+  }
+
+  public async openModerationTrails() {
+    await this.openModerationSection();
+    await this.getElement().$('div.menu-content div.menu-section#section-moderation div.menu-item div.item-title.trails-moderation').click();
+  }
+
   public async close() {
     const button = this.getElement().$('div.menu-header div.menu-close ion-button');
     if (await button.isDisplayed()) {

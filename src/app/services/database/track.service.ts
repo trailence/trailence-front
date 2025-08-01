@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
-import { combineLatest, EMPTY, map, Observable, of, switchMap } from 'rxjs';
+import { EMPTY, map, Observable, of, switchMap } from 'rxjs';
 import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
 import Dexie from 'dexie';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';

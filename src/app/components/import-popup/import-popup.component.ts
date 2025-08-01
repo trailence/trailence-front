@@ -58,7 +58,7 @@ export class ImportPopupComponent {
     }
   }
 
-  async importClipboard() {
+  async importClipboard() { // NOSONAR
     this.url = '';
     this.clipboardMessage = undefined;
     this.clipboard = undefined;
@@ -88,7 +88,7 @@ export class ImportPopupComponent {
         try {
           const text = await item.getType('text/plain').then(text => text.text());
           if (text.startsWith('http')) url = text.trim();
-        } catch (e) {
+        } catch (e) { // NOSONAR
           // ignore
         }
       }

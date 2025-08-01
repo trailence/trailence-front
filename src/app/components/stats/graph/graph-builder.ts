@@ -1,7 +1,6 @@
 import { Injector } from '@angular/core';
 import { StatsConfig, StatsTimeUnit, StatsValue } from '../stats-config';
-import { BehaviorSubject, combineLatest, map, Observable, of, Subscription, switchMap } from 'rxjs';
-import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { ChartConfig } from './chart-config';
 import { Trail } from 'src/app/model/trail';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -109,16 +108,12 @@ export class GraphBuilder {
 
   private getMaxDataShown(cfg: StatsConfig, min: number, max: number, width: number): number {
     const nb = max - min + 1;
-    switch (cfg.timeUnit) {
-      case StatsTimeUnit.MONTH: {
-        if (nb <= Math.floor(width / 75)) return nb;
-        let r = Math.floor((width - 50) / 75);
-        if (r < 8) r = Math.floor((width - 50) / 50);
-        if (r < 8) r = Math.floor((width - 50) / 30);
-        return r;
-      }
-      default: return nb;
-    }
+    if (cfg.timeUnit !== StatsTimeUnit.MONTH) return nb;
+    if (nb <= Math.floor(width / 75)) return nb;
+    let r = Math.floor((width - 50) / 75);
+    if (r < 8) r = Math.floor((width - 50) / 50);
+    if (r < 8) r = Math.floor((width - 50) / 30);
+    return r;
   }
 
   private buildFrom(cfg: StatsConfig, width: number, height: number, styles: CSSStyleDeclaration, allItems: Item[]): ChartConfig {

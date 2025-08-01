@@ -30,7 +30,7 @@
         {{ urlMessage }}
       </div>
     } @else if (urlDetectedSource) {
-      <ion-button (click)="doImport()">{{'pages.import_popup.button_import' | i18nString:urlDetectedSource}}</ion-button>
+      <ion-button (click)="doImport()" [disabled]="inProgress">{{'pages.import_popup.button_import' | i18nString:urlDetectedSource}}</ion-button>
     }
   </div>
   <div class="choice-title">

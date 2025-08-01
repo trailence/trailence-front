@@ -110,7 +110,7 @@ export enum StatsValue {
 
 export type StatsSourceCollections = string[];
 
-export type StatsSource = StatsSourceCollections;
+export type StatsSource = StatsSourceCollections; // NOSONAR
 
 export enum StatsTimeUnit {
   YEAR = 'year',

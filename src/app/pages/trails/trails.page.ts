@@ -372,11 +372,9 @@ export class TrailsPage extends AbstractPage {
             changed = true;
           }
         }
-      } else {
-        if (this.searchMode !== 'trails') {
-          this.searchMode = 'trails';
-          changed = true;
-        }
+      } else if (this.searchMode !== 'trails') {
+        this.searchMode = 'trails';
+        changed = true;
       }
       if (changed || forceRefresh) {
         this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
@@ -483,18 +481,24 @@ export class TrailsPage extends AbstractPage {
             20,
             '#000000',
           ).onClick(map => {
+            let called = false;
             const listener = () => {
-              this.doSearch(this.selectedSearchPlugins);
+              if (called) return;
+              called = true;
               map.removeEventListener('zoomend', listener);
+              setTimeout(() => this.doSearch(this.selectedSearchPlugins), 100);
             };
             map.addEventListener('zoomend', listener);
             map.fitBounds(bounds);
+            setTimeout(() => {
+              if (!called) listener();
+            }, 2000);
           });
         }));
         this.searching = false;
         this.hasSearchResult = result.length > 0;
         this.setSearchBounds(bounds, zoom, true);
-        console.log('Search bubbles result', result);
+        Console.info('Search bubbles found', result.length);
       });
     });
   }

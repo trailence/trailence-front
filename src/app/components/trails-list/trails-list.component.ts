@@ -6,13 +6,12 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
-  IonItem, IonCheckbox, IonPopover, IonList, IonSelectOption, IonSelect, IonSegment, IonSegmentButton, IonInput, IonSpinner } from "@ionic/angular/standalone";
+  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonSegment, IonSegmentButton, IonInput, IonSpinner, PopoverController } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
-import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { FilterEnum, FilterNumeric, FilterTags, NumericFilterConfig } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -70,13 +69,12 @@ interface TrailWithInfo {
     styleUrls: ['./trails-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [IonSpinner, IonInput, IonList, IonSelect, IonSelectOption,
-        IonPopover, IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
+        IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
         IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal, IonSegment, IonSegmentButton,
         CommonModule,
         TrailOverviewComponent,
         TrailOverviewCondensedComponent,
         ToggleChoiceComponent,
-        MenuContentComponent,
         FilterNumericComponent,
         FilterTagsComponent,
         I18nPipe,
@@ -141,7 +139,7 @@ export class TrailsListComponent extends AbstractComponent {
     injector: Injector,
     public i18n: I18nService,
     private readonly trackService: TrackService,
-    public trailMenuService: TrailMenuService,
+    private readonly trailMenuService: TrailMenuService,
     public changeDetector: ChangeDetectorRef,
     private readonly router: Router,
     private readonly preferences: PreferencesService,
@@ -765,7 +763,7 @@ export class TrailsListComponent extends AbstractComponent {
               this.highlightService.addSearchText(range);
             }
           }
-        } catch (e) {
+        } catch (e) { // NOSONAR
           Console.warn('Cannot select range, may be not yet loaded, will try');
           retry = true;
         }
@@ -774,6 +772,21 @@ export class TrailsListComponent extends AbstractComponent {
         this.refreshHighlights(ranges, 100);
       }
     }, delay);
+  }
+
+  openSelectionMenu(event: MouseEvent): void {
+    import('../menus/menu-content/menu-content.component')
+    .then(module => this.injector.get(PopoverController).create({
+      component: module.MenuContentComponent,
+      componentProps: {
+       menu: this.trailMenuService.getTrailsMenu(this.getSelectedTrails(), false, this.collection),
+       enableToolbarsForSections: 2
+      },
+      event: event,
+      side: 'bottom',
+      dismissOnSelect: true,
+      cssClass: 'always-tight-menu',
+    })).then(p => p.present());
   }
 
 }

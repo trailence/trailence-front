@@ -24,6 +24,7 @@ class Slide {
 }
 
 @Component({
+  selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
   imports: [IonButton,

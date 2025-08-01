@@ -1,4 +1,3 @@
-import Trailence from 'src/app/services/trailence.service';
 import { MapTool } from './tool.interface';
 import { Observable } from 'rxjs';
 import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.service';

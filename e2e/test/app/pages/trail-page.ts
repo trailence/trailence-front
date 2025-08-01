@@ -37,4 +37,14 @@ export class TrailPage extends PageWithHeader {
     return new TrailPage(owner, uuid);
   }
 
+  public static async waitForOpen() {
+    await browser.waitUntil(() => browser.getUrl().then(url => url.indexOf('/trail/') >= 0));
+    const url = await browser.getUrl();
+    const i = url.indexOf('/trail/');
+    const j = url.indexOf('/', i + 7);
+    const owner = url.substring(i + 7, j);
+    let uuid = url.substring(j + 1).substring(0, 36);
+    return new TrailPage(owner, uuid);
+  }
+
 }

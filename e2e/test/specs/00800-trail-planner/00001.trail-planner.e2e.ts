@@ -108,11 +108,9 @@ describe('Trail Planner', () => {
     await list.waitTrail('Île Saint-Honorat');
     await (await trailsPage.header.openActionsMenu()).clickItemWithText('Delete');
     await (await App.waitAlert()).clickButtonWithRole('danger');
-    await App.synchronize();
+    await App.waitNoProgress();
+    await App.synchronize(true);
   });
 
-  it('End', async () => {
-    await App.logout(false);
-    await App.end();
-  });
+  it('End', async () => await App.end());
 });
