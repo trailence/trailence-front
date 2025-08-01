@@ -7,13 +7,13 @@ describe('Publication - User see published', () => {
       App.init();
       const homePage = await App.startHome();
       const trailsPage = await homePage.goToSearch();
-      await TestUtils.retry(async () => {
+      await TestUtils.retry(async topTrial => {
         const map = await trailsPage.trailsAndMap.openMap();
         await map.zoomTo(1);
         if (App.config.mode === 'mobile') {
           await TestUtils.retry(async () => {
             const pos = await map.getMapPosition();
-            await browser.action('pointer').move(pos.x + 150, pos.y + 150).pause(5).down().pause(5).move(pos.x + 100, pos.y + 155).pause(5).up().perform();
+            await browser.action('pointer').move(pos.x + 150, pos.y + 150).pause(5).down().pause(5).move(pos.x + 100, pos.y + (topTrial === 1 ? 155 : 145)).pause(5).up().perform();
             await map.topToolbar.clickByIcon('search-map');
             const bubbles = map.getOverlaysSvgsWithClass('bubble');
             await TestUtils.retry(async () => {
