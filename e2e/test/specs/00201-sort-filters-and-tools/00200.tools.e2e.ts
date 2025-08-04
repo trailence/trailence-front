@@ -25,11 +25,13 @@ describe('Trails Tools', () => {
   it('Switch to condensed list, then back', async () => {
     list = await collectionPage.trailsAndMap.openTrailsList();
     await list.switchToCondensedView();
-    let trails = list.getElement().$('div.trails').$$('app-trail-overview-condensed');
-    await browser.waitUntil(() => trails.length.then(nb => nb === EXPECTED_TRAILS.length));
+    await browser.waitUntil(() => list.getElement(true).$('div.trails').$$('app-trail-overview-condensed').length.then(nb => nb === EXPECTED_TRAILS.length));
     await list.switchToDetailedView();
-    trails = list.getElement().$('div.trails').$$('app-trail-overview');
-    await browser.waitUntil(() => trails.length.then(nb => nb === EXPECTED_TRAILS.length));
+    try {
+      await browser.waitUntil(() => list.getElement(true).$('div.trails').$$('app-trail-overview').length.then(nb => nb === EXPECTED_TRAILS.length));
+    } catch (e) { // NOSONAR
+      throw new Error('Expected ' + EXPECTED_TRAILS.length + ', found ' + (await list.getElement(true).$('div.trails').$$('app-trail-overview').length));
+    }
   });
 
   let duration1: string, duration2: string;
@@ -147,14 +149,14 @@ describe('Trails Tools', () => {
     list = await collectionPage.trailsAndMap.openTrailsList();
     await list.selectAllCheckbox.toggle();
     await list.selectAllCheckbox.toggle();
-    (await list.toolbar.moreMenu()).clickItemWithIcon('tags');
+    await (await collectionPage.header.openActionsMenu()).clickItemWithIcon('tags');
     let tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2', 'Tag 2 edited');
     await tags.cancel();
 
     await expectListContains(list, EXPECTED_TRAILS);
 
-    (await list.toolbar.moreMenu()).clickItemWithIcon('tags');
+    await (await collectionPage.header.openActionsMenu()).clickItemWithIcon('tags');
     tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2', 'Tag 2 edited');
     await tags.save();
@@ -163,7 +165,7 @@ describe('Trails Tools', () => {
       return {...t, tags: t.tags.map(tag => tag === 'Tag 2' ? 'Tag 2 edited' : tag)};
     }));
 
-    (await list.toolbar.moreMenu()).clickItemWithIcon('tags');
+    await (await collectionPage.header.openActionsMenu()).clickItemWithIcon('tags');
     tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2 edited', 'Tag 2');
     await tags.save();

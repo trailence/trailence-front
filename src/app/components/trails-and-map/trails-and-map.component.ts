@@ -344,13 +344,14 @@ export class TrailsAndMapComponent extends AbstractComponent {
     this.trailsList?.setHighlighted(highlight ? trail : undefined);
   }
 
-  onTrailClickOnList(trail: Trail): void {
+  onTrailClickOnList(trail: Trail, showOnMap: boolean = false): void {
     const mt = this.mapTracks$.value.find(t => t.trail?.owner === trail.owner && t.trail?.uuid === trail.uuid);
     if (mt && this.map)
       this.map.ensureVisible(mt);
     if (this.tab === 'list' && this.mode.indexOf('large') < 0) {
       if (this.highlightedTrail !== trail) this.toggleHighlightedTrail(trail);
-      this.setTab('map');
+      if (showOnMap)
+        this.setTab('map');
       this.changeDetector.detectChanges();
     } else {
       this.toggleHighlightedTrail(trail);

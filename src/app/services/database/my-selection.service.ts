@@ -1,11 +1,15 @@
 import { Injectable, Injector } from '@angular/core';
 import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
-import { Observable, of } from 'rxjs';
+import { catchError, combineLatest, concat, filter, Observable, of, switchMap, timeout } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { DatabaseService, MY_SELECTION_TABLE_NAME } from './database.service';
 import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { NetworkService } from '../network/network.service';
+import { TrailService } from './trail.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class MySelectionService {
@@ -14,8 +18,33 @@ export class MySelectionService {
 
   constructor(
     injector: Injector,
+    network: NetworkService,
   ) {
     this.store = new MySelectionStore(injector);
+    this.store.getAllWhenLoaded$().pipe(
+      switchMap(items => combineLatest(items.map(item$ => item$.pipe(
+        switchMap(item => {
+          if (!item) return of(null);
+          return injector.get(TrailService).getTrail$(item.uuid, item.owner).pipe(
+            switchMap(trail => {
+              if (trail) return of(trail);
+              return concat(of(null), combineLatest([network.internet$, network.server$]).pipe(
+                filter(([c1,c2]) => c1 && c2),
+                switchMap(() => injector.get(TrailService).getTrail$(item.uuid, item.owner).pipe(
+                  filterDefined(),
+                  timeout(60000),
+                  catchError(() => {
+                    Console.info('Removing trail from my selection because it seems deleted', item.owner, item.uuid);
+                    this.deleteSelection(item.owner, item.uuid);
+                    return of(null);
+                  })
+                )),
+              ));
+            }),
+          );
+        })
+      )))),
+    ).subscribe();
   }
 
   public getMySelection(): Observable<SelectedTrail[]> {

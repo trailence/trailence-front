@@ -26,7 +26,7 @@ describe('Find Duplicates', () => {
   let modal: FindDuplicatesModal;
 
   it('Find duplicates with at least 90%, does not detect anything', async () => {
-    await (await list.toolbar.moreMenu()).clickItemWithIcon('compare');
+    (await collectionPage.header.openActionsMenu()).clickItemWithIcon('compare');
     modal = new FindDuplicatesModal(await App.waitModal());
     await modal.selectOption('inside');
     await modal.setSimilarityPercent(90);
@@ -58,7 +58,7 @@ describe('Find Duplicates', () => {
   });
 
   it('Compare trails between the 2 collections with threshold of 90%', async () => {
-    await (await list.toolbar.moreMenu()).clickItemWithIcon('compare');
+    (await collectionPage.header.openActionsMenu()).clickItemWithIcon('compare');
     modal = new FindDuplicatesModal(await App.waitModal());
     await modal.selectOption('two');
     await modal.selectOtherCollection('Copy');

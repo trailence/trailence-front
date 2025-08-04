@@ -47,6 +47,7 @@ export class MenuItem {
   public children?: MenuItem[];
   public childrenProvider?: () => Observable<MenuItem[]>;
   public customContentSelector?: string;
+  public selected: Attribute<boolean>;
   public action?: () => void;
 
   public setIcon(icon: Attribute<string>): this {
@@ -101,6 +102,11 @@ export class MenuItem {
 
   public setDisabled(disabled: Attribute<boolean>): this {
     this.disabled = disabled;
+    return this;
+  }
+
+  public setSelected(selected: Attribute<boolean>): this {
+    this.selected = selected;
     return this;
   }
 
@@ -198,6 +204,10 @@ export class MenuItem {
 
   public isDisabled(): boolean {
     return this.disabled === undefined ? false : (typeof this.disabled === 'function' ? !!this.disabled() : this.disabled);
+  }
+
+  public isSelected(): boolean {
+    return this.selected === undefined ? false : (typeof this.selected === 'function' ? !!this.selected() : this.selected);
   }
 
   public isVisible(): boolean {
@@ -433,6 +443,7 @@ export class ComputedMenuItem {
   public backgroundColor?: string;
   public badges: Badges = { topLeft: undefined, topRight: undefined, bottomLeft: undefined, bottomRight: undefined };
   public sectionTitle: boolean = false;
+  public selected: boolean = false;
   public onlyText = false;
   public onlyIcon = false;
   public cssClass: string = '';
@@ -478,6 +489,7 @@ export class ComputedMenuItem {
     else if (this.fixedLabel) this.text$ = of(this.fixedLabel);
     else this.text$ = undefined;
     changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
+    changed = this.setValue(this.selected, this.item.isSelected(), v => this.selected = v) || changed;
     changed = this.setValue(this.icon, this.item.getIcon(), v => this.icon = v) || changed;
     changed = this.setValue(this.textColor, this.disabled ? 'disabled' : this.item.getTextColor(), v => this.textColor = v) || changed;
     changed = this.setValue(this.backgroundColor, this.disabled ? undefined : this.item.getBackgroundColor(), v => this.backgroundColor = v) || changed;

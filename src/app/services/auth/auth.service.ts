@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, throwError, zip } from 'rxjs';
+import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, throwError, timeout, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -345,10 +345,18 @@ export class AuthService {
           this._currentAuth = subscribers;
           this.doRenewAuth().subscribe({
             next: result => {
+              if (this._currentAuth !== subscribers) return;
               this._currentAuth = undefined;
               for (const s of subscribers) {
                 s.next(result);
                 s.complete();
+              }
+            },
+            error: e => {
+              if (this._currentAuth !== subscribers) return;
+              this._currentAuth = undefined;
+              for (const s of subscribers) {
+                s.error(e);
               }
             },
           });
@@ -372,6 +380,7 @@ export class AuthService {
         }
         return this.http.post<{random:string}>(environment.apiBaseUrl + '/auth/v1/init_renew', {email: security.email, keyId: security.keyId} as InitRenewRequest)
         .pipe(
+          timeout(30000),
           switchMap(initResponse =>
             from(window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', security.privateKey, new TextEncoder().encode(security.email + initResponse.random)))
             .pipe(map(signature => ({signature, randomBase64: initResponse.random, keyId: security.keyId})))
@@ -399,7 +408,7 @@ export class AuthService {
           deviceInfo: new DeviceInfo(this.platform),
         } as RenewRequest;
         if (current.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB) > Date.now())
-          return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request);
+          return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(timeout(30000));
         // renew the key
         Console.info("Renew token with new key pair");
         return this.generateKeys().pipe(
@@ -407,6 +416,7 @@ export class AuthService {
             request.newPublicKey = keys.publicKeyBase64;
             request.newKeyExpiresAfter = this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB;
             return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(
+              timeout(30000),
               switchMap(response =>
                 from(this.db!.transaction('rw', DB_SECURITY_TABLE, tx =>
                   tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})

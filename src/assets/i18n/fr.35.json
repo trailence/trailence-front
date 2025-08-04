@@ -5,8 +5,10 @@
     "import_gpx_description": "Importer des fichiers GPX",
     "importing": "Import",
     "sort": "Tri",
-    "share": "Partager",
-    "more": "Plus"
+    "more": "Plus",
+    "display": "Affichage",
+    "display_detailed": "Détaillé",
+    "display_condensed": "Compact"
   },
   "pages": {
     "home": {
@@ -164,6 +166,9 @@
       },
       "search_trail_placeholder": "Chercher un parcours",
       "actions": {
+        "share_global": "Créer un partage",
+        "share_trail": "Créer un partage avec ce parcours",
+        "share_trails": "Créer un partage avec ces parcours",
         "delete_confirm_single": {
           "title": "Supprimer un parcours",
           "message": "Êtes-vous sûr de vouloir supprimer {{}} ?",
@@ -614,7 +619,7 @@
       "meta_description": "Soutenir le project Trailence",
       "title": "Contribuer",
       "header": "Merci de considérer d'aider ce projet !",
-      "text": "Trailence est gratuit, sans publicité, et open-source.<br/><br/>Afin de le rester, nous aimerions solliciter votre aide.<br/><br/>Nous sommes transparent sur nos coûts, et ce à quoi servent vos dons.<br/>&nbsp; - Nous payons actuellement 60 euros par an pour l'hébergement (un serveur de base + le nom de domaine).<br/>&nbsp; - Nous avons un espace de stockage de 100GB pour 20 euros.<br/>",
+      "text": "Trailence est gratuit, sans publicité, et open-source.<br/><br/>Afin de le rester, nous aimerions solliciter votre aide.<br/><br/>Nous sommes transparent sur nos coûts, et ce à quoi servent vos dons.<br/>&nbsp; - Nous payons actuellement 67 euros par an pour l'hébergement (un serveur de base + le nom de domaine).<br/>&nbsp; - Nous avons un espace de stockage de 100GB pour 20 euros.<br/>",
       "button": "Faire un don",
       "goals": {
         "goal": "Objectif",
@@ -684,8 +689,13 @@
         }
       },
       "sources": {
-        "collection_single": "La collection",
-        "collection_plural": "collections"
+        "the_collection": "La collection",
+        "collection_single": "collection",
+        "collection_plural": "collections",
+        "the_share": "Le partage",
+        "share_single": "partage",
+        "share_plural": "partages",
+        "shared_by": "partagé par"
       },
       "activities": {
         "all": "(Toutes)",

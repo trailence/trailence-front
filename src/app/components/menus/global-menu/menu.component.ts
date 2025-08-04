@@ -47,7 +47,7 @@ export class MenuComponent implements OnInit {
   myPublicTrails: MyPublicTrail[] = [];
 
   collectionsOpen = true;
-  sharedWithMeOpen = false;
+  sharedWithMeOpen = true;
   sharedByMeOpen = false;
   publicationsOpen = false;
   moderationOpen = false;

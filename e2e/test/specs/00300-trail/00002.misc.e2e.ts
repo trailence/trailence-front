@@ -21,9 +21,10 @@ describe('Trail page', () => {
   it('Interaction with elevation graph', async () => {
     const map = await trailPage.trailComponent.openMap();
     let graph = await trailPage.trailComponent.showElevationGraph();
+    let pos = await graph.getElement().$('canvas').getLocation();
     // mouse over graph => tooltip should be displayed
     await TestUtils.retry(async (trial) => {
-      await browser.action('pointer').move({x: 25 + trial, y: 25 + trial, origin: await graph.getElement().$('canvas').getElement()}).pause(10).perform();
+      await browser.action('pointer').move({x: pos.x + 75 + trial, y: pos.y + 25 + trial, origin: 'viewport'}).pause(10).perform();
       await browser.waitUntil(() => graph.tooltip.isDisplayed(), {timeout: 5000});
     }, 2, 100);
     // mouse out => tooltip should be removed
@@ -31,19 +32,21 @@ describe('Trail page', () => {
     await browser.waitUntil(() => graph.tooltip.isDisplayed().then(d => !d));
 
     // selection on graph
-    await browser.action('pointer')
-      .move({x: 50, y: 25, origin: await graph.getElement().$('canvas').getElement()})
-      .pause(10)
-      .down()
-      .pause(10)
-      .move({x: 100, y: 25, origin: await graph.getElement().$('canvas').getElement()})
-      .pause(10)
-      .up()
-      .perform();
-    // zoom button should be displayed
-    await browser.waitUntil(() => graph.zoomButton.isDisplayed());
-    // map should contain the selection
-    await browser.waitUntil(() => map.getPathsWithClass('track-path').map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') >= 0));
+    await TestUtils.retry(async () => {
+      await browser.action('pointer')
+        .move({x: pos.x + 75, y: pos.y + 25, origin: 'viewport'})
+        .pause(10)
+        .down()
+        .pause(10)
+        .move({x: pos.x + 150, y: pos.y + 25, origin: 'viewport'})
+        .pause(10)
+        .up()
+        .perform();
+      // zoom button should be displayed
+      await browser.waitUntil(() => graph.zoomButton.isDisplayed());
+      // map should contain the selection
+      await browser.waitUntil(() => map.getPathsWithClass('track-path').map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') >= 0));
+    }, 3, 100);
     let zoom = await map.getZoom();
     // zoom on selection
     await graph.zoomButton.click();
@@ -55,7 +58,8 @@ describe('Trail page', () => {
     await graph.zoomButton.click();
     // click on graph to remove selection
     graph = await trailPage.trailComponent.showElevationGraph();
-    await browser.action('pointer').move({x: 40, y: 25, origin: await graph.getElement(true).$('canvas').getElement()}).pause(10).down().pause(10).up().perform();
+    pos = await graph.getElement().$('canvas').getLocation();
+    await browser.action('pointer').move({x: pos.x + 90, y: pos.y + 25, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
     await browser.waitUntil(() => graph.zoomButton.isDisplayed().then(d => !d));
     // map should not contain selection anymore
     await browser.waitUntil(() => map.getPathsWithClass('track-path').map(p => p.getAttribute('stroke')).then(p => p.indexOf('#E0E000C0') < 0));

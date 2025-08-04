@@ -33,6 +33,7 @@ import { RateComponent } from '../trail/rate-and-comments/rate/rate.component';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { LongPressDirective } from 'src/app/utils/long-press.directive';
+import { TrailTag } from 'src/app/model/trail-tag';
 
 class Meta {
   name?: string;
@@ -72,6 +73,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() isModeration = false;
   @Input() trackSnapshot: TrackMetadataSnapshot | null | undefined;
   @Input() trailInfo: TrailInfo | null | undefined;
+  @Input() trailTags?: TrailTag[];
 
   @Input() selectable = false;
   @Input() selected = false;
@@ -86,12 +88,16 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() delayLoading = false;
 
   @Input() showPublished = false;
+  @Input() hideMenu = false;
 
   @Input() navigationIndex?: number;
   @Input() navigationCount?: number;
   @Output() navigationIndexChange = new EventEmitter<number>();
 
-  @Input() renameOnTrailNamePress = false;;
+  @Input() enableShowOnMap = false;
+  @Output() showOnMap = new EventEmitter<Trail>();
+
+  @Input() renameOnTrailNamePress = false;
   trailNamePressed(): void {
     if(this.renameOnTrailNamePress && this.trail)
       import('../../services/functions/trail-rename').then(m => {
@@ -139,11 +145,12 @@ export class TrailOverviewComponent extends AbstractComponent {
       trackSnapshot: this.trackSnapshot,
       mode: this.refreshMode,
       trailInfo: this.trailInfo,
+      trailTags: this.trailTags,
     }
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
-    if (changes['selected']) this.changeDetector.detectChanges();
+    if (changes['selected'] || changes['enableShowOnMap'] || changes['hideMenu']) this.changeDetector.detectChanges();
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
@@ -201,7 +208,12 @@ export class TrailOverviewComponent extends AbstractComponent {
         this.byStateAndVisible.subscribe(
           this.load$.pipe(
             filterDefined(),
-            switchMap(() => this.tagService.getTrailTagsFullNames$(this.trail!.uuid).pipe(debounceTimeExtended(0, 100)))
+            switchMap(() => {
+              if (this.trailTags !== undefined)
+                return this.tagService.getTagsFullnames$(this.trailTags.map(t => t.tagUuid));
+              return this.tagService.getTrailTagsFullNames$(this.trail!.uuid);
+            }),
+            debounceTimeExtended(0, 100)
           ),
           tagsNames => {
             if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
@@ -340,10 +352,20 @@ export class TrailOverviewComponent extends AbstractComponent {
     const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, collection, false, this.isAllCollections, this.isModeration);
     let estimatedHeight = 16;
     for (const item of menu) {
-      if (item.isSeparator()) estimatedHeight += 6;
+      if (item.isSeparator()) estimatedHeight += 2;
       else estimatedHeight += 31;
     }
-    estimatedHeight -= 8 * 31;
+    if (menu.length && menu[0].isSectionTitle()) {
+      // if items become toolbars, we should take it into account
+      const i1 = menu.findIndex((item, index) => index > 0 && (item.isSeparator() || item.isSectionTitle()));
+      if (i1 <= 6 && i1 > 0) {
+        estimatedHeight = estimatedHeight - i1 * 31 + 80;
+        const i2 = menu.findIndex((item, index) => index > i1 && (item.isSeparator() || item.isSectionTitle()));
+        if (i2 > 0 && (i2 - i1) <= 6) {
+          estimatedHeight = estimatedHeight - (i2 - i1) * 31 + 80;
+        }
+      }
+    }
     const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 25, remaining - estimatedHeight);
     const maxHeight = remaining - offsetY;
 

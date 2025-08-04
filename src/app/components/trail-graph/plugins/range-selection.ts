@@ -29,6 +29,7 @@ export class RangeSelection implements C.Plugin<"line"> {
   private selecting?: SelectedRange;
   private moving = false;
   private selected?: SelectedRange;
+  private selectingUp?: {time: number, x: number};
 
   constructor(
     private readonly selectingColor: string,
@@ -45,7 +46,7 @@ export class RangeSelection implements C.Plugin<"line"> {
   }
 
   beforeEvent(chart: C.Chart<'line', (number | C.Point | null)[], unknown>, args: { event: C.ChartEvent; replay: boolean; cancelable: true; inChartArea: boolean; }): boolean | void {
-    if (args.event.type === 'click' && this.selected && this.selected.endX === args.event.x) {
+    if (args.event.type === 'click' && this.selected && this.selectingUp && Date.now() - this.selectingUp.time < 200 && this.selectingUp.x === args.event.x) {
       // prevent click if from a range selection
       args.event.native?.preventDefault();
       args.event.native?.stopPropagation();
@@ -83,6 +84,7 @@ export class RangeSelection implements C.Plugin<"line"> {
       }
     } else if (event.type === 'mouseup') {
       if (this.selecting && this.moving) {
+        this.selectingUp = {time: Date.now(), x: event.x};
         this.selected = this.selecting;
         this.onSelecting(undefined);
         this.onSelected(this.buildSelectionEvent());

@@ -1,4 +1,5 @@
 import { App } from '../app/app';
+import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
 import { IonicCheckbox } from './ionic/ion-checkbox';
@@ -56,27 +57,25 @@ export class TrailOverview extends Component {
     await browser.waitUntil(() => this.getElement().$('ion-button.public-trail-button').isDisplayed());
   }
 
+  public async openMenu() {
+    await TestUtils.retry(async () => {
+      const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
+      await button.getElement().scrollIntoView({block: 'center', inline: 'center'});
+      await button.click();
+    }, 2, 100);
+    return new MenuContent(await App.waitPopover());
+  }
+
   public async clickMenuItem(item: string) {
-    await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
-    const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
-    await button.click();
-    const menu = new MenuContent(await App.waitPopover());
-    await menu.clickItemWithText(item);
+    await (await this.openMenu()).clickItemWithText(item);
   }
 
   public async clickMenuItemWithIcon(icon: string) {
-    await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
-    const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
-    await button.click();
-    const menu = new MenuContent(await App.waitPopover());
-    await menu.clickItemWithIcon(icon);
+    await (await this.openMenu()).clickItemWithIcon(icon);
   }
 
   public async clickMenuItemWithColorAndText(color: string, text: string) {
-    const button = new IonicButton(this.getElement().$('div.trail-name-row ion-button.trail-menu-button'));
-    await button.click();
-    const menu = new MenuContent(await App.waitPopover());
-    await menu.clickItemWithColorAndText(color, text);
+    await (await this.openMenu()).clickItemWithColorAndText(color, text);
   }
 
   public async delete() {

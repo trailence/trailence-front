@@ -38,9 +38,9 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
   @Input() selected = false;
   @Output() selectedChange = new EventEmitter<boolean>();
 
-  @Input() showButtons = true;
   @Input() subTitle?: string;
   @Input() checkboxMode = 'md';
+  @Input() hideMenu = false;
 
   duration = '';
   estimatedDuration = '';
@@ -119,21 +119,32 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
   }
 
   async openMenu(event: MouseEvent) {
+    event.stopPropagation();
     const y = event.pageY;
     const h = this.browser.height;
     const remaining = h - y - 15;
 
     const collection = this.fromCollection ?
       await firstValueFrom(
-        this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.injector.get(AuthService).email ?? '').pipe(filterDefined())
+        this.injector.get(TrailCollectionService).getCollection$(this.trail.collectionUuid, this.injector.get(AuthService).email ?? '').pipe(filterDefined())
       ) : undefined;
     const menu = this.trailMenuService.getTrailsMenu([this.trail], false, collection, false, this.isAllCollections);
     let estimatedHeight = 16;
     for (const item of menu) {
-      if (item.isSeparator()) estimatedHeight += 6;
+      if (item.isSeparator()) estimatedHeight += 2;
       else estimatedHeight += 31;
     }
-    estimatedHeight -= 8 * 31;
+    if (menu.length && menu[0].isSectionTitle()) {
+      // if items become toolbars, we should take it into account
+      const i1 = menu.findIndex((item, index) => index > 0 && (item.isSeparator() || item.isSectionTitle()));
+      if (i1 <= 6 && i1 > 0) {
+        estimatedHeight = estimatedHeight - i1 * 31 + 80;
+        const i2 = menu.findIndex((item, index) => index > i1 && (item.isSeparator() || item.isSectionTitle()));
+        if (i2 > 0 && (i2 - i1) <= 6) {
+          estimatedHeight = estimatedHeight - (i2 - i1) * 31 + 80;
+        }
+      }
+    }
     const offsetY = estimatedHeight <= remaining ? 0 : Math.max(-y + 25, remaining - estimatedHeight);
     const maxHeight = remaining - offsetY;
 

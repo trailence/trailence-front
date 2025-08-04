@@ -2,8 +2,12 @@ ion-list {
   padding-top: 4px;
   padding-bottom: 4px;
 }
-ion-icon {
-    margin-right: 10px;
+ion-icon:not(.item-selected) {
+  margin-right: 10px;
+}
+ion-icon.item-selected {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 div.separator {
   border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.25);

@@ -5,8 +5,10 @@
     "import_gpx_description": "Import GPX files",
     "importing": "Importing",
     "sort": "Sort",
-    "share": "Share",
-    "more": "More"
+    "more": "More",
+    "display": "Display",
+    "display_detailed": "Detailed",
+    "display_condensed": "Compact"
   },
   "pages": {
     "home": {
@@ -164,6 +166,9 @@
       },
       "search_trail_placeholder": "Search a trail",
       "actions": {
+        "share_global": "Create a share",
+        "share_trail": "Create a share with this trail",
+        "share_trails": "Create a share with these trails",
         "delete_confirm_single": {
           "title": "Delete Track",
           "message": "Are you sure you want to delete {{}}?",
@@ -614,7 +619,7 @@
       "meta_description": "Support the Trailence project",
       "title": "Contribute",
       "header": "Thank you for considering helping this project!",
-      "text": "Trailence is free, ad-free, and open-source.<br/><br/>In order to remain so, we would like to ask for your help.<br/><br/>We are transparent about our costs, and what your donations are used for.<br/>&nbsp; - We currently pay 60 euros per year for hosting (a basic server + the domain name).<br/>&nbsp; - We have 100GB of storage space for 20 euros.<br/>",
+      "text": "Trailence is free, ad-free, and open-source.<br/><br/>In order to remain so, we would like to ask for your help.<br/><br/>We are transparent about our costs, and what your donations are used for.<br/>&nbsp; - We currently pay 67 euros per year for hosting (a basic server + the domain name).<br/>&nbsp; - We have 100GB of storage space for 20 euros.<br/>",
       "button": "Make a donation",
       "goals": {
         "goal": "Objective",
@@ -684,8 +689,13 @@
         }
       },
       "sources": {
-        "collection_single": "The collection",
-        "collection_plural": "collections"
+        "the_collection": "The collection",
+        "collection_single": "collection",
+        "collection_plural": "collections",
+        "the_share": "The share",
+        "share_single": "share",
+        "share_plural": "shares",
+        "shared_by": "shared by"
       },
       "activities": {
         "all": "(All)",

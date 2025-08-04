@@ -6,8 +6,8 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
-  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonSegment, IonSegmentButton, IonInput, IonSpinner, PopoverController } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
+  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController } from "@ionic/angular/standalone";
+import { BehaviorSubject, combineLatest, concat, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -38,6 +38,9 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { Filters, FiltersUtils } from './filters';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
+import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { Tag } from 'src/app/model/tag';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -58,7 +61,7 @@ const defaultState: State = {
 interface TrailWithInfo {
   trail: Trail;
   track: TrackMetadataSnapshot | null;
-  tags: TrailTag[];
+  trailTags: TrailTag[];
   selected: boolean;
   info: TrailInfo | null;
 }
@@ -70,7 +73,7 @@ interface TrailWithInfo {
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [IonSpinner, IonInput, IonList, IonSelect, IonSelectOption,
         IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
-        IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal, IonSegment, IonSegmentButton,
+        IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
         CommonModule,
         TrailOverviewComponent,
         TrailOverviewCondensedComponent,
@@ -97,11 +100,13 @@ export class TrailsListComponent extends AbstractComponent {
   @Input() showPublished = false;
   @Input() searching = false;
   @Input() onlyBubbles = false;
+  @Input() enableShowOnMap = false;
 
   id = IdGenerator.generateId();
   highlighted?: Trail;
 
   @Output() trailClick = new EventEmitter<Trail>();
+  @Output() showOnMap = new EventEmitter<Trail>();
   @Output() mapFilteredTrails = new EventEmitter<Trail[]>();
 
   state$ = new BehaviorSubject<State>(defaultState);
@@ -112,6 +117,8 @@ export class TrailsListComponent extends AbstractComponent {
   mapTrails: TrailWithInfo[] = [];
   listTrails: List<TrailWithInfo> = List();
   searchOpen = false;
+
+  collectionTags: Tag[] = [];
 
   durationFormatter = (value: number) => this.i18n.hoursToString(value);
   isPositive = (value: any) => typeof value === 'number' && value > 0;
@@ -250,13 +257,13 @@ export class TrailsListComponent extends AbstractComponent {
                 switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getTrackMetadata$(trail.uuid, trail.owner, trackUuid) : this.trackService.getMetadata$(trackUuid, trail.owner)),
                 filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
               ),
-              trail.owner === this.authService.email ? this.tagService.getTrailTags$(trail.uuid) : of([]),
+              trail.owner === this.authService.email ? this.tagService.getTrailTagsWhenLoaded$(trail.uuid) : of([]),
               trail.owner.indexOf('@') < 0 ? this.injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid) : of(null),
             ]).pipe(
-              map(([track, tags, info]) => ({
+              map(([track, trailTags, info]) => ({
                 trail,
                 track,
-                tags,
+                trailTags,
                 info,
                 selected: false,
               }) as TrailWithInfo)
@@ -313,16 +320,21 @@ export class TrailsListComponent extends AbstractComponent {
       },
       true
     );
+    if (this.collectionUuid)
+      this.byStateAndVisible.subscribe(
+        this.tagService.getAllTags$().pipe(
+          collection$items(),
+          map(list => list.filter(t => t.collectionUuid === this.collectionUuid))
+        ),
+        tags => {
+          this.collectionTags = tags;
+          if (this.state$.value.filters.search.length > 0) this.state$.next({...this.state$.value, filters: {...this.state$.value.filters}});
+        }
+      );
   }
 
   private updateToolbar(trails: Trail[]): void {
-    if (this.listType === 'search') {
-      this.toolbar = [];
-    } else {
-      this.toolbar = this.trailMenuService.getTrailsMenu(trails, false, this.collection, true, this.listType === 'all-collections');
-    }
-    let alwaysVisibleNb = 2;
-    this.toolbar.splice(0, 0,
+    this.toolbar = [
       new MenuItem().setIcon('sort').setI18nLabel('tools.sort')
         .setDisabled(() => trails.length === 0)
         .setAction(() => this.sortModal?.present()),
@@ -333,34 +345,32 @@ export class TrailsListComponent extends AbstractComponent {
           if (nb === 0) return undefined;
           return { text: '' + nb, color: 'success', fill: true };
         }),
+    ];
+
+    // display
+    this.toolbar.push(
+      new MenuItem().setIcon('list-items').setI18nLabel('tools.display')
+        .setChildren([
+          new MenuItem().setIcon('list-detailed').setI18nLabel('tools.display_detailed')
+            .setSelected(() => this.state$.value.mode === 'detailed')
+            .setAction(() => this.setListMode('detailed')),
+          new MenuItem().setIcon('list-condensed').setI18nLabel('tools.display_condensed')
+            .setSelected(() => this.state$.value.mode === 'condensed')
+            .setAction(() => this.setListMode('condensed')),
+        ]),
     );
 
-    // put import after filters on the toolbar
-    if (this.size !== 'small') {
-      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.import');
-      if (index >= 0) {
-        const items = this.toolbar.splice(index, 1);
-        this.toolbar.splice(2, 0, items[0]);
-        alwaysVisibleNb++;
-      }
+    // import
+    if (this.collection && !isPublicationCollection(this.collection.type) && this.collection.owner === this.authService.email) {
+      this.toolbar.push(
+        new MenuItem().setIcon('add-circle').setI18nLabel('tools.import')
+          .setAction(() => import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collectionUuid!)))
+      );
     }
-
-    // put share on the toolbar
-    if (this.size === 'large') {
-      let index = this.toolbar.findIndex(a => a.i18nLabel === 'tools.share');
-      if (index >= 0) {
-        const items = this.toolbar.splice(index - 1, 2); // 2 because it has a separator before
-        this.toolbar.splice(3, 0, items[1]);
-      }
-    }
-
-    // hide when selection
-    for (let i = alwaysVisibleNb; i < this.toolbar.length; ++i)
-      this.toolbar[i].addVisibleCondition(() => this.nbSelected === 0);
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
-    if (changes['message']) this.changeDetector.detectChanges();
+    if (changes['message'] || changes['searching']) this.changeDetector.detectChanges();
   }
 
   protected override destroyComponent(): void {
@@ -370,15 +380,17 @@ export class TrailsListComponent extends AbstractComponent {
   private applyFilters(): TrailWithInfo[] {
     const filters = FiltersUtils.toSystemUnit(this.state$.value.filters, this.preferences.preferences, this.i18n);
     this.clearHighlights();
-    const searchTextRanges = new Map<string, {length: number, name: number, location: number}>();
+    const searchTextRanges = new Map<string, {text: string, name: number, location: number, inTags: boolean}>();
     this.mapTrails = this.allTrails.filter(
       t => { // NOSONAR
         if (filters.search.trim().length > 0) {
           const s = filters.search.trim().toLowerCase();
           const inName = t.trail.name.toLowerCase().indexOf(s);
           const inLocation = t.trail.location.toLowerCase().indexOf(s);
-          if (inName < 0 && inLocation < 0) return false;
-          searchTextRanges.set(t.trail.uuid + '-' + t.trail.owner, {length: s.length, name: inName, location: inLocation});
+          const tags = this.collectionTags.filter(t => t.name.toLowerCase().indexOf(s) >= 0).map(t => t.uuid);
+          const inTags = tags.length === 0 ? false : !!t.trailTags.find(t => tags.indexOf(t.tagUuid) >= 0);
+          if (inName < 0 && inLocation < 0 && !inTags) return false;
+          searchTextRanges.set(t.trail.uuid + '-' + t.trail.owner, {text: s, name: inName, location: inLocation, inTags});
         }
         if (filters.duration.from !== undefined || filters.duration.to !== undefined) {
           let duration = t.track?.duration;
@@ -399,11 +411,11 @@ export class TrailsListComponent extends AbstractComponent {
         if (filters.rate.from !== undefined && (t.info?.rating === undefined || t.info.rating < filters.rate.from)) return false;
         if (filters.rate.to !== undefined && (t.info?.rating !== undefined && t.info.rating > filters.rate.to)) return false;
         if (filters.tags.type === 'onlyWithAnyTag') {
-          if (t.tags.length === 0) return false;
+          if (t.trailTags.length === 0) return false;
         } else if (filters.tags.type === 'onlyWithoutAnyTag') {
-          if (t.tags.length !== 0) return false;
+          if (t.trailTags.length !== 0) return false;
         } else if (filters.tags.tagsUuids.length > 0) {
-          const uuids = t.tags.map(tag => tag.tagUuid);
+          const uuids = t.trailTags.map(tag => tag.tagUuid);
           switch (filters.tags.type) {
             case 'include_and':
               for (const uuid of filters.tags.tagsUuids) if (uuids.indexOf(uuid) < 0) return false;
@@ -732,7 +744,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private highlightTimeout: any;
-  private refreshHighlights(ranges: Map<string, {length: number, name: number, location: number}>, delay: number = 0): void {
+  private refreshHighlights(ranges: Map<string, {text: string, name: number, location: number, inTags: boolean}>, delay: number = 0, trial: number = 1): void {
     if (this.highlightTimeout) clearTimeout(this.highlightTimeout);
     this.highlightTimeout = setTimeout(() => {
       this.clearHighlights();
@@ -744,10 +756,10 @@ export class TrailsListComponent extends AbstractComponent {
           if (pos.name >= 0) {
             const trailName = trailElement.getElementsByClassName('trail-name');
             if (trailName.length > 0) {
-              const element = trailName.item(0)!.firstChild!;
+              const element = trailName.item(0)!.firstElementChild!.firstChild!;
               const range = new Range();
               range.setStart(element, pos.name);
-              range.setEnd(element, pos.name + pos.length);
+              range.setEnd(element, pos.name + pos.text.length);
               this.highlightRanges.push(range);
               this.highlightService.addSearchText(range);
             }
@@ -758,9 +770,25 @@ export class TrailsListComponent extends AbstractComponent {
               const element = trailLocation.item(0)!.firstChild!;
               const range = new Range();
               range.setStart(element, pos.location);
-              range.setEnd(element, pos.location + pos.length);
+              range.setEnd(element, pos.location + pos.text.length);
               this.highlightRanges.push(range);
               this.highlightService.addSearchText(range);
+            }
+          }
+          if (pos.inTags) {
+            const tags = trailElement.getElementsByClassName('tag');
+            for (let i = 0; i < tags.length; ++i) {
+              const tagElement = tags.item(i) as HTMLElement;
+              const tagText = tagElement.innerText;
+              const textIndex = tagText.toLowerCase().indexOf(pos.text);
+              if (textIndex >= 0) {
+                const element = tagElement.firstChild!;
+                const range = new Range();
+                range.setStart(element, textIndex);
+                range.setEnd(element, textIndex + pos.text.length);
+                this.highlightRanges.push(range);
+                this.highlightService.addSearchText(range);
+              }
             }
           }
         } catch (e) { // NOSONAR
@@ -768,8 +796,8 @@ export class TrailsListComponent extends AbstractComponent {
           retry = true;
         }
       });
-      if (retry) {
-        this.refreshHighlights(ranges, 100);
+      if (retry && trial < 5) {
+        this.refreshHighlights(ranges, 100 * trial, trial + 1);
       }
     }, delay);
   }

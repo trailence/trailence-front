@@ -270,9 +270,9 @@ export class TrailSelection {
 
   private graphRange(event: GraphRange[] | undefined): void {
     if (!event || event.length === 0) {
-      this.cancelSelection();
       return;
     }
+    this.cancelSelection();
     const ranges = event.map(r => new RangeReference(
       new PointReference(r.track, r.start.segmentIndex, r.start.pointIndex),
       new PointReference(r.track, r.end.segmentIndex, r.end.pointIndex)

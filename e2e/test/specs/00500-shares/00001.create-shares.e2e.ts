@@ -20,8 +20,7 @@ describe('Shares - Create', () => {
   });
 
   it('Share full collection to friend1 without photos', async () => {
-    const list = await collectionPage.trailsAndMap.openTrailsList();
-    await list.toolbar.clickByIcon('share');
+    (await collectionPage.header.openActionsMenu()).clickItemWithIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.shareWholeCollection();
     await modal.setShareName('full col');
@@ -30,8 +29,7 @@ describe('Shares - Create', () => {
   });
 
   it('Share Tag 2 to friend2 without photos to friend2', async () => {
-    const list = await collectionPage.trailsAndMap.openTrailsList();
-    await list.toolbar.clickByIcon('share');
+    (await collectionPage.header.openActionsMenu()).clickItemWithIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.shareTags();
     await modal.selectTags(['Tag 2']);
@@ -41,8 +39,7 @@ describe('Shares - Create', () => {
   });
 
   it('Share Tag2 and Tag 4 with photos to friend3', async () => {
-    const list = await collectionPage.trailsAndMap.openTrailsList();
-    await list.toolbar.clickByIcon('share');
+    (await collectionPage.header.openActionsMenu()).clickItemWithIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.shareTags();
     await modal.selectTags(['Tag 2', 'Tag 4']);
@@ -60,7 +57,7 @@ describe('Shares - Create', () => {
     trail = await list.findItemByTrailName('Randonnée du 05/06/2023 à 08:58');
     expect(trail).toBeDefined();
     await trail!.selectTrail();
-    await list.selectionMenu('Share');
+    await list.selectionMenuWithIcon('share');
     const modal = new ShareModal(await App.waitModal());
     await modal.setShareName('2trails');
     await modal.addEmail('friend4@trailence.org');

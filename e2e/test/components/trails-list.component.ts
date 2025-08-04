@@ -19,11 +19,11 @@ export class TrailsList extends Component {
   public get selectAllCheckbox() { return new IonicCheckbox(this.getElement().$('div.selection').$('ion-checkbox')); }
 
   public async switchToCondensedView() {
-    await new IonicSegment(this.getElement().$('div.selection div.view-selection ion-segment')).setSelected('condensed');
+    (await this.toolbar.clickByIconAndGetMenu('list-items')).clickItemWithIcon('list-condensed');
   }
 
   public async switchToDetailedView() {
-    await new IonicSegment(this.getElement().$('div.selection div.view-selection ion-segment')).setSelected('detailed');
+    (await this.toolbar.clickByIconAndGetMenu('list-items')).clickItemWithIcon('list-detailed');
   }
 
   public async getItemTrailOverview(item: WebdriverIO.Element) {
@@ -106,10 +106,10 @@ export class TrailsList extends Component {
     const trailPage = new TrailPage(owner, uuid);
     await TestUtils.retry(async (trial) => {
       if (trial > 1 && await trailPage.isDisplayed()) return;
-      const openButton = new IonicButton(trail.getElement(trial > 1).$('div.open-trail ion-button'));
-      await openButton.getElement().scrollIntoView({block: 'center', inline: 'center'});
-      await openButton.click();
-      await browser.waitUntil(() => openButton.isDisplayed().then(d => !d), { timeout: 5000 });
+      const link = trail.getElement(trial > 1).$('div.trail-name a');
+      await link.scrollIntoView({block: 'center', inline: 'center'});
+      await link.click();
+      await browser.waitUntil(() => link.isDisplayed().then(d => !d), { timeout: 5000 });
     }, 5, 100);
     await trailPage.waitDisplayed();
     return trailPage;
@@ -129,6 +129,10 @@ export class TrailsList extends Component {
 
   public async selectionMenu(itemName: string) {
     await (await this.openSelectionMenu()).clickItemWithText(itemName);
+  }
+
+  public async selectionMenuWithIcon(icon: string) {
+    await (await this.openSelectionMenu()).clickItemWithIcon(icon);
   }
 
   public async selectTrails(names: string[]) {

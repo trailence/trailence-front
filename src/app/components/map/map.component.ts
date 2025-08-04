@@ -450,7 +450,7 @@ export class MapComponent extends AbstractComponent {
     let bounds = map.getBounds();
     const sw = map.latLngToContainerPoint(bounds.getSouthWest());
     const ne = map.latLngToContainerPoint(bounds.getNorthEast());
-    ne.y += 40;
+    ne.y += 55;
     sw.y -= 40;
     ne.x -= 65;
     sw.x += 65;

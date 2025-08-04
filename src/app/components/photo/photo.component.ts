@@ -50,7 +50,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.error = false;
       this.setBlob(undefined);
       if (this.photo) {
-        const loadPhoto = (photo: Photo) => {
+        const loadPhoto = (photo: Photo, trial: number) => {
           this.subscription = this.photoService.getBlobUrl$(photo).subscribe({
             next: blob => {
               this.setBlob(blob);
@@ -59,19 +59,23 @@ export class PhotoComponent implements OnChanges, OnDestroy {
               Console.error('Error loading photo', e);
               this.error = true;
               this.subscription = undefined;
-              this.reloadError(loadPhoto, photo);
+              if (trial > 1 && photo.uuid.startsWith('http')) {
+                this.setBlob({url: photo.uuid});
+                return;
+              }
+              this.reloadError(loadPhoto, photo, trial + 1);
               this.changesDetector.detectChanges();
             }
           });
         }
-        if (!this.loadWhenVisible) loadPhoto(this.photo);
+        if (!this.loadWhenVisible) loadPhoto(this.photo, 1);
         else {
           const p = this.photo;
           const observer = new IntersectionObserver(entries => {
             if (entries.some(e => e.isIntersecting)) {
               observer.disconnect();
               if (this.photo?.uuid === p.uuid && this.photo?.owner === p.owner)
-                loadPhoto(p);
+                loadPhoto(p, 1);
             }
           });
           observer.observe(this.elementRef.nativeElement);
@@ -94,7 +98,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     this.changesDetector.detectChanges();
   }
 
-  private reloadError(loader: (photo: Photo) => void, photo: Photo): void {
+  private reloadError(loader: (photo: Photo, trial: number) => void, photo: Photo, trial: number): void {
     this.reloadSubscription?.unsubscribe();
     let firstInternetCheck = true;
     this.reloadSubscription = this.network.internet$.pipe(
@@ -110,7 +114,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       first(),
     ).subscribe(() => {
       if (this.photo?.owner !== photo.owner || this.photo?.uuid !== photo.uuid) return;
-      loader(photo);
+      loader(photo, trial);
     });
   }
 

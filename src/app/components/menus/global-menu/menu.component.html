@@ -11,22 +11,63 @@
 </div>
 <div class="menu-content">
 
+  <ng-container *ngIf="fetchSourceService.canSearch$ | async">
+    <div class="menu-item" (click)="goTo('/trails/search'); close();">
+      <ion-icon name="search-map" class="left-icon"></ion-icon>
+      <div class="item-title-container">
+        <div class="item-title">{{ i18n.texts.menu.search_trail }}</div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="menu-item" (click)="goTo('/trail-planner'); close();">
+    <ion-icon name="planner" class="left-icon"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{ i18n.texts.menu.planner }}</div>
+    </div>
+  </div>
+
+  <div class="menu-item" (click)="goToRecordTrace(); close();">
+    <ion-icon name="play" class="left-icon"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{ i18n.texts.menu[traceRecorder.recording ? 'current_trace' : 'start_trace'] }}</div>
+    </div>
+  </div>
+
+  <div class="menu-separator"></div>
+
+  <div class="menu-item user-selection" (click)="goTo('/trails/my-selection'); close();" style="color: var(--ion-color-my-selection)">
+    <div class="item-title-container">
+      <div class="item-title">
+        <div class="name-and-count">
+          <ion-icon name="star-filled" class="left-icon"></ion-icon>
+          <a href="/trails/my-selection" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+            {{ i18n.texts.my_selection }}
+          </a>
+          <div class="count">{{mySelectionCount}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-item" (click)="goTo('/stats'); close();">
+    <ion-icon name="stats" class="left-icon"></ion-icon>
+    <div class="item-title-container">
+      <div class="item-title">{{ i18n.texts.pages.stats.title }}</div>
+    </div>
+  </div>
+
   <div class="menu-section" id="section-collections">
-    <div class="menu-section-header">
-      <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="collectionsOpen = !collectionsOpen">
+    <div class="menu-section-header" (click)="collectionsOpen = !collectionsOpen">
+      <ion-icon name="collection" class="left-icon"></ion-icon>
+      <div class="section-title">{{ i18n.texts.menu.collections }}</div>
+      <ion-button size="small" shape="round" fill="clear" color="secondary">
         <ion-icon slot="icon-only" [name]="collectionsOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
       </ion-button>
-      <ion-icon name="collection"></ion-icon>
-      <div class="section-title">{{ i18n.texts.menu.collections }}</div>
-      <div class="section-buttons">
-        <ion-button fill="clear" color="secondary" size="small" (click)="collectionService.collectionPopup(); close();">
-          <ion-icon name="add" slot="icon-only"></ion-icon>
-        </ion-button>
-      </div>
     </div>
     @if (collectionsOpen) {
       @for (collectionWithInfo of collections; track collectionWithInfo.collection.uuid) {
-        <div class="menu-item" (click)="goTo('/trails/collection/' + collectionWithInfo.collection.uuid); close();">
+        <div class="menu-item item-collection" (click)="goTo('/trails/collection/' + collectionWithInfo.collection.uuid); close();">
           <div class="item-title-container">
             <div class="item-title with-actions">
               <div class="name-and-count">
@@ -42,7 +83,7 @@
           </div>
         </div>
       }
-      <div class="menu-item all-collections" (click)="goTo('/trails/all-collections'); close();" style="color: var(--ion-color-tertiary)">
+      <div class="menu-item all-collections" (click)="goTo('/trails/all-collections'); close();">
         <div class="item-title-container">
           <div class="item-title">
             <div class="name-and-count">
@@ -54,31 +95,21 @@
           </div>
         </div>
       </div>
-      <div class="menu-item user-selection" (click)="goTo('/trails/my-selection'); close();" style="color: var(--ion-color-my-selection)">
+      <div class="menu-item new-collection" (click)="collectionService.collectionPopup(); close();">
         <div class="item-title-container">
-          <div class="item-title">
-            <div class="name-and-count">
-              <ion-icon name="star-filled"></ion-icon>
-              <a href="/trails/my-selection" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
-                {{ i18n.texts.my_selection }}
-              </a>
-              <div class="count">{{mySelectionCount}}</div>
-            </div>
-          </div>
+          <div class="item-title">{{ i18n.texts.pages.trails.actions.new_collection }}</div>
         </div>
       </div>
     }
   </div>
 
-  <div class="menu-separator"></div>
-
   <div class="menu-section" id="section-shared-with-me">
-    <div class="menu-section-header">
-      <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="sharedWithMeOpen = !sharedWithMeOpen">
+    <div class="menu-section-header" (click)="sharedWithMeOpen = !sharedWithMeOpen">
+      <ion-icon name="share" class="left-icon"></ion-icon>
+      <div class="section-title">{{ i18n.texts.menu.shared_with_me }}</div>
+      <ion-button size="small" shape="round" fill="clear" color="secondary">
         <ion-icon slot="icon-only" [name]="sharedWithMeOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
       </ion-button>
-      <ion-icon name="share"></ion-icon>
-      <div class="section-title">{{ i18n.texts.menu.shared_with_me }}</div>
     </div>
     @if (sharedWithMeOpen) {
       <ng-container *ngIf="!sharedWithMe.isEmpty()">
@@ -106,12 +137,12 @@
   </div>
 
   <div class="menu-section" id="section-shared-by-me">
-    <div class="menu-section-header">
-      <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="sharedByMeOpen = !sharedByMeOpen">
+    <div class="menu-section-header" (click)="sharedByMeOpen = !sharedByMeOpen">
+      <ion-icon name="share-outline" class="left-icon"></ion-icon>
+      <div class="section-title">{{ i18n.texts.menu.shared_by_me }}</div>
+      <ion-button size="small" shape="round" fill="clear" color="secondary">
         <ion-icon slot="icon-only" [name]="sharedByMeOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
       </ion-button>
-      <ion-icon name="share-outline"></ion-icon>
-      <div class="section-title">{{ i18n.texts.menu.shared_by_me }}</div>
     </div>
     @if (sharedByMeOpen) {
       <ng-container *ngIf="!sharedByMe.isEmpty()">
@@ -146,15 +177,13 @@
   }
 
   @if ((pubDraft && pubDraft.nbTrails) || (pubSubmit && pubSubmit.nbTrails) || (pubReject && pubReject.nbTrails) || myPublicTrails.length > 0) {
-    <div class="menu-separator"></div>
-
     <div class="menu-section" id="section-publications">
-      <div class="menu-section-header">
-        <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="publicationsOpen = !publicationsOpen">
+      <div class="menu-section-header" (click)="publicationsOpen = !publicationsOpen">
+        <ion-icon name="web" class="left-icon"></ion-icon>
+        <div class="section-title">{{ i18n.texts.menu.my_publications }}</div>
+        <ion-button size="small" shape="round" fill="clear" color="secondary">
           <ion-icon slot="icon-only" [name]="publicationsOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
         </ion-button>
-        <ion-icon name="web"></ion-icon>
-        <div class="section-title">{{ i18n.texts.menu.my_publications }}</div>
       </div>
       @if (publicationsOpen) {
         @if (pubDraft) {
@@ -216,49 +245,14 @@
 
   }
 
-  <div class="menu-separator"></div>
-
-  <div class="menu-item" (click)="goTo('/stats'); close();">
-    <ion-icon name="stats"></ion-icon>
-    <div class="item-title-container">
-      <div class="item-title">{{ i18n.texts.pages.stats.title }}</div>
-    </div>
-  </div>
-
-  <div class="menu-separator"></div>
-
-  <div class="menu-item" (click)="goToRecordTrace(); close();">
-    <ion-icon name="play"></ion-icon>
-    <div class="item-title-container">
-      <div class="item-title">{{ i18n.texts.menu[traceRecorder.recording ? 'current_trace' : 'start_trace'] }}</div>
-    </div>
-  </div>
-
-  <div class="menu-item" (click)="goTo('/trail-planner'); close();">
-    <ion-icon name="planner"></ion-icon>
-    <div class="item-title-container">
-      <div class="item-title">{{ i18n.texts.menu.planner }}</div>
-    </div>
-  </div>
-
-  <ng-container *ngIf="fetchSourceService.canSearch$ | async">
-    <div class="menu-item" (click)="goTo('/trails/search'); close();">
-      <ion-icon name="search-map"></ion-icon>
-      <div class="item-title-container">
-        <div class="item-title">{{ i18n.texts.menu.search_trail }}</div>
-      </div>
-    </div>
-  </ng-container>
-
   <ng-container *ngIf="isAdmin || isModerator">
-    <div class="menu-separator"></div>
     <div class="menu-section" id="section-moderation">
-      <div class="menu-section-header">
-        <ion-button size="small" shape="round" fill="clear" color="secondary" (click)="moderationOpen = !moderationOpen">
+      <div class="menu-section-header" (click)="moderationOpen = !moderationOpen">
+        <ion-icon name="web" class="left-icon"></ion-icon>
+        <div class="section-title">{{ i18n.texts.publications.moderation.menu_title }}</div>
+        <ion-button size="small" shape="round" fill="clear" color="secondary">
           <ion-icon slot="icon-only" [name]="moderationOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
         </ion-button>
-        <ion-icon name="web"></ion-icon>
-        <div class="section-title">{{ i18n.texts.publications.moderation.menu_title }}</div>
       </div>
       @if (moderationOpen) {
         <div class="menu-item" (click)="goTo('/trails/moderation'); close();">
@@ -276,7 +270,7 @@
     @if (isAdmin && !isNative) {
       <div class="menu-separator"></div>
       <div class="menu-item" (click)="goTo('/admin'); close();">
-        <ion-icon name="tool"></ion-icon>
+        <ion-icon name="tool" class="left-icon"></ion-icon>
         <div class="item-title-container">
           <div class="item-title">{{ i18n.texts.administration }}</div>
         </div>
@@ -286,13 +280,13 @@
 
   <div class="menu-separator"></div>
   <div class="menu-item" (click)="goToPublicPage('/contact'); close();">
-    <ion-icon name="mail"></ion-icon>
+    <ion-icon name="mail" class="left-icon"></ion-icon>
     <div class="item-title-container">
       <div class="item-title">{{ i18n.texts.pages.contact.title }}</div>
     </div>
   </div>
   <div class="menu-item" (click)="goToPublicPage('/donation'); close();">
-    <ion-icon name="heart-outline" class="donation-color"></ion-icon>
+    <ion-icon name="heart-outline" class="donation-color left-icon"></ion-icon>
     <div class="item-title-container">
       <div class="item-title">{{ i18n.texts.pages.donation.title }}</div>
     </div>

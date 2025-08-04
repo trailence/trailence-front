@@ -58,7 +58,7 @@ export class HomePage extends PublicPage {
   mode!: 'desktop' | 'mobile';
   desktopMaskSize!: number;
 
-  ssUrl = environment.assetsUrl + '/home-page/ss.2';
+  ssUrl = environment.assetsUrl + '/home-page/ss.3';
   maskUrl = environment.assetsUrl + '/home-page/mask.1';
 
   year = new Date().getFullYear();

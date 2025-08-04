@@ -490,7 +490,7 @@ export class TrailGraphComponent extends AbstractComponent {
         this.pointHover.emit(references);
       },
       onClick: (event:any, elements: C.ActiveElement[], chart: any) => {
-        if (event.type !== 'click' || (this.selection && this.selection.length > 0)) return;
+        if (event.type !== 'click') return;
         const references = this.canvas!.chart!.getActiveElements().map(element => {
           if ((this.chartData!.datasets[element.datasetIndex] as any).isNotData) return null;
           if ((element.element as any).$context) // NOSONAR

@@ -1,6 +1,5 @@
 <app-toolbar
   [items]="toolbar"
-  [maxItems]="size === 'small' ? 2 : size === 'large' ? 4 : 3"
   [itemPaddingLeft]="size === 'medium' ? '2px' : '4px'"
   [itemPaddingRight]="size === 'medium' ? '2px' : '4px'"
   [itemSpace]="size === 'medium' ? '2px' : '4px'"
@@ -18,17 +17,12 @@
       <div class="nb-selected">
         {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
       </div>
-      <ion-button color="dark" fill="clear" class="selection-button" [disabled]="selected === 0" (click)="openSelectionMenu($event)">
-        <ion-icon slot="icon-only" name="more-menu"></ion-icon>
-      </ion-button>
+      @if (selected > 0) {
+        <ion-button color="dark" fill="clear" class="selection-button" (click)="openSelectionMenu($event)">
+          <ion-icon slot="icon-only" name="more-menu"></ion-icon>
+        </ion-button>
+      }
     </ng-template>
-    <div class="space"></div>
-    <div class="view-selection">
-      <ion-segment mode="ios" [value]="state$.value.mode" (ionChange)="setListMode($event.detail.value)">
-        <ion-segment-button value="detailed"><ion-icon name="list-detailed"></ion-icon></ion-segment-button>
-        <ion-segment-button value="condensed"><ion-icon name="list-condensed"></ion-icon></ion-segment-button>
-      </ion-segment>
-    </div>
   </div>
 }
 <div class="trails">
@@ -78,53 +72,7 @@
       <div>{{i18n.texts.pages.trails.empty_list.filter}}</div>
     </div>
   } @else {
-    @switch (state$.value.mode) {
-      @case ("detailed") {
-        @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
-          <div class="trail metadata-container {{size === 'large' ? 'two-columns' : ('one-column' + (size === 'medium' ? ' accept-small' : ''))}}"
-            [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
-            id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
-            [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
-          >
-            <app-trail-overview
-              [trail]="trailWithInfo.trail"
-              [trailInfo]="trailWithInfo.info"
-              [selectable]="true"
-              [selected]="trailWithInfo.selected"
-              (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
-              (click)="onTrailClick(trailWithInfo.trail)"
-              [fromCollection]="!!collectionUuid"
-              [isAllCollections]="listType === 'all-collections'"
-              [isModeration]="listType === 'moderation'"
-              [trackSnapshot]="trailWithInfo.track"
-              [delayLoading]="$index >= 10"
-              [photoCanBeOnLeft]="size !== 'small'"
-              [showPublished]="showPublished"
-              [config]="metadataConfig"
-            ></app-trail-overview>
-          </div>
-        }
-      }
-
-      @case ("condensed") {
-        @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
-          <app-trail-overview-condensed
-            id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
-            [trail]="trailWithInfo.trail"
-            [track]="trailWithInfo.track"
-            [selectable]="true"
-            [selected]="trailWithInfo.selected"
-            (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
-            [fromCollection]="!!collectionUuid"
-            [isAllCollections]="listType === 'all-collections'"
-            [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
-            (click)="onTrailClick(trailWithInfo.trail)"
-            [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
-          >
-          </app-trail-overview-condensed>
-        }
-      }
-    }
+    <ng-container *ngTemplateOutlet="trailsListTemplate; context: { nbSelected: nbSelected }"></ng-container>
   }
   <div class="list-bottom"></div>
 </div>
@@ -144,6 +92,61 @@
     </ion-button>
   </div>
 </div>
+
+<ng-template #trailsListTemplate let-nbSelected="nbSelected">
+  @switch (state$.value.mode) {
+    @case ("detailed") {
+      @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
+        <div class="trail metadata-container {{size === 'large' ? 'two-columns' : ('one-column' + (size === 'medium' ? ' accept-small' : ''))}}"
+          [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
+          id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
+          [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
+        >
+          <app-trail-overview
+            [trail]="trailWithInfo.trail"
+            [trailInfo]="trailWithInfo.info"
+            [trailTags]="trailWithInfo.trailTags"
+            [selectable]="true"
+            [selected]="trailWithInfo.selected"
+            (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
+            (click)="onTrailClick(trailWithInfo.trail)"
+            [fromCollection]="!!collectionUuid"
+            [isAllCollections]="listType === 'all-collections'"
+            [isModeration]="listType === 'moderation'"
+            [trackSnapshot]="trailWithInfo.track"
+            [delayLoading]="$index >= 10 && state$.value.filters.search.length === 0"
+            [photoCanBeOnLeft]="size !== 'small'"
+            [showPublished]="showPublished"
+            [config]="metadataConfig"
+            [enableShowOnMap]="enableShowOnMap"
+            (showOnMap)="showOnMap.emit($event)"
+            [hideMenu]="nbSelected > 0"
+          ></app-trail-overview>
+        </div>
+      }
+    }
+
+    @case ("condensed") {
+      @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
+        <app-trail-overview-condensed
+          id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
+          [trail]="trailWithInfo.trail"
+          [track]="trailWithInfo.track"
+          [selectable]="true"
+          [selected]="trailWithInfo.selected"
+          (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
+          [fromCollection]="!!collectionUuid"
+          [isAllCollections]="listType === 'all-collections'"
+          [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
+          (click)="onTrailClick(trailWithInfo.trail)"
+          [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
+          [hideMenu]="nbSelected > 0"
+        >
+        </app-trail-overview-condensed>
+      }
+    }
+  }
+</ng-template>
 
 <ion-modal #filtersModal>
   <ng-template>

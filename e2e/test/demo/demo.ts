@@ -61,12 +61,15 @@ describe('Demo', () => {
             const trailPage = await (await mytrails.trailsAndMap.openTrailsList()).openTrailByName('Mouton d\'Anou');
             const menu = await trailPage.header.openActionsMenu();
             await menu.clickItemWithText('[Dev] Replay following current');
+            await App.waitToastAndCloseIt();
             await browser.pause(15000); // wait the replay + remaining metadata to be ready
           }
         ],
         mobileMode: [
           async () => {
-            // nothing, stay here
+            const map = await (await TrailPage.waitForOpen()).trailComponent.openMap();
+            await map.centerOnGeolocation();
+            await map.centerOnGeolocation();
           }
         ],
         doAfter: async () => {

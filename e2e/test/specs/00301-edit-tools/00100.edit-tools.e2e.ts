@@ -122,16 +122,20 @@ describe('Edit tools', () => {
 
   it('Select from elevation graph, then remove', async () => {
     const graph = await trailPage.trailComponent.showElevationGraph();
-    // select a range on graph
-    await browser.action('pointer')
-      .move({x: 50, y: 25, origin: await graph.getElement().$('canvas').getElement()})
-      .pause(10)
-      .down()
-      .pause(10)
-      .move({x: 100, y: 25, origin: await graph.getElement().$('canvas').getElement()})
-      .pause(10)
-      .up()
-      .perform();
+    await TestUtils.retry(async () => {
+      // select a range on graph
+      await browser.action('pointer')
+        .move({x: 50, y: 25, origin: await graph.getElement().$('canvas').getElement()})
+        .pause(10)
+        .down()
+        .pause(10)
+        .move({x: 100, y: 25, origin: await graph.getElement().$('canvas').getElement()})
+        .pause(10)
+        .up()
+        .perform();
+      // zoom button should be displayed
+      await browser.waitUntil(() => graph.zoomButton.isDisplayed());
+    }, 2, 100);
     await tools.waitSelectionTool();
     await tools.removeSelectedRangeAndReconnect();
     await tools.undo();
@@ -185,13 +189,17 @@ describe('Edit tools', () => {
   it('Join departure and arrival, then undo', async () => {
     expect(await tools.canJoinArrivalToDeparture()).toBeTrue();
     await tools.joinArrivalToDeparture();
+    await browser.pause(500);
     expect(await tools.canJoinArrivalToDeparture()).toBeFalse();
     await tools.undo();
+    await browser.pause(500);
     expect(await tools.canJoinArrivalToDeparture()).toBeTrue();
     expect(await tools.canJoinDepartureToArrival()).toBeTrue();
     await tools.joinDepartureToArrival();
+    await browser.pause(500);
     expect(await tools.canJoinDepartureToArrival()).toBeFalse();
     await tools.undo();
+    await browser.pause(500);
     expect(await tools.canJoinDepartureToArrival()).toBeTrue();
     while (await tools.canUndo())
       await tools.undo();

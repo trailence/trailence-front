@@ -16,7 +16,11 @@
       (ionChange)="setSelected($event.detail.checked)"
       (click)="$event.stopPropagation()"
     ></ion-checkbox>
-    <div class="trail-name">{{ trail.name }}</div>
+    <div class="trail-name">
+      <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">
+        {{ trail.name }}
+      </a>
+    </div>
   </div>
   <ng-container *ngIf="!subTitle">
     <div class="trail-tags-row">
@@ -49,13 +53,10 @@
   <div class="meta">{{positiveElevation}}</div>
   <div class="meta">{{negativeElevation}}</div>
 </div>
-<div class="cell-buttons" *ngIf="showButtons">
-  <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
-    <ion-icon name="item-menu" slot="icon-only"></ion-icon>
-  </ion-button>
-  <ion-button class="open-trail-button" size="small" fill="clear" color="secondary" (click)="openTrail(); $event.stopPropagation()">
-    <a href="{{ openUrl }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
-      <ion-icon name="enter" slot="icon-only"></ion-icon>
-    </a>
-  </ion-button>
-</div>
+@if (!hideMenu) {
+  <div class="cell-buttons">
+    <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
+      <ion-icon name="item-menu" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+}

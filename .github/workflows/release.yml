@@ -1,0 +1,180 @@
+name: Build
+on:
+  push:
+    tags:
+      - '*.*.*'
+jobs:
+  build-web-app:
+    name: Build - Web App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Cache Global NPM packages
+        uses: actions/cache@v4
+        with:
+          key: npm-global-packages
+          path: ~/.npm
+      - name: Build Production
+        run: |
+          npm ci
+          npm run build -- --configuration=production
+          npm run generate-public-pages
+          rm www/browser/media/*
+          rmdir www/browser/media
+      - name: Store web app
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-app
+          path: www/browser
+          retention-days: 30
+  build-android:
+    name: Build - Android App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Cache Global NPM packages
+        uses: actions/cache@v4
+        with:
+          key: npm-global-packages
+          path: ~/.npm
+      - name: Install dependencies
+        run: |
+          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm ci
+      - name: Trust store
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'trailence.jks'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
+      - name: Keys
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'keys.gradle'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
+      - name: Build Android Prod
+        run: |
+          ionic capacitor sync android --configuration=android-prod
+          rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
+          cd android/environments/prod
+          cpy . ../..
+          cd ../../..
+          cd android
+          chmod 777 ./gradlew
+          ./gradlew assembleRelease
+      - name: Store APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
+      - name: Build Android Store
+        run: |
+          ionic capacitor sync android --configuration=android-prod_store
+          rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
+          cd android/environments/prod_store
+          cpy . ../..
+          cd ../../..
+          cd android
+          chmod 777 ./gradlew
+          ./gradlew assembleRelease
+      - name: Store APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-store-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs:
+      - build-web-app
+      - build-android
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Retrieve web app build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-app
+          path: www/browser
+      - name: Retrieve apk
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-release
+          path: android/app/build/outputs/apk/release
+      - name: Rename apk
+        run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence.apk
+      - name: Retrieve apk store
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-store-release
+          path: android/app/build/outputs/apk/release
+      - name: Rename apk prod
+        run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence-store.apk
+      - name: Prepare assets
+        run: |
+          cd www/browser && zip -r ../../web-app.zip . && cd ../..
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset Web App
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./web-app.zip
+          asset_name: trailence-web-app-${{ github.ref }}.zip
+          asset_content_type: application/zip
+      - name: Upload Release Asset APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./trailence.apk
+          asset_name: trailence-${{ github.ref }}.apk
+          asset_content_type: application/zip
+      - name: Upload Release Asset APK Store
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./trailence-store.apk
+          asset_name: trailence-store-${{ github.ref }}.apk
+          asset_content_type: application/zip

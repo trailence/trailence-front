@@ -8,7 +8,7 @@ export class StatsConfig {
   public readonly config$: BehaviorSubject<StatsConfig>;
 
   private _value: StatsValue;
-  private _source: StatsSource;
+  private _source: StatsSource[];
   private _timeUnit: StatsTimeUnit;
   private _activityFilter: (TrailActivity | undefined)[];
 
@@ -20,8 +20,9 @@ export class StatsConfig {
       this._value = dto.value;
     else
       this._value = defaultConfig.value;
-    if (dto.source) {
-      this._source = dto.source;
+    if (dto.source && Array.isArray(dto.source)) {
+      this._source = dto.source.filter(s => typeof s === 'object' && s.type && s.type === 'collection');
+      if (this._source.length === 0) this._source = defaultConfig.source;
     } else {
       this._source = defaultConfig.source;
     }
@@ -51,7 +52,7 @@ export class StatsConfig {
   }
 
   public get source() { return this._source; }
-  public set source(v: StatsSource) {
+  public set source(v: StatsSource[]) {
     if (this._source === v) return;
     this._source = v;
     this.changed();
@@ -108,9 +109,13 @@ export enum StatsValue {
   DURATION = 'duration',
 }
 
-export type StatsSourceCollections = string[];
+export interface StatsSourceCollection {
+  type: 'collection',
+  owner?: string,
+  uuid: string,
+}
 
-export type StatsSource = StatsSourceCollections; // NOSONAR
+export type StatsSource = StatsSourceCollection; // NOSONAR
 
 export enum StatsTimeUnit {
   YEAR = 'year',
@@ -122,14 +127,14 @@ const STATS_CONFIG_LOCAL_STORAGE_KEY_PREFIX = 'trailence.stats.';
 
 interface StatsConfigDto {
   value: StatsValue;
-  source: StatsSource;
+  source: StatsSource[];
   timeUnit: StatsTimeUnit;
   activityFilter: (TrailActivity | undefined)[];
 }
 
 const defaultConfig: StatsConfigDto = {
   value: StatsValue.NB_TRAILS,
-  source: ['my_trails'],
+  source: [{type: 'collection', uuid: 'my_trails'}],
   timeUnit: StatsTimeUnit.YEAR,
   activityFilter: [],
 };

@@ -111,8 +111,8 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
           }
           if (unknowns.length > 0) {
             trails$.push(
-              ...Arrays.chunk(unknowns, 10)
-              .map(chunck => this.fetchTrailsByIds$(chunck, 10).pipe(
+              ...Arrays.chunk(unknowns, 5)
+              .map(chunck => this.fetchTrailsByIds$(chunck, 5).pipe(
                 map(result => result.filter(r => r.metadata.bounds && bounds.overlaps(r.metadata.bounds)).map(r => r.trail))
               ))
             );

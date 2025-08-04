@@ -1,6 +1,6 @@
 import { Injector } from '@angular/core';
 import { StatsConfig, StatsTimeUnit, StatsValue } from '../stats-config';
-import { map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { ChartConfig } from './chart-config';
 import { Trail } from 'src/app/model/trail';
 import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
@@ -13,6 +13,9 @@ import { TrackService } from 'src/app/services/database/track.service';
 import * as C from 'chart.js';
 import { Color } from 'src/app/utils/color';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
+import { ShareService } from 'src/app/services/database/share.service';
+import { Share } from 'src/app/model/share';
 
 C.Chart.register(C.LinearScale, C.BarController, C.CategoryScale, C.BarElement, C.PointElement);
 
@@ -216,18 +219,32 @@ export class GraphBuilder {
 
   private getAllItems(cfg: StatsConfig): Observable<Item[]> {
     if (Array.isArray(cfg.source)) {
-      return this.injector.get(TrailCollectionService).getAllCollectionsReady$().pipe(
-        switchMap(collections => {
+      return combineLatest([
+        this.injector.get(TrailCollectionService).getAllCollectionsReady$(),
+        this.injector.get(ShareService).getAllReady$(),
+      ]).pipe(
+        switchMap(([collections, shares]) => {
           const selectedCollections: TrailCollection[] = [];
-          for (const id of cfg.source) {
-            const col = id === 'my_trails' ? collections.find(c => c.type === TrailCollectionType.MY_TRAILS) : collections.find(c => c.uuid === id);
-            if (col && selectedCollections.indexOf(col) < 0) selectedCollections.push(col);
+          const selectedShares: Share[] = [];
+          for (const src of cfg.source) {
+            if (src.type === 'collection') {
+              if (src.uuid === 'my_trails') {
+                const col = collections.find(c => c.type === TrailCollectionType.MY_TRAILS)
+                if (col && selectedCollections.indexOf(col) < 0) selectedCollections.push(col);
+              } else if (src.owner === this.injector.get(AuthService).email) {
+                const col = collections.find(c => c.uuid === src.uuid)
+                if (col && selectedCollections.indexOf(col) < 0) selectedCollections.push(col);
+              } else {
+                const share = shares.find(s => s.uuid === src.uuid && s.owner === src.owner);
+                if (share && selectedShares.indexOf(share) < 0) selectedShares.push(share);
+              }
+            }
           }
-          if (selectedCollections.length === 0) return of([]);
+          if (selectedCollections.length === 0 && selectedShares.length === 0) return of([]);
           return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
             collection$items(),
             switchMap(allTrails => {
-              const selectedTrails = allTrails.filter(trail => !!selectedCollections.find(c => c.uuid === trail.collectionUuid));
+              const selectedTrails = allTrails.filter(trail => !!selectedCollections.find(c => c.uuid === trail.collectionUuid) || !!selectedShares.find(s => s.owner === trail.owner && s.trails.indexOf(trail.uuid) >= 0));
               if (selectedTrails.length === 0) return of([]);
               return this.injector.get(TrackService).getMetadataList$(selectedTrails.map(t => ({owner: t.owner, uuid: t.currentTrackUuid}))).pipe(
                 collection$items(),

@@ -38,6 +38,8 @@
       [collectionUuid]="collectionUuid"
       [listType]="type"
       (trailClick)="onTrailClickOnList($event)"
+      [enableShowOnMap]="isSmall"
+      (showOnMap)="onTrailClickOnList($event, true)"
       [map]="map"
       (mapFilteredTrails)="updateMap($event)"
       [message]="message"
@@ -65,6 +67,7 @@
         [navigationIndex]="bottomSheetTrailsIndex"
         (navigationIndexChange)="navigateBottomSheetTrail($event)"
         [renameOnTrailNamePress]="true"
+        [fromCollection]="!!collectionUuid"
       ></app-trail-overview>
     </ng-container>
   </div>

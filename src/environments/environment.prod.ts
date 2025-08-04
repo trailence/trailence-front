@@ -3,4 +3,5 @@ export const environment = {
   apiBaseUrl: '/api',
   assetsUrl: '/assets',
   baseUrl: 'https://trailence.org',
+  canAutoUpdate: false,
 };

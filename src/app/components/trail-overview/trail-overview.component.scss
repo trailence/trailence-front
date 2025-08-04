@@ -36,8 +36,8 @@
   }
 
   ion-button.my-selection {
-    margin-inline-start: 0;
-    margin-inline-end: 0;
+    margin-inline-start: 2px;
+    margin-inline-end: 2px;
     margin-top: 0;
     margin-bottom: 0;
     min-width: 24px;
@@ -50,6 +50,15 @@
     font-size: 15px;
     max-width: calc(100% - 45px);
     margin-left: 2px;
+
+    a, a:active {
+      text-decoration: none;
+      color: inherit;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
 
     &:not(.selectable) {
       max-width: calc(100% - 28px);
@@ -65,11 +74,11 @@
   ion-button.trail-menu-button {
     margin: 0;
     margin-inline-end: 0;
-    min-width: 24px;
+    min-width: 28px;
   }
   ion-button.public-trail-button {
-    margin: 0;
-    min-width: 20px;
+    margin: 0 4px 0 0;
+    min-width: 24px;
   }
 
 }
@@ -150,7 +159,7 @@ div.metadata-with-photos.photo-block {
   }
 }
 
-.open-trail {
+.show-on-map {
   position: absolute;
   bottom: 0px;
   right: 0px;

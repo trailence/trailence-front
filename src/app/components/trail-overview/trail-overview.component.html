@@ -16,7 +16,9 @@
       <ion-icon slot="icon-only" [name]="meta.isInMySelection ? 'star-filled' : 'star-empty'"></ion-icon>
     </ion-button>
   }
-  <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (onPress)="trailNamePressed()">{{ meta.name }}</div>
+  <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (onPress)="trailNamePressed()">
+    <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
+  </div>
   @if (publicTrailUuid) {
     <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
       <ion-icon name="web" slot="icon-only"></ion-icon>
@@ -27,9 +29,11 @@
       <div class="ocsm-symbol" [innerHTML]="svg"></div>
     </ng-container>
   </ng-container>
-  <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
-    <ion-icon name="item-menu" slot="icon-only"></ion-icon>
-  </ion-button>
+  @if (!hideMenu) {
+    <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
+      <ion-icon name="item-menu" slot="icon-only"></ion-icon>
+    </ion-button>
+  }
 </div>
 <ng-container *ngIf="load$.value">
   <div class="trail-tags-row" [ngClass]="{'nowrap': hasFixedHeight}">
@@ -79,13 +83,13 @@
   <ng-container *ngIf="!track$.value">
     <ion-spinner name="dots"></ion-spinner>
   </ng-container>
-  <div class="open-trail" *ngIf="trail">
-    <ion-button size="small" fill="clear" color="secondary" (click)="openTrail(); $event.stopPropagation()">
-      <a href="{{ openUrl }}" target="_blank" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
-        <ion-icon name="enter" slot="icon-only"></ion-icon>
-      </a>
-    </ion-button>
-  </div>
+  @if (trail && enableShowOnMap) {
+    <div class="show-on-map">
+      <ion-button size="small" fill="clear" color="secondary" (click)="showOnMap.emit(trail); $event.stopPropagation()">
+        <ion-icon name="search-map" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  }
 </ng-container>
 <ng-template #metadata>
   <div id="track-metadata-{{id}}"></div>

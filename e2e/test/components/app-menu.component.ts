@@ -14,11 +14,11 @@ import { MenuContent } from './menu-content.component';
 export class AppMenu extends Component {
 
   public getCollectionsSection() {
-    return this.getElement().$('div.menu-content div.menu-section:first-child');
+    return this.getElement().$('div.menu-content div.menu-section#section-collections');
   }
 
   public getCollectionsItems() {
-    return this.getCollectionsSection().$$('div.menu-item');
+    return this.getCollectionsSection().$$('div.menu-item.item-collection');
   }
 
   public async getCollectionName(item: WebdriverIO.Element | ChainablePromiseElement) {
@@ -31,9 +31,7 @@ export class AppMenu extends Component {
     await browser.waitUntil(() => this.getCollectionName(items[0]).then(name => name.length > 0));
     const names: string[] = [];
     for (const item of await items.getElements()) {
-      const c = await item.getAttribute('class');
-      if (c.indexOf('all-collections') < 0 && c.indexOf('user-selection') < 0)
-        names.push(await this.getCollectionName(item));
+      names.push(await this.getCollectionName(item));
     }
     return names;
   }
@@ -54,7 +52,7 @@ export class AppMenu extends Component {
   }
 
   public getAddCollectionButton() {
-    return new IonicButton(this.getCollectionsSection(), '.menu-section-header .section-buttons ion-button');
+    return this.getCollectionsSection().$('.menu-item.new-collection');
   }
 
   public async addCollection(name: string) {

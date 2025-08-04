@@ -92,7 +92,7 @@ jobs:
           filename: 'keys.gradle'
           working-directory: './android'
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
-      - name: Build Android
+      - name: Build Android Prod
         run: |
           ionic capacitor sync android --configuration=android-prod
           rimraf android/app/src/main/assets/public/assets/apk
@@ -109,6 +109,25 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: apk-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
+      - name: Build Android Store
+        run: |
+          ionic capacitor sync android --configuration=android-prod_store
+          rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
+          cd android/environments/prod_store
+          cpy . ../..
+          cd ../../..
+          cd android
+          chmod 777 ./gradlew
+          ./gradlew assembleRelease
+      - name: Store APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-store-release
           path: android/app/build/outputs/apk/release
           retention-days: 30
   unit-tests-web-app:

@@ -37,6 +37,10 @@ export class ShareService {
     return this._store.getAll$();
   }
 
+  public getAllReady$(): Observable<Share[]> {
+    return this.getAll$().pipe(collection$items());
+  }
+
   public getShare$(id: string, from: string): Observable<Share | null> {
     return this.getAll$().pipe(
       collection$items(),

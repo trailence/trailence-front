@@ -7,7 +7,6 @@ import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
 import { combineLatest, first, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
-import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { isPublicationCollection, isPublicationLockedCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { Track } from 'src/app/model/track';
@@ -157,8 +156,6 @@ export class TrailMenuService {
 
     if (onlyGlobal && fromCollection && !isPublicationCollection(fromCollection.type)) {
       addTools();
-      menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.collection_menu_item')
-        .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, null, fromCollection.uuid))));
       menu.push(new MenuItem().setIcon('add-circle').setI18nLabel('tools.import')
         .setAction(() => import('../functions/import').then(m => m.openImportTrailsDialog(this.injector, fromCollection.uuid))));
     }
@@ -172,7 +169,7 @@ export class TrailMenuService {
     if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0 &&
       (onlyGlobal || fromCollection.uuid === this.getUniqueCollectionUuid(trails))) {
       addTools();
-      menu.push(new MenuItem().setIcon('share').setI18nLabel('tools.share')
+      menu.push(new MenuItem().setIcon('share').setI18nLabel('pages.trails.actions.share_' + (onlyGlobal ? 'global' : trails.length === 1 ? 'trail' : 'trails'))
         .setAction(() => import('../../components/share-popup/share-popup.component')
           .then(m => m.openSharePopup(this.injector, fromCollection.uuid, onlyGlobal ? [] : trails))
         ));

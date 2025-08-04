@@ -119,6 +119,12 @@ export class TagService {
     );
   }
 
+  public getTrailTagsWhenLoaded$(trailUuid: string): Observable<TrailTag[]> {
+    return this._trailTagStore.getAllWhenLoaded$().pipe(
+      collection$items(trailTag => trailTag.trailUuid === trailUuid)
+    );
+  }
+
   public getAllTrailsTags$(): Observable<Observable<TrailTag | null>[]> {
     return this._trailTagStore.getAll$();
   }

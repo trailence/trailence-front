@@ -30,6 +30,15 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+
+      a, a:active {
+        text-decoration: none;
+        color: inherit;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
     }
   }
 

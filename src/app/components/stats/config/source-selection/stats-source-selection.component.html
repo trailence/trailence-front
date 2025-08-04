@@ -1,13 +1,14 @@
 <ion-select
   [selectedText]="description"
   multiple="true"
-  [value]="source"
+  [value]="selection"
   (ionChange)="setSource($event.detail.value)"
   [interfaceOptions]="{header: i18n.texts.pages.stats.source_title}"
   [okText]="i18n.texts.buttons.ok"
   [cancelText]="i18n.texts.buttons.cancel"
 >
-  @for (col of allCollections; track col.uuid) {
-    <ion-select-option [value]="col.type === myTrails ? 'my_trails' : col.uuid">{{ getCollectionName$(col) | async }}</ion-select-option>
+  @for (option of options; track option.value) {
+    <ion-select-option [value]="option.value">{{ option.name }}</ion-select-option>
   }
+
 </ion-select>

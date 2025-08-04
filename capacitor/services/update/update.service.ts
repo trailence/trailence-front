@@ -25,7 +25,7 @@ export class UpdateService {
     private readonly network: NetworkService,
     private readonly injector: Injector,
   ) {
-    if (this.platform.is('android')) this.checkApkUpdate();
+    if (this.platform.is('android') && environment.canAutoUpdate) this.checkApkUpdate();
   }
 
   private failures = 0;

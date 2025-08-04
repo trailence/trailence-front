@@ -64,6 +64,9 @@
   >
     <ion-icon *ngIf="item.icon" [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'secondary')"></ion-icon>
     <ion-label *ngIf="item.text$" [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>
+    @if (item.selected) {
+      <ion-icon slot="end" name="checkmark" color="success" class="item-selected"></ion-icon>
+    }
   </ion-item>
 }
 </ng-template>

@@ -80,6 +80,7 @@ export class AssetsService {
       'layers': 'assets/layers.1.svg', // layers-outline
       'list-condensed': 'assets/list-condensed.1.svg',
       'list-detailed': 'assets/list-detailed.1.svg',
+      'list-items': 'assets/list-items.1.svg', // list-outline
       'location': 'assets/location.1.svg', // location
       'logo': 'assets/icon/trailence.1.svg',
       'logout': 'assets/logout.1.svg', // log-out-outline

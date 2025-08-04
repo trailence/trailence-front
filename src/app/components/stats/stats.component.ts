@@ -38,13 +38,16 @@ export class StatsComponent extends AbstractComponent {
         }
       }
     );
+    this.resize('config');
   }
 
+  private _timeout?: any;
   resize(value: any): void {
     this.accordionValue = value ? 'config' : undefined;
-    // TODO debounceTime
     this.resetChart = true;
-    setTimeout(() => {
+    if (this._timeout) clearTimeout(this._timeout);
+    this._timeout = setTimeout(() => {
+      this._timeout = undefined;
       this.resetChart = false;
     }, 250);
   }
