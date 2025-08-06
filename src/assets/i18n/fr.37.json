@@ -941,6 +941,11 @@
     "notif_title": "Trailence",
     "notif_message": "Trace en cours",
     "notif_message_map": "Suivi de votre position sur la carte",
+    "disclosure_popup": {
+      "title": "Utilisation de votre position",
+      "message": "Trailence collecte des données de localisation pour permettre l'enregistrement d'une trace pendant votre parcours, même lorsque l'application est fermée ou non utilisée.",
+      "button_turnon": "Activer"
+    },
     "disabled_popup": {
       "title": "GPS désactivé",
       "message": "Votre GPS est actuellement désactivé, veuillez le démarrer afin de pouvoir démarrer une trace."

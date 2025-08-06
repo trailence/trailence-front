@@ -6,6 +6,8 @@ import { BackgroundGeolocationPlugin, Location } from "@capacitor-community/back
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Console } from 'src/app/utils/console';
+import { AlertController } from '@ionic/angular/standalone';
+import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("BackgroundGeolocation");
 
@@ -26,6 +28,8 @@ export class GeolocationService implements IGeolocationService {
   }
 
   constructor(
+    private readonly alertController: AlertController,
+    private readonly i18n: I18nService,
   ) { }
 
   public readonly isNative = true;
@@ -45,7 +49,31 @@ export class GeolocationService implements IGeolocationService {
     Console.info('checkPermissions status', status);
     if (status.location === 'prompt') {
       return new Promise((resolve, reject) => {
-        Geolocation.requestPermissions().then(r => this.handlePermissions(r).then(resolve).catch(reject)).catch(reject);
+        this.alertController.create({
+          header: this.i18n.texts.trace_recorder.disclosure_popup.title,
+          message: this.i18n.texts.trace_recorder.disclosure_popup.message,
+          buttons: [
+            {
+              text: this.i18n.texts.trace_recorder.disclosure_popup.button_turnon,
+              role: 'success',
+              handler: () => {
+                this.alertController.dismiss(true, 'success');
+              }
+            }, {
+              text: this.i18n.texts.buttons.cancel,
+              role: 'cancel'
+            }
+          ]
+        }).then(a => {
+          a.onDidDismiss().then(result => {
+            if (result.role === 'success') {
+              Geolocation.requestPermissions().then(r => this.handlePermissions(r).then(resolve).catch(reject)).catch(reject);
+            } else {
+              reject();
+            }
+          });
+          a.present();
+        });
       });
     } else if (status.location === 'granted') {
       return Promise.resolve(GeolocationState.ENABLED);

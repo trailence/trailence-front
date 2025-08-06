@@ -34,7 +34,7 @@ async function generate(request) {
 }
 
 function retrieveTranslations(request, lang) {
-  return request.subrequest('/assets/i18n/' + lang.toLowerCase() + '.36.json').then(r => JSON.parse(r.responseText));
+  return request.subrequest('/assets/i18n/' + lang.toLowerCase() + '.37.json').then(r => JSON.parse(r.responseText));
 }
 
 function retrieveData(request, slug) {

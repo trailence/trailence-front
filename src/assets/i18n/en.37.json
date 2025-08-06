@@ -941,6 +941,11 @@
     "notif_title": "Trailence",
     "notif_message": "Track in progress",
     "notif_message_map": "Following your position on the map",
+    "disclosure_popup": {
+      "title": "Use your location",
+      "message": "Trailence collects location data to enable trace recording during your trail, even when the app is closed or not in use.",
+      "button_turnon": "Turn on"
+    },
     "disabled_popup": {
       "title": "GPS disabled",
       "message": "Your GPS is disabled, please enable it to start a track."
