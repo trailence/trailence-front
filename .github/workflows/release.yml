@@ -91,24 +91,24 @@ jobs:
           name: apk-release
           path: android/app/build/outputs/apk/release
           retention-days: 30
-      - name: Build Android Store
+      - name: Build Android PlayStore
         run: |
-          ionic capacitor sync android --configuration=android-prod_store
+          ionic capacitor sync android --configuration=android-playstore
           rimraf android/app/src/main/assets/public/assets/apk
           rimraf android/app/src/main/assets/public/assets/admin
           rimraf android/app/src/main/assets/public/assets/home-page
           rimraf android/app/src/main/assets/public/media
-          cd android/environments/prod_store
+          cd android/environments/playstore
           cpy . ../..
           cd ../../..
           cd android
           chmod 777 ./gradlew
-          ./gradlew assembleRelease
-      - name: Store APK
+          ./gradlew :app:bundleRelease
+      - name: Store PlayStore AAB
         uses: actions/upload-artifact@v4
         with:
-          name: apk-store-release
-          path: android/app/build/outputs/apk/release
+          name: aab-playstore-release
+          path: android/app/build/outputs/bundle/release
           retention-days: 30
   create-release:
     name: Create Release
@@ -131,13 +131,13 @@ jobs:
           path: android/app/build/outputs/apk/release
       - name: Rename apk
         run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence.apk
-      - name: Retrieve apk store
+      - name: Retrieve PlayStore AAB
         uses: actions/download-artifact@v4
         with:
-          name: apk-store-release
-          path: android/app/build/outputs/apk/release
-      - name: Rename apk prod
-        run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence-store.apk
+          name: aab-playstore-release
+          path: android/app/build/outputs/bundle/release
+      - name: Rename PlayStore AAB
+        run: mv android/app/build/outputs/bundle/release/app-release.aab ./trailence-playstore.aab
       - name: Prepare assets
         run: |
           cd www/browser && zip -r ../../web-app.zip . && cd ../..
@@ -169,12 +169,12 @@ jobs:
           asset_path: ./trailence.apk
           asset_name: trailence-${{ github.ref }}.apk
           asset_content_type: application/zip
-      - name: Upload Release Asset APK Store
+      - name: Upload Release Asset PlayStore AAB
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./trailence-store.apk
-          asset_name: trailence-store-${{ github.ref }}.apk
+          asset_path: ./trailence-playstore.aab
+          asset_name: trailence-playstore-${{ github.ref }}.aab
           asset_content_type: application/zip

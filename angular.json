@@ -208,7 +208,7 @@
                 }
               ]
             },
-            "android-prod_store": {
+            "android-playstore": {
               "fileReplacements": [
                 {
                   "replace": "src/app/routes/package.routes.ts",
@@ -236,7 +236,7 @@
                 },
                 {
                   "replace": "src/app/services/update/update.service.ts",
-                  "with": "capacitor/services/update/update.service.ts"
+                  "with": "capacitor/services/update/no-update.service.ts"
                 },
                 {
                   "replace": "src/app/services/trailence.service.ts",
@@ -244,7 +244,7 @@
                 },
                 {
                   "replace": "src/environments/environment.ts",
-                  "with": "capacitor/environments/android.prod_store.ts"
+                  "with": "capacitor/environments/android.playstore.ts"
                 }
               ]
             }
