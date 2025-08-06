@@ -14,7 +14,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import Dexie from 'dexie';
 import { Trail } from 'src/app/model/trail';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController, Platform } from '@ionic/angular/standalone';
 import { ImageInfo, ImageUtils } from 'src/app/utils/image-utils';
 import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
@@ -83,8 +83,12 @@ export class PhotoService {
 
   private readonly _retrievingFiles = new Map<string, Observable<Blob>>();
   public getFile$(photo: Photo): Observable<Blob> {
-    if (photo.owner.indexOf('@') < 0)
+    if (photo.owner.indexOf('@') < 0) {
+      if (photo.uuid.startsWith(environment.baseUrl) && this.injector.get(Platform).is('capacitor')) {
+        return this.injector.get(HttpService).getBlob(photo.uuid);
+      }
       return from(window.fetch(photo.uuid).then(response => response.blob()));
+    }
     if (photo.fromModeration)
       return this.injector.get(ModerationService).getPhotoBlob$(photo.uuid, photo.owner);
     return this.injector.get(StoredFilesService).getFile$(photo.owner, 'photo', photo.uuid).pipe(
