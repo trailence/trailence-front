@@ -13,7 +13,7 @@
   <div class="selection list-{{size}}">
     <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
     <ng-template let-selected="nbSelected" let-total="nbShown" #templateSelectionButton>
-      <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event.detail.checked)"></ion-checkbox>
+      <ion-checkbox [indeterminate]="selected > 0 && selected < total" [checked]="selected > 0 && selected === total" (ionChange)="selectAll($event)"></ion-checkbox>
       <div class="nb-selected">
         {{ selected }} / {{ total }} {{ size !== 'small' ? (i18n.texts[selected > 1 ? 'selected_plural' : 'selected_single']) : '' }}
       </div>

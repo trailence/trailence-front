@@ -1,4 +1,4 @@
-name: Build
+name: Release
 on:
   push:
     tags:
@@ -34,8 +34,8 @@ jobs:
           name: web-app
           path: www/browser
           retention-days: 30
-  build-android:
-    name: Build - Android App
+  build-android-standalone:
+    name: Build - Android Standalone App
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -72,7 +72,7 @@ jobs:
           filename: 'keys.gradle'
           working-directory: './android'
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
-      - name: Build Android Prod
+      - name: Build Android Standalone
         run: |
           ionic capacitor sync android --configuration=android-prod
           rimraf android/app/src/main/assets/public/assets/apk
@@ -91,6 +91,101 @@ jobs:
           name: apk-release
           path: android/app/build/outputs/apk/release
           retention-days: 30
+  build-android-appgallery:
+    name: Build - Android AppGallery
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Cache Global NPM packages
+        uses: actions/cache@v4
+        with:
+          key: npm-global-packages
+          path: ~/.npm
+      - name: Install dependencies
+        run: |
+          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm ci
+      - name: Trust store
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'trailence.jks'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
+      - name: Keys
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'keys.gradle'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
+      - name: Build Android AppGallery
+        run: |
+          ionic capacitor sync android --configuration=android-appgallery
+          rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
+          cd android/environments/appgallery
+          cpy . ../..
+          cd ../../..
+          cd android
+          chmod 777 ./gradlew
+          ./gradlew assembleRelease
+      - name: Store APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-appgallery-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
+  build-android-playstore:
+    name: Build - Android PlayStore
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Cache Global NPM packages
+        uses: actions/cache@v4
+        with:
+          key: npm-global-packages
+          path: ~/.npm
+      - name: Install dependencies
+        run: |
+          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm ci
+      - name: Trust store
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'trailence.jks'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
+      - name: Keys
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'keys.gradle'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build Android PlayStore
         run: |
           ionic capacitor sync android --configuration=android-playstore
@@ -115,7 +210,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-web-app
-      - build-android
+      - build-android-standalone
+      - build-android-appgallery
+      - build-android-playstore
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -136,6 +233,18 @@ jobs:
         with:
           name: aab-playstore-release
           path: android/app/build/outputs/bundle/release
+      - name: Retrieve AppGallery apk
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-appgallery-release
+          path: android/app/build/outputs/apk/release
+      - name: Rename AppGallery apk
+        run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence-appgallery.apk
+      - name: Retrieve PlayStore AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: aab-playstore-release
+          path: android/app/build/outputs/bundle/release
       - name: Rename PlayStore AAB
         run: mv android/app/build/outputs/bundle/release/app-release.aab ./trailence-playstore.aab
       - name: Prepare assets
@@ -143,7 +252,7 @@ jobs:
           cd www/browser && zip -r ../../web-app.zip . && cd ../..
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1.1.4
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -168,6 +277,15 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./trailence.apk
           asset_name: trailence-${{ github.ref }}.apk
+          asset_content_type: application/zip
+      - name: Upload Release Asset AppGallery APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./trailence-appgallery.apk
+          asset_name: trailence-appgallery-${{ github.ref }}.apk
           asset_content_type: application/zip
       - name: Upload Release Asset PlayStore AAB
         uses: actions/upload-release-asset@v1

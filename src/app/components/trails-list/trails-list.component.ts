@@ -198,6 +198,11 @@ export class TrailsListComponent extends AbstractComponent {
         timeout = setTimeout(() => {
           timeout = undefined;
           componentElement.nativeElement.style.display = '';
+          if (this.highlighted) {
+            const h = this.highlighted;
+            this.highlighted = undefined;
+            this.setHighlighted(h);
+          }
         }, 25);
       }
     });
@@ -433,7 +438,8 @@ export class TrailsListComponent extends AbstractComponent {
     );
     this.refreshHighlights(searchTextRanges);
     const mapBounds = this.map?.getBounds();
-    this.mapFilteredTrails.emit(this.mapTrails.map(t => t.trail));
+    if (this.trails$)
+      this.mapFilteredTrails.emit(this.mapTrails.map(t => t.trail));
     if (filters.onlyVisibleOnMap && mapBounds) {
       return this.mapTrails.filter(t => {
         const b = t.track?.bounds;
@@ -509,7 +515,13 @@ export class TrailsListComponent extends AbstractComponent {
     return this.listTrails.reduce((nb, trail) => nb + (trail.selected ? 1 : 0), 0);
   }
 
-  selectAll(selected: boolean): void {
+  private inSelectAll = false;
+  selectAll(event: any): void {
+    if (this.inSelectAll) return;
+    this.inSelectAll = true;
+    const selected = this.nbSelected === 0;
+    event.target.setChecked(selected);
+    this.inSelectAll = false;
     this.listTrails.forEach(t => {
       t.selected = selected;
       return true;

@@ -3,7 +3,7 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
 import { BehaviorSubject, combineLatest, map, Observable, of, Subscription, switchMap } from 'rxjs';
-import { IonSegment, IonSegmentButton, IonButton, IonIcon } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonButton, IonIcon, IonSpinner } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
@@ -34,8 +34,8 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
     selector: 'app-trails-and-map',
     templateUrl: './trails-and-map.component.html',
     styleUrls: ['./trails-and-map.component.scss'],
-    imports: [IonIcon, IonButton,
-      IonSegmentButton, IonSegment,
+    imports: [
+      IonIcon, IonButton, IonSegmentButton, IonSegment, IonSpinner,
       TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule, SearchPlaceComponent,
       ToolbarComponent,
     ]
@@ -122,6 +122,8 @@ export class TrailsAndMapComponent extends AbstractComponent {
     setTimeout(() => this.initDelayed(), 0);
   }
 
+  mapReady = false;
+  private mapTrailsReceived = false;
   private initDelayed(): void {
     const mapZoom$ = this.map$.pipe(switchMap(map => map ? map.getState().zoom$ : of(undefined)));
     this.whenVisible.subscribe(
@@ -147,36 +149,44 @@ export class TrailsAndMapComponent extends AbstractComponent {
         this.givenBubbles$,
       ]),
       ([result, bubbles]) => {
-        if (this.highlightedTrail)
-          this.highlightedTrail = result.trails.find(t => t.trail.owner === this.highlightedTrail?.owner && t.trail.uuid === this.highlightedTrail?.uuid)?.trail;
-        if (!result.showBubbles) {
-          if (this.mapBubbles$.value.length > 0)
-            this.mapBubbles$.next([]);
-          if (result.trails.length === 0) {
-            if (this.mapTracks$.value.length > 0)
-              this.mapTracks$.next([]);
-            return;
-          }
-          this.mapTracks$.next(this.mapTracksMapper.update(result.trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
-          if (this.highlightedTrail) this.highlight(this.highlightedTrail, true);
-          return;
+        this.update(result.zoom, result.trails, result.showBubbles, bubbles);
+        if (!this.mapReady && this.mapTrailsReceived) {
+          this.mapReady = true;
+          this.changeDetector.detectChanges();
         }
-        if (this.mapTracks$.value.length > 0)
-          this.mapTracks$.next([]);
-        if (result.trails.length === 0) {
-          this.mapBubbles$.next(bubbles);
-          return;
-        }
-        this.mapBubbles$.next(result.zoom === undefined ? [] : MapBubble.build(result.trails.map(
-          trail => {
-            const meta = trail.data as TrackMetadataSnapshot;
-            if (!meta.bounds) return undefined;
-            //[[north, east], [south, west]]
-            return L.latLng(meta.bounds[0][0] + (meta.bounds[1][0] - meta.bounds[0][0]) / 2, meta.bounds[0][1] + (meta.bounds[1][1] - meta.bounds[0][1]) / 2);
-          }
-        ).filter(p => !!p), result.zoom));
       }
     );
+  }
+
+  private update(zoom: number | undefined, trails: {trail: Trail, data: SimplifiedTrackSnapshot | TrackMetadataSnapshot}[], showBubbles: boolean, bubbles: MapBubble[]): void {
+    if (this.highlightedTrail)
+      this.highlightedTrail = trails.find(t => t.trail.owner === this.highlightedTrail?.owner && t.trail.uuid === this.highlightedTrail?.uuid)?.trail;
+    if (!showBubbles) {
+      if (this.mapBubbles$.value.length > 0)
+        this.mapBubbles$.next([]);
+      if (trails.length === 0) {
+        if (this.mapTracks$.value.length > 0)
+          this.mapTracks$.next([]);
+        return;
+      }
+      this.mapTracks$.next(this.mapTracksMapper.update(trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
+      if (this.highlightedTrail) this.highlight(this.highlightedTrail, true);
+      return;
+    }
+    if (this.mapTracks$.value.length > 0)
+      this.mapTracks$.next([]);
+    if (trails.length === 0) {
+      this.mapBubbles$.next(bubbles);
+      return;
+    }
+    this.mapBubbles$.next(zoom === undefined ? [] : MapBubble.build(trails.map(
+      trail => {
+        const meta = trail.data as TrackMetadataSnapshot;
+        if (!meta.bounds) return undefined;
+        //[[north, east], [south, west]]
+        return L.latLng(meta.bounds[0][0] + (meta.bounds[1][0] - meta.bounds[0][0]) / 2, meta.bounds[0][1] + (meta.bounds[1][1] - meta.bounds[0][1]) / 2);
+      }
+    ).filter(p => !!p), zoom));
   }
 
   protected override getComponentState() {
@@ -219,8 +229,10 @@ export class TrailsAndMapComponent extends AbstractComponent {
   private readonly mapTrails$ = new BehaviorSubject<List<Trail>>(List());
   updateMap(trails: Trail[]): void {
     const newList = List(trails);
-    if (!newList.equals(this.mapTrails$.value))
+    if (!this.mapTrailsReceived || !newList.equals(this.mapTrails$.value)) {
+      this.mapTrailsReceived = true;
       this.mapTrails$.next(newList);
+    }
   }
 
   setTab(tab: string): void {
@@ -299,6 +311,13 @@ export class TrailsAndMapComponent extends AbstractComponent {
       } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
       else Console.error('unexpected child', child);
     });
+  }
+
+  protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
+    if (child instanceof MapComponent) return !this.isSmall || this.tab === 'map';
+    if (child instanceof TrailsListComponent) return !this.isSmall || this.tab !== 'map';
+    if (child instanceof TrailOverviewComponent) return this.isSmall;
+    return undefined;
   }
 
   protected override _propagateVisible(visible: boolean): void {

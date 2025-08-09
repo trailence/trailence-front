@@ -22,6 +22,9 @@ export class NetworkService implements INetworkService {
     this.updateStatus(true);
     window.addEventListener('online', () => this.updateStatus(false));
     window.addEventListener('offline', () => this.updateStatus(false));
+    if ((window as any).navigator.connection) {
+      (window as any).navigator.connection.addEventListener('change', () => this.updateStatus(false));
+    }
     this._server$.subscribe(connected => Console.info("Server reachable = " + connected));
     this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
     httpService.addResponseInterceptor(response => {
@@ -56,12 +59,23 @@ export class NetworkService implements INetworkService {
         this._internet$.next(false);
       }
     } else if (!this._internet$.value) {
-      if (firstCall) this._internet$.next(true);
+      if (firstCall) {
+        this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
+      }
       else setTimeout(() => {
-        if (window.navigator.onLine && !this._internet$.value) this._internet$.next(true);
+        if (window.navigator.onLine && !this._internet$.value)
+          this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
       }, 1000);
+    } else {
+      this.checkInternet().then(connected => { if (!connected) this._internet$.next(false); })
     }
     this.checkServerConnection(++this.count, 1);
+  }
+
+  private checkInternet(): Promise<boolean> {
+    return window.fetch('https://www.google.com', {mode: 'no-cors'})
+    .then(() => true)
+    .catch(() => false);
   }
 
   private checkServerConnection(count: number, trial: number): void {

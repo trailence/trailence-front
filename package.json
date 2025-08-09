@@ -17,6 +17,7 @@
     "install-android-local": "npm run install-android --env=local",
     "install-android-prod": "npm run install-android --env=prod",
     "install-android-playstore": "npm run install-android --env=playstore",
+    "install-android-appgallery": "npm run install-android --env=appgallery",
     "set-version": "node ./scripts/set-version.js %npm_config_newversion%",
     "check-i18n": "node ./scripts/check-i18n-keys.js",
     "check-assets-version": "node ./scripts/check-assets-version.js",

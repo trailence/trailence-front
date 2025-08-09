@@ -116,6 +116,9 @@ export class TrackDatabase {
   private readonly _errors: StoreErrors;
   private readonly operations: StoreOperations;
   private readonly loaded$ = new BehaviorSubject<boolean>(false);
+  private readonly dbReady$ = new BehaviorSubject<boolean>(false);
+
+  public get dbReady(): Observable<boolean> { return this.dbReady$; }
 
   private isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
@@ -126,6 +129,7 @@ export class TrackDatabase {
     this.ngZone.runOutsideAngular(() => {
       if (this.db) {
         Console.info('Close track DB')
+        this.dbReady$.next(false);
         this.operations.reset();
         this.db.close();
         this.openEmail = undefined;
@@ -168,6 +172,7 @@ export class TrackDatabase {
         versionedDb => {
           if (init || !versionedDb) return;
           init = true;
+          this.dbReady$.next(true);
           this.initStatus();
           let promise$ = Promise.resolve();
           if (versionedDb.isNewDb) {

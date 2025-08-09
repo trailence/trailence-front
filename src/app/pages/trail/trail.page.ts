@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Injector, Input, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -19,6 +19,7 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { ShareService } from 'src/app/services/database/share.service';
+import { ToastController } from '@ionic/angular/standalone';
 
 @Component({
     selector: 'app-trail-page',
@@ -40,7 +41,8 @@ export class TrailPage extends AbstractPage {
 
   trail$ = new BehaviorSubject<Trail | null>(null);
   trail2$ = new BehaviorSubject<Trail | null>(null);
-  title$ = new BehaviorSubject<string>('');
+  title = '';
+  title2?: string;
   backUrl?: string;
   recording$ = new BehaviorSubject<Recording | null>(null);
   menu: MenuItem[] = [];
@@ -60,6 +62,8 @@ export class TrailPage extends AbstractPage {
     private readonly trailService: TrailService,
     trailCollectionService: TrailCollectionService,
     traceRecorder: TraceRecorderService,
+    private readonly toastController: ToastController,
+    private readonly i18n: I18nService,
   ) {
     super(injector);
     this.whenAlive.add(
@@ -89,23 +93,28 @@ export class TrailPage extends AbstractPage {
             )
           ) : of(undefined))),
       this.trail2$.pipe(switchMap(t => t ? t.name$ : of(undefined))),
-      this.injector.get(I18nService).texts$,
+      this.i18n.texts$,
     ]), ([rec, t1, t2, texts]) => {
       if (t1) {
         if (t2) {
-          this.title$.next(texts.pages.trail.title_compare + ' ' + t1.trailName + ' ' + texts.pages.trail.title_compare_and + ' ' + t2);
+          this.title = texts.pages.trail.title_compare;
+          this.title2 = t1.trailName + ' ' + texts.pages.trail.title_compare_and + ' ' + t2;
         } else {
           const colName = rec ? texts.menu.current_trace :
             (t1.collectionName ?? (
               t1.trail.fromModeration ? texts.publications.moderation.menu_title : ''
             ));
-          this.title$.next(t1.trailName + (colName.length > 0 ? ' - ' + colName : ''));
+          this.title = t1.trailName;
+          this.title2 = colName.length > 0 ? colName : undefined;
         }
       } else if (rec) {
-        this.title$.next(rec + ' - ' + texts.menu.current_trace);
+        this.title = rec;
+        this.title2 = texts.menu.current_trace;
       } else {
-        this.title$.next('');
+        this.title = '';
+        this.title2 = undefined;
       }
+      this.injector.get(ChangeDetectorRef).detectChanges();
     });
   }
 
@@ -141,9 +150,15 @@ export class TrailPage extends AbstractPage {
               ),
             ]).pipe(
               switchMap(([loaded, visible, connected, item]) => {
-                if (item === null && (!connected || (loaded && visible))) {
+                if (item === null && visible && (!connected || loaded)) {
                   // trail does not exist
                   Console.warn('Trail not found, redirecting to home');
+                  if (!connected)
+                    this.toastController.create({
+                      message: this.i18n.texts.you_are_offline,
+                      duration: 2000,
+                      color: 'danger',
+                    }).then(t => t.present());
                   this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
                 }
                 return of([null, null]);

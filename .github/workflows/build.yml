@@ -111,6 +111,25 @@ jobs:
           name: apk-release
           path: android/app/build/outputs/apk/release
           retention-days: 30
+      - name: Build Android AppGallery
+        run: |
+          ionic capacitor sync android --configuration=android-appgallery
+          rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
+          cd android/environments/appgallery
+          cpy . ../..
+          cd ../../..
+          cd android
+          chmod 777 ./gradlew
+          ./gradlew assembleRelease
+      - name: Store APK AppGallery
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-appgallery-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
       - name: Build Android PlayStore
         run: |
           ionic capacitor sync android --configuration=android-playstore

@@ -185,6 +185,16 @@ export class DatabaseService {
     );
   }
 
+  public storesLoaded(names: string[]): Observable<boolean> {
+    return this._stores.pipe(
+      switchMap(stores => {
+        const selected = stores.filter(s => names.indexOf(s.name) >= 0);
+        return selected.length === 0 ? of([]) : combineLatest(selected.map(s => s.loaded$))
+      }),
+      map(loaded => loaded.reduce((a,b) => a && b, true)),
+    );
+  }
+
   private _syncNowRequestedAt = 0;
   public syncNow(): void {
     this._syncNowRequestedAt = Date.now();

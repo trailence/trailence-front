@@ -1006,7 +1006,15 @@ export class TrailComponent extends AbstractComponent {
         // nothing
       }
       else Console.error('unexpected child', child);
-    })
+    });
+  }
+
+  protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
+    if (child instanceof MapComponent) return !this.isSmall || this.tab === 'map';
+    if (child instanceof TrailGraphComponent)
+      return (this.isSmall && (this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed')) ||
+             (!this.isSmall && this.bottomSheetOpen);
+    return undefined;
   }
 
   protected override _propagateVisible(visible: boolean): void {

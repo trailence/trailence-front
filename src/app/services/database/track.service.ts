@@ -20,6 +20,8 @@ export class TrackService {
     this.db = new TrackDatabase(injector);
   }
 
+  public dbReady$(): Observable<boolean> { return this.db.dbReady };
+
   public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
     if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getSimplifiedTrack$(owner, uuid);
     return this.db.getSimplifiedTrack$(uuid, owner);

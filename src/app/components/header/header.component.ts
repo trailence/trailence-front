@@ -28,6 +28,7 @@ import { LongPressDirective } from 'src/app/utils/long-press.directive';
 export class HeaderComponent extends AbstractComponent {
 
   @Input() title = '';
+  @Input() title2?: string;
   @Input() backUrl?: string;
   @Input() actions?: MenuItem[];
   @Input() description?: string;

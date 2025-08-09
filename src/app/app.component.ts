@@ -5,7 +5,7 @@ import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { catchError, combineLatest, filter, first, from, map, Observable, of, switchMap, tap, timeout } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, filter, first, from, map, Observable, of, switchMap, tap, timeout } from 'rxjs';
 import { AuthService } from './services/auth/auth.service';
 import { BrowserService } from './services/browser/browser.service';
 import { Console } from './utils/console';
@@ -13,6 +13,8 @@ import { PlatformService } from './services/platform/platform.service';
 import { NetworkService } from './services/network/network.service';
 import { filterDefined } from './utils/rxjs/filter-defined';
 import { QuotaService } from './services/auth/quota.service';
+
+Console.info('App loading: main component loaded ', Date.now() - ((window as any)._trailenceStart || 0));
 
 @Component({
     selector: 'app-root',
@@ -38,10 +40,12 @@ export class AppComponent {
   i18nLoaded = false;
   waitingForGpsText = '';
   traceInProgressText = '';
+  private readonly _ready$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     private readonly injector: Injector,
   ) {
+    Console.info('App loading: main component init ', Date.now() - ((window as any)._trailenceStart || 0));
     // start network service as soon as possible
     injector.get(NetworkService);
     // then I18nService
@@ -55,12 +59,14 @@ export class AppComponent {
     // init auth and quotas
     const auth = injector.get(AuthService);
     injector.get(QuotaService);
+    Console.info('App loading: main services init ', Date.now() - ((window as any)._trailenceStart || 0));
 
     combineLatest([
       injector.get(Router).events.pipe(
         filter(e => e instanceof NavigationEnd),
         first(),
         switchMap(e => {
+          Console.info('App loading: first navigation done ', Date.now() - ((window as any)._trailenceStart || 0));
           if (e.url.startsWith('/link/')) return of(null);
           return auth.auth$.pipe(
             filter(a => a !== undefined),
@@ -78,6 +84,7 @@ export class AppComponent {
         first(),
       ),
     ]).subscribe(([a, t]) => {
+      Console.info('App loading: auth and i18n loaded ', Date.now() - ((window as any)._trailenceStart || 0));
       const startup = document.getElementById('startup')!;
       startup.style.opacity = '0.75';
       document.getElementById('root')!.style.display = '';
@@ -103,14 +110,11 @@ export class AppComponent {
               return of(true);
             })
           )
-        ])
-        this.loadServices().then(allDatabasesLoaded => {
-          combineLatest([auth.auth$, allDatabasesLoaded()]).pipe(
-            filter(([a, l]) => !a || l),
-            first(),
-          )
-          .subscribe(() => this.ready(startup));
-        });
+        ]).pipe(
+          filter(([a, l]) => !a || l),
+          first(),
+        )
+        .subscribe(() => this.ready(startup));
       }
       import('./services/geolocation/geolocation.service')
       .then(module => injector.get(module.GeolocationService).waitingForGps$.subscribe(value => {
@@ -127,7 +131,11 @@ export class AppComponent {
         filter(e => e instanceof NavigationEnd),
         map(e => e.url)
       ),
-      from(import('./services/trace-recorder/trace-recorder.service').then(s => this.injector.get(s.TraceRecorderService))).pipe(switchMap(t => t.current$)),
+      this._ready$.pipe(
+        filter(loaded => loaded),
+        switchMap(() => from(import('./services/trace-recorder/trace-recorder.service').then(s => this.injector.get(s.TraceRecorderService)))),
+        switchMap(t => t.current$)
+      ),
     ]).subscribe(([url, trace]) => {
       const newValue = trace ?
         (trace.followingTrailUuid ?
@@ -145,25 +153,24 @@ export class AppComponent {
   private loadServices(): Promise<() => Observable<boolean>> {
     return Promise.all([
       import('./services/database/database.service'),
-      import('./services/database/database-cleanup.service'),
-      import('./services/database/share.service'),
-      import('./services/database/extensions.service'),
-      import('./services/database/tag.service'),
       import('./services/database/trail-collection.service'),
+      import('./services/database/share.service'),
       import('./services/database/trail.service'),
+      import('./services/database/tag.service'),
       import('./services/database/track.service'),
-      import('./services/database/dependencies.service'),
     ]).then(services => {
       const database = this.injector.get(services[0].DatabaseService);
-      this.injector.get(services[1].DatabaseCleanupService);
+      this.injector.get(services[1].TrailCollectionService);
       this.injector.get(services[2].ShareService);
-      this.injector.get(services[3].ExtensionsService);
+      this.injector.get(services[3].TrailService);
       this.injector.get(services[4].TagService);
-      this.injector.get(services[5].TrailCollectionService);
-      this.injector.get(services[6].TrailService);
-      this.injector.get(services[7].TrackService);
-      this.injector.get(services[8].DependenciesService);
-      return () => database.allLoaded();
+      const trackService = this.injector.get(services[5].TrackService);
+      return () => database.storesLoaded(['trail_collections', 'shares', 'trails', 'tags', 'trail_tags']).pipe(
+        switchMap(loaded => loaded ? trackService.dbReady$() : of(false)),
+        tap(loaded => {
+          if (!this._ready$.value && loaded) this._ready$.next(true);
+        })
+      );
     });
   }
 

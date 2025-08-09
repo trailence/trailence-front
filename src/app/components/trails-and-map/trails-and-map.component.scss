@@ -14,6 +14,13 @@
     position: absolute;
     z-index: 0;
     background-color: var(--ion-background-color);
+
+    ion-spinner.map-loading {
+      position: absolute;
+      top: 20px;
+      left: calc(50vw - 14px);
+      z-index: 10;
+    }
   }
   .list-container {
     position: absolute;
@@ -25,6 +32,9 @@
   }
   .tabs-container {
     position: absolute;
+  }
+  .large-trails-navigation {
+    display: none;
   }
   .trail-sheet {
     position: absolute;

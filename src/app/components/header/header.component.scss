@@ -59,6 +59,24 @@
       h2 {
         display: none;
       }
+
+      div.with-sub-title {
+        div.title1 {
+          font-size: 15px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+        div.title2 {
+          font-size: 12px;
+          opacity: 0.8;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+      }
+    }
+    span.title2 {
+      font-size: 14px;
+      opacity: 0.85;
     }
 }
 
