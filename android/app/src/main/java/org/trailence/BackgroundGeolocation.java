@@ -106,7 +106,7 @@ public class BackgroundGeolocation extends Plugin {
             try {
                 String name = getAppString(
                         "capacitor_background_geolocation_notification_icon",
-                        "mipmap/ic_launcher"
+                        "drawable/trailence"
                 );
                 String[] parts = name.split("/");
                 // It is actually necessary to set a valid icon for the notification to behave

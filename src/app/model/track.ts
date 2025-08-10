@@ -523,13 +523,19 @@ export class ComputedWayPoint {
         result[0]._isArrival = true;
         return result;
       }
-      if (track.arrivalPoint !== track.departurePoint)
+      if (track.arrivalPoint !== track.departurePoint) {
+        let segmentIndex = track.segments.length - 1;
+        for (; segmentIndex >= 0; --segmentIndex) {
+          const pt = track.segments[segmentIndex].arrivalPoint;
+          if (pt) break;
+        }
         result.push(new ComputedWayPoint(
           new WayPoint(track.arrivalPoint!, '', ''),
           false, true, undefined, -1,
-          track.segments.length - 1, track.segments[track.segments.length - 1].points.length - 1,
+          segmentIndex, track.segments[segmentIndex].points.length - 1,
           track
         ));
+      }
       return result;
     }
     const eligibles: {segmentIndex: number; pointIndex: number}[][] = [];
