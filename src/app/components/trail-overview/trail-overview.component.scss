@@ -107,14 +107,18 @@ div.metadata-with-photos.photo-left {
   div.photos {
     flex: none;
     max-width: 100px;
-    max-height: 80px;
+    max-height: 85px;
     width: 100px;
-    height: 80px;
+    height: 85px;
     overflow: hidden;
     margin-right: 5px;
 
     app-photos-slider {
       display: block;
+    }
+    app-trail-small-map {
+      display: block;
+      height: 100%;
     }
   }
 
@@ -141,13 +145,17 @@ div.metadata-with-photos.photo-left {
 div.metadata-with-photos.photo-block {
   div.photos {
     max-width: 140px;
-    max-height: 80px;
+    max-height: 85px;
     width: 140px;
-    height: 80px;
+    height: 85px;
     overflow: hidden;
 
     app-photos-slider {
       display: block;
+    }
+    app-trail-small-map {
+      display: block;
+      height: 100%;
     }
   }
 }

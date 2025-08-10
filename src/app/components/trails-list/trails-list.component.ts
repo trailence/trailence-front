@@ -45,7 +45,7 @@ import { Tag } from 'src/app/model/tag';
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
 interface State {
-  mode: 'detailed' | 'condensed';
+  mode: 'detailed' | 'condensed' | 'detailed_small_map';
   sortAsc: boolean;
   sortBy: string;
   filters: Filters;
@@ -359,6 +359,9 @@ export class TrailsListComponent extends AbstractComponent {
           new MenuItem().setIcon('list-detailed').setI18nLabel('tools.display_detailed')
             .setSelected(() => this.state$.value.mode === 'detailed')
             .setAction(() => this.setListMode('detailed')),
+          new MenuItem().setIcon('map').setI18nLabel('tools.display_detailed_small_map')
+            .setSelected(() => this.state$.value.mode === 'detailed_small_map')
+            .setAction(() => this.setListMode('detailed_small_map')),
           new MenuItem().setIcon('list-condensed').setI18nLabel('tools.display_condensed')
             .setSelected(() => this.state$.value.mode === 'condensed')
             .setAction(() => this.setListMode('condensed')),
@@ -502,7 +505,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   public setListMode(mode: any): void {
-    if (this.state$.value.mode === mode || (mode !== 'condensed' && mode !== 'detailed')) return;
+    if (this.state$.value.mode === mode || (mode !== 'condensed' && mode !== 'detailed' && mode != 'detailed_small_map')) return;
     this.state$.next({...this.state$.value, mode: mode});
     this.changeDetector.detectChanges();
   }

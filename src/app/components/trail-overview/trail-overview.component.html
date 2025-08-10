@@ -66,19 +66,31 @@
         </div>
       </div>
     </ng-container>
-    <ng-container *ngIf="photoEnabled">
+    @if (photoEnabled) {
       <div class="metadata-with-photos {{photoCanBeOnLeft ? 'photo-left' : 'photo-block'}}">
-        <div class="photos" *ngIf="photos.length > 0">
-          <app-photos-slider #slider [photos]="photos" [width]="photoCanBeOnLeft ? 100 : 140" [height]="80" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
-        </div>
+        @if (photos.length > 0) {
+          <div class="photos">
+            <app-photos-slider #slider [photos]="photos" [width]="photoCanBeOnLeft ? 100 : 140" [height]="85" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
+          </div>
+        }
         <div class="metadata" [ngClass]="{'with-photos': photos.length > 0}">
           <ng-container *ngTemplateOutlet="metadata"></ng-container>
         </div>
       </div>
-    </ng-container>
-    <ng-container *ngIf="!photoEnabled">
+    } @else if (smallMapEnabled) {
+      <div class="metadata-with-photos {{photoCanBeOnLeft ? 'photo-left' : 'photo-block'}}">
+        @if (fullTrack) {
+          <div class="photos">
+            <app-trail-small-map [track]="fullTrack" [width]="photoCanBeOnLeft ? 100 : 140" [height]="85"></app-trail-small-map>
+          </div>
+        }
+        <div class="metadata with-photos">
+          <ng-container *ngTemplateOutlet="metadata"></ng-container>
+        </div>
+      </div>
+    } @else {
       <ng-container *ngTemplateOutlet="metadata"></ng-container>
-    </ng-container>
+    }
   </div>
   <ng-container *ngIf="!track$.value">
     <ion-spinner name="dots"></ion-spinner>

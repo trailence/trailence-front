@@ -7,7 +7,8 @@
     "sort": "Sort",
     "more": "More",
     "display": "Display",
-    "display_detailed": "Detailed",
+    "display_detailed": "Detailed with photos",
+    "display_detailed_small_map": "Detailed with map",
     "display_condensed": "Compact"
   },
   "pages": {
