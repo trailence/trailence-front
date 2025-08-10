@@ -2,6 +2,7 @@
 <head>
   <title>{{activity}} - {{name}}</title>
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="/assets/icon/favicon.png" />
 <style>
 html, body {
   margin: 0;
@@ -273,7 +274,7 @@ div.open-app-button a, div.open-app-button a:active {
 <body>
   <div class="content-container">
     <div class="header">
-      <div class="icon" data="icon/trailence.1"></div>
+      <div class="icon" data="logo"></div>
       <span>Trailence</span>
     </div>
     <div class="content">
@@ -296,7 +297,7 @@ div.open-app-button a, div.open-app-button a:active {
           {{if:location}}
           <div class="meta-container">
             <div class="meta">
-              <div class="icon" data="location.1"></div>
+              <div class="icon" data="location"></div>
               <div class="meta-content">
                 <div class="name">{{i18n.metadata.trail_location}}</div>
                 <div class="value">{{location}}</div>
@@ -318,7 +319,7 @@ div.open-app-button a, div.open-app-button a:active {
           {{if:distance}}
           <div class="meta-container">
             <div class="meta">
-              <div class="icon" data="distance.1"></div>
+              <div class="icon" data="distance"></div>
               <div class="meta-content">
                 <div class="name">{{i18n.metadata.distance}}</div>
                 <div class="value">{{distance:distance}}{{/distance}}</div>
@@ -329,7 +330,7 @@ div.open-app-button a, div.open-app-button a:active {
           {{if:estimatedDuration}}
           <div class="meta-container">
             <div class="meta">
-              <div class="icon" data="duration.1"></div>
+              <div class="icon" data="duration"></div>
               <div class="meta-content">
                 <div class="name">{{i18n.metadata.duration}}</div>
                 <div class="value">≈ {{duration:estimatedDuration}}{{/duration}}</div>
@@ -340,7 +341,7 @@ div.open-app-button a, div.open-app-button a:active {
           {{if:positiveElevation}}
           <div class="meta-container">
             <div class="meta">
-              <div class="icon" data="positive-elevation.1"></div>
+              <div class="icon" data="positive-elevation"></div>
               <div class="meta-content">
                 <div class="name">{{i18n.metadata.positiveElevation}}</div>
                 <div class="value">{{elevation:positiveElevation}}{{/elevation}}</div>
@@ -349,7 +350,7 @@ div.open-app-button a, div.open-app-button a:active {
           </div>
           <div class="meta-container">
             <div class="meta">
-              <div class="icon" data="negative-elevation.1"></div>
+              <div class="icon" data="negative-elevation"></div>
               <div class="meta-content">
                 <div class="name">{{i18n.metadata.negativeElevation}}</div>
                 <div class="value">{{elevation:negativeElevation}}{{/elevation}}</div>
@@ -361,11 +362,11 @@ div.open-app-button a, div.open-app-button a:active {
           <div class="rating">
             <span>{{i18n.pages.trail.sections.comments.rate.global}}</span>
             <div class="stars">
-              <div class="icon" data="star-{{star1}}.1"></div>
-              <div class="icon" data="star-{{star2}}.1"></div>
-              <div class="icon" data="star-{{star3}}.1"></div>
-              <div class="icon" data="star-{{star4}}.1"></div>
-              <div class="icon" data="star-{{star5}}.1"></div>
+              <div class="icon" data="star-{{star1}}"></div>
+              <div class="icon" data="star-{{star2}}"></div>
+              <div class="icon" data="star-{{star3}}"></div>
+              <div class="icon" data="star-{{star4}}"></div>
+              <div class="icon" data="star-{{star5}}"></div>
             </div>
             <span>{{rate}}</span>
           </div>
@@ -410,7 +411,6 @@ const tileSize = 256;
 const tileContainer = document.getElementById('map-tile-layer');
 const mapSize = tileContainer.clientWidth;
 const margin = 0.1;
-console.log('map size', mapSize)
 
 let zoom = 5;
 let bounds = convertBounds(geo.bounds[0], geo.bounds[1], geo.bounds[2], geo.bounds[3], zoom);
@@ -424,7 +424,6 @@ while (zoom < 17 && (bounds.x2 - bounds.x1) * tileSize < maxPathSize && (bounds.
   }
   bounds = newBounds;
 }
-console.log('bounds', zoom, bounds, 'pixels', (bounds.x2 - bounds.x1) * tileSize, (bounds.y2 - bounds.y1) * tileSize, 'max pixels', maxPathSize);
 
 
 const pathYMiddle = (bounds.y1 + (bounds.y2 - bounds.y1) / 2) * tileSize;
@@ -498,7 +497,6 @@ const departure = {x: pathPtX(0), y: pathPtY(0)};
 const arrival = {x: pathPtX(geo.path.length / 2 - 1), y: pathPtY(geo.path.length / 2 - 1)};
 
 const departureArrivalDistance = Math.sqrt((departure.x - arrival.x) * (departure.x - arrival.x) + (departure.y - arrival.y) * (departure.y - arrival.y));
-console.log('distance', departureArrivalDistance)
 if (departureArrivalDistance < 15) {
   const anchor = createAnchor('rgba(64, 128, 0, 0.75)', 'D/A', '#ffffff', 'rgba(0, 128, 0, 0.75)', 'rgba(196, 0, 0, 0.75)');
   anchor.style.position = 'absolute';
@@ -527,36 +525,43 @@ if (departureArrivalDistance < 15) {
 </script>
 
 <script type="text/javascript">
-const iconCache = new Map();
-function getIcon(name) {
-  let icon = iconCache.get(name);
-  if (icon) return icon;
-  icon = window.fetch('/assets/' + name + '.svg').then(response => response.text());
-  iconCache.set(name, icon);
-  return icon;
-}
 function getIconNameForLooptType(lt) {
   switch (lt) {
-    case 'ow': return 'point-to-point.1';
-    case 'lp': return 'loop.1';
-    case 'hl': return 'half-loop.1';
-    case 'sl': return 'small-loop.1';
+    case 'ow': return 'one-way';
+    case 'lp': return 'loop';
+    case 'hl': return 'half-loop';
+    case 'sl': return 'small-loop';
     case 'ob': return 'out-and-back';
   }
   return '';
 }
-const icons = document.getElementsByClassName('icon');
-for (let i = 0; i < icons.length; ++i) {
-  const iconDiv = icons.item(i);
-  let iconName = iconDiv.getAttribute('data');
-  if (iconName.startsWith('lt:')) iconName = getIconNameForLooptType(iconName.substring(3));
-  getIcon(iconName).then(svgText => {
-    const el = document.createElement('html');
-    el.innerHTML = svgText;
-    const svg = el.getElementsByTagName('svg').item(0);
-    iconDiv.appendChild(svg);
-  });
-}
+const ICONS_VERSION = '1';
+window.fetch('/assets/icons.' + ICONS_VERSION + '.svg')
+.then(response => response.text())
+.then(text => {
+  const el = document.createElement('html');
+  el.innerHTML = text;
+  const parentEl = el.getElementsByTagName('icons').item(0);
+  const iconsByName = new Map();
+  for (let i = 0; i < parentEl.children.length; ++i) {
+    const iconChild = parentEl.children.item(i);
+    if (iconChild.tagName.toLowerCase() !== 'icon') continue;
+    const names = iconChild.getAttribute('names').split(',');
+    const svg = iconChild.children.item(0);
+    for (const name of names) iconsByName.set(name, svg);
+  }
+
+  const icons = document.getElementsByClassName('icon');
+  for (let i = 0; i < icons.length; ++i) {
+    const iconDiv = icons.item(i);
+    let iconName = iconDiv.getAttribute('data');
+    if (iconName.startsWith('lt:')) iconName = getIconNameForLooptType(iconName.substring(3));
+    const icon = iconsByName.get(iconName);
+    if (icon)
+      iconDiv.appendChild(icon.cloneNode(true));
+  }
+
+});
 </script>
 </body>
 </html>

@@ -28,7 +28,8 @@
     "generate-public-pages": "cd scripts && node --import=tsx generate-public-pages.ts && cd ..",
     "generate-local-nginx": "cd docker/local && node --import=tsx generate-local-nginx.ts && cd ../..",
     "make-leaflet-esm": "node ./scripts/make-leaflet-esm.js",
-    "postinstall": "node ./scripts/make-leaflet-esm.js && node ./scripts/fix-ng2-charts.js"
+    "postinstall": "node ./scripts/make-leaflet-esm.js && node ./scripts/fix-ng2-charts.js",
+    "build-assets": "node --import=tsx src/icons/mapping/build.ts"
   },
   "license": "Apache-2.0",
   "private": true,

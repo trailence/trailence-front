@@ -1014,7 +1014,7 @@
   "activity": {
     "walking": "Walking",
     "hiking": "Hiking",
-    "moutain-biking": "Moutain Biking",
+    "moutain-biking": "Mountain Biking",
     "road-biking": "Road Biking",
     "snowshoeing": "Snowshoeing",
     "on-water": "On Water",
@@ -1135,19 +1135,19 @@
     "title": "Update required",
     "message": "Your application is in an outdated version and needs to be updated. By using this version, your changes cannot be saved to the server and may be lost."
   },
-  "downloading_elevation": "Downloading elevation",
+  "downloading_elevation": "Downloading altitudes",
   "track_edit_tools": {
     "title": "Edit",
     "categories": {
       "track": "Track",
       "way_point": "Way point",
-      "elevation": "Elevation",
+      "elevation": "Altitude",
       "path": "Path",
       "selection": "Selection",
       "elevation_provider": "Use an elevation provider",
       "join_departure_and_arrival": "Join departure and arrival",
       "improvements": "Improvements",
-      "set_elevation_on_range": "Change elevation",
+      "set_elevation_on_range": "Change altitude",
       "time": "Time"
     },
     "stop_interactive": "Stop",
@@ -1177,8 +1177,8 @@
         "button_single_label_and_open": "Delete the selected point and split the track into two",
         "button_multiple_label_and_open": "Delete the selected section and split the track into two"
       },
-      "replace_elevation_with_provider": "Replace elevations",
-      "improve_elevation_with_provider": "Improve elevations",
+      "replace_elevation_with_provider": "Replace altitudes",
+      "improve_elevation_with_provider": "Improve altitudes",
       "arrival_to_departure": "Finish at the departure point",
       "departure_to_arrival": "Start at the arrival point",
       "back_to_departure": "Create a return to the start by following the same route",

@@ -2,7 +2,7 @@ const fs = require('fs');
 
 const knownLanguages = ['en', 'fr'];
 
-function readI18nDir(path, withFlagsIcons) {
+function readI18nDir(path, withFlagsIcons, checkJsonVersion) {
   const languages = new Map();
   const dir = fs.opendirSync(path);
   try {
@@ -32,10 +32,15 @@ function readI18nDir(path, withFlagsIcons) {
   }
 
   for (const l of knownLanguages) if (!languages.get(l)) throw 'Language not found: ' + l;
+  let jsonVersion = undefined;
   for (const l of languages.values()) {
     if (!l.files['json']) throw 'Missing json file for language ' + l.language;
     if (!l.files['png'] && withFlagsIcons) throw 'Missing png file for language ' + l.language;
+    if (!l.versions['json']) throw 'No version for json file';
+    if (jsonVersion === undefined) jsonVersion = l.versions['json'];
+    else if (jsonVersion !== l.versions['json']) throw 'JSON files have different versions: ' + jsonVersion + ', ' + l.versions['json'];
   }
+  if (checkJsonVersion) checkJsonVersion(jsonVersion);
 
   return languages;
 }
@@ -52,8 +57,8 @@ function checkKeys(object1, object2, lang1, lang2, path, dirname) {
   }
 }
 
-function checkDir(dir, withFlagsIcons) {
-  const languages = readI18nDir(dir, withFlagsIcons);
+function checkDir(dir, withFlagsIcons, checkJsonVersion) {
+  const languages = readI18nDir(dir, withFlagsIcons, checkJsonVersion);
   for (const l of languages.values()) {
     const json = JSON.parse(fs.readFileSync(dir + '/' + l.language + '.' + l.versions['json'] + '.json', { encoding: 'utf-8'}));
     l['jsonContent'] = json;
@@ -68,5 +73,17 @@ function checkDir(dir, withFlagsIcons) {
   }
 }
 
-checkDir('./src/assets/i18n', true);
-checkDir('./src/assets/admin/i18n', false);
+function checkJsonVersionI18n(version) {
+  let file = fs.readFileSync('./src/app/services/i18n/i18n.service.ts', 'utf-8');
+  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) throw 'TEXTS_VERSION is invalid in i18n service';
+  file = fs.readFileSync('./server_pages/src/generate_trail_page.js', 'utf-8');
+  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) throw 'TEXTS_VERSION is invalid in generate_trail_page.js';
+}
+
+function checkJsonVersionI18nAdmin(version) {
+  let file = fs.readFileSync('./src/app/admin/services/i18n-admin.service.ts', 'utf-8');
+  if (file.indexOf("const TEXTS_VERSION = '" + version + "';") < 0) throw 'TEXTS_VERSION is invalid in i18n admin service';
+}
+
+checkDir('./src/assets/i18n', true, checkJsonVersionI18n);
+checkDir('./src/assets/admin/i18n', false, checkJsonVersionI18nAdmin);

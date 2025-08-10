@@ -18,7 +18,7 @@ export class IonicCheckbox extends Component {
     if (current === selected) return;
     await this.toggle();
     if (current === undefined) {
-      if (selected) return;
+      if (!selected) return;
       await this.toggle();
     }
   }

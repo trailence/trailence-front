@@ -46,7 +46,7 @@ describe('Trails Tools', () => {
 
     const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
     await trailPage.waitDisplayed();
-    expect(await trailPage.header.getTitle()).toBe('Compare Randonnée du 20/02/2022 à 09:55 and Près de Tourves');
+    expect(await trailPage.header.getTitle()).toBe('Compare - Randonnée du 20/02/2022 à 09:55 and Près de Tourves');
     const hasTabs = await trailPage.trailComponent.hasTabs();
     if (hasTabs)
       expect(await trailPage.trailComponent.hasTab('photos')).toBeFalse();
@@ -79,7 +79,7 @@ describe('Trails Tools', () => {
     const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
     await trailPage.waitDisplayed();
     const title = await trailPage.header.getTitle();
-    if (title !== 'Compare Randonnée du 20/02/2022 à 09:55 and Près de Tourves' && title !== 'Compare Près de Tourves and Randonnée du 20/02/2022 à 09:55')
+    if (title !== 'Compare - Randonnée du 20/02/2022 à 09:55 and Près de Tourves' && title !== 'Compare - Près de Tourves and Randonnée du 20/02/2022 à 09:55')
       throw new Error('Unexpected title: ' + title);
 
     await trailPage.header.goBack();
@@ -147,8 +147,7 @@ describe('Trails Tools', () => {
 
   it('Edit tags', async () => {
     list = await collectionPage.trailsAndMap.openTrailsList();
-    await list.selectAllCheckbox.toggle();
-    await list.selectAllCheckbox.toggle();
+    await list.selectAllCheckbox.setSelected(false);
     await (await collectionPage.header.openActionsMenu()).clickItemWithIcon('tags');
     let tags = new TagsPopup('edit', await App.waitModal());
     await tags.editName('Tag 2', 'Tag 2 edited');
