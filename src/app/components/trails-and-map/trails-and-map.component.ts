@@ -12,7 +12,6 @@ import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { CollectionMapper } from 'src/app/utils/arrays';
 import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
@@ -29,6 +28,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { ANONYMOUS_USER, AuthService } from 'src/app/services/auth/auth.service';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { TrackMetadataConfig } from '../track-metadata/track-metadata.component';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 @Component({
     selector: 'app-trails-and-map',

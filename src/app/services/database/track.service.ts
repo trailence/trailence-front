@@ -1,11 +1,12 @@
 import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { EMPTY, map, Observable, of, switchMap } from 'rxjs';
-import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from './track-database';
+import { TrackDatabase } from './track-database';
 import Dexie from 'dexie';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 @Injectable({
   providedIn: 'root'

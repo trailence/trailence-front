@@ -2,7 +2,6 @@ import { BehaviorSubject, combineLatest, first, map, of, switchMap } from 'rxjs'
 import { MapTrack } from 'src/app/components/map/track/map-track';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
-import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { TrailPlannerPage } from './trail-planner.page';
 import { MapComponent } from 'src/app/components/map/map.component';
 import { ChangeDetectorRef, Injector } from '@angular/core';
@@ -15,6 +14,7 @@ import { TrailCollection } from 'src/app/model/trail-collection';
 import { Share } from 'src/app/model/share';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 const TRAIL_MAPTRACK_DEFAULT_COLOR = '#FF000080';
 const TRAIL_MAPTRACK_HIGHLIGHTED_COLOR = '#FF00FFFF';

@@ -365,12 +365,10 @@ export class TrailsPage extends AbstractPage {
             this.searchMode = 'bubbles';
             changed = true;
           }
-        } else {
-          if (this.searchMode !== undefined) {
-            this.searchMode = undefined;
-            this.searchMessage = 'pages.trails.search.needs_zoom';
-            changed = true;
-          }
+        } else if (this.searchMode !== undefined) {
+          this.searchMode = undefined;
+          this.searchMessage = 'pages.trails.search.needs_zoom';
+          changed = true;
         }
       } else if (this.searchMode !== 'trails') {
         this.searchMode = 'trails';

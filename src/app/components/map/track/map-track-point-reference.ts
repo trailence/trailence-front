@@ -1,7 +1,7 @@
 import { Segment } from 'src/app/model/segment';
 import { MapTrack } from './map-track';
 import { Point } from 'src/app/model/point';
-import { SimplifiedPoint } from 'src/app/services/database/track-database';
+import { SimplifiedPoint } from 'src/app/model/snapshots';
 
 export class MapTrackPointReference {
 

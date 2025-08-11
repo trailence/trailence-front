@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { IonIcon, IonButton, IonCheckbox, PopoverController } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
@@ -16,6 +15,7 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 @Component({
   selector: 'app-trail-overview-condensed',

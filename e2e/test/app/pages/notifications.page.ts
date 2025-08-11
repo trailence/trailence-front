@@ -27,4 +27,16 @@ export class NotificationsPage extends PageWithHeader {
     throw new Error('Expected notifications: ' + JSON.stringify(texts) + '. Found ' + JSON.stringify(found) + '. Not found ' + JSON.stringify(notFound));
   }
 
+  public async expectAndClickFirstNotificationWithText(text: string) {
+    const items = await this.getElement().$('>>>ion-list').$$('app-notification-item ion-item div.item-content ion-label').getElements();
+    for (let i = 0; i < items.length; ++i) {
+      const itemText = await items[i].getText();
+      if (itemText.indexOf(text) >= 0) {
+        await items[i].$('a').click();
+        return;
+      }
+    }
+    throw new Error('Notification not found: ' + text);
+  }
+
 }

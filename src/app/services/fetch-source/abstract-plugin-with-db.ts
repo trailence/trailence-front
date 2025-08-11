@@ -3,7 +3,7 @@ import { FetchSourcePlugin, TrailInfo } from './fetch-source.interfaces';
 import Dexie from 'dexie';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackDto } from 'src/app/model/dto/track';
-import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from '../database/track-database';
+import { TrackDatabase } from '../database/track-database';
 import { Trail } from 'src/app/model/trail';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Track } from 'src/app/model/track';
@@ -12,6 +12,7 @@ import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { DelayedTable } from 'src/app/utils/delayed-table';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from '../auth/auth.service';
+import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;

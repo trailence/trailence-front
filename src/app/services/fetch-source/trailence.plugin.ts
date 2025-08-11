@@ -6,7 +6,6 @@ import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
-import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
 import { Console } from 'src/app/utils/console';
 import { PointDtoMapper } from 'src/app/model/point';
 import { Track } from 'src/app/model/track';
@@ -18,6 +17,7 @@ import * as L from 'leaflet';
 import { TypeUtils } from 'src/app/utils/type-utils';
 import { PendingRequests, PendingRequestsMultiple } from 'src/app/utils/pending-requests';
 import { Filters } from 'src/app/components/trails-list/filters';
+import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   uuid: string;

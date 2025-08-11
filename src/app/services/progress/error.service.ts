@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ModalController } from '@ionic/angular/standalone';
 import { I18nService } from '../i18n/i18n.service';
-import { CompositeI18nString, translate, TranslatedString } from '../i18n/i18n-string';
+import { CompositeI18nString, TranslatedString } from '../i18n/i18n-string';
 import { ApiError } from '../http/api-error';
 import { AuthService } from '../auth/auth.service';
 
@@ -31,13 +31,13 @@ export class ErrorService {
       if (error.errorMessage) technicalMessage = error.errorMessage;
       technicalMessage = 'Code ' + error.httpCode + (technicalMessage.length > 0 ? ': ' + technicalMessage : '');
     } else {
-      technicalMessage = translate(error, this.i18n);
+      technicalMessage = this.i18n.translateValue(error);
     }
     this.addError(new CompositeI18nString([new TranslatedString(i18nText, args), technicalMessage.length > 0 ? ' [' + technicalMessage + ']' : '']));
   }
 
   public addTechnicalError(error: any, i18nText: string, args: any[]) {
-    const technicalMessage = translate(error, this.i18n);
+    const technicalMessage = this.i18n.translateValue(error);
     this.addError(new CompositeI18nString([new TranslatedString(i18nText, args), technicalMessage.length > 0 ? ' [' + technicalMessage + ']' : '']));
   }
 
@@ -72,7 +72,7 @@ export class ErrorService {
 
   private pushErrors(errors: any[]): void {
     for (const error of errors) {
-      const text = translate(error, this.i18n);
+      const text = this.i18n.translateValue(error);
       this._shownErrors.push(text);
     }
   }

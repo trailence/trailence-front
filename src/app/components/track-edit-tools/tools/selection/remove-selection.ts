@@ -41,9 +41,7 @@ export class RemoveSelectionTool implements TrackEditTool {
       if (!sel) return false;
       if (sel instanceof PointReference) {
         if (sel.pointIndex === 0 || sel.pointIndex === track.segments[sel.segmentIndex].points.length - 1) return false;
-      } else {
-        if (sel.start.pointIndex === 0 || sel.end.pointIndex === track.segments[sel.end.segmentIndex].points.length - 1) return false;
-      }
+      } else if (sel.start.pointIndex === 0 || sel.end.pointIndex === track.segments[sel.end.segmentIndex].points.length - 1) return false;
     }
     return true;
   }
@@ -61,12 +59,10 @@ export class RemoveSelectionTool implements TrackEditTool {
         } else if (range) {
           this.splitRange(ctx, track, range.range);
         }
-      } else {
-        if (point) {
-          this.removePoint(ctx, track, point);
-        } else if (range) {
-          this.removeRange(ctx, track, range.range);
-        }
+      } else if (point) {
+        this.removePoint(ctx, track, point);
+      } else if (range) {
+        this.removeRange(ctx, track, range.range);
       }
       return of(true);
     }).subscribe(() => ctx.selection.cancelSelection());

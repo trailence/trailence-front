@@ -3,9 +3,9 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPath } from './map-track-path';
 import { Trail } from 'src/app/model/trail';
 import { MapTrackWayPoints } from './map-track-way-points';
-import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { MapTrackArrowPath } from './map-track-arrows-path';
 import * as L from 'leaflet';
+import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 
 export class MapTrack {
 

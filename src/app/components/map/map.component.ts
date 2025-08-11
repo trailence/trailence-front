@@ -21,7 +21,6 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import { Trail } from 'src/app/model/trail';
 import { MapBubble } from './bubble/map-bubble';
 import { MapToggleBubblesTool } from './tools/toggle-bubbles-tool';
-import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { RestrictedWaysTool } from './tools/restricted-ways-tool';
 import { PhoneLockTool } from './tools/phone-lock-tool';
@@ -34,6 +33,7 @@ import { GoBackTool } from './tools/go-back-tool';
 import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { Console } from 'src/app/utils/console';
+import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 

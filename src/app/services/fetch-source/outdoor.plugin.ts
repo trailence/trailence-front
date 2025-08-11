@@ -7,12 +7,12 @@ import { environment } from 'src/environments/environment';
 import { catchError, firstValueFrom, from, map, merge, Observable, of, switchMap, zip } from 'rxjs';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import * as L from 'leaflet';
-import { TrackMetadataSnapshot } from '../database/track-database';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { Console } from 'src/app/utils/console';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;

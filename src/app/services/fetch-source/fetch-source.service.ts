@@ -2,13 +2,13 @@ import { Injectable, Injector } from '@angular/core';
 import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
 import { BehaviorSubject, catchError, combineLatest, from, map, merge, Observable, of, switchMap } from 'rxjs';
-import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from '../database/track-database';
 import { Track } from 'src/app/model/track';
 import { Photo } from 'src/app/model/photo';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
 import { Console } from 'src/app/utils/console';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 @Injectable({providedIn: 'root'})
 export class FetchSourceService {

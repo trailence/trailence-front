@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 
 const baseUrl = process.env.IS_CI ? 'http://localhost:80' : 'http://localhost:8100';
 
-export async function loginAsAdmin(email, password) {
+export async function loginAsAdmin(email: string, password: string) {
   const keypair = await crypto.webcrypto.subtle.generateKey(
     {
       name: 'RSASSA-PKCS1-v1_5',
@@ -36,10 +36,10 @@ export async function loginAsAdmin(email, password) {
     process.exit(1);
   }
   const authResponse = await loginResponse.json();
-  return authResponse.accessToken;
+  return authResponse.accessToken as string;
 }
 
-export async function createUser(adminToken, email, password) {
+export async function createUser(adminToken: string, email: string, password: string) {
   const response = await fetch(baseUrl + '/api/admin/users/v1', {
     method: 'POST',
     headers: {
@@ -54,7 +54,7 @@ export async function createUser(adminToken, email, password) {
   }
 }
 
-export async function setUserRoles(adminToken, email, roles) {
+export async function setUserRoles(adminToken: string, email: string, roles: string[]) {
   const response = await fetch(baseUrl + '/api/admin/users/v1/' + email + '/roles', {
     method: 'PUT',
     headers: {

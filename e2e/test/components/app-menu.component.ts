@@ -169,6 +169,11 @@ export class AppMenu extends Component {
     await this.getElement().$('div.menu-content div.menu-section#section-moderation div.menu-item div.item-title.trails-moderation').click();
   }
 
+  public async openModerationComments() {
+    await this.openModerationSection();
+    await this.getElement().$('div.menu-content div.menu-section#section-moderation div.menu-item div.item-title.comments-moderation').click();
+  }
+
   public async close() {
     const button = this.getElement().$('div.menu-header div.menu-close ion-button');
     if (await button.isDisplayed()) {

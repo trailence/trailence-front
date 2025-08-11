@@ -4,7 +4,7 @@ import { BehaviorSubject, combineLatest, defaultIfEmpty, EMPTY, from, map, Obser
 import { Trail } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { environment } from 'src/environments/environment';
-import { SimplifiedTrackSnapshot, TrackDatabase, TrackMetadataSnapshot } from '../database/track-database';
+import { TrackDatabase } from '../database/track-database';
 import { TrackDto } from 'src/app/model/dto/track';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -24,6 +24,7 @@ import { TrackUtils } from 'src/app/utils/track-utils';
 import { TypeUtils } from 'src/app/utils/type-utils';
 import { PointDtoMapper } from 'src/app/model/point';
 import { Feedback, FeedbackReply } from '../feedback/feedback.service';
+import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {

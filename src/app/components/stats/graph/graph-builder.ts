@@ -3,7 +3,6 @@ import { StatsConfig, StatsTimeUnit, StatsValue } from '../stats-config';
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { ChartConfig } from './chart-config';
 import { Trail } from 'src/app/model/trail';
-import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
@@ -16,6 +15,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { ShareService } from 'src/app/services/database/share.service';
 import { Share } from 'src/app/model/share';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 C.Chart.register(C.LinearScale, C.BarController, C.CategoryScale, C.BarElement, C.PointElement);
 

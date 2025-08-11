@@ -7,11 +7,10 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
   IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, concat, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
-import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { FilterEnum, FilterNumeric, FilterTags, NumericFilterConfig } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -41,6 +40,7 @@ import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces
 import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Tag } from 'src/app/model/tag';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 

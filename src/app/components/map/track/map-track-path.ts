@@ -2,7 +2,7 @@ import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
-import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
+import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 
 export class MapTrackPath {
 

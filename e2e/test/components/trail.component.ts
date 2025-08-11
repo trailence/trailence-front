@@ -8,9 +8,9 @@ import { IonicInput } from './ionic/ion-input';
 import { IonicSegment } from './ionic/ion-segment';
 import { IonicTextArea } from './ionic/ion-textarea';
 import { MapComponent } from './map.component';
-import { ModalComponent } from './modal';
 import { PhotosPopup } from './photos-popup.component';
 import { PublicationChecklistModal } from './publication-checklist.modal';
+import { RateAndComments } from './rate-and-comments.component';
 import { TagsPopup } from './tags-popup';
 import { ToolbarComponent } from './toolbar.component';
 
@@ -333,6 +333,13 @@ export class TrailComponent extends Component {
         result.push({name: '', description: ''});
     }
     return result;
+  }
+
+  public async openComments() {
+    if (App.config.mode === 'mobile') {
+      await this.openTab('reviews');
+    }
+    return new RateAndComments(this.getElement().$('app-rate-and-comments'));
   }
 
 }

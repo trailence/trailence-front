@@ -17,7 +17,6 @@ import { Arrays } from 'src/app/utils/arrays';
 import { TrailPlannerPage } from './trail-planner.page';
 import * as L from 'leaflet';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { Console } from 'src/app/utils/console';
@@ -25,6 +24,7 @@ import { TrackDto } from 'src/app/model/dto/track';
 import { estimateTimeForTrack } from 'src/app/services/track-edition/time/time-estimation';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { WayUtils } from 'src/app/services/geolocation/way-utils';
+import { SimplifiedPoint, SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 
 export const WAY_MAPTRACK_DEFAULT_COLOR = '#0000FF80'
 export const WAY_MAPTRACK_HIGHLIGHTED_COLOR = '#000080FF'

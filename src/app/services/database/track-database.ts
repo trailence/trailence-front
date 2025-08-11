@@ -25,37 +25,10 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { QuotaService } from '../auth/quota.service';
 import { StoreErrors } from './store-errors';
 import { StoreOperations } from './store-operations';
-
-export interface TrackMetadataSnapshot {
-  uuid: string;
-  owner: string;
-  createdAt: number;
-  updatedAt: number;
-  distance: number;
-  positiveElevation?: number;
-  negativeElevation?: number;
-  highestAltitude?: number;
-  lowestAltitude?: number;
-  duration?: number;
-  startDate?: number;
-  bounds?: L.LatLngTuple[];
-  breaksDuration: number;
-  estimatedDuration: number;
-  localUpdate: number;
-}
+import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
-}
-
-export interface SimplifiedTrackSnapshot {
-  points: SimplifiedPoint[];
-}
-export interface SimplifiedPoint {
-  lat: number;
-  lng: number;
-  ele?: number;
-  time?: number;
 }
 
 interface SimplifiedTrackItem extends SimplifiedTrackSnapshot {

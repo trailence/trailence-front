@@ -10,12 +10,12 @@ import { TrailCollectionService } from './trail-collection.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { isPublicationCollection, isPublicationLockedCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { Track } from 'src/app/model/track';
-import { TrackMetadataSnapshot } from './track-database';
 import { TrackService } from './track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailService } from './trail.service';
 import { MyPublicTrailsService } from './my-public-trails.service';
 import { MySelectionService } from './my-selection.service';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {

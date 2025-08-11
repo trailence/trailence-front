@@ -8,6 +8,7 @@ import { RouterLink } from '@angular/router';
 import { FeedbackComponent } from 'src/app/components/trail/rate-and-comments/feedback/feedback.component';
 
 @Component({
+  selector: 'app-comments-moderation',
   templateUrl: './moderation-comments.page.html',
   styleUrl: './moderation-comments.page.scss',
   imports: [IonIcon, IonButton, IonSpinner,

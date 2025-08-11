@@ -3,8 +3,8 @@ import { ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonInput, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular/standalone";
 import { Subscription, switchMap, throwError } from 'rxjs';
+import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { Trail } from 'src/app/model/trail';
-import { SimplifiedTrackSnapshot } from 'src/app/services/database/track-database';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { GeoService } from 'src/app/services/geolocation/geo.service';

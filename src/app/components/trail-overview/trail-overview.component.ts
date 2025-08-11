@@ -9,7 +9,6 @@ import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomCont
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
-import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { TagService } from 'src/app/services/database/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
@@ -35,6 +34,7 @@ import { MySelectionService } from 'src/app/services/database/my-selection.servi
 import { LongPressDirective } from 'src/app/utils/long-press.directive';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { TrailSmallMapComponent } from '../trail-small-map/trail-small-map.component';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 class Meta {
   name?: string;

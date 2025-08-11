@@ -4,10 +4,10 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { DomController } from '@ionic/angular/standalone';
 import { BehaviorSubject, Observable, combineLatest, map, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrackMetadataSnapshot } from 'src/app/services/database/track-database';
 import { AssetsService } from 'src/app/services/assets/assets.service';
 import { Resubscribeables } from 'src/app/utils/rxjs/subscription-utils';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
 class Meta {
   distanceValue?: number = undefined;
@@ -254,7 +254,9 @@ export class TrackMetadataComponent extends AbstractComponent {
     }, true);
   }
 
-  private static updateMeta(meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean, domController: DomController, hideIfUndefined: boolean, isHtml: boolean = false): boolean {
+  private static updateMeta( // NOSONAR
+    meta: any, key: string, value: any, toString: (value: any) => string, forceChange: boolean, domController: DomController, hideIfUndefined: boolean, isHtml: boolean = false
+  ): boolean {
     if (!forceChange && meta[key  + 'Value'] === value) return false;
     meta[key + 'Value'] = value;
     const div = (meta[key + 'Div'] as HTMLDivElement);

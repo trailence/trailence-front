@@ -17,7 +17,9 @@ import { TrailCollectionService } from '../database/trail-collection.service';
 import { DependenciesService } from '../database/dependencies.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 
-export function copyTrailsTo(injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string, fromTrail: boolean, autoImportPhotos?: boolean, skipTags?: boolean, onDone?: (newTrails: Trail[]) => void): void {
+export function copyTrailsTo( // NOSONAR
+  injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string, fromTrail: boolean, autoImportPhotos?: boolean, skipTags?: boolean, onDone?: (newTrails: Trail[]) => void
+): void {
   const progress = injector.get(ProgressService).create(injector.get(I18nService).texts.pages.trails.actions.copying, 1);
   const trackService = injector.get(TrackService);
   const tagService = injector.get(TagService);

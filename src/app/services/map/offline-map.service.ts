@@ -79,7 +79,9 @@ export class OfflineMapService {
     this.cleanExpiredTimeout();
   }
 
-  public save(layer: MapLayer, crs: L.CRS, tileLayer: L.TileLayer, minZoom: number, maxZoom: number, bounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number): void {
+  public save( // NOSONAR
+    layer: MapLayer, crs: L.CRS, tileLayer: L.TileLayer, minZoom: number, maxZoom: number, bounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number
+  ): void {
     if (!this._db) return;
     new Saver(this._db, layer, crs, tileLayer, minZoom, maxZoom, bounds, paths, pathAroundMeters, this.injector).start();
     for (const b of bounds) this.saveRestrictedWays(b);

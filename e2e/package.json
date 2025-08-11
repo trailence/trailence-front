@@ -18,7 +18,7 @@
   "scripts": {
     "wdio": "wdio run ./config/wdio.conf.ts",
     "coverage-report": "nyc report --reporter=lcovonly --report-dir=coverage/e2e --cwd=../",
-    "list_parallel": "cd scripts && node ./list_parallel.js",
+    "list_parallel": "cd scripts && node --import=tsx ./list_parallel.js",
     "tests_to_filename": "node ./scripts/tests_to_filename.js",
     "demo": "wdio run ./config/wdio.conf.ts --trailence-username=demo@trailence.org --trailence-password=thisisdemo --browser=chrome --demo"
   },

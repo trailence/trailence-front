@@ -1,13 +1,12 @@
 import { Injectable, SecurityContext } from '@angular/core';
 import { PreferencesService } from '../preferences/preferences.service';
-import { BehaviorSubject, combineLatest, filter, map, Observable, of, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, Observable, of, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DateFormat, DistanceUnit, HourFormat } from '../preferences/preferences';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { AssetsService } from '../assets/assets.service';
 import { Console } from 'src/app/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
-import { TranslatedString } from './i18n-string';
 
 const TEXTS_VERSION = '37';
 
@@ -287,8 +286,8 @@ export class I18nService {
     const now = Date.now();
     if (now - timestamp < 60000) return this.texts.relativeDates.justNow;
     if (now - timestamp < 120000) return this.texts.relativeDates.minuteAgo;
-    if (now - timestamp < 60 * 60 * 1000) return new TranslatedString('relativeDates.minutesAgo', [Math.floor((now - timestamp) / (60 * 1000))]).translate(this);
-    if (now - timestamp < 4 * 60 * 60 * 1000) return new TranslatedString('relativeDates.ago', [this.durationToString(now - timestamp, false, false)]).translate(this);
+    if (now - timestamp < 60 * 60 * 1000) return this.translateWithArguments('relativeDates.minutesAgo', [Math.floor((now - timestamp) / (60 * 1000))]);
+    if (now - timestamp < 4 * 60 * 60 * 1000) return this.translateWithArguments('relativeDates.ago', [this.durationToString(now - timestamp, false, false)]);
     return this.timestampToDateTimeString(timestamp);
   }
 
@@ -424,6 +423,63 @@ export class I18nService {
     return this.assets.loadJson(environment.assetsUrl + '/i18n/languages.1.json').pipe(
       tap(l => this._languagesLoaded = l),
     );
+  }
+
+  public translateWithArguments(i18nKey: string, args: any[]): string {
+    const path = i18nKey.split('.');
+    let t = this.texts;
+    for (const name of path) t = t ? t[name] : undefined;
+    if (typeof t !== 'string') {
+      Console.error('Invalid i18n key', i18nKey, path, t, this.texts);
+      return 'Invalid i18nkey: ' + i18nKey;
+    }
+    for (let i = 0; i < args.length; ++i) {
+      const arg = this.translateValue(args[i]);
+      t = t.replace(new RegExp('\\{\\{' + (i + 1) + '\\}\\}', 'g'), arg);
+    }
+    return t;
+  }
+
+  public translateWithArguments$(i18nKey: string, args: any[]): Observable<string> {
+    const path = i18nKey.split('.');
+    return this.texts$.pipe(
+      switchMap(texts => {
+        let t = texts;
+        for (const name of path) t = t ? t[name] : undefined;
+        if (typeof t !== 'string') {
+          Console.error('Invalid i18n key', i18nKey, path, t, this.texts);
+          return of('Invalid i18nkey: ' + i18nKey);
+        }
+        if (args.length === 0) return of(t);
+        return combineLatest(args.map(arg => this.translateValue$(arg))).pipe(
+          map(args => {
+            let finalString = t;
+            for (let i = 0; i < args.length; ++i) {
+              const arg = args[i];
+              finalString = finalString.replace(new RegExp('\\{\\{' + (i + 1) + '\\}\\}', 'g'), arg);
+            }
+            return finalString;
+          })
+        );
+      })
+    );
+  }
+
+  public translateValue(value: any): string {
+    if (typeof value === 'object' && typeof value['translate'] === 'function')
+      return value.translate(this);
+    return '' + value;
+  }
+
+  public translateValue$(value: any): Observable<string> {
+    if (typeof value === 'object') {
+      if (typeof value['translate$'] === 'function') return value.translate$(this);
+      if (typeof value['translate'] === 'function') return of(value.translate(this));
+      if (value instanceof Observable) {
+        return value.pipe(switchMap(v => this.translateValue$(v)));
+      }
+    }
+    return of('' + value);
   }
 
 }
