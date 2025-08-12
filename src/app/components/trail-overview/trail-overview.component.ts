@@ -99,6 +99,9 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() enableShowOnMap = false;
   @Output() showOnMap = new EventEmitter<Trail>();
 
+  @Input() linkWithSlug = false;
+  @Input() dateWithoutTime = false;
+
   @Input() renameOnTrailNamePress = false;
   trailNamePressed(): void {
     if(this.renameOnTrailNamePress && this.trail)
@@ -161,7 +164,10 @@ export class TrailOverviewComponent extends AbstractComponent {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.reset();
     if (this.trail) {
-      this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
+      if (this.linkWithSlug && this.trailInfo?.externalUrl)
+        this.openUrl = this.trailInfo.externalUrl;
+      else
+        this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
       if (this.trail.fromModeration) this.openUrl += '/moderation';
       let previousI18nState = 0;
       const owner = this.trail.owner;
@@ -196,7 +202,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           }
           if (this.updateMeta(this.meta, 'name', trailName, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
-          if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
+          if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.dateWithoutTime ? this.i18n.timestampToDateString(timestamp) : this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
           if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
           if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
           if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;

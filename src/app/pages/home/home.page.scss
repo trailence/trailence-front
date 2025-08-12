@@ -5,6 +5,7 @@
 }
 
 div.page-content {
+  position: relative;
   height: 100%;
   width: 100%;
   overflow-y: auto;
@@ -24,7 +25,7 @@ div.page-content {
   --slide-content-size: calc(max(175px, calc(100vh - var(--slide-header-height) - var(--slide-footer-height) - 216px)));
   --mobile-size-ratio: calc(var(--slide-content-size) / var(--mobile-mask-height));
 
-  div.content-container {
+  div.content-container, div.examples {
     margin-left: var(--margin-left);
     margin-right: var(--margin-right);
   }
@@ -303,10 +304,10 @@ div.buttons {
     font-size: 16px;
   }
   div.buttons {
-    position: fixed;
-    top: var(--header-height);
+    position: absolute;
+    top: 0;
+    height: calc(100vh - var(--header-height));
     left: calc(var(--margin-left) - 115px + var(--width) + 15px);
-    bottom: 0px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -381,10 +382,10 @@ div.buttons {
     font-size: 16px;
   }
   div.buttons {
-    position: fixed;
-    top: var(--header-height);
+    position: absolute;
+    top: 0;
+    height: calc(100vh - var(--header-height));
     left: calc(var(--margin-left) - 115px + var(--width) + 15px);
-    bottom: 0px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -451,5 +452,37 @@ div.buttons {
   div.page-content {
     --slide-footer-height: 80px;
     --slide-content-size: calc(max(175px, calc(100vh - var(--slide-header-height) - var(--slide-footer-height) - 230px)));
+  }
+  h1, h2 {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  div.examples {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+::ng-deep div.examples {
+  div.examples_title {
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    color: var(--ion-color-secondary);
+  }
+  div.example {
+    margin-bottom: 8px;
+    max-width: 400px;
+
+    div.trail-name-row {
+      margin-bottom: 4px;
+    }
+    app-rate {
+      margin-bottom: 3px;
+    }
+    div.inner-metadata-container.has-photo > div.metadata-item-container:first-child {
+      min-width: 100px;
+      max-width: 100px;
+    }
   }
 }

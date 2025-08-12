@@ -34,10 +34,11 @@
           "footer": ["Partagez des parcours", "Importez des traces", "Exportez vos traces", "Améliorez vos traces avec l'outil d'édition", "Planifiez un parcours avec Open Street Map", "Copiez, déplacez entre vos collections", "Comparez, recherchez les parcours similaires", "Estimation du temps de parcours", "Statistiques", "Et bien plus !"]
         }
       ],
-      "download_apk": "Télécharger l'app Android",
-      "try_app1": "Testez maintenant",
+      "download_apk": "App Android",
+      "try_app1": "Tester maintenant",
       "try_app2": "Pas besoin de compte !",
-      "available_on": "Disponible sur Android et comme application web"
+      "available_on": "Disponible sur Android et comme application web",
+      "examples_title": "Exemples de parcours"
     },
     "installApk": {
       "title": "App Android",
@@ -631,6 +632,11 @@
           "future_costs": "Assurer la pérénnité en couvrant les dépenses pour 2 années supplémentaires",
           "increase_capacity": "Augmenter la capacité pour tous les utilisateurs (plus de stockage, serveur pouvant servir plus d'utilisateurs)"
         }
+      },
+      "developer": {
+        "title": "Vous êtes développeur ?",
+        "message": "Vous pouvez également contribuer au code. Trailence est open-source et disponible sur ",
+        "message2": "Plus spécifiquement, une contribution recherchée est le développement de l'app sous iOS. Nous utilisons Ionic donc seulement quelques fonctionnalités natives sont nécessaires."
       }
     },
     "contact": {

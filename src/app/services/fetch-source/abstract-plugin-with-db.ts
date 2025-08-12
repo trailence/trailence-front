@@ -13,6 +13,7 @@ import { DelayedTable } from 'src/app/utils/delayed-table';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from '../auth/auth.service';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { filter, first } from 'rxjs';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -37,8 +38,10 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     private readonly refreshAfter?: number,
   ) {
     super(injector);
-    if (dbByUser) injector.get(AuthService).auth$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
-    else this.openDb(dbName);
+    this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
+      if (dbByUser) injector.get(AuthService).auth$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
+      else this.openDb(dbName);
+    });
   }
 
   private db?: Dexie;
@@ -71,7 +74,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     return this.tableTrails.get(uuid).then(t => t ? new Trail(t) : this.fetchTrailById(uuid));
   }
 
-  public getTrails(uuids: string[]): Promise<Trail[]> {
+  public override getTrails(uuids: string[]): Promise<Trail[]> {
     return this.tableTrails.bulkGet(uuids)
     .then(dtos => {
       const result: Trail[] = [];

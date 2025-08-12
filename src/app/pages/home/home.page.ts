@@ -11,6 +11,12 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 import { PublicPage } from '../public.page';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Router } from '@angular/router';
+import { first, firstValueFrom, map } from 'rxjs';
+import { HttpService } from 'src/app/services/http/http.service';
+import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { Trail } from 'src/app/model/trail';
+import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { TrailOverviewComponent } from 'src/app/components/trail-overview/trail-overview.component';
 
 class Slide {
   constructor(
@@ -27,8 +33,10 @@ class Slide {
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
-  imports: [IonButton,
+  imports: [
+    IonButton,
     HeaderComponent, CommonModule,
+    TrailOverviewComponent,
   ]
 })
 export class HomePage extends PublicPage {
@@ -119,6 +127,7 @@ export class HomePage extends PublicPage {
 
   protected override initComponent(): void {
     this.setSlide(0, 0, true, false);
+    this.showExamples();
   }
 
   setSlide(slideIndex: number, slideImageIndex: number, fromLeft: boolean, stopInterval: boolean): void {
@@ -337,4 +346,38 @@ export class HomePage extends PublicPage {
     }, 0);
   }
 
+  exampleConfig = {
+    mergeDurationAndEstimated: true,
+    showBreaksDuration: false,
+    showHighestAndLowestAltitude: true,
+    allowSmallOnOneLine: true,
+    mayHave2Values: false,
+    alwaysShowElevation: true,
+  };
+
+  examples?: TrailWithInfo[];
+  private async showExamples() {
+    const fetchSource = await import('../../services/fetch-source/fetch-source.service').then(m => this.injector.get(m.FetchSourceService));
+    const trailence = await firstValueFrom(fetchSource.getAllowedPlugins$().pipe(map(list => list.find(plugin => plugin.name === 'Trailence')),first(p => !!p)));
+    const http = this.injector.get(HttpService);
+    const uuids = await firstValueFrom(http.get<string[]>(environment.apiBaseUrl + '/public/trails/v1/examples?nb=5'));
+    const trails = await trailence.getTrails(uuids);
+    const tracks = await trailence.getMetadataList(trails.map(t => t.currentTrackUuid));
+    const result: TrailWithInfo[] = [];
+    for (const trail of trails) {
+      const track = tracks.find(t => t.uuid === trail.currentTrackUuid);
+      if (!track) continue;
+      const info = await trailence.getInfo(trail.uuid);
+      if (!info) continue;
+      result.push({trail, track, info});
+    }
+    this.examples = result;
+  }
+
+}
+
+interface TrailWithInfo {
+  trail: Trail;
+  track: TrackMetadataSnapshot;
+  info: TrailInfo;
 }

@@ -1,9 +1,9 @@
 <app-toolbar
   [items]="toolbar"
-  [itemPaddingLeft]="size === 'medium' ? '2px' : '4px'"
-  [itemPaddingRight]="size === 'medium' ? '2px' : '4px'"
-  [itemSpace]="size === 'medium' ? '2px' : '4px'"
-  [itemMinWidth]="60"
+  [itemPaddingLeft]="size !== 'large' ? '2px' : '4px'"
+  [itemPaddingRight]="size !== 'large' ? '2px' : '4px'"
+  [itemSpace]="size !== 'large' ? '2px' : '4px'"
+  [itemMinWidth]="size === 'small' ? 55 : 60"
   [noScroll]="true"
 ></app-toolbar>
 <div class="message" *ngIf="message">
@@ -132,7 +132,7 @@
           [isModeration]="listType === 'moderation'"
           [trackSnapshot]="trailWithInfo.track"
           [delayLoading]="$index >= 10 && state$.value.filters.search.length === 0"
-          [photoCanBeOnLeft]="size !== 'small'"
+          [photoCanBeOnLeft]="size === 'large'"
           [showPublished]="showPublished"
           [config]="metadataConfig"
           [enableShowOnMap]="enableShowOnMap"

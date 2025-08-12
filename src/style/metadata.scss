@@ -84,7 +84,7 @@
   }
 
   &.one-column.accept-small {
-    .metadata:not(.with-photos) {
+    .metadata {
       .metadata-item-container.metadata-content-small {
         min-width: 50%;
         max-width: 50%;

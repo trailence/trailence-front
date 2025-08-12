@@ -34,10 +34,11 @@
           "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "Statistics", "And more !"]
         }
       ],
-      "download_apk": "Download Android App",
+      "download_apk": "Android App",
       "try_app1": "Try the app now",
       "try_app2": "No account needed!",
-      "available_on": "Available on Android and web application"
+      "available_on": "Available on Android and web application",
+      "examples_title": "Sample Trails"
     },
     "installApk": {
       "title": "Android App",
@@ -631,6 +632,11 @@
           "future_costs": "Ensure sustainability by covering expenses for 2 additional years",
           "increase_capacity": "Increase capacity for all users (more storage, server can serve more users)"
         }
+      },
+      "developer": {
+        "title": "Are You a Developer?",
+        "message": "You can also contribute to the code. Trailence is open-source and available on ",
+        "message2": "In particular, one contribution we’re looking for is developing the app for iOS. Since we use Ionic, only a few native features are required."
       }
     },
     "contact": {

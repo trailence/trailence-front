@@ -70,6 +70,7 @@ export abstract class FetchSourcePlugin {
 
   public abstract getInfo(uuid: string): Promise<TrailInfo | null>;
   public abstract getTrail(uuid: string): Promise<Trail | null>;
+  public abstract getTrails(uuids: string[]): Promise<Trail[]>;
   public abstract getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null>;
   public abstract getMetadataList(uuids: string[]): Promise<TrackMetadataSnapshot[]>;
   public abstract getSimplifiedTrack(uuid: string): Promise<SimplifiedTrackSnapshot | null>;
