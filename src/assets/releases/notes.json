@@ -170,5 +170,19 @@
   "001905": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "001906": {
+    "en": {
+      "items": [
+        "New display option for the trail list: now with a mini-map showing a preview of the route",
+        "Few improvements and fixes"
+      ]
+    },
+    "fr": {
+      "items": [
+        "Nouvel affichage disponible sur la liste de parcours: avec une mini-carte montrant un aperçu de la trace",
+        "Quelques améliorations et correctifs"
+      ]
+    }
   }
 }

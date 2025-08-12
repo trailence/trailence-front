@@ -63,7 +63,7 @@ export class PrivacyPolicyPage extends PublicPage {
         this.title = this.injector.get(I18nService).texts.pages.privacy_policy.title;
         this.page = undefined;
         this.injector.get(ChangeDetectorRef).detectChanges();
-        this.injector.get(HttpClient).get(environment.assetsUrl + '/privacy-policy.2.' + lang + '.html', {responseType: 'text'})
+        this.injector.get(HttpClient).get(environment.assetsUrl + '/privacy-policy.3.' + lang + '.html', {responseType: 'text'})
         .subscribe(html => {
           this.page = html;
           this.injector.get(ChangeDetectorRef).detectChanges();
