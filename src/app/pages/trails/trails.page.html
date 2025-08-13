@@ -1,4 +1,4 @@
-<app-header [title]="title$ ? (title$ | async) || '' : ''" [actions]="actions" [titleLongPress]="titleLongPressEvent"></app-header>
+<app-header [title]="title" [title2]="title2" [actions]="actions" [titleLongPress]="titleLongPressEvent"></app-header>
 @if (trailsType === 'search') {
   @if (!(connected$ | async)) {
     <div class="disconnected-message {{mapLayerService.darkMapEnabled ? 'dark-theme' : 'light-theme'}}">

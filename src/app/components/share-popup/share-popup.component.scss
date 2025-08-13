@@ -36,3 +36,12 @@
     margin-top: 2px;
   }
 }
+
+.explanation {
+  font-size: 14px;
+  color: rgba(var(--ion-text-color-rgb), 0.75);
+  background-color: rgba(96, 96, 200, 0.25);
+  padding: 4px 8px;
+  border-radius: 5px;
+  margin: 2px 0 10px 30px;
+}

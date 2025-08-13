@@ -17,6 +17,8 @@ button.alert-button.alert-button-role-success {
 
 .alert-wrapper .alert-button-group {
   flex-wrap: nowrap;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
 
   button {
     text-align: center;
@@ -31,4 +33,9 @@ ion-alert.large {
     height: 50vh;
   }
 
+}
+
+ion-alert.select-alert div.alert-wrapper div.alert-checkbox-group {
+  border-top: none;
+  margin-top: -15px;
 }

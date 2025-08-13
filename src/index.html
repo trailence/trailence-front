@@ -1,121 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
   <title>Trailence</title>
-
   <base href="/" />
-
   <meta name="color-scheme" content="light dark" />
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
-
   <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
-
   <!-- add to homescreen for ios -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-
   <meta id="head_meta_description" name="description" content="Hiking and GPS Track Management Tool (GPX). Trailence is free and open source. No ads, no trackers." />
   <meta name="keywords" content="randonnée hiking GPS GPX tool outil trace track free trailence" />
-
   <style>
-    body {
-      background-color: white;
-      color: black;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-    body, html {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    html:not(.hydrated) body {
-      display: block !important;
-    }
-    #startup {
-      background-color: white;
-      position: absolute;
-      z-index: 50000;
-      height: 100%;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      opacity: 1;
-      transition: opacity 0.33s ease-in-out;
-    }
-    #trailence-version {
-      position: fixed;
-      bottom: 20px;
-      left: 0px;
-      right: 0px;
-      text-align: center;
-      font-size: 14px;
-      color: #A0A0A0;
-    }
-    .lds-dual-ring {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-    }
-    .lds-dual-ring:after {
-      content: " ";
-      display: block;
-      width: 24px;
-      height: 24px;
-      margin: 8px;
-      border-radius: 50%;
-      border: 3px solid #000;
-      border-color: #000 transparent #000 transparent;
-      animation: lds-dual-ring 1.2s linear infinite;
-    }
-    @media (prefers-color-scheme: dark) {
-      body, html {
-        background-color: black;
-        color: white;
-      }
-      #startup {
-        background-color: black;
-      }
-      .lds-dual-ring:after {
-        border: 3px solid #fed;
-        border-color: #fed transparent #fed transparent;
-      }
-    }
-    body.dark-theme #startup {
-      background: black;
-      color: white;
-    }
-    body.light-theme #startup {
-      background: white;
-      color: black;
-    }
-    body.dark-theme .lds-dual-ring:after {
-      border: 3px solid #fed;
-      border-color: #fed transparent #fed transparent;
-    }
-    body.light-theme .lds-dual-ring:after {
-      border: 3px solid #000;
-      border-color: #000 transparent #000 transparent;
-    }
-
-    @keyframes lds-dual-ring {
-      0% {
-        transform: rotate(0deg);
-      }
-      100% {
-        transform: rotate(360deg);
-      }
-    }
+body { background-color: white; color: black; font-family: Arial, Helvetica, sans-serif; }
+body, html { width: 100%; height: 100%; margin: 0; padding: 0; }
+html:not(.hydrated) body { display: block !important; }
+#startup {
+  background-color: white;
+  position: absolute;
+  z-index: 50000;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  opacity: 1;
+  transition: opacity 0.33s ease-in-out;
+}
+#trailence-version {
+  position: fixed;
+  bottom: 20px;
+  left: 0px;
+  right: 0px;
+  text-align: center;
+  font-size: 14px;
+  color: #A0A0A0;
+}
+.lds-dual-ring {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 3px solid #000;
+  border-color: #000 transparent #000 transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@media (prefers-color-scheme: dark) {
+  body, html { background-color: black; color: white; }
+  #startup { background-color: black; }
+  .lds-dual-ring:after { border: 3px solid #fed; border-color: #fed transparent #fed transparent; }
+}
+body.dark-theme #startup { background: black; color: white; }
+body.light-theme #startup {background: white; color: black; }
+body.dark-theme .lds-dual-ring:after { border: 3px solid #fed; border-color: #fed transparent #fed transparent; }
+body.light-theme .lds-dual-ring:after {border: 3px solid #000; border-color: #000 transparent #000 transparent;}
+@keyframes lds-dual-ring {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
   </style>
 </head>
-
 <body>
   <div id="startup">
     <div>
@@ -137,5 +93,4 @@
   window._trailenceStart = d.getTime();
   console.log('starting at ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ':' + d.getMilliseconds());
 </script>
-
 </html>

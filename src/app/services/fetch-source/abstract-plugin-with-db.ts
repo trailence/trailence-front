@@ -38,9 +38,11 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     private readonly refreshAfter?: number,
   ) {
     super(injector);
-    this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
-      if (dbByUser) injector.get(AuthService).auth$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
-      else this.openDb(dbName);
+    injector.get(NgZone).runOutsideAngular(() => {
+      this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
+        if (dbByUser) injector.get(AuthService).auth$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
+        else this.openDb(dbName);
+      });
     });
   }
 

@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController, AlertController } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
@@ -16,6 +16,7 @@ import { TrailService } from './trail.service';
 import { MyPublicTrailsService } from './my-public-trails.service';
 import { MySelectionService } from './my-selection.service';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { I18nService } from '../i18n/i18n.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -139,11 +140,20 @@ export class TrailMenuService {
             this.trailToCompare = undefined;
             const router = this.injector.get(Router);
             router.navigateByUrl('/trail/' + encodeURIComponent(trail1.owner) + '/' + trail1.uuid + '/' + encodeURIComponent(trails[0].owner) + '/' + trails[0].uuid + '?from=' + encodeURIComponent(router.url));
-          }));
+          }).setDisabled(this.trailToCompare === trails[0]));
         } else if (email) {
           addTools();
           menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare_with').setAction(() => {
             this.trailToCompare = trails[0];
+            const i18n = this.injector.get(I18nService).texts;
+            this.injector.get(AlertController).create({
+              header: i18n.pages.trail.actions.compare_with,
+              message: i18n.pages.trail.actions.compare_with_explanation,
+              buttons: [{
+                text: i18n.buttons.ok,
+                role: 'cancel'
+              }]
+            }).then(a => a.present());
           }));
         }
       }

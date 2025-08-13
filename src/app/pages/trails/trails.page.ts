@@ -1,4 +1,4 @@
-import { Component, Injector, Input, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -34,6 +34,8 @@ import { TrailencePlugin } from 'src/app/services/fetch-source/trailence.plugin'
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
+import { TrailCollection } from 'src/app/model/trail-collection';
+import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -53,7 +55,8 @@ export class TrailsPage extends AbstractPage {
   @Input() trailsId?: string;
   @Input() trailsFrom?: string;
 
-  title$ = new BehaviorSubject<string>('');
+  title = '';
+  title2?: string;
   trails$ = new BehaviorSubject<List<Observable<Trail | null>> | undefined>(undefined);
   bubbles$ = new BehaviorSubject<MapBubble[]>([]);
   actions: MenuItem[] = [];
@@ -156,24 +159,38 @@ export class TrailsPage extends AbstractPage {
     let collectionActions: MenuItem[] = [];
     let trailsActions: MenuItem[] = [];
     // title is collection name, or default
-    this.byState.add(this.injector.get(AuthService).auth$.pipe(
-      filterDefined(),
-      switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)),
-      switchMap(collection => {
-        if (!collection) return this.onItemEmpty<string>(
-          () => this.injector.get(TrailCollectionService).storeLoadedAndServerUpdates$(),
-          auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)
-        );
-        this.initView('collection-' + collection.uuid + '-' + collection.owner);
-        // menu
-        collectionActions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
-        this.actions = [...collectionActions, ...trailsActions];
-        this.titleLongPressEvent = () => {
-          this.injector.get(TrailCollectionService).collectionPopup(collection, false);
-        };
-        return this.injector.get(TrailCollectionService).getTrailCollectionName$(collection);
+    this.byState.add(
+      combineLatest([
+        this.injector.get(AuthService).auth$.pipe(
+          filterDefined(),
+          switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)),
+          switchMap(collection => {
+            if (!collection) return this.onItemEmpty<{title: string, collection: TrailCollection}>(
+              () => this.injector.get(TrailCollectionService).storeLoadedAndServerUpdates$(),
+              auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)
+            );
+            this.initView('collection-' + collection.uuid + '-' + collection.owner);
+            // menu
+            collectionActions = this.injector.get(TrailCollectionService).getCollectionMenu(collection);
+            this.actions = [...collectionActions, ...trailsActions];
+            this.titleLongPressEvent = () => {
+              this.injector.get(TrailCollectionService).collectionPopup(collection, false);
+            };
+            return this.injector.get(TrailCollectionService).getTrailCollectionName$(collection)
+              .pipe(map(name => ({title: name, collection})));
+          })
+        ),
+        this.i18n.texts$,
+      ])
+      .subscribe(([result, texts]) => {
+        this.title = result.title;
+        if (isPublicationCollection(result.collection.type))
+          this.title2 = texts.menu.my_publications;
+        else
+          this.title2 = texts.pages.trails.collection;
+        this.injector.get(ChangeDetectorRef).detectChanges();
       })
-    ).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    );
     // trails from collection
     let first = true;
     this.byStateAndVisible.subscribe(
@@ -207,7 +224,10 @@ export class TrailsPage extends AbstractPage {
     this.initView('all-collections');
     this.actions = [];
     // title
-    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.all_collections)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.all_collections)).subscribe(title => {
+      this.title = title;
+      this.injector.get(ChangeDetectorRef).detectChanges();
+    }));
     // trails
     let first = true;
     this.byStateAndVisible.subscribe(
@@ -227,7 +247,10 @@ export class TrailsPage extends AbstractPage {
     this.initView('my-selection');
     this.actions = [];
     // title
-    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.my_selection)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.my_selection)).subscribe(title => {
+      this.title = title;
+      this.injector.get(ChangeDetectorRef).detectChanges();
+    }));
     // trails
     let first = true;
     this.byStateAndVisible.subscribe(
@@ -247,25 +270,32 @@ export class TrailsPage extends AbstractPage {
 
   private initShare(shareId: string, sharedBy: string): void {
     this.byStateAndVisible.subscribe(
-      this.injector.get(ShareService).getShare$(shareId, sharedBy).pipe(
-        switchMap(share => {
-          if (!share) return this.onItemEmpty<{share: Share, trails: Observable<Trail | null>[]}>(
-            () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
-            () => this.injector.get(ShareService).getShare$(shareId, sharedBy),
-          );
-          return this.injector.get(ShareService).getTrailsByShare([share]).pipe(
-            map(result => ({share, trails: result.get(share) ?? []}))
-          );
-        })
-      ), (result: {share: Share, trails: Observable<Trail | null>[]}) => {
-        this.ngZone.run(() => {
-          this.title$.next(result.share.name);
-          const newList = List(result.trails);
-          if (!newList.equals(this.trails$.value))
-            this.trails$.next(newList);
-          this.initView('share-' + result.share.uuid + '-' + result.share.owner);
-          this.actions = this.injector.get(ShareService).getShareMenu(result.share);
-        });
+      combineLatest([
+        this.injector.get(ShareService).getShare$(shareId, sharedBy).pipe(
+          switchMap(share => {
+            if (!share) return this.onItemEmpty<{share: Share, trails: Observable<Trail | null>[]}>(
+              () => this.injector.get(ShareService).storeLoadedAndServerUpdates$(),
+              () => this.injector.get(ShareService).getShare$(shareId, sharedBy),
+            );
+            return this.injector.get(ShareService).getTrailsByShare([share]).pipe(
+              map(result => ({share, trails: result.get(share) ?? []}))
+            );
+          })
+        ),
+        this.i18n.texts$,
+      ]), ([result, texts]) => {
+        this.title = result.share.name;
+        if (sharedBy === this.injector.get(AuthService).email) {
+          this.title2 = texts.pages.trails.your_share;
+        } else {
+          this.title2 = texts.pages.trails.share_from + ' ' + sharedBy;
+        }
+        const newList = List(result.trails);
+        if (!newList.equals(this.trails$.value))
+          this.trails$.next(newList);
+        this.initView('share-' + result.share.uuid + '-' + result.share.owner);
+        this.actions = this.injector.get(ShareService).getShareMenu(result.share);
+        this.injector.get(ChangeDetectorRef).detectChanges();
       }
     );
   }
@@ -274,7 +304,10 @@ export class TrailsPage extends AbstractPage {
     // title
     this.byStateAndVisible.subscribe(
       this.i18n.texts$,
-      i18n => this.title$.next(i18n.menu.search_trail)
+      i18n => {
+        this.title = i18n.menu.search_trail;
+        this.injector.get(ChangeDetectorRef).detectChanges();
+      }
     );
     this.initView('search-trails');
     // search trails
@@ -513,7 +546,10 @@ export class TrailsPage extends AbstractPage {
     this.viewId = 'moderation';
     this.actions = [];
     // title
-    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.moderation.menu_title)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.moderation.menu_title)).subscribe(title => {
+      this.title = title;
+      this.injector.get(ChangeDetectorRef).detectChanges();
+    }));
     // trails
     let first = true;
     this.byStateAndVisible.subscribe(
@@ -532,7 +568,10 @@ export class TrailsPage extends AbstractPage {
     this.viewId = 'my-publications';
     this.actions = [];
     // title
-    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.my_public_trails_name)).subscribe(title => this.ngZone.run(() => this.title$.next(title))));
+    this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.my_public_trails_name)).subscribe(title => {
+      this.title = title;
+      this.injector.get(ChangeDetectorRef).detectChanges();
+    }));
     // trails
     let first = true;
     this.byStateAndVisible.subscribe(
@@ -576,7 +615,8 @@ export class TrailsPage extends AbstractPage {
 
   private reset(): void {
     this.viewId = undefined;
-    this.title$.next('');
+    this.title = '';
+    this.title2 = undefined;
     this.trails$.next(undefined);
     this.bubbles$.next([]);
     this.bubblesToolAvailable$.next(true);

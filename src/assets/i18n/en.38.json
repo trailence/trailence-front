@@ -123,6 +123,9 @@
       }
     },
     "trails": {
+      "collection": "Collection",
+      "share_from": "Share from",
+      "your_share": "Your share",
       "edit_filters_popup_title": "Filter Tracks",
       "edit_sort_popup_title": "Sort Tracks",
       "sorts": {
@@ -216,6 +219,9 @@
         "menu_item": "Tags",
         "collection_menu_item": "Edit Tags",
         "popup": {
+          "title_trail": "Trail Tags",
+          "title_trails": "Trails Tags",
+          "title_collection": "Collection Tags",
           "title": "Tags",
           "add_tag_label": "New tag",
           "confirm_delete": {
@@ -255,7 +261,8 @@
         "download_map": "Download map",
         "compare": "Compare",
         "compare_with": "Compare with...",
-        "compare_with_this_one": "Compare with this track",
+        "compare_with_explanation": "To compare this trail with another, open the other trail's menu and click « Compare with this trail ».",
+        "compare_with_this_one": "Compare with this trail",
         "merge_trails": "Merge these tracks",
         "merged_trail_name": "Merged track"
       },
@@ -385,7 +392,11 @@
       "type": {
         "question": "What would you like to share?",
         "collection": "The whole collection",
-        "tags": "Some tags"
+        "tags": "Some tags",
+        "explanation": {
+          "collection": "All trails in the collection will be shared. If you add, remove, or edit a trail in the collection, the share will be automatically updated.",
+          "tags": "Only trails in the collection with the selected tags (on the next page) will be shared. If you tag a new trail with one of the selected tags, it will be automatically added to the share. Likewise, if you remove a tag from a trail, the share will be updated."
+        }
       },
       "tags": {
         "question": "Which tags?"
@@ -394,7 +405,7 @@
       "name_info": "This name will be visible to you and the person you're sharing with",
       "who_question": "With who? (up to 20 persons)",
       "includePhotos": "Share photos with tracks",
-      "photos_info": "Photos associated with shared tracks will be visible to the person you are sharing with, but cannot be modified",
+      "photos_info": "Photos associated with shared tracks will be visible to the person you are sharing with",
       "email": "Email",
       "email_info": "A mail will be sent to inform about this share",
       "language": "In which language should we send the mail?",

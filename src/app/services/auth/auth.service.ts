@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
 import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, throwError, timeout, zip } from 'rxjs';
@@ -59,6 +59,7 @@ export class AuthService {
     private readonly router: Router,
     private readonly platform: Platform,
     navController: NavController,
+    private readonly ngZone: NgZone,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {
@@ -432,13 +433,15 @@ export class AuthService {
   }
 
   private openDB(email: string): Dexie {
-    if (this.db) this.db.close();
-    const db = new Dexie(DB_SECURITY_PREFIX + email);
-    const stores: any = {};
-    stores[DB_SECURITY_TABLE] = 'email';
-    db.version(1).stores(stores);
-    this.db = db;
-    return db;
+    return this.ngZone.runOutsideAngular(() => {
+      if (this.db) this.db.close();
+      const db = new Dexie(DB_SECURITY_PREFIX + email);
+      const stores: any = {};
+      stores[DB_SECURITY_TABLE] = 'email';
+      db.version(1).stores(stores);
+      this.db = db;
+      return db;
+    });
   }
 
   private addBearerToken(request: TrailenceHttpRequest): Observable<TrailenceHttpRequest> | TrailenceHttpRequest {

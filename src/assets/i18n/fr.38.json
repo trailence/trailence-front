@@ -123,6 +123,9 @@
       }
     },
     "trails": {
+      "collection": "Collection",
+      "share_from": "Partage de",
+      "your_share": "Votre partage",
       "edit_filters_popup_title": "Filtrer les Parcours",
       "edit_sort_popup_title": "Trier les Parcours",
       "sorts": {
@@ -216,7 +219,9 @@
         "menu_item": "Tags",
         "collection_menu_item": "Editer les tags",
         "popup": {
-          "title": "Tags",
+          "title_trail": "Tags du parcours",
+          "title_trails": "Tags des parcours",
+          "title_collection": "Tags de la collection",
           "add_tag_label": "Nouveau tag",
           "confirm_delete": {
             "title": "Supprimer le Tag",
@@ -255,6 +260,7 @@
         "download_map": "Télécharger la carte",
         "compare": "Comparer",
         "compare_with": "Comparer avec...",
+        "compare_with_explanation": "Pour comparer ce parcours avec un autre, ouvrez le menu de l'autre parcours et cliquez sur « Comparer avec ce parcours ».",
         "compare_with_this_one": "Comparer avec ce parcours",
         "merge_trails": "Fusionner ces parcours",
         "merged_trail_name": "Parcours fusionné"
@@ -385,7 +391,11 @@
       "type": {
         "question": "Que souhaitez-vous partager ?",
         "collection": "Toute la collection",
-        "tags": "Des tags"
+        "tags": "Des tags",
+        "explanation": {
+          "collection": "Tous les parcours de la collection seront partagés. Si vous ajoutez, supprimez ou modifiez un parcours dans la collection, le partage sera automatiquement mis à jour.",
+          "tags": "Seuls les parcours de la collection portant les tags sélectionnés (à l'étape suivante) seront partagés. Si vous ajoutez un tag sélectionné à un nouveau parcours, il sera automatiquement inclus dans le partage. De même, si vous retirez un tag d'un parcours, le partage sera mis à jour."
+        }
       },
       "tags": {
         "question": "Quels tags ?"
@@ -394,7 +404,7 @@
       "name_info": "Ce nom sera visible par vous et la personne avec qui vous partagez",
       "who_question": "Avec qui ? (jusqu'à 20 personnes)",
       "includePhotos": "Partager les photos avec les parcours",
-      "photos_info": "Les photos associées aux parcours partagés seront visibles par la personne avec qui vous partagez, mais non modifiables",
+      "photos_info": "Les photos associées aux parcours partagés seront visibles par la personne avec qui vous partagez",
       "email": "Email",
       "email_info": "Un e-mail sera envoyé à la personne pour l'informer du partage",
       "language": "Dans quelle langue devons-nous envoyer le mail ?",

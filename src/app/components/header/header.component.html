@@ -96,18 +96,18 @@
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
       </div>
-      <div class="title-text {{auth.email ? '' : 'not-logged'}}" long-press (onPress)="titlePress()">
+      <div class="title-text {{auth.email ? '' : 'not-logged'}} {{!useH1 && title2 && title2.length ? 'with-sub-title' : ''}}" long-press (onPress)="titlePress()">
         <span *ngIf="!auth.email && title.length > 0 && !small && !neverShowTrailenceTitle" class="separator">-</span>
         @if (useH1) {
           <h1>{{title}}</h1>
           <h2>{{description}}</h2>
-        } @else if(small && title2 && title2.length > 0) {
+        } @else if(title2 && title2.length > 0) {
           <div class="with-sub-title">
             <div class="title1">{{ title }}</div>
             <div class="title2">{{ title2 }}</div>
           </div>
         } @else {
-          <span>{{title}}</span><span *ngIf="title2 && title2.length > 0" class="title2"> - <span>{{title2}}</span></span>
+          <span>{{title}}</span>
         }
       </div>
       <div class="title-actions" *ngIf="actions && actions.length > 0">

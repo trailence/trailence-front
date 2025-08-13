@@ -53,7 +53,7 @@ export class NotificationsService {
       switchMap(connected => connected ? timer(1000, 5 * 60000) : of(false)),
     ).subscribe(v => {
       if (v === false) return; // not connected
-      if (v === 0) this.loadFirstNotifications();
+      if (v === 0 && !this._loaded) this.loadFirstNotifications();
       else this.refreshNotifications(1);
     });
   }

@@ -14,9 +14,15 @@
       <ion-radio-group [value]="elementType" (ionChange)="setElementType($event.detail.value)">
         <div>
           <ion-radio value="COLLECTION" labelPlacement="end">{{i18n.texts.pages.share_popup.type.collection}} <i>{{collectionName}}</i></ion-radio>
+          <div class="explanation">
+            {{i18n.texts.pages.share_popup.type.explanation.collection}}
+          </div>
         </div>
         <div>
           <ion-radio value="TAG" labelPlacement="end">{{i18n.texts.pages.share_popup.type.tags}}</ion-radio>
+          <div class="explanation">
+            {{i18n.texts.pages.share_popup.type.explanation.tags}}
+          </div>
         </div>
       </ion-radio-group>
     }

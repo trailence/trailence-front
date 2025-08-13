@@ -3,7 +3,7 @@
   <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="tags" style="margin-right: 10px"></ion-icon>
-      <ion-label>{{i18n.texts.pages.trails.tags.popup.title}}</ion-label>
+      <ion-label>{{trails ? (trails.length === 1 ? i18n.texts.pages.trails.tags.popup.title_trail : i18n.texts.pages.trails.tags.popup.title_trails) : i18n.texts.pages.trails.tags.popup.title_collection}}</ion-label>
     </ion-title>
   </ion-toolbar>
 </ion-header>

@@ -34,10 +34,20 @@
   margin-top: 5px;
   border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
 
-  .version {
+  .menu-bottom {
+    display: flex;
+    flex-direction: row;
     font-size: 12px;
-    text-align: center;
-    color: rgba(var(--ion-color-tertiary-rgb), 0.75);
+    align-items: center;
+    justify-content: center;
+
+    .version {
+      color: var(--ion-color-tertiary);
+    }
+    a, a:active {
+      color: var(--ion-color-secondary);
+      margin-left: 10px;
+    }
   }
 }
 
@@ -53,9 +63,12 @@
     flex-direction: row;
     align-items: center;
     padding: 0 1px 0 8px;
-    margin-top: 3px;
-    border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.25);
     color: rgba(var(--ion-color-dark-rgb), 0.75);
+
+    &:not(.no-separator-before) {
+      margin-top: 3px;
+      border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.25);
+    }
 
     .section-title {
       flex: 1 1 100%;
@@ -229,14 +242,6 @@ ion-icon.left-icon {
     margin-left: 5px;
     font-size: 11px;
     font-style: italic;
-  }
-}
-.links {
-  padding: 0 10px;
-
-  a, a:active {
-    color: var(--ion-color-secondary);
-    font-size: 12px;
   }
 }
 

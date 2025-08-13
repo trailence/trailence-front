@@ -403,3 +403,7 @@ ion-header ion-toolbar ion-title {
     margin-bottom: -5px;
   }
 }
+
+ion-picker-column.ion-color-secondary ion-picker-column-option.ion-color-primary.option-active {
+  color: var(--ion-color-secondary);
+}

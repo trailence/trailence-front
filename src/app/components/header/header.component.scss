@@ -38,9 +38,11 @@
       }
     }
     .title-text {
-      overflow: hidden;
       text-wrap: nowrap;
-      text-overflow: ellipsis;
+      &:not(.with-sub-title) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
       &.not-logged {
         font-size: 20px;
@@ -61,6 +63,8 @@
       }
 
       div.with-sub-title {
+        margin-bottom: -5px;
+
         div.title1 {
           font-size: 15px;
           text-overflow: ellipsis;

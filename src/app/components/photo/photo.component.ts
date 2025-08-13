@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { EMPTY, first, Subscription, switchMap, timer } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
@@ -11,6 +11,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
     selector: 'app-photo',
     templateUrl: './photo.component.html',
     styleUrl: './photo.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [IonIcon, IonSpinner, CommonModule]
 })
 export class PhotoComponent implements OnChanges, OnDestroy {
@@ -35,7 +36,10 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     private readonly changesDetector: ChangeDetectorRef,
     private readonly elementRef: ElementRef,
     private readonly network: NetworkService,
-  ) { }
+    private readonly ngZone: NgZone,
+  ) {
+    changesDetector.detach();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['photo']) {
@@ -51,21 +55,23 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.setBlob(undefined);
       if (this.photo) {
         const loadPhoto = (photo: Photo, trial: number) => {
-          this.subscription = this.photoService.getBlobUrl$(photo).subscribe({
-            next: blob => {
-              this.setBlob(blob);
-            },
-            error: e => {
-              Console.error('Error loading photo', e);
-              this.error = true;
-              this.subscription = undefined;
-              if (trial > 1 && photo.uuid.startsWith('http')) {
-                this.setBlob({url: photo.uuid});
-                return;
+          this.ngZone.runOutsideAngular(() => {
+            this.subscription = this.photoService.getBlobUrl$(photo).subscribe({
+              next: blob => {
+                this.setBlob(blob);
+              },
+              error: e => {
+                Console.error('Error loading photo', e);
+                this.error = true;
+                this.subscription = undefined;
+                if (trial > 1 && photo.uuid.startsWith('http')) {
+                  this.setBlob({url: photo.uuid});
+                  return;
+                }
+                this.reloadError(loadPhoto, photo, trial + 1);
+                this.ngZone.run(() => this.changesDetector.detectChanges());
               }
-              this.reloadError(loadPhoto, photo, trial + 1);
-              this.changesDetector.detectChanges();
-            }
+            });
           });
         }
         if (!this.loadWhenVisible) loadPhoto(this.photo, 1);
@@ -95,7 +101,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.blob = blob.url;
       this.blobSize.emit(blob.blobSize);
     }
-    this.changesDetector.detectChanges();
+    this.ngZone.run(() => this.changesDetector.detectChanges());
   }
 
   private reloadError(loader: (photo: Photo, trial: number) => void, photo: Photo, trial: number): void {
