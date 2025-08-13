@@ -17,7 +17,7 @@ export class SelectionComponent implements OnInit, OnDestroy {
 
   @Input() context!: TrackEditToolContext;
   @Input() onCreated!: (instance: SelectionComponent) => void;
-  @Input() vertical = true;
+  @Input() small = false;
 
   expanded = true;
   selection?: PointReference | RangeReference;

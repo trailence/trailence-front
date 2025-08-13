@@ -190,7 +190,6 @@ export class TrailComponent extends AbstractComponent {
   @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
 
   toolsStack?: TrackEditToolsStack;
-  toolsVertical = true;
   toolsEnabled = false;
 
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
@@ -978,20 +977,12 @@ export class TrailComponent extends AbstractComponent {
     const w = this.browser.width;
     const h = this.browser.height;
     if (w >= 750 + 350) {
-      this.displayMode = 'large edit-tools-on-right';
-      this.toolsVertical = true;
+      this.displayMode = 'large';
       this.isSmall = false;
       if (this.bottomSheetTab === 'info') this.bottomSheetTab = 'elevation';
       this.updateVisibility(true, this.bottomSheetOpen);
     } else {
       this.displayMode = h > 500 || w < 500 ? 'small' : 'small small-height bottom-sheet-tab-open-' + this.bottomSheetTab;
-      if (h > w) {
-        this.displayMode += ' edit-tools-on-bottom';
-        this.toolsVertical = false;
-      } else {
-        this.displayMode += ' edit-tools-on-right';
-        this.toolsVertical = true;
-      }
       this.isSmall = true;
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
     }

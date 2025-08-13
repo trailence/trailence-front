@@ -1,7 +1,16 @@
 div.edit-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   border-bottom: 1px solid var(--ion-color-medium);
+  background-color: var(--ion-background-color);
+  pointer-events: all;
 
   div.edit-tool-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
     background-color: var(--ion-toolbar-background);
     color: var(--ion-toolbar-color, var(--ion-text-color));
 
@@ -19,26 +28,13 @@ div.edit-tool {
     padding: 3px;
   }
 
-  &.vertical {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-
-    div.edit-tool-header {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
-    }
+  div.metadata-container.two-columns {
+    max-width: 350px;
   }
-  &.horizontal {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    height: 100%;
+
+  &.small {
     --metadata-font-size: 12px;
     --metadata-icon-size: 16px;
-    border-right: 1px solid var(--ion-color-medium);
 
     div.metadata-container.two-columns {
       max-width: 300px;
@@ -48,34 +44,11 @@ div.edit-tool {
       margin-bottom: 2px;
     }
 
-    div.edit-tool-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border-right: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
-
-      div.edit-tool-title {
-        min-width: 32px;
-        max-width: 32px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        span {
-          transform: rotate(-90deg);
-          white-space: nowrap;
-          padding-left: 3px;
-        }
-      }
-    }
-
-    div.edit-tool-content {
-      display: flex;
-      flex-direction: row;
-    }
-
     ion-item {
       font-size: 12px;
       --min-height: 24px;
+      --padding-start: 4px;
+      --inner-padding-end: 4px;
     }
 
     .message {
@@ -102,6 +75,7 @@ div.edit-tool {
   .message {
     padding: 10px;
     color: var(--ion-color-tertiary);
+    max-width: 300px;
   }
 
   &.collpased {

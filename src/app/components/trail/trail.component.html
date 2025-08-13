@@ -1,4 +1,4 @@
-<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }} {{toolsStack ? 'edit-tools-open' : ''}}">
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}">
   <div class="map-container">
     <app-map *ngIf="trail1 || recording"
       #map
@@ -11,40 +11,8 @@
       (mouseClickPoint)="mouseClickOnMap($event)"
       [rightTools]="mapToolbarRightItems"
     >
-      @if (trail1 && !trail2) {
-        @if (toolsEnabled && !recording) {
-          <div class="map-top-controls center">
-            <app-track-edit-tools
-              [trail]="trail1"
-              [selection]="selection"
-              [originalTrack$]="toolsOriginalTrack$"
-              [baseTrack$]="toolsBaseTrack$"
-              [modifiedTrack$]="toolsModifiedTrack$"
-              [hideBaseTrack$]="toolsHideBaseTrack$"
-              [map$]="map$"
-              (toolsStackChange)="setToolsStack($event)"
-              (onClose)="disableEditTools()"
-            ></app-track-edit-tools>
-          </div>
-        } @else if (positionningOnMap$.value) {
-          <div class="map-top-controls center">
-            <app-toolbar
-              [items]="mapToolbarPositionningPhotoItems"
-              textSize="9px"
-              [itemMinWidth]="40"
-              [itemMaxWidth]="50"
-              itemSpace="2px"
-              itemPaddingTop="1px"
-              itemPaddingBottom="1px"
-              itemPaddingLeft="4px"
-              itemPaddingRight="4px"
-              separatorSpace="4px"
-            ></app-toolbar>
-          </div>
-        }
-      }
-      @if (!toolsEnabled && !positionningOnMap$.value) {
-        <div class="map-top-controls right">
+      <div class="map-top-controls right">
+        @if (!toolsEnabled && !positionningOnMap$.value) {
           <app-toolbar #mapToolbarTopRight
             [items]="mapToolbarTopRightItems"
             textSize="9px"
@@ -57,8 +25,47 @@
             itemPaddingRight="4px"
             separatorSpace="4px"
           ></app-toolbar>
-        </div>
-      }
+        }
+      </div>
+      <div class="map-top-controls center">
+        @if (trail1 && !trail2) {
+          @if (toolsEnabled && !recording) {
+            <app-track-edit-tools
+              [trail]="trail1"
+              [selection]="selection"
+              [originalTrack$]="toolsOriginalTrack$"
+              [baseTrack$]="toolsBaseTrack$"
+              [modifiedTrack$]="toolsModifiedTrack$"
+              [hideBaseTrack$]="toolsHideBaseTrack$"
+              [map$]="map$"
+              (toolsStackChange)="setToolsStack($event)"
+              (onClose)="disableEditTools()"
+            ></app-track-edit-tools>
+          } @else if (positionningOnMap$.value) {
+            <app-toolbar
+              [items]="mapToolbarPositionningPhotoItems"
+              textSize="9px"
+              [itemMinWidth]="40"
+              [itemMaxWidth]="50"
+              itemSpace="2px"
+              itemPaddingTop="1px"
+              itemPaddingBottom="1px"
+              itemPaddingLeft="4px"
+              itemPaddingRight="4px"
+              separatorSpace="4px"
+            ></app-toolbar>
+          }
+        }
+      </div>
+      <div class="map-bottom-right-tools">
+        @if (trail1 && !trail2 && toolsEnabled && !recording && toolsStack) {
+          @for (tool of toolsStack.components; track tool) {
+            <div class="edit-tool-container">
+              <ng-container *ngComponentOutlet="tool.component; inputs: { context: toolsStack.context, onCreated: toolCreated(tool), small: isSmall }"></ng-container>
+            </div>
+          }
+        }
+      </div>
     </app-map>
   </div>
   <div class="tabs-container">
@@ -84,13 +91,6 @@
         <ion-icon name="speed"></ion-icon>
       </div>
     </div>
-  </div>
-  <div class="edit-tools-container" [ngClass]="{'horizontal': !toolsVertical}">
-    <ng-container *ngIf="toolsStack">
-      <div class="edit-tool-container" *ngFor="let tool of toolsStack.components">
-        <ng-container *ngComponentOutlet="tool.component; inputs: { context: toolsStack.context, onCreated: toolCreated(tool), vertical: toolsVertical }"></ng-container>
-      </div>
-    </ng-container>
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="!isSmall || tab === 'details'">

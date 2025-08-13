@@ -1,8 +1,8 @@
-<div class="edit-tool selection-tool" [ngClass]="{'collpased': !expanded, 'vertical': vertical, 'horizontal': !vertical}">
+<div class="edit-tool selection-tool" [ngClass]="{'collpased': !expanded, 'small': small}">
   <div class="edit-tool-header">
     <div class="edit-tool-expand-button">
       <ion-button slot="end" fill="clear" size="small" color="dark" (click)="toggleExpanded()">
-        <ion-icon [name]="expanded ? (vertical ? 'chevron-down' : 'chevron-right') : (vertical ? 'chevron-right' : 'chevron-down')" slot="icon-only"></ion-icon>
+        <ion-icon [name]="expanded ? 'chevron-down' : 'chevron-right'" slot="icon-only"></ion-icon>
       </ion-button>
     </div>
     <div class="edit-tool-title"><span>{{i18n.texts.track_edit_tools.tools.selection.title}}</span></div>

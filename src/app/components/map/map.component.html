@@ -1,7 +1,7 @@
 <div style="width: 100%; height: 100%" id="{{id}}"></div>
 <div class="leaflet-legend" id="{{mapId}}-legend"></div>
 <div class="map-top-controls-container">
-  <ng-content selector=".map-top-controls"></ng-content>
+  <ng-content select=".map-top-controls"></ng-content>
 </div>
 <div class="map-left-controls-container">
   <app-toolbar
@@ -32,4 +32,7 @@
     itemPaddingTop="2px"
     itemPaddingBottom="2px"
   ></app-toolbar>
+</div>
+<div class="map-bottom-right-tools-container">
+  <ng-content select=".map-bottom-right-tools"></ng-content>
 </div>
