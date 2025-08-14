@@ -27,8 +27,8 @@ export class TrailPage extends PageWithHeader {
 
   public get trailComponent() { return new TrailComponent(this.getElement().$('app-trail')); }
 
-  public static async waitForName(trailName: string, collectionName?: string) {
-    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === (trailName + (collectionName ? ' - ' + collectionName : ''))));
+  public static async waitForName(trailName: string) {
+    await browser.waitUntil(() => Page.getActivePageElement().then(p => new HeaderComponent(p).getTitle()).then(title => title === trailName));
     const url = await browser.getUrl();
     const i = url.indexOf('/trail/');
     const j = url.indexOf('/', i + 7);

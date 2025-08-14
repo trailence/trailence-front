@@ -106,7 +106,9 @@ export class HomePage extends PublicPage {
 
   private setupInterval(): void {
     if (this.slideInterval) return;
-    this.slideInterval = setInterval(() => this.moveNext(false), 7500);
+    this.slideInterval = setInterval(() => {
+      this.moveNext(false);
+    }, 7500);
   }
 
   private updateSize(): void {
@@ -157,7 +159,7 @@ export class HomePage extends PublicPage {
           currentImage!.classList.add(fromLeft ? 'at-left' : 'at-right');
           newImage!.classList.add('current');
           newImage!.classList.remove('at-right', 'at-left');
-        }, 0);
+        }, 100);
       }
     } else {
       // move slide
@@ -174,8 +176,9 @@ export class HomePage extends PublicPage {
         currentSlide.classList.add(fromLeft ? 'at-left' : 'at-right');
         newSlide.classList.add('current');
         newSlide.classList.remove('at-right', 'at-left');
-      }, 0);
+      }, 100);
     }
+
     this.currentSlideIndex = slideIndex;
     this.currentSlideImageIndex = slideImageIndex;
 

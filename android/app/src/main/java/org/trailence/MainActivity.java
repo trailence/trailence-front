@@ -1,11 +1,13 @@
 package org.trailence;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Logger;
 
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.WebView;
 
 import java.io.InputStream;
@@ -19,6 +21,13 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(BackgroundGeolocation.class);
     super.onCreate(savedInstanceState);
     WebView.setWebContentsDebuggingEnabled(true);
+    this.getBridge().getWebView().setLongClickable(true);
+    this.getBridge().getWebView().setOnLongClickListener(new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View v) {
+        return true;
+      }
+    });
   }
 
   @Override

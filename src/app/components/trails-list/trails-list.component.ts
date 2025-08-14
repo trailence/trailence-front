@@ -117,6 +117,7 @@ export class TrailsListComponent extends AbstractComponent {
   mapTrails: TrailWithInfo[] = [];
   listTrails: List<TrailWithInfo> = List();
   searchOpen = false;
+  hasRating = false;
 
   collectionTags: Tag[] = [];
 
@@ -449,6 +450,7 @@ export class TrailsListComponent extends AbstractComponent {
         return !b || mapBounds.overlaps(b);
       });
     }
+    this.hasRating = !!this.mapTrails.find(t => t.info?.rating !== undefined);
     return this.mapTrails;
   }
 

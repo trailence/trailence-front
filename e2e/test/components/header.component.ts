@@ -21,11 +21,15 @@ export class HeaderComponent extends Component {
     try {
       const titleDiv = this.getElement().$('div.header-title div.title-text');
       if (await titleDiv.$('div.with-sub-title').isExisting())
-        return await titleDiv.$('div.with-sub-title div.title1').getText() + ' - ' + await titleDiv.$('div.with-sub-title div.title2').getText();
+        return await titleDiv.$('div.with-sub-title div.title1').getText();
       return await this.getElement().$('div.header-title div.title-text').getText();
     } catch (e) {
       return '';
     }
+  }
+
+  public async getTitle2() {
+    return await this.getElement().$('div.header-title div.title-text div.with-sub-title div.title2').getText();
   }
 
   public async openUserMenu() {

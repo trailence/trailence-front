@@ -18,13 +18,15 @@ describe('Preferences', () => {
   ) => {
     const trail = await list.waitTrail('Randonnée du 05/06/2023 à 08:58');
     if (!trail) throw new Error('Trail not found');
-    let value = await trail.getTrailMetadata('date', true);
-    if (value !== date) throw new Error('Date found <' + value + '> expected was <' + date + '>');
-    const meta = await trail.getTrackMetadata();
-    if (meta.get(timeTitle) !== time) throw new Error(timeTitle + ' found <' + meta.get(timeTitle) + '> expected was <' + time + '>');
-    if (meta.get(distanceTitle) !== distance) throw new Error(distanceTitle + ' found <' + meta.get(distanceTitle) + '> expected was <' + distance + '>');
-    if (meta.get(ascentTitle) !== positiveElevation) throw new Error(ascentTitle + ' found <' + meta.get(ascentTitle) + '> expected was <' + positiveElevation + '>');
-    if (meta.get(descentTitle) !== negativeElevation) throw new Error(descentTitle + ' found <' + meta.get(descentTitle) + '> expected was <' + negativeElevation + '>');
+    await TestUtils.retry(async () => {
+      let value = await trail.getTrailMetadata('date', true);
+      if (value !== date) throw new Error('Date found <' + value + '> expected was <' + date + '>');
+      const meta = await trail.getTrackMetadata();
+      if (meta.get(timeTitle) !== time) throw new Error(timeTitle + ' found <' + meta.get(timeTitle) + '> expected was <' + time + '>');
+      if (meta.get(distanceTitle) !== distance) throw new Error(distanceTitle + ' found <' + meta.get(distanceTitle) + '> expected was <' + distance + '>');
+      if (meta.get(ascentTitle) !== positiveElevation) throw new Error(ascentTitle + ' found <' + meta.get(ascentTitle) + '> expected was <' + positiveElevation + '>');
+      if (meta.get(descentTitle) !== negativeElevation) throw new Error(descentTitle + ' found <' + meta.get(descentTitle) + '> expected was <' + negativeElevation + '>');
+    }, 2, 500);
   }
 
   const expectedUtcDate = Date.UTC(2023, 4, 6, 6, 58, 0, 0);

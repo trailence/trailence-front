@@ -1,6 +1,27 @@
 <app-header [title]="i18n.texts.pages.installApk.title" [description]="i18n.texts.pages.installApk.meta_description" [useH1]="true"></app-header>
 <div class="page-content">
   <div class="content-container">
+    <div class="stores">
+      <div class="intro">{{i18n.texts.pages.installApk.stores.intro}}</div>
+      <div class="links">
+        <a href="https://play.google.com/store/apps/details?id=trailence.org&hl={{prefs.preferences.lang}}" target="_blank">
+          <img src="/assets/home-page/google-playstore.svg" height="64"/>
+        </a>
+        <a href="https://appgallery.huawei.com/app/C114938253?locale={{prefs.preferences.lang}}" target="_blank">
+          <img src="/assets/home-page/huawei-appgallery.svg" height="64"/>
+        </a>
+        <a href="https://trailence.{{prefs.preferences.lang}}.uptodown.com/android" target="_blank">
+          <img src="/assets/home-page/uptodown.png" height="60"/>
+        </a>
+      </div>
+    </div>
+
+    <div class="else">
+      <div>{{i18n.texts.pages.installApk.stores.else1}}</div>
+      <div>{{i18n.texts.pages.installApk.stores.else2}}</div>
+      <div>{{i18n.texts.pages.installApk.stores.else3}}</div>
+    </div>
+
     <div class="step">
       <div class="before">
         <div class="step-number">1</div>

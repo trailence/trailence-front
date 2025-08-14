@@ -38,15 +38,17 @@ describe('Trails Tools', () => {
 
   it('Select first, then second, and compare', async () => {
     const trail1 = await list.findItemByTrailName('Randonnée du 20/02/2022 à 09:55');
-    await trail1!.clickMenuItem('Compare with...');
     const trail1Id = await list.getTrailId(trail1!);
+    await trail1!.clickMenuItem('Compare with...');
+    await (await App.waitAlert()).clickButtonWithRole('cancel');
     const trail2 = await list.findItemByTrailName('Près de Tourves');
-    await trail2!.clickMenuItem('Compare with this track');
+    await trail2!.clickMenuItem('Compare with this trail');
     const trail2Id = await list.getTrailId(trail2!);
 
     const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
     await trailPage.waitDisplayed();
-    expect(await trailPage.header.getTitle()).toBe('Compare - Randonnée du 20/02/2022 à 09:55 and Près de Tourves');
+    expect(await trailPage.header.getTitle()).toBe('Compare');
+    expect(await trailPage.header.getTitle2()).toBe('Randonnée du 20/02/2022 à 09:55 and Près de Tourves');
     const hasTabs = await trailPage.trailComponent.hasTabs();
     if (hasTabs)
       expect(await trailPage.trailComponent.hasTab('photos')).toBeFalse();
@@ -78,9 +80,10 @@ describe('Trails Tools', () => {
 
     const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
     await trailPage.waitDisplayed();
-    const title = await trailPage.header.getTitle();
-    if (title !== 'Compare - Randonnée du 20/02/2022 à 09:55 and Près de Tourves' && title !== 'Compare - Près de Tourves and Randonnée du 20/02/2022 à 09:55')
-      throw new Error('Unexpected title: ' + title);
+    expect(await trailPage.header.getTitle()).toBe('Compare');
+    const title2 = await trailPage.header.getTitle2();
+    if (title2 !== 'Randonnée du 20/02/2022 à 09:55 and Près de Tourves' && title2 !== 'Près de Tourves and Randonnée du 20/02/2022 à 09:55')
+      throw new Error('Unexpected title: ' + title2);
 
     await trailPage.header.goBack();
     collectionPage = new TrailsPage();
@@ -122,7 +125,7 @@ describe('Trails Tools', () => {
     await trail!.selectTrail();
 
     await (await list.openSelectionMenu()).clickItemWithText('Merge these tracks');
-    const trailPage = await TrailPage.waitForName('Merged track', 'Test SortFilter');
+    const trailPage = await TrailPage.waitForName('Merged track');
     await trailPage.trailComponent.openDetails();
     const duration = await trailPage.trailComponent.getMetadataValueByTitle('Duration' ,true);
 

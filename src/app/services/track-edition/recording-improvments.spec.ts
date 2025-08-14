@@ -19,6 +19,9 @@ describe('Test improvments while recording', () => {
     trackEdition = TestBed.inject(TrackEditionService);
     preferencesService = TestBed.inject(PreferencesService);
   });
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
 
   it('gpx-001 improvments are same when importing and while recording', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));

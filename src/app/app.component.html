@@ -5,7 +5,7 @@
     </ion-content>
     @defer(when loadMenu) {
       <ion-menu contentId="content" #appMenu [maxEdgeStart]="0">
-        @defer(when loadMenuContent) {
+        @if (loadMenuContent) {
           <app-menu></app-menu>
         }
       </ion-menu>

@@ -9,7 +9,6 @@ import { ErrorService } from 'src/app/services/progress/error.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { CommonModule } from '@angular/common';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
@@ -46,8 +45,9 @@ export class PlatformService {
             break;
           }
         }
-        Console.info('new chunk of data received from device', file);
+        Console.info('new chunk of data received from device', message.fileId, message.chunkIndex, file.nbChunks);
         if (done) {
+          Console.info('End on file from device', message.fileId);
           files.delete(message.fileId);
           this.importGpx(file.chunks, file.filename);
         }

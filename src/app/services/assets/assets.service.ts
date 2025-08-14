@@ -57,9 +57,12 @@ export class AssetsService {
         const subscribers = this._loading!;
         this._loading = undefined;
         subscribers.forEach(s => {
-          this.getIcon(s.icon, s.clone).subscribe(svg => {
-            s.subscriber.next(svg);
-            s.subscriber.complete();
+          this.getIcon(s.icon, s.clone).subscribe({
+            next: svg => {
+              s.subscriber.next(svg);
+              s.subscriber.complete();
+            },
+            error: e => s.subscriber.error(e),
           });
         });
       });

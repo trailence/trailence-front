@@ -20,6 +20,32 @@ a, a:hover, a:active {
   color: var(--ion-color-secondary);
 }
 
+div.stores {
+  div.intro {
+    margin-bottom: 8px;
+  }
+
+  div.links {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    a:not(:first-child) {
+      margin-left: 12px;
+    }
+  }
+}
+
+div.else {
+  margin-top: 24px;
+  margin-bottom: 10px;
+  > div {
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+}
+
 div.step {
   display: flex;
   flex-direction: column;

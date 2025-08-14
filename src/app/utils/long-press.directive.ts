@@ -6,7 +6,7 @@ import { GestureController } from '@ionic/angular/standalone';
 })
 export class LongPressDirective implements AfterViewInit {
 
-  @Input() longPressDelay = 1500;
+  @Input() longPressDelay = 1000;
   @Input() doubleClickThreshold = 500;
   @Input() allowDoubleClick = true;
 

@@ -17,6 +17,9 @@ describe('Test Trail and Track DTOs', () => {
     http = TestBed.inject(HttpClient);
     preferencesService = TestBed.inject(PreferencesService);
   });
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
 
   it('track to dto to track', async () => {
     const track = new Track({owner: 'test@test.com'}, preferencesService);

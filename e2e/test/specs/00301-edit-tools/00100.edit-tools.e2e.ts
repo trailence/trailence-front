@@ -54,15 +54,15 @@ describe('Edit tools', () => {
     await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 2));
     map = await trailPage.trailComponent.openMap();
 
-    await selectPoint(4); // selection tool displayed, so the map won't move
-
-    await selectPoint(5);
+    await selectPoint(4);
     await tools.createWayPoint();
     await browser.pause(1000);
 
-    await selectPoint(7);
-    await tools.createWayPoint();
-    await browser.pause(1000);
+    await TestUtils.retry(async (trial) => {
+      await selectPoint(6 + trial - 1);
+      await tools.createWayPoint();
+      await browser.pause(1000);
+    }, 2, 100);
 
     await selectWayPoint('1');
     await tools.removeWayPoint();

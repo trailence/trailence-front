@@ -1,6 +1,6 @@
 import { Component, Injector, Input } from '@angular/core';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
-import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController, Platform } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { CommonModule } from '@angular/common';
@@ -22,6 +22,7 @@ export class ImportPopupComponent {
   urlMessage?: string;
   urlDetectedSource?: string;
 
+  clipboardEnabled = false;
   clipboard?: Document;
   clipboardMessage?: string;
 
@@ -34,7 +35,9 @@ export class ImportPopupComponent {
     private readonly modalController: ModalController,
     private readonly trailCollectionService: TrailCollectionService,
     private readonly authService: AuthService,
+    readonly platform: Platform,
   ) {
+    this.clipboardEnabled = !platform.is('capacitor');
   }
 
   fromFile(): void {

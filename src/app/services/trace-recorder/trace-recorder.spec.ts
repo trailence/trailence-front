@@ -64,6 +64,7 @@ describe('Test Trace Recorder', () => {
 
   afterEach(() => {
     (TestBed.inject(AuthService).auth$ as BehaviorSubject<AuthResponse | null>).next(null);
+    TestBed.resetTestingModule();
   });
 
   it('No point should not create a trail', async () => {

@@ -324,6 +324,9 @@
           <ion-item><ion-radio value="track.negativeElevation"><ion-icon name="negative-elevation"></ion-icon> {{i18n.texts.pages.trails.sorts.negative_elevation}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.highestAltitude"><ion-icon name="highest-point"></ion-icon> {{i18n.texts.pages.trails.sorts.highest_altitude}}</ion-radio></ion-item>
           <ion-item><ion-radio value="track.lowestAltitude"><ion-icon name="lowest-point"></ion-icon> {{i18n.texts.pages.trails.sorts.lowest_altitude}}</ion-radio></ion-item>
+          @if (hasRating) {
+            <ion-item><ion-radio value="info.rating"><ion-icon name="star-filled"></ion-icon> {{i18n.texts.pages.trails.sorts.rating}}</ion-radio></ion-item>
+          }
         </ion-radio-group>
       </ion-list>
     </ion-content>

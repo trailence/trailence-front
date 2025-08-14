@@ -19,6 +19,9 @@ describe('Test Gpx Format', () => {
     http = TestBed.inject(HttpClient);
     preferencesService = TestBed.inject(PreferencesService);
   });
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
 
   it('Import gpx-001', async () => {
     const file = await firstValueFrom(http.get('/assets/test/gpx-001.gpx', { responseType: 'arraybuffer'}));

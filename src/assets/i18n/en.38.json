@@ -42,6 +42,12 @@
     },
     "installApk": {
       "title": "Android App",
+      "stores": {
+        "intro": "Trailence is available on the Google Play Store, Huawei AppGallery, and Uptodown. Simply click one of the images below to open the store:",
+        "else1": "If you can't (or prefer not to) use these stores, you can still install Trailence via its APK file.",
+        "else2": "Once installed, Trailence will let you know when updates are available. If you choose to install it, the new version will be automatically downloaded and installed - no need to repeat the full setup process.",
+        "else3": "To install Trailence manually, follow these steps:"
+      },
       "download": "Download the installation file",
       "meta_description": "Instructions for installing the Trailence Android app",
       "steps": [
@@ -138,7 +144,8 @@
         "positive_elevation": "Positive elevation",
         "negative_elevation": "Negative elevation",
         "highest_altitude": "Highest point",
-        "lowest_altitude": "Lowest point"
+        "lowest_altitude": "Lowest point",
+        "rating": "Rate"
       },
       "filters": {
         "duration": "Duration",

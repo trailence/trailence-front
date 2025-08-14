@@ -33,19 +33,21 @@
       <ion-button (click)="doImport()" [disabled]="inProgress">{{'pages.import_popup.button_import' | i18nString:urlDetectedSource}}</ion-button>
     }
   </div>
-  <div class="choice-title">
-    {{ i18n.texts.pages.import_popup.from_clipboard_title }}
-  </div>
-  <div class="clipboard-container">
-    <ion-button (click)="importClipboard()" [disabled]="inProgress">
-      {{i18n.texts.pages.import_popup.from_clipboard_button}}
-    </ion-button>
-    @if (clipboardMessage) {
-      <div class="message-container">
-        {{ clipboardMessage }}
-      </div>
-    }
-  </div>
+  @if (clipboardEnabled) {
+    <div class="choice-title">
+      {{ i18n.texts.pages.import_popup.from_clipboard_title }}
+    </div>
+    <div class="clipboard-container">
+      <ion-button (click)="importClipboard()" [disabled]="inProgress">
+        {{i18n.texts.pages.import_popup.from_clipboard_button}}
+      </ion-button>
+      @if (clipboardMessage) {
+        <div class="message-container">
+          {{ clipboardMessage }}
+        </div>
+      }
+    </div>
+  }
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">
