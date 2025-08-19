@@ -255,7 +255,7 @@ export class TrailsListComponent extends AbstractComponent {
           this.collection = collection ?? undefined;
           this.updateToolbar(trails);
           // if no active filter, we can early emit the list of trails to the map
-          if (this.trails$ && this.nbActiveFilters() === 0)
+          if (this.nbActiveFilters() === 0)
             this.mapFilteredTrails.emit(trails);
           return trails.map(
             trail => combineLatest([
@@ -356,6 +356,7 @@ export class TrailsListComponent extends AbstractComponent {
     // display
     this.toolbar.push(
       new MenuItem().setIcon('list-items').setI18nLabel('tools.display')
+        .setDisabled(() => trails.length === 0)
         .setChildren([
           new MenuItem().setIcon('list-detailed').setI18nLabel('tools.display_detailed')
             .setSelected(() => this.state$.value.mode === 'detailed')

@@ -3,6 +3,7 @@ import { TrailPage } from '../../app/pages/trail-page';
 import { TrailsPage } from '../../app/pages/trails-page';
 import { TrailOverview } from '../../components/trail-overview.component';
 import { TrailsList } from '../../components/trails-list.component';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Find Trail', () => {
 
@@ -55,7 +56,7 @@ describe('Find Trail', () => {
     await map.topToolbar.clickByIcon('search-map');
     list = await page.trailsAndMap.openTrailsList();
     await browser.waitUntil(() => list.items.length.then(nb => nb > 0), { timeout: 45000 });
-    trail = await list.waitTrail('20201025-Saint Honorat');
+    trail = await TestUtils.retry(async () => await list.waitTrail('20201025-Saint Honorat'), 2, 1000);
   });
 
   it('Check trail from Outdoor Active', async () => {

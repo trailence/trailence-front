@@ -60,6 +60,7 @@ app-toolbar {
   flex: 1 1 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
 
   div.list-bottom {
     height: 40px;

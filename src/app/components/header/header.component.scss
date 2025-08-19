@@ -157,9 +157,9 @@ ion-toolbar {
     ion-button {
       --padding-start: 0px;
       --padding-end: 0px;
-      width: var(--header-height);
+      width: calc(min(var(--header-height), 40px));
+      max-width: calc(min(var(--header-height), 40px));
       height: var(--header-height);
-      max-width: var(--header-height);
       max-height: var(--header-height);
     }
   }

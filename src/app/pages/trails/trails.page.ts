@@ -36,6 +36,7 @@ import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -79,7 +80,8 @@ export class TrailsPage extends AbstractPage {
   readonly bubblesToolAvailable$ = new BehaviorSubject<boolean>(true);
 
   private readonly _trailsAndMap$ = new BehaviorSubject<TrailsAndMapComponent | undefined>(undefined);
-  @ViewChild('trailsAndMap', { read: TrailsAndMapComponent }) set trailsAndMap(v: TrailsAndMapComponent) { this._trailsAndMap$.next(v); }
+  @ViewChild('trailsAndMap', { read: TrailsAndMapComponent }) set trailsAndMap(v: TrailsAndMapComponent | undefined) { this._trailsAndMap$.next(v); }
+  get trailsAndMap() { return this._trailsAndMap$.value; }
 
   private readonly filters$: Observable<Filters | undefined>;
   private searchFiltersSubscription?: Subscription;
@@ -300,7 +302,9 @@ export class TrailsPage extends AbstractPage {
     );
   }
 
+  private searchActive = false;
   private initSearch(): void {
+    this.searchActive = false;
     // title
     this.byStateAndVisible.subscribe(
       this.i18n.texts$,
@@ -310,6 +314,8 @@ export class TrailsPage extends AbstractPage {
       }
     );
     this.initView('search-trails');
+    if (this.bubblesToolAvailable$.value)
+      this.bubblesToolAvailable$.next(false);
     // search trails
     this.byStateAndVisible.subscribe(
       this._trailsAndMap$.pipe(
@@ -319,7 +325,17 @@ export class TrailsPage extends AbstractPage {
           map(() => ({bounds: c.getBounds(), zoom: c.getState().zoom}))
         ) : of(undefined))
       ),
-      state => this.setSearchBounds(state?.bounds, state?.zoom)
+      state => {
+        const modeBefore = this.searchMode;
+        this.setSearchBounds(state?.bounds, state?.zoom);
+        if (!this.searching && this.selectedSearchPlugins.length > 0 && this.networkService.internet && this.networkService.server &&
+          modeBefore === 'bubbles' && this.searchMode !== undefined && this.searchZoom && this.searchBounds && this.lastSearchZoom && this.lastSearchBounds &&
+          this.searchActive &&
+          (this.lastSearchZoom !== this.searchZoom || L.CRS.EPSG3857.latLngToPoint(this.searchBounds.getCenter(), this.searchZoom).distanceTo(L.CRS.EPSG3857.latLngToPoint(this.lastSearchBounds.getCenter(), this.lastSearchZoom)) > 50)
+        ) {
+          this.doSearch(this.selectedSearchPlugins);
+        }
+      }
     );
     // map toolbar
     this.mapTopToolbar$.next([
@@ -360,6 +376,15 @@ export class TrailsPage extends AbstractPage {
             }]
           }).then(a => a.present());
         }),
+      new MenuItem()
+        .setIcon('filters').setI18nLabel('tools.filters')
+        .setVisible(() => this.trailsAndMap?.isSmall === true)
+        .setBadgeTopRight(() => {
+          const nb = this.trailsAndMap?.trailsList?.nbActiveFilters();
+          if (!nb) return undefined;
+          return { text: '' + nb, color: 'success', fill: true };
+        })
+        .setAction(() => this.trailsAndMap?.trailsList?.filtersModal?.present())
     ]);
     // available plugins
     this.searchPluginsSubscription = this.injector.get(FetchSourceService).getAllowedPlugins$().subscribe(list => {
@@ -368,14 +393,16 @@ export class TrailsPage extends AbstractPage {
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
     this.selectedSearchPlugins = ['Trailence'];
-    // refresh toolbar when network change
-    this.byStateAndVisible.subscribe(this.connected$, () => {
+    // refresh toolbar when network change or size change
+    this.byStateAndVisible.subscribe(combineLatest([this.connected$, this.injector.get(BrowserService).resize$, this._trailsAndMap$, this.filters$]), () => {
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
   }
 
   private searchBounds?: L.LatLngBounds;
   private searchZoom?: number;
+  private lastSearchBounds?: L.LatLngBounds;
+  private lastSearchZoom?: number;
   private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number, forceRefresh: boolean = false): void {
     this.ngZone.run(() => {
       this.searchBounds = bounds;
@@ -420,6 +447,9 @@ export class TrailsPage extends AbstractPage {
       this.searchMessage = undefined;
       this.hasSearchResult = false;
     });
+    this.lastSearchBounds = this.searchBounds;
+    this.lastSearchZoom = this.searchZoom;
+    this.searchActive = true;
     this.mapTopToolbar$.next(this.mapTopToolbar$.value);
     if (this.searchMode === 'trails')
       this.doSearchTrails(plugins);
@@ -428,11 +458,8 @@ export class TrailsPage extends AbstractPage {
   }
 
   private doSearchTrails(plugins: string[]): void {
+    this.showBubbles$.next(false);
     let firstResult = true;
-    if (!this.bubblesToolAvailable$.value) {
-      this.loadShowBubbleState();
-      this.bubblesToolAvailable$.next(true);
-    }
     this.searchFiltersSubscription?.unsubscribe();
     this.searchFiltersSubscription = undefined;
     const fillResults = (result: SearchResult) => {
@@ -465,7 +492,6 @@ export class TrailsPage extends AbstractPage {
   }
 
   private doSearchBubbles(plugins: string[]): void {
-    this.bubblesToolAvailable$.next(false);
     this.showBubbles$.next(true);
     const bounds = this.searchBounds!;
     const zoom = this.searchZoom!;
@@ -537,6 +563,7 @@ export class TrailsPage extends AbstractPage {
   clearSearchResult(): void {
     this.ngZone.run(() => {
       this.hasSearchResult = false;
+      this.searchActive = false;
       this.trails$.next(undefined);
       this.bubbles$.next([]);
     });

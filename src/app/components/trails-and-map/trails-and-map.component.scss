@@ -17,9 +17,10 @@
 
     ion-spinner.map-loading {
       position: absolute;
-      top: 20px;
+      top: 60px;
       left: calc(50vw - 14px);
-      z-index: 10;
+      z-index: 1000;
+      pointer-events: none;
     }
   }
   .list-container {

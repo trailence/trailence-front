@@ -150,7 +150,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       ]),
       ([result, bubbles]) => {
         this.update(result.zoom, result.trails, result.showBubbles, bubbles);
-        if (!this.mapReady && this.mapTrailsReceived) {
+        if (!this.mapReady && (this.mapTrailsReceived || this.type === 'search')) {
           this.mapReady = true;
           this.changeDetector.detectChanges();
         }

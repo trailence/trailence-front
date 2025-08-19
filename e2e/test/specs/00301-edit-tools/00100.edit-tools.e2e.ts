@@ -122,7 +122,16 @@ describe('Edit tools', () => {
 
   it('Select from elevation graph, then remove', async () => {
     const graph = await trailPage.trailComponent.showElevationGraph();
-    await TestUtils.retry(async () => {
+    await TestUtils.retry(async (trial) => {
+      if (trial > 1) {
+      await browser.action('pointer')
+        .move({x: 25, y: 25, origin: await graph.getElement().$('canvas').getElement()})
+        .pause(10)
+        .down()
+        .pause(10)
+        .up()
+        .perform();
+      }
       // select a range on graph
       await browser.action('pointer')
         .move({x: 50, y: 25, origin: await graph.getElement().$('canvas').getElement()})
@@ -135,7 +144,7 @@ describe('Edit tools', () => {
         .perform();
       // zoom button should be displayed
       await browser.waitUntil(() => graph.zoomButton.isDisplayed());
-    }, 2, 100);
+    }, 3, 100);
     await tools.waitSelectionTool();
     await tools.removeSelectedRangeAndReconnect();
     await tools.undo();
