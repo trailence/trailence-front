@@ -184,5 +184,23 @@
         "Quelques améliorations et correctifs"
       ]
     }
+  },
+  "001907": {
+    "en": {
+      "items": [
+        "Easier trail search",
+        "Improved remaining trail data and position shown on the elevation profile",
+        "Added new regional map layers",
+        "Few improvements and fixes"
+      ]
+    },
+    "fr": {
+      "items": [
+        "Recherche de parcours facilitée",
+        "Données du parcours restant améliorées, et visualisation de la position dans le profil altimétrique",
+        "Ajout de nouveaux fonds de carte régionaux",
+        "Quelques améliorations et correctifs"
+      ]
+    }
   }
 }
