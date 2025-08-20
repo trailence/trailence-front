@@ -21,6 +21,7 @@ import { ESTIMATED_SMALL_BREAK_EVERY, estimateSmallBreakTime, estimateSpeedInMet
 import { SpeedLegendPlugin } from './plugins/speed-legend';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTime } from 'rxjs';
+import { PositionPlugin } from './plugins/position';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -128,13 +129,23 @@ export class TrailGraphComponent extends AbstractComponent {
     }
   }
 
-  public updateRecording(track: Track): void {
+  public updateRecording(track: Track, segmentIndexInTrack1?: number, pointIndexInTrack1?: number): void {
     this.ngZone.runOutsideAngular(() => {
       // when updating a recording track, the latest point may be updated, and new points may appeared
       if (!this.chartData) return;
       const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
       if (datasetIndex < 0) return;
       const ds = this.chartData.datasets[datasetIndex];
+      const pi = this.chartPlugins.find(pi => pi.id === 'trailence-position') as (PositionPlugin | undefined);
+      if (pi) {
+        if (datasetIndex === 1) {
+          pi.segmentIndex = segmentIndexInTrack1;
+          pi.pointIndex = pointIndexInTrack1;
+        } else {
+          pi.segmentIndex = undefined;
+          pi.pointIndex = undefined;
+        }
+      }
       this.updateRecordingData(ds, track);
     });
   }
@@ -244,7 +255,8 @@ export class TrailGraphComponent extends AbstractComponent {
             event => this.selected.emit(this.rangeSelectionToEvent(event)),
             () => this.selectable,
             (pos) => this.zoomButtonPosition.emit(pos),
-          )
+          ),
+          new PositionPlugin()
         );
 
       this.chartData = {

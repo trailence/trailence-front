@@ -331,6 +331,13 @@
     }
   }
 
+  div.show-original {
+    padding: 6px 3px 0 8px;
+  }
+  div.show-breaks {
+    padding: 6px 3px 0 8px;
+  }
+
   .section-title {
     display: flex;
     flex-direction: row;
@@ -492,6 +499,7 @@
 div.trail-dates {
   font-size: 12px;
   padding: 0 8px;
+  margin-top: 3px;
 
   span.trail-date-title {
     color: var(--ion-color-secondary);

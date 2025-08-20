@@ -8,7 +8,7 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
   const departure = track.departurePoint;
   if (!departure) return undefined;
   const departureArrivalDistance = departure.distanceTo(arrival.pos);
-  if (departureArrivalDistance > 250) return TrailLoopType.ONE_WAY;
+  if (departureArrivalDistance > 250 || departureArrivalDistance > track.metadata.distance / 3) return TrailLoopType.ONE_WAY;
   let points = track.getAllPositions();
   if (departureArrivalDistance > 5) points.push(points[0]);
   const useDistances = getDistancesForAnalysis(track);

@@ -344,9 +344,6 @@
           }
           <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
         </div>
-        <div *ngIf="!toolsEnabled && (trail1?.originalTrackUuid !== trail1?.currentTrackUuid || trail2?.originalTrackUuid !== trail2?.currentTrackUuid)" style="padding: 5px 3px 10px 8px">
-          <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
-        </div>
         <div class="trail-dates" *ngIf="trail1 && !trail2">
           @if (!source?.isExternalOnly) {
             <div>
@@ -394,6 +391,12 @@
               <a href="{{url}}" target="_blank">{{ url }}</a>
           </div>
         </ng-container>
+
+        @if (!toolsEnabled && (trail1?.originalTrackUuid !== trail1?.currentTrackUuid || trail2?.originalTrackUuid !== trail2?.currentTrackUuid)) {
+          <div class="show-original">
+            <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
+          </div>
+        }
       }
 
       <ng-container *ngIf="(myFeedback$ | async) as myFeedback">
@@ -435,9 +438,11 @@
           <ion-icon name="location"></ion-icon>
           <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
         </div>
-        <div *ngIf="!trail2 && !recording" style="padding: 10px 3px 5px 3px">
-          <ion-checkbox labelPlacement="end" [checked]="showBreaks$.value" (ionChange)="showBreaks$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
-        </div>
+        @if (!recording && hasBreaks && !positionningOnMap$.value) {
+          <div class="show-breaks">
+            <ion-checkbox labelPlacement="end" [checked]="showBreaks$.value" (ionChange)="showBreaks$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
+          </div>
+        }
         <ng-container *ngFor="let wp of wayPoints">
           <ng-container *ngIf="!wp.breakPoint || showBreaks$.value">
             <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture}"></ng-container>

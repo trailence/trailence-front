@@ -166,6 +166,32 @@ export class TrackUtils {
     return closestIndex;
   }
 
+
+  public static findNextClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number, fromSegmentIndex: number, fromPointIndex: number): {segmentIndex: number, pointIndex: number} | undefined {
+    let closestSegmentIndex = -1;
+    let closestPointIndex = -1;
+    let closestDistance = -1;
+    const p = L.latLng(pos);
+    const segments = track.segments;
+    for (let si = fromSegmentIndex; si < segments.length; ++si) {
+      const points = segments[si].points;
+      for (let pi = (si === fromSegmentIndex ? fromPointIndex : 0); pi < points.length; ++pi) {
+        const p2 = points[pi].pos;
+        if (p.lat === p2.lat && p.lng === p2.lng) return {segmentIndex: si, pointIndex: pi};
+        const d = p.distanceTo(p2);
+        if (d <= maxDistance && (closestDistance === -1 || d < closestDistance)) {
+          closestSegmentIndex = si;
+          closestPointIndex = pi;
+          closestDistance = d;
+        }
+        if (d > maxDistance && closestDistance !== -1) {
+          return {segmentIndex: closestSegmentIndex, pointIndex: closestPointIndex};
+        }
+      }
+    }
+    return closestSegmentIndex >= 0 ? {segmentIndex: closestSegmentIndex, pointIndex: closestPointIndex} : undefined;
+  }
+
   public static findClosestPointForTime(track: Track, time: number): Point | undefined { // NOSONAR
     let previous: Point | undefined = undefined;
     for (const segment of track.segments) {

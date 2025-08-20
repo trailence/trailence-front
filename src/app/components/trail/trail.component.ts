@@ -126,6 +126,7 @@ export class TrailComponent extends AbstractComponent {
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
+  hasBreaks = false;
   tagsNames1: string[] | undefined;
   tagsNames2: string[] | undefined;
   photos: Photo[] | undefined;
@@ -321,7 +322,7 @@ export class TrailComponent extends AbstractComponent {
         this.refreshMapToolbarRight();
       });
     const showBreaksTool = new MenuItem().setIcon('hourglass')
-      .setVisible(() => !this.recording && !!this.wayPoints.find(wp => wp.breakPoint) && !this.positionningOnMap$.value)
+      .setVisible(() => !this.recording && this.hasBreaks && !this.positionningOnMap$.value)
       .setTextColor(() => this.showBreaks$.value ? 'light' : 'dark')
       .setBackgroundColor(() => this.showBreaks$.value ? 'dark' : '')
       .setAction(() => {
@@ -448,6 +449,12 @@ export class TrailComponent extends AbstractComponent {
           mapTrack.showDepartureAndArrivalAnchors();
           mapTrack.showArrowPath();
           mapTracks.push(mapTrack)
+          if (this.remaining?.subTrack) {
+            if (trail1[2] && trail1[2].color === 'red') trail1[2].color = '#FF000080';
+            const remainingTrack = new MapTrack(undefined, this.remaining.subTrack, 'red', 1, false, this.i18n);
+            remainingTrack.data = 'remaining';
+            mapTracks.push(remainingTrack);
+          }
         }
 
         if (!recordingWithTrack && !trail2[0]) {
@@ -701,6 +708,7 @@ export class TrailComponent extends AbstractComponent {
       wayPoints => {
         if (this._highlightedWayPoint) this.unhighlightWayPoint(this._highlightedWayPoint, true);
         this.wayPoints = wayPoints;
+        this.hasBreaks = !!wayPoints.find(wp => wp.breakPoint);
         this.refreshMapToolbarRight();
       }, true
     );
@@ -875,6 +883,9 @@ export class TrailComponent extends AbstractComponent {
     distance: number,
     ascent: number | undefined,
     descent: number | undefined,
+    segmentIndex: number | undefined,
+    pointIndex: number | undefined,
+    subTrack: Track | undefined,
   };
 
   private listenForRecordingUpdates(): void {
@@ -887,18 +898,19 @@ export class TrailComponent extends AbstractComponent {
         previousDistance = r ? r.track.metadata.distance : 0;
         const pt = r?.track.arrivalPoint;
         if (pt && this.graph) {
-          this.graph.updateRecording(r.track);
+          this.graph.updateRecording(r.track, this.remaining?.segmentIndex, this.remaining?.pointIndex);
         }
       }, true
     );
     this.byStateAndVisible.subscribe(
-      trackChanges$.pipe(debounceTimeExtended(5000, 10000, 250)),
+      trackChanges$.pipe(debounceTimeExtended(5000, 10000, 100)),
       r => {
         let remaining: Track | undefined = undefined;
         const pt = r?.track.arrivalPoint;
+        let closestPoint: { segmentIndex: number, pointIndex: number } | undefined = undefined;
         if (pt && this.tracks$.value.length > 1) {
           const track = this.tracks$.value[0];
-          const closestPoint = TrackUtils.findLastClosePointInTrack(pt.pos, track, 50);
+          closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining?.segmentIndex ?? 0, this.remaining?.pointIndex ?? 0);
           if (closestPoint) {
             remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments[track.segments.length - 1].points.length - 1);
           }
@@ -910,10 +922,33 @@ export class TrailComponent extends AbstractComponent {
             distance: remaining.metadata.distance,
             ascent: remaining.metadata.positiveElevation,
             descent: remaining.metadata.negativeElevation,
+            segmentIndex: closestPoint?.segmentIndex,
+            pointIndex: closestPoint?.pointIndex,
+            subTrack: remaining,
           };
+
+          let mapTrack = this.mapTracks$.value.find(mt => mt.track === this.tracks$.value[0] && mt.color === 'red');
+          if (mapTrack)
+            mapTrack.color = '#FF000080';
+
+          let index = this.mapTracks$.value.findIndex(mt => mt.data === 'remaining');
+          if (index >= 0) this.mapTracks$.value.splice(index, 1);
+          mapTrack = new MapTrack(undefined, remaining, 'red', 1, false, this.i18n);
+          mapTrack.data = 'remaining';
+          this.mapTracks$.value.push(mapTrack);
+          this.mapTracks$.next(this.mapTracks$.value);
+
           this.changesDetector.detectChanges();
         } else if (this.remaining) {
           this.remaining = undefined;
+          let mapTrack = this.mapTracks$.value.find(mt => mt.track === this.tracks$.value[0] && mt.color === '#FF000080');
+          if (mapTrack)
+            mapTrack.color = 'red';
+          let index = this.mapTracks$.value.findIndex(mt => mt.data === 'remaining');
+          if (index >= 0) {
+            this.mapTracks$.value.splice(index, 1);
+            this.mapTracks$.next(this.mapTracks$.value);
+          }
           this.changesDetector.detectChanges();
         }
       }

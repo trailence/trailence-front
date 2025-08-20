@@ -19,13 +19,13 @@ export class ReplayService {
     private readonly router: Router,
   ) {}
 
-  public replay(trackUuid: string, owner: string, following?: Trail): void {
+  public replay(trackUuid: string, owner: string, following?: Trail, speed: number = 50, approximative: boolean = false): void {
     this.trackService.getFullTrackReady$(trackUuid, owner).subscribe(track => {
-      this.startReplay(track, following);
+      this.startReplay(track, following, speed, approximative);
     });
   }
 
-  private startReplay(track: Track, following?: Trail): void {
+  private startReplay(track: Track, following: Trail | undefined, speed: number, approximative: boolean = false): void {
     const originalGetCurrentPosition = window.navigator.geolocation.getCurrentPosition;
     const originalWatchPosition = window.navigator.geolocation.watchPosition;
     const originalClearWatch = window.navigator.geolocation.clearWatch;
@@ -43,6 +43,7 @@ export class ReplayService {
     let segmentIndex = 0;
     let pointIndex = 0;
     let timeDiff: number | undefined = undefined;
+    let approximativeDiff = 0;
     const sendNextPoint = (success: PositionCallback, error: PositionErrorCallback | null | undefined) => {
       if ((window as any)['_isDemo'] && pointIndex >= 50) return;
       if (segmentIndex >= track.segments.length) return;
@@ -70,11 +71,16 @@ export class ReplayService {
           time += (pointIndex - first) * 100;
       }
       timeDiff ??= Date.now() - time;
+      if (approximative && (pointIndex % 5 == 0)) {
+        approximativeDiff = approximativeDiff + (Math.random() - 0.5) * 0.0001;
+        if (approximativeDiff > 0.0002) approximativeDiff = 0.0002 - Math.random() * 0.00005;
+        if (approximativeDiff < -0.0002) approximativeDiff = -0.0002 + Math.random() * 0.00005;
+      }
       success({
         coords: {
-          latitude: point.pos.lat,
-          longitude: point.pos.lng,
-          altitude: point.ele ?? null,
+          latitude: point.pos.lat + approximativeDiff,
+          longitude: point.pos.lng + approximativeDiff,
+          altitude: point.ele !== undefined ? (point.ele + approximativeDiff * 20000) : null,
           accuracy: point.posAccuracy ?? 1,
           altitudeAccuracy: point.eleAccuracy ?? null,
           heading: point.heading ?? null,
@@ -85,7 +91,7 @@ export class ReplayService {
         toJSON: function() {},
       });
       pointIndex++;
-      setTimeout(() => sendNextPoint(success, error), (pointIndex % 10) == 0 ? 150 : 50);
+      setTimeout(() => sendNextPoint(success, error), (pointIndex % 10) == 0 ? Math.max(speed * 3, 150) : speed);
     };
 
     window.navigator.geolocation.watchPosition = function(success, error) {
