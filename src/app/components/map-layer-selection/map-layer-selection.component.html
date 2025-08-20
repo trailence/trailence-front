@@ -9,14 +9,18 @@
 
 <div [ngClass]="{'popup': popup}">
 <ion-radio-group (ionChange)="select($event.detail.value, true, true)" [value]="selection.length > 0 ? selection[0] : undefined">
-<div class="layer layer-{{layer.layer.name}}" *ngFor="let layer of layers" [ngClass]="{'as-button': buttons, 'selected': selection.indexOf(layer.layer.name) >= 0}" (click)="layerClick(layer)">
-  <div class="header">
-    <ion-radio *ngIf="!multiple" [value]="layer.layer.name"></ion-radio>
-    <ion-checkbox *ngIf="multiple" [checked]="selection.indexOf(layer.layer.name) >= 0" (click)="$event.stopPropagation()" (ionChange)="select(layer.layer.name, $event.detail.checked, false); $event.stopPropagation()"></ion-checkbox>
-    <div class="name">{{ layer.layer.displayName }}</div>
-  </div>
-  <img src="{{assertsUrl}}/map-layers/{{layer.layer.name}}.png" style="width: 150px; height: 150px;">
-</div>
+  @for (layer of globalLayers; track layer.layer.name) {
+    <ng-container *ngTemplateOutlet="layerTemplate; context: {layer: layer}"></ng-container>
+  }
+  <div class="regional-title">{{i18n.texts.layers_popup.regional_title}}</div>
+  @for (region of sortedRegions; track region) {
+    <div class="region-title">{{region}}</div>
+    <div>
+      @for (layer of regionalLayers.get(region); track layer.layer.name) {
+        <ng-container *ngTemplateOutlet="layerTemplate; context: {layer: layer}"></ng-container>
+      }
+    </div>
+  }
 </ion-radio-group>
 @if (enableOverlays) {
   <div class="overlays-title">{{i18n.texts.layers_popup.overlays_title}}</div>
@@ -30,10 +34,26 @@
 }
 </div>
 
-<ion-footer *ngIf="popup">
+@if (popup) {
+<ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
       <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
+}
+
+<ng-template #layerTemplate let-layer="layer">
+  <div class="layer layer-{{layer.layer.name}}" [ngClass]="{'as-button': buttons, 'selected': selection.indexOf(layer.layer.name) >= 0}" (click)="layerClick(layer)">
+    <div class="header">
+      @if (multiple) {
+        <ion-checkbox [checked]="selection.indexOf(layer.layer.name) >= 0" (click)="$event.stopPropagation()" (ionChange)="select(layer.layer.name, $event.detail.checked, false); $event.stopPropagation()"></ion-checkbox>
+      } @else {
+        <ion-radio [value]="layer.layer.name"></ion-radio>
+      }
+      <div class="name">{{ layer.layer.displayName }}</div>
+    </div>
+    <img src="{{layer.layer.exampleUrl}}" style="width: 150px; height: 150px;">
+  </div>
+</ng-template>

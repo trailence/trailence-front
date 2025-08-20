@@ -32,7 +32,9 @@ export class MapLayerSelectionComponent implements OnInit {
   selection: string[] = [];
   overlaysSelection: string[] = [];
 
-  layers: {layer: MapLayer, tiles: L.TileLayer}[] = [];
+  globalLayers: {layer: MapLayer, tiles: L.TileLayer}[] = [];
+  regionalLayers = new Map<string, {layer: MapLayer, tiles: L.TileLayer}[]>();
+  sortedRegions: string[] = [];
   assertsUrl = environment.assetsUrl;
   overlays: MapLayer[] = [];
 
@@ -41,9 +43,22 @@ export class MapLayerSelectionComponent implements OnInit {
     service: MapLayersService,
     private readonly modalController: ModalController,
   ) {
-    for (const l of service.layers) {
-      this.layers.push({layer: l, tiles: l.create()});
+    for (const layer of service.layers) {
+      if (layer.regional) {
+        const code = layer.regional.code;
+        const name = this.i18n.texts.regions[code] ?? code;
+        let region = this.regionalLayers.get(name);
+        if (!region) {
+          region = [{layer, tiles: layer.create()}];
+          this.regionalLayers.set(name, region);
+        } else {
+          region.push({layer, tiles: layer.create()});
+        }
+      } else {
+        this.globalLayers.push({layer, tiles: layer.create()});
+      }
     }
+    this.sortedRegions = [...this.regionalLayers.keys()].sort();
     this.overlays = service.overlays;
   }
 
@@ -89,9 +104,16 @@ export class MapLayerSelectionComponent implements OnInit {
 
   getSelectedLayers(): {layer: MapLayer, tiles: L.TileLayer}[] {
     const result: {layer: MapLayer, tiles: L.TileLayer}[] = [];
-    for (const layer of this.layers) {
+    for (const layer of this.globalLayers) {
       if (this.selection.indexOf(layer.layer.name) >= 0) {
         result.push(layer);
+      }
+    }
+    for (const region of this.regionalLayers.entries()) {
+      for (const layer of region[1]) {
+        if (this.selection.indexOf(layer.layer.name) >= 0) {
+          result.push(layer);
+        }
       }
     }
     return result;

@@ -956,7 +956,8 @@
   },
   "layers_popup": {
     "title": "Map Layer",
-    "overlays_title": "Add layers"
+    "overlays_title": "Add layers",
+    "regional_title": "By country or region"
   },
   "trace_recorder": {
     "trail_name_start": "Trail of",
@@ -1319,5 +1320,13 @@
   },
   "months": [
     "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
-  ]
+  ],
+  "regions": {
+    "be": "Belgium",
+    "ch": "Switzerland",
+    "fr": "France",
+    "no": "Norway",
+    "se": "Sweden",
+    "us": "USA"
+  }
 }

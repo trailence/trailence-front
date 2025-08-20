@@ -46,6 +46,16 @@
   height: 100%;
   overflow: auto;
 }
+div.regional-title {
+  margin: 5px 10px 0 10px;
+  color: var(--ion-color-tertiary);
+  font-size: 16px;
+}
+div.region-title {
+  margin: 5px 10px;
+  color: var(--ion-color-secondary);
+  font-size: 14px;
+}
 div.overlays-title {
   margin: 8px 10px 6px 10px;
   color: var(--ion-color-tertiary);

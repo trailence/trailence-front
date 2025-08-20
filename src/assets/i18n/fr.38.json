@@ -955,7 +955,8 @@
   },
   "layers_popup": {
     "title": "Fond de carte",
-    "overlays_title": "Ajouter des calques"
+    "overlays_title": "Ajouter des calques",
+    "regional_title": "Par pays ou région"
   },
   "trace_recorder": {
     "trail_name_start": "Parcours du",
@@ -1318,5 +1319,13 @@
   },
   "months": [
     "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-  ]
+  ],
+  "regions": {
+    "be": "Belgique",
+    "ch": "Suisse",
+    "fr": "France",
+    "no": "Norvège",
+    "se": "Suède",
+    "us": "USA"
+  }
 }
