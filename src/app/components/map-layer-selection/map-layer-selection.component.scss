@@ -46,3 +46,13 @@
   height: 100%;
   overflow: auto;
 }
+div.overlays-title {
+  margin: 8px 10px 6px 10px;
+  color: var(--ion-color-tertiary);
+  font-size: 20px;
+}
+div.overlays {
+  div.overlay {
+    margin: 2px 10px;
+  }
+}

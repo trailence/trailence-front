@@ -528,11 +528,12 @@ export class MapComponent extends AbstractComponent {
     const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
       ?? this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer())
       ?? this.mapLayersService.layers[0];
+    const overlays = this._mapState.overlays.map(name => this.mapLayersService.overlays.find(o => o.name === name)).filter(o => !!o);
 
     const map = L.map(this.id, {
       center: this._mapState.center,
       zoom: this._mapState.zoom,
-      layers: [layer.create()],
+      layers: [layer.create(), ...overlays.map(o => o.create())],
       zoomControl: false,
       //zoomSnap: 0.5,
       //zoomDelta: 1,

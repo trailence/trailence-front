@@ -32,6 +32,7 @@ export class MapLayersService {
 
   public layers: MapLayer[];
   public possibleLayers: string[];
+  public overlays: MapLayer[];
 
   private _darkMap = false;
 
@@ -44,6 +45,9 @@ export class MapLayersService {
       createIgnLayer(injector, 'ign', 'IGN (France)', 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', 'image/png', 19, 5),
       createIgnLayer(injector, 'ign-sat', 'IGN Satellite (France)', 'ORTHOIMAGERY.ORTHOPHOTOS', 'image/jpeg', 19, 5),
       //createDefaultLayer('stadia-sat', 'Stadia Satellite', 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg', 20, '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors', 2),
+    ];
+    this.overlays = [
+      createDefaultLayer(injector, 'wmth', 'Way Marked Trails Hiking', 'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', 18, '&copy; <a href="http://waymarkedtrails.org/" target="_blank">Way Marked Trails</a>', 2, false, {zIndex: 2}),
     ];
     let previousTfoKey: string | undefined = undefined;
     injector.get(ExtensionsService).getExtensions$().subscribe(
@@ -170,6 +174,7 @@ function createIgnLayer(
     create: () => handleMapOffline(name, new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution: '&copy; IGN France',
+      id: name,
     }), injector.get(NetworkService), injector.get(OfflineMapService)),
     getTileUrl: (layer, coords, crs) => {
       const data = {

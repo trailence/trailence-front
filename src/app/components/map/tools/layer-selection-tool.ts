@@ -24,28 +24,48 @@ export class MapLayerSelectionTool extends MapTool {
         componentProps: {
           buttons: true,
           popup: true,
+          enableOverlays: true,
           initialSelection: [mapComponent.getState().tilesName],
+          initialOverlaysSelection: mapComponent.getState().overlays,
           onSelectionChanged: (selection: string[]) => {
             if (selection.length > 0) {
-              const layer = injector.get(MapLayersService).layers.find(layer => layer.name === selection[0]);
+              const service = injector.get(MapLayersService);
+              const layer = service.layers.find(layer => layer.name === selection[0]);
               if (layer) {
-                let found = false;
+                let found: L.Layer | undefined = undefined;
                 map.eachLayer(current => {
-                  if ((current.options as any)['id'] === layer.name) { // NOSONAR
-                    found = true;
+                  const id = (current.options as any)['id'];
+                  if (id) {
+                    if (id === layer.name) found = current;
+                    else if (!!service.layers.find(l => l.name === id)) map.removeLayer(current);
                   }
                 });
-                if (!found) {
-                  map.eachLayer(current => {
-                    if ((current as any)['_url']) current.remove(); // NOSONAR
-                  });
+                if (found) {
+                  if (!map.hasLayer(found)) map.addLayer(found);
+                } else {
                   map.addLayer(layer.create());
-                  mapComponent.getState().tilesName = layer.name;
                 }
+                mapComponent.getState().tilesName = layer.name;
               }
             }
             modalController.dismiss();
           },
+          onOverlaysSelectionChanged: (selection: string[]) => {
+            const service = injector.get(MapLayersService);
+            const missing = [...selection];
+            map.eachLayer(layer => {
+              const id = (layer.options as any)['id'];
+              if (id && !!service.overlays.find(l => l.name === id)) {
+                const index = missing.indexOf(id);
+                if (index >= 0) missing.splice(index, 1); else map.removeLayer(layer);
+              }
+            });
+            for (let missingId of missing) {
+              const layer = service.overlays.find(o => o.name === missingId);
+              if (layer) map.addLayer(layer.create());
+            }
+            mapComponent.getState().overlays = [...selection];
+          }
         }
       }))
       .then(modal => {

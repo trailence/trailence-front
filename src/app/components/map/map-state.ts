@@ -7,6 +7,7 @@ export class MapState {
   private readonly _center$ = new BehaviorSubject<L.LatLngLiteral>({lat: 0, lng: 0});
   private readonly _zoom$ = new BehaviorSubject<number>(2);
   private readonly _tilesName$ = new BehaviorSubject<string>('osm');
+  private readonly _overlays$ = new BehaviorSubject<string[]>([]);
 
   public get live(): boolean { return this._live$.value; }
   public get live$(): Observable<boolean> { return this._live$; }
@@ -27,6 +28,10 @@ export class MapState {
   public get tilesName$(): Observable<string> { return this._tilesName$; }
   public set tilesName(value: string) { if (this._tilesName$.value !== value) this._tilesName$.next(value); }
 
+  public get overlays(): string[] { return this._overlays$.value; }
+  public get overlays$(): Observable<string[]> { return this._overlays$; }
+  public set overlays(value: string[]) { if (this._overlays$.value !== value) this._overlays$.next(value); }
+
   public load(key: string): void {
     const stored = localStorage.getItem(key);
     if (stored) {
@@ -37,6 +42,8 @@ export class MapState {
         this.zoom = json['zoom'];
       if (typeof json['tilesName'] === 'string')
         this.tilesName = json['tilesName'];
+      if (json['overlays'] && Array.isArray(json['overlays']))
+        this.overlays = json['overlays'];
     }
   }
 
@@ -46,6 +53,7 @@ export class MapState {
       center_lng: this.center.lng,
       zoom: this.zoom,
       tilesName: this.tilesName,
+      overlays: this.overlays,
     }));
   }
 

@@ -955,7 +955,8 @@
     }
   },
   "layers_popup": {
-    "title": "Map Layer"
+    "title": "Map Layer",
+    "overlays_title": "Add layers"
   },
   "trace_recorder": {
     "trail_name_start": "Trail of",

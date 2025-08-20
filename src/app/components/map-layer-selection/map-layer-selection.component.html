@@ -18,6 +18,16 @@
   <img src="{{assertsUrl}}/map-layers/{{layer.layer.name}}.png" style="width: 150px; height: 150px;">
 </div>
 </ion-radio-group>
+@if (enableOverlays) {
+  <div class="overlays-title">{{i18n.texts.layers_popup.overlays_title}}</div>
+  <div class="overlays">
+    @for (overlay of overlays; track overlay.name) {
+      <div class="overlay">
+        <ion-checkbox labelPlacement="end" [checked]="overlaysSelection.indexOf(overlay.name) >= 0" (click)="$event.stopPropagation()" (ionChange)="selectOverlay(overlay.name, $event.detail.checked)">{{overlay.displayName}}</ion-checkbox>
+      </div>
+    }
+  </div>
+}
 </div>
 
 <ion-footer *ngIf="popup">

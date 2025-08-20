@@ -954,7 +954,8 @@
     }
   },
   "layers_popup": {
-    "title": "Fond de carte"
+    "title": "Fond de carte",
+    "overlays_title": "Ajouter des calques"
   },
   "trace_recorder": {
     "trail_name_start": "Parcours du",
