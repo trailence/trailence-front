@@ -43,7 +43,7 @@
     "installApk": {
       "title": "App Android",
       "stores": {
-        "intro": "Trailence est disponible sur le Google Play Store, Huawei AppGallery, et Uptodown. Cliquez sur l'une des images ci-dessous pour ouvrir le store :",
+        "intro": "Trailence peut être installé via un des stores suivants :",
         "else1": "Si vous ne pouvez pas (ou ne souhaitez pas) utiliser ces stores, vous pouvez installer Trailence avec son fichier APK.",
         "else2": "Une fois installé, Trailence vous avertira lorsqu'une mise à jour est disponible. Si vous choisissez de l'installer, Trailence téléchargera et installera automatiquement la nouvelle version - sans avoir à refaire toutes les étapes de l'installation initiale.",
         "else3": "Pour installer Trailence manuellement, suivez ces étapes :"

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
-import { BehaviorSubject, EMPTY, map, Observable, of, switchMap, tap, timer } from 'rxjs';
+import { BehaviorSubject, debounceTime, EMPTY, map, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
@@ -50,10 +50,11 @@ export class NotificationsService {
         }
         return network.server$;
       }),
-      switchMap(connected => connected ? timer(1000, 5 * 60000) : of(false)),
+      debounceTime(1000),
+      switchMap(connected => connected ? timer(0, 5 * 60000) : of(false)),
     ).subscribe(v => {
       if (v === false) return; // not connected
-      if (v === 0 && !this._loaded) this.loadFirstNotifications();
+      if (v === 0) this.loadFirstNotifications();
       else this.refreshNotifications(1);
     });
   }
@@ -61,6 +62,7 @@ export class NotificationsService {
   public get loaded(): boolean { return this._loaded; }
 
   private loadFirstNotifications(): void {
+    if (this._loaded) return;
     const email = this._email;
     this.http.get<Notification[]>(environment.apiBaseUrl + '/notifications/v1?page=0&size=' + PAGE_SIZE).subscribe(list => {
       Console.info('Received ' + list.length + ' notifications from page 0');

@@ -202,5 +202,9 @@
         "Quelques améliorations et correctifs"
       ]
     }
+  },
+  "010000": {
+    "en": {"message": "First official version"},
+    "fr": {"message": "Première version officielle"}
   }
 }
