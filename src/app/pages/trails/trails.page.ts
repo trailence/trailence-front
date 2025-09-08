@@ -233,10 +233,14 @@ export class TrailsPage extends AbstractPage {
     // trails
     let first = true;
     this.byStateAndVisible.subscribe(
-      this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items$()),
-      all => {
+      combineLatest([
+        this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items$()),
+        this.injector.get(TrailCollectionService).getAllCollectionsReady$(),
+      ]),
+      ([allTrails, collections]) => {
         const owner = this.injector.get(AuthService).email;
-        const newList = List(all.filter(t => t.item.owner === owner).map(t => t.item$));
+        const collectionsWithoutPub = collections.filter(c => !isPublicationCollection(c.type));
+        const newList = List(allTrails.filter(t => t.item.owner === owner && collectionsWithoutPub.findIndex(col => col.uuid === t.item.collectionUuid) >= 0).map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           this.ngZone.run(() => this.trails$.next(newList));

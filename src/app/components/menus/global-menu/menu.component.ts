@@ -98,7 +98,8 @@ export class MenuComponent implements OnInit {
             collection$items(t => t.owner === auth?.email),
             map(trails => {
               withInfo.forEach(c => c.nbTrails = 0);
-              this.allCollectionsTrails = trails.length;
+              const allCollectionsWithoutPub = collections.filter(c => !isPublicationCollection(c.type));
+              this.allCollectionsTrails = trails.filter(t => allCollectionsWithoutPub.findIndex(c => c.uuid === t.collectionUuid) >= 0).length;
               trails.forEach(t => {
                 const c = withInfo.find(i => i.collection.uuid === t.collectionUuid && t.owner === i.collection.owner);
                 if (c) c.nbTrails!++;
