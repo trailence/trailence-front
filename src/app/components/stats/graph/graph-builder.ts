@@ -181,9 +181,8 @@ export class GraphBuilder {
           onComplete: function() {
             const ctx = this.ctx;
 
-            ctx.font = ((C.defaults.font.size ?? 12) + 2) + 'px ' + C.defaults.font.family;
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
+            ctx.fillStyle = textColor;
 
             const chart = this;
             this.data.datasets.forEach(function(dataset, i) {
@@ -191,13 +190,35 @@ export class GraphBuilder {
               meta.data.forEach(function(bar, index) {
                 const data = dataset.data[index] as number;
                 const str = that.getTickLabel(cfg, data);
-                if (bar.y <= meta.yScale!.top + 15) {
-                  ctx.fillStyle = textColor;
-                  ctx.fillText(str, bar.x, bar.y + 17);
-                } else {
-                  ctx.fillStyle = valueColor;
-                  ctx.fillText(str, bar.x, bar.y - 2);
+                const maxWidth = (bar as any).width * 1.1;
+                let fontSize = (C.defaults.font.size ?? 12) + 2;
+                ctx.font = fontSize + 'px ' + C.defaults.font.family;
+                let metrics = ctx.measureText(str);
+                while (metrics.width > maxWidth && fontSize > 11) {
+                  fontSize--;
+                  ctx.font = fontSize + 'px ' + C.defaults.font.family;
+                  metrics = ctx.measureText(str);
                 }
+                let x, y;
+                if (metrics.width > maxWidth) {
+                  y = bar.y + 2 + metrics.width / 2;
+                  if (y + metrics.width / 2 > chart.chartArea.height) y = chart.chartArea.height - metrics.width / 2;
+                  ctx.textBaseline = 'middle';
+                  ctx.translate(bar.x + 1, y);
+                  ctx.rotate(-Math.PI / 2);
+                  x = 0;
+                  y = 0;
+                } else {
+                  ctx.textBaseline = 'bottom';
+                  x = bar.x;
+                  if (bar.y <= meta.yScale!.top + 15) {
+                    y = bar.y + 17;
+                  } else {
+                    y = bar.y - 2;
+                  }
+                }
+                ctx.fillText(str, x, y);
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
               });
             });
           },
