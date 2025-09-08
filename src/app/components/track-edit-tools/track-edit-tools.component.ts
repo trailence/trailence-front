@@ -46,6 +46,7 @@ import { StartFromArrival } from './tools/path/start-from-arrival';
 import { AddFreePoints } from './tools/path/manual/add-free-points';
 import { AddOsmPath } from './tools/path/manual/add-osm-path';
 import { MapComponent } from '../map/map.component';
+import { ArrivalToStart } from './tools/path/arrival-to-start';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -152,6 +153,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new JoinDepartureToArrival()),
         this.toMenuItem(new BackToDeparture()),
         this.toMenuItem(new StartFromArrival()),
+        this.toMenuItem(new ArrivalToStart()),
         new MenuItem().setI18nLabel('track_edit_tools.categories.improvements').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new RemoveUnprobablePointsTool()),
         this.toMenuItem(new RemoveBreaksMovesTool()),

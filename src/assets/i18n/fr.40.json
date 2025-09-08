@@ -1208,6 +1208,7 @@
       "arrival_to_departure": "Terminer au même endroit que le départ",
       "departure_to_arrival": "Démarrer au même endroit que l'arrivée",
       "start_from_arrival": "Créer le début manquant en rejoignant le point d’arrivée par le chemin retour",
+      "arrival_to_start": "Créer la fin manquante en rejoignant le point de départ par le chemin aller",
       "back_to_departure": "Créer un retour au départ en suivant le même itinéraire",
       "back_to_original_track": "Revenir à la trace d'origine sans amélioration",
       "remove_time": "Supprimer les informations de temps",

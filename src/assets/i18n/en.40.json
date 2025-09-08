@@ -1209,6 +1209,7 @@
       "departure_to_arrival": "Start at the arrival point",
       "back_to_departure": "Create a return to the start by following the same route",
       "start_from_arrival": "Fill in the missing start by following the return path back to the finish",
+      "arrival_to_start": "Fill in the missing end by returning to the starting point along the outgoing path",
       "back_to_original_track": "Back to original trace without improvements",
       "remove_time": "Remove time data",
       "link_to_next_segment_with_line": "Connect to the next section with a straight line",
