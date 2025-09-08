@@ -1,14 +1,19 @@
 package org.trailence;
 
 import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.Logger;
 
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebView;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -20,13 +25,34 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(TrailencePlugin.class);
     registerPlugin(BackgroundGeolocation.class);
     super.onCreate(savedInstanceState);
+    WindowCompat.setDecorFitsSystemWindows(this.getWindow(), true);
     WebView.setWebContentsDebuggingEnabled(true);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      this.getWindow().setDecorFitsSystemWindows(true);
+    }
     this.getBridge().getWebView().setLongClickable(true);
     this.getBridge().getWebView().setOnLongClickListener(new View.OnLongClickListener() {
       @Override
       public boolean onLongClick(View v) {
         return true;
       }
+    });
+    this.getBridge().getWebView().setPadding(50, 50, 50, 50);
+    ViewCompat.setOnApplyWindowInsetsListener(this.getBridge().getWebView(), (v, windowInsets) -> {
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      float density = getResources().getDisplayMetrics().density;
+      int topInset = (int) (insets.top / density);
+      int bottomInset = (int) (insets.bottom / density);
+      int leftInset = (int) (insets.left / density);
+      int rightInset = (int) (insets.right / density);
+      String js =
+          "document.documentElement.style.setProperty('--device-margin-top', '" + topInset + "px');" +
+          "document.documentElement.style.setProperty('--device-margin-bottom', '" + bottomInset + "px');" +
+          "document.documentElement.style.setProperty('--device-margin-left', '" + leftInset + "px');" +
+          "document.documentElement.style.setProperty('--device-margin-right', '" + rightInset + "px');" +
+        "";
+      bridge.getWebView().evaluateJavascript(js, null);
+      return WindowInsetsCompat.CONSUMED;
     });
   }
 
