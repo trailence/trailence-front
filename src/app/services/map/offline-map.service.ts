@@ -312,7 +312,7 @@ class Saver {
     this.progress.workDone = 0;
     this.progress.workAmount = workAmount + 1;
     this.progress.subTitle = 'Zoom ' + this.currentZoom + ': ' + this.i18n.texts.offline_map.downloading.calculating;
-    const calculation$ = this.currentZoom <= 17 ? this.calculateTilesFromBounds(this.currentZoom, this.bounds) : this.calculateTilesFromPaths(this.currentZoom, this.paths);
+    const calculation$ = this.currentZoom <= 17 || this.paths.length === 0 ? this.calculateTilesFromBounds(this.currentZoom, this.bounds) : this.calculateTilesFromPaths(this.currentZoom, this.paths);
     return calculation$.then(tiles => {
       if (this.cancelled) return [];
       return this.checkExistingTiles(tiles, this.currentZoom);
