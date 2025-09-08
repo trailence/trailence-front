@@ -100,6 +100,9 @@ export class TrackMetadataComponent extends AbstractComponent {
   ): void {
     domController.write(() => {
       whenVisible.zone.runOutsideAngular(() => {
+        if (insertBefore) {
+          while (insertBefore.previousElementSibling) insertBefore.parentElement!.removeChild(insertBefore.previousElementSibling);
+        }
         const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, config.mayHave2Values, false);
         const breaksDuration = config.showBreaksDuration ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
         const estimatedDuration = !config.mergeDurationAndEstimated ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];

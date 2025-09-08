@@ -115,13 +115,13 @@ export class MapComponent extends AbstractComponent {
     this.updateBubbles();
     if (!this.isEmbedded) {
       this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$])
+        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$, this._mapState.overlays$])
         .pipe(
           debounceTime(100),
           tap(() => this.refreshTools()),
           debounceTime(1000),
         ),
-        ([center, zoom, layer]) => {
+        ([center, zoom, layer, overlays]) => {
           if (!this._mapState.live) return;
           this.mapAdditions.pushState(center, zoom);
           this._mapState.save(LOCALSTORAGE_KEY_MAPSTATE + this.mapId);
