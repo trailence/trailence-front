@@ -298,10 +298,10 @@
 <div class="menu-footer">
   <div class="menu-item" (click)="update.availableDownload.launch(); close();" *ngIf="update.availableDownload">
     <div class="icon-badge" *ngIf="update.availableDownload.badge">
-      <ion-icon [name]="update.availableDownload.icon"></ion-icon>
+      <ion-icon class="left-icon" [name]="update.availableDownload.icon"></ion-icon>
       <ion-badge>{{update.availableDownload.badge}}</ion-badge>
     </div>
-    <ion-icon [name]="update.availableDownload.icon" *ngIf="!update.availableDownload.badge"></ion-icon>
+    <ion-icon class="left-icon" [name]="update.availableDownload.icon" *ngIf="!update.availableDownload.badge"></ion-icon>
     <div class="item-title-container">
       <div class="item-title">{{i18n.texts.update[update.availableDownload.i18nText]}}</div>
     </div>
