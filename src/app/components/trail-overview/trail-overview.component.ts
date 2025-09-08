@@ -120,6 +120,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   load$ = new BehaviorSubject<boolean>(false);
   observer?: IntersectionObserver;
 
+  external$ = new BehaviorSubject<TrailInfo | undefined>(undefined);
   external?: TrailInfo;
   publicTrailUuid?: string;
 
@@ -186,12 +187,13 @@ export class TrailOverviewComponent extends AbstractComponent {
               this.auth.auth ?
                 this.mySelectionService.getMySelection().pipe(
                   map(sel => sel.findIndex(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid) >= 0),
-                ) : of(false)
+                ) : of(false),
+              this.external$,
             ])
           ),
           debounceTimeExtended(0, 10)
         ),
-        ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection]) => {
+        ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection, info]) => {
           const force = i18nState !== previousI18nState;
           let changed = force;
           previousI18nState = i18nState;
@@ -200,7 +202,14 @@ export class TrailOverviewComponent extends AbstractComponent {
             this.track$.next(track);
             changed = true;
           }
-          if (this.updateMeta(this.meta, 'name', trailName, undefined, force)) changed = true;
+          if (info !== this.external) {
+            this.external = info;
+            changed = true;
+          }
+          let name = trailName;
+          if (info?.lang && info.lang !== this.preferencesService.preferences.lang && info.nameTranslations && info.nameTranslations[this.preferencesService.preferences.lang])
+            name = info.nameTranslations[this.preferencesService.preferences.lang];
+          if (this.updateMeta(this.meta, 'name', name, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
           if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.dateWithoutTime ? this.i18n.timestampToDateString(timestamp) : this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
           if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
@@ -254,7 +263,7 @@ export class TrailOverviewComponent extends AbstractComponent {
         );
       }
       if (this.trail.owner.indexOf('@') < 0) {
-        if (this.trailInfo !== undefined) this.external = this.trailInfo ?? undefined;
+        if (this.trailInfo !== undefined) this.external$.next(this.trailInfo ?? undefined);
         else
         this.byStateAndVisible.subscribe(
           this.load$.pipe(
@@ -263,9 +272,8 @@ export class TrailOverviewComponent extends AbstractComponent {
           ),
           info => {
             const v = info ?? undefined;
-            if (this.external === v) return;
-            this.external = v;
-            this.changeDetector.detectChanges();
+            if (this.external$.value === v) return;
+            this.external$.next(v);
           }
         );
       }
@@ -328,7 +336,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.track$.next(undefined);
     this.tagsNames = [];
     this.photos = [];
-    this.external = undefined;
+    this.external$.next(undefined);
     this.publicTrailUuid = undefined;
     this._trackMetadataInitialized = false;
     const element = document.getElementById('track-metadata-' + this.id);

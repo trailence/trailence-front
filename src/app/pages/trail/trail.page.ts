@@ -20,6 +20,8 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { ShareService } from 'src/app/services/database/share.service';
 import { ToastController } from '@ionic/angular/standalone';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
     selector: 'app-trail-page',
@@ -80,18 +82,27 @@ export class TrailPage extends AbstractPage {
     this.whenVisible.subscribe(combineLatest([
       this.recording$.pipe(switchMap(t => t?.trail ? t.trail.name$ : of(undefined))),
       this.trail$.pipe(
-        switchMap(t => t ?
-          t.name$.pipe(
-            switchMap(name => (
+        switchMap(t => {
+          if (!t) return of(undefined);
+          const info$ = t.owner.indexOf('@') >= 0 ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(t.owner, t.uuid);
+          return combineLatest([t.name$, info$]).pipe(
+            switchMap(([trailName, trailInfo]) => (
                 t.fromModeration || t.owner.indexOf('@') < 0 ? of(undefined) as Observable<string | undefined> :
                 t.owner === this.injector.get(AuthService).email ?
                   trailCollectionService.getCollectionName$(t.collectionUuid, t.owner) :
                   this.injector.get(ShareService).getSharesFromTrailSharedWithMe(t.uuid, t.owner).pipe(map(list => list.map(s => s.name).join(', ')))
               ).pipe(
-                map(cn => ({trail: t, trailName: name, collectionName: cn}))
+                map(cn => ({
+                  trail: t,
+                  trailName: trailInfo?.lang && trailInfo.lang !== this.injector.get(PreferencesService).preferences.lang && trailInfo.nameTranslations && trailInfo.nameTranslations[this.injector.get(PreferencesService).preferences.lang] ?
+                    trailInfo.nameTranslations[this.injector.get(PreferencesService).preferences.lang] : trailName,
+                  collectionName: cn
+                }))
               )
             )
-          ) : of(undefined))),
+          );
+        })
+      ),
       this.trail2$.pipe(switchMap(t => t ? t.name$ : of(undefined))),
       this.i18n.texts$,
     ]), ([rec, t1, t2, texts]) => {
