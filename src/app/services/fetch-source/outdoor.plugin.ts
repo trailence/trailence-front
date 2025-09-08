@@ -185,7 +185,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
               key: ot.id,
               externalUrl: 'https://www.outdooractive.com/routes/' + ot.id,
               photos: ot.photos?.map(p => ({
-                url: 'https://img.oastatic.com/img2/' + p.id + '/800x800/variant.jpg',
+                url: 'https://img1.oastatic.com/img2/' + p.id + '/800x800/variant.jpg',
                 description: p.title,
                 pos: p.point ? { lat: p.point.lat, lng: p.point.lng } : undefined,
                 time: p.point?.time,

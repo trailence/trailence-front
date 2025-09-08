@@ -79,7 +79,7 @@ jobs:
           rimraf android/app/src/main/assets/public/assets/admin
           rimraf android/app/src/main/assets/public/assets/home-page
           rimraf android/app/src/main/assets/public/media
-          rm android/app/src/main/assets/public/mentions-legales.1.html
+          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
           cd android/environments/prod
           cpy . ../..
           cd ../../..
@@ -137,7 +137,7 @@ jobs:
           rimraf android/app/src/main/assets/public/assets/admin
           rimraf android/app/src/main/assets/public/assets/home-page
           rimraf android/app/src/main/assets/public/media
-          rm android/app/src/main/assets/public/mentions-legales.1.html
+          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
           cd android/environments/appgallery
           cpy . ../..
           cd ../../..
@@ -195,7 +195,7 @@ jobs:
           rimraf android/app/src/main/assets/public/assets/admin
           rimraf android/app/src/main/assets/public/assets/home-page
           rimraf android/app/src/main/assets/public/media
-          rm android/app/src/main/assets/public/mentions-legales.1.html
+          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
           cd android/environments/playstore
           cpy . ../..
           cd ../../..

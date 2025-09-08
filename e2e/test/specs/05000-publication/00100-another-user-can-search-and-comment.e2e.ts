@@ -20,7 +20,7 @@ describe('Publication - Another user can search and comment', () => {
     const trailsPage = await (await myTrails.header.openAppMenu()).openTrailFinder();
     await trailsPage.findPublicTrailFromBubblesToPath();
     const trailsList = await trailsPage.trailsAndMap.openTrailsList();
-    const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
+    const trail = await trailsList.waitTrail('This trail is translated');
     trailPage = await trailsList.openTrail(trail);
   });
 

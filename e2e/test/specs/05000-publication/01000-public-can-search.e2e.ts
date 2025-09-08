@@ -1,5 +1,4 @@
 import { App } from '../../app/app';
-import { TestUtils } from '../../utils/test-utils';
 
 describe('Publication - User see published', () => {
 
@@ -9,7 +8,7 @@ describe('Publication - User see published', () => {
       const trailsPage = await homePage.goToSearch();
       await trailsPage.findPublicTrailFromBubblesToPath();
       const trailsList = await trailsPage.trailsAndMap.openTrailsList();
-      const trail = await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
+      const trail = await trailsList.waitTrail('This trail is translated');
       await trailsList.openTrail(trail);
     });
 

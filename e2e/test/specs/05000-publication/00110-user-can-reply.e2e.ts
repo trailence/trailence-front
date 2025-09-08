@@ -14,7 +14,7 @@ describe('Publication - User can see the comment on its trail and reply', () => 
     const notifPage = new NotificationsPage();
     await notifPage.waitDisplayed();
     await notifPage.expectAndClickFirstNotificationWithText('Someone rated and commented on your trail');
-    const trailPage = await TrailPage.waitForName('Randonnée du 05/06/2023 à 08:58');
+    const trailPage = await TrailPage.waitForName('This trail is translated');
     const rateAndComments = await trailPage.trailComponent.openComments();
     const comments = rateAndComments.comments;
     expect(await comments.length).toBe(1);

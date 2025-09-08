@@ -21,7 +21,7 @@ describe('Publication - User see published', () => {
       await collectionPage.waitDisplayed();
       expect(await collectionPage.header.getTitle()).toBe('Published');
       trailsList = await collectionPage.trailsAndMap.openTrailsList();
-      await trailsList.waitTrail('Randonnée du 05/06/2023 à 08:58');
+      await trailsList.waitTrail('This trail is translated');
     });
 
     it('Check notifications', async () => {
