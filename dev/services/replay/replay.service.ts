@@ -19,13 +19,13 @@ export class ReplayService {
     private readonly router: Router,
   ) {}
 
-  public replay(trackUuid: string, owner: string, following?: Trail, speed: number = 50, approximative: boolean = false): void {
+  public replay(trackUuid: string, owner: string, following?: Trail, speed: number = 50, approximative: boolean = false, originalTime: boolean = false): void {
     this.trackService.getFullTrackReady$(trackUuid, owner).subscribe(track => {
-      this.startReplay(track, following, speed, approximative);
+      this.startReplay(track, following, speed, approximative, originalTime);
     });
   }
 
-  private startReplay(track: Track, following: Trail | undefined, speed: number, approximative: boolean = false): void {
+  private startReplay(track: Track, following: Trail | undefined, speed: number, approximative: boolean, originalTime: boolean): void {
     const originalGetCurrentPosition = window.navigator.geolocation.getCurrentPosition;
     const originalWatchPosition = window.navigator.geolocation.watchPosition;
     const originalClearWatch = window.navigator.geolocation.clearWatch;
@@ -58,8 +58,8 @@ export class ReplayService {
       }
       const point = segment.points[pointIndex];
       totalIndex++;
-      let time = track.metadata.duration !== undefined ? point.time ?? 0 : startTime + totalIndex * 100;
-      if (pointIndex > 0 && segment.points[pointIndex - 1].time === time) {
+      let time = originalTime ? point.time : track.metadata.duration !== undefined ? point.time ?? 0 : startTime + totalIndex * 100;
+      if (pointIndex > 0 && segment.points[pointIndex - 1].time === time && time) {
         let first = pointIndex - 1;
         while (first > 0 && segment.points[first - 1].time === time) first--;
         let last = pointIndex;
@@ -73,7 +73,7 @@ export class ReplayService {
         } else
           time += (pointIndex - first) * 100;
       }
-      timeDiff ??= Date.now() - time;
+      timeDiff ??= originalTime || !time ? 0 : Date.now() - time;
       if (approximative && (pointIndex % 5 == 0)) {
         approximativeDiff = approximativeDiff + (Math.random() - 0.5) * 0.0001;
         if (approximativeDiff > 0.0002) approximativeDiff = 0.0002 - Math.random() * 0.00005;
@@ -90,7 +90,7 @@ export class ReplayService {
           speed: point.speed ?? null,
           toJSON: function() {},
         },
-        timestamp: time + timeDiff,
+        timestamp: !time ? Date.now() : time + timeDiff,
         toJSON: function() {},
       });
       pointIndex++;

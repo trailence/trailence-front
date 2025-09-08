@@ -194,10 +194,12 @@ export class TrailPage extends AbstractPage {
             this.menu.push(new MenuItem());
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1)));
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following original time').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1, 10, false, true)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current, slowly').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1, 250)));
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current, approximate').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1, 50, true)));
+            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current, original time').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1, 25, false, true)));
           }
           this.trail$.next(t1);
           this.trail2$.next(t2);

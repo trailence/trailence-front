@@ -1,17 +1,23 @@
 import { Segment } from 'src/app/model/segment';
 import { ImprovmentRecordingState } from '../track-edition.service';
 import { Track } from 'src/app/model/track';
+import { Point } from 'src/app/model/point';
 
 export function removeBreaksMovesOnTrack(track: Track): void {
   for (const segment of track.segments) {
-    removeBreaksMovesOnSegment(segment, new ImprovmentRecordingState());
+    removeBreaksMovesOnSegment(segment, new ImprovmentRecordingState(), true);
   }
 }
 
-export function removeBreaksMovesOnSegment(segment: Segment, state: ImprovmentRecordingState): void {
-  while (state.lastBreaksMovesIndex < segment.points.length) {
-    if (state.lastBreaksMovesIndex >= 3)
+export function removeBreaksMovesOnSegment(segment: Segment, state: ImprovmentRecordingState, finish: boolean): void {
+  const points = segment.points;
+  if (points.length < 3) return;
+  const actualPoint = points[points.length - 1];
+  while (state.lastBreaksMovesIndex < points.length) {
+    if (state.lastBreaksMovesIndex >= 3) {
+      if (!finish && actualPoint.pos.distanceTo(points[state.lastBreaksMovesIndex].pos) <= 30) break;
       removeBreaksMoves(segment, state.lastBreaksMovesIndex, state);
+    }
     state.lastBreaksMovesIndex++;
   }
 }

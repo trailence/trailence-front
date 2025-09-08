@@ -40,7 +40,7 @@ export class TrackEditionService {
     if (!finish) Console.info('Apply partial improvment');
     removeUnprobablePointsBasedOnAccuracyOnSegment(segment, state);
     removeUnprobablePointsBasedOnBigMovesOnShortTimeOnSegment(segment, state);
-    removeBreaksMovesOnSegment(segment, state);
+    removeBreaksMovesOnSegment(segment, state, finish);
     state.lastUnprobableElevationBasedOnGradeIndex = adjustUnprobableElevationToSegmentBasedOnGrade(segment, state.lastUnprobableElevationBasedOnGradeIndex, finish);
     if (finish)
       state.lastElevationThresholdIndex = applyElevationThresholdToSegment(segment, 10, 250, state.lastElevationThresholdIndex, segment.points.length - 1, true);
