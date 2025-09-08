@@ -45,11 +45,9 @@ export class MapState {
       if (json['overlays'] && Array.isArray(json['overlays']))
         this.overlays = json['overlays'];
     }
-    console.log('load key', key, stored, this)
   }
 
   public save(key: string): void {
-    console.log('save key', key, this.overlays)
     localStorage.setItem(key, JSON.stringify({
       center_lat: this.center.lat,
       center_lng: this.center.lng,

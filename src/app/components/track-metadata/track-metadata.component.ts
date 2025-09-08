@@ -228,10 +228,8 @@ export class TrackMetadataComponent extends AbstractComponent {
       if (!config.mergeDurationAndEstimated) {
         TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController, hideIfUndefined);
         TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController, hideIfUndefined);
-        if (!hideIfUndefined) {
-          TrackMetadataComponent.shown(meta.durationDiv, duration !== undefined || meta2.durationValue !== undefined);
-          TrackMetadataComponent.shown(meta.breaksDurationDiv, duration !== undefined || meta2.durationValue !== undefined);
-        }
+        TrackMetadataComponent.shown(meta.durationDiv, duration !== undefined || meta2.durationValue !== undefined);
+        TrackMetadataComponent.shown(meta.breaksDurationDiv, duration !== undefined || meta2.durationValue !== undefined);
       } else {
         let d = i18n.durationToString(duration);
         if (estimatedDuration !== undefined) d += ' <span style="white-space: nowrap">(≈ ' + i18n.durationToString(estimatedDuration) + ')</span>';

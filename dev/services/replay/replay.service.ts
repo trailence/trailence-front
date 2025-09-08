@@ -44,6 +44,8 @@ export class ReplayService {
     let pointIndex = 0;
     let timeDiff: number | undefined = undefined;
     let approximativeDiff = 0;
+    let startTime = Date.now();
+    let totalIndex = 0;
     const sendNextPoint = (success: PositionCallback, error: PositionErrorCallback | null | undefined) => {
       if ((window as any)['_isDemo'] && pointIndex >= 50) return;
       if (segmentIndex >= track.segments.length) return;
@@ -55,7 +57,8 @@ export class ReplayService {
         return;
       }
       const point = segment.points[pointIndex];
-      let time = point.time ?? 0;
+      totalIndex++;
+      let time = track.metadata.duration !== undefined ? point.time ?? 0 : startTime + totalIndex * 100;
       if (pointIndex > 0 && segment.points[pointIndex - 1].time === time) {
         let first = pointIndex - 1;
         while (first > 0 && segment.points[first - 1].time === time) first--;
