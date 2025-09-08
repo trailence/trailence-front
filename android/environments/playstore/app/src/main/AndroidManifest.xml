@@ -145,8 +145,6 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
 
-      <receiver android:name="org.trailence.InstallReceiver" />
-
       <service
         android:name="org.trailence.BackgroundGeolocationService"
         android:enabled="true"

@@ -39,25 +39,6 @@ import java.util.zip.ZipOutputStream;
 )
 public class TrailencePlugin extends Plugin {
 
-  @PluginMethod()
-  public void getAppInfo(PluginCall call) {
-    try {
-      final var context = this.getContext();
-      final var pkgName = context.getPackageName();
-      final var pkgMgr = context.getPackageManager();
-      final var pkgInfo = pkgMgr.getPackageInfo(pkgName, 0);
-      final var installer = pkgMgr.getInstallerPackageName(pkgName);
-      call.resolve(
-        new JSObject()
-          .put("versionCode", pkgInfo.versionCode)
-          .put("versionName", pkgInfo.versionName)
-          .put("installer", installer)
-      );
-    } catch (Exception e) {
-      call.reject(e.getMessage());
-    }
-  }
-
   private int idCount = 1;
   private final Map<Integer, SaveFile> saveFiles = new HashMap<>();
 
