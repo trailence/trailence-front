@@ -8,9 +8,6 @@ export class PositionPlugin implements C.Plugin<"line"> {
   public segmentIndex?: number;
   public pointIndex?: number;
 
-  constructor(
-  ) {}
-
   afterDraw(chart: C.Chart<"line">): void {
     if (this.segmentIndex === undefined || this.pointIndex === undefined || chart.data.datasets.length === 0) return;
     const index = chart.data.datasets[0].data.findIndex((d: any) => d.segmentIndex === this.segmentIndex && d.pointIndex === this.pointIndex);

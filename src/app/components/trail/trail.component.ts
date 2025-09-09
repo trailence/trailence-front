@@ -691,7 +691,7 @@ export class TrailComponent extends AbstractComponent {
       filterDefined(),
       filter(t => t.fromModeration && !!t.publishedFromUuid),
       switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)),
-      first(),
+      take(1),
     ).subscribe(uuid => {
       this.currentPublicTrailUuid = uuid;
       this.toolbarItems = [...this.toolbarItems];

@@ -131,8 +131,7 @@ public class TrailencePlugin extends Plugin {
       try {
         OutputStream out = this.getContext().getContentResolver().openOutputStream(result.getData().getData());
         if (Boolean.TRUE.equals(call.getBoolean("isZip"))) {
-          ZipOutputStream zip = new ZipOutputStream(out);
-          out = zip;
+            out = new ZipOutputStream(out);
         }
         file.out = out;
         saveFiles.put(fileId, file);
@@ -151,7 +150,7 @@ public class TrailencePlugin extends Plugin {
 
   public void addFileToImport(String filename, List<byte[]> content) {
     if (importFilesListener == null)
-      this.filesToImport.add(new Pair(filename, content));
+      this.filesToImport.add(new Pair<>(filename, content));
     else
       this.pushFileToImport(filename, content);
   }
@@ -305,7 +304,7 @@ public class TrailencePlugin extends Plugin {
   @PluginMethod
   public void setKeepOnScreenLock(PluginCall call) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-      this.keepOnScreenLock = call.getBoolean("enabled");
+      this.keepOnScreenLock = Boolean.TRUE.equals(call.getBoolean("enabled"));
       this.getActivity().setShowWhenLocked(this.keepOnScreenLock);
       call.resolve(new JSObject().put("success", true));
     } else {

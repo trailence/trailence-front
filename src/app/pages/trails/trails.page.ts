@@ -35,7 +35,7 @@ import { MySelectionService } from 'src/app/services/database/my-selection.servi
 import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
-import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';

@@ -16,7 +16,7 @@
       <ion-icon slot="icon-only" [name]="meta.isInMySelection ? 'star-filled' : 'star-empty'"></ion-icon>
     </ion-button>
   }
-  <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (onPress)="trailNamePressed()">
+  <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (longPressEvent)="trailNamePressed()">
     <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
   </div>
   @if (publicTrailUuid) {

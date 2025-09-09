@@ -23,7 +23,7 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
     const distance = p2.distanceToPrevious;
     totalDistance += distance;
     if (processed.indexOf(i) >= 0) continue;
-    const angle = Math.atan2(p2.point.lat - p1.point.lat, p2.point.lng - p1.point.lng);
+    const angle = Math.atan2(p2.point.lat - p1.point.lat, p2.point.lng - p1.point.lng) + Math.PI;
 
     let best = -1;
     let bestDistance = -1;
@@ -39,8 +39,10 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
       const d2 = p4.point.distanceTo(p1.point);
       if (d2 > useDistances.maxDistance) continue;
       if (bestDistanceWithPoints !== -1 && d1 + d2 >= bestDistanceWithPoints) continue;
-      const angle2 = Math.atan2(p3.point.lat - p4.point.lat, p3.point.lng - p4.point.lng);
-      if (Math.abs(angle - angle2) > 1) continue;
+      const angle2 = Math.atan2(p4.point.lat - p3.point.lat, p4.point.lng - p3.point.lng) + Math.PI;
+      const diff = Math.abs(angle - angle2);
+      const pidiff = Math.abs(diff - Math.PI);
+      if (pidiff > 0.3) continue;
       bestDistanceWithPoints = d1 + d2;
       bestDistance = p4.distanceToPrevious;
       best = j;
@@ -52,8 +54,8 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
     }
   }
   const outAndBack = distanceOutAndBack / totalDistance;
-  if (outAndBack > 0.85) return TrailLoopType.OUT_AND_BACK;
-  if (outAndBack < 0.25) return TrailLoopType.LOOP;
-  if (outAndBack < 0.6) return TrailLoopType.HALF_LOOP;
+  if (outAndBack > 0.8) return TrailLoopType.OUT_AND_BACK;
+  if (outAndBack < 0.28) return TrailLoopType.LOOP;
+  if (outAndBack < 0.55) return TrailLoopType.HALF_LOOP;
   return TrailLoopType.SMALL_LOOP;
 }

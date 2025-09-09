@@ -58,7 +58,7 @@ export class MapLayerSelectionComponent implements OnInit {
         this.globalLayers.push({layer, tiles: layer.create()});
       }
     }
-    this.sortedRegions = [...this.regionalLayers.keys()].sort();
+    this.sortedRegions = [...this.regionalLayers.keys()].sort((r1, r2) => r1.localeCompare(r2));
     this.overlays = service.overlays;
   }
 

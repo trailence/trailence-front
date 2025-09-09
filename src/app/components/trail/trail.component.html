@@ -39,7 +39,7 @@
               [hideBaseTrack$]="toolsHideBaseTrack$"
               [map$]="map$"
               (toolsStackChange)="setToolsStack($event)"
-              (onClose)="disableEditTools()"
+              (closed)="disableEditTools()"
             ></app-track-edit-tools>
           } @else if (positionningOnMap$.value) {
             <app-toolbar

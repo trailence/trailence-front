@@ -220,7 +220,7 @@
         "copying_photos": "Copying photos",
         "copy_photo_error": "Error copying photo {{1}}",
         "add_to_my_selection": "Add to my selection",
-        "remove_from_my_selection": "Remove frome my selection"
+        "remove_from_my_selection": "Remove from my selection"
       },
       "tags": {
         "menu_item": "Tags",
@@ -638,7 +638,7 @@
       "meta_description": "Support the Trailence project",
       "title": "Contribute",
       "header": "Thank you for considering helping this project!",
-      "text": "Trailence is free, ad-free, and open-source.<br/><br/>In order to remain so, we would like to ask for your help.<br/><br/>We are transparent about our costs, and what your donations are used for.<br/>&nbsp; - We currently pay 67 euros per year for hosting (a basic server + the domain name).<br/>&nbsp; - We have 100GB of storage space for 20 euros.<br/>",
+      "text": "Trailence is free, ad-free, and open-source.<br/><br/>In order to remain so, we would like to ask for your help.<br/><br/>We are transparent about our costs, and what your donations are used for.<br/>&nbsp; - We currently pay 67 euros per year for hosting (a basic server + the domain name).<br/>&nbsp; - We have 100GB of storage space for 20 euros.<br/>&nbsp; - We paid $25 to Google to be listed on the Google Play Store.<br/>",
       "button": "Make a donation",
       "goals": {
         "goal": "Objective",

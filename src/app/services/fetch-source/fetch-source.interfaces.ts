@@ -77,6 +77,10 @@ export abstract class FetchSourcePlugin {
   public abstract getFullTrack(uuid: string): Promise<Track | null>;
 
   public abstract forceRefresh(uuid: string): Promise<Trail | null>;
+
+  public fetchPhoto(url: string): Promise<Blob | undefined> {
+    return Promise.resolve(undefined);
+  }
 }
 
 export interface TrailInfo {

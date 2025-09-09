@@ -37,7 +37,7 @@ export class MapLayerSelectionTool extends MapTool {
                   const id = (current.options as any)['id'];
                   if (id) {
                     if (id === layer.name) found = current;
-                    else if (!!service.layers.find(l => l.name === id)) map.removeLayer(current);
+                    else if (service.layers.find(l => l.name === id)) map.removeLayer(current);
                   }
                 });
                 if (found) {

@@ -87,7 +87,26 @@ export class PhotoService {
       if (photo.uuid.startsWith(environment.baseUrl) && this.injector.get(Platform).is('capacitor')) {
         return this.injector.get(HttpService).getBlob(photo.uuid);
       }
-      return from(window.fetch(photo.uuid).then(response => response.blob()));
+      return from(
+        window.fetch(photo.uuid)
+        .then(response => response.blob())
+        .catch(e => {
+          const fetchSourceService = this.injector.get(FetchSourceService)
+          const pluginName = fetchSourceService.getPluginNameByOwner(photo.owner);
+          if (!pluginName) return Promise.reject(e);
+          const plugin = fetchSourceService.getPluginByName(pluginName);
+          if (!plugin) return Promise.reject(e);
+          return plugin.fetchPhoto(photo.uuid)
+            .then(b => {
+              if (!b) return Promise.reject(e);
+              return b;
+            })
+            .catch(e2 => {
+              Console.error('Cannot fetch photo', e, e2);
+              return Promise.reject(e);
+            })
+        })
+      );
     }
     if (photo.fromModeration)
       return this.injector.get(ModerationService).getPhotoBlob$(photo.uuid, photo.owner);

@@ -10,7 +10,7 @@ export class LongPressDirective implements AfterViewInit {
   @Input() doubleClickThreshold = 500;
   @Input() allowDoubleClick = true;
 
-  @Output() onPress = new EventEmitter();
+  @Output() longPressEvent = new EventEmitter();
 
   private lastPressAt?: number;
   private timeout: any;
@@ -58,6 +58,6 @@ export class LongPressDirective implements AfterViewInit {
 
   private emit(): void {
     this.lastPressAt = undefined;
-    this.ngZone.run(() => this.onPress.emit());
+    this.ngZone.run(() => this.longPressEvent.emit());
   }
 }

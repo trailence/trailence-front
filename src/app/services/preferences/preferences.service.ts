@@ -1,4 +1,4 @@
-import { Injectable, Injector } from '@angular/core';
+import { Injectable, Injector, OnDestroy } from '@angular/core';
 import { ComputedPreferences, DateFormat, DistanceUnit, HourFormat, Preferences, ThemeType } from './preferences';
 import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
@@ -43,7 +43,7 @@ const DEFAULT_PHOTO_CACHE_DAYS = 300;
 @Injectable({
   providedIn: 'root'
 })
-export class PreferencesService {
+export class PreferencesService implements OnDestroy {
 
   private readonly _prefs$: BehaviorSubject<Preferences>;
   private readonly _computed$: BehaviorSubject<ComputedPreferences>;

@@ -94,7 +94,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
   private findRoutesIds(bounds: L.LatLngBounds, limit: number): Observable<string[]> {
     return this.injector.get(HttpService).post<{elements: {id: number}[]}>(
       'https://overpass-api.de/api/interpreter',
-      "[out:json][timeout:15];rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out ids " + limit + ";"
+      "[out:json][timeout:30];rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out ids " + limit + ";"
     ).pipe(
       map(response => response.elements.map(e => e.id.toString()))
     );

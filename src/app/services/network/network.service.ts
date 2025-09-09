@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { INetworkService } from './network.interface';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClientService } from '../http/http-client.service';
@@ -10,7 +10,7 @@ import { HttpService } from '../http/http.service';
 @Injectable({
   providedIn: 'root'
 })
-export class NetworkService implements INetworkService {
+export class NetworkService implements INetworkService, OnDestroy {
 
   private readonly _server$: BehaviorSubject<boolean>;
   private readonly _internet$: BehaviorSubject<boolean>;

@@ -41,6 +41,10 @@ app-map {
         margin-top: 5px;
       }
 
+      div.leaflet-control-attribution {
+        max-width: calc(100vw - 100px);
+      }
+
     }
   }
 

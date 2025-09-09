@@ -141,7 +141,6 @@ export class GraphBuilder {
       if (value > maxValue) maxValue = value;
     }
     const textColor = styles.getPropertyValue('--ion-text-color');
-    const valueColor = styles.getPropertyValue('--ion-color-tertiary');
     const that = this;
     return {
       type: 'bar',

@@ -1,7 +1,6 @@
 import { Segment } from 'src/app/model/segment';
 import { ImprovmentRecordingState } from '../track-edition.service';
 import { Track } from 'src/app/model/track';
-import { Point } from 'src/app/model/point';
 
 export function removeBreaksMovesOnTrack(track: Track): void {
   for (const segment of track.segments) {

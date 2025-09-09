@@ -75,7 +75,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   @Input() map$!: BehaviorSubject<MapComponent | undefined>;
 
   @Output() toolsStackChange = new EventEmitter<TrackEditToolsStack | undefined>();
-  @Output() onClose = new EventEmitter<boolean>();
+  @Output() closed = new EventEmitter<boolean>();
 
   private interactiveTool?: InteractiveToolContext;
 
@@ -569,6 +569,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   }
 
   private doClose(): void {
-    this.onClose.emit(true);
+    this.closed.emit(true);
   }
 }

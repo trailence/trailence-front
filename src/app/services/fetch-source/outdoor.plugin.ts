@@ -205,6 +205,15 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
     );
   }
 
+  override fetchPhoto(url: string): Promise<Blob | undefined> {
+    if (!url.startsWith('https://img1.oastatic.com/img2/')) return Promise.resolve(undefined);
+    let id = url.substring('https://img1.oastatic.com/img2/'.length);
+    let i = id.indexOf('/');
+    if (i <= 0) return Promise.resolve(undefined);
+    id = id.substring(0, i);
+    return firstValueFrom(this.injector.get(HttpService).getBlob(environment.apiBaseUrl + '/search-trails/v1/outdooractive/photo?id=' + id + '&size=800x800'));
+  }
+
 }
 
 interface OutdoorTrail {

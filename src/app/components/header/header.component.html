@@ -96,7 +96,7 @@
           <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
         </ion-button>
       </div>
-      <div class="title-text {{auth.email ? '' : 'not-logged'}} {{!useH1 && title2 && title2.length ? 'with-sub-title' : ''}}" long-press (onPress)="titlePress()">
+      <div class="title-text {{auth.email ? '' : 'not-logged'}} {{!useH1 && title2 && title2.length ? 'with-sub-title' : ''}}" long-press (longPressEvent)="titlePress()">
         <span *ngIf="!auth.email && title.length > 0 && !small && !neverShowTrailenceTitle" class="separator">-</span>
         @if (useH1) {
           <h1>{{title}}</h1>
