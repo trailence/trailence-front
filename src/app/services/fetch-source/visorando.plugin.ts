@@ -4,7 +4,7 @@ import { populateWayPointInfo, SearchResult, TrailInfo } from './fetch-source.in
 import * as L from 'leaflet';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
-import { Trail, TrailActivity } from 'src/app/model/trail';
+import { Trail } from 'src/app/model/trail';
 import { catchError, from, Observable, of, switchMap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
@@ -12,6 +12,7 @@ import { Console } from 'src/app/utils/console';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
 import { TrailSourceType } from 'src/app/model/dto/trail';
+import { TrailActivity } from 'src/app/model/dto/trail-activity';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   keyNumber: string;

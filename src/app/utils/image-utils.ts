@@ -1,4 +1,5 @@
 import { TranslatedString } from '../services/i18n/i18n-string';
+import { BinaryContent } from './binary-content';
 import { Console } from './console';
 import { convertDMSToDD } from './coordinates-parser';
 import { DataUtils } from './data-utils';
@@ -15,54 +16,64 @@ export class ImageUtils {
   public static convertToJpeg(image: Uint8Array | Blob, maxWidth?: number, maxHeight?: number, quality?: number): Promise<{blob: Blob, width: number, height: number}> {
     return new Promise((resolve, reject) => {
       const blob = image instanceof Blob ? image : new Blob([image]);
-      const img = new Image();
+      const img = document.createElement('IMG') as HTMLImageElement;
       const urlCreator = window.URL || window.webkitURL;
-      img.onload = () => {
-        const width = img.naturalWidth;
-        const height = img.naturalHeight;
-        let dw = width;
-        let dh = height;
-        if (maxWidth && dw > maxWidth) {
-          dw = maxWidth;
-          dh = height * (maxWidth / width);
-        }
-        if (maxHeight && dh > maxHeight) {
-          const ratio = maxHeight / dh;
-          dh = maxHeight;
-          dw *= ratio;
-        }
-        dw = Math.floor(dw);
-        dh = Math.floor(dh);
+      img.onload = (e) => {
+        try {
+          const width = img.naturalWidth;
+          const height = img.naturalHeight;
+          let dw = width;
+          let dh = height;
+          if (maxWidth && dw > maxWidth) {
+            dw = maxWidth;
+            dh = height * (maxWidth / width);
+          }
+          if (maxHeight && dh > maxHeight) {
+            const ratio = maxHeight / dh;
+            dh = maxHeight;
+            dw *= ratio;
+          }
+          dw = Math.floor(dw);
+          dh = Math.floor(dh);
 
-        const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
-        canvas.width = dw;
-        canvas.height = dh;
-        canvas.style.position = 'fixed';
-        canvas.style.top = (-dh - 1000) + 'px';
-        canvas.style.left = (-dw - 1000) + 'px';
-        document.documentElement.appendChild(canvas);
-        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-        ctx.drawImage(img, 0, 0, width, height, 0, 0, dw, dh);
-        urlCreator.revokeObjectURL(img.src);
-        canvas.toBlob(
-          blob => {
-            if (blob) {
-              resolve({blob, width: dw, height: dh});
-              canvas.parentElement?.removeChild(canvas);
-            } else {
-              reject("Unable to generate JPEG");
-            }
-          },
-          "image/jpeg",
-          quality ?? 1
-        )
+          const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
+          canvas.width = dw;
+          canvas.height = dh;
+          canvas.style.position = 'fixed';
+          canvas.style.top = (-dh - 1000) + 'px';
+          canvas.style.left = (-dw - 1000) + 'px';
+          document.documentElement.appendChild(canvas);
+          const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+          ctx.drawImage(img, 0, 0, width, height, 0, 0, dw, dh);
+          urlCreator.revokeObjectURL(img.src);
+          canvas.toBlob(
+            blob => {
+              if (blob) {
+                if (!blob.arrayBuffer) {
+                  const base64 = canvas.toDataURL('image/jpeg', quality ?? 1);
+                  BinaryContent.fromDataURL(base64).toBlob().then(b => resolve({blob: b, width: dw, height: dh}));
+                } else {
+                  resolve({blob, width: dw, height: dh});
+                }
+                canvas.parentElement?.removeChild(canvas);
+              } else {
+                reject("Unable to generate JPEG");
+              }
+            },
+            "image/jpeg",
+            quality ?? 1
+          )
+        } catch (e) {
+          Console.warn('Error converting photo', e);
+          reject(new TranslatedString('errors.invalid_format'))
+        }
       };
       img.onerror = err => {
+        Console.warn('Error loading photo', err);
         reject(new TranslatedString('errors.invalid_format'));
       };
       img.src = urlCreator.createObjectURL(blob);
     });
-
   }
 
   public static extractInfos(image: Uint8Array): ImageInfo | undefined {

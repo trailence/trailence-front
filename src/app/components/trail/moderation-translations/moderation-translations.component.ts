@@ -40,6 +40,7 @@ export class ModerationTranslationsComponent implements OnInit {
     this.i18n.getTranslationLanguages().subscribe(l => {
       this.sourceLanguages = l.map(e => ({code: e.code, name: e.name}));
       this.changesDetector.detectChanges();
+      if (this.trail.publicationData && this.trail.publicationData['lang']) this.setLanguage(this.trail.publicationData['lang']);
     });
   }
 
@@ -63,6 +64,12 @@ export class ModerationTranslationsComponent implements OnInit {
     this.translations.detectedLanguage = lang.length > 0 && (lang === 'fr' || lang === 'en') ? lang : undefined;
     this.translations.nameTranslations = undefined;
     this.translations.descriptionTranslations = undefined;
+    if (this.trail.publicationData) {
+      if (this.trail.publicationData['nameTranslations'])
+        this.translations.nameTranslations = {...this.trail.publicationData['nameTranslations']};
+      if (this.trail.publicationData['descriptionTranslations'])
+        this.translations.descriptionTranslations = {...this.trail.publicationData['descriptionTranslations']};
+    }
     let availTargets: string[] = [];
     if (this.translations.detectedLanguage) {
       for (const tl of this.targetLanguages) {
@@ -77,39 +84,44 @@ export class ModerationTranslationsComponent implements OnInit {
   }
 
   doTranslation(from: string, to: string): void {
-    this.translating += 2;
-    this.moderationService.translate(this.trail.name ?? '', from, to)
-    .subscribe({
-      next: translation => {
-        this.translations.nameTranslations ??= {};
-        this.translations.nameTranslations[to] = translation;
-        this.translating--;
-        this.changesDetector.detectChanges();
-        this.translationsUpdated.emit();
-      },
-      error: e => {
-        this.translating--;
-        this.translations.nameTranslations ??= {};
-        this.translations.nameTranslations[to] = '';
-        this.changesDetector.detectChanges();
-      }
-    });
-    this.moderationService.translate(this.trail.description ?? '', from, to)
-    .subscribe({
-      next: translation => {
-        this.translations.descriptionTranslations ??= {};
-        this.translations.descriptionTranslations[to] = translation;
-        this.translating--;
-        this.changesDetector.detectChanges();
-        this.translationsUpdated.emit();
-      },
-      error: e => {
-        this.translating--;
-        this.translations.descriptionTranslations ??= {};
-        this.translations.descriptionTranslations[to] = '';
-        this.changesDetector.detectChanges();
-      }
-    });
+    if (!this.translations.nameTranslations || !this.translations.nameTranslations[to]) {
+      this.translating++;
+      this.moderationService.translate(this.trail.name ?? '', from, to)
+      .subscribe({
+        next: translation => {
+          this.translations.nameTranslations ??= {};
+          this.translations.nameTranslations[to] = translation;
+          this.translating--;
+          this.changesDetector.detectChanges();
+          this.translationsUpdated.emit();
+        },
+        error: e => {
+          this.translating--;
+          this.translations.nameTranslations ??= {};
+          this.translations.nameTranslations[to] = '';
+          this.changesDetector.detectChanges();
+        }
+      });
+    }
+    if (!this.translations.descriptionTranslations || !this.translations.descriptionTranslations[to]) {
+      this.translating++;
+      this.moderationService.translate(this.trail.description ?? '', from, to)
+      .subscribe({
+        next: translation => {
+          this.translations.descriptionTranslations ??= {};
+          this.translations.descriptionTranslations[to] = translation;
+          this.translating--;
+          this.changesDetector.detectChanges();
+          this.translationsUpdated.emit();
+        },
+        error: e => {
+          this.translating--;
+          this.translations.descriptionTranslations ??= {};
+          this.translations.descriptionTranslations[to] = '';
+          this.changesDetector.detectChanges();
+        }
+      });
+    }
   }
 
   setDisplayTarget(target: string): void {

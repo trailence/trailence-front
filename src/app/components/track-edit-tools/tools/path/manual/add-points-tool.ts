@@ -1,7 +1,7 @@
 import { Track } from 'src/app/model/track';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from '../../tool.interface';
 import { Segment } from 'src/app/model/segment';
-import { PointDescriptor } from 'src/app/model/point';
+import { PointDescriptor } from 'src/app/model/point-descriptor';
 import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
 import { MapComponent } from 'src/app/components/map/map.component';
 import { Injector } from '@angular/core';

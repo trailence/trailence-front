@@ -1,4 +1,5 @@
-import { Point, PointDescriptor, samePositionRound } from '../model/point';
+import { Point, samePositionRound } from '../model/point';
+import { PointDescriptor } from '../model/point-descriptor';
 import * as L from 'leaflet';
 import { ComputedWayPoint, Track } from '../model/track';
 import { Segment } from '../model/segment';

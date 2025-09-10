@@ -22,7 +22,7 @@ import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { TypeUtils } from 'src/app/utils/type-utils';
-import { PointDtoMapper } from 'src/app/model/point';
+import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
 import { Feedback, FeedbackReply } from '../feedback/feedback.service';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 
@@ -455,6 +455,10 @@ export class ModerationService {
         return reply;
       }),
     );
+  }
+
+  public deletePublicTrail(uuid: string): Observable<any> {
+    return this.http.delete(environment.apiBaseUrl + '/moderation/v1/publicTrail/' + uuid)
   }
 }
 

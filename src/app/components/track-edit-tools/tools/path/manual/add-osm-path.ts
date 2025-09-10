@@ -9,7 +9,7 @@ import { MapTrack } from 'src/app/components/map/track/map-track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
 import { Arrays } from 'src/app/utils/arrays';
-import { PointDescriptor } from 'src/app/model/point';
+import { PointDescriptor } from 'src/app/model/point-descriptor';
 
 const MIN_ZOOM = 14;
 const MATCHING_MAX_DISTANCE = 2.5;

@@ -71,7 +71,7 @@ export class UserKeysComponent implements OnInit {
   }
 
   private isNative(key: UserKey): boolean {
-    const platforms = key.deviceInfo.ionPlatforms as string[];
+    const platforms = key.deviceInfo?.ionPlatforms as string[] | undefined;
     if (platforms) {
       if (platforms.indexOf('capacitor') >= 0) return true;
     }

@@ -2,6 +2,8 @@ import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
 import { TrailDto } from './dto/trail';
 import { Owned } from './owned';
 import { TypeUtils } from '../utils/type-utils';
+import { TrailActivity } from './dto/trail-activity';
+import { TrailLoopType } from './dto/trail-loop-type';
 
 export class Trail extends Owned {
 
@@ -28,6 +30,7 @@ export class Trail extends Owned {
   public publishedFromUuid?: string;
   public publicationMessageFromAuthor?: string;
   public publicationMessageFromModerator?: string;
+  public publicationData?: {[key: string]: any};
 
   constructor(
     dto: Partial<TrailDto>,
@@ -55,6 +58,7 @@ export class Trail extends Owned {
     this.publishedFromUuid = dto.publishedFromUuid ?? undefined;
     this.publicationMessageFromAuthor = dto.publicationMessageFromAuthor ?? undefined;
     this.publicationMessageFromModerator = dto.publicationMessageFromModerator ?? undefined;
+    this.publicationData = dto.publicationData ?? undefined;
   }
 
   public get name(): string { return this._name$.value; }
@@ -125,29 +129,8 @@ export class Trail extends Owned {
       publishedFromUuid: this.publishedFromUuid,
       publicationMessageFromAuthor: this.publicationMessageFromAuthor,
       publicationMessageFromModerator: this.publicationMessageFromModerator,
+      publicationData: this.publicationData,
     };
   }
 
-}
-
-export enum TrailLoopType {
-  ONE_WAY = 'ow',
-  LOOP = 'lp',
-  HALF_LOOP = 'hl',
-  SMALL_LOOP = 'sl',
-  OUT_AND_BACK = 'ob',
-}
-
-export enum TrailActivity {
-  WALKING = 'walking',
-  HIKING = 'hiking',
-  RUNNING = 'running',
-  MOUNTAIN_BIKING = 'moutain-biking',
-  ROAD_BIKING = 'road-biking',
-  HORSEBACK_RIDING = 'horseback-riding',
-  SKIING = 'skiing',
-  SNOWSHOEING = 'snowshoeing',
-  ON_WATER = 'on-water',
-  VIA_FERRATA = 'via-ferrata',
-  ROCK_CLIMBING = 'rock-climbing',
 }

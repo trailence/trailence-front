@@ -17,6 +17,7 @@ import { MyPublicTrailsService } from './my-public-trails.service';
 import { MySelectionService } from './my-selection.service';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { I18nService } from '../i18n/i18n.service';
+import { ModerationService } from '../moderation/moderation.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -43,7 +44,7 @@ export class TrailMenuService {
         .setAction(() => this.openTrail(trails[0])))
     }
 
-    if (!onlyGlobal && trails.length > 0 && !isPublicationLockedCollection(fromCollection?.type)) {
+    if (!onlyGlobal && trails.length > 0 && !isPublicationCollection(fromCollection?.type)) {
       if (menu.length > 0 || trails.length === 1)
         menu.splice(0,0, new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.prepare').setTextColor('medium'));
 
@@ -194,7 +195,7 @@ export class TrailMenuService {
         ));
     }
 
-    if (fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal && trails.length > 0 && email) {
+    if (fromCollection && !isPublicationLockedCollection(fromCollection.type) && !onlyGlobal && trails.length > 0 && email) {
       if (trails.every(t => t.owner === email)) {
         const collectionUuid = this.getUniqueCollectionUuid(trails);
         if (fromCollection.uuid === collectionUuid) {
@@ -214,6 +215,15 @@ export class TrailMenuService {
       menu.push(new MenuItem());
       menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.title')
         .setAction(() => import('../../components/find-duplicates/find-duplicates.component').then(m => m.openFindDuplicates(this.injector, fromCollection.uuid))));
+    }
+
+    if (isModeration && this.injector.get(AuthService).auth?.admin) {
+      menu.push(new MenuItem());
+      menu.push(new MenuItem()
+        .setFixedLabel('[Admin] Decline All')
+        .setTextColor('danger')
+        .setAction(() => this.declineAll(trails))
+      );
     }
     return menu;
   }
@@ -329,6 +339,33 @@ export class TrailMenuService {
   public openTrail(trail: Trail): void {
     const router = this.injector.get(Router);
     router.navigate(['trail', trail.owner, trail.uuid], {queryParams: { from: router.url }});
+  }
+
+  private async declineAll(trails: Trail[]) {
+    const alert = await this.injector.get(AlertController).create({
+      header: 'Decline All',
+      message: 'Confirm?',
+      buttons: [
+        {
+          text: 'Yes',
+          cssClass: 'danger',
+          role: 'ok',
+          handler: () => this.injector.get(AlertController).dismiss(null, 'ok')
+        }, {
+          text: 'Cancel',
+          role: 'cancel',
+        }
+      ]
+    });
+    alert.onDidDismiss()
+    .then(result => {
+      if (result.role === 'ok') {
+        const service = this.injector.get(ModerationService);
+        for (const trail of trails)
+          service.reject(trail, 'Administrator declined.', undefined);
+      }
+    });
+    await alert.present();
   }
 
 }

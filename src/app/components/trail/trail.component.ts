@@ -62,6 +62,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FormsModule } from '@angular/forms';
 import { TrailTranslations } from './trail-translations';
 import { ModerationTranslationsComponent } from './moderation-translations/moderation-translations.component';
+import { ObjectUtils } from 'src/app/utils/object-utils';
 
 interface TrailSource {
   isExternal: boolean;
@@ -1600,6 +1601,24 @@ export class TrailComponent extends AbstractComponent {
   }
 
   translationsChanged(): void {
+    let changed = false;
+    let newPubData = this.trail1!.publicationData ? {...this.trail1!.publicationData} : {};
+    if (this.translations.detectedLanguage) {
+      if (newPubData['lang'] !== this.translations.detectedLanguage) {
+        newPubData['lang'] = this.translations.detectedLanguage;
+        changed = true;
+      }
+      if (!ObjectUtils.sameContent(newPubData['nameTranslations'], this.translations.nameTranslations)) {
+        newPubData['nameTranslations'] = this.translations.nameTranslations;
+        changed = true;
+      }
+      if (!ObjectUtils.sameContent(newPubData['descriptionTranslations'], this.translations.descriptionTranslations)) {
+        newPubData['descriptionTranslations'] = this.translations.descriptionTranslations;
+        changed = true;
+      }
+    }
+    console.log('before', this.trail1!.publicationData, 'after', newPubData, 'changed', changed)
+    if (changed) this.trailService.doUpdate(this.trail1!, t => t.publicationData = newPubData);
     this.toolbarItems = [...this.toolbarItems];
     this.changesDetector.detectChanges();
   }

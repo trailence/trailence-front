@@ -27,6 +27,7 @@ import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { importPhoto } from './photo-import';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -158,50 +159,12 @@ export class PhotoService {
     dateTaken?: number, latitude?: number, longitude?: number,
     isCover?: boolean
   ): Observable<Photo | null> {
-    if (description.length > 100) description = description.substring(0, 100);
-    const arr = new Uint8Array(content);
-    let info: ImageInfo | undefined;
-    if (ImageUtils.isJpeg(arr)) {
-      if (dateTaken && latitude !== undefined && longitude !== undefined)
-        info = {dateTaken, latitude, longitude};
-      else {
-        info = ImageUtils.extractInfos(arr);
-        if (!info?.dateTaken) {
-          const date = PhotoService.extractDateFromName(description);
-          if (date) {
-            if (!info) info = {dateTaken: date}; else info.dateTaken = date;
-          }
-        }
-        Console.info('extracted info from image', info);
-      }
-    }
-    const nextConvert: (s:number,q:number) => Promise<Blob> = (currentMaxSize: number, currentMaxQuality: number) =>
-      ImageUtils.convertToJpeg(arr, currentMaxSize, currentMaxSize, currentMaxQuality)
-      .then(jpeg => {
-        if (jpeg.blob.size <= this.preferences.preferences.photoMaxSizeKB * 1024) return Promise.resolve(jpeg.blob);
-        if (currentMaxQuality > this.preferences.preferences.photoMaxQuality - 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
-        if (currentMaxSize > 400) return nextConvert(currentMaxSize - 100, this.preferences.preferences.photoMaxQuality);
-        if (currentMaxQuality > 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
-        if (currentMaxSize > 100) return nextConvert(currentMaxSize - 50, this.preferences.preferences.photoMaxQuality);
-        return Promise.resolve(jpeg.blob);
-      });
-    const blobPromise = nextConvert(this.preferences.preferences.photoMaxPixels, this.preferences.preferences.photoMaxQuality);
-    return from(blobPromise).pipe(
-      switchMap(blob => {
-        const photo = new Photo({
-          owner,
-          trailUuid,
-          description,
-          index,
-        });
-        photo.latitude = latitude ?? info?.latitude;
-        photo.longitude = longitude ?? info?.longitude;
-        photo.dateTaken = dateTaken ?? info?.dateTaken;
-        photo.isCover = isCover ?? false;
-        return this.injector.get(StoredFilesService).store(owner, 'photo', photo.uuid, blob).pipe(
+    return from(importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, latitude, longitude, isCover)).pipe(
+      switchMap(imported => {
+        return this.injector.get(StoredFilesService).store(owner, 'photo', imported.photo.uuid, imported.blob).pipe(
           switchMap(result => {
             if (result === undefined) return of(null);
-            return this.store.create(photo);
+            return this.store.create(imported.photo);
           })
         );
       }),
@@ -211,26 +174,6 @@ export class PhotoService {
         return of(null);
       })
     );
-  }
-
-  private static extractDateFromName(name: string): number | undefined {
-    const regex = /.*(\d{4})([0-1]\d)([0-3]\d).?([0-2]\d)([0-5]\d)([0-5]\d).*/;
-    const dateMatch = regex.exec(name.length > 200 ? name.substring(0, 200) : name);
-    if (!dateMatch) return undefined;
-    const year = dateMatch[1] ? parseInt(dateMatch[1]) : undefined;
-    if (!year || isNaN(year) || year < 1900) return undefined;
-    const month = dateMatch[2] ? parseInt(dateMatch[2]) : undefined;
-    if (!month || isNaN(month) || month < 1 || month > 12) return undefined;
-    const day = dateMatch[3] ? parseInt(dateMatch[3]) : undefined;
-    if (!day || isNaN(day) || day < 1 || day > 31) return undefined;
-    const hour = dateMatch[4] ? parseInt(dateMatch[4]) : undefined;
-    if (!hour || isNaN(hour) || hour < 1 || hour > 23) return undefined;
-    const minute = dateMatch[5] ? parseInt(dateMatch[5]) : undefined;
-    if (minute === undefined || isNaN(minute) || minute < 0 || minute > 59) return undefined;
-    const second = dateMatch[6] ? parseInt(dateMatch[6]) : undefined;
-    if (second === undefined || isNaN(second) || second < 0 || second > 59) return undefined;
-    const date = new Date(year, month - 1, day, hour, minute, second).getTime();
-    return date;
   }
 
   public update(photo: Photo, updater: (photo: Photo) => void, ondone?: (photo: Photo) => void): void {

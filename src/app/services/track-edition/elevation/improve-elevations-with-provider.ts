@@ -1,4 +1,5 @@
-import { Point, PointDescriptor } from 'src/app/model/point';
+import { Point } from 'src/app/model/point';
+import { PointDescriptor } from 'src/app/model/point-descriptor';
 import { applyElevationThresholdToPoints } from './elevation-threshold';
 
 export function improveElevationWithProvider(points: Point[], provided: PointDescriptor[]) {

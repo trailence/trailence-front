@@ -1328,5 +1328,7 @@
     "no": "Norway",
     "se": "Sweden",
     "us": "USA"
-  }
+  },
+  "show_more": "Show more",
+  "show_less": "Show less"
 }

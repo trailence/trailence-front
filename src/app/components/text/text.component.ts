@@ -9,6 +9,11 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
   selector: 'app-text',
   template: `<div>
     <span [innerHTML]="html"></span>
+    @if (hasMore) {
+      <div class="show-more">
+        <a href='#' (click)="toggleMore(); $event.preventDefault(); $event.stopPropagation();">{{ (showFull ? 'show_less' : 'show_more') | i18nString }}</a>
+      </div>
+    }
     @if (translatedFrom) {
       <div class="translated-from">
         {{ 'translations.translated_from_' + translatedFrom | i18nString }}
@@ -29,6 +34,16 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
       cursor: pointer;
     }
   }
+  div.show-more {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    a {
+      font-size: 13px;
+      color: var(--ion-color-medium);
+    }
+  }
   `,
   imports: [I18nPipe],
 })
@@ -42,6 +57,8 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
   translatedFrom?: string;
   showOriginal = false;
   langSubscription?: Subscription;
+  showFull = false;
+  hasMore = false;
 
   constructor(
     private readonly sanitizer: DomSanitizer,
@@ -78,12 +95,37 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
 
   private update(): void {
     if (this.showOriginal || !this.translations || !this.lang || this.lang === this.prefs.preferences.lang || !this.translations[this.prefs.preferences.lang]) {
-      this.html = this.sanitizer.sanitize(SecurityContext.HTML, this.text?.replace(/\n/g, '<br/>') ?? '') ?? '';
+      this.html = this.sanitizer.sanitize(SecurityContext.HTML, this.getText(this.text)) ?? '';
       this.translatedFrom = undefined;
     } else {
       this.translatedFrom = this.lang;
-      this.html = this.sanitizer.sanitize(SecurityContext.HTML, this.translations[this.prefs.preferences.lang]?.replace(/\n/g, '<br/>') ?? '') ?? '';
+      this.html = this.sanitizer.sanitize(SecurityContext.HTML, this.getText(this.translations[this.prefs.preferences.lang])) ?? '';
     }
+  }
+
+  private getText(text: string | undefined | null): string {
+    if (!text) return '';
+    let i = 0;
+    while ((i = text.indexOf('\n', i)) > 0) {
+      const before = text.substring(0, i).toLowerCase().trim();
+      if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>')) {
+        text = text.substring(0, i).trim() + '<br/>' + text.substring(i + 1);
+      }
+      i++;
+    }
+    if (text.length > 350) {
+      this.hasMore = true;
+      if (!this.showFull) text = text.substring(0, 350) + ' [...]';
+    } else {
+      this.hasMore = false;
+    }
+    return text;
+  }
+
+  public toggleMore(): void {
+    this.showFull = !this.showFull;
+    this.update();
+    this.changeDetector.detectChanges();
   }
 
 }

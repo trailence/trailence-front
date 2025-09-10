@@ -1,6 +1,6 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { copyPoint, PointDescriptor } from 'src/app/model/point';
+import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
 import { TrackUtils } from 'src/app/utils/track-utils';
 
 export class ArrivalToStart implements TrackEditTool {

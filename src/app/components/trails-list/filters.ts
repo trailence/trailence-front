@@ -1,7 +1,8 @@
-import { TrailActivity, TrailLoopType } from 'src/app/model/trail';
 import { FilterEnum, FilterNumeric, FilterTags } from '../filters/filter';
 import { ComputedPreferences } from 'src/app/services/preferences/preferences';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
+import { TrailActivity } from 'src/app/model/dto/trail-activity';
 
 export interface Filters {
   duration: FilterNumeric;

@@ -1,5 +1,5 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { copyPoint, PointDescriptor } from 'src/app/model/point';
+import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { of } from 'rxjs';
 

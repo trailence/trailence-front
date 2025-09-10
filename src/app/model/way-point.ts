@@ -1,5 +1,6 @@
 import { BehaviorSubject, Observable, combineLatest, skip } from 'rxjs';
-import { copyPoint, PointDescriptor, PointDtoMapper, pointsAreEqual } from './point';
+import { PointDtoMapper } from './point-dto-mapper';
+import { copyPoint, PointDescriptor, pointsAreEqual } from './point-descriptor';
 import { WayPointDto } from './dto/way-point';
 
 export class WayPoint {

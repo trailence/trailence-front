@@ -1,6 +1,8 @@
 import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, map, of, skip, switchMap } from 'rxjs';
 import { Segment, SegmentMetadata } from './segment';
-import { copyPoint, Point, PointDescriptor, PointDtoMapper } from './point';
+import { Point } from './point';
+import { PointDtoMapper } from './point-dto-mapper';
+import { copyPoint, PointDescriptor } from './point-descriptor';
 import { Owned } from './owned';
 import { TrackDto } from './dto/track';
 import { WayPoint } from './way-point';
