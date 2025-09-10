@@ -1,11 +1,12 @@
 import { Track } from 'src/app/model/track';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from '../../tool.interface';
 import { Segment } from 'src/app/model/segment';
-import { PointDescriptor } from 'src/app/model/point';
+import { PointDescriptor } from 'src/app/model/point-descriptor';
 import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
 import { MapComponent } from 'src/app/components/map/map.component';
 import { Injector } from '@angular/core';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 
 export abstract class AddPointsTool implements TrackEditTool {
 
@@ -26,10 +27,16 @@ export abstract class AddPointsTool implements TrackEditTool {
     if (!sel) return;
     const isForward = sel.pointIndex !== 0;
     ctx.selection.cancelSelection();
-    ctx.startInteractiveTool(iCtx => {
-      this.disableAddPoints(true);
-      iCtx.map.removeFromMap(this.anchor.marker);
-    }).then(
+    ctx.startInteractiveTool(iCtx => [
+      new MenuItem()
+        .setI18nLabel('track_edit_tools.stop_interactive')
+        .setIcon('stop')
+        .setAction(() => {
+          this.disableAddPoints(true);
+          iCtx.map.removeFromMap(this.anchor.marker);
+          iCtx.close();
+        }),
+    ]).then(
       iCtx => {
         iCtx.startEditTrack().then(editionTrack => {
           this.continueAddPoints(ctx.injector, iCtx, editionTrack, sel.segmentIndex, isForward);

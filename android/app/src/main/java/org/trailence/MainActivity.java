@@ -6,11 +6,13 @@ import com.getcapacitor.Logger;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.WebView;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.io.InputStream;
@@ -23,22 +25,17 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(TrailencePlugin.class);
     registerPlugin(BackgroundGeolocation.class);
     super.onCreate(savedInstanceState);
+    //if (getApplicationInfo().targetSdkVersion >= 35 && Build.VERSION.SDK_INT < 35)
+    //  WindowCompat.enableEdgeToEdge();
     WebView.setWebContentsDebuggingEnabled(true);
-    this.getBridge().getWebView().setLongClickable(true);
-    this.getBridge().getWebView().setOnLongClickListener(v -> true);
     ViewCompat.setOnApplyWindowInsetsListener(this.getBridge().getWebView(), (v, windowInsets) -> {
       try {
-        Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-        float density = getResources().getDisplayMetrics().density;
-        int topInset = (int) (insets.top / density);
-        int bottomInset = (int) (insets.bottom / density);
-        int leftInset = (int) (insets.left / density);
-        int rightInset = (int) (insets.right / density);
+        Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this, getApplicationContext());
         String js =
-            "document.documentElement.style.setProperty('--device-margin-top', '" + topInset + "px');" +
-            "document.documentElement.style.setProperty('--device-margin-bottom', '" + bottomInset + "px');" +
-            "document.documentElement.style.setProperty('--device-margin-left', '" + leftInset + "px');" +
-            "document.documentElement.style.setProperty('--device-margin-right', '" + rightInset + "px');";
+            "document.documentElement.style.setProperty('--ion-safe-area-top', '" + insets.top + "px');" +
+            "document.documentElement.style.setProperty('--ion-safe-area-bottom', '" + insets.bottom + "px');" +
+            "document.documentElement.style.setProperty('--ion-safe-area-left', '" + insets.left + "px');" +
+            "document.documentElement.style.setProperty('--ion-safe-area-right', '" + insets.right + "px');";
         bridge.getWebView().evaluateJavascript(js, null);
       } catch (Exception e) {
         Logger.error("Error setting insets", e);

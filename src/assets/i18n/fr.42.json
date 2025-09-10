@@ -344,7 +344,8 @@
         "external": "Trouvé dans {{1}}",
         "following": " en suivant :*:{{1}}:*:{{2}}:*:",
         "initially_found_on": " initiallement trouvé dans :*:{{1}}:*:{{2}}:*:",
-        "following_found_on": " en suivant un parcours trouvé sur :*:{{1}}:*:{{2}}:*:"
+        "following_found_on": " en suivant un parcours trouvé sur :*:{{1}}:*:{{2}}:*:",
+        "source_url": "Source :"
       },
       "my_feedback": {
         "you_leave_a_rate": "Vous avez noté ce parcours {{1}}/5 le {{2}}",
@@ -769,6 +770,9 @@
     "checklist": "Check-list",
     "modify": "Modifier",
     "compare_current": "Comparer à la publication actuelle",
+    "exit_compare_current": "Arrêter la comparaison",
+    "check_public_trails_around": "Afficher les parcours publics",
+    "exit_check_public_trails_around": "Enlever les parcours publics",
     "start_popup": {
       "header": "Merci de contribuer à la communauté Trailence !",
       "text_before": "Vous souhaitez publier votre parcours, ce qui le rendra visible par tous les utilisateurs. Voici quelques informations importantes concernant la publication :",
@@ -1222,9 +1226,11 @@
         "create_waypoint": "Créer un point de passage",
         "remove_waypoint": "Supprimer le point de passage",
         "edit_waypoint": "Modifier le point de passage",
+        "move_waypoint": "Déplacer le point de passage",
         "popup": {
           "title": "Point de passage"
-        }
+        },
+        "select_new_position": "Sélectionnez la nouvelle position"
       },
       "set_elevation_on_range": {
         "with_start": "En utilisant celle du premier point sélectionné",
@@ -1328,5 +1334,7 @@
     "no": "Norvège",
     "se": "Suède",
     "us": "USA"
-  }
+  },
+  "show_more": "Voir plus",
+  "show_less": "Voir moins"
 }

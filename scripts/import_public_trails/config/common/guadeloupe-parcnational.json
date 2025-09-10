@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://geotrek.guadeloupe-parcnational.fr/api/v2",
+  "trek-link": "https://www.randoguadeloupe.gp/trek/{{id}}",
+  "practices": {
+    "1": "hiking"
+  }
+}

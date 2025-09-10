@@ -5,6 +5,14 @@ ion-modal.small-modal {
   height: auto;
   --max-width: 95%;
   --max-height: 95%;
+  margin: var(--ion-safe-area-top, 0px) var(--ion-safe-area-right, 0px) var(--ion-safe-area-bottom, 0px) var(--ion-safe-area-left, 0px);
+
+  > * {
+    --ion-safe-area-top: 0px;
+    --ion-safe-area-bottom: 0px;
+    --ion-safe-area-left: 0px;
+    --ion-safe-area-right: 0px;
+  }
 
   ion-content {
     flex: 1 1 100%;
@@ -22,11 +30,27 @@ ion-modal.small-modal {
 ion-modal.medium-modal {
   --width: calc(min(66%, 1000px));
   --height: calc(min(95%, 500px));
+  margin: var(--ion-safe-area-top, 0px) var(--ion-safe-area-right, 0px) var(--ion-safe-area-bottom, 0px) var(--ion-safe-area-left, 0px);
+
+  > * {
+    --ion-safe-area-top: 0px;
+    --ion-safe-area-bottom: 0px;
+    --ion-safe-area-left: 0px;
+    --ion-safe-area-right: 0px;
+  }
 }
 
 ion-modal.large-modal {
   --width: 95%;
   --height: 95%;
+  margin: var(--ion-safe-area-top, 0px) var(--ion-safe-area-right, 0px) var(--ion-safe-area-bottom, 0px) var(--ion-safe-area-left, 0px);
+
+  > * {
+    --ion-safe-area-top: 0px;
+    --ion-safe-area-bottom: 0px;
+    --ion-safe-area-left: 0px;
+    --ion-safe-area-right: 0px;
+  }
 }
 
 ion-modal.full-screen {

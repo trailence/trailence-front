@@ -121,6 +121,15 @@ export class AppComponent {
         this.waitingForGps = value;
         this.injector.get(ChangeDetectorRef).detectChanges();
       }));
+      import('./services/trailence.service')
+      .then(module => module.default.getInsets({}))
+      .then(insets => {
+        Console.info('Initial insets', insets);
+        document.documentElement.style.setProperty('--ion-safe-area-top', insets.top + 'px');
+        document.documentElement.style.setProperty('--ion-safe-area-bottom', insets.bottom + 'px');
+        document.documentElement.style.setProperty('--ion-safe-area-left', insets.left + 'px');
+        document.documentElement.style.setProperty('--ion-safe-area-right', insets.right + 'px');
+      });
     });
     i18n.texts$.subscribe(texts => {
       this.waitingForGpsText = texts?.waiting_for_gps ?? '';

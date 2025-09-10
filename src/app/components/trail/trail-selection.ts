@@ -243,6 +243,7 @@ export class TrailSelection {
 
 
   private mapClick(event: MapTrackPointReference[] | undefined): void {
+    if (event) event = event.filter(e => !e.track.ignoreCursorHover);
     if (!event || event.length === 0) {
       this.cancelSelection();
       return;

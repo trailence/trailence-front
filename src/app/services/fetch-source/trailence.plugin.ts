@@ -7,7 +7,7 @@ import { environment } from 'src/environments/environment';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { Console } from 'src/app/utils/console';
-import { PointDtoMapper } from 'src/app/model/point';
+import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { SegmentDto } from 'src/app/model/dto/segment';
@@ -181,6 +181,12 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
         sourceType: TrailSourceType.EXTERNAL,
         source: url,
         sourceDate: Date.now(),
+
+        publicationData: {
+          'lang': pt.lang,
+          'nameTranslations': pt.nameTranslations,
+          'descriptionTranslations': pt.descriptionTranslations,
+        },
       },
       metadataDto: {
         owner: 'trailence',
@@ -209,7 +215,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
         uuid: pt.uuid,
         slug: pt.slug,
         info: {
-          externalUrl: url,
+          externalUrl: pt.sourceUrl ?? undefined,
           photos: pt.photos.sort((p1, p2) => p1.index - p2.index).map(p => ({
             description: p.description,
             time: p.date,
@@ -399,6 +405,8 @@ interface PublicTrail {
   lang: string;
   nameTranslations?: {[key: string]: string};
   descriptionTranslations?: {[key: string]: string};
+
+  sourceUrl?: string;
 }
 
 interface PublicPhoto {

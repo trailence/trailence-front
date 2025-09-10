@@ -344,7 +344,8 @@
         "external": "Found on {{1}}",
         "following": " by following :*:{{1}}:*:{{2}}:*:",
         "initially_found_on": " initially found on :*:{{1}}:*:{{2}}:*:",
-        "following_found_on": " by following a track found on :*:{{1}}:*:{{2}}:*:"
+        "following_found_on": " by following a track found on :*:{{1}}:*:{{2}}:*:",
+        "source_url": "Source:"
       },
       "my_feedback": {
         "you_leave_a_rate": "You rated this route {{1}}/5 on {{2}}",
@@ -769,6 +770,9 @@
     "checklist": "Checklist",
     "modify": "Edit",
     "compare_current": "Compare to current publication",
+    "exit_compare_current": "Stop comparison",
+    "check_public_trails_around": "Show public trails",
+    "exit_check_public_trails_around": "Hide public trails",
     "start_popup": {
       "header": "Thank you for contributing to the Trailence community!",
       "text_before": "You’re about to publish your track, which will make it visible to all users. Here’s some important information about how publishing works:",
@@ -1222,9 +1226,11 @@
         "create_waypoint": "Create a way point",
         "remove_waypoint": "Remove the way point",
         "edit_waypoint": "Edit the way point",
+        "move_waypoint": "Move the way point",
         "popup": {
           "title": "Way Point"
-        }
+        },
+        "select_new_position": "Select the new position"
       },
       "set_elevation_on_range": {
         "with_start": "Using the one from the first selected point",
@@ -1328,5 +1334,7 @@
     "no": "Norway",
     "se": "Sweden",
     "us": "USA"
-  }
+  },
+  "show_more": "Show more",
+  "show_less": "Show less"
 }

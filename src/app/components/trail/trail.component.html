@@ -94,7 +94,7 @@
   </div>
   <ng-container *ngIf="tracks$ | async as tracks">
     <div class="trail-details" *ngIf="!isSmall || tab === 'details'">
-      <app-toolbar #toolbar *ngIf="trail1 && !trail2"
+      <app-toolbar #toolbar *ngIf="trail1 && (!trail2 || trail1.fromModeration)"
         [items]="toolbarItems"
         [iconSize]="28"
         textSize="11px"
@@ -279,8 +279,8 @@
                 ></ion-textarea>
               }
             }
-            @if (trail1.fromModeration) {
-              <app-moderation-translations [trail]="trail1" [translations]="translations" (translationsUpdated)="translationsChanged()"></app-moderation-translations>
+            @if (trail1.fromModeration && tracks.length > 0) {
+              <app-moderation-translations [trail]="trail1" [track]="tracks[0]" [translations]="translations" (translationsUpdated)="translationsChanged()" (wayPointsUpdated)="wayPointsTranslationsChanged()"></app-moderation-translations>
             }
           </div>
         }
@@ -380,15 +380,14 @@
           }
         </div>
         <ng-container *ngIf="source?.externalUrl as url">
-          <div class="external-link" *ngIf="source?.externalAppName as name">
-            @if (name === 'Trailence') {
+          <div class="external-link">
+            @if (source?.externalAppName === 'Trailence') {
               <a [routerLink]="url">{{i18n.texts.pages.trail.open_in_trailence}}</a>
+            } @else if(source?.externalAppName) {
+              <a href="{{url}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{source!.externalAppName}}</a>
             } @else {
-              <a href="{{url}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{name}}</a>
+              <span>{{ i18n.texts.pages.trail.source.source_url }}</span>&nbsp;<a href="{{url}}" target="_blank">{{ url }}</a>
             }
-          </div>
-          <div class="external-link" *ngIf="!source?.externalAppName">
-              <a href="{{url}}" target="_blank">{{ url }}</a>
           </div>
         </ng-container>
 
@@ -480,10 +479,10 @@
                 </div>
               </div>
               <div class="waypoint-name" *ngIf="!wp.breakPoint && !arrival">
-                <span>{{wp.wayPoint.name}}</span>
+                <app-text [text]="wp.wayPoint.name" [lang]="source?.info?.lang" [translations]="wp.wayPoint.nameTranslations"></app-text>
               </div>
               <div class="waypoint-description" *ngIf="!wp.breakPoint && !arrival">
-                <span>{{wp.wayPoint.description}}</span>
+                <app-text [text]="wp.wayPoint.description" [lang]="source?.info?.lang" [translations]="wp.wayPoint.descriptionTranslations"></app-text>
               </div>
             </div>
           </div>

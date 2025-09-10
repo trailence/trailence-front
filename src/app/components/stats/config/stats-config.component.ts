@@ -4,7 +4,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonSelect, IonSelectOption } from "@ionic/angular/standalone";
 import { FormsModule } from '@angular/forms';
 import { StatsSourceSelectionComponent } from "./source-selection/stats-source-selection.component";
-import { TrailActivity } from 'src/app/model/trail';
+import { TrailActivity } from 'src/app/model/dto/trail-activity';
 
 @Component({
   selector: 'app-stats-config',

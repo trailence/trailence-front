@@ -13,7 +13,7 @@ export function isPublicationCollection(type?: TrailCollectionType) {
 }
 
 export function isPublicationLockedCollection(type?: TrailCollectionType) {
-  return type === TrailCollectionType.PUB_SUBMIT || type === TrailCollectionType.PUB_REJECT;
+  return type === TrailCollectionType.PUB_SUBMIT;
 }
 
 export interface TrailCollectionDto extends OwnedDto {

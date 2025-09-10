@@ -1,6 +1,6 @@
-import { Track } from 'src/app/model/track';
-import { TrailLoopType } from 'src/app/model/trail';
+import { Track } from '../../../model/track';
 import { buildClosePoints, getDistancesForAnalysis } from './build-close-points';
+import { TrailLoopType } from '../../../model/dto/trail-loop-type';
 
 export function detectLoopType(track: Track): TrailLoopType | undefined { // NOSONAR
   const arrival = track.arrivalPoint;

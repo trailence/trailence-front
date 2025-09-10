@@ -16,9 +16,13 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from '../database/trail-collection.service';
 import { DependenciesService } from '../database/dependencies.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
+import { TrailDto } from 'src/app/model/dto/trail';
 
 export function copyTrailsTo( // NOSONAR
-  injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string, fromTrail: boolean, autoImportPhotos?: boolean, skipTags?: boolean, onDone?: (newTrails: Trail[]) => void
+  injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string,
+  fromTrail: boolean, autoImportPhotos?: boolean, skipTags?: boolean,
+  trailDtoProvider?: (trail: Trail) => Partial<TrailDto>,
+  onDone?: (newTrails: Trail[]) => void
 ): void {
   const progress = injector.get(ProgressService).create(injector.get(I18nService).texts.pages.trails.actions.copying, 1);
   const trackService = injector.get(TrackService);
@@ -45,6 +49,7 @@ export function copyTrailsTo( // NOSONAR
           const currentTrack = tracks[1] ? tracks[1].copy(email) : undefined;
           const copy = new Trail({
             ...trail.toDto(),
+            ...(trailDtoProvider ? trailDtoProvider(trail) : {}),
             uuid: undefined,
             owner: email,
             version: undefined,

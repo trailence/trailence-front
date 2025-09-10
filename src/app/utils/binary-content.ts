@@ -30,6 +30,13 @@ export class BinaryContent {
     }
   }
 
+  public static fromDataURL(url: string): BinaryContent {
+    if (!url.startsWith('data:')) throw new Error();
+    let i = url.indexOf(';base64,');
+    if (i < 0) throw new Error();
+    return new BinaryContent(url.substring(i + 8), url.substring(5, i));
+  }
+
   public getContentType(): string {
     return this.contentType;
   }

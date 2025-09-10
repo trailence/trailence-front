@@ -4,7 +4,7 @@ import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
 import { BehaviorSubject, Observable, combineLatest, defaultIfEmpty, first, map, of, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Trail, TrailActivity, TrailLoopType } from 'src/app/model/trail';
+import { Trail } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackService } from './track.service';
 import { TrailCollectionService } from './trail-collection.service';
@@ -23,6 +23,8 @@ import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
+import { TrailActivity } from 'src/app/model/dto/trail-activity';
 
 @Injectable({
   providedIn: 'root'

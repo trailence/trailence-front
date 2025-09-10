@@ -62,6 +62,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FormsModule } from '@angular/forms';
 import { TrailTranslations } from './trail-translations';
 import { ModerationTranslationsComponent } from './moderation-translations/moderation-translations.component';
+import { ObjectUtils } from 'src/app/utils/object-utils';
 
 interface TrailSource {
   isExternal: boolean;
@@ -185,6 +186,8 @@ export class TrailComponent extends AbstractComponent {
   publicationChecklist?: PublicationChecklist;
   source?: TrailSource;
   currentPublicTrailUuid?: string;
+  isShowPublicTrailsAround = false;
+  publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
 
   private _lockForDescription?: () => void;
   editingDescription = false;
@@ -210,10 +213,19 @@ export class TrailComponent extends AbstractComponent {
       .setBadgeTopLeft(() => this.publicationChecklist?.nbUnchecked ? ({ text: '' + this.publicationChecklist?.nbUnchecked, color: 'warning', fill: true }) : undefined)
       .setAction(() => this.openChecklist()),
     new MenuItem().setIcon('compare').setI18nLabel('publications.compare_current')
-      .setVisible(() => !!this.currentPublicTrailUuid)
+      .setVisible(() => !!this.currentPublicTrailUuid && !this.trail2 && !this.isShowPublicTrailsAround)
       .setAction(() => this.compareToPublicTrail()),
+    new MenuItem().setIcon('compare').setI18nLabel('publications.exit_compare_current')
+      .setVisible(() => !!this.currentPublicTrailUuid && !!this.trail2)
+      .setAction(() => this.exitCompareToPublicTrail()),
+    new MenuItem().setIcon('privacy').setI18nLabel('publications.check_public_trails_around')
+      .setVisible(() => this.trail1?.fromModeration && !this.trail2 && !this.isShowPublicTrailsAround)
+      .setAction(() => this.showPublicTrailsAround()),
+    new MenuItem().setIcon('privacy').setI18nLabel('publications.exit_check_public_trails_around')
+      .setVisible(() => this.isShowPublicTrailsAround)
+      .setAction(() => this.hidePublicTrailsAround()),
     new MenuItem().setIcon('web').setI18nLabel('publications.publish')
-      .setVisible(() => !this.trail2 && (this.trail1?.fromModeration || !!this.publicationChecklist))
+      .setVisible(() => (this.trail1?.fromModeration || (!!this.publicationChecklist && !this.trail2)))
       .setDisabled(() =>
         (!this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0) ||
         (!!this.trail1?.fromModeration && !this.translations.valid)
@@ -221,7 +233,7 @@ export class TrailComponent extends AbstractComponent {
       .setTextColor('success')
       .setAction(() => this.publish()),
     new MenuItem().setIcon('cross').setI18nLabel('publications.moderation.reject')
-      .setVisible(() => !this.trail2 && this.trail1?.fromModeration)
+      .setVisible(() => this.trail1?.fromModeration)
       .setTextColor('danger')
       .setAction(() => this.rejectPublication()),
     new MenuItem().setIcon('undo').setI18nLabel('publications.reject_to_draft')
@@ -377,10 +389,10 @@ export class TrailComponent extends AbstractComponent {
   private listenForTracks(): void {
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.selection.selectionTrack$, this.selection.zoom$, this.toolsHideBaseTrack$, this.showBreaks$]).pipe(
+      combineLatest([this.trail$(this.trail1$), this.trail$(this.trail2$), recording$, this.toolsBaseTrack$, this.toolsModifiedTrack$, this.selection.selectionTrack$, this.selection.zoom$, this.toolsHideBaseTrack$, this.showBreaks$, this.publicTrailsAroundMapTracks$]).pipe(
         debounceTime(1)
       ),
-      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, showBreaks]) => { // NOSONAR
+      ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, showBreaks, publicTrailsAround]) => { // NOSONAR
         if (this.trail1 !== trail1[0]) {
           if (this._lockForDescription) {
             this._lockForDescription();
@@ -493,6 +505,8 @@ export class TrailComponent extends AbstractComponent {
           }
         }
 
+        mapTracks.push(...publicTrailsAround);
+
         this.selection.tracksChanged(tracks);
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
@@ -579,6 +593,8 @@ export class TrailComponent extends AbstractComponent {
           ]).pipe(
             map(([sourceString, info, followedInfo]) => {
               if (source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http'))
+                source.externalUrl = info?.externalUrl;
+              else if (!source.externalUrl && info?.externalUrl)
                 source.externalUrl = info?.externalUrl;
               source.sourceString = sourceString;
               source.author = info?.author;
@@ -1067,7 +1083,7 @@ export class TrailComponent extends AbstractComponent {
 
 
   mouseOverPointOnMap(event: MapTrackPointReference[]) {
-    this.hover.mouseOverPointOnMap(MapTrackPointReference.closest(event));
+    this.hover.mouseOverPointOnMap(MapTrackPointReference.closest(event.filter(mt => !mt.track.ignoreCursorHover)));
   }
 
   elevationGraphPointHover(references: GraphPointReference[]) {
@@ -1075,7 +1091,11 @@ export class TrailComponent extends AbstractComponent {
   }
 
   mouseClickOnMap(event: MapTrackPointReference[]) {
-    // nothing so far
+    for (const ref of event) {
+      if (this.publicTrailsAroundMapTracks$.value.indexOf(ref.track) >= 0) {
+        window.open(environment.baseUrl + '/trail/trailence/' + ref.track.trail!.uuid, '_blank');
+      }
+    }
   }
 
   openPhotos(): void {
@@ -1575,9 +1595,11 @@ export class TrailComponent extends AbstractComponent {
         .getOrCreatePublicationDraft()
         .subscribe(col => {
           import('../../services/functions/copy-trails')
-          .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, col.owner, true, true, true, (newTrails) => {
-            this.injector.get(TrailService).doUpdate(newTrails[0], t => t.publishedFromUuid = this.source?.info?.myUuid);
-          }))
+          .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, col.owner, true, true, true, (newTrail) => ({
+            publishedFromUuid: this.source?.info?.myUuid,
+            sourceType: this.source?.info?.externalUrl ? TrailSourceType.EXTERNAL : undefined,
+            source: this.source?.info?.externalUrl
+          })))
         });
       }
     });
@@ -1593,15 +1615,54 @@ export class TrailComponent extends AbstractComponent {
   private async compareToPublicTrail() {
     const trailence = this.injector.get(FetchSourceService).getPluginByName('Trailence');
     const trail = await trailence?.getTrail(this.currentPublicTrailUuid!);
-    if (trail) {
-      this.trail2 = trail;
-      this.changesDetector.detectChanges();
-    }
+    if (trail)
+      (this.trail2$ as BehaviorSubject<Trail | null>).next(trail);
+  }
+
+  private async exitCompareToPublicTrail() {
+    (this.trail2$ as BehaviorSubject<Trail | null>).next(null);
   }
 
   translationsChanged(): void {
+    let changed = false;
+    let newPubData = this.trail1!.publicationData ? {...this.trail1!.publicationData} : {};
+    if (this.translations.detectedLanguage) {
+      if (newPubData['lang'] !== this.translations.detectedLanguage) {
+        newPubData['lang'] = this.translations.detectedLanguage;
+        changed = true;
+      }
+      if (!ObjectUtils.sameContent(newPubData['nameTranslations'], this.translations.nameTranslations)) {
+        newPubData['nameTranslations'] = this.translations.nameTranslations;
+        changed = true;
+      }
+      if (!ObjectUtils.sameContent(newPubData['descriptionTranslations'], this.translations.descriptionTranslations)) {
+        newPubData['descriptionTranslations'] = this.translations.descriptionTranslations;
+        changed = true;
+      }
+    }
+    if (changed) this.trailService.doUpdate(this.trail1!, t => t.publicationData = newPubData);
     this.toolbarItems = [...this.toolbarItems];
     this.changesDetector.detectChanges();
+  }
+
+  wayPointsTranslationsChanged(): void {
+    const newTrack = this.tracks$.value[0].copy(this.tracks$.value[0].owner);
+    this.injector.get(ModerationService).updateTrack(this.trail1!, newTrack).subscribe();
+  }
+
+  showPublicTrailsAround(): void {
+    this.isShowPublicTrailsAround = true;
+    import('./check-public-trails-around')
+    .then(m => m.checkPublicTrailsAround(this.injector, this.tracks$.value[0], (tracks) => {
+      if (this.isShowPublicTrailsAround) this.publicTrailsAroundMapTracks$.next(tracks);
+    }));
+    this.toolbarItems = [...this.toolbarItems];
+    this.changesDetector.detectChanges();
+  }
+
+  hidePublicTrailsAround(): void {
+    this.isShowPublicTrailsAround = false;
+    this.publicTrailsAroundMapTracks$.next([]);
   }
 
 }

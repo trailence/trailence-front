@@ -1,6 +1,7 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
-import { copyPoint, Point, PointDescriptor } from 'src/app/model/point';
+import { Point } from 'src/app/model/point';
+import { copyPoint, PointDescriptor } from 'src/app/model/point-descriptor';
 import { improveElevationWithProvider } from 'src/app/services/track-edition/elevation/improve-elevations-with-provider';
 import { map } from 'rxjs';
 

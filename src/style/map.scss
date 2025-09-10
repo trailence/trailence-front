@@ -177,7 +177,16 @@ body.dark-map {
     }
 
   }
+  ion-spinner.map-loading {
+    color: white;
+  }
 
+}
+
+body:not(.dark-map) {
+  ion-spinner.map-loading {
+    color: black;
+  }
 }
 
 app-trail-small-map {

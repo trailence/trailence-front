@@ -11,6 +11,7 @@ export class MapTrack {
 
   public data: any;
   public highlighted = false;
+  public ignoreCursorHover = false;
 
   constructor(
     private readonly _trail: Trail | undefined,

@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://geotrek-admin.portcros-parcnational.fr/api/v2",
+  "trek-link": "https://destination.portcros-parcnational.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://adminrando.vanoise.com/api/v2",
+  "trek-link": "https://rando.vanoise.com/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

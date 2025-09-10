@@ -71,7 +71,7 @@ export class UserKeysComponent implements OnInit {
   }
 
   private isNative(key: UserKey): boolean {
-    const platforms = key.deviceInfo.ionPlatforms as string[];
+    const platforms = key.deviceInfo?.ionPlatforms as string[] | undefined;
     if (platforms) {
       if (platforms.indexOf('capacitor') >= 0) return true;
     }
@@ -79,7 +79,7 @@ export class UserKeysComponent implements OnInit {
   }
 
   private getDeviceType(key: UserKey): DeviceType | undefined {
-    const platforms = key.deviceInfo.ionPlatforms as string[];
+    const platforms = key.deviceInfo?.ionPlatforms as string[] | undefined;
     if (platforms) {
       if (platforms.indexOf('desktop') >= 0) return 'desktop';
       if (platforms.indexOf('mobile') >= 0) return 'mobile';
@@ -89,7 +89,7 @@ export class UserKeysComponent implements OnInit {
   }
 
   private getDeviceSystem(key: UserKey): DeviceSystem | undefined {
-    const platforms = key.deviceInfo.ionPlatforms as string[];
+    const platforms = key.deviceInfo?.ionPlatforms as string[] | undefined;
     if (platforms) {
       if (platforms.indexOf('android') >= 0) return 'android';
       if (platforms.indexOf('ios') >= 0) return 'ios';
@@ -110,7 +110,8 @@ export class UserKeysComponent implements OnInit {
   }
 
   private getDeviceDescription(key: UserKey): string {
-    let s = key.deviceInfo.userAgent as string;
+    let s = key.deviceInfo?.userAgent as string | undefined;
+    if (!s) return '';
     let i = s.indexOf('(');
     if (i < 0) return '';
     s = s.substring(i + 1);
@@ -122,7 +123,7 @@ export class UserKeysComponent implements OnInit {
   }
 
   private getAppVersion(key: UserKey): string | undefined {
-    const code = key.deviceInfo.versionCode;
+    const code = key.deviceInfo?.versionCode;
     if (typeof code !== 'number') return undefined;
     return StringUtils.versionCodeToVersionName(code);
   }

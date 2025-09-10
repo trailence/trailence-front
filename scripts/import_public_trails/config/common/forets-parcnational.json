@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://admin-geotrek.forets-parcnational.fr/api/v2",
+  "trek-link": "https://rando.forets-parcnational.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

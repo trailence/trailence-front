@@ -84,6 +84,7 @@ export const ICONS: string[] = [
   'minus',
   'mobile',
   'more-menu',
+  'move',
   'negative-elevation',
   'notification',
   'one-way',

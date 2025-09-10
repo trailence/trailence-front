@@ -47,6 +47,7 @@ import { AddFreePoints } from './tools/path/manual/add-free-points';
 import { AddOsmPath } from './tools/path/manual/add-osm-path';
 import { MapComponent } from '../map/map.component';
 import { ArrivalToStart } from './tools/path/arrival-to-start';
+import { MoveWayPointTool } from './tools/way-points/move-way-point';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -91,6 +92,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       .setVisible(() => tool.isAvailable(this.context))
       ;
   }
+  interactiveToolsMarkerStart = new MenuItem();
+  interactiveToolsMarkerEnd = new MenuItem();
   toolsItems: MenuItem[] = [
     new MenuItem().setIcon('selection').setI18nLabel('track_edit_tools.categories.selection')
       .setVisible(() => !this.interactiveTool)
@@ -122,6 +125,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.categories.way_point').setTextColor('secondary'),
         this.toMenuItem(new CreateWayPointTool()),
         this.toMenuItem(new EditWayPointTool()),
+        this.toMenuItem(new MoveWayPointTool()),
         this.toMenuItem(new RemoveWayPointTool()),
       ]),
     new MenuItem().setIcon('elevation').setI18nLabel('track_edit_tools.categories.elevation')
@@ -158,13 +162,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.toMenuItem(new RemoveUnprobablePointsTool()),
         this.toMenuItem(new RemoveBreaksMovesTool()),
       ]),
-    new MenuItem(),
-    new MenuItem()
-      .setI18nLabel('track_edit_tools.stop_interactive')
-      .setIcon('stop')
-      .setVisible(() => !!this.interactiveTool)
-      .setAction(() => this.interactiveTool!.stop()),
-    new MenuItem(),
+    this.interactiveToolsMarkerStart,
+    this.interactiveToolsMarkerEnd,
     new MenuItem().setIcon('undo').setI18nLabel('buttons.undo').setDisabled(() => this.statesStack.length === 0).setAction(() => this.undo()),
     new MenuItem().setIcon('redo').setI18nLabel('buttons.redo').setDisabled(() => this.undoneStack.length === 0).setAction(() => this.redo()),
     new MenuItem(),
@@ -267,7 +266,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       },
       refreshTools: () => this.refreshTools(),
 
-      startInteractiveTool: (onStop) => new Promise(resolve => {
+      startInteractiveTool: (toolbar: (ctx: InteractiveToolContext) => MenuItem[]) => new Promise(resolve => {
         let endEdit: (() => void) | undefined = undefined;
         const ctx = {
           map: this.map$.value!,
@@ -292,8 +291,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
             endEdit();
             endEdit = undefined;
           },
-          stop: () => {
-            onStop(ctx);
+          toolbar,
+          close: () => {
             this.interactiveTool = undefined;
             this.refreshTools();
           },
@@ -321,6 +320,10 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   }
 
   refreshTools(): void {
+    const indexStart = this.toolsItems.indexOf(this.interactiveToolsMarkerStart);
+    const indexEnd = this.toolsItems.indexOf(this.interactiveToolsMarkerEnd);
+    this.toolsItems.splice(indexStart + 1, indexEnd - indexStart - 1, ...(this.interactiveTool ? this.interactiveTool.toolbar(this.interactiveTool) : []));
+    this.toolsItems = [...this.toolsItems];
     this.toolbar?.refresh();
     this.changesDetector.detectChanges();
   }

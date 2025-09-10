@@ -29,10 +29,10 @@ export class StartPublicationModal {
     .getOrCreatePublicationDraft()
     .subscribe(col => {
       import('../../../services/functions/copy-trails')
-      .then(m => m.copyTrailsTo(this.injector, [this.trail], col, col.owner, true, true, true, (newTrails) => {
-        this.injector.get(TrailService).doUpdate(newTrails[0], t => t.publishedFromUuid = this.trail.uuid);
-        this.modalController.dismiss();
-      }))
+      .then(m => m.copyTrailsTo(this.injector, [this.trail], col, col.owner, true, true, true,
+        newTrail => ({publishedFromUuid: this.trail.uuid}),
+        (newTrails) => this.modalController.dismiss()
+      ))
     });
   }
 

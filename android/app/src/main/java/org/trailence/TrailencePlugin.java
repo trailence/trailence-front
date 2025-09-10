@@ -10,7 +10,11 @@ import android.os.Build;
 import android.provider.Settings;
 
 import androidx.activity.result.ActivityResult;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
 import androidx.core.util.Pair;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Logger;
@@ -315,5 +319,28 @@ public class TrailencePlugin extends Plugin {
   @PluginMethod
   public void getKeepOnScreenLock(PluginCall call) {
     call.resolve(new JSObject().put("enabled", this.keepOnScreenLock));
+  }
+
+  @PluginMethod
+  public void getInsets(PluginCall call) {
+    Insets insets = getDeviceInsets(ViewCompat.getRootWindowInsets(this.getBridge().getWebView()), this.getActivity(), this.getContext());
+    call.resolve(new JSObject().put("top", insets.top).put("bottom", insets.bottom).put("left", insets.left).put("right", insets.right));
+  }
+
+  public static Insets getDeviceInsets(WindowInsetsCompat windowInsets, AppCompatActivity activity, Context ctx) {
+    try {
+      if (ctx.getApplicationInfo().targetSdkVersion < 35)
+        return Insets.of(0, 0, 0, 0);
+      Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      float density = activity.getResources().getDisplayMetrics().density;
+      int topInset = (int) (insets.top / density);
+      int bottomInset = (int) (insets.bottom / density);
+      int leftInset = (int) (insets.left / density);
+      int rightInset = (int) (insets.right / density);
+      return Insets.of(leftInset, topInset, rightInset, bottomInset);
+    } catch (Exception e) {
+      Logger.error("Error getting insets", e);
+      return Insets.of(0, 0, 0, 0);
+    }
   }
 }

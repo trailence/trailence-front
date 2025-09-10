@@ -74,8 +74,8 @@ export class I18nService {
     return latOrLng.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 6});
   }
 
-  public distanceToString(distance: number | undefined): string {
-    if (distance === undefined) return '';
+  public distanceToString(distance: number | undefined | null): string {
+    if (distance === undefined || distance === null) return '';
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return this.metersToMetersOrKilometers(distance);
       case 'IMPERIAL': return this.footToFootOrMiles(this.metersToFoot(distance));

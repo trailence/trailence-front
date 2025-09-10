@@ -1,4 +1,5 @@
-import { Point, PointDescriptor, samePositionRound } from '../model/point';
+import { Point, samePositionRound } from '../model/point';
+import { PointDescriptor } from '../model/point-descriptor';
 import * as L from 'leaflet';
 import { ComputedWayPoint, Track } from '../model/track';
 import { Segment } from '../model/segment';
@@ -238,11 +239,18 @@ export class TrackUtils {
       if (wp.point.pos.lat === position.lat && wp.point.pos.lng === position.lng)
         return wp;
     }
+    let closest: WayPoint | undefined;
+    let closestDistance = 0;
     for (const wp of track.wayPoints) {
       if (samePositionRound(wp.point.pos, position))
         return wp;
+      const d = L.CRS.Earth.distance(wp.point.pos, position);
+      if (d < 5 && (!closest || d < closestDistance)) {
+        closest = wp;
+        closestDistance = d;
+      }
     }
-    return undefined;
+    return closest;
   }
 
   public static inRange(segmentIndex: number, pointIndex: number, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number): boolean {

@@ -17,7 +17,11 @@
     </ion-button>
   }
   <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (longPressEvent)="trailNamePressed()">
-    <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
+    @if (openUrl) {
+      <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
+    } @else {
+      <span (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</span>
+    }
   </div>
   @if (publicTrailUuid) {
     <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">

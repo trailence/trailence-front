@@ -79,6 +79,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'minus': 'minus.1.svg', // remove
   'mobile': 'mobile.1.svg',
   'more-menu': 'more-menu.1.svg', // ellipsis-horizontal
+  'move': 'move.1.svg', // move-outline
   'negative-elevation': 'negative-elevation.1.svg',
   'notification': 'notification.1.svg', // notifications-outline
   'offline': 'exclamation-circle.1.svg', // alert-circle-outline

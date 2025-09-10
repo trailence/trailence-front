@@ -5,4 +5,6 @@ export interface WayPointDto {
   t?: number;
   na?: string;
   de?: string;
+  nt?: {[lang:string]: string};
+  dt?: {[lang:string]: string};
 }

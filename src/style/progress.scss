@@ -1,7 +1,7 @@
 .progress-container {
   --move-y: 0px;
   position: fixed;
-  top: calc(var(--header-height) + 5px + var(--move-y));
+  top: calc(var(--header-height) + var(--ion-safe-area-top) + 5px + var(--move-y));
   left: calc(50vw - 125px);
   right: calc(50vw - 125px);
   display: flex;

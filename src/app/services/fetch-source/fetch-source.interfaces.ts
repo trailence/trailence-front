@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-import { Trail, TrailActivity } from 'src/app/model/trail';
+import { Trail } from 'src/app/model/trail';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../preferences/preferences';
 import { Injector } from '@angular/core';
@@ -9,6 +9,7 @@ import { AuthService } from '../auth/auth.service';
 import { NetworkService } from '../network/network.service';
 import { Filters } from 'src/app/components/trails-list/filters';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { TrailActivity } from 'src/app/model/dto/trail-activity';
 
 export abstract class FetchSourcePlugin {
 

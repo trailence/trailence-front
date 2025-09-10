@@ -1,3 +1,5 @@
+import { Arrays } from './arrays';
+
 export class ObjectUtils {
 
   public static compare(a: any, b: any): number { // NOSONAR
@@ -22,6 +24,26 @@ export class ObjectUtils {
       if (!v) return v;
     }
     return v;
+  }
+
+  public static sameContent(o1: any, o2: any): boolean {
+    if (o1 === undefined) return o2 === undefined;
+    if (o1 === null) return o2 === null;
+    if (o2 === undefined || o2 === null) return false;
+    if (typeof o1 === 'string') return (typeof o2 === 'string') && o1 === o2;
+    if (typeof o2 === 'string') return false;
+    if (typeof o1 === 'number') return (typeof o2 === 'number') && o1 === o2;
+    if (typeof o2 === 'number') return false;
+    if (Array.isArray(o1)) return Array.isArray(o2) && Arrays.sameContent(o1, o2, (e1, e2) => ObjectUtils.sameContent(e1, e2));
+    if (Array.isArray(o2)) return false;
+    if (typeof o1 === 'object' && typeof o2 === 'object') {
+      if (!Arrays.sameContent(Object.keys(o1), Object.keys(o2))) return false;
+      for (const key of Object.keys(o1)) {
+        if (!this.sameContent(o1[key], o2[key])) return false;
+      }
+      return true;
+    }
+    return false;
   }
 
 }

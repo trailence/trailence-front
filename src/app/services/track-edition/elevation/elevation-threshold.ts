@@ -1,4 +1,4 @@
-import { PointDescriptor } from 'src/app/model/point';
+import { PointDescriptor } from 'src/app/model/point-descriptor';
 import { Segment } from 'src/app/model/segment';
 import { Track } from 'src/app/model/track';
 import { TrackUtils } from 'src/app/utils/track-utils';

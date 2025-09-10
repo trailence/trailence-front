@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Trail, TrailLoopType } from 'src/app/model/trail';
+import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
@@ -41,6 +41,7 @@ import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Tag } from 'src/app/model/tag';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -825,7 +826,7 @@ export class TrailsListComponent extends AbstractComponent {
     .then(module => this.injector.get(PopoverController).create({
       component: module.MenuContentComponent,
       componentProps: {
-       menu: this.trailMenuService.getTrailsMenu(this.getSelectedTrails(), false, this.collection),
+       menu: this.trailMenuService.getTrailsMenu(this.getSelectedTrails(), false, this.collection, false, this.listType === 'all-collections', this.listType === 'moderation'),
        enableToolbarsForSections: 2
       },
       event: event,

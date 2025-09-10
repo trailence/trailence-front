@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://geotrek-admin.cevennes-parcnational.net/api/v2",
+  "trek-link": "https://destination.cevennes-parcnational.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

@@ -32,6 +32,7 @@
     }
   </select>
   @if (displayTarget && displayTarget.length > 0 && translations.nameTranslations && translations.descriptionTranslations) {
+    <ion-button size="small" (click)="getAIPrompt()">AI Prompt</ion-button>
     <ion-input
       [(ngModel)]="translations.nameTranslations[displayTarget]"
       (ionChange)="translationChanged()"
@@ -39,6 +40,7 @@
       [label]="i18n.texts.translations.trail_moderation.name"
       labelPlacement="stacked"
     ></ion-input>
+    <ion-button size="small" (click)="translateName(translations.detectedLanguage, displayTarget)">Translate</ion-button>
     <ion-textarea
       [(ngModel)]="translations.descriptionTranslations[displayTarget]"
       (ionChange)="translationChanged()"
@@ -47,6 +49,36 @@
       labelPlacement="stacked"
       [autoGrow]="true"
     ></ion-textarea>
+    <ion-button size="small" (click)="translateDescription(translations.detectedLanguage, displayTarget)">Translate</ion-button>
+    <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+    @for (wp of track.wayPoints; track $index) {
+      @if (wp.name.trim().length > 0 || wp.description.trim().length > 0) {
+        <div>{{ $index }}</div>
+        @if (wp.nameTranslations) {
+          <span>Source: </span>
+          <span>{{ wp.name }}</span>
+          <ion-input
+            [(ngModel)]="wp.nameTranslations[displayTarget]"
+            (ionChange)="wayPointChanged()"
+            fill="outline"
+            [label]="i18n.texts.translations.trail_moderation.name"
+            labelPlacement="stacked"
+          ></ion-input>
+        }
+        @if (wp.descriptionTranslations) {
+          <span>Source: </span>
+          <span>{{ wp.description }}</span>
+          <ion-textarea
+            [(ngModel)]="wp.descriptionTranslations[displayTarget]"
+            (ionChange)="wayPointChanged()"
+            fill="outline"
+            [label]="i18n.texts.translations.trail_moderation.description"
+            labelPlacement="stacked"
+            [autoGrow]="true"
+          ></ion-textarea>
+        }
+      }
+    }
   }
 }
 <hr/>

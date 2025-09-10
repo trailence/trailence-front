@@ -4,5 +4,7 @@ const Trailence = {
   setKeepOnScreenLock: (call: {enabled: boolean}) => Promise.resolve({success: false}),
   getKeepOnScreenLock: (call: {}) => Promise.resolve({enabled: false}),
 
+  getInsets: (call: {}) => Promise.resolve({top: 0, bottom: 0, left: 0, right: 0}),
+
 };
 export default Trailence;

@@ -8,7 +8,7 @@ import { Track } from 'src/app/model/track';
 import { I18nService } from '../i18n/i18n.service';
 import { TrailService } from '../database/trail.service';
 import { Router } from '@angular/router';
-import { copyPoint } from 'src/app/model/point';
+import { copyPoint } from 'src/app/model/point-descriptor';
 
 export function mergeTrails(injector: Injector, trails: Trail[], collectionUuid: string): void {
   const trackService = injector.get(TrackService);

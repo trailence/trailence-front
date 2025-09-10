@@ -1,6 +1,6 @@
 .waiting-for-gps, .trace-in-progress {
   position: fixed;
-  top: 5px;
+  top: calc(var(--ion-safe-area-top, 0px) + 5px);
   left: 0;
   right: 0;
   pointer-events: none;

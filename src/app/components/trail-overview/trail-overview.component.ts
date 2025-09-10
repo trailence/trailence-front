@@ -5,7 +5,7 @@ import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/t
 import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
-import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController } from "@ionic/angular/standalone";
+import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController, Platform } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
@@ -141,6 +141,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly router: Router,
     private readonly preferencesService: PreferencesService,
     private readonly mySelectionService: MySelectionService,
+    private readonly platform: Platform,
   ) {
     super(injector);
     this.changeDetector.detach();
@@ -165,11 +166,13 @@ export class TrailOverviewComponent extends AbstractComponent {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.reset();
     if (this.trail) {
-      if (this.linkWithSlug && this.trailInfo?.externalUrl)
-        this.openUrl = this.trailInfo.externalUrl;
-      else
-        this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
-      if (this.trail.fromModeration) this.openUrl += '/moderation';
+      if (!this.platform.is('capacitor')) {
+        if (this.linkWithSlug && this.trailInfo?.externalUrl)
+          this.openUrl = this.trailInfo.externalUrl;
+        else
+          this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
+        if (this.trail.fromModeration) this.openUrl += '/moderation';
+      }
       let previousI18nState = 0;
       const owner = this.trail.owner;
       this.byStateAndVisible.subscribe(

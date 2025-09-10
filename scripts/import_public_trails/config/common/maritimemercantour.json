@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://adminrando.marittimemercantour.eu/api/v2",
+  "trek-link": "https://destination.marittimemercantour.eu//trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

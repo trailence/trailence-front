@@ -22,6 +22,7 @@ export interface TrailDto extends OwnedDto {
   publishedFromUuid?: string;
   publicationMessageFromAuthor?: string;
   publicationMessageFromModerator?: string;
+  publicationData?: {[key: string]: any};
 
 }
 

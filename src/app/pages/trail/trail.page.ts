@@ -19,7 +19,7 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { ShareService } from 'src/app/services/database/share.service';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, NavController, AlertController } from '@ionic/angular/standalone';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
@@ -177,12 +177,13 @@ export class TrailPage extends AbstractPage {
             )
           }),
           switchMap(([t1, t2]) =>
-            t1 ?
-              this.injector.get(AuthService).auth$.pipe(
-                switchMap(auth => auth && t1.owner === auth.email ? this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, t1.owner) : of(undefined)),
-                map(col => ({t1, t2, col}))
-              )
-              : of({t1, t2, col: undefined})
+            this.injector.get(AuthService).auth$.pipe(
+              switchMap(auth => {
+                if (t1 && auth && t1.owner === auth.email)
+                  return this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, t1.owner).pipe(map(col => ({t1, t2, col, auth})));
+                return of({t1, t2, col: undefined, auth});
+              })
+            )
           )
         ),
         result => {
@@ -190,6 +191,38 @@ export class TrailPage extends AbstractPage {
           const t2 = result.t2;
           const collection = result.col;
           this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, collection ?? undefined);
+          if (t1 && !t2 && t1.owner === 'trailence' && result.auth?.admin) {
+            this.menu.push(new MenuItem());
+            this.menu.push(new MenuItem()
+              .setFixedLabel('[Admin] Delete')
+              .setTextColor('danger')
+              .setAction(() => {
+                this.injector.get(AlertController).create({
+                  header: 'Delete public trail',
+                  message: 'Confirm?',
+                  buttons: [
+                    {
+                      text: 'Yes',
+                      cssClass: 'danger',
+                      role: 'ok',
+                      handler: () => this.injector.get(AlertController).dismiss(null, 'ok')
+                    }, {
+                      text: 'Cancel',
+                      role: 'cancel',
+                    }
+                  ]
+                })
+                .then(alert => {
+                  alert.onDidDismiss()
+                  .then(result => {
+                    if (result.role === 'ok')
+                      this.injector.get(ModerationService).deletePublicTrail(t1.uuid).subscribe({complete: () => this.injector.get(NavController).back()});
+                  });
+                  alert.present();
+                });
+              })
+            );
+          }
           if (t1 && this.injector.get(ReplayService).canReplay) {
             this.menu.push(new MenuItem());
             this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));

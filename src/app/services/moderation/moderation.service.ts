@@ -1,8 +1,8 @@
-import { Injectable, Injector } from '@angular/core';
+import { Injectable, Injector, SecurityContext } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { BehaviorSubject, combineLatest, defaultIfEmpty, EMPTY, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
-import { TrailDto } from 'src/app/model/dto/trail';
+import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { environment } from 'src/environments/environment';
 import { TrackDatabase } from '../database/track-database';
 import { TrackDto } from 'src/app/model/dto/track';
@@ -22,9 +22,10 @@ import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { TypeUtils } from 'src/app/utils/type-utils';
-import { PointDtoMapper } from 'src/app/model/point';
+import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
 import { Feedback, FeedbackReply } from '../feedback/feedback.service';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -49,7 +50,7 @@ export class ModerationService {
   }
 
   public getTrailsToReview(): Observable<Observable<Trail | null>[]> {
-    return this.http.get<{trail: TrailDto, photos: PhotoDto[]}[]>(environment.apiBaseUrl + '/moderation/v1/trailsToReview').pipe(
+    return this.http.get<{trail: TrailDto, photos: PhotoDto[]}[]>(environment.apiBaseUrl + '/moderation/v1/trailsToReview?size=50').pipe(
       tap(response => this.trailAndPhotosCache.feedList(response.map(r => ({key: r.trail.uuid + ' ' + r.trail.owner, item: r})))),
       switchMap(dtos =>
         (dtos.length === 0 ? of([]) : combineLatest(dtos.map(dto => this.trailCache.getItem(dto.trail.uuid + ' ' + dto.trail.owner)))).pipe(
@@ -375,7 +376,7 @@ export class ModerationService {
       author: trail.owner,
       authorUuid: trail.publishedFromUuid,
       name: trail.name,
-      description: trail.description,
+      description: this.injector.get(DomSanitizer).sanitize(SecurityContext.HTML, trail.description) ?? '',
       location: trail.location,
       date: trail.date!,
       distance: Math.floor(track.metadata.distance),
@@ -400,6 +401,7 @@ export class ModerationService {
       lang,
       nameTranslations,
       descriptionTranslations,
+      sourceUrl: trail.sourceType === TrailSourceType.EXTERNAL ? trail.source : undefined,
     };
 
     this.http.post(environment.apiBaseUrl + '/moderation/v1/publish', dto).subscribe({
@@ -456,6 +458,10 @@ export class ModerationService {
       }),
     );
   }
+
+  public deletePublicTrail(uuid: string): Observable<any> {
+    return this.http.delete(environment.apiBaseUrl + '/moderation/v1/publicTrail/' + uuid)
+  }
 }
 
 interface CreatePublicTrailDto {
@@ -497,6 +503,8 @@ interface CreatePublicTrailDto {
   lang: string;
   nameTranslations: {[key: string]: string};
   descriptionTranslations: {[key: string]: string};
+
+  sourceUrl?: string;
 
 }
 
