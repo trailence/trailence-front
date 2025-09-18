@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { ImprovmentRecordingState, TrackEditionService } from './track-edition.service';
 import { Track } from 'src/app/model/track';
-import { copyPoint } from 'src/app/model/point';
+import { copyPoint } from 'src/app/model/point-descriptor';
 import { PreferencesService } from '../preferences/preferences.service';
 
 describe('Test improvments while recording', () => {

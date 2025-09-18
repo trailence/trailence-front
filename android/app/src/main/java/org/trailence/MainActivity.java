@@ -28,6 +28,7 @@ public class MainActivity extends BridgeActivity {
     //if (getApplicationInfo().targetSdkVersion >= 35 && Build.VERSION.SDK_INT < 35)
     //  WindowCompat.enableEdgeToEdge();
     WebView.setWebContentsDebuggingEnabled(true);
+    /*
     ViewCompat.setOnApplyWindowInsetsListener(this.getBridge().getWebView(), (v, windowInsets) -> {
       try {
         Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this, getApplicationContext());
@@ -41,7 +42,7 @@ public class MainActivity extends BridgeActivity {
         Logger.error("Error setting insets", e);
       }
       return WindowInsetsCompat.CONSUMED;
-    });
+    });*/
   }
 
   @Override

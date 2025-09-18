@@ -18,7 +18,7 @@ RUN npm install && \
     sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' -e 's/\${BUILD_TIME}/'"$BUILD_TIME"'/g' /build/site/sitemap.xml > /build/www/browser/sitemap.xml && \
     sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' /build/site/robots.txt > /build/www/browser/robots.txt
 
-FROM mobiledevops/android-sdk-image:34.0.1 AS build-apk
+FROM mingc/android-build-box:1.29.0 AS build-apk
 COPY --from=build-app /build /build-apk
 COPY ./docker/trailence.jks /build-apk/android
 COPY ./docker/keys.gradle /build-apk/android

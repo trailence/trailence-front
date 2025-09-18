@@ -16,6 +16,7 @@ const config: CapacitorConfig = {
   },
   android: {
     useLegacyBridge: true,
+    adjustMarginsForEdgeToEdge: 'force',
     includePlugins: [
       '@capacitor/app',
       '@capacitor/geolocation',
