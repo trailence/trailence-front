@@ -13,6 +13,8 @@ export class RemoveWayPointTool implements TrackEditTool {
   isAvailable(ctx: TrackEditToolContext): boolean {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return false;
+    const wayPoint = ctx.selection.selectedWayPoint$.value;
+    if (wayPoint) return true;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return false;
     if (point.segmentIndex === 0 && point.pointIndex === 0) return false;
@@ -23,10 +25,11 @@ export class RemoveWayPointTool implements TrackEditTool {
   execute(ctx: TrackEditToolContext) {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return;
+    const wayPoint = ctx.selection.selectedWayPoint$.value;
     const point = ctx.selection.getSinglePointOf(currentTrack);
-    if (!point) return;
+    if (!point && !wayPoint) return;
     ctx.modifyTrack(true, track => {
-      const w = TrackUtils.getWayPointAt(track, point.point.pos);
+      const w = wayPoint ? track.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(track, point!.point.pos);
       if (w) track.removeWayPoint(w);
       return of(true);
     }).subscribe(() => ctx.refreshTools());

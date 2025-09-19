@@ -14,6 +14,8 @@ export class EditWayPointTool implements TrackEditTool {
   isAvailable(ctx: TrackEditToolContext): boolean {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return false;
+    const wayPoint = ctx.selection.selectedWayPoint$.value;
+    if (wayPoint) return true;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return false;
     return TrackUtils.getWayPointAt(currentTrack, point.point.pos) !== undefined ||
@@ -25,11 +27,12 @@ export class EditWayPointTool implements TrackEditTool {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return;
     const point = ctx.selection.getSinglePointOf(currentTrack);
-    if (!point) return;
+    const wayPoint = ctx.selection.selectedWayPoint$.value;
+    if (!point && !wayPoint) return;
     ctx.modifyTrack(true, track => {
-      let w = TrackUtils.getWayPointAt(track, point.point.pos);
+      let w = wayPoint ? track.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(track, point!.point.pos);
       let isNew = false;
-      if (!w) {
+      if (!w && point) {
         if ((point.pointIndex === 0 && point.segmentIndex === 0) || (point.segmentIndex === track.segments.length - 1 && point.pointIndex === track.segments[point.segmentIndex].points.length - 1)) {
           // departure or arrival point
           w = new WayPoint(point.point, '', '');

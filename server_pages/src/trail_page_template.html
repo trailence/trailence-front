@@ -268,6 +268,12 @@ div.open-app-button a, div.open-app-button a:active {
   text-decoration: none;
   font-size: 18px;
 }
+div.source {
+  margin-top: 10px;
+}
+div.source a, div.source a:active {
+  color: var(--ion-color-tertiary);
+}
 </style>
 <script type="application/jd+json">{{json:jdJson}}{{/json}}</script>
 </head>
@@ -286,7 +292,7 @@ div.open-app-button a, div.open-app-button a:active {
           <div class="photos">
             <img src="/api/public/trails/v1/photo/{{uuid}}/{{photos.0.uuid}}"/>
           </div>
-          <div class="trail-description">{{description}}</div>
+          <div class="trail-description">{{text:description}}{{/text}}</div>
         </div>
       {{/if}}
       {{if:!photos.0}}
@@ -381,6 +387,12 @@ div.open-app-button a, div.open-app-button a:active {
           <div class="map-copyright">© <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a></div>
         </div>
       </div>
+      {{if:sourceUrl}}
+        <div class="source">
+          Source
+          <a href="{{sourceUrl}}">{{sourceUrl}}</a>
+        </div>
+      {{/if}}
     </div>
   </div>
 

@@ -216,8 +216,8 @@ export class TrackMetadataComponent extends AbstractComponent {
         TrackMetadataComponent.shown(meta.positiveElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
         TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
       }
-      if (duration !== undefined && breaksDuration !== undefined) duration -= breaksDuration;
-      if (duration === undefined) breaksDuration = undefined;
+      if (duration && breaksDuration) duration -= breaksDuration;
+      if (!duration) breaksDuration = undefined;
       if (config.showHighestAndLowestAltitude) {
         TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController, hideIfUndefined);
         TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController, hideIfUndefined);
@@ -228,11 +228,20 @@ export class TrackMetadataComponent extends AbstractComponent {
       if (!config.mergeDurationAndEstimated) {
         TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController, hideIfUndefined);
         TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController, hideIfUndefined);
-        TrackMetadataComponent.shown(meta.durationDiv, duration !== undefined || meta2.durationValue !== undefined);
-        TrackMetadataComponent.shown(meta.breaksDurationDiv, duration !== undefined || meta2.durationValue !== undefined);
+        const hasDuration = !!duration || !!meta2.durationValue;
+        TrackMetadataComponent.shown(meta.durationDiv, hasDuration);
+        TrackMetadataComponent.shown(meta.breaksDurationDiv, hasDuration);
       } else {
-        let d = i18n.durationToString(duration);
-        if (estimatedDuration !== undefined) d += ' <span style="white-space: nowrap">(≈ ' + i18n.durationToString(estimatedDuration) + ')</span>';
+        let d = duration ? i18n.durationToString(duration) : '';
+        if (estimatedDuration) {
+          const hasD = d.length > 0;
+          if (hasD) d += ' ';
+          d += '<span style="white-space: nowrap">';
+          if (hasD) d += '(';
+          d += '≈ ' + i18n.durationToString(estimatedDuration);
+          if (hasD) d += ')';
+          d += '</span>';
+        }
         TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController, hideIfUndefined, true);
       }
       if (force) {

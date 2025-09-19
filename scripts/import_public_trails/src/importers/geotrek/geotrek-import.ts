@@ -153,6 +153,7 @@ export class GeoTrekImport extends Importer {
       if (translations)
         trail.publicationData!['nameTranslations'] = translations;
     });
+    console.log('Trail name: ' + trail.name);
 
     // way points
     const wayPointModule = await import('front/model/way-point.js');
@@ -171,7 +172,7 @@ export class GeoTrekImport extends Importer {
 
     this.getTranslations(trek.departure, lang, trek.published, (departureDefault, departureTranslations) => {
       this.getTranslations(trek.description, lang, trek.published, (defaultValue, translations) => {
-        let texts = this.descriptionToWayPointsTexts(defaultValue);
+        let texts = this.descriptionToWayPointsTexts(defaultValue, wayPoints.length);
         const departure = texts.departure && texts.departure.trim().length > 0 ? new wayPointModule.WayPoint(track[0][0], departureDefault ?? trail.location!, texts.departure.trim()) : undefined;
         for (let i = 0; i < texts.wayPoints.length && i < wayPoints.length; ++i) wayPoints[i].description = texts.wayPoints[i];
         if (departure && departureTranslations) {
@@ -183,7 +184,7 @@ export class GeoTrekImport extends Importer {
         }
         if (translations) {
           for (const lang of Object.keys(translations)) {
-            texts = this.descriptionToWayPointsTexts(translations[lang]);
+            texts = this.descriptionToWayPointsTexts(translations[lang], wayPoints.length);
             if (departure && texts.departure && texts.departure.trim().length > 0) {
               let t = departure.descriptionTranslations ?? {};
               t[lang] = texts.departure.trim();
@@ -306,7 +307,7 @@ export class GeoTrekImport extends Importer {
     return current + '<br/>' + append;
   }
 
-  private descriptionToWayPointsTexts(descr: string): {departure: string, wayPoints: string[]} {
+  private descriptionToWayPointsTexts(descr: string, nbWayPoints: number): {departure: string, wayPoints: string[]} {
     let i = descr.indexOf('<ol>');
     const wayPoints: string[] = [];
     if (i >= 0) {
@@ -320,22 +321,112 @@ export class GeoTrekImport extends Importer {
           try {
             const li = window.document.createElement('DIV');
             li.innerHTML = ol.substring(i + 4, j);
-            wayPoints.push(li.textContent);
+            wayPoints.push(li.textContent.trim());
           } catch (e) {
             break;
           }
           ol = ol.substring(j + 5);
         }
       }
+    } else if (nbWayPoints > 0) {
+      let s = this.splitWayPoints(descr, nbWayPoints, '.');
+      if (!s) s = this.splitWayPoints(descr, nbWayPoints, ')');
+      if (!s) s = this.splitWayPoints(descr, nbWayPoints, '-');
+      if (s) {
+        for (let i = 0; i < s.wayPoints.length; ++i) {
+          const div = window.document.createElement('DIV');
+          div.innerHTML = s.wayPoints[i].trim();
+          wayPoints.push(div.textContent);
+        }
+        descr = s.departure;
+      }
     }
     let departure = '';
     try {
       const dep = window.document.createElement('DIV');
-      dep.innerHTML = descr;
+      dep.innerHTML = descr.trim();
       departure = dep.textContent;
     } catch (e) {
       // ignore
     }
+    return {departure, wayPoints};
+  }
+
+  private splitWayPoints(descr: string, nbWayPoints: number, patternStart: string): {departure: string, wayPoints: string[]} | undefined {
+    let startText = '1' + patternStart;
+    let start = descr.indexOf(startText);
+    if (start < 0) {
+      startText = '1 ' + patternStart;
+      start = descr.indexOf(startText);
+    }
+    if (start < 0) {
+      startText = '1' + String.fromCodePoint(160) + patternStart;
+      start = descr.indexOf(startText);
+    }
+    if (start < 0) {
+      startText = '<strong>1</strong>' + patternStart;
+      start = descr.indexOf(startText);
+    }
+    if (start < 0) {
+      startText = '<strong>1</strong> ' + patternStart;
+      start = descr.indexOf(startText);
+    }
+    if (start < 0) {
+      startText = '<strong>1</strong>' + String.fromCodePoint(160) + patternStart;
+      start = descr.indexOf(startText);
+    }
+    if (start < 0) {
+      startText = '<strong>1 </strong>' + patternStart;
+      start = descr.indexOf(startText);
+    }
+    if (start < 0) {
+      startText = '<strong>1' + String.fromCodePoint(160) + '</strong>' + patternStart;
+      start = descr.indexOf(startText);
+    }
+    //console.log('pattern', patternStart, start);
+    if (start < 0) return undefined;
+    const departure = descr.substring(0, start).trim();
+    descr = descr.substring(start + startText.length);
+    const wayPoints: string[] = [];
+    let index = 1;
+    while (index < nbWayPoints) {
+      let nextStartText = '' + (index + 1) + patternStart;
+      let nextStart = descr.indexOf(nextStartText);
+      if (nextStart < 0) {
+        nextStartText = '' + (index + 1) + ' ' + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      if (nextStart < 0) {
+        nextStartText = '' + (index + 1) + String.fromCodePoint(160) + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      if (nextStart < 0) {
+        nextStartText = '<strong>' + (index + 1) + '</strong>' + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      if (nextStart < 0) {
+        nextStartText = '<strong>' + (index + 1) + '</strong> ' + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      if (nextStart < 0) {
+        nextStartText = '<strong>' + (index + 1) + '</strong>' + String.fromCodePoint(160) + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      if (nextStart < 0) {
+        nextStartText = '<strong>' + (index + 1) + ' </strong>' + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      if (nextStart < 0) {
+        nextStartText = '<strong>' + (index + 1) + String.fromCodePoint(160) + '</strong>' + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      //console.log('next', patternStart, nextStart);
+      if (nextStart < 0) return undefined;
+      wayPoints.push(descr.substring(0, nextStart));
+      descr = descr.substring(nextStart + nextStartText.length);
+      index++;
+    }
+    wayPoints.push(descr);
     return {departure, wayPoints};
   }
 

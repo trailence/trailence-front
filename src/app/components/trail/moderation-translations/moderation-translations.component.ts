@@ -151,7 +151,7 @@ export class ModerationTranslationsComponent implements OnInit {
   }
 
   getAIPrompt() {
-    let prompt = 'Here are information about a hike/trail, that are in language "' + this.translations.detectedLanguage + '", that I need to translate in "' + this.displayTarget + '":\n\n';
+    let prompt = 'Here are information about a hike/trail, that are in language "' + this.translations.detectedLanguage + '", that I need to translate in "' + this.displayTarget + '". Please keep the formatting tags like <strong>, <p>, <br/>...\n\n';
     prompt += '<b>Name</b>:\n' + this.trail.name + '\n\n';
     prompt += '<b>Description</b>:\n' + this.trail.description + '\n\n';
     for (let i = 0; i < this.track.wayPoints.length; ++i) {

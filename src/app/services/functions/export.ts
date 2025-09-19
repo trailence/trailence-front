@@ -17,6 +17,7 @@ import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { FileService } from '../file/file.service';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { BinaryContent } from 'src/app/utils/binary-content';
+import { ModerationService } from '../moderation/moderation.service';
 
 export function exportTrails(injector: Injector, trails: Trail[]) {
   if (trails.length === 0) return;
@@ -65,9 +66,15 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
   const trailToData$ = (trail: Trail) => {
     const tracks: Observable<Track | null>[] = [];
     if (what === 'original' || what === 'both')
-      tracks.push(injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner));
+      tracks.push(
+        trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.originalTrackUuid) :
+        injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner)
+      );
     if (what === 'current' || (what === 'both' && trail.currentTrackUuid !== trail.originalTrackUuid))
-      tracks.push(injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner));
+      tracks.push(
+        trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid) :
+        injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner)
+      );
     return forkJoin(tracks.map(track$ => track$.pipe(firstTimeout(track => !!track, 15000, () => null as (Track | null))))).pipe(
       map(tracks => ({trail, tracks: filterItemsDefined(tracks)})),
       switchMap(t => {

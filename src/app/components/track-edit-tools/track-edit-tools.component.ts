@@ -5,7 +5,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from './tools/tool.interface';
 import { RemoveUnprobableElevation } from './tools/elevation/remove-unprobable-elevation';
 import { MenuItem } from 'src/app/components/menus/menu-item';
-import { BehaviorSubject, debounceTime, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, defaultIfEmpty, first, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -303,7 +303,10 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       }),
     };
     this.currentTrackChanged();
-    this.selectionSubscription = this.selection.selection$.pipe(debounceTime(1)).subscribe(sel => {
+    this.selectionSubscription = combineLatest([
+      this.selection.selection$,
+      this.selection.selectedWayPoint$,
+    ]).pipe(debounceTime(1)).subscribe(([sel,wp]) => {
       if (!sel || sel.length === 0) this.context.removeTool(SelectionComponent);
       else this.context.insertTool({component: SelectionComponent, onCreated: () => {}});
       this.refreshTools();

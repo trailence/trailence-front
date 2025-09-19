@@ -1,5 +1,5 @@
 {
   "url": "http://localhost:8100",
   "publish": false,
-  "photos_in_my_trails": false
+  "photos_in_my_trails": true
 }

@@ -17,6 +17,7 @@ import { TrailCollectionService } from '../database/trail-collection.service';
 import { DependenciesService } from '../database/dependencies.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { TrailDto } from 'src/app/model/dto/trail';
+import { ModerationService } from '../moderation/moderation.service';
 
 export function copyTrailsTo( // NOSONAR
   injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string,
@@ -33,13 +34,17 @@ export function copyTrailsTo( // NOSONAR
   const originalPhotos$: Observable<{originalTrail: Trail, photos: Photo[]}>[] = [];
   for (const trail of trails) {
     progress.addWorkToDo(1);
-    const originalTrack$ = trackService.getFullTrackReady$(trail.originalTrackUuid, trail.owner);
+    const originalTrack$ =
+      trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.originalTrackUuid) :
+      trackService.getFullTrackReady$(trail.originalTrackUuid, trail.owner);
     progress.addWorkToDo(1);
     let currentTrack$;
     if (trail.originalTrackUuid === trail.currentTrackUuid) {
       currentTrack$ = of(null);
     } else {
-      currentTrack$ = trackService.getFullTrackReady$(trail.currentTrackUuid, trail.owner);
+      currentTrack$ =
+        trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid) :
+        trackService.getFullTrackReady$(trail.currentTrackUuid, trail.owner);
       progress.addWorkToDo(1);
     }
     trailsCopy$.push(zip([originalTrack$, currentTrack$]).pipe(

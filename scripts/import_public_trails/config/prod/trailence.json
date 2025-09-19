@@ -1,3 +1,5 @@
 {
-  "url": "https://trailence.org"
+  "url": "https://trailence.org",
+  "publish": true,
+  "photos_in_my_trails": false
 }

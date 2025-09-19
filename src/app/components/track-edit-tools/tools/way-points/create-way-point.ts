@@ -17,6 +17,7 @@ export class CreateWayPointTool implements TrackEditTool {
     if (!currentTrack) return false;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return false;
+    if (ctx.selection.selectedWayPoint$.value) return false;
     if (point.segmentIndex === 0 && point.pointIndex === 0) return false;
     if (point.segmentIndex === currentTrack.segments.length -1 && point.pointIndex === currentTrack.segments[point.segmentIndex].points.length - 1) return false;
     return TrackUtils.getWayPointAt(ctx.currentTrack$.value, point.point.pos) === undefined;

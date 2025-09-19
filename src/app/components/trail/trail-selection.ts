@@ -6,6 +6,7 @@ import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { GraphPointReference, GraphRange } from '../trail-graph/graph-events';
 import { MapAnchor } from '../map/markers/map-anchor';
+import { WayPoint } from 'src/app/model/way-point';
 
 export class TrailSelection {
 
@@ -13,6 +14,7 @@ export class TrailSelection {
   public readonly selectionTrack$ = new BehaviorSubject<Track[]>([]);
   public readonly zoom$ = new BehaviorSubject<boolean>(false);
   public extendingSelection = false;
+  public readonly selectedWayPoint$ = new BehaviorSubject<WayPoint | undefined>(undefined);
 
   constructor(
     public readonly map$: BehaviorSubject<MapComponent | undefined>,
@@ -54,6 +56,7 @@ export class TrailSelection {
   }
 
   public selectPoint(points: PointReference[]): void {
+    if (this.selectedWayPoint$.value) this.selectedWayPoint$.next(undefined);
     if (points.length === 0) {
       this.cancelSelection();
       return;
@@ -83,6 +86,7 @@ export class TrailSelection {
   }
 
   public selectRange(ranges: RangeReference[]): void {
+    if (this.selectedWayPoint$.value) this.selectedWayPoint$.next(undefined);
     if (ranges.length === 0) {
       this.cancelSelection();
       return;

@@ -1318,6 +1318,10 @@ export class TrailComponent extends AbstractComponent {
           this.selection.selectPoint([new PointReference(this.wayPointsTrack, wp.nearestSegmentIndex, wp.nearestPointIndex)]);
         }
       }
+      if (this.wayPointsTrack !== undefined && this.wayPointsTrack.wayPoints.indexOf(wp.wayPoint) >= 0)
+        this.selection.selectedWayPoint$.next(wp.wayPoint);
+      else
+        this.selection.selectedWayPoint$.next(undefined);
     }
 
     if (this._highlightedWayPoint === wp) {
@@ -1339,6 +1343,8 @@ export class TrailComponent extends AbstractComponent {
     if (this._highlightedWayPoint === wp && (force || !this._highlightedWayPointFromClick)) {
       this._highlightedWayPoint = undefined;
       this._highlightedWayPointFromClick = false;
+      if (this.selection.selectedWayPoint$.value === wp.wayPoint)
+        this.selection.selectedWayPoint$.next(undefined);
       const mapTrack = this.mapTracks$.value.find(mt => mt.track === this.wayPointsTrack);
       mapTrack?.unhighlightWayPoint(wp);
       this.changesDetector.detectChanges();

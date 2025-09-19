@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import { Color } from 'src/app/utils/color';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { pointsAreEqual } from 'src/app/model/point-descriptor';
 
 export const anchorBorderColor = '#d00000';
 export const anchorFillColor = '#a00000';
@@ -116,22 +117,30 @@ export class MapTrackWayPoints {
     this._anchors = [];
     this._breaks = [];
     for (const wp of list) {
-      this.createFromWayPoint(wp);
+      this.createFromWayPoint(wp, list);
     }
     if (this._map && this._showDA) this.addDAToMap();
     if (this._map && this._showBreaks) this.addBreaksToMap();
     if (this._map && this._showWP) this.addWPToMap();
   }
-  private createFromWayPoint(wp: ComputedWayPoint): void {
+  private createFromWayPoint(wp: ComputedWayPoint, list: ComputedWayPoint[]): void {
     if (wp.isDeparture) {
-      if (wp.isArrival && !this._isRecording) {
+      let isArrival = wp.isArrival;
+      if (!isArrival) {
+        const arrival = list.find(e => e.isArrival)?.wayPoint.point;
+        if (arrival && L.latLng(arrival.pos).distanceTo(wp.wayPoint.point.pos) < 5) isArrival = true;
+      }
+      if (isArrival && !this._isRecording) {
         this._departureAndArrival = this.createDepartureAndArrival(wp.wayPoint.point.pos);
       } else {
         this._departure = this.createDeparture(wp.wayPoint.point.pos);
       }
     } else if (wp.isArrival) {
-      if (!this._isRecording)
-        this._arrival = this.createArrival(wp.wayPoint.point.pos);
+      if (!this._isRecording) {
+        const departure = list.find(e => e.isDeparture)?.wayPoint.point;
+        if (!departure || L.latLng(departure.pos).distanceTo(wp.wayPoint.point.pos) >= 5)
+          this._arrival = this.createArrival(wp.wayPoint.point.pos);
+      }
     } else if (wp.breakPoint) {
       this._breaks!.push(this.createBreakPoint(wp));
     } else {

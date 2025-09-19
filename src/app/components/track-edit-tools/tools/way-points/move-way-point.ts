@@ -15,13 +15,11 @@ export class MoveWayPointTool implements TrackEditTool {
 
   isAvailable(ctx: TrackEditToolContext): boolean {
     const currentTrack = ctx.currentTrack$.value;
-    console.log('current', !!currentTrack)
     if (!currentTrack) return false;
+    const wayPoint = ctx.selection.selectedWayPoint$.value;
+    if (wayPoint) return true;
     const point = ctx.selection.getSinglePointOf(currentTrack);
-    console.log('point', point, point?.point.pos)
     if (!point) return false;
-    console.log('way point', TrackUtils.getWayPointAt(currentTrack, point.point.pos))
-    console.log('among', currentTrack.wayPoints)
     return TrackUtils.getWayPointAt(currentTrack, point.point.pos) !== undefined ||
       (point.segmentIndex === 0 && point.pointIndex === 0) ||
       (point.segmentIndex === currentTrack.segments.length - 1 && point.pointIndex === currentTrack.segments[point.segmentIndex].points.length - 1);
@@ -31,7 +29,8 @@ export class MoveWayPointTool implements TrackEditTool {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return;
     const point = ctx.selection.getSinglePointOf(currentTrack);
-    if (!point) return;
+    const wayPoint = ctx.selection.selectedWayPoint$.value;
+    if (!point && !wayPoint) return;
     ctx.selection.cancelSelection();
     let selectionSubscription: Subscription | undefined;
     const stop = (iCtx: InteractiveToolContext) => {
@@ -51,7 +50,7 @@ export class MoveWayPointTool implements TrackEditTool {
         selectionSubscription = ctx.selection.selection$.pipe(filter(s => s?.length === 1 && s[0] instanceof PointReference), take(1)).subscribe(s => {
           const newPos = s![0] as PointReference;
           iCtx.startEditTrack().then(editionTrack => {
-            const wp = TrackUtils.getWayPointAt(editionTrack, point.point.pos);
+            const wp = wayPoint ? editionTrack.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(editionTrack, point!.point.pos);
             if (wp) {
               wp.point.pos = {...newPos.point.pos};
               wp.point.ele = newPos.point.ele;
