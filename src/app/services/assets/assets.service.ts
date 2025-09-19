@@ -6,7 +6,7 @@ import { Console } from 'src/app/utils/console';
 import { ICONS } from './icons';
 import { environment } from 'src/environments/environment';
 
-const ICONS_VERSION = '1';
+const ICONS_VERSION = '2';
 const iconsPath = '/icons.' + ICONS_VERSION + '.svg';
 
 @Injectable({
