@@ -75,7 +75,7 @@
     "@angular/build": "^20.1.6",
     "@angular/cli": "^20.1.6",
     "@angular/compiler-cli": "^20.1.7",
-    "@angular/language-service": "^20.1.7",
+    "@angular/language-service": "^20.3.1",
     "@capacitor/cli": "^7.4.3",
     "@ionic/angular-toolkit": "^12.3.0",
     "@ionic/cli": "^7.2.1",
