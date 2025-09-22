@@ -115,7 +115,26 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
     }
     if (text.length > 350) {
       this.hasMore = true;
-      if (!this.showFull) text = text.substring(0, 350) + ' [...]';
+      if (!this.showFull) {
+        let pos = 350;
+        do {
+          const previousOpen = text.lastIndexOf('<', 350);
+          if (previousOpen >= 0) {
+            const nextClose = text.indexOf('>', previousOpen);
+            if (nextClose >= pos) {
+              pos = nextClose + 1;
+              continue;
+            }
+          }
+          const isLetter = text.charAt(pos).match(/[a-z]/i);
+          if (isLetter && !text.charAt(pos - 1).match(/[a-z]/i)) {
+            break;
+          }
+          if (isLetter) while (text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < 380);
+          while (!text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < 380);
+        } while (pos < text.length && pos < 380);
+        text = text.substring(0, pos) + ' [...]';
+      }
     } else {
       this.hasMore = false;
     }

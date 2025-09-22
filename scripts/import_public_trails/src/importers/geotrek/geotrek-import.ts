@@ -332,6 +332,7 @@ export class GeoTrekImport extends Importer {
       let s = this.splitWayPoints(descr, nbWayPoints, '.');
       if (!s) s = this.splitWayPoints(descr, nbWayPoints, ')');
       if (!s) s = this.splitWayPoints(descr, nbWayPoints, '-');
+      if (!s) s = this.splitWayPoints(descr, nbWayPoints, String.fromCodePoint(8211));
       if (s) {
         for (let i = 0; i < s.wayPoints.length; ++i) {
           const div = window.document.createElement('DIV');
