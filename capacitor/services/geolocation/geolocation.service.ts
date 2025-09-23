@@ -1,13 +1,62 @@
 import { Injectable } from '@angular/core';
-import { Geolocation, PermissionStatus, Position } from '@capacitor/geolocation';
 import { PointDto } from 'src/app/model/dto/point';
 import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from 'src/app/services/geolocation/geolocation.interface';
-import { BackgroundGeolocationPlugin, Location } from "@capacitor-community/background-geolocation";
 import { registerPlugin } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 import { Console } from 'src/app/utils/console';
 import { AlertController } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+
+interface WatcherOptions {
+    backgroundMessage?: string;
+    backgroundTitle?: string;
+    requestPermissions?: boolean;
+    stale?: boolean;
+    distanceFilter?: number;
+}
+
+interface Location {
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    altitude: number | null;
+    altitudeAccuracy: number | null;
+    simulated: boolean;
+    bearing: number | null;
+    speed: number | null;
+    time: number | null;
+}
+
+interface CallbackError extends Error {
+    code?: string;
+}
+
+interface PermissionStatus {
+    location: PermissionState;
+    coarseLocation: PermissionState;
+}
+type GeolocationPermissionType = 'location' | 'coarseLocation';
+interface GeolocationPluginPermissions {
+    permissions: GeolocationPermissionType[];
+}
+
+interface BackgroundGeolocationPlugin {
+    addWatcher(
+        options: WatcherOptions,
+        callback: (
+            position?: Location,
+            error?: CallbackError
+        ) => void
+    ): Promise<string>;
+    removeWatcher(options: {
+        id: string
+    }): Promise<void>;
+    openSettings(): Promise<void>;
+    checkPermissions(): Promise<PermissionStatus>;
+    requestPermissions(permissions?: GeolocationPluginPermissions): Promise<PermissionStatus>;
+    getCurrentPosition(options: PositionOptions): Promise<Location>;
+}
+
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("BackgroundGeolocation");
 
@@ -37,7 +86,7 @@ export class GeolocationService implements IGeolocationService {
   public get waitingForGps() { return this._waitingForGps$.value; }
 
   public getState(): Promise<GeolocationState> {
-    return Geolocation.checkPermissions()
+    return BackgroundGeolocation.checkPermissions()
     .then(result => this.handlePermissions(result))
     .catch(error => {
       Console.error('checkPermissions error', error);
@@ -67,7 +116,7 @@ export class GeolocationService implements IGeolocationService {
         }).then(a => {
           a.onDidDismiss().then(result => {
             if (result.role === 'success') {
-              Geolocation.requestPermissions().then(r => this.handlePermissions(r).then(resolve).catch(reject)).catch(reject);
+              BackgroundGeolocation.requestPermissions().then(r => this.handlePermissions(r).then(resolve).catch(reject)).catch(reject);
             } else {
               reject();
             }
@@ -83,7 +132,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   public getCurrentPosition(): Promise<PointDto> {
-    return Geolocation.getCurrentPosition(this.options).then(p => this.positionToPointDto(p))
+    return BackgroundGeolocation.getCurrentPosition(this.options).then(p => this.backgroundLocationToPointDto(p))
   }
 
   public watchPosition(
@@ -131,19 +180,6 @@ export class GeolocationService implements IGeolocationService {
         this._waitingForGps$.next(false);
       }
     }
-  }
-
-  private positionToPointDto(position: Position): PointDto {
-    return {
-      l: position.coords.latitude,
-      n: position.coords.longitude,
-      e: position.coords.altitude === null ? undefined : position.coords.altitude,
-      t: position.timestamp,
-      pa: position.coords.accuracy,
-      ea: position.coords.altitudeAccuracy == null ? undefined : position.coords.altitudeAccuracy,
-      h: position.coords.heading == null ? undefined : position.coords.heading,
-      s: position.coords.speed == null ? undefined : position.coords.speed,
-    };
   }
 
   private backgroundLocationToPointDto(position: Location): PointDto {

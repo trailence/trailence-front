@@ -19,7 +19,6 @@ const config: CapacitorConfig = {
     adjustMarginsForEdgeToEdge: 'force',
     includePlugins: [
       '@capacitor/app',
-      '@capacitor/geolocation',
       '@capacitor/haptics',
       '@capacitor/keyboard',
       '@capacitor/network',

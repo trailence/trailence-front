@@ -14,5 +14,4 @@ ext {
     androidxEspressoCoreVersion = '3.6.1'
     cordovaAndroidVersion = '10.1.1'
     androidxLocalbroadcastmanagerVersion = '1.0.0'
-    playServicesLocationVersion = '21.0.1'
 }
