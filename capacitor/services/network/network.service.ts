@@ -19,6 +19,7 @@ export class NetworkService implements INetworkService {
 
   private readonly _server$ = new BehaviorSubject<boolean>(false);
   private readonly _internet$ = new BehaviorSubject<boolean>(false);
+  private _cache = new Map<string, {connected: boolean, timestamp: number}>();
 
   constructor(
     private readonly http: HttpClientService,
@@ -31,6 +32,10 @@ export class NetworkService implements INetworkService {
       this.updateStatus(status);
     });
     Network.addListener('networkStatusChange', status => {
+      const previous = this._cache.get(status.connectionType);
+      if (status.connectionType !== 'none' && previous && previous.connected === status.connected && Date.now() - previous.timestamp < 60000)
+        return;
+      this._cache.set(status.connectionType, {connected: status.connected, timestamp: Date.now()});
       Console.info('network status changed', status);
       this.updateStatus(status);
     });

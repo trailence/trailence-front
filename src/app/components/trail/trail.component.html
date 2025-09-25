@@ -261,10 +261,7 @@
             } @else {
               @if (!editingDescription) {
                 <div class="edit-description" (click)="startEditDescription()">
-                  <span *ngIf="trail1.description.trim().length === 0" class="no-description">
-                    {{ i18n.texts.pages.trail.sections.description.placeholder }}
-                  </span>
-                  <app-text *ngIf="trail1.description.trim().length > 0" [text]="trail1.description"></app-text>
+                  <app-text [text]="trail1.description" [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"></app-text>
                 </div>
               } @else {
                 <ion-textarea class="description-text"

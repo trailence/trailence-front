@@ -445,7 +445,7 @@ export class TrailsPage extends AbstractPage {
   }
 
   doSearch(plugins: string[]): void {
-    if (this.searchMode === undefined) return;
+    if (this.searchMode === undefined || this.searching) return;
     this.ngZone.run(() => {
       this.searching = true;
       this.searchMessage = undefined;
@@ -547,7 +547,11 @@ export class TrailsPage extends AbstractPage {
               if (called) return;
               called = true;
               map.removeEventListener('zoomend', listener);
-              setTimeout(() => this.doSearch(this.selectedSearchPlugins), 100);
+              setTimeout(() => {
+                const zoom = this.trailsAndMap?.map?.getState()?.zoom;
+                if (!this.searching && zoom && this.lastSearchZoom !== zoom)
+                  this.doSearch(this.selectedSearchPlugins);
+              }, 100);
             };
             map.addEventListener('zoomend', listener);
             map.fitBounds(bounds);

@@ -8,7 +8,11 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 @Component({
   selector: 'app-text',
   template: `<div>
-    <span [innerHTML]="html"></span>
+    @if (!placeholder || html.length > 0) {
+      <span [innerHTML]="html"></span>
+    } @else {
+      <span class="placeholder">{{placeholder}}</span>
+    }
     @if (hasMore) {
       <div class="show-more">
         <a href='#' (click)="toggleMore(); $event.preventDefault(); $event.stopPropagation();">{{ (showFull ? 'show_less' : 'show_more') | i18nString }}</a>
@@ -44,6 +48,9 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
       color: var(--ion-color-medium);
     }
   }
+  span.placeholder {
+    font-style: italic;
+  }
   `,
   imports: [I18nPipe],
 })
@@ -52,6 +59,7 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
   @Input() text?: string;
   @Input() lang?: string;
   @Input() translations?: {[key: string]: string};
+  @Input() placeholder?: string;
 
   html = '';
   translatedFrom?: string;
