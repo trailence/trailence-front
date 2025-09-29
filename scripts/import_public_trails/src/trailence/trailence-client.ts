@@ -265,6 +265,25 @@ export class TrailenceClient {
 
   private tracks?: TrackDto[];
 
+  public async getTrack(uuid: string): Promise<TrackDto> {
+    const known = this.tracks?.find(t => t.uuid === uuid);
+    if (known) return known;
+    const response = await fetch(this.url + '/api/track/v1/' + this.remoteUsername + '/' + uuid, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + await this.userToken()
+      }
+    });
+    const json: any = await response.json();
+    if (!response.ok) {
+      console.error('Get track error: ', json);
+      throw new Error();
+    }
+    const result = json as TrackDto;
+    if (this.tracks) this.tracks.push(result);
+    return result;
+  }
+
   public async createTrack(track: TrackDto): Promise<TrackDto> {
     console.log('Creating track on Trailence');
     const response = await fetch(this.url + '/api/track/v1', {

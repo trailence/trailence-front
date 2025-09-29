@@ -8,6 +8,7 @@ import { Photo } from 'front/model/photo';
 import { preferences } from 'src/trailence/preferences';
 import { WayPoint } from 'front/model/way-point.js';
 import { fixWayPointsPosition } from 'src/utils/way-points';
+import { distance } from 'src/utils/crs';
 
 export class GeoTrekImport extends Importer {
 
@@ -43,6 +44,8 @@ export class GeoTrekImport extends Importer {
     console.log('Fetching treks from ' + this.baseUrl);
     let page = 1;
     let found = 0;
+    let processed = 0;
+    let nbTotal = 0;
     const nbBefore = knownTrails.length;
     let upToDate = 0;
     let updated = 0;
@@ -52,8 +55,10 @@ export class GeoTrekImport extends Importer {
     do {
       const response = await this.getTreks(page);
       found += response.results!.length;
+      if (response.count) nbTotal = response.count;
       console.log('Treks found on page ' + page + ': ' + response.results!.length + ' (' + found + '/' + response.count + ')');
       for (const trek of response.results!) {
+        processed++;
         if (!this.isValid(trek)) {
           invalid++;
           continue;
@@ -67,14 +72,18 @@ export class GeoTrekImport extends Importer {
           }
           const existing = knownTrails[knownIndex];
           knownTrails.splice(knownIndex, 1);
-          // TODO update if needed
-          upToDate++;
+          if (await this.updateTrail(trek, existing)) {
+            updated++;
+            nbPending++;
+          } else {
+            upToDate++;
+          }
         } else {
           await this.createTrail(trek);
           created++;
           nbPending++;
-          if (nbPending >= this.maxPending) break;
         }
+        if (nbPending >= this.maxPending) break;
       }
       if (response.next === null) break;
       page++;
@@ -86,6 +95,7 @@ export class GeoTrekImport extends Importer {
       // TODO remove remaining trails not found
     }
     console.log('Total: before = ' + nbBefore + ', found = ' + found + ', up to date = ' + upToDate + ', updated = ' + updated + ', new = ' + created + ', removed = ' + removed + ', skipped because pending = ' + skippedPending + ', invalid = ' + invalid);
+    console.log('Processed: ' + processed + '/' + nbTotal);
   }
 
   private async getTreks(page: number): Promise<GeoTrekResponse> {
@@ -99,16 +109,87 @@ export class GeoTrekImport extends Importer {
   }
 
   private isValid(trek: GeoTrekDto): boolean {
-    if (!trek.published) return false;
-    if (!trek.published['fr'] && !trek.published['en']) return false;
-    if (!trek.geometry) return false;
-    if (trek.geometry.type !== 'LineString') return false;
+    if (!trek.published) {
+      console.log('Trek id ' + trek.id + ' is not valid because there is no published information');
+      return false;
+    }
+    if (!trek.published['fr'] && !trek.published['en']) {
+      console.log('Trek id ' + trek.id + ' is not valid because not published in fr or en');
+      return false;
+    }
+    if (!trek.geometry) {
+      console.log('Trek id ' + trek.id + ' is not valid because there is no geometry');
+      return false;
+    }
+    if (trek.geometry.type !== 'LineString') {
+      console.log('Trek id ' + trek.id + ' is not valid because the geometry type is unknown');
+      return false;
+    }
     return true;
   }
 
   private async createTrail(trek: GeoTrekDto) {
-    console.log('New trail: ' + trek.uuid);
+    console.log('New trail: ' + trek.uuid + ' (' + trek.id + ')');
+    const dtos = await this.toTrailenceDtos(trek);
+    console.log('Trail name: ' + dtos.trail.name);
+    const photos = await this.downloadPhotos(dtos.trail.owner, dtos.trail.uuid, dtos.photos);
 
+    await this.publishTrail(dtos.trail, dtos.track, dtos.wayPoints, photos);
+  }
+
+  private async updateTrail(trek: GeoTrekDto, existing: TrailDto): Promise<boolean> {
+    const updatedDate = new Date(trek.update_datetime).getTime();
+    if (updatedDate <= existing.date!) {
+      //console.log('Trail is up to date: ' + trek.uuid + ' (' + trek.id + '): ' + existing.name);
+      return false;
+    }
+    console.log('Trail has been updated: ' + trek.uuid + ' (' + trek.id + '): ' + existing.name);
+    const dtos = await this.toTrailenceDtos(trek);
+    const existingTrackDto = await this.trailenceClient.getTrack(existing.currentTrackUuid ?? existing.originalTrackUuid!);
+    const track = await this.readTrackDto(existingTrackDto);
+    const trailDtoUpdates = this.checkTrailUpdates(existing, dtos.trail);
+    let pointsUpdated = track.segments.length !== dtos.track.length;
+    for (let si = 0; !pointsUpdated && si < track.segments.length; ++si) {
+      const segment = track.segments[si];
+      const newSegment = dtos.track[si];
+      pointsUpdated = segment.length !== newSegment.length;
+      for (let pi = 0; !pointsUpdated && pi < segment.length; ++pi) {
+        const point = segment[pi];
+        const newPoint = newSegment[pi];
+        pointsUpdated = distance(point.pos, newPoint.pos) > 1 ||
+          (!point.ele && !!newPoint.ele) ||
+          (!!point.ele && !newPoint.ele) ||
+          (!!point.ele && !!newPoint.ele && Math.abs(point.ele - newPoint.ele) > 1);
+      }
+    }
+    let wayPointsUpdated = track.wayPoints.length !== dtos.wayPoints.length;
+    for (let i = 0; !wayPointsUpdated && i < track.wayPoints.length; ++i) {
+      const wp = track.wayPoints[i];
+      const nwp = dtos.wayPoints[i];
+      // TODO
+    }
+
+    // TODO check track, photos, way points...
+
+    if (trailDtoUpdates.length === 0 && !pointsUpdated && !wayPointsUpdated) {
+      console.log('No relevant update found: only update the trail date');
+      // TODO update the trail date
+      return true;
+    }
+    if (trailDtoUpdates.length > 0) {
+      console.log('Updates found on trail:');
+      for (const update of trailDtoUpdates) {
+        console.log(' - ' + update.description + ': ' + update.previousValue + ' => ' + update.newValue);
+      }
+    }
+    if (pointsUpdated) console.log('Track points have been updated');
+    if (wayPointsUpdated) console.log('Way points have been updated');
+
+    // TODO update
+    return true;
+  }
+
+  private async toTrailenceDtos(trek: GeoTrekDto): Promise<{trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: PhotoInfo[]}> {
     const track: PointDescriptor[][] = [[]];
     for (const coord of trek.geometry.coordinates) {
       track[0].push({
@@ -153,7 +234,6 @@ export class GeoTrekImport extends Importer {
       if (translations)
         trail.publicationData!['nameTranslations'] = translations;
     });
-    console.log('Trail name: ' + trail.name);
 
     // way points
     const wayPointModule = await import('front/model/way-point.js');
@@ -258,26 +338,18 @@ export class GeoTrekImport extends Importer {
       }
     });
 
-    const photos: {blob: Blob, photo: Photo}[] = [];
+    const photos: PhotoInfo[] = [];
     for (const att of trek.attachments) {
       if (att.license !== null) continue;
       if (att.type !== 'image') continue;
       if (!att.url) continue;
-      try {
-        console.log('Downloading image ' + att.url);
-        const file = await (await fetch(att.url)).arrayBuffer();
-        let photoDescription = '';
-        if (att.legend && att.legend.length > 0) photoDescription = att.legend;
-        else if (att.title && att.title.length > 0) photoDescription = att.title;
-        const module = await import('front/services/database/photo-import.js');
-        photos.push(await module.importPhoto(trail.owner, trail.uuid, photoDescription, photos.length + 1, file, preferences, undefined, undefined, undefined, undefined, att.uuid));
-      } catch (e) {
-        console.warn('Cannot get trek photo', e);
-        continue;
-      }
+      let photoDescription = '';
+      if (att.legend && att.legend.length > 0) photoDescription = att.legend;
+      else if (att.title && att.title.length > 0) photoDescription = att.title;
+      photos.push({uuid: att.uuid, url: att.url, description: photoDescription});
     }
 
-    await this.publishTrail(trail, track, wayPoints, photos);
+    return {trail, track, wayPoints, photos};
   }
 
   private getSingleTranslation(translations: GeoTrekTranslations, defaultLang: string): string {
@@ -464,4 +536,26 @@ export class GeoTrekImport extends Importer {
     }
   }
 
+  private async downloadPhotos(owner: string, trailUuid: string, infos: PhotoInfo[]): Promise<{blob: Blob, photo: Photo}[]> {
+    const photos: {blob: Blob, photo: Photo}[] = [];
+    for (const info of infos) {
+      try {
+        console.log('Downloading photo ' + info.url);
+        const file = await (await fetch(info.url)).arrayBuffer();
+        const module = await import('front/services/database/photo-import.js');
+        photos.push(await module.importPhoto(owner, trailUuid, info.description, photos.length + 1, file, preferences, undefined, undefined, undefined, undefined, info.uuid));
+      } catch (e) {
+        console.warn('Cannot get trek photo', e);
+        continue;
+      }
+    }
+    return photos;
+  }
+
+}
+
+interface PhotoInfo {
+  uuid: string;
+  url: string;
+  description: string;
 }

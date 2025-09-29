@@ -637,8 +637,14 @@ export class TrailComponent extends AbstractComponent {
           ));
         } else if (trail.followedUrl) {
           const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail.followedUrl);
-          if (pluginName)
-            src.push(of(new TranslatedString('pages.trail.source.following_found_on', [trail.followedUrl, pluginName])));
+          if (pluginName) {
+            const plugin = this.injector.get(FetchSourceService).getPluginByName(pluginName)!;
+            if (trail.followedOwner === plugin.owner && !!trail.followedUuid && plugin.allowed) {
+              src.push(of(new TranslatedString('pages.trail.source.following_found_on', ['/trail/' + trail.followedOwner + '/' + trail.followedUuid, pluginName])));
+            } else {
+              src.push(of(new TranslatedString('pages.trail.source.following_found_on', [trail.followedUrl, pluginName])));
+            }
+          }
         }
         break;
       case TrailSourceType.TRAILENCE_PLANNER:

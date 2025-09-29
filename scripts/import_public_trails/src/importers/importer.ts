@@ -2,7 +2,7 @@ import { PointDescriptor } from 'front/model/point-descriptor';
 import { TrailenceClient } from './../trailence/trailence-client';
 import { TrailDto } from 'front/model/dto/trail';
 import { TrackDto } from 'front/model/dto/track';
-import { WayPoint } from 'front/model/way-point';
+import { WayPoint } from 'front/model/way-point.js';
 import { SegmentDto } from 'front/model/dto/segment';
 import { EMPTY } from 'rxjs';
 import { preferences } from 'src/trailence/preferences';
@@ -69,6 +69,29 @@ export abstract class Importer {
     return dto;
   }
 
+  protected async readTrackDto(track: TrackDto): Promise<{segments: PointDescriptor[][], wayPoints: WayPoint[]}> {
+    const mapperModule = await import('front/model/point-dto-mapper');
+    const segments: PointDescriptor[][] = [];
+    for (const segment of track.s!) {
+      segments.push(mapperModule.PointDtoMapper.toPoints(segment.p!));
+    }
+    const wayPointModule = await import('front/model/way-point');
+    const wayPoints: WayPoint[] = [];
+    if (track.wp) {
+      for (const wp of track.wp) {
+        wayPoints.push(new wayPointModule.WayPoint({
+          pos: {
+            lat: mapperModule.PointDtoMapper.readCoordValue(wp.l),
+            lng: mapperModule.PointDtoMapper.readCoordValue(wp.n),
+          },
+          ele: wp.e !== undefined ? mapperModule.PointDtoMapper.readElevationValue(wp.e) : undefined,
+          time: wp.t,
+        }, wp.na ?? '', wp.de ?? '', wp.nt, wp.dt));
+      }
+    }
+    return {segments, wayPoints};
+  }
+
   protected async publishTrail(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[]) {
     const myTrailsPhoto = this.config.getRequiredBoolean('trailence', 'photos_in_my_trails', false) ? photos :
       photos.map(p => ({photo: p.photo, blob: new Blob([new ArrayBuffer(1)])}));
@@ -87,6 +110,41 @@ export abstract class Importer {
     if (this.config.getRequiredBoolean('trailence', 'publish', true))
       await this.createTrailOnTrailence(trail, track, wayPoints, photos);
   }
+
+  protected checkTrailUpdates(existing: TrailDto, updated: TrailDto): DtoUpdate<TrailDto>[] {
+    const updates = this.checkDtoUpdates<TrailDto>(existing, updated, [
+      'name',
+      'description',
+      'location',
+    ]);
+    return updates;
+  }
+
+  protected checkDtoUpdates<T>(existing: T, updated: T, fields: string[]): DtoUpdate<T>[] {
+    const updates: DtoUpdate<T>[] = [];
+    for (const field of fields) {
+      const update = this.checkFieldUpdate(field, existing, updated);
+      if (update) updates.push(update);
+    }
+    return updates;
+  }
+
+  protected checkFieldUpdate(field: string, existing: any, updated: any): DtoUpdate<any> | undefined {
+    if (existing[field] === updated[field]) return undefined;
+    return {
+      description: field,
+      previousValue: existing[field],
+      newValue: updated[field],
+      update: (dto: any) => { dto[field] = updated[field]; }
+    };
+  }
+}
+
+export interface DtoUpdate<T> {
+  description: string;
+  previousValue: string;
+  newValue: string;
+  update: (dto: T) => void;
 }
 
 export class FakePreferencesService {
