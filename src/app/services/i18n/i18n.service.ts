@@ -472,7 +472,7 @@ export class I18nService {
   }
 
   public translateValue$(value: any): Observable<string> {
-    if (typeof value === 'object') {
+    if (value && typeof value === 'object') {
       if (typeof value['translate$'] === 'function') return value.translate$(this);
       if (typeof value['translate'] === 'function') return of(value.translate(this));
       if (value instanceof Observable) {
