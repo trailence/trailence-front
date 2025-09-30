@@ -24,7 +24,7 @@ export class MapTrack {
   ) {
     this._path = new MapTrackPath(_track, color, smoothFactor, weight, this);
     this._wayPoints = new MapTrackWayPoints(_track, isRecording, () => this.color, i18n);
-    this._arrowPath = new MapTrackArrowPath(_track);
+    this._arrowPath = new MapTrackArrowPath(_track, isRecording ? this._path.pathUpdated$ : undefined);
   }
 
   private readonly _path: MapTrackPath;

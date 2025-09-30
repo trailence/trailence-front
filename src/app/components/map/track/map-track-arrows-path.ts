@@ -1,12 +1,16 @@
 import { Track } from 'src/app/model/track';
 import * as L from 'leaflet';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { EventEmitter } from '@angular/core';
+import { Subscription } from 'rxjs';
 
 export class MapTrackArrowPath {
 
   constructor(
     private readonly _track: Track | SimplifiedTrackSnapshot,
-  ) {}
+    private readonly pathUpdated$?: EventEmitter<any>,
+  ) {
+  }
 
   private _shown = false;
   private _map?: L.Map;
@@ -29,6 +33,7 @@ export class MapTrackArrowPath {
     }
   };
   private _currentZoomShown = -1;
+  private _subscription?: Subscription;
 
   public addTo(map: L.Map): void {
     if (this._map) return;
@@ -36,12 +41,17 @@ export class MapTrackArrowPath {
     map.addEventListener('zoomstart', this._zoomStartHandler);
     map.addEventListener('zoomend', this._zoomEndHandler);
     this.updateArrowsOnMap();
+    if (this.pathUpdated$) this._subscription = this.pathUpdated$.subscribe(() => this.pathUpdated());
   }
 
   public remove(): void {
     if (!this._map) return;
     this._map.removeEventListener('zoomstart', this._zoomStartHandler);
     this._map.removeEventListener('zoomend', this._zoomEndHandler);
+    if (this._subscription) {
+      this._subscription.unsubscribe();
+      this._subscription = undefined;
+    }
     if (this._currentZoomShown >= 0)
       for (const polyline of this._arrowsByZoom[this._currentZoomShown])
         polyline.removeFrom(this._map);
@@ -57,6 +67,15 @@ export class MapTrackArrowPath {
     this._shown = show;
     if (show && this._map)
       this.updateArrowsOnMap();
+  }
+
+  private pathUpdated(): void {
+    if (this._shown && this._currentZoomShown >= 0 && this._map)
+      for (const polyline of this._arrowsByZoom[this._currentZoomShown])
+        polyline.removeFrom(this._map);
+    this._currentZoomShown = -1;
+    this._arrowsByZoom = {};
+    this.updateArrowsOnMap();
   }
 
   private updateArrowsOnMap(): void {
@@ -95,8 +114,10 @@ export class MapTrackArrowPath {
     let lastArrow = this.toPointNotRounded(points[0], map);
     const arrows: L.Point[] = [];
     for (let i = 1; i < points.length - 1; ++i) {
-      const point = points[i];
-      const p = this.toPointNotRounded(point, map);
+      const startPoint = points[i - 1];
+      const endPoint = points[i];
+      const middlePoint = {lat: startPoint.lat + (endPoint.lat - startPoint.lat) / 2, lng: startPoint.lng + (endPoint.lng - startPoint.lng) / 2};
+      const p = this.toPointNotRounded(middlePoint, map);
       const distance = p.distanceTo(lastArrow);
       if ((arrows.length === 0 && distance >= FIRST_ARROW_MINIMUM_PIXELS) ||
           (arrows.length > 0 && distance >= PIXELS_BETWEEN_ARROWS)) {
@@ -129,8 +150,8 @@ export class MapTrackArrowPath {
     let start = this.toPointNotRounded(points[index - 1], map);
     for (let i = 2; p.distanceTo(start) < 5 && index - i >= 0; ++i)
       start = this.toPointNotRounded(points[index - i], map);
-    let end = this.toPointNotRounded(points[index + 1], map);
-    for (let i = 2; p.distanceTo(end) < 5 && index + i < points.length; ++i)
+    let end = this.toPointNotRounded(points[index], map);
+    for (let i = 1; p.distanceTo(end) < 5 && index + i < points.length; ++i)
       end = this.toPointNotRounded(points[index + i], map);
     const a = Math.atan2(end.y - start.y, end.x - start.x);
 

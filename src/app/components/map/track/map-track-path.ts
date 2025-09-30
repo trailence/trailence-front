@@ -3,6 +3,7 @@ import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { EventEmitter } from '@angular/core';
 
 export class MapTrackPath {
 
@@ -17,6 +18,9 @@ export class MapTrackPath {
   private _map?: L.Map;
   private _path?: L.Polyline;
   private _subscription?: Subscription;
+  private _pathUpdated$ = new EventEmitter<any>();
+
+  public get pathUpdated$() { return this._pathUpdated$; }
 
   public get path(): L.Polyline {
     if (!this._path) {
@@ -41,6 +45,7 @@ export class MapTrackPath {
         ).subscribe(() => {
           if (this._path && this._map) {
             this._path.setLatLngs(this.buildPolyLines(this._track as Track));
+            this._pathUpdated$.emit();
             return;
           }
           this._path = undefined;
