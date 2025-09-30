@@ -6,6 +6,7 @@ import { TrailDto, TrailSourceType } from '../../model/dto/trail';
 import { I18nError } from '../../services/i18n/i18n-string';
 import { PhotoDto } from '../../model/dto/photo';
 import { TrailActivity } from '../../model/dto/trail-activity';
+import { StringUtils } from '../string-utils';
 
 export interface ImportedTrackRaw {
   segments: PointDescriptor[][];
@@ -38,8 +39,19 @@ export class GpxFormatRaw {
 
     const metadata = XmlUtils.getChild(doc.documentElement, 'metadata');
     if (metadata) {
-      const name = XmlUtils.getChildText(metadata, 'name');
-      if (name && name.length > 0) trailDto.name = name;
+      let name = XmlUtils.getChildText(metadata, 'name');
+      if (name && name.length > 0) {
+        // visorando gpx is wrong, and may encode &amp;#xxx
+        if (name.indexOf('&#') >= 0) {
+          try {
+            const div = document.createElement('DIV');
+            div.innerHTML = name;
+            const newName = div.childNodes.length > 0 ? div.childNodes[0].nodeValue : undefined;
+            if (newName && newName.length > 0) name = newName;
+          } catch (e) { /* ignore */} // NOSONAR
+        }
+        trailDto.name = name;
+      }
       const desc = XmlUtils.getChildText(metadata, 'desc');
       if (desc && desc.length > 0) trailDto.description = desc;
       const extensions = XmlUtils.getChild(metadata, 'extensions');
