@@ -153,6 +153,33 @@
         }
       }
     }
+
+    &.with-title {
+      .metadata-item-container {
+        .metadata-item {
+          position: relative;
+
+          ion-icon, svg, .icon {
+            margin-top: 12px;
+            width: var(--metadata-icon-size, 24px);
+            height: var(--metadata-icon-size, 24px);
+            margin-bottom: var(--metadata-icon-margin, 2px);
+          }
+          .metadata-content {
+            .metadata-title {
+              display: block;
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              text-align: center;
+              color: var(--ion-color-secondary);
+              font-size: 11px;
+            }
+          }
+        }
+      }
+    }
   }
 
 }

@@ -84,6 +84,7 @@ export class TrailGraphComponent extends AbstractComponent {
   width?: number;
   height?: number;
   id = IdGenerator.generateId();
+  positionPlugin = new PositionPlugin();
 
   @ViewChild('canvas', {read: BaseChartDirective}) canvas?: BaseChartDirective;
 
@@ -136,15 +137,12 @@ export class TrailGraphComponent extends AbstractComponent {
       const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
       if (datasetIndex < 0) return;
       const ds = this.chartData.datasets[datasetIndex];
-      const pi = this.chartPlugins.find(pi => pi.id === 'trailence-position') as (PositionPlugin | undefined);
-      if (pi) {
-        if (datasetIndex === 1) {
-          pi.segmentIndex = segmentIndexInTrack1;
-          pi.pointIndex = pointIndexInTrack1;
-        } else {
-          pi.segmentIndex = undefined;
-          pi.pointIndex = undefined;
-        }
+      if (datasetIndex === 1) {
+        this.positionPlugin.segmentIndex = segmentIndexInTrack1;
+        this.positionPlugin.pointIndex = pointIndexInTrack1;
+      } else {
+        this.positionPlugin.segmentIndex = undefined;
+        this.positionPlugin.pointIndex = undefined;
       }
       this.updateRecordingData(ds, track);
     });
@@ -256,7 +254,7 @@ export class TrailGraphComponent extends AbstractComponent {
             () => this.selectable,
             (pos) => this.zoomButtonPosition.emit(pos),
           ),
-          new PositionPlugin()
+          this.positionPlugin
         );
 
       this.chartData = {

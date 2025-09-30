@@ -76,6 +76,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     allowSmallOnOneLine: true,
     mayHave2Values: false,
     alwaysShowElevation: false,
+    showSpeed: false,
   };
   mapTracksMapper = new CollectionMapper<{trail: Trail, data: SimplifiedTrackSnapshot}, MapTrack>(
     trailAndTrack => new MapTrack(trailAndTrack.trail, trailAndTrack.data, 'red', 4, false, this.i18n),

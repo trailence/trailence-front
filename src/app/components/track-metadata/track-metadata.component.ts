@@ -14,6 +14,7 @@ class Meta {
   durationValue?: number = undefined;
   estimatedDuration?: number = undefined;
   breaksDuration?: number = undefined;
+  speedValue?: number = undefined;
   positiveElevationValue?: number = undefined;
   negativeElevationValue?: number = undefined;
   highestAltitudeValue?: number = undefined;
@@ -24,6 +25,8 @@ class Meta {
     public durationDiv: HTMLDivElement | undefined,
     public estimatedDurationDiv: HTMLDivElement | undefined,
     public breaksDurationDiv: HTMLDivElement | undefined,
+    public speedDiv: HTMLDivElement | undefined,
+    public emptyDiv: HTMLDivElement | undefined,
     public positiveElevationDiv: HTMLDivElement | undefined,
     public negativeElevationDiv: HTMLDivElement | undefined,
     public highestAltitudeDiv: HTMLDivElement | undefined,
@@ -37,6 +40,7 @@ class Titles {
     public breaksDurationTitle: HTMLDivElement | undefined,
     public estimatedDurationTitle: HTMLDivElement | undefined,
     public distanceTitle: HTMLDivElement,
+    public speedTitle: HTMLDivElement | undefined,
     public positiveElevationTitle: HTMLDivElement,
     public negativeElevationTitle: HTMLDivElement,
     public highestAltitudeTitle: HTMLDivElement | undefined,
@@ -53,6 +57,7 @@ export interface TrackMetadataConfig {
   allowSmallOnOneLine: boolean;
   mayHave2Values: boolean;
   alwaysShowElevation: boolean;
+  showSpeed: boolean;
 }
 
 @Component({
@@ -106,7 +111,18 @@ export class TrackMetadataComponent extends AbstractComponent {
         const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, config.mayHave2Values, false);
         const breaksDuration = config.showBreaksDuration ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
         const estimatedDuration = !config.mergeDurationAndEstimated ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
+        let empty: HTMLDivElement | undefined = undefined;
+        if (config.showSpeed) {
+          // empty slot
+          empty = document.createElement('DIV') as HTMLDivElement;
+          empty.className = 'metadata-item-container';
+          if (insertBefore)
+            container.insertBefore(empty, insertBefore);
+          else
+            container.appendChild(empty);
+        }
         const distance = TrackMetadataComponent.createItemElement(container, insertBefore, 'distance', assets, config.mayHave2Values, false);
+        const speed = config.showSpeed ? TrackMetadataComponent.createItemElement(container, insertBefore, 'speed', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
         const positiveElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'positive-elevation', assets, config.mayHave2Values, true);
         const negativeElevation = TrackMetadataComponent.createItemElement(container, insertBefore, 'negative-elevation', assets, config.mayHave2Values, true);
         const highestAltitudeDivs = config.showHighestAndLowestAltitude ? TrackMetadataComponent.createItemElement(container, insertBefore, 'highest-point', assets, config.mayHave2Values, true) : [undefined, undefined, undefined];
@@ -116,13 +132,14 @@ export class TrackMetadataComponent extends AbstractComponent {
           breaksDuration[2],
           estimatedDuration[2],
           distance[2],
+          speed[2],
           positiveElevation[2],
           negativeElevation[2],
           highestAltitudeDivs[2],
           lowestAltitudeDivs[2]
         );
-        const meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0]);
-        const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
+        const meta = new Meta(distance[0], duration[0], estimatedDuration[0], breaksDuration[0], speed[0], empty, positiveElevation[0], negativeElevation[0], highestAltitudeDivs[0], lowestAltitudeDivs[0]);
+        const meta2 = new Meta(distance[1], duration[1], estimatedDuration[1], breaksDuration[1], speed[1], empty, positiveElevation[1], negativeElevation[1], highestAltitudeDivs[1], lowestAltitudeDivs[1]);
         TrackMetadataComponent.toMeta(track$, meta, config, whenVisible, i18n, titles, domController, meta2, false);
         if (config.mayHave2Values) {
           TrackMetadataComponent.toMeta(track2$, meta2, config, whenVisible, i18n, titles, domController, meta, true); // NOSONAR
@@ -244,6 +261,14 @@ export class TrackMetadataComponent extends AbstractComponent {
         }
         TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController, hideIfUndefined, true);
       }
+      if (config.showSpeed) {
+        const speedMetersByHour = distance && duration ? distance / duration * 60 * 60 * 1000 : undefined;
+        TrackMetadataComponent.updateMeta(meta, 'speed', speedMetersByHour, v => i18n.getSpeedStringInUserUnit(v), force, domController, hideIfUndefined);
+        const hasSpeed = !!speedMetersByHour || !!meta2.speedValue;
+        TrackMetadataComponent.shown(meta.speedDiv, hasSpeed);
+        const hasDuration = !!duration || !!meta2.durationValue;
+        meta.emptyDiv!.style.display = hasSpeed && hasDuration ? '' : 'none';
+      }
       if (force) {
         titles.durationTitle.innerText = i18n.texts.metadata.duration;
         titles.distanceTitle.innerText = i18n.texts.metadata.distance;
@@ -258,6 +283,9 @@ export class TrackMetadataComponent extends AbstractComponent {
         }
         if (!config.mergeDurationAndEstimated) {
           titles.estimatedDurationTitle!.innerText = i18n.texts.metadata.estimatedDuration;
+        }
+        if (config.showSpeed) {
+          titles.speedTitle!.innerText = i18n.texts.metadata.averageSpeed;
         }
       }
       previousState = state as number;

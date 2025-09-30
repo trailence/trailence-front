@@ -142,6 +142,7 @@ export class TrailsListComponent extends AbstractComponent {
     allowSmallOnOneLine: true,
     mayHave2Values: false,
     alwaysShowElevation: false,
+    showSpeed: false,
   };
 
   constructor(

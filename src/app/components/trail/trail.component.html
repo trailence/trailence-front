@@ -517,7 +517,7 @@
       </ion-button>
     </div>
     <div class="bottom-sheet-info-content" *ngIf="tracks[0] && isSmall && bottomSheetTab === 'info' && tab === 'map'">
-      <div class="metadata-container tiles">
+      <div class="metadata-container tiles with-title">
         <app-track-metadata class="in-bottom-sheet" [track]="tracks[0]" [track2]="tracks[1]" [config]="metadataConfig"></app-track-metadata>
         <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
       </div>
@@ -562,7 +562,7 @@
       <div class="bottom-sheet-remaining-separator"><span>{{ i18n.texts.pages.trail.remaining_metadata_title }}</span></div>
       <div class="metadata-item-container">
         <div class="metadata-item">
-          <ion-icon name="duration"></ion-icon>
+          <ion-icon name="chrono"></ion-icon>
           <div class="metadata-content">
             <div class="metadata-title">{{ i18n.texts.metadata.remaining_time }}</div>
             <div class="metadata-value">

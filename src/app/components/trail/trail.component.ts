@@ -144,6 +144,7 @@ export class TrailComponent extends AbstractComponent {
     allowSmallOnOneLine: false,
     mayHave2Values: true,
     alwaysShowElevation: true,
+    showSpeed: true,
   };
 
   translations = new TrailTranslations();
@@ -915,18 +916,10 @@ export class TrailComponent extends AbstractComponent {
     const trackChanges$ = this.recording$.pipe(switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)));
     let previousDistance = 0;
     this.byStateAndVisible.subscribe(
-      trackChanges$.pipe(debounceTimeExtended(1000, 5000, 100, (p, n) => !!n && n.track.metadata.distance - previousDistance > 100),),
-      r => {
+      combineLatest([trackChanges$, this.graph$, this._bottomSheetTab$])
+      .pipe(debounceTimeExtended(1000, 5000, 50, (p, n) => (!!n[0] && n[0].track.metadata.distance - previousDistance > 25) || p[1] !== n[1] || (!p[1]?.visible && !!n[1]?.visible) || p[1]?.graphType !== n[1]?.graphType || p[2] !== n[2]),),
+      ([r, g, tab]) => {
         previousDistance = r ? r.track.metadata.distance : 0;
-        const pt = r?.track.arrivalPoint;
-        if (pt && this.graph) {
-          this.graph.updateRecording(r.track, this.remaining?.segmentIndex, this.remaining?.pointIndex);
-        }
-      }, true
-    );
-    this.byStateAndVisible.subscribe(
-      trackChanges$.pipe(debounceTimeExtended(5000, 10000, 100)),
-      r => {
         let remaining: Track | undefined = undefined;
         const pt = r?.track.arrivalPoint;
         let closestPoint: { segmentIndex: number, pointIndex: number } | undefined = undefined;
@@ -959,8 +952,6 @@ export class TrailComponent extends AbstractComponent {
           mapTrack.data = 'remaining';
           this.mapTracks$.value.push(mapTrack);
           this.mapTracks$.next(this.mapTracks$.value);
-
-          this.changesDetector.detectChanges();
         } else if (this.remaining) {
           this.remaining = undefined;
           let mapTrack = this.mapTracks$.value.find(mt => mt.track === this.tracks$.value[0] && mt.color === '#FF000080');
@@ -971,8 +962,11 @@ export class TrailComponent extends AbstractComponent {
             this.mapTracks$.value.splice(index, 1);
             this.mapTracks$.next(this.mapTracks$.value);
           }
-          this.changesDetector.detectChanges();
         }
+        if (pt && this.graph) {
+          this.graph.updateRecording(r.track, this.remaining?.segmentIndex, this.remaining?.pointIndex);
+        }
+        this.changesDetector.detectChanges();
       }
     )
   }
@@ -1081,9 +1075,11 @@ export class TrailComponent extends AbstractComponent {
     setTimeout(() => this.map?.invalidateSize(), 500);
   }
 
+  private readonly _bottomSheetTab$ = new BehaviorSubject<string>(this.bottomSheetTab);
   setBottomSheetTab(tab: string): void {
     if (tab === this.bottomSheetTab) return;
     this.bottomSheetTab = tab;
+    this._bottomSheetTab$.next(tab);
     this.updateDisplay();
   }
 

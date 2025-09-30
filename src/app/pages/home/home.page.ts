@@ -356,6 +356,7 @@ export class HomePage extends PublicPage {
     allowSmallOnOneLine: true,
     mayHave2Values: false,
     alwaysShowElevation: true,
+    showSpeed: false,
   };
 
   examples?: TrailWithInfo[];
