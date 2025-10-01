@@ -30,16 +30,26 @@ describe('Test improvments while recording', () => {
     const track = imported.tracks[0];
     const improved = trackEdition.applyDefaultImprovments(track);
     const recording = new Track({owner: 'test@example.com'}, preferencesService);
+    let lastTime = undefined;
     for (const originalSegment of track.segments) {
       const segment = recording.newSegment();
       const state = new ImprovmentRecordingState();
       for (const originalPoint of originalSegment.points) {
         segment.append(copyPoint(originalPoint));
-        trackEdition.applyDefaultImprovmentsForRecordingSegment(segment, state, segment.points.length === originalSegment.points.length);
+        if (lastTime === undefined) {
+          lastTime = originalPoint.time;
+        } else {
+          if (originalPoint.time !== lastTime) {
+            trackEdition.applyDefaultImprovmentsForRecordingSegment(segment, state, false);
+            lastTime = originalPoint.time;
+          }
+        }
       }
+      trackEdition.applyDefaultImprovmentsForRecordingSegment(segment, state, true);
     }
 
     for (let i = 0; i < improved.segments.length; ++i) {
+      expect(recording.segments[i].points.length).withContext('points of segment ' + i).toBe(improved.segments[i].points.length);
       for (let j = 0; j < improved.segments[i].points.length; ++j) {
         const pt1 = improved.segments[i].points[j];
         const pt2 = recording.segments[i].points[j];

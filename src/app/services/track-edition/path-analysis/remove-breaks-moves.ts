@@ -1,7 +1,6 @@
 import { Segment } from 'src/app/model/segment';
 import { ImprovmentRecordingState } from '../track-edition.service';
 import { Track } from 'src/app/model/track';
-import { Point } from 'src/app/model/point';
 import { TrackUtils } from 'src/app/utils/track-utils';
 
 export function removeBreaksMovesOnTrack(track: Track): void {
@@ -15,7 +14,7 @@ export function removeBreaksMovesOnSegment(segment: Segment, state: ImprovmentRe
 }
 
 const DISTANCE_BREAK_AREA = 30; // distance within the moves may be analyzed and removed
-const MIN_TIME_IN_AREA_FOR_A_BREAK = 120000; // 2 minutes
+const MIN_TIME_IN_AREA_FOR_A_BREAK = 2 * 60000; // 2 minutes
 const TEMPORARY_ADJUST_IGNORE_LAST_POINTS = 5;
 const DISTANCE_FINALIZE_AREA = 5;
 
@@ -39,8 +38,8 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
   if (outsidePointIndex >= points.length && finish) outsidePointIndex = points.length - 1;
   if (outsidePointIndex < points.length) {
     // we totally left the area, we can finish to handle it
-    if (TrackUtils.durationBetween(currentPoint, outsidePoint) < MIN_TIME_IN_AREA_FOR_A_BREAK) {
-      state.lastBreaksMovesIndex = outsidePointIndex;
+    if (TrackUtils.durationBetween(currentPoint, points[outsidePointIndex]) < MIN_TIME_IN_AREA_FOR_A_BREAK) {
+      state.lastBreaksMovesIndex++;
       return true;
     }
     // do the temporary adjustements inside this area
@@ -48,21 +47,32 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
 
     // here we are in a DISTANCE_BREAK_AREA * 3 area
     // we need to identify where we stayed in a small area for a long time, to remove those points
-    do {
-      let startPoint = points[state.lastBreaksMovesIndex];
-      let endIndex = state.lastBreaksMovesIndex;
+    let bestStart = undefined;
+    let bestEnd = undefined;
+    let bestTime = undefined;
+    for (let startIndex = state.lastBreaksMovesIndex; startIndex < outsidePointIndex; ++startIndex) {
+      const startPoint = points[startIndex];
+      let endIndex = startIndex + 1;
       while (endIndex < outsidePointIndex) {
         let nextPoint = points[endIndex + 1];
         if (nextPoint.distanceTo(startPoint.pos) > DISTANCE_BREAK_AREA) break;
         endIndex++;
       }
-      if (TrackUtils.durationBetween(startPoint, points[endIndex]) >= MIN_TIME_IN_AREA_FOR_A_BREAK) {
-        const removed = removeBreaksMovesInArea(segment, state.lastBreaksMovesIndex, endIndex, state);
-        outsidePointIndex -= removed;
+      if (endIndex >= outsidePointIndex - 1) break;
+      const time = TrackUtils.durationBetween(startPoint, points[endIndex + 1]);
+      if (time < MIN_TIME_IN_AREA_FOR_A_BREAK) continue;
+      if (bestTime === undefined || time > bestTime) {
+        bestTime = time;
+        bestStart = startIndex;
+        bestEnd = endIndex;
       }
+    }
+    if (bestTime === undefined) {
       state.lastBreaksMovesIndex++;
-    } while (state.lastBreaksMovesIndex < outsidePointIndex - 2);
-    state.lastBreaksMovesIndex = outsidePointIndex;
+      return true;
+    }
+    const removed = removeBreaksMovesInArea(segment, bestStart!, bestEnd!, state);
+    if (removed === 0) state.lastBreaksMovesIndex++; else state.lastBreaksMovesIndex = Math.max(bestEnd! - 1 - removed, state.lastBreaksMovesIndex + 1);
     return true;
   }
   // we are not yet sure we left the area
@@ -80,16 +90,24 @@ function removeBreaksMovesInArea(segment: Segment, startIndex: number, endIndex:
   let totalLat = 0;
   let totalLng = 0;
   let totalTime = 0;
+  let longestTime = 0;
+  let longestPoint = undefined;
   for (let i = startIndex + 1; i <= endIndex; ++i) {
-    point = points[i];
-    const time = point.durationFromPreviousPoint;
+    const nextPoint = points[i];
+    const time = nextPoint.durationFromPreviousPoint;
     if (time === undefined) continue;
+    if (time > longestTime) {
+      longestTime = time;
+      longestPoint = point;
+    }
     totalLat += point.pos.lat * time;
     totalLng += point.pos.lng * time;
     totalTime += time;
+    point = nextPoint;
   }
   if (totalTime === 0) return 0;
-  const avgPos = {lat: totalLat / totalTime, lng: totalLng / totalTime};
+  // average position, or point we spent at least 2/3 of the total time
+  const avgPos = longestTime > totalTime * 2 / 3 ? longestPoint!.pos : {lat: totalLat / totalTime, lng: totalLng / totalTime};
   // find the first point close from the average
   let firstPointIndex = startIndex;
   let firstPoint = points[startIndex];
