@@ -143,7 +143,7 @@ export class GeoTrekImport extends Importer {
       //console.log('Trail is up to date: ' + trek.uuid + ' (' + trek.id + '): ' + existing.name);
       return false;
     }
-    console.log('Trail has been updated: ' + trek.uuid + ' (' + trek.id + '): ' + existing.name);
+    console.log('Trail has been updated on ' + trek.update_datetime + ': ' + trek.uuid + ' (' + trek.id + '): ' + existing.name);
     const dtos = await this.toTrailenceDtos(trek);
     const existingTrackDto = await this.trailenceClient.getTrack(existing.currentTrackUuid ?? existing.originalTrackUuid!);
     const track = await this.readTrackDto(existingTrackDto);
