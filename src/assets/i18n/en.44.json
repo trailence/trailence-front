@@ -134,6 +134,7 @@
       "your_share": "Your share",
       "edit_filters_popup_title": "Filter Tracks",
       "edit_sort_popup_title": "Sort Tracks",
+      "missing_trails_because_offline": "Some trails cannot be displayed because you are offline",
       "sorts": {
         "trail_date": "Date of the track",
         "creation_date": "Creation in Trailence",

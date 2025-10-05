@@ -209,7 +209,7 @@ export class FetchSourceService {
   }
 
   public getTrail$(owner: string, uuid: string): Observable<Trail | null> {
-    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getTrail(uuid)) : of(null)));
+    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getTrail(uuid).catch(() => null)) : of(null)));
   }
 
   public getMetadata$(owner: string, uuid: string): Observable<TrackMetadataSnapshot | null> {

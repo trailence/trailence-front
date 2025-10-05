@@ -20,7 +20,8 @@ const DISTANCE_FINALIZE_AREA = 5;
 
 function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, finish: boolean): boolean {
   const points = segment.points;
-  if (points.length < 3 || points.length - 1 === state.lastBreaksMovesIndex) return false;
+  const lastPointIndex = finish ? points.length - 1 : points.length - TEMPORARY_ADJUST_IGNORE_LAST_POINTS
+  if (points.length < 3 || state.lastBreaksMovesIndex >= lastPointIndex) return false;
 
   const currentPoint = points[state.lastBreaksMovesIndex];
   if (currentPoint.time === undefined) {
@@ -32,13 +33,14 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
   let outsidePoint = points[outsidePointIndex];
   while (outsidePoint.distanceTo(currentPoint.pos) < DISTANCE_BREAK_AREA * 3) {
     outsidePointIndex++;
-    if (outsidePointIndex === points.length) break;
+    if (outsidePointIndex > lastPointIndex) break;
     outsidePoint = points[outsidePointIndex];
   }
   if (outsidePointIndex >= points.length && finish) outsidePointIndex = points.length - 1;
-  if (outsidePointIndex < points.length) {
+  if (outsidePointIndex <= lastPointIndex) {
     // we totally left the area, we can finish to handle it
     if (TrackUtils.durationBetween(currentPoint, points[outsidePointIndex]) < MIN_TIME_IN_AREA_FOR_A_BREAK) {
+      cleanSamePositionSuccessivePoints(segment, Math.max(0, state.lastBreaksMovesIndex - 5), state.lastBreaksMovesIndex, state);
       state.lastBreaksMovesIndex++;
       return true;
     }
@@ -68,19 +70,22 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
       }
     }
     if (bestTime === undefined) {
+      cleanSamePositionSuccessivePoints(segment, Math.max(0, state.lastBreaksMovesIndex - 5), state.lastBreaksMovesIndex, state);
       state.lastBreaksMovesIndex++;
       return true;
     }
     const removed = removeBreaksMovesInArea(segment, bestStart!, bestEnd!, state);
+    let previousIndex = state.lastBreaksMovesIndex;
     if (removed === 0) state.lastBreaksMovesIndex++; else state.lastBreaksMovesIndex = Math.max(bestEnd! - 1 - removed, state.lastBreaksMovesIndex + 1);
+    cleanSamePositionSuccessivePoints(segment, Math.max(0, previousIndex - 5), state.lastBreaksMovesIndex, state);
     return true;
   }
   // we are not yet sure we left the area
-  if (TrackUtils.durationBetween(currentPoint, points[points.length - 1]) < MIN_TIME_IN_AREA_FOR_A_BREAK) {
+  if (TrackUtils.durationBetween(currentPoint, points[lastPointIndex]) < MIN_TIME_IN_AREA_FOR_A_BREAK) {
     // not yet enough time to determine we are in a break: let's wait
     return false;
   }
-  temporarlyAdjustBreaksMovesInArea(segment, state.lastBreaksMovesIndex, points.length - (finish ? 1 : TEMPORARY_ADJUST_IGNORE_LAST_POINTS));
+  temporarlyAdjustBreaksMovesInArea(segment, state.lastBreaksMovesIndex, lastPointIndex);
   return false;
 }
 
@@ -171,6 +176,8 @@ function temporarlyAdjustBreaksMovesInArea(segment: Segment, startIndex: number,
               // accuracy looks lower, let's set the position to the previous point
               point.pos = points[k - 1].pos;
               point.posAccuracy = points[k - 1].posAccuracy;
+              point.ele = points[k - 1].ele;
+              point.eleAccuracy = points[k - 1].eleAccuracy;
               changed = true;
             }
           }
@@ -179,4 +186,21 @@ function temporarlyAdjustBreaksMovesInArea(segment: Segment, startIndex: number,
     }
   }
   return changed;
+}
+
+function cleanSamePositionSuccessivePoints(segment: Segment, startIndex: number, endIndex: number, state: ImprovmentRecordingState) {
+  for (let i = startIndex; i < endIndex; ++i) {
+    const p1 = segment.points[i];
+    let j = i + 1;
+    while (j <= endIndex) {
+      const p2 = segment.points[j];
+      if (p2.pos.lat !== p1.pos.lat || p2.pos.lng !== p1.pos.lng) break;
+      j++;
+    }
+    if (j > i + 1) {
+      segment.removeMany(segment.points.slice(i + 1, j));
+      state.removedPoints(i + 1, j);
+      endIndex -= j - (i + 1);
+    }
+  }
 }

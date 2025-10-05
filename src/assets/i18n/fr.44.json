@@ -134,6 +134,7 @@
       "your_share": "Votre partage",
       "edit_filters_popup_title": "Filtrer les Parcours",
       "edit_sort_popup_title": "Trier les Parcours",
+      "missing_trails_because_offline": "Certains parcours ne peuvent pas être affichés car vous êtes hors-ligne",
       "sorts": {
         "trail_date": "Date du parcours",
         "creation_date": "Création dans Trailence",

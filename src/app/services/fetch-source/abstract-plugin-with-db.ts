@@ -13,7 +13,7 @@ import { DelayedTable } from 'src/app/utils/delayed-table';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from '../auth/auth.service';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
-import { filter, first } from 'rxjs';
+import { debounceTime, filter, first, firstValueFrom, from, switchMap } from 'rxjs';
 
 export interface TrailInfoBaseDto {
   info: TrailInfo;
@@ -73,6 +73,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
   }
 
   public override getTrail(uuid: string): Promise<Trail | null> {
+    if (!this.tableTrails) return firstValueFrom(this._allowed$.pipe(debounceTime(10), switchMap(() => from(this.getTrail(uuid)))));
     return this.tableTrails.get(uuid).then(t => t ? new Trail(t) : this.fetchTrailById(uuid));
   }
 

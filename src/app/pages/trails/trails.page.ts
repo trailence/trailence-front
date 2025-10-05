@@ -262,7 +262,36 @@ export class TrailsPage extends AbstractPage {
     this.byStateAndVisible.subscribe(
       this.injector.get(MySelectionService).getMySelection()
       .pipe(
-        map(selection => selection.map(s => this.injector.get(TrailService).getTrail$(s.uuid, s.owner))),
+        map(selection => {
+          this.searchMessage = undefined;
+          let nbMissing = 0;
+          const trails$: Observable<Trail | null>[] = [];
+          for (const selectedTrail of selection) {
+            let trail$ = this.injector.get(TrailService).getTrail$(selectedTrail.uuid, selectedTrail.owner);
+            if (selectedTrail.owner.indexOf('@') < 0) {
+              let isMissing = false;
+              trail$ = trail$.pipe(
+                map(trail => {
+                  if (!trail && !this.networkService.internet) {
+                    if (!isMissing) {
+                      isMissing = true;
+                      nbMissing++;
+                    }
+                    this.searchMessage = 'pages.trails.missing_trails_because_offline';
+                  } else {
+                    if (isMissing) {
+                      isMissing = false;
+                      if (--nbMissing === 0) this.searchMessage = undefined;
+                    }
+                  }
+                  return trail;
+                })
+              );
+            }
+            trails$.push(trail$);
+          }
+          return trails$;
+        }),
       ),
       trails => {
         const newList = List(trails);

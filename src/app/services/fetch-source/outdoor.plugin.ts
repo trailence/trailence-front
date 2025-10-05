@@ -214,6 +214,11 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
     return firstValueFrom(this.injector.get(HttpService).getBlob(environment.apiBaseUrl + '/search-trails/v1/outdooractive/photo?id=' + id + '&size=800x800'));
   }
 
+  protected override fetchTrailById(uuid: string): Promise<Trail | null> {
+    return firstValueFrom(this.requestTrailsByIds([uuid]))
+      .then(result => result.length === 0 ? null : result[0].trail);
+  }
+
 }
 
 interface OutdoorTrail {

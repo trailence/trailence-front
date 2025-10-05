@@ -371,6 +371,12 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     return Promise.all(promises).then(list => filterItemsDefined(list));
   }
 
+  protected override fetchTrailById(uuid: string): Promise<Trail | null> {
+    const keyNumber = parseInt(uuid);
+    if (!isNaN(keyNumber)) return this.fetchTrailByUrl('https://www.visorando.com/randonnee-' + keyNumber);
+    return Promise.resolve(null);
+  }
+
   /*
   private fetchTrailTrack(id: number): Promise<PointDescriptor[]> {
     const url = 'https://www.visorando.com/index.php?component=exportData&task=getRandoGeoJson&chartData=1&wholePointsData=1&idRandonnee=' + id;

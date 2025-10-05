@@ -1,7 +1,7 @@
 import { Trail } from 'src/app/model/trail';
 import { PluginWithDb, TrailInfoBaseDto, TrailToStore } from './abstract-plugin-with-db';
 import { Injector } from '@angular/core';
-import { from, map, merge, Observable, of, switchMap } from 'rxjs';
+import { firstValueFrom, from, map, merge, Observable, of, switchMap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { SearchResult } from './fetch-source.interfaces';
@@ -217,6 +217,10 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
       }
       track.newSegment().appendMany(points.map(pos => ({pos})));
     }
+  }
+
+  protected override fetchTrailById(uuid: string): Promise<Trail | null> {
+    return firstValueFrom(this.getRoutesByIds([uuid])).then(result => result.length === 0 ? null : result[0]);
   }
 
 }
