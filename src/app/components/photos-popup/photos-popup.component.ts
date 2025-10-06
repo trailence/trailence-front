@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController } from "@ionic/angular/standalone";
-import { combineLatest, firstValueFrom, map, of, switchMap } from 'rxjs';
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
+import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { FileService } from 'src/app/services/file/file.service';
@@ -15,11 +15,12 @@ import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { TrailService } from 'src/app/services/database/trail.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
+import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
+import { CameraService } from 'capacitor/services/camera/camera.service';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -45,12 +46,14 @@ interface PhotoWithInfo {
         IonHeader,
         CommonModule,
         PhotoComponent,
-        IonTextarea
+        IonTextarea,
+        IonSegment,
+        IonSegmentButton,
     ]
 })
 export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
-  @Input() trail!: Trail;
+  @Input() trails$!: Observable<Trail | null>[];
   @Input() popup = true;
   @Output() positionOnMapRequested = new EventEmitter<Photo>();
 
@@ -63,8 +66,17 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   height!: number;
   canEdit = false;
   canAdd = false;
+  canPositionOnMap = false;
   nbSelected = 0;
   sliderIndex = 0;
+
+  tabs: string[] = [];
+  trails: Trail[] = [];
+  activeTrail$ = new BehaviorSubject<Trail | null>(null);
+  tabIndex = 0;
+
+  canTakePhoto = false;
+  deviceCanTakePhoto?: boolean;
 
   private readonly subscriptions: Subscriptions = new Subscriptions();
 
@@ -80,9 +92,10 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     private readonly modalController: ModalController,
     private readonly changesDetector: ChangeDetectorRef,
     private readonly errorService: ErrorService,
-    private readonly trailService: TrailService,
     private readonly trackService: TrackService,
     private readonly alertController: AlertController,
+    private readonly traceRecorder: TraceRecorderService,
+    private readonly cameraService: CameraService,
   ) {
     this.updateSize(browser);
     this.subscriptions.add(browser.resize$.subscribe(() => this.updateSize(browser)));
@@ -97,30 +110,52 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.add(
-      combineLatest([
-        this.auth.auth$.pipe(
-          switchMap(a => {
-            if (a?.email === this.trail.owner)
-              return this.trailService.getTrail$(this.trail.uuid, this.trail.owner).pipe(
-                switchMap(trail => trail ? this.trackService.getFullTrack$(trail.currentTrackUuid, this.trail.owner) : of(undefined)),
-                map(track => ({track, canEdit: true, canAdd: true}))
-              );
-            return of({track: undefined, canEdit: this.trail.fromModeration, canAdd: false});
-          })
-        ),
-        this.photoService.getTrailPhotos$(this.trail),
-      ])
-      .subscribe(([at, photos]) => {
-        this.canEdit = at.canEdit;
-        this.canAdd = at.canAdd;
-        photos.sort((p1, p2) => p1.index - p2.index);
-        this.photos = photos.map(p => {
+      this.auth.auth$.pipe(
+        switchMap(auth => combineLatest(this.trails$).pipe(
+          tap(() => this.loaded = false),
+          switchMap(trails => {
+            this.trails = trails.filter(t => !!t);
+            if (this.activeTrail$.value !== null)
+              this.activeTrail$.next(this.trails.find(t => t.owner === this.activeTrail$.value?.owner && t.uuid === this.activeTrail$.value?.uuid) ?? null);
+            if (this.activeTrail$.value === null && this.trails.length > 0) this.activeTrail$.next(this.trails[0]);
+            this.tabs = this.trails.map(t => {
+              if (t === this.traceRecorder.current?.trail) return this.i18n.texts.trace_recorder.notif_message;
+              return t.name;
+            });
+            return this.activeTrail$;
+          }),
+          switchMap(t => {
+            this.tabIndex = t ? this.trails.indexOf(t) : 0;
+            if (!t) return of([[] as Photo[], {track: null, canEdit: false, canAdd: false}] as [Photo[], {track: Track | null, canEdit: boolean, canAdd: boolean}]);
+            const photos = t === this.traceRecorder.current?.trail ? this.traceRecorder.current.photos$ : this.photoService.getTrailPhotos$(t);
+            const track = auth?.email === t.owner ?
+              this.trackService.getFullTrack$(t.currentTrackUuid, t.owner).pipe(map(track => ({track, canEdit: true, canAdd: true}))) :
+              of({track: null, canEdit: t.fromModeration, canAdd: false});
+            return combineLatest([photos, track]);
+          }),
+        )),
+      ).subscribe(result => {
+        if (this.activeTrail$.value === this.traceRecorder.current?.trail) {
+          if (this.deviceCanTakePhoto !== undefined) this.canTakePhoto = this.deviceCanTakePhoto;
+          else this.cameraService.canTakePhoto().then(result => {
+            this.deviceCanTakePhoto = result;
+            if (this.activeTrail$.value === this.traceRecorder.current?.trail && this.deviceCanTakePhoto) {
+              this.canTakePhoto = true;
+              this.changesDetector.detectChanges();
+            }
+          });
+        }
+        this.canEdit = result[1].canEdit;
+        this.canAdd = result[1].canAdd;
+        this.canPositionOnMap = this.canEdit && !this.traceRecorder.current;
+        result[0].sort((p1, p2) => p1.index - p2.index);
+        this.photos = result[0].map(p => {
           return {
             photo: p,
             selected: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.selected ?? false,
             editing: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.editing ?? null,
             blobSize: this.photos?.find(prev => prev.photo.owner === p.owner && prev.photo.uuid === p.uuid)?.blobSize,
-            positionOnMap: !!this.getPhotoPosition(p, at.track),
+            positionOnMap: !!this.getPhotoPosition(p, result[1].track),
           } as PhotoWithInfo;
         });
         this.nbSelected = this.photos.reduce((p, pi) => p + (pi.selected ? 1 : 0), 0);
@@ -131,7 +166,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   }
 
   private readonly _dateToPosCache = new Map<number, L.LatLngLiteral | null>();
-  private getPhotoPosition(photo: Photo, track: Track | null | undefined): L.LatLngLiteral | undefined {
+  private getPhotoPosition(photo: Photo, track: Track | null): L.LatLngLiteral | undefined {
     if (photo.latitude !== undefined && photo.longitude !== undefined) {
       const pos = {lat: photo.latitude, lng: photo.longitude};
       if (!track) return pos;
@@ -156,6 +191,13 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
   close(data: Photo | null = null): void {
     this.modalController.dismiss(data, 'close');
+  }
+
+  setTab(value: any) {
+    const index = value as number;
+    if (this.tabIndex === index) return;
+    this.tabIndex = index;
+    this.activeTrail$.next(this.trails[index]);
   }
 
   setBlobSize(p: PhotoWithInfo, size: number): void {
@@ -212,7 +254,13 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     }).then(a => a.present());
   }
 
-  addPhotos(): void {
+  addPhotos(withCamera: boolean): void {
+    const trail = this.activeTrail$.value;
+    if (!trail) return;
+    if (withCamera && trail === this.traceRecorder.current?.trail) {
+      this.traceRecorder.takePhoto();
+      return;
+    }
     let photoIndex = this.photos.length + 1;
     this.fileService.openFileDialog({
       types: [
@@ -239,7 +287,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
         return Promise.resolve(progress);
       },
       onfileread: (index: number, nbFiles: number, progress: Progress, filename: string, file: ArrayBuffer) => {
-        return firstValueFrom(this.photoService.addPhoto(this.trail.owner, this.trail.uuid, filename, photoIndex++, file))
+        return firstValueFrom(this.photoService.addPhoto(trail.owner, trail.uuid, filename, photoIndex++, file))
         .then(p => {
           progress.subTitle = '' + (index + 1) + '/' + nbFiles;
           progress.addWorkDone(1);
@@ -258,6 +306,11 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
   deleteSelected(): void {
     const photos = this.getSelection();
+    const trail = this.activeTrail$.value;
+    if (trail === this.traceRecorder.current?.trail) {
+      for (const photo of photos) this.traceRecorder.deletePhoto(photo.uuid);
+      return;
+    }
     const progress = this.progressService.create(this.i18n.texts.pages.photos_popup.deleting, photos.length);
     const done = new CompositeOnDone(() => progress.done());
     photos.forEach(p => this.photoService.delete(p, done.add(() => progress.addWorkDone(1))));
@@ -270,6 +323,11 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     this.photos.splice(index - 1, 0, photo);
     const newIndex = --photo.photo.index;
     previous.photo.index = newIndex + 1;
+    const trail = this.activeTrail$.value;
+    if (trail === this.traceRecorder.current?.trail) {
+      this.traceRecorder.current?.photos$.next(this.traceRecorder.current?.photos$.value);
+      return;
+    }
     this.photoService.update(photo.photo, p => p.index = newIndex);
     this.photoService.update(previous.photo, p => p.index = newIndex + 1);
   }

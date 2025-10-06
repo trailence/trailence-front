@@ -48,6 +48,10 @@
       margin: 3px 0;
       align-self: stretch;
       text-align: center;
+      span.no-description {
+        font-style: italic;
+        opacity: 0.75;
+      }
     }
 
     .metadata-container {
@@ -98,4 +102,11 @@
   justify-content: center;
   font-style: italic;
   color: var(--ion-color-medium);
+}
+
+div.tab-long-text {
+  text-transform: none;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  overflow: hidden;
 }

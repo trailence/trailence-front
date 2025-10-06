@@ -541,7 +541,7 @@
     </div>
   </ng-container>
   <div class="trail-photos-tab" *ngIf="photos !== undefined && isSmall && tab === 'photos'">
-    <app-photos-popup [trail]="trail1!" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
+    <app-photos-popup [trails$]="trailsForPhotoPopup" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
   </div>
   <div class="trail-reviews-tab" *ngIf="isSmall && tab === 'reviews'">
     <app-rate-and-comments [trail]="trail1!"></app-rate-and-comments>

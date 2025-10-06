@@ -15,6 +15,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'browser-firefox': 'browser-firefox.1.svg', // logo-firefox
   'browser-edge': 'browser-edge.1.svg', // logo-edge
   'bubbles': 'bubbles.1.svg',
+  'camera': 'camera.1.svg', // camera-outline
   'car': 'car.1.svg', // car
   'carabiner': 'carabiner.1.svg',
   'caret-back': 'caret-back.1.svg', // caret-back

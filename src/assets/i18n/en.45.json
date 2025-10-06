@@ -275,6 +275,8 @@
       },
       "no_tag_message": "No tag on this track",
       "no_photo_message": "No photo on this track",
+      "photo_no_description": "Description",
+      "take_photo": "Take a photo",
       "comparison_message": "These paths are {{1}}% similar",
       "sections": {
         "description": {

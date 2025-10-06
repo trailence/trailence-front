@@ -157,7 +157,6 @@ export class AppComponent {
         this.injector.get(ChangeDetectorRef).detectChanges();
       }
     });
-
   }
 
   private loadServices(): Promise<() => Observable<boolean>> {

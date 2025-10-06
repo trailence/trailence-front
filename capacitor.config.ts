@@ -23,7 +23,8 @@ const config: CapacitorConfig = {
       '@capacitor/keyboard',
       '@capacitor/network',
       '@capacitor/status-bar',
-      '@capawesome/capacitor-file-picker'
+      '@capawesome/capacitor-file-picker',
+      '@capacitor/camera',
     ]
   }
 };

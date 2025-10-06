@@ -64,6 +64,7 @@ import { TrailTranslations } from './trail-translations';
 import { ModerationTranslationsComponent } from './moderation-translations/moderation-translations.component';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
+import { CameraService } from 'src/app/services/camera/camera.service';
 
 interface TrailSource {
   isExternal: boolean;
@@ -140,6 +141,7 @@ export class TrailComponent extends AbstractComponent {
   graphTrack2?: Track;
   graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
   myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
+  trailsForPhotoPopup: Observable<Trail | null>[] = [];
 
   metadataConfig: TrackMetadataConfig = {
     mergeDurationAndEstimated: false,
@@ -193,6 +195,7 @@ export class TrailComponent extends AbstractComponent {
   currentPublicTrailUuid?: string;
   isShowPublicTrailsAround = false;
   publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
+  canTakePhoto = false;
 
   private _lockForDescription?: () => void;
   editingDescription = false;
@@ -282,6 +285,12 @@ export class TrailComponent extends AbstractComponent {
     new MenuItem().setIcon('star-filled').setI18nLabel('trace_recorder.follow_this_trail')
       .setVisible(() => !!this.recording && !!this.trail1 && !this.trail2 && (this.recording.followingTrailUuid !== this.trail1.uuid || this.recording.followingTrailOwner !== this.trail1.owner))
       .setAction(() => this.confirmFollowThisTrail()),
+    new MenuItem(),
+    new MenuItem().setIcon('camera').setI18nLabel('pages.trail.take_photo')
+      .setVisible(() => !!this.recording && this.canTakePhoto)
+      .setAction(() => {
+        this.traceRecorder.takePhoto();
+      }),
     new MenuItem(),
     new MenuItem().setIcon('reverse-way').setI18nLabel('pages.trail.reverse_way')
       .setVisible(() => !!this.trail1 && !this.trail2 && !this.isPublication && !this.trail1.fromModeration)
@@ -379,6 +388,11 @@ export class TrailComponent extends AbstractComponent {
     this.currentPublicTrailUuid = undefined;
     this.tracks$.next([]);
     this.mapTracks$.next([]);
+    this.canTakePhoto = false;
+    this.trailsForPhotoPopup = [];
+    if (this.recording$) this.trailsForPhotoPopup.push(this.recording$.pipe(map(r => r?.trail ?? null)));
+    if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
+    if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
     this.listenForTracks();
     this.listenForWayPoints();
     this.listenForTags();
@@ -779,10 +793,15 @@ export class TrailComponent extends AbstractComponent {
   }
 
   private listenForPhotos(): void {
-    if (!this.trail1$) return;
+    if (!this.trail1$ && !this.recording$) return;
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$, this.trail2$ ?? of(null)]).pipe(
-        switchMap(([trail1, trail2]) => trail1 && !trail2 ? this.photoService.getTrailPhotos$(trail1) : of(undefined))
+      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null)]).pipe(
+        switchMap(([trail1, trail2, recording]) => combineLatest([
+          trail1 ? this.photoService.getTrailPhotos$(trail1) : of([] as Photo[]),
+          trail2 ? this.photoService.getTrailPhotos$(trail2) : of([] as Photo[]),
+          recording ? recording.photos$ as Observable<Photo[]> : of([] as Photo[]),
+        ])),
+        map(([p1, p2, p3]) => [...p1, ...p2, ...p3])
       ),
       photos => {
         if (photos === undefined)
@@ -801,24 +820,29 @@ export class TrailComponent extends AbstractComponent {
   }
 
   private listenForPhotosOnMap(): void {
-    if (!this.trail1$) return;
+    if (!this.trail1$ || !this.recording$) return;
     let photosOnMap = new Map<string, L.Marker>();
     const photosByKey = new Map<string, Photo[]>();
-    const dateToPoint = { trackUuid: undefined as string | undefined, cache: new Map<number, L.LatLngExpression | null>() };
+    const dateToPoint = new Map<string, Map<number, L.LatLngExpression | null>>();
+    const getTrack = (trail: Trail) =>
+      this.showOriginal$.pipe(
+        switchMap(showOriginal => showOriginal ? trail.originalTrackUuid$ : trail.currentTrackUuid$),
+        switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trackUuid) : this.trackService.getFullTrack$(trackUuid, trail.owner))
+      );
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$, this.trail2$ ?? of(null), this.showPhotos$]).pipe(
-        switchMap(([trail1, trail2, showPhotos]) => {
-          if (!trail1 || trail2) {
-            this.photosHavingPosition = undefined;
-            return of([]);
-          }
-          return this.photoService.getTrailPhotos$(trail1).pipe(
-            switchMap(photos => {
-              const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
-              const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
-              if (withDateOnly.length === 0) return of(withPos);
-              return this.getPhotoPositionFromDate(trail1, withDateOnly, dateToPoint).pipe(map(result => [...result, ...withPos]));
-            }),
+      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null), this.showPhotos$]).pipe(
+        switchMap(([trail1, trail2, recording, showPhotos]) =>
+          combineLatest([
+            trail1 ? this.photoService.getTrailPhotos$(trail1) : of([]),
+            trail2 ? this.photoService.getTrailPhotos$(trail2) : of([]),
+            recording ? recording.photos$ as Observable<Photo[]> : of([]),
+          ]).pipe(
+            switchMap(([p1, p2, p3]) => combineLatest([
+              trail1 && p1.length > 0 ? this.getPhotosWithPosition(p1, () => getTrack(trail1), dateToPoint) : of([]),
+              trail2 && p2.length > 0 ? this.getPhotosWithPosition(p2, () => getTrack(trail2), dateToPoint) : of([]),
+              recording && p3.length > 0 ? this.getPhotosWithPosition(p3, () => of(recording.track), dateToPoint) : of([]),
+            ])),
+            map(([p1, p2, p3]) => [...p1, ...p2, ...p3]),
             map(photos => {
               // sort and keep only one if distance is < 15 meters
               const photosWithPoint = photos.sort((p1,p2) => p1.photo.index - p2.photo.index).map(p => ({photos: [p.photo], point: p.point}));
@@ -858,8 +882,8 @@ export class TrailComponent extends AbstractComponent {
               }
               return combineLatest(markers$);
             }),
-          );
-        }),
+          )
+        ),
       ),
       result => {
         if (!this.map) return;
@@ -874,32 +898,31 @@ export class TrailComponent extends AbstractComponent {
     );
   }
 
-  private getPhotoPositionFromDate(trail1: Trail, photos: Photo[], dateToPoint: { trackUuid: string | undefined, cache: Map<number, L.LatLngExpression | null> }) {
-    return this.showOriginal$.pipe(
-      switchMap(showOriginal => showOriginal ? trail1.originalTrackUuid$ : trail1.currentTrackUuid$),
-      switchMap(trackUuid =>
-        trail1.fromModeration ? this.injector.get(ModerationService).getFullTrack$(trail1.uuid, trail1.owner, trackUuid)
-        : this.trackService.getFullTrack$(trackUuid, trail1.owner)
-      ),
-      map(track => {
-        if (!track) return [];
-        if (track.uuid !== dateToPoint.trackUuid) {
-          dateToPoint.trackUuid = track.uuid;
-          dateToPoint.cache.clear();
-        }
-        return photos.map(photo => {
-          const date = photo.dateTaken!;
-          let point: L.LatLngExpression | null | undefined = dateToPoint.cache.get(date);
-          if (point === undefined) {
-            const closest = TrackUtils.findClosestPointForTime(track, date);
-            point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
-            dateToPoint.cache.set(date, point);
-          }
-          return {photo, point};
-        })
-        .filter(p => !!p.point) as {photo: Photo, point: L.LatLngExpression}[];
-      })
-    );
+  private getPhotosWithPosition(photos: Photo[], getTrack: () => Observable<Track | null>, dateToPoint: Map<string, Map<number, L.LatLngExpression | null>>) {
+    const withPos = photos.filter(p => p.latitude !== undefined && p.longitude !== undefined).map(p => ({photo:p, point: {lat: p.latitude!, lng: p.longitude!} as L.LatLngExpression}));
+    const withDateOnly = photos.filter(p => (p.latitude === undefined || p.longitude === undefined) && p.dateTaken !== undefined);
+    if (withDateOnly.length === 0) return of(withPos);
+    return getTrack().pipe(map(track => this.getPhotoPositionFromDate(track, withDateOnly, dateToPoint)), map(result => [...result, ...withPos]));
+  }
+
+  private getPhotoPositionFromDate(track: Track | null, photos: Photo[], dateToPoint: Map<string, Map<number, L.LatLngExpression | null>>) {
+    if (!track) return [];
+    let cache = dateToPoint.get(track.uuid);
+    if (!cache) {
+      cache = new Map<number, L.LatLngExpression | null>();
+      dateToPoint.set(track.uuid, cache);
+    }
+    return photos.map(photo => {
+      const date = photo.dateTaken!;
+      let point: L.LatLngExpression | null | undefined = cache.get(date);
+      if (point === undefined) {
+        const closest = TrackUtils.findClosestPointForTime(track, date);
+        point = closest ? {lat: closest.pos.lat, lng: closest.pos.lng} : null;
+        cache.set(date, point);
+      }
+      return {photo, point};
+    })
+    .filter(p => !!p.point) as {photo: Photo, point: L.LatLngExpression}[];
   }
 
   private createPhotoMarker(point: L.LatLngExpression, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string) {
@@ -930,6 +953,12 @@ export class TrailComponent extends AbstractComponent {
 
   private listenForRecordingUpdates(): void {
     if (!this.recording$) return;
+    this.injector.get(CameraService).canTakePhoto().then(canTakePhoto => {
+      if (canTakePhoto) {
+        this.canTakePhoto = true;
+        this.refreshMapToolbarTop();
+      }
+    });
     const trackChanges$ = this.recording$.pipe(switchMap(r => r ? concat(of(r), r.track.changes$.pipe(map(() => r))) : of(undefined)));
     let previousDistance = 0;
     this.byStateAndVisible.subscribe(
@@ -1118,7 +1147,7 @@ export class TrailComponent extends AbstractComponent {
   }
 
   openPhotos(): void {
-    this.photoService.openPopupForTrail(this.trail1!)
+    this.photoService.openPopupForTrails(this.trailsForPhotoPopup)
     .then(photo => {
       if (photo) this.positionPhotoOnMap(photo);
     });

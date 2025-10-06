@@ -21,6 +21,9 @@ export interface TrailencePlugin {
   getKeepOnScreenLock(call: {}): Promise<{enabled: boolean}>;
 
   getInsets(call: {}): Promise<{top: number, bottom: number, left: number, right: number}>;
+
+  canTakePhoto(call: {}): Promise<{canTakePhoto: boolean}>;
+
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');
