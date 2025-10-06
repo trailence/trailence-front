@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, first, firstValueFrom, map, of, skip, switchMap, takeLast, tap, timeout, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, first, firstValueFrom, from, map, of, skip, switchMap, takeLast, tap, throwError, timeout, timer } from 'rxjs';
 import { TrackDto } from 'src/app/model/dto/track';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { Track } from 'src/app/model/track';
@@ -27,6 +27,11 @@ import { ScreenLockService } from '../screen-lock/screen-lock.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { environment } from 'src/environments/environment';
+import { Photo } from 'src/app/model/photo';
+import { PhotoDto } from 'src/app/model/dto/photo';
+import { PhotoService } from '../database/photo.service';
+import { BinaryContent } from 'src/app/utils/binary-content';
+import { CameraService } from '../camera/camera.service';
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +40,7 @@ export class TraceRecorderService {
 
   private readonly _recording$ = new BehaviorSubject<Recording | null | undefined>(undefined);
   private _db?: Dexie;
-  private _table?: Dexie.Table<RecordingDto, number>;
+  private _table?: Dexie.Table<RecordingDto | {key: string, photo: ArrayBuffer}, string>;
   private _email?: string;
   private _saving = false;
   private _saved = true;
@@ -56,6 +61,8 @@ export class TraceRecorderService {
     private readonly errorService: ErrorService,
     private readonly screenLockService: ScreenLockService,
     private readonly toastController: ToastController,
+    private readonly photoService: PhotoService,
+    private readonly cameraService: CameraService,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -95,10 +102,10 @@ export class TraceRecorderService {
     const storesV1: any = {};
     storesV1['record'] = 'key';
     this._db.version(1).stores(storesV1);
-    this._table = this._db.table<RecordingDto, number>('record');
-    this._table.get(1)
+    this._table = this._db.table<RecordingDto | {key: string, photo: ArrayBuffer}, string>('record');
+    this._table.get('1')
     .then(dto => {
-      const recording = dto ? Recording.fromDto(dto, this.preferencesService) : null;
+      const recording = dto ? Recording.fromDto(dto as RecordingDto, this.preferencesService) : null;
       if (recording) {
         Console.info('Trace in progress found in DB, start it');
         this._recording$.next(recording);
@@ -136,6 +143,7 @@ export class TraceRecorderService {
             false,
             new ImprovmentRecordingState(),
             new RecordingStatus(0, undefined, undefined, undefined),
+            new BehaviorSubject<Photo[]>([]),
             following?.uuid,
             following?.owner,
             following?.currentTrackUuid,
@@ -188,12 +196,12 @@ export class TraceRecorderService {
     Console.info('Recording stopped');
     this._recording$.next(null);
     if (!save) {
-      if (this._table) this._table.delete(1);
+      if (this._table) this._table.clear();
       return of(null);
     }
     if (!this._email) return of(null);
     this.save(recording);
-    const progress = this.progressService.create(this.i18n.texts.trace_recorder.saving, 5);
+    const progress = this.progressService.create(this.i18n.texts.trace_recorder.saving, 5 + recording.photos$.value.length);
     return timer(1).pipe(
       switchMap(() => {
         recording.rawTrack.removeEmptySegments();
@@ -248,6 +256,18 @@ export class TraceRecorderService {
           this.trackService.create(recording.rawTrack, onSaved.add(() => progress.addWorkDone(1)));
           this.trackService.create(recording.track, onSaved.add(() => progress.addWorkDone(1)));
           const trail$ = this.trailService.create(recording.trail, onSaved.add(() => progress.addWorkDone(1)));
+          if (this._table)
+            for (const photo of recording.photos$.value) {
+              const onPhotoDone = onSaved.add(() => progress.addWorkDone(1));
+              this._table.get('photo:' + photo.uuid).then(p => {
+                const content = (p as {key: string, photo: ArrayBuffer}).photo;
+                return firstValueFrom(this.photoService.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover));
+              })
+              .catch(e => Promise.resolve(null))
+              .then(result => {
+                onPhotoDone();
+              });
+            }
           subscriber.next(trail$);
           onSaved.start();
         }).pipe(
@@ -256,7 +276,7 @@ export class TraceRecorderService {
         )
       ),
       defaultIfEmpty(null),
-      tap(() => { if (this._table) this._table.delete(1); }),
+      tap(() => { if (this._table) this._table.clear(); }),
       catchError(e => {
         Console.error('Error saving recorded trail', e);
         this.errorService.addError(e);
@@ -264,6 +284,39 @@ export class TraceRecorderService {
         return of (null);
       }),
     );
+  }
+
+  public takePhoto() {
+    this.cameraService.takePhoto().then(photo => this.addPhoto(photo));
+  }
+
+  public addPhoto(binary: BinaryContent): void {
+    const recording = this._recording$.value;
+    if (!recording || !this._table) return;
+    const photo = new Photo({
+      owner: recording.trail.owner,
+      trailUuid: recording.trail.uuid,
+      dateTaken: Date.now(),
+      index: recording.photos$.value.length + 1,
+    }, false, true);
+    photo.latitude = recording.track.arrivalPoint?.pos.lat;
+    photo.longitude = recording.track.arrivalPoint?.pos.lng;
+    const key = 'photo:' + photo.uuid;
+    binary.toArrayBuffer().
+    then(buffer => this._table?.add({key, photo: buffer}, 'photo:' + photo.uuid))
+    .then(() => recording.photos$.next([...recording.photos$.value, photo]));
+  }
+
+  public deletePhoto(uuid: string) {
+    const recording = this._recording$.value;
+    if (!recording) return;
+    this._table?.delete('photo:' + uuid);
+    recording.photos$.next(recording.photos$.value.filter(p => p.uuid !== uuid));
+  }
+
+  public getPhotoFile$(uuid: string): Observable<Blob> {
+    if (!this._table) return throwError(() => new Error('Trace recorder not loaded'));
+    return from(this._table.get('photo:' + uuid).then(r => r ? Promise.resolve(new Blob([(r as {key: string, photo: ArrayBuffer}).photo], {type: 'image/jpeg'})) : Promise.reject()));
   }
 
   private _geolocationListener?: (position: PointDto) => void;
@@ -305,7 +358,8 @@ export class TraceRecorderService {
         this._changesSubscription = this.ngZone.runOutsideAngular(() =>
           combineLatest([
             concat(of(true), recording.trail.changes$),
-            concat(of(true), recording.track.changes$)
+            concat(of(true), recording.track.changes$),
+            recording.photos$,
           ])
           .pipe(skip(1), debounceTimeExtended(1000, 5000, 25))
           .subscribe(() => this.save(recording))
@@ -514,7 +568,7 @@ export class TraceRecorderService {
       const t = this._table;
       this._saving = true;
       this._saved = true;
-      this._table.put(recording.toDto(), 1).finally(() => {
+      this._table.put(recording.toDto(), '1').finally(() => {
         if (this._table !== t) return;
         this._saving = false;
         if (!this._saved) this.save(recording);
@@ -533,6 +587,7 @@ export class Recording {
     public paused: boolean,
     public state: ImprovmentRecordingState,
     public status: RecordingStatus,
+    public photos$: BehaviorSubject<Photo[]>,
     public followingTrailUuid?: string,
     public followingTrailOwner?: string,
     public followingTrackUuid?: string,
@@ -540,7 +595,7 @@ export class Recording {
 
   toDto(): RecordingDto {
     return {
-      key: 1,
+      key: '1',
       trail: this.trail.toDto(),
       track: this.track.toDto(),
       rawTrack: this.rawTrack.toDto(),
@@ -551,6 +606,7 @@ export class Recording {
         latestDefinitiveImprovedPoint: this.status.latestDefinitiveImprovedPoint === undefined ? undefined : this.track.lastSegment.points.indexOf(this.status.latestDefinitiveImprovedPoint.point),
         temporaryImprovedPoint: this.status.temporaryImprovedPoint === undefined ? undefined : this.track.lastSegment.points.indexOf(this.status.temporaryImprovedPoint.point),
       },
+      photos: this.photos$.value.map(p => p.toDto()),
       followingTrailUuid: this.followingTrailUuid,
       followingTrailOwner: this.followingTrailOwner,
       followingTrackUuid: this.followingTrackUuid,
@@ -572,6 +628,7 @@ export class Recording {
         dto.status.latestDefinitiveImprovedPoint === undefined || improvedTrack.segments.length === 0 ? undefined : this.createRecordingPoint(improvedTrack.lastSegment, dto.status.latestDefinitiveImprovedPoint),
         dto.status.temporaryImprovedPoint === undefined || improvedTrack.segments.length === 0 ? undefined : this.createRecordingPoint(improvedTrack.lastSegment, dto.status.temporaryImprovedPoint),
       ),
+      new BehaviorSubject<Photo[]>(dto.photos ? dto.photos.map(p => new Photo(p, false, true)) : []),
       dto.followingTrailUuid,
       dto.followingTrailOwner,
       dto.followingTrackUuid,
@@ -607,13 +664,14 @@ interface RecordingPoint {
 
 interface RecordingDto {
 
-  key: number;
+  key: string;
   trail: TrailDto;
   track: TrackDto;
   rawTrack: TrackDto;
   paused: boolean;
   state: ImprovmentRecordingStateDto,
   status: RecordingStatusDto,
+  photos: PhotoDto[] | undefined,
   followingTrailUuid: string | undefined;
   followingTrailOwner: string | undefined;
   followingTrackUuid: string | undefined;

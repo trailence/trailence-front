@@ -28,6 +28,7 @@ import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { importPhoto } from './photo-import';
+import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -111,6 +112,8 @@ export class PhotoService {
     }
     if (photo.fromModeration)
       return this.injector.get(ModerationService).getPhotoBlob$(photo.uuid, photo.owner);
+    if (photo.fromRecording)
+      return this.injector.get(TraceRecorderService).getPhotoFile$(photo.uuid);
     return this.injector.get(StoredFilesService).getFile$(photo.owner, 'photo', photo.uuid).pipe(
       catchError(e => {
         const doing = this._retrievingFiles.get(photo.owner + '#' + photo.uuid);
@@ -221,12 +224,12 @@ export class PhotoService {
     this.getPhotosForTrailsReady$(trails.map(t => ({owner: t.owner, uuid: t.uuid}))).subscribe(photos => this.deleteMany(photos, ondone));
   }
 
-  public async openPopupForTrail(trail: Trail): Promise<Photo | null> {
+  public async openPopupForTrails(trails$: Observable<Trail | null>[]): Promise<Photo | null> {
     const module = await import('../../components/photos-popup/photos-popup.component');
     const modal = await this.injector.get(ModalController).create({
       component: module.PhotosPopupComponent,
       componentProps: {
-        trail,
+        trails$,
       },
       cssClass: 'large-modal',
     });

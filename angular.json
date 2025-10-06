@@ -111,6 +111,10 @@
                   "with": "capacitor/services/network/network.service.ts"
                 },
                 {
+                  "replace": "src/app/services/camera/camera.service.ts",
+                  "with": "capacitor/services/camera/camera.service.ts"
+                },
+                {
                   "replace": "src/app/services/platform/platform.service.ts",
                   "with": "capacitor/services/platform/platform.service.ts"
                 },
@@ -149,6 +153,10 @@
                 {
                   "replace": "src/app/services/network/network.service.ts",
                   "with": "capacitor/services/network/network.service.ts"
+                },
+                {
+                  "replace": "src/app/services/camera/camera.service.ts",
+                  "with": "capacitor/services/camera/camera.service.ts"
                 },
                 {
                   "replace": "src/app/services/platform/platform.service.ts",
@@ -191,6 +199,10 @@
                   "with": "capacitor/services/network/network.service.ts"
                 },
                 {
+                  "replace": "src/app/services/camera/camera.service.ts",
+                  "with": "capacitor/services/camera/camera.service.ts"
+                },
+                {
                   "replace": "src/app/services/platform/platform.service.ts",
                   "with": "capacitor/services/platform/platform.service.ts"
                 },
@@ -231,6 +243,10 @@
                   "with": "capacitor/services/network/network.service.ts"
                 },
                 {
+                  "replace": "src/app/services/camera/camera.service.ts",
+                  "with": "capacitor/services/camera/camera.service.ts"
+                },
+                {
                   "replace": "src/app/services/platform/platform.service.ts",
                   "with": "capacitor/services/platform/platform.service.ts"
                 },
@@ -269,6 +285,10 @@
                 {
                   "replace": "src/app/services/network/network.service.ts",
                   "with": "capacitor/services/network/network.service.ts"
+                },
+                {
+                  "replace": "src/app/services/camera/camera.service.ts",
+                  "with": "capacitor/services/camera/camera.service.ts"
                 },
                 {
                   "replace": "src/app/services/platform/platform.service.ts",

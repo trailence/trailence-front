@@ -16,6 +16,7 @@ export const ICONS: string[] = [
   'browser-firefox',
   'browser-edge',
   'bubbles',
+  'camera',
   'car',
   'carabiner',
   'caret-back',

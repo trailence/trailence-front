@@ -275,6 +275,8 @@
       },
       "no_tag_message": "Aucun tag sur ce parcours",
       "no_photo_message": "Aucune photo sur ce parcours",
+      "photo_no_description": "Description",
+      "take_photo": "Prendre une photo",
       "comparison_message": "Ces parcours sont similaires à {{1}}%",
       "sections": {
         "description": {

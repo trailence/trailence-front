@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInstaller;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -342,5 +343,10 @@ public class TrailencePlugin extends Plugin {
       Logger.error("Error getting insets", e);
       return Insets.of(0, 0, 0, 0);
     }
+  }
+
+  @PluginMethod
+  public void canTakePhoto(PluginCall call) {
+    call.resolve(new JSObject().put("canTakePhoto", getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)));
   }
 }
