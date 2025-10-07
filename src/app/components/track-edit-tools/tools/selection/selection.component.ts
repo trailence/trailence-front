@@ -125,7 +125,8 @@ export class SelectionComponent implements OnInit, OnDestroy {
 
   // elevation
 
-  elevationInputValue(meters: number): string {
+  elevationInputValue(meters?: number): string {
+    if (meters === undefined) return '';
     let e = this.i18n.elevationInUserUnit(meters).toFixed(6);
     while (e.endsWith('0')) e = e.substring(0, e.length - 1);
     if (e.charAt(e.length - 1) < '0' || e.charAt(e.length - 1) > '9') e = e.substring(0, e.length - 1);

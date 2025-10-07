@@ -208,7 +208,7 @@ export class TrailComponent extends AbstractComponent {
       .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
       .setAction(() => this.downloadMap()),
     new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure')
-      .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
+      .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true && !this.recording)
       .setAction(() => this.goToDeparture()),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
       .setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
@@ -257,6 +257,7 @@ export class TrailComponent extends AbstractComponent {
       )
       .setTextColor('danger')
       .setAction(() => this.deletePublication()),
+    new MenuItem(),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
       .setVisible(() => !!this.recording && this.recording.paused)
       .setAction(() => this.togglePauseRecordingWithoutConfirmation()),

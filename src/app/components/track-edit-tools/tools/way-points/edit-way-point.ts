@@ -31,16 +31,31 @@ export class EditWayPointTool implements TrackEditTool {
   execute(ctx: TrackEditToolContext) {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return;
-    const point = ctx.selection.getSinglePointOf(currentTrack);
+    let point = ctx.selection.getSinglePointOf(currentTrack);
     const wayPoint = ctx.selection.selectedWayPoint$.value;
     if (!point && !wayPoint) return;
-    ctx.modifyTrack(true, track => {
-      let w = wayPoint ? track.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(track, point!.point.pos);
+    ctx.modifyTrack(false, track => {
+      let w: WayPoint | undefined;
+      if (wayPoint) {
+        const index = currentTrack.wayPoints.indexOf(wayPoint);
+        if (index >= 0) {
+          w = track.wayPoints[index];
+        }
+      }
+      if (!w && point) w = TrackUtils.getWayPointAt(track, point.point.pos);
       let isNew = false;
       if (!w && point) {
         if ((point.pointIndex === 0 && point.segmentIndex === 0) || (point.segmentIndex === track.segments.length - 1 && point.pointIndex === track.segments[point.segmentIndex].points.length - 1)) {
           // departure or arrival point
           w = new WayPoint(point.point, '', '');
+          isNew = true;
+        }
+      }
+      if (!w && wayPoint) {
+        if ((wayPoint.point.pos.lat === track.departurePoint?.pos.lat && wayPoint.point.pos.lng === track.departurePoint?.pos.lng) ||
+            (wayPoint.point.pos.lat === track.arrivalPoint?.pos.lat && wayPoint.point.pos.lng === track.arrivalPoint?.pos.lng)) {
+          // departure or arrival point
+          w = new WayPoint(wayPoint.point, '', '');
           isNew = true;
         }
       }
