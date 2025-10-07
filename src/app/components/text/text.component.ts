@@ -61,6 +61,9 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
   @Input() translations?: {[key: string]: string};
   @Input() placeholder?: string;
 
+  @Input() maxTextLength = 400;
+  @Input() minTextEllipsis = 350;
+
   html = '';
   translatedFrom?: string;
   showOriginal = false;
@@ -121,12 +124,12 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
       }
       i++;
     }
-    if (text.length > 350) {
+    if (text.length > this.maxTextLength) {
       this.hasMore = true;
       if (!this.showFull) {
-        let pos = 350;
+        let pos = this.minTextEllipsis;
         do {
-          const previousOpen = text.lastIndexOf('<', 350);
+          const previousOpen = text.lastIndexOf('<', this.minTextEllipsis);
           if (previousOpen >= 0) {
             const nextClose = text.indexOf('>', previousOpen);
             if (nextClose >= pos) {
@@ -138,9 +141,9 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
           if (isLetter && !text.charAt(pos - 1).match(/[a-z]/i)) {
             break;
           }
-          if (isLetter) while (text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < 380);
-          while (!text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < 380);
-        } while (pos < text.length && pos < 380);
+          if (isLetter) while (text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < this.maxTextLength);
+          while (!text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < this.maxTextLength);
+        } while (pos < text.length && pos < this.maxTextLength);
         text = text.substring(0, pos) + ' [...]';
       }
     } else {

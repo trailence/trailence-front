@@ -49,6 +49,7 @@ export class MenuItem {
   public customContentSelector?: string;
   public selected: Attribute<boolean>;
   public action?: () => void;
+  public data?: any;
 
   public setIcon(icon: Attribute<string>): this {
     this.icon = icon;
@@ -67,6 +68,11 @@ export class MenuItem {
 
   public setAction(action?: () => void): this {
     this.action = action;
+    return this;
+  }
+
+  public setData(data?: any): this {
+    this.data = data;
     return this;
   }
 

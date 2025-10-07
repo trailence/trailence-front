@@ -55,6 +55,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'filters': 'filters.1.svg', // funnel-outline
   'half-loop': 'half-loop.1.svg',
   'heart-outline': 'heart-outline.1.svg', // heart-outline
+  'help-circle': 'help-circle.1.svg', // help-circle-outline
   'highest-point': 'highest-point.1.svg',
   'hiking': 'hiking.1.svg',
   'horse-riding': 'horse-riding.1.svg',

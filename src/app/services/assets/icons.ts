@@ -60,6 +60,7 @@ export const ICONS: string[] = [
   'filters',
   'half-loop',
   'heart-outline',
+  'help-circle',
   'highest-point',
   'hiking',
   'horse-riding',

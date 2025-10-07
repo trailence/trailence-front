@@ -1338,5 +1338,11 @@
     "us": "USA"
   },
   "show_more": "Voir plus",
-  "show_less": "Voir moins"
+  "show_less": "Voir moins",
+  "help": {
+    "contextual": {
+      "original_trace": "La trace originale est la trace brute, telle que enregistrée par le GPS ou importée depuis un fichier.<p>Lorsque vous modifiez une trace, la trace d'origine est toujours conservée, ce qui permet de repartir à tout moment de la trace d'origine, qui sert de référence.</p><p>Même si vous n'avez pas modifié la trace manuellement, Trailence applique automatiquement des améliorations afin de gommer les imperfections du GPS.</p>",
+      "estimated_duration": "La durée estimée est calculée à partir d'une vitesse de base sur du plat, puis pondérée en fonction du dénivelé, de la durée, et en tenant compte de petites pauses régulières (de 2 à 3 minutes toutes les heures environ).<p>Par défaut, la vistesse de base est de 5 km/h, ce qui correspond à la vitesse moyenne d'un randonneur. Vous pouvez modifier cette vitesse dans vos préférences.</p>"
+    }
+  }
 }

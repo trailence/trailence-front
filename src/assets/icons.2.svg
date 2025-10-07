@@ -162,6 +162,7 @@
 </g>
 </svg></icon>
 <icon names="heart-outline"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M352.92 80C288 80 256 144 256 144s-32-64-96.92-64c-52.76 0-94.54 44.14-95.08 96.81-1.1 109.33 86.73 187.08 183 252.42a16 16 0 0018 0c96.26-65.34 184.09-143.09 183-252.42-.54-52.67-42.32-96.81-95.08-96.81z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/></svg></icon>
+<icon names="help-circle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="ionicon"><path d="M256 80a176 176 0 1 0 176 176A176 176 0 0 0 256 80Z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32px"/><path d="M200 202.29s.84-17.5 19.57-32.57C230.68 160.77 244 158.18 256 158c10.93-.14 20.69 1.67 26.53 4.45 10 4.76 29.47 16.38 29.47 41.09 0 26-17 37.81-36.37 50.8S251 281.43 251 296" fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="28px"/><circle cx="250" cy="348" r="20"/></svg></icon>
 <icon names="highest-point"><svg width="64px" height="64px" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M8 56L22 30L28 40L43 8L56 56Z" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="43" cy="8" r="7" stroke="currentColor" fill="currentColor" />

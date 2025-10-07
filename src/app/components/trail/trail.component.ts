@@ -63,6 +63,7 @@ import { FormsModule } from '@angular/forms';
 import { TrailTranslations } from './trail-translations';
 import { ModerationTranslationsComponent } from './moderation-translations/moderation-translations.component';
 import { ObjectUtils } from 'src/app/utils/object-utils';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 
 interface TrailSource {
   isExternal: boolean;
@@ -102,6 +103,7 @@ interface TrailSource {
         RateAndCommentsComponent,
         TextComponent,
         ModerationTranslationsComponent,
+        TooltipDirective,
     ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -127,6 +129,8 @@ export class TrailComponent extends AbstractComponent {
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   wayPoints: ComputedWayPoint[] = [];
   wayPointsTrack: Track | undefined;
+  wayPointDepartureAndArrival?: ComputedWayPoint;
+  wayPointsImages: string[] = [];
   hasBreaks = false;
   tagsNames1: string[] | undefined;
   tagsNames2: string[] | undefined;
@@ -196,6 +200,7 @@ export class TrailComponent extends AbstractComponent {
 
   toolsStack?: TrackEditToolsStack;
   toolsEnabled = false;
+  @ViewChild('editTools') editTools?: TrackEditToolsComponent;
 
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
   toolbarItems: MenuItem[] = [
@@ -732,6 +737,18 @@ export class TrailComponent extends AbstractComponent {
         if (this._highlightedWayPoint) this.unhighlightWayPoint(this._highlightedWayPoint, true);
         this.wayPoints = wayPoints;
         this.hasBreaks = !!wayPoints.find(wp => wp.breakPoint);
+        this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.isDeparture && wp.isArrival);
+        this.wayPointsImages = this.wayPoints.map(wp => {
+          if (wp.isDeparture)
+            return MapAnchor.createDataIcon(anchorDepartureBorderColor, this.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
+          if (wp.breakPoint)
+            return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
+          if (wp.isArrival)
+            return MapAnchor.createDataIcon(anchorArrivalBorderColor, this.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
+          return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
+        });
+        if (this.wayPointDepartureAndArrival)
+          this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, this.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
         this.refreshMapToolbarRight();
       }, true
     );
@@ -1295,20 +1312,6 @@ export class TrailComponent extends AbstractComponent {
     this.changesDetector.detectChanges();
   }
 
-  getDepartureAndArrival(waypoints: ComputedWayPoint[]): ComputedWayPoint | undefined {
-    return waypoints.find(wp => wp.isDeparture && wp.isArrival);
-  }
-
-  waypointImg(wp: ComputedWayPoint, isArrival: boolean): string {
-    if (isArrival)
-      return MapAnchor.createDataIcon(anchorArrivalBorderColor, this.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
-    if (wp.isDeparture)
-      return MapAnchor.createDataIcon(anchorDepartureBorderColor, this.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
-    if (wp.breakPoint)
-      return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
-    return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
-  }
-
   _highlightedWayPoint?: ComputedWayPoint;
   private _highlightedWayPointFromClick = false;
 
@@ -1388,17 +1391,23 @@ export class TrailComponent extends AbstractComponent {
     if (this.toolsEnabled) return;
     if (this.showOriginal$.value) this.showOriginal$.next(false);
     this.toolsEnabled = true;
-    this.mapToolbarTopRight?.refresh();
-    this.toolbar?.refresh();
     this.changesDetector.detectChanges();
+    setTimeout(() => {
+      this.mapToolbarTopRight?.refresh();
+      this.toolbar?.refresh();
+      this.changesDetector.detectChanges();
+    }, 0);
   }
 
   public disableEditTools() {
     if (!this.toolsEnabled) return;
     this.toolsEnabled = false;
-    this.mapToolbarTopRight?.refresh();
-    this.toolbar?.refresh();
     this.changesDetector.detectChanges();
+    setTimeout(() => {
+      this.mapToolbarTopRight?.refresh();
+      this.toolbar?.refresh();
+      this.changesDetector.detectChanges();
+    }, 0);
   }
 
   setToolsStack(stack: TrackEditToolsStack | undefined): void {

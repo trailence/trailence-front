@@ -48,6 +48,7 @@ import { AddOsmPath } from './tools/path/manual/add-osm-path';
 import { MapComponent } from '../map/map.component';
 import { ArrivalToStart } from './tools/path/arrival-to-start';
 import { MoveWayPointTool } from './tools/way-points/move-way-point';
+import { WayPoint } from 'src/app/model/way-point';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -90,6 +91,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         tool.execute(this.context);
       })
       .setVisible(() => tool.isAvailable(this.context))
+      .setData(tool)
       ;
   }
   interactiveToolsMarkerStart = new MenuItem();
@@ -505,6 +507,29 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         );
       }),
     );
+  }
+
+  private findToolInItems(items: MenuItem[], predicate: (item: MenuItem) => boolean): MenuItem | undefined {
+    for (const item of items) {
+      if (predicate(item)) return item;
+      if (item.children) {
+        const child = this.findToolInItems(item.children, predicate);
+        if (child) return child;
+      }
+    }
+    return undefined;
+  }
+
+  public editWayPoint(wp: WayPoint): void {
+    const tool = this.findToolInItems(this.toolsItems, item => item.data instanceof EditWayPointTool);
+    if (!tool) return;
+    (tool.data as EditWayPointTool).launchEdit(wp, this.context);
+  }
+
+  public removeWayPoint(wp: WayPoint): void {
+    const tool = this.findToolInItems(this.toolsItems, item => item.data instanceof RemoveWayPointTool);
+    if (!tool) return;
+    (tool.data as RemoveWayPointTool).launchRemove(wp, this.context);
   }
 
   public saving = false;

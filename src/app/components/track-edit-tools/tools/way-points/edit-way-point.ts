@@ -23,6 +23,11 @@ export class EditWayPointTool implements TrackEditTool {
       (point.segmentIndex === currentTrack.segments.length - 1 && point.pointIndex === currentTrack.segments[point.segmentIndex].points.length - 1);
   }
 
+  public launchEdit(wp: WayPoint, ctx: TrackEditToolContext): void {
+    ctx.selection.selectedWayPoint$.next(wp);
+    this.execute(ctx);
+  }
+
   execute(ctx: TrackEditToolContext) {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return;

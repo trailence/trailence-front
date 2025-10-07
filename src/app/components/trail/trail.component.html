@@ -30,7 +30,7 @@
       <div class="map-top-controls center">
         @if (trail1 && !trail2) {
           @if (toolsEnabled && !recording) {
-            <app-track-edit-tools
+            <app-track-edit-tools #editTools
               [trail]="trail1"
               [selection]="selection"
               [originalTrack$]="toolsOriginalTrack$"
@@ -390,7 +390,10 @@
 
         @if (!toolsEnabled && (trail1?.originalTrackUuid !== trail1?.currentTrackUuid || trail2?.originalTrackUuid !== trail2?.currentTrackUuid)) {
           <div class="show-original">
-            <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_original}}</ion-checkbox>
+            <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">
+              <span>{{i18n.texts.pages.trail.show_original}}</span>
+              <ion-icon name="help-circle" [appTooltip]="i18n.texts.help.contextual.original_trace" style="width: 20px; height: 20px; margin-left: 8px; margin-bottom: -4px"></ion-icon>
+            </ion-checkbox>
           </div>
         }
       }
@@ -439,20 +442,20 @@
             <ion-checkbox labelPlacement="end" [checked]="showBreaks$.value" (ionChange)="showBreaks$.next($event.detail.checked)">{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
           </div>
         }
-        <ng-container *ngFor="let wp of wayPoints">
-          <ng-container *ngIf="!wp.breakPoint || showBreaks$.value">
-            <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture}"></ng-container>
-          </ng-container>
-        </ng-container>
-        <ng-container *ngIf="getDepartureAndArrival(wayPoints) as arrival">
-          <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: arrival, isArrival: true}"></ng-container>
-        </ng-container>
-        <ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival">
+        @for (wp of wayPoints; track $index) {
+          @if (!wp.breakPoint || showBreaks$.value) {
+            <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture, imgIndex: $index}"></ng-container>
+          }
+        }
+        @if (wayPointDepartureAndArrival) {
+          <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wayPointDepartureAndArrival, isArrival: true, imgIndex: wayPoints.length}"></ng-container>
+        }
+        <ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival" let-imgIndex="imgIndex">
           <div class="waypoint" (mouseover)="highlightWayPoint(wp, false)" (mouseenter)="highlightWayPoint(wp, false)" (mouseleave)="unhighlightWayPoint(wp, false)" (click)="toogleHighlightWayPoint(wp)" [ngClass]="{'highlighted': _highlightedWayPoint === wp}">
-            <div class="waypoint-anchor">
-              <img [src]="waypointImg(wp, arrival)" width="40" height="40">
-            </div>
-            <div class="waypoint-content">
+            <div class="waypoint-header">
+              <div class="waypoint-anchor">
+                <img [src]="wayPointsImages[imgIndex]" width="40" height="40">
+              </div>
               <div class="waypoint-info-section">
                 <div class="waypoint-info">
                   <div class="waypoint-info-title">{{i18n.texts.way_points.position}}</div>
@@ -475,6 +478,20 @@
                   <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
                 </div>
               </div>
+              @if (editTools && !wp.breakPoint) {
+                <div class="waypoint-actions">
+                  @if (!wp.isDeparture && !wp.isArrival) {
+                    <ion-button fill="clear" shape="round" size="small" color="danger" (click)="$event.preventDefault(); $event.stopPropagation(); editTools.removeWayPoint(wp.wayPoint);">
+                      <ion-icon slot="icon-only" name="trash"></ion-icon>
+                    </ion-button>
+                  }
+                  <ion-button fill="clear" shape="round" size="small" color="secondary" (click)="$event.preventDefault(); $event.stopPropagation(); editTools.editWayPoint(wp.wayPoint);">
+                    <ion-icon slot="icon-only" name="edit"></ion-icon>
+                  </ion-button>
+                </div>
+              }
+            </div>
+            <div class="waypoint-content">
               <div class="waypoint-name" *ngIf="!wp.breakPoint && !arrival">
                 <app-text [text]="wp.wayPoint.name" [lang]="source?.info?.lang" [translations]="wp.wayPoint.nameTranslations"></app-text>
               </div>

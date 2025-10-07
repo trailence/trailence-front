@@ -139,3 +139,15 @@ ion-button a, a.inherit {
 a[long-press] {
   -webkit-touch-callout: none;
 }
+
+div.app-tooltip {
+  position: fixed;
+  padding: 6px;
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 5px;
+  background-color: var(--ion-background-color-step-100, --ion-background-color);
+  pointer-events: none;
+  max-width: calc(min(300px, 80vw));
+  font-size: 14px;
+  box-shadow: 1px 1px 8px 0 rgba(0, 0, 0, 0.75);
+}

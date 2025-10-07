@@ -1,6 +1,7 @@
 import { of } from 'rxjs';
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { TrackUtils } from 'src/app/utils/track-utils';
+import { WayPoint } from 'src/app/model/way-point';
 
 export class RemoveWayPointTool implements TrackEditTool {
 
@@ -22,6 +23,11 @@ export class RemoveWayPointTool implements TrackEditTool {
     return TrackUtils.getWayPointAt(ctx.currentTrack$.value, point.point.pos) !== undefined;
   }
 
+  public launchRemove(wp: WayPoint, ctx: TrackEditToolContext) {
+    ctx.selection.selectedWayPoint$.next(wp);
+    this.execute(ctx);
+  }
+
   execute(ctx: TrackEditToolContext) {
     const currentTrack = ctx.currentTrack$.value;
     if (!currentTrack) return;
@@ -30,7 +36,10 @@ export class RemoveWayPointTool implements TrackEditTool {
     if (!point && !wayPoint) return;
     ctx.modifyTrack(true, track => {
       const w = wayPoint ? track.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(track, point!.point.pos);
-      if (w) track.removeWayPoint(w);
+      if (w) {
+        track.removeWayPoint(w);
+        ctx.selection.selectedWayPoint$.next(undefined);
+      }
       return of(true);
     }).subscribe(() => ctx.refreshTools());
   }

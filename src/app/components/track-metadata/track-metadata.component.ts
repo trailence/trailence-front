@@ -8,6 +8,8 @@ import { AssetsService } from 'src/app/services/assets/assets.service';
 import { Resubscribeables } from 'src/app/utils/rxjs/subscription-utils';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { addTooltip } from '../tooltip/tooltip.directive';
+import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 
 class Meta {
   distanceValue?: number = undefined;
@@ -36,15 +38,15 @@ class Meta {
 
 class Titles {
   constructor(
-    public durationTitle: HTMLDivElement,
-    public breaksDurationTitle: HTMLDivElement | undefined,
-    public estimatedDurationTitle: HTMLDivElement | undefined,
-    public distanceTitle: HTMLDivElement,
-    public speedTitle: HTMLDivElement | undefined,
-    public positiveElevationTitle: HTMLDivElement,
-    public negativeElevationTitle: HTMLDivElement,
-    public highestAltitudeTitle: HTMLDivElement | undefined,
-    public lowestAltitudeTitle: HTMLDivElement | undefined,
+    public durationTitle: HTMLElement,
+    public breaksDurationTitle: HTMLElement | undefined,
+    public estimatedDurationTitle: HTMLElement | undefined,
+    public distanceTitle: HTMLElement,
+    public speedTitle: HTMLElement | undefined,
+    public positiveElevationTitle: HTMLElement,
+    public negativeElevationTitle: HTMLElement,
+    public highestAltitudeTitle: HTMLElement | undefined,
+    public lowestAltitudeTitle: HTMLElement | undefined,
   ) {}
 }
 
@@ -111,6 +113,19 @@ export class TrackMetadataComponent extends AbstractComponent {
         const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, config.mayHave2Values, false);
         const breaksDuration = config.showBreaksDuration ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
         const estimatedDuration = !config.mergeDurationAndEstimated ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
+        if (estimatedDuration[2]) {
+          const titleDiv = estimatedDuration[2];
+          const titleText = document.createElement('SPAN');
+          titleDiv.appendChild(titleText);
+          estimatedDuration[2] = titleText;
+          const iconContainer = document.createElement('DIV');
+          iconContainer.className = 'contextual-help';
+          titleDiv.appendChild(iconContainer);
+          assets.getIcon('help-circle').subscribe(svg => {
+            iconContainer.appendChild(svg);
+            addTooltip(iconContainer, new TranslatedString('help.contextual.estimated_duration'), i18n, whenVisible);
+          });
+        }
         let empty: HTMLDivElement | undefined = undefined;
         if (config.showSpeed) {
           // empty slot
@@ -148,7 +163,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     });
   }
 
-  private static createItemElement(parent: HTMLElement, insertBefore: HTMLElement | undefined, icon: string, assets: AssetsService, mayHave2Values: boolean, small: boolean): [HTMLDivElement, HTMLDivElement | undefined, HTMLDivElement] {
+  private static createItemElement(parent: HTMLElement, insertBefore: HTMLElement | undefined, icon: string, assets: AssetsService, mayHave2Values: boolean, small: boolean): [HTMLDivElement, HTMLDivElement | undefined, HTMLElement] {
     const container = document.createElement('DIV');
     container.className = 'metadata-item-container' + (small ? ' metadata-content-small' : '');
 

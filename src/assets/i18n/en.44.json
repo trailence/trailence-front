@@ -1338,5 +1338,11 @@
     "us": "USA"
   },
   "show_more": "Show more",
-  "show_less": "Show less"
+  "show_less": "Show less",
+  "help": {
+    "contextual": {
+      "original_trace": "The original track is the raw track, exactly as recorded by the GPS or imported from a file.<p>When you edit the track, the original version is always preserved, allowing you to revert to it at any time — it serves as the reference track.</p><p>Even if you haven’t manually edited the track, Trailence automatically applies improvements to correct GPS inaccuracies.</p>",
+      "estimated_duration": "The estimated duration is calculated based on a base speed on flat terrain, then adjusted according to elevation gain, total duration, and taking into account short regular breaks (about 2–3 minutes every hour).<p>By default, the base speed is set to 5 km/h, which corresponds to the average speed of a hiker. You can change this value in your preferences.</p>"
+    }
+  }
 }

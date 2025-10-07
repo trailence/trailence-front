@@ -63,6 +63,18 @@
             font-size: 11px;
             color: var(--ion-color-secondary);
             margin-bottom: 3px;
+            white-space: nowrap;
+
+            div.contextual-help {
+              display: inline-block;
+              margin-left: 4px;
+              ion-icon, svg {
+                width: 16px;
+                height: 16px;
+                margin-top: 0;
+                margin-bottom: -4px;
+              }
+            }
           }
         }
       }
@@ -108,10 +120,10 @@
 
     .metadata-item-container {
       display: inline-block;
-      min-width: 100px;
-      max-width: 100px;
+      min-width: 60px;
       min-height: 75px;
       max-height: 75px;
+      margin: 0 3px;
       &.empty {
         display: none;
       }
@@ -168,13 +180,26 @@
           .metadata-content {
             .metadata-title {
               display: block;
-              position: absolute;
-              top: 0;
+              position: relative;
+              top: -38px;
               left: 0;
               right: 0;
+              height: 0;
               text-align: center;
               color: var(--ion-color-secondary);
               font-size: 11px;
+              white-space: nowrap;
+
+              div.contextual-help {
+                display: inline-block;
+                margin-left: 4px;
+                ion-icon, svg {
+                  width: 16px;
+                  height: 16px;
+                  margin-top: 0;
+                  margin-bottom: -6px;
+                }
+              }
             }
           }
         }
