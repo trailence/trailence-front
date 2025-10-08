@@ -1,9 +1,9 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TrailsWaypoints, TrailWaypoints } from '../trail-waypoints';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TextComponent } from '../../text/text.component';
-import { IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
+import { IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { ComputedWayPoint } from 'src/app/model/track';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
@@ -33,6 +33,8 @@ export class WaypointsComponent implements OnInit, OnDestroy {
   constructor(
     public readonly i18n: I18nService,
     private readonly changesDetector: ChangeDetectorRef,
+    private readonly modalController: ModalController,
+    private readonly alertController: AlertController,
   ) {}
 
   private subscription?: Subscription;
@@ -68,6 +70,54 @@ export class WaypointsComponent implements OnInit, OnDestroy {
       this.selectedTrailIndex = index;
       this.selectedTrail = this.trails.trails[index];
       this.changesDetector.detectChanges();
+    }
+  }
+
+  removeWaypoint(wp: ComputedWayPoint): void {
+    if (this.editTools) {
+      this.editTools.removeWayPoint(wp.wayPoint);
+    } else {
+      this.alertController.create({
+        header: this.i18n.texts.track_edit_tools.tools.way_points.remove_waypoint,
+        message: this.i18n.texts.track_edit_tools.tools.way_points.remove_waypoint_confirmation,
+        buttons: [
+          {
+            text: this.i18n.texts.buttons.confirm,
+            role: 'danger',
+            handler: () => {
+              this.alertController.dismiss();
+              this.selectedTrail?.track.removeWayPoint(wp.wayPoint);
+            }
+          }, {
+            text: this.i18n.texts.buttons.cancel,
+            role: 'cancel'
+          }
+        ]
+      }).then(a => a.present());
+    }
+  }
+
+  editWaypoint(wp: ComputedWayPoint): void {
+    if (this.editTools) {
+      this.editTools.editWayPoint(wp.wayPoint);
+    } else {
+      import('../../track-edit-tools/tools/way-points/way-point-edit/way-point-edit.component')
+      .then(module => this.modalController.create({
+        component: module.WayPointEditModal,
+        componentProps: {
+          wayPoint: wp.wayPoint,
+          isNew: false,
+        }
+      }))
+      .then(modal => {
+        modal.onDidDismiss().then(result => {
+          if (result.role === 'ok' && wp.isComputedOnly) {
+            this.selectedTrail?.track.appendWayPoint(wp.wayPoint);
+          }
+          this.changesDetector.detectChanges();
+        });
+        modal.present();
+      });
     }
   }
 

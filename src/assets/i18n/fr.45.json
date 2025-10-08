@@ -1236,7 +1236,8 @@
         "popup": {
           "title": "Étape"
         },
-        "select_new_position": "Sélectionnez la nouvelle position"
+        "select_new_position": "Sélectionnez la nouvelle position",
+        "remove_waypoint_confirmation": "Confirmez-vous la suppression de l'étape ?"
       },
       "set_elevation_on_range": {
         "with_start": "En utilisant celle du premier point sélectionné",

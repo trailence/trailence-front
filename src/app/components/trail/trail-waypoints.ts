@@ -160,7 +160,7 @@ export class TrailWaypoints {
             return MapAnchor.createDataIcon(anchorDepartureBorderColor, trails.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
           if (wp.breakPoint)
             return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
-          if (wp.isArrival)
+          if (wp.isArrival && (!recording || wp.isComputedOnly))
             return MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
           return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
         });

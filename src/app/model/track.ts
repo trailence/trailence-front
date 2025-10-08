@@ -49,7 +49,7 @@ export class Track extends Owned {
         switchMap(segments => segments.length === 0 ? of([]) : combineLatest(segments.map(s => concat(of([]), s.changes$)))),
       ),
       this.wayPoints$.pipe(
-        switchMap(wayPoints => wayPoints.length === 0 ? of([]) : combineLatest(wayPoints.map(wp => concat(of([], wp.changes$))))),
+        switchMap(wayPoints => wayPoints.length === 0 ? of([]) : combineLatest(wayPoints.map(wp => concat(of([]), wp.changes$)))),
       )
     ]).pipe(
       skip(1)
@@ -58,7 +58,7 @@ export class Track extends Owned {
 
   private readonly _computedWayPoints$ = new BehaviorSubjectOnDemand<ComputedWayPoint[]>(
     () => ComputedWayPoint.compute(this, this.preferencesService.preferences),
-    this.changes$.pipe(debounceTime(250)) // invalide on changes
+    this.changes$.pipe(debounceTime(250)) // invalidate on changes
   );
 
   public get computedWayPoints$(): Observable<ComputedWayPoint[]> {
@@ -467,7 +467,8 @@ export class ComputedWayPoint {
     private _index: number,
     private readonly _nearestSegmentIndex: number | undefined,
     private readonly _nearestPointIndex: number | undefined,
-    track: Track
+    track: Track,
+    public readonly isComputedOnly: boolean,
   ) {
     const hasDuration = track.metadata.duration !== undefined;
     if (_nearestSegmentIndex !== undefined) {
@@ -518,10 +519,10 @@ export class ComputedWayPoint {
       // just departure / arrival
       const result = [new ComputedWayPoint(
         new WayPoint(track.departurePoint, '', ''),
-        true, false, undefined, -1, 0, 0, track
+        true, false, undefined, -1, 0, 0, track, true
       )];
       this.addBreaks(track, preferences, result);
-      if (track.arrivalPoint!.distanceTo(track.departurePoint.pos) <= 25 && track.metadata.distance > 25) {
+      if (track.arrivalPoint!.distanceTo(track.departurePoint.pos) === 0 || (track.arrivalPoint!.distanceTo(track.departurePoint.pos) <= 25 && track.metadata.distance > 25)) {
         result[0]._isArrival = true;
         return result;
       }
@@ -535,7 +536,7 @@ export class ComputedWayPoint {
           new WayPoint(track.arrivalPoint!, '', ''),
           false, true, undefined, -1,
           segmentIndex, track.segments[segmentIndex].points.length - 1,
-          track
+          track, true
         ));
       }
       return result;
@@ -559,7 +560,7 @@ export class ComputedWayPoint {
     const computed: ComputedWayPoint[] = [];
     for (let i = 0; i < eligibles.length; ++i) {
       const eligible = eligibles[i].length > 0 ? eligibles[i][0] : undefined;
-      computed.push(new ComputedWayPoint(wayPoints[i], false, false, undefined, -1, eligible?.segmentIndex, eligible?.pointIndex, track));
+      computed.push(new ComputedWayPoint(wayPoints[i], false, false, undefined, -1, eligible?.segmentIndex, eligible?.pointIndex, track, false));
     }
     // add breaks
     this.addBreaks(track, preferences, computed);
@@ -618,7 +619,7 @@ export class ComputedWayPoint {
         departure = new ComputedWayPoint(
           new WayPoint(track.departurePoint, '', ''),
           true, !arrival && track.departurePoint.distanceTo(track.arrivalPoint!.pos) <= 25,
-          undefined, -1, 0, 0, track
+          undefined, -1, 0, 0, track, true
         );
         computed.splice(0, 0, departure);
         if (departure._isArrival) arrival = departure;
@@ -632,7 +633,7 @@ export class ComputedWayPoint {
           new WayPoint(track.arrivalPoint!, '', ''),
           false, true, undefined, -1,
           track.segments.length - 1, track.segments[track.segments.length - 1].points.length - 1,
-          track
+          track, true
         );
         computed.push(arrival);
       }
@@ -640,7 +641,7 @@ export class ComputedWayPoint {
     // add index
     let index = 1;
     for (const c of computed) {
-      if (!c.isDeparture && !c.isArrival && !c.breakPoint) c._index = index++;
+      if (!c.isDeparture && (!c.isArrival || !c.isComputedOnly) && !c.breakPoint) c._index = index++;
     }
     return computed;
   }
@@ -805,7 +806,7 @@ export class ComputedWayPoint {
           duration
         },
         -1, b.segmentIndex, b.pointIndex,
-        track
+        track, true
       ));
     }
     let previous: Segment | undefined;
@@ -829,7 +830,7 @@ export class ComputedWayPoint {
               duration
             },
             -1, previousIndex, previous.points.length - 1,
-            track
+            track, true
           ));
           result.push(new ComputedWayPoint(
             new WayPoint(segment.departurePoint!, '', ''),
@@ -842,7 +843,7 @@ export class ComputedWayPoint {
               duration
             },
             -1, si, 0,
-            track
+            track, true
           ));
         } else {
           result.push(new ComputedWayPoint(
@@ -856,7 +857,7 @@ export class ComputedWayPoint {
               duration
             },
             -1, si, 0,
-            track
+            track, true
           ));
         }
       }

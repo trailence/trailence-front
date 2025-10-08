@@ -47,7 +47,7 @@ app-toolbar {
       padding-top: var(--item-padding-top, '0');
       padding-bottom: var(--item-padding-bottom, '0');
       min-width: var(--item-min-width, var(--item-fixed-width, ''));
-      &:not(.section-title) {
+      &:not(.section-title), &.section-title.small-section-title {
         max-width: var(--item-max-width, var(--item-fixed-width, ''));
       }
       position: relative;
@@ -133,7 +133,7 @@ app-toolbar {
       padding-left: calc(var(--item-padding-left, '0') / var(--small-size-divider, 2));
       padding-right: calc(var(--item-padding-right, '0') / var(--small-size-divider, 2));
       min-width: var(--item-min-width-small, var(--item-min-width, var(--item-fixed-width, '')));
-      &:not(.section-title) {
+      &:not(.section-title), &.section-title.small-section-title {
         max-width: var(--item-max-width-small, var(--item-max-width, var(--item-fixed-width, '')));
       }
 

@@ -26,15 +26,15 @@
     }
     @for (wp of selectedTrail.wayPoints; track $index) {
       @if (!wp.breakPoint || selectedTrail.showBreaks) {
-        <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture, img: selectedTrail.wayPointsImages[$index], track: selectedTrail.track}"></ng-container>
+        <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture, img: selectedTrail.wayPointsImages[$index], track: selectedTrail.track, isRecording: selectedTrail.recording}"></ng-container>
       }
     }
     @if (selectedTrail.wayPointDepartureAndArrival) {
-      <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: selectedTrail.wayPointDepartureAndArrival, isArrival: true, img: selectedTrail.wayPointsImages[selectedTrail.wayPoints.length], track: selectedTrail.track}"></ng-container>
+      <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: selectedTrail.wayPointDepartureAndArrival, isArrival: true, img: selectedTrail.wayPointsImages[selectedTrail.wayPoints.length], track: selectedTrail.track, isRecording: selectedTrail.recording}"></ng-container>
     }
   </div>
 }
-<ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival" let-img="img" let-track="track">
+<ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival" let-img="img" let-track="track" let-isRecording="isRecording">
   <div class="waypoint"
     (mouseover)="highlightWaypoint.emit({wp, click: false})"
     (mouseenter)="highlightWaypoint.emit({wp, click: false})"
@@ -68,21 +68,23 @@
           <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
         </div>
       </div>
-      @if (editTools && !wp.breakPoint) {
+      @if ((editTools || isRecording) && !wp.breakPoint) {
         <div class="waypoint-actions">
-          @if (!wp.isDeparture && !wp.isArrival) {
-            <ion-button fill="clear" shape="round" size="small" color="danger" (click)="$event.preventDefault(); $event.stopPropagation(); editTools.removeWayPoint(wp.wayPoint);">
+          @if (!wp.isDeparture && !wp.isComputedOnly) {
+            <ion-button fill="clear" shape="round" size="small" color="danger" (click)="$event.preventDefault(); $event.stopPropagation(); removeWaypoint(wp);">
               <ion-icon slot="icon-only" name="trash"></ion-icon>
             </ion-button>
           }
-          <ion-button fill="clear" shape="round" size="small" color="secondary" (click)="$event.preventDefault(); $event.stopPropagation(); editTools.editWayPoint(wp.wayPoint);">
-            <ion-icon slot="icon-only" name="edit"></ion-icon>
-          </ion-button>
+          @if (!(wp.isDeparture && wp.isArrival && arrival)) {
+            <ion-button fill="clear" shape="round" size="small" color="secondary" (click)="$event.preventDefault(); $event.stopPropagation(); editWaypoint(wp);">
+              <ion-icon slot="icon-only" name="edit"></ion-icon>
+            </ion-button>
+          }
         </div>
       }
     </div>
     <div class="waypoint-content">
-      @if (!wp.breakPoint && !arrival) {
+      @if (!wp.breakPoint && (!arrival || !wp.isDeparture)) {
         <div class="waypoint-name">
           <app-text [text]="wp.wayPoint.name" [lang]="lang" [translations]="wp.wayPoint.nameTranslations"></app-text>
         </div>

@@ -64,6 +64,8 @@ import { TooltipDirective } from '../tooltip/tooltip.directive';
 import { CameraService } from 'src/app/services/camera/camera.service';
 import { WaypointsComponent } from './waypoints/waypoints.components';
 import { TrailsWaypoints } from './trail-waypoints';
+import { WayPoint } from 'src/app/model/way-point';
+import { samePositionRound } from 'src/app/model/point';
 
 interface TrailSource {
   isExternal: boolean;
@@ -270,6 +272,11 @@ export class TrailComponent extends AbstractComponent {
 
   @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
   mapToolbarTopRightItems: MenuItem[] = [
+    new MenuItem()
+      .setSectionTitle(true)
+      .setVisible(() => !!this.recording)
+      .setI18nLabel('trace_recorder.notif_message')
+      .setCssClass('small-section-title'),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
       .setVisible(() => !!this.recording?.paused)
       .setAction(() => this.togglePauseRecordingWithConfirmation()),
@@ -279,16 +286,20 @@ export class TrailComponent extends AbstractComponent {
     new MenuItem().setIcon('stop-circle').setI18nLabel('trace_recorder.stop').setTextColor('danger')
       .setVisible(() => !!this.recording && !this.recording.paused)
       .setAction(() => this.stopRecordingWithConfirmation()),
-    new MenuItem().setIcon('star-filled').setI18nLabel('trace_recorder.follow_this_trail')
-      .setVisible(() => !!this.recording && !!this.trail1 && !this.trail2 && (this.recording.followingTrailUuid !== this.trail1.uuid || this.recording.followingTrailOwner !== this.trail1.owner))
-      .setAction(() => this.confirmFollowThisTrail()),
     new MenuItem(),
     new MenuItem().setIcon('camera').setI18nLabel('pages.trail.take_photo')
       .setVisible(() => !!this.recording && this.canTakePhoto)
       .setAction(() => {
         this.traceRecorder.takePhoto();
       }),
+    new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.tools.way_points.create_waypoint')
+      .setVisible(() => !!this.recording && this.recording.track.metadata.distance > 0 && this.recording.track.wayPoints.findIndex(wp => samePositionRound(this.recording!.track.arrivalPoint!.pos, wp.point.pos)) < 0)
+      .setAction(() => this.createWaypointOnRecording())
+      ,
     new MenuItem(),
+    new MenuItem().setIcon('star-filled').setI18nLabel('trace_recorder.follow_this_trail')
+      .setVisible(() => !!this.recording && !!this.trail1 && !this.trail2 && (this.recording.followingTrailUuid !== this.trail1.uuid || this.recording.followingTrailOwner !== this.trail1.owner))
+      .setAction(() => this.confirmFollowThisTrail()),
     new MenuItem().setIcon('reverse-way').setI18nLabel('pages.trail.reverse_way')
       .setVisible(() => !!this.trail1 && !this.trail2 && !this.isPublication && !this.trail1.fromModeration)
       .setTextColor(() => this.reverseWay$.value ? 'light' : 'dark')
@@ -476,6 +487,7 @@ export class TrailComponent extends AbstractComponent {
             this.graphTrack1 = recordingWithTrack.track;
           const mapTrack = new MapTrack(recordingWithTrack.recording.trail, recordingWithTrack.track, 'blue', 1, true, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
+          mapTrack.showWayPointsAnchors();
           mapTrack.showArrowPath();
           mapTracks.push(mapTrack)
           if (this.remaining?.subTrack) {
@@ -987,6 +999,7 @@ export class TrailComponent extends AbstractComponent {
         if (pt && this.graph) {
           this.graph.updateRecording(r.track, this.remaining?.segmentIndex, this.remaining?.pointIndex);
         }
+        this.refreshMapToolbarTop();
         this.changesDetector.detectChanges();
       }
     )
@@ -1352,6 +1365,28 @@ export class TrailComponent extends AbstractComponent {
   unhighlightWayPoint(wp: ComputedWayPoint, force: boolean): void {
     if (this.trailsWaypoints.unhighlightWayPoint(wp, force))
       this.changesDetector.detectChanges();
+  }
+
+  createWaypointOnRecording(): void {
+    const point = this.recording?.track.arrivalPoint;
+    if (!point) return;
+    const wp = new WayPoint(point, '', '');
+    import('../track-edit-tools/tools/way-points/way-point-edit/way-point-edit.component')
+    .then(module => this.injector.get(ModalController).create({
+      component: module.WayPointEditModal,
+      componentProps: {
+        wayPoint: wp,
+        isNew: true,
+      }
+    }))
+    .then(modal => {
+      modal.onDidDismiss().then(result => {
+        if (result.role === 'ok' && this.recording?.track) {
+          this.recording.track.appendWayPoint(wp);
+        }
+      });
+      modal.present();
+    });
   }
 
   public enableEditTools() {

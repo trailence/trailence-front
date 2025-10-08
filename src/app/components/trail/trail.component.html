@@ -16,8 +16,8 @@
           <app-toolbar #mapToolbarTopRight
             [items]="mapToolbarTopRightItems"
             textSize="9px"
-            [itemMinWidth]="40"
-            [itemMaxWidth]="50"
+            [itemMinWidth]="isSmall ? 35 : 40"
+            [itemMaxWidth]="isSmall ? 45 : 50"
             itemSpace="2px"
             itemPaddingTop="1px"
             itemPaddingBottom="1px"

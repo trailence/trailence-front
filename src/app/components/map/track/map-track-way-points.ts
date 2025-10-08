@@ -135,7 +135,7 @@ export class MapTrackWayPoints {
       } else {
         this._departure = this.createDeparture(wp.wayPoint.point.pos);
       }
-    } else if (wp.isArrival) {
+    } else if (wp.isArrival && (!this._isRecording || wp.isComputedOnly)) {
       if (!this._isRecording) {
         const departure = list.find(e => e.isDeparture)?.wayPoint.point;
         if (!departure || L.latLng(departure.pos).distanceTo(wp.wayPoint.point.pos) >= 5)

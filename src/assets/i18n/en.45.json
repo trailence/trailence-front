@@ -1236,7 +1236,8 @@
         "popup": {
           "title": "Waypoint"
         },
-        "select_new_position": "Select the new position"
+        "select_new_position": "Select the new position",
+        "remove_waypoint_confirmation": "Do you confirm that you want to delete this waypoint?"
       },
       "set_elevation_on_range": {
         "with_start": "Using the one from the first selected point",
