@@ -1,0 +1,95 @@
+@if (trails.trails.length > 1) {
+  <ion-segment [value]="selectedTrailIndex" color="secondary" (ionChange)="setTab($event.detail.value)">
+    @for (trail of trails.trails; track $index) {
+      <ion-segment-button [value]="$index">
+        <div class="tab-long-text">
+          @if (trail.recording) {
+            {{ i18n.texts.trace_recorder.notif_message }}
+          } @else {
+            {{ trail.trail.name }}
+          }
+        </div>
+      </ion-segment-button>
+    }
+  </ion-segment>
+}
+@if (selectedTrail) {
+  <div class="waypoints-container">
+    @if (selectedTrail.hasBreaks) {
+      <div class="show-breaks">
+        <ion-checkbox labelPlacement="end"
+          [checked]="selectedTrail.showBreaks"
+          (ionChange)="selectedTrail.showBreaks = $event.detail.checked"
+          [disabled]="trails.showBreaksOnMapLocked"
+        >{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
+      </div>
+    }
+    @for (wp of selectedTrail.wayPoints; track $index) {
+      @if (!wp.breakPoint || selectedTrail.showBreaks) {
+        <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture, img: selectedTrail.wayPointsImages[$index], track: selectedTrail.track}"></ng-container>
+      }
+    }
+    @if (selectedTrail.wayPointDepartureAndArrival) {
+      <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: selectedTrail.wayPointDepartureAndArrival, isArrival: true, img: selectedTrail.wayPointsImages[selectedTrail.wayPoints.length], track: selectedTrail.track}"></ng-container>
+    }
+  </div>
+}
+<ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival" let-img="img" let-track="track">
+  <div class="waypoint"
+    (mouseover)="highlightWaypoint.emit({wp, click: false})"
+    (mouseenter)="highlightWaypoint.emit({wp, click: false})"
+    (mouseleave)="unhighlightWaypoint.emit({wp, force: false})"
+    (click)="toogleHighlightWayPoint(wp)"
+    [ngClass]="{'highlighted': trails.highlightedWayPoint === wp}"
+  >
+    <div class="waypoint-header">
+      <div class="waypoint-anchor">
+        <img [src]="img" width="40" height="40">
+      </div>
+      <div class="waypoint-info-section">
+        <div class="waypoint-info">
+          <div class="waypoint-info-title">{{i18n.texts.way_points.position}}</div>
+          <div class="waypoint-info-value small">{{i18n.coordToString(wp.wayPoint.point.pos.lat)}}<br/>{{i18n.coordToString(wp.wayPoint.point.pos.lng)}}</div>
+        </div>
+        <div class="waypoint-info">
+          <div class="waypoint-info-title">{{i18n.texts.way_points.altitude}}</div>
+          <div class="waypoint-info-value">{{wp.altitude !== undefined ? i18n.elevationToString(wp.altitude) : '?'}}</div>
+        </div>
+        <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
+          <div class="waypoint-info-title">{{i18n.texts.way_points.distance}}</div>
+          <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.distanceToString(track.metadata?.distance) : (wp.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.distanceFromDeparture) : '?')}}</div>
+        </div>
+        <div class="waypoint-info" *ngIf="arrival || !wp.isDeparture">
+          <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
+          <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.durationToString(track.metadata?.duration) : (wp.timeSinceDeparture !== undefined ? i18n.durationToString(wp.timeSinceDeparture) : '?')}}</div>
+        </div>
+        <div class="waypoint-info" *ngIf="wp.breakPoint">
+          <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
+          <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
+        </div>
+      </div>
+      @if (editTools && !wp.breakPoint) {
+        <div class="waypoint-actions">
+          @if (!wp.isDeparture && !wp.isArrival) {
+            <ion-button fill="clear" shape="round" size="small" color="danger" (click)="$event.preventDefault(); $event.stopPropagation(); editTools.removeWayPoint(wp.wayPoint);">
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-button>
+          }
+          <ion-button fill="clear" shape="round" size="small" color="secondary" (click)="$event.preventDefault(); $event.stopPropagation(); editTools.editWayPoint(wp.wayPoint);">
+            <ion-icon slot="icon-only" name="edit"></ion-icon>
+          </ion-button>
+        </div>
+      }
+    </div>
+    <div class="waypoint-content">
+      @if (!wp.breakPoint && !arrival) {
+        <div class="waypoint-name">
+          <app-text [text]="wp.wayPoint.name" [lang]="lang" [translations]="wp.wayPoint.nameTranslations"></app-text>
+        </div>
+        <div class="waypoint-description">
+          <app-text [text]="wp.wayPoint.description" [lang]="lang" [translations]="wp.wayPoint.descriptionTranslations"></app-text>
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>

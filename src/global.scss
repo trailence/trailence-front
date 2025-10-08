@@ -151,3 +151,11 @@ div.app-tooltip {
   font-size: 14px;
   box-shadow: 1px 1px 8px 0 rgba(0, 0, 0, 0.75);
 }
+
+ion-segment-button div.tab-long-text {
+  text-transform: none;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  overflow: hidden;
+}
+

@@ -46,6 +46,22 @@
 
   .tabs-container {
     position: absolute;
+    ion-segment-button {
+      min-height: var(--tabs-height);
+      min-width: 60px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+
+      ion-icon {
+        width: 18px;
+        height: 18px;
+      }
+      div.text {
+        font-size: 11px;
+        margin-top: -3px;
+        text-transform: none;
+      }
+    }
   }
 
   &.small-height {
@@ -79,7 +95,7 @@
   .bottom-info {
     position: absolute;
   }
-  .trail-photos-tab, .trail-reviews-tab {
+  .trail-photos-tab, .trail-reviews-tab, .trail-waypoints-tab {
     display: none;
     position: absolute;
   }
@@ -202,7 +218,7 @@
       }
     }
 
-    &.tab-photos, &.tab-reviews {
+    &.tab-photos, &.tab-reviews, &.tab-waypoints {
       .map-container {
         display: none;
       }
@@ -215,20 +231,29 @@
       .trail-details {
         display: none;
       }
-      .trail-photos-tab, .trail-reviews-tab {
+      .trail-photos-tab, .trail-reviews-tab, .trail-waypoints-tab {
         display: block;
         top: calc(var(--tabs-height) + 10px);
         left: 0;
         right: 0;
         bottom: 0;
-
-        app-photos-popup {
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          height: 100%;
-        }
       }
+    }
+    &.tab-photos {
+      .trail-photos-tab app-photos-popup {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+      }
+    }
+    &.tab-waypoints {
+      .trail-waypoints-tab {
+        overflow-y: auto;
+        border-top: 1px solid var(--ion-color-light);
+      }
+    }
+    &.tab-reviews {
       .trail-reviews-tab {
         overflow-y: auto;
       }
@@ -334,9 +359,6 @@
   div.show-original {
     padding: 6px 3px 0 8px;
   }
-  div.show-breaks {
-    padding: 6px 3px 0 8px;
-  }
 
   .section-title {
     display: flex;
@@ -401,78 +423,6 @@
     }
     ::ng-deep .native-wrapper::after {
       line-height: 1.5em;
-    }
-  }
-}
-
-.waypoint {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  margin-top: 3px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--ion-color-light);
-
-  &.highlighted {
-    background-color: rgba(var(--ion-text-color-rgb), 0.1);
-  }
-
-  .waypoint-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-
-    .waypoint-anchor {
-      flex: none;
-      align-self: flex-start;
-    }
-
-    .waypoint-info-section {
-      flex: 1 1 100%;
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-
-      .waypoint-info {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 0 3px;
-
-        .waypoint-info-title {
-          color: var(--ion-color-secondary);
-          font-weight: bold;
-          font-size: 12px;
-        }
-        .waypoint-info-value {
-          font-size: 14px;
-          &.small {
-            font-size: 12px;
-          }
-        }
-      }
-    }
-    .waypoint-actions {
-      flex: none;
-      display: flex;
-      flex-direction: row;
-      ion-button {
-        margin-right: 2px;
-      }
-    }
-  }
-
-  .waypoint-content {
-    margin-left: 4px;
-
-    .waypoint-name {
-      font-size: 14px;
-      color: var(--ion-color-tertiary);
-    }
-    .waypoint-description {
-      margin-top: 2px;
-      color: var(--ion-color-medium);
-      font-size: 13px;
     }
   }
 }

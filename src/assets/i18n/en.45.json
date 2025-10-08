@@ -255,7 +255,9 @@
       "tabs": {
         "details": "Details",
         "map": "Map",
-        "photos": "Photos"
+        "photos": "Photos",
+        "waypoints": "Waypoints",
+        "comments": "Reviews"
       },
       "show_original": "Show original trace",
       "show_breaks": "Show breaks",
@@ -283,7 +285,7 @@
           "placeholder": "Describe the trail here"
         },
         "waypoints": {
-          "title": "Way Points"
+          "title": "Waypoints"
         },
         "comments": {
           "title": "Reviews",
@@ -1174,7 +1176,7 @@
     "title": "Edit",
     "categories": {
       "track": "Track",
-      "way_point": "Way point",
+      "way_point": "Waypoint",
       "elevation": "Altitude",
       "path": "Path",
       "selection": "Selection",
@@ -1227,12 +1229,12 @@
         "button_label_show": "Show unmodified track"
       },
       "way_points": {
-        "create_waypoint": "Create a way point",
-        "remove_waypoint": "Remove the way point",
-        "edit_waypoint": "Edit the way point",
-        "move_waypoint": "Move the way point",
+        "create_waypoint": "Create a waypoint",
+        "remove_waypoint": "Remove the waypoint",
+        "edit_waypoint": "Edit the waypoint",
+        "move_waypoint": "Move the waypoint",
         "popup": {
-          "title": "Way Point"
+          "title": "Waypoint"
         },
         "select_new_position": "Select the new position"
       },

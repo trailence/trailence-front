@@ -25,7 +25,7 @@
           "footer": ["Créez une trace pendant votre activité", "Cartes hors-ligne", "Suivez un parcours existant"]
         }, {
           "header": "Parcours en détails",
-          "footer": ["Altimétrie", "Description", "Points de passage"]
+          "footer": ["Altimétrie", "Description", "Étapes"]
         }, {
           "header": "Ajoutez des photos",
           "footer": ["Mettez des photos sur vos parcours", "Visualisez les photos sur la carte"]
@@ -255,7 +255,9 @@
       "tabs": {
         "details": "Détails",
         "map": "Carte",
-        "photos": "Photos"
+        "photos": "Photos",
+        "waypoints": "Étapes",
+        "comments": "Avis"
       },
       "show_original": "Afficher la trace d'origine",
       "show_breaks": "Afficher les pauses",
@@ -283,7 +285,7 @@
           "placeholder": "Entrez une description ici"
         },
         "waypoints": {
-          "title": "Points de passage"
+          "title": "Étapes"
         },
         "comments": {
           "title": "Avis",
@@ -858,13 +860,13 @@
         "description_end": "👉 Pour cela, utilisez le bouton Éditer sur la carte."
       },
       "waypoints": {
-        "title": "Points de passage",
-        "description_start": "Pensez à ajouter des points de passage à votre parcours :",
+        "title": "Étapes",
+        "description_start": "Pensez à ajouter des étapes (points de passage) à votre parcours :",
         "description_bullets": [
           "Ils peuvent servir à indiquer un point particulier : un point de vue, une curiosité, une source…",
           "Mais surtout, ils permettent de donner des indications de direction, notamment aux endroits où l’itinéraire n’est pas évident sur place (par exemple à un croisement, ou quand le sentier est mal marqué)."
         ],
-        "description_end": "👉 Pour cela, utilisez le bouton Éditer sur la carte, sélectionnez l’emplacement souhaité, et utilisez le menu Point de passage."
+        "description_end": "👉 Pour cela, utilisez le bouton Éditer sur la carte, sélectionnez l’emplacement souhaité, et utilisez le menu Étape."
       },
       "photos": {
         "title": "Photos",
@@ -1174,7 +1176,7 @@
     "title": "Editer",
     "categories": {
       "track": "Trace",
-      "way_point": "Point de passage",
+      "way_point": "Étape",
       "elevation": "Altitude",
       "path": "Chemin",
       "selection": "Sélection",
@@ -1227,12 +1229,12 @@
         "button_label_show": "Afficher la trace non modifiée"
       },
       "way_points": {
-        "create_waypoint": "Créer un point de passage",
-        "remove_waypoint": "Supprimer le point de passage",
-        "edit_waypoint": "Modifier le point de passage",
-        "move_waypoint": "Déplacer le point de passage",
+        "create_waypoint": "Créer une étape",
+        "remove_waypoint": "Supprimer l'étape",
+        "edit_waypoint": "Modifier l'étape",
+        "move_waypoint": "Déplacer l'étape",
         "popup": {
-          "title": "Point de passage"
+          "title": "Étape"
         },
         "select_new_position": "Sélectionnez la nouvelle position"
       },

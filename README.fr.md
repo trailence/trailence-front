@@ -13,7 +13,7 @@ Les principales fonctionnalités sont:
  - Visualisation de toutes les traces d'une collection sur une carte
  - Enregistrement d'une trace (depuis une trace existante, ou directement)
  - Partage des randonnées avec ses amis
- - Détails d'un parcours: altimétrie, poitns de passage, distance, temps...
+ - Détails d'un parcours: altimétrie, étapes, distance, temps...
  - Mettre des photos sur un parcours (et visualiser l'emplacement où elles ont été prises sur la carte)
  - Plusieurs fonds de carte (Open Street Map, Open Topo Map, IGN)
  - Import depuis un fichier GPX

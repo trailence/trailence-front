@@ -1,0 +1,77 @@
+.waypoints-container {
+  margin-top: 6px;
+}
+div.show-breaks {
+  padding: 0 3px 0 8px;
+}
+.waypoint {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: 3px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ion-color-light);
+
+  &.highlighted {
+    background-color: rgba(var(--ion-text-color-rgb), 0.1);
+  }
+
+  .waypoint-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .waypoint-anchor {
+      flex: none;
+      align-self: flex-start;
+    }
+
+    .waypoint-info-section {
+      flex: 1 1 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+
+      .waypoint-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 3px;
+
+        .waypoint-info-title {
+          color: var(--ion-color-secondary);
+          font-weight: bold;
+          font-size: 12px;
+        }
+        .waypoint-info-value {
+          font-size: 14px;
+          &.small {
+            font-size: 12px;
+          }
+        }
+      }
+    }
+    .waypoint-actions {
+      flex: none;
+      display: flex;
+      flex-direction: row;
+      ion-button {
+        margin-right: 2px;
+      }
+    }
+  }
+
+  .waypoint-content {
+    margin-left: 4px;
+
+    .waypoint-name {
+      font-size: 14px;
+      color: var(--ion-color-tertiary);
+    }
+    .waypoint-description {
+      margin-top: 2px;
+      color: var(--ion-color-medium);
+      font-size: 13px;
+    }
+  }
+}

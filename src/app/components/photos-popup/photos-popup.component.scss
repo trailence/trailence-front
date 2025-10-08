@@ -103,10 +103,3 @@
   font-style: italic;
   color: var(--ion-color-medium);
 }
-
-div.tab-long-text {
-  text-transform: none;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  overflow: hidden;
-}
