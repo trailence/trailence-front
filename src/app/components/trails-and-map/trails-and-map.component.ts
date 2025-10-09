@@ -109,7 +109,6 @@ export class TrailsAndMapComponent extends AbstractComponent {
     public i18n: I18nService,
     private readonly trackService: TrackService,
     private readonly router: Router,
-    private readonly changeDetector: ChangeDetectorRef,
     private readonly networkService: NetworkService,
     private readonly auth: AuthService,
   ) {
@@ -153,7 +152,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         this.update(result.zoom, result.trails, result.showBubbles, bubbles);
         if (!this.mapReady && (this.mapTrailsReceived || this.type === 'search')) {
           this.mapReady = true;
-          this.changeDetector.detectChanges();
+          this.changesDetection.detectChanges();
         }
       }
     );
@@ -308,7 +307,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         if (this.map$.value !== child) this.map$.next(child);
       } else if (child instanceof TrailsListComponent) {
         child.setVisible(listVisible);
-        child.changeDetector.detectChanges();
+        child.changesDetection.detectChanges();
       } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
       else Console.error('unexpected child', child);
     });
@@ -336,7 +335,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     this.bottomSheetTrails = others && others.length > 0 ? [trail, ...others] : undefined;
     this.bottomSheetTrailsIndex = 0;
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   navigateBottomSheetTrail(index: number): void {
@@ -347,7 +346,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.highlight(this.highlightedTrail, false);
     this.highlightedTrail = this.bottomSheetTrails[this.bottomSheetTrailsIndex];
     this.highlight(this.highlightedTrail, true);
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   private highlight(trail: Trail, highlight: boolean): void {
@@ -372,7 +371,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       if (this.highlightedTrail !== trail) this.toggleHighlightedTrail(trail);
       if (showOnMap)
         this.setTab('map');
-      this.changeDetector.detectChanges();
+      this.changesDetection.detectChanges();
     } else {
       this.toggleHighlightedTrail(trail);
     }
@@ -402,16 +401,17 @@ export class TrailsAndMapComponent extends AbstractComponent {
   expandSearchPlace(): void {
     this.searchPlaceExpanded = true;
     this.mapToolbarTop?.refresh();
-    this.changeDetector.detectChanges();
-    setTimeout(() => {
-      this.searchPlace?.setFocus();
-    }, 0);
+    this.changesDetection.detectChanges(() => {
+      setTimeout(() => {
+        this.searchPlace?.setFocus();
+      }, 0);
+    });
   }
 
   collapseSearchPlace(): void {
     this.searchPlaceExpanded = false;
     this.mapToolbarTop?.refresh();
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   goToPlace(place: Place): void {

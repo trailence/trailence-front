@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -125,7 +125,7 @@ export class TrailPage extends AbstractPage {
         this.title = '';
         this.title2 = undefined;
       }
-      this.injector.get(ChangeDetectorRef).detectChanges();
+      this.changesDetection.detectChanges();
     });
   }
 

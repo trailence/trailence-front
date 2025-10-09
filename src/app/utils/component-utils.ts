@@ -1,7 +1,8 @@
-import { Component, ElementRef, Injector, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Injector, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Resubscribeables, Subscriptions } from './rxjs/subscription-utils';
 import { Arrays } from './arrays';
+import { ChangesDetection } from './angular-helpers';
 
 @Component({
     template: '',
@@ -16,6 +17,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   protected byState = new Subscriptions();
   protected byStateAndVisible: Resubscribeables;
   protected ngZone: NgZone;
+  public changesDetection: ChangesDetection;
 
   private _isInit = false;
   private _currentState: any = undefined;
@@ -35,6 +37,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this.whenVisible = new Resubscribeables(this.ngZone);
     this.whenVisible.pause();
     injector.get(ElementRef).nativeElement['_abstractComponent'] = this;
+    this.changesDetection = new ChangesDetection(this.ngZone, injector.get(ChangeDetectorRef));
     this._visible$.subscribe(visible => this._propagateVisible(visible));
   }
 
@@ -49,6 +52,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
   }
 
   ngOnInit(): void {
+    this.changesDetection.pause();
     if (!(this instanceof AbstractPage)) {
       let parentElement = this.injector.get(ElementRef).nativeElement.parentElement;
       while (parentElement && parentElement != window.document.documentElement) {
@@ -68,10 +72,12 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this.setVisible(!this._parent || (this._parent.visible && this._parent.getChildVisibility(this) !== false));
     this._checkComponentState();
     this._initializing = false;
+    this.changesDetection.resume();
   }
 
   ngOnDestroy(): void {
     this.clearTimeouts();
+    this.changesDetection.destroy();
     this._visible$.next(false);
     this._visible$.complete();
     this.byState.unsubscribe();
@@ -91,8 +97,10 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!this._isInit) return;
+    this.changesDetection.pause();
     this.onChangesBeforeCheckComponentState(changes);
     this._checkComponentState();
+    this.changesDetection.resume();
   }
 
   protected onChangesBeforeCheckComponentState(changes: SimpleChanges): void {

@@ -93,7 +93,7 @@ export class TrailGraphComponent extends AbstractComponent {
     browser: BrowserService,
     private readonly i18n: I18nService,
     private readonly preferencesService: PreferencesService,
-    private readonly changeDetector: ChangeDetectorRef,
+    changeDetector: ChangeDetectorRef,
   ) {
     super(injector);
     changeDetector.detach();
@@ -167,8 +167,7 @@ export class TrailGraphComponent extends AbstractComponent {
       const container = document.getElementById('graph-tooltip-' + this.id);
       if (container)
         container.style.display = 'none';
-      if (!this.initializing)
-        this.ngZone.run(() => this.changeDetector.detectChanges());
+      if (!this.initializing) this.changesDetection.detectChanges();
       if (!this.track1) return;
       if (this.visible)
         this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 0);
@@ -274,14 +273,13 @@ export class TrailGraphComponent extends AbstractComponent {
         }
       }
       this.updateMinMaxAxis(false);
-      setTimeout(() => {
-        this.changeDetector.detectChanges();
+      this.changesDetection.detectChanges(() => {
         if (this.selectionRange) {
           setTimeout(() => {
             this.setSelection(this.selectionRange);
           }, 0);
         }
-      }, 0);
+      });
     });
   }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -190,7 +190,7 @@ export class TrailsPage extends AbstractPage {
           this.title2 = texts.menu.my_publications;
         else
           this.title2 = texts.pages.trails.collection;
-        this.injector.get(ChangeDetectorRef).detectChanges();
+        this.changesDetection.detectChanges();
       })
     );
     // trails from collection
@@ -228,7 +228,7 @@ export class TrailsPage extends AbstractPage {
     // title
     this.byState.add(this.i18n.texts$.pipe(map(texts => texts.all_collections)).subscribe(title => {
       this.title = title;
-      this.injector.get(ChangeDetectorRef).detectChanges();
+      this.changesDetection.detectChanges();
     }));
     // trails
     let first = true;
@@ -255,7 +255,7 @@ export class TrailsPage extends AbstractPage {
     // title
     this.byState.add(this.i18n.texts$.pipe(map(texts => texts.my_selection)).subscribe(title => {
       this.title = title;
-      this.injector.get(ChangeDetectorRef).detectChanges();
+      this.changesDetection.detectChanges();
     }));
     // trails
     let first = true;
@@ -330,7 +330,7 @@ export class TrailsPage extends AbstractPage {
           this.trails$.next(newList);
         this.initView('share-' + result.share.uuid + '-' + result.share.owner);
         this.actions = this.injector.get(ShareService).getShareMenu(result.share);
-        this.injector.get(ChangeDetectorRef).detectChanges();
+        this.changesDetection.detectChanges();
       }
     );
   }
@@ -343,7 +343,7 @@ export class TrailsPage extends AbstractPage {
       this.i18n.texts$,
       i18n => {
         this.title = i18n.menu.search_trail;
-        this.injector.get(ChangeDetectorRef).detectChanges();
+        this.changesDetection.detectChanges();
       }
     );
     this.initView('search-trails');
@@ -612,7 +612,7 @@ export class TrailsPage extends AbstractPage {
     // title
     this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.moderation.menu_title)).subscribe(title => {
       this.title = title;
-      this.injector.get(ChangeDetectorRef).detectChanges();
+      this.changesDetection.detectChanges();
     }));
     // trails
     let first = true;
@@ -634,7 +634,7 @@ export class TrailsPage extends AbstractPage {
     // title
     this.byState.add(this.i18n.texts$.pipe(map(texts => texts.publications.my_public_trails_name)).subscribe(title => {
       this.title = title;
-      this.injector.get(ChangeDetectorRef).detectChanges();
+      this.changesDetection.detectChanges();
     }));
     // trails
     let first = true;

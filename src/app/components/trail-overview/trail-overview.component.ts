@@ -6,7 +6,7 @@ import { Track } from 'src/app/model/track';
 import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController, Platform } from "@ionic/angular/standalone";
-import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, concat, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { TagService } from 'src/app/services/database/tag.service';
@@ -110,6 +110,8 @@ export class TrailOverviewComponent extends AbstractComponent {
       });
   }
 
+  @Output() openTrailEvent = new EventEmitter<Trail>();
+
   id = IdGenerator.generateId();
   meta: Meta = new Meta();
   track$ = new BehaviorSubject<Track | TrackMetadataSnapshot | undefined>(undefined);
@@ -128,7 +130,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     injector: Injector,
     private readonly trackService: TrackService,
     private readonly i18n: I18nService,
-    private readonly changeDetector: ChangeDetectorRef,
+    changeDetector: ChangeDetectorRef,
     public trailMenuService: TrailMenuService,
     private readonly tagService: TagService,
     public readonly auth: AuthService,
@@ -144,7 +146,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly platform: Platform,
   ) {
     super(injector);
-    this.changeDetector.detach();
+    changeDetector.detach();
   }
 
   protected override getComponentState() {
@@ -160,7 +162,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
-    if (changes['selected'] || changes['enableShowOnMap'] || changes['hideMenu']) this.changeDetector.detectChanges();
+    if (changes['selected'] || changes['enableShowOnMap'] || changes['hideMenu']) this.changesDetection.detectChanges();
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
@@ -188,9 +190,9 @@ export class TrailOverviewComponent extends AbstractComponent {
               this.trail!.activity$,
               this.trackData$(this.trail!, owner),
               this.auth.auth ?
-                this.mySelectionService.getMySelection().pipe(
+                concat(of(false), this.mySelectionService.getMySelection().pipe(
                   map(sel => sel.findIndex(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid) >= 0),
-                ) : of(false),
+                )) : of(false),
               this.external$,
             ])
           ),
@@ -223,8 +225,12 @@ export class TrailOverviewComponent extends AbstractComponent {
             this.meta.isInMySelection = isInMySelection;
             changed = true;
           }
-          if (changed) this.changeDetector.detectChanges();
-          if (!this._trackMetadataInitialized && track) this.initTrackMetadata();
+          if (changed) this.changesDetection.detectChanges();
+          if (!this._trackMetadataInitialized && track) {
+            this.changesDetection.detectChanges(() => {
+              this.initTrackMetadata();
+            });
+          }
         },
         true
       );
@@ -242,7 +248,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           tagsNames => {
             if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
               this.tagsNames = tagsNames.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));
-              this.changeDetector.detectChanges();
+              this.changesDetection.detectChanges();
             }
           },
           true
@@ -261,7 +267,7 @@ export class TrailOverviewComponent extends AbstractComponent {
               return p1.index - p2.index;
             });
             this.photos = photos;
-            this.changeDetector.detectChanges();
+            this.changesDetection.detectChanges();
           }
         );
       }
@@ -290,7 +296,7 @@ export class TrailOverviewComponent extends AbstractComponent {
             const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
             if (newValue !== this.publicTrailUuid) {
               this.publicTrailUuid = newValue;
-              this.changeDetector.detectChanges();
+              this.changesDetection.detectChanges();
             }
           }
         );
@@ -305,21 +311,21 @@ export class TrailOverviewComponent extends AbstractComponent {
         });
         this.observer.observe(this.injector.get(ElementRef).nativeElement);
       }
-      if (!this.load$.value) this.changeDetector.detectChanges();
+      if (!this.load$.value) this.changesDetection.detectChanges();
     }
   }
 
   private trackData$(trail: Trail, owner: string): Observable<[TrackMetadataSnapshot | Track | undefined, number | undefined]> {
     if (this.trackSnapshot && this.refreshMode !== 'live' && !this.smallMapEnabled)
       return of([this.trackSnapshot, this.trackSnapshot.startDate]);
-    return trail.currentTrackUuid$.pipe(
+    return concat(of([undefined, undefined] as [undefined, undefined]), trail.currentTrackUuid$.pipe(
       switchMap(uuid => this.refreshMode === 'live' || this.smallMapEnabled ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
       switchMap(track => {
         if (!track) return of([undefined, undefined] as [undefined, undefined]);
         if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
         return of([track, track.startDate] as [TrackMetadataSnapshot, number | undefined]);
       })
-    );
+    ));
   }
 
   private updateMeta(meta: any, key: string, value: any, toString: ((value: any) => string) | undefined, forceChange: boolean): boolean {
@@ -418,10 +424,12 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   openTrail(): void {
-    if (this.trail?.fromModeration)
+    if (!this.trail) return;
+    this.openTrailEvent.emit(this.trail);
+    if (this.trail.fromModeration)
       this.router.navigate(['trail', this.trail.owner, this.trail.uuid, 'moderation'], {queryParams: { from: this.router.url }});
     else
-      this.router.navigate(['trail', this.trail!.owner, this.trail!.uuid], {queryParams: { from: this.router.url }});
+      this.router.navigate(['trail', this.trail.owner, this.trail.uuid], {queryParams: { from: this.router.url }});
   }
 
   openPublicTrail(): void {
@@ -459,7 +467,7 @@ export class TrailOverviewComponent extends AbstractComponent {
       this.mySelectionService.deleteSelection(this.trail.owner, this.trail.uuid);
     else
       this.mySelectionService.addSelection(this.trail.owner, this.trail.uuid);
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
 }

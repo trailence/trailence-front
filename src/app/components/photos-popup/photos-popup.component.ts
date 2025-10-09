@@ -20,7 +20,7 @@ import { TrackUtils } from 'src/app/utils/track-utils';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
-import { CameraService } from 'capacitor/services/camera/camera.service';
+import { CameraService } from 'src/app/services/camera/camera.service';
 
 interface PhotoWithInfo {
   photo: Photo;

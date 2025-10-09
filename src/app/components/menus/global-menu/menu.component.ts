@@ -22,6 +22,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { MyPublicTrail, MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
+import { ChangesDetection } from 'src/app/utils/angular-helpers';
 
 @Component({
     selector: 'app-menu',
@@ -63,24 +64,25 @@ export class MenuComponent implements OnInit {
     public readonly i18n: I18nService,
     public readonly collectionService: TrailCollectionService,
     public readonly shareService: ShareService,
-    readonly trailService: TrailService,
+    trailService: TrailService,
     private readonly router: Router,
     public readonly menuController: MenuController,
     public readonly traceRecorder: TraceRecorderService,
-    readonly authService: AuthService,
+    authService: AuthService,
     public readonly update: UpdateService,
     public readonly fetchSourceService: FetchSourceService,
-    readonly platform: Platform,
+    platform: Platform,
     private readonly injector: Injector,
-    readonly preferences: PreferencesService,
-    readonly myPublicTrailsService: MyPublicTrailsService,
-    readonly mySelectionService: MySelectionService,
-    readonly changeDetector: ChangeDetectorRef,
-    readonly ngZone: NgZone,
+    preferences: PreferencesService,
+    myPublicTrailsService: MyPublicTrailsService,
+    mySelectionService: MySelectionService,
+    changeDetector: ChangeDetectorRef,
+    ngZone: NgZone,
   ) {
+    const changesDetection = new ChangesDetection(ngZone, changeDetector);
     const refresh = () => {
       if (!this.isInit) return;
-      ngZone.run(() => changeDetector.detectChanges());
+      changesDetection.detectChanges();
     };
     this.isNative = platform.is('capacitor');
     combineLatest([

@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from '../menu-item';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonLabel, PopoverController, IonBadge } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { ChangesDetection } from 'src/app/utils/angular-helpers';
 
 @Component({
   selector: 'app-toolbar',
@@ -42,11 +43,16 @@ export class ToolbarComponent implements OnInit, OnChanges {
   styles: any = {};
   showItems: ComputedMenuItem[] = [];
 
+  private changesDetection: ChangesDetection;
+
   constructor(
     public readonly i18n: I18nService,
-    private readonly changesDetector: ChangeDetectorRef,
+    changesDetector: ChangeDetectorRef,
+    ngZone: NgZone,
     private readonly popoverController: PopoverController,
-  ) {}
+  ) {
+    this.changesDetection = new ChangesDetection(ngZone, changesDetector);
+  }
 
   ngOnInit(): void {
     if (this.computedItems) {
@@ -89,7 +95,7 @@ export class ToolbarComponent implements OnInit, OnChanges {
   private onRefresh(refresh: boolean): void {
     this.showItems = this.computedItems ?? this.computed.items;
     if (refresh) {
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
     }
   }
 

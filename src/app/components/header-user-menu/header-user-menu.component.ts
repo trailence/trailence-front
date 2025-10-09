@@ -48,7 +48,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
     public readonly preferences: PreferencesService,
     private readonly databaseService: DatabaseService,
     private readonly networkService: NetworkService,
-    private readonly changeDetector: ChangeDetectorRef,
+    changeDetector: ChangeDetectorRef,
     public readonly router: Router,
     public readonly notifications: NotificationsService,
   ) {
@@ -88,7 +88,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
         this.lastSync = lastSync;
         const email = auth?.email;
         this.userLetter = email ? (this.isAnonymous ? '?' : email.substring(0, 1)) : '';
-        this.changeDetector.detectChanges();
+        this.changesDetection.detectChanges();
       }
     );
     this.visible$.subscribe(v => {
@@ -99,7 +99,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
       if (nb === 0) this.notificationsMenuTitle = texts.notifications.menu.no_unread;
       else if (nb === 1) this.notificationsMenuTitle = texts.notifications.menu.unread_single;
       else this.notificationsMenuTitle = new TranslatedString('notifications.menu.unread_plural', [nb]).translate(this.i18n);
-      this.changeDetector.detectChanges();
+      this.changesDetection.detectChanges();
     });
   }
 

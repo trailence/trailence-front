@@ -36,7 +36,7 @@ export class StatsGraphComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     browser: BrowserService,
-    private readonly changeDetector: ChangeDetectorRef,
+    changeDetector: ChangeDetectorRef,
     private readonly gestureController: GestureController,
   ) {
     super(injector);
@@ -88,9 +88,7 @@ export class StatsGraphComponent extends AbstractComponent {
         this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 0);
     });
     if (this._init)
-      this.ngZone.run(() => {
-        this.changeDetector.detectChanges();
-      });
+      this.changesDetection.detectChanges();
   }
 
   private _visibilityObserver?: IntersectionObserver;
@@ -152,7 +150,7 @@ export class StatsGraphComponent extends AbstractComponent {
         this.width = width;
         this.height = height;
       }
-      this.changeDetector.detectChanges();
+      this.changesDetection.detectChanges();
     });
   }
 
@@ -170,7 +168,7 @@ export class StatsGraphComponent extends AbstractComponent {
     if (!fromScrollbar)
       this.updateScrollBar();
     this.canvas.chart.update('none');
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   private scrollElement?: HTMLElement;

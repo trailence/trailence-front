@@ -310,11 +310,11 @@ export class TrailComponent extends AbstractComponent {
       .setVisible(() => this.canEdit())
       .setAction(() => this.enableEditTools()),
   ];
-  private refreshMapToolbarTop() { this.mapToolbarTopRightItems = [...this.mapToolbarTopRightItems]; this.changesDetector.detectChanges(); }
+  private refreshMapToolbarTop() { this.mapToolbarTopRightItems = [...this.mapToolbarTopRightItems]; this.changesDetection.detectChanges(); }
 
   mapToolbarRightItems: MenuItem[] = [
   ];
-  private refreshMapToolbarRight() { this.mapToolbarRightItems = [...this.mapToolbarRightItems]; this.changesDetector.detectChanges(); }
+  private refreshMapToolbarRight() { this.mapToolbarRightItems = [...this.mapToolbarRightItems]; this.changesDetection.detectChanges(); }
 
   constructor(
     injector: Injector,
@@ -326,7 +326,7 @@ export class TrailComponent extends AbstractComponent {
     private readonly traceRecorder: TraceRecorderService,
     private readonly tagService: TagService,
     private readonly photoService: PhotoService,
-    private readonly changesDetector: ChangeDetectorRef,
+    changesDetector: ChangeDetectorRef,
     private readonly preferencesService: PreferencesService,
   ) {
     super(injector);
@@ -551,10 +551,10 @@ export class TrailComponent extends AbstractComponent {
           this.graph?.resetChart();
         this.toolbar?.refresh();
         this.refreshMapToolbarTop();
-        this.changesDetector.detectChanges();
+        this.changesDetection.detectChanges();
       }, true
     );
-    this.byStateAndVisible.subscribe(this.selection.selection$, () => this.changesDetector.detectChanges());
+    this.byStateAndVisible.subscribe(this.selection.selection$, () => this.changesDetection.detectChanges());
   }
 
   private trail$(trail$?: Observable<Trail | null>): Observable<[Trail | null, Track | undefined, MapTrack | undefined]> {
@@ -642,7 +642,7 @@ export class TrailComponent extends AbstractComponent {
       source => {
         this.source = source;
         this.toolbarItems = [...this.toolbarItems];
-        this.changesDetector.detectChanges();
+        this.changesDetection.detectChanges();
       }
     );
   }
@@ -735,7 +735,7 @@ export class TrailComponent extends AbstractComponent {
         const newValue = myFeedback ?? undefined;
         if (newValue !== this.myFeedback$.value) {
           this.myFeedback$.next(newValue);
-          this.changesDetector.detectChanges();
+          this.changesDetection.detectChanges();
         }
       }
     );
@@ -751,7 +751,7 @@ export class TrailComponent extends AbstractComponent {
     ).subscribe(uuid => {
       this.currentPublicTrailUuid = uuid;
       this.toolbarItems = [...this.toolbarItems];
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
     })
   }
 
@@ -774,7 +774,7 @@ export class TrailComponent extends AbstractComponent {
         if (same(this.tagsNames1, names1) && same(this.tagsNames2, names2)) return;
         this.tagsNames1 = names1?.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));;
         this.tagsNames2 = names2?.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));;
-        this.changesDetector.detectChanges();
+        this.changesDetection.detectChanges();
       }, true
     );
   }
@@ -1000,7 +1000,7 @@ export class TrailComponent extends AbstractComponent {
           this.graph.updateRecording(r.track, this.remaining?.segmentIndex, this.remaining?.pointIndex);
         }
         this.refreshMapToolbarTop();
-        this.changesDetector.detectChanges();
+        this.changesDetection.detectChanges();
       }
     )
   }
@@ -1012,7 +1012,7 @@ export class TrailComponent extends AbstractComponent {
         this.toolbarItems = [...this.toolbarItems];
         this.refreshMapToolbarTop();
         this.refreshMapToolbarRight();
-        this.changesDetector.detectChanges();
+        this.changesDetection.detectChanges();
       },
       true
     );
@@ -1049,7 +1049,7 @@ export class TrailComponent extends AbstractComponent {
           this.publicationChecklist = undefined;
         }
         if (result.col1?.collection.type === TrailCollectionType.PUB_SUBMIT) this.editable = false;
-        this.changesDetector.detectChanges();
+        this.changesDetection.detectChanges();
       }
     );
   }
@@ -1071,7 +1071,7 @@ export class TrailComponent extends AbstractComponent {
       this.isSmall = true;
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
     }
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   private updateVisibility(mapVisible: boolean, graphVisible: boolean): void {
@@ -1174,7 +1174,7 @@ export class TrailComponent extends AbstractComponent {
     this.selection.cancelSelection();
     this.positionningOnMap$.next(photo);
     this.refreshMapToolbarRight();
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
     const subscription = this.selection.selection$.subscribe(() => this.mapToolbarPositionningPhotoItems = [...this.mapToolbarPositionningPhotoItems]);
     this.positionningOnMap$.pipe(filter(p => !p), first()).subscribe(() => {
       subscription.unsubscribe();
@@ -1183,7 +1183,7 @@ export class TrailComponent extends AbstractComponent {
       if (showPhotosBefore) this.showPhotos$.next(true);
       if (showOriginalBefore) this.showOriginal$.next(true);
       this.refreshMapToolbarRight();
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
       if (this.isSmall) this.setTab('photos');
       else this.openPhotos();
     });
@@ -1224,7 +1224,7 @@ export class TrailComponent extends AbstractComponent {
     } else {
       this.traceRecorder.pause();
     }
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   togglePauseRecordingWithConfirmation(): void {
@@ -1307,10 +1307,11 @@ export class TrailComponent extends AbstractComponent {
       if (!locked) return;
       this._lockForDescription = unlock;
       this.editingDescription = true;
-      this.changesDetector.detectChanges();
-      setTimeout(() => {
-        if (this.descriptionEditor) this.descriptionEditor.setFocus();
-      }, 0);
+      this.changesDetection.detectChanges(() => {
+        setTimeout(() => {
+          if (this.descriptionEditor) this.descriptionEditor.setFocus();
+        }, 0);
+      });
     });
   }
 
@@ -1328,7 +1329,7 @@ export class TrailComponent extends AbstractComponent {
         });
       }
     }
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   openLocationDialog(): void {
@@ -1359,12 +1360,12 @@ export class TrailComponent extends AbstractComponent {
 
   highlightWayPoint(wp: ComputedWayPoint, click: boolean): void {
     this.trailsWaypoints.highlightWayPoint(wp, click);
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   unhighlightWayPoint(wp: ComputedWayPoint, force: boolean): void {
     if (this.trailsWaypoints.unhighlightWayPoint(wp, force))
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
   }
 
   createWaypointOnRecording(): void {
@@ -1393,23 +1394,25 @@ export class TrailComponent extends AbstractComponent {
     if (this.toolsEnabled) return;
     if (this.showOriginal$.value) this.showOriginal$.next(false);
     this.toolsEnabled = true;
-    this.changesDetector.detectChanges();
-    setTimeout(() => {
-      this.mapToolbarTopRight?.refresh();
-      this.toolbar?.refresh();
-      this.changesDetector.detectChanges();
-    }, 0);
+    this.changesDetection.detectChanges(() => {
+      setTimeout(() => {
+        this.mapToolbarTopRight?.refresh();
+        this.toolbar?.refresh();
+        this.changesDetection.detectChanges();
+      }, 0);
+    });
   }
 
   public disableEditTools() {
     if (!this.toolsEnabled) return;
     this.toolsEnabled = false;
-    this.changesDetector.detectChanges();
-    setTimeout(() => {
-      this.mapToolbarTopRight?.refresh();
-      this.toolbar?.refresh();
-      this.changesDetector.detectChanges();
-    }, 0);
+    this.changesDetection.detectChanges(() => {
+      setTimeout(() => {
+        this.mapToolbarTopRight?.refresh();
+        this.toolbar?.refresh();
+        this.changesDetection.detectChanges();
+      }, 0);
+    });
   }
 
   setToolsStack(stack: TrackEditToolsStack | undefined): void {
@@ -1422,7 +1425,7 @@ export class TrailComponent extends AbstractComponent {
         this.map?.invalidateSize();
       }, 500);
     }
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   toolCreated(tool: TrackEditToolComponent<any>) {
@@ -1437,7 +1440,7 @@ export class TrailComponent extends AbstractComponent {
         (!pos && this.graphZoomButtonPosition.value) ||
         (pos && this.graphZoomButtonPosition.value && pos.x !== this.graphZoomButtonPosition.value.x && pos.y !== this.graphZoomButtonPosition.value.y)) {
       this.graphZoomButtonPosition.next(pos);
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
     }
   }
 
@@ -1489,7 +1492,7 @@ export class TrailComponent extends AbstractComponent {
     });
     modal.onWillDismiss().then(() => {
       this.toolbarItems = [...this.toolbarItems];
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
     });
     await modal.present();
   }
@@ -1661,7 +1664,7 @@ export class TrailComponent extends AbstractComponent {
     }
     if (changed) this.trailService.doUpdate(this.trail1!, t => t.publicationData = newPubData);
     this.toolbarItems = [...this.toolbarItems];
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   wayPointsTranslationsChanged(): void {
@@ -1676,7 +1679,7 @@ export class TrailComponent extends AbstractComponent {
       if (this.isShowPublicTrailsAround) this.publicTrailsAroundMapTracks$.next(tracks);
     }));
     this.toolbarItems = [...this.toolbarItems];
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   hidePublicTrailsAround(): void {

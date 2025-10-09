@@ -150,7 +150,7 @@ export class TrailsListComponent extends AbstractComponent {
     public i18n: I18nService,
     private readonly trackService: TrackService,
     private readonly trailMenuService: TrailMenuService,
-    public changeDetector: ChangeDetectorRef,
+    changeDetector: ChangeDetectorRef,
     private readonly router: Router,
     private readonly preferences: PreferencesService,
     private readonly tagService: TagService,
@@ -178,7 +178,7 @@ export class TrailsListComponent extends AbstractComponent {
           currentLang = prefs.lang;
           i18n.langLoaded$.pipe(first(l => l === currentLang)).subscribe(() => {
             this.toolbar = [...this.toolbar];
-            this.changeDetector.detectChanges();
+            this.changesDetection.detectChanges();
           });
         }
       },
@@ -292,7 +292,7 @@ export class TrailsListComponent extends AbstractComponent {
           const ti = this.listTrails.find(t => t.trail.uuid === h.uuid && t.trail.owner === h.owner);
           this.highlighted = ti?.trail;
         }
-        this.changeDetector.detectChanges();
+        this.changesDetection.detectChanges();
       })
     ));
 
@@ -316,11 +316,11 @@ export class TrailsListComponent extends AbstractComponent {
         if (state.filters !== previous.filters || mapCenter !== previousMapCenter || mapZoom !== previousMapZoom) {
           this.applySort(this.applyFilters());
           this.toolbar = [...this.toolbar];
-          this.changeDetector.detectChanges();
+          this.changesDetection.detectChanges();
         } else if (state.sortAsc !== previous.sortAsc || state.sortBy !== previous.sortBy) {
           this.applySort(this.listTrails);
           this.toolbar = [...this.toolbar];
-          this.changeDetector.detectChanges();
+          this.changesDetection.detectChanges();
         }
         previous = state;
         previousMapCenter = mapCenter;
@@ -382,7 +382,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
-    if (changes['message'] || changes['searching']) this.changeDetector.detectChanges();
+    if (changes['message'] || changes['searching']) this.changesDetection.detectChanges();
   }
 
   protected override destroyComponent(): void {
@@ -512,7 +512,7 @@ export class TrailsListComponent extends AbstractComponent {
   public setListMode(mode: any): void {
     if (this.state$.value.mode === mode || (mode !== 'condensed' && mode !== 'detailed' && mode != 'detailed_small_map')) return;
     this.state$.next({...this.state$.value, mode: mode});
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   public get nbShown(): number {
@@ -535,12 +535,12 @@ export class TrailsListComponent extends AbstractComponent {
       return true;
     });
     this.toolbar = [...this.toolbar];
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   onTrailSelected(): void {
     this.toolbar = [...this.toolbar];
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   getSelectedTrails(): Trail[] {
@@ -690,7 +690,7 @@ export class TrailsListComponent extends AbstractComponent {
         }
       }
     }
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   private scrollTo(parent: HTMLElement, element: HTMLElement, trial: number): void {
@@ -705,7 +705,7 @@ export class TrailsListComponent extends AbstractComponent {
     } else {
       return;
     }
-    if (trial >= 5) return;
+    if (trial >= 10) return;
     setTimeout(() => this.scrollTo(parent, element, trial + 1), 100);
   }
 
@@ -729,7 +729,7 @@ export class TrailsListComponent extends AbstractComponent {
       if (this.highlighted === trailWithInfo.trail) {
         this.highlighted = undefined;
       }
-      this.changeDetector.detectChanges();
+      this.changesDetection.detectChanges();
     }
   }
 
@@ -743,7 +743,7 @@ export class TrailsListComponent extends AbstractComponent {
         if (input?.setFocus) input.setFocus();
       }, 100);
     }
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   searchValue$ = new EventEmitter<string>();

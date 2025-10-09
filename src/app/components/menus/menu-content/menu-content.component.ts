@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from 'src/app/components/menus/menu-item';
 import { IonItem, IonIcon, IonLabel, IonList, IonListHeader, IonButton, PopoverController } from "@ionic/angular/standalone";
 import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
+import { ChangesDetection } from 'src/app/utils/angular-helpers';
 
 interface Section {
   type: 'toolbar' | 'menu';
@@ -26,11 +27,16 @@ export class MenuContentComponent implements OnInit, OnChanges {
   content: Section[] = [];
   parents: {from: ComputedMenuItem, list: MenuItem[]}[] = [];
 
+  private readonly changesDetection: ChangesDetection;
+
   constructor(
     private readonly i18n: I18nService,
-    private readonly changesDetector: ChangeDetectorRef,
+    changesDetector: ChangeDetectorRef,
+    ngZone: NgZone,
     private readonly popoverController: PopoverController,
-  ) {}
+  ) {
+    this.changesDetection = new ChangesDetection(ngZone, changesDetector);
+  }
 
   ngOnInit(): void {
     this.setMenu(this.menu, true);
@@ -58,7 +64,7 @@ export class MenuContentComponent implements OnInit, OnChanges {
       type: 'menu',
       items: items,
     })
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   private extractToolbar(items: ComputedMenuItem[]): Section | undefined {
@@ -92,11 +98,10 @@ export class MenuContentComponent implements OnInit, OnChanges {
       if (item.children.items.length > 0) {
         this.parents.push({from: item, list: this.computed.items.map(i => i.item)});
         this.content = [];
-        this.changesDetector.detectChanges();
         this.setMenu(item.children.items, true);
       }
     }
-    this.changesDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   back($event: Event): void {

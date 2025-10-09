@@ -109,6 +109,7 @@
         (click)="onTrailClick(trailWithInfo.trail)"
         [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
         [hideMenu]="nbSelected > 0"
+        (openTrailEvent)="setHighlighted($event)"
       >
       </app-trail-overview-condensed>
     }
@@ -140,6 +141,7 @@
           [hideMenu]="nbSelected > 0"
           [photoEnabled]="state$.value.mode !== 'detailed_small_map'"
           [smallMapEnabled]="state$.value.mode === 'detailed_small_map'"
+          (openTrailEvent)="setHighlighted($event)"
         ></app-trail-overview>
       </div>
     }

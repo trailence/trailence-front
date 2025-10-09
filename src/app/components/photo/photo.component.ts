@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { ChangesDetection } from 'src/app/utils/angular-helpers';
 
 @Component({
     selector: 'app-photo',
@@ -31,14 +32,17 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   private subscription?: Subscription;
   private reloadSubscription?: Subscription;
 
+  private changesDetection: ChangesDetection;
+
   constructor(
     private readonly photoService: PhotoService,
-    private readonly changesDetector: ChangeDetectorRef,
+    changesDetector: ChangeDetectorRef,
     private readonly elementRef: ElementRef,
     private readonly network: NetworkService,
     private readonly ngZone: NgZone,
   ) {
     changesDetector.detach();
+    this.changesDetection = new ChangesDetection(ngZone, changesDetector);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -69,7 +73,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
                   return;
                 }
                 this.reloadError(loadPhoto, photo, trial + 1);
-                this.ngZone.run(() => this.changesDetector.detectChanges());
+                this.changesDetection.detectChanges();
               }
             });
           });
@@ -101,7 +105,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.blob = blob.url;
       this.blobSize.emit(blob.blobSize);
     }
-    this.ngZone.run(() => this.changesDetector.detectChanges());
+    this.changesDetection.detectChanges();
   }
 
   private reloadError(loader: (photo: Photo, trial: number) => void, photo: Photo, trial: number): void {

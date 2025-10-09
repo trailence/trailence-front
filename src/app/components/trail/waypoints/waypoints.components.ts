@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
 import { TrailsWaypoints, TrailWaypoints } from '../trail-waypoints';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -7,6 +7,7 @@ import { IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton, ModalCon
 import { CommonModule } from '@angular/common';
 import { ComputedWayPoint } from 'src/app/model/track';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
+import { ChangesDetection } from 'src/app/utils/angular-helpers';
 
 @Component({
   selector: 'app-trail-waypoints',
@@ -30,12 +31,17 @@ export class WaypointsComponent implements OnInit, OnDestroy {
   selectedTrailIndex = 0;
   selectedTrail?: TrailWaypoints;
 
+  private changesDetection: ChangesDetection;
+
   constructor(
     public readonly i18n: I18nService,
-    private readonly changesDetector: ChangeDetectorRef,
+    changesDetector: ChangeDetectorRef,
+    ngZone: NgZone,
     private readonly modalController: ModalController,
     private readonly alertController: AlertController,
-  ) {}
+  ) {
+    this.changesDetection = new ChangesDetection(ngZone, changesDetector);
+  }
 
   private subscription?: Subscription;
 
@@ -52,7 +58,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
           this.selectedTrailIndex = 0;
         }
       }
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
     });
   }
 
@@ -69,7 +75,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     if (typeof index === 'number' && index >= 0 && index < this.trails.trails.length && index !== this.selectedTrailIndex) {
       this.selectedTrailIndex = index;
       this.selectedTrail = this.trails.trails[index];
-      this.changesDetector.detectChanges();
+      this.changesDetection.detectChanges();
     }
   }
 
@@ -114,7 +120,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
           if (result.role === 'ok' && wp.isComputedOnly) {
             this.selectedTrail?.track.appendWayPoint(wp.wayPoint);
           }
-          this.changesDetector.detectChanges();
+          this.changesDetection.detectChanges();
         });
         modal.present();
       });

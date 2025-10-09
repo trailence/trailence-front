@@ -16,6 +16,7 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { ChangesDetection } from 'src/app/utils/angular-helpers';
 
 @Component({
   selector: 'app-trail-overview-condensed',
@@ -42,6 +43,8 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
   @Input() checkboxMode = 'md';
   @Input() hideMenu = false;
 
+  @Output() openTrailEvent = new EventEmitter<Trail>();
+
   duration = '';
   estimatedDuration = '';
 
@@ -59,6 +62,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
   openUrl?: string;
 
   private readonly subscriptions = new Subscriptions();
+  private readonly changesDetection: ChangesDetection;
 
   constructor(
     private readonly i18n: I18nService,
@@ -69,11 +73,13 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
     private readonly trailMenuService: TrailMenuService,
     private readonly trailService: TrailService,
     private readonly tagService: TagService,
-    private readonly changeDetector: ChangeDetectorRef,
-    private readonly ngZone: NgZone,
+    changesDetector: ChangeDetectorRef,
+    ngZone: NgZone,
     private readonly prefService: PreferencesService,
     private readonly injector: Injector,
-  ) {}
+  ) {
+    this.changesDetection = new ChangesDetection(ngZone, changesDetector);
+  }
 
   ngOnInit(): void {
     this.subscriptions.add(
@@ -81,11 +87,11 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
         switchMap(a => a?.email === this.trail.owner ? this.tagService.getTrailTagsFullNames$(this.trail.uuid) : of([]))
       ).subscribe(tagsNames => {
         this.tags = tagsNames;
-        this.ngZone.run(() => this.changeDetector.detectChanges());
+        this.changesDetection.detectChanges();
       })
     );
     this.subscriptions.add(
-      this.trail.name$.subscribe(() => this.ngZone.run(() => this.changeDetector.detectChanges()))
+      this.trail.name$.subscribe(() => this.changesDetection.detectChanges())
     );
     this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
     if (this.trail.fromModeration) this.openUrl += '/moderation';
@@ -166,6 +172,7 @@ export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDes
   }
 
   openTrail(): void {
+    this.openTrailEvent.emit(this.trail);
     if (this.trail.fromModeration)
       this.router.navigate(['trail', this.trail.owner, this.trail.uuid, 'moderation'], {queryParams: { from: this.router.url }});
     else
