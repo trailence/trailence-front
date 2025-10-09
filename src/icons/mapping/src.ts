@@ -66,6 +66,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'item-menu': 'item-menu.1.svg', // ellipsis-vertical
   'key': 'key.1.svg', // key-outline
   'layers': 'layers.1.svg', // layers-outline
+  'link': 'link.1.svg', // bootstrap link-45deg
   'list-condensed': 'list-condensed.1.svg',
   'list-detailed': 'list-detailed.1.svg',
   'list-items': 'list-items.1.svg', // list-outline

@@ -349,4 +349,19 @@ public class TrailencePlugin extends Plugin {
   public void canTakePhoto(PluginCall call) {
     call.resolve(new JSObject().put("canTakePhoto", getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)));
   }
+
+  @PluginMethod
+  public void share(PluginCall call) {
+    String link = call.getString("link");
+    if (link == null || link.isBlank()) return;
+    Intent shareIntent = new Intent();
+    shareIntent.setAction(Intent.ACTION_SEND);
+    shareIntent.putExtra(Intent.EXTRA_TEXT, link);
+    shareIntent.setType("text/plain");
+    String title = call.getString("title");
+    if (title != null && !title.isBlank())
+      shareIntent.putExtra(Intent.EXTRA_TITLE, title);
+    getContext().startActivity(Intent.createChooser(shareIntent, null));
+    call.resolve();
+  }
 }

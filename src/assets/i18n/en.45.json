@@ -221,7 +221,9 @@
         "copying_photos": "Copying photos",
         "copy_photo_error": "Error copying photo {{1}}",
         "add_to_my_selection": "Add to my selection",
-        "remove_from_my_selection": "Remove from my selection"
+        "remove_from_my_selection": "Remove from my selection",
+        "copy_link": "Copy link",
+        "share_link": "Share link"
       },
       "tags": {
         "menu_item": "Tags",

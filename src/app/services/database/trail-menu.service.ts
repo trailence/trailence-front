@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
-import { ModalController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, AlertController, Platform } from '@ionic/angular/standalone';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
@@ -18,6 +18,8 @@ import { MySelectionService } from './my-selection.service';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { I18nService } from '../i18n/i18n.service';
 import { ModerationService } from '../moderation/moderation.service';
+import { environment } from 'src/environments/environment';
+import Trailence from '../trailence.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -184,6 +186,25 @@ export class TrailMenuService {
         .setAction(() => import('../../components/share-popup/share-popup.component')
           .then(m => m.openSharePopup(this.injector, fromCollection.uuid, onlyGlobal ? [] : trails))
         ));
+    }
+
+    if (trails.length === 1 && !onlyGlobal && trails[0].owner === 'trailence' && trails[0].source?.startsWith(environment.baseUrl)) {
+      // public trail
+      const link = trails[0].source;
+      menu.push(new MenuItem());
+      if (this.injector.get(Platform).is('capacitor')) {
+        menu.push(new MenuItem().setIcon('share').setI18nLabel('pages.trails.actions.share_link')
+          .setAction(() => {
+            Trailence.share({link, title: trails[0].name});
+          })
+        );
+      } else {
+        menu.push(new MenuItem().setIcon('link').setI18nLabel('pages.trails.actions.copy_link')
+          .setAction(() => {
+            navigator.clipboard.writeText(link);
+          })
+        );
+      }
     }
 
     if (trails.length > 0 && !isAll && !isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {

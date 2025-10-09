@@ -71,6 +71,7 @@ export const ICONS: string[] = [
   'item-menu',
   'key',
   'layers',
+  'link',
   'list-condensed',
   'list-detailed',
   'list-items',

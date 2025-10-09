@@ -24,6 +24,8 @@ export interface TrailencePlugin {
 
   canTakePhoto(call: {}): Promise<{canTakePhoto: boolean}>;
 
+  share(call: {link: string, title?: string}): Promise<any>;
+
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');
