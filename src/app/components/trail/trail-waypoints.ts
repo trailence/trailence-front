@@ -166,7 +166,7 @@ export class TrailWaypoints {
         });
         if (this.wayPointDepartureAndArrival)
           this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
-        // TODO re-highlight way point ?
+        // TODO re-highlight waypoint ?
         onUpdated();
       }
     );

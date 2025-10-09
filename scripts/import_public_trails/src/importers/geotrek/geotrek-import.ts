@@ -169,7 +169,7 @@ export class GeoTrekImport extends Importer {
       // TODO
     }
 
-    // TODO check track, photos, way points...
+    // TODO check track, photos, waypoints...
 
     if (trailDtoUpdates.length === 0 && !pointsUpdated && !wayPointsUpdated) {
       console.log('No relevant update found: only update the trail date');
@@ -183,7 +183,7 @@ export class GeoTrekImport extends Importer {
       }
     }
     if (pointsUpdated) console.log('Track points have been updated');
-    if (wayPointsUpdated) console.log('Way points have been updated');
+    if (wayPointsUpdated) console.log('Waypoints have been updated');
 
     // TODO update
     return true;
@@ -235,7 +235,7 @@ export class GeoTrekImport extends Importer {
         trail.publicationData!['nameTranslations'] = translations;
     });
 
-    // way points
+    // waypoints
     const wayPointModule = await import('front/model/way-point.js');
     const wayPoints: WayPoint[] = [];
     if (trek.points_reference && trek.points_reference.type === 'MultiPoint') {

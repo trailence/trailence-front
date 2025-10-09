@@ -73,14 +73,14 @@ export class EditTools extends Component {
 
   public async createWayPoint() {
     const menu = await this.toolbar.clickByIconAndGetMenu('location');
-    await menu.clickItemWithText('Create a way point');
+    await menu.clickItemWithText('Create a waypoint');
     const modal = await App.waitModal();
     (await new ModalComponent(modal).getFooterButtonWithColor('success')).click();
   }
 
   public async removeWayPoint() {
     const menu = await this.toolbar.clickByIconAndGetMenu('location');
-    await menu.clickItemWithText('Remove the way point');
+    await menu.clickItemWithText('Remove the waypoint');
   }
 
   public async removePointsAfter() {

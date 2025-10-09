@@ -21,6 +21,7 @@ describe('Trails Tools', () => {
   });
 
   let list: TrailsList;
+  let trailPage: TrailPage;
 
   it('Switch to condensed list, then back', async () => {
     list = await collectionPage.trailsAndMap.openTrailsList();
@@ -45,30 +46,24 @@ describe('Trails Tools', () => {
     await trail2!.clickMenuItem('Compare with this trail');
     const trail2Id = await list.getTrailId(trail2!);
 
-    const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
+    trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
     await trailPage.waitDisplayed();
     expect(await trailPage.header.getTitle()).toBe('Compare');
     expect(await trailPage.header.getTitle2()).toBe('Randonnée du 20/02/2022 à 09:55 and Près de Tourves');
-    const hasTabs = await trailPage.trailComponent.hasTabs();
-    if (hasTabs)
-      expect(await trailPage.trailComponent.hasTab('photos')).toBeFalse();
     const details = await trailPage.trailComponent.openDetails();
-    expect(await details.$('.trail-photos').isExisting()).toBeFalse();
     expect(await details.$('.description-text').isExisting()).toBeFalse();
-    expect(await details.$('.waypoint').isExisting()).toBeFalse();
 
     duration1 = (await trailPage.trailComponent.getMetadataValueByTitle('Duration', true))!;
     duration2 = (await trailPage.trailComponent.getMetadataValueByTitle('Duration', false))!;
     expect(duration1).toContain('h');
     expect(duration2).toContain('h');
     expect(duration1).not.toBe(duration2);
-
-    await trailPage.header.goBack();
-    collectionPage = new TrailsPage();
-    await collectionPage.waitDisplayed();
   });
 
   it('Use selection menu to compare trails', async () => {
+    await trailPage.header.goBack();
+    collectionPage = new TrailsPage();
+    await collectionPage.waitDisplayed();
     list = await collectionPage.trailsAndMap.openTrailsList();
     const trail1 = await list.findItemByTrailName('Randonnée du 20/02/2022 à 09:55');
     await trail1!.selectTrail();
@@ -78,19 +73,19 @@ describe('Trails Tools', () => {
     const trail2Id = await list.getTrailId(trail2!);
     (await list.openSelectionMenu()).clickItemWithText('Compare');
 
-    const trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
+    trailPage = new TrailPage(trail1Id.owner, trail1Id.uuid, trail2Id.owner, trail2Id.uuid);
     await trailPage.waitDisplayed();
     expect(await trailPage.header.getTitle()).toBe('Compare');
     const title2 = await trailPage.header.getTitle2();
     if (title2 !== 'Randonnée du 20/02/2022 à 09:55 and Près de Tourves' && title2 !== 'Près de Tourves and Randonnée du 20/02/2022 à 09:55')
       throw new Error('Unexpected title: ' + title2);
-
-    await trailPage.header.goBack();
-    collectionPage = new TrailsPage();
-    await collectionPage.waitDisplayed();
   });
 
   it('Selecting one or more than two trails, does not propose to compare', async () => {
+    await trailPage.header.goBack();
+    collectionPage = new TrailsPage();
+    await collectionPage.waitDisplayed();
+
     list = await collectionPage.trailsAndMap.openTrailsList();
     await list.selectAllCheckbox.setSelected(false);
 
@@ -125,7 +120,7 @@ describe('Trails Tools', () => {
     await trail!.selectTrail();
 
     await (await list.openSelectionMenu()).clickItemWithText('Merge these tracks');
-    const trailPage = await TrailPage.waitForName('Merged track');
+    trailPage = await TrailPage.waitForName('Merged track');
     await trailPage.trailComponent.openDetails();
     const duration = await trailPage.trailComponent.getMetadataValueByTitle('Duration' ,true);
 

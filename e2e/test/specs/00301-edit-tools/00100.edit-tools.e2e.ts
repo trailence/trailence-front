@@ -49,8 +49,8 @@ describe('Edit tools', () => {
     return await tools.waitSelectionTool();
   };
 
-  it('Add and remove a way point', async () => {
-    details = await trailPage.trailComponent.openDetails();
+  it('Add and remove a waypoint', async () => {
+    details = await trailPage.trailComponent.openWayPoints();
     await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 2));
     map = await trailPage.trailComponent.openMap();
 
@@ -68,7 +68,7 @@ describe('Edit tools', () => {
     await tools.removeWayPoint();
     await browser.pause(1000);
 
-    details = await trailPage.trailComponent.openDetails();
+    details = await trailPage.trailComponent.openWayPoints();
     await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 3));
     map = await trailPage.trailComponent.openMap();
   });
@@ -77,7 +77,7 @@ describe('Edit tools', () => {
     await tools.undo();
     await tools.undo();
     await tools.undo();
-    details = await trailPage.trailComponent.openDetails();
+    details = await trailPage.trailComponent.openWayPoints();
     await browser.waitUntil(() => details.$$('div.waypoint').length.then(nb => nb === 2));
     map = await trailPage.trailComponent.openMap();
   });

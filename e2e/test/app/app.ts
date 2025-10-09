@@ -267,11 +267,11 @@ export class App {
     throw new Error('Unexepcted');
   }
 
-  public static async waitAlert() {
+  public static async waitAlert(timeout?: number) {
     const alert = $('ion-app>ion-alert:not(.overlay-hidden)');
-    await alert.waitForDisplayed();
+    await alert.waitForDisplayed({timeout});
     const content = alert.$('>>>.alert-wrapper');
-    await content.waitForExist();
+    await content.waitForExist({timeout});
     return new IonicAlert(content);
   }
 

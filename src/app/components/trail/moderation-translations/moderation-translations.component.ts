@@ -157,7 +157,7 @@ export class ModerationTranslationsComponent implements OnInit {
     for (let i = 0; i < this.track.wayPoints.length; ++i) {
       const wp = this.track.wayPoints[i];
       if (wp.name.trim().length > 0 || wp.description.trim().length > 0) {
-        prompt += '<b>Way Point ' + i + '</b>:\n';
+        prompt += '<b>Waypoint ' + i + '</b>:\n';
         if (wp.name.trim().length > 0) {
           prompt += '<b>Name</b>:\n' + wp.name + '\n';
         }

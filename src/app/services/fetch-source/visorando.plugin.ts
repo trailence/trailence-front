@@ -101,7 +101,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       }
     }
 
-    // way points
+    // waypoints
     const sections = doc.querySelectorAll('main section');
     for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
       const section = sections.item(sectionIndex)!; // NOSONAR

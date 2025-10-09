@@ -1,4 +1,5 @@
 import { App } from '../app/app';
+import { TestUtils } from '../utils/test-utils';
 import { ActivityModal } from './activity.modal';
 import { Component } from './component';
 import { EditTools } from './edit-tools.component';
@@ -165,9 +166,9 @@ export class TrailComponent extends Component {
     const textArea = new IonicTextArea(element.$('ion-textarea'));
     await textArea.waitDisplayed();
     await textArea.setValue(text);
-    const title = details.$('div.section-title');
-    await title.scrollIntoView({block: 'center', inline: 'center'});
-    await title.click();
+    const somewhere = details.$('div.trail-dates');
+    await somewhere.scrollIntoView({block: 'center', inline: 'center'});
+    await somewhere.click();
     await browser.waitUntil(() => textArea.isDisplayed().then(d => !d));
   }
 
@@ -261,8 +262,10 @@ export class TrailComponent extends Component {
 
   public async publishDraft(message: string) {
     const details = await (await this.openDetails()).getElement();
-    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
-    const alert = await App.waitAlert();
+    const alert = await TestUtils.retry(async () => {
+      await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
+      return await App.waitAlert(5000);
+    }, 2, 100);
     await alert.setTextareaValue(message);
     await alert.clickButtonWithRole('confirm');
     await alert.waitNotDisplayed();
@@ -270,8 +273,10 @@ export class TrailComponent extends Component {
 
   public async rejectPublication(message: string) {
     const details = await (await this.openDetails()).getElement();
-    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('cross').click();
-    const alert = await App.waitAlert();
+    const alert = await TestUtils.retry(async () => {
+      await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('cross').click();
+      return await App.waitAlert(5000);
+    }, 2, 100);
     await alert.setTextareaValue(message);
     await alert.clickButtonWithRole('confirm');
     await alert.waitNotDisplayed();
@@ -279,8 +284,10 @@ export class TrailComponent extends Component {
 
   public async acceptPublication() {
     const details = await (await this.openDetails()).getElement();
-    await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
-    const alert = await App.waitAlert();
+    const alert = await TestUtils.retry(async () => {
+      await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
+      return await App.waitAlert(5000);
+    }, 2, 100);
     await alert.clickButtonWithRole('confirm');
     await alert.waitNotDisplayed();
     await App.waitNoProgress();
@@ -319,9 +326,16 @@ export class TrailComponent extends Component {
     return graph;
   }
 
+  public async openWayPoints() {
+    if (App.config.mode === 'mobile') {
+      await this.openTab('waypoints');
+    }
+    return this.getElement().$('div.waypoints-container');
+  }
+
   public async getWayPoints() {
-    const details = await this.openDetails();
-    const elements = await details.$$('div.waypoint div.waypoint-content').getElements();
+    const waypoints = await this.openWayPoints();
+    const elements = await waypoints.$$('div.waypoint div.waypoint-content').getElements();
     const result = [];
     for (const element of elements) {
       if (await element.$('div.waypoint-name span').isExisting())

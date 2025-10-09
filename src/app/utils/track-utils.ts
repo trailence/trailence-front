@@ -223,7 +223,7 @@ export class TrackUtils {
     return endTime - startTime;
   }
 
-  // Way points
+  // Waypoints
 
   public static findWayPoints(track: Track, startSegmentIndex: number, startPointIndex: number, endSegmentIndex: number, endPointIndex: number, prefs: PreferencesService) {
     let computed = ComputedWayPoint.compute(track, prefs.preferences);
