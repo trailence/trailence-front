@@ -13,10 +13,10 @@ export class RemoveUnprobablePointsTool implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       removeUnprobablePointsOnTrack(track);
       return of(true);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 
 }

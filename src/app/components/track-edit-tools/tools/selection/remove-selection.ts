@@ -52,7 +52,7 @@ export class RemoveSelectionTool implements TrackEditTool {
     const point = ctx.selection.getSinglePointOf(currentTrack);
     const range = point ? undefined : ctx.selection.getSubTrackOf(currentTrack);
     if (!point && !range) return;
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       if (this.andOpen) {
         if (point) {
           this.splitPoint(ctx, track, point);
@@ -65,7 +65,7 @@ export class RemoveSelectionTool implements TrackEditTool {
         this.removeRange(ctx, track, range.range);
       }
       return of(true);
-    }).subscribe(() => ctx.selection.cancelSelection());
+    }, false, false).subscribe(() => ctx.selection.cancelSelection());
   }
 
   private removePoint(ctx: TrackEditToolContext, track: Track, point: PointReference): void {

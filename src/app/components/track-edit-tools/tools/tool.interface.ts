@@ -28,8 +28,8 @@ export interface TrackEditToolContext {
 
   readonly currentTrack$: BehaviorSubject<Track | undefined>;
 
-  modifyTrack(mayNotChange: boolean, trackModifier: (track: Track) => Observable<any>): Observable<any>;
-  modifySelectedRange(mayNotChange: boolean, trackModifier: (track: Track) => Observable<any>): Observable<any>;
+  modifyTrack(trackModifier: (track: Track) => Observable<any>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<any>;
+  modifySelectedRange(trackModifier: (track: Track) => Observable<any>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<any>;
   setBaseTrack(track: Track): void;
   isBaseTrackShown(): boolean;
   setShowBaseTrack(show: boolean): void;

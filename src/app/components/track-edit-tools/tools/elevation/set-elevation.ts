@@ -14,7 +14,7 @@ export class SetElevationOnRangeWithStartTool implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext): void {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       const elevation = track.departurePoint?.ele;
       if (elevation !== undefined)
         track.forEachPoint(p => {
@@ -22,7 +22,7 @@ export class SetElevationOnRangeWithStartTool implements TrackEditTool {
           return undefined;
         });
       return of(true);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 
 }
@@ -38,7 +38,7 @@ export class SetElevationOnRangeWithEndTool implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext): void {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       const elevation = track.arrivalPoint?.ele;
       if (elevation !== undefined)
         track.forEachPoint(p => {
@@ -46,7 +46,7 @@ export class SetElevationOnRangeWithEndTool implements TrackEditTool {
           return undefined;
         });
       return of(true);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 
 }
@@ -62,7 +62,7 @@ export class SetElevationOnRangeSmoothTool implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext): void {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       const start = track.departurePoint?.ele;
       const end = track.arrivalPoint?.ele;
       if (start !== undefined && end !== undefined) {
@@ -83,7 +83,7 @@ export class SetElevationOnRangeSmoothTool implements TrackEditTool {
         }
       }
       return of(true);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 }
 
@@ -124,13 +124,13 @@ export class SetElevationOnRangeManualValueTool implements TrackEditTool {
         if (result.role === 'ok') {
           const elevation = parseFloat(result.data?.values[0]);
           if (!isNaN(elevation)) {
-            ctx.modifySelectedRange(true, track => {
+            ctx.modifySelectedRange(track => {
               track.forEachPoint(p => {
                 p.ele = elevation;
                 return undefined;
               });
               return of(true);
-            }).subscribe();
+            }, true, true).subscribe();
           }
         }
       });
@@ -177,13 +177,13 @@ export class SetElevationOnRangeManualDiffTool implements TrackEditTool {
         if (result.role === 'ok') {
           const elevation = parseFloat(result.data?.values[0]);
           if (!isNaN(elevation)) {
-            ctx.modifySelectedRange(true, track => {
+            ctx.modifySelectedRange(track => {
               track.forEachPoint(p => {
                 p.ele = (p.ele ?? 0) + elevation;
                 return undefined;
               });
               return of(true);
-            }).subscribe();
+            }, true, true).subscribe();
           }
         }
       });

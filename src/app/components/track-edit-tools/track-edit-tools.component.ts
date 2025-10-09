@@ -204,8 +204,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       trail: this.trail,
       currentTrack$: new BehaviorSubject<Track | undefined>(undefined),
 
-      modifyTrack: (mayNotChange, trackModifier) => this.modify(mayNotChange, trackModifier),
-      modifySelectedRange: (mayNotChange, trackModifier) => this.modifySelectedRange(mayNotChange, trackModifier),
+      modifyTrack: (trackModifier, mayNotChange, doNotNotifyIfNotChange) => this.modify(trackModifier, mayNotChange, doNotNotifyIfNotChange),
+      modifySelectedRange: (trackModifier, mayNotChange, doNotNotifyIfNotChange) => this.modifySelectedRange(trackModifier, mayNotChange, doNotNotifyIfNotChange),
       setBaseTrack: (track) => {
         this.selection.cancelSelection();
         this.pushHistory();
@@ -273,13 +273,13 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         const ctx = {
           map: this.map$.value!,
           startEditTrack: () => new Promise(resolve => {
-            this.modify(true, track => new Observable(subscriber => {
+            this.modify(track => new Observable(subscriber => {
               endEdit = () => {
                 subscriber.next(true);
                 subscriber.complete();
               };
               resolve(track);
-            })).subscribe();
+            }), true, false).subscribe();
           }),
           trackModified() {
             return new Promise(resolve => {
@@ -420,7 +420,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     this.currentTrackChanged();
   }
 
-  public modify<T>(mayNotChange: boolean, modification: (track: Track) => Observable<T>): Observable<T | undefined> {
+  public modify<T>(modification: (track: Track) => Observable<T>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<T | undefined> {
     return this.getCurrentTrack().pipe(
       switchMap(originalTrack => {
         const email = this.trail.fromModeration ? originalTrack.owner : this.auth.email!;
@@ -441,11 +441,12 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
           defaultIfEmpty(undefined),
           map(result => {
             if (mayNotChange && copy.isEquals(before!)) {
-              this.toastController.create({
-                message: this.i18n.texts.track_edit_tools.no_modification,
-                duration: 2000,
-              })
-              .then(toast => toast.present());
+              if (!doNotNotifyIfNotChange)
+                this.toastController.create({
+                  message: this.i18n.texts.track_edit_tools.no_modification,
+                  duration: 2000,
+                })
+                .then(toast => toast.present());
             } else {
               this.selection.removeSelectionForTrack(originalTrack);
               if (!copySelectionStart) {
@@ -469,11 +470,11 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     );
   }
 
-  public modifySelectedRange<T>(mayNotChange: boolean, modification: (track: Track) => Observable<T>): Observable<T | undefined> {
+  public modifySelectedRange<T>(modification: (track: Track) => Observable<T>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<T | undefined> {
     return this.getCurrentTrack().pipe(
       switchMap(fullTrack => {
         const sel = this.selection.getSubTrackOf(fullTrack);
-        if (!sel) return this.modify(mayNotChange, modification);
+        if (!sel) return this.modify(modification, mayNotChange, doNotNotifyIfNotChange);
         const email = this.trail.fromModeration ? fullTrack.owner : this.auth.email!;
         const subTrack = sel.subTrack;
         const range = sel.range;
@@ -482,11 +483,12 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
           defaultIfEmpty(undefined),
           map(result => {
             if (mayNotChange && subTrack.isEquals(before!)) {
-              this.toastController.create({
-                message: this.i18n.texts.track_edit_tools.no_modification,
-                duration: 2000,
-              })
-              .then(toast => toast.present());
+              if (!doNotNotifyIfNotChange)
+                this.toastController.create({
+                  message: this.i18n.texts.track_edit_tools.no_modification,
+                  duration: 2000,
+                })
+                .then(toast => toast.present());
             } else {
               this.selection.removeSelectionForTrack(fullTrack);
               const newTrack = fullTrack.copy(email)

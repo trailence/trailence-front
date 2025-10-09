@@ -17,14 +17,14 @@ export class ArrivalToStart implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       if (track.arrivalPoint && track.departurePoint) {
         const path = TrackUtils.findPath(track, track.departurePoint.pos, track.arrivalPoint.pos);
         if (path)
           track.segments[track.segments.length - 1].appendMany(path.reverse().map(p => this.copy(p)));
       }
       return of(true);
-    }).subscribe(() => ctx.refreshTools());
+    }, false, false).subscribe(() => ctx.refreshTools());
   }
 
   private copy(pt: PointDescriptor): PointDescriptor {

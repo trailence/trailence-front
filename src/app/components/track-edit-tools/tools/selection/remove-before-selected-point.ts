@@ -20,7 +20,7 @@ export class RemoveBeforeSelectedPointTool implements TrackEditTool {
     if (!currentTrack) return;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return;
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       const wp = TrackUtils.findWayPoints(track, 0, 0, point.segmentIndex, point.pointIndex - 1, ctx.injector.get(PreferencesService));
       wp.forEach(w =>track.removeWayPoint(w));
       let si = point.segmentIndex;
@@ -34,7 +34,7 @@ export class RemoveBeforeSelectedPointTool implements TrackEditTool {
         segment.removeMany(segment.points.slice(0, pi));
       }
       return of(true);
-    }).subscribe(() => ctx.selection.cancelSelection());
+    }, false, false).subscribe(() => ctx.selection.cancelSelection());
   }
 
 }

@@ -13,10 +13,10 @@ export class RemoveBreaksMovesTool implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       removeBreaksMovesOnTrack(track);
       return of(true);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 
 }

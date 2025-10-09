@@ -30,7 +30,7 @@ export class LinkToNextSegment implements TrackEditTool {
     if (!currentTrack) return;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return;
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       const nextSegment = track.segments[point.segmentIndex + 1];
       if (this.followingPath) {
         const path = TrackUtils.findPath(currentTrack, point.point.pos, currentTrack.segments[point.segmentIndex + 1].points[0].pos);
@@ -41,7 +41,7 @@ export class LinkToNextSegment implements TrackEditTool {
       track.segments[point.segmentIndex].appendMany(nextSegment.points.map(p => copyPoint(p)));
       track.removeSegmentAt(point.segmentIndex + 1);
       return of(true);
-    }).subscribe(() => ctx.refreshTools());
+    }, false, false).subscribe(() => ctx.refreshTools());
   }
 
   private copy(pt: PointDescriptor): PointDescriptor {

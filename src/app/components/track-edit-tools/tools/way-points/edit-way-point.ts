@@ -34,7 +34,7 @@ export class EditWayPointTool implements TrackEditTool {
     let point = ctx.selection.getSinglePointOf(currentTrack);
     const wayPoint = ctx.selection.selectedWayPoint$.value;
     if (!point && !wayPoint) return;
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       let w: WayPoint | undefined;
       if (wayPoint) {
         const index = currentTrack.wayPoints.indexOf(wayPoint);
@@ -79,7 +79,7 @@ export class EditWayPointTool implements TrackEditTool {
           modal.present();
         });
       });
-    }).subscribe(() => ctx.refreshTools());
+    }, true, true).subscribe(() => ctx.refreshTools());
   }
 
 }

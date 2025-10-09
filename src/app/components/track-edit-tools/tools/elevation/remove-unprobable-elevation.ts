@@ -12,9 +12,9 @@ export class RemoveUnprobableElevation implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       adjustUnprobableElevationToTrackBasedOnGrade(track);
       return of(track);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 }

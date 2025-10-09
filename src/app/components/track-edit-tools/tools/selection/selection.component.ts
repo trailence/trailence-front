@@ -138,10 +138,10 @@ export class SelectionComponent implements OnInit, OnDestroy {
     let e = parseFloat(ele);
     if (isNaN(e)) return;
     e = this.i18n.elevationInMetersFromUserUnit(e);
-    this.context.modifyTrack(false, track => {
+    this.context.modifyTrack(track => {
       track.segments[point.segmentIndex].points[point.pointIndex].ele = e;
       return of(true);
-    }).subscribe();
+    }, true, true).subscribe();
   }
 
 }

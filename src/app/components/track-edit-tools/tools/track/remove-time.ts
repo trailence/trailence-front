@@ -13,14 +13,14 @@ export class RemoveTime implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       if (!ctx.trail.date && track.startDate) {
         const date = track.startDate;
         ctx.injector.get(TrailService).doUpdate(ctx.trail, t => t.date = date);
       }
       track.forEachPoint(p => p.time = undefined);
       return of(true);
-    }).subscribe(() => ctx.refreshTools());
+    }, false, false).subscribe(() => ctx.refreshTools());
   }
 
 }

@@ -11,13 +11,13 @@ export class ReplaceElevationWithProvider implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       for (const segment of track.segments)
         for (const point of segment.points) {
           point.ele = undefined;
           point.eleAccuracy = undefined;
         }
       return ctx.injector.get(GeoService).fillTrackElevation(track, true);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 }

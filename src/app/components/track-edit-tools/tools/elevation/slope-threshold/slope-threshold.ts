@@ -20,10 +20,10 @@ export class SlopeThreshold implements TrackEditTool {
     }).then(m => {
       m.onDidDismiss().then(event => {
         if (event.data) {
-          ctx.modifySelectedRange(true, track => {
+          ctx.modifySelectedRange(track => {
             applyElevationThresholdToTrack(track, event.data.threshold, event.data.maxDistance);
             return of(true);
-          }).subscribe();
+          }, true, false).subscribe();
         }
       });
       m.present();

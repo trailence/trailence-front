@@ -34,14 +34,14 @@ export class RemoveWayPointTool implements TrackEditTool {
     const wayPoint = ctx.selection.selectedWayPoint$.value;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point && !wayPoint) return;
-    ctx.modifyTrack(true, track => {
+    ctx.modifyTrack(track => {
       const w = wayPoint ? track.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(track, point!.point.pos);
       if (w) {
         track.removeWayPoint(w);
         ctx.selection.selectedWayPoint$.next(undefined);
       }
       return of(true);
-    }).subscribe(() => ctx.refreshTools());
+    }, true, false).subscribe(() => ctx.refreshTools());
   }
 
 }

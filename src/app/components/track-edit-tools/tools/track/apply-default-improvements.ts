@@ -13,10 +13,10 @@ export class ApplyDefaultImprovementsTool implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext): void {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       ctx.injector.get(TrackEditionService).applyDefaultImprovmentsOnTrack(track);
       return of(true);
-    }).subscribe();
+    }, true, false).subscribe();
   }
 
 }

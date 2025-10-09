@@ -16,7 +16,7 @@ export class BackToDeparture implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       const lastSegment = track.segments[track.segments.length - 1];
       const lastSegmentNewPoints: PointDescriptor[] = [];
       for (let i = lastSegment.points.length - 2; i >= 0; --i) {
@@ -36,7 +36,7 @@ export class BackToDeparture implements TrackEditTool {
         }
       }
       return of(true);
-    }).subscribe(() => ctx.refreshTools());
+    }, false, false).subscribe(() => ctx.refreshTools());
   }
 
   private copy(pt: PointDescriptor): PointDescriptor {

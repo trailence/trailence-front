@@ -15,7 +15,7 @@ export class JoinArrivalToDeparture implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifyTrack(false, track => {
+    ctx.modifyTrack(track => {
       const segment = track.segments[track.segments.length - 1];
       const departure = track.departurePoint;
       if (!departure) return of(true);
@@ -30,7 +30,7 @@ export class JoinArrivalToDeparture implements TrackEditTool {
         eleAccuracy: departure.eleAccuracy
       });
       return of(true);
-    }).subscribe(() => ctx.refreshTools());
+    }, false, false).subscribe(() => ctx.refreshTools());
   }
 
 }

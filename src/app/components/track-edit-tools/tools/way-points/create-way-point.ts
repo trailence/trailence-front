@@ -28,7 +28,7 @@ export class CreateWayPointTool implements TrackEditTool {
     if (!currentTrack) return;
     const point = ctx.selection.getSinglePointOf(currentTrack);
     if (!point) return;
-    ctx.modifyTrack(true, track => {
+    ctx.modifyTrack(track => {
       const wp = new WayPoint(point.point, '', '');
       return new Observable<boolean>(subscriber => {
         import('./way-point-edit/way-point-edit.component')
@@ -49,7 +49,7 @@ export class CreateWayPointTool implements TrackEditTool {
           modal.present();
         });
       });
-    }).subscribe(() => ctx.refreshTools());
+    }, true, true).subscribe(() => ctx.refreshTools());
   }
 
 }

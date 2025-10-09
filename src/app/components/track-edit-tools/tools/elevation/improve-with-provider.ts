@@ -15,7 +15,7 @@ export class ImproveElevationWithProvider implements TrackEditTool {
   }
 
   execute(ctx: TrackEditToolContext) {
-    ctx.modifySelectedRange(true, track => {
+    ctx.modifySelectedRange(track => {
       const points: Point[] = [];
       const toFill: PointDescriptor[] = [];
       for (const segment of track.segments)
@@ -26,6 +26,6 @@ export class ImproveElevationWithProvider implements TrackEditTool {
       return ctx.injector.get(GeoService).fillPointsElevation(toFill, true, true).pipe(
         map(() => improveElevationWithProvider(points, toFill))
       );
-    }).subscribe();
+    }, true, false).subscribe();
   }
 }
