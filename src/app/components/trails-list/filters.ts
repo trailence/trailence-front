@@ -145,6 +145,7 @@ export class FiltersUtils {
   public static reset(filters: Filters): void {
     filters.duration = {from: undefined, to: undefined};
     filters.estimatedDuration = {from: undefined, to: undefined};
+    filters.distance = {from: undefined, to: undefined};
     filters.positiveElevation = {from: undefined, to: undefined};
     filters.negativeElevation = {from: undefined, to: undefined};
     filters.rate = {from: undefined, to: undefined};

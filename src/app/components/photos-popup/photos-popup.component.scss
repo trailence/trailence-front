@@ -37,6 +37,7 @@
 
       .photo-footer {
         flex: 1 1 100%;
+        align-self: stretch;
         display: flex;
         flex-direction: column;
         align-items: stretch;
@@ -55,8 +56,6 @@
     }
 
     .metadata-container {
-      align-self: flex-start;
-
       .metadata-item {
         margin: 3px 0;
 
@@ -92,6 +91,10 @@
   margin-bottom: 5px;
   background-color: var(--ion-color-light);
   padding: 8px;
+
+  div.nb-selected {
+    margin-left: 8px;
+  }
 }
 
 .no-photo {
@@ -102,4 +105,19 @@
   justify-content: center;
   font-style: italic;
   color: var(--ion-color-medium);
+}
+
+@media (max-height: 700px) {
+  .selection {
+    min-height: 40px;
+    padding: 4px 8px;
+
+    div.nb-selected {
+      font-size: 14px;
+    }
+  }
+
+  ion-footer ion-toolbar {
+    --min-height: 40px;
+  }
 }

@@ -11,7 +11,7 @@ import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Obser
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
-import { FilterEnum, FilterNumeric, FilterTags, NumericFilterConfig } from '../filters/filter';
+import { FilterEnum, FilterNumeric, FilterTags, NumericFilterConfig, NumericFilterCustomConfig } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
@@ -42,6 +42,8 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Tag } from 'src/app/model/tag';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
+import { ComputedPreferences } from 'src/app/services/preferences/preferences';
+import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/filter-numeric-custom.component';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -80,6 +82,7 @@ interface TrailWithInfo {
         TrailOverviewCondensedComponent,
         ToggleChoiceComponent,
         FilterNumericComponent,
+        FilterNumericCustomComponent,
         FilterTagsComponent,
         I18nPipe,
         HorizontalGestureDirective,
@@ -181,6 +184,7 @@ export class TrailsListComponent extends AbstractComponent {
             this.changesDetection.detectChanges();
           });
         }
+        this.configureFilters(prefs);
       },
       true
     );
@@ -557,6 +561,44 @@ export class TrailsListComponent extends AbstractComponent {
     this.state$.next({...this.state$.value, sortAsc: asc});
   }
 
+  filterDurationConfig: NumericFilterCustomConfig = {
+    range: true,
+    values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 24],
+    formatter: this.durationFormatter
+  };
+
+  filterDistanceConfig!: NumericFilterCustomConfig;
+  filterElevationConfig!: NumericFilterCustomConfig;
+
+  private configureFilters(prefs: ComputedPreferences): void {
+    switch (prefs.distanceUnit) {
+      case 'METERS':
+        this.filterDistanceConfig = {
+          range: true,
+          values: [0, 1, 2, 3, 4, 6, 8, 10, 12, 14, 17, 20, 25, 30, 40, 50],
+          formatter: (value: number) => value + ' km'
+        };
+        this.filterElevationConfig = {
+          range: true,
+          values: [0, 50, 100, 200, 300, 400, 500, 600, 800, 1000, 1250, 1500, 2000],
+          formatter: (value: number) => value + ' m'
+        };
+        break;
+      case 'IMPERIAL':
+        this.filterDistanceConfig = {
+          range: true,
+          values: [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 17, 20, 25, 30],
+          formatter: (value: number) => value + ' mi'
+        };
+        this.filterElevationConfig = {
+          range: true,
+          values: [0, 200, 500, 800, 1100, 1400, 1700, 2000, 2500, 3000, 4000, 5000, 6000, 7000],
+          formatter: (value: number) => value + ' ft'
+        };
+        break;
+    }
+  }
+
   updateNumericFilter(filter: FilterNumeric, $event: NumericFilterValueEvent): void {
     const newMin = $event.min === $event.valueMin ? undefined : $event.valueMin;
     const newMax = $event.max === $event.valueMax ? undefined : $event.valueMax;
@@ -567,6 +609,11 @@ export class TrailsListComponent extends AbstractComponent {
       ...this.state$.value,
       filters: { ...this.state$.value.filters }
     });
+  }
+
+  updateNumericCustomFilter(filter: FilterNumeric, config: NumericFilterCustomConfig, $event: FilterNumeric | number): void {
+    const event = $event as FilterNumeric;
+    this.updateNumericFilter(filter, {valueMin: event.from! , valueMax: event.to!, min: config.values[0], max: config.values[config.values.length - 1]});
   }
 
   updateFilterOnlyVisibleOnMap(checked: boolean): void {
@@ -604,39 +651,6 @@ export class TrailsListComponent extends AbstractComponent {
     this.state$.next({...this.state$.value, filters: {...filters}});
   }
 
-  getDistanceFilterConfig(): NumericFilterConfig {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return {
-        min: 0,
-        max: 50,
-        step: 1,
-        formatter: (value: number) => value + ' km'
-      }
-      case 'IMPERIAL': return {
-        min: 0,
-        max: 30,
-        step: 1,
-        formatter: (value: number) => value + ' mi'
-      }
-    }
-  }
-
-  getElevationFilterConfig(): NumericFilterConfig {
-    switch (this.preferences.preferences.distanceUnit) {
-      case 'METERS': return {
-        min: 0,
-        max: 2000,
-        step: 50,
-        formatter: (value: number) => value + ' m'
-      }
-      case 'IMPERIAL': return {
-        min: 0,
-        max: 6600,
-        step: 150,
-        formatter: (value: number) => value + ' ft'
-      }
-    }
-  }
 
   formatRate = (rate: number) => rate.toLocaleString(this.preferences.preferences.lang, {maximumFractionDigits: 1});
 

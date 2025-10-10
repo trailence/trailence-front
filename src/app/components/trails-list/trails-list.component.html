@@ -172,12 +172,13 @@
         <div>{{ i18n.texts.pages.trails.filters.duration }}</div>
       </div>
       <div class="filter-value">
-        <app-filter-numeric
-          [minValue]="0" [maxValue]="24" [step]="1"
-          [selectedMinValue]="state$.value.filters.duration.from || 0" [selectedMaxValue]="state$.value.filters.duration.to || 24"
-          (selectionChange)="updateNumericFilter(state$.value.filters.duration, $event)"
-          [valueFormatter]="durationFormatter"
-          [maxValueLabel]="i18n.hoursToString(24) + '+'"></app-filter-numeric>
+        <app-filter-numeric-custom
+          [config]="filterDurationConfig"
+          [value]="state$.value.filters.duration"
+          (valueChange)="updateNumericCustomFilter(state$.value.filters.duration, filterDurationConfig, $event)"
+          [maxValueLabel]="i18n.hoursToString(24) + '+'"
+          >
+        </app-filter-numeric-custom>
       </div>
 
       <div class="filter-header">
@@ -185,53 +186,56 @@
         <div>{{ i18n.texts.pages.trails.filters.estimatedDuration }}</div>
       </div>
       <div class="filter-value">
-        <app-filter-numeric
-          [minValue]="0" [maxValue]="24" [step]="1"
-          [selectedMinValue]="state$.value.filters.estimatedDuration.from || 0" [selectedMaxValue]="state$.value.filters.estimatedDuration.to || 24"
-          (selectionChange)="updateNumericFilter(state$.value.filters.estimatedDuration, $event)"
-          [valueFormatter]="durationFormatter"
-          [maxValueLabel]="i18n.hoursToString(24) + '+'"></app-filter-numeric>
+        <app-filter-numeric-custom
+          [config]="filterDurationConfig"
+          [value]="state$.value.filters.estimatedDuration"
+          (valueChange)="updateNumericCustomFilter(state$.value.filters.estimatedDuration, filterDurationConfig, $event)"
+          [maxValueLabel]="i18n.hoursToString(24) + '+'"
+          >
+        </app-filter-numeric-custom>
       </div>
 
       <div class="filter-header">
         <ion-icon name="distance"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.distance }}</div>
       </div>
-      <div class="filter-value" *ngIf="getDistanceFilterConfig() as config">
-        <app-filter-numeric
-          [minValue]="config.min" [maxValue]="config.max" [step]="config.step"
-          [selectedMinValue]="state$.value.filters.distance.from || config.min" [selectedMaxValue]="state$.value.filters.distance.to || config.max"
-          (selectionChange)="updateNumericFilter(state$.value.filters.distance, $event)"
-          [valueFormatter]="config.formatter"
-          [maxValueLabel]="config.formatter(config.max) + '+'"></app-filter-numeric>
+      <div class="filter-value">
+        <app-filter-numeric-custom
+          [config]="filterDistanceConfig"
+          [value]="state$.value.filters.distance"
+          (valueChange)="updateNumericCustomFilter(state$.value.filters.distance, filterDistanceConfig, $event)"
+          [maxValueLabel]="filterDistanceConfig.formatter(filterDistanceConfig.values[filterDistanceConfig.values.length - 1]) + '+'"
+          >
+        </app-filter-numeric-custom>
       </div>
 
-      <ng-container *ngIf="getElevationFilterConfig() as config">
-        <div class="filter-header">
-          <ion-icon name="positive-elevation"></ion-icon>
-          <div>{{ i18n.texts.pages.trails.filters.positive_elevation }}</div>
-        </div>
-        <div class="filter-value">
-          <app-filter-numeric
-            [minValue]="config.min" [maxValue]="config.max" [step]="config.step"
-            [selectedMinValue]="state$.value.filters.positiveElevation.from || config.min" [selectedMaxValue]="state$.value.filters.positiveElevation.to || config.max"
-            (selectionChange)="updateNumericFilter(state$.value.filters.positiveElevation, $event)"
-            [valueFormatter]="config.formatter"
-            [maxValueLabel]="config.formatter(config.max) + '+'"></app-filter-numeric>
-        </div>
-        <div class="filter-header">
-          <ion-icon name="negative-elevation"></ion-icon>
-          <div>{{ i18n.texts.pages.trails.filters.negative_elevation }}</div>
-        </div>
-        <div class="filter-value">
-          <app-filter-numeric
-            [minValue]="config.min" [maxValue]="config.max" [step]="config.step"
-            [selectedMinValue]="state$.value.filters.negativeElevation.from || config.min" [selectedMaxValue]="state$.value.filters.negativeElevation.to || config.max"
-            (selectionChange)="updateNumericFilter(state$.value.filters.negativeElevation, $event)"
-            [valueFormatter]="config.formatter"
-            [maxValueLabel]="config.formatter(config.max) + '+'"></app-filter-numeric>
-        </div>
-      </ng-container>
+      <div class="filter-header">
+        <ion-icon name="positive-elevation"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.positive_elevation }}</div>
+      </div>
+      <div class="filter-value">
+        <app-filter-numeric-custom
+          [config]="filterElevationConfig"
+          [value]="state$.value.filters.positiveElevation"
+          (valueChange)="updateNumericCustomFilter(state$.value.filters.positiveElevation, filterElevationConfig, $event)"
+          [maxValueLabel]="filterElevationConfig.formatter(filterElevationConfig.values[filterElevationConfig.values.length - 1]) + '+'"
+          >
+        </app-filter-numeric-custom>
+      </div>
+      <div class="filter-header">
+        <ion-icon name="negative-elevation"></ion-icon>
+        <div>{{ i18n.texts.pages.trails.filters.negative_elevation }}</div>
+      </div>
+      <div class="filter-value">
+        <app-filter-numeric-custom
+          [config]="filterElevationConfig"
+          [value]="state$.value.filters.negativeElevation"
+          (valueChange)="updateNumericCustomFilter(state$.value.filters.negativeElevation, filterElevationConfig, $event)"
+          [maxValueLabel]="filterElevationConfig.formatter(filterElevationConfig.values[filterElevationConfig.values.length - 1]) + '+'"
+          >
+        </app-filter-numeric-custom>
+      </div>
+
       @if (listType === 'search' || listType === 'my-selection' || listType === 'my-publications') {
         <div class="filter-header">
           <ion-icon name="star-filled"></ion-icon>

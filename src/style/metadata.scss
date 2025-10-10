@@ -82,7 +82,7 @@
   }
 
   &.two-columns {
-    .metadata-item-container {
+    .metadata-item-container:not(.force-one-column) {
       min-width: 50%;
       max-width: 50%;
       display: inline-block;

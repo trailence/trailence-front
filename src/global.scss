@@ -39,9 +39,7 @@
   :root {
     --header-height: 40px;
   }
-}
 
-@media (max-height: 600px) {
   .tight-menu app-menu-content ion-list ion-item {
     --min-height: 30px;
 

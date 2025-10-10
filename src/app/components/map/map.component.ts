@@ -169,9 +169,11 @@ export class MapComponent extends AbstractComponent {
   }
 
   public invalidateSize(): void {
-    if (this._mapState.live) {
-      this._map$.value?.invalidateSize();
-    }
+    this.changesDetection.detectChanges(() => {
+      if (this._mapState.live) {
+        this._map$.value?.invalidateSize();
+      }
+    });
   }
 
   public getState(): MapState {

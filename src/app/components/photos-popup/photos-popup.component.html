@@ -19,17 +19,18 @@
     @if (photos.length === 0) {
       <div class="no-photo">{{i18n.texts.pages.trail.no_photo_message}}</div>
     } @else {
-
-      <div class="selection" *ngIf="canEdit">
-        <ion-checkbox [checked]="nbSelected === photos.length" [indeterminate]="nbSelected > 0 && nbSelected < photos.length" (ionChange)="setAllSelected($event.detail.checked)"></ion-checkbox>
-        <div style="margin-left: 8px">
-          {{nbSelected}} / {{photos.length}} {{nbSelected > 1 ? i18n.texts.pages.photos_popup.selected_plural : i18n.texts.pages.photos_popup.selected_single}}
+      @if (canEdit) {
+        <div class="selection">
+          <ion-checkbox [checked]="nbSelected === photos.length" [indeterminate]="nbSelected > 0 && nbSelected < photos.length" (ionChange)="setAllSelected($event.detail.checked)"></ion-checkbox>
+          <div class="nb-selected">
+            {{nbSelected}} / {{photos.length}} {{nbSelected > 1 ? i18n.texts.pages.photos_popup.selected_plural : i18n.texts.pages.photos_popup.selected_single}}
+          </div>
+          <ng-container *ngIf="nbSelected > 0">
+            <div style="margin: 0 5px">:</div>
+            <ion-button size="small" color="danger" (click)="deleteSelected()">{{i18n.texts.buttons.delete}}</ion-button>
+          </ng-container>
         </div>
-        <ng-container *ngIf="nbSelected > 0">
-          <div style="margin: 0 5px">:</div>
-          <ion-button size="small" color="danger" (click)="deleteSelected()">{{i18n.texts.buttons.delete}}</ion-button>
-        </ng-container>
-      </div>
+      }
       <div class="photos" style="flex: 1 1 100%; overflow-y: auto;">
         @for (photoWithInfo of photos; track photoWithInfo.photo.uuid + photoWithInfo.photo.owner) {
           <div [ngStyle]="{'width': (maxWidth + 30) + 'px'}" class="photo-container" [ngClass]="{'selected': photoWithInfo.selected}">
@@ -65,7 +66,7 @@
                 ></ion-textarea>
               }
               <div class="photo-footer">
-                <div class="metadata-container one-column">
+                <div class="metadata-container {{metaColumns}}">
                   <div class="metadata-item-container" *ngIf="photoWithInfo.photo.dateTaken">
                     <div class="metadata-item">
                       <ion-icon name="date"></ion-icon>
@@ -76,22 +77,22 @@
                       </div>
                     </div>
                   </div>
-                  <div class="metadata-item-container" *ngIf="photoWithInfo.photo.latitude">
-                    <div class="metadata-item">
-                      <ion-icon name="location"></ion-icon>
-                      <div class="metadata-content">
-                        <div class="metadata-value">
-                          <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                   <div class="metadata-item-container" *ngIf="photoWithInfo.blobSize">
                     <div class="metadata-item">
                       <ion-icon name="file"></ion-icon>
                       <div class="metadata-content">
                         <div class="metadata-value">
                           <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="metadata-item-container force-one-column" *ngIf="photoWithInfo.photo.latitude">
+                    <div class="metadata-item">
+                      <ion-icon name="location"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
                         </div>
                       </div>
                     </div>

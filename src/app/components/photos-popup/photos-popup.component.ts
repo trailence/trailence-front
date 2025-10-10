@@ -69,6 +69,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   canPositionOnMap = false;
   nbSelected = 0;
   sliderIndex = 0;
+  metaColumns!: string;
 
   tabs: string[] = [];
   trails: Trail[] = [];
@@ -106,6 +107,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     this.height = browser.height;
     this.maxWidth = Math.min(Math.floor(this.width * 0.9) - 20, 300);
     this.maxHeight = Math.min(Math.floor(this.height * 0.4) - 50, 300);
+    this.metaColumns = this.maxWidth === 300 ? 'two-columns' : 'one-column';
   }
 
   ngOnInit() {

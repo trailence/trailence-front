@@ -27,6 +27,24 @@ export class FilterTrailsPopup extends ModalComponent {
     await filter.setValues(minValue, maxValue);
   }
 
+  public async setNumericFilterCustom(filterName: string, minValue: number | undefined, maxValue: number | undefined) {
+    const headers = this.getElement().$$('>>>div.filter-header>div');
+    let textElement;
+    for (const header of await headers.getElements()) {
+      await header.scrollIntoView({block: 'center', inline: 'center'});
+      const text = await header.getText();
+      if (text === filterName) {
+        textElement = header;
+        break;
+      }
+    }
+    if (!textElement) throw new Error('Filter not found: ' + filterName);
+    const filterHeader = textElement.parentElement();
+    const filterValue = filterHeader.nextElement();
+    const filter = new FilterNumeric(filterValue.$('app-filter-numeric-custom'));
+    await filter.setValues(minValue, maxValue);
+  }
+
   public async setTagsFilter(type: string, tags: string[]) {
     const button = new IonicButton(this.getElement().$('>>>app-filter-tags ion-button'));
     await button.click();
