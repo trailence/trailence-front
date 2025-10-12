@@ -443,8 +443,8 @@ export class TrailGraphComponent extends AbstractComponent {
             addInfo(this.i18n.texts.trailGraph.distance, pt => this.i18n.distanceToString(pt.raw.distanceMeters));
             addInfo(this.i18n.texts.trailGraph.time_duration, pt => this.i18n.durationToString(pt.raw.timeSinceStart));
             addInfo(this.i18n.texts.trailGraph.speed, pt => {
-              const s1 = pt.raw.speedInMeters ? this.i18n.getSpeedStringInUserUnit(pt.raw.speedInMeters) : '';
-              const s2 = pt.raw.estimatedSpeed ? this.i18n.getSpeedStringInUserUnit(pt.raw.estimatedSpeed) : '';
+              const s1 = pt.raw.speedInMeters ? this.i18n.getSpeedStringInUserUnit(this.i18n.getSpeedInUserUnit(pt.raw.speedInMeters)) : '';
+              const s2 = pt.raw.estimatedSpeed ? this.i18n.getSpeedStringInUserUnit(this.i18n.getSpeedInUserUnit(pt.raw.estimatedSpeed)) : '';
               if (s1.length === 0) {
                 if (s2.length === 0) return '';
                 return '≈ ' + s2;

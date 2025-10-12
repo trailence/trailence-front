@@ -55,13 +55,14 @@ export class TrailMenuService {
       if (trails.length === 1) {
         menu.push(new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure')
         .setAction(() => import('../functions/go-to-departure').then(m => m.goToDeparture(this.injector, trails[0]))));
-        menu.push(new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
-        .setAction(() => {
-          this.injector.get(TraceRecorderService).start(trails[0]);
-          const url = '/trail/' + trails[0].owner + '/' + trails[0].uuid;
-          const router = this.injector.get(Router);
-          if (router.url.indexOf(url) < 0) router.navigateByUrl(url);
-        }));
+        if (email)
+          menu.push(new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
+          .setAction(() => {
+            this.injector.get(TraceRecorderService).start(trails[0]);
+            const url = '/trail/' + trails[0].owner + '/' + trails[0].uuid;
+            const router = this.injector.get(Router);
+            if (router.url.indexOf(url) < 0) router.navigateByUrl(url);
+          }));
       }
 
       let hasPublish = false;

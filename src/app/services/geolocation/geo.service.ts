@@ -15,6 +15,7 @@ import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
 import { parseCoordinates } from 'src/app/utils/coordinates-parser';
+import { OverpassClient } from './overpass-client.service';
 
 @Injectable({
   providedIn: 'root'
@@ -26,11 +27,12 @@ export class GeoService {
     private readonly prefService: PreferencesService,
     private readonly progressService: ProgressService,
     private readonly i18n: I18nService,
+    private readonly overpass: OverpassClient,
   ) {}
 
   public findNearestPlaces(latitude: number, longitude: number): Observable<string[][]> {
     const bounds = new L.LatLng(latitude, longitude).toBounds(5000);
-    const fromOSM = this.http.post<OverpassResponse>('https://overpass-api.de/api/interpreter', "[out:json][timeout:25];node[\"place\"~\"(municipality)|(city)|(borough)|(suburb)|(quarter)|(town)|(village)|(hamlet)\"][\"name\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out meta;").pipe(
+    const fromOSM = this.overpass.request<OverpassResponse>("[out:json][timeout:25];node[\"place\"~\"(municipality)|(city)|(borough)|(suburb)|(quarter)|(town)|(village)|(hamlet)\"][\"name\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out meta;").pipe(
       map(response => {
         return response.elements.map(
           element => element.tags['name']
@@ -62,7 +64,7 @@ export class GeoService {
 
     const request = header + filterWays + filterRestricted + filterBounds + ';' + output;
 
-    return this.http.post<OverpassResponse>('https://overpass-api.de/api/interpreter', request).pipe(
+    return this.overpass.request<OverpassResponse>(request).pipe(
       map(response => response.elements.filter(e => e.geometry && e.geometry.length > 1).map(e => this.overpassElementToWay(e)))
     );
   }

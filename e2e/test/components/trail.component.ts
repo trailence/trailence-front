@@ -72,14 +72,16 @@ export class TrailComponent extends Component {
   }
 
   public async getCollectionsNames() {
-    const name1 = await this.getElement().$('>>>div.metadata-item-container.collection1').$('div.metadata-primary').getText();
-    const name2 = await this.getElement().$('>>>div.metadata-item-container.collection2').$('div.metadata-secondary').getText();
+    const item = this.getElement().$('div.metadata-title=Collection').parentElement();
+    const name1 = await item.$('div.metadata-primary').getText();
+    const name2 = await item.$('div.metadata-secondary').getText();
     return [name1, name2];
   }
 
   public async getTrailsNames() {
-    const name1 = await this.getElement().$('>>>div.metadata-item-container.trail1name').$('div.metadata-primary').getText();
-    const name2 = await this.getElement().$('>>>div.metadata-item-container.trail2name').$('div.metadata-secondary').getText();
+    const item = this.getElement().$('div.metadata-title=Title').parentElement();
+    const name1 = await item.$('div.metadata-primary').getText();
+    const name2 = await item.$('div.metadata-secondary').getText();
     return [name1, name2];
   }
 

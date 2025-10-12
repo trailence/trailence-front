@@ -1093,6 +1093,10 @@
     }
   },
   "metadata": {
+    "collection": "Collection",
+    "title": "Titre",
+    "tags": "Tags",
+    "description": "Description",
     "trail_date": "Date du parcours",
     "trail_location": "Lieu",
     "loop_type": "Type",
@@ -1349,7 +1353,8 @@
   "help": {
     "contextual": {
       "original_trace": "La trace originale est la trace brute, telle que enregistrée par le GPS ou importée depuis un fichier.<p>Lorsque vous modifiez une trace, la trace d'origine est toujours conservée, ce qui permet de repartir à tout moment de la trace d'origine, qui sert de référence.</p><p>Même si vous n'avez pas modifié la trace manuellement, Trailence applique automatiquement des améliorations afin de gommer les imperfections du GPS.</p>",
-      "estimated_duration": "La durée estimée est calculée à partir d'une vitesse de base sur du plat, puis pondérée en fonction du dénivelé, de la durée, et en tenant compte de petites pauses régulières (de 2 à 3 minutes toutes les heures environ).<p>Par défaut, la vistesse de base est de 5 km/h, ce qui correspond à la vitesse moyenne d'un randonneur. Vous pouvez modifier cette vitesse dans vos préférences.</p>"
+      "estimated_duration": "La durée estimée est calculée à partir d'une vitesse de base sur du plat, puis pondérée en fonction du dénivelé, de la durée, et en tenant compte de petites pauses régulières (de 2 à 3 minutes toutes les heures environ).<p>Par défaut, la vistesse de base est de 5 km/h, ce qui correspond à la vitesse moyenne d'un randonneur. Vous pouvez modifier cette vitesse dans vos préférences.</p>",
+      "breaks": "Le temps de pauses correspond à la somme des pauses <i>longues</i>. Ce temps est décompté de la durée du parcours.<p>Nous distinguons les pauses <i>courtes</i> (par exemple pour se rafraîchir, admirer la vue, ...) et les pauses <i>longues</i> (par exemple pour pique-niquer).</p><p>Les pauses courtes font partie du temps de parcours affiché, car il est normal de les inclure. En revanche, lorsqu'une pause longue est détectée, son temps est déduit du temps de parcours, afin que le temps affiché ne dépende pas de la durée de votre sieste 😉. Le temps ainsi décompté est affiché dans la partie <i>Pauses</i>.</p><p>Les pauses <i>longues</i> sont des pauses d'au moins {{1}} minutes. Ce temps est configurable dans vos préférences.</p>"
     }
   }
 }

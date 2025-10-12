@@ -83,14 +83,18 @@ describe('Trail Planner', () => {
     await putAnchor(pathIndex + 1, currentMarkers);
   };
 
-  it('Start and put 2 points', async () => {
+  it('Start, put a first point and pause', async () => {
     await page.start();
     await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb > 0));
     await putAnchor(0, 0);
     await page.stop();
     await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb === 1));
+  });
+
+
+  it('Resume and put another point', async () => {
     await page.resume();
-    await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb > 1), { timeout: 5000});
+    await browser.waitUntil(() => map.getPathsWithClass('track-path').length.then(nb => nb > 1));
     await putAnchor(0, 1);
     let distance = await TestUtils.waitFor(async () => parseInt((await page.getDistance()).replace(',', '').replace('.', '')), d => d > 1000);
     expect(distance).toBeGreaterThan(1000);

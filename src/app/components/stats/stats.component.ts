@@ -16,7 +16,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 export class StatsComponent extends AbstractComponent {
 
   config?: StatsConfig;
-  resetChart = false;
+  resetChart = true;
 
   accordionValue: string | undefined = 'config';
 
@@ -49,7 +49,7 @@ export class StatsComponent extends AbstractComponent {
     this._timeout = setTimeout(() => {
       this._timeout = undefined;
       this.resetChart = false;
-    }, 250);
+    }, 500);
   }
 
 }

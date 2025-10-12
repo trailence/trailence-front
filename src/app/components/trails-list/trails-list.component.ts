@@ -184,7 +184,6 @@ export class TrailsListComponent extends AbstractComponent {
             this.changesDetection.detectChanges();
           });
         }
-        this.configureFilters(prefs);
       },
       true
     );
@@ -221,6 +220,7 @@ export class TrailsListComponent extends AbstractComponent {
         filters: { ...this.state$.value.filters, search }
       });
     });
+    this.whenAlive.add(preferences.preferences$.subscribe(prefs => this.configureFilters(prefs)));
   }
 
   protected override initComponent(): void {

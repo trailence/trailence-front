@@ -1093,6 +1093,10 @@
     }
   },
   "metadata": {
+    "collection": "Collection",
+    "title": "Title",
+    "tags": "Tags",
+    "description": "Description",
     "trail_date": "Track date",
     "trail_location": "Location",
     "loop_type": "Type",
@@ -1349,7 +1353,8 @@
   "help": {
     "contextual": {
       "original_trace": "The original track is the raw track, exactly as recorded by the GPS or imported from a file.<p>When you edit the track, the original version is always preserved, allowing you to revert to it at any time — it serves as the reference track.</p><p>Even if you haven’t manually edited the track, Trailence automatically applies improvements to correct GPS inaccuracies.</p>",
-      "estimated_duration": "The estimated duration is calculated based on a base speed on flat terrain, then adjusted according to elevation gain, total duration, and taking into account short regular breaks (about 2–3 minutes every hour).<p>By default, the base speed is set to 5 km/h, which corresponds to the average speed of a hiker. You can change this value in your preferences.</p>"
+      "estimated_duration": "The estimated duration is calculated based on a base speed on flat terrain, then adjusted according to elevation gain, total duration, and taking into account short regular breaks (about 2–3 minutes every hour).<p>By default, the base speed is set to 5 km/h, which corresponds to the average speed of a hiker. You can change this value in your preferences.</p>",
+      "breaks": "The break time corresponds to the total duration of <i>long</i> breaks. This time is subtracted from the trail duration. <p>We distinguish between <i>short</i> breaks (to refresh yourself, enjoy the view, etc.) and <i>long</i> breaks (such as a picnic).</p> <p>Short breaks are included in the displayed trail duration, as it’s normal to have brief pauses. However, when a long break is detected, its duration is deducted from the trail time, so the time shown doesn’t depend on how long you napped 😉. The deducted time appears in the <i>Breaks</i> section.</p> <p><i>Long</i> breaks are those lasting at least {{1}} minutes. This threshold can be configured in your preferences.</p>"
     }
   }
 }

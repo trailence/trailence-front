@@ -193,6 +193,7 @@ export class GraphBuilder {
                 let fontSize = (C.defaults.font.size ?? 12) + 2;
                 ctx.font = fontSize + 'px ' + C.defaults.font.family;
                 let metrics = ctx.measureText(str);
+                const transform = ctx.getTransform();
                 while (metrics.width > maxWidth && fontSize > 11) {
                   fontSize--;
                   ctx.font = fontSize + 'px ' + C.defaults.font.family;
@@ -217,7 +218,7 @@ export class GraphBuilder {
                   }
                 }
                 ctx.fillText(str, x, y);
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.setTransform(transform);
               });
             });
           },

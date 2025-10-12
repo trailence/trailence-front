@@ -10,12 +10,14 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { addTooltip } from '../tooltip/tooltip.directive';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
+import { ComputedPreferences } from 'src/app/services/preferences/preferences';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 class Meta {
   distanceValue?: number = undefined;
   durationValue?: number = undefined;
-  estimatedDuration?: number = undefined;
-  breaksDuration?: number = undefined;
+  estimatedDurationValue?: number = undefined;
+  breaksDurationValue?: number = undefined;
   speedValue?: number = undefined;
   positiveElevationValue?: number = undefined;
   negativeElevationValue?: number = undefined;
@@ -85,13 +87,14 @@ export class TrackMetadataComponent extends AbstractComponent {
     private readonly assets: AssetsService,
     changeDetector: ChangeDetectorRef,
     private readonly domController: DomController,
+    private readonly preferences: PreferencesService,
   ) {
     super(injector);
     changeDetector.detach();
   }
 
   protected override initComponent(): void {
-    TrackMetadataComponent.init(this.element.nativeElement, undefined, this.track$, this.track2$, this.config!, this.assets, this.i18n, this.whenVisible, this.domController);
+    TrackMetadataComponent.init(this.element.nativeElement, undefined, this.track$, this.track2$, this.config!, this.assets, this.i18n, this.whenVisible, this.domController, this.preferences.preferences);
   }
 
   public static init( // NOSONAR
@@ -104,6 +107,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     i18n: I18nService,
     whenVisible: Resubscribeables,
     domController: DomController,
+    preferences: ComputedPreferences,
   ): void {
     domController.write(() => {
       whenVisible.zone.runOutsideAngular(() => {
@@ -112,20 +116,9 @@ export class TrackMetadataComponent extends AbstractComponent {
         }
         const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, config.mayHave2Values, false);
         const breaksDuration = config.showBreaksDuration ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
+        breaksDuration[2] = TrackMetadataComponent.addContextualHelp(breaksDuration[2], 'help.contextual.breaks', [Math.floor(preferences.longBreakMinimumDuration / 60000)], assets, whenVisible, i18n);
         const estimatedDuration = !config.mergeDurationAndEstimated ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
-        if (estimatedDuration[2]) {
-          const titleDiv = estimatedDuration[2];
-          const titleText = document.createElement('SPAN');
-          titleDiv.appendChild(titleText);
-          estimatedDuration[2] = titleText;
-          const iconContainer = document.createElement('DIV');
-          iconContainer.className = 'contextual-help';
-          titleDiv.appendChild(iconContainer);
-          assets.getIcon('help-circle').subscribe(svg => {
-            iconContainer.appendChild(svg);
-            addTooltip(iconContainer, new TranslatedString('help.contextual.estimated_duration'), i18n, whenVisible);
-          });
-        }
+        estimatedDuration[2] = TrackMetadataComponent.addContextualHelp(estimatedDuration[2], 'help.contextual.estimated_duration', [], assets, whenVisible, i18n);
         let empty: HTMLDivElement | undefined = undefined;
         if (config.showSpeed) {
           // empty slot
@@ -210,6 +203,20 @@ export class TrackMetadataComponent extends AbstractComponent {
     return ([info1, info2, title]);
   }
 
+  private static addContextualHelp(titleDiv: HTMLElement | undefined, help: string, helpArgs: any[], assets: AssetsService, whenVisible: Resubscribeables, i18n: I18nService): HTMLElement | undefined {
+    if (!titleDiv) return undefined;
+    const titleText = document.createElement('SPAN');
+    titleDiv.appendChild(titleText);
+    const iconContainer = document.createElement('DIV');
+    iconContainer.className = 'contextual-help';
+    titleDiv.appendChild(iconContainer);
+    assets.getIcon('help-circle').subscribe(svg => {
+      iconContainer.appendChild(svg);
+      addTooltip(iconContainer, new TranslatedString(help, helpArgs), i18n, whenVisible);
+    });
+    return titleText;
+  }
+
   private static toMeta(track$: Observable<TrackType>, meta: Meta, config: TrackMetadataConfig, whenVisible: Resubscribeables, i18n: I18nService, titles: Titles, domController: DomController, meta2: Meta, hideIfUndefined: boolean): void { // NOSONAR
     let previousState = 0;
     whenVisible.subscribe(track$.pipe(
@@ -249,7 +256,7 @@ export class TrackMetadataComponent extends AbstractComponent {
         TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
       }
       if (duration && breaksDuration) duration -= breaksDuration;
-      if (!duration) breaksDuration = undefined;
+      if (duration === undefined) breaksDuration = undefined;
       if (config.showHighestAndLowestAltitude) {
         TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController, hideIfUndefined);
         TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController, hideIfUndefined);
@@ -260,7 +267,7 @@ export class TrackMetadataComponent extends AbstractComponent {
       if (!config.mergeDurationAndEstimated) {
         TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController, hideIfUndefined);
         TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController, hideIfUndefined);
-        const hasDuration = !!duration || !!meta2.durationValue;
+        const hasDuration = !!duration || !!meta2.durationValue || !!breaksDuration || !!meta2.breaksDurationValue;
         TrackMetadataComponent.shown(meta.durationDiv, hasDuration);
         TrackMetadataComponent.shown(meta.breaksDurationDiv, hasDuration);
       } else {
@@ -278,7 +285,7 @@ export class TrackMetadataComponent extends AbstractComponent {
       }
       if (config.showSpeed) {
         const speedMetersByHour = distance && duration ? distance / duration * 60 * 60 * 1000 : undefined;
-        TrackMetadataComponent.updateMeta(meta, 'speed', speedMetersByHour, v => i18n.getSpeedStringInUserUnit(v), force, domController, hideIfUndefined);
+        TrackMetadataComponent.updateMeta(meta, 'speed', speedMetersByHour, v => i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(v)), force, domController, hideIfUndefined);
         const hasSpeed = !!speedMetersByHour || !!meta2.speedValue;
         TrackMetadataComponent.shown(meta.speedDiv, hasSpeed);
         const hasDuration = !!duration || !!meta2.durationValue;

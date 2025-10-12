@@ -4,8 +4,9 @@ import { ModalController, IonContent, IonHeader, IonToolbar, IonTitle, IonIcon, 
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 
-export async function openActivityDialog(injector: Injector, trails: Trail[]) {
+export async function openActivityDialog(injector: Injector, trails: Trail[], isRecording: boolean = false) {
   let sel = [trails[0].activity];
   for (let i = 1; i < trails.length; ++i) {
     if (trails[i].activity !== sel[0]) {
@@ -24,7 +25,15 @@ export async function openActivityDialog(injector: Injector, trails: Trail[]) {
   await modal.present();
   const event = await modal.onDidDismiss();
   if (event.role !== 'ok' || event.data === undefined) return Promise.resolve();
-  const promises = trails.map(trail => new Promise(resolve => injector.get(TrailService).doUpdate(trail, t => t.activity = event.data[0], () => resolve(true))));
+  const promises = trails.map(trail => new Promise(resolve => {
+    if (!isRecording)
+      injector.get(TrailService).doUpdate(trail, t => t.activity = event.data[0], () => resolve(true));
+    else {
+      const trail = injector.get(TraceRecorderService).current?.trail;
+      if (trail) trail.activity = event.data[0];
+      resolve(true);
+    }
+  }));
   await Promise.all(promises);
 }
 

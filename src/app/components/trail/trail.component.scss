@@ -513,6 +513,21 @@ div.my-feedback {
     }
   }
 }
+div.metadata-item-container.longtext {
+  div.metadata-item {
+    ion-icon {
+      align-self: flex-start;
+    }
+    div.metadata-content {
+      div.metadata-value {
+        div.metadata-primary, div.metadata-secondary {
+          max-width: 49%;
+          align-self: flex-start;
+        }
+      }
+    }
+  }
+}
 
 .no-photo, .no-tag {
   display: flex;

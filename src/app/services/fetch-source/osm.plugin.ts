@@ -14,6 +14,7 @@ import { Arrays } from 'src/app/utils/arrays';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { AuthService } from '../auth/auth.service';
 import { FetchSourceService } from './fetch-source.service';
+import { OverpassClient } from '../geolocation/overpass-client.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   id: string;
@@ -92,8 +93,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   private findRoutesIds(bounds: L.LatLngBounds, limit: number): Observable<string[]> {
-    return this.injector.get(HttpService).post<{elements: {id: number}[]}>(
-      'https://overpass-api.de/api/interpreter',
+    return this.injector.get(OverpassClient).request<{elements: {id: number}[]}>(
       "[out:json][timeout:30];rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out ids " + limit + ";"
     ).pipe(
       map(response => response.elements.map(e => e.id.toString()))
@@ -101,8 +101,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   private getRoutesByIds(ids: string[]): Observable<Trail[]> {
-    return this.injector.get(HttpService).post<{elements: OverpassElement[]}>(
-      'https://overpass-api.de/api/interpreter',
+    return this.injector.get(OverpassClient).request<{elements: OverpassElement[]}>(
       "[out:json][timeout:15];rel(id:" + ids.join(',') + ");out meta geom;"
     ).pipe(
       map(response => response.elements.map(e => this.createTrailFromCircuit(e)).filter(t => !!t)),

@@ -190,7 +190,7 @@ export class I18nService {
   public getSpeedStringInUserUnit(speed?: number): string {
     if (speed === undefined) return '';
     switch (this.prefService.preferences.distanceUnit) {
-      case 'METERS': return (speed / 1000).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' km/h';
+      case 'METERS': return speed.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 1}) + ' km/h';
       case 'IMPERIAL': return speed.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 2, minimumFractionDigits: 2}) + ' mi/h';
     }
   }

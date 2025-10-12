@@ -24,6 +24,7 @@
             itemPaddingLeft="4px"
             itemPaddingRight="4px"
             separatorSpace="4px"
+            [maxItems]="mapToolbarTopRightMaxItems"
           ></app-toolbar>
         }
       </div>
@@ -134,96 +135,87 @@
         itemPaddingLeft="5px"
         [noScroll]="true"
       ></app-toolbar>
-      <div *ngIf="trail1 && trail2">
-        <div class="metadata-container two-columns comparison">
+      @if (trail1 && trail2) {
+        <div class="metadata-container one-column with-title comparison">
 
-          <ng-container *ngIf="trail1CollectionName && trail2CollectionName">
-            <div class="metadata-item-container collection1" style="padding-right: 2px">
+          @if (trail1CollectionName && trail2CollectionName) {
+            <div class="metadata-item-container">
               <div class="metadata-item">
                 <ion-icon name="collection"></ion-icon>
                 <div class="metadata-content">
+                  <div class="metadata-title">{{i18n.texts.metadata.collection}}</div>
                   <div class="metadata-value">
                     <div class="metadata-primary">{{ trail1CollectionName }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="metadata-item-container collection2" style="padding-left: 2px">
-              <div class="metadata-item">
-                <ion-icon name="collection"></ion-icon>
-                <div class="metadata-content">
-                  <div class="metadata-value">
                     <div class="metadata-secondary">{{ trail2CollectionName }}</div>
                   </div>
                 </div>
               </div>
             </div>
-          </ng-container>
+          }
 
-          <div class="metadata-item-container trail1name" style="padding-right: 2px">
+          <div class="metadata-item-container">
             <div class="metadata-item">
+              <ion-icon name="edit-text"></ion-icon>
               <div class="metadata-content">
+                <div class="metadata-title">{{i18n.texts.metadata.title}}</div>
                 <div class="metadata-value">
                   <div class="metadata-primary">{{ trail1.name }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="metadata-item-container trail2name" style="padding-left: 2px">
-            <div class="metadata-item">
-              <div class="metadata-content">
-                <div class="metadata-value">
                   <div class="metadata-secondary">{{ trail2.name }}</div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="metadata-item-container trail1name" style="padding-right: 2px">
+          <div class="metadata-item-container longtext">
             <div class="metadata-item">
+              <ion-icon name="text"></ion-icon>
               <div class="metadata-content">
+                <div class="metadata-title">{{i18n.texts.metadata.description}}</div>
                 <div class="metadata-value">
                   <div class="metadata-primary"><app-text [text]="trail1.description"></app-text></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="metadata-item-container trail2name" style="padding-left: 2px">
-            <div class="metadata-item">
-              <div class="metadata-content">
-                <div class="metadata-value">
                   <div class="metadata-secondary"><app-text [text]="trail2.description"></app-text></div>
                 </div>
               </div>
             </div>
           </div>
 
-          <ng-container *ngIf="!isPublication && trail1Collection && (tagsNames1 !== undefined || tagsNames2 !== undefined)">
-            <div class="metadata-item-container" style="padding-right: 2px">
+          @if (!isPublication && trail1Collection && (tagsNames1 !== undefined || tagsNames2 !== undefined)) {
+            <div class="metadata-item-container">
               <div class="metadata-item">
+                <ion-icon name="tags"></ion-icon>
                 <div class="metadata-content">
+                  <div class="metadata-title">{{i18n.texts.metadata.tags}}</div>
                   <div class="metadata-value">
-                    <div class="trail-tags-row" *ngIf="tagsNames1">
-                      <span *ngIf="tagsNames1.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
-                      <div class="tag" *ngFor="let tag of tagsNames1">{{tag}}</div>
+                    <div class="metadata-primary">
+                      @if (tagsNames1) {
+                        <div class="trail-tags-row">
+                          @if (tagsNames1.length === 0) {
+                            <span class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
+                          } @else {
+                            @for (tag of tagsNames1; track tag) {
+                              <div class="tag">{{tag}}</div>
+                            }
+                          }
+                        </div>
+                      }
+                    </div>
+                    <div class="metadata-secondary">
+                      @if (tagsNames2) {
+                        <div class="trail-tags-row">
+                          @if (tagsNames2.length === 0) {
+                            <span class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
+                          } @else {
+                            @for (tag of tagsNames2; track tag) {
+                              <div class="tag">{{tag}}</div>
+                            }
+                          }
+                        </div>
+                      }
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="metadata-item-container" style="padding-right: 2px">
-              <div class="metadata-item">
-                <div class="metadata-content">
-                  <div class="metadata-value">
-                    <div class="trail-tags-row" *ngIf="tagsNames2">
-                      <span *ngIf="tagsNames2.length === 0" class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
-                      <div class="tag" *ngFor="let tag of tagsNames2">{{tag}}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ng-container>
-
+          }
         </div>
 
         <div class="metadata-container one-column comparison-message" *ngIf="comparison !== undefined">
@@ -238,8 +230,7 @@
             </div>
           </div>
         </div>
-
-      </div>
+      }
 
       @if (trail1?.fromModeration) {
         <div class="moderation-messages">
@@ -356,19 +347,35 @@
                 </div>
               </div>
             </div>
-            <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openActivityDialog()">
+          }
+          @if (trail1 || recording) {
+            <div class="metadata-item-container" [ngClass]="{'clickable': (!trail2 && editable && !recording) || (!trail1 && recording)}" (click)="openActivityDialog()">
               <div class="metadata-item">
-                <ion-icon [name]="trailService.getActivityIcon(trail1.activity)"></ion-icon>
+                <ion-icon [name]="trailService.getActivityIcon(trail1?.activity || trail2?.activity || recording?.trail?.activity)"></ion-icon>
                 <div class="metadata-content">
                   <div class="metadata-title">{{ i18n.texts.metadata.activity }}</div>
                   <div class="metadata-value">
-                    <div class="metadata-primary" *ngIf="trail1.activity as act">{{ i18n.texts.activity[act] }}</div>
-                    <div class="metadata-secondary" *ngIf="trail2?.activity as act">{{ i18n.texts.activity[act] }}</div>
+                    @if (recording && !trail1) {
+                      @if (recording.trail.activity; as act) {
+                        <div class="metadata-primary">{{ i18n.texts.activity[act] }}</div>
+                      }
+                    } @else {
+                      @if (trail1?.activity; as act) {
+                        <div class="metadata-primary">{{ i18n.texts.activity[act] }}</div>
+                      }
+                      @if (trail2?.activity; as act) {
+                        <div class="metadata-secondary">{{ i18n.texts.activity[act] }}</div>
+                      } @else if (recording?.trail?.activity; as act) {
+                        <div class="metadata-secondary">{{ i18n.texts.activity[act] }}</div>
+                      }
+                    }
                   </div>
                 </div>
               </div>
             </div>
           }
+        </div>
+        <div class="metadata-container two-columns with-title">
           <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
         </div>
         <div class="trail-dates" *ngIf="trail1 && !trail2">

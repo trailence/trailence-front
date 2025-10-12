@@ -104,7 +104,7 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() renameOnTrailNamePress = false;
   trailNamePressed(): void {
-    if(this.renameOnTrailNamePress && this.trail)
+    if(this.renameOnTrailNamePress && this.trail && this.trail.owner === this.auth.email)
       import('../../services/functions/trail-rename').then(m => {
         if (this.trail) m.openRenameTrailDialog(this.injector, this.trail);
       });
@@ -365,7 +365,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   private initTrackMetadata(): void {
     this._trackMetadataInitialized = true;
     const element = document.getElementById('track-metadata-' + this.id);
-    TrackMetadataComponent.init(element!.parentElement!, element!, this.track$, of(undefined), this.config!, this.assets, this.i18n, this.whenVisible, this.domController);
+    TrackMetadataComponent.init(element!.parentElement!, element!, this.track$, of(undefined), this.config!, this.assets, this.i18n, this.whenVisible, this.domController, this.preferencesService.preferences);
   }
 
   setSelected(selected: boolean) {

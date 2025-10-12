@@ -212,7 +212,7 @@ export class TrailComponent extends AbstractComponent {
       .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true && !this.recording)
       .setAction(() => this.goToDeparture()),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
-      .setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
+      .setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true && !!this.auth.email)
       .setAction(() => this.startTrail()),
     new MenuItem().setIcon('check-list').setI18nLabel('publications.checklist')
       .setVisible(() => !this.trail2 && !!this.publicationChecklist)
@@ -270,6 +270,7 @@ export class TrailComponent extends AbstractComponent {
       .setAction(() => this.stopRecordingWithoutConfirmation()),
   ];
 
+  mapToolbarTopRightMaxItems: number | undefined = undefined;
   @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
   mapToolbarTopRightItems: MenuItem[] = [
     new MenuItem()
@@ -305,6 +306,16 @@ export class TrailComponent extends AbstractComponent {
       .setTextColor(() => this.reverseWay$.value ? 'light' : 'dark')
       .setBackgroundColor(() => this.reverseWay$.value ? 'dark' : '')
       .setAction(() => this.reverseWay$.next(!this.reverseWay$.value)),
+    new MenuItem(),
+    new MenuItem()
+      .setVisible(() => !!this.recording)
+      .setIcon(() => this.trailService.getActivityIcon(this.recording?.trail?.activity))
+      .setI18nLabel('metadata.activity')
+      .setAction(() =>
+        import('../activity-popup/activity-popup.component')
+        .then(m => this.recording ? m.openActivityDialog(this.injector, [this.recording.trail], true) : undefined)
+        .then(() => this.refreshMapToolbarTop())
+      ),
     new MenuItem(),
     new MenuItem().setIcon('tool').setI18nLabel('track_edit_tools.title')
       .setVisible(() => this.canEdit())
@@ -1071,6 +1082,7 @@ export class TrailComponent extends AbstractComponent {
       this.isSmall = true;
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
     }
+    this.mapToolbarTopRightMaxItems = w > 600 ? undefined : Math.floor((w - 85) / 48);
     this.changesDetection.detectChanges();
   }
 
@@ -1344,9 +1356,11 @@ export class TrailComponent extends AbstractComponent {
   }
 
   openActivityDialog(): void {
-    if (this.trail2 || !this.trail1 || !this.editable) return;
-    const trail = this.trail1;
-    import('../activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, [trail]));
+    const trail = !!this.trail1 && !this.trail2 && this.editable && !this.recording ? {trail: this.trail1, isRecording: false} : !this.trail1 && this.recording ? {trail: this.recording.trail, isRecording: true} : undefined;
+    if (!trail) return;
+    import('../activity-popup/activity-popup.component')
+    .then(m => m.openActivityDialog(this.injector, [trail.trail], trail.isRecording))
+    .then(() => this.refreshMapToolbarTop());
   }
 
   canEdit(): boolean {
