@@ -1,8 +1,8 @@
 <ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button" #userButton>
-  <div slot="icon-only" style="pointer-events: none;">{{userLetter}}</div>
+  <div slot="icon-only" style="pointer-events: none;" data-nosnippet>{{userLetter}}</div>
 </ion-button>
 <ion-badge class="notif-badge" color="danger" *ngIf="nbUnreadNotifications > 0" (click)="transferEvent($event, userButton)">{{nbUnreadNotifications}}</ion-badge>
-<div class="status status-{{icon}}"><ion-icon [name]="icon"></ion-icon></div>
+<div class="status status-{{icon}}" data-nosnippet><ion-icon [name]="icon"></ion-icon></div>
 
 <ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click" style="--width: calc(min(90%, 350px))">
   <ng-template>

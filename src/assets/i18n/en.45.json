@@ -682,7 +682,8 @@
       "retry_with_captcha": "We need to check you are not a robot, please click again on Send",
       "network_needed": "Please connect to Internet to send a message",
       "accept_send_data": "I accept to send technical data about the application to help solving the issue",
-      "show_data": "Show this data"
+      "show_data": "Show this data",
+      "email_alternative": "You can also contact us by email:"
     },
     "stats": {
       "title": "My Statistics",

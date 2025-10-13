@@ -260,6 +260,11 @@ export class TrackMetadataComponent extends AbstractComponent {
       if (config.showHighestAndLowestAltitude) {
         TrackMetadataComponent.updateMeta(meta, 'highestAltitude', highestAltitude, v => i18n.elevationToString(v), force, domController, hideIfUndefined);
         TrackMetadataComponent.updateMeta(meta, 'lowestAltitude', lowestAltitude, v => i18n.elevationToString(v), force, domController, hideIfUndefined);
+        if (!config.alwaysShowElevation && !hideIfUndefined) {
+          const hasAltitude = !!meta.highestAltitudeValue || !!meta2.highestAltitudeValue;
+          TrackMetadataComponent.shown(meta.highestAltitudeDiv, hasAltitude);
+          TrackMetadataComponent.shown(meta.lowestAltitudeDiv, hasAltitude);
+        }
       }
       if (config.showBreaksDuration) {
         TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController, hideIfUndefined);

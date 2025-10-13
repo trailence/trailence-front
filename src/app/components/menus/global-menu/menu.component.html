@@ -9,7 +9,7 @@
     </ion-button>
   </div>
 </div>
-<div class="menu-content">
+<div class="menu-content" data-nosnippet>
 
   <ng-container *ngIf="fetchSourceService.canSearch$ | async">
     <div class="menu-item" (click)="goTo('/trails/search'); close();">

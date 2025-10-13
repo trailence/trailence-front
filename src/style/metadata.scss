@@ -31,6 +31,7 @@
           div.metadata-primary, div.metadata-secondary {
             flex: 1 1 100%;
             font-size: var(--metadata-font-size, 13px);
+            overflow: hidden;
           }
         }
       }

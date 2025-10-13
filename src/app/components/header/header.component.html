@@ -20,7 +20,7 @@
       <ion-buttons slot="end" class="public-buttons">
         @if (prefs.preferences.lang !== 'en') {
           @if (publicUrl) {
-            <a href="/en/{{publicUrl}}" (click)="$event.preventDefault()">
+            <a href="/en/{{publicUrl}}" (click)="$event.preventDefault()" data-nosnippet>
               <ion-button (click)="goTo('/en/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/en.1.png" /></ion-button>
             </a>
           } @else {
@@ -29,7 +29,7 @@
         }
         @if (prefs.preferences.lang !== 'fr') {
           @if (publicUrl) {
-            <a href="/fr/{{publicUrl}}" (click)="$event.preventDefault()">
+            <a href="/fr/{{publicUrl}}" (click)="$event.preventDefault()" data-nosnippet>
               <ion-button (click)="goTo('/fr/' + publicUrl)"><img slot="icon-only" src="/assets/i18n/fr.1.png" /></ion-button>
             </a>
           } @else {
@@ -41,16 +41,16 @@
         </ng-container>
         @if (!small) {
           <div class="separator"></div>
-          <a href="/search-route" (click)="$event.preventDefault()">
+          <a href="/search-route" (click)="$event.preventDefault()" data-nosnippet>
             <ion-button (click)="goTo('/search-route')"><ion-icon slot="icon-only" name="search"></ion-icon></ion-button>
           </a>
-          <a href="/{{prefs.preferences.lang}}/donation" (click)="$event.preventDefault()">
+          <a href="/{{prefs.preferences.lang}}/donation" (click)="$event.preventDefault()" data-nosnippet>
             <ion-button (click)="goTo('/' + prefs.preferences.lang + '/donation')"><ion-icon slot="icon-only" name="heart-outline" class="donation-color"></ion-icon></ion-button>
           </a>
-          <a href="/{{prefs.preferences.lang}}/contact" (click)="$event.preventDefault()">
+          <a href="/{{prefs.preferences.lang}}/contact" (click)="$event.preventDefault()" data-nosnippet>
             <ion-button (click)="goTo('/' + prefs.preferences.lang + '/contact')"><ion-icon slot="icon-only" name="mail"></ion-icon></ion-button>
           </a>
-          <a href="/{{prefs.preferences.lang}}/login" (click)="$event.preventDefault()">
+          <a href="/{{prefs.preferences.lang}}/login" (click)="$event.preventDefault()" data-nosnippet>
             <ion-button (click)="goTo('/' + prefs.preferences.lang + '/login')"><ion-icon slot="icon-only" name="key"></ion-icon></ion-button>
           </a>
         } @else {

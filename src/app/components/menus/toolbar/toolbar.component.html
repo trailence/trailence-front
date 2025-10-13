@@ -1,5 +1,6 @@
 <div class="toolbar-items-container {{ direction }} align-{{ align }} {{noScroll ? 'no-scroll' : ''}}"
   [ngStyle]="styles"
+  data-nosnippet
 >
   @for (item of showItems; track item.id) {
     @if (item.separator) {

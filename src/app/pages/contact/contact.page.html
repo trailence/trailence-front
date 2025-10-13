@@ -62,6 +62,9 @@
       <div class="success" *ngIf="!sending && sent">
         {{ i18n.texts.pages.contact.sent }}
       </div>
+      @if (auth.auth && !auth.auth.isAnonymous) {
+        <div class="email-contact">{{i18n.texts.pages.contact.email_alternative}} <a href="mailto:contact@trailence.org">contact@trailence.org</a></div>
+      }
     </div>
   </div>
 </div>
