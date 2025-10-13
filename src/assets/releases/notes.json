@@ -207,8 +207,24 @@
     "en": {"message": "First official version"},
     "fr": {"message": "Première version officielle"}
   },
-  "010010": {
-    "en": {"message": "Some improvements and fixes"},
-    "fr": {"message": "Quelques améliorations et correctifs"}
+  "010100": {
+    "en": {
+      "items": [
+        "On the Android app, you can now take photos directly from the app while recording a track. The photo will be saved both in Trailence and in your Gallery.",
+        "Waypoints now have a dedicated section on mobile for easier access.",
+        "You can now add waypoints while recording a track.",
+        "You can now select the activity type while recording a track.",
+        "When searching for trails, you can now share a trail link."
+      ]
+    },
+    "fr": {
+      "items": [
+        "Sur l'app Android, vous pouvez maintenant prendre des photos directement depuis l'app pendant l'enregistrement d'une trace. La photo sera enregistrée dans Trailence mais aussi dans votre Gallerie.",
+        "Les 'points de passages' ont été renommés en 'étapes', et ont maintenant une section dédiée sur mobile pour un accès plus facile",
+        "Possibilité d'ajouter des étapes pendant une trace",
+        "Possibilité de sélectionner l'activité pendant une trace",
+        "Lorsque vous recherchez des parcours, vous pouvez maintenant partager le lien d'un parcours"
+      ]
+    }
   }
 }

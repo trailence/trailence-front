@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const TEXTS_VERSION = '45';
+const TEXTS_VERSION = '46';
 
 async function generate(request) {
   if (request.method != 'GET') {
