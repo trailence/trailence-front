@@ -44,6 +44,7 @@ import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
 import { ComputedPreferences } from 'src/app/services/preferences/preferences';
 import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/filter-numeric-custom.component';
+import { Arrays } from 'src/app/utils/arrays';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -285,11 +286,20 @@ export class TrailsListComponent extends AbstractComponent {
         switchMap(trailsWithInfo$ => trailsWithInfo$.length > 0 ? combineLatest(trailsWithInfo$) : of([])),
         debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
       ).subscribe((trailsWithInfo) => {
+        const newList = [];
         for (const t of trailsWithInfo) {
           const current = this.allTrails.find(c => c.trail.uuid === t.trail.uuid && c.trail.owner === t.trail.owner);
-          if (current?.selected) t.selected = true;
+          if (current && t.trail === current.trail && t.track === current.track && t.info === current.info) {
+            newList.push(current);
+            if (!Arrays.sameContent(t.trailTags, current.trailTags)) {
+              current.trailTags = t.trailTags;
+            }
+          } else {
+            newList.push(t);
+            if (current?.selected) t.selected = true;
+          }
         }
-        this.allTrails = trailsWithInfo;
+        this.allTrails = newList;
         this.applySort(this.applyFilters());
         if (this.highlighted) {
           const h = this.highlighted;
