@@ -306,6 +306,10 @@ public class TrailencePlugin extends Plugin {
 
   private boolean keepOnScreenLock = false;
 
+  public boolean isKeepOnScreenLock() {
+    return keepOnScreenLock;
+  }
+
   @PluginMethod
   public void setKeepOnScreenLock(PluginCall call) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {

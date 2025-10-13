@@ -33,6 +33,7 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
 import org.json.JSONException;
+import org.trailence.TrailencePlugin;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -210,7 +211,8 @@ public class CameraPlugin extends Plugin {
 
     public void openCamera(final PluginCall call) {
         if (checkCameraPermissions(call)) {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            boolean isKeepOnLockScreen = ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).isKeepOnScreenLock();
+            Intent takePictureIntent = new Intent(isKeepOnLockScreen ? MediaStore.ACTION_IMAGE_CAPTURE_SECURE : MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
                 // If we will be saving the photo, send the target file along
                 try {
