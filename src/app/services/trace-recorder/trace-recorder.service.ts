@@ -287,7 +287,8 @@ export class TraceRecorderService {
   }
 
   public takePhoto() {
-    this.cameraService.takePhoto().then(photo => this.addPhoto(photo));
+    const location = this.current?.track?.arrivalPoint;
+    this.cameraService.takePhoto(location?.pos?.lat, location?.pos?.lng).then(photo => this.addPhoto(photo));
   }
 
   public addPhoto(binary: BinaryContent): void {

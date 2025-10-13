@@ -146,7 +146,7 @@
         </provider>
 
       <service
-        android:name="org.trailence.BackgroundGeolocationService"
+        android:name="org.trailence.geolocation.BackgroundGeolocationService"
         android:enabled="true"
         android:exported="true"
         android:foregroundServiceType="location" />
@@ -164,4 +164,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-feature android:name="android.hardware.location.gps" />
+
+    <queries>
+      <intent>
+        <action android:name="android.media.action.IMAGE_CAPTURE" />
+      </intent>
+    </queries>
 </manifest>

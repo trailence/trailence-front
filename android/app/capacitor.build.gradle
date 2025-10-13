@@ -15,7 +15,6 @@ dependencies {
     implementation project(':capacitor-network')
     implementation project(':capacitor-status-bar')
     implementation project(':capawesome-capacitor-file-picker')
-    implementation project(':capacitor-camera')
 
 }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ICameraService } from 'src/app/services/camera/camera.interface';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, ImageOptions } from '@capacitor/camera';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import Trailence from '../trailence.service';
 import { Console } from 'src/app/utils/console';
@@ -25,12 +25,16 @@ export class CameraService implements ICameraService {
     });
   }
 
-  takePhoto(): Promise<BinaryContent> {
+  takePhoto(latitude: number | undefined, longitude: number | undefined): Promise<BinaryContent> {
     return Camera.getPhoto({
       resultType: CameraResultType.Base64,
       saveToGallery: true,
       source: CameraSource.Camera,
-    }).then(result => {
+      correctOrientation: false,
+      allowEditing: false,
+      quality: 90,
+      latitude, longitude
+    } as ImageOptions).then(result => {
       if (!result.base64String) return Promise.reject('no photo taken');
       return new BinaryContent(result.base64String, 'image/jpeg');
     });

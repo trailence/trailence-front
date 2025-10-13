@@ -11,7 +11,7 @@ export class CameraService implements ICameraService {
     return Promise.resolve(false);
   }
 
-  takePhoto(): Promise<BinaryContent> {
+  takePhoto(latitude: number | undefined, longitude: number | undefined): Promise<BinaryContent> {
     return Promise.reject('not supported');
   }
 }

@@ -1,8 +1,7 @@
-package org.trailence;
+package org.trailence.geolocation;
 
 import android.app.Notification;
 import android.content.Context;
-import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -13,9 +12,6 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import com.getcapacitor.Logger;
 
 import java.util.List;
 import java.util.Timer;

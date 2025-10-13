@@ -1,30 +1,18 @@
-package org.trailence;
+package org.trailence.geolocation;
 
 import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.location.GnssMeasurementsEvent;
-import android.location.GnssStatus;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationRequest;
 import android.os.Binder;
-import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.getcapacitor.Logger;
 
 import java.util.HashSet;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 // A bound and started service that is promoted to a foreground service
 // (showing a persistent notification) when the first background watcher is

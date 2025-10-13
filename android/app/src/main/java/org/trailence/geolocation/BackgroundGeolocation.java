@@ -1,4 +1,4 @@
-package org.trailence;
+package org.trailence.geolocation;
 
 import android.Manifest;
 import android.app.Notification;
@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;

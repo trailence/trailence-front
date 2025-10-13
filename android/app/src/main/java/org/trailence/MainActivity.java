@@ -6,14 +6,11 @@ import com.getcapacitor.Logger;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.webkit.WebView;
 
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
+import org.trailence.camera.CameraPlugin;
+import org.trailence.geolocation.BackgroundGeolocation;
 
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -24,6 +21,7 @@ public class MainActivity extends BridgeActivity {
   public void onCreate(Bundle savedInstanceState) {
     registerPlugin(TrailencePlugin.class);
     registerPlugin(BackgroundGeolocation.class);
+    registerPlugin(CameraPlugin.class);
     super.onCreate(savedInstanceState);
     //if (getApplicationInfo().targetSdkVersion >= 35 && Build.VERSION.SDK_INT < 35)
     //  WindowCompat.enableEdgeToEdge();

@@ -4,6 +4,6 @@ export interface ICameraService {
 
   canTakePhoto(): Promise<boolean>;
 
-  takePhoto(): Promise<BinaryContent>;
+  takePhoto(latitude: number | undefined, longitude: number | undefined): Promise<BinaryContent>;
 
 }

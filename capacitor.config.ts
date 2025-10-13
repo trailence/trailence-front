@@ -24,7 +24,6 @@ const config: CapacitorConfig = {
       '@capacitor/network',
       '@capacitor/status-bar',
       '@capawesome/capacitor-file-picker',
-      '@capacitor/camera',
     ]
   }
 };
