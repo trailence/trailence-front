@@ -95,13 +95,14 @@ export function copyTrailsTo( // NOSONAR
     ));
     if (trail.owner === email) {
       progress.addWorkToDo(1);
-      if (!skipTags)
+      if (skipTags)
+        progress.addWorkToDo(1);
+      else
         originalTags$.push(tagService.getTrailTagsNames$(trail.uuid, true).pipe(map(tags => {
           progress.addWorkDone(1);
           return {originalTrail: trail, tags};
         })));
-      else
-        progress.addWorkToDo(1);
+
     }
     progress.addWorkToDo(1);
     originalPhotos$.push(photoService.getPhotosForTrailReady$(trail).pipe(map(photos => {
@@ -198,7 +199,7 @@ function doImportPhotos(
   trails: {originalTrail: Trail, newTrail: Trail}[],
   photos: {originalTrail: Trail, photos: Photo[]}[]
 ): void {
-  const allPhotos = Arrays.flatMap(photos, p => p.photos);
+  const allPhotos = photos.flatMap(p => p.photos);
   const progress = injector.get(ProgressService).create(injector.get(I18nService).texts.pages.trails.actions.copying_photos, allPhotos.length);
   progress.subTitle = '0/' + allPhotos.length;
   let index = 0;

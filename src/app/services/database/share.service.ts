@@ -54,7 +54,7 @@ export class ShareService {
     const trails: string[] = [];
     const date = Date.now();
     return this._store.create(new Share(
-      window.crypto.randomUUID(),
+      globalThis.crypto.randomUUID(),
       from,
       1,
       date,
@@ -142,29 +142,29 @@ export class ShareService {
       switchMap(auth => {
         if (!auth) return of(new Map<Share, Observable<Trail | null>[]>());
         const user = auth.email;
-        const needTags = !!shares.find(s => s.owner === user && s.type === ShareElementType.TAG);
+        const needTags = shares.some(s => s.owner === user && s.type === ShareElementType.TAG);
         return combineLatest([
           this.injector.get(TrailService).getAllWhenLoaded$().pipe(collection$items$()),
           needTags ? this.injector.get(TagService).getAllTrailsTags$().pipe(collection$items()) : of([]),
         ]).pipe(
           map(([trails, tags]) => {
             const result = new Map<Share, Observable<Trail | null>[]>();
-            shares.forEach(share => {
+            for (const share of shares) {
               let filter: (trail: {item: Trail, item$: Observable<Trail | null>}) => boolean;
               if (share.owner === user) {
                 if (share.type === ShareElementType.TRAIL)
-                  filter = trail => trail.item.owner === share.owner && share.elements.indexOf(trail.item.uuid) >= 0;
+                  filter = trail => trail.item.owner === share.owner && share.elements.includes(trail.item.uuid);
                 else if (share.type === ShareElementType.COLLECTION)
-                  filter = trail => trail.item.owner === share.owner && share.elements.indexOf(trail.item.collectionUuid) >= 0;
+                  filter = trail => trail.item.owner === share.owner && share.elements.includes(trail.item.collectionUuid);
                 else {
-                  const tagsUuids = tags.filter(tag => share.elements.indexOf(tag.tagUuid) >= 0).map(tag => tag.trailUuid);
-                  filter = trail => trail.item.owner === share.owner && tagsUuids.indexOf(trail.item.uuid) >= 0;
+                  const tagsUuids = tags.filter(tag => share.elements.includes(tag.tagUuid)).map(tag => tag.trailUuid);
+                  filter = trail => trail.item.owner === share.owner && tagsUuids.includes(trail.item.uuid); // NOSONAR
                 }
               } else {
-                filter = trail => trail.item.owner === share.owner && share.trails.indexOf(trail.item.uuid) >= 0;
+                filter = trail => trail.item.owner === share.owner && share.trails.includes(trail.item.uuid);
               }
               result.set(share, trails.filter(filter).map(t => t.item$));
-            });
+            }
             return result;
           })
         );
@@ -174,7 +174,7 @@ export class ShareService {
 
   public getSharesFromTrailSharedWithMe(trailUuid: string, trailOwner: string): Observable<Share[]> {
     return this.getAll$().pipe(
-      collection$items(share => share.owner === trailOwner && share.trails.indexOf(trailUuid) >= 0),
+      collection$items(share => share.owner === trailOwner && share.trails.includes(trailUuid)),
     );
   }
 }
@@ -201,7 +201,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
 
   protected override updateEntityFromServer(fromServer: Share, inStore: Share): Share | null {
     if (fromServer.version > inStore.version) return fromServer;
-    if (this._updatedLocally.indexOf(this.getKey(fromServer)) >= 0) {
+    if (this._updatedLocally.includes(this.getKey(fromServer))) {
       if (Arrays.sameContent(inStore.trails, fromServer.trails)) return null;
       inStore.trails = fromServer.trails;
       return inStore;
@@ -222,7 +222,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     const db = this._db;
     const limiter = new RequestLimiter(2);
     const requests: Observable<any>[] = [];
-    items.forEach(item => {
+    for (const item of items) {
       const request = () => {
         if (this._db !== db) return EMPTY;
         return this.injector.get(HttpService).post<ShareDto>(environment.apiBaseUrl + '/share/v2', {
@@ -242,7 +242,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
         );
       }
       requests.push(limiter.add(request));
-    });
+    }
     if (requests.length === 0) return of([]);
     return zip(requests);
   }
@@ -251,7 +251,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     const db = this._db;
     const limiter = new RequestLimiter(2);
     const requests: Observable<any>[] = [];
-    items.forEach(item => {
+    for (const item of items) {
       const request = () => {
         if (this._db !== db) return EMPTY;
         return this.injector.get(HttpService).delete(environment.apiBaseUrl + '/share/v2/' + encodeURIComponent(item.owner) + '/' + item.uuid).pipe(
@@ -262,7 +262,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
         );
       }
       requests.push(limiter.add(request));
-    });
+    }
     if (requests.length === 0) return of([]).pipe(map(() => {}));
     return zip(requests).pipe(map(() => {}));
   }
@@ -271,7 +271,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     const db = this._db;
     const limiter = new RequestLimiter(2);
     const requests: Observable<any>[] = [];
-    items.forEach(item => {
+    for (const item of items) {
       const request = () => {
         if (this._db !== db) return EMPTY;
         return this.injector.get(HttpService).put<ShareDto>(environment.apiBaseUrl + '/share/v2/' + item.uuid, {
@@ -287,7 +287,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
         );
       }
       requests.push(limiter.add(request));
-    });
+    }
     if (requests.length === 0) return of([]);
     return zip(requests);
   }
@@ -320,7 +320,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
       return combineLatest(
         entity.elements.map(collectionUuid => collectionService.getCollection$(collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally())))
       ).pipe(
-        map(readiness => readiness.indexOf(false) < 0)
+        map(readiness => !readiness.includes(false))
       );
     }
     if (entity.type === ShareElementType.TAG) {
@@ -328,7 +328,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
       return combineLatest(
         entity.elements.map(tagUuid => tagService.getTag$(tagUuid).pipe(map(tag => !!tag?.isSavedOnServerAndNotDeletedLocally())))
       ).pipe(
-        map(readiness => readiness.indexOf(false) < 0)
+        map(readiness => !readiness.includes(false))
       );
     }
     if (entity.type === ShareElementType.TRAIL) {
@@ -336,7 +336,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
       return combineLatest(
         entity.elements.map(trailUuid => trailService.getTrail$(trailUuid, entity.owner).pipe(map(trail => !!trail?.isSavedOnServerAndNotDeletedLocally())))
       ).pipe(
-        map(readiness => readiness.indexOf(false) < 0)
+        map(readiness => !readiness.includes(false))
       );
     }
     return of(false);

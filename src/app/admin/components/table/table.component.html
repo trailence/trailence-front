@@ -1,36 +1,46 @@
 <div class="table-container">
   <table>
     <tr>
-      <th *ngIf="settings.selectable" class="selection">
-        <ion-checkbox
-          [checked]="result?.elements?.length && selection.length === result?.elements?.length"
-          [indeterminate]="selection.length > 0 && result?.elements?.length && selection.length < result!.elements.length"
-          (ionChange)="selectAll($event.detail.checked)"
-        ></ion-checkbox>
-      </th>
-      <th *ngFor="let column of settings.columns" (click)="sortBy(column)">
-        <div>
-          <div class="title" [ngStyle]="{'text-align': column._horizontalAlignment}">{{column.title | i18nString}}</div>
-          <div *ngIf="column._sortable" class="sort-icon" [ngClass]="{'sorted': settings.pageRequest.sortBy === column._sortable}">
-            <ion-icon [name]="settings.pageRequest.sortBy === column._sortable && !settings.pageRequest.sortAsc ? 'arrow-down' : 'arrow-up'"></ion-icon>
-          </div>
-        </div>
-      </th>
-    </tr>
-    <ng-container *ngIf="result">
-      <tr *ngFor="let element of result.elements" (click)="rowClick.emit(element)">
-        <td *ngIf="settings.selectable && settings.selectable(element)" class="selection">
+      @if (settings.selectable) {
+        <th class="selection">
           <ion-checkbox
-            [checked]="selection.indexOf(element) >= 0"
-            (ionChange)="select(element, $event.detail.checked)"
-            (click)="$event.stopPropagation()"
+            [checked]="result?.elements?.length && selection.length === result?.elements?.length"
+            [indeterminate]="selection.length > 0 && result?.elements?.length && selection.length < result!.elements.length"
+            (ionChange)="selectAll($event.detail.checked)"
           ></ion-checkbox>
-        </td>
-        <ng-container *ngFor="let column of settings.columns">
-          <ng-container *ngTemplateOutlet="cellTemplate; context: { column: column, element: element, value: column._valueGetter(element) }"></ng-container>
-        </ng-container>
-      </tr>
-    </ng-container>
+        </th>
+      }
+      @for (column of settings.columns; track column) {
+        <th (click)="sortBy(column)">
+          <div>
+            <div class="title" [ngStyle]="{'text-align': column._horizontalAlignment}">{{column.title | i18nString}}</div>
+            @if (column._sortable) {
+              <div class="sort-icon" [ngClass]="{'sorted': settings.pageRequest.sortBy === column._sortable}">
+                <ion-icon [name]="settings.pageRequest.sortBy === column._sortable && !settings.pageRequest.sortAsc ? 'arrow-down' : 'arrow-up'"></ion-icon>
+              </div>
+            }
+          </div>
+        </th>
+      }
+    </tr>
+    @if (result) {
+      @for (element of result.elements; track element) {
+        <tr (click)="rowClick.emit(element)">
+          @if (settings.selectable && settings.selectable(element)) {
+            <td class="selection">
+              <ion-checkbox
+                [checked]="selection.indexOf(element) >= 0"
+                (ionChange)="select(element, $event.detail.checked)"
+                (click)="$event.stopPropagation()"
+              ></ion-checkbox>
+            </td>
+          }
+          @for (column of settings.columns; track column) {
+            <ng-container *ngTemplateOutlet="cellTemplate; context: { column: column, element: element, value: column._valueGetter(element) }"></ng-container>
+          }
+        </tr>
+      }
+    }
   </table>
 </div>
 <app-paginator
@@ -42,7 +52,9 @@
   <div class="left-content"><ng-content select=".paginator-left-content"></ng-content></div>
   <div class="right-content"><ng-content select=".paginator-right-content"></ng-content></div>
 </app-paginator>
-<div class="loading" *ngIf="pending"><ion-spinner name="dots"></ion-spinner></div>
+@if (pending) {
+  <div class="loading"><ion-spinner name="dots"></ion-spinner></div>
+}
 
 <ng-template #cellTemplate let-column="column" let-element="element" let-value="value">
   <td [ngStyle]="column._computeCellStyle(element, value)">{{ value }}</td>

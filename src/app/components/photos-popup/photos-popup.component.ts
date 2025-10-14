@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
@@ -21,6 +20,7 @@ import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { CameraService } from 'src/app/services/camera/camera.service';
+import { NgClass, NgStyle } from '@angular/common';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -31,25 +31,14 @@ interface PhotoWithInfo {
 }
 
 @Component({
-    selector: 'app-photos-popup',
-    templateUrl: './photos-popup.component.html',
-    styleUrls: ['./photos-popup.component.scss'],
-    imports: [
-        IonCheckbox,
-        IonButtons,
-        IonFooter,
-        IonButton,
-        IonLabel,
-        IonIcon,
-        IonTitle,
-        IonToolbar,
-        IonHeader,
-        CommonModule,
-        PhotoComponent,
-        IonTextarea,
-        IonSegment,
-        IonSegmentButton,
-    ]
+  selector: 'app-photos-popup',
+  templateUrl: './photos-popup.component.html',
+  styleUrls: ['./photos-popup.component.scss'],
+  imports: [
+    IonCheckbox, IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonTextarea, IonSegment, IonSegmentButton,
+    PhotoComponent,
+    NgClass, NgStyle,
+  ]
 })
 export class PhotosPopupComponent  implements OnInit, OnDestroy {
 
@@ -138,14 +127,17 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
         )),
       ).subscribe(result => {
         if (this.activeTrail$.value === this.traceRecorder.current?.trail) {
-          if (this.deviceCanTakePhoto !== undefined) this.canTakePhoto = this.deviceCanTakePhoto;
-          else this.cameraService.canTakePhoto().then(result => {
-            this.deviceCanTakePhoto = result;
-            if (this.activeTrail$.value === this.traceRecorder.current?.trail && this.deviceCanTakePhoto) {
-              this.canTakePhoto = true;
-              this.changesDetector.detectChanges();
-            }
-          });
+          if (this.deviceCanTakePhoto === undefined) {
+            this.cameraService.canTakePhoto().then(result => {
+              this.deviceCanTakePhoto = result;
+              if (this.activeTrail$.value === this.traceRecorder.current?.trail && this.deviceCanTakePhoto) {
+                this.canTakePhoto = true;
+                this.changesDetector.detectChanges();
+              }
+            });
+          } else {
+            this.canTakePhoto = this.deviceCanTakePhoto;
+          }
         }
         this.canEdit = result[1].canEdit;
         this.canAdd = result[1].canAdd;
@@ -215,7 +207,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   }
 
   setAllSelected(selected: boolean): void {
-    this.photos.forEach(p => p.selected = selected);
+    for (const p of this.photos) p.selected = selected;
     if (selected) this.nbSelected = this.photos.length; else this.nbSelected = 0;
     this.changesDetector.detectChanges();
   }
@@ -315,7 +307,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     }
     const progress = this.progressService.create(this.i18n.texts.pages.photos_popup.deleting, photos.length);
     const done = new CompositeOnDone(() => progress.done());
-    photos.forEach(p => this.photoService.delete(p, done.add(() => progress.addWorkDone(1))));
+    for (const p of photos) this.photoService.delete(p, done.add(() => progress.addWorkDone(1)));
     done.start();
   }
 

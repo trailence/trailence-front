@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UserSubscriptionDto } from 'src/app/admin/model/user-subscription';
 import { HttpService } from 'src/app/services/http/http.service';
@@ -15,7 +14,6 @@ import { PageResult } from 'src/app/admin/components/paginator/page-result';
   templateUrl: './user-subscriptions.component.html',
   styleUrl: './user-subscriptions.component.scss',
   imports: [
-    CommonModule,
     IonSelect, IonSelectOption, IonButton, IonIcon,
   ]
 })

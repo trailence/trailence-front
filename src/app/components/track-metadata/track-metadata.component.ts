@@ -112,12 +112,12 @@ export class TrackMetadataComponent extends AbstractComponent {
     domController.write(() => {
       whenVisible.zone.runOutsideAngular(() => {
         if (insertBefore) {
-          while (insertBefore.previousElementSibling) insertBefore.parentElement!.removeChild(insertBefore.previousElementSibling);
+          while (insertBefore.previousElementSibling) insertBefore.previousElementSibling.remove();
         }
         const duration = TrackMetadataComponent.createItemElement(container, insertBefore, 'duration', assets, config.mayHave2Values, false);
         const breaksDuration = config.showBreaksDuration ? TrackMetadataComponent.createItemElement(container, insertBefore, 'hourglass', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
         breaksDuration[2] = TrackMetadataComponent.addContextualHelp(breaksDuration[2], 'help.contextual.breaks', [Math.floor(preferences.longBreakMinimumDuration / 60000)], assets, whenVisible, i18n);
-        const estimatedDuration = !config.mergeDurationAndEstimated ? TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, config.mayHave2Values, false) : [undefined, undefined, undefined];
+        const estimatedDuration = config.mergeDurationAndEstimated ? [undefined, undefined, undefined] : TrackMetadataComponent.createItemElement(container, insertBefore, 'chrono', assets, config.mayHave2Values, false);
         estimatedDuration[2] = TrackMetadataComponent.addContextualHelp(estimatedDuration[2], 'help.contextual.estimated_duration', [], assets, whenVisible, i18n);
         let empty: HTMLDivElement | undefined = undefined;
         if (config.showSpeed) {
@@ -125,7 +125,7 @@ export class TrackMetadataComponent extends AbstractComponent {
           empty = document.createElement('DIV') as HTMLDivElement;
           empty.className = 'metadata-item-container';
           if (insertBefore)
-            container.insertBefore(empty, insertBefore);
+            insertBefore.before(empty);
           else
             container.appendChild(empty);
         }
@@ -169,7 +169,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     item.appendChild(iconContainer);
     assets.getIcon(icon).subscribe(svg => {
       iconContainer.parentElement?.insertBefore(svg, iconContainer);
-      iconContainer.parentElement?.removeChild(iconContainer);
+      iconContainer.remove();
     })
 
     const content = document.createElement('DIV');
@@ -197,7 +197,7 @@ export class TrackMetadataComponent extends AbstractComponent {
     }
 
     if (insertBefore)
-      parent.insertBefore(container, insertBefore);
+      insertBefore.before(container);
     else
       parent.appendChild(container);
     return ([info1, info2, title]);
@@ -246,7 +246,7 @@ export class TrackMetadataComponent extends AbstractComponent {
         ])));
       }),
       debounceTimeExtended(0, 10, 100),
-    ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, state]) => {
+    ), ([distance, duration, positiveElevation, negativeElevation, highestAltitude, lowestAltitude, breaksDuration, estimatedDuration, state]) => { // NOSONAR
       const force = state !== previousState;
       TrackMetadataComponent.updateMeta(meta, 'distance', distance, v => i18n.distanceToString(v), force, domController, hideIfUndefined);
       TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force, domController, hideIfUndefined);
@@ -269,13 +269,7 @@ export class TrackMetadataComponent extends AbstractComponent {
       if (config.showBreaksDuration) {
         TrackMetadataComponent.updateMeta(meta, 'breaksDuration', breaksDuration, v => i18n.durationToString(v), force, domController, hideIfUndefined);
       }
-      if (!config.mergeDurationAndEstimated) {
-        TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController, hideIfUndefined);
-        TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController, hideIfUndefined);
-        const hasDuration = !!duration || !!meta2.durationValue || !!breaksDuration || !!meta2.breaksDurationValue;
-        TrackMetadataComponent.shown(meta.durationDiv, hasDuration);
-        TrackMetadataComponent.shown(meta.breaksDurationDiv, hasDuration);
-      } else {
+      if (config.mergeDurationAndEstimated) {
         let d = duration ? i18n.durationToString(duration) : '';
         if (estimatedDuration) {
           const hasD = d.length > 0;
@@ -287,6 +281,12 @@ export class TrackMetadataComponent extends AbstractComponent {
           d += '</span>';
         }
         TrackMetadataComponent.updateMeta(meta, 'duration', d, v => v, force, domController, hideIfUndefined, true);
+      } else {
+        TrackMetadataComponent.updateMeta(meta, 'estimatedDuration', estimatedDuration, v => '≈ ' + i18n.durationToString(v), force, domController, hideIfUndefined);
+        TrackMetadataComponent.updateMeta(meta, 'duration', duration, v => i18n.durationToString(v), force, domController, hideIfUndefined);
+        const hasDuration = !!duration || !!meta2.durationValue || !!breaksDuration || !!meta2.breaksDurationValue;
+        TrackMetadataComponent.shown(meta.durationDiv, hasDuration);
+        TrackMetadataComponent.shown(meta.breaksDurationDiv, hasDuration);
       }
       if (config.showSpeed) {
         const speedMetersByHour = distance && duration ? distance / duration * 60 * 60 * 1000 : undefined;

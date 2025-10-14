@@ -6,7 +6,6 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TableComponent } from '../../components/table/table.component';
 import { ContactMessageDto } from '../../model/contact-message';
 import { IonButton, ModalController } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
 
@@ -14,7 +13,6 @@ import { Console } from 'src/app/utils/console';
   templateUrl: './messages.page.html',
   styleUrl: './messages.page.scss',
   imports: [
-    CommonModule,
     TableComponent,
     IonButton,
   ]
@@ -61,8 +59,14 @@ export class AdminMessagesPage {
 
   selection: ContactMessageDto[] = [];
 
-  nbSelectedWithRead(read: boolean): number {
-    return this.selection.filter(m => m.read === read).length;
+  countReadInSelection(): {read: number, unread: number} {
+    let read = 0;
+    let unread = 0;
+    for (const msg of this.selection) {
+      if (msg.read) read++;
+      else unread++;
+    }
+    return {read, unread};
   }
 
   markAsRead(read: boolean): void {

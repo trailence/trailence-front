@@ -8,7 +8,7 @@
 
 <div class="page-number">
   {{ 'admin.paginator.page' | i18nString }} {{ pageRequest.page + 1 }} / {{ nbPages }}
-  <span *ngIf="result && result.elements.length > 0">({{ firstElement }}..{{ lastElement }})</span>
+  @if (result && result.elements.length > 0) { <span>({{ firstElement }}..{{ lastElement }})</span> }
 </div>
 <ion-button fill="clear" color="secondary" (click)="refresh()">
   <ion-icon slot="icon-only" name="reset"></ion-icon>
@@ -22,6 +22,8 @@
 </ion-button>
 
 <ion-select [value]="pageRequest.size" label="{{ 'admin.paginator.elementsPerPage' | i18nString }}" (ionChange)="setPageSize($event.detail.value)">
-  <ion-select-option *ngFor="let option of pagingOptions" [value]="option">{{ option }}</ion-select-option>
+  @for (option of pagingOptions; track option) {
+    <ion-select-option [value]="option">{{ option }}</ion-select-option>
+  }
 </ion-select>
 <div class="right-content-container"><ng-content select=".right-content"></ng-content></div>

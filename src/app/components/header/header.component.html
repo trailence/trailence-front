@@ -15,7 +15,7 @@
     } @else {
       <div class="trailence-title {{neverShowTrailenceTitle ? 'no-trailence-title' : ''}}" slot="start" (click)="home()">
         <ion-icon name="logo" size="large"></ion-icon>
-        <ion-label class="{{title.length === 0 ? 'no-title' : ''}}" *ngIf="!neverShowTrailenceTitle">Trailence</ion-label>
+        @if (!neverShowTrailenceTitle) {<ion-label class="{{title.length === 0 ? 'no-title' : ''}}">Trailence</ion-label>}
       </div>
       <ion-buttons slot="end" class="public-buttons">
         @if (prefs.preferences.lang !== 'en') {
@@ -36,9 +36,9 @@
             <ion-button (click)="setLanguage('fr')"><img slot="icon-only" src="/assets/i18n/fr.1.png" /></ion-button>
           }
         }
-        <ng-container *ngIf="prefs.getResolvedTheme() as theme">
+        @if (prefs.getResolvedTheme(); as theme) {
           <ion-button (click)="prefs.setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')"><ion-icon slot="icon-only" [name]="theme === 'DARK' ? 'theme-light' : 'theme-dark'"></ion-icon></ion-button>
-        </ng-container>
+        }
         @if (!small) {
           <div class="separator"></div>
           <a href="/search-route" (click)="$event.preventDefault()" data-nosnippet>
@@ -91,13 +91,15 @@
       </ion-buttons>
     }
     <div class="header-title">
-      <div class="back-button" *ngIf="backUrl">
-        <ion-button shape="round" fill="clear" (click)="back()">
-          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-        </ion-button>
-      </div>
+      @if (backUrl) {
+        <div class="back-button">
+          <ion-button shape="round" fill="clear" (click)="back()">
+            <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+          </ion-button>
+        </div>
+      }
       <div class="title-text {{auth.email ? '' : 'not-logged'}} {{!useH1 && title2 && title2.length ? 'with-sub-title' : ''}}" long-press (longPressEvent)="titlePress()">
-        <span *ngIf="!auth.email && title.length > 0 && !small && !neverShowTrailenceTitle" class="separator">-</span>
+        @if (!auth.email && title.length > 0 && !small && !neverShowTrailenceTitle) {<span class="separator">-</span>}
         @if (useH1) {
           <h1>{{title}}</h1>
           <h2>{{description}}</h2>
@@ -110,18 +112,20 @@
           <span>{{title}}</span>
         }
       </div>
-      <div class="title-actions" *ngIf="actions && actions.length > 0">
-        <ion-button fill="clear" shape="round" id="header-title-actions-button-{{id}}">
-          <ion-icon slot="icon-only" name="item-menu"></ion-icon>
-        </ion-button>
-        <ion-popover trigger="header-title-actions-button-{{id}}" [dismissOnSelect]="true" [ngClass]="{'always-tight-menu': alwaysTightMenu}">
-          <ng-template>
-            <ion-content>
-              <app-menu-content [menu]="actions" [enableToolbarsForSections]="actionsEnableToolbars"></app-menu-content>
-            </ion-content>
-          </ng-template>
-        </ion-popover>
-      </div>
+      @if (actions && actions.length > 0) {
+        <div class="title-actions">
+          <ion-button fill="clear" shape="round" id="header-title-actions-button-{{id}}">
+            <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+          </ion-button>
+          <ion-popover trigger="header-title-actions-button-{{id}}" [dismissOnSelect]="true" [ngClass]="{'always-tight-menu': alwaysTightMenu}">
+            <ng-template>
+              <ion-content>
+                <app-menu-content [menu]="actions" [enableToolbarsForSections]="actionsEnableToolbars"></app-menu-content>
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        </div>
+      }
     </div>
   </ion-toolbar>
 </ion-header>

@@ -49,7 +49,7 @@ export class TrailsWaypoints {
         newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, () => this.wayPointsUpdated()));
       }
     }
-    toRemove.forEach(t => t.destroy());
+    for (const t of toRemove) t.destroy();
     this.trails = newTrails;
     this._mapTracks = mapTracks;
     if (this._showBreaksOnMap && !this.canShowBreaksOnMap())
@@ -73,21 +73,8 @@ export class TrailsWaypoints {
   public get highlightedWayPointFromClick() { return this._highlightedWayPointFromClick; }
 
   highlightWayPoint(wp: ComputedWayPoint, click: boolean): void {
-    const trail = this.trails.find(t => t.wayPoints.indexOf(wp) >= 0);
-    if (click) {
-      if (trail && wp.nearestSegmentIndex !== undefined && wp.nearestPointIndex !== undefined &&
-        wp.nearestSegmentIndex < trail.track.segments.length && wp.nearestPointIndex < trail.track.segments[wp.nearestSegmentIndex].points.length
-      ) {
-        const pathPoint = trail.track.segments[wp.nearestSegmentIndex].points[wp.nearestPointIndex];
-        if (samePositionRound(pathPoint.pos, wp.wayPoint.point.pos)) {
-          this.selection.selectPoint([new PointReference(trail.track, wp.nearestSegmentIndex, wp.nearestPointIndex)]);
-        }
-      }
-      if (trail)
-        this.selection.selectedWayPoint$.next(wp.wayPoint);
-      else
-        this.selection.selectedWayPoint$.next(undefined);
-    }
+    const trail = this.trails.find(t => t.wayPoints.includes(wp));
+    if (click) this.waypointClick(wp, trail);
 
     if (this._highlightedWayPoint === wp) {
       if (click) this._highlightedWayPointFromClick = true;
@@ -105,13 +92,29 @@ export class TrailsWaypoints {
     }
   }
 
+  private waypointClick(wp: ComputedWayPoint, trail: TrailWaypoints | undefined): void {
+    if (trail) {
+      if (wp.nearestSegmentIndex !== undefined && wp.nearestPointIndex !== undefined &&
+        wp.nearestSegmentIndex < trail.track.segments.length && wp.nearestPointIndex < trail.track.segments[wp.nearestSegmentIndex].points.length
+      ) {
+        const pathPoint = trail.track.segments[wp.nearestSegmentIndex].points[wp.nearestPointIndex];
+        if (samePositionRound(pathPoint.pos, wp.wayPoint.point.pos)) {
+          this.selection.selectPoint([new PointReference(trail.track, wp.nearestSegmentIndex, wp.nearestPointIndex)]);
+        }
+      }
+      this.selection.selectedWayPoint$.next(wp.wayPoint);
+    } else {
+      this.selection.selectedWayPoint$.next(undefined);
+    }
+  }
+
   unhighlightWayPoint(wp: ComputedWayPoint, force: boolean): boolean {
     if (this._highlightedWayPoint === wp && (force || !this._highlightedWayPointFromClick)) {
       this._highlightedWayPoint = undefined;
       this._highlightedWayPointFromClick = false;
       if (this.selection.selectedWayPoint$.value === wp.wayPoint)
         this.selection.selectedWayPoint$.next(undefined);
-      const trail = this.trails.find(t => t.wayPoints.indexOf(wp) >= 0);
+      const trail = this.trails.find(t => t.wayPoints.includes(wp));
       if (trail) {
         const mapTrack = this._mapTracks.find(mt => mt.track === trail.track);
         mapTrack?.unhighlightWayPoint(wp);
@@ -131,7 +134,7 @@ export class TrailWaypoints {
   hasBreaks = false;
   private _showBreaks = false;
 
-  private subscription: Subscription;
+  private readonly subscription: Subscription;
 
   public get showBreaks() { return this._showBreaks; }
   public set showBreaks(value: boolean) {
@@ -153,7 +156,7 @@ export class TrailWaypoints {
         const previousHighlightedIndex = previousHighlighted ? this.wayPoints.indexOf(trails.highlightedWayPoint) : -1;
         if (previousHighlightedIndex >= 0) trails.unhighlightWayPoint(previousHighlighted!, true);
         this.wayPoints = wayPoints;
-        this.hasBreaks = !!wayPoints.find(wp => wp.breakPoint);
+        this.hasBreaks = wayPoints.some(wp => wp.breakPoint);
         this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.isDeparture && wp.isArrival);
         this.wayPointsImages = this.wayPoints.map(wp => {
           if (wp.isDeparture)
@@ -166,7 +169,6 @@ export class TrailWaypoints {
         });
         if (this.wayPointDepartureAndArrival)
           this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
-        // TODO re-highlight waypoint ?
         onUpdated();
       }
     );

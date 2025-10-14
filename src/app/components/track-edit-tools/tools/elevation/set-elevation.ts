@@ -65,22 +65,21 @@ export class SetElevationOnRangeSmoothTool implements TrackEditTool {
     ctx.modifySelectedRange(track => {
       const start = track.departurePoint?.ele;
       const end = track.arrivalPoint?.ele;
-      if (start !== undefined && end !== undefined) {
-        let nb = 0;
+      if (start === undefined || end === undefined) return of(true);
+      let nb = 0;
+      for (const segment of track.segments)
+        nb += segment.points.length;
+      nb -= 2;
+      if (nb > 0) {
+        let index = 0;
         for (const segment of track.segments)
-          nb += segment.points.length;
-        nb -= 2;
-        if (nb > 0) {
-          let index = 0;
-          for (const segment of track.segments)
-            for (const point of segment.points) {
-              if (index > 0 && index <= nb) {
-                const elevation = start + ((end - start) / nb) * index;
-                point.ele = elevation;
-              }
-              index++;
+          for (const point of segment.points) {
+            if (index > 0 && index <= nb) {
+              const elevation = start + ((end - start) / nb) * index;
+              point.ele = elevation;
             }
-        }
+            index++;
+          }
       }
       return of(true);
     }, true, false).subscribe();
@@ -122,8 +121,8 @@ export class SetElevationOnRangeManualValueTool implements TrackEditTool {
     }).then(alert => {
       alert.onDidDismiss().then(result => {
         if (result.role === 'ok') {
-          const elevation = parseFloat(result.data?.values[0]);
-          if (!isNaN(elevation)) {
+          const elevation = Number.parseFloat(result.data?.values[0]);
+          if (!Number.isNaN(elevation)) {
             ctx.modifySelectedRange(track => {
               track.forEachPoint(p => {
                 p.ele = elevation;
@@ -175,8 +174,8 @@ export class SetElevationOnRangeManualDiffTool implements TrackEditTool {
     }).then(alert => {
       alert.onDidDismiss().then(result => {
         if (result.role === 'ok') {
-          const elevation = parseFloat(result.data?.values[0]);
-          if (!isNaN(elevation)) {
+          const elevation = Number.parseFloat(result.data?.values[0]);
+          if (!Number.isNaN(elevation)) {
             ctx.modifySelectedRange(track => {
               track.forEachPoint(p => {
                 p.ele = (p.ele ?? 0) + elevation;

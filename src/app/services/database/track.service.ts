@@ -24,12 +24,12 @@ export class TrackService {
   public dbReady$(): Observable<boolean> { return this.db.dbReady };
 
   public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
-    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getSimplifiedTrack$(owner, uuid);
+    if (!owner.includes('@')) return this.injector.get(FetchSourceService).getSimplifiedTrack$(owner, uuid);
     return this.db.getSimplifiedTrack$(uuid, owner);
   }
 
   public getMetadata$(uuid: string, owner: string): Observable<TrackMetadataSnapshot | null> {
-    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getMetadata$(owner, uuid);
+    if (!owner.includes('@')) return this.injector.get(FetchSourceService).getMetadata$(owner, uuid);
     return this.db.getMetadata$(uuid, owner);
   }
 
@@ -37,7 +37,7 @@ export class TrackService {
     const externals: {uuid: string, owner: string}[] = [];
     const internals: {uuid: string, owner: string}[] = [];
     for (const t of tracks) {
-      if (t.owner.indexOf('@') < 0) externals.push(t);
+      if (!t.owner.includes('@')) externals.push(t);
       else internals.push(t);
     }
     const externalTracks = externals.length === 0 ? of([]) : this.injector.get(FetchSourceService).getMetadataList$(externals);
@@ -52,7 +52,7 @@ export class TrackService {
   }
 
   public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
-    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getFullTrack$(owner, uuid);
+    if (!owner.includes('@')) return this.injector.get(FetchSourceService).getFullTrack$(owner, uuid);
     return this.db.getFullTrack$(uuid, owner);
   }
 

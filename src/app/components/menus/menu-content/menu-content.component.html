@@ -1,14 +1,13 @@
 <ion-list>
-  @if (parents.length > 0) {
-    <ng-container *ngIf="parents[parents.length - 1] as parent">
-      <ion-list-header>
-        <ion-button shape="round" fill="clear" color="secondary" (click)="back($event)">
-          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-        </ion-button>
-        <ion-icon *ngIf="parent.from.icon" [name]="parent.from.icon"></ion-icon>
-        <ion-label *ngIf="parent.from.text$">{{ parent.from.text$ | async }}</ion-label>
-      </ion-list-header>
-    </ng-container>
+  @let parent = parents.at(-1);
+  @if (parent) {
+    <ion-list-header>
+      <ion-button shape="round" fill="clear" color="secondary" (click)="back($event)">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+      @if (parent.from.icon) {<ion-icon [name]="parent.from.icon"></ion-icon>}
+      @if (parent.from.text$) {<ion-label>{{ parent.from.text$ | async }}</ion-label>}
+    </ion-list-header>
     @if (content.length > 0) {
       <ng-container *ngTemplateOutlet="menuSection; context: { items: content[0].items }"></ng-container>
     }
@@ -50,8 +49,8 @@
   <div class="separator"></div>
 } @else if (item.sectionTitle) {
   <div class="section-title {{className}}">
-    <ion-icon *ngIf="item.icon" [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'dark')"></ion-icon>
-    <ion-label *ngIf="item.text$" [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>
+    @if (item.icon) {<ion-icon [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'dark')"></ion-icon>}
+    @if (item.text$) {<ion-label [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>}
   </div>
 } @else {
   <ion-item
@@ -62,11 +61,9 @@
     [disabled]="item.disabled"
     [lines]="!nextSeparator ? 'full' : 'none'"
   >
-    <ion-icon *ngIf="item.icon" [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'secondary')"></ion-icon>
-    <ion-label *ngIf="item.text$" [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>
-    @if (item.selected) {
-      <ion-icon slot="end" name="checkmark" color="success" class="item-selected"></ion-icon>
-    }
+    @if (item.icon) {<ion-icon [name]="item.icon" [color]="item.item.textColor ?? (item.item.backgroundColor ? undefined : 'secondary')"></ion-icon>}
+    @if (item.text$) {<ion-label [color]="item.item.textColor">{{ item.text$ | async }}</ion-label>}
+    @if (item.selected) {<ion-icon slot="end" name="checkmark" color="success" class="item-selected"></ion-icon>}
   </ion-item>
 }
 </ng-template>

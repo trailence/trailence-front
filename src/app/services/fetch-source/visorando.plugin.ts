@@ -43,13 +43,13 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   public override fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
     if (!url.endsWith('/')) url += '/';
     const fromDb = this.tableInfos.searchFirstIgnoreCase('url', url);
-    return fromDb.then(info => info?.info ?? window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
+    return fromDb.then(info => info?.info ?? globalThis.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
       return this.fetchTrailInfoByContent(doc);
     }).catch(e => {
       Console.warn('Error parsing Visorando page', e);
-      return Promise.reject(e);
+      throw e;
     }));
   }
 
@@ -125,12 +125,12 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
 
             result.wayPoints ??= [];
             if (n === 'D/A') {
-              if (!result.wayPoints.find(w => w.isDeparture && w.isArrival))
+              if (!result.wayPoints.some(w => w.isDeparture && w.isArrival))
                 result.wayPoints.push({isDeparture: true, isArrival: true, description: text});
             } else {
-              let num = parseInt(n);
-              if (!isNaN(num)) {
-                if (!result.wayPoints.find(w => w.number === num))
+              let num = Number.parseInt(n);
+              if (!Number.isNaN(num)) {
+                if (!result.wayPoints.some(w => w.number === num))
                   result.wayPoints.push({number: num, description: text});
               }
             }
@@ -155,14 +155,14 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     // rating
     const ratingElement = doc.querySelector('div[itemprop=aggregateRating] span[itemprop=ratingValue]');
     if (ratingElement?.textContent) {
-      const v = parseFloat(ratingElement.textContent);
-      if (!isNaN(v) && v >= 0 && v <= 5) result.rating = v;
+      const v = Number.parseFloat(ratingElement.textContent);
+      if (!Number.isNaN(v) && v >= 0 && v <= 5) result.rating = v;
     }
     if (result.rating === undefined) {
       const ratingElement2 = doc.querySelector('div.liste-topics div.clearfix div.h1>span');
       if (ratingElement2?.textContent) {
-        const v = parseFloat(ratingElement2.textContent);
-        if (!isNaN(v) && v >= 0 && v <= 5) result.rating = v;
+        const v = Number.parseFloat(ratingElement2.textContent);
+        if (!Number.isNaN(v) && v >= 0 && v <= 5) result.rating = v;
       }
     }
 
@@ -211,7 +211,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
 
   private sanitize(content: string | null | undefined): string | null {
     if (!content) return null;
-    return this.sanitizer.sanitize(SecurityContext.NONE, content.replace(/\r/g, '').replace(/\n/g, ' ').trim());
+    return this.sanitizer.sanitize(SecurityContext.NONE, content.replaceAll('\r', '').replaceAll('\n', ' ').trim());
   }
 
   public override canSearchByArea(): boolean {
@@ -286,7 +286,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   private fetchGpx(idTrail: string, idGpx: string, info: TrailInfo) {
-    return window.fetch('https://www.visorando.com/visorando-' + idGpx + '.gpx')
+    return globalThis.fetch('https://www.visorando.com/visorando-' + idGpx + '.gpx')
     .then(response => response.arrayBuffer())
     .then(gpx => GpxFormat.importGpx(gpx, 'visorando', 'visorando', this.injector.get(PreferencesService), TrailSourceType.EXTERNAL, info.externalUrl, Date.now()))
     .then(gpx => {
@@ -312,13 +312,13 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   public override fetchTrailsByUrl(url: string): Promise<Trail[]> {
-    return window.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
+    return globalThis.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
       return this.fetchTrailsByContent(doc);
     }).catch(e => {
       Console.warn('Error parsing Visorando page', e);
-      return Promise.resolve([]);
+      return [];
     });
   }
 
@@ -372,8 +372,8 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   }
 
   protected override fetchTrailById(uuid: string): Promise<Trail | null> {
-    const keyNumber = parseInt(uuid);
-    if (!isNaN(keyNumber)) return this.fetchTrailByUrl('https://www.visorando.com/randonnee-' + keyNumber);
+    const keyNumber = Number.parseInt(uuid);
+    if (!Number.isNaN(keyNumber)) return this.fetchTrailByUrl('https://www.visorando.com/randonnee-' + keyNumber);
     return Promise.resolve(null);
   }
 

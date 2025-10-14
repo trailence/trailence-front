@@ -34,10 +34,10 @@ export class MapLayerSelectionTool extends MapTool {
               if (layer) {
                 let found: L.Layer | undefined = undefined;
                 map.eachLayer(current => {
-                  const id = (current.options as any)['id'];
+                  const id = (current.options as any)['id']; //NOSONAR
                   if (id) {
                     if (id === layer.name) found = current;
-                    else if (service.layers.find(l => l.name === id)) map.removeLayer(current);
+                    else if (service.layers.some(l => l.name === id)) map.removeLayer(current);
                   }
                 });
                 if (found) {
@@ -54,8 +54,8 @@ export class MapLayerSelectionTool extends MapTool {
             const service = injector.get(MapLayersService);
             const missing = [...selection];
             map.eachLayer(layer => {
-              const id = (layer.options as any)['id'];
-              if (id && !!service.overlays.find(l => l.name === id)) {
+              const id = (layer.options as any)['id']; // NOSONAR
+              if (id && service.overlays.some(l => l.name === id)) {
                 const index = missing.indexOf(id);
                 if (index >= 0) missing.splice(index, 1); else map.removeLayer(layer);
               }

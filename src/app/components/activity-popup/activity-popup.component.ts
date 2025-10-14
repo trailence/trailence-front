@@ -24,14 +24,14 @@ export async function openActivityDialog(injector: Injector, trails: Trail[], is
   });
   await modal.present();
   const event = await modal.onDidDismiss();
-  if (event.role !== 'ok' || event.data === undefined) return Promise.resolve();
+  if (event.role !== 'ok' || event.data === undefined) return;
   const promises = trails.map(trail => new Promise(resolve => {
-    if (!isRecording)
-      injector.get(TrailService).doUpdate(trail, t => t.activity = event.data[0], () => resolve(true));
-    else {
+    if (isRecording) {
       const trail = injector.get(TraceRecorderService).current?.trail;
       if (trail) trail.activity = event.data[0];
       resolve(true);
+    } else {
+      injector.get(TrailService).doUpdate(trail, t => t.activity = event.data[0], () => resolve(true));
     }
   }));
   await Promise.all(promises);
@@ -93,17 +93,17 @@ export class ActivityPopup implements OnInit {
 
   setSelection(selected: any[]): void {
     for (const item of this.list) {
-      item.selected = selected.findIndex(s => item.activity === s || (item.activity === undefined && s === '')) >= 0;
+      item.selected = selected.some(s => item.activity === s || (item.activity === undefined && s === ''));
     }
     this.selection = this.list.filter(item => item.selected).map(item => item.activity);
   }
 
   setSelected(item: Item, selected: boolean): void {
     item.selected = selected;
-    if (!this.multiple)
-      this.list.forEach(i => {
+    if (!this.multiple) {
+      for (const i of this.list)
         if (i !== item) i.selected = false;
-      });
+    }
     this.selection = this.list.filter(item => item.selected).map(item => item.activity);
   }
 

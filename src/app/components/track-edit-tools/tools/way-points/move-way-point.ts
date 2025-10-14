@@ -1,8 +1,6 @@
-import { filter, Observable, of, Subscription, take } from 'rxjs';
+import { filter, Subscription, take } from 'rxjs';
 import { InteractiveToolContext, TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import { ModalController } from '@ionic/angular/standalone';
-import { WayPoint } from 'src/app/model/way-point';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { PointReference } from 'src/app/model/point-reference';
 

@@ -1,4 +1,4 @@
-<ng-container *ngIf="i18nLoaded">
+@if (i18nLoaded) {
   <ion-app>
     <ion-content id="content">
       <ion-router-outlet [animated]="false"></ion-router-outlet>
@@ -22,4 +22,4 @@
       </div>
     </div>
   }
-</ng-container>
+}

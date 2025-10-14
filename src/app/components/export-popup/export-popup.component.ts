@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonIcon, IonToolbar, IonTitle, IonLabel, IonFooter, IonButton, IonButtons, ModalController, IonContent, IonRadioGroup, IonRadio, IonCheckbox } from "@ionic/angular/standalone";
@@ -10,7 +9,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
     selector: 'app-export-popup',
     templateUrl: './export-popup.component.html',
     styleUrls: ['./export-popup.component.scss'],
-    imports: [IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonButtons, IonButton, IonFooter, IonLabel, IonTitle, IonToolbar, IonIcon, IonHeader, CommonModule, FormsModule]
+    imports: [IonCheckbox, IonRadio, IonRadioGroup, IonContent, IonButtons, IonButton, IonFooter, IonLabel, IonTitle, IonToolbar, IonIcon, IonHeader, FormsModule]
 })
 export class ExportPopupComponent implements OnInit {
 
@@ -27,7 +26,7 @@ export class ExportPopupComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.hasBoth = !!this.trails.find(t => t.originalTrackUuid !== t.currentTrackUuid);
+    this.hasBoth = this.trails.some(t => t.originalTrackUuid !== t.currentTrackUuid);
     if (!this.hasBoth) this.what = 'original';
   }
 

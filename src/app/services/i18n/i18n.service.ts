@@ -435,7 +435,7 @@ export class I18nService {
     }
     for (let i = 0; i < args.length; ++i) {
       const arg = this.translateValue(args[i]);
-      t = t.replace(new RegExp('\\{\\{' + (i + 1) + '\\}\\}', 'g'), arg);
+      t = t.replaceAll('{{' + (i + 1) + '}}', arg);
     }
     return t;
   }
@@ -456,7 +456,7 @@ export class I18nService {
             let finalString = t;
             for (let i = 0; i < args.length; ++i) {
               const arg = args[i];
-              finalString = finalString.replace(new RegExp('\\{\\{' + (i + 1) + '\\}\\}', 'g'), arg);
+              finalString = finalString.replaceAll('{{' + (i + 1) + '}}', arg);
             }
             return finalString;
           })

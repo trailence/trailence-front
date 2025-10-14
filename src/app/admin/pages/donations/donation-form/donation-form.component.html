@@ -25,15 +25,17 @@
     ></ion-input>
   </div>
 
-  <div class="form-value" *ngIf="donation">
-    <ion-input
-      fill="outline"
-      [label]="i18n.texts.admin.donations.date"
-      labelPlacement="floating"
-      [value]="i18n.timestampToDateTimeString(dto.timestamp)"
-      [disabled]="true"
-    ></ion-input>
-  </div>
+  @if (donation) {
+    <div class="form-value">
+      <ion-input
+        fill="outline"
+        [label]="i18n.texts.admin.donations.date"
+        labelPlacement="floating"
+        [value]="i18n.timestampToDateTimeString(dto.timestamp)"
+        [disabled]="true"
+      ></ion-input>
+    </div>
+  }
 
   <div class="form-value">
     <ion-input
@@ -77,9 +79,11 @@
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">
-    <ion-buttons slot="start" *ngIf="donation">
-      <ion-button color="danger" (click)="delete()">{{ i18n.texts.buttons.delete }}</ion-button>
-    </ion-buttons>
+    @if (donation) {
+      <ion-buttons slot="start">
+        <ion-button color="danger" (click)="delete()">{{ i18n.texts.buttons.delete }}</ion-button>
+      </ion-buttons>
+    }
     <ion-buttons slot="end">
       <ion-button color="success" (click)="save()">{{ donation ? i18n.texts.buttons.save : i18n.texts.buttons.create }}</ion-button>
       <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.cancel}}</ion-button>

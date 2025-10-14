@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.service';
 import * as L from 'leaflet';
-import { CommonModule } from '@angular/common';
 import { IonRadio, IonRadioGroup, IonCheckbox, IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController } from "@ionic/angular/standalone";
 import { environment } from 'src/environments/environment';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 
 @Component({
     selector: 'app-map-layer-selection',
@@ -12,7 +12,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
     styleUrls: ['./map-layer-selection.component.scss'],
     imports: [
       IonIcon, IonToolbar, IonHeader, IonCheckbox, IonRadioGroup, IonRadio, IonTitle, IonLabel, IonButton, IonButtons, IonFooter,
-      CommonModule,
+      NgClass, NgTemplateOutlet,
     ]
 })
 export class MapLayerSelectionComponent implements OnInit {
@@ -48,11 +48,11 @@ export class MapLayerSelectionComponent implements OnInit {
         const code = layer.regional.code;
         const name = this.i18n.texts.regions[code] ?? code;
         let region = this.regionalLayers.get(name);
-        if (!region) {
+        if (region) {
+          region.push({layer, tiles: layer.create()});
+        } else {
           region = [{layer, tiles: layer.create()}];
           this.regionalLayers.set(name, region);
-        } else {
-          region.push({layer, tiles: layer.create()});
         }
       } else {
         this.globalLayers.push({layer, tiles: layer.create()});
@@ -105,13 +105,13 @@ export class MapLayerSelectionComponent implements OnInit {
   getSelectedLayers(): {layer: MapLayer, tiles: L.TileLayer}[] {
     const result: {layer: MapLayer, tiles: L.TileLayer}[] = [];
     for (const layer of this.globalLayers) {
-      if (this.selection.indexOf(layer.layer.name) >= 0) {
+      if (this.selection.includes(layer.layer.name)) {
         result.push(layer);
       }
     }
     for (const region of this.regionalLayers.entries()) {
       for (const layer of region[1]) {
-        if (this.selection.indexOf(layer.layer.name) >= 0) {
+        if (this.selection.includes(layer.layer.name)) {
           result.push(layer);
         }
       }
@@ -124,10 +124,8 @@ export class MapLayerSelectionComponent implements OnInit {
     if (selected) {
       if (index < 0) this.overlaysSelection.push(value);
       else return;
-    } else {
-      if (index >= 0) this.overlaysSelection.splice(index, 1);
+    } else if (index >= 0) this.overlaysSelection.splice(index, 1);
       else return;
-    }
     this.overlaysSelectionChange.emit(this.overlaysSelection);
   }
 

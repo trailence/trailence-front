@@ -18,18 +18,24 @@
     [counter]="true"
   ></ion-input>
 
-  @if (!proposedPlaces && !searchingPlaces) {
-    <ion-button (click)="searchPlaces()" [disabled]="!online">{{i18n.texts.pages.location_popup.search_from_departure}}</ion-button>
-    @if (!online) {
-      <div style="color: var(--ion-color-danger)">{{i18n.texts.you_are_offline}}</div>
+  @if (searchingPlaces) {
+    <ion-spinner name="dots"></ion-spinner>
+  } @else {
+    @if (!proposedPlaces) {
+      <ion-button (click)="searchPlaces()" [disabled]="!online">{{i18n.texts.pages.location_popup.search_from_departure}}</ion-button>
+      @if (!online) {
+        <div style="color: var(--ion-color-danger)">{{i18n.texts.you_are_offline}}</div>
+      }
+    } @else {
+      <ul>
+        @for (place of proposedPlaces; track place) {
+          <li>
+            <a href="#" (click)="location = place; $event.stopPropagation(); $event.preventDefault();">{{place}}</a>
+          </li>
+        }
+      </ul>
     }
   }
-  <ion-spinner name="dots" *ngIf="searchingPlaces"></ion-spinner>
-  <ul *ngIf="proposedPlaces && !searchingPlaces">
-    <li *ngFor="let place of proposedPlaces">
-      <a href="#" (click)="location = place; $event.stopPropagation(); $event.preventDefault();">{{place}}</a>
-    </li>
-  </ul>
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">

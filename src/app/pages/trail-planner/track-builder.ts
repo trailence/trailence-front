@@ -123,8 +123,8 @@ export class TrackBuilder {
       this.points = [];
       this.start();
     } else {
-      this.track!.lastSegment.removeMany(this.points[this.points.length - 1]);
-      this.points.splice(this.points.length - 1, 1);
+      this.track!.lastSegment.removeMany(this.points.at(-1)!);
+      this.points.splice(-1, 1);
       this.updateCurrentMapTrack();
       const matching = WayUtils.getMatchingWays(this.getLastPoint()!.pos, this.ways, MATCHING_MAX_DISTANCE);
       this.updateMapTracks(matching);
@@ -134,9 +134,7 @@ export class TrackBuilder {
   }
 
   private getLastPoint(): Point | undefined {
-    if (this.points.length === 0) return undefined;
-    const p = this.points[this.points.length - 1];
-    return p[p.length - 1];
+    return this.points.at(-1)?.at(-1);
   }
 
   public mapChanged() {
@@ -153,12 +151,12 @@ export class TrackBuilder {
 
   private setHighlightedWays(tracks: MapTrack[]): void {
     if (Arrays.sameContent(this.highlightedWays, tracks)) return;
-    this.highlightedWays.forEach(t => t.color = this.getWayColor(t.data?.element));
+    for (const t of this.highlightedWays) t.color = this.getWayColor(t.data?.element);
     this.highlightedWays = tracks;
-    this.highlightedWays.forEach(t => {
+    for (const t of this.highlightedWays) {
       t.color = WAY_MAPTRACK_HIGHLIGHTED_COLOR;
       t.bringToFront();
-    });
+    }
   }
 
 
@@ -179,26 +177,26 @@ export class TrackBuilder {
         return;
       }
       const ref = this.getEligiblePoint(refs);
-      if (!ref?.ref?.point) {
-        this.map.removeFromMap(this._addAnchor!.marker);
-        this.setHighlightedWays([]);
-        this.possibleWaysFromCursor$.next([]);
-      } else {
+      if (ref?.ref?.point) {
         const pos = ref.ref.position!;
         this._addAnchor!.marker.setLatLng(pos);
         this.map.addToMap(this._addAnchor!.marker);
 
         const matchingWays = WayUtils.getMatchingWays(pos, this.ways, MATCHING_MAX_DISTANCE);
         const matchingMapTracks = this.getMatchingMapTracksIn(pos, [...this.possibleWaysFromLastAnchor$.value, ...this.possibleWaysFromCursor$.value]);
-        const missingWays = matchingWays.filter(way => !matchingMapTracks.find(mt => mt.data.element === way));
+        const missingWays = matchingWays.filter(way => !matchingMapTracks.some(mt => mt.data.element === way));
         // new possible ways from cursor = matchingMapTracks present in current possible ways + missingWays
-        const newPossibleWaysFromCursor = this.possibleWaysFromCursor$.value.filter(t => !!matchingMapTracks.find(t2 => t == t2));
+        const newPossibleWaysFromCursor = this.possibleWaysFromCursor$.value.filter(t => matchingMapTracks.includes(t));
         for (const missing of missingWays)
           newPossibleWaysFromCursor.push(this.wayToMapTrack(missing));
         // map tracks = current - current additional + new additional
         this.possibleWaysFromCursor$.next(newPossibleWaysFromCursor);
 
-        this.setHighlightedWays(matchingMapTracks.filter(t => newPossibleWaysFromCursor.indexOf(t) < 0));
+        this.setHighlightedWays(matchingMapTracks.filter(t => !newPossibleWaysFromCursor.includes(t)));
+      } else {
+        this.map.removeFromMap(this._addAnchor!.marker);
+        this.setHighlightedWays([]);
+        this.possibleWaysFromCursor$.next([]);
       }
       this.changeDetector.detectChanges();
     });
@@ -262,7 +260,7 @@ export class TrackBuilder {
     const previousPos = this.getLastPoint();
     if (!previousPos) return {ref: MapTrackPointReference.closest(refs), using: undefined};
     const previousPosMapTracks = this.getMatchingMapTracksIn(previousPos.pos, this.possibleWaysFromLastAnchor$.value);
-    const linkToPrevious = refs.filter(r => r.point !== undefined && previousPosMapTracks.indexOf(r.track) >= 0).sort(MapTrackPointReference.distanceComparator);
+    const linkToPrevious = refs.filter(r => r.point !== undefined && previousPosMapTracks.includes(r.track)).sort(MapTrackPointReference.distanceComparator);
     let best: {ref: MapTrackPointReference, using: MapTrack | undefined} | undefined = undefined;
     let bestWays: Way[] = [];
     for (const ref of linkToPrevious) {
@@ -275,7 +273,7 @@ export class TrackBuilder {
         }
       }
     }
-    if (!best && linkToPrevious.length === 0 && this.points.length > 0 && this.points[this.points.length - 1].length === 1) {
+    if (!best && linkToPrevious.length === 0 && this.points.at(-1)?.length === 1) {
       // seems to be a free point
       return {ref: MapTrackPointReference.closest(refs), using: undefined};
     }
@@ -287,10 +285,10 @@ export class TrackBuilder {
     const p = L.latLng(pos.lat, pos.lng);
     for (const mt of tracks) {
       if (mt.track instanceof Track) {
-        if (mt.track.getAllPositions().find(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
+        if (mt.track.getAllPositions().some(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
           matching.push(mt);
         }
-      } else if (mt.track.points.find(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
+      } else if (mt.track.points.some(pt => p.distanceTo(pt) <= MATCHING_MAX_DISTANCE)) {
         matching.push(mt);
       }
     }
@@ -338,14 +336,14 @@ export class TrackBuilder {
   private updateWaysFromService(ways: Way[]): void {
     this.ways = ways;
     const previousPos = this.getLastPoint();
-    if (!previousPos) {
-      this.updateMapTracks(this.ways);
-    } else {
+    if (previousPos) {
       const matching = WayUtils.getMatchingWays(previousPos.pos, this.ways, MATCHING_MAX_DISTANCE);
       if (matching.length === 0)
         this.updateMapTracks(this.ways);
       else
         this.updateMapTracks(matching);
+    } else {
+      this.updateMapTracks(this.ways);
     }
   }
 
@@ -379,8 +377,8 @@ export class TrackBuilder {
       return;
     }
     this.injector.get(GeoService)
-      .findWays(this.map.getBounds()!)
-      .subscribe(ways => this.updateWaysFromService(WayUtils.mergeWays(ways))); // NOSONAR
+      .findWays(this.map.getBounds()!) // NOSONAR
+      .subscribe(ways => this.updateWaysFromService(WayUtils.mergeWays(ways)));
   }
 
   private cancelWays(): void {
@@ -427,8 +425,8 @@ export class TrackBuilder {
         const p = points[i];
         if (i > 0) {
           const prev = points[i - 1];
-          if (p.s != prev.s) this.points.push([]);
-          else this.points.push(this.track.segments[p.s].points.slice(prev.p + 1, p.p + 1));
+          if (p.s === prev.s) this.points.push(this.track.segments[p.s].points.slice(prev.p + 1, p.p + 1));
+          else this.points.push([]);
         }
       }
       this.updateCurrentMapTrack();

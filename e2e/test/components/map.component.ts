@@ -49,7 +49,7 @@ export class MapComponent extends Component {
 
   public async goTo(lat: number, lng: number, zoom: number) {
     const search = await this.openSearchTool();
-    const result = await search.searchPlace('' + lat + ' ' + lng);
+    const result = await TestUtils.retry(async () => await search.searchPlace('' + lat + ' ' + lng), 2, 100);
     await result[0].click();
     await this.closeSearchTool();
     await browser.pause(2000); // wait for map to go to the position

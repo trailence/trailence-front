@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
 import { combineLatest, debounceTime, first, map, Observable, of } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -28,6 +27,7 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { ToolbarComponent } from 'src/app/components/menus/toolbar/toolbar.component';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
 
 @Component({
     selector: 'app-trail-planner',
@@ -36,8 +36,11 @@ import { NetworkService } from 'src/app/services/network/network.service';
     imports: [
       IonSpinner, IonSelect, IonSelectOption, IonInput, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonHeader,
       IonModal, IonLabel, IonToggle, IonIcon, IonButton,
-      HeaderComponent, MapComponent, CommonModule, SearchPlaceComponent, FormsModule, TrailGraphComponent,
-      TrailOverviewCondensedComponent, ToolbarComponent
+      HeaderComponent, MapComponent,
+      SearchPlaceComponent, FormsModule, TrailGraphComponent,
+      TrailOverviewCondensedComponent, ToolbarComponent,
+      NgClass, NgStyle,
+      AsyncPipe,
     ]
 })
 export class TrailPlannerPage extends AbstractPage {

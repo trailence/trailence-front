@@ -2,18 +2,21 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Even
 import { EMPTY, first, Subscription, switchMap, timer } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
-import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { NgStyle } from '@angular/common';
 
 @Component({
     selector: 'app-photo',
     templateUrl: './photo.component.html',
     styleUrl: './photo.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [IonIcon, IonSpinner, CommonModule]
+    imports: [
+      IonIcon, IonSpinner,
+      NgStyle,
+    ]
 })
 export class PhotoComponent implements OnChanges, OnDestroy {
 
@@ -32,7 +35,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   private subscription?: Subscription;
   private reloadSubscription?: Subscription;
 
-  private changesDetection: ChangesDetection;
+  private readonly changesDetection: ChangesDetection;
 
   constructor(
     private readonly photoService: PhotoService,
@@ -78,8 +81,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
             });
           });
         }
-        if (!this.loadWhenVisible) loadPhoto(this.photo, 1);
-        else {
+        if (this.loadWhenVisible) {
           const p = this.photo;
           const observer = new IntersectionObserver(entries => {
             if (entries.some(e => e.isIntersecting)) {
@@ -89,6 +91,8 @@ export class PhotoComponent implements OnChanges, OnDestroy {
             }
           });
           observer.observe(this.elementRef.nativeElement);
+        } else {
+          loadPhoto(this.photo, 1);
         }
       }
     }
@@ -100,10 +104,11 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   }
 
   private setBlob(blob: {url: string, blobSize?: number} | undefined | null) {
-    if (!blob) this.blob = undefined;
-    else {
+    if (blob) {
       this.blob = blob.url;
       this.blobSize.emit(blob.blobSize);
+    } else {
+      this.blob = undefined;
     }
     this.changesDetection.detectChanges();
   }
@@ -138,7 +143,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   }
 
   private _mouseMove = false;
-  private readonly _pointers: {id: number, x: number, y: number, inPinch: boolean, startX: number, startY: number}[] = [];
+  private readonly _pointers: Pointer[] = [];
   private _pinchZoomState?: {scale: number, translateX: number, translateY: number, diff: number, centerX: number, centerY: number};
   onDown(event: MouseEvent): void {
     if (this.zoomScale > 1) {
@@ -151,10 +156,10 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       if (this._pointers.length === 2) {
         this._pointers[0].inPinch = true;
         this._pointers[1].inPinch = true;
-        let x1 = this._pointers[0].startX < this._pointers[1].startX ? this._pointers[0].startX : this._pointers[1].startX;
-        let y1 = this._pointers[0].startY < this._pointers[1].startY ? this._pointers[0].startY : this._pointers[1].startY;
-        let x2 = this._pointers[0].startX < this._pointers[1].startX ? this._pointers[1].startX : this._pointers[0].startX;
-        let y2 = this._pointers[0].startY < this._pointers[1].startY ? this._pointers[1].startY : this._pointers[0].startY;
+        let x1 = Math.min(this._pointers[0].startX, this._pointers[1].startX);
+        let y1 = Math.min(this._pointers[0].startY, this._pointers[1].startY);
+        let x2 = Math.max(this._pointers[0].startX, this._pointers[1].startX);
+        let y2 = Math.max(this._pointers[0].startY, this._pointers[1].startY);
         this._pinchZoomState = {scale: this.zoomScale, translateX: this.zoomTranslateX, translateY: this.zoomTranslateY, diff: 0, centerX: x1 + (x2 - x1) / 2, centerY: y1 + (y2 - y1) / 2};
       }
     } else if (this.zoomScale > 1) {
@@ -174,29 +179,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       }
       if (this._pointers.length === 2) {
         // pinch zoom
-        const other = this._pointers.find(p => p.id !== event.pointerId)!;
-        let diff = 0;
-        if (p.x >= other.x) {
-          diff += event.screenX - p.x;
-        } else {
-          diff -= event.screenX - p.x;
-        }
-        if (p.y >= other.y) {
-          diff += event.screenY - p.y;
-        } else {
-          diff -= event.screenY - p.y;
-        }
-        this._pinchZoomState!.diff += diff;
-        const scale = 1 + Math.abs(this._pinchZoomState!.diff) * 1.5 / (image.width + image.height);
-        if (Math.abs(this._pinchZoomState!.diff) > 1) {
-          const centerX = (this._pinchZoomState!.centerX - (-(((image.width * this._pinchZoomState!.scale) - image.width) / 2) + this._pinchZoomState!.translateX)) / this._pinchZoomState!.scale;
-          const centerY = (this._pinchZoomState!.centerY - (-(((image.height * this._pinchZoomState!.scale) - image.height) / 2) + this._pinchZoomState!.translateY)) / this._pinchZoomState!.scale;
-          if (this._pinchZoomState!.diff > 0) this.zoomIn(image, centerX, centerY, scale);
-          else this.zoomOut(image, centerX, centerY, scale);
-          this._pinchZoomState!.diff = 0;
-        }
-        p.x = event.screenX;
-        p.y = event.screenY;
+        this.doPinchZoom(event, p, image);
       } else if (!p.inPinch) {
         // move
         if (this.zoomScale > 1) {
@@ -210,6 +193,32 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.doMove(image, event.movementX, event.movementY);
       event.stopPropagation();
     }
+  }
+
+  private doPinchZoom(event: PointerEvent, p: Pointer, image: HTMLImageElement): void {
+    const other = this._pointers.find(p => p.id !== event.pointerId)!;
+    let diff = 0;
+    if (p.x >= other.x) {
+      diff += event.screenX - p.x;
+    } else {
+      diff -= event.screenX - p.x;
+    }
+    if (p.y >= other.y) {
+      diff += event.screenY - p.y;
+    } else {
+      diff -= event.screenY - p.y;
+    }
+    this._pinchZoomState!.diff += diff;
+    const scale = 1 + Math.abs(this._pinchZoomState!.diff) * 1.5 / (image.width + image.height);
+    if (Math.abs(this._pinchZoomState!.diff) > 1) {
+      const centerX = (this._pinchZoomState!.centerX - (-(((image.width * this._pinchZoomState!.scale) - image.width) / 2) + this._pinchZoomState!.translateX)) / this._pinchZoomState!.scale;
+      const centerY = (this._pinchZoomState!.centerY - (-(((image.height * this._pinchZoomState!.scale) - image.height) / 2) + this._pinchZoomState!.translateY)) / this._pinchZoomState!.scale;
+      if (this._pinchZoomState!.diff > 0) this.zoomIn(image, centerX, centerY, scale);
+      else this.zoomOut(image, centerX, centerY, scale);
+      this._pinchZoomState!.diff = 0;
+    }
+    p.x = event.screenX;
+    p.y = event.screenY;
   }
 
   private doMove(image: HTMLImageElement, diffX: number, diffY: number): void {
@@ -284,3 +293,5 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   }
 
 }
+
+interface Pointer {id: number, x: number, y: number, inPinch: boolean, startX: number, startY: number};

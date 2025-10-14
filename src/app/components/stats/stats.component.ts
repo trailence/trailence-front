@@ -31,10 +31,10 @@ export class StatsComponent extends AbstractComponent {
     this.whenVisible.subscribe(
       this.injector.get(AuthService).auth$,
       auth => {
-        if (!auth) {
-          this.config = undefined;
-        } else {
+        if (auth) {
           this.config = StatsConfig.load(auth.email);
+        } else {
+          this.config = undefined;
         }
       }
     );

@@ -73,7 +73,7 @@ export class FiltersUtils {
       activities: this.fixFilterEnum(filters.activities, Object.values(TrailActivity)),
       onlyVisibleOnMap: filters.onlyVisibleOnMap ?? false,
       search: filters.search ?? '',
-      tags: filters.tags, // TODO
+      tags: filters.tags,
       rate: this.fixFilterNumeric(filters.rate),
     };
   }
@@ -90,12 +90,13 @@ export class FiltersUtils {
 
   private static fixFilterEnum<T>(filter: FilterEnum<T> | null | undefined, values: T[]): FilterEnum<T> {
     if (!filter || !Array.isArray(filter['selected'])) return { selected: undefined };
-    const selected = [];
+    const selected: any[] = [];
     for (const v of (filter.selected as any[])) {
       if (v === null || v === undefined) {
-        if (selected.indexOf(undefined) < 0) selected.push(undefined);
-      } else if (values.indexOf(v) >= 0 && selected.indexOf(v) < 0)
+        if (!selected.includes(undefined)) selected.push(undefined);
+      } else if (values.includes(v) && !selected.includes(v)) {
         selected.push(v);
+      }
     }
     return {selected: selected.length > 0 ? selected : undefined};
   }

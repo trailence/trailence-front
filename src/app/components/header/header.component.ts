@@ -3,7 +3,6 @@ import { IonHeader, IonToolbar, IonButtons, IonIcon, IonMenuButton, IonButton, I
 import { HeaderUserMenuComponent } from '../header-user-menu/header-user-menu.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
@@ -14,6 +13,7 @@ import { publicRoutes } from 'src/app/routes/package.routes';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { LongPressDirective } from 'src/app/utils/long-press.directive';
+import { NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-header',
@@ -22,7 +22,8 @@ import { LongPressDirective } from 'src/app/utils/long-press.directive';
     imports: [IonItem, IonList,
       IonBadge, IonContent, IonPopover, IonButton, IonHeader, IonToolbar, IonButtons, IonIcon, IonLabel, IonMenuButton,
       HeaderUserMenuComponent, MenuContentComponent,
-      CommonModule, LongPressDirective,
+      LongPressDirective,
+      NgClass,
     ]
 })
 export class HeaderComponent extends AbstractComponent {
@@ -70,7 +71,7 @@ export class HeaderComponent extends AbstractComponent {
   }
 
   home(): void {
-    if (publicRoutes.find(r => r.path === 'home'))
+    if (publicRoutes.some(r => r.path === 'home'))
       this.goTo('/home');
     else
       this.goTo('/');

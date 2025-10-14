@@ -19,7 +19,7 @@ export class Photo extends Owned {
     public readonly fromRecording = false,
   ) {
     super(dto);
-    if (!dto.trailUuid) throw Error('Missing trail uuid');
+    if (!dto.trailUuid) throw new Error('Missing trail uuid');
     this._trailUuid$ = new BehaviorSubject(dto.trailUuid);
     this._description$ = new BehaviorSubject(dto.description ?? '');
     this._dateTaken$ = new BehaviorSubject(dto.dateTaken);
@@ -68,8 +68,8 @@ export class Photo extends Owned {
       trailUuid: this.trailUuid,
       description: this.description,
       dateTaken: this.dateTaken,
-      latitude: this.latitude !== undefined ? PointDtoMapper.writeCoordValue(this.latitude) : undefined,
-      longitude: this.longitude !== undefined ? PointDtoMapper.writeCoordValue(this.longitude) : undefined,
+      latitude: this.latitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.latitude),
+      longitude: this.longitude === undefined ? undefined : PointDtoMapper.writeCoordValue(this.longitude),
       isCover: this.isCover,
       index: this.index
     };

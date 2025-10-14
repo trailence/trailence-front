@@ -7,7 +7,7 @@ import { MapTrack } from '../map/track/map-track';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
 import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController } from "@ionic/angular/standalone";
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
@@ -84,14 +84,7 @@ interface TrailSource {
     styleUrls: ['./trail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        IonSpinner,
-        IonCheckbox,
-        IonTextarea,
-        IonButton,
-        IonIcon,
-        IonSegmentButton,
-        IonSegment,
-        CommonModule,
+        IonSpinner, IonCheckbox, IonTextarea, IonButton, IonIcon, IonSegmentButton, IonSegment,
         FormsModule,
         MapComponent,
         TrackMetadataComponent,
@@ -107,6 +100,10 @@ interface TrailSource {
         ModerationTranslationsComponent,
         TooltipDirective,
         WaypointsComponent,
+        NgStyle, NgClass,
+        NgTemplateOutlet,
+        NgComponentOutlet,
+        AsyncPipe,
     ]
 })
 export class TrailComponent extends AbstractComponent {
@@ -294,7 +291,7 @@ export class TrailComponent extends AbstractComponent {
         this.traceRecorder.takePhoto();
       }),
     new MenuItem().setIcon('location').setI18nLabel('track_edit_tools.tools.way_points.create_waypoint')
-      .setVisible(() => !!this.recording && this.recording.track.metadata.distance > 0 && this.recording.track.wayPoints.findIndex(wp => samePositionRound(this.recording!.track.arrivalPoint!.pos, wp.point.pos)) < 0)
+      .setVisible(() => !!this.recording && this.recording.track.metadata.distance > 0 && !this.recording.track.wayPoints.some(wp => samePositionRound(this.recording!.track.arrivalPoint!.pos, wp.point.pos)))
       .setAction(() => this.createWaypointOnRecording())
       ,
     new MenuItem(),
@@ -613,7 +610,7 @@ export class TrailComponent extends AbstractComponent {
           }
           source.isExternal = trail1.sourceType === TrailSourceType.EXTERNAL;
           if (source.isExternal) {
-            source.isExternalOnly = trail1.owner.indexOf('@') < 0;
+            source.isExternalOnly = !trail1.owner.includes('@');
             source.externalUrl = trail1.source;
             if (source.externalUrl?.startsWith(environment.baseUrl)) {
               if (trail1.owner === 'trailence')
@@ -623,23 +620,15 @@ export class TrailComponent extends AbstractComponent {
             if (source.externalAppName === 'Trailence' && source.externalUrl?.startsWith(environment.baseUrl))
               source.externalUrl = source.externalUrl.substring(environment.baseUrl.length);
           }
-          let followedTrail: Observable<TrailInfo | null> = of(null);
-          if (trail1.followedUrl) {
-            const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(trail1.followedUrl);
-            if (pluginName === 'Trailence')
-              followedTrail = this.injector.get(FetchSourceService).plugin$('trailence').pipe(
-                switchMap(p => p ? from(p.fetchTrailInfoByUrl(trail1.followedUrl!)) : of(null)),
-              );
-          }
+          const followedTrail$ = this.getFollowedTrailInfo(trail1);
           return combineLatest([
             this.getSourceString(trail1),
-            trail1.owner.indexOf('@') < 0 ? this.injector.get(FetchSourceService).getTrailInfo$(trail1.owner, trail1.uuid) : of(null),
-            followedTrail,
+            trail1.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trail1.owner, trail1.uuid),
+            followedTrail$,
           ]).pipe(
             map(([sourceString, info, followedInfo]) => {
-              if (source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http'))
-                source.externalUrl = info?.externalUrl;
-              else if (!source.externalUrl && info?.externalUrl)
+              if ((source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http')) ||
+                  (!source.externalUrl && info?.externalUrl))
                 source.externalUrl = info?.externalUrl;
               source.sourceString = sourceString;
               source.author = info?.author;
@@ -656,6 +645,17 @@ export class TrailComponent extends AbstractComponent {
         this.changesDetection.detectChanges();
       }
     );
+  }
+
+  private getFollowedTrailInfo(trail: Trail): Observable<TrailInfo | null> {
+    const url = trail.followedUrl;
+    if (!url) return of(null);
+    const pluginName = this.injector.get(FetchSourceService).getPluginNameBySource(url);
+    if (pluginName === 'Trailence')
+      return this.injector.get(FetchSourceService).plugin$('trailence').pipe(
+        switchMap(p => p ? from(p.fetchTrailInfoByUrl(url)) : of(null)),
+      );
+    return of(null);
   }
 
   private getSourceString(trail: Trail): Observable<string | undefined> {

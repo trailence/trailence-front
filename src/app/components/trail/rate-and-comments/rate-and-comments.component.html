@@ -1,11 +1,12 @@
-<div *ngIf="info" class="rating">
+@if (info) {
+<div class="rating">
   @if (info.rating !== undefined) {
     <table>
       <tr>
         <th>{{ i18n.texts.pages.trail.sections.comments.rate.global }}</th>
         <td>
           <app-rate [rate]="info.rating!"></app-rate>
-          <span *ngIf="info.nbRates">{{ 'pages.trail.sections.comments.rate.global_on_nb' | i18nString:info.nbRates }}</span>
+          @if (info.nbRates) {<span>{{ 'pages.trail.sections.comments.rate.global_on_nb' | i18nString:info.nbRates }}</span>}
         </td>
       </tr>
       @if (myRate !== undefined && myRate !== null) {
@@ -17,29 +18,36 @@
     </table>
     @if (info.nbRate0 || info.nbRate1 || info.nbRate2 || info.nbRate3 || info.nbRate4 || info.nbRates) {
       <div class="count-by-rate">
+        @let total = info.nbRates ?? 1;
         <div (click)="setFilterRate(5)">
           <app-rate [rate]="5" [showValue]="false"></app-rate>
-          <app-progress-bar [done]="info.nbRate5 ?? 0" [total]="info.nbRates ?? 1" [text]="'' + (info.nbRate5 ?? 0) + ' / ' + (info.nbRates ?? 1)" [height]="14"></app-progress-bar>
+          @let nb5 = info.nbRate5 ?? 0;
+          <app-progress-bar [done]="nb5" [total]="total" [text]="'' + nb5 + ' / ' + total" [height]="14"></app-progress-bar>
         </div>
         <div (click)="setFilterRate(4)">
           <app-rate [rate]="4" [showValue]="false"></app-rate>
-          <app-progress-bar [done]="info.nbRate4 ?? 0" [total]="info.nbRates ?? 1" [text]="'' + (info.nbRate4 ?? 0) + ' / ' + (info.nbRates ?? 1)" [height]="14"></app-progress-bar>
+          @let nb4 = info.nbRate4 ?? 0;
+          <app-progress-bar [done]="nb4" [total]="total" [text]="'' + nb4 + ' / ' + total" [height]="14"></app-progress-bar>
         </div>
         <div (click)="setFilterRate(3)">
           <app-rate [rate]="3" [showValue]="false"></app-rate>
-          <app-progress-bar [done]="info.nbRate3 ?? 0" [total]="info.nbRates ?? 1" [text]="'' + (info.nbRate3 ?? 0) + ' / ' + (info.nbRates ?? 1)" [height]="14"></app-progress-bar>
+          @let nb3 = info.nbRate3 ?? 0;
+          <app-progress-bar [done]="nb3" [total]="total" [text]="'' + nb3 + ' / ' + total" [height]="14"></app-progress-bar>
         </div>
         <div (click)="setFilterRate(2)">
           <app-rate [rate]="2" [showValue]="false"></app-rate>
-          <app-progress-bar [done]="info.nbRate2 ?? 0" [total]="info.nbRates ?? 1" [text]="'' + (info.nbRate2 ?? 0) + ' / ' + (info.nbRates ?? 1)" [height]="14"></app-progress-bar>
+          @let nb2 = info.nbRate2 ?? 0;
+          <app-progress-bar [done]="nb2" [total]="total" [text]="'' + nb2 + ' / ' + total" [height]="14"></app-progress-bar>
         </div>
         <div (click)="setFilterRate(1)">
           <app-rate [rate]="1" [showValue]="false"></app-rate>
-          <app-progress-bar [done]="info.nbRate1 ?? 0" [total]="info.nbRates ?? 1" [text]="'' + (info.nbRate1 ?? 0) + ' / ' + (info.nbRates ?? 1)" [height]="14"></app-progress-bar>
+          @let nb1 = info.nbRate1 ?? 0;
+          <app-progress-bar [done]="nb1" [total]="total" [text]="'' + nb1 + ' / ' + total" [height]="14"></app-progress-bar>
         </div>
         <div (click)="setFilterRate(0)">
           <app-rate [rate]="0" [showValue]="false"></app-rate>
-          <app-progress-bar [done]="info.nbRate0 ?? 0" [total]="info.nbRates ?? 1" [text]="'' + (info.nbRate0 ?? 0) + ' / ' + (info.nbRates ?? 1)" [height]="14"></app-progress-bar>
+          @let nb0 = info.nbRate0 ?? 0;
+          <app-progress-bar [done]="nb0" [total]="total" [text]="'' + nb0 + ' / ' + total" [height]="14"></app-progress-bar>
         </div>
       </div>
     }
@@ -47,6 +55,7 @@
     <div class="no-rate">{{ i18n.texts.pages.trail.sections.comments.rate.no_rate }}</div>
   }
 </div>
+}
 <div class="rate-and-comment-button-container">
 @if (trail && !info?.itsMine && authenticated && connected && myRate !== undefined) {
   <ion-button (click)="openCommentModal()" size="small">
@@ -63,23 +72,27 @@
 } @else if (!connected && feedbacks === undefined) {
   <div class="disconnected-message">{{ i18n.texts.pages.trail.sections.comments.not_connected }}</div>
 }
-<div *ngIf="feedbacks !== undefined && trail" class="comments">
-  <div class="filter" *ngIf="filterRate !== undefined">
-    <span>{{ 'pages.trail.sections.comments.show_reviews_with_rate' | i18nString:filterRate }}</span>
-    <ion-icon name="cross" (click)="setFilterRate(undefined)"></ion-icon>
-  </div>
-  @for (fb of feedbacks; track fb.uuid) {
-    <app-feedback [feedback]="fb" [trailUuid]="trail.uuid" (feedbackChange)="feedbackChanged(fb, $event)"></app-feedback>
-  }
-  <div class="load-button">
-    @if (!loadingComments) {
-      @if (!lastPage) {
-        <ion-button fill="clear" color="secondary" (click)="loadMoreComments()">
-          {{ i18n.texts.pages.trail.sections.comments.load_more_comments }}
-        </ion-button>
-      }
-    } @else {
-      <ion-spinner></ion-spinner>
+@if (feedbacks !== undefined && trail) {
+  <div class="comments">
+    @if (filterRate !== undefined) {
+      <div class="filter">
+        <span>{{ 'pages.trail.sections.comments.show_reviews_with_rate' | i18nString:filterRate }}</span>
+        <ion-icon name="cross" (click)="setFilterRate(undefined)"></ion-icon>
+      </div>
     }
+    @for (fb of feedbacks; track fb.uuid) {
+      <app-feedback [feedback]="fb" [trailUuid]="trail.uuid" (feedbackChange)="feedbackChanged(fb, $event)"></app-feedback>
+    }
+    <div class="load-button">
+      @if (!loadingComments) {
+        @if (!lastPage) {
+          <ion-button fill="clear" color="secondary" (click)="loadMoreComments()">
+            {{ i18n.texts.pages.trail.sections.comments.load_more_comments }}
+          </ion-button>
+        }
+      } @else {
+        <ion-spinner></ion-spinner>
+      }
+    </div>
   </div>
-</div>
+}

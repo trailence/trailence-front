@@ -15,14 +15,12 @@ import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import Dexie from 'dexie';
 import { Trail } from 'src/app/model/trail';
 import { ModalController, Platform } from '@ionic/angular/standalone';
-import { ImageInfo, ImageUtils } from 'src/app/utils/image-utils';
 import { PreferencesService } from '../preferences/preferences.service';
 import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
-import { Arrays } from 'src/app/utils/arrays';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { QuotaService } from '../auth/quota.service';
 import { ModerationService } from '../moderation/moderation.service';
@@ -43,7 +41,7 @@ export class PhotoService {
   }
 
   public getTrailPhotos$(trail: Trail): Observable<Photo[]> {
-    if (trail.owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(trail.owner, trail.uuid);
+    if (!trail.owner.includes('@')) return this.injector.get(FetchSourceService).getPhotos$(trail.owner, trail.uuid);
     if (trail.fromModeration) return this.injector.get(ModerationService).getPhotos$(trail.owner, trail.uuid);
     return this.store.getAll$().pipe(
       collection$items(),
@@ -52,7 +50,7 @@ export class PhotoService {
   }
 
   public getPhotosForTrailReady$(trail: Trail): Observable<Photo[]> {
-    if (trail.owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getPhotos$(trail.owner, trail.uuid);
+    if (!trail.owner.includes('@')) return this.injector.get(FetchSourceService).getPhotos$(trail.owner, trail.uuid);
     if (trail.fromModeration) return this.injector.get(ModerationService).getPhotos$(trail.owner, trail.uuid);
     return this.store.getAll$().pipe(
       switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
@@ -66,8 +64,8 @@ export class PhotoService {
   }
 
   private getPhotosForTrailsReady$(ids: {owner: string, uuid: string}[]): Observable<Photo[]> {
-    const external = ids.filter(id => id.owner.indexOf('@') < 0);
-    const internal = ids.filter(id => id.owner.indexOf('@') >= 0);
+    const external = ids.filter(id => !id.owner.includes('@'));
+    const internal = ids.filter(id => id.owner.includes('@'));
     const external$ = external.length === 0 ? of([]) : zip(external.map(id => this.injector.get(FetchSourceService).getPhotos$(id.owner, id.uuid)));
     const internal$ = internal.length === 0 ? of([]) : this.store.getAll$().pipe(
       switchMap(photos$ => photos$.length === 0 ? of([]) : zip(
@@ -76,36 +74,36 @@ export class PhotoService {
           switchMap(p => p ? of(p) : EMPTY),
         ))
       )),
-      map(photos => photos.filter(p => !!ids.find(i => i.owner === p.owner && i.uuid === p.trailUuid)))
+      map(photos => photos.filter(p => ids.some(i => i.owner === p.owner && i.uuid === p.trailUuid)))
     );
     return zip(external$, internal$).pipe(
-      map(([list1, list2]) => ([...Arrays.flatMap(list1, e => e), ...list2]))
+      map(([list1, list2]) => ([...list1.flat(), ...list2]))
     );
   }
 
   private readonly _retrievingFiles = new Map<string, Observable<Blob>>();
   public getFile$(photo: Photo): Observable<Blob> {
-    if (photo.owner.indexOf('@') < 0) {
+    if (!photo.owner.includes('@')) {
       if (photo.uuid.startsWith(environment.baseUrl) && this.injector.get(Platform).is('capacitor')) {
         return this.injector.get(HttpService).getBlob(photo.uuid);
       }
       return from(
-        window.fetch(photo.uuid)
+        globalThis.fetch(photo.uuid)
         .then(response => response.blob())
         .catch(e => {
           const fetchSourceService = this.injector.get(FetchSourceService)
           const pluginName = fetchSourceService.getPluginNameByOwner(photo.owner);
-          if (!pluginName) return Promise.reject(e);
+          if (!pluginName) throw e;
           const plugin = fetchSourceService.getPluginByName(pluginName);
-          if (!plugin) return Promise.reject(e);
+          if (!plugin) throw e;
           return plugin.fetchPhoto(photo.uuid)
             .then(b => {
-              if (!b) return Promise.reject(e);
+              if (!b) throw e;
               return b;
             })
-            .catch(e2 => {
+            .catch(e2 => { // NOSONAR
               Console.error('Cannot fetch photo', e, e2);
-              return Promise.reject(e);
+              throw e;
             })
         })
       );
@@ -213,7 +211,7 @@ export class PhotoService {
       if (ondone) ondone();
       return;
     }
-    this.store.deleteIf('deleted photos', item => !!photos.find(p => p.uuid === item.uuid), ondone);
+    this.store.deleteIf('deleted photos', item => photos.some(p => p.uuid === item.uuid), ondone);
   }
 
   public deleteForTrail(trail: Trail, ondone?: () => void): void {
@@ -371,7 +369,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
     const trailReady$ = this.trails.getTrail$(entity.trailUuid, entity.owner).pipe(map(trail => !!trail?.isSavedOnServerAndNotDeletedLocally()));
     const fileReady$ = this.files.isStored$(entity.owner, 'photo', entity.uuid);
     return combineLatest([trailReady$, fileReady$]).pipe(
-      map(readiness => readiness.indexOf(false) < 0)
+      map(readiness => !readiness.includes(false))
     );
   }
 

@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 
@@ -10,8 +10,8 @@ import { IonIcon } from '@ionic/angular/standalone';
   <ion-icon [name]="rate < 2.5 ? 'star-empty' : rate >= 3 ? 'star-filled' : 'star-half'"></ion-icon>
   <ion-icon [name]="rate < 3.5 ? 'star-empty' : rate >= 4 ? 'star-filled' : 'star-half'"></ion-icon>
   <ion-icon [name]="rate < 4.5 ? 'star-empty' : rate >= 5 ? 'star-filled' : 'star-half'"></ion-icon>
-  <span *ngIf="showValue">{{ rate | number:'1.0-1' }}{{ showOn5 ? ' / 5' : ''}}</span>
-  <span *ngIf="nbRates"> ({{nbRates}})</span>
+  @if (showValue) {<span>{{ rate | number:'1.0-1' }}{{ showOn5 ? ' / 5' : ''}}</span>}
+  @if (nbRates) {<span> ({{nbRates}})</span>}
   `,
   styles: `
   :host {
@@ -29,7 +29,7 @@ import { IonIcon } from '@ionic/angular/standalone';
     font-size: 12px;
   }
   `,
-  imports: [CommonModule, IonIcon]
+  imports: [IonIcon, DecimalPipe]
 })
 export class RateComponent {
 

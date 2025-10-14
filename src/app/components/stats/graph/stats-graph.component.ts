@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, Injector, Input, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfig } from './chart-config';
-import { CommonModule } from '@angular/common';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { combineLatest, debounceTime, Subscription } from 'rxjs';
@@ -9,13 +8,16 @@ import { GraphBuilder } from './graph-builder';
 import { StatsConfig } from '../stats-config';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { IonButton, IonIcon, GestureController, Gesture } from "@ionic/angular/standalone";
+import { NgStyle } from '@angular/common';
 
 @Component({
   selector: 'app-stats-graph',
   templateUrl: './stats-graph.component.html',
   styleUrl: './stats-graph.component.scss',
-  imports: [IonIcon, IonButton,
-    BaseChartDirective, CommonModule,
+  imports: [
+    IonIcon, IonButton,
+    BaseChartDirective,
+    NgStyle,
   ]
 })
 export class StatsGraphComponent extends AbstractComponent {

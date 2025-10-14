@@ -3,7 +3,6 @@ import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, switchMap, tap, timer, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import * as L from 'leaflet';
-import { Arrays } from 'src/app/utils/arrays';
 import { Place } from './place';
 import { Way, WayPermission } from './way';
 import { Track } from 'src/app/model/track';
@@ -32,7 +31,10 @@ export class GeoService {
 
   public findNearestPlaces(latitude: number, longitude: number): Observable<string[][]> {
     const bounds = new L.LatLng(latitude, longitude).toBounds(5000);
-    const fromOSM = this.overpass.request<OverpassResponse>("[out:json][timeout:25];node[\"place\"~\"(municipality)|(city)|(borough)|(suburb)|(quarter)|(town)|(village)|(hamlet)\"][\"name\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out meta;").pipe(
+    const fromOSM = this.overpass.request<OverpassResponse>(
+      "node[\"place\"~\"(municipality)|(city)|(borough)|(suburb)|(quarter)|(town)|(village)|(hamlet)\"][\"name\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out meta;",
+      15
+    ).pipe(
       map(response => {
         return response.elements.map(
           element => element.tags['name']
@@ -56,15 +58,14 @@ export class GeoService {
   }
 
   public findWays(bounds: L.LatLngBounds, onlyRestricted: boolean = false): Observable<Way[]> {
-    const header = '[out:json][timeout:25];';
     const filterWays = 'way["highway"]';
     const filterRestricted = onlyRestricted ? '["foot"~"(no)|(private)|(destination)|(permissive)"]' : '';
     const filterBounds = '(' + bounds.getSouth() + ',' + bounds.getWest() + ',' + bounds.getNorth() + ',' + bounds.getEast() + ')';
     const output = 'out tags geom;';
 
-    const request = header + filterWays + filterRestricted + filterBounds + ';' + output;
+    const request = filterWays + filterRestricted + filterBounds + ';' + output;
 
-    return this.overpass.request<OverpassResponse>(request).pipe(
+    return this.overpass.request<OverpassResponse>(request, 25).pipe(
       map(response => response.elements.filter(e => e.geometry && e.geometry.length > 1).map(e => this.overpassElementToWay(e)))
     );
   }
@@ -87,7 +88,7 @@ export class GeoService {
   }
 
   public fillTrackElevation(track: Track, showProgress = false, onlyGoodProviders = false): Observable<any> {
-    return this.fillPointsElevation(Arrays.flatMap(track.segments, s => s.points), showProgress, onlyGoodProviders);
+    return this.fillPointsElevation(track.segments.flatMap(s => s.points), showProgress, onlyGoodProviders);
   }
 
   public fillSegmentElevation(segment: Segment, showProgress = false, onlyGoodProviders = false): Observable<any> {
@@ -256,6 +257,7 @@ export class GeoService {
     );
   }
 
+  /* NOSONAR
   private getElevationFromOpenTopo(points: L.LatLngLiteral[], dataset: string, progress?: Progress): Observable<(number | undefined)[] | undefined> {
     const requests: Observable<any>[] = [];
     const limiter = new RequestLimiter(1);
@@ -303,7 +305,7 @@ export class GeoService {
       }),
       catchError(e => of(undefined))
     );
-  }
+  } */
 
   private getElevationFromOpenElevation(points: L.LatLngLiteral[], progress?: Progress): Observable<(number | undefined)[] | undefined> {
     const requests: Observable<any>[] = [];
@@ -366,7 +368,7 @@ export class GeoService {
       this.http.getBlob(url.replace('{z}', '' + maxZoom).replace('{y}', '' + tile.y).replace('{x}', '' + tile.x)).pipe(
         switchMap(blob => new Observable<ImageData>(subscriber => {
           const img = new Image();
-          const urlCreator = window.URL || window.webkitURL;
+          const urlCreator = globalThis.URL || globalThis.webkitURL;
           img.onload = () => {
             const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
             canvas.width = 256;
@@ -379,7 +381,7 @@ export class GeoService {
             ctx.drawImage(img, 0, 0, 256, 256, 0, 0, 256, 256);
             urlCreator.revokeObjectURL(img.src);
             const data = ctx.getImageData(0, 0, 256, 256);
-            document.documentElement.removeChild(canvas);
+            canvas.remove();
             subscriber.next(data);
             subscriber.complete();
           };
@@ -404,7 +406,7 @@ export class GeoService {
           const r = data.data[offset];
           const g = data.data[offset + 1];
           const b = data.data[offset + 2];
-          //const a = data.data.at(offset + 3)!;
+          // ignore alpha at offset + 3
           const e = ((r * 256) + g + (b / 256)) - 32768;
           point.ele = e;
         }

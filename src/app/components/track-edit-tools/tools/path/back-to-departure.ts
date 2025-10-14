@@ -17,7 +17,7 @@ export class BackToDeparture implements TrackEditTool {
 
   execute(ctx: TrackEditToolContext) {
     ctx.modifyTrack(track => {
-      const lastSegment = track.segments[track.segments.length - 1];
+      const lastSegment = track.segments.at(-1)!;
       const lastSegmentNewPoints: PointDescriptor[] = [];
       for (let i = lastSegment.points.length - 2; i >= 0; --i) {
         lastSegmentNewPoints.push(this.copy(lastSegment.points[i]));

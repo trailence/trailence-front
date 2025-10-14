@@ -1,10 +1,10 @@
 import { ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from 'src/app/components/menus/menu-item';
 import { IonItem, IonIcon, IonLabel, IonList, IonListHeader, IonButton, PopoverController } from "@ionic/angular/standalone";
-import { CommonModule } from '@angular/common';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
 
 interface Section {
   type: 'toolbar' | 'menu';
@@ -16,7 +16,12 @@ interface Section {
     selector: 'app-menu-content',
     templateUrl: './menu-content.component.html',
     styleUrls: ['./menu-content.component.scss'],
-    imports: [IonButton, IonListHeader, IonList, IonLabel, IonIcon, IonItem, CommonModule, ToolbarComponent]
+    imports: [
+      IonButton, IonListHeader, IonList, IonLabel, IonIcon, IonItem,
+      ToolbarComponent,
+      NgTemplateOutlet,
+      AsyncPipe,
+    ]
 })
 export class MenuContentComponent implements OnInit, OnChanges {
 

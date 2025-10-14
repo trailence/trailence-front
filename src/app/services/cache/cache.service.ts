@@ -58,7 +58,7 @@ export class TimeoutCache<T> implements Cache<T> {
   }
 
   public feedList(items: {key: string, item: T}[]): void {
-    items.forEach(item => this.feedItem(item.key, item.item));
+    for (const item of items) this.feedItem(item.key, item.item);
     this.createTimeout();
   }
 

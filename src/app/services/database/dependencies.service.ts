@@ -22,7 +22,7 @@ export class DependenciesService {
         const itemsToSave: Dependency[] = [];
         const itemsToRemove: Dependency[] = [];
         for (const dbItem of dbItems) {
-          if (itemsToDelete.indexOf(dbItem.key) >= 0) {
+          if (itemsToDelete.includes(dbItem.key)) {
             Console.info('Element deleted on server: ' + dbItem.key + ' => remove all its dependencies');
             itemsToRemove.push(dbItem);
             continue;
@@ -30,7 +30,7 @@ export class DependenciesService {
           const operationsToRemove: OperationDependencies[] = [];
           for (const itemOp of dbItem.operations) {
             const kept = itemOp.dependencies.filter(dep => {
-              if (dep.storeName !== storeName || items.indexOf(dep.itemKey) < 0) return true; // keep it
+              if (dep.storeName !== storeName || !items.includes(dep.itemKey)) return true; // keep it
               if (operation === 'delete' || operation === dep.operation) {
                 Console.info('Dependency from ' + itemOp.operation + ' ' + dbItem.key + ' to ' + storeName + ' ' + dep + ' removed due to operation ' + operation + ' on it');
                 return false;
@@ -42,16 +42,16 @@ export class DependenciesService {
               Console.info('No more dependency from ' + itemOp.operation + ' ' + dbItem.key);
             } else if (kept.length !== itemOp.dependencies.length) {
               itemOp.dependencies = kept;
-              if (itemsToSave.indexOf(dbItem) < 0)
+              if (!itemsToSave.includes(dbItem))
                 itemsToSave.push(dbItem);
             }
           }
           if (operationsToRemove.length > 0) {
-            dbItem.operations = dbItem.operations.filter(o => operationsToRemove.indexOf(o) < 0);
+            dbItem.operations = dbItem.operations.filter(o => !operationsToRemove.includes(o));
             if (dbItem.operations.length === 0) {
               itemsToRemove.push(dbItem);
               Console.info('No more dependency from ' + dbItem.key);
-            } else if (itemsToSave.indexOf(dbItem) < 0) {
+            } else if (!itemsToSave.includes(dbItem)) {
               itemsToSave.push(dbItem);
             }
           }
@@ -82,13 +82,13 @@ export class DependenciesService {
           });
         }
         const op = dbItem.operations.find(o => o.operation === operation);
-        if (!op) {
-          dbItem.operations.push({operation, dependencies});
-        } else {
+        if (op) {
           for (const dep of dependencies) {
-            if (op.dependencies.findIndex(d => d.storeName === dep.storeName && d.itemKey === dep.itemKey && d.operation === dep.operation) < 0)
+            if (!op.dependencies.some(d => d.storeName === dep.storeName && d.itemKey === dep.itemKey && d.operation === dep.operation))
               op.dependencies.push(dep);
           }
+        } else {
+          dbItem.operations.push({operation, dependencies});
         }
         return table.put(dbItem);
       });
@@ -98,8 +98,8 @@ export class DependenciesService {
   public addEventDependency(storeName: string, itemKey: string, operation: ServerOperation, eventId: string): void {
     Console.info('Add dependency on event ' + eventId + ' for ' + operation + ' ' + storeName + ' ' + itemKey);
     const event = this.events.get(eventId);
-    if (!event) this.events.set(eventId, [{storeName, itemKey, operation}]);
-    else event.push({storeName, itemKey, operation});
+    if (event) event.push({storeName, itemKey, operation});
+    else this.events.set(eventId, [{storeName, itemKey, operation}]);
   }
 
   public fireEvent(eventId: string): void {
@@ -125,17 +125,17 @@ export class DependenciesService {
       const result: string[] = [];
       for (let i = 0; i < dbItems.length; ++i) {
         const dbItem = dbItems[i];
-        if (!dbItem) {
-          // no dependency => ok
-          result.push(filter1[i]);
-        } else {
+        if (dbItem) {
           const itemOp = dbItem.operations.find(o => o.operation === operation);
-          if (!itemOp) {
+          if (itemOp) {
+            // has dependencis => not ok
+          } else {
             // no dependency for this operation => ok
             result.push(filter1[i]);
-          } else {
-            // has dependencis => not ok
           }
+        } else {
+          // no dependency => ok
+          result.push(filter1[i]);
         }
       }
       return result;

@@ -115,25 +115,24 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
       firstValueFrom(
         this.injector.get(HttpService).post<PublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/trailsByIds', uuids)
       .pipe(
-        switchMap(result => {
-          if (result.length === 0) return of([]);
+        map(result => {
+          if (result.length === 0) return [];
           const trailDtos: TrailDto[] = [];
           const metadataDtos: TrackMetadataSnapshot[] = [];
           const simplifiedTrackDtos: SimplifiedTrackDto[] = [];
           const infoDtos: TrailInfoDto[] = [];
-          result.forEach(pt => {
+          for (const pt of result) {
             const dtos = this.publicTrailToDtos(pt);
             trailDtos.push(dtos.trailDto);
             metadataDtos.push(dtos.metadataDto);
             simplifiedTrackDtos.push(dtos.simplifiedTrackDto);
             infoDtos.push(dtos.infoDto);
-          });
-          return from(Promise.all([
-            this.tableTrails.bulkPut(trailDtos),
-            this.tableMetadata.bulkPut(metadataDtos),
-            this.tableSimplifiedTracks.bulkPut(simplifiedTrackDtos),
-            this.tableInfos.bulkPut(infoDtos),
-          ])).pipe(map(() => trailDtos.map(t => new Trail(t))));
+          }
+          this.tableTrails.bulkPut(trailDtos);
+          this.tableMetadata.bulkPut(metadataDtos);
+          this.tableSimplifiedTracks.bulkPut(simplifiedTrackDtos);
+          this.tableInfos.bulkPut(infoDtos);
+          return trailDtos.map(t => new Trail(t));
         }),
         catchError(e => {
           Console.error('Error fetching public trails', uuids, e);
@@ -248,14 +247,13 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
         if (info) return this.getTrail(info.uuid);
         return this._pending.requestSingle(uuid, () => firstValueFrom(
           this.injector.get(HttpService).get<PublicTrail>(environment.apiBaseUrl + '/public/trails/v1/trailBySlug/' + uuid).pipe(
-            switchMap(pt => {
+            map(pt => {
               const dtos = this.publicTrailToDtos(pt);
-              return from(Promise.all([
-                this.tableTrails.put(dtos.trailDto),
-                this.tableMetadata.put(dtos.metadataDto),
-                this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto),
-                this.tableInfos.put(dtos.infoDto),
-              ])).pipe(map(() => new Trail(dtos.trailDto)));
+              this.tableTrails.put(dtos.trailDto);
+              this.tableMetadata.put(dtos.metadataDto);
+              this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto);
+              this.tableInfos.put(dtos.infoDto);
+              return new Trail(dtos.trailDto);
             }),
             catchError(e => {
               Console.error('Error getting public trail from slug', uuid, e);
@@ -268,14 +266,13 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     }
     return this._pending.requestSingle(uuid, () => firstValueFrom(
       this.injector.get(HttpService).get<PublicTrail>(environment.apiBaseUrl + '/public/trails/v1/trailById/' + uuid).pipe(
-        switchMap(pt => {
+        map(pt => {
           const dtos = this.publicTrailToDtos(pt);
-          return from(Promise.all([
-            this.tableTrails.put(dtos.trailDto),
-            this.tableMetadata.put(dtos.metadataDto),
-            this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto),
-            this.tableInfos.put(dtos.infoDto),
-          ])).pipe(map(() => new Trail(dtos.trailDto)));
+          this.tableTrails.put(dtos.trailDto);
+          this.tableMetadata.put(dtos.metadataDto);
+          this.tableSimplifiedTracks.put(dtos.simplifiedTrackDto);
+          this.tableInfos.put(dtos.infoDto);
+          return new Trail(dtos.trailDto);
         }),
         catchError(e => {
           Console.error('Error getting public trail from uuid', uuid, e);

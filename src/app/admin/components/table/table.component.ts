@@ -1,21 +1,23 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { PageResult } from '../paginator/page-result';
-import { CommonModule } from '@angular/common';
 import { PaginatorComponent } from '../paginator/paginator.component';
 import { TableColumn, TableSettings } from './table-settings';
 import { IonIcon, IonSpinner, IonCheckbox } from '@ionic/angular/standalone';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-table',
   templateUrl: './table.component.html',
   styleUrl: './table.component.scss',
   imports: [
-    CommonModule,
     PaginatorComponent,
     I18nPipe,
     IonIcon, IonSpinner, IonCheckbox,
+    NgStyle,
+    NgClass,
+    NgTemplateOutlet,
   ]
 })
 export class TableComponent implements OnInit, OnChanges {

@@ -75,8 +75,8 @@ export class TagService {
       if (ondone) ondone();
       return;
     }
-    this._trailTagStore.deleteIf('delete multiple tags', trailTag => !!tags.find(t => trailTag.tagUuid === t.uuid), () => {
-      this._tagStore.deleteIf('delete multiple tags', tag => !!tags.find(t => tag.uuid === t.uuid), ondone);
+    this._trailTagStore.deleteIf('delete multiple tags', trailTag => tags.some(t => trailTag.tagUuid === t.uuid), () => {
+      this._tagStore.deleteIf('delete multiple tags', tag => tags.some(t => tag.uuid === t.uuid), ondone);
     });
   }
 
@@ -89,7 +89,7 @@ export class TagService {
       if (ondone) ondone();
       return;
     }
-    this._trailTagStore.deleteIf('delete multiple trails', trailTag => !!trailUuids.find(u => u === trailTag.trailUuid), ondone);
+    this._trailTagStore.deleteIf('delete multiple trails', trailTag => trailUuids.some(u => u === trailTag.trailUuid), ondone);
   }
 
   public deleteAllTagsFromCollections(collections: {owner: string, uuid: string}[], progress: Progress | undefined, progressWork: number): Observable<any> {
@@ -97,7 +97,7 @@ export class TagService {
       first(),
       switchMap(tags$ => tags$.length === 0 ? of([]) : zip(tags$.map(tag$ => tag$.pipe(firstTimeout(t => !!t, 1000, () => null as Tag | null))))),
       switchMap(tags => {
-        const toRemove = tags.filter(tag => !!tag && !!collections.find(c =>tag.collectionUuid === c.uuid && tag.owner === c.owner)) as Tag[];
+        const toRemove = tags.filter(tag => !!tag && collections.some(c =>tag.collectionUuid === c.uuid && tag.owner === c.owner)) as Tag[];
         if (toRemove.length === 0) {
           progress?.addWorkDone(progressWork)
           return of(true);
@@ -237,7 +237,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
     const parentReady$ = entity.parentUuid ? this.getItem$(entity.parentUuid, entity.owner).pipe(map(tag => !!tag?.isSavedOnServerAndNotDeletedLocally())) : of(true);
     const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
     return combineLatest([parentReady$, collectionReady$]).pipe(
-      map(readiness => readiness.indexOf(false) < 0)
+      map(readiness => !readiness.includes(false))
     );
   }
 
@@ -367,7 +367,7 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
       return !!trail?.isSavedOnServerAndNotDeletedLocally() && !this.trailService.isUpdatedLocally(trail.owner, trail.uuid);
     }));
     return combineLatest([tagReady$, trailReady$]).pipe(
-      map(readiness => readiness.indexOf(false) < 0)
+      map(readiness => !readiness.includes(false))
     );
   }
 

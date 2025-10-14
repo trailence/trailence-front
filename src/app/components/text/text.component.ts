@@ -4,6 +4,7 @@ import { distinctUntilChanged, map, skip, Subscription } from 'rxjs';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { StringUtils } from 'src/app/utils/string-utils';
 
 @Component({
   selector: 'app-text',
@@ -116,6 +117,19 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
 
   private getText(text: string | undefined | null): string {
     if (!text) return '';
+    text = this.replaceBreakLines(text);
+    if (text.length > this.maxTextLength) {
+      this.hasMore = true;
+      if (!this.showFull) {
+        text = this.ellipsis(text);
+      }
+    } else {
+      this.hasMore = false;
+    }
+    return text;
+  }
+
+  private replaceBreakLines(text: string): string {
     let i = 0;
     while ((i = text.indexOf('\n', i)) > 0) {
       const before = text.substring(0, i).toLowerCase().trim();
@@ -124,32 +138,29 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
       }
       i++;
     }
-    if (text.length > this.maxTextLength) {
-      this.hasMore = true;
-      if (!this.showFull) {
-        let pos = this.minTextEllipsis;
-        do {
-          const previousOpen = text.lastIndexOf('<', this.minTextEllipsis);
-          if (previousOpen >= 0) {
-            const nextClose = text.indexOf('>', previousOpen);
-            if (nextClose >= pos) {
-              pos = nextClose + 1;
-              continue;
-            }
-          }
-          const isLetter = text.charAt(pos).match(/[a-z]/i);
-          if (isLetter && !text.charAt(pos - 1).match(/[a-z]/i)) {
-            break;
-          }
-          if (isLetter) while (text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < this.maxTextLength);
-          while (!text.charAt(++pos).match(/[a-z]/i) && pos < text.length && pos < this.maxTextLength);
-        } while (pos < text.length && pos < this.maxTextLength);
-        text = text.substring(0, pos) + ' [...]';
-      }
-    } else {
-      this.hasMore = false;
-    }
     return text;
+  }
+
+  private ellipsis(text: string): string {
+    let pos = this.minTextEllipsis;
+    do {
+      pos = this.moveOutOfTag(text, pos);
+      const isLetter = StringUtils.isWordChar(text.charAt(pos));
+      if (isLetter && !StringUtils.isWordChar(text.charAt(pos - 1))) {
+        break;
+      }
+      if (isLetter) while (StringUtils.isWordChar(text.charAt(++pos)) && pos < text.length && pos < this.maxTextLength);
+      while (!StringUtils.isWordChar(text.charAt(++pos)) && pos < text.length && pos < this.maxTextLength);
+    } while (pos < text.length && pos < this.maxTextLength);
+    return text.substring(0, pos) + ' [...]';
+  }
+
+  private moveOutOfTag(text: string, pos: number): number {
+    const previousOpen = text.lastIndexOf('<', pos);
+    if (previousOpen < 0) return pos;
+    const nextClose = text.indexOf('>', previousOpen);
+    if (nextClose < pos) return pos;
+    return nextClose + 1;
   }
 
   public toggleMore(): void {

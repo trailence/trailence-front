@@ -93,8 +93,8 @@ export class MapComponent extends AbstractComponent {
       this.visible$.subscribe(visible => {
         if (visible) {
           setTimeout(() => {
-            if (!this._map$.value) this.initMap();
-            else this.invalidateSize();
+            if (this._map$.value) this.invalidateSize();
+            else this.initMap();
           }, 0);
         }
         this._mapState.live = visible;
@@ -223,7 +223,7 @@ export class MapComponent extends AbstractComponent {
         if (!map || !live) return;
         const toRemove = [...this._currentTracks];
         const highlighted: MapTrack[] = [];
-        tracks.forEach(track => {
+        for (const track of tracks) {
           const index = toRemove.indexOf(track);
           if (index >= 0) {
             toRemove.splice(index, 1);
@@ -232,9 +232,9 @@ export class MapComponent extends AbstractComponent {
             track.addTo(map);
           }
           if (track.highlighted) highlighted.push(track);
-        });
-        toRemove.forEach(track => track.remove());
-        highlighted.forEach(track => track.bringToFront());
+        }
+        for (const track of toRemove) track.remove();
+        for (const track of highlighted) track.bringToFront();
         this._currentTracks = [...tracks];
         this.initMapZoom(map);
         this.refreshTools();
@@ -276,15 +276,15 @@ export class MapComponent extends AbstractComponent {
       ([bubbles, live, map]) => {
         if (!map || !live) return;
         const toRemove = [...this._currentBubbles];
-        bubbles.forEach(bubble => {
+        for (const bubble of bubbles) {
           const index = toRemove.indexOf(bubble);
           if (index >= 0) {
             toRemove.splice(index, 1);
           } else {
             bubble.addTo(map);
           }
-        });
-        toRemove.forEach(bubble => bubble.remove());
+        }
+        for (const bubble of toRemove) bubble.remove();
         this._currentBubbles = [...bubbles];
         this.initMapZoom(map);
         this.refreshTools();
@@ -328,13 +328,13 @@ export class MapComponent extends AbstractComponent {
   private fitTracksBounds(map: L.Map, tracks: MapTrack[], padding: number = 0.05): void {
     let bounds;
     for (const t of tracks) {
-      if (!bounds) {
-        bounds = t.bounds;
-      } else {
+      if (bounds) {
         const tb = t.bounds;
         if (tb) {
           bounds.extend(tb);
         }
+      } else {
+        bounds = t.bounds;
       }
     }
     if (bounds) {
@@ -347,10 +347,10 @@ export class MapComponent extends AbstractComponent {
   private fitTracksBubbles(map: L.Map, bubbles: MapBubble[], padding: number = 0.05): void {
     let bounds;
     for (const t of bubbles) {
-      if (!bounds) {
-        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
-      } else {
+      if (bounds) {
         bounds.extend(t.associatedBounds);
+      } else {
+        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
       }
     }
     if (bounds) {
@@ -363,20 +363,20 @@ export class MapComponent extends AbstractComponent {
   fitMapBounds(map: L.Map): void {
     let bounds;
     for (const t of this._currentTracks) {
-      if (!bounds) {
-        bounds = t.bounds;
-      } else {
+      if (bounds) {
         const tb = t.bounds;
         if (tb) {
           bounds.extend(tb);
         }
+      } else {
+        bounds = t.bounds;
       }
     }
     for (const t of this._currentBubbles) {
-      if (!bounds) {
-        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
-      } else {
+      if (bounds) {
         bounds.extend(L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast()));
+      } else {
+        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
       }
     }
     if (bounds) {
@@ -532,7 +532,7 @@ export class MapComponent extends AbstractComponent {
       ?? this.mapLayersService.layers[0];
     const overlays = this._mapState.overlays.map(name => this.mapLayersService.overlays.find(o => o.name === name)).filter(o => !!o);
 
-    const map = L.map(this.id, {
+    const map = L.map(this.id, { //NOSONAR
       center: this._mapState.center,
       zoom: this._mapState.zoom,
       layers: [layer.create(), ...overlays.map(o => o.create())],
@@ -623,7 +623,7 @@ export class MapComponent extends AbstractComponent {
         const o = overlay.children.item(i);
         if ((o as any)?._mapTrack) {
           const mt = (o as any)._mapTrack;
-          if (allTracks.indexOf(mt) < 0) allTracks.push(mt);
+          if (!allTracks.includes(mt)) allTracks.push(mt);
         }
       }
     }
@@ -677,8 +677,10 @@ export class MapComponent extends AbstractComponent {
       this.defaultRightToolsItems.push(this.toMenuItem(new MapToggleBubblesTool(this.showBubbles$, this.bubblesToolAvailable$)));
       this.whenVisible.subscribe(combineLatest([this.showBubbles$, this.bubblesToolAvailable$]), () => this.refreshTools(), true);
     }
-    this.defaultRightToolsItems.push(new MenuItem());
-    this.defaultRightToolsItems.push(this.toMenuItem(new DownloadMapTool(this.downloadMapTrail)));
+    this.defaultRightToolsItems.push(
+      new MenuItem(),
+      this.toMenuItem(new DownloadMapTool(this.downloadMapTrail))
+    );
     const screenLockService = this.injector.get(ScreenLockService);
     const phoneLockTool = new PhoneLockTool(screenLockService);
     this.defaultRightToolsItems.push(this.toMenuItem(phoneLockTool));
@@ -691,9 +693,11 @@ export class MapComponent extends AbstractComponent {
     }
 
     const toolShowPosition = new MapShowPositionTool();
-    this.defaultLeftToolsItems.push(new MenuItem());
-    this.defaultLeftToolsItems.push(this.toMenuItem(toolShowPosition));
-    this.defaultLeftToolsItems.push(this.toMenuItem(new MapCenterOnPositionTool(() => !!this._locationMarker, this._followingLocation$)));
+    this.defaultLeftToolsItems.push(
+      new MenuItem(),
+      this.toMenuItem(toolShowPosition),
+      this.toMenuItem(new MapCenterOnPositionTool(() => !!this._locationMarker, this._followingLocation$))
+    );
 
     // handle recording and position
     this.whenAlive.add(
@@ -744,7 +748,7 @@ export class MapComponent extends AbstractComponent {
   }
 
   private refreshTools(): void {
-    this.toolbars?.forEach(tb => tb.refresh());
+    if (this.toolbars) for (const tb of this.toolbars) tb.refresh();
   }
 
   leftToolsItems: MenuItem[] = [];

@@ -162,9 +162,11 @@ export class TrailCollectionService {
   public getCollectionMenu(collection: TrailCollection): MenuItem[] {
     const menu: MenuItem[] = [];
     if (!isPublicationCollection(collection.type)) {
-      menu.push(new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.edit_collection').setAction(() => this.collectionPopup(collection)));
-      menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.collection_menu_item')
-        .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, null, collection.uuid))));
+      menu.push(
+        new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.edit_collection').setAction(() => this.collectionPopup(collection)),
+        new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.collection_menu_item')
+          .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, null, collection.uuid))),
+      );
     }
     if (collection.type === TrailCollectionType.CUSTOM) {
       menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setTextColor('danger').setAction(() => this.confirmDelete(collection)));
@@ -353,9 +355,7 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
         map(trails => trails.filter(t => t.collectionUuid === local.uuid)),
         takeWhile(trails => trails.length > 0),
       ).subscribe(trails => {
-        trails.forEach(trail => {
-          trailService.doUpdate(trail, t => t.collectionUuid = entity.uuid);
-        });
+        for (const trail of trails) trailService.doUpdate(trail, t => t.collectionUuid = entity.uuid);
       });
     }
 

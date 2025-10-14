@@ -2,6 +2,7 @@ import { Directive, ElementRef, HostListener, Input, OnChanges, OnInit, Security
 import { DomSanitizer } from '@angular/platform-browser';
 import { I18nString } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { HtmlUtils } from 'src/app/utils/html-utils';
 import { Resubscribeables } from 'src/app/utils/rxjs/subscription-utils';
 
 @Directive({
@@ -63,15 +64,7 @@ class TooltipHandler {
 
   showTooltip(): void {
     if (this.shown) return;
-    let element = this.element;
-    const pos = {x: element.offsetLeft, y: element.offsetTop};
-    while (element.offsetParent && element.offsetParent !== element && element.offsetParent !== document.body) {
-      element = element.offsetParent as HTMLElement;
-      pos.x += element.offsetLeft;
-      pos.y += element.offsetTop;
-      pos.x -= element.scrollLeft;
-      pos.y -= element.scrollTop;
-    }
+    const pos = HtmlUtils.getPositionInPage(this.element);
     this.shown = document.createElement('DIV') as HTMLDivElement;
     this.shown.classList.add('app-tooltip');
     this.shown.innerHTML = this.html;
@@ -119,7 +112,7 @@ class TooltipHandler {
 
   hideTooltip(): void {
     if (!this.shown) return;
-    this.shown.parentElement?.removeChild(this.shown);
+    this.shown.remove();
     this.shown = undefined;
   }
 

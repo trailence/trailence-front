@@ -7,19 +7,19 @@ import { environment } from 'src/environments/environment';
 import { PageRequest } from '../../components/paginator/page-request';
 import { PageResult } from '../../components/paginator/page-result';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { CommonModule } from '@angular/common';
 import { IonSegment, IonSegmentButton, IonButton, ModalController } from '@ionic/angular/standalone';
 import { TableComponent } from '../../components/table/table.component';
 import { DonationGoalsComponent } from './goals/donation-goals.component';
 import { DonationPage } from 'src/app/pages/donation/donation.page';
+import { NgClass } from '@angular/common';
 
 @Component({
   templateUrl: './donations.page.html',
   styleUrl: './donations.page.scss',
   imports: [
-    CommonModule,
     IonSegment, IonSegmentButton, IonButton,
     TableComponent, DonationGoalsComponent, DonationPage,
+    NgClass,
   ]
 })
 export class AdminDonationsPage {

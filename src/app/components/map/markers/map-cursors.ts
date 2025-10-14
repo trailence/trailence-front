@@ -10,7 +10,7 @@ export class MapCursors {
   public addTo(map: L.Map): void {
     if (this._map) return;
     this._map = map;
-    this._cursors.forEach(marker => marker.addTo(map));
+    for (const marker of this._cursors) marker.addTo(map);
   }
 
   public addCursor(position: L.LatLngExpression): void {

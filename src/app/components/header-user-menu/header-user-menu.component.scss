@@ -85,3 +85,25 @@ div.separator {
 ion-item ion-icon {
   color: var(--ion-color-secondary);
 }
+
+div.logout-message {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  margin-top: 10px;
+  &.info {
+    color: var(--ion-color-medium);
+  }
+  &.danger {
+    color: var(--ion-color-danger);
+  }
+
+  ion-icon {
+    min-width: 16px;
+    min-height: 16px
+  }
+  div {
+    font-size: 12px;
+    padding: 0 0 0 8px;
+  }
+}

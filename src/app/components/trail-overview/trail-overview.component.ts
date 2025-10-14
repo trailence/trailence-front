@@ -3,7 +3,6 @@ import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { Track } from 'src/app/model/track';
-import { CommonModule } from '@angular/common';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonIcon, IonCheckbox, IonButton, IonSpinner, PopoverController, DomController, Platform } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, concat, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
@@ -35,6 +34,7 @@ import { LongPressDirective } from 'src/app/utils/long-press.directive';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { TrailSmallMapComponent } from '../trail-small-map/trail-small-map.component';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
 
 class Meta {
   name?: string;
@@ -59,10 +59,11 @@ class Meta {
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
       IonSpinner, IonButton, IonCheckbox, IonIcon,
-      CommonModule,
       PhotosSliderComponent, TrailSmallMapComponent,
       RateComponent,
       LongPressDirective,
+      NgClass, NgStyle,
+      NgTemplateOutlet,
     ]
 })
 export class TrailOverviewComponent extends AbstractComponent {
@@ -167,113 +168,112 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.reset();
-    if (this.trail) {
-      if (!this.platform.is('capacitor')) {
-        if (this.linkWithSlug && this.trailInfo?.externalUrl)
-          this.openUrl = this.trailInfo.externalUrl;
-        else
-          this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
-        if (this.trail.fromModeration) this.openUrl += '/moderation';
-      }
-      let previousI18nState = 0;
-      const owner = this.trail.owner;
+    if (!this.trail) return;
+    if (!this.platform.is('capacitor')) {
+      if (this.linkWithSlug && this.trailInfo?.externalUrl)
+        this.openUrl = this.trailInfo.externalUrl;
+      else
+        this.openUrl = '/trail/' + this.trail.owner + '/' + this.trail.uuid;
+      if (this.trail.fromModeration) this.openUrl += '/moderation';
+    }
+    let previousI18nState = 0;
+    const owner = this.trail.owner;
+    this.byStateAndVisible.subscribe(
+      this.load$.pipe(
+        filterDefined(),
+        switchMap(() =>
+          combineLatest([
+            this.i18n.stateChanged$,
+            this.trail!.name$,
+            this.trail!.location$,
+            this.trail!.date$,
+            this.trail!.loopType$,
+            this.trail!.activity$,
+            this.trackData$(this.trail!, owner),
+            this.auth.auth ?
+              concat(of(false), this.mySelectionService.getMySelection().pipe(
+                map(sel => sel.some(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid)),
+              )) : of(false),
+            this.external$,
+          ])
+        ),
+        debounceTimeExtended(0, 10)
+      ),
+      ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection, info]) => {
+        const force = i18nState !== previousI18nState;
+        let changed = force;
+        previousI18nState = i18nState;
+        if (track != this.track$.value) {
+          if (this.smallMapEnabled) this.fullTrack = track as Track;
+          this.track$.next(track);
+          changed = true;
+        }
+        if (info !== this.external) {
+          this.external = info;
+          changed = true;
+        }
+        let name = trailName;
+        if (info?.lang && info.lang !== this.preferencesService.preferences.lang && info.nameTranslations?.[this.preferencesService.preferences.lang])
+          name = info.nameTranslations[this.preferencesService.preferences.lang];
+        if (this.updateMeta(this.meta, 'name', name, undefined, force)) changed = true;
+        if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
+        if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.dateWithoutTime ? this.i18n.timestampToDateString(timestamp) : this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
+        if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
+        if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
+        if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;
+        if (this.updateMeta(this.meta, 'activityIcon', activity, activity => this.trailService.getActivityIcon(activity), force)) changed = true;
+        if (this.meta.isInMySelection !== isInMySelection) {
+          this.meta.isInMySelection = isInMySelection;
+          changed = true;
+        }
+        if (changed) this.changesDetection.detectChanges();
+        if (!this._trackMetadataInitialized && track) {
+          this.changesDetection.detectChanges(() => {
+            this.initTrackMetadata();
+          });
+        }
+      },
+      true
+    );
+    if (owner === this.auth.email) {
       this.byStateAndVisible.subscribe(
         this.load$.pipe(
           filterDefined(),
-          switchMap(() =>
-            combineLatest([
-              this.i18n.stateChanged$,
-              this.trail!.name$,
-              this.trail!.location$,
-              this.trail!.date$,
-              this.trail!.loopType$,
-              this.trail!.activity$,
-              this.trackData$(this.trail!, owner),
-              this.auth.auth ?
-                concat(of(false), this.mySelectionService.getMySelection().pipe(
-                  map(sel => sel.findIndex(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid) >= 0),
-                )) : of(false),
-              this.external$,
-            ])
-          ),
-          debounceTimeExtended(0, 10)
+          switchMap(() => {
+            if (this.trailTags !== undefined)
+              return this.tagService.getTagsFullnames$(this.trailTags.map(t => t.tagUuid));
+            return this.tagService.getTrailTagsFullNames$(this.trail!.uuid);
+          }),
+          debounceTimeExtended(0, 100)
         ),
-        ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection, info]) => {
-          const force = i18nState !== previousI18nState;
-          let changed = force;
-          previousI18nState = i18nState;
-          if (track != this.track$.value) {
-            if (this.smallMapEnabled) this.fullTrack = track as Track;
-            this.track$.next(track);
-            changed = true;
-          }
-          if (info !== this.external) {
-            this.external = info;
-            changed = true;
-          }
-          let name = trailName;
-          if (info?.lang && info.lang !== this.preferencesService.preferences.lang && info.nameTranslations && info.nameTranslations[this.preferencesService.preferences.lang])
-            name = info.nameTranslations[this.preferencesService.preferences.lang];
-          if (this.updateMeta(this.meta, 'name', name, undefined, force)) changed = true;
-          if (this.updateMeta(this.meta, 'location', trailLocation, undefined, force)) changed = true;
-          if (this.updateMeta(this.meta, 'date', trailDate ?? trackStartDate, timestamp => this.dateWithoutTime ? this.i18n.timestampToDateString(timestamp) : this.i18n.timestampToDateTimeString(timestamp), force)) changed = true;
-          if (this.updateMeta(this.meta, 'loopType', loopType, type => type ? this.i18n.texts.loopType[type] : '', force)) changed = true;
-          if (this.updateMeta(this.meta, 'loopTypeIcon', loopType, type => this.trailService.getLoopTypeIcon(type), force)) changed = true;
-          if (this.updateMeta(this.meta, 'activity', activity, activity => activity ? this.i18n.texts.activity[activity] : '', force)) changed = true;
-          if (this.updateMeta(this.meta, 'activityIcon', activity, activity => this.trailService.getActivityIcon(activity), force)) changed = true;
-          if (this.meta.isInMySelection !== isInMySelection) {
-            this.meta.isInMySelection = isInMySelection;
-            changed = true;
-          }
-          if (changed) this.changesDetection.detectChanges();
-          if (!this._trackMetadataInitialized && track) {
-            this.changesDetection.detectChanges(() => {
-              this.initTrackMetadata();
-            });
+        tagsNames => {
+          if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
+            this.tagsNames = tagsNames.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));
+            this.changesDetection.detectChanges();
           }
         },
         true
       );
-      if (owner === this.auth.email) {
-        this.byStateAndVisible.subscribe(
-          this.load$.pipe(
-            filterDefined(),
-            switchMap(() => {
-              if (this.trailTags !== undefined)
-                return this.tagService.getTagsFullnames$(this.trailTags.map(t => t.tagUuid));
-              return this.tagService.getTrailTagsFullNames$(this.trail!.uuid);
-            }),
-            debounceTimeExtended(0, 100)
-          ),
-          tagsNames => {
-            if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
-              this.tagsNames = tagsNames.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));
-              this.changesDetection.detectChanges();
-            }
-          },
-          true
-        );
-      }
-      if (this.photoEnabled) {
-        this.byStateAndVisible.subscribe(
-          this.load$.pipe(
-            filterDefined(),
-            switchMap(() => this.photoService.getTrailPhotos$(this.trail!))
-          ),
-          photos => {
-            photos.sort((p1, p2) => {
-              if (p1.isCover) return -1;
-              if (p2.isCover) return 1;
-              return p1.index - p2.index;
-            });
-            this.photos = photos;
-            this.changesDetection.detectChanges();
-          }
-        );
-      }
-      if (this.trail.owner.indexOf('@') < 0) {
-        if (this.trailInfo !== undefined) this.external$.next(this.trailInfo ?? undefined);
-        else
+    }
+    if (this.photoEnabled) {
+      this.byStateAndVisible.subscribe(
+        this.load$.pipe(
+          filterDefined(),
+          switchMap(() => this.photoService.getTrailPhotos$(this.trail!))
+        ),
+        photos => {
+          photos.sort((p1, p2) => {
+            if (p1.isCover) return -1;
+            if (p2.isCover) return 1;
+            return p1.index - p2.index;
+          });
+          this.photos = photos;
+          this.changesDetection.detectChanges();
+        }
+      );
+    }
+    if (!this.trail.owner.includes('@')) {
+      if (this.trailInfo === undefined)
         this.byStateAndVisible.subscribe(
           this.load$.pipe(
             filterDefined(),
@@ -285,34 +285,35 @@ export class TrailOverviewComponent extends AbstractComponent {
             this.external$.next(v);
           }
         );
-      }
-      if (this.showPublished) {
-        this.byStateAndVisible.subscribe(
-          this.load$.pipe(
-            filterDefined(),
-            switchMap(() => this.injector.get(MyPublicTrailsService).myPublicTrails$)
-          ),
-          myPublicTrails => {
-            const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
-            if (newValue !== this.publicTrailUuid) {
-              this.publicTrailUuid = newValue;
-              this.changesDetection.detectChanges();
-            }
-          }
-        );
-      }
-      if (this.delayLoading && !this.load$.value && !this.observer) {
-        this.observer = new IntersectionObserver(entries => {
-          if (this.observer && entries[0].isIntersecting) {
-            this.observer.disconnect();
-            this.observer = undefined;
-            this.load$.next(true);
-          }
-        });
-        this.observer.observe(this.injector.get(ElementRef).nativeElement);
-      }
-      if (!this.load$.value) this.changesDetection.detectChanges();
+      else
+        this.external$.next(this.trailInfo ?? undefined);
     }
+    if (this.showPublished) {
+      this.byStateAndVisible.subscribe(
+        this.load$.pipe(
+          filterDefined(),
+          switchMap(() => this.injector.get(MyPublicTrailsService).myPublicTrails$)
+        ),
+        myPublicTrails => {
+          const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
+          if (newValue !== this.publicTrailUuid) {
+            this.publicTrailUuid = newValue;
+            this.changesDetection.detectChanges();
+          }
+        }
+      );
+    }
+    if (this.delayLoading && !this.load$.value && !this.observer) {
+      this.observer = new IntersectionObserver(entries => {
+        if (this.observer && entries[0].isIntersecting) {
+          this.observer.disconnect();
+          this.observer = undefined;
+          this.load$.next(true);
+        }
+      });
+      this.observer.observe(this.injector.get(ElementRef).nativeElement);
+    }
+    if (!this.load$.value) this.changesDetection.detectChanges();
   }
 
   private trackData$(trail: Trail, owner: string): Observable<[TrackMetadataSnapshot | Track | undefined, number | undefined]> {
@@ -350,7 +351,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this._trackMetadataInitialized = false;
     const element = document.getElementById('track-metadata-' + this.id);
     if (element) {
-      while (element.previousElementSibling) element.parentElement!.removeChild(element.previousElementSibling);
+      while (element.previousElementSibling) element.previousElementSibling.remove();
     }
     if (!this.delayLoading && !this.load$.value)
       this.load$.next(true);
@@ -463,10 +464,10 @@ export class TrailOverviewComponent extends AbstractComponent {
     if (!this.trail) return;
     const newValue = !this.meta.isInMySelection;
     this.meta.isInMySelection = newValue;
-    if (!newValue)
-      this.mySelectionService.deleteSelection(this.trail.owner, this.trail.uuid);
-    else
+    if (newValue)
       this.mySelectionService.addSelection(this.trail.owner, this.trail.uuid);
+    else
+      this.mySelectionService.deleteSelection(this.trail.owner, this.trail.uuid);
     this.changesDetection.detectChanges();
   }
 

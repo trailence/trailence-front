@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonInput, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonSpinner } from "@ionic/angular/standalone";
@@ -28,7 +27,7 @@ export async function openLocationDialog(injector: Injector, trail: Trail) {
     selector: 'app-location-popup',
     templateUrl: './location-popup.component.html',
     styleUrls: ['./location-popup.component.scss'],
-    imports: [IonSpinner, IonButton, IonButtons, IonFooter, IonContent, IonInput, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, FormsModule, CommonModule]
+    imports: [IonSpinner, IonButton, IonButtons, IonFooter, IonContent, IonInput, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, FormsModule]
 })
 export class LocationPopupComponent implements OnInit, OnDestroy {
 
@@ -70,17 +69,17 @@ export class LocationPopupComponent implements OnInit, OnDestroy {
     this.searchingPlaces = true;
     this.trackService.getSimplifiedTrack$(this.trail.currentTrackUuid, this.trail.owner).pipe(
       firstTimeout(t => !!t, 10000, () => null as SimplifiedTrackSnapshot | null),
-      switchMap(t => t ? this.geo.findNearestPlaces(t.points[0].lat, t.points[0].lng) : throwError(() => new Error())),
+      switchMap(t => t ? this.geo.findNearestPlaces(t.points[0].lat, t.points[0].lng) : throwError(() => new Error('track not found'))),
     ).subscribe({
       next: places => {
         this.proposedPlaces = [];
         for (const place of places) {
           let s = place[0];
-          if (this.proposedPlaces.indexOf(s) < 0)
+          if (!this.proposedPlaces.includes(s))
             this.proposedPlaces.push(s);
           for (let i = 1; i < place.length; ++i) {
             s = s + ', ' + place[i];
-            if (this.proposedPlaces.indexOf(s) < 0)
+            if (!this.proposedPlaces.includes(s))
               this.proposedPlaces.push(s);
           }
         }

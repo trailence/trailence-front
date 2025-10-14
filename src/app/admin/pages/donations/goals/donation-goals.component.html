@@ -1,5 +1,6 @@
 <div class="table-container">
-  <table *ngIf="goals">
+@if (goals) {
+  <table>
     <tr>
       <th></th>
       <th>{{ i18n.texts.admin.donations.goals.index }}</th>
@@ -8,24 +9,32 @@
       <th>{{ i18n.texts.admin.donations.goals.createdAt }}</th>
       <th>{{ i18n.texts.admin.donations.goals.updatedAt }}</th>
     </tr>
-    <tr *ngFor="let goal of goals; trackBy: trackByFn">
-      <td>
-        <ion-button *ngIf="goal.index > 1" size="small" (click)="moveUp(goal)">
-          <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
-        </ion-button>
-        <ion-button *ngIf="goal.index < goals.length" size="small" (click)="moveDown(goal)">
-          <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
-        </ion-button>
-      </td>
-      <td>{{ goal.index }}</td>
-      <td><input type="text" [(ngModel)]="goal.type"/></td>
-      <td><input type="number" min="0" step="0.01" [(ngModel)]="goal.amount"/></td>
-      <td>{{ i18n.timestampToDateTimeString(goal.createdAt) }}</td>
-      <td>{{ i18n.timestampToDateTimeString(goal.updatedAt) }}</td>
-    </tr>
+    @for (goal of goals; track goal.index) {
+      <tr>
+        <td>
+          @if (goal.index > 1) {
+            <ion-button size="small" (click)="moveUp(goal)">
+              <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
+            </ion-button>
+          }
+          @if (goal.index < goals.length) {
+            <ion-button size="small" (click)="moveDown(goal)">
+              <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
+            </ion-button>
+          }
+        </td>
+        <td>{{ goal.index }}</td>
+        <td><input type="text" [(ngModel)]="goal.type"/></td>
+        <td><input type="number" min="0" step="0.01" [(ngModel)]="goal.amount"/></td>
+        <td>{{ i18n.timestampToDateTimeString(goal.createdAt) }}</td>
+        <td>{{ i18n.timestampToDateTimeString(goal.updatedAt) }}</td>
+      </tr>
+    }
   </table>
+}
 </div>
-<ion-footer *ngIf="goals">
+@if (goals) {
+<ion-footer>
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button color="primary" fill="solid" (click)="addGoal()">
@@ -45,3 +54,4 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
+}

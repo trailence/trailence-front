@@ -86,7 +86,6 @@ export class ExtensionsService {
         data: e.data
       }).catch(e => {
         Console.warn("Error updating extensions table", e);
-        return Promise.resolve();
       }).then(() => {
         this._pendingOperation$.next(this._pendingOperation$.value - 1);
       });

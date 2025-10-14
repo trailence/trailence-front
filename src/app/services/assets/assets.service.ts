@@ -20,8 +20,8 @@ export class AssetsService {
     for (const iconName of ICONS) ionIcons[iconName] = 'assets/.icon/' + iconName + '.svg';
     addIcons(ionIcons);
     // override fetch to intercept ion icons calls, and use our cache
-    const originalFetch: (input: string | URL | globalThis.Request, init?: RequestInit) => Promise<Response> = window.fetch;
-    window.fetch = (input, init) => {
+    const originalFetch: (input: string | URL | globalThis.Request, init?: RequestInit) => Promise<Response> = globalThis.fetch;
+    globalThis.fetch = (input, init) => {
       if (typeof input === 'string' && input.startsWith('assets/.icon/') && input.endsWith('.svg')) {
         const iconName = input.substring(13, input.length - 4);
         return firstValueFrom(this.getIcon(iconName, false)).then(svg => {
@@ -56,7 +56,7 @@ export class AssetsService {
         Console.info('Icons loaded (' + (Date.now() - start) + 'ms.)');
         const subscribers = this._loading!;
         this._loading = undefined;
-        subscribers.forEach(s => {
+        for (const s of subscribers) {
           this.getIcon(s.icon, s.clone).subscribe({
             next: svg => {
               s.subscriber.next(svg);
@@ -64,7 +64,7 @@ export class AssetsService {
             },
             error: e => s.subscriber.error(e),
           });
-        });
+        }
       });
     });
   }

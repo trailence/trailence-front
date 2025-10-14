@@ -3,6 +3,7 @@ import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { ModalController } from '@ionic/angular/standalone';
 import { WayPoint } from 'src/app/model/way-point';
+import { Track } from 'src/app/model/track';
 
 export class EditWayPointTool implements TrackEditTool {
 
@@ -44,42 +45,47 @@ export class EditWayPointTool implements TrackEditTool {
       }
       if (!w && point) w = TrackUtils.getWayPointAt(track, point.point.pos);
       let isNew = false;
-      if (!w && point) {
-        if ((point.pointIndex === 0 && point.segmentIndex === 0) || (point.segmentIndex === track.segments.length - 1 && point.pointIndex === track.segments[point.segmentIndex].points.length - 1)) {
-          // departure or arrival point
-          w = new WayPoint(point.point, '', '');
-          isNew = true;
-        }
+      if (!w && point &&
+         ((point.pointIndex === 0 && point.segmentIndex === 0) ||
+          (point.segmentIndex === track.segments.length - 1 && point.pointIndex === track.segments[point.segmentIndex].points.length - 1))
+      ) {
+        // departure or arrival point
+        w = new WayPoint(point.point, '', '');
+        isNew = true;
       }
-      if (!w && wayPoint) {
-        if ((wayPoint.point.pos.lat === track.departurePoint?.pos.lat && wayPoint.point.pos.lng === track.departurePoint?.pos.lng) ||
-            (wayPoint.point.pos.lat === track.arrivalPoint?.pos.lat && wayPoint.point.pos.lng === track.arrivalPoint?.pos.lng)) {
-          // departure or arrival point
-          w = new WayPoint(wayPoint.point, '', '');
-          isNew = true;
-        }
+      if (!w && wayPoint &&
+         ((wayPoint.point.pos.lat === track.departurePoint?.pos.lat && wayPoint.point.pos.lng === track.departurePoint?.pos.lng) ||
+          (wayPoint.point.pos.lat === track.arrivalPoint?.pos.lat && wayPoint.point.pos.lng === track.arrivalPoint?.pos.lng))
+      ) {
+        // departure or arrival point
+        w = new WayPoint(wayPoint.point, '', '');
+        isNew = true;
       }
       if (!w) return of(true);
-      return new Observable<boolean>(subscriber => {
-        import('./way-point-edit/way-point-edit.component')
-        .then(module => ctx.injector.get(ModalController).create({
-          component: module.WayPointEditModal,
-          componentProps: {
-            wayPoint: w,
-            isNew,
-          }
-        }))
-        .then(modal => {
-          modal.onDidDismiss().then(result => {
-            if (result.role === 'ok' && isNew) {
-              track.appendWayPoint(w);
-            }
-            subscriber.complete();
-          });
-          modal.present();
-        });
-      });
+      return this.openModal(ctx, w, isNew, track);
     }, true, true).subscribe(() => ctx.refreshTools());
+  }
+
+  private openModal(ctx: TrackEditToolContext, w: WayPoint, isNew: boolean, track: Track): Observable<boolean> {
+    return new Observable<boolean>(subscriber => {
+      import('./way-point-edit/way-point-edit.component')
+      .then(module => ctx.injector.get(ModalController).create({
+        component: module.WayPointEditModal,
+        componentProps: {
+          wayPoint: w,
+          isNew,
+        }
+      }))
+      .then(modal => {
+        modal.onDidDismiss().then(result => {
+          if (result.role === 'ok' && isNew) {
+            track.appendWayPoint(w);
+          }
+          subscriber.complete();
+        });
+        modal.present();
+      });
+    });
   }
 
 }

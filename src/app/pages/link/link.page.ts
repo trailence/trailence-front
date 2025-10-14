@@ -12,13 +12,12 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { map } from 'rxjs';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { Console } from 'src/app/utils/console';
-import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-link',
     templateUrl: './link.page.html',
     styleUrls: [],
-    imports: [IonIcon, CommonModule]
+    imports: [IonIcon]
 })
 export class LinkPage {
 
@@ -32,7 +31,7 @@ export class LinkPage {
   ) { }
 
   ionViewDidEnter() {
-    let token = window.location.pathname;
+    let token = globalThis.location.pathname;
     if (!token.startsWith('/link/')) {
       Console.warn('Invalid link', token);
       this.router.navigateByUrl('/');
@@ -82,7 +81,7 @@ export class LinkPage {
         this.message = this.i18n.texts.pages.link.share.in_progress;
         this.injector.get(AuthService).loginWithShareLink(token).subscribe({
           complete: () => {
-            let lang = window.location.search;
+            let lang = globalThis.location.search;
             if (lang.startsWith('?lang=')) {
               lang = lang.substring(6);
               Console.info('Switch language from share link to', lang);

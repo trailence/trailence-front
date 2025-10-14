@@ -7,14 +7,15 @@ import { MapLayer } from 'src/app/services/map/map-layers.service';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import * as L from 'leaflet';
 import { Track } from 'src/app/model/track';
-import { CommonModule } from '@angular/common';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { LeafletUtils } from 'src/app/utils/leaflet-utils';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
     selector: 'app-download-map-popup',
     templateUrl: './download-map-popup.component.html',
     styleUrls: [],
-    imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, MapLayerSelectionComponent, CommonModule]
+    imports: [IonButton, IonButtons, IonFooter, IonRange, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, MapLayerSelectionComponent, AsyncPipe]
 })
 export class DownloadMapPopupComponent {
 
@@ -44,52 +45,39 @@ export class DownloadMapPopupComponent {
     const padding = ((this.downloadMapPadding!.value as number) - 100) / 100;
     this.close()
     .then(() => {
-      setTimeout(() => {
-        const allBounds: L.LatLngBounds[] = [];
-        const paths: L.LatLngExpression[] = [];
-        if (this.bounds) {
-          allBounds.push(this.bounds);
-        }
-        if (this.tracks) {
-          for (const track of this.tracks) {
-            let bounds = track.metadata.bounds;
-            if (bounds) {
-              if (padding > 0) bounds = bounds.pad(padding);
-              allBounds.push(bounds);
-            }
-            if (maxZoom > 17) {
-              paths.push(...track.getAllPositions());
-            }
-          }
-        }
-        if (allBounds.length === 0) return;
-
-        // clean bounds to remove the ones contained in an other one
-        for (let i = 1; i < allBounds.length; ++i) {
-          const b1 = allBounds[i];
-          let remove = false;
-          for (let j = 0; j < i; ++j) {
-            const b2 = allBounds[j];
-            if (b2.contains(b1)) {
-              remove = true;
-              break;
-            }
-          }
-          if (remove) {
-            allBounds.splice(i, 1);
-            i--;
-          }
-        }
-        const pathAroundMeters = 100 + 1000 * padding;
-        for (const layer of selection) {
-          this.offlineMap.save(
-            layer.layer, L.CRS.EPSG3857, layer.tiles,
-            1, maxZoom,
-            allBounds, paths, pathAroundMeters
-          );
-        }
-      }, 0);
+      setTimeout(() => this.downloadMaps(maxZoom, padding, selection), 0);
     });
+  }
+
+  private downloadMaps(maxZoom: number, padding: number, selection: {layer: MapLayer, tiles: L.TileLayer}[]): void { // NOSONAR
+    const allBounds: L.LatLngBounds[] = [];
+    const paths: L.LatLngExpression[] = [];
+    if (this.bounds) {
+      allBounds.push(this.bounds);
+    }
+    if (this.tracks) {
+      for (const track of this.tracks) {
+        let bounds = track.metadata.bounds;
+        if (bounds) {
+          if (padding > 0) bounds = bounds.pad(padding);
+          allBounds.push(bounds);
+        }
+        if (maxZoom > 17) {
+          paths.push(...track.getAllPositions());
+        }
+      }
+    }
+    if (allBounds.length === 0) return;
+
+    LeafletUtils.cleanBounds(allBounds);
+    const pathAroundMeters = 100 + 1000 * padding;
+    for (const layer of selection) {
+      this.offlineMap.save(
+        layer.layer, L.CRS.EPSG3857, layer.tiles,
+        1, maxZoom,
+        allBounds, paths, pathAroundMeters
+      );
+    }
   }
 
 }

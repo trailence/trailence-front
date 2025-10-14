@@ -84,8 +84,8 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
       const toFetch: string[] = [];
       for (let i = 0; i < dtos.length; ++i)  {
         const dto = dtos[i];
-        if (!dto) toFetch.push(uuids[i]);
-        else result.push(new Trail(dto));
+        if (dto) result.push(new Trail(dto));
+        else toFetch.push(uuids[i]);
       }
       if (toFetch.length === 0) return result;
       return this.fetchTrailsByIds(toFetch)
@@ -218,10 +218,8 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
       Console.info('Found ' + toRemove.length + ' to remove from ' + this.owner);
       if (toRemove.length === 0) return;
       const tracks: string[] = [];
-      for (const id of toRemove) {
-        tracks.push(id + '-original');
-        tracks.push(id + '-improved');
-      }
+      for (const id of toRemove)
+        tracks.push(id + '-original', id + '-improved');
       const startTime = Date.now();
       Promise.all([
         this.tableInfos.table.bulkDelete(toRemove),

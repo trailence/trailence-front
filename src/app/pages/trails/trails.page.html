@@ -6,20 +6,21 @@
     </div>
   }
 }
-<app-trails-and-map
-  #trailsAndMap
-  *ngIf="viewId"
-  [trails$]="(trails$ | async) ?? undefined"
-  [bubbles$]="bubbles$"
-  [showBubbles$]="showBubbles$"
-  [bubblesToolAvailable$]="bubblesToolAvailable$"
-  [viewId]="viewId"
-  [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"
-  [type]="trailsType"
-  [message]="searchMessage"
-  [enableRemoveByGesture]="trailsType === 'search'"
-  [enableSearchPlace]="true"
-  [mapTopToolbar$]="trailsType === 'search' ? mapTopToolbar$ : undefined"
-  [showPublished]="trailsType === 'collection' || trailsType === 'all-collections'"
-  [searching]="searching"
-></app-trails-and-map>
+@if (viewId) {
+  <app-trails-and-map
+    #trailsAndMap
+    [trails$]="(trails$ | async) ?? undefined"
+    [bubbles$]="bubbles$"
+    [showBubbles$]="showBubbles$"
+    [bubblesToolAvailable$]="bubblesToolAvailable$"
+    [viewId]="viewId"
+    [collectionUuid]="trailsType === 'collection' ? trailsId : undefined"
+    [type]="trailsType"
+    [message]="searchMessage"
+    [enableRemoveByGesture]="trailsType === 'search'"
+    [enableSearchPlace]="true"
+    [mapTopToolbar$]="trailsType === 'search' ? mapTopToolbar$ : undefined"
+    [showPublished]="trailsType === 'collection' || trailsType === 'all-collections'"
+    [searching]="searching"
+  ></app-trails-and-map>
+}

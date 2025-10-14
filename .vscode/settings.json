@@ -2,5 +2,10 @@
   "typescript.preferences.autoImportFileExcludePatterns": [
     "@ionic/angular/common",
     "@ionic/angular"
-  ]
+  ],
+  "sonarlint.connectedMode.project": {
+    "connectionId": "trailence",
+    "projectKey": "trailence_trailence-front"
+  },
+  "sonarlint.analyzerProperties": {}
 }

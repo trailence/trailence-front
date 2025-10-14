@@ -21,7 +21,7 @@ export class ArrivalToStart implements TrackEditTool {
       if (track.arrivalPoint && track.departurePoint) {
         const path = TrackUtils.findPath(track, track.departurePoint.pos, track.arrivalPoint.pos);
         if (path)
-          track.segments[track.segments.length - 1].appendMany(path.reverse().map(p => this.copy(p)));
+          track.segments.at(-1)?.appendMany(path.reverse().map(p => this.copy(p)));
       }
       return of(true);
     }, false, false).subscribe(() => ctx.refreshTools());

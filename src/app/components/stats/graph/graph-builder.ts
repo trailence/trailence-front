@@ -27,12 +27,17 @@ export class GraphBuilder {
   }
 
   public build(cfg: StatsConfig, width: number, height: number, styles: CSSStyleDeclaration): Observable<ChartConfig | undefined> {
-    return this.getAllItems(cfg).pipe(map(allItems => this.buildFrom(cfg, width, height, styles, allItems.filter(i => this.filter(i ,cfg)))));
+    return this.getAllItems(cfg).pipe(
+      map(allItems => {
+        const filteredItems = allItems.filter(i => this.filterItem(i, cfg));
+        return this.buildFrom(cfg, width, height, styles, filteredItems);
+      })
+    );
   }
 
-  private filter(item: Item, cfg: StatsConfig): boolean {
+  private filterItem(item: Item, cfg: StatsConfig): boolean {
     if (cfg.activities.length > 0) {
-      if (cfg.activities.indexOf(item.trail.activity) < 0) return false;
+      if (!cfg.activities.includes(item.trail.activity)) return false;
     }
     return true;
   }
@@ -141,7 +146,6 @@ export class GraphBuilder {
       if (value > maxValue) maxValue = value;
     }
     const textColor = styles.getPropertyValue('--ion-text-color');
-    const that = this;
     return {
       type: 'bar',
       options: {
@@ -177,51 +181,7 @@ export class GraphBuilder {
         },
         events: [],
         animation: {
-          onComplete: function() {
-            const ctx = this.ctx;
-
-            ctx.textAlign = 'center';
-            ctx.fillStyle = textColor;
-
-            const chart = this;
-            this.data.datasets.forEach(function(dataset, i) {
-              const meta = chart.getDatasetMeta(i);
-              meta.data.forEach(function(bar, index) {
-                const data = dataset.data[index] as number;
-                const str = that.getTickLabel(cfg, data);
-                const maxWidth = (bar as any).width * 1.1;
-                let fontSize = (C.defaults.font.size ?? 12) + 2;
-                ctx.font = fontSize + 'px ' + C.defaults.font.family;
-                let metrics = ctx.measureText(str);
-                const transform = ctx.getTransform();
-                while (metrics.width > maxWidth && fontSize > 11) {
-                  fontSize--;
-                  ctx.font = fontSize + 'px ' + C.defaults.font.family;
-                  metrics = ctx.measureText(str);
-                }
-                let x, y;
-                if (metrics.width > maxWidth) {
-                  y = bar.y + 2 + metrics.width / 2;
-                  if (y + metrics.width / 2 > chart.chartArea.height) y = chart.chartArea.height - metrics.width / 2;
-                  ctx.textBaseline = 'middle';
-                  ctx.translate(bar.x + 1, y);
-                  ctx.rotate(-Math.PI / 2);
-                  x = 0;
-                  y = 0;
-                } else {
-                  ctx.textBaseline = 'bottom';
-                  x = bar.x;
-                  if (bar.y <= meta.yScale!.top + 15) {
-                    y = bar.y + 17;
-                  } else {
-                    y = bar.y - 2;
-                  }
-                }
-                ctx.fillText(str, x, y);
-                ctx.setTransform(transform);
-              });
-            });
-          },
+          onComplete: (animation) => this.printLabelsOnTop(animation.chart, textColor, cfg),
         }
       },
       data: {
@@ -238,50 +198,104 @@ export class GraphBuilder {
     };
   }
 
-  private getAllItems(cfg: StatsConfig): Observable<Item[]> {
-    if (Array.isArray(cfg.source)) {
-      return combineLatest([
-        this.injector.get(TrailCollectionService).getAllCollectionsReady$(),
-        this.injector.get(ShareService).getAllReady$(),
-      ]).pipe(
-        switchMap(([collections, shares]) => {
-          const selectedCollections: TrailCollection[] = [];
-          const selectedShares: Share[] = [];
-          for (const src of cfg.source) {
-            if (src.type === 'collection') {
-              if (src.uuid === 'my_trails') {
-                const col = collections.find(c => c.type === TrailCollectionType.MY_TRAILS)
-                if (col && selectedCollections.indexOf(col) < 0) selectedCollections.push(col);
-              } else if (src.owner === this.injector.get(AuthService).email) {
-                const col = collections.find(c => c.uuid === src.uuid)
-                if (col && selectedCollections.indexOf(col) < 0) selectedCollections.push(col);
-              } else {
-                const share = shares.find(s => s.uuid === src.uuid && s.owner === src.owner);
-                if (share && selectedShares.indexOf(share) < 0) selectedShares.push(share);
-              }
-            }
-          }
-          if (selectedCollections.length === 0 && selectedShares.length === 0) return of([]);
-          return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
-            collection$items(),
-            switchMap(allTrails => {
-              const selectedTrails = allTrails.filter(trail => !!selectedCollections.find(c => c.uuid === trail.collectionUuid) || !!selectedShares.find(s => s.owner === trail.owner && s.trails.indexOf(trail.uuid) >= 0));
-              if (selectedTrails.length === 0) return of([]);
-              return this.injector.get(TrackService).getMetadataList$(selectedTrails.map(t => ({owner: t.owner, uuid: t.currentTrackUuid}))).pipe(
-                collection$items(),
-                map(tracks => {
-                  return tracks.map(track => ({
-                    trail: selectedTrails.find(t => t.owner === track.owner && t.currentTrackUuid === track.uuid)!,
-                    meta: track,
-                  }));
-                })
-              );
-            })
-          );
-        })
-      );
+  private printLabelsOnTop(chart: C.Chart, textColor: string, cfg: StatsConfig): void {
+    const ctx = chart.ctx;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = textColor;
+
+    for (let datasetIndex = 0; datasetIndex < chart.data.datasets.length; ++datasetIndex) {
+      const dataset = chart.data.datasets[datasetIndex];
+      const meta = chart.getDatasetMeta(datasetIndex);
+      for (let dataIndex = 0; dataIndex < meta.data.length; ++dataIndex) {
+        const bar = meta.data[dataIndex];
+        const data = dataset.data[dataIndex] as number;
+        this.printLabel(ctx, cfg, chart, meta, bar, data);
+      }
     }
-    return of([]);
+  }
+
+  private printLabel(ctx: CanvasRenderingContext2D, cfg: StatsConfig, chart: C.Chart, meta: C.ChartMeta, bar: C.Element, data: number): void {
+    const str = this.getTickLabel(cfg, data);
+    const maxWidth = (bar as any).width * 1.1; // NOSONAR
+    let fontSize = (C.defaults.font.size ?? 12) + 2;
+    ctx.font = fontSize + 'px ' + C.defaults.font.family;
+    let metrics = ctx.measureText(str);
+    const transform = ctx.getTransform();
+    while (metrics.width > maxWidth && fontSize > 11) {
+      fontSize--;
+      ctx.font = fontSize + 'px ' + C.defaults.font.family;
+      metrics = ctx.measureText(str);
+    }
+    let x, y;
+    if (metrics.width > maxWidth) {
+      y = bar.y + 2 + metrics.width / 2;
+      if (y + metrics.width / 2 > chart.chartArea.height) y = chart.chartArea.height - metrics.width / 2;
+      ctx.textBaseline = 'middle';
+      ctx.translate(bar.x + 1, y);
+      ctx.rotate(-Math.PI / 2);
+      x = 0;
+      y = 0;
+    } else {
+      ctx.textBaseline = 'bottom';
+      x = bar.x;
+      if (bar.y <= meta.yScale!.top + 15) {
+        y = bar.y + 17;
+      } else {
+        y = bar.y - 2;
+      }
+    }
+    ctx.fillText(str, x, y);
+    ctx.setTransform(transform);
+  }
+
+  private getAllItems(cfg: StatsConfig): Observable<Item[]> {
+    if (!Array.isArray(cfg.source)) return of([]);
+    return combineLatest([
+      this.injector.get(TrailCollectionService).getAllCollectionsReady$(),
+      this.injector.get(ShareService).getAllReady$(),
+    ]).pipe(
+      switchMap(([collections, shares]) => {
+        const selected = this.getSelected(cfg, collections, shares);
+        if (selected.collections.length === 0 && selected.shares.length === 0) return of([]);
+        return this.injector.get(TrailService).getAllWhenLoaded$().pipe(
+          collection$items(),
+          switchMap(allTrails => {
+            const selectedTrails = allTrails
+              .filter(trail => selected.collections.some(c => c.uuid === trail.collectionUuid) || selected.shares.some(s => s.owner === trail.owner && s.trails.includes(trail.uuid)));
+            if (selectedTrails.length === 0) return of([]);
+            return this.injector.get(TrackService).getMetadataList$(selectedTrails.map(t => ({owner: t.owner, uuid: t.currentTrackUuid}))).pipe(
+              collection$items(),
+              map(tracks => {
+                return tracks.map(track => ({
+                  trail: selectedTrails.find(t => t.owner === track.owner && t.currentTrackUuid === track.uuid)!,
+                  meta: track,
+                }));
+              })
+            );
+          })
+        );
+      })
+    );
+  }
+
+  private getSelected(cfg: StatsConfig, allCollections: TrailCollection[], allShares: Share[]): {collections: TrailCollection[], shares: Share[]} {
+    const collections: TrailCollection[] = [];
+    const shares: Share[] = [];
+    for (const src of cfg.source) {
+      if (src.type === 'collection') {
+        if (src.uuid === 'my_trails') {
+          const col = allCollections.find(c => c.type === TrailCollectionType.MY_TRAILS)
+          if (col && !collections.includes(col)) collections.push(col);
+        } else if (src.owner === this.injector.get(AuthService).email) {
+          const col = allCollections.find(c => c.uuid === src.uuid)
+          if (col && !collections.includes(col)) collections.push(col);
+        } else {
+          const share = allShares.find(s => s.uuid === src.uuid && s.owner === src.owner);
+          if (share && !shares.includes(share)) shares.push(share);
+        }
+      }
+    }
+    return {collections, shares};
   }
 
 }

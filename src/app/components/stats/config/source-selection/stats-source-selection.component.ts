@@ -1,14 +1,14 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { StatsSource } from '../../stats-config';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
+import { StatsSource, StatsSourceCollection } from '../../stats-config';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import { IonSelect, IonSelectOption } from "@ionic/angular/standalone";
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { CommonModule } from '@angular/common';
 import { ShareService } from 'src/app/services/database/share.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { Share } from 'src/app/model/share';
 
 interface SourceOption {
   value: string;
@@ -21,7 +21,6 @@ interface SourceOption {
   templateUrl: './stats-source-selection.component.html',
   imports: [
     IonSelect, IonSelectOption,
-    CommonModule,
   ]
 })
 export class StatsSourceSelectionComponent implements OnChanges, OnInit {
@@ -54,72 +53,76 @@ export class StatsSourceSelectionComponent implements OnChanges, OnInit {
       this.i18n.texts$,
       this.i18n.langLoaded$,
     ]).subscribe(([src, collections, shares, texts, lang]) => {
-      collections = this.collectionService.sort(collections);
-      shares = shares.sort((s1, s2) => s1.name.localeCompare(s2.name, lang));
       this.options = [];
-      for (const col of collections) {
-        if (col.type === TrailCollectionType.MY_TRAILS) {
-          this.options.push({
-            value: 'my_trails',
-            name: this.getCollectionName(col, texts),
-            source: { type: 'collection', uuid: 'my_trails' },
-          });
-          if (src?.find(s => s.type === 'collection' && s.uuid === 'my_trails'))
-            this.selection.push('my_trails');
-        } else {
-          this.options.push({
-            value: 'collection_' + col.uuid,
-            name: col.name,
-            source: { type: 'collection', uuid: col.uuid, owner: col.owner },
-          });
-          if (src?.find(s => s.type === 'collection' && s.uuid === col.uuid && s.owner === col.owner))
-            this.selection.push('collection_' + col.uuid);
-        }
-      }
-      for (const share of shares) {
-        this.options.push({
-          value: 'share_' + share.uuid + '_' + share.owner,
-          name: share.name + ' (' + texts.pages.stats.sources.shared_by + ' ' + share.owner + ')',
-          source: { type: 'collection', owner: share.owner, uuid: share.uuid }
-        });
-        if (src?.find(s => s.type === 'collection' && s.uuid === share.uuid && s.owner === share.owner))
-          this.selection.push('share_' + share.uuid + '_' + share.owner);
-      }
-      if (src) {
-        if (src.length === 0) this.description = '';
-        else {
-          const srcCollections =
-            src
-              .filter(s => s.type === 'collection' && (s.uuid === 'my_trails' || s.owner === this.authService.email))
-              .map(s => collections.find(c => (s.uuid === 'my_trails' && c.type === TrailCollectionType.MY_TRAILS) || c.uuid === s.uuid))
-              .filter(c => !!c);
-          const srcShares =
-            src
-              .filter(s => s.type === 'collection' && s.owner !== this.authService.email)
-              .map(s => shares.find(share => share.uuid === s.uuid && share.owner === s.owner))
-              .filter(s => !!s);
-          if (srcCollections.length === 1 && srcShares.length === 0)
-            this.description = texts.pages.stats.sources.the_collection + ' ' + this.getCollectionName(srcCollections[0], texts);
-          else if (srcShares.length === 1 && srcCollections.length === 0)
-            this.description += texts.pages.stats.sources.the_share + ' ' + srcShares[0].name;
-          else {
-            if (srcCollections.length > 0) {
-              this.description = srcCollections.length + ' ' + texts.pages.stats.sources[srcCollections.length === 1 ? 'collection_single' : 'collection_plural'];
-              if (srcShares.length > 0) this.description += ', ';
-            } else {
-              this.description = '';
-            }
-            if (srcShares.length > 0)
-              this.description += srcShares.length + ' ' + texts.pages.stats.sources[srcShares.length === 1 ? 'share_single' : 'share_plural'];
-          }
-        }
-      } else {
-        this.description = '';
-      }
+      this.buildOptionsFromCollections(collections, src, texts);
+      this.buildOptionsFromShares(shares, src, texts, lang);
+      this.description = this.buildDescription(src, collections, shares, texts);
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  private buildOptionsFromCollections(collections: TrailCollection[], src: StatsSourceCollection[] | undefined, texts: any): void {
+    for (const col of this.collectionService.sort(collections)) {
+      if (col.type === TrailCollectionType.MY_TRAILS) {
+        this.options.push({
+          value: 'my_trails',
+          name: this.getCollectionName(col, texts),
+          source: { type: 'collection', uuid: 'my_trails' },
+        });
+        if (src?.find(s => s.type === 'collection' && s.uuid === 'my_trails'))
+          this.selection.push('my_trails');
+      } else {
+        this.options.push({
+          value: 'collection_' + col.uuid,
+          name: col.name,
+          source: { type: 'collection', uuid: col.uuid, owner: col.owner },
+        });
+        if (src?.find(s => s.type === 'collection' && s.uuid === col.uuid && s.owner === col.owner))
+          this.selection.push('collection_' + col.uuid);
+      }
+    }
+  }
+
+  private buildOptionsFromShares(shares: Share[], src: StatsSourceCollection[] | undefined, texts: any, lang: string): void {
+    for (const share of shares.sort((s1, s2) => s1.name.localeCompare(s2.name, lang))) {
+      this.options.push({
+        value: 'share_' + share.uuid + '_' + share.owner,
+        name: share.name + ' (' + texts.pages.stats.sources.shared_by + ' ' + share.owner + ')',
+        source: { type: 'collection', owner: share.owner, uuid: share.uuid }
+      });
+      if (src?.find(s => s.type === 'collection' && s.uuid === share.uuid && s.owner === share.owner))
+        this.selection.push('share_' + share.uuid + '_' + share.owner);
+    }
+  }
+
+  private buildDescription(src: StatsSourceCollection[] | undefined, collections: TrailCollection[], shares: Share[], texts: any): string {
+    if (!src || src.length === 0) return '';
+    let result = '';
+    const srcCollections =
+      src
+        .filter(s => s.type === 'collection' && (s.uuid === 'my_trails' || s.owner === this.authService.email))
+        .map(s => collections.find(c => (s.uuid === 'my_trails' && c.type === TrailCollectionType.MY_TRAILS) || c.uuid === s.uuid))
+        .filter(c => !!c);
+    const srcShares =
+      src
+        .filter(s => s.type === 'collection' && s.owner !== this.authService.email)
+        .map(s => shares.find(share => share.uuid === s.uuid && share.owner === s.owner))
+        .filter(s => !!s);
+    if (srcCollections.length === 1 && srcShares.length === 0)
+      result = texts.pages.stats.sources.the_collection + ' ' + this.getCollectionName(srcCollections[0], texts);
+    else if (srcShares.length === 1 && srcCollections.length === 0)
+      result = texts.pages.stats.sources.the_share + ' ' + srcShares[0].name;
+    else {
+      if (srcCollections.length > 0) {
+        result = srcCollections.length + ' ' + texts.pages.stats.sources[srcCollections.length === 1 ? 'collection_single' : 'collection_plural'];
+        if (srcShares.length > 0) result += ', ';
+      }
+      if (srcShares.length > 0)
+        result += srcShares.length + ' ' + texts.pages.stats.sources[srcShares.length === 1 ? 'share_single' : 'share_plural'];
+    }
+    return result;
+  }
+
+  ngOnChanges(): void {
     this.source$.next(this.source);
   }
 

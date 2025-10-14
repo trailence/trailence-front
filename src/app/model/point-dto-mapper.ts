@@ -45,7 +45,7 @@ export class PointDtoMapper {
   }
 
   public static readCoordValue(value: number): number {
-    return parseFloat((value / POSITION_FACTOR).toFixed(6));
+    return Number.parseFloat((value / POSITION_FACTOR).toFixed(6));
   }
 
   private static toValue(value: number | undefined, previous: number | undefined, factor: number): number | undefined {
@@ -70,12 +70,12 @@ export class PointDtoMapper {
     if (!previous) return {
       l: this.writeCoordValue(pos.lat),
       n: this.writeCoordValue(pos.lng),
-      e: point.ele !== undefined ? Math.round(point.ele * ELEVATION_FACTOR) : undefined,
+      e: point.ele === undefined ? undefined : Math.round(point.ele * ELEVATION_FACTOR),
       t: point.time,
-      pa: point.posAccuracy !== undefined ? Math.round(point.posAccuracy * POSITION_ACCURACY_FACTOR) : undefined,
-      ea: point.eleAccuracy !== undefined ? Math.round(point.eleAccuracy * ELEVATION_ACCURACY_FACTOR) : undefined,
-      h: point.heading !== undefined ? Math.round(point.heading * HEADING_FACTOR) : undefined,
-      s: point.speed !== undefined ? Math.round(point.speed * SPEED_FACTOR) : undefined,
+      pa: point.posAccuracy === undefined ? undefined : Math.round(point.posAccuracy * POSITION_ACCURACY_FACTOR),
+      ea: point.eleAccuracy === undefined ? undefined : Math.round(point.eleAccuracy * ELEVATION_ACCURACY_FACTOR),
+      h: point.heading === undefined ? undefined : Math.round(point.heading * HEADING_FACTOR),
+      s: point.speed === undefined ? undefined : Math.round(point.speed * SPEED_FACTOR),
     };
     const prevPos = previous.pos;
     const dto: PointDto = {};
@@ -104,8 +104,8 @@ export class PointDtoMapper {
   }
 
   private static diff(newValue: number | undefined, previousValue: number | undefined, factor: number): number  | undefined {
-    const nv = newValue === undefined ? undefined : (factor !== 1 ? Math.round(newValue * factor) : newValue);
-    const pv = previousValue === undefined ? undefined : (factor !== 1 ? Math.round(previousValue * factor) : previousValue);
+    const nv = newValue === undefined ? undefined : (factor === 1 ? newValue : Math.round(newValue * factor));
+    const pv = previousValue === undefined ? undefined : (factor === 1 ? previousValue : Math.round(previousValue * factor));
     if (nv === pv) return undefined;
     if (nv === undefined) return 0;
     if (pv === undefined) return nv;

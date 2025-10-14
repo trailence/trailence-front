@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController } from "@ionic/angular/standalone";
 import { CodeInputModule } from 'angular-code-input';
@@ -12,7 +11,10 @@ import { environment } from 'src/environments/environment';
 @Component({
   templateUrl: './delete-me.component.html',
   styleUrl: './delete-me.component.scss',
-  imports: [IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader, CommonModule, CodeInputModule ]
+  imports: [
+    IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonToolbar, IonHeader,
+    CodeInputModule,
+  ]
 })
 export class DeleteMeComponent {
 

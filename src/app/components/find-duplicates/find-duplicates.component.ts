@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent, IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonPopover, IonList, IonItem, IonSpinner, ModalController } from '@ionic/angular/standalone';
 import { first, map, Observable, of, switchMap, zip } from 'rxjs';
@@ -16,6 +15,7 @@ import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
 import { TrailComponent } from '../trail/trail.component';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { NgClass, NgStyle } from '@angular/common';
 
 export function openFindDuplicates(injector: Injector, fromCollection: string): void {
   injector.get(ModalController).create({
@@ -34,9 +34,9 @@ export function openFindDuplicates(injector: Injector, fromCollection: string): 
   imports: [
     IonHeader, IonFooter, IonToolbar, IonTitle, IonButtons, IonButton, IonLabel, IonIcon, IonContent,
     IonRadioGroup, IonRadio, IonSelect, IonSelectOption, IonInput, IonSpinner, IonPopover, IonList, IonItem,
-    CommonModule,
     I18nPipe,
     TrailComponent,
+    NgClass, NgStyle,
   ]
 })
 export class FindDuplicatesComponent implements OnInit, OnDestroy {
@@ -104,8 +104,8 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
 
   setThreshold(value: string | null | undefined): void {
     if (!value) return;
-    const n = parseInt(value);
-    if (!isNaN(n) && n >= 1 && n <= 100) this.threshold = n;
+    const n = Number.parseInt(value);
+    if (!Number.isNaN(n) && n >= 1 && n <= 100) this.threshold = n;
   }
 
   canStart(): boolean {
@@ -183,7 +183,7 @@ export class FindDuplicatesComponent implements OnInit, OnDestroy {
     this.percentDone = Math.floor(index  * 100 / toCompare.length);
     const source = toCompare[index].source;
     const target = toCompare[index].target;
-    if (this.deleted.find(t => (t.uuid === source.trail.uuid && t.owner === source.trail.owner) || (t.uuid === target.trail.uuid && t.owner === target.trail.owner))) {
+    if (this.deleted.some(t => (t.uuid === source.trail.uuid && t.owner === source.trail.owner) || (t.uuid === target.trail.uuid && t.owner === target.trail.owner))) {
       this.next(toCompare, index + 1, startTime, deep + 1);
       return;
     }

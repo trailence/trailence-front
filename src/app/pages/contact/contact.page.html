@@ -2,16 +2,18 @@
 <div class="page-container">
   <div class="content-container">
     <div class="form-container">
-      <div class="form-value" *ngIf="!auth.auth">
-        <ion-input
-          type="email"
-          fill="outline"
-          label="{{i18n.texts.pages.contact.email}}"
-          label-placement="floating"
-          [disabled]="sending"
-          [(ngModel)]="email"
-        ></ion-input>
-      </div>
+      @if (!auth.auth) {
+        <div class="form-value">
+          <ion-input
+            type="email"
+            fill="outline"
+            label="{{i18n.texts.pages.contact.email}}"
+            label-placement="floating"
+            [disabled]="sending"
+            [(ngModel)]="email"
+          ></ion-input>
+        </div>
+      }
       <div class="form-value">
         <ion-select
           fill="outline"
@@ -37,31 +39,28 @@
           [(ngModel)]="message"
         ></ion-textarea>
       </div>
-      <div class="form-value" *ngIf="type === 'bug'">
-        <ion-checkbox [(ngModel)]="includeData" labelPlacement="end">{{ i18n.texts.pages.contact.accept_send_data }}</ion-checkbox>
-        <a href='#' (click)="$event.preventDefault(); showData();">{{ i18n.texts.pages.contact.show_data }}</a>
-      </div>
+      @if (type === 'bug') {
+        <div class="form-value">
+          <ion-checkbox [(ngModel)]="includeData" labelPlacement="end">{{ i18n.texts.pages.contact.accept_send_data }}</ion-checkbox>
+          <a href='#' (click)="$event.preventDefault(); showData();">{{ i18n.texts.pages.contact.show_data }}</a>
+        </div>
+      }
       <div class="captcha-container">
         <div id="captcha-contact"></div>
       </div>
-      <div class="network-needed" *ngIf="!networkAvailable">
-        {{ i18n.texts.pages.contact.network_needed }}
-      </div>
+      @if (!networkAvailable) { <div class="network-needed">{{ i18n.texts.pages.contact.network_needed }}</div>
+      }
       <div class="buttons">
         <ion-button [disabled]="sending || !isValid()" (click)="send()">
           <ion-icon name="send-message" slot="start"></ion-icon>
           {{ i18n.texts.pages.contact.send_button }}
         </ion-button>
       </div>
-      <div class="error" *ngIf="!sending && error">
-        {{ i18n.texts.pages.contact.error }}
-      </div>
-      <div *ngIf="!sending && retryWithCaptcha">
-        {{ i18n.texts.pages.contact.retry_with_captcha }}
-      </div>
-      <div class="success" *ngIf="!sending && sent">
-        {{ i18n.texts.pages.contact.sent }}
-      </div>
+      @if (!sending) {
+        @if (error) {<div class="error">{{ i18n.texts.pages.contact.error }}</div>}
+        @if (retryWithCaptcha) {<div>{{ i18n.texts.pages.contact.retry_with_captcha }}</div>}
+        @if (sent) {<div class="success">{{ i18n.texts.pages.contact.sent }}</div>}
+      }
       @if (auth.auth && !auth.auth.isAnonymous) {
         <div class="email-contact">{{i18n.texts.pages.contact.email_alternative}} <a href="mailto:contact@trailence.org">contact@trailence.org</a></div>
       }

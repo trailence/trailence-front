@@ -18,7 +18,7 @@ export class MapTrackPath {
   private _map?: L.Map;
   private _path?: L.Polyline;
   private _subscription?: Subscription;
-  private _pathUpdated$ = new EventEmitter<any>();
+  private readonly _pathUpdated$ = new EventEmitter<any>();
 
   public get pathUpdated$() { return this._pathUpdated$; }
 
@@ -49,7 +49,7 @@ export class MapTrackPath {
             return;
           }
           this._path = undefined;
-          if (this._map) this.path.addTo(this._map);
+          if (this._map) this.path.addTo(this._map); // NOSONAR
         });
       }
     }

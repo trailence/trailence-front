@@ -10,11 +10,13 @@
 </ion-header>
 <ion-content class="ion-padding">
   <ion-list>
-    <ion-item *ngFor="let error of errors; let index = index" [detail]="false" [lines]="index < errors.length - 1 ? 'full' : 'none'">
-      <span class="error-item" style="font-size: 12px;">{{error}}</span>
-      <ion-button slot="end" size="small" fill="clear" color="dark" (click)="removeError(index)">
-        <ion-icon slot="icon-only" name="trash"></ion-icon>
-      </ion-button>
-    </ion-item>
+    @for (error of errors; track error) {
+      <ion-item [detail]="false" [lines]="$index < errors.length - 1 ? 'full' : 'none'">
+        <span class="error-item" style="font-size: 12px;">{{error}}</span>
+        <ion-button slot="end" size="small" fill="clear" color="dark" (click)="removeError($index)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-button>
+      </ion-item>
+    }
   </ion-list>
 </ion-content>

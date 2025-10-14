@@ -72,8 +72,8 @@ export class TrackDatabase {
     });
     injector.get(AuthService).auth$.subscribe(
       auth => {
-        if (!auth) this.close();
-        else this.open(auth.email);
+        if (auth) this.open(auth.email);
+        else this.close();
       }
     );
   }
@@ -231,7 +231,7 @@ export class TrackDatabase {
       return this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
         return this.metadataTable?.count()
         .then(countFromTable => {
-          const step = countFromTable > 0 ? workAmount * 1.0 / countFromTable : workAmount;
+          const step = countFromTable > 0 ? workAmount / countFromTable : workAmount;
           return this.fullTrackTable?.each(trackItem => {
             if (!trackItem.track || trackItem.version === -1) return;
             count++;
@@ -290,7 +290,7 @@ export class TrackDatabase {
             if (db !== dbService.db?.db || email !== dbService.email) return [];
             const eligibleKeys: string[] = [];
             for (const key of keys) {
-              if (allKnownKeys.indexOf(key) < 0) {
+              if (!allKnownKeys.includes(key)) {
                 eligibleKeys.push(key);
               }
             }
@@ -456,7 +456,7 @@ export class TrackDatabase {
         };
         if (previous && simplified.points.length > 1) {
           const angle1 = Math.atan2(p.lat - previous.lat, p.lng - previous.lng);
-          const pprevious = simplified.points[simplified.points.length - 2];
+          const pprevious = simplified.points.at(-2)!;
           const angle2 = Math.atan2(previous.lat - pprevious.lat, previous.lng - pprevious.lng);
           if (Math.abs(angle1 - angle2) < 0.35) {
             simplified.points[simplified.points.length - 1] = newPoint;
@@ -468,8 +468,8 @@ export class TrackDatabase {
         previous = p;
       }
     });
-    const lastSegment = track.segments[track.segments.length - 1];
-    const lastPoint = lastSegment.points[lastSegment.points.length - 1];
+    const lastSegment = track.segments.at(-1)!;
+    const lastPoint = lastSegment.points.at(-1)!;
     if (previous !== lastPoint.pos) {
       simplified.points.push({
         lat: lastPoint.pos.lat,
@@ -533,7 +533,6 @@ export class TrackDatabase {
           return Promise.all([promise1, promise2, promise3])
           .catch(e => {
             Console.error("Error storing track in database", e);
-            return Promise.resolve();
           });
         });
         const full$ = this.fullTracks.get(key);
@@ -586,7 +585,6 @@ export class TrackDatabase {
           return Promise.all([promise1, promise2, promise3])
           .catch(e => {
             Console.error("Error updating track in database", e);
-            return Promise.resolve();
           });
         });
         const full$ = this.fullTracks.get(key);
@@ -770,10 +768,10 @@ export class TrackDatabase {
         Console.info('' + toCreate.length + ' tracks to be created on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<any>[] = [];
-        toCreate.forEach(item => {
+        for (const item of toCreate) {
           const request = this.createItemRequest(db, item);
           requests.push(limiter.add(request));
-        });
+        }
         if (requests.length === 0) return of(true);
         return zip(requests).pipe(map(() => items.length < 50), defaultIfEmpty(true));
       }),
@@ -919,7 +917,7 @@ export class TrackDatabase {
         Console.info('' + toUpdate.length + ' tracks to be updated on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<TrackDto>[] = [];
-        toUpdate.forEach(item => {
+        for (const item of toUpdate) {
           const request = () => {
             if (this.db !== db) return EMPTY;
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
@@ -936,7 +934,7 @@ export class TrackDatabase {
             );
           }
           requests.push(limiter.add(request));
-        });
+        }
         return (requests.length === 0 ? of([]) : zip(requests)).pipe(
           switchMap(responses => this.updatesFromServer(db, responses, [])),
           map(() => items.length < 50),
@@ -954,8 +952,8 @@ export class TrackDatabase {
   private updatesFromServer(db: Dexie, tracks: TrackDto[], deleted: { uuid: string, owner: string }[]): Observable<any> {
     if (this.db !== db) return EMPTY;
     if (tracks.length === 0 && deleted.length === 0) return of(true);
-    tracks.forEach(t => this._errors.itemSuccess(t.uuid + '#' + t.owner));
-    deleted.forEach(t => this._errors.itemSuccess(t.uuid + '#' + t.owner));
+    for (const t of tracks) this._errors.itemSuccess(t.uuid + '#' + t.owner);
+    for (const t of deleted) this._errors.itemSuccess(t.uuid + '#' + t.owner);
     return from(this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => { // NOSONAR
       if (deleted.length > 0) {
         const keys = deleted.map(item => item.uuid + '#' + item.owner);
@@ -966,11 +964,11 @@ export class TrackDatabase {
         if (this.db !== db) return;
         await this.fullTrackTable!.bulkDelete(keys);
         if (this.db !== db) return;
-        keys.forEach(key => {
+        for (const key of keys) {
           this.fullTracks.get(key)?.newValue(null);
           this.simplifiedTracks.get(key)?.newValue(null);
           this.metadata.get(key)?.newValue(null);
-        });
+        }
         if (this.db !== db) return;
       }
       if (tracks.length > 0) {
@@ -986,19 +984,17 @@ export class TrackDatabase {
         if (this.db !== db) return;
         const prefs = this.injector.get(PreferencesService);
         const entities = tracks.map(track => new Track(track, prefs));
-        entities.forEach(entity => {
-          this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
-        })
+        for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
         const simplified = entities.map(track => ({...TrackDatabase.simplify(track), key: track.uuid + '#' + track.owner}));
         if (this.db !== db) return;
         await this.simplifiedTrackTable!.bulkPut(simplified);
         if (this.db !== db) return;
-        simplified.forEach(s => this.simplifiedTracks.get(s.key)?.newValue(s));
+        for (const s of simplified) this.simplifiedTracks.get(s.key)?.newValue(s);
         const metadata = entities.map(track => ({...TrackDatabase.toMetadata(track), key: track.uuid + '#' + track.owner}));
         if (this.db !== db) return;
         await this.metadataTable!.bulkPut(metadata);
         if (this.db !== db) return;
-        metadata.forEach(m => this.metadata.get(m.key)?.newValue(m));
+        for (const m of metadata) this.metadata.get(m.key)?.newValue(m);
       }
     })).pipe(
       defaultIfEmpty(true),

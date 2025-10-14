@@ -9,21 +9,21 @@ import { Subscription } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { ExtensionsService } from 'src/app/services/database/extensions.service';
 import { FilterNumeric, NumericFilterCustomConfig } from 'src/app/components/filters/filter';
-import { CommonModule } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
 import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-numeric-custom/filter-numeric-custom.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { IdGenerator } from 'src/app/utils/component-utils';
 
 @Component({
-    selector: 'app-preferences',
-    templateUrl: './preferences.page.html',
-    styleUrls: ['./preferences.page.scss'],
-    imports: [IonRadioGroup, IonRadio, IonSpinner,
-      IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon,
-      HeaderComponent, FormsModule, CommonModule,
-      FilterNumericCustomComponent,
-    ]
+  selector: 'app-preferences',
+  templateUrl: './preferences.page.html',
+  styleUrls: ['./preferences.page.scss'],
+  imports: [
+    IonRadioGroup, IonRadio, IonSpinner, IonInput, IonButton, IonRange, IonLabel, IonSegmentButton, IonSegment, IonIcon,
+    HeaderComponent,
+    FormsModule,
+    FilterNumericCustomComponent,
+  ]
 })
 export class PreferencesPage implements OnDestroy {
 
@@ -63,7 +63,7 @@ export class PreferencesPage implements OnDestroy {
     );
     this.preferencesSubscription = preferences.preferences$.subscribe(() => this.refresh());
     this.authSubscription = auth.auth$.subscribe(a => {
-      this.tfoAllowed = !!a && a.allowedExtensions.indexOf('thunderforest.com') >= 0;
+      this.tfoAllowed = !!a && a.allowedExtensions.includes('thunderforest.com');
       this.isAnonymous = a?.isAnonymous ?? false;
     });
   }
@@ -146,8 +146,7 @@ export class PreferencesPage implements OnDestroy {
   }
 
   setAlias(s: string | null | undefined): void {
-    let alias = s ?? '';
-    alias = alias.trim();
+    let alias = s?.trim() ?? '';
     this.aliasType = alias.length > 0 ? 'name' : 'anonymous';
     this.preferences.setAlias(alias);
   }
@@ -166,8 +165,8 @@ export class PreferencesPage implements OnDestroy {
 
   setEstimatedBaseSpeed(speed: string | null | undefined): void {
     if (!speed) return;
-    const value = parseFloat(speed);
-    if (isNaN(value) || value < 0.1 || value > 99.9) return;
+    const value = Number.parseFloat(speed);
+    if (Number.isNaN(value) || value < 0.1 || value > 99.9) return;
     const meters = this.i18n.getSpeedInMetersFromUserUnit(value);
     this.preferences.setEstimatedBaseSpeed(meters);
   }

@@ -61,19 +61,8 @@ export class TrailSelection {
       this.cancelSelection();
       return;
     }
-    if (this.extendingSelection && this.selection$.value && this.selection$.value.length > 0 && this.selection$.value[0] instanceof PointReference) {
-      const ranges: RangeReference[] = [];
-      for (const point2 of points) {
-        const point1 = this.selection$.value.find(p => p.track === point2.track) as PointReference | undefined;
-        if (!point1) continue;
-        if (point2.segmentIndex !== point1.segmentIndex || point2.pointIndex !== point1.pointIndex) {
-          if (point2.segmentIndex < point1.segmentIndex || (point2.segmentIndex === point1.segmentIndex && point2.pointIndex < point1.pointIndex)) {
-            ranges.push(new RangeReference(point2, point1));
-          } else {
-            ranges.push(new RangeReference(point1, point2));
-          }
-        }
-      }
+    if (this.extendingSelection && this.selection$.value?.at(0) instanceof PointReference) {
+      const ranges = this.getRangesForSelectionExtension(points);
       if (ranges.length > 0) {
         this.extendingSelection = false;
         this.selectRange(ranges);
@@ -83,6 +72,22 @@ export class TrailSelection {
     this.selection$.next(points);
     if (this.selectionTrack$.value.length > 0)
       this.selectionTrack$.next([]);
+  }
+
+  private getRangesForSelectionExtension(points: PointReference[]): RangeReference[] {
+    const ranges: RangeReference[] = [];
+    for (const point2 of points) {
+      const point1 = this.selection$.value!.find(p => p.track === point2.track) as PointReference | undefined;
+      if (!point1) continue;
+      if (point2.segmentIndex !== point1.segmentIndex || point2.pointIndex !== point1.pointIndex) {
+        if (point2.segmentIndex < point1.segmentIndex || (point2.segmentIndex === point1.segmentIndex && point2.pointIndex < point1.pointIndex)) {
+          ranges.push(new RangeReference(point2, point1));
+        } else {
+          ranges.push(new RangeReference(point1, point2));
+        }
+      }
+    }
+    return ranges;
   }
 
   public selectRange(ranges: RangeReference[]): void {
@@ -169,7 +174,7 @@ export class TrailSelection {
   }
 
   public toggleZoom(): void {
-    if (!this.zoom$.value) this.zoom(); else this.cancelZoom();
+    if (this.zoom$.value) this.cancelZoom(); else this.zoom();
   }
 
   public tracksChanged(newTracks: Track[]): void {
@@ -177,7 +182,7 @@ export class TrailSelection {
       let changed = false;
       for (let i = 0; i < this.selection$.value.length; ++i) {
         const sel = this.selection$.value[i];
-        if (newTracks.indexOf(sel.track) < 0) {
+        if (!newTracks.includes(sel.track)) {
           this.selection$.value.splice(i, 1);
           if (this.selectionTrack$.value.length > i)
             this.selectionTrack$.value.splice(i, 1);

@@ -13,8 +13,8 @@ export class StoredFilesService {
   ) {
     auth.auth$.subscribe(
       auth => {
-        if (!auth) this.close();
-        else this.open(auth.email);
+        if (auth) this.open(auth.email);
+        else this.close();
       }
     );
   }
@@ -62,7 +62,7 @@ export class StoredFilesService {
       if (keys.length === 0 || t !== this.table) return Promise.resolve([0,0]) as Promise<[number,number]>; // NOSONAR
       const next: (i:number,total1:number,total2:number) => Promise<[number,number]> = (i, total1, total2) => {
         if (t !== this.table) return Promise.resolve([total1, total2]);
-        const end = i + chunk > keys.length ? keys.length : i + chunk;
+        const end = Math.min(i + chunk, keys.length);
         let next$: Promise<[number,number]> = t.bulkGet(keys.slice(i, end))
         .then(dtos => {
           let nt1 = total1;
@@ -88,7 +88,7 @@ export class StoredFilesService {
     return from(t.toCollection().primaryKeys()
     .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
     .then(keys => {
-      if (keys.length === 0 || t !== this.table) return Promise.resolve([]);
+      if (keys.length === 0 || t !== this.table) return [];
       const next: (i:number,toRemove:string[]) => Promise<string[]> = (i,toRemove) => {
         if (t !== this.table) return Promise.resolve([] as string[]);
         let next$ = t.get(keys[i])

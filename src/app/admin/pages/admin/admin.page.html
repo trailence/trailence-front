@@ -1,14 +1,14 @@
 <div class="header">
   <app-header title="{{ 'administration' | i18nString }}"></app-header>
-  <ng-container *ngIf="ready">
+  @if (ready) {
     <ion-segment [value]="getCurrentPage()" color="tertiary" (ionChange)="goToPage($event.detail.value)">
       <ion-segment-button value="users">{{ 'admin.users.title' | i18nString }}</ion-segment-button>
       <ion-segment-button value="plans">{{ 'admin.plans.title' | i18nString }}</ion-segment-button>
       <ion-segment-button value="donations">{{ 'admin.donations.title' | i18nString }}</ion-segment-button>
-      <ion-segment-button value="messages">{{ 'admin.messages.title' | i18nString }} <span *ngIf="unreadMessagesCount">({{unreadMessagesCount}})</span></ion-segment-button>
+      <ion-segment-button value="messages">{{ 'admin.messages.title' | i18nString }} @if (unreadMessagesCount) {<span>({{unreadMessagesCount}})</span>}</ion-segment-button>
     </ion-segment>
-  </ng-container>
+  }
 </div>
-<ng-container *ngIf="ready">
+@if (ready) {
   <ion-router-outlet></ion-router-outlet>
-</ng-container>
+}

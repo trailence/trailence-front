@@ -4,15 +4,18 @@ import { IonHeader, IonToolbar, IonIcon, IonLabel, IonContent, IonInput, IonFoot
 import { PublicationChecklist } from './checklist';
 import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';
-import { CommonModule } from '@angular/common';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { Track } from 'src/app/model/track';
 import { Observable, Subscription } from 'rxjs';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   templateUrl: './checklist.component.html',
   styleUrl: './checklist.component.scss',
-  imports: [IonTextarea, IonCheckbox, IonButton, IonButtons, IonFooter, IonInput, IonContent, IonLabel, IonIcon, IonToolbar, IonHeader, CommonModule ]
+  imports: [
+    IonTextarea, IonCheckbox, IonButton, IonButtons, IonFooter, IonInput, IonContent, IonLabel, IonIcon, IonToolbar, IonHeader,
+    NgTemplateOutlet,
+  ]
 })
 export class CheckListComponent implements OnInit, OnDestroy {
 

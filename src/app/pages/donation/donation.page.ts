@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, Injector } from '@angular/core';
 import { IonIcon, IonButton } from '@ionic/angular/standalone';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -10,6 +9,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PublicPage } from '../public.page';
+import { NgStyle } from '@angular/common';
 
 interface Goal {
   type: string;
@@ -22,9 +22,9 @@ interface Goal {
   templateUrl: './donation.page.html',
   styleUrl: './donation.page.scss',
   imports: [
-    CommonModule,
     IonIcon, IonButton,
     HeaderComponent,
+    NgStyle,
   ]
 })
 export class DonationPage extends PublicPage {
@@ -63,7 +63,7 @@ export class DonationPage extends PublicPage {
           const goal = {
             type: g.type,
             amount,
-            current: remaining > amount ? amount : remaining
+            current: Math.min(remaining, amount)
           } as Goal;
           this.goals.push(goal);
           remaining -= goal.current;

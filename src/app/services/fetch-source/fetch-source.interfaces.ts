@@ -158,7 +158,7 @@ export function populateWayPointInfo(track: Track, fetched: WayPointInfo[], pref
         if (wp.wayPoint.description.trim().length === 0 && wpi.description) {
           wp.wayPoint.description = wpi.description.trim();
           updated = true;
-          if (track.wayPoints.indexOf(wp.wayPoint) < 0) {
+          if (!track.wayPoints.includes(wp.wayPoint)) {
             track.appendWayPoint(wp.wayPoint);
           }
         }

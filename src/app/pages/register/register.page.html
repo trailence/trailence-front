@@ -7,10 +7,9 @@
     </div>
   </ion-toolbar>
   <ion-card-content>
-    <ng-container *ngIf="!connected">
+    @if (!connected) {
       <div>{{ i18n.texts.pages.register.offline }}</div>
-    </ng-container>
-    <ng-container *ngIf="connected">
+    } @else {
       <form (ngSubmit)="onSubmit()">
         <div class="step-header">
           <div class="step-number">1</div>
@@ -31,11 +30,11 @@
           <div>
             <div id="captcha-register"></div>
           </div>
-          <div class="center error" *ngIf="error">{{ error }}</div>
+          @if (error) {<div class="center error">{{ error }}</div>}
           <div class="center">
             <ion-button (click)="onSubmit()" [disabled]="!isStep1Valid() || inprogress">
-              <span *ngIf="!inprogress">{{ i18n.texts.pages.register.continue }}</span>
-              <ion-spinner *ngIf="inprogress" color="secondary"></ion-spinner>
+              @if (!inprogress) {<span>{{ i18n.texts.pages.register.continue }}</span>}
+              @else {<ion-spinner color="secondary"></ion-spinner>}
             </ion-button>
           </div>
         </div>
@@ -46,12 +45,12 @@
         <div class="step-content" [ngClass]="{'hidden': step !== 2}">
           <div>{{ i18n.texts.pages.register.code_text }}</div>
           <code-input [codeLength]="6" (codeChanged)="code = $event"></code-input>
-          <div class="center error" *ngIf="error">{{ error }}</div>
+          @if (error) {<div class="center error">{{ error }}</div>}
           <div class="center">
             <ion-button color="secondary" (click)="back()" [disabled]="inprogress">{{ i18n.texts.pages.register.back }}</ion-button>
             <ion-button (click)="onSubmit()" [disabled]="code.length !== 6 || inprogress">
-              <span *ngIf="!inprogress">{{ i18n.texts.pages.register.continue }}</span>
-              <ion-spinner *ngIf="inprogress" color="secondary"></ion-spinner>
+              @if (!inprogress) {<span>{{ i18n.texts.pages.register.continue }}</span>}
+              @else {<ion-spinner color="secondary"></ion-spinner>}
             </ion-button>
           </div>
         </div>
@@ -64,7 +63,7 @@
           <span>{{ i18n.texts.pages.register.connection }}</span>
         </div>
       </form>
-    </ng-container>
+    }
   </ion-card-content>
 </ion-card>
 </div>

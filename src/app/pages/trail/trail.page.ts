@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, of, switchMap } from 'rxjs';
@@ -24,14 +23,13 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 @Component({
-    selector: 'app-trail-page',
-    templateUrl: './trail.page.html',
-    styleUrls: ['./trail.page.scss'],
-    imports: [
-        CommonModule,
-        HeaderComponent,
-        TrailComponent,
-    ]
+  selector: 'app-trail-page',
+  templateUrl: './trail.page.html',
+  styleUrls: ['./trail.page.scss'],
+  imports: [
+    HeaderComponent,
+    TrailComponent,
+  ]
 })
 export class TrailPage extends AbstractPage {
 
@@ -84,17 +82,17 @@ export class TrailPage extends AbstractPage {
       this.trail$.pipe(
         switchMap(t => {
           if (!t) return of(undefined);
-          const info$ = t.owner.indexOf('@') >= 0 ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(t.owner, t.uuid);
+          const info$ = t.owner.includes('@') ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(t.owner, t.uuid);
           return combineLatest([t.name$, info$]).pipe(
             switchMap(([trailName, trailInfo]) => (
-                t.fromModeration || t.owner.indexOf('@') < 0 ? of(undefined) as Observable<string | undefined> :
+                t.fromModeration || !t.owner.includes('@') ? of(undefined) as Observable<string | undefined> :
                 t.owner === this.injector.get(AuthService).email ?
                   trailCollectionService.getCollectionName$(t.collectionUuid, t.owner) :
                   this.injector.get(ShareService).getSharesFromTrailSharedWithMe(t.uuid, t.owner).pipe(map(list => list.map(s => s.name).join(', ')))
               ).pipe(
                 map(cn => ({
                   trail: t,
-                  trailName: trailInfo?.lang && trailInfo.lang !== this.injector.get(PreferencesService).preferences.lang && trailInfo.nameTranslations && trailInfo.nameTranslations[this.injector.get(PreferencesService).preferences.lang] ?
+                  trailName: trailInfo?.lang && trailInfo.lang !== this.injector.get(PreferencesService).preferences.lang && trailInfo.nameTranslations?.[this.injector.get(PreferencesService).preferences.lang] ?
                     trailInfo.nameTranslations[this.injector.get(PreferencesService).preferences.lang] : trailName,
                   collectionName: cn
                 }))
@@ -105,7 +103,7 @@ export class TrailPage extends AbstractPage {
       ),
       this.trail2$.pipe(switchMap(t => t ? t.name$ : of(undefined))),
       this.i18n.texts$,
-    ]), ([rec, t1, t2, texts]) => {
+    ]), ([rec, t1, t2, texts]) => { // NOSONAR
       if (t1) {
         if (t2) {
           this.title = texts.pages.trail.title_compare;
@@ -192,49 +190,39 @@ export class TrailPage extends AbstractPage {
           const collection = result.col;
           this.menu = t2 ? [] : this.trailMenuService.getTrailsMenu(t1 ? [t1] : [], true, collection ?? undefined);
           if (t1 && !t2 && t1.owner === 'trailence' && result.auth?.admin) {
-            this.menu.push(new MenuItem());
-            this.menu.push(new MenuItem()
-              .setFixedLabel('[Admin] Delete')
-              .setTextColor('danger')
-              .setAction(() => {
-                this.injector.get(AlertController).create({
-                  header: 'Delete public trail',
-                  message: 'Confirm?',
-                  buttons: [
-                    {
-                      text: 'Yes',
-                      cssClass: 'danger',
-                      role: 'ok',
-                      handler: () => this.injector.get(AlertController).dismiss(null, 'ok')
-                    }, {
-                      text: 'Cancel',
-                      role: 'cancel',
-                    }
-                  ]
-                })
-                .then(alert => {
-                  alert.onDidDismiss()
-                  .then(result => {
-                    if (result.role === 'ok')
-                      this.injector.get(ModerationService).deletePublicTrail(t1.uuid).subscribe({complete: () => this.injector.get(NavController).back()});
+            this.menu.push(
+              new MenuItem(),
+              new MenuItem()
+                .setFixedLabel('[Admin] Delete')
+                .setTextColor('danger')
+                .setAction(() => {
+                  this.injector.get(AlertController).create({
+                    header: 'Delete public trail',
+                    message: 'Confirm?',
+                    buttons: [
+                      {
+                        text: 'Yes',
+                        cssClass: 'danger',
+                        role: 'ok',
+                        handler: () => this.injector.get(AlertController).dismiss(null, 'ok')
+                      }, {
+                        text: 'Cancel',
+                        role: 'cancel',
+                      }
+                    ]
+                  })
+                  .then(alert => {
+                    alert.onDidDismiss()
+                    .then(result => {
+                      if (result.role === 'ok')
+                        this.injector.get(ModerationService).deletePublicTrail(t1.uuid).subscribe({complete: () => this.injector.get(NavController).back()});
+                    });
+                    alert.present();
                   });
-                  alert.present();
-                });
-              })
+                }),
             );
           }
-          if (t1 && this.injector.get(ReplayService).canReplay) {
-            this.menu.push(new MenuItem());
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following original').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following original time').setAction(() => this.injector.get(ReplayService).replay(t1.originalTrackUuid, t1.owner, t1, 10, false, true)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay current, original time').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, undefined, 25, false, true)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current, slowly').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1, 250)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current, approximate').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1, 50, true)));
-            this.menu.push(new MenuItem().setFixedLabel('[Dev] Replay following current, original time').setAction(() => this.injector.get(ReplayService).replay(t1.currentTrackUuid, t1.owner, t1, 25, false, true)));
-          }
+          if (t1) this.injector.get(ReplayService).addTrailMenu(this.menu, t1);
           this.trail$.next(t1);
           this.trail2$.next(t2);
         }

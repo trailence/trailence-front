@@ -7,7 +7,7 @@ export class SynchronizationLocks {
   private readonly locksRequest = new Map<string, (() => void)[]>();
 
   public lock(key: string, onlocked: (locked: boolean) => void): void {
-    if (this.syncing.indexOf(key) >= 0) {
+    if (this.syncing.includes(key)) {
       Maps.push(key, onlocked, this.locksRequest);
     } else {
       Maps.increment(key, this.locks);

@@ -68,20 +68,20 @@
 
       <div class="question">{{i18n.texts.pages.share_popup.who_question}}</div>
       <div class="recipients">
-        <ng-container *ngFor="let recipient of recipients; let index = index; trackBy: trackRecipientBy">
+        @for (recipient of recipients; track recipient.id) {
           <ion-input
             fill="outline"
             label="{{i18n.texts.pages.share_popup.email}}"
             label-placement="floating"
-            [value]="recipients[index].email"
-            (ionInput)="setRecipient(index, $event.detail.value)"
+            [value]="recipient.email"
+            (ionInput)="setRecipient($index, $event.detail.value)"
             type="email"
             class="small"
           >
-            <ion-icon slot="end" name="trash" *ngIf="recipients[index].email.length > 0" (click)="setRecipient(index, '')"></ion-icon>
+            @if (recipient.email.length > 0) {<ion-icon slot="end" name="trash" (click)="setRecipient($index, '')"></ion-icon>}
           </ion-input>
-          <div class="error" *ngIf="recipients[index].error">{{ i18n.texts.pages.share_popup.recipient_error }}</div>
-        </ng-container>
+          @if (recipient.error) {<div class="error">{{ i18n.texts.pages.share_popup.recipient_error }}</div>}
+        }
       </div>
       <div class="info">
         <ion-icon name="info"></ion-icon>
@@ -106,9 +106,14 @@
 <ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
-      <ion-button color="secondary" *ngIf="pageIndex > 0" (click)="previous()">{{i18n.texts.buttons.previous}}</ion-button>
-      <ion-button color="success" *ngIf="pageIndex < pages.length - 1" (click)="next()" [disabled]="!canGoNext()">{{i18n.texts.buttons.next}}</ion-button>
-      <ion-button color="success" *ngIf="pageIndex === pages.length - 1" (click)="save()" [disabled]="!canSave()">{{i18n.texts.buttons.save}}</ion-button>
+      @if (pageIndex > 0) {
+        <ion-button color="secondary" (click)="previous()">{{i18n.texts.buttons.previous}}</ion-button>
+      }
+      @if (pageIndex < pages.length - 1) {
+        <ion-button color="success" (click)="next()" [disabled]="!canGoNext()">{{i18n.texts.buttons.next}}</ion-button>
+      } @else {
+        <ion-button color="success" (click)="save()" [disabled]="!canSave()">{{i18n.texts.buttons.save}}</ion-button>
+      }
       <ion-button color="medium" (click)="close('cancel')">{{i18n.texts.buttons.cancel}}</ion-button>
     </ion-buttons>
   </ion-toolbar>

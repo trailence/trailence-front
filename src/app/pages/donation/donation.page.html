@@ -14,35 +14,37 @@
   </div>
 
   <div class="goals">
-    <div class="goal" *ngFor="let goal of goals; let index = index">
-      <div class="title">
-        <span>{{ i18n.texts.pages.donation.goals.goal }}</span>
-        <span>&nbsp;{{ index + 1 }}</span>
-      </div>
-      <div class="goal-content">
-        @if (goal.current < goal.amount) {
-          <div class="progression">
-            <div class="progression-bar" [ngStyle]="{'--progression-total': goal.amount, '--progression-done': goal.current}">
-              <div class="progression-done">
-                &nbsp; € {{ amountFormatter(goal.current) }} &nbsp;
+    @for (goal of goals; track goal.type) {
+      <div class="goal">
+        <div class="title">
+          <span>{{ i18n.texts.pages.donation.goals.goal }}</span>
+          <span>&nbsp;{{ $index + 1 }}</span>
+        </div>
+        <div class="goal-content">
+          @if (goal.current < goal.amount) {
+            <div class="progression">
+              <div class="progression-bar" [ngStyle]="{'--progression-total': goal.amount, '--progression-done': goal.current}">
+                <div class="progression-done">
+                  &nbsp; € {{ amountFormatter(goal.current) }} &nbsp;
+                </div>
               </div>
+              <div>€ {{ amountFormatter(goal.amount) }}</div>
             </div>
-            <div>€ {{ amountFormatter(goal.amount) }}</div>
+          } @else {
+            <div class="progress-full">
+              € {{ amountFormatter(goal.amount) }}
+              {{ i18n.texts.pages.donation.goals.raised }}
+              <ion-icon name="celebration"></ion-icon>
+              {{ i18n.texts.pages.donation.goals.thanks }}
+              <ion-icon name="heart-outline" class="donation-color"></ion-icon>
+            </div>
+          }
+          <div class="goal-description">
+            <span>{{ i18n.texts.pages.donation.goals.descriptions[goal.type] }}</span>
           </div>
-        } @else {
-          <div class="progress-full">
-            € {{ amountFormatter(goal.amount) }}
-            {{ i18n.texts.pages.donation.goals.raised }}
-            <ion-icon name="celebration"></ion-icon>
-            {{ i18n.texts.pages.donation.goals.thanks }}
-            <ion-icon name="heart-outline" class="donation-color"></ion-icon>
-          </div>
-        }
-        <div class="goal-description">
-          <span>{{ i18n.texts.pages.donation.goals.descriptions[goal.type] }}</span>
         </div>
       </div>
-    </div>
+    }
   </div>
 
   <h2>{{i18n.texts.pages.donation.developer.title}}</h2>

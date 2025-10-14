@@ -6,9 +6,11 @@
   [itemMinWidth]="size === 'small' ? 55 : 60"
   [noScroll]="true"
 ></app-toolbar>
-<div class="message" *ngIf="message">
-  {{message | i18nString}}
-</div>
+@if (message) {
+  <div class="message">
+    {{message | i18nString}}
+  </div>
+}
 @if (trails$ !== undefined && trails$.size > 0) {
   <div class="selection list-{{size}}">
     <ng-container *ngTemplateOutlet="templateSelectionButton; context: { nbSelected: nbSelected, nbShown: nbShown }"></ng-container>
@@ -46,24 +48,30 @@
     }
   } @else if (trails$ && trails$.size === 0) {
     <div class="empty-list">
-      @if (listType === 'collection') {
-        <div>{{i18n.texts.pages.trails.empty_list.collection}}</div>
-        <div>
-          <app-toolbar
-            [items]="emptyListTools"
-          ></app-toolbar>
-        </div>
-      } @else if (listType === 'share') {
+      @switch (listType) {
+        @case ('collection') {
+          <div>{{i18n.texts.pages.trails.empty_list.collection}}</div>
+          <div>
+            <app-toolbar
+              [items]="emptyListTools"
+            ></app-toolbar>
+          </div>
+        }
+        @case ('share') {
         <div>{{i18n.texts.pages.trails.empty_list.share}}</div>
-      } @else if (listType === 'all-collections') {
-        <div>{{i18n.texts.pages.trails.empty_list.all_collections}}</div>
-      } @else if (listType === 'my-selection') {
-        <div>{{i18n.texts.pages.trails.empty_list.my_selection}}</div>
-      } @else if (listType === 'search') {
-        @if (onlyBubbles) {
-          <div>{{i18n.texts.pages.trails.empty_list.only_bubbles}}</div>
-        } @else {
-          <div>{{i18n.texts.pages.trails.empty_list.search}}</div>
+        }
+        @case ('all-collections') {
+          <div>{{i18n.texts.pages.trails.empty_list.all_collections}}</div>
+        }
+        @case ('my-selection') {
+          <div>{{i18n.texts.pages.trails.empty_list.my_selection}}</div>
+        }
+        @case ('search') {
+          @if (onlyBubbles) {
+            <div>{{i18n.texts.pages.trails.empty_list.only_bubbles}}</div>
+          } @else {
+            <div>{{i18n.texts.pages.trails.empty_list.search}}</div>
+          }
         }
       }
     </div>
@@ -76,23 +84,24 @@
   }
   <div class="list-bottom"></div>
 </div>
-<div class="search-container" [ngClass]="{'open': searchOpen}" *ngIf="trails$?.size">
-  <div class="search-bar">
-    <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
-      [value]="state$.value.filters.search"
-      (ionInput)="searchTrailInput($event.detail.value)"
-      [placeholder]="i18n.texts.pages.trails.search_trail_placeholder"
-    >
-      <ion-icon slot="end" name="cross" (click)="clearSearch()"></ion-icon>
-    </ion-input>
+@if (trails$?.size) {
+  <div class="search-container {{searchOpen ? 'open' : ''}}">
+    <div class="search-bar">
+      <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
+        [value]="state$.value.filters.search"
+        (ionInput)="searchTrailInput($event.detail.value)"
+        [placeholder]="i18n.texts.pages.trails.search_trail_placeholder"
+      >
+        <ion-icon slot="end" name="cross" (click)="clearSearch()"></ion-icon>
+      </ion-input>
+    </div>
+    <div class="search-button">
+      <ion-button shape="round" color="primary" (click)="toggleSearch()">
+        <ion-icon slot="icon-only" name="search"></ion-icon>
+      </ion-button>
+    </div>
   </div>
-  <div class="search-button">
-    <ion-button shape="round" color="primary" (click)="toggleSearch()">
-      <ion-icon slot="icon-only" name="search"></ion-icon>
-    </ion-button>
-  </div>
-</div>
-
+}
 <ng-template #trailsListTemplate let-nbSelected="nbSelected">
   @if (state$.value.mode === 'condensed') {
     @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
@@ -105,7 +114,7 @@
         (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
         [fromCollection]="!!collectionUuid"
         [isAllCollections]="listType === 'all-collections'"
-        [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
+        style="background-color: {{highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}}"
         (click)="onTrailClick(trailWithInfo.trail)"
         [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
         [hideMenu]="nbSelected > 0"
@@ -116,7 +125,7 @@
   } @else {
     @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
       <div class="trail metadata-container {{size === 'large' ? 'two-columns' : ('one-column' + (size === 'medium' ? ' accept-small' : ''))}}"
-        [ngStyle]="{'background-color': highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}"
+        style="background-color: {{highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}}"
         id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
         [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
       >
@@ -264,7 +273,9 @@
           okText="{{i18n.texts.buttons.apply}}"
           [interfaceOptions]="{header: i18n.texts.pages.trails.filters.loopType}"
         >
-          <ion-select-option  *ngFor="let lt of loopTypes" [value]="lt">{{ i18n.texts.loopType[lt] }}</ion-select-option>
+        @for (lt of loopTypes; track $index) {
+          <ion-select-option  [value]="lt">{{ i18n.texts.loopType[lt] }}</ion-select-option>
+        }
         </ion-select>
       </div>
       <div class="filter-header">
@@ -276,7 +287,7 @@
           {{ getSelectedActivitiesButtonText() }}
         </ion-button>
       </div>
-      <ng-container *ngIf="collectionUuid">
+      @if (collectionUuid) {
         <div class="filter-header">
           <ion-icon name="tags"></ion-icon>
           <div>{{ i18n.texts.pages.trails.filters.tags }}</div>
@@ -284,7 +295,7 @@
         <div class="filter-value">
           <app-filter-tags [collectionUuid]="collectionUuid" [filter]="state$.value.filters.tags" (filterChange)="updateTagsFilter($event)"></app-filter-tags>
         </div>
-      </ng-container>
+      }
     </ion-content>
     <ion-footer>
       <ion-toolbar color="footer">

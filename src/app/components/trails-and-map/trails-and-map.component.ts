@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 import { Trail } from 'src/app/model/trail';
 import { TrailsListComponent } from '../trails-list/trails-list.component';
@@ -10,7 +10,6 @@ import { MapTrack } from '../map/track/map-track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { CollectionMapper } from 'src/app/utils/arrays';
 import { List } from 'immutable';
@@ -29,6 +28,7 @@ import { ANONYMOUS_USER, AuthService } from 'src/app/services/auth/auth.service'
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
     selector: 'app-trails-and-map',
@@ -36,8 +36,12 @@ import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/sn
     styleUrls: ['./trails-and-map.component.scss'],
     imports: [
       IonIcon, IonButton, IonSegmentButton, IonSegment, IonSpinner,
-      TrailsListComponent, MapComponent, TrailOverviewComponent, CommonModule, SearchPlaceComponent,
+      TrailsListComponent,
+      MapComponent,
+      TrailOverviewComponent,
+      SearchPlaceComponent,
       ToolbarComponent,
+      AsyncPipe,
     ]
 })
 export class TrailsAndMapComponent extends AbstractComponent {
@@ -301,7 +305,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   }
 
   private updateVisibility(mapVisible: boolean, listVisible: boolean, trailSheetVisible: boolean): void {
-    this._children$.value.forEach(child => {
+    for (const child of this._children$.value) {
       if (child instanceof MapComponent) {
         child.setVisible(mapVisible);
         if (this.map$.value !== child) this.map$.next(child);
@@ -310,7 +314,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         child.changesDetection.detectChanges();
       } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
       else Console.error('unexpected child', child);
-    });
+    };
   }
 
   protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
@@ -367,7 +371,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     const mt = this.mapTracks$.value.find(t => t.trail?.owner === trail.owner && t.trail?.uuid === trail.uuid);
     if (mt && this.map)
       this.map.ensureVisible(mt);
-    if (this.tab === 'list' && this.mode.indexOf('large') < 0) {
+    if (this.tab === 'list' && !this.mode.includes('large')) {
       if (this.highlightedTrail !== trail) this.toggleHighlightedTrail(trail);
       if (showOnMap)
         this.setTab('map');
@@ -384,7 +388,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       const otherTrails: Trail[] = [];
       for (const ref of event) {
         const t = ref.track.trail;
-        if (t && t !== trail && !otherTrails.find(ot => ot === t)) {
+        if (t && t !== trail && !otherTrails.includes(t)) {
           otherTrails.push(t);
         }
       }

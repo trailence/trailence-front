@@ -1,16 +1,18 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { TrackEditToolContext } from '../tool.interface';
-import { CommonModule } from '@angular/common';
 import { IonIcon, IonButton, IonInput, IonItem, IonList, IonItemDivider } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { combineLatest, of, Subscription } from 'rxjs';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 
 @Component({
   templateUrl: './selection.component.html',
   styleUrl: './selection.component.scss',
-  imports: [IonItemDivider, IonList, IonItem, IonInput, IonButton, IonIcon,
-    CommonModule,
+  imports: [
+    IonItemDivider, IonList, IonItem, IonInput, IonButton, IonIcon,
+    NgClass,
+    NgTemplateOutlet,
   ]
 })
 export class SelectionComponent implements OnInit, OnDestroy {
@@ -129,14 +131,15 @@ export class SelectionComponent implements OnInit, OnDestroy {
     if (meters === undefined) return '';
     let e = this.i18n.elevationInUserUnit(meters).toFixed(6);
     while (e.endsWith('0')) e = e.substring(0, e.length - 1);
-    if (e.charAt(e.length - 1) < '0' || e.charAt(e.length - 1) > '9') e = e.substring(0, e.length - 1);
+    const last = e.at(-1);
+    if (last && (last < '0' || last > '9')) e = e.substring(0, e.length - 1);
     return e;
   }
 
   setElevation(point: PointReference, ele: string | null | undefined): void {
     if (ele === null || ele === undefined) return;
-    let e = parseFloat(ele);
-    if (isNaN(e)) return;
+    let e = Number.parseFloat(ele);
+    if (Number.isNaN(e)) return;
     e = this.i18n.elevationInMetersFromUserUnit(e);
     this.context.modifyTrack(track => {
       track.segments[point.segmentIndex].points[point.pointIndex].ele = e;

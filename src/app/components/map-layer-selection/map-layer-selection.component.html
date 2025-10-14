@@ -1,11 +1,13 @@
-<ion-header *ngIf="popup">
-  <ion-toolbar color="primary">
-    <ion-title>
-      <ion-icon name="layers" style="margin-right: 10px"></ion-icon>
-      <ion-label>{{i18n.texts.layers_popup.title}}</ion-label>
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+@if (popup) {
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>
+        <ion-icon name="layers" style="margin-right: 10px"></ion-icon>
+        <ion-label>{{i18n.texts.layers_popup.title}}</ion-label>
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+}
 
 <div [ngClass]="{'popup': popup}">
 <ion-radio-group (ionChange)="select($event.detail.value, true, true)" [value]="selection.length > 0 ? selection[0] : undefined">

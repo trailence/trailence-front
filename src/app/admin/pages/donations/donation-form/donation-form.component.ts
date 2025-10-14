@@ -3,7 +3,6 @@ import { DonationDto } from 'src/app/admin/model/donation';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { ErrorService } from 'src/app/services/progress/error.service';
@@ -13,7 +12,7 @@ import { ErrorService } from 'src/app/services/progress/error.service';
   styleUrl: './donation-form.component.scss',
   imports: [
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput,
-    FormsModule, CommonModule,
+    FormsModule,
   ]
 })
 export class DonationFormComponent implements OnInit {
@@ -35,7 +34,7 @@ export class DonationFormComponent implements OnInit {
       amount: this.donation.amount / 1000000,
       realAmount: this.donation.realAmount / 1000000,
     }; else this.dto = {
-      uuid: window.crypto.randomUUID(),
+      uuid: globalThis.crypto.randomUUID(),
       platform: '',
       platformId: '',
       timestamp: 0,

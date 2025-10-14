@@ -24,7 +24,7 @@ export class MapAdditionsService {
   private readonly _states: {center: L.LatLngLiteral, zoom: number}[] = [];
 
   public pushState(center: L.LatLngLiteral, zoom: number): void {
-    if (this._states.length === 0 || this._states[this._states.length - 1].zoom !== zoom || L.latLng(center).distanceTo(this._states[this._states.length - 1].center) > 500) {
+    if (this._states.length === 0 || this._states.at(-1)!.zoom !== zoom || L.latLng(center).distanceTo(this._states.at(-1)!.center) > 500) {
       this._states.push({center, zoom});
       if (this._states.length > 100) this._states.splice(0, 1);
     }

@@ -99,31 +99,32 @@ export class DatabaseService {
   ) {
     auth.auth$.subscribe(
       auth => {
-        if (!auth) this.close();
-        else {
-          this.open(auth.email);
-          if (auth.isAnonymous && !this.injector.get(Platform).is('capacitor')) {
-            const lastTimeStr = localStorage.getItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY);
-            const lastTime = lastTimeStr ? parseInt(lastTimeStr) : 0;
-            if (isNaN(lastTime) || Date.now() - lastTime > 3 * 60 * 60 * 1000) {
-              localStorage.setItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY, '' + Date.now());
-              const i18n = injector.get(I18nService);
-              i18n.texts$.pipe(filterDefined(), first()).subscribe(() => {
-                injector.get(ToastController).create({
-                  message: i18n.texts.toast_anonymous_account,
-                  color: 'warning',
-                  position: 'bottom',
-                  duration: 60000,
-                  swipeGesture: "vertical",
-                  mode: "ios",
-                  layout: "stacked",
-                  buttons: [{
-                    text: i18n.texts.buttons.close,
-                    role: 'cancel',
-                  }]
-                }).then(t => t.present());
-              });
-            }
+        if (!auth) {
+          this.close();
+          return;
+        }
+        this.open(auth.email);
+        if (auth.isAnonymous && !this.injector.get(Platform).is('capacitor')) {
+          const lastTimeStr = localStorage.getItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY);
+          const lastTime = lastTimeStr ? Number.parseInt(lastTimeStr) : 0;
+          if (Number.isNaN(lastTime) || Date.now() - lastTime > 3 * 60 * 60 * 1000) {
+            localStorage.setItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY, '' + Date.now());
+            const i18n = injector.get(I18nService);
+            i18n.texts$.pipe(filterDefined(), first()).subscribe(() => {
+              injector.get(ToastController).create({
+                message: i18n.texts.toast_anonymous_account,
+                color: 'warning',
+                position: 'bottom',
+                duration: 60000,
+                swipeGesture: "vertical",
+                mode: "ios",
+                layout: "stacked",
+                buttons: [{
+                  text: i18n.texts.buttons.close,
+                  role: 'cancel',
+                }]
+              }).then(t => t.present());
+            });
           }
         }
       }
@@ -138,7 +139,7 @@ export class DatabaseService {
   public get syncStatus(): Observable<boolean> {
     return this._stores.pipe(
       switchMap(stores => stores.length === 0 ? of([]) : combineLatest(stores.map(s => s.status$))),
-      map(status => status.map(s => !!s?.inProgress).some(b => b))
+      map(status => status.map(s => !!s?.inProgress).some(Boolean))
     );
   }
 
@@ -153,9 +154,9 @@ export class DatabaseService {
           ]
         ).pipe(
           map(([statuses, operations]) => {
-            let hasChanges = statuses.map(s => !!s?.hasLocalChanges).some(b => b);
+            let hasChanges = statuses.map(s => !!s?.hasLocalChanges).some(Boolean);
             if (hasChanges) return true;
-            hasChanges = operations.some(b => b);
+            hasChanges = operations.some(Boolean);
             return hasChanges;
           }),
           debounceTimeExtended(100, 100, undefined, (p, n) => n === true)
@@ -188,7 +189,7 @@ export class DatabaseService {
   public storesLoaded(names: string[]): Observable<boolean> {
     return this._stores.pipe(
       switchMap(stores => {
-        const selected = stores.filter(s => names.indexOf(s.name) >= 0);
+        const selected = stores.filter(s => names.includes(s.name));
         return selected.length === 0 ? of([]) : combineLatest(selected.map(s => s.loaded$))
       }),
       map(loaded => loaded.reduce((a,b) => a && b, true)),
@@ -198,14 +199,14 @@ export class DatabaseService {
   private _syncNowRequestedAt = 0;
   public syncNow(): void {
     this._syncNowRequestedAt = Date.now();
-    this._stores.value.forEach(s => {
+    for (const s of this._stores.value) {
       s.resetErrors();
       s.lastSync = 0;
       if (s.syncTimeout) clearTimeout(s.syncTimeout);
       s.syncTimeout = undefined;
       s.syncTimeoutDate = 0;
       s.syncFromServer();
-    });
+    }
   }
 
   public resetAll(): void {
@@ -226,7 +227,7 @@ export class DatabaseService {
   public resumeSync(): void {
     Console.info("Resume sync");
     this._syncPaused = 0;
-    this._stores.value.forEach(s => s.fireSyncStatus());
+    for (const s of this._stores.value) s.fireSyncStatus();
   }
 
   registerStore(store: StoreRegistration): void {
@@ -307,7 +308,7 @@ export class DatabaseService {
     store.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {
       Console.warn('Store ' + store.name + ' is in progress since more than 1 minute !');
     });
-    this.db$.pipe(switchMap(db => !db ? of(10) : store.loaded$.pipe(filter(l => l), timeout({first: 20000})))).subscribe({
+    this.db$.pipe(switchMap(db => db ? store.loaded$.pipe(filter(l => l), timeout({first: 20000})) : of(10))).subscribe({
       error: e => Console.warn('Store ' + store.name + ' is still not loaded after 20 seconds !', e),
       next: n => { if (n === true) Console.info("Store loaded: " + store.name); }
     });
@@ -325,14 +326,14 @@ export class DatabaseService {
       this._openEmail = undefined;
       this._db.next(undefined);
       db.db.close();
-      this._stores.value.forEach(store => {
+      for (const store of this._stores.value) {
         store.inProgress = false;
         store.lastSync = 0;
         store.syncAgain = false;
         store.syncTimeout = undefined;
         store.syncTimeoutDate = 0;
         store.resetErrors();
-      });
+      }
     }
   }
 

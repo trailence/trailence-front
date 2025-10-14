@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { DonationGoalDto } from 'src/app/pages/donation/donation-goal';
 import { HttpService } from 'src/app/services/http/http.service';
@@ -13,7 +12,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './donation-goals.component.html',
   styleUrl: './donation-goals.component.scss',
   imports: [
-    CommonModule, FormsModule,
+    FormsModule,
     IonFooter, IonToolbar, IonButtons, IonButton, IonIcon, IonLabel,
   ]
 })
@@ -44,10 +43,6 @@ export class DonationGoalsComponent implements OnInit {
       ...goal,
       amount: goal.amount / 100,
     } as DonationGoalDto)).sort((g1,g2) => g1.index - g2.index);
-  }
-
-  trackByFn(index: number, item: DonationGoalDto): number {
-    return item.index;
   }
 
   addGoal(): void {

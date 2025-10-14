@@ -43,7 +43,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   public itemUpdatedLocally(owner: string, uuid: string): boolean {
-    return this._updatedLocally.indexOf(uuid + '#' + owner) >= 0;
+    return this._updatedLocally.includes(uuid + '#' + owner);
   }
 
   public getNbLocalCreates(): number {
@@ -132,26 +132,18 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     // nothing by default
   }
 
-  private updatedDtosFromServer(dtos: DTO[], deleted: {uuid: string; owner: string;}[] = []): Observable<boolean> {
+  private updatedDtosFromServer(dtos: DTO[], deleted: {uuid: string; owner: string;}[] = []): Observable<boolean> { // NOSONAR
     if (dtos.length === 0 && deleted.length === 0) return of(true);
     this._errors.itemsSuccess(dtos.map(dto => dto.uuid + '#' + dto.owner));
     this._errors.itemsSuccess(deleted.map(d => d.uuid + '#' + d.owner));
     const entitiesToAdd: BehaviorSubject<ENTITY | null>[] = [];
     const dtosToAdd: StoredItem<DTO>[] = [];
     const dtosToUpdate: StoredItem<DTO>[] = [];
-    dtos.forEach(dto => {
+    for (const dto of dtos) {
       const key = dto.uuid + '#' + dto.owner;
       const entity = this.fromDTO(dto);
       const item$ = this._store.value.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
-      if (!item$) {
-        if (this._deletedLocally.find(deleted => deleted.uuid === dto.uuid && deleted.owner === dto.owner)) {
-          // updated from server, but deleted locally => ignore item from server
-        } else {
-          this.newItemFromServer(dto, entity);
-          entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
-          dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
-        }
-      } else {
+      if (item$) {
         dtosToUpdate.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
         const updatedIndex = this._updatedLocally.indexOf(key);
         if (updatedIndex >= 0)
@@ -160,14 +152,20 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         if (createdIndex >= 0)
           this._createdLocally.splice(createdIndex, 1);
         item$.next(entity);
+      } else {
+        if (!this._deletedLocally.some(deleted => deleted.uuid === dto.uuid && deleted.owner === dto.owner)) {
+          this.newItemFromServer(dto, entity);
+          entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
+          dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
+        } // else: updated from server, but deleted locally => ignore item from server
       }
-    });
+    }
     this.injector.get(DependenciesService).operationDone(this.tableName, 'delete', deleted.map(d => d.uuid + '#' + d.owner));
     this.injector.get(DependenciesService).operationDone(this.tableName, 'update', dtosToUpdate.map(d => d.id_owner));
     const deletedKeys: string[] = [];
     const deletedItems: BehaviorSubject<ENTITY | null>[] = [];
     const callDeleted: {item$: BehaviorSubject<ENTITY | null>, item: ENTITY}[] = [];
-    deleted.forEach(deletedItem => {
+    for (const deletedItem of deleted) {
       const key = deletedItem.uuid + '#' + deletedItem.owner;
       deletedKeys.push(key);
       const localDeleteIndex = this._deletedLocally.findIndex(item => item.uuid === deletedItem.uuid && item.owner === deletedItem.owner);
@@ -182,7 +180,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         deletedItems.push(item$);
         if (item$.value) callDeleted.push({item$, item: item$.value});
       }
-    });
+    }
     if (callDeleted.length > 0)
       this.deleted(callDeleted);
     if (deleted.length > 0)
@@ -194,7 +192,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       }
       this._store.value.push(...entitiesToAdd);
       this._store.next(this._store.value);
-      deletedItems.forEach(item$ => item$.next(null));
+      for (const item$ of deletedItems) item$.next(null);
     }
     return from(this._db!.transaction('rw', this.tableName, async tx => {
       const table = tx.db.table<StoredItem<DTO>>(this.tableName);
@@ -301,9 +299,9 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           this._syncStatus$.next(status);
           if (!stillValid()) return EMPTY;
           const isIncomplete =
-            this._createdLocally.filter(item => this._errors.canProcess(item.value?.uuid + '#' + item.value?.owner, true)).length > 0 ||
-            this._deletedLocally.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false)).length > 0 ||
-            this._updatedLocally.filter(item => this._errors.canProcess(item, false)).length > 0;
+            this._createdLocally.some(item => this._errors.canProcess(item.value?.uuid + '#' + item.value?.owner, true)) ||
+            this._deletedLocally.some(item => this._errors.canProcess(item.uuid + '#' + item.owner, false)) ||
+            this._updatedLocally.some(item => this._errors.canProcess(item, false));
           return of(isIncomplete);
         }),
       );
@@ -319,7 +317,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toCreate)
     return ready$.pipe(
       switchMap(readyEntities => {
-        const notReady = toCreate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
+        const notReady = toCreate.filter(item => !readyEntities.some(entity => entity.uuid === item.uuid && entity.owner === item.owner));
         if (notReady.length > 0) {
           for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
           combineLatest(notReady.map(item => this.createdLocallyCanBeRemoved(item).pipe(map(remove => ({item, remove})))))
@@ -380,14 +378,15 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         if (!stillValid()) return of(false);
         Console.info('Force update from server: received ' + result.created.length + ' items of ' + this.tableName);
         const dtosToUpdate: StoredItem<DTO>[] = [];
-        result.created.forEach(dto => {
+        for (const dto of result.created) {
           const key = dto.uuid + '#' + dto.owner;
           const entity = this.fromDTO(dto);
           const item$ = this._store.value.find(item$ => item$.value?.uuid === entity.uuid && item$.value?.owner === entity.owner);
-          if (!item$) return;
-          item$.next(entity);
-          dtosToUpdate.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
-        });
+          if (item$) {
+            item$.next(entity);
+            dtosToUpdate.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
+          }
+        }
         if (dtosToUpdate.length === 0) return of(true);
         return from(this._db!.table<StoredItem<DTO>>(this.tableName).bulkPut(dtosToUpdate).then(() => true));
       }),
@@ -406,7 +405,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       .map(item$ => item$.value)
       .filter(
         item => !!item &&
-        canUpdate.indexOf(item.uuid + '#' + item.owner) >= 0 &&
+        canUpdate.includes(item.uuid + '#' + item.owner) &&
         this._locks.startSync(item.uuid + '#' + item.owner)
       ) as ENTITY[];
     if (toUpdate.length === 0) return of(true);
@@ -415,7 +414,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(toUpdate)
     return ready$.pipe(
       switchMap(readyEntities => {
-        const notReady = toUpdate.filter(item => !readyEntities.find(entity => entity.uuid === item.uuid && entity.owner === item.owner));
+        const notReady = toUpdate.filter(item => !readyEntities.some(entity => entity.uuid === item.uuid && entity.owner === item.owner));
         for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
           Console.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName + ', ' + notReady.length + ' waiting');

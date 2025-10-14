@@ -3,7 +3,6 @@ import { ShareElementType } from 'src/app/model/dto/share';
 import { Trail } from 'src/app/model/trail';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonInput, IonButton, IonFooter, IonButtons, ModalController, IonRadio, IonRadioGroup, IonCheckbox } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -19,6 +18,7 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { TagService } from 'src/app/services/database/tag.service';
+import { AsyncPipe } from '@angular/common';
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {
   injector.get(ModalController).create({
@@ -47,7 +47,12 @@ interface Recipient {
     selector: 'app-share-popup',
     templateUrl: './share-popup.component.html',
     styleUrls: ['./share-popup.component.scss'],
-    imports: [IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, TagsComponent]
+    imports: [
+      IonCheckbox, IonRadioGroup, IonRadio, IonButtons, IonFooter, IonButton, IonInput, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader,
+      FormsModule,
+      TagsComponent,
+      AsyncPipe,
+    ]
 })
 export class SharePopupComponent implements OnInit {
 
@@ -159,9 +164,7 @@ export class SharePopupComponent implements OnInit {
   save(): void {
     if (!this.canSave()) return;
     const service = this.injector.get(ShareService);
-    if (!this.share)
-      service.create(this.elementType!, this.elements, this.name, this.checkRecipients(), this.mailLanguage, this.includePhotos).subscribe();
-    else {
+    if (this.share) {
       const newName = this.name;
       const newIncludePhotos = this.includePhotos;
       const newRecipients = this.checkRecipients();
@@ -176,6 +179,8 @@ export class SharePopupComponent implements OnInit {
         s.recipients = newRecipients;
         s.mailLanguage = newMailLanguage;
       });
+    } else {
+      service.create(this.elementType!, this.elements, this.name, this.checkRecipients(), this.mailLanguage, this.includePhotos).subscribe();
     }
     this.close('ok');
   }
@@ -210,13 +215,9 @@ export class SharePopupComponent implements OnInit {
         this.recipients[i].error = !EMAIL_REGEX.test(this.recipients[i].email);
       }
     }
-    if (this.recipients.length < 20 && (this.recipients.length === 0 || this.recipients[this.recipients.length - 1].email.trim().length > 0))
+    if (this.recipients.length < 20 && (this.recipients.length === 0 || this.recipients.at(-1)!.email.trim().length > 0))
       this.recipients.push({email:'', error: false, id: IdGenerator.generateId()});
     this.recipients = [...this.recipients];
-  }
-
-  trackRecipientBy(index: number, element: Recipient) {
-    return element.id;
   }
 
   close(role: string): void {

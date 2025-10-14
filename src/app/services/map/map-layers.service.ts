@@ -107,12 +107,12 @@ export class MapLayersService {
     this._darkMap = !this._darkMap;
     if (this._darkMap) {
       localStorage.setItem(LOCALSTORAGE_KEY_DARKMAP, "true");
-      window.document.body.classList.add('dark-map');
+      globalThis.document.body.classList.add('dark-map');
     } else {
       localStorage.removeItem(LOCALSTORAGE_KEY_DARKMAP);
-      window.document.body.classList.remove('dark-map');
+      globalThis.document.body.classList.remove('dark-map');
     }
-    const maps = window.document.getElementsByTagName('app-map');
+    const maps = globalThis.document.getElementsByTagName('app-map');
     for (let i = 0; i < maps.length; ++i) {
       if (this._darkMap) {
         maps.item(i)!.classList.remove('light-theme');
@@ -177,7 +177,7 @@ function createDefaultLayer( // NOSONAR
   };
 }
 
-function createIgnLayer(
+function createIgnLayer( // NOSONAR
   injector: Injector,
   name: string,
   displayName: string,

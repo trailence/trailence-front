@@ -3,7 +3,6 @@ import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox, AlertController, Platform } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { CommonModule } from '@angular/common';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { Console } from 'src/app/utils/console';
 import { EMAIL_REGEX } from 'src/app/utils/string-utils';
@@ -19,10 +18,10 @@ import { trailenceAppVersionName } from 'src/app/trailence-version';
 @Component({
   templateUrl: './contact.page.html',
   styleUrl: './contact.page.scss',
-  imports: [IonCheckbox,
-    CommonModule, FormsModule,
+  imports: [
+    FormsModule,
     HeaderComponent,
-    IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon,
+    IonInput, IonTextarea, IonSelect, IonSelectOption, IonButton, IonIcon, IonCheckbox,
   ]
 })
 export class ContactPage extends PublicPage {
@@ -89,7 +88,7 @@ export class ContactPage extends PublicPage {
     this.sent = false;
     this.error = false;
     this.retryWithCaptcha = false;
-    this.data = ' --- Technical data ---\nVersion: ' + trailenceAppVersionName + '\nPlatform: ' + window.navigator.userAgent + ' / ' + this.platform.platforms().join() + '\n --- Logs ---\n' + Console.getHistory();
+    this.data = ' --- Technical data ---\nVersion: ' + trailenceAppVersionName + '\nPlatform: ' + globalThis.navigator.userAgent + ' / ' + this.platform.platforms().join() + '\n --- Logs ---\n' + Console.getHistory();
   }
 
   private destroy(): void {

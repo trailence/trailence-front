@@ -8,7 +8,7 @@ export class WayUtils {
     const p = L.latLng(pos.lat, pos.lng);
     const pPt = L.point(pos.lat, pos.lng);
     for (const way of ways) {
-      if (way.points.find(pt => p.distanceTo(pt) <= maxDistance)) {
+      if (way.points.some(pt => p.distanceTo(pt) <= maxDistance)) {
         matching.push(way);
       } else {
         let p1 = L.point(way.points[0].lat, way.points[0].lng);
@@ -39,7 +39,7 @@ export class WayUtils {
         ways.splice(way2Index, 1);
         merged = true;
       }
-      start = way.points[way.points.length - 1];
+      start = way.points.at(-1)!;
       way2Index = this.findSingleWayStartingAt(start.lat, start.lng, ways, i + 1, way.permission);
       if (way2Index >= 0) {
         this.merge(way, ways[way2Index]);

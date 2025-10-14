@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge } from '@ionic/angular/standalone';
@@ -20,7 +19,6 @@ import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
     imports: [IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList,
         IonButton,
         IonPopover,
-        CommonModule,
     ]
 })
 export class HeaderUserMenuComponent extends AbstractComponent {
@@ -59,7 +57,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
 
   transferEvent(event: any, target: any): void {
     target.el.dispatchEvent(new MouseEvent('click', {
-      view: window,
+      view: window, // NOSONAR
       bubbles: true,
       cancelable: true,
       button: event.button,

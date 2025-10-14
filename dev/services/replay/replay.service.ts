@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { MenuItem } from 'src/app/components/menus/menu-item';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
 import { TrackService } from 'src/app/services/database/track.service';
@@ -18,6 +19,21 @@ export class ReplayService {
     private readonly traceRecorder: TraceRecorderService,
     private readonly router: Router,
   ) {}
+
+  public addTrailMenu(menu: MenuItem[], trail: Trail): void {
+    menu.push(
+      new MenuItem(),
+      new MenuItem().setFixedLabel('[Dev] Replay original').setAction(() => this.replay(trail.originalTrackUuid, trail.owner)),
+      new MenuItem().setFixedLabel('[Dev] Replay following original').setAction(() => this.replay(trail.originalTrackUuid, trail.owner, trail)),
+      new MenuItem().setFixedLabel('[Dev] Replay following original time').setAction(() => this.replay(trail.originalTrackUuid, trail.owner, trail, 10, false, true)),
+      new MenuItem().setFixedLabel('[Dev] Replay current').setAction(() => this.replay(trail.currentTrackUuid, trail.owner)),
+      new MenuItem().setFixedLabel('[Dev] Replay current, original time').setAction(() => this.replay(trail.currentTrackUuid, trail.owner, undefined, 25, false, true)),
+      new MenuItem().setFixedLabel('[Dev] Replay following current').setAction(() => this.replay(trail.currentTrackUuid, trail.owner, trail)),
+      new MenuItem().setFixedLabel('[Dev] Replay following current, slowly').setAction(() => this.replay(trail.currentTrackUuid, trail.owner, trail, 250)),
+      new MenuItem().setFixedLabel('[Dev] Replay following current, approximate').setAction(() => this.replay(trail.currentTrackUuid, trail.owner, trail, 50, true)),
+      new MenuItem().setFixedLabel('[Dev] Replay following current, original time').setAction(() => this.replay(trail.currentTrackUuid, trail.owner, trail, 25, false, true)),
+    );
+  }
 
   public replay(trackUuid: string, owner: string, following?: Trail, speed: number = 50, approximative: boolean = false, originalTime: boolean = false): void {
     this.trackService.getFullTrackReady$(trackUuid, owner).subscribe(track => {

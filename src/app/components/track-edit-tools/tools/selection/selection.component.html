@@ -141,9 +141,9 @@
         </ng-template>
         <div class="points-moves" [ngClass]="{'one-column': !point2, 'two-columns': !!point2}">
           <ng-container *ngTemplateOutlet="pointMoves; context: {point: point1}"></ng-container>
-          <ng-container *ngIf="point2">
+          @if (point2) {
             <ng-container *ngTemplateOutlet="pointMoves; context: {point: point2}"></ng-container>
-          </ng-container>
+          }
         </div>
         <ng-template #pointMoves let-point="point">
           <div class="point-carets">

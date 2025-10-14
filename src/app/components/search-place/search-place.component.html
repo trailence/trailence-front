@@ -8,18 +8,24 @@
   (keypress)="onKey($event)"
 >
 </ion-searchbar>
-<div class="tip" *ngIf="!searching && focus">{{i18n.texts.search_place.tap_enter}}</div>
+@if (!searching && focus) {<div class="tip">{{i18n.texts.search_place.tap_enter}}</div>}
 <ion-popover #dropdown size="cover" side="bottom" reference="trigger" trigger="{{id}}" triggerAction="context-menu" [showBackdrop]="false">
   <ng-template>
-    <ion-spinner *ngIf="searching" name="dots"></ion-spinner>
-    <ion-list *ngIf="!searching && places.length > 0">
-      <ion-item *ngFor="let place of places" button (click)="placeSelected.emit(place); dropdown.dismiss()">
-        <ion-label>
-          <h1>{{place.names[0]}}</h1>
-          <h2>{{place.names.slice(1).join(', ')}}</h2>
-        </ion-label>
-      </ion-item>
-    </ion-list>
-    <ion-label color="medium" style="font-style: italic;" *ngIf="!searching && places.length === 0">{{i18n.texts.search_place.no_result}}</ion-label>
+    @if (searching) {
+      <ion-spinner name="dots"></ion-spinner>
+    } @else if (places.length > 0) {
+      <ion-list>
+        @for (place of places; track place) {
+          <ion-item button (click)="placeSelected.emit(place); dropdown.dismiss()">
+            <ion-label>
+              <h1>{{place.names[0]}}</h1>
+              <h2>{{place.names.slice(1).join(', ')}}</h2>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    } @else {
+      <ion-label color="medium" style="font-style: italic;">{{i18n.texts.search_place.no_result}}</ion-label>
+    }
   </ng-template>
 </ion-popover>

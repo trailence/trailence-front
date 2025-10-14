@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { HttpService } from 'src/app/services/http/http.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -25,8 +24,8 @@ interface ReleaseNote {
   selector: 'app-release-notes',
   templateUrl: './release-notes.component.html',
   styleUrl: './release-notes.component.scss',
-  imports: [IonSpinner,
-    CommonModule,
+  imports: [
+    IonSpinner,
   ]
 })
 export class ReleaseNotesComponent implements OnInit {
@@ -45,8 +44,8 @@ export class ReleaseNotesComponent implements OnInit {
     this.http.get<Releases>(environment.baseUrl + environment.assetsUrl + '/releases/notes.json').subscribe(releases => {
       this.releases = [];
       for (const key in releases) {
-        const code = parseInt(key);
-        if (!isNaN(code) && code > this.sinceVersion) {
+        const code = Number.parseInt(key);
+        if (!Number.isNaN(code) && code > this.sinceVersion) {
           this.releases.push({
             code,
             version: StringUtils.versionCodeToVersionName(code),

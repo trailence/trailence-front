@@ -27,11 +27,11 @@ export class GeolocationService implements IGeolocationService {
   public get waitingForGps() { return this._waitingForGps$.value; }
 
   getState(): Promise<GeolocationState> {
-    return window.navigator.permissions.query({name: 'geolocation'})
+    return globalThis.navigator.permissions.query({name: 'geolocation'})
     .then(status => {
       Console.info('geolocation permission', status, status.state);
       if (status.state === 'granted') {
-        return Promise.resolve(GeolocationState.ENABLED);
+        return GeolocationState.ENABLED;
       }
       if (status.state === 'prompt') {
         Console.info('geolocation permission must be prompt');
@@ -52,13 +52,13 @@ export class GeolocationService implements IGeolocationService {
           this.getCurrentPosition();
         });
       }
-      return Promise.resolve(GeolocationState.DENIED);
+      return GeolocationState.DENIED;
     });
   }
 
   public getCurrentPosition(): Promise<PointDto> {
     return new Promise((resolve, error) => {
-      window.navigator.geolocation.getCurrentPosition(
+      globalThis.navigator.geolocation.getCurrentPosition(
         position => {
           resolve(this.positionToPointDto(position));
         },
@@ -86,7 +86,7 @@ export class GeolocationService implements IGeolocationService {
     this.watchListeners.push({listener, onerror});
     if (!this.watchId) {
       Console.info('start watching geolocation');
-      this.watchId = window.navigator.geolocation.watchPosition(pos => this.emitPosition(pos), err => this.emitError(err), this.options);
+      this.watchId = globalThis.navigator.geolocation.watchPosition(pos => this.emitPosition(pos), err => this.emitError(err), this.options);
     }
   }
 
@@ -96,7 +96,7 @@ export class GeolocationService implements IGeolocationService {
       this.watchListeners.splice(index, 1);
       if (this.watchListeners.length === 0) {
         Console.info('stop watching geolocation');
-        window.navigator.geolocation.clearWatch(this.watchId!);
+        globalThis.navigator.geolocation.clearWatch(this.watchId!);
         this.watchId = undefined;
         this._waitingForGps$.next(false);
       }

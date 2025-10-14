@@ -15,19 +15,23 @@
       <ion-radio value="original" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_original }}</ion-radio>
     </div>
     <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_original_explaination }}</div>
-    <div *ngIf="hasBoth">
-      <ion-radio value="current" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_current }}</ion-radio>
-    </div>
-    <div class="radio-explaination" *ngIf="hasBoth">{{ i18n.texts.pages.export_popup.track_current_explaination }}</div>
-    <div *ngIf="hasBoth">
-      <ion-radio value="both" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_both }}</ion-radio>
-    </div>
-    <div class="radio-explaination" *ngIf="hasBoth">{{ i18n.texts.pages.export_popup.track_both_explaination }}</div>
+    @if (hasBoth) {
+      <div>
+        <ion-radio value="current" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_current }}</ion-radio>
+      </div>
+      <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_current_explaination }}</div>
+      <div>
+        <ion-radio value="both" labelPlacement="end">{{ i18n.texts.pages.export_popup.track_both }}</ion-radio>
+      </div>
+      <div class="radio-explaination">{{ i18n.texts.pages.export_popup.track_both_explaination }}</div>
+    }
   </ion-radio-group>
-  <div *ngIf="trailsPhotos.length > 0" style="margin-top: 15px;">
-    <ion-checkbox [(ngModel)]="includePhotos" labelPlacement="end">{{i18n.texts.pages.export_popup.include_photos}}</ion-checkbox>
-    <div class="radio-explaination">{{ i18n.texts.pages.export_popup.include_photos_explaination }}</div>
-  </div>
+  @if (trailsPhotos.length > 0) {
+    <div style="margin-top: 15px;">
+      <ion-checkbox [(ngModel)]="includePhotos" labelPlacement="end">{{i18n.texts.pages.export_popup.include_photos}}</ion-checkbox>
+      <div class="radio-explaination">{{ i18n.texts.pages.export_popup.include_photos_explaination }}</div>
+    </div>
+  }
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">

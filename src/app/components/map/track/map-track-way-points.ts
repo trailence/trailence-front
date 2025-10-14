@@ -5,7 +5,6 @@ import { Subscription } from 'rxjs';
 import * as L from 'leaflet';
 import { Color } from 'src/app/utils/color';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
-import { pointsAreEqual } from 'src/app/model/point-descriptor';
 
 export const anchorBorderColor = '#d00000';
 export const anchorFillColor = '#a00000';
@@ -123,7 +122,7 @@ export class MapTrackWayPoints {
     if (this._map && this._showBreaks) this.addBreaksToMap();
     if (this._map && this._showWP) this.addWPToMap();
   }
-  private createFromWayPoint(wp: ComputedWayPoint, list: ComputedWayPoint[]): void {
+  private createFromWayPoint(wp: ComputedWayPoint, list: ComputedWayPoint[]): void { // NOSONAR
     if (wp.isDeparture) {
       let isArrival = wp.isArrival;
       if (!isArrival) {
@@ -153,7 +152,7 @@ export class MapTrackWayPoints {
     this._anchors = [];
     this._breaks = [];
     const departurePoint = track.points[0];
-    const arrivalPoint = track.points[track.points.length - 1];
+    const arrivalPoint = track.points.at(-1);
     if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= 25) {
       this._departureAndArrival = this.createDepartureAndArrival(departurePoint);
     } else {

@@ -1,19 +1,22 @@
 <ion-button fill="clear" color="dark" expand="true" id="filter-tags-button-{{id}}" style="text-transform: none; letter-spacing: inherit;">
-  <div *ngIf="filter.type === 'onlyWithAnyTag'">
-    {{i18n.texts.tags_filter.onlyWithAnyTag}}
-  </div>
-  <div *ngIf="filter.type === 'onlyWithoutAnyTag'">
-    {{i18n.texts.tags_filter.onlyWithoutAnyTag}}
-  </div>
-  <div *ngIf="filter.type !== 'onlyWithAnyTag' && filter.type !== 'onlyWithoutAnyTag' && filter.tagsUuids.length > 0">
-    <span>{{i18n.texts.tags_filter[filter.type]}} </span>
-    <span *ngFor="let uuid of filter.tagsUuids; let index = index">
-      <span *ngIf="index > 0">,&nbsp;</span>
-      <span>{{tagsByUuid.get(uuid)?.name}}</span>
-    </span>
-  </div>
-  <div *ngIf="filter.type !== 'onlyWithAnyTag' && filter.type !== 'onlyWithoutAnyTag' && filter.tagsUuids.length === 0">
-    {{i18n.texts.tags_filter.click_to_select}}
+  <div>
+    @switch (filter.type) {
+      @case ('onlyWithAnyTag') { {{i18n.texts.tags_filter.onlyWithAnyTag}} }
+      @case ('onlyWithoutAnyTag') { {{i18n.texts.tags_filter.onlyWithoutAnyTag}} }
+      @default {
+        @if (filter.tagsUuids.length > 0) {
+          <span>{{i18n.texts.tags_filter[filter.type]}} </span>
+          @for (uuid of filter.tagsUuids; track uuid) {
+            <span>
+              @if ($index > 0) {<span>,&nbsp;</span>}
+              <span>{{tagsByUuid.get(uuid)?.name}}</span>
+            </span>
+          }
+        } @else {
+          {{i18n.texts.tags_filter.click_to_select}}
+        }
+      }
+    }
   </div>
 </ion-button>
 
@@ -37,11 +40,13 @@
         <div><ion-radio value="exclude" labelPlacement="end">{{i18n.texts.tags_filter.exclude}}</ion-radio></div>
       </ion-radio-group>
       <div style="margin-bottom: 15px;"></div>
-      <ng-container *ngIf="filter.type !== 'onlyWithAnyTag' && filter.type !== 'onlyWithoutAnyTag'">
-        <div *ngFor="let tag of tags">
-          <ion-checkbox labelPlacement="end" [checked]="filter.tagsUuids.indexOf(tag.uuid) >= 0" (ionChange)="updateTagSelection(tag, $event.detail.checked)">{{tag.name}}</ion-checkbox>
-        </div>
-      </ng-container>
+      @if (filter.type !== 'onlyWithAnyTag' && filter.type !== 'onlyWithoutAnyTag') {
+        @for (tag of tags; track tag.uuid) {
+          <div>
+            <ion-checkbox labelPlacement="end" [checked]="filter.tagsUuids.indexOf(tag.uuid) >= 0" (ionChange)="updateTagSelection(tag, $event.detail.checked)">{{tag.name}}</ion-checkbox>
+          </div>
+        }
+      }
     </ion-content>
     <ion-footer>
       <ion-toolbar color="footer">

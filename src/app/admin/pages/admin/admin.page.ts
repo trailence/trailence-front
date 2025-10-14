@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { IonRouterOutlet, IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nAdminService } from '../../services/i18n-admin.service';
-import { CommonModule } from '@angular/common';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { MessagesService } from '../../services/messages.service';
@@ -13,7 +12,6 @@ import { MessagesService } from '../../services/messages.service';
   templateUrl: './admin.page.html',
   styleUrl: './admin.page.scss',
   imports: [
-    CommonModule,
     HeaderComponent,
     I18nPipe,
     IonRouterOutlet, IonSegment, IonSegmentButton,

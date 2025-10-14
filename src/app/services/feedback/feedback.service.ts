@@ -35,7 +35,7 @@ export class FeedbackService {
   }
 
   public getFeedbacks(uuid: string, pageFromDate: number, pageFromDateExclude: string[], filterRate?: number): Observable<Feedback[]> {
-    return this.http.get<Feedback[]>(environment.apiBaseUrl + '/public_trail_feedback/v1/' + uuid + '?pageFromDate=' + pageFromDate + '&pageFromDateExclude=' + encodeURIComponent(pageFromDateExclude.join(',')) + (filterRate !== undefined ? '&filterRate=' + filterRate : ''))
+    return this.http.get<Feedback[]>(environment.apiBaseUrl + '/public_trail_feedback/v1/' + uuid + '?pageFromDate=' + pageFromDate + '&pageFromDateExclude=' + encodeURIComponent(pageFromDateExclude.join(',')) + (filterRate === undefined ? '' : '&filterRate=' + filterRate))
     .pipe(
       map(list => list.map(fb => {
         fb.alias = fb.alias ?? undefined;

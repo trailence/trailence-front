@@ -1,7 +1,9 @@
 <ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button" #userButton>
   <div slot="icon-only" style="pointer-events: none;" data-nosnippet>{{userLetter}}</div>
 </ion-button>
-<ion-badge class="notif-badge" color="danger" *ngIf="nbUnreadNotifications > 0" (click)="transferEvent($event, userButton)">{{nbUnreadNotifications}}</ion-badge>
+@if (nbUnreadNotifications > 0) {
+  <ion-badge class="notif-badge" color="danger" (click)="transferEvent($event, userButton)">{{nbUnreadNotifications}}</ion-badge>
+}
 <div class="status status-{{icon}}" data-nosnippet><ion-icon [name]="icon"></ion-icon></div>
 
 <ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click" style="--width: calc(min(90%, 350px))">
@@ -30,8 +32,11 @@
                   <div class="title">{{i18n.texts.synchro.last_sync}}</div>
                   <div class="value">{{lastSync ? i18n.timestampToTimeString(lastSync) : i18n.texts.synchro.not_yet}}</div>
                   <div class="title">{{i18n.texts.synchro.local_changes}}</div>
-                  <div *ngIf="hasLocalChanges" class="value invalid">{{i18n.texts.synchro.yes}}</div>
-                  <div *ngIf="!hasLocalChanges" class="value valid">{{i18n.texts.synchro.no}}</div>
+                  @if (hasLocalChanges) {
+                    <div class="value invalid">{{i18n.texts.synchro.yes}}</div>
+                  } @else {
+                    <div class="value valid">{{i18n.texts.synchro.no}}</div>
+                  }
                 }
               }
             </div>
@@ -50,10 +55,26 @@
           <ion-icon slot="start" name="settings"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.title}}</ion-label>
         </ion-item>
-        <ion-item button id="item-notifications" lines="full" *ngIf="!isAnonymous" (click)="goToNotifications(); accountPopover.dismiss();">
-          <ion-icon slot="start" name="notification"></ion-icon>
-          <ion-label>{{notificationsMenuTitle}}</ion-label>
-        </ion-item>
+        @if (!isAnonymous) {
+          <ion-item button id="item-notifications" lines="full" (click)="goToNotifications(); accountPopover.dismiss();">
+            <ion-icon slot="start" name="notification"></ion-icon>
+            <ion-label>{{notificationsMenuTitle}}</ion-label>
+          </ion-item>
+          <ion-popover trigger="item-synchro" [dismissOnSelect]="true" side="start">
+            <ng-template>
+              <ion-content>
+                <ion-list>
+                  <ion-item button (click)="syncNow()">
+                    <ion-label>{{i18n.texts.synchro.sync_now}}</ion-label>
+                  </ion-item>
+                  <ion-item button (click)="resetAll()">
+                    <ion-label>{{i18n.texts.synchro.reset_all}}</ion-label>
+                  </ion-item>
+                </ion-list>
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+        }
         <ion-item button (click)="router.navigateByUrl('/myaccount'); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="account"></ion-icon>
           <ion-label>{{i18n.texts.pages.myaccount.title}}</ion-label>
@@ -62,21 +83,6 @@
           <ion-icon slot="start" name="logout"></ion-icon>
           <ion-label>{{ isAnonymous ? i18n.texts.logout.title_anonymous : i18n.texts.logout.title}}</ion-label>
         </ion-item>
-
-        <ion-popover trigger="item-synchro" [dismissOnSelect]="true" side="start" *ngIf="!isAnonymous">
-          <ng-template>
-            <ion-content>
-              <ion-list>
-                <ion-item button (click)="syncNow()">
-                  <ion-label>{{i18n.texts.synchro.sync_now}}</ion-label>
-                </ion-item>
-                <ion-item button (click)="resetAll()">
-                  <ion-label>{{i18n.texts.synchro.reset_all}}</ion-label>
-                </ion-item>
-              </ion-list>
-            </ion-content>
-          </ng-template>
-        </ion-popover>
 
         <ion-popover trigger="item-language" [dismissOnSelect]="true" side="start">
           <ng-template>
@@ -130,14 +136,17 @@
     </ion-header>
     <div class="ion-padding">
       <div>{{i18n.texts.logout.text}}</div>
-      <div *ngIf="!hasLocalChanges" style="display: flex; flex-direction: row; align-items: flex-start; color: var(--ion-color-medium); margin-top: 10px;">
-        <ion-icon name="info" style="min-width: 16px; min-height: 16px"></ion-icon>
-        <div style="font-size: 12px; padding: 0 0 0 8px;">{{i18n.texts.logout.text_info}}</div>
-      </div>
-      <div *ngIf="hasLocalChanges" style="display: flex; flex-direction: row; align-items: flex-start; color: var(--ion-color-danger); margin-top: 10px;">
-        <ion-icon name="warning" style="min-width: 16px; min-height: 16px"></ion-icon>
-        <div style="font-size: 12px; padding: 0 0 0 8px;">{{i18n.texts.logout.text_warning}}</div>
-      </div>
+      @if (hasLocalChanges) {
+        <div class="logout-message danger">
+          <ion-icon name="warning"></ion-icon>
+          <div>{{i18n.texts.logout.text_warning}}</div>
+        </div>
+      } @else {
+        <div class="logout-message info">
+          <ion-icon name="info"></ion-icon>
+          <div>{{i18n.texts.logout.text_info}}</div>
+        </div>
+      }
     </div>
     <ion-footer>
       <ion-toolbar color="footer">

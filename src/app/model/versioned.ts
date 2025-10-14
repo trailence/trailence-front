@@ -13,7 +13,7 @@ export class Versioned {
   constructor(
     dto: Partial<VersionedDto>,
   ) {
-    this._uuid = dto?.uuid ?? window.crypto.randomUUID();
+    this._uuid = dto?.uuid ?? globalThis.crypto.randomUUID();
     this._version = dto?.version ?? 0;
     this._createdAt = dto?.createdAt ?? Date.now();
     this._updatedAt = dto?.updatedAt ?? this._createdAt;

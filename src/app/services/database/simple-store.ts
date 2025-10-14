@@ -78,19 +78,19 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
       const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
       await table.clear();
       const dbItems: SimpleStoreItem<DTO>[] = [];
-      this._store.value.forEach(item$ => {
+      for (const item$ of this._store.value) {
         if (item$.value) {
           const key = this.getKey(item$.value);
           dbItems.push({
             key: key,
             item: this.toDTO(item$.value),
-            createdLocally: this._createdLocally.indexOf(item$) >= 0,
-            updatedLocally: this._updatedLocally.indexOf(key) >= 0,
+            createdLocally: this._createdLocally.includes(item$),
+            updatedLocally: this._updatedLocally.includes(key),
             deletedLocally: false,
           });
         }
-      });
-      this._deletedLocally.forEach(item => {
+      }
+      for (const item of this._deletedLocally) {
         dbItems.push({
           key: this.getKey(item),
           item: this.toDTO(item),
@@ -98,7 +98,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           updatedLocally: false,
           deletedLocally: true,
         })
-      });
+      }
       await table.bulkAdd(dbItems);
     })).pipe(defaultIfEmpty(true), map(() => true));
   }
@@ -137,7 +137,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     const key = this.getKey(item);
     return from(this._db!.transaction('rw', table, () => {
       table.get(key).then(dbItem => {
-        if (!dbItem) return Promise.resolve(true);
+        if (!dbItem) return true;
         if (dbItem.createdLocally) return table.delete(key);
         return table.put({...dbItem, deletedLocally: true}, key);
       });
@@ -148,7 +148,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     const key = this.getKey(item);
     return from(this._db!.transaction('rw', table, () => {
       table.get(key).then(dbItem => {
-        if (!dbItem) return Promise.resolve(true);
+        if (!dbItem) return true;
         return table.put({...dbItem, deletedLocally: false, createdLocally: true}, key);
       });
     }));
@@ -158,7 +158,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     const key = this.getKey(item);
     return from(this._db!.transaction('rw', table, () => {
       table.get(key).then(dbItem => {
-        if (!dbItem) return Promise.resolve(true);
+        if (!dbItem) return true;
         return table.put({...dbItem, updatedLocally: true}, key);
       });
     }));
@@ -229,9 +229,9 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           this._syncStatus$.next(this._syncStatus$.value);
           if (!stillValid()) return EMPTY;
           const isIncomplete =
-            this._createdLocally.filter(item => item.value && this._errors.canProcess(this.getKey(item.value), true)).length > 0 ||
-            this._updatedLocally.filter(item => this._errors.canProcess(item, false)).length > 0 ||
-            this._deletedLocally.filter(item => this._errors.canProcess(this.getKey(item), false)).length > 0;
+            this._createdLocally.some(item => item.value && this._errors.canProcess(this.getKey(item.value), true)) ||
+            this._updatedLocally.some(item => this._errors.canProcess(item, false)) ||
+            this._deletedLocally.some(item => this._errors.canProcess(this.getKey(item), false));
           return of(isIncomplete);
         }),
         catchError(error => {
@@ -260,12 +260,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           switchMap(result => {
             Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server, ' + (toCreate.length - readyEntities.length) + ' additional pending');
             if (!stillValid()) return of(false);
-            result.forEach(created => {
+            for (const created of result) {
               const entity = this.fromDTO(created);
               const index = this._createdLocally.findIndex(item$ => item$.value && this.areSame(entity, item$.value));
               if (index >= 0) this._createdLocally.splice(index, 1);
               this._errors.itemSuccess(this.getKey(entity));
-            });
+            }
             this._syncStatus$.value.localCreates = this._createdLocally.length !== 0;
             return this.saveStore().pipe(map(ok => ok && readyEntities.length === toCreate.length));
           }),
@@ -282,18 +282,18 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
   private syncLocalDeleteToServer(stillValid: () => boolean): Observable<boolean> {
     if (this._deletedLocally.length === 0) return of(true);
-    const toDelete = [...this._deletedLocally.filter(item => this._errors.canProcess(this.getKey(item), false))];
+    const toDelete = this._deletedLocally.filter(item => this._errors.canProcess(this.getKey(item), false));
     if (toDelete.length === 0) return of(true);
     this.syncStep('send deleted local items to server');
     return this.deleteFromServer(toDelete.map(entity => this.toDTO(entity))).pipe(
       defaultIfEmpty(true),
       switchMap(() => {
         if (!stillValid()) return of(false);
-        toDelete.forEach(entity => {
+        for (const entity of toDelete) {
           const index = this._deletedLocally.indexOf(entity);
           if (index >= 0) this._deletedLocally.splice(index, 1);
           this._errors.itemSuccess(this.getKey(entity));
-        });
+        }
         this._syncStatus$.value.localDeletes = this._deletedLocally.length !== 0;
         Console.info('' + toDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
         return this.saveStore();
@@ -309,10 +309,10 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
   private syncLocalUpdateToServer(stillValid: () => boolean): Observable<boolean> {
     if (this._updatedLocally.length === 0) return of(true);
-    const toUpdate = [...this._updatedLocally.filter(item => this._errors.canProcess(item, false))];
+    const toUpdate = this._updatedLocally.filter(item => this._errors.canProcess(item, false));
     if (toUpdate.length === 0) return of(true);
     this.syncStep('send local updates to server');
-    const entities = this._store.value.filter(item$ => item$.value && toUpdate.indexOf(this.getKey(item$.value)) >= 0).map(item$ => item$.value!);
+    const entities = this._store.value.filter(item$ => item$.value && toUpdate.includes(this.getKey(item$.value))).map(item$ => item$.value!);
     const ready = entities.filter(entity => this.readyToSave(entity));
     const ready$ = ready.length > 0 ? of(ready) : this.waitReadyWithTimeout(entities)
     return ready$.pipe(
@@ -326,7 +326,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server, ' + (entities.length - readyEntities.length) + ' additional pending');
             if (!stillValid()) return of(false);
             const updatedEntities = result.map(dto => this.fromDTO(dto));
-            readyEntities.forEach(previousEntity => {
+            for (const previousEntity of readyEntities) {
               const updated = updatedEntities.find(e => this.areSame(e, previousEntity));
               const key = this.getKey(previousEntity);
               const index = this._updatedLocally.indexOf(key);
@@ -335,7 +335,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
               const item$ = this._store.value.find(item$ => item$.value && this.areSame(item$.value, previousEntity));
               if (item$ && updated)
                 item$.next(updated);
-            });
+            }
             this._syncStatus$.value.localUpdates = this._updatedLocally.length !== 0;
             return this.saveStore().pipe(map(ok => ok && readyEntities.length === entities.length));
           }),
@@ -358,37 +358,35 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         // remove items not created locally and not returned by the server, and add new items from server
         const deleted: BehaviorSubject<ENTITY | null>[] = [];
         let updated = false;
-        this._store.value.forEach(
-          item$ => {
-            if (!item$.value) return;
-            const known = item$.value;
-            const index = dtos.findIndex(dto => this.areSame(this.fromDTO(dto), known)); // NOSONAR
-            if (index >= 0) {
-              // returned by server => already known
-              const dto = dtos[index];
-              const entity = this.updateEntityFromServer(this.fromDTO(dto), known);
-              if (entity) {
-                item$.next(entity);
-                this._errors.itemSuccess(this.getKey(entity));
-                updated = true;
-              }
-              dtos.splice(index, 1);
-            } else if (this._createdLocally.indexOf(item$) < 0) {
-              // not returned by the server
-              // not created locally => removed from server
-              deleted.push(item$);
-              this._errors.itemSuccess(this.getKey(known));
+        for (const item$ of this._store.value) {
+          if (!item$.value) continue;
+          const known = item$.value;
+          const index = dtos.findIndex(dto => this.areSame(this.fromDTO(dto), known)); // NOSONAR
+          if (index >= 0) {
+            // returned by server => already known
+            const dto = dtos[index];
+            const entity = this.updateEntityFromServer(this.fromDTO(dto), known);
+            if (entity) {
+              item$.next(entity);
+              this._errors.itemSuccess(this.getKey(entity));
+              updated = true;
             }
+            dtos.splice(index, 1);
+          } else if (!this._createdLocally.includes(item$)) {
+            // not returned by the server
+            // not created locally => removed from server
+            deleted.push(item$);
+            this._errors.itemSuccess(this.getKey(known));
           }
-        );
+        }
         const added: BehaviorSubject<ENTITY | null>[] = [];
-        dtos.forEach(dto => {
+        for (const dto of dtos) {
           const e = this.fromDTO(dto);
-          if (!this._deletedLocally.find(entity => this.areSame(e, entity))) {
+          if (!this._deletedLocally.some(entity => this.areSame(e, entity))) {
             // not deleted locally => new item from server
             added.push(new BehaviorSubject<ENTITY | null>(e));
           }
-        });
+        }
         Console.info('Server updates for ' + this.tableName + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
         if (deleted.length > 0 || added.length > 0 || updated) {
           for (const item$ of deleted) {

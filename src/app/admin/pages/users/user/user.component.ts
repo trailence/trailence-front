@@ -6,7 +6,6 @@ import { environment } from 'src/environments/environment';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, AlertController } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
-import { CommonModule } from '@angular/common';
 import { UserSubscriptionsComponent } from "./user-subscriptions/user-subscriptions.component";
 import { UserQuotas } from 'src/app/services/auth/user-quotas';
 import { ErrorService } from 'src/app/services/progress/error.service';
@@ -15,7 +14,6 @@ import { ErrorService } from 'src/app/services/progress/error.service';
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',
   imports: [
-    CommonModule,
     UserKeysComponent, UserQuotasComponent, UserSubscriptionsComponent,
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, IonFooter, IonButtons, IonCheckbox,
 ]

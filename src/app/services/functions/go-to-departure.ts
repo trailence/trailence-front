@@ -25,7 +25,7 @@ export function goToDeparture(injector: Injector, trail: Trail): void {
         link.target = '_blank';
         document.documentElement.appendChild(link);
         link.click();
-        document.documentElement.removeChild(link);
+        link.remove();
       } else {
         const link = document.createElement('A') as HTMLAnchorElement;
         link.style.position = 'fixed';
@@ -35,7 +35,7 @@ export function goToDeparture(injector: Injector, trail: Trail): void {
         link.href = 'https://www.google.com/maps/dir/?api=1&dir_action=navigate&destination=' + departure.lat + ',' + departure.lng;
         document.documentElement.appendChild(link);
         link.click();
-        document.documentElement.removeChild(link);
+        link.remove();
       }
     }
   });

@@ -20,10 +20,10 @@ export class NetworkService implements INetworkService, OnDestroy {
     this._server$ = new BehaviorSubject<boolean>(false);
     this._internet$ = new BehaviorSubject<boolean>(false);
     this.updateStatus(true);
-    window.addEventListener('online', () => this.updateStatus(false));
-    window.addEventListener('offline', () => this.updateStatus(false));
-    if ((window as any).navigator.connection) {
-      (window as any).navigator.connection.addEventListener('change', () => this.updateStatus(false));
+    globalThis.addEventListener('online', () => this.updateStatus(false));
+    globalThis.addEventListener('offline', () => this.updateStatus(false));
+    if ((globalThis as any).navigator.connection) {
+      (globalThis as any).navigator.connection.addEventListener('change', () => this.updateStatus(false));
     }
     this._server$.subscribe(connected => Console.info("Server reachable = " + connected));
     this._internet$.subscribe(connected => Console.info("Network connection = " + connected));
@@ -52,7 +52,7 @@ export class NetworkService implements INetworkService, OnDestroy {
 
   private updateStatus(firstCall: boolean): void {
     if (this.destroyed) return;
-    const newStatus = window.navigator.onLine;
+    const newStatus = globalThis.navigator.onLine;
     Console.info('Network changed (' + newStatus + '), ping server');
     if (!newStatus) {
       if (this._internet$.value) {
@@ -63,7 +63,7 @@ export class NetworkService implements INetworkService, OnDestroy {
         this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
       }
       else setTimeout(() => {
-        if (window.navigator.onLine && !this._internet$.value)
+        if (globalThis.navigator.onLine && !this._internet$.value)
           this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
       }, 1000);
     } else {
@@ -73,7 +73,7 @@ export class NetworkService implements INetworkService, OnDestroy {
   }
 
   private checkInternet(): Promise<boolean> {
-    return window.fetch('https://www.google.com', {mode: 'no-cors'})
+    return globalThis.fetch('https://www.google.com', {mode: 'no-cors'})
     .then(() => true)
     .catch(() => false);
   }

@@ -1,42 +1,51 @@
 <div class="first-cell">
   <div class="title-row">
-    <ion-checkbox
-      *ngIf="selectable && checkboxMode === 'md'"
-      class="trail-checkbox"
-      mode="md"
-      [checked]="selected"
-      (ionChange)="setSelected($event.detail.checked)"
-      (click)="$event.stopPropagation()"
-    ></ion-checkbox>
-    <ion-checkbox
-      *ngIf="selectable && checkboxMode === 'ios'"
-      class="trail-checkbox"
-      mode="ios"
-      [checked]="selected"
-      (ionChange)="setSelected($event.detail.checked)"
-      (click)="$event.stopPropagation()"
-    ></ion-checkbox>
+    @if (selectable) {
+      @switch (checkboxMode) {
+        @case ('md') {
+          <ion-checkbox
+            class="trail-checkbox"
+            mode="md"
+            [checked]="selected"
+            (ionChange)="setSelected($event.detail.checked)"
+            (click)="$event.stopPropagation()"
+          ></ion-checkbox>
+        }
+        @case ('ios') {
+          <ion-checkbox
+            class="trail-checkbox"
+            mode="ios"
+            [checked]="selected"
+            (ionChange)="setSelected($event.detail.checked)"
+            (click)="$event.stopPropagation()"
+          ></ion-checkbox>
+        }
+      }
+    }
     <div class="trail-name">
       <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">
         {{ trail.name }}
       </a>
     </div>
   </div>
-  <ng-container *ngIf="!subTitle">
-    <div class="trail-tags-row">
-      <div class="tag" *ngFor="let tag of tags">{{tag}}</div>
-    </div>
-    <div class="space"></div>
-    <div class="meta-row" *ngIf="loopType !== ''">
-      <ion-icon [name]="loopTypeIcon"></ion-icon>
-      <div class="meta">{{ loopType }}</div>
-    </div>
-  </ng-container>
-  <ng-container *ngIf="subTitle">
+  @if (subTitle) {
     <div class="sub-title-row">
       {{ subTitle }}
     </div>
-  </ng-container>
+  } @else {
+    <div class="trail-tags-row">
+      @for (tag of tags; track tag) {
+        <div class="tag">{{tag}}</div>
+      }
+    </div>
+    <div class="space"></div>
+    @if (loopType !== '') {
+      <div class="meta-row">
+        <ion-icon [name]="loopTypeIcon"></ion-icon>
+        <div class="meta">{{ loopType }}</div>
+      </div>
+    }
+  }
 </div>
 <div class="cell-metadata cell-duration">
   <ion-icon name="duration"></ion-icon>

@@ -32,7 +32,7 @@ export class FetchSourceService {
     .then(list => {
       const newPlugins = [...this.plugins$.value];
       for (const p of list) {
-        if (!newPlugins.find(pi => pi.name === p.name)) newPlugins.push(p);
+        if (!newPlugins.some(pi => pi.name === p.name)) newPlugins.push(p);
       }
       this.plugins$.next(newPlugins);
       this.ready$.next(true);
@@ -62,19 +62,19 @@ export class FetchSourceService {
   public get canSearch$(): Observable<boolean> {
     return this.plugins$.pipe(
       switchMap(plugins => plugins.length === 0 ? of([]) : combineLatest(plugins.map(p => p.allowed$))),
-      map(allowed => allowed.filter(a => !!a).length > 0)
+      map(allowed => allowed.some(a => !!a))
     );
   }
 
   public get canImportFromUrl$(): Observable<boolean> {
     return this.plugins$.pipe(
       switchMap(plugins => plugins.length === 0 ? of([]) : combineLatest(plugins.map(p => p.allowed$.pipe(map(a => ({p, a})))))),
-      map(plugins => !!plugins.find(p => p.a && p.p.canFetchFromUrl))
+      map(plugins => plugins.some(p => p.a && p.p.canFetchFromUrl))
     );
   }
 
   public get canImportFromUrl(): boolean {
-    return !!this.plugins$.value.find(p => p.allowed && p.canFetchFromUrl);
+    return this.plugins$.value.some(p => p.allowed && p.canFetchFromUrl);
   }
 
   public waitReady$(): Observable<boolean> {
@@ -179,7 +179,7 @@ export class FetchSourceService {
   }
 
   public searchByArea(bounds: L.LatLngBounds, limit: number, plugins?: string[]): Observable<SearchResult> {
-    const list = this.plugins$.value.filter(plugin => (!plugins || plugins.indexOf(plugin.name) >= 0) && plugin.canSearchByArea());
+    const list = this.plugins$.value.filter(plugin => (!plugins || plugins.includes(plugin.name)) && plugin.canSearchByArea());
     if (list.length === 0) return of({trails: [], end: true, tooManyResults: false});
     let tooMany = false;
     const end: string[] = [];
@@ -247,9 +247,9 @@ export class FetchSourceService {
   }
 
   public getPhotos$(owner: string, uuid: string): Observable<Photo[]> {
-    return this.plugin$(owner).pipe(switchMap(plugin => !plugin ? of([]) : from(
+    return this.plugin$(owner).pipe(switchMap(plugin => !plugin ? of([]) : from( // NOSONAR
       plugin.getInfo(uuid)
-      .then(info => !(info?.photos) ? [] : info.photos.map(
+      .then(info => !(info?.photos) ? [] : info.photos.map( // NOSONAR
         (p, index) => {
           const photo = new Photo({
             owner,
@@ -297,7 +297,7 @@ export class FetchSourceService {
   }
 
   public getPluginsByName(names: string[]): FetchSourcePlugin[] {
-    return this.plugins$.value.filter(p => names.indexOf(p.name) >= 0);
+    return this.plugins$.value.filter(p => names.includes(p.name));
   }
 
   public getExternalUrl$(owner: string, uuid: string): Observable<string | null> {

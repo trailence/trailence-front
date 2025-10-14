@@ -14,7 +14,15 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
       img._loaded = false;
       offlineMap.getTile(name, coords).subscribe({
         next: binary => {
-          if (!binary) {
+          if (binary) {
+            binary.toBase64().then(base64 => {
+              img.src = 'data:' + binary.getContentType() + ';base64,' + base64;
+              img._loaded = true;
+              img.classList.add('map-tile-offline');
+              img.classList.remove('map-tile-loading');
+              done(undefined, img);
+            });
+          } else {
             network.internet$.pipe(
               filterDefined(),
               first()
@@ -34,7 +42,7 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
                   else if (trial < 3)
                     loadOffline(img, trial + 1);
                   else
-                    done(new Error(), img);
+                    done(new Error('Cannot load tile'), img);
                 };
                 img.onload = function() {
                   img.classList.remove('map-tile-loading');
@@ -45,14 +53,6 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
             });
             if (!img._loaded)
               fallbackTile(img, coords, tiles, done);
-          } else {
-            binary.toBase64().then(base64 => {
-              img.src = 'data:' + binary.getContentType() + ';base64,' + base64;
-              img._loaded = true;
-              img.classList.add('map-tile-offline');
-              img.classList.remove('map-tile-loading');
-              done(undefined, img);
-            });
           }
         },
         error: e => {
@@ -83,7 +83,7 @@ function fallbackTile(img: any, coords: L.Coords, tiles: L.TileLayer, done: L.Do
   if (coords.z === 0) {
     img.classList.remove('map-tile-loading');
     img.classList.add('map-tile-error');
-    done(new Error(), img);
+    done(new Error('Cannot load tile'), img);
     return;
   }
   const newCoords = new L.Point(Math.floor(coords.x / 2), Math.floor(coords.y / 2)) as L.Coords;
@@ -126,8 +126,7 @@ function fallbackTile(img: any, coords: L.Coords, tiles: L.TileLayer, done: L.Do
 
 function cancelFallback(img: any) {
   if (img.fallback) {
-    img.classList.remove('map-tile-fallback');
-    img.classList.remove('map-tile-fallback-' + img._scale);
+    img.classList.remove('map-tile-fallback', 'map-tile-fallback-' + img._scale);
     img.style.width = '';
     img.style.height = '';
     img.style.marginTop = '';

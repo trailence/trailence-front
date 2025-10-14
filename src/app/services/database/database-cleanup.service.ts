@@ -33,8 +33,8 @@ export class DatabaseCleanupService {
     if (auth) {
       this.email = auth.email;
       const lastCleanStr = localStorage.getItem('trailence.db-cleaning.last-time.' + this.email);
-      const lastCleanTime = lastCleanStr ? parseInt(lastCleanStr) : undefined;
-      const nextCleanTime = lastCleanTime && !isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
+      const lastCleanTime = lastCleanStr ? Number.parseInt(lastCleanStr) : undefined;
+      const nextCleanTime = lastCleanTime && !Number.isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
       if (this.timeout) clearTimeout(this.timeout);
       const nextTimeout = Math.max(nextCleanTime - Date.now(), 60000);
       Console.info('Next database cleaning at', new Date(Date.now() + nextTimeout));

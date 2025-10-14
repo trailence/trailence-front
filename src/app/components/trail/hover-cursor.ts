@@ -14,9 +14,10 @@ export class TrailHoverCursor {
   private _hoverCursor: {pos: L.LatLngExpression}[] = [];
 
   private resetHover(): void {
-    this._hoverCursor.forEach(cursor => {
-      this.getMap()?.cursors.removeCursor(cursor.pos);
-    });
+    const map = this.getMap();
+    if (map)
+      for (const cursor of this._hoverCursor)
+        map.cursors.removeCursor(cursor.pos);
     this._hoverCursor = [];
   }
 
@@ -35,11 +36,11 @@ export class TrailHoverCursor {
 
   graphPointHover(references: GraphPointReference[]) {
     this.resetHover();
-    references.forEach(pt => {
+    for (const pt of references) {
       const pos = pt.pos;
       this._hoverCursor.push({pos});
       this.getMap()?.cursors.addCursor(pos);
-    });
+    };
   }
 
   pointSelected(point: PointReference) {

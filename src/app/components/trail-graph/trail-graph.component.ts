@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { Track } from 'src/app/model/track';
@@ -22,6 +21,7 @@ import { SpeedLegendPlugin } from './plugins/speed-legend';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTime } from 'rxjs';
 import { PositionPlugin } from './plugins/position';
+import { NgStyle } from '@angular/common';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -53,14 +53,14 @@ export interface DataPoint {
 export type GraphType = 'elevation' | 'speed';
 
 @Component({
-    selector: 'app-trail-graph',
-    templateUrl: './trail-graph.component.html',
-    styleUrls: ['./trail-graph.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        CommonModule,
-        BaseChartDirective
-    ]
+  selector: 'app-trail-graph',
+  templateUrl: './trail-graph.component.html',
+  styleUrls: ['./trail-graph.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    BaseChartDirective,
+    NgStyle,
+  ]
 })
 export class TrailGraphComponent extends AbstractComponent {
 
@@ -265,10 +265,10 @@ export class TrailGraphComponent extends AbstractComponent {
       } else if (this.track1) {
         this.buildDataSet(this.track1, this.primaryColor, 1, this.graphType === 'elevation', this.graphType === 'speed');
         if (this.graphType === 'elevation') {
-          if (!this.chartPlugins.find(p => p instanceof ElevationLegendPlugin))
+          if (!this.chartPlugins.some(p => p instanceof ElevationLegendPlugin))
             this.chartPlugins.push(new ElevationLegendPlugin(this.gradeColors, this.gradeLegend));
         } else if (this.graphType === 'speed') {
-          if (!this.chartPlugins.find(p => p instanceof SpeedLegendPlugin))
+          if (!this.chartPlugins.some(p => p instanceof SpeedLegendPlugin))
             this.chartPlugins.push(new SpeedLegendPlugin(SPEED_ESTIMATION_COLOR, this.contrastColor, this.i18n.texts.trailGraph.legend_estimated_speed));
         }
       }
@@ -290,7 +290,7 @@ export class TrailGraphComponent extends AbstractComponent {
     for (const ds of this.chartData!.datasets) {
       const pts = ds.data as any[];
       if ((ds as any).isGrade || pts.length === 0) continue;
-      maxX = Math.max(maxX, pts[pts.length - 1].x);
+      maxX = Math.max(maxX, pts.at(-1).x);
       let start = 0;
       if (minY === undefined) {
         minY = pts[0].y;
@@ -351,8 +351,8 @@ export class TrailGraphComponent extends AbstractComponent {
           ticks: {
             color: this.contrastColor,
             callback: this.graphType === 'elevation' ?
-              value => (typeof value === 'number' ? value : parseInt(value ?? '0')).toLocaleString(this.preferencesService.preferences.lang, {maximumFractionDigits: 2}) :
-              value => this.i18n.durationToString(typeof value === 'number' ? value : parseInt(value ?? '0'), true, false),
+              value => (typeof value === 'number' ? value : Number.parseInt(value ?? '0')).toLocaleString(this.preferencesService.preferences.lang, {maximumFractionDigits: 2}) :
+              value => this.i18n.durationToString(typeof value === 'number' ? value : Number.parseInt(value ?? '0'), true, false),
           }
         },
         y: {
@@ -473,16 +473,8 @@ export class TrailGraphComponent extends AbstractComponent {
               container.style.right = (chartRect.width - context.tooltip._eventPosition.x + 15) + 'px';
               container.style.left = '';
             }
-            /*
-            if (context.tooltip._eventPosition.y < chartRect.height * 0.3) {
-              container.style.top = (context.tooltip._eventPosition.y + 5) + 'px';
-              container.style.bottom = '';
-            } else {
-              container.style.bottom = (chartRect.height - context.tooltip._eventPosition.y + 5) + 'px';
-              container.style.top = '';
-            }*/
-           container.style.top = '5px';
-           container.style.bottom = '';
+            container.style.top = '5px';
+            container.style.bottom = '';
           }
         }
       },
@@ -541,7 +533,7 @@ export class TrailGraphComponent extends AbstractComponent {
     for (let segmentIndex = 0; segmentIndex < track.segments.length; segmentIndex++) {
       const points = track.segments[segmentIndex].points;
       for (let pointIndex = 0; pointIndex < points.length; pointIndex++) {
-        (ds.data as any[]).push(...this.createDataPoints(ds.data.length === 0 ? undefined : ds.data[ds.data.length - 1], segmentIndex, pointIndex, track, points, ds.data, ds.data.length));
+        (ds.data as any[]).push(...this.createDataPoints(ds.data.at(-1), segmentIndex, pointIndex, track, points, ds.data, ds.data.length));
       }
     }
   }
@@ -585,7 +577,7 @@ export class TrailGraphComponent extends AbstractComponent {
 
   private addElevationGrade(ds: any[], points: any[], startIndex: number, endIndex: number, minY: number, level: number): number {
     const color = this.gradeColors[level] + 'A0';
-    if (ds.length === 0 || ds[ds.length - 1].backgroundColor !== color) {
+    if (ds.length === 0 || ds.at(-1).backgroundColor !== color) {
       ds.push({
         isGrade: true,
         isNotData: true,
@@ -607,7 +599,7 @@ export class TrailGraphComponent extends AbstractComponent {
       });
     }
     for (let i = startIndex + 1; i <= endIndex; ++i)
-      ds[ds.length - 1].data.push({
+      ds.at(-1).data.push({
         x: points[i].x,
         y: minY,
       });
@@ -670,7 +662,7 @@ export class TrailGraphComponent extends AbstractComponent {
       const ds = this.chartData.datasets[datasetIndex];
       ds.data = [];
       this.fillDataSet(ds, track);
-      if (this.chartPlugins.find(p => p instanceof ElevationLegendPlugin)) {
+      if (this.chartPlugins.some(p => p instanceof ElevationLegendPlugin)) {
         for (let i = 0; i < this.chartData.datasets.length; ++i) {
           if ((this.chartData.datasets[i] as any).isGrade) {
             this.chartData.datasets.splice(i, 1);
@@ -713,7 +705,7 @@ export class TrailGraphComponent extends AbstractComponent {
       for (const point of points) {
         const distanceFromPreviousPoint = point.distanceFromPreviousPoint;
         distance += distanceFromPreviousPoint;
-        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs.estimatedBaseSpeed) : ds.data.length === 0 ? 0 : ds.data[ds.data.length - 1].speed;
+        const speed = distanceFromPreviousPoint > 0 ? estimateSpeedInMetersByHour(point, estimatedDuration, prefs.estimatedBaseSpeed) : ds.data.at(-1)?.speed ?? 0;
         const estimatedTime = speed > 0 ? distanceFromPreviousPoint * (60 * 60 * 1000) / speed : 0;
         estimatedDuration += estimatedTime;
         let timeFromPreviousPoint = point.durationFromPreviousPoint ?? estimatedTime;
@@ -892,7 +884,7 @@ export class TrailGraphComponent extends AbstractComponent {
            this.i18n.elevationGraphDistanceValue(this.i18n.distanceInUserUnit(distance)) :
            timeSinceStart ?? 0,
       y: this.graphType === 'elevation' ?
-          (point.ele !== undefined ? this.i18n.elevationInUserUnit(point.ele) : null) :
+          (point.ele === undefined ? null : this.i18n.elevationInUserUnit(point.ele)) :
           this.i18n.distanceInLongUserUnit(speedInMeters),
       segmentIndex: trackSegmentIndex,
       pointIndex: trackPointIndex,
@@ -1044,7 +1036,7 @@ export class TrailGraphComponent extends AbstractComponent {
     return events;
   };
 
-  private selectionToRangeSelection(sel: RangeReference[] | PointReference[]): SelectedRange | undefined {
+  private selectionToRangeSelection(sel: RangeReference[] | PointReference[]): SelectedRange | undefined { // NOSONAR
     if (sel.length === 0 || !this.canvas?.chart) return undefined;
     const chart = this.canvas.chart;
     const selection: SelectedRange = {

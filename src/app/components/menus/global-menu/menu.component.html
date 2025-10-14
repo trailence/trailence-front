@@ -11,14 +11,14 @@
 </div>
 <div class="menu-content" data-nosnippet>
 
-  <ng-container *ngIf="fetchSourceService.canSearch$ | async">
+  @if (fetchSourceService.canSearch$ | async) {
     <div class="menu-item" (click)="goTo('/trails/search'); close();">
       <ion-icon name="search-map" class="left-icon"></ion-icon>
       <div class="item-title-container">
         <div class="item-title">{{ i18n.texts.menu.search_trail }}</div>
       </div>
     </div>
-  </ng-container>
+  }
 
   <div class="menu-item" (click)="goTo('/trail-planner'); close();">
     <ion-icon name="planner" class="left-icon"></ion-icon>
@@ -67,7 +67,9 @@
                 <a href="/trails/collection/{{collectionWithInfo.collection.uuid}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                   {{ collectionWithInfo.collection.name.length === 0 && collectionWithInfo.collection.type === 'MY_TRAILS' ? i18n.texts.my_trails : collectionWithInfo.collection.name }}
                 </a>
-                <div *ngIf="collectionWithInfo.nbTrails !== undefined" class="count">{{collectionWithInfo.nbTrails}}</div>
+                @if (collectionWithInfo.nbTrails !== undefined) {
+                  <div class="count">{{collectionWithInfo.nbTrails}}</div>
+                }
               </div>
               <ion-button fill="clear" size="small" (click)="openCollectionMenu($event, collectionWithInfo.collection);">
                 <ion-icon slot="icon-only" name="item-menu"></ion-icon>
@@ -105,27 +107,30 @@
       </ion-button>
     </div>
     @if (sharedWithMeOpen) {
-      <ng-container *ngIf="!sharedWithMe.isEmpty()">
-        <div class="menu-item" *ngFor="let shareWithInfo of sharedWithMe" (click)="goTo('/trails/share/' + shareWithInfo.share.uuid + '/' + shareWithInfo.share.owner); close();">
-          <div class="item-title-container">
-            <div class="item-title with-actions">
-              <div class="name-and-count">
-                <a href="/trails/share/{{shareWithInfo.share.uuid}}/{{shareWithInfo.share.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
-                  {{ shareWithInfo.share.name }}
-                </a>
-                <div *ngIf="shareWithInfo.nbTrails !== undefined" class="count">{{shareWithInfo.nbTrails}}</div>
-              </div>
-              <ion-button fill="clear" size="small" (click)="openShareMenu($event, shareWithInfo.share)">
-                <ion-icon slot="icon-only" name="item-menu"></ion-icon>
-              </ion-button>
-            </div>
-            <div class="item-sub-title">{{shareWithInfo.share.owner}}</div>
-          </div>
-        </div>
-      </ng-container>
-      <ng-container *ngIf="sharedWithMe.isEmpty()">
+      @if (sharedWithMe.isEmpty()) {
         <div class="menu-item no-item">{{i18n.texts.menu.nothing_shared_with_me}}</div>
-      </ng-container>
+      } @else {
+        @for (shareWithInfo of sharedWithMe; track shareWithInfo.share) {
+          <div class="menu-item" (click)="goTo('/trails/share/' + shareWithInfo.share.uuid + '/' + shareWithInfo.share.owner); close();">
+            <div class="item-title-container">
+              <div class="item-title with-actions">
+                <div class="name-and-count">
+                  <a href="/trails/share/{{shareWithInfo.share.uuid}}/{{shareWithInfo.share.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                    {{ shareWithInfo.share.name }}
+                  </a>
+                  @if (shareWithInfo.nbTrails !== undefined) {
+                    <div class="count">{{shareWithInfo.nbTrails}}</div>
+                  }
+                </div>
+                <ion-button fill="clear" size="small" (click)="openShareMenu($event, shareWithInfo.share)">
+                  <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+                </ion-button>
+              </div>
+              <div class="item-sub-title">{{shareWithInfo.share.owner}}</div>
+            </div>
+          </div>
+        }
+      }
     }
   </div>
 
@@ -138,27 +143,30 @@
       </ion-button>
     </div>
     @if (sharedByMeOpen) {
-      <ng-container *ngIf="!sharedByMe.isEmpty()">
-        <div class="menu-item" *ngFor="let shareWithInfo of sharedByMe" (click)="goTo('/trails/share/' + shareWithInfo.share.uuid + '/' + shareWithInfo.share.owner); close();">
-          <div class="item-title-container">
-            <div class="item-title with-actions">
-              <div class="name-and-count">
-                <a href="/trails/share/{{shareWithInfo.share.uuid}}/{{shareWithInfo.share.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
-                  {{ shareWithInfo.share.name }}
-                </a>
-                <div *ngIf="shareWithInfo.nbTrails !== undefined" class="count">{{shareWithInfo.nbTrails}}</div>
-              </div>
-              <ion-button fill="clear" size="small" (click)="openShareMenu($event, shareWithInfo.share)">
-                <ion-icon slot="icon-only" name="item-menu"></ion-icon>
-              </ion-button>
-            </div>
-            <div class="item-sub-title">{{ emailsSplit(shareWithInfo.share.recipients) }}</div>
-          </div>
-        </div>
-      </ng-container>
-      <ng-container *ngIf="sharedByMe.isEmpty()">
+      @if (sharedByMe.isEmpty()) {
         <div class="menu-item no-item">{{i18n.texts.menu.nothing_shared_by_me}}</div>
-      </ng-container>
+      } @else {
+        @for (shareWithInfo of sharedByMe; track shareWithInfo.share) {
+          <div class="menu-item" (click)="goTo('/trails/share/' + shareWithInfo.share.uuid + '/' + shareWithInfo.share.owner); close();">
+            <div class="item-title-container">
+              <div class="item-title with-actions">
+                <div class="name-and-count">
+                  <a href="/trails/share/{{shareWithInfo.share.uuid}}/{{shareWithInfo.share.owner}}" target="_blank" class="inherit name" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
+                    {{ shareWithInfo.share.name }}
+                  </a>
+                  @if (shareWithInfo.nbTrails !== undefined) {
+                    <div class="count">{{shareWithInfo.nbTrails}}</div>
+                  }
+                </div>
+                <ion-button fill="clear" size="small" (click)="openShareMenu($event, shareWithInfo.share)">
+                  <ion-icon slot="icon-only" name="item-menu"></ion-icon>
+                </ion-button>
+              </div>
+              <div class="item-sub-title">{{ emailsSplit(shareWithInfo.share.recipients) }}</div>
+            </div>
+          </div>
+        }
+      }
     }
   </div>
 
@@ -187,7 +195,9 @@
                   <a href="/trails/collection/{{pubDraft.collection.uuid}}/{{pubDraft.collection.owner}}" target="_blank" class="inherit name pub-draft" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                     {{ i18n.texts.publications.draft_name }}
                   </a>
-                  <div *ngIf="pubDraft.nbTrails !== undefined" class="count">{{pubDraft.nbTrails}}</div>
+                  @if (pubDraft.nbTrails !== undefined) {
+                    <div class="count">{{pubDraft.nbTrails}}</div>
+                  }
                 </div>
               </div>
             </div>
@@ -201,7 +211,9 @@
                   <a href="/trails/collection/{{pubSubmit.collection.uuid}}/{{pubSubmit.collection.owner}}" target="_blank" class="inherit name pub-submit" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                     {{ i18n.texts.publications.submit_name }}
                   </a>
-                  <div *ngIf="pubSubmit.nbTrails !== undefined" class="count">{{pubSubmit.nbTrails}}</div>
+                  @if (pubSubmit.nbTrails !== undefined) {
+                    <div class="count">{{pubSubmit.nbTrails}}</div>
+                  }
                 </div>
               </div>
             </div>
@@ -215,7 +227,9 @@
                   <a href="/trails/collection/{{pubReject.collection.uuid}}/{{pubReject.collection.owner}}" target="_blank" class="inherit name pub-reject" (click)="$event.button === 1 || $event.ctrlKey ? $event.stopPropagation() : $event.preventDefault();">
                     {{ i18n.texts.publications.reject_name }}
                   </a>
-                  <div *ngIf="pubReject.nbTrails !== undefined" class="count">{{pubReject.nbTrails}}</div>
+                  @if (pubReject.nbTrails !== undefined) {
+                    <div class="count">{{pubReject.nbTrails}}</div>
+                  }
                 </div>
               </div>
             </div>
@@ -247,7 +261,7 @@
     </div>
   </div>
 
-  <ng-container *ngIf="isAdmin || isModerator">
+  @if (isAdmin || isModerator) {
     <div class="menu-section" id="section-moderation">
       <div class="menu-section-header" (click)="moderationOpen = !moderationOpen">
         <ion-icon name="web" class="left-icon"></ion-icon>
@@ -278,7 +292,7 @@
         </div>
       </div>
     }
-  </ng-container>
+  }
 
   <div class="menu-separator"></div>
   <div class="menu-item" (click)="goToPublicPage('/contact'); close();">
@@ -296,16 +310,21 @@
 
 </div>
 <div class="menu-footer">
-  <div class="menu-item" (click)="update.availableDownload.launch(); close();" *ngIf="update.availableDownload">
-    <div class="icon-badge" *ngIf="update.availableDownload.badge">
-      <ion-icon class="left-icon" [name]="update.availableDownload.icon"></ion-icon>
-      <ion-badge>{{update.availableDownload.badge}}</ion-badge>
+  @if (update.availableDownload) {
+    <div class="menu-item" (click)="update.availableDownload.launch(); close();">
+      @if (update.availableDownload.badge) {
+      <div class="icon-badge">
+        <ion-icon class="left-icon" [name]="update.availableDownload.icon"></ion-icon>
+        <ion-badge>{{update.availableDownload.badge}}</ion-badge>
+      </div>
+      } @else {
+        <ion-icon class="left-icon" [name]="update.availableDownload.icon"></ion-icon>
+      }
+      <div class="item-title-container">
+        <div class="item-title">{{i18n.texts.update[update.availableDownload.i18nText]}}</div>
+      </div>
     </div>
-    <ion-icon class="left-icon" [name]="update.availableDownload.icon" *ngIf="!update.availableDownload.badge"></ion-icon>
-    <div class="item-title-container">
-      <div class="item-title">{{i18n.texts.update[update.availableDownload.i18nText]}}</div>
-    </div>
-  </div>
+  }
 
   <div class="menu-bottom">
     <div class="version">Trailence {{versionName}}</div>

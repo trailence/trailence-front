@@ -32,7 +32,7 @@ export class StoreErrors {
   }
 
   public itemsError(items: string[], error: any): void {
-    items.forEach(item => this.itemError(item, error));
+    for (const item of items) this.itemError(item, error);
   }
 
   public itemSuccess(item: string): void {
@@ -41,7 +41,7 @@ export class StoreErrors {
   }
 
   public itemsSuccess(items: string[]): void {
-    items.forEach(item => this.itemSuccess(item));
+    for (const item of items) this.itemSuccess(item);
   }
 
   public canProcess(item: string, isCreation: boolean): boolean { // NOSONAR

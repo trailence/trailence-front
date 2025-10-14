@@ -10,33 +10,44 @@
   <div class="message">
     {{i18n.texts.pages.import_tags_popup['message_' + type]}}
   </div>
-  <table *ngIf="resolvedTags">
-    <tr>
-      <th>{{i18n.texts.pages.import_tags_popup.tag}}</th>
-      <th>{{i18n.texts.pages.import_tags_popup.status}}</th>
-    </tr>
-    <tr *ngFor="let tag of resolvedTags">
-      <td>{{tag.fullName}}</td>
-      <td>
-        <ng-container *ngIf="tag.resolvedUuid">
-          <ion-icon name="checkmark" color="success"></ion-icon>
-          <span>{{i18n.texts.pages.import_tags_popup.status_exists}}</span>
-        </ng-container>
-        <ng-container *ngIf="!tag.resolvedUuid">
-          <ion-icon name="cross" color="danger"></ion-icon>
-          <span>{{i18n.texts.pages.import_tags_popup.status_does_not_exist}}</span>
-        </ng-container>
-      </td>
-    </tr>
-  </table>
+  @if (resolvedTags) {
+    <table>
+      <tr>
+        <th>{{i18n.texts.pages.import_tags_popup.tag}}</th>
+        <th>{{i18n.texts.pages.import_tags_popup.status}}</th>
+      </tr>
+      @for (tag of resolvedTags; track tag) {
+        <tr>
+          <td>{{tag.fullName}}</td>
+          <td>
+            @if (tag.resolvedUuid) {
+              <ion-icon name="checkmark" color="success"></ion-icon>
+              <span>{{i18n.texts.pages.import_tags_popup.status_exists}}</span>
+            } @else {
+              <ion-icon name="cross" color="danger"></ion-icon>
+              <span>{{i18n.texts.pages.import_tags_popup.status_does_not_exist}}</span>
+            }
+          </td>
+        </tr>
+      }
+    </table>
+  }
   <div class="message2">
     {{i18n.texts.pages.import_tags_popup.message2}}
   </div>
   <div class="buttons">
-    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, false)" class="import-existing-only">{{i18n.texts.pages.import_tags_popup[type + '_existing_only']}}</ion-button>
-    <ion-button *ngIf="resolvedTags && hasMissing && hasExisting" (click)="import(true, true)" class="import-all">{{i18n.texts.pages.import_tags_popup[type + '_and_create']}}</ion-button>
-    <ion-button *ngIf="resolvedTags && !hasMissing && hasExisting" (click)="import(true, false)" class="import-all">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
-    <ion-button *ngIf="resolvedTags && hasMissing && !hasExisting" (click)="import(false, true)" class="import-all">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
-    <ion-button *ngIf="resolvedTags" (click)="close('cancel')" class="import-none">{{i18n.texts.pages.import_tags_popup['ignore_all_' + type]}}</ion-button>
+    @if (resolvedTags) {
+      @if (hasMissing && hasExisting) {
+        <ion-button (click)="import(true, false)" class="import-existing-only">{{i18n.texts.pages.import_tags_popup[type + '_existing_only']}}</ion-button>
+        <ion-button (click)="import(true, true)" class="import-all">{{i18n.texts.pages.import_tags_popup[type + '_and_create']}}</ion-button>
+      }
+      @if (!hasMissing && hasExisting) {
+        <ion-button (click)="import(true, false)" class="import-all">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
+      }
+      @if (hasMissing && !hasExisting) {
+        <ion-button (click)="import(false, true)" class="import-all">{{i18n.texts.pages.import_tags_popup[type + '_all']}}</ion-button>
+      }
+      <ion-button (click)="close('cancel')" class="import-none">{{i18n.texts.pages.import_tags_popup['ignore_all_' + type]}}</ion-button>
+    }
   </div>
 </ion-content>

@@ -76,7 +76,7 @@ export class Segment {
       prev = p;
       inserted.push(p);
     }
-    const p = new PointImpl(this._meta, points[points.length - 1], prev, next, this._pointsChanges$);
+    const p = new PointImpl(this._meta, points.at(-1)!, prev, next, this._pointsChanges$);
     this._points.value.splice(index + points.length - 1, 0, p);
     this._points.next(this._points.value);
     inserted.push(p);
@@ -131,13 +131,11 @@ export class Segment {
   }
 
   public get departurePoint(): Point | undefined {
-    if (this._points.value.length === 0) return undefined;
-    return this._points.value[0];
+    return this._points.value.at(0);
   }
 
   public get arrivalPoint(): Point | undefined {
-    if (this._points.value.length === 0) return undefined;
-    return this._points.value[this._points.value.length - 1];
+    return this._points.value.at(-1);
   }
 
   public get startDate(): number | undefined {
@@ -177,15 +175,15 @@ export class Segment {
     let nearestDistance: number | undefined;
     for (const point of this.points) {
       if (!predicate(point)) continue;
-      if (!nearest) {
-        nearest = point;
-        nearestDistance = point.distanceTo(position);
-      } else {
+      if (nearest) {
         const distance = point.distanceTo(position);
         if (distance < nearestDistance!) {
           nearest = point;
           nearestDistance = point.distanceTo(position);
         }
+      } else {
+        nearest = point;
+        nearestDistance = point.distanceTo(position);
       }
     }
     return nearest;
@@ -215,10 +213,10 @@ export class Segment {
   }
 
   public distanceToSegmentEnd(pointIndex: number): number {
-    if (pointIndex >= this._points.value.length - 1) return 0;
+    let p = this._points.value.at(-1);
+    let end = this._points.value.at(pointIndex);
+    if (!end || !p) return 0;
     let total = 0;
-    let p = this._points.value[this._points.value.length - 1];
-    let end = this._points.value[pointIndex];
     while (p !== end) {
       total += p.distanceFromPreviousPoint;
       p = p.previousPoint as PointImpl;
@@ -498,8 +496,8 @@ export class SegmentMetadata {
   }
 
   addElevation(e: number): void {
-    const addN = e <= 0 ? -e : 0;
-    const addP = e >= 0 ? e : 0;
+    const addN = Math.max(0, -e);
+    const addP = Math.max(0, e);
     if (this._negativeElevation.value === undefined)
       this._negativeElevation.next(addN);
     else if (addN > 0)
@@ -511,8 +509,8 @@ export class SegmentMetadata {
   }
 
   cancelElevation(e: number): void {
-    const subN = e <= 0 ? -e : 0;
-    const subP = e >= 0 ? e : 0;
+    const subN = Math.max(0, -e);
+    const subP = Math.max(0, e);
     if (this._negativeElevation.value !== undefined && subN > 0)
       this._negativeElevation.next(Math.max(0, this._negativeElevation.value - subN));
     if (this._positiveElevation.value !== undefined && subP > 0)

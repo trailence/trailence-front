@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { ToastController, AlertController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -62,7 +61,6 @@ interface TrackEditToolsState {
   templateUrl: './track-edit-tools.component.html',
   styleUrl: './track-edit-tools.component.scss',
   imports: [
-    CommonModule,
     ToolbarComponent,
   ]
 })
@@ -221,23 +219,21 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       hasModifications: () => this.modifiedTrack$.value !== undefined,
 
       appendTool: (component) => {
-        if (!this.toolsStack) {
-          this.toolsStack = new TrackEditToolsStack(this.context, [component]);
-        } else {
+        if (this.toolsStack) {
           const existing = this.toolsStack.components.find(c => c.component === component.component);
           if (existing) {
             component.onCreated(existing.instance);
             return;
           }
           this.toolsStack.components.push(component);
+        } else {
+          this.toolsStack = new TrackEditToolsStack(this.context, [component]);
         }
         this.toolsStackChange.emit(this.toolsStack);
         this.refreshTools();
       },
       insertTool: (component) => {
-        if (!this.toolsStack) {
-          this.toolsStack = new TrackEditToolsStack(this.context, [component]);
-        } else {
+        if (this.toolsStack) {
           const index = this.toolsStack.components.findIndex(c => c.component === component.component);
           if (index < 0)
             this.toolsStack.components.splice(0, 0, component);
@@ -250,6 +246,8 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
             component.onCreated(existing.instance);
             if (index === 0) return;
           }
+        } else {
+          this.toolsStack = new TrackEditToolsStack(this.context, [component]);
         }
         this.toolsStackChange.emit(this.toolsStack);
         this.refreshTools();
@@ -335,7 +333,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
 
   undo(): void {
     if (this.statesStack.length === 0) return;
-    const state = this.statesStack.splice(this.statesStack.length - 1, 1)[0];
+    const state = this.statesStack.splice(-1, 1)[0];
     this.undoneStack.push(this.getCurrentState());
     if (this.undoneStack.length > 50) this.undoneStack.splice(0, 1);
     this.setState(state);
@@ -343,7 +341,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
 
   redo(): void {
     if (this.undoneStack.length === 0) return;
-    const state = this.undoneStack.splice(this.undoneStack.length - 1, 1)[0];
+    const state = this.undoneStack.splice(-1, 1)[0];
     this.pushHistory();
     this.setState(state);
   }
@@ -362,7 +360,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     if (this.statesStack.length > 50) this.statesStack.splice(0, 1);
   }
 
-  private setState(state: TrackEditToolsState): void {
+  private setState(state: TrackEditToolsState): void { // NOSONAR
     const previousState = this.getCurrentState();
     this.baseTrack$.next(state.baseTrack);
     if (state.modifiedTrack) {
@@ -440,29 +438,24 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         return modification(copy).pipe(
           defaultIfEmpty(undefined),
           map(result => {
-            if (mayNotChange && copy.isEquals(before!)) {
-              if (!doNotNotifyIfNotChange)
-                this.toastController.create({
-                  message: this.i18n.texts.track_edit_tools.no_modification,
-                  duration: 2000,
-                })
-                .then(toast => toast.present());
-            } else {
-              this.selection.removeSelectionForTrack(originalTrack);
-              if (!copySelectionStart) {
-                this.selection.cancelSelection();
-              } else {
-                const newSelectionStart = copy.findPointInstance(copySelectionStart);
-                if (!newSelectionStart) {
-                  this.selection.cancelSelection();
-                } else {
-                  const newSelectionEnd = copySelectionEnd ? copy.findPointInstance(copySelectionEnd) : undefined;
-                  if (newSelectionEnd) this.selection.addRange(new RangeReference(newSelectionStart, newSelectionEnd));
-                  else this.selection.addPoint(newSelectionStart);
-                }
-              }
-              this.trackModified(copy);
+            if (mayNotChange && copy.isEquals(before!)) { // NOSONAR
+              if (!doNotNotifyIfNotChange) this.showToastNoModification();
+              return;
             }
+            this.selection.removeSelectionForTrack(originalTrack);
+            if (copySelectionStart) {
+              const newSelectionStart = copy.findPointInstance(copySelectionStart);
+              if (newSelectionStart) {
+                const newSelectionEnd = copySelectionEnd ? copy.findPointInstance(copySelectionEnd) : undefined;
+                if (newSelectionEnd) this.selection.addRange(new RangeReference(newSelectionStart, newSelectionEnd));
+                else this.selection.addPoint(newSelectionStart);
+              } else {
+                this.selection.cancelSelection();
+              }
+            } else {
+              this.selection.cancelSelection();
+            }
+            this.trackModified(copy);
             return result;
           })
         );
@@ -483,12 +476,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
           defaultIfEmpty(undefined),
           map(result => {
             if (mayNotChange && subTrack.isEquals(before!)) {
-              if (!doNotNotifyIfNotChange)
-                this.toastController.create({
-                  message: this.i18n.texts.track_edit_tools.no_modification,
-                  duration: 2000,
-                })
-                .then(toast => toast.present());
+              if (!doNotNotifyIfNotChange) this.showToastNoModification();
             } else {
               this.selection.removeSelectionForTrack(fullTrack);
               const newTrack = fullTrack.copy(email)
@@ -509,6 +497,14 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         );
       }),
     );
+  }
+
+  private showToastNoModification(): void {
+    this.toastController.create({
+      message: this.i18n.texts.track_edit_tools.no_modification,
+      duration: 2000,
+    })
+    .then(toast => toast.present());
   }
 
   private findToolInItems(items: MenuItem[], predicate: (item: MenuItem) => boolean): MenuItem | undefined {
@@ -578,27 +574,30 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   }
 
   close(): void {
-    if (!this.canSave()) this.doClose();
-    else this.injector.get(AlertController).create({
-      header: this.i18n.texts.track_edit_tools.close_confirmation.title,
-      message: this.i18n.texts.track_edit_tools.close_confirmation.message,
-      buttons: [
-        {
-          text: this.i18n.texts.buttons.confirm,
-          role: 'confirm',
-          handler: () => {
-            this.injector.get(AlertController).dismiss();
-            this.doClose();
+    if (this.canSave()) {
+      this.injector.get(AlertController).create({
+        header: this.i18n.texts.track_edit_tools.close_confirmation.title,
+        message: this.i18n.texts.track_edit_tools.close_confirmation.message,
+        buttons: [
+          {
+            text: this.i18n.texts.buttons.confirm,
+            role: 'confirm',
+            handler: () => {
+              this.injector.get(AlertController).dismiss();
+              this.doClose();
+            }
+          }, {
+            text: this.i18n.texts.buttons.cancel,
+            role: 'cancel',
+            handler: () => {
+              this.injector.get(AlertController).dismiss();
+            }
           }
-        }, {
-          text: this.i18n.texts.buttons.cancel,
-          role: 'cancel',
-          handler: () => {
-            this.injector.get(AlertController).dismiss();
-          }
-        }
-      ]
-    }).then(a => a.present());
+        ]
+      }).then(a => a.present());
+    } else {
+      this.doClose();
+    }
   }
 
   private doClose(): void {

@@ -5,7 +5,6 @@ import { TagService } from 'src/app/services/database/tag.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonButton, ModalController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { Progress, ProgressService } from 'src/app/services/progress/progress.service';
@@ -22,7 +21,7 @@ class ResolvedTag {
     selector: 'app-import-tags-popup',
     templateUrl: './import-tags-popup.component.html',
     styleUrls: ['./import-tags-popup.component.scss'],
-    imports: [IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, CommonModule]
+    imports: [IonButton, IonContent, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader]
 })
 export class ImportTagsPopupComponent  implements OnInit {
 
@@ -63,9 +62,9 @@ export class ImportTagsPopupComponent  implements OnInit {
               tree.push({name, uuid: tag?.uuid ?? null});
               parentUuid = tag?.uuid ?? undefined;
             }
-            const uuid = tree[tree.length - 1].uuid;
+            const uuid = tree.at(-1)?.uuid;
             if (uuid) this.hasExisting = true; else this.hasMissing = true;
-            return new ResolvedTag(fullName, uuid, tree);
+            return new ResolvedTag(fullName, uuid ?? null, tree);
           }
         );
       }
@@ -126,7 +125,7 @@ export class ImportTagsPopupComponent  implements OnInit {
   private importExisting(progress: Progress): void { // NOSONAR
     const toCreate: {trailUuid: string, tagUuid: string}[] = [];
     for (const resolved of this.resolvedTags!) {
-      const uuid = resolved.tree[resolved.tree.length - 1].uuid;
+      const uuid = resolved.tree.at(-1)?.uuid;
       if (!uuid) continue;
       const resolvedTags = resolved.tree.map(node => node.name);
       for (const trail of this.toImport) {

@@ -4,7 +4,6 @@ import { IonIcon, IonButton, MenuController, IonBadge, Platform, PopoverControll
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { combineLatest, concat, map, of, switchMap } from 'rxjs';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
@@ -23,14 +22,14 @@ import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/
 import { MyPublicTrail, MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
     selector: 'app-menu',
     templateUrl: './menu.component.html',
     styleUrls: ['./menu.component.scss'],
     imports: [
-      CommonModule,
-      IonBadge, IonButton, IonIcon,
+      IonBadge, IonButton, IonIcon, AsyncPipe,
     ]
 })
 export class MenuComponent implements OnInit {
@@ -99,13 +98,13 @@ export class MenuComponent implements OnInit {
           trailService.getAllWhenLoaded$().pipe(
             collection$items(t => t.owner === auth?.email),
             map(trails => {
-              withInfo.forEach(c => c.nbTrails = 0);
+              for (const c of withInfo) c.nbTrails = 0;
               const allCollectionsWithoutPub = collections.filter(c => !isPublicationCollection(c.type));
-              this.allCollectionsTrails = trails.filter(t => allCollectionsWithoutPub.findIndex(c => c.uuid === t.collectionUuid) >= 0).length;
-              trails.forEach(t => {
+              this.allCollectionsTrails = trails.filter(t => allCollectionsWithoutPub.some(c => c.uuid === t.collectionUuid)).length;
+              for (const t of trails) {
                 const c = withInfo.find(i => i.collection.uuid === t.collectionUuid && t.owner === i.collection.owner);
                 if (c) c.nbTrails!++;
-              })
+              }
               return withInfo;
             })
           )
@@ -135,7 +134,7 @@ export class MenuComponent implements OnInit {
             of(withInfo),
             shareService.getTrailsByShare(shares).pipe(
               map(result => {
-                withInfo.forEach(s => s.nbTrails = (result.get(s.share) ?? []).length);
+                for (const s of withInfo) s.nbTrails = (result.get(s.share) ?? []).length;
                 return withInfo;
               })
             )

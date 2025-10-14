@@ -15,8 +15,8 @@ export class DeviceInfo {
   public deviceId: string;
 
   constructor(ionic: Platform) {
-    this.userAgent = window.navigator.userAgent;
-    const uaData = (window.navigator as any).userAgentData;
+    this.userAgent = globalThis.navigator.userAgent;
+    const uaData = (globalThis.navigator as any).userAgentData;
     if (uaData) {
       this.mobile = uaData.mobile ?? false;
       this.platform = uaData.platform ?? '';
@@ -32,7 +32,7 @@ export class DeviceInfo {
     let deviceId = localStorage.getItem(DEVICE_ID_KEY);
     if (deviceId && !/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i.test(deviceId)) deviceId = null;
     if (!deviceId) {
-      deviceId = window.crypto.randomUUID();
+      deviceId = globalThis.crypto.randomUUID();
       localStorage.setItem(DEVICE_ID_KEY, deviceId);
     }
     this.deviceId = deviceId;

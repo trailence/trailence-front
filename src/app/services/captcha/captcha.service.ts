@@ -41,7 +41,7 @@ export class CaptchaService {
 
   public unload(id: string): void {
     const element = document.getElementById(id);
-    if (element) while (element.children.length > 0) element.removeChild(element.children.item(0)!);
+    if (element) while (element.children.length > 0) element.children.item(0)?.remove();
   }
 
   private ready$(): Observable<CaptchaConfig> {
@@ -72,7 +72,7 @@ export class CaptchaService {
         this.jsLoaded.next(true);
         return;
       }
-      (window as any).captcha_onloadCallback = () => {
+      (globalThis as any).captcha_onloadCallback = () => {
         this.jsLoaded.next(true);
       };
       this.node = document.createElement('script');
@@ -103,7 +103,7 @@ export class CaptchaService {
             enabled: true,
             scriptUrl: 'https://www.google.com/recaptcha/api.js?onload=captcha_onloadCallback&render=explicit',
             render: (elementId, onsuccess, onexpired, onerror) => {
-              (window as any).grecaptcha.render(elementId, {
+              (globalThis as any).grecaptcha.render(elementId, {
                 'sitekey' : config.clientKey,
                 'callback': onsuccess,
                 'expired-callback': onexpired,
@@ -116,7 +116,7 @@ export class CaptchaService {
             enabled: true,
             scriptUrl: 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=captcha_onloadCallback',
             render: (elementId, onsuccess, onexpired, onerror) => {
-              (window as any).turnstile.render('#' + elementId, {
+              (globalThis as any).turnstile.render('#' + elementId, {
                 'sitekey' : config.clientKey,
                 'callback': onsuccess,
                 'expired-callback': onexpired,

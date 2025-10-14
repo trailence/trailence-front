@@ -44,7 +44,7 @@ export class FeedbackComponent {
     private readonly errorService: ErrorService,
     private readonly moderationService: ModerationService,
   ) {
-    this.moderator = !!authService.auth?.admin || (authService.auth?.roles ?? []).indexOf('moderator') >= 0;
+    this.moderator = !!authService.auth?.admin || (authService.auth?.roles ?? []).includes('moderator');
   }
 
   reply(): void {

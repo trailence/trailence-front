@@ -64,9 +64,9 @@ export class AuthService {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {
       if (auth === null) {
-        const url = window.location.pathname;
-        if (url.indexOf('/login') < 0 && url.indexOf('/link') < 0 && url !== '/search-route' && !url.startsWith('/trail/trailence/')) {
-          if (!publicRoutes.find(r => '/' + r.path === url || '/fr/' + r.path === url || '/en/' + r.path === url)) {
+        const url = globalThis.location.pathname;
+        if (!url.includes('/login') && !url.includes('/link') && url !== '/search-route' && !url.startsWith('/trail/trailence/')) {
+          if (!publicRoutes.some(r => '/' + r.path === url || '/fr/' + r.path === url || '/en/' + r.path === url)) {
             if (url === '/')
               navController.navigateRoot(['/home']);
             else
@@ -106,10 +106,10 @@ export class AuthService {
         const authStored = localStorage.getItem(LOCALSTORAGE_KEY_AUTH);
         if (authStored) {
           const auth = JSON.parse(authStored) as AuthResponse;
-          if (!auth.accessToken) throw Error('No accessToken');
-          if (!auth.expires) throw Error('No expires');
-          if (!auth.email) throw Error('No email');
-          if (!auth.keyId) throw Error('No keyId');
+          if (!auth.accessToken) throw new Error('No accessToken');
+          if (!auth.expires) throw new Error('No expires');
+          if (!auth.email) throw new Error('No email');
+          if (!auth.keyId) throw new Error('No keyId');
           Console.info('Found stored authentication for user', auth.email);
           this.openDB(auth.email);
           this._auth$.next(auth);
@@ -219,7 +219,7 @@ export class AuthService {
   }
 
   private generateKeys(): Observable<{keyPair: CryptoKeyPair, publicKeyBase64: string}> {
-    return from(window.crypto.subtle.generateKey(
+    return from(globalThis.crypto.subtle.generateKey(
       {
         name: 'RSASSA-PKCS1-v1_5',
         modulusLength: 4096,
@@ -230,8 +230,8 @@ export class AuthService {
       ['sign', 'verify']
     )).pipe(
       switchMap(keyPair =>
-        from(window.crypto.subtle.exportKey('spki', keyPair.publicKey)).pipe(
-          map(pk => ({keyPair: keyPair, publicKeyBase64: btoa(String.fromCharCode(...new Uint8Array(pk)))}))
+        from(globalThis.crypto.subtle.exportKey('spki', keyPair.publicKey)).pipe(
+          map(pk => ({keyPair: keyPair, publicKeyBase64: btoa(String.fromCharCode(...new Uint8Array(pk)))})) // NOSONAR
         )
       )
     );
@@ -341,7 +341,9 @@ export class AuthService {
   private renewAuth(): Observable<AuthResponse | null> {
     return new Observable<AuthResponse | null>(
       subscriber => {
-        if (!this._currentAuth) {
+        if (this._currentAuth) {
+          this._currentAuth.push(subscriber);
+        } else {
           const subscribers = [subscriber];
           this._currentAuth = subscribers;
           this.doRenewAuth().subscribe({
@@ -361,8 +363,6 @@ export class AuthService {
               }
             },
           });
-        } else {
-          this._currentAuth.push(subscriber);
         }
       }
     );
@@ -383,7 +383,7 @@ export class AuthService {
         .pipe(
           timeout(30000),
           switchMap(initResponse =>
-            from(window.crypto.subtle.sign('RSASSA-PKCS1-v1_5', security.privateKey, new TextEncoder().encode(security.email + initResponse.random)))
+            from(globalThis.crypto.subtle.sign('RSASSA-PKCS1-v1_5', security.privateKey, new TextEncoder().encode(security.email + initResponse.random)))
             .pipe(map(signature => ({signature, randomBase64: initResponse.random, keyId: security.keyId})))
           ),
           catchError(error => {
@@ -405,7 +405,7 @@ export class AuthService {
           email: current.email,
           random: result.randomBase64,
           keyId: result.keyId,
-          signature: btoa(String.fromCharCode(...new Uint8Array(result.signature))),
+          signature: btoa(String.fromCharCode(...new Uint8Array(result.signature))), // NOSONAR
           deviceInfo: new DeviceInfo(this.platform),
         } as RenewRequest;
         if (current.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB) > Date.now())

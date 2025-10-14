@@ -53,13 +53,15 @@
     ></app-trails-list>
   </div>
   <div class="tabs-container">
-    <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())" *ngIf="isSmall">
-      <ion-segment-button value="list" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.list}}</ion-segment-button>
-      <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.map}}</ion-segment-button>
-    </ion-segment>
+    @if (isSmall) {
+      <ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value!.toString())">
+        <ion-segment-button value="list" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.list}}</ion-segment-button>
+        <ion-segment-button value="map" style="min-height: 36px;">{{i18n.texts.pages.trails.tabs.map}}</ion-segment-button>
+      </ion-segment>
+    }
   </div>
   <div class="trail-sheet {{trailSheetMode}} {{highlightedTrail ? '' : 'none'}} metadata-container {{trailSheetMetadataClass}}">
-    <ng-container *ngIf="highlightedTrail && trailSheetMode !== 'none'">
+    @if (highlightedTrail && trailSheetMode !== 'none') {
       <app-trail-overview
         [trail]="highlightedTrail"
         [photoEnabled]="false"
@@ -72,7 +74,7 @@
         [renameOnTrailNamePress]="true"
         [fromCollection]="!!collectionUuid"
       ></app-trail-overview>
-    </ng-container>
+    }
   </div>
   @if (trailSheetMode === 'none' && bottomSheetTrails && bottomSheetTrails.length > 1) {
     <div class="large-trails-navigation">

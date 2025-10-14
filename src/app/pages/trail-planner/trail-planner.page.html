@@ -41,10 +41,12 @@
     </app-map>
   </div>
   <div class="elevation-graph-container">
-    <app-trail-graph [track1]="trackBuilder!.track!" *ngIf="!!trackBuilder?.hasElevation && bottomTab === 'elevation'"
-      (pointHover)="graphPointHover($event)"
-      graphType="elevation"
-    ></app-trail-graph>
+    @if (!!trackBuilder?.hasElevation && bottomTab === 'elevation') {
+      <app-trail-graph [track1]="trackBuilder!.track!"
+        (pointHover)="graphPointHover($event)"
+        graphType="elevation"
+      ></app-trail-graph>
+    }
   </div>
 
   <div class="left-pane {{leftPaneOpen ? 'open': 'closed'}}">
@@ -55,11 +57,7 @@
           color="secondary"
           (ionChange)="trails.toggleShowTrails($event.detail.checked)"
           labelPlacement="end">{{ i18n.texts.pages.trailplanner.show_trails }}</ion-toggle>
-        <ng-container *ngIf="trails.searchingTrails">
-          <div>
-            <ion-spinner name="dots"></ion-spinner>
-          </div>
-        </ng-container>
+        @if (trails.searchingTrails) {<div><ion-spinner name="dots"></ion-spinner></div>}
         <div class="trails-list">
           @for (item of trails.list; track item.trail.uuid + item.trail.owner) {
             <app-trail-overview-condensed
@@ -200,7 +198,9 @@
         cancelText="{{i18n.texts.buttons.cancel}}"
         okText="{{i18n.texts.buttons.apply}}"
       >
-        <ion-select-option *ngFor="let collection of collections" [value]="collection.uuid">{{getCollectionName(collection)}}</ion-select-option>
+        @for (collection of collections; track collection.uuid) {
+          <ion-select-option [value]="collection.uuid">{{getCollectionName(collection)}}</ion-select-option>
+        }
       </ion-select>
     </ion-content>
     <ion-footer>

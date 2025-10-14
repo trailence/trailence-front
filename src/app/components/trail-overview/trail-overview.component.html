@@ -1,75 +1,86 @@
-<div class="trail-name-row" *ngIf="trail">
-  <ion-checkbox class="trail-checkbox" *ngIf="selectable" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
-  @if (navigationCount && navigationIndex !== undefined) {
-    <div class="navigation">
-      <ion-button size="small" fill="clear" color="dark" (click)="navigationPrevious()">
-        <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
+@if (trail) {
+  <div class="trail-name-row">
+    @if (selectable) {
+      <ion-checkbox class="trail-checkbox" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
+    }
+    @if (navigationCount && navigationIndex !== undefined) {
+      <div class="navigation">
+        <ion-button size="small" fill="clear" color="dark" (click)="navigationPrevious()">
+          <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
+        </ion-button>
+        <span>{{navigationIndex + 1}} / {{navigationCount}}</span>
+        <ion-button size="small" fill="clear" color="dark" (click)="navigationNext()">
+          <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
+        </ion-button>
+      </div>
+    }
+    @if (auth.auth) {
+      <ion-button class="my-selection" color="my-selection" size="small" fill="clear" (click)="toggleMySelection(); $event.stopPropagation();">
+        <ion-icon slot="icon-only" [name]="meta.isInMySelection ? 'star-filled' : 'star-empty'"></ion-icon>
       </ion-button>
-      <span>{{navigationIndex + 1}} / {{navigationCount}}</span>
-      <ion-button size="small" fill="clear" color="dark" (click)="navigationNext()">
-        <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
-      </ion-button>
+    }
+    <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (longPressEvent)="trailNamePressed()">
+      @if (openUrl) {
+        <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
+      } @else {
+        <span (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</span>
+      }
     </div>
-  }
-  @if (auth.auth) {
-    <ion-button class="my-selection" color="my-selection" size="small" fill="clear" (click)="toggleMySelection(); $event.stopPropagation();">
-      <ion-icon slot="icon-only" [name]="meta.isInMySelection ? 'star-filled' : 'star-empty'"></ion-icon>
-    </ion-button>
-  }
-  <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (longPressEvent)="trailNamePressed()">
-    @if (openUrl) {
-      <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
-    } @else {
-      <span (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</span>
+    @if (publicTrailUuid) {
+      <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
+        <ion-icon name="web" slot="icon-only"></ion-icon>
+      </ion-button>
+    }
+    @if (external?.oscmSymbol; as symbol) {
+      @let svg = generateRouteSymbol(symbol);
+      @if (svg) {
+        <div class="ocsm-symbol" [innerHTML]="svg"></div>
+      }
+    }
+    @if (!hideMenu) {
+      <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
+        <ion-icon name="item-menu" slot="icon-only"></ion-icon>
+      </ion-button>
     }
   </div>
-  @if (publicTrailUuid) {
-    <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
-      <ion-icon name="web" slot="icon-only"></ion-icon>
-    </ion-button>
-  }
-  <ng-container *ngIf="external && external.oscmSymbol">
-    <ng-container *ngIf="generateRouteSymbol(external.oscmSymbol) as svg">
-      <div class="ocsm-symbol" [innerHTML]="svg"></div>
-    </ng-container>
-  </ng-container>
-  @if (!hideMenu) {
-    <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
-      <ion-icon name="item-menu" slot="icon-only"></ion-icon>
-    </ion-button>
-  }
-</div>
-<ng-container *ngIf="load$.value">
+}
+@if (load$.value) {
   <div class="trail-tags-row" [ngClass]="{'nowrap': hasFixedHeight}">
-    <div class="tag" *ngFor="let tag of tagsNames">{{tag}}</div>
+    @for (tag of tagsNames; track tag) {
+      <div class="tag">{{tag}}</div>
+    }
   </div>
-  <ng-container *ngIf="external && external.rating !== undefined">
-    <app-rate [rate]="external!.rating!" [nbRates]="external.nbRates"></app-rate>
-  </ng-container>
+  @if (external && external.rating !== undefined) {
+    <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
+  }
 
   <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined), 'has-photo': photoEnabled && photos.length > 0}">
-    <ng-container *ngIf="meta.dateString || meta.location">
-      <div class="metadata-item-container" *ngIf="meta.dateString">
-        <div class="metadata-item">
-          <ion-icon name="date"></ion-icon>
-          <div class="metadata-content">
-            <div class="metadata-value">
-              <div class="metadata-primary">{{ meta.dateString }}</div>
+    @if (meta.dateString || meta.location) {
+      @if (meta.dateString) {
+        <div class="metadata-item-container">
+          <div class="metadata-item">
+            <ion-icon name="date"></ion-icon>
+            <div class="metadata-content">
+              <div class="metadata-value">
+                <div class="metadata-primary">{{ meta.dateString }}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="metadata-item-container" *ngIf="meta.location || alwaysShowLocation">
-        <div class="metadata-item nowrap">
-          <ion-icon name="location"></ion-icon>
-          <div class="metadata-content">
-            <div class="metadata-value">
-              <div class="metadata-primary trail-location">{{ meta.location }}</div>
+      }
+      @if (meta.location || alwaysShowLocation) {
+        <div class="metadata-item-container">
+          <div class="metadata-item nowrap">
+            <ion-icon name="location"></ion-icon>
+            <div class="metadata-content">
+              <div class="metadata-value">
+                <div class="metadata-primary trail-location">{{ meta.location }}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </ng-container>
+      }
+    }
     @if (photoEnabled && photoCanBeOnLeft) {
       <div class="metadata-with-photos photo-left">
         @if (photos.length > 0) {
@@ -107,9 +118,9 @@
       <ng-container *ngTemplateOutlet="metadata"></ng-container>
     }
   </div>
-  <ng-container *ngIf="!track$.value">
+  @if (!track$.value) {
     <ion-spinner name="dots"></ion-spinner>
-  </ng-container>
+  }
   @if (trail && enableShowOnMap) {
     <div class="show-on-map">
       <ion-button size="small" fill="clear" color="secondary" (click)="showOnMap.emit(trail); $event.stopPropagation()">
@@ -117,7 +128,7 @@
       </ion-button>
     </div>
   }
-</ng-container>
+}
 <ng-template #metadata>
   <div id="track-metadata-{{id}}"></div>
   @if (meta.loopTypeString || meta.activityString) {

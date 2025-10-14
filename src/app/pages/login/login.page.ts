@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
@@ -15,6 +14,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { Console } from 'src/app/utils/console';
 import { PublicPage } from '../public.page';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { NgStyle } from '@angular/common';
 
 @Component({
     selector: 'app-login',
@@ -31,8 +31,8 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
         IonCard,
         IonButton,
         FormsModule,
-        CommonModule,
         HeaderComponent,
+        NgStyle,
     ]
 })
 export class LoginPage extends PublicPage {
@@ -100,7 +100,7 @@ export class LoginPage extends PublicPage {
     const token = this.captchaToken;
     this.captchaToken = undefined;
     const element = document.getElementById('captcha-login');
-    if (element) while (element.children.length > 0) element.removeChild(element.children.item(0)!);
+    if (element) while (element.children.length > 0) element.children.item(0)?.remove();
     this.progressMessage = this.i18n.texts.pages.login.signing_in;
     this.auth.login(this.email, this.password, token).subscribe({
       next: () => {

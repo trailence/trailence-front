@@ -428,7 +428,7 @@ export class ComputedMenuItems {
     }
     if (!this._moreComputed || this._moreComputed.item !== this._moreItem)
       this._moreComputed = new ComputedMenuItem(this._moreItem!, this.i18n);
-    this._moreComputed.visible = this._moreItem!.children.filter(item => !item.isSeparator() && item.isVisible()).length > 0;
+    this._moreComputed.visible = this._moreItem!.children.some(item => !item.isSeparator() && item.isVisible());
     if (this._moreComputed.visible) this._allItems.push(this._moreComputed);
   }
 
@@ -476,7 +476,7 @@ export class ComputedMenuItem {
       switchMap(children => this.children.compute(children)),
       map(childrenChanged => {
         let changed = childrenChanged;
-        const hasChildren = !!this.children.items.find(child => child.visible);
+        const hasChildren = this.children.items.some(child => child.visible);
         if (!hasChildren) {
           this.visible = false;
           return false;

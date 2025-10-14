@@ -1,18 +1,20 @@
-<ng-container *ngIf="!blob">
-  <ion-spinner name="dots" *ngIf="!error"></ion-spinner>
-  <ion-icon name="error" color="danger" *ngIf="error"></ion-icon>
-</ng-container>
-<div class="photo-img-container" *ngIf="blob">
-  <img #image
-    [src]="blob"
-    [ngStyle]="{ 'max-width': maxWidth + 'px', 'max-height': maxHeight + 'px', 'touch-action': zoomable ? 'none' : '' }"
-    (wheel)="onWheel($event)"
-    (pointerdown)="onDown($event)"
-    (pointermove)="onMove($event)"
-    (pointerup)="onUp($event)"
-    (pointercancel)="onUp($event)"
-    (pointerleave)="onUp($event)"
-    (pointerout)="onUp($event)"
-    (touchmove)="onTouch($event)"
-  />
-</div>
+@if (blob) {
+  <div class="photo-img-container">
+    <img #image
+      [src]="blob"
+      [ngStyle]="{ 'max-width': maxWidth + 'px', 'max-height': maxHeight + 'px', 'touch-action': zoomable ? 'none' : '' }"
+      (wheel)="onWheel($event)"
+      (pointerdown)="onDown($event)"
+      (pointermove)="onMove($event)"
+      (pointerup)="onUp($event)"
+      (pointercancel)="onUp($event)"
+      (pointerleave)="onUp($event)"
+      (pointerout)="onUp($event)"
+      (touchmove)="onTouch($event)"
+    />
+  </div>
+} @else if (error) {
+  <ion-icon name="error" color="danger"></ion-icon>
+} @else {
+  <ion-spinner name="dots"></ion-spinner>
+}

@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -15,12 +14,19 @@ import { UserQuotas } from 'src/app/services/auth/user-quotas';
 import { QuotaService } from 'src/app/services/auth/quota.service';
 import { UserQuotasComponent } from 'src/app/components/user-quotas/user-quotas.component';
 import { Router } from '@angular/router';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'app-myaccount',
-    templateUrl: './myaccount.page.html',
-    styleUrls: ['./myaccount.page.scss'],
-    imports: [IonButton, HeaderComponent, CommonModule, UserKeysComponent, UserQuotasComponent]
+  selector: 'app-myaccount',
+  templateUrl: './myaccount.page.html',
+  styleUrls: ['./myaccount.page.scss'],
+  imports: [
+    IonButton,
+    HeaderComponent,
+    UserKeysComponent,
+    UserQuotasComponent,
+    AsyncPipe,
+  ]
 })
 export class MyaccountPage implements OnDestroy, OnInit {
 

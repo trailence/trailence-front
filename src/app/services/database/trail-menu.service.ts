@@ -61,7 +61,7 @@ export class TrailMenuService {
             this.injector.get(TraceRecorderService).start(trails[0]);
             const url = '/trail/' + trails[0].owner + '/' + trails[0].uuid;
             const router = this.injector.get(Router);
-            if (router.url.indexOf(url) < 0) router.navigateByUrl(url);
+            if (!router.url.includes(url)) router.navigateByUrl(url);
           }));
       }
 
@@ -71,12 +71,14 @@ export class TrailMenuService {
         if (collectionUuid) {
           menu.push(new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.modify').setTextColor('medium'));
           if (trails.length === 1) {
-            menu.push(new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.rename')
-              .setAction(() => import('../functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trails[0]))));
-            menu.push(new MenuItem().setIcon('date').setI18nLabel('pages.trails.actions.edit_date')
-              .setAction(() => this.openTrailDatePopup(trails[0], undefined)));
-            menu.push(new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location')
-              .setAction(() => import('../../components/location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trails[0]))));
+            menu.push(
+              new MenuItem().setIcon('edit-text').setI18nLabel('pages.trails.actions.rename')
+                .setAction(() => import('../functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trails[0]))),
+              new MenuItem().setIcon('date').setI18nLabel('pages.trails.actions.edit_date')
+                .setAction(() => this.openTrailDatePopup(trails[0], undefined)),
+              new MenuItem().setIcon('location').setI18nLabel('pages.trails.actions.edit_location')
+                .setAction(() => import('../../components/location-popup/location-popup.component').then(m => m.openLocationDialog(this.injector, trails[0]))),
+            );
           }
           menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
             .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
@@ -84,13 +86,15 @@ export class TrailMenuService {
             menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
               .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
             if (trails.length === 1 &&
-              !this.injector.get(MyPublicTrailsService).myPublicTrails$.value.find(p => p.privateUuid === trails[0].uuid) &&
-              !this.injector.get(TrailService).getAllNow().find(t => t.publishedFromUuid === trails[0].uuid)
+              !this.injector.get(MyPublicTrailsService).myPublicTrails$.value.some(p => p.privateUuid === trails[0].uuid) &&
+              !this.injector.get(TrailService).getAllNow().some(t => t.publishedFromUuid === trails[0].uuid)
             ) {
-              menu.push(new MenuItem());
-              menu.push(new MenuItem().setIcon('web').setI18nLabel('publications.publish')
-                .setDisabled(() => email === ANONYMOUS_USER)
-                .setAction(() => this.startPublication(trails[0])));
+              menu.push(
+                new MenuItem(),
+                new MenuItem().setIcon('web').setI18nLabel('publications.publish')
+                  .setDisabled(() => email === ANONYMOUS_USER)
+                  .setAction(() => this.startPublication(trails[0])),
+              );
               hasPublish = true;
             }
           }
@@ -102,7 +106,7 @@ export class TrailMenuService {
         let hasAbsent = false;
         let hasPresent = false;
         for (const trail of trails) {
-          const isInSelection = !!sel.find(s => s.owner === trail.owner && s.uuid === trail.uuid);
+          const isInSelection = sel.some(s => s.owner === trail.owner && s.uuid === trail.uuid);
           if (isInSelection) hasPresent = true;
           else hasAbsent = true;
         }
@@ -180,7 +184,7 @@ export class TrailMenuService {
         .setAction(() => import('../functions/export').then(m => m.exportTrails(this.injector, trails))));
     }
 
-    if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && trails.filter(t => t.owner !== ANONYMOUS_USER).length > 0 &&
+    if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && trails.some(t => t.owner !== ANONYMOUS_USER) &&
       (onlyGlobal || fromCollection.uuid === this.getUniqueCollectionUuid(trails))) {
       addTools();
       menu.push(new MenuItem().setIcon('share').setI18nLabel('pages.trails.actions.share_' + (onlyGlobal ? 'global' : trails.length === 1 ? 'trail' : 'trails'))
@@ -209,12 +213,13 @@ export class TrailMenuService {
     }
 
     if (trails.length > 0 && !isAll && !isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {
-      menu.push(new MenuItem());
       menu.push(
+        new MenuItem(),
         new MenuItem().setIcon('collection-copy').setI18nLabel('pages.trails.actions.copy_to_collection')
         .setChildrenProvider(() => this.getCollectionsMenuItems(this.getAllCollectionsUuids(trails, email),
           (col) => import('../functions/copy-trails').then(m => m.copyTrailsTo(this.injector, trails, col, email, fromTrail)))
-        ));
+        )
+      );
     }
 
     if (fromCollection && !isPublicationLockedCollection(fromCollection.type) && !onlyGlobal && trails.length > 0 && email) {
@@ -227,24 +232,29 @@ export class TrailMenuService {
               (col) => import('../functions/copy-trails').then(m => m.moveTrailsTo(this.injector, trails, col, email)))
             ));
         }
-        menu.push(new MenuItem());
-        menu.push(new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setTextColor('danger')
-          .setAction(() => import('../functions/delete-trails').then(m => m.confirmDeleteTrails(this.injector, trails, fromTrail))));
+        menu.push(
+          new MenuItem(),
+          new MenuItem().setIcon('trash').setI18nLabel('buttons.delete').setTextColor('danger')
+            .setAction(() => import('../functions/delete-trails').then(m => m.confirmDeleteTrails(this.injector, trails, fromTrail))),
+        );
       }
     }
 
     if (fromCollection && onlyGlobal && trails.length > 0) {
-      menu.push(new MenuItem());
-      menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.title')
-        .setAction(() => import('../../components/find-duplicates/find-duplicates.component').then(m => m.openFindDuplicates(this.injector, fromCollection.uuid))));
+      menu.push(
+        new MenuItem(),
+        new MenuItem().setIcon('compare').setI18nLabel('pages.find_duplicates.title')
+          .setAction(() => import('../../components/find-duplicates/find-duplicates.component').then(m => m.openFindDuplicates(this.injector, fromCollection.uuid))),
+      );
     }
 
     if (isModeration && this.injector.get(AuthService).auth?.admin) {
-      menu.push(new MenuItem());
-      menu.push(new MenuItem()
-        .setFixedLabel('[Admin] Decline All')
-        .setTextColor('danger')
-        .setAction(() => this.declineAll(trails))
+      menu.push(
+        new MenuItem(),
+        new MenuItem()
+          .setFixedLabel('[Admin] Decline All')
+          .setTextColor('danger')
+          .setAction(() => this.declineAll(trails)),
       );
     }
     return menu;
@@ -297,7 +307,7 @@ export class TrailMenuService {
   private getAllCollectionsUuids(trails: Trail[], owner: string): string[] {
     const result: string[] = [];
     for (const trail of trails) {
-      if (trail.owner === owner && result.indexOf(trail.collectionUuid) < 0)
+      if (trail.owner === owner && !result.includes(trail.collectionUuid))
         result.push(trail.collectionUuid)
     }
     return result;
@@ -320,7 +330,7 @@ export class TrailMenuService {
     }));
     await modal.present();
     const result = await modal.onDidDismiss();
-    if (result.role !== 'ok') return Promise.resolve(false);
+    if (result.role !== 'ok') return false;
     return new Promise<boolean>(resolve => this.injector.get(TrailService).doUpdate(trail, t => t.date = result.data, () => resolve(true)));
   }
 
@@ -340,7 +350,7 @@ export class TrailMenuService {
     this.injector.get(MySelectionService).getMySelection().pipe(
       first(),
       switchMap(current => {
-        const newSelection = trails.filter(t => !current.find(c => c.owner === t.owner && c.uuid === t.uuid)).map(t => ({owner: t.owner, uuid: t.uuid}));
+        const newSelection = trails.filter(t => !current.some(c => c.owner === t.owner && c.uuid === t.uuid)).map(t => ({owner: t.owner, uuid: t.uuid}));
         if (newSelection.length === 0) return of([]);
         return combineLatest(newSelection.map(s => this.injector.get(MySelectionService).addSelection(s.owner, s.uuid).pipe(first())));
       })
@@ -352,7 +362,7 @@ export class TrailMenuService {
       first(),
     ).subscribe(current => {
       for (const s of current) {
-        if (trails.find(t => t.owner === s.owner && t.uuid === s.uuid))
+        if (trails.some(t => t.owner === s.owner && t.uuid === s.uuid))
           this.injector.get(MySelectionService).deleteSelection(s.owner, s.uuid);
       }
     });

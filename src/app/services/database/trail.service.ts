@@ -55,7 +55,7 @@ export class TrailService {
   }
 
   public getTrail$(uuid: string, owner: string): Observable<Trail | null> {
-    if (owner.indexOf('@') < 0) return this.injector.get(FetchSourceService).getTrail$(owner, uuid);
+    if (!owner.includes('@')) return this.injector.get(FetchSourceService).getTrail$(owner, uuid);
     return this._store.getItem$(uuid, owner);
   }
 
@@ -155,7 +155,7 @@ export class TrailService {
     const trailWork = remainingProgress - tagsWork - photosWork;
     this._store.deleteIf(
       'delete multiple trails (' + trails.length + ')',
-      trail => !!trails.find(t => t.uuid === trail.uuid && t.owner === trail.owner),
+      trail => trails.some(t => t.uuid === trail.uuid && t.owner === trail.owner),
       doneHandler.add(() => progress?.addWorkDone(trailWork))
     );
     doneHandler.start();
@@ -181,7 +181,7 @@ export class TrailService {
       first(),
       switchMap(trails$ => trails$.length === 0 ? of([]) : zip(trails$.map(trail$ => trail$.pipe(firstTimeout(t => !!t, 1000, () => null as Trail | null))))),
       switchMap(trail => {
-        const toRemove = trail.filter(trail => !!trail && !!collections.find(c =>trail.collectionUuid === c.uuid && trail.owner === c.owner)) as Trail[];
+        const toRemove = trail.filter(trail => !!trail && collections.some(c =>trail.collectionUuid === c.uuid && trail.owner === c.owner)) as Trail[];
         if (toRemove.length === 0) {
           progress?.addWorkDone(progressWork);
           return of(true);
@@ -280,7 +280,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     const currentrackReady$ = this.trackService.isSavedOnServerAndNotDeletedLocally$(entity.currentTrackUuid, entity.owner);
     const collectionReady$ = this.collectionService.getCollection$(entity.collectionUuid, entity.owner).pipe(map(col => !!col?.isSavedOnServerAndNotDeletedLocally()));
     return combineLatest([originalTrackReady$, currentrackReady$, collectionReady$]).pipe(
-      map(readiness => readiness.indexOf(false) < 0)
+      map(readiness => !readiness.includes(false))
     );
   }
 
@@ -362,7 +362,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
               const collection = collections.find(c => c.uuid === trail.collectionUuid && c.owner === email);
               if (collection) continue;
             }
-            const share = shares.find(s => s.owner === trail.owner && s.trails.indexOf(trail.uuid) >= 0);
+            const share = shares.find(s => s.owner === trail.owner && s.trails.includes(trail.uuid));
             if (share) continue;
             const d = ondone.add();
             this.getLocalUpdate(trail).then(date => {

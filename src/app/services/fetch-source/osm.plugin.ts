@@ -6,7 +6,6 @@ import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { SearchResult } from './fetch-source.interfaces';
 import { TrackUtils } from 'src/app/utils/track-utils';
-import { HttpService } from '../http/http.service';
 import { I18nService } from '../i18n/i18n.service';
 import * as L from 'leaflet';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -94,7 +93,8 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
 
   private findRoutesIds(bounds: L.LatLngBounds, limit: number): Observable<string[]> {
     return this.injector.get(OverpassClient).request<{elements: {id: number}[]}>(
-      "[out:json][timeout:30];rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out ids " + limit + ";"
+      "rel[type=\"route\"][route~\"(mtb)|(hiking)|(foot)|(nordic_walking)|(running)|(fitness_trail)|(inline_skates)\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out ids " + limit + ";",
+      30
     ).pipe(
       map(response => response.elements.map(e => e.id.toString()))
     );
@@ -102,14 +102,13 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
 
   private getRoutesByIds(ids: string[]): Observable<Trail[]> {
     return this.injector.get(OverpassClient).request<{elements: OverpassElement[]}>(
-      "[out:json][timeout:15];rel(id:" + ids.join(',') + ");out meta geom;"
+      "rel(id:" + ids.join(',') + ");out meta geom;", 15
     ).pipe(
       map(response => response.elements.map(e => this.createTrailFromCircuit(e)).filter(t => !!t)),
-      switchMap(toStore => {
-        return from(Promise.all([
-          this.storeTrails(toStore.map(t => t.trail)),
-          this.tableInfos.bulkPut(toStore.map(t => t.info)),
-        ]).then(() => toStore.map(t => t.trail.trail)));
+      map(toStore => {
+        this.storeTrails(toStore.map(t => t.trail));
+        this.tableInfos.bulkPut(toStore.map(t => t.info));
+        return toStore.map(t => t.trail.trail);
       }),
     );
   }
@@ -135,10 +134,10 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
     this.fillTrack(track, members);
 
     const metaOverride = {} as any;
-    const ascent = parseInt(circuit.tags['ascent']);
-    if (!isNaN(ascent)) metaOverride.positiveElevation = ascent;
-    const descent = parseInt(circuit.tags['descent']);
-    if (!isNaN(descent)) metaOverride.negativeElevation = descent;
+    const ascent = Number.parseInt(circuit.tags['ascent']);
+    if (!Number.isNaN(ascent)) metaOverride.positiveElevation = ascent;
+    const descent = Number.parseInt(circuit.tags['descent']);
+    if (!Number.isNaN(descent)) metaOverride.negativeElevation = descent;
     const prepared = this.prepareTrailToStore(trail, track, trail.uuid, metaOverride, true);
 
     const info = {
@@ -161,7 +160,7 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
       return segment;
     });
     const firstPoints = remaining.map(s => s[0]);
-    const lastPoints = remaining.map(s => s[s.length - 1]);
+    const lastPoints = remaining.map(s => s.at(-1)!);
     const extractSegment = (segmentIndex: number) => {
       const segment = remaining.splice(segmentIndex, 1)[0];
       firstPoints.splice(segmentIndex, 1);
@@ -173,18 +172,18 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
       points.push(...remaining.splice(0, 1)[0]);
       firstPoints.splice(0, 1);
       lastPoints.splice(0, 1);
-      let prev = points[points.length - 1];
+      let prev = points.at(-1)!;
       while (remaining.length > 0) {
         let index = TrackUtils.findClosestPoint(prev, firstPoints, 5);
         if (index >= 0) {
           points.push(...extractSegment(index));
-          prev = points[points.length - 1];
+          prev = points.at(-1)!;
           continue;
         }
         index = TrackUtils.findClosestPoint(prev, lastPoints, 5);
         if (index >= 0) {
           points.push(...extractSegment(index).reverse());
-          prev = points[points.length - 1];
+          prev = points.at(-1)!;
           continue;
         }
         index = TrackUtils.findClosestPoint(points[0], lastPoints, 5);

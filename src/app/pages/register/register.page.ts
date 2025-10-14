@@ -2,7 +2,6 @@ import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { IonCard, IonToolbar, IonLabel, IonCardContent, IonList, IonItem, IonInput, IonButton, IonSpinner, NavController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { CommonModule } from '@angular/common';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { FormsModule } from '@angular/forms';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
@@ -14,14 +13,17 @@ import { environment } from 'src/environments/environment';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { PublicPage } from '../public.page';
+import { NgClass } from '@angular/common';
 
 @Component({
   templateUrl: './register.page.html',
   styleUrl: './register.page.scss',
   imports: [
-    CommonModule, FormsModule,
-    HeaderComponent, CodeInputModule,
+    FormsModule,
+    HeaderComponent,
+    CodeInputModule,
     IonSpinner, IonButton, IonInput, IonItem, IonList, IonCardContent, IonLabel, IonToolbar, IonCard,
+    NgClass,
   ]
 })
 export class RegisterPage extends PublicPage {

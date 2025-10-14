@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
-import { CommonModule } from '@angular/common';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
@@ -11,7 +10,7 @@ import { BehaviorSubject, combineLatest, debounceTime, filter, first, map, Obser
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
-import { FilterEnum, FilterNumeric, FilterTags, NumericFilterConfig, NumericFilterCustomConfig } from '../filters/filter';
+import { FilterEnum, FilterNumeric, FilterTags, NumericFilterCustomConfig } from '../filters/filter';
 import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filter-numeric/filter-numeric.component';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
@@ -45,6 +44,7 @@ import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
 import { ComputedPreferences } from 'src/app/services/preferences/preferences';
 import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/filter-numeric-custom.component';
 import { Arrays } from 'src/app/utils/arrays';
+import { NgTemplateOutlet } from '@angular/common';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -71,24 +71,25 @@ interface TrailWithInfo {
 }
 
 @Component({
-    selector: 'app-trails-list',
-    templateUrl: './trails-list.component.html',
-    styleUrls: ['./trails-list.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [IonSpinner, IonInput, IonList, IonSelect, IonSelectOption,
-        IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
-        IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
-        CommonModule,
-        TrailOverviewComponent,
-        TrailOverviewCondensedComponent,
-        ToggleChoiceComponent,
-        FilterNumericComponent,
-        FilterNumericCustomComponent,
-        FilterTagsComponent,
-        I18nPipe,
-        HorizontalGestureDirective,
-        ToolbarComponent,
-    ]
+  selector: 'app-trails-list',
+  templateUrl: './trails-list.component.html',
+  styleUrls: ['./trails-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    IonSpinner, IonInput, IonList, IonSelect, IonSelectOption,
+    IonCheckbox, IonItem, IonRadioGroup, IonRadio, IonLabel, IonIcon, IonButtons, IonButton,
+    IonToolbar, IonFooter, IonContent, IonTitle, IonHeader, IonModal,
+    TrailOverviewComponent,
+    TrailOverviewCondensedComponent,
+    ToggleChoiceComponent,
+    FilterNumericComponent,
+    FilterNumericCustomComponent,
+    FilterTagsComponent,
+    I18nPipe,
+    HorizontalGestureDirective,
+    ToolbarComponent,
+    NgTemplateOutlet,
+  ]
 })
 export class TrailsListComponent extends AbstractComponent {
 
@@ -199,9 +200,7 @@ export class TrailsListComponent extends AbstractComponent {
         clearTimeout(timeout);
         timeout = undefined;
       }
-      if (!visible) {
-        componentElement.nativeElement.style.display = 'none';
-      } else {
+      if (visible) {
         timeout = setTimeout(() => {
           timeout = undefined;
           componentElement.nativeElement.style.display = '';
@@ -211,6 +210,8 @@ export class TrailsListComponent extends AbstractComponent {
             this.setHighlighted(h);
           }
         }, 25);
+      } else {
+        componentElement.nativeElement.style.display = 'none';
       }
     });
     this.searchValue$.pipe(
@@ -271,7 +272,7 @@ export class TrailsListComponent extends AbstractComponent {
                 filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null)
               ),
               trail.owner === this.authService.email ? this.tagService.getTrailTagsWhenLoaded$(trail.uuid) : of([]),
-              trail.owner.indexOf('@') < 0 ? this.injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid) : of(null),
+              trail.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid),
             ]).pipe(
               map(([track, trailTags, info]) => ({
                 trail,
@@ -413,8 +414,8 @@ export class TrailsListComponent extends AbstractComponent {
           const s = filters.search.trim().toLowerCase();
           const inName = t.trail.name.toLowerCase().indexOf(s);
           const inLocation = t.trail.location.toLowerCase().indexOf(s);
-          const tags = this.collectionTags.filter(t => t.name.toLowerCase().indexOf(s) >= 0).map(t => t.uuid);
-          const inTags = tags.length === 0 ? false : !!t.trailTags.find(t => tags.indexOf(t.tagUuid) >= 0);
+          const tags = this.collectionTags.filter(t => t.name.toLowerCase().includes(s)).map(t => t.uuid);
+          const inTags = tags.length === 0 ? false : t.trailTags.some(t => tags.includes(t.tagUuid));
           if (inName < 0 && inLocation < 0 && !inTags) return false;
           searchTextRanges.set(t.trail.uuid + '-' + t.trail.owner, {text: s, name: inName, location: inLocation, inTags});
         }
@@ -432,8 +433,8 @@ export class TrailsListComponent extends AbstractComponent {
         if (filters.positiveElevation.to !== undefined && (t.track?.positiveElevation === undefined || t.track.positiveElevation > filters.positiveElevation.to)) return false;
         if (filters.negativeElevation.from !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation < filters.negativeElevation.from)) return false;
         if (filters.negativeElevation.to !== undefined && (t.track?.negativeElevation === undefined || t.track.negativeElevation > filters.negativeElevation.to)) return false;
-        if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || filters.loopTypes.selected.indexOf(t.trail.loopType) < 0)) return false;
-        if (filters.activities.selected !== undefined && filters.activities.selected.indexOf(t.trail.activity) < 0) return false;
+        if (filters.loopTypes.selected !== undefined && (t.trail.loopType === undefined || !filters.loopTypes.selected.includes(t.trail.loopType))) return false;
+        if (filters.activities.selected !== undefined && !filters.activities.selected.includes(t.trail.activity)) return false;
         if (filters.rate.from !== undefined && (t.info?.rating === undefined || t.info.rating < filters.rate.from)) return false;
         if (filters.rate.to !== undefined && (t.info?.rating !== undefined && t.info.rating > filters.rate.to)) return false;
         if (filters.tags.type === 'onlyWithAnyTag') {
@@ -444,13 +445,13 @@ export class TrailsListComponent extends AbstractComponent {
           const uuids = t.trailTags.map(tag => tag.tagUuid);
           switch (filters.tags.type) {
             case 'include_and':
-              for (const uuid of filters.tags.tagsUuids) if (uuids.indexOf(uuid) < 0) return false;
+              for (const uuid of filters.tags.tagsUuids) if (!uuids.includes(uuid)) return false;
               break;
             case 'include_or':
-              if (!uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
+              if (!uuids.some(uuid => filters.tags.tagsUuids.includes(uuid))) return false;
               break;
             case 'exclude':
-              if (uuids.some(uuid => filters.tags.tagsUuids.indexOf(uuid) >= 0)) return false;
+              if (uuids.some(uuid => filters.tags.tagsUuids.includes(uuid))) return false;
               break;
           }
         }
@@ -467,7 +468,7 @@ export class TrailsListComponent extends AbstractComponent {
         return !b || mapBounds.overlaps(b);
       });
     }
-    this.hasRating = !!this.mapTrails.find(t => t.info?.rating !== undefined);
+    this.hasRating = this.mapTrails.some(t => t.info?.rating !== undefined);
     return this.mapTrails;
   }
 
@@ -496,13 +497,12 @@ export class TrailsListComponent extends AbstractComponent {
 
   private loadState(): void {
     const stateStr = localStorage.getItem(LOCALSTORAGE_KEY_LISTSTATE + this.listId);
-    if (!stateStr) this.state$.next(defaultState);
-    else {
+    if (stateStr) {
       const newState = JSON.parse(stateStr);
       let valid = true;
       const properties = Object.getOwnPropertyNames(newState);
       for (const key in defaultState) {
-        if (properties.indexOf(key) < 0) {
+        if (!properties.includes(key)) {
           valid = false;
           break;
         }
@@ -512,9 +512,10 @@ export class TrailsListComponent extends AbstractComponent {
         if (this.listType !== 'search' && this.listType !== 'my-selection' && this.listType !== 'my-publications') newState.filters.rate = {from: undefined, to: undefined};
         this.state$.next(newState);
         if (newState.filters.search) this.searchOpen = true;
-      } else
-        this.state$.next(defaultState);
+        return;
+      }
     }
+    this.state$.next(defaultState);
   }
 
   private saveState(): void {
@@ -544,10 +545,7 @@ export class TrailsListComponent extends AbstractComponent {
     const selected = this.nbSelected === 0;
     event.target.setChecked(selected);
     this.inSelectAll = false;
-    this.listTrails.forEach(t => {
-      t.selected = selected;
-      return true;
-    });
+    for (const t of this.listTrails) t.selected = selected;
     this.toolbar = [...this.toolbar];
     this.changesDetection.detectChanges();
   }
@@ -623,7 +621,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   updateNumericCustomFilter(filter: FilterNumeric, config: NumericFilterCustomConfig, $event: FilterNumeric | number): void {
     const event = $event as FilterNumeric;
-    this.updateNumericFilter(filter, {valueMin: event.from! , valueMax: event.to!, min: config.values[0], max: config.values[config.values.length - 1]});
+    this.updateNumericFilter(filter, {valueMin: event.from! , valueMax: event.to!, min: config.values[0], max: config.values.at(-1)!});
   }
 
   updateFilterOnlyVisibleOnMap(checked: boolean): void {
@@ -793,32 +791,12 @@ export class TrailsListComponent extends AbstractComponent {
     this.highlightTimeout = setTimeout(() => {
       this.clearHighlights();
       let retry = false;
-      ranges.forEach((pos, key) => {
+      for (const [key, pos] of ranges) {
         const trailElement = document.getElementById('trail-list-' + this.id + '-trail-' + key);
         if (!trailElement) return;
         try {
-          if (pos.name >= 0) {
-            const trailName = trailElement.getElementsByClassName('trail-name');
-            if (trailName.length > 0) {
-              const element = trailName.item(0)!.firstElementChild!.firstChild!;
-              const range = new Range();
-              range.setStart(element, pos.name);
-              range.setEnd(element, pos.name + pos.text.length);
-              this.highlightRanges.push(range);
-              this.highlightService.addSearchText(range);
-            }
-          }
-          if (pos.location >= 0) {
-            const trailLocation = trailElement.getElementsByClassName('trail-location');
-            if (trailLocation.length > 0) {
-              const element = trailLocation.item(0)!.firstChild!;
-              const range = new Range();
-              range.setStart(element, pos.location);
-              range.setEnd(element, pos.location + pos.text.length);
-              this.highlightRanges.push(range);
-              this.highlightService.addSearchText(range);
-            }
-          }
+          if (pos.name >= 0) this.highlightTrailName(trailElement, pos.name, pos.text.length);
+          if (pos.location >= 0) this.highlightTrailLocation(trailElement, pos.location, pos.text.length);
           if (pos.inTags) {
             const tags = trailElement.getElementsByClassName('tag');
             for (let i = 0; i < tags.length; ++i) {
@@ -827,11 +805,7 @@ export class TrailsListComponent extends AbstractComponent {
               const textIndex = tagText.toLowerCase().indexOf(pos.text);
               if (textIndex >= 0) {
                 const element = tagElement.firstChild!;
-                const range = new Range();
-                range.setStart(element, textIndex);
-                range.setEnd(element, textIndex + pos.text.length);
-                this.highlightRanges.push(range);
-                this.highlightService.addSearchText(range);
+                this.createHighlight(element, textIndex, pos.text.length);
               }
             }
           }
@@ -839,11 +813,35 @@ export class TrailsListComponent extends AbstractComponent {
           Console.warn('Cannot select range, may be not yet loaded, will try');
           retry = true;
         }
-      });
+      }
       if (retry && trial < 5) {
         this.refreshHighlights(ranges, 100 * trial, trial + 1);
       }
     }, delay);
+  }
+
+  private highlightTrailName(trailElement: HTMLElement, position: number, length: number): void {
+    const trailName = trailElement.getElementsByClassName('trail-name');
+    if (trailName.length > 0) {
+      const element = trailName.item(0)!.firstElementChild!.firstChild!;
+      this.createHighlight(element, position, length);
+    }
+  }
+
+  private highlightTrailLocation(trailElement: HTMLElement, position: number, length: number): void {
+    const trailLocation = trailElement.getElementsByClassName('trail-location');
+    if (trailLocation.length > 0) {
+      const element = trailLocation.item(0)!.firstChild!;
+      this.createHighlight(element, position, length);
+    }
+  }
+
+  private createHighlight(element: Node, position: number, length: number): void {
+    const range = new Range();
+    range.setStart(element, position);
+    range.setEnd(element, position + length);
+    this.highlightRanges.push(range);
+    this.highlightService.addSearchText(range);
   }
 
   openSelectionMenu(event: MouseEvent): void {

@@ -2,16 +2,20 @@ import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, Simp
 import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
-import { CommonModule } from '@angular/common';
 import { IonButton, IonIcon, GestureController, Gesture, GestureDetail } from "@ionic/angular/standalone";
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { Subscription } from 'rxjs';
+import { NgClass, NgStyle } from '@angular/common';
 
 @Component({
     selector: 'app-photos-slider',
     templateUrl: './photos-slider.component.html',
     styleUrls: ['./photos-slider.component.scss'],
-    imports: [IonIcon, IonButton, PhotoComponent, CommonModule]
+    imports: [
+      IonIcon, IonButton,
+      NgStyle, NgClass,
+      PhotoComponent,
+    ]
 })
 export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
 

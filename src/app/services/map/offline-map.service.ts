@@ -47,8 +47,8 @@ export class OfflineMapService {
   ) {
     auth.auth$.subscribe(
       auth => {
-        if (!auth) this.close();
-        else this.open(auth.email);
+        if (auth) this.open(auth.email);
+        else this.close();
       }
     );
   }
@@ -177,8 +177,8 @@ export class OfflineMapService {
   private cleanExpiredTimeout() {
     const db = this._db!;
     const lastClean = localStorage.getItem('trailence.map-offline.last-cleaning.' + this._openEmail);
-    const lastCleanTime = lastClean ? parseInt(lastClean) : undefined;
-    const nextClean = lastCleanTime && !isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
+    const lastCleanTime = lastClean ? Number.parseInt(lastClean) : undefined;
+    const nextClean = lastCleanTime && !Number.isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
     this._cleanExpiredTimeout = setTimeout(() => {
       if (db !== this._db) return;
       this._cleanExpiredTimeout = undefined;
@@ -230,8 +230,10 @@ export class OfflineMapService {
   public removeAll(): Observable<any> {
     const promises = [];
     for (const layer of this.layers.layers) {
-      promises.push(from(this._db!.table(layer.name + '_meta').clear()));
-      promises.push(from(this._db!.table(layer.name + '_tiles').clear()));
+      promises.push(
+        from(this._db!.table(layer.name + '_meta').clear()),
+        from(this._db!.table(layer.name + '_tiles').clear()),
+      );
     }
     if (promises.length === 0) return of(null);
     return zip(promises);
@@ -330,7 +332,7 @@ class Saver {
 
       for (let y = topLeftTile.y; y <= bottomRightTile.y; ++y) {
         for (let x = topLeftTile.x; x <= bottomRightTile.x; ++x) {
-          if (points.findIndex(p => p.x === x && p.y === y) < 0)
+          if (!points.some(p => p.x === x && p.y === y))
             points.push(new L.Point(x, y));
         }
       }
@@ -370,8 +372,8 @@ class Saver {
     const samplePoint = this.crs.latLngToPoint(paths[0], zoomLevel);
     const pixelLatDistance = this.crs.pointToLatLng(L.point(samplePoint.x, samplePoint.y + 1), zoomLevel).distanceTo(paths[0]);
     const pixelLngDistance = this.crs.pointToLatLng(L.point(samplePoint.x + 1, samplePoint.y), zoomLevel).distanceTo(paths[0]);
-    const latPixels = Math.round(1.0 * this.pathAroundMeters / pixelLatDistance) + 1;
-    const lngPixels = Math.round(1.0 * this.pathAroundMeters / pixelLngDistance) + 1;
+    const latPixels = Math.round(this.pathAroundMeters / pixelLatDistance) + 1;
+    const lngPixels = Math.round(this.pathAroundMeters / pixelLngDistance) + 1;
 
     const computeNextPoints = (index: number) => new Promise<L.Point[]>(resolve => {
       if (this.cancelled) {
@@ -450,12 +452,7 @@ class Saver {
           const metadata: TileMetadata[] = [];
           const tiles: TileBlob[] = [];
           for (const response of bunch) {
-            if (response.error !== undefined) {
-              Console.error('Error loading map tile', response.error);
-              const errors = this.errorsByZoom.get(zoomLevel);
-              if (!errors) this.errorsByZoom.set(zoomLevel, [response.tile]);
-              else errors.push(response.tile);
-            } else {
+            if (response.error === undefined) {
               metadata.push({
                 key: response.key,
                 size: response.blob!.size,
@@ -465,6 +462,11 @@ class Saver {
                 key: response.key,
                 blob: response.blob!,
               });
+            } else {
+              Console.error('Error loading map tile', response.error);
+              const errors = this.errorsByZoom.get(zoomLevel);
+              if (errors) errors.push(response.tile);
+              else this.errorsByZoom.set(zoomLevel, [response.tile]);
             }
           }
           return metadata.length === 0 ? of(bunch.length) : zip([
@@ -475,8 +477,8 @@ class Saver {
             catchError(e => {
               Console.error('Error storing map tiles', e);
               const errors = this.errorsByZoom.get(zoomLevel);
-              if (!errors) this.errorsByZoom.set(zoomLevel, bunch.map(r => r.tile));
-              else errors.push(...bunch.map(r => r.tile));
+              if (errors) errors.push(...bunch.map(r => r.tile));
+              else this.errorsByZoom.set(zoomLevel, bunch.map(r => r.tile));
               return of(bunch.length);
             })
           );

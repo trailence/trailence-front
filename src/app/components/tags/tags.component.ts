@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonContent, IonFooter, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonButtons, ModalController, IonInput, IonCheckbox, AlertController } from "@ionic/angular/standalone";
@@ -48,7 +48,12 @@ class TagNode {
     selector: 'app-tags',
     templateUrl: './tags.component.html',
     styleUrls: ['./tags.component.scss'],
-    imports: [IonCheckbox, IonInput, IonButtons, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonFooter, IonContent, IonHeader, CommonModule, FormsModule,]
+    imports: [
+      IonCheckbox, IonInput, IonButtons, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonFooter, IonContent, IonHeader,
+      NgTemplateOutlet,
+      NgClass,
+      FormsModule,
+    ]
 })
 export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
@@ -137,7 +142,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
       for (const trailTag of trailsTags) {
         if (trailTag.tagUuid !== tag.uuid) continue;
         allTaggedTrails++;
-        if (this.trails && this.trails.findIndex(t => t.uuid === trailTag.trailUuid) >= 0) inputTaggedTrails++;
+        if (this.trails?.some(t => t.uuid === trailTag.trailUuid)) inputTaggedTrails++;
       }
       if (index >= 0) {
         const node = toRemove[index];
@@ -146,17 +151,16 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
         node.allTaggedTrails = allTaggedTrails;
         node.inputTaggedTrails = inputTaggedTrails;
         node.parentNode = parentNode;
-        if (this.selection && this.selection.indexOf(tag.uuid) >= 0) node.userSelected = true;
+        if (this.selection?.includes(tag.uuid)) node.userSelected = true;
         nodes.push(node);
       } else {
         const node = new TagNode(tag, allTaggedTrails, inputTaggedTrails, undefined, [], parentNode);
-        if (this.selection && this.selection.indexOf(tag.uuid) >= 0) node.userSelected = true;
+        if (this.selection?.includes(tag.uuid)) node.userSelected = true;
         nodes.push(node);
       }
     }
-    nodes.forEach(node => {
+    for (const node of nodes)
       node.children = this.buildTreeNodes(toRemove, tags, trailsTags, node.tag.uuid, node);
-    });
     return nodes;
   }
 
@@ -180,10 +184,10 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private flattenNodes(nodes: TagNode[], result: TagNode[]): void {
-    nodes.forEach(node => {
+    for (const node of nodes) {
       result.push(node);
       this.flattenNodes(node.children, result);
-    });
+    };
   }
 
   private sort(nodes: TagNode[]): void {
@@ -314,9 +318,8 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
     const add: {trailUuid: string, tagUuid: string}[] = [];
     const remove: {trailUuid: string, tagUuid: string}[] = [];
     this.applyNodes(this.tree, add, remove);
-    if (remove.length > 0) {
-      remove.forEach(r => this.tagService.deleteTrailTag(r.trailUuid, r.tagUuid));
-    }
+    for (const r of remove)
+      this.tagService.deleteTrailTag(r.trailUuid, r.tagUuid);
     if (add.length > 0) {
       this.tagService.addTrailTags(add);
     }
@@ -364,7 +367,7 @@ export class TagsComponent implements OnInit, OnChanges, OnDestroy {
 
   private updateSelection(nodes: TagNode[]): void {
     for (const node of nodes) {
-      if (this.selection && this.selection.indexOf(node.tag.uuid) >= 0)
+      if (this.selection?.includes(node.tag.uuid))
         node.userSelected = true;
       else if (node.userSelected)
         node.userSelected = false;

@@ -33,8 +33,8 @@ export class AddOsmPath extends AddPointsTool {
   private possibleWaysFromCursor: WayAndMapTrack[] = [];
 
   private init(ctx: AddPointsContext): void {
-    this.possibleWays.forEach(w => ctx.map.removeTrack(w.mapTrack));
-    this.possibleWaysFromCursor.forEach(w => ctx.map.removeTrack(w.mapTrack));
+    for (const w of this.possibleWays) ctx.map.removeTrack(w.mapTrack);
+    for (const w of this.possibleWaysFromCursor) ctx.map.removeTrack(w.mapTrack);
     this.possibleWaysFromCursor = [];
     if (this.allWays.length === 0) {
       this.possibleWays = [];
@@ -46,14 +46,14 @@ export class AddOsmPath extends AddPointsTool {
       way,
       mapTrack: this.allMapTracks.find(mt => mt.data === way)!,
     }));
-    this.possibleWays.forEach(w => w.mapTrack.addTo(ctx.map.getMap()!));
+    for (const w of this.possibleWays) w.mapTrack.addTo(ctx.map.getMap()!); // NOSONAR
   }
 
   override enableAddPoints(ctx: AddPointsContext): void {
     if (this.waysSubscription === undefined) {
       this.waysSubscription = combineLatest([ctx.map.getState().center$, ctx.map.getState().zoom$]).pipe(
         distinctUntilChanged(),
-        switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of([]) : ctx.injector.get(GeoService).findWays(ctx.map.getBounds()!)),
+        switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of([]) : ctx.injector.get(GeoService).findWays(ctx.map.getBounds()!)), // NOSONAR
         map(ways => WayUtils.mergeWays(ways)),
       ).subscribe(ways => {
         this.allWays = ways;
@@ -80,29 +80,29 @@ export class AddOsmPath extends AddPointsTool {
         return;
       }
       const ref = this.getEligiblePoint(ctx.point.pos, refs);
-      this.allMapTracks.forEach(mt => mt.color = DEFAULT_COLOR);
-      this.possibleWaysFromCursor.forEach(w => w.mapTrack.remove());
+      for (const mt of this.allMapTracks) mt.color = DEFAULT_COLOR;
+      for (const w of this.possibleWaysFromCursor) w.mapTrack.remove();
       this.possibleWaysFromCursor = [];
-      if (!ref?.ref?.point) {
-        this.anchor.marker.remove();
-      } else {
+      if (ref?.ref?.point) {
         const pos = ref.ref.position!;
         this.anchor.marker.setLatLng(pos);
         ctx.map.addToMap(this.anchor.marker);
 
         const matchingWays = WayUtils.getMatchingWays(pos, this.allWays);
         const matchingMapTracks = this.getMatchingIn(pos, [...this.possibleWays, ...this.possibleWaysFromCursor]);
-        const missingWays = matchingWays.filter(way => !matchingMapTracks.find(mt => mt.way === way));
+        const missingWays = matchingWays.filter(way => !matchingMapTracks.some(mt => mt.way === way));
         // new possible ways from cursor = matchingMapTracks present in current possible ways + missingWays
-        const newPossibleWaysFromCursor = this.possibleWaysFromCursor.filter(t => !!matchingMapTracks.find(t2 => t == t2));
+        const newPossibleWaysFromCursor = this.possibleWaysFromCursor.filter(t => matchingMapTracks.some(t2 => t == t2));
         for (const missing of missingWays)
           newPossibleWaysFromCursor.push({way: missing, mapTrack: this.allMapTracks.find(mt => mt.data === missing)!});
         // map tracks = current - current additional + new additional
         this.possibleWaysFromCursor = newPossibleWaysFromCursor;
-        this.possibleWaysFromCursor.forEach(w => {
+        for (const w of this.possibleWaysFromCursor) {
           w.mapTrack.color = HIGHLIGHTED_COLOR;
-          w.mapTrack.addTo(ctx.map.getMap()!);
-        });
+          w.mapTrack.addTo(ctx.map.getMap()!); // NOSONAR
+        };
+      } else {
+        this.anchor.marker.remove();
       }
     });
     this.anchorMapClickSubscription = ctx.map.mouseClickPoint.subscribe(refs => {
@@ -111,7 +111,7 @@ export class AddOsmPath extends AddPointsTool {
       }
       const ref = this.getEligiblePoint(ctx.point.pos, refs);
       if (!ref?.ref?.point) return;
-      const points = this.getPoints(ctx.point.pos, ref.ref.position!, ref.using!.way.points, ctx.isForward);
+      const points = this.getPoints(ctx.point.pos, ref.ref.position!, ref.using!.way.points, ctx.isForward); // NOSONAR
       if (points) ctx.addPoints(points);
     });
   }
@@ -126,18 +126,18 @@ export class AddOsmPath extends AddPointsTool {
       this.waysSubscription?.unsubscribe();
       this.waysSubscription = undefined;
     }
-    this.allMapTracks.forEach(mt => mt.remove());
+    for (const mt of this.allMapTracks) mt.remove();
   }
 
   private getEligiblePoint(fromPos: L.LatLngLiteral, refs: MapTrackPointReference[]): {ref: MapTrackPointReference | undefined, using: WayAndMapTrack | undefined} | undefined {
     if (refs.length === 0) return undefined;
-    const linkToPrevious = refs.filter(r => r.point !== undefined && this.possibleWays.findIndex(w => w.mapTrack === r.track) >= 0).sort(MapTrackPointReference.distanceComparator);
+    const linkToPrevious = refs.filter(r => r.point !== undefined && this.possibleWays.some(w => w.mapTrack === r.track)).sort(MapTrackPointReference.distanceComparator);
     let best: {ref: MapTrackPointReference, using: WayAndMapTrack | undefined} | undefined = undefined;
     let bestWays: Way[] = [];
     for (const ref of linkToPrevious) {
-      const matching = this.getMatchingIn(ref.position!, this.possibleWays);
+      const matching = this.getMatchingIn(ref.position!, this.possibleWays); // NOSONAR
       if (matching.length === 1) {
-        const ways = WayUtils.getMatchingWays(ref.position!, this.allWays, MATCHING_MAX_DISTANCE);
+        const ways = WayUtils.getMatchingWays(ref.position!, this.allWays, MATCHING_MAX_DISTANCE); // NOSONAR
         if (best === undefined || (ways.length > bestWays.length && Arrays.containsAll(ways, bestWays))) {
           best = {ref, using: matching[0]};
           bestWays = ways;

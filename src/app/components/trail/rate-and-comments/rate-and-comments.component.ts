@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { Feedback, FeedbackService } from 'src/app/services/feedback/feedback.service';
@@ -18,9 +17,8 @@ import { NetworkService } from 'src/app/services/network/network.service';
   selector: 'app-rate-and-comments',
   templateUrl: './rate-and-comments.component.html',
   styleUrl: './rate-and-comments.component.scss',
-  imports: [IonIcon, IonSpinner,
-    IonButton,
-    CommonModule,
+  imports: [
+    IonIcon, IonSpinner, IonButton,
     RateComponent,
     I18nPipe,
     ProgressBarComponent,
@@ -125,7 +123,7 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
   }
 
   loadMoreComments(): void {
-    const lastDate = this.feedbacks ? this.feedbacks[this.feedbacks.length - 1].date : 0;
+    const lastDate = this.feedbacks?.at(-1)?.date ?? 0;
     const exclude = this.feedbacks ? this.feedbacks.filter(f => f.date === lastDate).map(f => f.uuid) : [];
     this.lastPage = true;
     this.loadingComments = true;

@@ -44,7 +44,7 @@ export class ModerationTranslationsComponent implements OnInit {
     this.i18n.getTranslationLanguages().subscribe(l => {
       this.sourceLanguages = l.map(e => ({code: e.code, name: e.name}));
       this.changesDetector.detectChanges();
-      if (this.trail.publicationData && this.trail.publicationData['lang']) this.setLanguage(this.trail.publicationData['lang']);
+      if (this.trail.publicationData?.['lang']) this.setLanguage(this.trail.publicationData['lang']);
     });
   }
 
@@ -64,14 +64,14 @@ export class ModerationTranslationsComponent implements OnInit {
     });
   }
 
-  setLanguage(lang: string): void {
+  setLanguage(lang: string): void { // NOSONAR
     this.translations.detectedLanguage = lang.length > 0 && (lang === 'fr' || lang === 'en') ? lang : undefined;
     this.translations.nameTranslations ??= {};
     this.translations.descriptionTranslations ??= {};
-    this.track.wayPoints.forEach(wp => {
+    for (const wp of this.track.wayPoints) {
       if (wp.name.trim().length > 0) wp.nameTranslations ??= {}; else wp.nameTranslations = undefined;
       if (wp.description.trim().length > 0) wp.descriptionTranslations ??= {}; else wp.descriptionTranslations = undefined;
-    });
+    };
     if (this.trail.publicationData) {
       if (this.trail.publicationData['nameTranslations'])
         this.translations.nameTranslations = {...this.trail.publicationData['nameTranslations']};
@@ -87,10 +87,10 @@ export class ModerationTranslationsComponent implements OnInit {
           this.translations.nameTranslations![tl.code] = '';
         if (this.translations.descriptionTranslations![tl.code] === undefined)
           this.translations.descriptionTranslations![tl.code] = '';
-        this.track.wayPoints.forEach(wp => {
+        for (const wp of this.track.wayPoints) {
           if (wp.nameTranslations && wp.nameTranslations[tl.code] === undefined) wp.nameTranslations[tl.code] = '';
           if (wp.descriptionTranslations && wp.descriptionTranslations[tl.code] === undefined) wp.descriptionTranslations[tl.code] = '';
-        });
+        };
       }
     }
     if (availTargets.length === 1) this.displayTarget = availTargets[0];

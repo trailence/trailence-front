@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonLabel, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons, IonButton, IonIcon, IonTextarea, ModalController, IonSpinner } from "@ionic/angular/standalone";
@@ -9,9 +9,10 @@ import { ErrorService } from 'src/app/services/progress/error.service';
 @Component({
   templateUrl: './comment-modal.component.html',
   styleUrl: './comment-modal.component.scss',
-  imports: [IonSpinner,
-    IonIcon, IonButton, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonLabel, IonHeader, IonTextarea,
-    CommonModule, FormsModule,
+  imports: [
+    IonSpinner, IonIcon, IonButton, IonButtons, IonFooter, IonContent, IonTitle, IonToolbar, IonLabel, IonHeader, IonTextarea,
+    FormsModule,
+    NgClass,
   ]
 })
 export class CommentModal {

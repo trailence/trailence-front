@@ -119,10 +119,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected syncEnd(): void {
-    if (!this._syncProgress$.value) {
-      Console.warn('Store indicates the end of sync, but there is no progress !!');
-    } else {
+    if (this._syncProgress$.value) {
       this._syncProgress$.next(undefined);
+    } else {
+      Console.warn('Store indicates the end of sync, but there is no progress !!');
     }
   }
 
@@ -185,7 +185,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       this._createdLocally = [];
       this._deletedLocally = [];
       this._updatedLocally = [];
-      items.forEach(item$ => item$.complete());
+      for (const item$ of items) item$.complete();
       this.afterClosed();
     });
   }
@@ -203,7 +203,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           next: items => {
             if (this._db !== db.db) return;
             const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
-            items.forEach(dbItem => {
+            for (const dbItem of items) {
               const item = this.itemFromDb(dbItem);
               if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
               else {
@@ -212,7 +212,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
                 else if (this.isUpdatedLocally(dbItem)) this._updatedLocally.push(this.getKey(item));
                 newStore.push(item$);
               }
-            });
+            }
             Console.info('Data loaded from store', this.tableName);
             this._store.next(newStore);
             this.beforeEmittingStoreLoaded();
@@ -313,7 +313,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       'create item',
       () => {
         existing = this._store.value.find(value => value.value && this.areSame(value.value, item));
-        if (!existing) {
+        if (existing) {
+          inStore$.next(existing);
+        } else {
           this._createdLocally.push(item$);
           const deleted = this._deletedLocally.findIndex(value => this.areSame(value, item));
           if (deleted < 0) {
@@ -325,8 +327,6 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           }
           this._store.next(this._store.value);
           inStore$.next(item$);
-        } else {
-          inStore$.next(existing);
         }
       },
       db => existing ? of(true)
@@ -356,7 +356,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       () => {
         let storeChanged = false;
         for (const item of items) {
-          const existing = !!this._store.value.find(value => value.value && this.areSame(value.value, item));
+          const existing = this._store.value.some(value => value.value && this.areSame(value.value, item));
           let recovered = false;
           if (!existing) {
             const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
@@ -385,8 +385,8 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           const table = db.table<DB_ITEM>(this.tableName);
           const toAdd: DB_ITEM[] = [];
           for (const item of items) {
-            if (existingList.indexOf(item) >= 0) continue;
-            if (recoveredList.indexOf(item) >= 0) await firstValueFrom(this.markUndeletedInDb(table, item));
+            if (existingList.includes(item)) continue;
+            if (recoveredList.includes(item)) await firstValueFrom(this.markUndeletedInDb(table, item));
             else toAdd.push(this.dbItemCreatedLocally(item));
           }
           if (toAdd.length > 0)
@@ -437,7 +437,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
             createdLocally = true;
           }
         }
-        if (this._deletedLocally.indexOf(item) < 0 && !createdLocally)
+        if (!this._deletedLocally.includes(item) && !createdLocally)
           this._deletedLocally.push(item);
         this.deleted([{item$: entity$, item}]);
         if (index >= 0) {
@@ -459,16 +459,16 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         const toDelete = this._store.value.filter(item$ => item$.value && predicate(item$.value));
         if (toDelete.length === 0) return;
         const deleted: {item$: BehaviorSubject<STORE_ITEM | null>, item: STORE_ITEM}[] = [];
-        toDelete.forEach(item$ => {
+        for (const item$ of toDelete) {
           const item = item$.value!;
           items.push(item);
           const created = this._createdLocally.indexOf(item$);
           if (created >= 0) this._createdLocally.splice(created, 1);
-          if (this._deletedLocally.indexOf(item) < 0 && created < 0)
+          if (!this._deletedLocally.includes(item) && created < 0)
             this._deletedLocally.push(item);
           item$.next(null);
           deleted.push({item$, item});
-        });
+        }
         this.deleted(deleted);
         toDelete.forEach(item$ => {
           const index = this._store.value.indexOf(item$);
@@ -518,7 +518,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       'update item',
       () => {
         const createdLocally = this._createdLocally.find(item$ => item$.value && this.areSame(item$.value, item));
-        if (!createdLocally && this._updatedLocally.indexOf(key) < 0)
+        if (!createdLocally && !this._updatedLocally.includes(key))
           this._updatedLocally.push(key);
         const entity$ = this._store.value.find(item$ => item$.value && this.areSame(item$.value, item));
         entity$?.next(item);

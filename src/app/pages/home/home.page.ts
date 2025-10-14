@@ -2,7 +2,6 @@ import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { GestureController, IonButton } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { CommonModule } from '@angular/common';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { environment } from 'src/environments/environment';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -17,6 +16,7 @@ import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { Trail } from 'src/app/model/trail';
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { TrailOverviewComponent } from 'src/app/components/trail-overview/trail-overview.component';
+import { NgClass } from '@angular/common';
 
 class Slide {
   constructor(
@@ -35,8 +35,9 @@ class Slide {
   styleUrl: './home.page.scss',
   imports: [
     IonButton,
-    HeaderComponent, CommonModule,
+    HeaderComponent,
     TrailOverviewComponent,
+    NgClass,
   ]
 })
 export class HomePage extends PublicPage {
@@ -132,7 +133,7 @@ export class HomePage extends PublicPage {
     this.showExamples();
   }
 
-  setSlide(slideIndex: number, slideImageIndex: number, fromLeft: boolean, stopInterval: boolean): void {
+  setSlide(slideIndex: number, slideImageIndex: number, fromLeft: boolean, stopInterval: boolean): void { // NOSONAR
     const currentSlide = document.getElementById(this.getSlideId(this.currentSlideIndex));
     const currentImage = document.getElementById(this.getSlideImageId(this.currentSlideIndex, this.currentSlideImageIndex));
     const newSlide = document.getElementById(this.getSlideId(slideIndex));

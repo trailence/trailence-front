@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular/standalone';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { IFileService, OpenFileRequest } from './file.interface';
-import { Arrays } from 'src/app/utils/arrays';
 import { Console } from 'src/app/utils/console';
 
 @Injectable({
@@ -28,10 +27,10 @@ export class FileService implements IFileService {
     if (!this.platform.is('desktop') && !this.platform.is('mobileweb')) {
       return false;
     }
-    if (typeof (window as any).showOpenFilePicker !== 'function') {
+    if (typeof (globalThis as any).showOpenFilePicker !== 'function') {
       return false;
     }
-    if (window.navigator.webdriver) {
+    if (globalThis.navigator.webdriver) {
       return false;
     }
     const accept: any = {};
@@ -39,7 +38,7 @@ export class FileService implements IFileService {
       accept[type.mime] = type.extensions.map(ext => '.' + ext);
     }
     try {
-      (window as any).showOpenFilePicker({
+      (globalThis as any).showOpenFilePicker({
         types: [{description: r.description, accept}],
         multiple: r.multiple
       }).then((files: FileSystemFileHandle[]) =>
@@ -93,7 +92,7 @@ export class FileService implements IFileService {
     const input = document.createElement('INPUT') as HTMLInputElement;
     input.type = 'file';
     input.multiple = r.multiple;
-    input.accept = [...r.types.map(t => t.mime), ...Arrays.flatMap(r.types, t => t.extensions.map(ext => '.' + ext))].join(',');
+    input.accept = [...r.types.map(t => t.mime), ...r.types.flatMap(t => t.extensions.map(ext => '.' + ext))].join(',');
     input.style.position = 'fixed';
     input.style.top = '-10000px';
     input.style.left = '-10000px';
@@ -104,7 +103,7 @@ export class FileService implements IFileService {
           const errors: any[] = [];
           const readNext = (index: number) => {
             const onerror = (e: any) => {
-              document.documentElement.removeChild(input);
+              input.remove();
               errors.push(e);
               if (index === input.files!.length - 1) {
                 setTimeout(() => r.ondone(fromStartReading, results, errors), 0);
@@ -119,7 +118,7 @@ export class FileService implements IFileService {
                 if (index === input.files!.length - 1) {
                   setTimeout(() => {
                     r.ondone(fromStartReading, results, errors);
-                    document.documentElement.removeChild(input);
+                    input.remove();
                   }, 0);
                 } else {
                   setTimeout(() => readNext(index + 1), 0);
@@ -129,11 +128,11 @@ export class FileService implements IFileService {
             }).catch(onerror);
           };
           setTimeout(() => readNext(0), 0);
-        }).catch((e: any) => { document.documentElement.removeChild(input); r.ondone(undefined, [], [e]); });
+        }).catch((e: any) => { input.remove(); r.ondone(undefined, [], [e]); });
       }
     });
     document.documentElement.appendChild(input);
-    if (!window.navigator.webdriver) {
+    if (!globalThis.navigator.webdriver) {
       const click = new MouseEvent('click');
       input.dispatchEvent(click);
     }
@@ -143,14 +142,14 @@ export class FileService implements IFileService {
   public saveBinaryData(filename: string, data: BinaryContent): Promise<boolean> {
     return data.toBlob().then(
       blob => {
-        const url = window.URL.createObjectURL(blob);
+        const url = globalThis.URL.createObjectURL(blob);
         const a = document.createElement('a');
         document.documentElement.appendChild(a);
         a.setAttribute('style', 'display: none');
         a.href = url;
         a.download = filename;
         a.click();
-        window.URL.revokeObjectURL(url);
+        globalThis.URL.revokeObjectURL(url);
         a.remove();
         return true;
       }

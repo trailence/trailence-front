@@ -6,7 +6,6 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import { MenuContentComponent } from '../../menus/menu-content/menu-content.component';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
@@ -24,7 +23,6 @@ import { ChangesDetection } from 'src/app/utils/angular-helpers';
   styleUrl: './trail-overview-condensed.component.scss',
   imports: [
     IonIcon, IonButton, IonCheckbox,
-    CommonModule,
   ]
 })
 export class TrailOverviewCondensedComponent implements OnChanges, OnInit, OnDestroy {

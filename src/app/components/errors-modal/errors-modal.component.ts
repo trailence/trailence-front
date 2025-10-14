@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { IonHeader, IonToolbar, IonContent, IonTitle, IonIcon, IonList, IonItem, IonButton, ModalController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -7,7 +6,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
     selector: 'app-errors-modal',
     templateUrl: './errors-modal.component.html',
     styleUrls: [],
-    imports: [IonButton, IonItem, IonList, IonIcon, IonTitle, IonContent, IonToolbar, IonHeader, CommonModule]
+    imports: [IonButton, IonItem, IonList, IonIcon, IonTitle, IonContent, IonToolbar, IonHeader]
 })
 export class ErrorsModalComponent {
 

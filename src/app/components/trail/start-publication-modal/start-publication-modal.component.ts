@@ -1,15 +1,17 @@
-import { CommonModule } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, Injector, Input } from '@angular/core';
 import { IonHeader, IonButton, IonToolbar, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, ModalController } from "@ionic/angular/standalone";
 import { Trail } from 'src/app/model/trail';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { TrailService } from 'src/app/services/database/trail.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
 @Component({
   templateUrl: './start-publication-modal.component.html',
   styleUrl: './start-publication-modal.component.scss',
-  imports: [IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonToolbar, IonButton, IonHeader, CommonModule]
+  imports: [
+    IonButtons, IonFooter, IonContent, IonLabel, IonIcon, IonToolbar, IonButton, IonHeader,
+    NgTemplateOutlet,
+  ]
 })
 export class StartPublicationModal {
 

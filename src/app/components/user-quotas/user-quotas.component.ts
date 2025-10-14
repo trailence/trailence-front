@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { NgStyle, NgTemplateOutlet } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { UserQuotas } from 'src/app/services/auth/user-quotas';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -7,7 +7,10 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
   selector: 'app-user-quotas',
   templateUrl: './user-quotas.component.html',
   styleUrl: './user-quotas.component.scss',
-  imports: [CommonModule]
+  imports: [
+    NgTemplateOutlet,
+    NgStyle,
+  ]
 })
 export class UserQuotasComponent {
 

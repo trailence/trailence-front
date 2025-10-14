@@ -1,22 +1,23 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
 import { TrailsWaypoints, TrailWaypoints } from '../trail-waypoints';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TextComponent } from '../../text/text.component';
 import { IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton, ModalController, AlertController } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
 import { ComputedWayPoint } from 'src/app/model/track';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-trail-waypoints',
   templateUrl: './waypoints.components.html',
   styleUrl: './waypoints.components.scss',
   imports: [
-    CommonModule,
     IonButton, IonIcon, IonCheckbox, IonSegment, IonSegmentButton,
     TextComponent,
+    NgTemplateOutlet,
+    NgClass,
   ]
 })
 export class WaypointsComponent implements OnInit, OnDestroy {
@@ -31,7 +32,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
   selectedTrailIndex = 0;
   selectedTrail?: TrailWaypoints;
 
-  private changesDetection: ChangesDetection;
+  private readonly changesDetection: ChangesDetection;
 
   constructor(
     public readonly i18n: I18nService,
@@ -48,15 +49,15 @@ export class WaypointsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = this.trails.changes$.subscribe(() => {
       if (this.trails.trails.length === 0) this.selectedTrail = undefined;
-      else if (!this.selectedTrail) {
-        this.selectedTrail = this.trails.trails[0];
-        this.selectedTrailIndex = 0;
-      } else {
+      else if (this.selectedTrail) {
         this.selectedTrailIndex = this.trails.trails.indexOf(this.selectedTrail);
         if (this.selectedTrailIndex < 0) {
           this.selectedTrail = this.trails.trails[0];
           this.selectedTrailIndex = 0;
         }
+      } else {
+        this.selectedTrail = this.trails.trails[0];
+        this.selectedTrailIndex = 0;
       }
       this.changesDetection.detectChanges();
     });

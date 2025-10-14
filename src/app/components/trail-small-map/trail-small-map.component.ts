@@ -22,7 +22,7 @@ export class TrailSmallMapComponent implements OnChanges {
   }
 
   private reset(): void {
-    while (this.element.nativeElement.children.length > 1) this.element.nativeElement.removeChild(this.element.nativeElement.children.item(0));
+    while (this.element.nativeElement.children.length > 1) this.element.nativeElement.children.item(0).remove();
     const trackBounds = this.track.metadata.bounds;
     if (!trackBounds) return;
     const map = this.createMap(trackBounds);
@@ -96,7 +96,7 @@ export class TrailSmallMapComponent implements OnChanges {
       const p = pathPt(points[i]);
       const dx = p.x - lastPoint.x;
       const dy = p.y - lastPoint.y;
-      if (i == nb - 1 || Math.sqrt((dx * dx) + (dy * dy)) >= 1) {
+      if (i == nb - 1 || Math.hypot(dx, dy) >= 1) {
         svgPath += ' L' + p.x + ' ' + p.y;
         lastPoint = p;
       }
@@ -133,9 +133,9 @@ function convertBounds(north: number, west: number, south: number, east: number,
   const y1 = lat2pt(north, zoom);
   const y2 = lat2pt(south, zoom);
   return {
-    x1: x1 < x2 ? x1 : x2,
-    y1: y1 < y2 ? y1 : y2,
-    x2: x1 < x2 ? x2 : x1,
-    y2: y1 < y2 ? y2 : y1
+    x1: Math.min(x1, x2),
+    y1: Math.min(y1, y2),
+    x2: Math.max(x1, x2),
+    y2: Math.max(y1, y2)
   };
 }

@@ -2,50 +2,61 @@
   <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="compare" style="margin-right: 10px"></ion-icon>
-      <ion-label>{{i18n.texts.pages.find_duplicates.title}}<span *ngIf="started"> ({{percentDone}}%)</span></ion-label>
+      <ion-label>{{i18n.texts.pages.find_duplicates.title}}@if (started) {<span> ({{percentDone}}%)</span>}</ion-label>
     </ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content [ngClass]="{'ion-padding': !started && !processing}">
-  <div class="options" *ngIf="!started">
-    <div *ngIf="end" class="end-message">{{ i18n.texts.pages.find_duplicates.end_message }}</div>
-    <ion-radio-group [value]="what" (ionChange)="what = $event.detail.value">
-      <div class="option">
-        <ion-radio value="inside" labelPlacement="end">{{ 'pages.find_duplicates.option_inside_collection' | i18nString:collectionName(collection) }}</ion-radio>
+  @if (!started) {
+    <div class="options">
+      @if (end) { <div class="end-message">{{ i18n.texts.pages.find_duplicates.end_message }}</div>}
+      <ion-radio-group [value]="what" (ionChange)="what = $event.detail.value">
+        <div class="option">
+          <ion-radio value="inside" labelPlacement="end">{{ 'pages.find_duplicates.option_inside_collection' | i18nString:collectionName(collection) }}</ion-radio>
+        </div>
+        <div class="option">
+          <ion-radio value="two" labelPlacement="end">{{ 'pages.find_duplicates.option_between_collections' | i18nString:collectionName(collection) }}</ion-radio>
+          <ion-select [disabled]="what !== 'two'" [value]="withCollection" (ionChange)="withCollection = $event.detail.value; $event.stopPropagation()" fill="outline" labelPlacement="stacked">
+            <ion-icon name="collection" slot="start"></ion-icon>
+            @for (col of otherCollections; track col.uuid) {
+              <ion-select-option [value]="col.uuid">{{collectionName(col)}}</ion-select-option>
+            }
+          </ion-select>
+        </div>
+        <div class="option">
+          <ion-radio value="all" labelPlacement="end">{{ i18n.texts.pages.find_duplicates.option_all }}</ion-radio>
+        </div>
+      </ion-radio-group>
+      <div class="threshold">
+        <span>{{ i18n.texts.pages.find_duplicates.threshold }}</span>
+        <ion-input type="number" [step]="1" [min]="1" [max]="100" [value]="threshold" (ionChange)="setThreshold($event.detail.value)" fill="solid" size="small"></ion-input>
+        <span>%</span>
       </div>
-      <div class="option">
-        <ion-radio value="two" labelPlacement="end">{{ 'pages.find_duplicates.option_between_collections' | i18nString:collectionName(collection) }}</ion-radio>
-        <ion-select [disabled]="what !== 'two'" [value]="withCollection" (ionChange)="withCollection = $event.detail.value; $event.stopPropagation()" fill="outline" labelPlacement="stacked">
-          <ion-icon name="collection" slot="start"></ion-icon>
-          <ion-select-option *ngFor="let col of otherCollections" [value]="col.uuid">{{collectionName(col)}}</ion-select-option>
-        </ion-select>
-      </div>
-      <div class="option">
-        <ion-radio value="all" labelPlacement="end">{{ i18n.texts.pages.find_duplicates.option_all }}</ion-radio>
-      </div>
-    </ion-radio-group>
-    <div class="threshold">
-      <span>{{ i18n.texts.pages.find_duplicates.threshold }}</span>
-      <ion-input type="number" [step]="1" [min]="1" [max]="100" [value]="threshold" (ionChange)="setThreshold($event.detail.value)" fill="solid" size="small"></ion-input>
-      <span>%</span>
     </div>
-  </div>
-  <div *ngIf="started && processing" class="processing">
-    <ion-spinner name="dots"></ion-spinner> {{percentDone}}%
-  </div>
-  <div *ngIf="started && !processing" class="found">
-    <app-trail
-      [trail1$]="trail1$"
-      [trail2$]="trail2$"
-      tab="details"
-    ></app-trail>
-  </div>
+  } @else {
+    @if (processing) {
+      <div class="processing">
+        <ion-spinner name="dots"></ion-spinner> {{percentDone}}%
+      </div>
+    } @else {
+      <div class="found">
+        <app-trail
+          [trail1$]="trail1$"
+          [trail2$]="trail2$"
+          tab="details"
+        ></app-trail>
+      </div>
+    }
+  }
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
-      <ion-button *ngIf="!started" (click)="start()" [disabled]="!canStart()" color="success">{{i18n.texts.buttons.start}}</ion-button>
-      <ion-button *ngIf="started && !processing && launchNext" (click)="launchNext()" color="success">{{i18n.texts.buttons.next}}</ion-button>
+      @if (!started) {
+        <ion-button (click)="start()" [disabled]="!canStart()" color="success">{{i18n.texts.buttons.start}}</ion-button>
+      } @else if (!processing && launchNext) {
+        <ion-button (click)="launchNext()" color="success">{{i18n.texts.buttons.next}}</ion-button>
+      }
       <ion-button [ngStyle]="{'display': started && !processing && launchNext ? '' : 'none'}" id="button-delete-trail-duplicate" color="danger">
         <span>{{i18n.texts.buttons.delete}}</span>
         <ion-icon slot="end" name="caret-down"></ion-icon>

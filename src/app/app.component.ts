@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { IonApp, IonRouterOutlet, IonContent, IonMenu } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
 import { I18nService } from './services/i18n/i18n.service';
 import { AssetsService } from './services/assets/assets.service';
 import { MenuComponent } from './components/menus/global-menu/menu.component';
@@ -14,7 +13,7 @@ import { NetworkService } from './services/network/network.service';
 import { filterDefined } from './utils/rxjs/filter-defined';
 import { QuotaService } from './services/auth/quota.service';
 
-Console.info('App loading: main component loaded ', Date.now() - ((window as any)._trailenceStart || 0));
+Console.info('App loading: main component loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));
 
 @Component({
     selector: 'app-root',
@@ -25,7 +24,6 @@ Console.info('App loading: main component loaded ', Date.now() - ((window as any
         IonMenu,
         IonContent,
         IonRouterOutlet,
-        CommonModule,
         MenuComponent,
         RouterLink,
     ]
@@ -45,7 +43,7 @@ export class AppComponent {
   constructor(
     private readonly injector: Injector,
   ) {
-    Console.info('App loading: main component init ', Date.now() - ((window as any)._trailenceStart || 0));
+    Console.info('App loading: main component init ', Date.now() - ((globalThis as any)._trailenceStart || 0));
     // start network service as soon as possible
     injector.get(NetworkService);
     // then I18nService
@@ -59,14 +57,14 @@ export class AppComponent {
     // init auth and quotas
     const auth = injector.get(AuthService);
     injector.get(QuotaService);
-    Console.info('App loading: main services init ', Date.now() - ((window as any)._trailenceStart || 0));
+    Console.info('App loading: main services init ', Date.now() - ((globalThis as any)._trailenceStart || 0));
 
     combineLatest([
       injector.get(Router).events.pipe(
         filter(e => e instanceof NavigationEnd),
         first(),
         switchMap(e => {
-          Console.info('App loading: first navigation done ', Date.now() - ((window as any)._trailenceStart || 0));
+          Console.info('App loading: first navigation done ', Date.now() - ((globalThis as any)._trailenceStart || 0));
           if (e.url.startsWith('/link/')) return of(null);
           return auth.auth$.pipe(
             filter(a => a !== undefined),
@@ -84,21 +82,11 @@ export class AppComponent {
         first(),
       ),
     ]).subscribe(([a, t]) => {
-      Console.info('App loading: auth and i18n loaded ', Date.now() - ((window as any)._trailenceStart || 0));
+      Console.info('App loading: auth and i18n loaded ', Date.now() - ((globalThis as any)._trailenceStart || 0));
       const startup = document.getElementById('startup')!;
       startup.style.opacity = '0.75';
       document.getElementById('root')!.style.display = '';
-      if (!a) {
-        this.ready(startup);
-        auth.auth$.pipe(
-          filterDefined(),
-          first(),
-        ).subscribe(() => {
-          this.loadMenu = true;
-          this.loadServices().then(() => {});
-        });
-        setTimeout(() => this.loadServices(), 1000);
-      } else {
+      if (a) {
         this.loadMenu = true;
         combineLatest([
           auth.auth$,
@@ -115,22 +103,22 @@ export class AppComponent {
           first(),
         )
         .subscribe(() => this.ready(startup));
+      } else {
+        this.ready(startup);
+        auth.auth$.pipe(
+          filterDefined(),
+          first(),
+        ).subscribe(() => {
+          this.loadMenu = true;
+          this.loadServices().then(() => {});
+        });
+        setTimeout(() => this.loadServices(), 1000);
       }
       import('./services/geolocation/geolocation.service')
       .then(module => injector.get(module.GeolocationService).waitingForGps$.subscribe(value => {
         this.waitingForGps = value;
         this.injector.get(ChangeDetectorRef).detectChanges();
       }));
-      /*
-      import('./services/trailence.service')
-      .then(module => module.default.getInsets({}))
-      .then(insets => {
-        Console.info('Initial insets', insets);
-        document.documentElement.style.setProperty('--ion-safe-area-top', insets.top + 'px');
-        document.documentElement.style.setProperty('--ion-safe-area-bottom', insets.bottom + 'px');
-        document.documentElement.style.setProperty('--ion-safe-area-left', insets.left + 'px');
-        document.documentElement.style.setProperty('--ion-safe-area-right', insets.right + 'px');
-      });*/
     });
     i18n.texts$.subscribe(texts => {
       this.waitingForGpsText = texts?.waiting_for_gps ?? '';
@@ -149,8 +137,8 @@ export class AppComponent {
     ]).subscribe(([url, trace]) => {
       const newValue = trace ?
         (trace.followingTrailUuid ?
-          (!url.startsWith('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid) ? '/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid : undefined)
-          : (url !== '/trail' ? '/trail' : undefined)
+          (url.startsWith('/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid) ? undefined : '/trail/' + trace.followingTrailOwner! + '/' + trace.followingTrailUuid)
+          : (url === '/trail' ? undefined : '/trail')
         ) : undefined;
       if (newValue !== this.traceInProgress) {
         this.traceInProgress = newValue;
@@ -188,11 +176,11 @@ export class AppComponent {
       setTimeout(() => this.ready(startup), 10);
       return;
     }
-    Console.info('-- Starting app: ready in ' + (Date.now() - (window as any)._trailenceStart) + 'ms. --------------------------------');
+    Console.info('-- Starting app: ready in ' + (Date.now() - (globalThis as any)._trailenceStart) + 'ms. --------------------------------');
     const startupContent = document.getElementById('startup-content');
-    startupContent?.parentElement?.removeChild(startupContent);
+    startupContent?.remove();
     startup.style.opacity = '0';
-    setTimeout(() => startup.parentElement?.removeChild(startup), 500);
+    setTimeout(() => startup.remove(), 500);
     this.loadMenuContent = true;
   }
 }

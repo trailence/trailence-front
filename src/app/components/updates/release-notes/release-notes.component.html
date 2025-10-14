@@ -1,19 +1,25 @@
 @if (releases !== undefined) {
   @for (release of releases; track release.code) {
-    <div class="release" *ngIf="release.languages[prefs.preferences.lang] as lang">
-      <div class="release-header">
-        <div class="version">
-          <span>{{ i18n.texts.update.release_notes.version }}</span>
-          <span>{{ release.version }}</span>
+    @if (release.languages[prefs.preferences.lang]; as lang) {
+      <div class="release">
+        <div class="release-header">
+          <div class="version">
+            <span>{{ i18n.texts.update.release_notes.version }}</span>
+            <span>{{ release.version }}</span>
+          </div>
+          <div class="message">
+            {{ lang.message }}
+          </div>
         </div>
-        <div class="message">
-          {{ lang.message }}
-        </div>
+        @if (lang.items) {
+          <div class="release-items">
+            @for (item of lang.items; track $index) {
+              <div class="release-item">{{ item }}</div>
+            }
+          </div>
+        }
       </div>
-      <div class="release-items" *ngIf="lang.items">
-        <div class="release-item" *ngFor="let item of lang.items">{{ item }}</div>
-      </div>
-    </div>
+    }
   }
 } @else {
   <ion-spinner name="dots"></ion-spinner>

@@ -154,23 +154,19 @@ export class RangeSelection implements C.Plugin<"line"> {
     ctx.restore();
     if (this.selecting) {
       this.onZoomButton(undefined);
-    } else {
-      let minY = -1;
-      let maxY = -1;
-      this.selected?.startElements?.forEach(e => {
-        if (minY === -1 || e.element.y < minY) minY = e.element.y;
-        if (maxY === -1 || e.element.y > maxY) maxY = e.element.y;
-      });
-      this.selected?.endElements?.forEach(e => {
-        if (minY === -1 || e.element.y < minY) minY = e.element.y;
-        if (maxY === -1 || e.element.y > maxY) maxY = e.element.y;
-      });
-      if (minY === -1) this.onZoomButton(undefined);
-      else this.onZoomButton({
-        x: (startX + (endX - startX) / 2) - 17,
-        y: (maxY < yAxis.bottom - (yAxis.bottom - yAxis.top) * 0.6) ? yAxis.bottom - 35 : yAxis.top
-      });
+      return;
     }
+    let minY = -1;
+    let maxY = -1;
+    for (const e of [...this.selected?.startElements || [], ...this.selected?.endElements || []]) {
+      if (minY === -1 || e.element.y < minY) minY = e.element.y;
+      if (maxY === -1 || e.element.y > maxY) maxY = e.element.y;
+    }
+    if (minY === -1) this.onZoomButton(undefined);
+    else this.onZoomButton({
+      x: (startX + (endX - startX) / 2) - 17,
+      y: (maxY < yAxis.bottom - (yAxis.bottom - yAxis.top) * 0.6) ? yAxis.bottom - 35 : yAxis.top
+    });
   }
 
   private drawSinglePoint(chart: C.Chart<"line">, x: number, ys: number[], color: string): void {

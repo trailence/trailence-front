@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IonIcon, IonButton } from '@ionic/angular/standalone';
@@ -19,7 +18,6 @@ export interface UserKey {
   templateUrl: './user-keys.components.html',
   styleUrl: './user-keys.components.scss',
   imports: [
-    CommonModule,
     IonIcon, IonButton,
   ]
 })
@@ -73,7 +71,7 @@ export class UserKeysComponent implements OnInit {
   private isNative(key: UserKey): boolean {
     const platforms = key.deviceInfo?.ionPlatforms as string[] | undefined;
     if (platforms) {
-      if (platforms.indexOf('capacitor') >= 0) return true;
+      if (platforms.includes('capacitor')) return true;
     }
     return false;
   }
@@ -81,8 +79,8 @@ export class UserKeysComponent implements OnInit {
   private getDeviceType(key: UserKey): DeviceType | undefined {
     const platforms = key.deviceInfo?.ionPlatforms as string[] | undefined;
     if (platforms) {
-      if (platforms.indexOf('desktop') >= 0) return 'desktop';
-      if (platforms.indexOf('mobile') >= 0) return 'mobile';
+      if (platforms.includes('desktop')) return 'desktop';
+      if (platforms.includes('mobile')) return 'mobile';
     }
     if (key.deviceInfo?.mobile) return 'mobile';
     return undefined;
@@ -91,8 +89,8 @@ export class UserKeysComponent implements OnInit {
   private getDeviceSystem(key: UserKey): DeviceSystem | undefined {
     const platforms = key.deviceInfo?.ionPlatforms as string[] | undefined;
     if (platforms) {
-      if (platforms.indexOf('android') >= 0) return 'android';
-      if (platforms.indexOf('ios') >= 0) return 'ios';
+      if (platforms.includes('android')) return 'android';
+      if (platforms.includes('ios')) return 'ios';
     }
     if (key.deviceInfo?.platform?.toLowerCase() === 'windows') return 'windows';
     return undefined;
@@ -105,7 +103,7 @@ export class UserKeysComponent implements OnInit {
         if (brand.brand?.toLowerCase() === 'microsoft edge') return 'edge';
       }
     }
-    if (key.deviceInfo?.userAgent?.indexOf('Firefox/') > 0) return 'firefox';
+    if (key.deviceInfo?.userAgent?.includes('Firefox/')) return 'firefox';
     return undefined;
   }
 

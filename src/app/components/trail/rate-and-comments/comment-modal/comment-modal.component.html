@@ -8,10 +8,12 @@
 <ion-content class="ion-padding">
   <h2>{{i18n.texts.pages.trail.sections.comments.rate.modal.rate_title}}</h2>
   <div class="rating">
-    <div class="rate" *ngFor="let r of [0,1,2,3,4,5]" [ngClass]="{'selected': rate !== undefined && ((r === 0 && rate === 0) || (r > 0 && rate >= r))}" (click)="setRate(r);">
-      <ion-icon [name]="r === 0 ? (rate === 0 ? 'thumbs-down-filled' : 'thumbs-down') : (rate !== undefined && rate > 0 && rate >= r ? 'star-filled' : 'star-empty')"></ion-icon>
-      <span>{{ r }}</span>
-    </div>
+    @for (r of [0,1,2,3,4,5]; track $index) {
+      <div class="rate" [ngClass]="{'selected': rate !== undefined && ((r === 0 && rate === 0) || (r > 0 && rate >= r))}" (click)="setRate(r);">
+        <ion-icon [name]="r === 0 ? (rate === 0 ? 'thumbs-down-filled' : 'thumbs-down') : (rate !== undefined && rate > 0 && rate >= r ? 'star-filled' : 'star-empty')"></ion-icon>
+        <span>{{ r }}</span>
+      </div>
+    }
   </div>
 
   <h2>{{i18n.texts.pages.trail.sections.comments.rate.modal.comment_title}}</h2>
@@ -26,7 +28,9 @@
   <div class="comment-advise">
     <div>{{ i18n.texts.pages.trail.sections.comments.rate.modal.comment_advise.header }}</div>
     <ul>
-      <li *ngFor="let item of i18n.texts.pages.trail.sections.comments.rate.modal.comment_advise.items">{{ item }}</li>
+      @for (item of i18n.texts.pages.trail.sections.comments.rate.modal.comment_advise.items; track $index) {
+        <li>{{ item }}</li>
+      }
     </ul>
     <div>{{ i18n.texts.pages.trail.sections.comments.rate.modal.comment_advise.footer }}</div>
   </div>

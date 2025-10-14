@@ -61,7 +61,7 @@ export class Trails {
       first(),
       switchMap(metaList =>
         this.injector.get(TrailService).getAll$().pipe(
-          collection$items(trail => !!metaList.find(meta => meta.uuid === trail.currentTrackUuid && meta.owner === trail.owner)),
+          collection$items(trail => metaList.some(meta => meta.uuid === trail.currentTrackUuid && meta.owner === trail.owner)),
           first(),
           switchMap(trails =>
             combineLatest([
@@ -115,7 +115,7 @@ export class Trails {
         const collectionName = collection.name.length === 0 && collection.type === TrailCollectionType.MY_TRAILS ? this.injector.get(I18nService).texts.my_trails : collection.name;
         result.push({trail, track, collectionName, meta});
       } else {
-        const share = shares.find(share => share.owner === trail.owner && share.trails.indexOf(trail.uuid) >= 0);
+        const share = shares.find(share => share.owner === trail.owner && share.trails.includes(trail.uuid));
         if (share) {
           result.push({trail, track, collectionName: share.name, meta});
         }

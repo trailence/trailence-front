@@ -3,7 +3,6 @@ import { catchError, defaultIfEmpty, EMPTY, first, forkJoin, map, Observable, of
 import { Trail } from 'src/app/model/trail';
 import { PhotoService } from '../database/photo.service';
 import { ModalController } from '@ionic/angular/standalone';
-import { Arrays } from 'src/app/utils/arrays';
 import { Photo } from 'src/app/model/photo';
 import { ProgressService } from '../progress/progress.service';
 import { AuthService } from '../auth/auth.service';
@@ -46,15 +45,15 @@ export function exportTrails(injector: Injector, trails: Trail[]) {
 }
 
 function doExport(injector: Injector, trails: Trail[], what: 'original' | 'current' | 'both', includePhotos: boolean, trailsPhotos: {trail: Trail, photos: Photo[]}[]): void {
-  const photosToExport = includePhotos ? Arrays.flatMap(trailsPhotos, e => e.photos) : [];
+  const photosToExport = includePhotos ? trailsPhotos.flatMap(e => e.photos) : [];
 
   const existingJpgFilenames: string[] = [];
   const photoFilenameMap = new Map<Photo, string>();
   for (const photo of photosToExport) {
     let filename = photo.uuid;
-    if (existingJpgFilenames.indexOf(filename.toLowerCase()) >= 0) {
+    if (existingJpgFilenames.includes(filename.toLowerCase())) {
       let i = 2;
-      while (existingJpgFilenames.indexOf(filename.toLowerCase() + '_' + i) >= 0) i++;
+      while (existingJpgFilenames.includes(filename.toLowerCase() + '_' + i)) i++;
       filename = filename + '_' + i;
     }
     existingJpgFilenames.push(filename.toLowerCase());
@@ -79,7 +78,7 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
       map(tracks => ({trail, tracks: filterItemsDefined(tracks)})),
       switchMap(t => {
         if (t.tracks.length === 0) return of(null);
-        const tags$ = t.trail.owner !== email ? of([]) : injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true);
+        const tags$ = t.trail.owner === email ? injector.get(TagService).getTrailTagsNames$(t.trail.uuid, true) : of([]);
         return tags$.pipe(
           map(tags => ({
             name: t.trail.name,
@@ -148,9 +147,9 @@ function doExport(injector: Injector, trails: Trail[], what: 'original' | 'curre
         return;
       }
       let filename = StringUtils.toFilename(data.name);
-      if (existingGpxFilenames.indexOf(filename.toLowerCase()) >= 0) {
+      if (existingGpxFilenames.includes(filename.toLowerCase())) {
         let i = 2;
-        while (existingGpxFilenames.indexOf(filename.toLowerCase() + '_' + i) >= 0) i++;
+        while (existingGpxFilenames.includes(filename.toLowerCase() + '_' + i)) i++;
         filename = filename + '_' + i;
       }
       existingGpxFilenames.push(filename.toLowerCase());

@@ -7,10 +7,9 @@
     </div>
   </ion-toolbar>
   <ion-card-content>
-    <ng-container *ngIf="!connected">
+    @if (!connected) {
       <div>{{ i18n.texts.pages.login.offline }}</div>
-    </ng-container>
-    <ng-container *ngIf="connected">
+    } @else {
       <form (ngSubmit)="onSubmit()">
         <ion-list>
           <ion-item>
@@ -20,49 +19,44 @@
             <ion-input label="{{i18n.texts.pages.login.password}}" labelPlacement="floating" type="password" name="password" [(ngModel)]="password" autocomplete="current-password" [disabled]="inprogress"></ion-input>
           </ion-item>
         </ion-list>
-        <div *ngIf="incorrect">
-          <ion-label color="danger">{{i18n.texts.pages.login.incorrect_message}}</ion-label>
-        </div>
-        <div *ngIf="error">
-          <ion-label color="danger">{{i18n.texts.pages.login.error_message}}</ion-label>
-        </div>
-        <div *ngIf="locked">
-          <ion-label color="danger">{{i18n.texts.pages.login.locked_message}}</ion-label>
-        </div>
+        @if (incorrect) {<div><ion-label color="danger">{{i18n.texts.pages.login.incorrect_message}}</ion-label></div>}
+        @if (error) {<div><ion-label color="danger">{{i18n.texts.pages.login.error_message}}</ion-label></div>}
+        @if (locked) {<div><ion-label color="danger">{{i18n.texts.pages.login.locked_message}}</ion-label></div>}
         <div [ngStyle]="{'display': captchaNeeded ? 'block' : 'none'}">
-          <div *ngIf="captchaNeeded">{{i18n.texts.pages.login.captcha_message}}</div>
+          @if (captchaNeeded){<div>{{i18n.texts.pages.login.captcha_message}}</div>}
           <div id="captcha-login"></div>
         </div>
         <div class="bottom-button" style="margin-top: 10px">
           <ion-button fill="clear" color="secondary" (click)="signin()" [disabled]="!canSignin() || inprogress" type="submit">
-            <span *ngIf="!inprogress">{{i18n.texts.pages.login.signin_button}}</span>
-            <ion-spinner *ngIf="inprogress" color="secondary"></ion-spinner>
+            @if (!inprogress) {<span>{{i18n.texts.pages.login.signin_button}}</span>}
+            @else{<ion-spinner color="secondary"></ion-spinner>}
           </ion-button>
         </div>
-        <div style="text-align: center; font-size: 12px;" *ngIf="inprogress">
-          {{progressMessage}}
-        </div>
-        <div *ngIf="!inprogress" class="bottom-button">
-          <ion-button fill="clear" color="tertiary" (click)="resetPassword()">
-            {{i18n.texts.pages.login.forgot_password}}
-          </ion-button>
-        </div>
-        <div *ngIf="!inprogress" class="bottom-button">
-          <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
-            <ion-button fill="clear" color="success" (click)="createAccount()">
-              {{i18n.texts.pages.login.create_account}}
+        @if (inprogress) {
+          <div style="text-align: center; font-size: 12px;">{{progressMessage}}</div>
+        } @else {
+          <div class="bottom-button">
+            <ion-button fill="clear" color="tertiary" (click)="resetPassword()">
+              {{i18n.texts.pages.login.forgot_password}}
             </ion-button>
-          </a>
-        </div>
-        <div *ngIf="!inprogress" class="bottom-button">
-          <a href="/try" (click)="$event.preventDefault()">
-            <ion-button fill="clear" color="secondary" (click)="tryWithoutAccount()">
-              {{i18n.texts.pages.login.try_without_account}}
-            </ion-button>
-          </a>
-        </div>
+          </div>
+          <div class="bottom-button">
+            <a href="/{{prefs.preferences.lang}}/register" (click)="$event.preventDefault()">
+              <ion-button fill="clear" color="success" (click)="createAccount()">
+                {{i18n.texts.pages.login.create_account}}
+              </ion-button>
+            </a>
+          </div>
+          <div class="bottom-button">
+            <a href="/try" (click)="$event.preventDefault()">
+              <ion-button fill="clear" color="secondary" (click)="tryWithoutAccount()">
+                {{i18n.texts.pages.login.try_without_account}}
+              </ion-button>
+            </a>
+          </div>
+        }
       </form>
-    </ng-container>
+    }
   </ion-card-content>
 </ion-card>
 </div>

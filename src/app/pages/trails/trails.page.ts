@@ -9,7 +9,6 @@ import { HeaderComponent } from 'src/app/components/header/header.component';
 import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';
 import { TrailsAndMapComponent } from 'src/app/components/trails-and-map/trails-and-map.component';
-import { CommonModule } from '@angular/common';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { collection$items$ } from 'src/app/utils/rxjs/collection$items';
 import { ShareService } from 'src/app/services/database/share.service';
@@ -37,18 +36,19 @@ import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { AsyncPipe } from '@angular/common';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
 @Component({
-    selector: 'app-trails-page',
-    templateUrl: './trails.page.html',
-    styleUrls: ['./trails.page.scss'],
-    imports: [
-        CommonModule,
-        HeaderComponent,
-        TrailsAndMapComponent,
-    ]
+  selector: 'app-trails-page',
+  templateUrl: './trails.page.html',
+  styleUrls: ['./trails.page.scss'],
+  imports: [
+    HeaderComponent,
+    TrailsAndMapComponent,
+    AsyncPipe,
+  ]
 })
 export class TrailsPage extends AbstractPage {
 
@@ -240,7 +240,7 @@ export class TrailsPage extends AbstractPage {
       ([allTrails, collections]) => {
         const owner = this.injector.get(AuthService).email;
         const collectionsWithoutPub = collections.filter(c => !isPublicationCollection(c.type));
-        const newList = List(allTrails.filter(t => t.item.owner === owner && collectionsWithoutPub.findIndex(col => col.uuid === t.item.collectionUuid) >= 0).map(t => t.item$));
+        const newList = List(allTrails.filter(t => t.item.owner === owner && collectionsWithoutPub.some(col => col.uuid === t.item.collectionUuid)).map(t => t.item$));
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           this.ngZone.run(() => this.trails$.next(newList));
@@ -268,7 +268,7 @@ export class TrailsPage extends AbstractPage {
           const trails$: Observable<Trail | null>[] = [];
           for (const selectedTrail of selection) {
             let trail$ = this.injector.get(TrailService).getTrail$(selectedTrail.uuid, selectedTrail.owner);
-            if (selectedTrail.owner.indexOf('@') < 0) {
+            if (!selectedTrail.owner.includes('@')) {
               let isMissing = false;
               trail$ = trail$.pipe(
                 map(trail => {
@@ -278,11 +278,9 @@ export class TrailsPage extends AbstractPage {
                       nbMissing++;
                     }
                     this.searchMessage = 'pages.trails.missing_trails_because_offline';
-                  } else {
-                    if (isMissing) {
-                      isMissing = false;
-                      if (--nbMissing === 0) this.searchMessage = undefined;
-                    }
+                  } else if (isMissing) {
+                    isMissing = false;
+                    if (--nbMissing === 0) this.searchMessage = undefined;
                   }
                   return trail;
                 })
@@ -394,7 +392,7 @@ export class TrailsPage extends AbstractPage {
               label: plugin.name,
               value: plugin.name,
               type: 'radio',
-              checked: this.selectedSearchPlugins.indexOf(plugin.name) >= 0,
+              checked: this.selectedSearchPlugins.includes(plugin.name),
             })),
             buttons: [{
               text: this.i18n.texts.buttons.ok,
@@ -453,7 +451,7 @@ export class TrailsPage extends AbstractPage {
           bounds.getSouthEast().distanceTo(bounds.getNorthEast()) > 100000
         )
       ) {
-        if (this.injector.get(FetchSourceService).getPluginsByName(this.selectedSearchPlugins).filter(p => p.canSearchBubbles()).length > 0) {
+        if (this.injector.get(FetchSourceService).getPluginsByName(this.selectedSearchPlugins).some(p => p.canSearchBubbles())) {
           if (this.searchMode !== 'bubbles') {
             this.searchMode = 'bubbles';
             changed = true;
@@ -658,7 +656,7 @@ export class TrailsPage extends AbstractPage {
 
   private onItemEmpty<T>(storeReady$: () => Observable<boolean>, getItem$: (auth: AuthResponse) => Observable<any>): Observable<T> {
     return this.injector.get(AuthService).auth$.pipe(
-      switchMap(auth => !auth ? EMPTY : combineLatest([
+      switchMap(auth => !auth ? EMPTY : combineLatest([ // NOSONAR
         storeReady$(),
         this.visible$,
         this.injector.get(NetworkService).server$,

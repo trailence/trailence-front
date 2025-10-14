@@ -4,21 +4,28 @@
     <th>{{i18n.texts.admin.starts_at}}</th>
     <th>{{i18n.texts.admin.ends_at}}</th>
   </tr>
-  <tr *ngFor="let subscription of subscriptions">
-    <td>{{ subscription.planName }}</td>
-    <td>{{ i18n.timestampToDateTimeString(subscription.startsAt) }}</td>
-    <td>
-      <span *ngIf="subscription.endsAt">{{ i18n.timestampToDateTimeString(subscription.endsAt) }}</span>
-      <ion-button *ngIf="!subscription.endsAt" color="danger" fill="clear" size="small" (click)="stopSubscription(subscription)">
-        <ion-icon slot="icon-only" name="stop-circle"></ion-icon>
-      </ion-button>
-    </td>
-  </tr>
+  @for (subscription of subscriptions; track subscription.uuid) {
+    <tr>
+      <td>{{ subscription.planName }}</td>
+      <td>{{ i18n.timestampToDateTimeString(subscription.startsAt) }}</td>
+      <td>
+        @if (subscription.endsAt) {
+          <span>{{ i18n.timestampToDateTimeString(subscription.endsAt) }}</span>
+        } @else {
+          <ion-button color="danger" fill="clear" size="small" (click)="stopSubscription(subscription)">
+            <ion-icon slot="icon-only" name="stop-circle"></ion-icon>
+          </ion-button>
+        }
+      </td>
+    </tr>
+  }
 </table>
 <div class="new-subscription">
   <span>{{ i18n.texts.admin.plans.new_subscription }}</span>
   <ion-select #newPlanSelect fill="outline" class="small">
-    <ion-select-option *ngFor="let plan of plans" [value]="plan">{{ plan }}</ion-select-option>
+    @for (plan of plans; track plan) {
+      <ion-select-option [value]="plan">{{ plan }}</ion-select-option>
+    }
   </ion-select>
   <ion-button color="success" fill="clear" [disabled]="!newPlanSelect.value" (click)="addSubscription()">
     <ion-icon slot="icon-only" name="add-circle"></ion-icon>

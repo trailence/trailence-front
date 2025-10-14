@@ -9,7 +9,6 @@ import { ErrorService } from 'src/app/services/progress/error.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
-import { CommonModule } from '@angular/common';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -120,7 +119,9 @@ export class PlatformService {
   </div>
 
   <ion-radio-group (ionChange)="collectionUuid = $event.detail.value" [value]="collectionUuid">
-    <div *ngFor="let collection of collections"><ion-radio labelPlacement="end" value="{{collection.uuid}}">{{ collectionName(collection) }}</ion-radio></div>
+    @for (collection of collections; track collection.uuid) {
+      <div><ion-radio labelPlacement="end" value="{{collection.uuid}}">{{ collectionName(collection) }}</ion-radio></div>
+    }
   </ion-radio-group>
 
   <div style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
@@ -138,7 +139,7 @@ export class PlatformService {
 </ion-footer>
 `,
   styleUrls: [],
-  imports: [IonRadioGroup, IonRadio, IonButton, IonButtons, IonFooter, IonLabel, IonTitle, IonToolbar, IonContent, IonHeader, CommonModule]
+  imports: [IonRadioGroup, IonRadio, IonButton, IonButtons, IonFooter, IonLabel, IonTitle, IonToolbar, IonContent, IonHeader]
 })
 class ImportGpxPopupComponent {
 

@@ -32,12 +32,12 @@ export class ModerationCommentsPage {
     this.moderationService.getFeedbacksToReview().subscribe({
       next: list => {
         this.loading = false;
-        list.forEach(trail => {
+        for (const trail of list) {
           trail.feedbacks.sort((f1, f2) => f2.date - f1.date);
-          trail.feedbacks.forEach(f => {
+          for (const f of trail.feedbacks) {
             f.replies.sort((r1, r2) => r2.date - r1.date);
-          });
-        });
+          }
+        }
         this.toReview = list;
         this.changeDetector.detectChanges();
       },

@@ -48,7 +48,7 @@ export abstract class AddPointsTool implements TrackEditTool {
   protected anchor: MapAnchor = new MapAnchor({lat: 0, lng: 0}, '#0000d0', '+', undefined, '#ffffff', '#0000d0', undefined, false);
 
   private continueAddPoints(injector: Injector, iCtx: InteractiveToolContext, track: Track, segmentIndex: number, isForward: boolean): void {
-    const that = this;
+    const that = this; // NOSONAR
     this.enableAddPoints({
       track,
       segment: track.segments[segmentIndex],

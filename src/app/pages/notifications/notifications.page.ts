@@ -4,20 +4,21 @@ import { NotificationItemComponent } from 'src/app/components/notifications/noti
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Notification, NotificationsService } from 'src/app/services/notifications/notifications.service';
 import { IonList, IonButton, IonSpinner } from "@ionic/angular/standalone";
-import { CommonModule } from '@angular/common';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { combineLatest, Subscription } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-notifications',
   templateUrl: './notifications.page.html',
   styleUrl: './notifications.page.scss',
-  imports: [IonButton,
-    IonList,
-    CommonModule,
+  imports: [
+    IonButton, IonList, IonSpinner,
     HeaderComponent,
-    NotificationItemComponent, IonSpinner]
+    NotificationItemComponent,
+    AsyncPipe,
+  ]
 })
 export class NotificationsPage implements OnInit, OnDestroy {
 

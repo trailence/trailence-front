@@ -1,84 +1,95 @@
-<ng-container *ngIf="keys">
-  <div class="device" *ngFor="let key of keys">
-    <div class="device-row">
-      <div class="device-info">
-        <div class="device-description">
-          <div class="device-systemtype">
-            <div class="icons">
-              @switch (key.deviceType) {
-                @case('desktop') {
-                  <ion-icon name="desktop"></ion-icon>
-                }
-                @case ('mobile') {
-                  <ion-icon name="mobile"></ion-icon>
-                }
-              }
-              @switch (key.system) {
-                @case ('windows') {
-                  <ion-icon name="windows"></ion-icon>
-                }
-                @case ('android') {
-                  <ion-icon name="android"></ion-icon>
-                }
-                @case ('ios') {
-                  <ion-icon name="apple"></ion-icon>
-                }
-              }
-              <ng-container *ngIf="!key.native">
-                <ion-icon name="web"></ion-icon>
-                @switch (key.browser) {
-                  @case ('chrome') {
-                    <ion-icon name="browser-chrome"></ion-icon>
+@if (keys) {
+  @for (key of keys; track key.id) {
+    <div class="device">
+      <div class="device-row">
+        <div class="device-info">
+          <div class="device-description">
+            <div class="device-systemtype">
+              <div class="icons">
+                @switch (key.deviceType) {
+                  @case('desktop') {
+                    <ion-icon name="desktop"></ion-icon>
                   }
-                  @case ('firefox') {
-                    <ion-icon name="browser-firefox"></ion-icon>
-                  }
-                  @case ('edge') {
-                    <ion-icon name="browser-edge"></ion-icon>
+                  @case ('mobile') {
+                    <ion-icon name="mobile"></ion-icon>
                   }
                 }
-              </ng-container>
-              <div class="app-version">{{ key.appVersion }}</div>
+                @switch (key.system) {
+                  @case ('windows') {
+                    <ion-icon name="windows"></ion-icon>
+                  }
+                  @case ('android') {
+                    <ion-icon name="android"></ion-icon>
+                  }
+                  @case ('ios') {
+                    <ion-icon name="apple"></ion-icon>
+                  }
+                }
+                @if (!key.native) {
+                  <ion-icon name="web"></ion-icon>
+                  @switch (key.browser) {
+                    @case ('chrome') {
+                      <ion-icon name="browser-chrome"></ion-icon>
+                    }
+                    @case ('firefox') {
+                      <ion-icon name="browser-firefox"></ion-icon>
+                    }
+                    @case ('edge') {
+                      <ion-icon name="browser-edge"></ion-icon>
+                    }
+                  }
+                }
+                <div class="app-version">{{ key.appVersion }}</div>
+              </div>
+              <div class="texts">
+                @if (key.native) {
+                  <span>{{i18n.texts.pages.myaccount.devices_table.mobile_app}}</span>
+                  @if (key.system) {
+                    <span>{{i18n.texts.pages.myaccount.devices_table.systems[key.system]}}</span>
+                  }
+                } @else {
+                  <span>{{i18n.texts.pages.myaccount.devices_table.web_app}}</span>
+                  @if (key.browser) {
+                    <span>{{i18n.texts.pages.myaccount.devices_table.browsers[key.browser]}}</span>
+                  }
+                  @if (key.system) {
+                    <span>{{i18n.texts.pages.myaccount.devices_table.systems[key.system]}}</span>
+                  }
+                }
+              </div>
             </div>
-            <div class="texts">
-              @if (key.native) {
-                <span>{{i18n.texts.pages.myaccount.devices_table.mobile_app}}</span>
-                @if (key.system) {
-                  <span>{{i18n.texts.pages.myaccount.devices_table.systems[key.system]}}</span>
-                }
-              } @else {
-                <span>{{i18n.texts.pages.myaccount.devices_table.web_app}}</span>
-                @if (key.browser) {
-                  <span>{{i18n.texts.pages.myaccount.devices_table.browsers[key.browser]}}</span>
-                }
-                @if (key.system) {
-                  <span>{{i18n.texts.pages.myaccount.devices_table.systems[key.system]}}</span>
-                }
-              }
-            </div>
+            @if (key.deviceDescription) {
+              <div class="device-details">{{key.deviceDescription}}</div>
+            }
           </div>
-          <div class="device-details" *ngIf="key.deviceDescription">{{key.deviceDescription}}</div>
-        </div>
-        <div class="device-date">
-          <div>{{i18n.texts.pages.myaccount.devices_table.connected_since}}</div>
-          <div>{{i18n.timestampToDateTimeString(key.createdAt)}}</div>
-        </div>
-        <div class="device-date">
-          <div>{{i18n.texts.pages.myaccount.devices_table.last_usage}}</div>
-          <div>{{i18n.timestampToDateTimeString(key.lastUsage)}}</div>
+          <div class="device-date">
+            <div>{{i18n.texts.pages.myaccount.devices_table.connected_since}}</div>
+            <div>{{i18n.timestampToDateTimeString(key.createdAt)}}</div>
+          </div>
+          <div class="device-date">
+            <div>{{i18n.texts.pages.myaccount.devices_table.last_usage}}</div>
+            <div>{{i18n.timestampToDateTimeString(key.lastUsage)}}</div>
+          </div>
         </div>
       </div>
+      <div class="device-action">
+        @let thisDevice = isThisDevice(key);
+        @if (thisDevice) {
+          <span>
+            {{i18n.texts.pages.myaccount.devices_table.this_device}}
+          </span>
+        }
+        @if (key.deletedAt) {
+          <span>
+            {{i18n.texts.pages.myaccount.devices_table.deleted_at }} {{ i18n.timestampToDateTimeString(key.deletedAt) }}
+          </span>
+        }
+        @if (keyDelete && !thisDevice) {
+          <ion-button size="small" (click)="deleteKey(key)">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-button>
+        }
+      </div>
     </div>
-    <div class="device-action">
-      <span *ngIf="isThisDevice(key)">
-        {{i18n.texts.pages.myaccount.devices_table.this_device}}
-      </span>
-      <span *ngIf="key.deletedAt">
-        {{i18n.texts.pages.myaccount.devices_table.deleted_at }} {{ i18n.timestampToDateTimeString(key.deletedAt) }}
-      </span>
-      <ion-button size="small" *ngIf="keyDelete && !isThisDevice(key)" (click)="deleteKey(key)">
-        <ion-icon name="trash" slot="icon-only"></ion-icon>
-      </ion-button>
-    </div>
-  </div>
-</ng-container>
+  }
+}

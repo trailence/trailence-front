@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { IonSearchbar, IonPopover, IonList, IonItem, IonLabel, IonSpinner } from "@ionic/angular/standalone";
 import { BehaviorSubject, catchError, debounceTime, filter, map, of, switchMap, tap } from 'rxjs';
@@ -15,7 +14,9 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
     selector: 'app-search-place',
     templateUrl: './search-place.component.html',
     styleUrls: ['./search-place.component.scss'],
-    imports: [IonSpinner, IonLabel, IonItem, IonList, IonPopover, IonSearchbar, CommonModule]
+    imports: [
+      IonSpinner, IonLabel, IonItem, IonList, IonPopover, IonSearchbar,
+    ]
 })
 export class SearchPlaceComponent {
 

@@ -51,7 +51,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
   private idFromUrl(url: string): string | undefined {
     if (!url.startsWith('https://www.outdooractive.com/')) return undefined;
     url = url.substring('https://www.outdooractive.com'.length);
-    if (url.indexOf('/route/') < 0 && url.indexOf('/track/') < 0 && url.indexOf('/routes/') < 0 && url.indexOf('/tracks/') < 0) return undefined;
+    if (!url.includes('/route/') && !url.includes('/track/') && !url.includes('/routes/') && !url.includes('/tracks/')) return undefined;
     let i = url.indexOf('?');
     if (i > 0) url = url.substring(0, i);
     i = url.indexOf('#');
@@ -60,7 +60,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
     url = url.substring(1);
     i = url.lastIndexOf('/');
     const id = url.substring(i + 1);
-    if (isNaN(parseInt(id))) return undefined;
+    if (Number.isNaN(Number.parseInt(id))) return undefined;
     return id;
   }
 
@@ -144,7 +144,7 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
         )
       )
     ).pipe(
-      map(chunks => Arrays.flatMap(chunks, a => a))
+      map(chunks => chunks.flat())
     );
   }
 

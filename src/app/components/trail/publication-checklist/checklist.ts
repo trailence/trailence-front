@@ -41,8 +41,7 @@ export class PublicationChecklist {
   public static load(trail: Trail, track: Track, trailService: TrailService): PublicationChecklist {
     const s = localStorage.getItem(LOCALSTORAGE_PREFIX + trail.uuid + '.' + trail.owner);
     let p: PublicationChecklist;
-    if (!s) p = new PublicationChecklist(trail.uuid, trail.owner, {});
-    else {
+    if (s) {
       try {
         const json = JSON.parse(s);
         p = new PublicationChecklist(trail.uuid, trail.owner, json);
@@ -50,6 +49,8 @@ export class PublicationChecklist {
         Console.warn('Cannot parse checklist for trail', trail.uuid, trail.owner, e);
         p = new PublicationChecklist(trail.uuid, trail.owner, {});
       }
+    } else {
+      p = new PublicationChecklist(trail.uuid, trail.owner, {});
     }
     if (!trail.date && track.startDate) {
       trail.date = track.startDate;

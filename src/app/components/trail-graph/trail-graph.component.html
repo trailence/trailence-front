@@ -1,11 +1,13 @@
 <div class="graph-container">
-  <canvas baseChart [height]="height" [width]="width" *ngIf="chartOptions && chartData && height" [ngStyle]="{ 'width': width + 'px', 'height': height + 'px' }"
-    #canvas
-    [type]="'line'"
-    [data]="chartData"
-    [options]="chartOptions"
-    [plugins]="chartPlugins"
-    [legend]="false">
-  </canvas>
+  @if (chartOptions && chartData && height) {
+    <canvas baseChart [height]="height" [width]="width" [ngStyle]="{ 'width': width + 'px', 'height': height + 'px' }"
+      #canvas
+      [type]="'line'"
+      [data]="chartData"
+      [options]="chartOptions"
+      [plugins]="chartPlugins"
+      [legend]="false">
+    </canvas>
+  }
   <div class="graph-tooltip" id="graph-tooltip-{{id}}"></div>
 </div>

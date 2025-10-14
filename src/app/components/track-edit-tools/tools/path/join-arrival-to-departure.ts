@@ -16,9 +16,9 @@ export class JoinArrivalToDeparture implements TrackEditTool {
 
   execute(ctx: TrackEditToolContext) {
     ctx.modifyTrack(track => {
-      const segment = track.segments[track.segments.length - 1];
+      const segment = track.segments.at(-1);
       const departure = track.departurePoint;
-      if (!departure) return of(true);
+      if (!departure || !segment) return of(true);
       segment.append({
         pos: {
           lat: departure.pos.lat,
