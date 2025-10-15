@@ -99,7 +99,7 @@ app-root > ion-app > ion-content > ion-router-outlet > .ion-page {
 </body>
 <script>
   var d = new Date();
-  window._trailenceStart = d.getTime();
+  globalThis._trailenceStart = d.getTime();
   console.log('starting at ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds() + ':' + d.getMilliseconds());
 </script>
 </html>

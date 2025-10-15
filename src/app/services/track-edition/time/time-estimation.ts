@@ -3,7 +3,7 @@ import { Point } from 'src/app/model/point';
 
 export const ESTIMATED_SMALL_BREAK_EVERY = 60 * 60 * 1000;
 
-export function estimateTimeForTrack(track: Track, estimatedBaseSpeed: number): number {
+export function estimateTimeForTrack(track: Track, estimatedBaseSpeed: number): number { // NOSONAR
   let duration = 0;
   let totalDistance = 0;
   const trackDistance = track.metadata.distance;

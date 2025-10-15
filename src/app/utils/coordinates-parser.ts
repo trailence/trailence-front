@@ -11,10 +11,10 @@ const DD1_REGEXP = /^\s*(-?\d{1,2}(?:[.,]\d+)?)(?:\s+|\s*[,\/;]\s*|\s*°\s*[,\/;
 function parseCoordinatesDDVariant1(s: string): L.LatLngLiteral | undefined {
   const match = DD1_REGEXP.exec(s);
   if (!match || match.length !== 3) return undefined;
-  const lat = parseFloat(match[1].replace(',', '.'));
-  if (isNaN(lat) || lat < -90 || lat > 90) return undefined;
-  const lng = parseFloat(match[2].replace(',', '.'));
-  if (isNaN(lng) || lng < -180 || lng > 180) return undefined;
+  const lat = Number.parseFloat(match[1].replace(',', '.'));
+  if (Number.isNaN(lat) || lat < -90 || lat > 90) return undefined;
+  const lng = Number.parseFloat(match[2].replace(',', '.'));
+  if (Number.isNaN(lng) || lng < -180 || lng > 180) return undefined;
   return {lat, lng};
 }
 
@@ -24,12 +24,12 @@ function parseCoordinatesDDVariant2(s: string): L.LatLngLiteral | undefined {
   const match = DD2_REGEXP.exec(s);
   if (!match || match.length !== 5) return undefined;
   const NS = match[1].toUpperCase();
-  let lat = parseFloat(match[2].replace(',', '.'));
-  if (isNaN(lat) || lat < 0 || lat > 90) return undefined;
+  let lat = Number.parseFloat(match[2].replace(',', '.'));
+  if (Number.isNaN(lat) || lat < 0 || lat > 90) return undefined;
   if (NS === 'S') lat = -lat;
   const EW = match[3].toUpperCase();
-  let lng = parseFloat(match[4].replace(',', '.'));
-  if (isNaN(lng) || lng < 0 || lng > 180) return undefined;
+  let lng = Number.parseFloat(match[4].replace(',', '.'));
+  if (Number.isNaN(lng) || lng < 0 || lng > 180) return undefined;
   if (EW === 'W') lng = -lng;
   return {lat, lng};
 }
@@ -75,17 +75,17 @@ function parseCoordinatesDMSSuffix(s: string): L.LatLngLiteral | undefined {
 }
 
 function parseDMS(degrees: string, minutes: string, seconds: string): number | undefined {
-  const d = parseInt(degrees);
-  if (isNaN(d) || d < 0) return undefined;
-  const m = parseInt(minutes);
-  if (isNaN(m) || m < 0 || m >= 60) return undefined;
-  const s = parseFloat(seconds.replace(',', '.'));
-  if (isNaN(s) || s < 0 || s >= 60) return undefined;
-  return d + m/60.0 + s/(60.0*60);
+  const d = Number.parseInt(degrees);
+  if (Number.isNaN(d) || d < 0) return undefined;
+  const m = Number.parseInt(minutes);
+  if (Number.isNaN(m) || m < 0 || m >= 60) return undefined;
+  const s = Number.parseFloat(seconds.replace(',', '.'));
+  if (Number.isNaN(s) || s < 0 || s >= 60) return undefined;
+  return d + m/60 + s/(60*60);
 }
 
 export function convertDMSToDD(direction: string, degrees: number, minutes: number, seconds: number): number {
-  const dd = degrees + minutes/60.0 + seconds/(60.0*60);
+  const dd = degrees + minutes/60 + seconds/(60*60);
   if (direction === 'S' || direction === 'W') {
       return -dd;
   }
@@ -133,9 +133,9 @@ function parseCoordinatesDDMSuffix(s: string): L.LatLngLiteral | undefined {
 }
 
 function parseDDM(degrees: string, minutes: string): number | undefined {
-  const d = parseInt(degrees);
-  if (isNaN(d) || d < 0) return undefined;
-  const m = parseFloat(minutes.replace(',', '.'));
-  if (isNaN(m) || m < 0 || m >= 60) return undefined;
-  return d + m/60.0;
+  const d = Number.parseInt(degrees);
+  if (Number.isNaN(d) || d < 0) return undefined;
+  const m = Number.parseFloat(minutes.replace(',', '.'));
+  if (Number.isNaN(m) || m < 0 || m >= 60) return undefined;
+  return d + m/60;
 }

@@ -28,7 +28,7 @@ export function estimateSimilarity(track1: Track, track2: Track): number {
 
 function calculate(points1: {point: L.LatLng}[], points2: {point: L.LatLng}[], useDistances: {maxDistance: number, maxDiff: number}): number {
   const nbPoints1 = points1.length;
-  let nbFound1 = 0.0;
+  let nbFound1 = 0;
   for (const p1 of points1) {
     const closest = findClosestPoint(points2, p1.point, useDistances.maxDistance, useDistances.maxDiff);
     if (closest) {

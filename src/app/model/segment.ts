@@ -33,14 +33,14 @@ export class Segment {
   }
 
   public append(point: PointDescriptor): Point {
-    const p = new PointImpl(this._meta, point, Arrays.last(this._points.value), undefined, this._pointsChanges$);
+    const p = new PointImpl(this._meta, point, this._points.value.at(-1), undefined, this._pointsChanges$);
     this._points.value.push(p);
     this._points.next(this._points.value);
     return p;
   }
 
   public appendMany(points: PointDescriptor[]): Point[] {
-    let previous = Arrays.last(this._points.value);
+    let previous = this._points.value.at(-1);
     const nb = points.length;
     const newPoints: PointImpl[] = new Array(nb);
     for (let i = 0; i < nb; ++i) {

@@ -6,8 +6,8 @@ export class TypeUtils {
     if (!s) {
         return undefined;
     }
-    const n = parseFloat(s);
-    if (isNaN(n)) {
+    const n = Number.parseFloat(s);
+    if (Number.isNaN(n)) {
         return undefined;
     }
     return n;
@@ -17,8 +17,8 @@ export class TypeUtils {
     if (!s) {
         return undefined;
     }
-    const n = parseInt(s);
-    if (isNaN(n)) {
+    const n = Number.parseInt(s);
+    if (Number.isNaN(n)) {
         return undefined;
     }
     return n;
@@ -55,7 +55,7 @@ export class TypeUtils {
   }
 
   public static floor(n: number | undefined | null): number | undefined {
-    if (n === undefined || n === null || isNaN(n)) return undefined;
+    if (n === undefined || n === null || Number.isNaN(n)) return undefined;
     return Math.floor(n);
   }
 

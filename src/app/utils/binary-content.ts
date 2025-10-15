@@ -13,7 +13,7 @@ export class BinaryContent {
     if (typeof data === 'string') {
       this.base64 = data;
       if (this.base64.indexOf('\n')) { // capacitor http plugin use Android Base64.encodeToString which includes \n every 75 characters...
-        this.base64 = this.base64.replace(/\n/g, '');
+        this.base64 = this.base64.replaceAll('\n', '');
       }
       this.contentType = contentType ?? '';
     } else if (data instanceof Blob) {
@@ -26,14 +26,14 @@ export class BinaryContent {
       this.uint8Array = data;
       this.contentType = contentType ?? '';
     } else {
-      throw new Error('Unexpected binary data type: ' + (typeof data));
+      throw new TypeError('Unexpected binary data type: ' + (typeof data));
     }
   }
 
   public static fromDataURL(url: string): BinaryContent {
-    if (!url.startsWith('data:')) throw new Error();
+    if (!url.startsWith('data:')) throw new Error('Invalid data url');
     let i = url.indexOf(';base64,');
-    if (i < 0) throw new Error();
+    if (i < 0) throw new Error('Invalid data url');
     return new BinaryContent(url.substring(i + 8), url.substring(5, i));
   }
 
@@ -72,7 +72,7 @@ export class BinaryContent {
       return Promise.resolve(this.blob);
     }
     if (this.uint8Array) {
-      this.blob = new Blob([this.uint8Array.buffer], { type: this.contentType });
+      this.blob = new Blob([this.uint8Array.buffer as ArrayBuffer], { type: this.contentType });
       return Promise.resolve(this.blob);
     }
     if (this.base64) {
@@ -87,7 +87,7 @@ export class BinaryContent {
       return Promise.resolve(this.buffer);
     }
     if (this.uint8Array) {
-      return Promise.resolve(this.uint8Array.buffer);
+      return Promise.resolve(this.uint8Array.buffer as ArrayBuffer);
     }
     if (this.blob) {
       return this.blob.arrayBuffer().then(buffer => {
@@ -96,8 +96,8 @@ export class BinaryContent {
       });
     }
     if (this.base64) {
-      this.uint8Array = Uint8Array.from(atob(this.base64), c => c.charCodeAt(0));
-      this.buffer = this.uint8Array.buffer;
+      this.uint8Array = Uint8Array.from(atob(this.base64), c => c.charCodeAt(0)); // NOSONAR
+      this.buffer = this.uint8Array.buffer as ArrayBuffer;
       return Promise.resolve(this.buffer);
     }
     return Promise.reject("Unexpected data type");
@@ -112,7 +112,7 @@ export class BinaryContent {
       return Promise.resolve(this.uint8Array);
     }
     if (this.base64) {
-      this.uint8Array = Uint8Array.from(atob(this.base64), c => c.charCodeAt(0));
+      this.uint8Array = Uint8Array.from(atob(this.base64), c => c.charCodeAt(0)); // NOSONAR
       return Promise.resolve(this.uint8Array);
     }
     return this.toArrayBuffer().then(a => {
@@ -124,7 +124,7 @@ export class BinaryContent {
   public toArrayBufferOrBlob(): Promise<ArrayBuffer | Blob> {
     if (this.buffer) return Promise.resolve(this.buffer);
     if (this.blob) return Promise.resolve(this.blob);
-    if (this.uint8Array) return Promise.resolve(this.uint8Array.buffer);
+    if (this.uint8Array) return Promise.resolve(this.uint8Array.buffer as ArrayBuffer);
     return this.toArrayBuffer();
   }
 
@@ -144,7 +144,7 @@ export class BinaryContent {
 
       const byteNumbers = new Array(slice.length);
       for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
+        byteNumbers[i] = slice.charCodeAt(i); // NOSONAR
       }
 
       const byteArray = new Uint8Array(byteNumbers);
@@ -174,7 +174,7 @@ export class BinaryContent {
 
   private uint8ArrayToBase64(a: Uint8Array) {
     return btoa(a.reduce((data, byte) => {
-      return data + String.fromCharCode(byte);
+      return data + String.fromCharCode(byte); // NOSONAR
     }, ''));
   }
 }

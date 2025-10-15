@@ -138,7 +138,7 @@ export class AddOsmPath extends AddPointsTool {
       const matching = this.getMatchingIn(ref.position!, this.possibleWays); // NOSONAR
       if (matching.length === 1) {
         const ways = WayUtils.getMatchingWays(ref.position!, this.allWays, MATCHING_MAX_DISTANCE); // NOSONAR
-        if (best === undefined || (ways.length > bestWays.length && Arrays.containsAll(ways, bestWays))) {
+        if (best === undefined || (ways.length > bestWays.length && Arrays.includesAll(ways, bestWays))) {
           best = {ref, using: matching[0]};
           bestWays = ways;
         }

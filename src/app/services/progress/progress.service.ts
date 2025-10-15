@@ -107,7 +107,7 @@ export class ProgressService {
     this._container = document.createElement('DIV') as HTMLDivElement;
     this._container.className = 'progress-container';
     this._container.style.display = 'none';
-    window.document.body.appendChild(this._container);
+    globalThis.document.body.appendChild(this._container);
     this.setupGesture();
   }
 
@@ -128,7 +128,7 @@ export class ProgressService {
     setTimeout(() => { div.style.height = '0px'; }, 500);
     setTimeout(() => {
       if (div.parentElement !== this._container) return;
-      this._container.removeChild(div);
+      div.remove();
     }, 1000);
   }
 

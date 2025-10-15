@@ -55,7 +55,7 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     this.changesDetection.pause();
     if (!(this instanceof AbstractPage)) {
       let parentElement = this.injector.get(ElementRef).nativeElement.parentElement;
-      while (parentElement && parentElement != window.document.documentElement) {
+      while (parentElement && parentElement != globalThis.document.documentElement) {
         if (parentElement['_abstractComponent']) {
           this._parent = parentElement['_abstractComponent'];
           break;
@@ -141,13 +141,13 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
           }, 0);
         }
       };
-      if (!this.whenVisible.active) {
+      if (this.whenVisible.active) {
+        onVisible();
+      } else {
         this.resumeVisibleTimeout = setTimeout(() => {
           this.resumeVisibleTimeout = undefined;
           onVisible();
         }, 0);
-      } else {
-        onVisible();
       }
     } else {
       this.pauseVisibleTimeout = setTimeout(() => {
@@ -169,15 +169,15 @@ export abstract class AbstractComponent implements OnInit, OnDestroy, OnChanges 
     } else {
       const currentKeys = Object.getOwnPropertyNames(this._currentState);
       const newKeys = Object.getOwnPropertyNames(state);
-      if (!Arrays.sameContent(currentKeys, newKeys)) {
-        needRefresh = true;
-      } else {
+      if (Arrays.sameContent(currentKeys, newKeys)) {
         for (const key of currentKeys) {
           if (state[key] !== this._currentState[key]) {
             needRefresh = true;
             break;
           }
         }
+      } else {
+        needRefresh = true;
       }
       for (const key in this._currentState) {
         if (state[key] !== this._currentState[key]) {
@@ -223,7 +223,7 @@ export class IdGenerator {
   private static counter = 0;
 
   public static generateId(prefix: string = 'id-'): string {
-    return prefix + (this.counter++) + '-' + new Date().getTime();
+    return prefix + (this.counter++) + '-' + Date.now();
   }
 
 }

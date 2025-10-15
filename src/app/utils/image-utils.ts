@@ -15,9 +15,9 @@ export class ImageUtils {
 
   public static convertToJpeg(image: Uint8Array | Blob, maxWidth?: number, maxHeight?: number, quality?: number): Promise<{blob: Blob, width: number, height: number}> {
     return new Promise((resolve, reject) => {
-      const blob = image instanceof Blob ? image : new Blob([image]);
+      const blob = image instanceof Blob ? image : new Blob([image as BlobPart]);
       const img = document.createElement('IMG') as HTMLImageElement;
-      const urlCreator = window.URL || window.webkitURL;
+      const urlCreator = globalThis.URL || globalThis.webkitURL;
       img.onload = (e) => {
         try {
           const width = img.naturalWidth;
@@ -49,13 +49,13 @@ export class ImageUtils {
           canvas.toBlob(
             blob => {
               if (blob) {
-                if (!blob.arrayBuffer) {
+                if (!!blob.arrayBuffer) {
+                  resolve({blob, width: dw, height: dh});
+                } else {
                   const base64 = canvas.toDataURL('image/jpeg', quality ?? 1);
                   BinaryContent.fromDataURL(base64).toBlob().then(b => resolve({blob: b, width: dw, height: dh}));
-                } else {
-                  resolve({blob, width: dw, height: dh});
                 }
-                canvas.parentElement?.removeChild(canvas);
+                canvas.remove();
               } else {
                 reject("Unable to generate JPEG");
               }
@@ -227,16 +227,16 @@ export class ImageUtils {
     if (datetime.length !== 2) return;
     const d = datetime[0].split(':');
     if (d.length !== 3) return;
-    const year = parseInt(d[0]);
-    const month = parseInt(d[1]);
-    const day = parseInt(d[2]);
-    if (!isNaN(year) && !isNaN(month) && !isNaN(day) && month > 0 && month < 13 && day > 0 && day < 32) {
+    const year = Number.parseInt(d[0]);
+    const month = Number.parseInt(d[1]);
+    const day = Number.parseInt(d[2]);
+    if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day) && month > 0 && month < 13 && day > 0 && day < 32) {
       const t = datetime[1].split(':');
       if (t.length === 3) {
-        const hour = parseInt(t[0]);
-        const minute = parseInt(t[1]);
-        const second = parseInt(t[2]);
-        if (!isNaN(hour) && !isNaN(minute) && !isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
+        const hour = Number.parseInt(t[0]);
+        const minute = Number.parseInt(t[1]);
+        const second = Number.parseInt(t[2]);
+        if (!Number.isNaN(hour) && !Number.isNaN(minute) && !Number.isNaN(second) && hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
           return new Date(year, month - 1, day, hour, minute, second).getTime();
         }
       }
@@ -248,7 +248,7 @@ export class ImageUtils {
     let s = '';
     for (let i = 0; i < size; ++i) {
       if (data[offset + i] === 0) return s;
-      s += String.fromCharCode(data[offset + i]);
+      s += String.fromCharCode(data[offset + i]); // NOSONAR
     }
     return s;
   }
@@ -295,8 +295,8 @@ export class ImageUtils {
     }
     if (latRef && lat && lngRef && lng) {
       return {
-        lat: convertDMSToDD(String.fromCharCode(latRef), lat[0] / lat[1], lat[2] / lat[3], lat[4] / lat[5]),
-        lng: convertDMSToDD(String.fromCharCode(lngRef), lng[0] / lng[1], lng[2] / lng[3], lng[4] / lng[5]),
+        lat: convertDMSToDD(String.fromCharCode(latRef), lat[0] / lat[1], lat[2] / lat[3], lat[4] / lat[5]), // NOSONAR
+        lng: convertDMSToDD(String.fromCharCode(lngRef), lng[0] / lng[1], lng[2] / lng[3], lng[4] / lng[5]), // NOSONAR
       }
     }
     return undefined;

@@ -26,7 +26,7 @@ export class ObjectUtils {
     return v;
   }
 
-  public static sameContent(o1: any, o2: any): boolean {
+  public static sameContent(o1: any, o2: any): boolean { // NOSONAR
     if (o1 === undefined) return o2 === undefined;
     if (o1 === null) return o2 === null;
     if (o2 === undefined || o2 === null) return false;

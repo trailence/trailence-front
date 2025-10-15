@@ -24,12 +24,12 @@ export class StringUtils {
 
   public static toFilename(input: string): string {
     let sanitized = input
-      .replace(illegalRe, '_')
-      .replace(controlRe, '_')
+      .replace(illegalRe, '_') // NOSONAR
+      .replace(controlRe, '_') // NOSONAR
       .replace(reservedRe, '_')
       .replace(windowsReservedRe, '_')
       .replace(windowsTrailingRe, '_')
-      .replace(/_{2,}/g, '_');
+      .replace(/_{2,}/g, '_'); // NOSONAR
     if (sanitized.length > 200) sanitized = sanitized.substring(0, 200);
     return sanitized;
   }
@@ -40,7 +40,7 @@ export class StringUtils {
     const query = url.substring(q + 1);
     const queryParams: Params = {};
     const search = /([^&=]+)=?([^&]*)/g;
-    const decode = (s: string) => decodeURIComponent(s.replace(/\+/g, ' '));
+    const decode = (s: string) => decodeURIComponent(s.replaceAll('+', ' '));
     let match;
     while (match = search.exec(query))
       queryParams[decode(match[1])] = decode(match[2]);
@@ -58,18 +58,18 @@ export class StringUtils {
   public static versionNameToVersionCode(name: string): number | undefined {
     let i = name.indexOf('.');
     if (i <= 0) return undefined;
-    const majorVersion = parseInt(name.substring(0, i));
-    if (isNaN(majorVersion) || majorVersion < 0 || majorVersion > 99) return undefined;
+    const majorVersion = Number.parseInt(name.substring(0, i));
+    if (Number.isNaN(majorVersion) || majorVersion < 0 || majorVersion > 99) return undefined;
     name = name.substring(i + 1);
 
     i = name.indexOf('.');
     if (i <= 0) return undefined;
-    const minorVersion = parseInt(name.substring(0, i));
-    if (isNaN(minorVersion) || minorVersion < 0 || minorVersion > 99) return undefined;
+    const minorVersion = Number.parseInt(name.substring(0, i));
+    if (Number.isNaN(minorVersion) || minorVersion < 0 || minorVersion > 99) return undefined;
     name = name.substring(i + 1);
 
-    const fixVersion = parseInt(name);
-    if (isNaN(fixVersion) || fixVersion < 0 || fixVersion > 99) return undefined;
+    const fixVersion = Number.parseInt(name);
+    if (Number.isNaN(fixVersion) || fixVersion < 0 || fixVersion > 99) return undefined;
 
     return majorVersion * 10000 + minorVersion * 100 + fixVersion;
   }

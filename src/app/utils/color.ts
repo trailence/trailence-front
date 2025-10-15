@@ -7,24 +7,24 @@ export class Color {
 
   constructor(s: string) {
     if (s.startsWith('#')) {
-      this.r = parseInt(s.substring(1, 3), 16);
-      this.g = parseInt(s.substring(3, 5), 16);
-      this.b = parseInt(s.substring(5, 7), 16);
+      this.r = Number.parseInt(s.substring(1, 3), 16);
+      this.g = Number.parseInt(s.substring(3, 5), 16);
+      this.b = Number.parseInt(s.substring(5, 7), 16);
       this.a = 1;
     } else if (s.startsWith('rgb(')) {
       const i = s.indexOf(')');
       const elements = s.substring(4, i).split(',');
-      this.r = parseInt(elements[0], 10);
-      this.g = parseInt(elements[1], 10);
-      this.b = parseInt(elements[2], 10);
+      this.r = Number.parseInt(elements[0], 10);
+      this.g = Number.parseInt(elements[1], 10);
+      this.b = Number.parseInt(elements[2], 10);
       this.a = 1;
     } else if (s.startsWith('rgba(')) {
       const i = s.indexOf(')');
       const elements = s.substring(5, i).split(',');
-      this.r = parseInt(elements[0], 10);
-      this.g = parseInt(elements[1], 10);
-      this.b = parseInt(elements[2], 10);
-      this.a = parseFloat(elements[3]);
+      this.r = Number.parseInt(elements[0], 10);
+      this.g = Number.parseInt(elements[1], 10);
+      this.b = Number.parseInt(elements[2], 10);
+      this.a = Number.parseFloat(elements[3]);
     } else {
       switch (s) {
         case 'red': this.r = 255; this.g = 0; this.b = 0; this.a = 1; break;

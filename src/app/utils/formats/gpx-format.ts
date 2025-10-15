@@ -35,7 +35,7 @@ export class GpxFormat {
       return track;
     });
     return {
-      trail: new Trail({...raw.trail, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks[tracks.length - 1].uuid}),
+      trail: new Trail({...raw.trail, originalTrackUuid: tracks[0].uuid, currentTrackUuid: tracks.at(-1)!.uuid}),
       tracks,
       tags: raw.tags,
       photos: raw.photos,
@@ -118,8 +118,8 @@ export class GpxFormat {
       }
       gpx += '</trk>\n';
     }
-    if (tracks[tracks.length - 1].wayPoints.length > 0) {
-      for (const wp of tracks[tracks.length - 1].wayPoints) {
+    if (tracks.at(-1)!.wayPoints.length > 0) {
+      for (const wp of tracks.at(-1)!.wayPoints) {
         this.writePoint(wp, 'wpt');
       }
     }

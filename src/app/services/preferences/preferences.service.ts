@@ -55,7 +55,7 @@ export class PreferencesService implements OnDestroy {
   constructor(
     private readonly injector: Injector,
   ) {
-    this._systemTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'DARK' : 'LIGHT';
+    this._systemTheme = (globalThis.matchMedia('(prefers-color-scheme: dark)').matches) ? 'DARK' : 'LIGHT';
     let prefs: Preferences = {};
     try {
       const stored = localStorage.getItem(LOCALSTORAGE_PREFERENCES_KEY);
@@ -99,10 +99,9 @@ export class PreferencesService implements OnDestroy {
       localStorage.setItem(LOCALSTORAGE_PREFERENCES_KEY, JSON.stringify(p));
       const computed = this.compute(p);
       Console.info('Preferences: ', computed);
-      window.document.body.classList.remove('dark-theme');
-      window.document.body.classList.remove('light-theme');
+      globalThis.document.body.classList.remove('dark-theme', 'light-theme');
       const theme = computed.theme === 'SYSTEM' ? this._systemTheme : computed.theme;
-      window.document.body.classList.add(theme.toLowerCase() + '-theme');
+      globalThis.document.body.classList.add(theme.toLowerCase() + '-theme');
       this._computed$.next(computed);
     });
     this.injector.get(AuthService).auth$.subscribe(auth => {
@@ -155,19 +154,19 @@ export class PreferencesService implements OnDestroy {
 
   private completeEnum<T>(value: string | undefined, defaultValue: T, allowedValues: string[]): T {
     if (value === undefined) return defaultValue;
-    if (allowedValues.indexOf(value) >= 0) return value as T;
+    if (allowedValues.includes(value)) return value as T;
     return defaultValue;
   }
 
   private getDefaultLanguage(): string {
-    let s = window.location.search;
+    let s = globalThis.location.search;
     if (s.length > 0) {
       const params = StringUtils.parseQueryParams(s);
       if (params['lang'] && defaultPreferences[params['lang']]) {
         return params['lang'];
       }
     }
-    s = window.navigator.language;
+    s = globalThis.navigator.language;
     if (s) {
       if (s.length > 2) s = s.substring(0, 2);
       s = s.toLowerCase();
@@ -175,7 +174,7 @@ export class PreferencesService implements OnDestroy {
         return s;
       }
     }
-    for (s in window.navigator.languages) {
+    for (s in globalThis.navigator.languages) {
       if (s.length > 2) s = s.substring(0, 2);
       s = s.toLowerCase();
       if (defaultPreferences[s]) {

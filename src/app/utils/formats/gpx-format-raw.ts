@@ -6,7 +6,6 @@ import { TrailDto, TrailSourceType } from '../../model/dto/trail';
 import { I18nError } from '../../services/i18n/i18n-string';
 import { PhotoDto } from '../../model/dto/photo';
 import { TrailActivity } from '../../model/dto/trail-activity';
-import { StringUtils } from '../string-utils';
 
 export interface ImportedTrackRaw {
   segments: PointDescriptor[][];
@@ -42,7 +41,7 @@ export class GpxFormatRaw {
       let name = XmlUtils.getChildText(metadata, 'name');
       if (name && name.length > 0) {
         // visorando gpx is wrong, and may encode &amp;#xxx
-        if (name.indexOf('&#') >= 0) {
+        if (name.includes('&#')) {
           try {
             const div = document.createElement('DIV');
             div.innerHTML = name;
@@ -67,8 +66,8 @@ export class GpxFormatRaw {
           const sourceValue = XmlUtils.getChildText(source, 'value');
           if (sourceType) trailDto.sourceType = sourceType;
           if (sourceDate) {
-            const date = parseInt(sourceDate);
-            if (!isNaN(date)) trailDto.sourceDate = date;
+            const date = Number.parseInt(sourceDate);
+            if (!Number.isNaN(date)) trailDto.sourceDate = date;
           }
           if (sourceValue) trailDto.source = sourceValue;
         }
@@ -163,8 +162,8 @@ export class GpxFormatRaw {
       tracks.push(track);
     }
 
-    if (tracks.length > 0 && tracks[tracks.length - 1].wayPoints.length === 0) {
-      const track = tracks[tracks.length - 1];
+    if (tracks.length > 0 && tracks.at(-1)!.wayPoints.length === 0) {
+      const track = tracks.at(-1)!;
       for (const wpt of XmlUtils.getChildren(doc.documentElement, 'wpt')) {
         const wp = this.readWayPoint(wpt);
         if (wp) track.wayPoints.push(wp);
@@ -222,13 +221,13 @@ export class GpxFormatRaw {
     return new WayPoint(pt, name, description);
   }
 
-  private static fixPoints(points: PointDescriptor[]): void { // NOSONAR
+  private static fixPoints(points: PointDescriptor[]): void {
     while (this.removeTimeGoingToPast(points));
     this.removeTimeIfAllPointsAreAtTheSameTime(points);
     this.removeImpossibleElevations(points);
   }
 
-  private static removeTimeGoingToPast(points: PointDescriptor[]): boolean {
+  private static removeTimeGoingToPast(points: PointDescriptor[]): boolean { // NOSONAR
     if (points.length === 0) return false;
     let previousTime: number | undefined = points[0].time;
     let changed = false;
@@ -271,7 +270,7 @@ export class GpxFormatRaw {
       while (lastTimeIndex > firstTimeIndex && points[lastTimeIndex].time === undefined) lastTimeIndex--;
       if (lastTimeIndex > firstTimeIndex && points[firstTimeIndex].time === points[lastTimeIndex].time) {
         // all points seems to have the same date => put all to undefined
-        points.forEach(p => p.time = undefined);
+        for (const p of points) p.time = undefined;
       }
     }
   }

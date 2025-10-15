@@ -22,14 +22,14 @@ export function detectLoopType(track: Track): TrailLoopType | undefined { // NOS
     const p2 = pointsWithDistance[i];
     const distance = p2.distanceToPrevious;
     totalDistance += distance;
-    if (processed.indexOf(i) >= 0) continue;
+    if (processed.includes(i)) continue;
     const angle = Math.atan2(p2.point.lat - p1.point.lat, p2.point.lng - p1.point.lng) + Math.PI;
 
     let best = -1;
     let bestDistance = -1;
     let bestDistanceWithPoints = -1;
     for (let j = pointsWithDistance.length - 2; j > i; --j) {
-      if (processed.indexOf(j) >= 0) continue;
+      if (processed.includes(j)) continue;
       const p3 = pointsWithDistance[j];
       if (Math.abs(p3.point.lat - p2.point.lat + p3.point.lng - p2.point.lng) > useDistances.maxDiff) continue;
       const p4 = pointsWithDistance[j + 1];

@@ -2,10 +2,10 @@ export class Maps {
 
   public static push<K, V>(key: K, value: V, map: Map<K, V[]>) {
     const list = map.get(key);
-    if (list !== undefined) {
-      list.push(value);
-    } else {
+    if (list === undefined) {
       map.set(key, [value]);
+    } else {
+      list.push(value);
     }
   }
 

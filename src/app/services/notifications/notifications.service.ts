@@ -76,7 +76,7 @@ export class NotificationsService {
     const email = this._email;
     const size = Math.min(200, REFRESH_SIZE * nb);
     this.http.get<Notification[]>(environment.apiBaseUrl + '/notifications/v1?page=0&size=' + size).subscribe(list => {
-      const newItems = list.filter(n => this.notifications$.value.findIndex(i => i.uuid === n.uuid) < 0);
+      const newItems = list.filter(n => !this.notifications$.value.some(i => i.uuid === n.uuid));
       Console.info('Received ' + list.length + ' notifications from page 0 refresh ' + REFRESH_SIZE + ': ' + newItems.length + ' new items');
       if (newItems.length > 0) {
         this.notifications$.next([...newItems.map(n => this.toDto(n, email)), ...this.notifications$.value]);
@@ -92,7 +92,7 @@ export class NotificationsService {
       tap(list => {
         Console.info('Received ' + list.length + ' notifications from page ' + page);
         this._lastNb = list.length;
-        const newItems = list.filter(n => this.notifications$.value.findIndex(i => i.uuid === n.uuid) < 0);
+        const newItems = list.filter(n => !this.notifications$.value.some(i => i.uuid === n.uuid));
         if (newItems.length > 0) {
           this.notifications$.next([...this.notifications$.value, ...newItems.map(n => this.toDto(n, email))].sort((n1, n2) => n2.date - n1.date));
         }
@@ -102,7 +102,7 @@ export class NotificationsService {
 
   private toDto(n: Notification, email: string): Notification {
     const dto = {...n, email};
-    if (this._read.indexOf(n.uuid) >= 0) dto.read = true;
+    if (this._read.includes(n.uuid)) dto.read = true;
     return dto;
   }
 

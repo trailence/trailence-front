@@ -168,7 +168,7 @@ export class TrackUtils {
   }
 
 
-  public static findNextClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number, fromSegmentIndex: number, fromPointIndex: number): {segmentIndex: number, pointIndex: number} | undefined {
+  public static findNextClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number, fromSegmentIndex: number, fromPointIndex: number): {segmentIndex: number, pointIndex: number} | undefined { // NOSONAR
     let closestSegmentIndex = -1;
     let closestPointIndex = -1;
     let closestDistance = -1;

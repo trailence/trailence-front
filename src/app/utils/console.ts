@@ -47,7 +47,7 @@ export class Console {
         console.info(Console.header(level), ...args); break;
     }
     if (navigator.webdriver) {
-      const w = window as any;
+      const w = globalThis as any;
       w._consoleHistory ??= [];
       w._consoleHistory.push(this.generateForHistory(level, args));
     } else {
@@ -78,7 +78,7 @@ export class Console {
     const maxTime = now - 15 * 60 * 1000;
     for (let i = 0; i < this._history.length - 250; ++i) {
       const h = this._history[i];
-      if (h.date < maxTime && !errorsTimes.find(t => t > h.date - 60000 && t < h.date + 60000)) {
+      if (h.date < maxTime && !errorsTimes.some(t => t > h.date - 60000 && t < h.date + 60000)) {
         this._history.splice(i, 1);
         i--;
       }
@@ -90,7 +90,7 @@ export class Console {
       try {
         if (deep > 3) return '<too deep>';
         if (Array.isArray(a)) {
-          if (done.indexOf(a) >= 0) return '<duplicate>';
+          if (done.includes(a)) return '<duplicate>';
           let s = '[';
           for (const element of a) {
             s += convert(element, [...done, a], deep + 1) + ',';
@@ -101,7 +101,7 @@ export class Console {
           if (a instanceof Date) {
             return a.toString();
           }
-          if (done.indexOf(a) >= 0) return '<duplicate>';
+          if (done.includes(a)) return '<duplicate>';
           let s = '{';
           for (const key of Object.getOwnPropertyNames(a)) {
             let v = typeof a[key] === 'function' ? 'function' : a[key];

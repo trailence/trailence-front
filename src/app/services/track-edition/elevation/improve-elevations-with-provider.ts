@@ -18,7 +18,7 @@ export function improveElevationWithProvider(points: Point[], provided: PointDes
   }
 }
 
-function adjustWithAverageDiff(points: Point[], provided: PointDescriptor[]): number | undefined {
+function adjustWithAverageDiff(points: Point[], provided: PointDescriptor[]): number | undefined { // NOSONAR
   let diff = 0;
   let nb = 0;
   for (let i = 0; i < points.length; ++i) {

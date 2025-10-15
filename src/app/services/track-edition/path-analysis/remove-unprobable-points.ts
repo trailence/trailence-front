@@ -17,7 +17,7 @@ export function removeUnprobablePointsBasedOnAccuracyOnSegment(segment: Segment,
   }
 }
 
-function removeUnprobablePointsBasedOnAccuracy(segment: Segment, pointIndex: number, state: ImprovmentRecordingState): void {
+function removeUnprobablePointsBasedOnAccuracy(segment: Segment, pointIndex: number, state: ImprovmentRecordingState): void { // NOSONAR
   const points = segment.points;
   const latestPoint = points[pointIndex];
   if (latestPoint.posAccuracy === undefined) return;

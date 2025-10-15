@@ -66,8 +66,8 @@ export class TraceRecorderService {
   ) {
     auth.auth$.subscribe(
       auth => {
-        if (!auth) this.closeDb();
-        else this.openDb(auth.email);
+        if (auth) this.openDb(auth.email);
+        else this.closeDb();
       }
     );
   }
@@ -263,7 +263,7 @@ export class TraceRecorderService {
                 const content = (p as {key: string, photo: ArrayBuffer}).photo;
                 return firstValueFrom(this.photoService.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover));
               })
-              .catch(e => Promise.resolve(null))
+              .catch(e => null)
               .then(result => {
                 onPhotoDone();
               });
@@ -352,7 +352,7 @@ export class TraceRecorderService {
           }).then(alert => alert.present());
         });
       } else if (state === GeolocationState.DENIED) {
-        return Promise.reject('Geolocation access denied by user');
+        throw new Error('Geolocation access denied by user');
       } else {
         Console.info('Start recording');
         this._recording$.next(recording);
@@ -385,7 +385,7 @@ export class TraceRecorderService {
             }]
           }).then(t => t.present());
         }
-        return Promise.resolve(recording);
+        return recording;
       }
     });
   }
@@ -502,7 +502,7 @@ export class TraceRecorderService {
   private addImprovedPoint(recording: Recording, position: PointDto, reason: string): RecordingPoint {
     Console.info('new improved position', position, reason);
     const point = this.addPointToTrack(position, recording.track);
-    const lastSegment = recording.track.segments[recording.track.segments.length - 1];
+    const lastSegment = recording.track.segments.at(-1)!;
     if (lastSegment.points.length > 5 && (lastSegment.points.length % 10) === 0) {
       this.trackEdition.applyDefaultImprovmentsForRecordingSegment(lastSegment, recording.state, false);
       const latestPoint = lastSegment.arrivalPoint!;
@@ -510,7 +510,7 @@ export class TraceRecorderService {
       const angle = angleBetween(latestPoint, index === 0 ? undefined : lastSegment.points[index]);
       return { point: latestPoint, angle };
     }
-    const previous = lastSegment.points.length <= 1 ? undefined : lastSegment.points[lastSegment.points.length - 2];
+    const previous = lastSegment.points.at(-2);
     return { point, angle: angleBetween(point, previous) };
   }
 
@@ -557,7 +557,7 @@ export class TraceRecorderService {
     if (this._geolocationListener) this.geolocation.stopWatching(this._geolocationListener);
     this._geolocationListener = undefined;
     if (recording.track.segments.length > 0)
-      this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments[recording.track.segments.length - 1], recording.state, true);
+      this.trackEdition.applyDefaultImprovmentsForRecordingSegment(recording.track.segments.at(-1)!, recording.state, true);
     this.screenLockService.set(false);
   }
 

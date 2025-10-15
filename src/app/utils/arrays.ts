@@ -1,10 +1,5 @@
 export class Arrays {
 
-  public static last<T>(array: T[]): T | undefined {
-    if (array.length === 0) return undefined;
-    return array[array.length - 1];
-  }
-
   public static sameContent<T>(array1: T[], array2: T[], comparator: (element1: T, element2: T) => boolean = (e1, e2) => e1 === e2): boolean {
     if (array1.length !== array2.length) return false;
     const remaining2 = [...array2];
@@ -29,8 +24,8 @@ export class Arrays {
     return -1;
   }
 
-  public static containsAll<T>(array: T[], toBeContained: T[]): boolean {
-    for (const element of toBeContained) if (array.indexOf(element) < 0) return false;
+  public static includesAll<T>(array: T[], toBeContained: T[]): boolean {
+    for (const element of toBeContained) if (!array.includes(element)) return false;
     return true;
   }
 
@@ -60,7 +55,7 @@ export class CollectionMapper<S, T> {
     if (this._current.length > 0) {
       for (let i = 0; i < this._current.length; ++i) {
         const known = this._current[i];
-        if (items.findIndex(item => this.matcher(item, known.source)) < 0) {
+        if (!items.some(item => this.matcher(item, known.source))) {
           this._current.splice(i, 1);
           i--;
         }

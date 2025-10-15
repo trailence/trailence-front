@@ -267,7 +267,7 @@ export class TrackBuilder {
       const matching = this.getMatchingMapTracksIn(ref.position!, previousPosMapTracks); // NOSONAR
       if (matching.length === 1) {
         const ways = WayUtils.getMatchingWays(ref.position!, this.ways, MATCHING_MAX_DISTANCE); // NOSONAR
-        if (best === undefined || (ways.length > bestWays.length && Arrays.containsAll(ways, bestWays))) {
+        if (best === undefined || (ways.length > bestWays.length && Arrays.includesAll(ways, bestWays))) {
           best = {ref, using: matching[0]};
           bestWays = ways;
         }

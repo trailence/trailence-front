@@ -18,7 +18,7 @@ const MIN_TIME_IN_AREA_FOR_A_BREAK = 2 * 60000; // 2 minutes
 const TEMPORARY_ADJUST_IGNORE_LAST_POINTS = 5;
 const DISTANCE_FINALIZE_AREA = 5;
 
-function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, finish: boolean): boolean {
+function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, finish: boolean): boolean { // NOSONAR
   const points = segment.points;
   const lastPointIndex = finish ? points.length - 1 : points.length - TEMPORARY_ADJUST_IGNORE_LAST_POINTS
   if (points.length < 3 || state.lastBreaksMovesIndex >= lastPointIndex) return false;
@@ -74,9 +74,9 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
       state.lastBreaksMovesIndex++;
       return true;
     }
-    const removed = removeBreaksMovesInArea(segment, bestStart!, bestEnd!, state);
+    const removed = removeBreaksMovesInArea(segment, bestStart!, bestEnd!, state); // NOSONAR
     let previousIndex = state.lastBreaksMovesIndex;
-    if (removed === 0) state.lastBreaksMovesIndex++; else state.lastBreaksMovesIndex = Math.max(bestEnd! - 1 - removed, state.lastBreaksMovesIndex + 1);
+    if (removed === 0) state.lastBreaksMovesIndex++; else state.lastBreaksMovesIndex = Math.max(bestEnd! - 1 - removed, state.lastBreaksMovesIndex + 1); // NOSONAR
     cleanSamePositionSuccessivePoints(segment, Math.max(0, previousIndex - 5), state.lastBreaksMovesIndex, state);
     return true;
   }
@@ -89,7 +89,7 @@ function removeBreaksMoves(segment: Segment, state: ImprovmentRecordingState, fi
   return false;
 }
 
-function removeBreaksMovesInArea(segment: Segment, startIndex: number, endIndex: number, state: ImprovmentRecordingState): number {
+function removeBreaksMovesInArea(segment: Segment, startIndex: number, endIndex: number, state: ImprovmentRecordingState): number { // NOSONAR
   const points = segment.points;
   let point = points[startIndex];
   let totalLat = 0;
@@ -112,16 +112,14 @@ function removeBreaksMovesInArea(segment: Segment, startIndex: number, endIndex:
   }
   if (totalTime === 0) return 0;
   // average position, or point we spent at least 2/3 of the total time
-  const avgPos = longestTime > totalTime * 2 / 3 ? longestPoint!.pos : {lat: totalLat / totalTime, lng: totalLng / totalTime};
+  const avgPos = longestTime > totalTime * 2 / 3 ? longestPoint!.pos : {lat: totalLat / totalTime, lng: totalLng / totalTime}; // NOSONAR
   // find the first point close from the average
   let firstPointIndex = startIndex;
-  let firstPoint = points[startIndex];
-  let firstPointDistanceFromAvg = firstPoint.distanceTo(avgPos);
+  let firstPointDistanceFromAvg = points[startIndex].distanceTo(avgPos);
   for (let i = startIndex + 1; i <= endIndex && firstPointDistanceFromAvg > DISTANCE_FINALIZE_AREA; ++i) {
     point = points[i];
     let d = point.distanceTo(avgPos);
     if (d < firstPointDistanceFromAvg) {
-      firstPoint = point;
       firstPointDistanceFromAvg = d;
       firstPointIndex = i;
     }
@@ -129,13 +127,11 @@ function removeBreaksMovesInArea(segment: Segment, startIndex: number, endIndex:
   if (firstPointIndex === endIndex) return 0;
   // find the last point from the average
   let lastPointIndex = endIndex;
-  let lastPoint = points[endIndex];
-  let lastPointDistanceFromAvg = lastPoint.distanceTo(avgPos);
+  let lastPointDistanceFromAvg = points[endIndex].distanceTo(avgPos);
   for (let i = endIndex - 1; i > firstPointIndex && lastPointDistanceFromAvg > DISTANCE_FINALIZE_AREA; --i) {
     point = points[i];
     let d = point.distanceTo(avgPos);
     if (d < lastPointDistanceFromAvg) {
-      lastPoint = point;
       lastPointDistanceFromAvg = d;
       lastPointIndex = i;
     }
@@ -149,7 +145,7 @@ function removeBreaksMovesInArea(segment: Segment, startIndex: number, endIndex:
   return 0;
 }
 
-function temporarlyAdjustBreaksMovesInArea(segment: Segment, startIndex: number, endIndex: number): boolean {
+function temporarlyAdjustBreaksMovesInArea(segment: Segment, startIndex: number, endIndex: number): boolean { // NOSONAR
   const points = segment.points;
   let changed = false;
   for (let i = startIndex; i < endIndex - 2; ++i) {
