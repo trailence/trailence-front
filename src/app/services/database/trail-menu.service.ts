@@ -69,7 +69,7 @@ export class TrailMenuService {
     const allOwned = email && trails.every(t => t.owner === email);
 
     let hasPublish = false;
-    if (allOwned && !isModeration && fromCollection && !isPublicationLockedCollection(fromCollection.type)) {
+    if (allOwned && !isModeration && fromCollection && !isPublicationLockedCollection(fromCollection.type) && !onlyGlobal) {
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
         menu.push(new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.modify').setTextColor('medium'));
@@ -104,7 +104,7 @@ export class TrailMenuService {
       }
     }
 
-    if (!isPublicationCollection(fromCollection?.type) && email) {
+    if (!isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {
       const sel = this.injector.get(MySelectionService).getMySelectionNow();
       let hasAbsent = false;
       let hasPresent = false;
@@ -132,7 +132,7 @@ export class TrailMenuService {
       }
     }
 
-    if (trails.length === 2 && email) {
+    if (trails.length === 2 && email && !onlyGlobal) {
       addTools();
       menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare')
         .setAction(() => {
@@ -143,7 +143,7 @@ export class TrailMenuService {
       );
     }
 
-    if (trails.length === 1) {
+    if (trails.length === 1 && !onlyGlobal) {
       if (this.trailToCompare) {
         addTools();
         menu.push(new MenuItem().setIcon('compare').setI18nLabel('pages.trail.actions.compare_with_this_one').setAction(() => {
@@ -168,7 +168,7 @@ export class TrailMenuService {
         }));
       }
     }
-    if (trails.length > 1 && fromCollection && !isPublicationCollection(fromCollection.type)) {
+    if (trails.length > 1 && fromCollection && !isPublicationCollection(fromCollection.type) && !onlyGlobal) {
       addTools();
       menu.push(new MenuItem().setIcon('merge').setI18nLabel('pages.trail.actions.merge_trails')
         .setAction(() => import('../functions/merge-trails').then(m => m.mergeTrails(this.injector, trails, fromCollection.uuid))));
