@@ -167,8 +167,8 @@ export class TrailsListComponent extends AbstractComponent {
     changeDetector.detach();
     let currentDistanceUnit = preferences.preferences.distanceUnit;
     let currentLang = preferences.preferences.lang;
-    this.whenVisible.subscribe(preferences.preferences$,
-      prefs => {
+    this.ngZone.runOutsideAngular(() => {
+      this.whenAlive.add(preferences.preferences$.subscribe(prefs => {
         let changed = false;
         if (currentDistanceUnit !== prefs.distanceUnit) {
           currentDistanceUnit = prefs.distanceUnit;
@@ -186,13 +186,14 @@ export class TrailsListComponent extends AbstractComponent {
             this.changesDetection.detectChanges();
           });
         }
-      },
-      true
-    );
-    this.ngZone.runOutsideAngular(() => {
+      }));
       this.state$.pipe(
         skip(1)
-      ).subscribe(() => this.saveState());
+      ).subscribe(() => {
+        this.saveState();
+        this.toolbar = [...this.toolbar];
+        this.changesDetection.detectChanges();
+      });
     });
     let timeout: any;
     this.visible$.subscribe(visible => {

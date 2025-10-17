@@ -2,7 +2,7 @@ import { Component, Injector, Input, ViewChild } from '@angular/core';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, Subscription, catchError, from } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, switchMap, combineLatest, Observable, debounceTime, Subscription, catchError, from, concat } from 'rxjs';
 import { Router } from '@angular/router';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { HeaderComponent } from 'src/app/components/header/header.component';
@@ -101,7 +101,7 @@ export class TrailsPage extends AbstractPage {
     );
     this.filters$ = this._trailsAndMap$.pipe(
       switchMap(tm => tm ? tm.trailsList$ : of(undefined)),
-      switchMap(tl => tl ? tl.filters$ : of(undefined))
+      switchMap(tl => tl ? tl.filters$ : of(undefined)),
     );
   }
 
@@ -424,8 +424,13 @@ export class TrailsPage extends AbstractPage {
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
     this.selectedSearchPlugins = ['Trailence'];
-    // refresh toolbar when network change or size change
-    this.byStateAndVisible.subscribe(combineLatest([this.connected$, this.injector.get(BrowserService).resize$, this._trailsAndMap$, this.filters$]), () => {
+    // refresh toolbar when network change or size change or filters change
+    this.byStateAndVisible.subscribe(combineLatest([
+      this.connected$,
+      concat(of(undefined), this.injector.get(BrowserService).resize$),
+      this._trailsAndMap$,
+      this.filters$
+    ]), () => {
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
   }
