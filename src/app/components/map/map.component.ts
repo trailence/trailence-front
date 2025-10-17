@@ -419,6 +419,10 @@ export class MapComponent extends AbstractComponent {
         fillOpacity: 0.33,
         stroke: true,
         className: 'leaflet-position-marker',
+        pane: 'markerPane',
+      });
+      this._locationMarker.on('add', ev => {
+        (this._locationMarker as any)._renderer?._container?.classList?.add('position-circle-marker');
       });
       if (this.autoFollowLocation && this.mapGeolocation.recorder.current)
         this._followingLocation$.next(true);

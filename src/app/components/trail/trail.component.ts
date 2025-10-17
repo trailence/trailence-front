@@ -488,6 +488,14 @@ export class TrailComponent extends AbstractComponent {
         }
 
         if (recordingWithTrack && !trail2[0]) {
+          if (this.remaining?.subTrack) {
+            // first the remaining, so the current track stay on top
+            if (trail1[2] && trail1[2].color === 'red') trail1[2].color = '#FF000080';
+            const remainingTrack = new MapTrack(undefined, this.remaining.subTrack, 'red', 1, false, this.i18n);
+            remainingTrack.data = 'remaining';
+            mapTracks.push(remainingTrack);
+          }
+          // recording
           tracks.push(recordingWithTrack.track);
           if (trail1[1])
             this.graphTrack2 = recordingWithTrack.track;
@@ -498,12 +506,6 @@ export class TrailComponent extends AbstractComponent {
           mapTrack.showWayPointsAnchors();
           mapTrack.showArrowPath();
           mapTracks.push(mapTrack)
-          if (this.remaining?.subTrack) {
-            if (trail1[2] && trail1[2].color === 'red') trail1[2].color = '#FF000080';
-            const remainingTrack = new MapTrack(undefined, this.remaining.subTrack, 'red', 1, false, this.i18n);
-            remainingTrack.data = 'remaining';
-            mapTracks.push(remainingTrack);
-          }
         }
 
         if (!recordingWithTrack && !trail2[0]) {
@@ -1082,7 +1084,7 @@ export class TrailComponent extends AbstractComponent {
       this.isSmall = true;
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
     }
-    this.mapToolbarTopRightMaxItems = w > 600 ? undefined : Math.floor((w - 85) / 48);
+    this.mapToolbarTopRightMaxItems = w > 600 ? undefined : Math.floor((w - 90) / 48);
     this.changesDetection.detectChanges();
   }
 

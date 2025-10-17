@@ -138,12 +138,17 @@ app-map {
   z-index: 1000;
   font-size: 11px;
 }
-.leaflet-pane.leaflet-marker-pane .leaflet-marker-icon.highlighted {
-  width: 50px !important;
-  height: 50px !important;
-  margin-left: -25px !important;
-  margin-top: -50px !important;
-  z-index: 1000 !important;
+.leaflet-pane.leaflet-marker-pane {
+  .leaflet-marker-icon.highlighted {
+    width: 50px !important;
+    height: 50px !important;
+    margin-left: -25px !important;
+    margin-top: -50px !important;
+    z-index: 1000 !important;
+  }
+  svg.position-circle-marker {
+    z-index: 1000;
+  }
 }
 
 body.dark-map {
