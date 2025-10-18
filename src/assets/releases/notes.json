@@ -226,5 +226,9 @@
         "Lorsque vous recherchez des parcours, vous pouvez maintenant partager le lien d'un parcours"
       ]
     }
+  },
+  "010101": {
+    "en": {"message": "Some improvements and fixes"},
+    "fr": {"message": "Quelques améliorations et correctifs"}
   }
 }
