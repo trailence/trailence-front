@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular/standalone';
 import { debounceTime, Subject } from 'rxjs';
 import { Console } from 'src/app/utils/console';
+import { Platform } from '@ionic/angular/common';
 
 @Injectable({providedIn: 'root'})
 export class BrowserService {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular/standalone';
+import { Platform } from '@ionic/angular/common';
 import { environment } from 'src/environments/environment';
 import { AppDownload } from './common';
 import { PreferencesService } from '../preferences/preferences.service';

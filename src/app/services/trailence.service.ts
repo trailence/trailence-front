@@ -8,5 +8,7 @@ const Trailence = {
 
   share: (call: {link: string, title?: string}) => Promise.resolve(),
 
+  exitApp: (call: {}) => Promise.resolve(),
+
 };
 export default Trailence;

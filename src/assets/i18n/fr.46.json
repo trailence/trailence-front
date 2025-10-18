@@ -1352,6 +1352,10 @@
   },
   "show_more": "Voir plus",
   "show_less": "Voir moins",
+  "exit": {
+    "title": "Quitter Trailence",
+    "message": "Souhaitez-vous quitter Trailence ?"
+  },
   "help": {
     "contextual": {
       "original_trace": "La trace originale est la trace brute, telle que enregistrée par le GPS ou importée depuis un fichier.<p>Lorsque vous modifiez une trace, la trace d'origine est toujours conservée, ce qui permet de repartir à tout moment de la trace d'origine, qui sert de référence.</p><p>Même si vous n'avez pas modifié la trace manuellement, Trailence applique automatiquement des améliorations afin de gommer les imperfections du GPS.</p>",

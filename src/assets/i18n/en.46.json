@@ -1352,6 +1352,10 @@
   },
   "show_more": "Show more",
   "show_less": "Show less",
+  "exit": {
+    "title": "Exit Trailence",
+    "message": "Do you want to leave Trailence?"
+  },
   "help": {
     "contextual": {
       "original_trace": "The original track is the raw track, exactly as recorded by the GPS or imported from a file.<p>When you edit the track, the original version is always preserved, allowing you to revert to it at any time — it serves as the reference track.</p><p>Even if you haven’t manually edited the track, Trailence automatically applies improvements to correct GPS inaccuracies.</p>",

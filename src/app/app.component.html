@@ -1,25 +1,27 @@
 @if (i18nLoaded) {
-  <ion-app>
-    <ion-content id="content">
-      <ion-router-outlet [animated]="false"></ion-router-outlet>
-    </ion-content>
-    @defer(when loadMenu) {
-      <ion-menu contentId="content" #appMenu [maxEdgeStart]="0">
-        @if (loadMenuContent) {
-          <app-menu></app-menu>
-        }
-      </ion-menu>
-    }
-  </ion-app>
-  @if (waitingForGps) {
-    <div class="waiting-for-gps">
-      <div>{{ waitingForGpsText }}</div>
-    </div>
-  } @else if (traceInProgress) {
-    <div class="trace-in-progress">
-      <div>
-        <a [routerLink]="traceInProgress">{{ traceInProgressText }}</a>
+  @defer (when i18nLoaded) {
+    <ion-app>
+      <ion-content id="content">
+        <ion-router-outlet [animated]="false"></ion-router-outlet>
+      </ion-content>
+      @defer(when loadMenu) {
+        <ion-menu contentId="content" #appMenu [maxEdgeStart]="0">
+          @if (loadMenuContent) {
+            <app-menu></app-menu>
+          }
+        </ion-menu>
+      }
+    </ion-app>
+    @if (waitingForGps) {
+      <div class="waiting-for-gps">
+        <div>{{ waitingForGpsText }}</div>
       </div>
-    </div>
+    } @else if (traceInProgress) {
+      <div class="trace-in-progress">
+        <div>
+          <a [routerLink]="traceInProgress">{{ traceInProgressText }}</a>
+        </div>
+      </div>
+    }
   }
 }

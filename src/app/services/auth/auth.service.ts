@@ -9,13 +9,13 @@ import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, NavigationEnd, Navigat
 import { ApiError } from '../http/api-error';
 import { LoginRequest } from './login-request';
 import { DeviceInfo } from './device-info';
-import { Platform, NavController } from '@ionic/angular/standalone';
 import { InitRenewRequest } from './init-renew-request';
 import { RenewRequest } from './renew-request';
 import { LoginShareRequest } from './login-share-request';
 import { Console } from 'src/app/utils/console';
 import { UserQuotas } from './user-quotas';
 import { publicRoutes } from 'src/app/routes/package.routes';
+import { NavController, Platform } from '@ionic/angular/common';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -57,9 +57,9 @@ export class AuthService {
   constructor(
     private readonly http: HttpService,
     private readonly router: Router,
-    private readonly platform: Platform,
-    navController: NavController,
     private readonly ngZone: NgZone,
+    readonly navController: NavController,
+    private readonly platform: Platform,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {

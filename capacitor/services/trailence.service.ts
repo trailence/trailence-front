@@ -26,6 +26,8 @@ export interface TrailencePlugin {
 
   share(call: {link: string, title?: string}): Promise<any>;
 
+  exitApp(call: {}): Promise<any>;
+
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');

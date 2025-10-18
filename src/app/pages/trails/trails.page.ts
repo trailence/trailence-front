@@ -25,7 +25,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FetchSourcePlugin, SearchBubblesResult, SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
-import { AlertController } from '@ionic/angular/standalone';
+import { AlertController, NavController } from '@ionic/angular/standalone';
 import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
@@ -116,7 +116,7 @@ export class TrailsPage extends AbstractPage {
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (newState.type === 'collection' && newState.id === 'my_trails') {
       this.byStateAndVisible.subscribe(this.injector.get(TrailCollectionService).getMyTrails$(),
-        myTrails => this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/trails/collection/' + myTrails.uuid))
+        myTrails => this.ngZone.run(() => this.injector.get(NavController).navigateRoot('/trails/collection/' + myTrails.uuid))
       );
       return;
     }

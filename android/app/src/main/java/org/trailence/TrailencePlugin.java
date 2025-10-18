@@ -368,4 +368,9 @@ public class TrailencePlugin extends Plugin {
     getContext().startActivity(Intent.createChooser(shareIntent, null));
     call.resolve();
   }
+
+  @PluginMethod
+  public void exitApp(PluginCall call) {
+    this.getActivity().finishAndRemoveTask();
+  }
 }

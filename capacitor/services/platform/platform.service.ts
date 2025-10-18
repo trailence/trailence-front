@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Injectable, Injector, Input } from '@angular/core';
-import Trailence from '../trailence.service';
+import Trailence from 'src/app/services/trailence.service';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { first } from 'rxjs';
@@ -14,14 +14,45 @@ import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrailSourceType } from 'src/app/model/dto/trail';
+import { Platform, NavController, AlertController } from '@ionic/angular/standalone';
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
 
   constructor(
+    private readonly platform: Platform,
+    private readonly navController: NavController,
+    private readonly i18n: I18nService,
+    private readonly alertController: AlertController,
     private readonly injector: Injector,
   ) {
     this.listenToImportGpx();
+    this.handleBackButton();
+  }
+
+  private handleBackButton(): void {
+    if (!this.platform.is('android')) return;
+    this.platform.backButton.subscribeWithPriority(1, () => {
+      this.navController.pop().then(popResult => {
+        if (popResult) return;
+        this.alertController.create({
+          header: this.i18n.texts.exit.title,
+          message: this.i18n.texts.exit.message,
+          buttons: [
+            {
+              text: this.i18n.texts.buttons.yes,
+              role: 'success',
+              handler: () => {
+                import('src/app/services/trailence.service').then(t => t.default.exitApp({}));
+              }
+            }, {
+              text: this.i18n.texts.buttons.no,
+              role: 'cancel'
+            }
+          ]
+        }).then(a => a.present());
+      })
+    });
   }
 
   private listenToImportGpx(): void {
