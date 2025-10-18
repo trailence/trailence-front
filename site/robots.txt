@@ -1,3 +1,6 @@
+User-agent: Googlebot-Image
+Disallow: /assets/home-page/apk-install-*.png$
+
 User-agent: *
 Allow: /
 

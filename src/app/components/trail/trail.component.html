@@ -1,3 +1,4 @@
+<div id="trail-jd-json-{{id}}"></div>
 <div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}">
   @if (tracks$ | async; as tracks) {
     @if (!isSmall || tab === 'details') {
@@ -363,7 +364,7 @@
                 {{ 'pages.trail.my_feedback.you_leave_a_comment' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.latestCommentDate) }}
               </div>
             }
-            @if (source && !source.followedInfo?.itsMine) {
+            @if (source && !source.followedInfo?.itsMine && mine) {
               <div class="leave-feedback">
                 <div>{{ i18n.texts.pages.trail.my_feedback.invite_to_rate_title }}</div>
                 <ion-button shape="round" size="small" (click)="rateThisTrail()">
@@ -392,7 +393,7 @@
               <ion-icon name="chat-bubbles"></ion-icon>
               <div>{{ i18n.texts.pages.trail.sections.comments.title }}</div>
             </div>
-            <app-rate-and-comments [trail]="trail1!"></app-rate-and-comments>
+            <app-rate-and-comments [trail]="trail1" id="rate-{{id}}"></app-rate-and-comments>
           }
         }
       </div>

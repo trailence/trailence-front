@@ -7,7 +7,7 @@ import { RateComponent } from './rate/rate.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { ProgressBarComponent } from '../../progress-bar/progress-bar.component';
-import { IonButton, ModalController, IonSpinner, IonIcon } from "@ionic/angular/standalone";
+import { IonButton, ModalController, IonSpinner, IonIcon, IonCheckbox } from "@ionic/angular/standalone";
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { FeedbackComponent } from './feedback/feedback.component';
 import { combineLatest, EMPTY, Subscription, switchMap } from 'rxjs';
@@ -18,7 +18,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
   templateUrl: './rate-and-comments.component.html',
   styleUrl: './rate-and-comments.component.scss',
   imports: [
-    IonIcon, IonSpinner, IonButton,
+    IonIcon, IonSpinner, IonButton, IonCheckbox,
     RateComponent,
     I18nPipe,
     ProgressBarComponent,
@@ -37,6 +37,8 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
   filterRate?: number;
   authenticated = false;
   connected = false;
+  hasFollowedThisTrail = false;
+  showFollowedThisTrail = true;
 
   private myRateSubscription?: Subscription;
 
@@ -96,6 +98,7 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
         this.feedbacks = list;
         this.lastPage = list.length < 25;
         this.loadingComments = false;
+        this.hasFollowedThisTrail = this.feedbacks?.some(f => !f.comment && f.rate === undefined);
         this.changeDetector.detectChanges();
       });
     }
@@ -120,6 +123,11 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
       this.loadingComments = false;
       this.changeDetector.detectChanges();
     });
+  }
+
+  setFilterHasFollowedThisTrail(value: boolean): void {
+    this.showFollowedThisTrail = value;
+    this.changeDetector.detectChanges();
   }
 
   loadMoreComments(): void {

@@ -330,6 +330,7 @@
           "reply_send_error": "Error while sending your reply",
           "load_more_comments": "Show more comments",
           "has_done_this_trail": "followed this trail ✅",
+          "filter_has_done_this_trail": "Include people who followed this trail",
           "show_reviews_with_rate": "Active filter: ratings of {{1}}/5",
           "not_authenticated": "Log in to see the reviews",
           "not_connected": "Internet connection required to fetch reviews"

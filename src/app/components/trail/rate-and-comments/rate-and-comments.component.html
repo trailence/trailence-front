@@ -5,7 +5,7 @@
       <tr>
         <th>{{ i18n.texts.pages.trail.sections.comments.rate.global }}</th>
         <td>
-          <app-rate [rate]="info.rating!"></app-rate>
+          <app-rate [rate]="info.rating"></app-rate>
           @if (info.nbRates) {<span>{{ 'pages.trail.sections.comments.rate.global_on_nb' | i18nString:info.nbRates }}</span>}
         </td>
       </tr>
@@ -79,9 +79,17 @@
         <span>{{ 'pages.trail.sections.comments.show_reviews_with_rate' | i18nString:filterRate }}</span>
         <ion-icon name="cross" (click)="setFilterRate(undefined)"></ion-icon>
       </div>
+    } @else if (hasFollowedThisTrail) {
+      <div class="filter-followed-trail">
+        <ion-checkbox labelPlacement="end" [checked]="showFollowedThisTrail" (ionChange)="setFilterHasFollowedThisTrail($event.detail.checked)">
+          {{i18n.texts.pages.trail.sections.comments.filter_has_done_this_trail}}
+        </ion-checkbox>
+      </div>
     }
     @for (fb of feedbacks; track fb.uuid) {
-      <app-feedback [feedback]="fb" [trailUuid]="trail.uuid" (feedbackChange)="feedbackChanged(fb, $event)"></app-feedback>
+      @if (showFollowedThisTrail || fb.comment || fb.rate !== undefined) {
+        <app-feedback [feedback]="fb" [trailUuid]="trail.uuid" (feedbackChange)="feedbackChanged(fb, $event)"></app-feedback>
+      }
     }
     <div class="load-button">
       @if (!loadingComments) {

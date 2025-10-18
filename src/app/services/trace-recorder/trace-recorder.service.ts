@@ -545,7 +545,7 @@ export class TraceRecorderService {
   }
 
   private isBetterAccuracy(newAccuracy: number | undefined, previousAccuracy: number | undefined): boolean {
-    if (newAccuracy === undefined) return previousAccuracy === undefined;
+    if (newAccuracy === undefined) return false;
     if (previousAccuracy === undefined) return true;
     return newAccuracy < previousAccuracy;
   }

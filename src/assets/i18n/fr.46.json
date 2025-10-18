@@ -330,6 +330,7 @@
           "reply_send_error": "Erreur lors de l'envoi de votre réponse",
           "load_more_comments": "Voir plus de commentaires",
           "has_done_this_trail": "a suivi ce parcours ✅",
+          "filter_has_done_this_trail": "Inclure les personnes ayant suivi ce parcours",
           "show_reviews_with_rate": "Filtre actif : notes de {{1}}/5",
           "not_authenticated": "Connectez-vous pour voir les commentaires",
           "not_connected": "Connexion internet requise pour récupérer les avis"

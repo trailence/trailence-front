@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
-import { AbstractComponent } from 'src/app/utils/component-utils';
+import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
 import { MapTrack } from '../map/track/map-track';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
@@ -106,7 +106,7 @@ interface TrailSource {
         AsyncPipe,
     ]
 })
-export class TrailComponent extends AbstractComponent {
+export class TrailComponent extends AbstractComponent implements AfterContentChecked {
 
   @Input() trail1$?: Observable<Trail | null>;
   @Input() trail2$?: Observable<Trail | null>;
@@ -117,6 +117,7 @@ export class TrailComponent extends AbstractComponent {
   showPhotos$ = new BehaviorSubject<boolean>(false);
   reverseWay$ = new BehaviorSubject<boolean>(false);
 
+  id = IdGenerator.generateId();
   trail1: Trail | null = null;
   trail2: Trail | null = null;
   recording: Recording | null = null;
@@ -174,6 +175,7 @@ export class TrailComponent extends AbstractComponent {
   isSmall = false;
 
   editable = false;
+  mine = false;
 
   hover: TrailHoverCursor;
   selection = new TrailSelection(this.map$, this.graph$);
@@ -390,7 +392,10 @@ export class TrailComponent extends AbstractComponent {
     }
   }
 
+  private goToRate = 0;
   protected override onComponentStateChanged(previousState: any, newState: any): void {
+    if (globalThis.location?.hash?.startsWith('#rate')) this.goToRate = Date.now();
+    else this.goToRate = 0;
     if (this._lockForDescription) {
       this._lockForDescription();
       this._lockForDescription = undefined;
@@ -400,6 +405,7 @@ export class TrailComponent extends AbstractComponent {
     this.trail2 = null;
     this.source = undefined;
     this.recording = null;
+    this.mine = false;
     this.tagsNames1 = undefined;
     this.tagsNames2 = undefined;
     this.photos = undefined;
@@ -423,6 +429,49 @@ export class TrailComponent extends AbstractComponent {
     this.listenForSource();
     this.listenMyFeedback();
     this.listenCurrentPublic();
+  }
+
+  ngAfterContentChecked(): void {
+    let jd: any = undefined;
+    if (this.trail1 && !this.trail2 && !this.recording && this.source?.info?.rating !== undefined && this.trail1.owner === 'trailence' && this.tracks$.value.length > 0) {
+      jd = {
+        "@context": "https://schema.org",
+        "@type": "SportsActivityLocation",
+        "name": this.trail1.name,
+        "description": this.trail1.description,
+        "geo": {
+          "@type":"GeoCoordinates",
+          "latitude": this.tracks$.value[0].departurePoint?.pos.lat,
+          "longitude": this.tracks$.value[0].departurePoint?.pos.lng
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": Math.floor(this.source.info.rating) + '.' + Math.floor((this.source.info.rating * 10) % 10),
+          "ratingCount": (this.source.info.nbRate0 ?? 0) + (this.source.info.nbRate1 ?? 0) + (this.source.info.nbRate2 ?? 0) + (this.source.info.nbRate3 ?? 0) + (this.source.info.nbRate4 ?? 0) + (this.source.info.nbRate5 ?? 0),
+          "worstRating":0,
+          "bestRating":5
+        }
+      };
+      if (this.photos && this.photos.length > 0) {
+          jd.image = 'https://trailence.org/api/public/trails/v1/photo/' + this.trail1.uuid + '/' + this.photos[0].uuid;
+      }
+    }
+    const jdMarker = globalThis.document.getElementById('trail-jd-json-' + this.id);
+    if (jdMarker) {
+      if (jd) {
+        jdMarker.innerHTML = '<script type="application/jd+json">' + JSON.stringify(jd) + '</script>';
+      } else {
+        jdMarker.innerHTML = '';
+      }
+    }
+    if (this.goToRate > 0 && this.goToRate > Date.now() - 1000) {
+      if (this.isSmall) {
+        this.setTab('reviews');
+      } else if (this.tab !== 'reviews') {
+        const rateElement = globalThis.document.getElementById('rate-' + this.id);
+        if (rateElement) rateElement.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'start'});
+      }
+    }
   }
 
   private listenForTracks(): void {
@@ -557,6 +606,7 @@ export class TrailComponent extends AbstractComponent {
 
         this.editable = !this.trail2 && !!this.trail1 &&
           (this.trail1.fromModeration || (this.trail1.owner === this.auth.email && this.trail1Collection?.type !== TrailCollectionType.PUB_SUBMIT));
+        this.mine = !!this.trail1 && !this.trail2 && this.trail1.owner === this.auth.email;
         if (toolsModifiedTrack)
           this.graph?.resetChart();
         this.toolbar?.refresh();
@@ -1490,9 +1540,9 @@ export class TrailComponent extends AbstractComponent {
 
   rateThisTrail(): void {
     if (this.source?.externalUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
-      this.injector.get(Router).navigateByUrl(this.source.externalUrl.substring(environment.baseUrl.length));
+      this.injector.get(Router).navigate([this.source.externalUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
     else if (this.trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
-      this.injector.get(Router).navigateByUrl(this.trail1.followedUrl.substring(environment.baseUrl.length));
+      this.injector.get(Router).navigate([this.trail1.followedUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
   }
 
   private async openChecklist() {
