@@ -30,7 +30,7 @@
   <div class="item {{checklist.items[item] ? 'checked' : ''}}">
     <ion-checkbox [disabled]="!itemCorrect(item)" [checked]="checklist.items[item]" (ionChange)="check(item, $event.detail.checked)"></ion-checkbox>
     <div class="item-container">
-      <div class="item-title">{{ texts[item].title }}</div>
+      <div class="item-title">{{ texts.title }}</div>
       <div class="item-content">
         @if (value) {
           <div class="item-value"><ng-container *ngTemplateOutlet="value"></ng-container></div>
