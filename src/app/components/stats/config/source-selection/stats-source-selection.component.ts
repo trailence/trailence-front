@@ -94,7 +94,7 @@ export class StatsSourceSelectionComponent implements OnChanges, OnInit {
     }
   }
 
-  private buildDescription(src: StatsSourceCollection[] | undefined, collections: TrailCollection[], shares: Share[], texts: any): string {
+  private buildDescription(src: StatsSourceCollection[] | undefined, collections: TrailCollection[], shares: Share[], texts: any): string { // NOSONAR
     if (!src || src.length === 0) return '';
     let result = '';
     const srcCollections =

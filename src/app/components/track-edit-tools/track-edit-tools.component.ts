@@ -437,7 +437,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
           undefined;
         return modification(copy).pipe(
           defaultIfEmpty(undefined),
-          map(result => {
+          map(result => { // NOSONAR
             if (mayNotChange && copy.isEquals(before!)) { // NOSONAR
               if (!doNotNotifyIfNotChange) this.showToastNoModification();
               return;

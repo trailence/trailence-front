@@ -58,7 +58,7 @@ export class NetworkService implements INetworkService, OnDestroy {
       if (this._internet$.value) {
         this._internet$.next(false);
       }
-    } else if (!this._internet$.value) {
+    } else if (!this._internet$.value) { // NOSONAR
       if (firstCall) {
         this.checkInternet().then(connected => { if (connected) this._internet$.next(true); })
       }

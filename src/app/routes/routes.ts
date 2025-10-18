@@ -7,12 +7,12 @@ export const routes: Routes = [
   {
     path: 'fr',
     loadComponent: () => import('src/app/pages/public.page').then(m => m.PublicPageRoute),
-    children: [...publicRoutes.filter(p => !p.path?.startsWith('link') && !p.path?.startsWith('trail/trailence/') && p.path !== 'search-route')]
+    children: publicRoutes.filter(p => !p.path?.startsWith('link') && !p.path?.startsWith('trail/trailence/') && p.path !== 'search-route')
   },
   {
     path: 'en',
     loadComponent: () => import('src/app/pages/public.page').then(m => m.PublicPageRoute),
-    children: [...publicRoutes.filter(p => !p.path?.startsWith('link') && !p.path?.startsWith('trail/trailence/') && p.path !== 'search-route')]
+    children: publicRoutes.filter(p => !p.path?.startsWith('link') && !p.path?.startsWith('trail/trailence/') && p.path !== 'search-route')
   },
   ...publicRoutes.map(p => {
     if (p.path?.startsWith('link') || p.path?.startsWith('try') || p.path === 'search-route' || p.path?.startsWith('trail/trailence/')) return p;

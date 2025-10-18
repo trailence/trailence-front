@@ -76,8 +76,9 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
               const utf8 = new TextDecoder().decode(bytes);
               if (!utf8.includes('�')) return utf8;
               let result = '';
-	            for (let byte of bytes)
+              for (let byte of bytes) {
                 result += CP437[byte];
+              }
               return result;
             }
           })).then(zip => {

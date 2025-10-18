@@ -520,7 +520,7 @@ export class TraceRecorderService {
       ele: position.e, time: position.t, posAccuracy: position.pa, eleAccuracy: position.ea,
       heading: position.h, speed: position.s
     };
-    const segment = track.segments.length === 0 ? track.newSegment() : track.segments[track.segments.length - 1];
+    const segment = track.segments.length === 0 ? track.newSegment() : track.segments.at(-1)!;
     return segment.append(point);
   }
 

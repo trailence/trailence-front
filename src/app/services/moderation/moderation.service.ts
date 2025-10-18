@@ -60,10 +60,10 @@ export class ModerationService {
       map(result => result.dtos.map((dto, index) => {
         const trail = new Trail(dto.trail, true);
         let trail$ = result.items$[index];
-        if (!trail$) {
-          trail$ = new BehaviorSubject<Trail | null>(trail);
-        } else {
+        if (trail$) {
           trail$.next(trail);
+        } else {
+          trail$ = new BehaviorSubject<Trail | null>(trail);
         }
         return trail$;
       })),
@@ -129,7 +129,7 @@ export class ModerationService {
         if (fromCache) return fromCache;
         return this.getPhotos$(owner, fromTrailUuid).pipe(
           switchMap(photos => {
-            if (!photos.find(p => p.uuid === uuid)) return of(null);
+            if (!photos.some(p => p.uuid === uuid)) return of(null);
             return this.getPhoto$(owner, uuid, fromTrailUuid);
           })
         );
@@ -327,8 +327,7 @@ export class ModerationService {
     await step(1, () => {
       const simplifiedTrack = TrackDatabase.simplify(track);
       for (let point of simplifiedTrack.points) {
-        simplifiedPath.push(point.lat);
-        simplifiedPath.push(point.lng);
+        simplifiedPath.push(point.lat, point.lng);
       }
     });
 

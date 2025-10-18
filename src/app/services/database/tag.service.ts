@@ -89,7 +89,7 @@ export class TagService {
       if (ondone) ondone();
       return;
     }
-    this._trailTagStore.deleteIf('delete multiple trails', trailTag => trailUuids.some(u => u === trailTag.trailUuid), ondone);
+    this._trailTagStore.deleteIf('delete multiple trails', trailTag => trailUuids.includes(trailTag.trailUuid), ondone);
   }
 
   public deleteAllTagsFromCollections(collections: {owner: string, uuid: string}[], progress: Progress | undefined, progressWork: number): Observable<any> {

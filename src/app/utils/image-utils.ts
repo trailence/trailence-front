@@ -49,7 +49,7 @@ export class ImageUtils {
           canvas.toBlob(
             blob => {
               if (blob) {
-                if (!!blob.arrayBuffer) {
+                if (!!blob.arrayBuffer) { // NOSONAR
                   resolve({blob, width: dw, height: dh});
                 } else {
                   const base64 = canvas.toDataURL('image/jpeg', quality ?? 1);

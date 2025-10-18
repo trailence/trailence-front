@@ -278,7 +278,7 @@ export class GraphBuilder {
     );
   }
 
-  private getSelected(cfg: StatsConfig, allCollections: TrailCollection[], allShares: Share[]): {collections: TrailCollection[], shares: Share[]} {
+  private getSelected(cfg: StatsConfig, allCollections: TrailCollection[], allShares: Share[]): {collections: TrailCollection[], shares: Share[]} { // NOSONAR
     const collections: TrailCollection[] = [];
     const shares: Share[] = [];
     for (const src of cfg.source) {

@@ -470,10 +470,10 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           deleted.push({item$, item});
         }
         this.deleted(deleted);
-        toDelete.forEach(item$ => {
+        for (const item$ of toDelete) {
           const index = this._store.value.indexOf(item$);
           if (index >= 0) this._store.value.splice(index, 1);
-        });
+        }
         this._store.next(this._store.value);
       },
       db => items.length === 0 ? of(true) : combineLatest(items.map(item => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item))),

@@ -2,7 +2,6 @@ import { BehaviorSubject, Observable, Subject, concat, map, of, switchMap } from
 import { Point } from './point';
 import { PointDtoMapper } from './point-dto-mapper';
 import { PointDescriptor, pointsAreEqual } from './point-descriptor';
-import { Arrays } from '../utils/arrays';
 import { SegmentDto } from './dto/segment';
 import * as L from 'leaflet';
 import { Track } from './track';

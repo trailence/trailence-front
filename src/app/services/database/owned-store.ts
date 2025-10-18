@@ -152,13 +152,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         if (createdIndex >= 0)
           this._createdLocally.splice(createdIndex, 1);
         item$.next(entity);
-      } else {
-        if (!this._deletedLocally.some(deleted => deleted.uuid === dto.uuid && deleted.owner === dto.owner)) {
-          this.newItemFromServer(dto, entity);
-          entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
-          dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
-        } // else: updated from server, but deleted locally => ignore item from server
-      }
+      } else if (!this._deletedLocally.some(deleted => deleted.uuid === dto.uuid && deleted.owner === dto.owner)) {
+        this.newItemFromServer(dto, entity);
+        entitiesToAdd.push(new BehaviorSubject<ENTITY | null>(entity));
+        dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
+      } // else: updated from server, but deleted locally => ignore item from server
     }
     this.injector.get(DependenciesService).operationDone(this.tableName, 'delete', deleted.map(d => d.uuid + '#' + d.owner));
     this.injector.get(DependenciesService).operationDone(this.tableName, 'update', dtosToUpdate.map(d => d.id_owner));

@@ -267,7 +267,7 @@ export class TrailMenuService {
     const collectionService = this.injector.get(TrailCollectionService);
     return collectionService.getMyCollectionsReady$().pipe(
       map(cols => {
-        const list = cols.filter(col => excludeUuids.indexOf(col.uuid) < 0);
+        const list = cols.filter(col => !excludeUuids.includes(col.uuid));
         collectionService.sort(list);
         return list.map(
           col => {

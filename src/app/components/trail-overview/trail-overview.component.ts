@@ -199,7 +199,7 @@ export class TrailOverviewComponent extends AbstractComponent {
         ),
         debounceTimeExtended(0, 10)
       ),
-      ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection, info]) => {
+      ([i18nState, trailName, trailLocation, trailDate, loopType, activity, [track, trackStartDate], isInMySelection, info]) => { // NOSONAR
         const force = i18nState !== previousI18nState;
         let changed = force;
         previousI18nState = i18nState;

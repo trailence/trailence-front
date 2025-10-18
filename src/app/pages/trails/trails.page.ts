@@ -672,7 +672,7 @@ export class TrailsPage extends AbstractPage {
         switchMap(([loaded, visible, connected, item]) => {
           if (item === null && (!connected || (loaded && visible))) {
             Console.warn('Item not found, redirecting to home');
-            this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
+            this.ngZone.run(() => this.injector.get(NavController).navigateRoot('/'));
           }
           return EMPTY;
         })

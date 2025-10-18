@@ -157,7 +157,7 @@ export class ShareService {
                 else if (share.type === ShareElementType.COLLECTION)
                   filter = trail => trail.item.owner === share.owner && share.elements.includes(trail.item.collectionUuid);
                 else {
-                  const tagsUuids = tags.filter(tag => share.elements.includes(tag.tagUuid)).map(tag => tag.trailUuid);
+                  const tagsUuids = tags.filter(tag => share.elements.includes(tag.tagUuid)).map(tag => tag.trailUuid); // NOSONAR
                   filter = trail => trail.item.owner === share.owner && tagsUuids.includes(trail.item.uuid); // NOSONAR
                 }
               } else {

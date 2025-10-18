@@ -37,8 +37,8 @@ export class TrackService {
     const externals: {uuid: string, owner: string}[] = [];
     const internals: {uuid: string, owner: string}[] = [];
     for (const t of tracks) {
-      if (!t.owner.includes('@')) externals.push(t);
-      else internals.push(t);
+      if (t.owner.includes('@')) internals.push(t);
+      else externals.push(t);
     }
     const externalTracks = externals.length === 0 ? of([]) : this.injector.get(FetchSourceService).getMetadataList$(externals);
     const internalTracks = internals.map(i => this.db.getMetadata$(i.uuid, i.owner));

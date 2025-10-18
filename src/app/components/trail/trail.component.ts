@@ -1023,7 +1023,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           const track = this.tracks$.value[0];
           closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining?.segmentIndex ?? 0, this.remaining?.pointIndex ?? 0);
           if (closestPoint) {
-            remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments[track.segments.length - 1].points.length - 1);
+            remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments.at(-1)!.points.length - 1);
           }
         }
         if (remaining) {
@@ -1139,14 +1139,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private updateVisibility(mapVisible: boolean, graphVisible: boolean): void {
-    this._children$.value.forEach(child => {
+    for (const child of this._children$.value) {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
       else if (child instanceof TrailGraphComponent) child.setVisible(graphVisible);
       else if (child instanceof TrackMetadataComponent) {
         // nothing
       }
       else Console.error('unexpected child', child);
-    });
+    }
   }
 
   protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
@@ -1192,7 +1192,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   mouseClickOnMap(event: MapTrackPointReference[]) {
     for (const ref of event) {
-      if (this.publicTrailsAroundMapTracks$.value.indexOf(ref.track) >= 0) {
+      if (this.publicTrailsAroundMapTracks$.value.includes(ref.track)) {
         window.open(environment.baseUrl + '/trail/trailence/' + ref.track.trail!.uuid, '_blank');
       }
     }
@@ -1404,7 +1404,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   openDateDialog(): void {
     if (this.trail2 || !this.trail1 || !this.editable) return;
-    this.injector.get(TrailMenuService).openTrailDatePopup(this.trail1!, this.tracks$.value[0]);
+    this.injector.get(TrailMenuService).openTrailDatePopup(this.trail1, this.tracks$.value[0]);
   }
 
   openActivityDialog(): void {
