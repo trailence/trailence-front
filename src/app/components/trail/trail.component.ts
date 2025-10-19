@@ -451,7 +451,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           },
           "aggregateRating": {
             "@type": "AggregateRating",
-            "ratingValue": Math.floor(this.source.info.rating) + '.' + Math.floor((this.source.info.rating * 10) % 10),
+            "ratingValue": Math.floor(this.source.info.rating * 10) / 10,
             "ratingCount": (this.source.info.nbRate0 ?? 0) + (this.source.info.nbRate1 ?? 0) + (this.source.info.nbRate2 ?? 0) + (this.source.info.nbRate3 ?? 0) + (this.source.info.nbRate4 ?? 0) + (this.source.info.nbRate5 ?? 0),
             "worstRating":0,
             "bestRating":5
@@ -472,7 +472,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       this._jdMarker ??= globalThis.document.getElementById('trail-jd-json-' + this.id) ?? undefined;
       if (this._jdMarker) {
         if (jd) {
-          this._jdMarker.innerHTML = '<script type="application/jd+json">' + JSON.stringify(jd) + '</script>';
+          this._jdMarker.innerHTML = '<script type="application/ld+json">' + JSON.stringify(jd) + '</script>';
         } else {
           this._jdMarker.innerHTML = '';
         }

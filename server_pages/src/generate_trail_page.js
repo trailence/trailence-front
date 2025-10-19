@@ -69,18 +69,18 @@ function translateData(data, i18n, lang) {
     "description": data.description,
     "geo": {
       "@type":"GeoCoordinates",
-      "latitude": '' + data.simplifiedPath[0],
-      "longitude": '' + data.simplifiedPath[1]
+      "latitude": data.simplifiedPath[0],
+      "longitude": data.simplifiedPath[1]
     },
   };
   if (nbRates > 0) {
     const rate = (data.nbRate1 + (data.nbRate2 * 2) + (data.nbRate3 * 3) + (data.nbRate4 * 4) + (data.nbRate5 * 5)) / nbRates;
     jd['aggregateRating'] = {
       "@type": "AggregateRating",
-      "ratingValue": Math.floor(rate) + '.' + Math.floor((rate * 10) % 10),
+      "ratingValue": Math.floor(rate * 10) / 10,
       "ratingCount": nbRates,
-      "worstRating":"0",
-      "bestRating":"5"
+      "worstRating": 0,
+      "bestRating": 5
     };
   }
   if (data.photos && data.photos.length > 0) {
