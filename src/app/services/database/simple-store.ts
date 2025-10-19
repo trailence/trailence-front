@@ -352,7 +352,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
 
   private syncGetAllFromServer(stillValid: () => boolean): Observable<boolean> {
     return this.getAllFromServer().pipe(
-      switchMap(dtos => {
+      switchMap(dtos => { // NOSONAR
         if (!stillValid()) return of(false);
         const returnedFromServer = dtos.length;
         // remove items not created locally and not returned by the server, and add new items from server

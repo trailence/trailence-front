@@ -335,7 +335,7 @@ export class ModerationService {
     const estimatedDuration = await step(1, () => estimateTimeForTrack(track, 5000));
     const fullTrack = await step(1, () => track.toDto());
 
-    const photosDtos = await step(1, () => {
+    const photosDtos = await step(1, () => { // NOSONAR
       const result: CreatePublicTrailPhotoDto[] = [];
       photos.sort((p1, p2) => p1.index - p2.index);
       for (let index = 0; index < photos.length; ++index) {

@@ -796,20 +796,7 @@ export class TrailsListComponent extends AbstractComponent {
         const trailElement = document.getElementById('trail-list-' + this.id + '-trail-' + key);
         if (!trailElement) return;
         try {
-          if (pos.name >= 0) this.highlightTrailName(trailElement, pos.name, pos.text.length);
-          if (pos.location >= 0) this.highlightTrailLocation(trailElement, pos.location, pos.text.length);
-          if (pos.inTags) {
-            const tags = trailElement.getElementsByClassName('tag');
-            for (let i = 0; i < tags.length; ++i) {
-              const tagElement = tags.item(i) as HTMLElement;
-              const tagText = tagElement.innerText;
-              const textIndex = tagText.toLowerCase().indexOf(pos.text);
-              if (textIndex >= 0) {
-                const element = tagElement.firstChild!;
-                this.createHighlight(element, textIndex, pos.text.length);
-              }
-            }
-          }
+          this.highlightTextsInTrail(trailElement, pos);
         } catch (e) { // NOSONAR
           Console.warn('Cannot select range, may be not yet loaded, will try');
           retry = true;
@@ -819,6 +806,23 @@ export class TrailsListComponent extends AbstractComponent {
         this.refreshHighlights(ranges, 100 * trial, trial + 1);
       }
     }, delay);
+  }
+
+  private highlightTextsInTrail(trailElement: HTMLElement, pos: {text: string, name: number, location: number, inTags: boolean}): void {
+    if (pos.name >= 0) this.highlightTrailName(trailElement, pos.name, pos.text.length);
+    if (pos.location >= 0) this.highlightTrailLocation(trailElement, pos.location, pos.text.length);
+    if (pos.inTags) {
+      const tags = trailElement.getElementsByClassName('tag');
+      for (let i = 0; i < tags.length; ++i) {
+        const tagElement = tags.item(i) as HTMLElement;
+        const tagText = tagElement.innerText;
+        const textIndex = tagText.toLowerCase().indexOf(pos.text);
+        if (textIndex >= 0) {
+          const element = tagElement.firstChild!;
+          this.createHighlight(element, textIndex, pos.text.length);
+        }
+      }
+    }
   }
 
   private highlightTrailName(trailElement: HTMLElement, position: number, length: number): void {

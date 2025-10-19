@@ -235,74 +235,15 @@ export class TrailOverviewComponent extends AbstractComponent {
       },
       true
     );
-    if (owner === this.auth.email) {
-      this.byStateAndVisible.subscribe(
-        this.load$.pipe(
-          filterDefined(),
-          switchMap(() => {
-            if (this.trailTags !== undefined)
-              return this.tagService.getTagsFullnames$(this.trailTags.map(t => t.tagUuid));
-            return this.tagService.getTrailTagsFullNames$(this.trail!.uuid);
-          }),
-          debounceTimeExtended(0, 100)
-        ),
-        tagsNames => {
-          if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
-            this.tagsNames = tagsNames.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));
-            this.changesDetection.detectChanges();
-          }
-        },
-        true
-      );
-    }
-    if (this.photoEnabled) {
-      this.byStateAndVisible.subscribe(
-        this.load$.pipe(
-          filterDefined(),
-          switchMap(() => this.photoService.getTrailPhotos$(this.trail!))
-        ),
-        photos => {
-          photos.sort((p1, p2) => {
-            if (p1.isCover) return -1;
-            if (p2.isCover) return 1;
-            return p1.index - p2.index;
-          });
-          this.photos = photos;
-          this.changesDetection.detectChanges();
-        }
-      );
-    }
-    if (!this.trail.owner.includes('@')) {
-      if (this.trailInfo === undefined)
-        this.byStateAndVisible.subscribe(
-          this.load$.pipe(
-            filterDefined(),
-            switchMap(() => this.injector.get(FetchSourceService).getTrailInfo$(this.trail!.owner, this.trail!.uuid))
-          ),
-          info => {
-            const v = info ?? undefined;
-            if (this.external$.value === v) return;
-            this.external$.next(v);
-          }
-        );
-      else
-        this.external$.next(this.trailInfo ?? undefined);
-    }
-    if (this.showPublished) {
-      this.byStateAndVisible.subscribe(
-        this.load$.pipe(
-          filterDefined(),
-          switchMap(() => this.injector.get(MyPublicTrailsService).myPublicTrails$)
-        ),
-        myPublicTrails => {
-          const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
-          if (newValue !== this.publicTrailUuid) {
-            this.publicTrailUuid = newValue;
-            this.changesDetection.detectChanges();
-          }
-        }
-      );
-    }
+    if (owner === this.auth.email)
+      this.listenToTags();
+    if (this.photoEnabled)
+      this.listenToPhotos();
+    if (!this.trail.owner.includes('@'))
+      this.listenToExternal();
+    if (this.showPublished)
+      this.listenToPublicTrail();
+
     if (this.delayLoading && !this.load$.value && !this.observer) {
       this.observer = new IntersectionObserver(entries => {
         if (this.observer && entries[0].isIntersecting) {
@@ -314,6 +255,78 @@ export class TrailOverviewComponent extends AbstractComponent {
       this.observer.observe(this.injector.get(ElementRef).nativeElement);
     }
     if (!this.load$.value) this.changesDetection.detectChanges();
+  }
+
+  private listenToTags(): void {
+    this.byStateAndVisible.subscribe(
+      this.load$.pipe(
+        filterDefined(),
+        switchMap(() => {
+          if (this.trailTags !== undefined)
+            return this.tagService.getTagsFullnames$(this.trailTags.map(t => t.tagUuid));
+          return this.tagService.getTrailTagsFullNames$(this.trail!.uuid);
+        }),
+        debounceTimeExtended(0, 100)
+      ),
+      tagsNames => {
+        if (!Arrays.sameContent(tagsNames, this.tagsNames)) {
+          this.tagsNames = tagsNames.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));
+          this.changesDetection.detectChanges();
+        }
+      },
+      true
+    );
+  }
+
+  private listenToPhotos(): void {
+    this.byStateAndVisible.subscribe(
+      this.load$.pipe(
+        filterDefined(),
+        switchMap(() => this.photoService.getTrailPhotos$(this.trail!))
+      ),
+      photos => {
+        photos.sort((p1, p2) => {
+          if (p1.isCover) return -1;
+          if (p2.isCover) return 1;
+          return p1.index - p2.index;
+        });
+        this.photos = photos;
+        this.changesDetection.detectChanges();
+      }
+    );
+  }
+
+  private listenToExternal(): void {
+    if (this.trailInfo === undefined)
+      this.byStateAndVisible.subscribe(
+        this.load$.pipe(
+          filterDefined(),
+          switchMap(() => this.injector.get(FetchSourceService).getTrailInfo$(this.trail!.owner, this.trail!.uuid))
+        ),
+        info => {
+          const v = info ?? undefined;
+          if (this.external$.value === v) return;
+          this.external$.next(v);
+        }
+      );
+    else
+      this.external$.next(this.trailInfo ?? undefined);
+  }
+
+  private listenToPublicTrail(): void {
+    this.byStateAndVisible.subscribe(
+      this.load$.pipe(
+        filterDefined(),
+        switchMap(() => this.injector.get(MyPublicTrailsService).myPublicTrails$)
+      ),
+      myPublicTrails => {
+        const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
+        if (newValue !== this.publicTrailUuid) {
+          this.publicTrailUuid = newValue;
+          this.changesDetection.detectChanges();
+        }
+      }
+    );
   }
 
   private trackData$(trail: Trail, owner: string): Observable<[TrackMetadataSnapshot | Track | undefined, number | undefined]> {

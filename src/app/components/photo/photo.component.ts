@@ -145,11 +145,11 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     });
   }
 
-  private wheelListener = (ev: WheelEvent) => this.onWheel(ev);
-  private pointerDownListener = (ev: MouseEvent) => this.onDown(ev);
-  private pointerMoveListener = (ev: MouseEvent) => this.onMove(ev);
-  private pointerUpListener = (ev: MouseEvent) => this.onUp(ev);
-  private touchMoveListener = (ev: TouchEvent) => this.onTouch(ev);
+  private readonly wheelListener = (ev: WheelEvent) => this.onWheel(ev);
+  private readonly pointerDownListener = (ev: MouseEvent) => this.onDown(ev);
+  private readonly pointerMoveListener = (ev: MouseEvent) => this.onMove(ev);
+  private readonly pointerUpListener = (ev: MouseEvent) => this.onUp(ev);
+  private readonly touchMoveListener = (ev: TouchEvent) => this.onTouch(ev);
 
   private subscribeEvents(image: HTMLImageElement): void {
     this.ngZone.runOutsideAngular(() => {
