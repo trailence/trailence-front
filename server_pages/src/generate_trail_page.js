@@ -45,8 +45,8 @@ function retrieveData(request, slug) {
 
 function translateData(data, i18n, lang) {
   if (data.lang !== lang) {
-    if (data.nameTranslations[lang]) data.name = data.nameTranslations[lang];
-    if (data.descriptionTranslations[lang]) data.description = data.descriptionTranslations[lang];
+    if (data.nameTranslations && data.nameTranslations[lang]) data.name = data.nameTranslations[lang];
+    if (data.descriptionTranslations && data.descriptionTranslations[lang]) data.description = data.descriptionTranslations[lang];
   }
   data.i18n = i18n;
   data.activity = i18n.activity[data.activity];
@@ -56,11 +56,11 @@ function translateData(data, i18n, lang) {
     data.nbRates = nbRates;
     const rate = (data.nbRate1 + (data.nbRate2 * 2) + (data.nbRate3 * 3) + (data.nbRate4 * 4) + (data.nbRate5 * 5)) / nbRates;
     data.rate = '' + Math.floor(rate) + '.' + Math.floor((rate * 10) % 10) + ' / 5 ' + i18n.pages.trail.sections.comments.rate.global_on_nb.replace('{{1}}', nbRates);
-    data.star1 = rate < 0.5 ? 'empty' : rate >= 1 ? 'filled' : 'half';
-    data.star2 = rate < 1.5 ? 'empty' : rate >= 2 ? 'filled' : 'half';
-    data.star3 = rate < 2.5 ? 'empty' : rate >= 3 ? 'filled' : 'half';
-    data.star4 = rate < 3.5 ? 'empty' : rate >= 4 ? 'filled' : 'half';
-    data.star5 = rate < 4.5 ? 'empty' : rate >= 5 ? 'filled' : 'half';
+    data.star1 = starIcon(1, rate);
+    data.star2 = starIcon(2, rate);
+    data.star3 = starIcon(3, rate);
+    data.star4 = starIcon(4, rate);
+    data.star5 = starIcon(5, rate);
   }
   const jd = {
     "@context": "https://schema.org",
@@ -89,12 +89,12 @@ function translateData(data, i18n, lang) {
   data.jdJson = jd;
   return data;
 }
-/*
-All Trails
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","@id":"/fr/randonnee/france/alpes-de-haute-provence/col-de-la-cayolle","address":{"@type":"PostalAddress","addressLocality":"Barcelonnette, Alpes-de-Haute-Provence, France"},"geo":{"@type":"GeoCoordinates","latitude":"44.25961","longitude":"6.74396"},"name":"Col de la Cayolle","description":"Partez découvrir cet itinéraire en boucle de 8,7-km près de Barcelonnette, Alpes-de-Haute-Provence. Généralement considéré comme un parcours difficile, il faut en moyenne 3 h 9 min pour le parcourir. C’est un endroit très prisé pour la randonnée, vous croiserez donc probablement du monde pendant votre excursion. La meilleure période de visite est de mai à octobre. Vous devrez laisser votre chien à la maison car ils ne sont pas autorisés sur ce sentier.","aggregateRating":{"@type":"AggregateRating","ratingValue":4.6,"reviewCount":90,"worstRating":"0","bestRating":"5"},"image":["https://images.alltrails.com/eyJidWNrZXQiOiJhc3NldHMuYWxsdHJhaWxzLmNvbSIsImtleSI6InVwbG9hZHMvcGhvdG8vaW1hZ2UvMzkwNjQwNDkvZWI3MmZhODMwY2UxZDY4ZTc3M2VlN2Y0MjFjODIwMDguanBnIiwiZWRpdHMiOnsidG9Gb3JtYXQiOiJ3ZWJwIiwicmVzaXplIjp7IndpZHRoIjo1MDAsImhlaWdodCI6NTAwLCJmaXQiOiJpbnNpZGUifSwicm90YXRlIjpudWxsLCJqcGVnIjp7InRyZWxsaXNRdWFudGlzYXRpb24iOnRydWUsIm92ZXJzaG9vdERlcmluZ2luZyI6dHJ1ZSwib3B0aW1pc2VTY2FucyI6dHJ1ZSwicXVhbnRpc2F0aW9uVGFibGUiOjN9fX0="]}</script>
-ClimbFinder
-<script type="application/ld+json">{"@context":"http:\/\/schema.org","@type":"SportsActivityLocation","name":"Col de la Cayolle depuis Barcelonnette","image":"https:\/\/climbfinder.com\/https:\/\/image.climbfinder.com\/col-de-la-cayolle-barcelonnette.png","AggregateRating":{"@type":"aggregateRating","worstRating":1,"bestRating":5,"ratingValue":"5.0","ratingCount":"30"}}</script>
-*/
+
+function starIcon(starValue, value) {
+  if (value >= starValue) return 'filled';
+  if (value < starValue - 0.5) return 'empty';
+  return 'half';
+}
 
 function fillTemplate(data, template) {
   let i = 0;
@@ -111,16 +111,16 @@ function fillTemplate(data, template) {
       name = name.substring(sep + 1);
     }
     if (pos < i) s += template.substring(pos, i);
-    if (!fct) {
-      const value = resolveVariable(name, data);
-      s += escapeHtml(value ? (typeof value === 'string' ? value : '' + value) : '');
-      pos = j + 2;
-    } else {
+    if (fct) {
       const end = template.indexOf('{{/' + fct + '}}', j + 2);
       if (end < 0) break;
       const content = template.substring(j + 2, end);
       s += applyFunction(fct, name, content, data);
       pos = end + 5 + fct.length;
+    } else {
+      const value = resolveVariable(name, data);
+      s += escapeHtml(value ? (typeof value === 'string' ? value : '' + value) : '');
+      pos = j + 2;
     }
   }
   if (pos < template.length) s += template.substring(pos);
@@ -167,17 +167,17 @@ function applyFunction(fctName, fctValue, fctContent, data) {
     return JSON.stringify(fctValue);
   } else if (fctName === 'text') {
     fctValue = resolveVariable(fctValue, data);
-    return (''+fctValue).replace(/\n/g, '<br/>');
+    return (''+fctValue).replaceAll('\n', '<br/>');
   }
   return '';
 }
 
 function escapeHtml(unsafe) {
-  return unsafe.replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return unsafe.replaceAll('&', "&amp;")
+    .replaceAll('<', "&lt;")
+    .replaceAll('>', "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function durationToString(duration, i18n) {
