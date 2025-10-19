@@ -353,6 +353,7 @@ export class TrailGraphComponent extends AbstractComponent {
             callback: this.graphType === 'elevation' ?
               value => (typeof value === 'number' ? value : Number.parseInt(value ?? '0')).toLocaleString(this.preferencesService.preferences.lang, {maximumFractionDigits: 2}) :
               value => this.i18n.durationToString(typeof value === 'number' ? value : Number.parseInt(value ?? '0'), true, false),
+              count: this.width ? Math.max(4, Math.floor(this.width / 100) + 2) : undefined,
           }
         },
         y: {

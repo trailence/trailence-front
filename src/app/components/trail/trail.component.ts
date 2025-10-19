@@ -76,6 +76,7 @@ interface TrailSource {
   author?: string;
   info?: TrailInfo;
   followedInfo?: TrailInfo;
+  publishedFromTrail?: Trail;
 }
 
 @Component({
@@ -431,42 +432,56 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.listenCurrentPublic();
   }
 
+  private _jdTrail?: Trail = undefined;
+  private _jdPhotos = false;
+  private _jdMarker?: HTMLElement;
   ngAfterContentChecked(): void {
     let jd: any = undefined;
     if (this.trail1 && !this.trail2 && !this.recording && this.source?.info?.rating !== undefined && this.trail1.owner === 'trailence' && this.tracks$.value.length > 0) {
-      jd = {
-        "@context": "https://schema.org",
-        "@type": "SportsActivityLocation",
-        "name": this.trail1.name,
-        "description": this.trail1.description,
-        "geo": {
-          "@type":"GeoCoordinates",
-          "latitude": this.tracks$.value[0].departurePoint?.pos.lat,
-          "longitude": this.tracks$.value[0].departurePoint?.pos.lng
-        },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": Math.floor(this.source.info.rating) + '.' + Math.floor((this.source.info.rating * 10) % 10),
-          "ratingCount": (this.source.info.nbRate0 ?? 0) + (this.source.info.nbRate1 ?? 0) + (this.source.info.nbRate2 ?? 0) + (this.source.info.nbRate3 ?? 0) + (this.source.info.nbRate4 ?? 0) + (this.source.info.nbRate5 ?? 0),
-          "worstRating":0,
-          "bestRating":5
+      if (this._jdTrail !== this.trail1 || this._jdPhotos !== (this.photos && this.photos.length > 0)) {
+        jd = {
+          "@context": "https://schema.org",
+          "@type": "SportsActivityLocation",
+          "name": this.trail1.name,
+          "description": this.trail1.description,
+          "geo": {
+            "@type":"GeoCoordinates",
+            "latitude": this.tracks$.value[0].departurePoint?.pos.lat,
+            "longitude": this.tracks$.value[0].departurePoint?.pos.lng
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": Math.floor(this.source.info.rating) + '.' + Math.floor((this.source.info.rating * 10) % 10),
+            "ratingCount": (this.source.info.nbRate0 ?? 0) + (this.source.info.nbRate1 ?? 0) + (this.source.info.nbRate2 ?? 0) + (this.source.info.nbRate3 ?? 0) + (this.source.info.nbRate4 ?? 0) + (this.source.info.nbRate5 ?? 0),
+            "worstRating":0,
+            "bestRating":5
+          }
+        };
+        this._jdTrail = this.trail1;
+        if (this.photos && this.photos.length > 0) {
+            jd.image = 'https://trailence.org/api/public/trails/v1/photo/' + this.trail1.uuid + '/' + this.photos[0].uuid;
+            this._jdPhotos = true;
         }
-      };
-      if (this.photos && this.photos.length > 0) {
-          jd.image = 'https://trailence.org/api/public/trails/v1/photo/' + this.trail1.uuid + '/' + this.photos[0].uuid;
       }
+    } else if (this._jdTrail !== undefined) {
+      this._jdTrail = undefined;
+      this._jdPhotos = false;
+      jd = null;
     }
-    const jdMarker = globalThis.document.getElementById('trail-jd-json-' + this.id);
-    if (jdMarker) {
-      if (jd) {
-        jdMarker.innerHTML = '<script type="application/jd+json">' + JSON.stringify(jd) + '</script>';
-      } else {
-        jdMarker.innerHTML = '';
+    if (jd !== undefined) {
+      this._jdMarker ??= globalThis.document.getElementById('trail-jd-json-' + this.id) ?? undefined;
+      if (this._jdMarker) {
+        if (jd) {
+          this._jdMarker.innerHTML = '<script type="application/jd+json">' + JSON.stringify(jd) + '</script>';
+        } else {
+          this._jdMarker.innerHTML = '';
+        }
       }
     }
     if (this.goToRate > 0 && this.goToRate > Date.now() - 1000) {
       if (this.isSmall) {
         this.setTab('reviews');
+        this.goToRate = 0;
       } else if (this.tab !== 'reviews') {
         const rateElement = globalThis.document.getElementById('rate-' + this.id);
         if (rateElement) rateElement.scrollIntoView({behavior: 'smooth', block: 'start', inline: 'start'});
@@ -673,12 +688,19 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               source.externalUrl = source.externalUrl.substring(environment.baseUrl.length);
           }
           const followedTrail$ = this.getFollowedTrailInfo(trail1);
+          const info$ = trail1.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trail1.owner, trail1.uuid);
+          const infoAndPublishedFrom$ = info$.pipe(
+            switchMap(info => {
+              if (info?.myUuid) return this.trailService.getTrail$(info.myUuid, this.auth.email!).pipe(map(originalTrail => ([info, originalTrail] as [TrailInfo | null, Trail | null])));
+              return of([info, null] as [TrailInfo | null, Trail | null]);
+            })
+          );
           return combineLatest([
             this.getSourceString(trail1),
-            trail1.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trail1.owner, trail1.uuid),
+            infoAndPublishedFrom$,
             followedTrail$,
           ]).pipe(
-            map(([sourceString, info, followedInfo]) => {
+            map(([sourceString, [info, originalTrail], followedInfo]) => {
               if ((source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http')) ||
                   (!source.externalUrl && info?.externalUrl))
                 source.externalUrl = info?.externalUrl;
@@ -686,6 +708,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               source.author = info?.author;
               source.info = info ?? undefined;
               source.followedInfo = followedInfo ?? undefined;
+              source.publishedFromTrail = originalTrail ?? undefined;
               return source;
             })
           );

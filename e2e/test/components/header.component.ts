@@ -17,11 +17,19 @@ export class HeaderComponent extends Component {
     super(parent, 'app-header');
   }
 
-  public async getTitle() {
+  public getTitle(): Promise<string> {
+    return Promise.race([
+      this._getTitle(),
+      new Promise<string>((resolve, reject) => setTimeout(() => {reject('Header getTitle timeout')}, 10000))
+    ]);
+  }
+
+  private async _getTitle() {
     try {
       const titleDiv = this.getElement().$('div.header-title div.title-text');
-      if (await titleDiv.$('div.with-sub-title').isExisting())
+      if (await titleDiv.$('div.with-sub-title').isExisting()) {
         return await titleDiv.$('div.with-sub-title div.title1').getText();
+      }
       return await this.getElement().$('div.header-title div.title-text').getText();
     } catch (e) {
       return '';

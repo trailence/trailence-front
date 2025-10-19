@@ -305,12 +305,14 @@ export class DatabaseService {
       });
     });
     // monitoring
-    store.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {
-      Console.warn('Store ' + store.name + ' is in progress since more than 1 minute !');
-    });
-    this.db$.pipe(switchMap(db => db ? store.loaded$.pipe(filter(l => l), timeout({first: 20000})) : of(10))).subscribe({
-      error: e => Console.warn('Store ' + store.name + ' is still not loaded after 20 seconds !', e),
-      next: n => { if (n === true) Console.info("Store loaded: " + store.name); }
+    this.ngZone.runOutsideAngular(() => {
+      store.status$.pipe(map(s => !!(s?.inProgress)), debounceTime(60000), filter(progress => progress)).subscribe(() => {
+        Console.warn('Store ' + store.name + ' is in progress since more than 1 minute !');
+      });
+      this.db$.pipe(switchMap(db => db ? store.loaded$.pipe(filter(l => l), timeout({first: 20000})) : of(10))).subscribe({
+        error: e => Console.warn('Store ' + store.name + ' is still not loaded after 20 seconds !', e),
+        next: n => { if (n === true) Console.info("Store loaded: " + store.name); }
+      });
     });
     this._stores.next(this._stores.value);
   }

@@ -341,6 +341,7 @@
       "last_update_on": "Last updated on",
       "published_on": "Published on",
       "published_by": "by",
+      "published_from": "from",
       "select_photo_position": "Select where the photo was taken on the track",
       "source": {
         "trailence_recorder": "Track recorded in Trailence",

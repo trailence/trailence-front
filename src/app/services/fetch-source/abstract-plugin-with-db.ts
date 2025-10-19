@@ -64,11 +64,12 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     schemaV1['simplified_tracks'] = 'uuid';
     schemaV1['metadata'] = 'uuid';
     this.db.version(1).stores(schemaV1);
-    this.tableFullTracks = new DelayedTable(this.db.table<TrackDto, string>('full_tracks'), 'uuid', 5, 1000, 250);
-    this.tableSimplifiedTracks = new DelayedTable(this.db.table<SimplifiedTrackDto, string>('simplified_tracks'), 'uuid', 10, 2000, 500);
-    this.tableMetadata = new DelayedTable(this.db.table<TrackMetadataSnapshot, string>('metadata'), 'uuid', 100, 15000, 5000);
-    this.tableTrails = new DelayedTable(this.db.table<TrailDto, string>('trails'), 'uuid', 100, 20000, 10000);
-    this.tableInfos = new DelayedTable(this.db.table<TRAIL_INFO_DTO, string>('infos'), this.trailInfoId, 100, 20000, 10000);
+    const ngZone = this.injector.get(NgZone);
+    this.tableFullTracks = new DelayedTable(ngZone, this.db.table<TrackDto, string>('full_tracks'), 'uuid', 5, 1000, 250);
+    this.tableSimplifiedTracks = new DelayedTable(ngZone, this.db.table<SimplifiedTrackDto, string>('simplified_tracks'), 'uuid', 10, 2000, 500);
+    this.tableMetadata = new DelayedTable(ngZone, this.db.table<TrackMetadataSnapshot, string>('metadata'), 'uuid', 100, 15000, 5000);
+    this.tableTrails = new DelayedTable(ngZone, this.db.table<TrailDto, string>('trails'), 'uuid', 100, 20000, 10000);
+    this.tableInfos = new DelayedTable(ngZone, this.db.table<TRAIL_INFO_DTO, string>('infos'), this.trailInfoId, 100, 20000, 10000);
     this.injector.get(NgZone).runOutsideAngular(() => setTimeout(() => this.clean(), 10000));
   }
 

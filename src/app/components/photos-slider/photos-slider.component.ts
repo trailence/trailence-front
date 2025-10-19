@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
@@ -39,6 +39,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
     private readonly browser: BrowserService,
     private readonly gestureController: GestureController,
     private readonly changesDetector: ChangeDetectorRef,
+    private readonly ngZone: NgZone,
   ) {
   }
 
@@ -74,21 +75,23 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
         lastTimestamp = detail.event.timeStamp;
       };
       const element = document.getElementById(this.id + '-photos-container')!;
-      this.gesture = this.gestureController.create({
-        el: element,
-        threshold: this.screenWidth > 300 ? 15 : 5,
-        direction: 'x',
-        gestureName: 'photos-slider',
-        onMove: move,
-        onEnd: end,
-        onStart: event => event.event.stopPropagation()
-      }, true);
-      this.gesture.enable();
-      element.addEventListener('click', event => {
-        if (event.timeStamp - lastTimestamp < 0.5) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
+      this.ngZone.runOutsideAngular(() => {
+        this.gesture = this.gestureController.create({
+          el: element,
+          threshold: this.screenWidth > 300 ? 15 : 5,
+          direction: 'x',
+          gestureName: 'photos-slider',
+          onMove: move,
+          onEnd: end,
+          onStart: event => event.event.stopPropagation()
+        }, false);
+        this.gesture.enable();
+        element.addEventListener('click', event => {
+          if (event.timeStamp - lastTimestamp < 0.5) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        });
       });
     }, 0);
   }

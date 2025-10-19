@@ -1,8 +1,10 @@
+import { NgZone } from '@angular/core';
 import { Table } from 'dexie';
 
 export class DelayedTable<DTO, K> {
 
   constructor(
+    private readonly ngZone: NgZone,
     public readonly table: Table<DTO, K>,
     private readonly keyName: string,
     private readonly chunkSize: number = 25,
@@ -52,12 +54,18 @@ export class DelayedTable<DTO, K> {
 
   public put(item: DTO): void {
     this.delayedItems.set((item as any)[this.keyName], item);
-    this.delay ??= setTimeout(() => this.processDelayed(), this.initialDelay);
+    this.setDelay();
   }
 
   public bulkPut(items: DTO[]): void {
     for (const item of items) this.delayedItems.set((item as any)[this.keyName], item);
-    this.delay ??= setTimeout(() => this.processDelayed(), this.initialDelay);
+    this.setDelay();
+  }
+
+  private setDelay(): void {
+    this.ngZone.runOutsideAngular(() => {
+      this.delay ??= setTimeout(() => this.processDelayed(), this.initialDelay);
+    });
   }
 
   private processDelayed(): void {
@@ -72,7 +80,9 @@ export class DelayedTable<DTO, K> {
       if (this.delayedItems.size === 0) {
         this.delay = undefined;
       } else {
-        setTimeout(() => this.processDelayed(), this.subsequentDelay);
+        this.ngZone.runOutsideAngular(() => {
+          setTimeout(() => this.processDelayed(), this.subsequentDelay);
+        });
       }
     });
   }

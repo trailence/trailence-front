@@ -341,6 +341,7 @@
       "last_update_on": "Dernière mise à jour le",
       "published_on": "Publié le",
       "published_by": "par",
+      "published_from": "à partir de",
       "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours",
       "source": {
         "trailence_recorder": "Trace enregistrée dans Trailence",

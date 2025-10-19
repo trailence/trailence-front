@@ -314,6 +314,18 @@
                   @if (source?.author) {
                     <span class="trail-date-title"> {{i18n.texts.pages.trail.published_by}} </span>
                     <span class="trail-date-value">{{source?.author}}</span>
+                    @if (source?.info?.itsMine) {
+                      <span class="trail-you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
+                      @if (source?.publishedFromTrail) {
+                        <span class="trail-date-title"> {{i18n.texts.pages.trail.published_from}} </span>
+                        <a [routerLink]="'/trail/' + source!.publishedFromTrail!.owner + '/' + source!.publishedFromTrail!.uuid">{{source!.publishedFromTrail!.name}}</a>
+                      }
+                    }
+                  } @else if (source?.publishedFromTrail) {
+                    <span class="trail-date-title"> {{i18n.texts.pages.trail.published_by}} </span>
+                    <span class="trail-you"> {{i18n.texts.pages.trail.sections.comments.you}}</span>
+                    <span class="trail-date-title"> {{i18n.texts.pages.trail.published_from}} </span>
+                    <a [routerLink]="'/trail/' + source!.publishedFromTrail!.owner + '/' + source!.publishedFromTrail!.uuid">{{source!.publishedFromTrail!.name}}</a>
                   }
                 </div>
               }

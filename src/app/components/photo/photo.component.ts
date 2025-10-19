@@ -28,7 +28,19 @@ export class PhotoComponent implements OnChanges, OnDestroy {
 
   @Output() blobSize = new EventEmitter<number>();
 
-  @ViewChild('image') img?: ElementRef;
+  private img?: ElementRef;
+  private eventsSet?: HTMLImageElement;
+  @ViewChild('image') set image(value: ElementRef) {
+    this.img = value;
+    if (this.eventsSet !== undefined && value?.nativeElement !== this.eventsSet) {
+      this.unsubscribeEvents(this.eventsSet);
+      this.eventsSet = undefined;
+    }
+    if (this.eventsSet === undefined && value) {
+      this.eventsSet = value.nativeElement;
+      this.subscribeEvents(this.eventsSet!);
+    }
+  };
 
   blob?: string;
   error = false;
@@ -133,7 +145,39 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     });
   }
 
-  onWheel(event: WheelEvent): void {
+  private wheelListener = (ev: WheelEvent) => this.onWheel(ev);
+  private pointerDownListener = (ev: MouseEvent) => this.onDown(ev);
+  private pointerMoveListener = (ev: MouseEvent) => this.onMove(ev);
+  private pointerUpListener = (ev: MouseEvent) => this.onUp(ev);
+  private touchMoveListener = (ev: TouchEvent) => this.onTouch(ev);
+
+  private subscribeEvents(image: HTMLImageElement): void {
+    this.ngZone.runOutsideAngular(() => {
+      image.addEventListener('wheel', this.wheelListener);
+      image.addEventListener('pointerdown', this.pointerDownListener);
+      image.addEventListener('pointermove', this.pointerMoveListener);
+      image.addEventListener('pointerup', this.pointerUpListener);
+      image.addEventListener('pointercancel', this.pointerUpListener);
+      image.addEventListener('pointerleave', this.pointerUpListener);
+      image.addEventListener('pointerout', this.pointerUpListener);
+      image.addEventListener('touchmove', this.touchMoveListener);
+    });
+  }
+
+  private unsubscribeEvents(image: HTMLImageElement): void {
+    this.ngZone.runOutsideAngular(() => {
+      image.removeEventListener('wheel', this.wheelListener);
+      image.removeEventListener('pointerdown', this.pointerDownListener);
+      image.removeEventListener('pointermove', this.pointerMoveListener);
+      image.removeEventListener('pointerup', this.pointerUpListener);
+      image.removeEventListener('pointercancel', this.pointerUpListener);
+      image.removeEventListener('pointerleave', this.pointerUpListener);
+      image.removeEventListener('pointerout', this.pointerUpListener);
+      image.removeEventListener('touchmove', this.touchMoveListener);
+    });
+  }
+
+  private onWheel(event: WheelEvent): void {
     if (!this.zoomable || !(event instanceof WheelEvent) || !this.img) return;
     const image = this.img.nativeElement as HTMLImageElement;
     const x = (event.layerX - (-(((image.width * this.zoomScale) - image.width) / 2) + this.zoomTranslateX)) / this.zoomScale;
@@ -145,7 +189,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   private _mouseMove = false;
   private readonly _pointers: Pointer[] = [];
   private _pinchZoomState?: {scale: number, translateX: number, translateY: number, diff: number, centerX: number, centerY: number};
-  onDown(event: MouseEvent): void {
+  private onDown(event: MouseEvent): void {
     if (this.zoomScale > 1) {
       event.preventDefault();
       event.stopPropagation();
@@ -167,7 +211,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     }
   }
 
-  onMove(event: MouseEvent): void {
+  private onMove(event: MouseEvent): void {
     if (!this.img) return;
     const image = this.img.nativeElement;
     if (event instanceof PointerEvent && event.pointerType === 'touch') {
@@ -226,7 +270,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     this.applyZoom(image);
   }
 
-  onUp(event?: MouseEvent): void {
+  private onUp(event?: MouseEvent): void {
     this._mouseMove = false;
     if (event instanceof PointerEvent && event.pointerType === 'touch') {
       const i = this._pointers.findIndex(p => p.id === event.pointerId);
@@ -236,7 +280,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     }
   }
 
-  onTouch(event: TouchEvent): void {
+  private onTouch(event: TouchEvent): void {
     if (this._mouseMove || this._pointers.length === 2) {
       event.stopPropagation();
       event.preventDefault();
@@ -247,14 +291,14 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   private zoomTranslateX = 0;
   private zoomTranslateY = 0;
 
-  zoomIn(image: HTMLImageElement, x: number, y: number, scale: number): void {
+  private zoomIn(image: HTMLImageElement, x: number, y: number, scale: number): void {
     this.zoomScale *= scale;
     if (this.zoomScale <= 1) this.onUp();
     this.centerZoom(image, x, y);
     this.applyZoom(image);
   }
 
-  zoomOut(image: HTMLImageElement, x: number, y: number, scale: number): void {
+  private zoomOut(image: HTMLImageElement, x: number, y: number, scale: number): void {
     this.zoomScale /= scale;
     if (this.zoomScale <= 1) {
       this.onUp();
@@ -268,13 +312,13 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     this.applyZoom(image);
   }
 
-  centerZoom(image: HTMLImageElement, x: number, y: number): void {
+  private centerZoom(image: HTMLImageElement, x: number, y: number): void {
     const translateX = ((image.width / 2) - x) * this.zoomScale;
     const translateY = ((image.height / 2) - y) * this.zoomScale;
     this.applyTranslate(image, translateX, translateY);
   }
 
-  applyTranslate(image: HTMLImageElement, translateX: number, translateY: number): void {
+  private applyTranslate(image: HTMLImageElement, translateX: number, translateY: number): void {
     const width = image.width * this.zoomScale;
     const maxWidth = this.maxWidth ?? image.naturalWidth;
     const maxTranslateX = Math.max(0, (width - maxWidth) / 2);
@@ -288,7 +332,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
     this.zoomTranslateY = Math.max(minTranslateY, Math.min(maxTranslateY, translateY));
   }
 
-  applyZoom(image: HTMLImageElement): void {
+  private applyZoom(image: HTMLImageElement): void {
     image.style.transform = 'translateX(' + this.zoomTranslateX + 'px) translateY(' + this.zoomTranslateY + 'px) scale(' + this.zoomScale + ')';
   }
 
