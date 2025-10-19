@@ -1,6 +1,7 @@
 import { AdminUsersPage } from '../../admin/admin.users.page';
 import { UserModal } from '../../admin/user.modal';
 import { App } from '../../app/app';
+import { TestUtils } from '../../utils/test-utils';
 
 describe('Admin Users', () => {
 
@@ -22,7 +23,7 @@ describe('Admin Users', () => {
   });
 
   it('Open myself', async () => {
-    const cell = await usersPage.table.searchCellByColumnTitleAndValue('E-Mail', 'user@trailence.org');
+    const cell = await TestUtils.retry(() => usersPage.table.searchCellByColumnTitleAndValue('E-Mail', 'user@trailence.org'), 2, 1000);
     expect(cell).toBeDefined();
     if (cell) {
       await cell.click();

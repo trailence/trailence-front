@@ -8,7 +8,7 @@ import { AssetsService } from '../assets/assets.service';
 import { Console } from 'src/app/utils/console';
 import { DomSanitizer } from '@angular/platform-browser';
 
-const TEXTS_VERSION = '47';
+const TEXTS_VERSION = '48';
 
 interface TextToLoad {
   filePath: string;
