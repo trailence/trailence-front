@@ -12,6 +12,7 @@
   --bottom-tabs-width: 0px;
   --left-pane-button-width: 12px;
   --left-pane-width: var(--left-pane-button-width);
+  --metadata-width: 300px;
 
   &.left-pane-open {
     --left-pane-width: calc(min(80vw, calc(350px + var(--left-pane-button-width))));
@@ -74,11 +75,26 @@
     bottom: var(--bottom-pane-height);
     right: 0;
     left: var(--left-pane-button-width);
+
+    ion-spinner.map-loading {
+      position: absolute;
+      top: 60px;
+      left: calc(50vw - 14px);
+      z-index: 1000;
+      pointer-events: none;
+    }
   }
 
   &.has-elevation {
-    --bottom-tabs-width: 30px;
     --elevation-graph-height: var(--bottom-pane-height);
+    &:not(.both-info-elevation) {
+      --bottom-tabs-width: 30px;
+    }
+    &.both-info-elevation {
+      .elevation-graph-container {
+        left: calc(var(--left-pane-button-width) + var(--bottom-tabs-width) + var(--metadata-width) + 10px);
+      }
+    }
   }
 
   .elevation-graph-container {
@@ -133,7 +149,7 @@
     .metadata-container {
       margin: 5px 10px;
       margin-left: calc(var(--bottom-tabs-width) + 5px);
-      max-width: 300px;
+      max-width: var(--metadata-width);
     }
   }
 }

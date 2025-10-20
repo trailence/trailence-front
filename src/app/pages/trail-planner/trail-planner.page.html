@@ -1,9 +1,12 @@
 <app-header title="{{i18n.texts.pages.trailplanner.title}}"></app-header>
-<div class="page-content bottom-tab-{{bottomTab}}"
+<div class="page-content bottom-tab-{{bottomTab}} {{bothInfoAndElevationFitOnBottom ? 'both-info-elevation' : ''}}"
   [ngClass]="{'bottom-pane-open': !!trackBuilder?.track, 'has-elevation': !!trackBuilder?.hasElevation, 'left-pane-open': leftPaneOpen}"
 >
 
   <div class="map-container">
+    @if (trackBuilder?.searchingWays) {
+      <ion-spinner name="dots" class="map-loading"></ion-spinner>
+    }
     <app-map #map mapId="trail-planner" [tracks$]="mapTracks$" [ngClass]="{'mouse-pointer': trackBuilder?.putAnchors}"
       (mouseClickPoint)="mapClickPoint($event)"
       (mouseOverPoint)="mouseOverPointOnMap($event)"
@@ -41,7 +44,7 @@
     </app-map>
   </div>
   <div class="elevation-graph-container">
-    @if (!!trackBuilder?.hasElevation && bottomTab === 'elevation') {
+    @if (!!trackBuilder?.hasElevation && (bothInfoAndElevationFitOnBottom || bottomTab === 'elevation')) {
       <app-trail-graph [track1]="trackBuilder!.track!"
         (pointHover)="graphPointHover($event)"
         graphType="elevation"
@@ -82,7 +85,7 @@
   </div>
 
   <div class="bottom-pane">
-    @if (trackBuilder?.hasElevation) {
+    @if (trackBuilder?.hasElevation && !bothInfoAndElevationFitOnBottom) {
       <div class="bottom-tabs">
         <div class="bottom-tab {{bottomTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomTab('info')">
           <ion-icon name="info"></ion-icon>
@@ -92,7 +95,7 @@
         </div>
       </div>
     }
-    @if (!trackBuilder?.hasElevation || bottomTab === 'info') {
+    @if (!trackBuilder?.hasElevation || bottomTab === 'info' || bothInfoAndElevationFitOnBottom) {
       @if (trackBuilder && trackBuilder.track) {
         <div class="metadata-container two-columns with-title">
           <div class="metadata-item-container">

@@ -832,7 +832,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.trail1$.pipe(
       filterDefined(),
       filter(t => t.fromModeration && !!t.publishedFromUuid),
-      switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)),
+      switchMap(t => this.injector.get(ModerationService).getPublicUuid(t.publishedFromUuid!, t.owner)), // NOSONAR
       take(1),
     ).subscribe(uuid => {
       this.currentPublicTrailUuid = uuid;

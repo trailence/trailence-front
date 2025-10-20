@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Injector } from '@angular/core';
+import { Injector } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { MapComponent } from 'src/app/components/map/map.component';
 import { MapAnchor } from 'src/app/components/map/markers/map-anchor';
@@ -53,14 +53,12 @@ export class TrackBuilder {
   public putFreeAnchor = false;
 
   private readonly map: MapComponent;
-  private readonly changeDetector: ChangeDetectorRef;
 
   constructor(
     private readonly injector: Injector,
     private readonly planner: TrailPlannerPage,
   ) {
     this.map = planner.map!;
-    this.changeDetector = injector.get(ChangeDetectorRef);
     this.map.ready$.subscribe(
       () => this.loadFromLocalStorage()
     );
@@ -130,7 +128,7 @@ export class TrackBuilder {
       this.updateMapTracks(matching);
       this.hasElevation = this.track!.forEachPoint(p => p.ele !== undefined) ?? false;
     }
-    this.changeDetector.detectChanges();
+    this.planner.changesDetection.detectChanges();
   }
 
   private getLastPoint(): Point | undefined {
@@ -173,7 +171,7 @@ export class TrackBuilder {
         this.possibleWaysFromCursor$.next([]);
         this.possibleWaysFromLastAnchor$.next([]);
         this.map.removeFromMap(this._addAnchor!.marker);
-        this.changeDetector.detectChanges();
+        this.planner.changesDetection.detectChanges();
         return;
       }
       const ref = this.getEligiblePoint(refs);
@@ -198,7 +196,7 @@ export class TrackBuilder {
         this.setHighlightedWays([]);
         this.possibleWaysFromCursor$.next([]);
       }
-      this.changeDetector.detectChanges();
+      this.planner.changesDetection.detectChanges();
     });
     this.anchorMapClickSubscription = this.map.mouseClickPoint.subscribe(refs => {
       if (this.map.getState().zoom < this.planner.minZoom) {
@@ -316,7 +314,7 @@ export class TrackBuilder {
     this.updateMapTracks(matching);
     this.updateCurrentMapTrack();
     this.saveToLocalStorage();
-    this.changeDetector.detectChanges();
+    this.planner.changesDetection.detectChanges();
   }
 
   private goTo(from: L.LatLngLiteral, to: L.LatLngLiteral, points: SimplifiedPoint[]): void {
@@ -370,15 +368,26 @@ export class TrackBuilder {
     return mapTrack;
   }
 
+  public searchingWays = false;
+
   private updateWays(): void {
     if (!this.putAnchors) return;
     if (this.map.getState().zoom < this.planner.minZoom) {
       this.cancelWays();
       return;
     }
+    this.searchingWays = true;
+    const bounds = this.map.getBounds();
+    if (!bounds) {
+      setTimeout(() => this.updateWays(), 100);
+      return;
+    }
     this.injector.get(GeoService)
-      .findWays(this.map.getBounds()!) // NOSONAR
-      .subscribe(ways => this.updateWaysFromService(WayUtils.mergeWays(ways)));
+      .findWays(bounds)
+      .subscribe(ways => {
+        this.updateWaysFromService(WayUtils.mergeWays(ways));
+        this.searchingWays = false;
+      });
   }
 
   private cancelWays(): void {

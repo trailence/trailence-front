@@ -28,6 +28,8 @@ import { MenuItem } from 'src/app/components/menus/menu-item';
 import { ToolbarComponent } from 'src/app/components/menus/toolbar/toolbar.component';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
+import { AuthService } from 'src/app/services/auth/auth.service';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 @Component({
     selector: 'app-trail-planner',
@@ -69,7 +71,7 @@ export class TrailPlannerPage extends AbstractPage {
 
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
   tools: MenuItem[] = [
-    new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => !this.trackBuilder?.track),
+    new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => !this.trackBuilder?.track && !!this.auth.auth && !this.auth.auth.isAnonymous),
     new MenuItem(),
     new MenuItem().setIcon('play').setI18nLabel('pages.trailplanner.start').setTextColor('success')
       .setVisible(() => !this.trackBuilder?.track && !!this.mapState && this.mapState.zoom >= this.minZoom)
@@ -107,12 +109,15 @@ export class TrailPlannerPage extends AbstractPage {
 
   connected$: Observable<boolean>;
 
+  bothInfoAndElevationFitOnBottom = false;
+
   constructor(
     injector: Injector,
     public i18n: I18nService,
     collectionService: TrailCollectionService,
-    private readonly changeDetector: ChangeDetectorRef,
     networkService: NetworkService,
+    private readonly auth: AuthService,
+    private readonly browser: BrowserService,
   ) {
     super(injector);
     this.hover = new TrailHoverCursor(() => this.map, () => this.graph);
@@ -121,9 +126,16 @@ export class TrailPlannerPage extends AbstractPage {
       collections => this.collections = collectionService.sort(collections)
     ));
     this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
+    this.whenVisible.subscribe(browser.resize$, size => this.updateSize(size.width, size.height));
+  }
+
+  private updateSize(width: number, height: number): void {
+    this.bothInfoAndElevationFitOnBottom = width >= 300 + 800;
+    this.changesDetection.detectChanges();
   }
 
   protected override initComponent(): void {
+    this.updateSize(this.browser.width, this.browser.height);
     this._children$.pipe(
       map(children => children.find(child => child instanceof MapComponent)),
       filterDefined(),
@@ -206,7 +218,7 @@ export class TrailPlannerPage extends AbstractPage {
     if (hasForbidden)
       html += '<div style="display: flex; flex-direction: row; align-items: center; padding: 4px"><div style="height: 0; width: 25px; margin-right: 10px; border-bottom: 3px solid ' + WAY_MAPTRACK_FORBIDDEN_COLOR + '"></div><div>' + this.i18n.texts.pages.trailplanner.legend.forbidden + '</div></div>';
     legend.innerHTML = html;
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
   mapClickPoint(event: MapTrackPointReference[]): void {
@@ -231,7 +243,7 @@ export class TrailPlannerPage extends AbstractPage {
   setBottomTab(tab: 'info' | 'elevation'): void {
     if (tab === this.bottomTab) return;
     this.bottomTab = tab;
-    this.changeDetector.detectChanges();
+    this.changesDetection.detectChanges();
   }
 
 }

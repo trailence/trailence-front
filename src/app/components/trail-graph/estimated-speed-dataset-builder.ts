@@ -20,6 +20,14 @@ export class EstimatedSpeedDatasetBuilder {
       tension: 0.02,
       data: []
     } as any;
+    // 1. estimate speed for each point
+    this.fillEstimatedSpeed(ds, track, originalData, prefs, i18n);
+    // 2. split data by section of at least 10 points and 1 minute, and apply an ease-in-out function
+    this.easeInOutBySection(ds, originalData, i18n);
+    return ds;
+  }
+
+  private static fillEstimatedSpeed(ds: any, track: Track, originalData: DataPoint[], prefs: ComputedPreferences, i18n: I18nService): void {
     let distance = 0;
     let duration = 0;
     let estimatedDuration = 0;
@@ -69,103 +77,111 @@ export class EstimatedSpeedDatasetBuilder {
           (segmentDuration || (trackDistance > 0 && trackDistance - distance > prefs.estimatedBaseSpeed * 0.4)) // no break if no time info and remaining distance is around 30 minutes
         ) {
           const breakTime = estimateSmallBreakTime(duration);
-          let t = 0;
-          for (let i = ds.data.length - 1; i >= 0 && i >= ds.data.length - 100; --i) {
-            if (ds.data[i].timeFromPreviousPoint === undefined) continue;
-            t += ds.data[i].timeFromPreviousPoint;
-            if (t <= breakTime) {
-              ds.data[i].speed = 0;
-              ds.data[i].y = 0;
-              originalData[ds.data[i].originalDataIndex].estimatedSpeed = 0;
-            } else {
-              const tDelta = 1 - (t - breakTime) / ds.data[i].timeFromPreviousPoint;
-              ds.data[i].speed *= tDelta;
-              ds.data[i].y *= tDelta;
-              originalData[ds.data[i].originalDataIndex].estimatedSpeed = ds.data[i].speed;
-              break;
-            }
-          }
+          this.addSmallBreak(breakTime, ds, originalData);
           estimatedDuration += breakTime;
           durationSincePreviousBreak = 0;
         }
       }
     }
-    // 2. split data by section of at least 10 points and 1 minute
+  }
+
+  private static addSmallBreak(breakTime: number, ds: any, originalData: DataPoint[]): void {
+    let t = 0;
+    for (let i = ds.data.length - 1; i >= 0 && i >= ds.data.length - 100; --i) {
+      if (ds.data[i].timeFromPreviousPoint === undefined) continue;
+      t += ds.data[i].timeFromPreviousPoint;
+      if (t <= breakTime) {
+        ds.data[i].speed = 0;
+        ds.data[i].y = 0;
+        originalData[ds.data[i].originalDataIndex].estimatedSpeed = 0;
+      } else {
+        const tDelta = 1 - (t - breakTime) / ds.data[i].timeFromPreviousPoint;
+        ds.data[i].speed *= tDelta;
+        ds.data[i].y *= tDelta;
+        originalData[ds.data[i].originalDataIndex].estimatedSpeed = ds.data[i].speed;
+        break;
+      }
+    }
+  }
+
+  private static easeInOutBySection(ds: any, originalData: DataPoint[], i18n: I18nService): void {
     let startIndex = 0;
     let previousMiddle = -1;
     let previousMiddleRemainingDistance = 0;
     let previousAverageSpeed = 0;
     while (startIndex < ds.data.length) {
-      if (ds.data[startIndex].speed === 0) {
+      const section = this.nextSection(ds, startIndex);
+      if (!section) {
         startIndex++;
         previousMiddle = -1;
         continue;
-      }
-      let sectionDistance = 0;
-      let sectionTime = 0;
-      let sectionSpeed = 0;
-      let endIndex = startIndex + 1;
-      for (; endIndex < ds.data.length; ++endIndex) {
-        if (ds.data[endIndex].speed === 0) {
-          endIndex--;
-          break;
-        }
-        if (ds.data[endIndex].isBreakPoint) continue;
-        sectionDistance += ds.data[endIndex].distanceFromPreviousPoint;
-        sectionTime += ds.data[endIndex].timeFromPreviousPoint;
-        sectionSpeed += ds.data[endIndex].speed * ds.data[endIndex].distanceFromPreviousPoint;
-        if (endIndex - startIndex >= 10 && sectionTime >= 60 * 1000) {
-          break;
-        }
-      }
-      if (endIndex === startIndex) {
-        startIndex++;
-        previousMiddle = -1;
-        continue;
-      }
-      const averageSpeed = sectionSpeed / sectionDistance;
-      let middleIndex = startIndex;
-      let middleDistance = 0;
-      while (middleIndex < endIndex && middleDistance < sectionDistance / 2) {
-        middleIndex++;
-        if (ds.data[middleIndex].isBreakPoint) continue;
-        middleDistance += ds.data[middleIndex].distanceFromPreviousPoint;
       }
       if (previousMiddle === -1) {
         let d = 0;
-        for (let i = startIndex; i <= middleIndex && i < ds.data.length; ++i) {
+        for (let i = startIndex; i <= section.middleIndex && i < ds.data.length; ++i) {
           if (ds.data[i].isBreakPoint) continue;
           d += ds.data[i].distanceFromPreviousPoint;
-          const x = d / middleDistance;
+          const x = d / section.middleDistance;
           const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2;
-          const speed = averageSpeed * easeInOut;
+          const speed = section.averageSpeed * easeInOut;
           ds.data[i].y = i18n.distanceInLongUserUnit(speed);
           ds.data[i].speed = speed;
           originalData[ds.data[i].originalDataIndex].estimatedSpeed = speed;
         }
       } else {
         let d = 0;
-        for (let i = previousMiddle + 1; i <= middleIndex; ++i) {
+        for (let i = previousMiddle + 1; i <= section.middleIndex; ++i) {
           if (ds.data[i].isBreakPoint) continue;
           d += ds.data[i].distanceFromPreviousPoint;
-          const x = d / (previousMiddleRemainingDistance + middleDistance);
+          const x = d / (previousMiddleRemainingDistance + section.middleDistance);
           const easeInOut = -(Math.cos(Math.PI * x) - 1) / 2;
-          const speed = previousAverageSpeed + (averageSpeed - previousAverageSpeed) * easeInOut;
+          const speed = previousAverageSpeed + (section.averageSpeed - previousAverageSpeed) * easeInOut;
           ds.data[i].y = i18n.distanceInLongUserUnit(speed);
           ds.data[i].speed = speed;
           originalData[ds.data[i].originalDataIndex].estimatedSpeed = speed;
         }
       }
-      startIndex = endIndex + 1;
-      previousMiddle = middleIndex;
-      previousMiddleRemainingDistance = sectionDistance - middleDistance;
-      previousAverageSpeed = averageSpeed;
+      startIndex = section.endIndex + 1;
+      previousMiddle = section.middleIndex;
+      previousMiddleRemainingDistance = section.totalDistance - section.middleDistance;
+      previousAverageSpeed = section.averageSpeed;
     }
     // finally fill the end
     for (let i = previousMiddle + 1; i < ds.data.length; ++i) {
       if (ds.data[i].isBreakPoint) continue;
       ds.data[i].y = i18n.distanceInLongUserUnit(previousAverageSpeed);
     }
-    return ds;
+  }
+
+  private static nextSection(ds: any, startIndex: number): {endIndex: number, middleIndex: number, middleDistance: number, totalDistance: number, averageSpeed: number} | undefined {
+    if (ds.data[startIndex].speed === 0) return undefined;
+    let sectionDistance = 0;
+    let sectionTime = 0;
+    let sectionSpeed = 0;
+    let endIndex = startIndex + 1;
+    for (; endIndex < ds.data.length; ++endIndex) {
+      if (ds.data[endIndex].speed === 0) {
+        endIndex--;
+        break;
+      }
+      if (ds.data[endIndex].isBreakPoint) continue;
+      sectionDistance += ds.data[endIndex].distanceFromPreviousPoint;
+      sectionTime += ds.data[endIndex].timeFromPreviousPoint;
+      sectionSpeed += ds.data[endIndex].speed * ds.data[endIndex].distanceFromPreviousPoint;
+      if (endIndex - startIndex >= 10 && sectionTime >= 60 * 1000) {
+        break;
+      }
+    }
+    if (endIndex === startIndex) return undefined;
+
+    const averageSpeed = sectionSpeed / sectionDistance;
+    let middleIndex = startIndex;
+    let middleDistance = 0;
+    while (middleIndex < endIndex && middleDistance < sectionDistance / 2) {
+      middleIndex++;
+      if (ds.data[middleIndex].isBreakPoint) continue;
+      middleDistance += ds.data[middleIndex].distanceFromPreviousPoint;
+    }
+    return {endIndex, middleIndex, middleDistance, totalDistance: sectionDistance, averageSpeed}
   }
 }
