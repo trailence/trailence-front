@@ -157,3 +157,10 @@ ion-segment-button div.tab-long-text {
   overflow: hidden;
 }
 
+app-text {
+  ul {
+    margin-block-start: 2px;
+    margin-block-end: 2px;
+    padding-inline-start: 25px;
+  }
+}

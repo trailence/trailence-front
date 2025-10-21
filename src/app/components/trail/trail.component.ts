@@ -57,9 +57,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { TextComponent } from '../text/text.component';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FormsModule } from '@angular/forms';
-import { TrailTranslations } from './trail-translations';
 import { ModerationTranslationsComponent } from './moderation-translations/moderation-translations.component';
-import { ObjectUtils } from 'src/app/utils/object-utils';
 import { TooltipDirective } from '../tooltip/tooltip.directive';
 import { CameraService } from 'src/app/services/camera/camera.service';
 import { WaypointsComponent } from './waypoints/waypoints.components';
@@ -148,8 +146,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     showSpeed: true,
   };
 
-  translations = new TrailTranslations();
-
   @ViewChild(MapComponent)
   set map(child: MapComponent | undefined) {
     this.map$.next(child);
@@ -235,7 +231,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       .setVisible(() => (this.trail1?.fromModeration || (!!this.publicationChecklist && !this.trail2)))
       .setDisabled(() =>
         (!this.trail1?.fromModeration && this.publicationChecklist?.nbUnchecked !== 0) ||
-        (!!this.trail1?.fromModeration && !this.translations.valid)
+        (!!this.trail1?.fromModeration && !this._translationsReady)
       )
       .setTextColor('success')
       .setAction(() => this.publish()),
@@ -1626,7 +1622,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         service.getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid).pipe(first()),
         service.getPhotos$(trail.owner, trail.uuid).pipe(first()),
       ]).subscribe(([track, photos]) => {
-        service.validateAndPublish(trail, track, photos, this.translations.detectedLanguage!, this.translations.nameTranslations!, this.translations.descriptionTranslations!, (ok) => {
+        service.validateAndPublish(trail, track, photos, (ok) => {
           if (ok)
             this.injector.get(Router).navigateByUrl('/trails/moderation');
         });
@@ -1734,31 +1730,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     (this.trail2$ as BehaviorSubject<Trail | null>).next(null);
   }
 
-  translationsChanged(): void {
-    let changed = false;
-    let newPubData = this.trail1!.publicationData ? {...this.trail1!.publicationData} : {};
-    if (this.translations.detectedLanguage) {
-      if (newPubData['lang'] !== this.translations.detectedLanguage) {
-        newPubData['lang'] = this.translations.detectedLanguage;
-        changed = true;
-      }
-      if (!ObjectUtils.sameContent(newPubData['nameTranslations'], this.translations.nameTranslations)) {
-        newPubData['nameTranslations'] = this.translations.nameTranslations;
-        changed = true;
-      }
-      if (!ObjectUtils.sameContent(newPubData['descriptionTranslations'], this.translations.descriptionTranslations)) {
-        newPubData['descriptionTranslations'] = this.translations.descriptionTranslations;
-        changed = true;
-      }
-    }
-    if (changed) this.trailService.doUpdate(this.trail1!, t => t.publicationData = newPubData);
+  private _translationsReady = false;
+  translationsReadyChanged(ready: boolean): void {
+    this._translationsReady = ready;
     this.toolbarItems = [...this.toolbarItems];
     this.changesDetection.detectChanges();
-  }
-
-  wayPointsTranslationsChanged(): void {
-    const newTrack = this.tracks$.value[0].copy(this.tracks$.value[0].owner);
-    this.injector.get(ModerationService).updateTrack(this.trail1!, newTrack).subscribe();
   }
 
   showPublicTrailsAround(): void {

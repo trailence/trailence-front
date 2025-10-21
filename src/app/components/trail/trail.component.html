@@ -192,7 +192,9 @@
                   }
                 }
                 @if (trail1.fromModeration && tracks.length > 0) {
-                  <app-moderation-translations [trail]="trail1" [track]="tracks[0]" [translations]="translations" (translationsUpdated)="translationsChanged()" (wayPointsUpdated)="wayPointsTranslationsChanged()"></app-moderation-translations>
+                  @defer {
+                    <app-moderation-translations [trail]="trail1" [track]="tracks[0]" (translationsReady)="translationsReadyChanged($event)"></app-moderation-translations>
+                  }
                 }
               </div>
             }

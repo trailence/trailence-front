@@ -393,14 +393,14 @@
   }
 
   div.description-text {
-    padding: 5px 8px;
+    padding: 5px 0px 5px 8px;
     color: rgba(var(--ion-color-dark-rgb), 0.9);
     font-size: 11pt;
-    line-height: 1.5em;
+    line-height: 1.35em;
 
     h2 {
       font-size: 11pt;
-      line-height: 1.5em;
+      line-height: 1.35em;
       margin: 0;
     }
 
@@ -419,10 +419,10 @@
     color: var(--ion-color-dark);
 
     ::ng-deep textarea {
-      line-height: 1.5em;
+      line-height: 1.35em;
     }
     ::ng-deep .native-wrapper::after {
-      line-height: 1.5em;
+      line-height: 1.35em;
     }
   }
 }

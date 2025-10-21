@@ -25,6 +25,7 @@ import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { ErrorService } from '../progress/error.service';
 
 @Injectable({
   providedIn: 'root'
@@ -89,8 +90,15 @@ export class TrailService {
   public doUpdate(trail: Trail, updater: (latestVersion: Trail) => void, ondone?: (trail: Trail) => void): void {
     if (trail.fromModeration) {
       updater(trail);
-      this.injector.get(ModerationService).saveTrail(trail).pipe(filterDefined(), first()).subscribe(t => {
-        if (ondone) ondone(t);
+      this.injector.get(ModerationService).saveTrail(trail).pipe(filterDefined(), first()).subscribe({
+        next: t => {
+          if (ondone) ondone(t);
+        },
+        error: e => {
+          Console.error('Error update trail from moderation', e);
+          this.injector.get(ErrorService).addNetworkError(e, 'publications.moderation.error_updating_trail', []);
+          if (ondone) ondone(trail);
+        }
       });
       return;
     }

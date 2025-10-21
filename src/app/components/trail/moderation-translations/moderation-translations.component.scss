@@ -8,10 +8,11 @@ div.source-lang {
   }
 }
 
-ion-input {
+ion-input, ion-textarea {
   margin-top: 8px;
+  font-size: 10pt;
 }
 
-ion-textarea {
-  margin-top: 8px;
+div.waypoint {
+  font-size: 10pt;
 }

@@ -889,6 +889,7 @@
       "menu_comments": "Commentaires",
       "publishing": "Publication",
       "error_publishing": "Erreur lors de la publication",
+      "error_updating_trail": "Error updating trail",
       "publish_confirmation": "Confirmez-vous que ce parcours peut être rendu public ?",
       "reject": "Refuser",
       "reject_message_placeholder": "Rédigez ici un message pour expliquer la raison du refus de ce parcours.",

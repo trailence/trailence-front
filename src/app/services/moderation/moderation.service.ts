@@ -303,7 +303,11 @@ export class ModerationService {
     return this.http.postString(environment.apiBaseUrl + '/moderation/v1/translate?from=' + from + '&to=' + to, text);
   }
 
-  public async validateAndPublish(trail: Trail, track: Track, photos: Photo[], lang: string, nameTranslations: {[key: string]: string}, descriptionTranslations: {[key: string]: string}, ondone?: (success: boolean) => void) {
+  public translateWithAI(text: string): Observable<string> {
+    return this.http.postString(environment.apiBaseUrl + '/moderation/v1/translateai', text);
+  }
+
+  public async validateAndPublish(trail: Trail, track: Track, photos: Photo[], ondone?: (success: boolean) => void) {
     const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.publications.moderation.publishing, 9);
     const step = <T>(work: number, op: () => T) => new Promise<T>(resolve => {
       setTimeout(() => {
@@ -397,9 +401,9 @@ export class ModerationService {
       fullTrack: fullTrack.s!,
       wayPoints: fullTrack.wp!,
       photos: photosDtos,
-      lang,
-      nameTranslations,
-      descriptionTranslations,
+      lang: trail.publicationData!['lang'],
+      nameTranslations: trail.publicationData!['nameTranslations'],
+      descriptionTranslations: trail.publicationData!['descriptionTranslations'],
       sourceUrl: trail.sourceType === TrailSourceType.EXTERNAL ? trail.source : undefined,
     };
 
