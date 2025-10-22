@@ -276,8 +276,8 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     prompt += 'Translate the hiking sheet below according to these rules\n\n';
     // rules
     prompt += '## Translation\n\n'
-    prompt += ' * Translate faithfully, keeping the same tone and style\n';
-    prompt += ' * Prefer terms commonly used in hiking/outdoor guidebooks\n';
+    prompt += ' * Translate faithfully, keeping the **same tone** and style\n';
+    prompt += ' * Prefer terms commonly used in hiking and outdoor guidebooks\n';
     prompt += ' * Write naturally and fluently, not literally, but faithfully\n';
     prompt += ' * Keep proper nouns, trail and place names unchanged unless a standard translation exists\n';
     prompt += '\n';

@@ -10,6 +10,9 @@ export class PendingRequests<T> {
     pending = pending.then(result => {
       this._pending.delete(key);
       return result;
+    }).catch(e => {
+      this._pending.delete(key);
+      throw e;
     });
     return pending;
   }

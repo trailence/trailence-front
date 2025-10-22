@@ -2,6 +2,7 @@ import { App } from '../../app/app';
 import { TrailsPage, TrailsPageType } from '../../app/pages/trails-page';
 import { IonicInput } from '../../components/ionic/ion-input';
 import { IonicTextArea } from '../../components/ionic/ion-textarea';
+import { ModerationTranslationsComponent } from '../../components/moderation-translations.component';
 
 describe('Publication - Moderator Accept', () => {
 
@@ -23,12 +24,11 @@ describe('Publication - Moderator Accept', () => {
     messageElement = trailPage.trailComponent.getElement().$('div.moderator-message');
     await messageElement.waitForDisplayed();
     expect(await messageElement.getText()).toBe('Try again please');
-    await trailPage.trailComponent.getElement().$('div.source-lang select').selectByAttribute('value', 'fr');
-    const nameInput = new IonicInput(trailPage.trailComponent.getElement().$('app-moderation-translations ion-input'));
-    const descriptionInput = new IonicTextArea(trailPage.trailComponent.getElement().$('app-moderation-translations ion-textarea'));
-    await nameInput.waitDisplayed();
-    await nameInput.setValue('This trail is translated');
-    await descriptionInput.setValue('This description is translated');
+    const translations = new ModerationTranslationsComponent(trailPage.trailComponent.getElement().$('app-moderation-translations'));
+    await translations.waitDisplayedAndOpen();
+    await translations.setSourceLang('fr');
+    await translations.setTrailName('This trail is translated');
+    await translations.setTrailDescription('This description is translated');
     await trailPage.trailComponent.acceptPublication();
     await App.logout(false);
   });

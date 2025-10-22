@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
-import { BehaviorSubject, catchError, combineLatest, from, map, merge, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, from, map, merge, Observable, of, Subscriber, switchMap, take } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Photo } from 'src/app/model/photo';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -9,6 +9,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
 import { Console } from 'src/app/utils/console';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { NetworkService } from '../network/network.service';
 
 @Injectable({providedIn: 'root'})
 export class FetchSourceService {
@@ -208,12 +209,50 @@ export class FetchSourceService {
     );
   }
 
+  private promiseToObservable<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T): Observable<T> {
+    return new Observable<T>(subscriber => {
+      this.fetchPromise(promise, shouldRetry, onerror, subscriber);
+    });
+  }
+
+  private fetchPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>): void {
+    promise()
+    .then(element => {
+      subscriber.next(element);
+      if (!shouldRetry(element)) {
+        subscriber.complete();
+        return;
+      }
+      this.retryPromise(promise, shouldRetry, onerror, subscriber);
+    })
+    .catch(() => {
+      subscriber.next(onerror());
+      this.retryPromise(promise, shouldRetry, onerror, subscriber);
+    });
+  }
+
+  private retryPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>): void {
+    this.injector.get(NetworkService).internet$.pipe(debounceTime(1000), filter(connected => connected), take(1)).subscribe(
+      () => this.fetchPromise(promise, shouldRetry, onerror, subscriber)
+    );
+  }
+
   public getTrail$(owner: string, uuid: string): Observable<Trail | null> {
-    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getTrail(uuid).catch(() => null)) : of(null)));
+    return this.plugin$(owner).pipe(
+      switchMap(plugin => plugin ?
+        this.promiseToObservable(() => plugin.getTrail(uuid), t => !t, () => null)
+        : of(null)
+      )
+    );
   }
 
   public getMetadata$(owner: string, uuid: string): Observable<TrackMetadataSnapshot | null> {
-    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getMetadata(uuid)) : of(null)));
+    return this.plugin$(owner).pipe(
+      switchMap(plugin => plugin ?
+        this.promiseToObservable(() => plugin.getMetadata(uuid), t => !t, () => null)
+        : of(null)
+      )
+    );
   }
 
   public getMetadataList$(list: {owner: string, uuid: string}[]): Observable<TrackMetadataSnapshot[]> {
@@ -239,36 +278,58 @@ export class FetchSourceService {
   }
 
   public getSimplifiedTrack$(owner: string, uuid: string): Observable<SimplifiedTrackSnapshot | null> {
-    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getSimplifiedTrack(uuid)) : of(null)));
+    return this.plugin$(owner).pipe(
+      switchMap(plugin => plugin ?
+        this.promiseToObservable(() => plugin.getSimplifiedTrack(uuid), t => !t, () => null)
+        : of(null)
+      )
+    );
   }
 
   public getFullTrack$(owner: string, uuid: string): Observable<Track | null> {
-    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getFullTrack(uuid)) : of(null)));
+    return this.plugin$(owner).pipe(
+      switchMap(plugin => plugin ?
+        this.promiseToObservable(() => plugin.getFullTrack(uuid), t => !t, () => null)
+        : of(null)
+      )
+    );
   }
 
   public getPhotos$(owner: string, uuid: string): Observable<Photo[]> {
-    return this.plugin$(owner).pipe(switchMap(plugin => !plugin ? of([]) : from( // NOSONAR
-      plugin.getInfo(uuid)
-      .then(info => !(info?.photos) ? [] : info.photos.map( // NOSONAR
-        (p, index) => {
-          const photo = new Photo({
-            owner,
-            trailUuid: uuid,
-            description: p.description,
-            uuid: p.url,
-            dateTaken: p.time,
-            index,
-          });
-          photo.latitude = p.pos?.lat;
-          photo.longitude = p.pos?.lng;
-          return photo;
-        })
-      )
-    )));
+    return this.plugin$(owner).pipe(
+      switchMap(plugin => {
+        if (!plugin) return of([]);
+        return this.promiseToObservable(() => plugin.getInfo(uuid), i => !i, () => null).pipe(
+          map(info => {
+            if (!info?.photos) return [];
+            return info.photos.map(
+              (p, index) => {
+                const photo = new Photo({
+                  owner,
+                  trailUuid: uuid,
+                  description: p.description,
+                  uuid: p.url,
+                  dateTaken: p.time,
+                  index,
+                });
+                photo.latitude = p.pos?.lat;
+                photo.longitude = p.pos?.lng;
+                return photo;
+              }
+            );
+          })
+        );
+      })
+    );
   }
 
   public getTrailInfo$(owner: string, uuid: string): Observable<TrailInfo | null> {
-    return this.plugin$(owner).pipe(switchMap(plugin => plugin ? from(plugin.getInfo(uuid)) : of(null)));
+    return this.plugin$(owner).pipe(
+      switchMap(plugin => plugin ?
+        this.promiseToObservable(() => plugin.getInfo(uuid), i => !i, () => null)
+        : of(null)
+      )
+    );
   }
 
   public getPluginNameByOwner(owner: string): string | undefined {

@@ -36,9 +36,11 @@
         }
       </select>
       @if (displayTarget) {
-        <ion-button size="small" (click)="showAIPrompt()">AI Prompt</ion-button>
-        <ion-button size="small" (click)="translateWithAI()">Translate With AI</ion-button>
-        <ion-button size="small" (click)="clearAllTranslations()">Clear translations</ion-button>
+        <div>
+          <ion-button size="small" (click)="showAIPrompt()">AI Prompt</ion-button>
+          <ion-button size="small" (click)="translateWithAI()">Translate</ion-button>
+          <ion-button size="small" (click)="clearAllTranslations()">Clear</ion-button>
+        </div>
 
         <ion-input
           [(ngModel)]="nameTranslation"
@@ -47,6 +49,7 @@
           [label]="i18n.texts.translations.trail_moderation.name"
           labelPlacement="stacked"
           class="small"
+          name="trailName"
         ></ion-input>
 
         <ion-textarea
@@ -56,13 +59,14 @@
           [label]="i18n.texts.translations.trail_moderation.description"
           labelPlacement="stacked"
           [autoGrow]="true"
+          name="trailDescription"
         ></ion-textarea>
 
-        <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+        <div style="font-weight: bold; margin-top: 2px; color: var(--ion-color-tertiary);">{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
         @for (wp of waypointsTranslation; track $index) {
           <div class="waypoint">
             @if (wp.name !== undefined || wp.description !== undefined) {
-              <div>{{ $index }}</div>
+              <span style="font-weight: bold; color: var(--ion-color-secondary); margin-right: 5px;">{{ $index }}</span>
               @if (wp.name !== undefined) {
                 <span>{{ track.wayPoints[$index].name }}</span>
                 <ion-input
@@ -72,6 +76,7 @@
                   [label]="i18n.texts.way_points.name_placeholder"
                   labelPlacement="stacked"
                   class="small"
+                  name="waypointName{{$index}}"
                 ></ion-input>
               }
               @if (wp.description !== undefined) {
@@ -83,6 +88,7 @@
                   [label]="i18n.texts.way_points.description_placeholder"
                   labelPlacement="stacked"
                   [autoGrow]="true"
+                  name="waypointDescription{{$index}}"
                 ></ion-textarea>
               }
             }
