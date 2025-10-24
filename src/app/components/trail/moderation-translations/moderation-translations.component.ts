@@ -267,6 +267,7 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
   }
 
   getAIPrompt(): string {
+    if (!this.displayTarget) return '';
     let prompt = '';
     // who are you
     prompt += 'You are an expert translator of hiking and outdoor guides\n';
@@ -290,15 +291,18 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     prompt += '\n';
     prompt += '# Hiking sheet\n\n';
     // the content
-    prompt += '<hikeSection name="trail name">' + this.trail.name + '</hikeSection>\n';
-    prompt += '<hikeSection name="trail description">' + this.trail.description + '</hikeSection>\n';
+    if (!this.trail.publicationData?.['nameTranslations']?.[this.displayTarget]?.trim()?.length)
+      prompt += '<hikeSection name="trail name">' + this.trail.name + '</hikeSection>\n';
+    if (!this.trail.publicationData?.['descriptionTranslations']?.[this.displayTarget]?.trim()?.length)
+      prompt += '<hikeSection name="trail description">' + this.trail.description + '</hikeSection>\n';
     for (let i = 0; i < this.track.wayPoints.length; ++i) {
       const wp = this.track.wayPoints[i];
+      const tr = this.waypointsTranslation.at(i);
       if (wp.name.trim().length > 0 || wp.description.trim().length > 0) {
-        if (wp.name.trim().length > 0) {
+        if (wp.name.trim().length > 0 && !tr?.name?.trim()?.length) {
           prompt += '<hikeSection name="waypoint name ' + i + '">' + wp.name + '</hikeSection>\n';
         }
-        if (wp.description.trim().length > 0) {
+        if (wp.description.trim().length > 0 && !tr?.description?.trim()?.length) {
           prompt += '<hikeSection name="waypoint description ' + i + '">' + wp.description + '</hikeSection>\n';
         }
       }

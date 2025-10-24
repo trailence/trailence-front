@@ -10,6 +10,7 @@ import { filterTimeout } from 'src/app/utils/rxjs/filter-timeout';
 import { Console } from 'src/app/utils/console';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { NetworkService } from '../network/network.service';
+import { ApiError } from '../http/api-error';
 
 @Injectable({providedIn: 'root'})
 export class FetchSourceService {
@@ -211,29 +212,33 @@ export class FetchSourceService {
 
   private promiseToObservable<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T): Observable<T> {
     return new Observable<T>(subscriber => {
-      this.fetchPromise(promise, shouldRetry, onerror, subscriber);
+      this.fetchPromise(promise, shouldRetry, onerror, subscriber, 1);
     });
   }
 
-  private fetchPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>): void {
+  private fetchPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>, trial: number): void {
     promise()
     .then(element => {
       subscriber.next(element);
-      if (!shouldRetry(element)) {
+      if (trial >= 5 || !shouldRetry(element)) {
         subscriber.complete();
         return;
       }
-      this.retryPromise(promise, shouldRetry, onerror, subscriber);
+      this.retryPromise(promise, shouldRetry, onerror, subscriber, trial + 1);
     })
-    .catch(() => {
+    .catch(e => {
       subscriber.next(onerror());
-      this.retryPromise(promise, shouldRetry, onerror, subscriber);
+      if (trial >= 5 || (e instanceof ApiError && e.httpCode >= 400)) {
+        subscriber.complete();
+        return;
+      }
+      this.retryPromise(promise, shouldRetry, onerror, subscriber, trial + 1);
     });
   }
 
-  private retryPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>): void {
+  private retryPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>, trial: number): void {
     this.injector.get(NetworkService).internet$.pipe(debounceTime(1000), filter(connected => connected), take(1)).subscribe(
-      () => this.fetchPromise(promise, shouldRetry, onerror, subscriber)
+      () => this.fetchPromise(promise, shouldRetry, onerror, subscriber, trial)
     );
   }
 

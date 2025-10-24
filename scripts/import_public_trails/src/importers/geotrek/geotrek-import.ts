@@ -122,7 +122,7 @@ export class GeoTrekImport extends Importer {
       return false;
     }
     if (trek.geometry.type !== 'LineString') {
-      console.log('Trek id ' + trek.id + ' is not valid because the geometry type is unknown');
+      console.log('Trek id ' + trek.id + ' is not valid because the geometry type is unknown: ' + trek.geometry.type);
       return false;
     }
     return true;

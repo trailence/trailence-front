@@ -203,7 +203,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     result.externalUrl = url;
     Console.info('Trail fetch from Visorando', url, result);
 
-    if (keyNumber.length === 0) return Promise.resolve(null);
+    if (keyNumber.length === 0) return Promise.reject('Cannot find Visorando data on page');
 
     this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()});
     return Promise.resolve(result);
