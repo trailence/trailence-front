@@ -46,7 +46,7 @@ export class TrailMenuService {
         .setAction(() => this.openTrail(trails[0])))
     }
 
-    if (!onlyGlobal && trails.length > 0 && !isPublicationCollection(fromCollection?.type)) {
+    if (!onlyGlobal && trails.length > 0 && !isPublicationCollection(fromCollection?.type) && !isModeration) {
       if (menu.length > 0 || trails.length === 1)
         menu.splice(0,0, new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.prepare').setTextColor('medium'));
 
@@ -69,7 +69,7 @@ export class TrailMenuService {
     const allOwned = email && trails.every(t => t.owner === email);
 
     let hasPublish = false;
-    if (allOwned && !isModeration && fromCollection && !isPublicationLockedCollection(fromCollection.type) && !onlyGlobal) {
+    if (((allOwned && fromCollection && !isPublicationLockedCollection(fromCollection.type)) || isModeration) && !onlyGlobal) {
       const collectionUuid = this.getUniqueCollectionUuid(trails);
       if (collectionUuid) {
         menu.push(new MenuItem().setSectionTitle(true).setI18nLabel('pages.trails.actions.modify').setTextColor('medium'));
@@ -85,7 +85,7 @@ export class TrailMenuService {
         }
         menu.push(new MenuItem().setIcon('hiking').setI18nLabel('pages.trails.actions.edit_activity')
           .setAction(() => import('../../components/activity-popup/activity-popup.component').then(m => m.openActivityDialog(this.injector, trails))));
-        if (!isPublicationCollection(fromCollection?.type)) {
+        if (!isPublicationCollection(fromCollection?.type) && !isModeration) {
           menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
             .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
           if (trails.length === 1 &&
@@ -104,7 +104,7 @@ export class TrailMenuService {
       }
     }
 
-    if (!isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {
+    if (!isPublicationCollection(fromCollection?.type) && email && !onlyGlobal && !isModeration) {
       const sel = this.injector.get(MySelectionService).getMySelectionNow();
       let hasAbsent = false;
       let hasPresent = false;
