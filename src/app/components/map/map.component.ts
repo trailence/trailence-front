@@ -541,6 +541,7 @@ export class MapComponent extends AbstractComponent {
       zoom: this._mapState.zoom,
       layers: [layer.create(), ...overlays.map(o => o.create())],
       zoomControl: false,
+      worldCopyJump: true,
       //zoomSnap: 0.5,
       //zoomDelta: 1,
     });

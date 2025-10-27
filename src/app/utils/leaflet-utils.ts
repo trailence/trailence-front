@@ -21,4 +21,43 @@ export class LeafletUtils {
     }
   }
 
+  public static normalizeBounds(bounds: L.LatLngBounds): L.LatLngBounds {
+    let modified = false;
+    let north = bounds.getNorth();
+    if (north > 90) {
+      north = 90;
+      modified = true;
+    }
+    let south = bounds.getSouth();
+    if (south < -90) {
+      south = -90;
+      modified = true;
+    }
+    let east = bounds.getEast();
+    let west = bounds.getWest();
+    if (east - west > 360) {
+      west = -180;
+      east = 180;
+      modified = true;
+    } else {
+      while (west < -180) {
+        west += 360;
+        east += 360;
+        modified = true;
+      }
+      while (east > 180) {
+        east -= 360;
+        west -= 360;
+        modified = true;
+      }
+      if (west < -180 || west > 180 || east < -180 || east > 180) {
+        west = -180;
+        east = 180;
+        modified = true;
+      }
+    }
+    if (!modified) return bounds;
+    return L.latLngBounds({lat: south, lng: west}, {lat: north, lng: east});
+  }
+
 }

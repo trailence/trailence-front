@@ -37,6 +37,7 @@ import { TrailCollection } from 'src/app/model/trail-collection';
 import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { AsyncPipe } from '@angular/common';
+import { LeafletUtils } from 'src/app/utils/leaflet-utils';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -441,6 +442,9 @@ export class TrailsPage extends AbstractPage {
   private lastSearchZoom?: number;
   private setSearchBounds(bounds?: L.LatLngBounds, zoom?: number, forceRefresh: boolean = false): void {
     this.ngZone.run(() => {
+      if (bounds) {
+        bounds = LeafletUtils.normalizeBounds(bounds);
+      }
       this.searchBounds = bounds;
       this.searchZoom = zoom;
       this.searchMessage = undefined;

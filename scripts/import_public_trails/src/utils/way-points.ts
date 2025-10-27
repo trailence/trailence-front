@@ -23,13 +23,19 @@ function findBestWayPointsPositions(wayPoints: WayPoint[], track: PointDescripto
   if (closest.length === 1) {
     if (wayPointIndex === wayPoints.length - 1) return closest;
     const next = findBestWayPointsPositions(wayPoints, track, wayPointIndex + 1, closest[0]);
-    if (!next) return undefined;
+    if (next) return [closest[0], ...next];
+    return [closest[0]];
   }
   if (wayPointIndex === wayPoints.length - 1) return [closest[0]];
+  let best: PointReference[] = [];
   for (const possibility of closest) {
     const next = findBestWayPointsPositions(wayPoints, track, wayPointIndex + 1, possibility);
-    if (next) return [possibility, ...next];
+    if (next) {
+      if (next.length === wayPoints.length - (wayPointIndex + 1)) return [possibility, ...next];
+      if (best.length < next.length) best = next;
+    }
   }
+  if (best.length > 0) return best;
   return undefined;
 }
 
