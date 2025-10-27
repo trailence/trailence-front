@@ -16,7 +16,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
     }
     @if (hasMore) {
       <div class="show-more">
-        <a href='#' (click)="toggleMore(); $event.preventDefault(); $event.stopPropagation();">{{ (showFull ? 'show_less' : 'show_more') | i18nString }}</a>
+        <a href='#' (click)="toggleMore(); $event.preventDefault(); $event.stopPropagation();">{{ (showFull ? i18n.texts.show_less : i18n.texts.show_more) }}</a>
       </div>
     }
     @if (translatedFrom) {
@@ -80,14 +80,14 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.langSubscription = this.prefs.preferences$.pipe(
-      map(prefs => prefs.lang),
+    this.langSubscription = this.i18n.langLoaded$.pipe(
       skip(1),
       distinctUntilChanged()
-    ).subscribe(l => {
+    ).subscribe(() => {
       this.showOriginal = false;
       this.translatedFrom = undefined;
       this.update();
+      this.changeDetector.detectChanges();
     });
   }
 
