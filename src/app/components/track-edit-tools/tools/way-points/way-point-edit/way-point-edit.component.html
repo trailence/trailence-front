@@ -22,7 +22,7 @@
     color="secondary"
     labelPlacement="stacked"
     [label]="i18n.texts.way_points.description_placeholder"
-    [maxlength]="1000"
+    [maxlength]="5000"
     [autoGrow]="true"
     [value]="description"
     (ionChange)="descriptionChanged($event.detail.value || '')"
