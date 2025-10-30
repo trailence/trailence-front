@@ -2,6 +2,7 @@ import { Config } from './config/config';
 import { GeoTrekImport } from './importers/geotrek/geotrek-import';
 import { Importer } from './importers/importer';
 import { TrailenceClient } from './trailence/trailence-client';
+import { configureWindow } from './utils/window';
 
 const args: {[key: string]: string} = {};
 for (const arg of process.argv) {
@@ -28,31 +29,21 @@ if (isNaN(maxPending)) maxPending = 50;
 
 const config = new Config(mode);
 
-const trailenceClient = new TrailenceClient(config, remote);
-await trailenceClient.createUserIfNeeded();
+const adminTrailenceClient = new TrailenceClient(config, 'admin');
+const remoteTrailenceClient = new TrailenceClient(config, remote);
+
+await adminTrailenceClient.createUserIfNeeded(remoteTrailenceClient.username, remoteTrailenceClient.password);
+const displayName = config.getString(remote, 'displayName');
+if (displayName)
+  await remoteTrailenceClient.setDisplayName(displayName);
 
 const remoteType = config.getRequiredString(remote, 'type');
 
-const jsdomModule = await import('jsdom');
-const urlModule = await import('node:url');
-const bufferModule = await import('node:buffer');
-class CustomResourceLoader extends jsdomModule.ResourceLoader {
-  fetch(url: string, options: any) {
-    if (url.startsWith('blob:nodedata:')) {
-      return bufferModule.resolveObjectURL(url)!.arrayBuffer().then(b => bufferModule.Buffer.from(b));
-    }
-    return super.fetch(url, options);
-  }
-}
-global.jsdom = new jsdomModule.JSDOM('',{resources: new CustomResourceLoader()});
-global.window = jsdom.window;
-global.document = window.document;
-global.window.URL = urlModule.URL;
-
+await configureWindow();
 
 let importer: Importer | undefined = undefined;
 switch (remoteType) {
-  case 'geotrek': importer = new GeoTrekImport(trailenceClient, config, remote, maxPending); break;
+  case 'geotrek': importer = new GeoTrekImport(remoteTrailenceClient, config, remote, maxPending); break;
   default: throw new Error('Unknown remote type: ' + remoteType);
 }
 

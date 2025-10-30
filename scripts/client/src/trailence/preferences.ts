@@ -1,4 +1,5 @@
 import { ComputedPreferences } from 'front/services/preferences/preferences';
+import { EMPTY } from 'rxjs';
 
 export const preferences: ComputedPreferences = {
   lang: 'en',
@@ -24,3 +25,8 @@ export const preferences: ComputedPreferences = {
 
   alias: '',
 };
+
+export class FakePreferencesService {
+  public preferences$ = EMPTY;
+  public preferences = preferences;
+}

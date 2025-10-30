@@ -4,10 +4,10 @@ import { TrailDto } from 'front/model/dto/trail';
 import { TrackDto } from 'front/model/dto/track';
 import { WayPoint } from 'front/model/way-point.js';
 import { SegmentDto } from 'front/model/dto/segment';
-import { EMPTY } from 'rxjs';
-import { preferences } from 'src/trailence/preferences';
+import { FakePreferencesService } from 'src/trailence/preferences';
 import { Config } from 'src/config/config';
 import { Photo } from 'front/model/photo';
+import { ConsoleProgress } from 'src/utils/progress';
 
 export abstract class Importer {
 
@@ -19,7 +19,7 @@ export abstract class Importer {
 
   public abstract importTrails(): Promise<any>;
 
-  protected async createTrailOnTrailence(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[]) {
+  protected async createTrailOnTrailence(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[], progressText?: string) {
     trail.uuid ??= crypto.randomUUID();
     const trackDto: TrackDto = {
       owner: trail.owner,
@@ -41,11 +41,20 @@ export abstract class Importer {
       trail.loopType = loopTypeDetectionModule.detectLoopType(new trackModule.Track(trackDto, fakePreferencesService as any));
     }
 
+    const progress = new ConsoleProgress('Create trail on Trailence' + (progressText ? ' (' + progressText + ')' : ''), 2 + photos.length);
+
+    progress.setSubText('Create track');
     await this.trailenceClient.createTrack(trackDto);
+    progress.addWorkDone(1, 'Create trail');
     await this.trailenceClient.createTrail(trail);
-    for (const photo of photos) {
+    progress.addWorkDone(1);
+    for (let i = 0; i < photos.length; ++i) {
+      progress.setSubText('Create photo ' + (i + 1) + '/' + photos.length);
+      const photo = photos[i];
       await this.trailenceClient.createPhoto(photo.photo.toDto(), photo.blob);
+      progress.addWorkDone(1, '');
     }
+    progress.done();
   }
 
   protected async trackToDto(track: PointDescriptor[][]): Promise<SegmentDto[]> {
@@ -95,7 +104,7 @@ export abstract class Importer {
   protected async publishTrail(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[]) {
     const myTrailsPhoto = this.config.getRequiredBoolean('trailence', 'photos_in_my_trails', false) ? photos :
       photos.map(p => ({photo: p.photo, blob: new Blob([new ArrayBuffer(1)])}));
-    await this.createTrailOnTrailence(trail, track, wayPoints, myTrailsPhoto);
+    await this.createTrailOnTrailence(trail, track, wayPoints, myTrailsPhoto, 'in My Trails');
     const pubSubmit = await this.trailenceClient.getOrCreatePubSubmit();
     trail.collectionUuid = pubSubmit.uuid;
     trail.publishedFromUuid = trail.uuid;
@@ -108,7 +117,7 @@ export abstract class Importer {
     }
     trail.publicationMessageFromAuthor = 'Imported from script';
     if (this.config.getRequiredBoolean('trailence', 'publish', true))
-      await this.createTrailOnTrailence(trail, track, wayPoints, photos);
+      await this.createTrailOnTrailence(trail, track, wayPoints, photos, 'in Draft    ');
   }
 
   protected checkTrailUpdates(existing: TrailDto, updated: TrailDto): DtoUpdate<TrailDto>[] {
@@ -145,9 +154,4 @@ export interface DtoUpdate<T> {
   previousValue: string;
   newValue: string;
   update: (dto: T) => void;
-}
-
-export class FakePreferencesService {
-  public preferences$ = EMPTY;
-  public preferences = preferences;
 }

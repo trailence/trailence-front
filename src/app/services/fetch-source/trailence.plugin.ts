@@ -358,7 +358,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
 
 }
 
-interface PublicTrail {
+export interface PublicTrail {
   uuid: string;
   slug: string;
   createdAt: number;
@@ -406,7 +406,7 @@ interface PublicTrail {
   sourceUrl?: string;
 }
 
-interface PublicPhoto {
+export interface PublicPhoto {
   uuid: string;
   description: string;
   date?: number;
@@ -415,7 +415,7 @@ interface PublicPhoto {
   index: number;
 }
 
-interface PublicTrack {
+export interface PublicTrack {
   s: SegmentDto[];
   wp: WayPointDto[];
 }

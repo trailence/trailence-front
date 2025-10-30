@@ -890,6 +890,7 @@
       "publishing": "Publishing",
       "error_publishing": "Error while publishing",
       "error_updating_trail": "Error updating trail",
+      "error_translating": "Error translating text",
       "publish_confirmation": "Do you confirm this trail can be made public?",
       "reject": "Decline",
       "reject_message_placeholder": "Please enter a message here to explain why this track cannot be published.",

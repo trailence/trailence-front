@@ -326,10 +326,17 @@ export class ModerationTranslationsComponent implements OnInit, OnChanges {
     this.translating++;
     this.changesDetector.detectChanges();
     this.moderationService.translateWithAI(this.getAIPrompt())
-    .subscribe(response => {
-      this.fillWithAIResponse(response, this.displayTarget!);
-      this.translating--;
-      this.changesDetector.detectChanges();
+    .subscribe({
+      next: response => {
+        this.fillWithAIResponse(response, this.displayTarget!);
+        this.translating--;
+        this.changesDetector.detectChanges();
+      },
+      error: e => {
+        this.errorService.addNetworkError(e, 'publications.moderation.error_translating', []);
+        this.translating--;
+        this.changesDetector.detectChanges();
+      }
     });
   }
 

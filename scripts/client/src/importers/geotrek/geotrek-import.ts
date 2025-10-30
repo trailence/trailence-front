@@ -360,17 +360,105 @@ export class GeoTrekImport extends Importer {
   }
 
   private getTranslations(source: GeoTrekTranslations, defaultLang: string, published: {[lang: string]: boolean}, receiver: (defaultValue: string, translations: {[lang: string]: string} | undefined) => void) {
-    const defaultValue = this.getSingleTranslation(source, defaultLang);
+    const defaultValue = this.cleanText(this.getSingleTranslation(source, defaultLang));
     let translations: {[lang: string]: string} | undefined;
     for (const lang of Object.keys(published)) {
       if (!published[lang]) continue;
       if (lang === defaultLang) continue;
-      const translated = source[lang];
+      let translated = source[lang];
       if (!translated || translated.length === 0) continue;
+      translated = this.cleanText(translated);
+      if (translated.length === 0) continue;
       translations ??= {};
       translations[lang] = translated;
     }
     receiver(defaultValue, translations);
+  }
+
+  private cleanText(text: string): string {
+    text = this.removeMsComments(text);
+    text = this.removeSpans(text);
+    text = this.removeDivs(text);
+    text = this.removeStyles(text);
+    text = this.removeClasses(text);
+    return text;
+  }
+
+  private removeSpans(text: string): string {
+    let pos = 0;
+    while ((pos = text.indexOf('<span', pos)) >= 0) {
+      let end1 = text.indexOf('>', pos + 5);
+      let end2 = text.indexOf('</span>', pos + 5);
+      if (end1 > 0 && end2 > 0) {
+        text = text.substring(0, pos) + text.substring(end1 + 1, end2) + text.substring(end2 + 7);
+      } else {
+        break;
+      }
+    }
+    return text;
+  }
+
+  private removeDivs(text: string): string {
+    let pos = 0;
+    while ((pos = text.indexOf('<div', pos)) >= 0) {
+      let end1 = text.indexOf('>', pos + 4);
+      let end2 = text.indexOf('</div>', pos + 4);
+      if (end1 > 0 && end2 > 0) {
+        text = text.substring(0, pos) + text.substring(end1 + 1, end2) + text.substring(end2 + 6);
+      } else {
+        break;
+      }
+    }
+    return text;
+  }
+
+  private removeMsComments(text: string): string {
+    let pos = 0;
+    while ((pos = text.indexOf('<!--[if', pos)) >= 0) {
+      let end = text.indexOf('<![endif]-->', pos);
+      if (end > 0) {
+        text = text.substring(0, pos) + text.substring(end + 12);
+      } else {
+        break;
+      }
+    }
+    while ((pos = text.indexOf('<!-- [if', pos)) >= 0) {
+      let end = text.indexOf('<![endif]-->', pos);
+      if (end > 0) {
+        text = text.substring(0, pos) + text.substring(end + 12);
+      } else {
+        break;
+      }
+    }
+    return text;
+  }
+
+  private removeStyles(text: string): string {
+    let pos = 0;
+    while ((pos = text.indexOf('style="', pos)) > 0) {
+      const end = text.indexOf('"', pos + 7);
+      const endTag = text.indexOf('>', pos + 7);
+      if (end > 0 && endTag > 0 && endTag > end) {
+        text = text.substring(0, pos) + text.substring(endTag);
+      } else {
+        break;
+      }
+    }
+    return text;
+  }
+
+  private removeClasses(text: string): string {
+    let pos = 0;
+    while ((pos = text.indexOf('class="', pos)) > 0) {
+      const end = text.indexOf('"', pos + 7);
+      const endTag = text.indexOf('>', pos + 7);
+      if (end > 0 && endTag > 0 && endTag > end) {
+        text = text.substring(0, pos) + text.substring(endTag);
+      } else {
+        break;
+      }
+    }
+    return text;
   }
 
   private appendDescription(current: string, append: string): string {
@@ -393,7 +481,7 @@ export class GeoTrekImport extends Importer {
           try {
             const li = window.document.createElement('DIV');
             li.innerHTML = ol.substring(i + 4, j);
-            wayPoints.push(li.textContent.trim());
+            wayPoints.push(this.cleanText(li.textContent.trim()));
           } catch (e) {
             break;
           }
@@ -409,7 +497,7 @@ export class GeoTrekImport extends Importer {
         for (let i = 0; i < s.wayPoints.length; ++i) {
           const div = window.document.createElement('DIV');
           div.innerHTML = s.wayPoints[i].trim();
-          wayPoints.push(div.textContent);
+          wayPoints.push(this.cleanText(div.textContent));
         }
         descr = s.departure;
       }
@@ -418,7 +506,7 @@ export class GeoTrekImport extends Importer {
     try {
       const dep = window.document.createElement('DIV');
       dep.innerHTML = descr.trim();
-      departure = dep.textContent;
+      departure = this.cleanText(dep.textContent);
     } catch (e) {
       // ignore
     }
