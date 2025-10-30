@@ -547,12 +547,18 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         track = track.copy(this.trail.owner);
         progress.addWorkDone(1);
         this.injector.get(ModerationService).updateTrack(this.trail, track)
-        .pipe(first()).subscribe(() => {
-          this.saving = false;
-          this.modifiedTrack$.next(undefined);
-          this.baseTrack$.next(undefined);
-          this.currentTrackChanged();
-          progress.done();
+        .pipe(first(t => !!t)).subscribe(updatedTrail => {
+          progress.addWorkDone(1);
+          this.trail = updatedTrail;
+          this.injector.get(TrailService).doUpdate(updatedTrail, t => {
+            this.injector.get(TrackEditionService).computeFinalMetadata(updatedTrail, track);
+          }, () => {
+            progress.addWorkDone(1);
+            this.saving = false;
+            this.modifiedTrack$.next(undefined);
+            this.baseTrack$.next(undefined);
+            this.currentTrackChanged();
+          });
         });
         return;
       }
