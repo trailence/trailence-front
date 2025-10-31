@@ -69,8 +69,8 @@ function translateData(data, i18n, lang) {
     "description": data.description,
     "geo": {
       "@type":"GeoCoordinates",
-      "latitude": data.simplifiedPath[0],
-      "longitude": data.simplifiedPath[1]
+      "latitude": '' + data.simplifiedPath[0],
+      "longitude": '' + data.simplifiedPath[1]
     },
   };
   if (nbRates > 0) {
@@ -84,7 +84,7 @@ function translateData(data, i18n, lang) {
     };
   }
   if (data.photos && data.photos.length > 0) {
-    jd['image'] = ['https://trailence.org/api/public/trails/v1/photo/' + data.uuid + '/' + data.photos[0].uuid];
+    jd['image'] = 'https://trailence.org/api/public/trails/v1/photo/' + data.uuid + '/' + data.photos[0].uuid;
   }
   data.jdJson = jd;
   return data;

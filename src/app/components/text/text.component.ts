@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SecurityContext, SimpleChanges } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { distinctUntilChanged, map, skip, Subscription } from 'rxjs';
-import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { StringUtils } from 'src/app/utils/string-utils';
@@ -21,7 +20,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
     }
     @if (translatedFrom) {
       <div class="translated-from">
-        {{ 'translations.translated_from_' + translatedFrom | i18nString }}
+        {{ i18n.texts.translations.translated_from }} {{ i18n.texts.translations.from[translatedFrom] }}
         <span class="view-original" (click)="viewOriginal(true)">{{ i18n.texts.translations.view_original }}</span>
       </div>
     } @else if (showOriginal) {
@@ -53,7 +52,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
     font-style: italic;
   }
   `,
-  imports: [I18nPipe],
+  imports: [],
 })
 export class TextComponent implements OnChanges, OnInit, OnDestroy {
 

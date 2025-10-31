@@ -210,13 +210,13 @@ export class FetchSourceService {
     );
   }
 
-  private promiseToObservable<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T): Observable<T> {
+  private promiseToObservable<T>(description: string, promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T): Observable<T> {
     return new Observable<T>(subscriber => {
-      this.fetchPromise(promise, shouldRetry, onerror, subscriber, 1);
+      this.fetchPromise(description, promise, shouldRetry, onerror, subscriber, 1);
     });
   }
 
-  private fetchPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>, trial: number): void {
+  private fetchPromise<T>(description: string, promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>, trial: number): void {
     promise()
     .then(element => {
       subscriber.next(element);
@@ -224,28 +224,29 @@ export class FetchSourceService {
         subscriber.complete();
         return;
       }
-      this.retryPromise(promise, shouldRetry, onerror, subscriber, trial + 1);
+      this.retryPromise(description, promise, shouldRetry, onerror, subscriber, trial + 1);
     })
     .catch(e => {
+      Console.warn('Cannot fetch ' + description + ' (try ' + trial + '/5)');
       subscriber.next(onerror());
       if (trial >= 5 || (e instanceof ApiError && e.httpCode >= 400)) {
         subscriber.complete();
         return;
       }
-      this.retryPromise(promise, shouldRetry, onerror, subscriber, trial + 1);
+      this.retryPromise(description, promise, shouldRetry, onerror, subscriber, trial + 1);
     });
   }
 
-  private retryPromise<T>(promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>, trial: number): void {
+  private retryPromise<T>(description: string, promise: () => Promise<T>, shouldRetry: (e: T) => boolean, onerror: () => T, subscriber: Subscriber<T>, trial: number): void {
     this.injector.get(NetworkService).internet$.pipe(debounceTime(1000), filter(connected => connected), take(1)).subscribe(
-      () => this.fetchPromise(promise, shouldRetry, onerror, subscriber, trial)
+      () => this.fetchPromise(description, promise, shouldRetry, onerror, subscriber, trial)
     );
   }
 
   public getTrail$(owner: string, uuid: string): Observable<Trail | null> {
     return this.plugin$(owner).pipe(
       switchMap(plugin => plugin ?
-        this.promiseToObservable(() => plugin.getTrail(uuid), t => !t, () => null)
+        this.promiseToObservable('trail from ' + owner, () => plugin.getTrail(uuid), t => !t, () => null)
         : of(null)
       )
     );
@@ -254,7 +255,7 @@ export class FetchSourceService {
   public getMetadata$(owner: string, uuid: string): Observable<TrackMetadataSnapshot | null> {
     return this.plugin$(owner).pipe(
       switchMap(plugin => plugin ?
-        this.promiseToObservable(() => plugin.getMetadata(uuid), t => !t, () => null)
+        this.promiseToObservable('metadata from ' + owner, () => plugin.getMetadata(uuid), t => !t, () => null)
         : of(null)
       )
     );
@@ -285,7 +286,7 @@ export class FetchSourceService {
   public getSimplifiedTrack$(owner: string, uuid: string): Observable<SimplifiedTrackSnapshot | null> {
     return this.plugin$(owner).pipe(
       switchMap(plugin => plugin ?
-        this.promiseToObservable(() => plugin.getSimplifiedTrack(uuid), t => !t, () => null)
+        this.promiseToObservable('simplified track from ' + owner, () => plugin.getSimplifiedTrack(uuid), t => !t, () => null)
         : of(null)
       )
     );
@@ -294,7 +295,7 @@ export class FetchSourceService {
   public getFullTrack$(owner: string, uuid: string): Observable<Track | null> {
     return this.plugin$(owner).pipe(
       switchMap(plugin => plugin ?
-        this.promiseToObservable(() => plugin.getFullTrack(uuid), t => !t, () => null)
+        this.promiseToObservable('full track from ' + owner, () => plugin.getFullTrack(uuid), t => !t, () => null)
         : of(null)
       )
     );
@@ -304,7 +305,7 @@ export class FetchSourceService {
     return this.plugin$(owner).pipe(
       switchMap(plugin => {
         if (!plugin) return of([]);
-        return this.promiseToObservable(() => plugin.getInfo(uuid), i => !i, () => null).pipe(
+        return this.promiseToObservable('photos from ' + owner, () => plugin.getInfo(uuid), i => !i, () => null).pipe(
           map(info => {
             if (!info?.photos) return [];
             return info.photos.map(
@@ -331,7 +332,7 @@ export class FetchSourceService {
   public getTrailInfo$(owner: string, uuid: string): Observable<TrailInfo | null> {
     return this.plugin$(owner).pipe(
       switchMap(plugin => plugin ?
-        this.promiseToObservable(() => plugin.getInfo(uuid), i => !i, () => null)
+        this.promiseToObservable('trail info from ' + owner, () => plugin.getInfo(uuid), i => !i, () => null)
         : of(null)
       )
     );

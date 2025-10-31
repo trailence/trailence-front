@@ -1330,7 +1330,13 @@
     "ago": "{{1}} ago"
   },
   "translations": {
-    "translated_from_fr": "Translated from French",
+    "translated_from": "Translated from",
+    "from": {
+      "de": "German",
+      "es": "Spanish",
+      "fr": "French",
+      "it": "Italian"
+    },
     "view_original": "View original text",
     "view_translated": "Translate in English",
     "trail_moderation": {

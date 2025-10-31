@@ -433,7 +433,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   private _jdMarker?: HTMLElement;
   ngAfterContentChecked(): void {
     let jd: any = undefined;
-    if (this.trail1 && !this.trail2 && !this.recording && this.source?.info?.rating !== undefined && this.trail1.owner === 'trailence' && this.tracks$.value.length > 0) {
+    if (this.trail1 && !this.trail2 && !this.recording && this.trail1.owner === 'trailence' && this.tracks$.value.length > 0) {
       if (this._jdTrail !== this.trail1 || this._jdPhotos !== (this.photos && this.photos.length > 0)) {
         jd = {
           "@context": "https://schema.org",
@@ -442,18 +442,20 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           "description": this.trail1.description,
           "geo": {
             "@type":"GeoCoordinates",
-            "latitude": this.tracks$.value[0].departurePoint?.pos.lat,
-            "longitude": this.tracks$.value[0].departurePoint?.pos.lng
+            "latitude": '' + this.tracks$.value[0].departurePoint?.pos.lat,
+            "longitude": '' +this.tracks$.value[0].departurePoint?.pos.lng
           },
-          "aggregateRating": {
+        };
+        this._jdTrail = this.trail1;
+        if (this.source?.info?.rating !== undefined) {
+          jd.aggregateRating = {
             "@type": "AggregateRating",
             "ratingValue": Math.floor(this.source.info.rating * 10) / 10,
             "ratingCount": (this.source.info.nbRate0 ?? 0) + (this.source.info.nbRate1 ?? 0) + (this.source.info.nbRate2 ?? 0) + (this.source.info.nbRate3 ?? 0) + (this.source.info.nbRate4 ?? 0) + (this.source.info.nbRate5 ?? 0),
             "worstRating":0,
             "bestRating":5
-          }
-        };
-        this._jdTrail = this.trail1;
+          };
+        }
         if (this.photos && this.photos.length > 0) {
             jd.image = 'https://trailence.org/api/public/trails/v1/photo/' + this.trail1.uuid + '/' + this.photos[0].uuid;
             this._jdPhotos = true;

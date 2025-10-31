@@ -7,6 +7,7 @@ import { TrailCollectionService } from 'src/app/services/database/trail-collecti
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Console } from 'src/app/utils/console';
 import { firstValueFrom } from 'rxjs';
+import { Trail } from 'src/app/model/trail';
 
 @Component({
   templateUrl: './import-popup.component.html',
@@ -105,7 +106,12 @@ export class ImportPopupComponent {
 
   async doImport() {
     this.inProgress = true;
-    const trails = this.clipboard ? await this.fetchSourceService.fetchTrailsByContent(this.clipboard) : await this.fetchSourceService.fetchTrailsByUrl(this.url);
+    let trails: Trail[];
+    try {
+      trails = this.clipboard ? await this.fetchSourceService.fetchTrailsByContent(this.clipboard) : await this.fetchSourceService.fetchTrailsByUrl(this.url);
+    } catch (e) {
+      trails = [];
+    }
     if (trails.length === 0) {
       if (this.clipboard) this.clipboardMessage = this.i18n.texts.pages.import_popup.fetch_error;
       else this.urlMessage = this.i18n.texts.pages.import_popup.fetch_error;
