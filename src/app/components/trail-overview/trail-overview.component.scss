@@ -1,7 +1,10 @@
 :host {
   position: relative;
   display: block;
-  min-height: 75px;
+}
+
+.not-loaded {
+  min-height: 110px;
 }
 
 .trail-name-row {
@@ -166,6 +169,11 @@ div.metadata-with-photos.photo-block {
   ion-icon, ::ng-deep .metadata-item-container .metadata-item svg {
     height: 18px;
   }
+}
+
+.inner-metadata-container.compact {
+  --metadata-icon-size: 18px;
+  --metadata-font-size: 12px;
 }
 
 .show-on-map {

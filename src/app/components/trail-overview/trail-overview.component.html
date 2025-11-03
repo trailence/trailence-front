@@ -54,7 +54,7 @@
     <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
   }
 
-  <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined), 'has-photo': photoEnabled && photos.length > 0}">
+  <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined), 'has-photo': photoEnabled && photos.length > 0, 'compact': photoEnabled && photos.length === 0}">
     @if (meta.dateString || meta.location) {
       @if (meta.dateString) {
         <div class="metadata-item-container">
@@ -128,6 +128,8 @@
       </ion-button>
     </div>
   }
+} @else {
+  <div class="not-loaded"></div>
 }
 <ng-template #metadata>
   <div id="track-metadata-{{id}}"></div>
