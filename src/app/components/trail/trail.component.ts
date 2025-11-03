@@ -1064,10 +1064,18 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             mapTrack.color = '#FF000080';
 
           let index = this.mapTracks$.value.findIndex(mt => mt.data === 'remaining');
-          if (index >= 0) this.mapTracks$.value.splice(index, 1);
           mapTrack = new MapTrack(undefined, remaining, 'red', 1, false, this.i18n);
           mapTrack.data = 'remaining';
-          this.mapTracks$.value.push(mapTrack);
+          if (index >= 0)
+            this.mapTracks$.value.splice(index, 1, mapTrack);
+          else {
+            index = this.mapTracks$.value.findIndex(mt => mt.color === 'blue');
+            if (index >= 0) {
+              this.mapTracks$.value.splice(index, 0, mapTrack);
+            } else {
+              this.mapTracks$.value.push(mapTrack);
+            }
+          }
           this.mapTracks$.next(this.mapTracks$.value);
         } else if (this.remaining) {
           this.remaining = undefined;

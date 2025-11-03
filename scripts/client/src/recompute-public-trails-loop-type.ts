@@ -5,6 +5,7 @@ import { ConsoleProgress } from './utils/progress';
 import { Track } from 'front/model/track';
 import { FakePreferencesService } from './trailence/preferences';
 import { configureWindow } from './utils/window';
+import { retry } from './utils/retry';
 
 const args: {[key: string]: string} = {};
 for (const arg of process.argv) {
@@ -43,8 +44,8 @@ while (offset < nbTrails) {
 
   for (let trailIndex = 0; trailIndex < trails.length; ++trailIndex) {
     const trail = trails[trailIndex];
-    progress.setSubText('Fetching track ' + (trailIndex + 1) + '/' + ids.length);
-    const publicTrack = await trailenceClient.getPublicTrack(trail.uuid);
+    progress.setSubText('Fetching track ' + (trailIndex + 1) + '/' + ids.length + ' (' + trail.uuid + ')');
+    const publicTrack = await retry(async() => await trailenceClient.getPublicTrack(trail.uuid), 2);
     const dto: TrackDto = {
       ...publicTrack,
       owner: 'trailence',

@@ -18,7 +18,7 @@ async function generate(request) {
     request.return(307, '/');
     return;
   }
-  const slug = path.substring(6);
+  const slug = encodeURIComponent(path.substring(6));
   const data$ = retrieveData(request, slug);
   const template$ = fs.promises.readFile('/usr/share/nginx/njs/trail_page_template.html', {encoding: 'utf-8'});
   const i18n$ = retrieveTranslations(request, lang);
