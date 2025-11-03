@@ -208,6 +208,65 @@ jobs:
           name: aab-playstore-release
           path: android/app/build/outputs/bundle/release
           retention-days: 30
+  build-android-fdroid:
+    name: Build - Android F-Droid
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Cache Global NPM packages
+        uses: actions/cache@v4
+        with:
+          key: npm-global-packages
+          path: ~/.npm
+      - name: Install dependencies
+        run: |
+          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm ci
+      - name: Trust store
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'trailence.jks'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.JKS_BASE64 }}
+      - name: Keys
+        uses: Acohen-work/secret-to-file-action@v1
+        with:
+          filename: 'keys.gradle'
+          working-directory: './android'
+          base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
+      - name: Build Android F-Droid
+        run: |
+          ionic capacitor sync android --configuration=android-appgallery
+          rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
+          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
+          cd android/environments/appgallery
+          cpy . ../..
+          cd ../../..
+          cd android
+          chmod 777 ./gradlew
+          sed -i -e 's/.com.android.tools.build:gradle:.*/"com.android.tools.build:gradle:8.11.1"/' ./build.gradle
+          ./gradlew assembleRelease
+      - name: Store APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-fdroid-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
@@ -216,6 +275,7 @@ jobs:
       - build-android-standalone
       - build-android-appgallery
       - build-android-playstore
+      - build-android-fdroid
     permissions:
       contents: write
     steps:
@@ -252,6 +312,13 @@ jobs:
           path: android/app/build/outputs/bundle/release
       - name: Rename PlayStore AAB
         run: mv android/app/build/outputs/bundle/release/app-release.aab ./trailence-playstore.aab
+      - name: Retrieve FDroid apk
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-fdroid-release
+          path: android/app/build/outputs/apk/release
+      - name: Rename FDroid apk
+        run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence-fdroid.apk
       - name: Prepare assets
         run: |
           cd www/browser && zip -r ../../web-app.zip . && cd ../..
@@ -300,4 +367,13 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./trailence-playstore.aab
           asset_name: trailence-playstore-${{ github.ref_name }}.aab
+          asset_content_type: application/zip
+      - name: Upload Release Asset FDroid APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./trailence-fdroid.apk
+          asset_name: trailence-fdroid-${{ github.ref_name }}.apk
           asset_content_type: application/zip

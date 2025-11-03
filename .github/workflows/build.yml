@@ -152,6 +152,27 @@ jobs:
           name: aab-playstore-release
           path: android/app/build/outputs/bundle/release
           retention-days: 30
+      - name: Build Android FDroid
+        run: |
+          ionic capacitor sync android --configuration=android-appgallery
+          rimraf android/app/src/main/assets/public/assets/apk
+          rimraf android/app/src/main/assets/public/assets/admin
+          rimraf android/app/src/main/assets/public/assets/home-page
+          rimraf android/app/src/main/assets/public/media
+          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
+          cd android/environments/appgallery
+          cpy . ../..
+          cd ../../..
+          cd android
+          chmod 777 ./gradlew
+          sed -i -e 's/.com.android.tools.build:gradle:.*/"com.android.tools.build:gradle:8.11.1"/' ./build.gradle
+          ./gradlew assembleRelease
+      - name: Store APK FDroid
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-fdroid-release
+          path: android/app/build/outputs/apk/release
+          retention-days: 30
   unit-tests-web-app:
     name: Unit Tests - Web App
     runs-on: ubuntu-latest
