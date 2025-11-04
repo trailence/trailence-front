@@ -1,0 +1,9 @@
+Outil pour la randonnée et la gestion de vos traces GPS (GPX).<br/>
+- Organisez vos parcours<br/>
+- Enregitrez une trace pendant votre randonnée<br/>
+- Importez des traces depuis des fichiers GPX<br/>
+- Ajoutez des photos sur vos parcours<br/>
+- Plannifiez un parcours avec Open Street Map<br/>
+- Modifier vos traces<br/>
+- Partagez<br/>
+- Et bien plus !

@@ -1,0 +1,10 @@
+Hiking and GPS Track Management Tool (GPX).<br/>
+- Organize your tracks<br/>
+- Record a track during your hike<br/>
+- Import tracks from GPX files<br/>
+- Add photos on the track<br/>
+- Plan a track with Open Street Map<br/>
+- Edit your tracks<br/>
+- Share with friends<br/>
+- Publish your trails to the communauty<br/>
+- And more !<br/>
