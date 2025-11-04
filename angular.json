@@ -307,6 +307,50 @@
                   "with": "capacitor/environments/android.appgallery.ts"
                 }
               ]
+            },
+            "android-fdroid": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/routes/package.routes.ts",
+                  "with": "src/app/routes/package.native-app.routes.ts"
+                },
+                {
+                  "replace": "src/app/services/file/file.service.ts",
+                  "with": "capacitor/services/file/file.service.ts"
+                },
+                {
+                  "replace": "src/app/services/geolocation/geolocation.service.ts",
+                  "with": "capacitor/services/geolocation/geolocation.service.ts"
+                },
+                {
+                  "replace": "src/app/services/http/http-client.service.ts",
+                  "with": "capacitor/services/http/http-client.service.ts"
+                },
+                {
+                  "replace": "src/app/services/network/network.service.ts",
+                  "with": "capacitor/services/network/network.service.ts"
+                },
+                {
+                  "replace": "src/app/services/camera/camera.service.ts",
+                  "with": "capacitor/services/camera/camera.service.ts"
+                },
+                {
+                  "replace": "src/app/services/platform/platform.service.ts",
+                  "with": "capacitor/services/platform/platform.service.ts"
+                },
+                {
+                  "replace": "src/app/services/update/update.service.ts",
+                  "with": "capacitor/services/update/no-update.service.ts"
+                },
+                {
+                  "replace": "src/app/services/trailence.service.ts",
+                  "with": "capacitor/services/trailence.service.ts"
+                },
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "capacitor/environments/android.appgallery.ts"
+                }
+              ]
             }
           },
         "defaultConfiguration": "production"

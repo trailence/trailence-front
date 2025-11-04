@@ -57,4 +57,5 @@ dependencies {
     implementation "androidx.exifinterface:exifinterface:$androidxExifInterfaceVersion"
 }
 
+apply from: 'build_specific.gradle'
 apply from: 'capacitor.build.gradle'

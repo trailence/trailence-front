@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:largeHeap="true">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
+            android:name="org.trailence.MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+          <intent-filter>
+              <action android:name="android.intent.action.MAIN" />
+              <category android:name="android.intent.category.LAUNCHER" />
+          </intent-filter>
+
+          <!-- Open file by extension .gpx with scheme content -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="content" />
+            <data android:mimeType="*/*" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file by extension .gpx with scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:mimeType="*/*" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file by MIME type and scheme content -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="content" />
+            <data android:mimeType="application/gpx+xml" />
+            <data android:mimeType="application/gpx" />
+            <data android:host="*" />
+          </intent-filter>
+
+          <!-- Open file by MIME type and scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:mimeType="application/gpx+xml" />
+            <data android:mimeType="application/gpx" />
+            <data android:host="*" />
+          </intent-filter>
+
+          <!-- Open file without mime type but extension .gpx and scheme content -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="content" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file without mime type but extension .gpx and scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:host="*" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+          </intent-filter>
+
+          <!-- Open file with extension .gpx without host and scheme content -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="content" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+            <data android:mimeType="*/*" />
+          </intent-filter>
+          <!-- Open file with extension .gpx without host and scheme file -->
+          <intent-filter>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <action android:name="android.intent.action.OPEN_DOCUMENT" />
+            <data android:scheme="file" />
+            <data android:pathPattern=".*\\.gpx" />
+            <data android:pathPattern=".*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
+            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+            <data android:mimeType="*/*" />
+          </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+
+      <service
+        android:name="org.trailence.geolocation.BackgroundGeolocationService"
+        android:enabled="true"
+        android:exported="true"
+        android:foregroundServiceType="location" />
+    </application>
+
+    <!-- Permissions -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+
+    <queries>
+      <intent>
+        <action android:name="android.media.action.IMAGE_CAPTURE" />
+      </intent>
+    </queries>
+</manifest>

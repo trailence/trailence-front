@@ -248,13 +248,13 @@ jobs:
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build Android F-Droid
         run: |
-          ionic capacitor sync android --configuration=android-appgallery
+          ionic capacitor sync android --configuration=android-fdroid
           rimraf android/app/src/main/assets/public/assets/apk
           rimraf android/app/src/main/assets/public/assets/admin
           rimraf android/app/src/main/assets/public/assets/home-page
           rimraf android/app/src/main/assets/public/media
           rm android/app/src/main/assets/public/assets/mentions-legales.1.html
-          cd android/environments/appgallery
+          cd android/environments/fdroid
           cpy . ../..
           cd ../../..
           cd android
