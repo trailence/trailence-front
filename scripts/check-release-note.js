@@ -21,6 +21,7 @@ console.log('Checking release note for version: ', versionStr);
 
 const versionCode = fix + minor * 100 + major * 10000;
 const knownLanguages = ['en', 'fr'];
+const fastlaneLanguages = ['en-US', 'fr-FR'];
 
 const json = fs.readFileSync('./src/assets/releases/notes.json', { encoding: 'utf-8'});
 const releases = JSON.parse(json);
@@ -46,4 +47,9 @@ for (const lang of knownLanguages) {
   if (messageEn && !r['message']) throw new Error('Missing message for language ' + lang);
   if (!messageEn && r['message']) throw new Error('Message found for language ' + lang + ' but missing for en');
   if ((itemsEn && (!r['items'] || r['items'].length !== itemsEn.length)) || (!itemsEn && r['items'])) throw new Error('Items do not match between en and ' + lang);
+}
+
+for (const lang of fastlaneLanguages) {
+  if (!fs.existsSync('./fastlane/metadata/android/' + lang + '/changelogs/' + versionCode + '.txt'))
+    throw new Error('Missing release note for fastlane language ' + lang);
 }
