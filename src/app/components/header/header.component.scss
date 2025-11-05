@@ -137,7 +137,7 @@ ion-toolbar {
     }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 499px) {
   .trailence-title {
     padding: 4px 8px;
 
@@ -161,6 +161,18 @@ ion-toolbar {
       max-width: calc(min(var(--header-height), 40px));
       height: var(--header-height);
       max-height: var(--header-height);
+    }
+  }
+}
+
+@media (max-width: 650px) {
+  .public-buttons {
+    ion-button {
+      --padding-start: 0px;
+      --padding-end: 0px;
+      width: calc(min(var(--header-height), 38px));
+      max-width: calc(min(var(--header-height), 38px));
+      min-width: calc(min(var(--header-height), 38px));
     }
   }
 }

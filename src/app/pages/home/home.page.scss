@@ -239,32 +239,78 @@ div.page-content {
       font-size: 14px;
       color: var(--ion-color-tertiary);
     }
-    div.legal {
-      font-size: 11px;
-      color: var(--ion-color-medium);
-      margin-top: 2px;
-      a, a:active {
-        color: var(--ion-color-secondary);
+  }
+}
+
+div.bottom-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  > div {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+
+      &:not(first-child) {
+        margin-left: 5px;
+      }
+
+      ion-button {
+        margin-bottom: 1px;
+        --padding-top: 5px;
+        --padding-bottom: 5px;
+        min-height: 30px;
+      }
+    }
+    &.account {
+      > div {
+        ion-button {
+          margin-top: 1px;
+          --padding-top: 2px;
+          --padding-bottom: 2px;
+          min-height: 25px;
+        }
+
+        div.under-button {
+          font-size: 12px;
+          opacity: 0.75;
+          margin-top: -4px;
+        }
       }
     }
   }
 }
 
-div.buttons {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+div.side-buttons {
+  display: none;
+  position: absolute;
+  top: 0;
+  height: calc(100vh - var(--header-height));
+  left: calc(var(--margin-left) - 115px + var(--width) + 15px);
+  flex-direction: column;
   justify-content: center;
-  flex-wrap: wrap;
+  align-items: center;
 
   > div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-
     &:not(first-child) {
-      margin-left: 5px;
+      margin-left: 0;
+      margin-top: 5px;
+    }
+
+    min-width: 200px;
+    max-width: 200px;
+    ion-button {
+      min-width: 200px;
+      max-width: 200px;
     }
 
     div.under-button {
@@ -272,8 +318,19 @@ div.buttons {
       opacity: 0.75;
     }
   }
-
 }
+
+div.legal {
+  text-align: center;
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  margin-top: 6px;
+  margin-bottom: 2px;
+  a, a:active {
+    color: var(--ion-color-secondary);
+  }
+}
+
 
 @media (min-width: 830px) and (min-height: 623px) and (max-height: 645px) {
   :host {
@@ -303,28 +360,11 @@ div.buttons {
     padding: 0 5px;
     font-size: 16px;
   }
-  div.buttons {
-    position: absolute;
-    top: 0;
-    height: calc(100vh - var(--header-height));
-    left: calc(var(--margin-left) - 115px + var(--width) + 15px);
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    > div {
-      &:not(first-child) {
-        margin-left: 0;
-        margin-top: 5px;
-      }
-
-      min-width: 200px;
-      max-width: 200px;
-      ion-button {
-        min-width: 200px;
-        max-width: 200px;
-      }
-    }
+  div.bottom-buttons {
+    display: none;
+  }
+  div.side-buttons {
+    display: flex;
   }
 }
 
@@ -381,28 +421,11 @@ div.buttons {
   h2 {
     font-size: 16px;
   }
-  div.buttons {
-    position: absolute;
-    top: 0;
-    height: calc(100vh - var(--header-height));
-    left: calc(var(--margin-left) - 115px + var(--width) + 15px);
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    > div {
-      &:not(first-child) {
-        margin-left: 0;
-        margin-top: 5px;
-      }
-
-      min-width: 200px;
-      max-width: 200px;
-      ion-button {
-        min-width: 200px;
-        max-width: 200px;
-      }
-    }
+  div.bottom-buttons {
+    display: none;
+  }
+  div.side-buttons {
+    display: flex;
   }
 }
 
@@ -431,20 +454,68 @@ div.buttons {
 }
 
 @media (max-width: 700px) {
-  div.buttons {
-    > div {
-      ion-button {
-        font-size: 12px;
-        --padding-top: 6px;
-        --padding-bottom: 6px;
-        --padding-start: 8px;
-        --padding-end: 8px;
-        min-height: 30px;
-      }
-      div.under-button {
-        font-size: 10px;
+  div.bottom-buttons {
+    > div.download {
+      > div {
+        ion-button {
+          font-size: 12px;
+          --padding-top: 4px;
+          --padding-bottom: 4px;
+          --padding-start: 8px;
+          --padding-end: 8px;
+          min-height: 28px;
+          margin-bottom: 2px;
+        }
       }
     }
+    > div.account {
+      > div {
+        ion-button {
+          font-size: 12px;
+          --padding-top: 1px;
+          --padding-bottom: 1px;
+          --padding-start: 4px;
+          --padding-end: 4px;
+          min-height: 22px;
+          margin-top: 2px;
+          margin-bottom: 2px;
+        }
+        div.under-button {
+          font-size: 10px;
+          margin-top: -4px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 409px) {
+  div.bottom-buttons {
+    > div.account {
+      > div {
+        ion-button {
+          font-size: 11px;
+          --padding-top: 1px;
+          --padding-bottom: 1px;
+          --padding-start: 3px;
+          --padding-end: 3px;
+          min-height: 22px;
+          margin-top: 2px;
+          margin-bottom: 2px;
+          margin-inline-start: 0;
+          margin-inline-end: 0;
+          background-color: rgba(var(--ion-color-dark-rgb), 0.08);
+          border-radius: 5px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 610px) {
+  h1, h2 {
+    margin-left: 10px;
+    margin-right: 10px;
   }
 }
 
@@ -453,13 +524,17 @@ div.buttons {
     --slide-footer-height: 80px;
     --slide-content-size: calc(max(175px, calc(100vh - var(--slide-header-height) - var(--slide-footer-height) - 230px)));
   }
-  h1, h2 {
-    margin-left: 10px;
-    margin-right: 10px;
-  }
   div.examples {
     padding-left: 10px;
     padding-right: 10px;
+  }
+}
+
+@media (max-width: 399px) {
+  div.page-content {
+    h1 {
+      font-size: 16px;
+    }
   }
 }
 

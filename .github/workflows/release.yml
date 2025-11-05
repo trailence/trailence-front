@@ -58,7 +58,7 @@ jobs:
           path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm install -g @ionic/cli @angular/cli
           npm ci
       - name: Trust store
         uses: Acohen-work/secret-to-file-action@v1
@@ -74,17 +74,10 @@ jobs:
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build Android Standalone
         run: |
-          ionic capacitor sync android --configuration=android-prod
-          rimraf android/app/src/main/assets/public/assets/apk
-          rimraf android/app/src/main/assets/public/assets/admin
-          rimraf android/app/src/main/assets/public/assets/home-page
-          rimraf android/app/src/main/assets/public/media
-          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
-          cd android/environments/prod
-          cpy . ../..
-          cd ../../..
+          chmod 550 ./scripts/build/build-android.sh
+          ./scripts/build/build-android.sh prod
           cd android
-          chmod 777 ./gradlew
+          chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK
         uses: actions/upload-artifact@v4
@@ -116,7 +109,7 @@ jobs:
           path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm install -g @ionic/cli @angular/cli
           npm ci
       - name: Trust store
         uses: Acohen-work/secret-to-file-action@v1
@@ -132,17 +125,10 @@ jobs:
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build Android AppGallery
         run: |
-          ionic capacitor sync android --configuration=android-appgallery
-          rimraf android/app/src/main/assets/public/assets/apk
-          rimraf android/app/src/main/assets/public/assets/admin
-          rimraf android/app/src/main/assets/public/assets/home-page
-          rimraf android/app/src/main/assets/public/media
-          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
-          cd android/environments/appgallery
-          cpy . ../..
-          cd ../../..
+          chmod 550 ./scripts/build/build-android.sh
+          ./scripts/build/build-android.sh appgallery
           cd android
-          chmod 777 ./gradlew
+          chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK
         uses: actions/upload-artifact@v4
@@ -174,7 +160,7 @@ jobs:
           path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm install -g @ionic/cli @angular/cli
           npm ci
       - name: Trust store
         uses: Acohen-work/secret-to-file-action@v1
@@ -190,17 +176,10 @@ jobs:
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build Android PlayStore
         run: |
-          ionic capacitor sync android --configuration=android-playstore
-          rimraf android/app/src/main/assets/public/assets/apk
-          rimraf android/app/src/main/assets/public/assets/admin
-          rimraf android/app/src/main/assets/public/assets/home-page
-          rimraf android/app/src/main/assets/public/media
-          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
-          cd android/environments/playstore
-          cpy . ../..
-          cd ../../..
+          chmod 550 ./scripts/build/build-android.sh
+          ./scripts/build/build-android.sh playstore
           cd android
-          chmod 777 ./gradlew
+          chmod 550 ./gradlew
           ./gradlew :app:bundleRelease
       - name: Store PlayStore AAB
         uses: actions/upload-artifact@v4
@@ -232,7 +211,7 @@ jobs:
           path: ~/.npm
       - name: Install dependencies
         run: |
-          npm install -g @ionic/cli @angular/cli cpy-cli rimraf
+          npm install -g @ionic/cli @angular/cli
           npm ci
       - name: Trust store
         uses: Acohen-work/secret-to-file-action@v1
@@ -248,17 +227,10 @@ jobs:
           base64-encoded-secret: ${{ secrets.KEYS_GRADLE_BASE64 }}
       - name: Build Android F-Droid
         run: |
-          ionic capacitor sync android --configuration=android-fdroid
-          rimraf android/app/src/main/assets/public/assets/apk
-          rimraf android/app/src/main/assets/public/assets/admin
-          rimraf android/app/src/main/assets/public/assets/home-page
-          rimraf android/app/src/main/assets/public/media
-          rm android/app/src/main/assets/public/assets/mentions-legales.1.html
-          cd android/environments/fdroid
-          cpy . ../..
-          cd ../../..
+          chmod 550 ./scripts/build/build-android.sh
+          ./scripts/build/build-android.sh fdroid
           cd android
-          chmod 777 ./gradlew
+          chmod 550 ./gradlew
           sed -i -e 's/.com.android.tools.build:gradle:.*/"com.android.tools.build:gradle:8.11.1"/' ./build.gradle
           ./gradlew assembleRelease
       - name: Store APK

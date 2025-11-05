@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Injector } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
-import { GestureController, IonButton } from '@ionic/angular/standalone';
+import { GestureController, IonButton, IonLabel, IonIcon, Platform } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { environment } from 'src/environments/environment';
@@ -10,13 +10,14 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 import { PublicPage } from '../public.page';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { Router } from '@angular/router';
-import { first, firstValueFrom, map } from 'rxjs';
+import { filter, first, firstValueFrom, map } from 'rxjs';
 import { HttpService } from 'src/app/services/http/http.service';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { Trail } from 'src/app/model/trail';
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { TrailOverviewComponent } from 'src/app/components/trail-overview/trail-overview.component';
 import { NgClass } from '@angular/common';
+import { NetworkService } from 'src/app/services/network/network.service';
 
 class Slide {
   constructor(
@@ -34,7 +35,7 @@ class Slide {
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
   imports: [
-    IonButton,
+    IonButton, IonLabel, IonIcon,
     HeaderComponent,
     TrailOverviewComponent,
     NgClass,
@@ -72,6 +73,8 @@ export class HomePage extends PublicPage {
 
   year = new Date().getFullYear();
 
+  isAndroidApp: boolean;
+
   private slideInterval?: any;
   private gesture?: Gesture;
 
@@ -83,9 +86,11 @@ export class HomePage extends PublicPage {
     private readonly changeDetector: ChangeDetectorRef,
     public readonly auth: AuthService,
     private readonly gestureController: GestureController,
+    readonly platform: Platform,
     injector: Injector,
   ) {
     super(injector);
+    this.isAndroidApp = platform.is('capacitor');
     this.whenVisible.subscribe(this.i18n.texts$, () => this.changeDetector.markForCheck());
     this.updateSize();
     this.whenVisible.subscribe(this.browser.resize$, () => this.updateSize());
@@ -130,7 +135,9 @@ export class HomePage extends PublicPage {
 
   protected override initComponent(): void {
     this.setSlide(0, 0, true, false);
-    this.showExamples();
+    this.injector.get(NetworkService).server$.pipe(
+      filter(connected => connected && !this.examples),
+    ).subscribe(() => this.showExamples());
   }
 
   setSlide(slideIndex: number, slideImageIndex: number, fromLeft: boolean, stopInterval: boolean): void { // NOSONAR

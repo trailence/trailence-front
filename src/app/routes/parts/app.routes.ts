@@ -2,6 +2,9 @@ import { Routes } from '@angular/router';
 
 export const appPublicRoutes: Routes = [
   {
+    path: 'home',
+    loadComponent: () => import('../../pages/home/home.page').then(m => m.HomePage)
+  }, {
     path: 'login',
     loadComponent: () => import('../../pages/login/login.page').then(m => m.LoginPage)
   },
@@ -41,7 +44,7 @@ export const appPublicRoutes: Routes = [
   }
 ];
 
-export const appDefaultPublicRoute = 'login';
+export const appDefaultPublicRoute = 'home';
 
 export const appAuthRoutes: Routes = [
   {

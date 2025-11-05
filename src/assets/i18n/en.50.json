@@ -34,7 +34,7 @@
           "footer": ["Share tracks", "Import tracks", "Export your tracks", "Enhance your tracks with the editing tool", "Plan a hike with Open Street Map", "Copy, move between your collections", "Compare, search for similar tracks", "Estimated hike time", "Statistics", "And more !"]
         }
       ],
-      "download_apk": "Android App",
+      "download_apk": "Download Android App",
       "try_app1": "Try the app now",
       "try_app2": "No account needed!",
       "available_on": "Available on Android and web application",
