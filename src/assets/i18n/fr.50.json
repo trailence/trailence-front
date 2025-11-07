@@ -606,6 +606,10 @@
       "save": {
         "trail_name": "Nom du parcours",
         "collection": "Dans quelle collection"
+      },
+      "reset_confirmation": {
+        "title": "Tout annuler",
+        "message": "Confirmez-vous vouloir supprimer tout le parcours plannifié ?"
       }
     },
     "export_popup": {

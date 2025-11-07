@@ -7,7 +7,7 @@ import { MapTrack } from 'src/app/components/map/track/map-track';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AbstractPage } from 'src/app/utils/component-utils';
 import { IonButton, IonIcon, IonToggle, IonLabel, IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonFooter, IonButtons,
-  IonInput, IonSelect, IonSelectOption, ModalController, IonSpinner } from "@ionic/angular/standalone";
+  IonInput, IonSelect, IonSelectOption, ModalController, IonSpinner, AlertController } from "@ionic/angular/standalone";
 import { Track } from 'src/app/model/track';
 import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
 import { SearchPlaceComponent } from 'src/app/components/search-place/search-place.component';
@@ -166,6 +166,31 @@ export class TrailPlannerPage extends AbstractPage {
   }
 
   reset(): void {
+    this.injector.get(AlertController).create({
+      header: this.i18n.texts.pages.trailplanner.reset_confirmation.title,
+      message: this.i18n.texts.pages.trailplanner.reset_confirmation.message,
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: () => {
+            this.doReset();
+            this.injector.get(AlertController).dismiss();
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss();
+          }
+        }
+      ]
+    }).then(p => {
+      p.present();
+    });
+  }
+
+  private doReset(): void {
     this.trackBuilder!.reset();
     this.trailName = '';
     this.collectionUuid = undefined;
@@ -180,7 +205,7 @@ export class TrailPlannerPage extends AbstractPage {
 
   save(): void {
     const trail = this.trackBuilder!.save(this.collectionUuid!, this.trailName);
-    this.reset();
+    this.doReset();
     this.injector.get(Router).navigateByUrl('/trail/' + encodeURIComponent(trail.owner) + '/' + encodeURIComponent(trail.uuid));
     this.injector.get(ModalController).dismiss(null, 'ok');
   }

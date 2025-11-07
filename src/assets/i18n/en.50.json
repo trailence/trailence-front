@@ -606,6 +606,10 @@
       "save": {
         "trail_name": "Track name",
         "collection": "In which collection"
+      },
+      "reset_confirmation": {
+        "title": "Reset",
+        "message": "Do you confirm to reset the planned trail?"
       }
     },
     "export_popup": {
