@@ -18,24 +18,38 @@
     [counter]="true"
   ></ion-input>
 
-  @if (searchingPlaces) {
-    <ion-spinner name="dots"></ion-spinner>
-  } @else {
-    @if (!proposedPlaces) {
-      <ion-button (click)="searchPlaces()" [disabled]="!online">{{i18n.texts.pages.location_popup.search_from_departure}}</ion-button>
-      @if (!online) {
-        <div style="color: var(--ion-color-danger)">{{i18n.texts.you_are_offline}}</div>
-      }
-    } @else {
-      <ul>
-        @for (place of proposedPlaces; track place) {
-          <li>
-            <a href="#" (click)="location = place; $event.stopPropagation(); $event.preventDefault();">{{place}}</a>
-          </li>
+  <app-box-title [title]="i18n.texts.pages.location_popup.search_from_departure">
+    <div class="search-content">
+      @if (searchingPlaces) {
+        <ion-spinner name="dots"></ion-spinner>
+      } @else {
+        <div>
+          @if (!online) {
+            <div style="color: var(--ion-color-danger)">{{i18n.texts.you_are_offline}}</div>
+          } @else {
+            <div style="display: flex; flex-direction: row; align-items: center">
+              <span>{{i18n.texts.pages.location_popup.radius}}</span>
+              <app-input-number [value]="5" [min]="radiusMin" [max]="radiusMax" [step]="radiusStep" [value]="radiusValue" (valueChange)="setRadius($event)" style="margin: 0 5px; --border: 1px solid rgba(var(--ion-color-medium-rgb), 0.33)"></app-input-number>
+              <span>{{radiusUnit}}</span>
+              <ion-button (click)="searchPlaces()" size="small" style="margin-left: 8px;" class="search-place-button">
+                <ion-icon name="search" slot="start"></ion-icon>
+                <span>{{i18n.texts.pages.location_popup.search}}</span>
+              </ion-button>
+            </div>
+          }
+        </div>
+        @if (proposedPlaces) {
+          <ul>
+            @for (place of proposedPlaces; track place) {
+              <li>
+                <a href="#" (click)="location = place; $event.stopPropagation(); $event.preventDefault();">{{place}}</a>
+              </li>
+            }
+          </ul>
         }
-      </ul>
-    }
-  }
+      }
+    </div>
+  </app-box-title>
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">

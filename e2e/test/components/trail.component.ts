@@ -182,7 +182,7 @@ export class TrailComponent extends Component {
     const element = await this.getMetadataContentByTitle('Location');
     await element.click();
     const modal = await App.waitModal();
-    const button = new IonicButton(modal.$('ion-content').$('>>>ion-button'));
+    const button = new IonicButton(modal.$('ion-content').$('>>>ion-button.search-place-button'));
     await button.click();
     const ul = modal.$('ion-content').$('>>>ul');
     await ul.waitForDisplayed();

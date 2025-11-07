@@ -344,15 +344,6 @@
               }
             </div>
           }
-
-          @if (!toolsEnabled && (trail1?.originalTrackUuid !== trail1?.currentTrackUuid || trail2?.originalTrackUuid !== trail2?.currentTrackUuid)) {
-            <div class="show-original">
-              <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">
-                <span>{{i18n.texts.pages.trail.show_original}}</span>
-                <ion-icon name="help-circle" [appTooltip]="i18n.texts.help.contextual.original_trace" style="width: 20px; height: 20px; margin-left: 8px; margin-bottom: -4px"></ion-icon>
-              </ion-checkbox>
-            </div>
-          }
         }
 
         @if ((myFeedback$ | async); as myFeedback) {
@@ -388,6 +379,16 @@
             }
           }
         }
+
+        @if (tracks[0] && !toolsEnabled && (trail1?.originalTrackUuid !== trail1?.currentTrackUuid || trail2?.originalTrackUuid !== trail2?.currentTrackUuid)) {
+          <div class="show-original">
+            <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">
+              <span>{{i18n.texts.pages.trail.show_original}}</span>
+              <ion-icon name="help-circle" [appTooltip]="i18n.texts.help.contextual.original_trace" style="width: 20px; height: 20px; margin-left: 8px; margin-bottom: -4px"></ion-icon>
+            </ion-checkbox>
+          </div>
+        }
+
 
         @if (!isSmall) {
           <div class="section-title">

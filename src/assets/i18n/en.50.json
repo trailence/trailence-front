@@ -372,7 +372,9 @@
     "location_popup": {
       "title": "Track location",
       "location": "Location",
-      "search_from_departure": "Suggest locations based on departure"
+      "search_from_departure": "Suggest locations based on departure",
+      "radius": "Within a radius of",
+      "search": "Search"
     },
     "import_gpx_popup": {
       "title": "Import new track",

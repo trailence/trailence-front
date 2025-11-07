@@ -29,8 +29,8 @@ export class GeoService {
     private readonly overpass: OverpassClient,
   ) {}
 
-  public findNearestPlaces(latitude: number, longitude: number): Observable<string[][]> {
-    const bounds = new L.LatLng(latitude, longitude).toBounds(5000);
+  public findNearestPlaces(latitude: number, longitude: number, metersRadius: number): Observable<string[][]> {
+    const bounds = new L.LatLng(latitude, longitude).toBounds(metersRadius);
     const fromOSM = this.overpass.request<OverpassResponse>(
       "node[\"place\"~\"(municipality)|(city)|(borough)|(suburb)|(quarter)|(town)|(village)|(hamlet)\"][\"name\"](" + bounds.getSouth() + "," + bounds.getWest() + "," + bounds.getNorth() + "," + bounds.getEast() + ");out meta;",
       15
@@ -43,7 +43,7 @@ export class GeoService {
       }),
       catchError(() => of([] as string[][]))
     );
-    const fromServer = this.http.get<string[][]>(environment.apiBaseUrl + '/place/v1?lat=' + latitude + '&lng=' + longitude + '&lang=' + this.prefService.preferences.lang).pipe(
+    const fromServer = this.http.get<string[][]>(environment.apiBaseUrl + '/place/v1?lat=' + latitude + '&lng=' + longitude + '&radius=' + metersRadius + '&lang=' + this.prefService.preferences.lang).pipe(
       catchError(() => of([] as string[][]))
     );
     return zip(fromOSM, fromServer).pipe(

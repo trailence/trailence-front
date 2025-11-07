@@ -372,7 +372,9 @@
     "location_popup": {
       "title": "Lieu du parcours",
       "location": "Lieu",
-      "search_from_departure": "Proposer des lieux par rapport au départ"
+      "search_from_departure": "Proposer des lieux par rapport au départ",
+      "radius": "Dans un rayon de",
+      "search": "Rechercher"
     },
     "import_gpx_popup": {
       "title": "Import d'un nouveau parcours",
