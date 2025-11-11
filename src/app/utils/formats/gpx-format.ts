@@ -120,7 +120,7 @@ export class GpxFormat {
     }
     if (tracks.at(-1)!.wayPoints.length > 0) {
       for (const wp of tracks.at(-1)!.wayPoints) {
-        this.writePoint(wp, 'wpt');
+        gpx += this.writePoint(wp, 'wpt');
       }
     }
     gpx += '</gpx>';

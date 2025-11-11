@@ -97,9 +97,11 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
               progress.addWorkDone(1);
               const done: ({trailUuid: string, tags: string[][], source?: string})[] = [];
               const readNextZipEntry = (entryIndex: number) => {
+                injector.get(DatabaseService).pauseSync();
                 const gpxFile = gpxFiles[entryIndex];
                 return gpxFile.async('arraybuffer')
                 .then(arraybuffer => {
+                  injector.get(DatabaseService).pauseSync();
                   const r = importGpx(injector, arraybuffer, email, collectionUuid, zip, TrailSourceType.FILE_IMPORT, filename + '/' + gpxFile.name, Date.now());
                   allDone.push(r.allDone.catch(e => null));
                   r.allDone.then(() => {
