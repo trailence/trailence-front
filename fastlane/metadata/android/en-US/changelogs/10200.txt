@@ -1,0 +1,6 @@
+- Search for trails by name<br/>
+- Display photos near waypoints<br/>
+- Improved place suggestions<br/>
+- Added information: trail markers, water points, toilets<br/>
+- Trailence is now available on F-Droid!<br/>
+- Several other improvements and bug fixes are also included in this version

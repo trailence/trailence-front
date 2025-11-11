@@ -230,5 +230,27 @@
   "010108": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "010200": {
+    "fr": {
+      "items": [
+        "Recherche de parcours par nom",
+        "Affichage des photos proches des étapes",
+        "Amélioration des propositions de lieux",
+        "Ajout d'information: balises, points d'eau, toilettes",
+        "Trailence est disponible sur F-Droid !",
+        "Quelques autres améliorations et correctifs ont également été apportés dans cette version"
+      ]
+    },
+    "en": {
+      "items": [
+        "Search for trails by name",
+        "Display photos near waypoints",
+        "Improved place suggestions",
+        "Added information: trail markers, water points, toilets",
+        "Trailence is now available on F-Droid!",
+        "Several other improvements and bug fixes are also included in this version"
+      ]
+    }
   }
 }

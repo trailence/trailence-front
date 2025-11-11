@@ -1,0 +1,6 @@
+- Recherche de parcours par nom<br/>
+- Affichage des photos proches des étapes<br/>
+- Amélioration des propositions de lieux<br/>
+- Ajout d'information: balises, points d'eau, toilettes<br/>
+- Trailence est disponible sur F-Droid !<br/>
+- Quelques autres améliorations et correctifs ont également été apportés dans cette version
