@@ -331,6 +331,14 @@
                   }
                 </div>
               }
+              @if (publishedTrail) {
+                <div>
+                  <span class="trail-date-title"> {{i18n.texts.pages.trail.published_on}} </span>
+                  <span class="trail-date-value">{{i18n.timestampToDateString(publishedTrail.createdAt)}}</span>
+                  <span>: </span>
+                  <a [routerLink]="'/trail/trailence/' + publishedTrail.uuid">{{publishedTrail.name}}</a>
+                </div>
+              }
             </div>
           }
           @if (source?.externalUrl; as url) {

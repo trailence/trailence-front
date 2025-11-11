@@ -64,6 +64,7 @@ import { WaypointsComponent } from './waypoints/waypoints.components';
 import { TrailsWaypoints } from './trail-waypoints';
 import { WayPoint } from 'src/app/model/way-point';
 import { samePositionRound } from 'src/app/model/point';
+import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 
 interface TrailSource {
   isExternal: boolean;
@@ -190,6 +191,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   isShowPublicTrailsAround = false;
   publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   canTakePhoto = false;
+  publishedTrail?: Trail;
 
   private _lockForDescription?: () => void;
   editingDescription = false;
@@ -413,6 +415,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.canTakePhoto = false;
     this.trailsForPhotoPopup = [];
     this.trailsWaypoints.reset();
+    this.publishedTrail = undefined;
     if (this.recording$) this.trailsForPhotoPopup.push(this.recording$.pipe(map(r => r?.trail ?? null)));
     if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
     if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
@@ -425,6 +428,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.listenForCollections();
     this.listenForSource();
     this.listenMyFeedback();
+    this.listenForPublished();
     this.listenCurrentPublic();
   }
 
@@ -823,6 +827,23 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         }
       }
     );
+  }
+
+  private listenForPublished(): void {
+    combineLatest([this.trail1$ ?? of(undefined), this.trail2$ ?? of(undefined), this.injector.get(MyPublicTrailsService).myPublicTrails$])
+    .pipe(
+      switchMap(([trail1, trail2, myPublicTrails]) => {
+        if (trail1 && !trail2 && trail1.owner === this.auth.email) {
+          const publicTrail = myPublicTrails.find(t => t.privateUuid === trail1.uuid);
+          if (publicTrail)
+            return this.injector.get(FetchSourceService).getTrail$('trailence', publicTrail.publicUuid);
+        }
+        return of(undefined);
+      })
+    )
+    .subscribe((publicTrail) => {
+      this.publishedTrail = publicTrail ?? undefined;
+    });
   }
 
   private listenCurrentPublic(): void {
