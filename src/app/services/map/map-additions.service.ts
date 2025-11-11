@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GeoService } from '../geolocation/geo.service';
+import { GeoService, POI } from '../geolocation/geo.service';
 import { Observable } from 'rxjs';
 import { Way } from '../geolocation/way';
 import { NetworkService } from '../network/network.service';
@@ -19,6 +19,12 @@ export class MapAdditionsService {
     if (this.network.internet)
       return this.geoService.findWays(bounds, true);
     return this.mapOffline.getRestrictedWays(bounds);
+  }
+
+  public findPOI(bounds: L.LatLngBounds): Observable<POI[]> {
+    if (this.network.internet)
+      return this.geoService.findPOI(bounds);
+    return this.mapOffline.getPOIs(bounds);
   }
 
   private readonly _states: {center: L.LatLngLiteral, zoom: number}[] = [];

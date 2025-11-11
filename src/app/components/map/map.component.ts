@@ -34,6 +34,7 @@ import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.serv
 import { HttpService } from 'src/app/services/http/http.service';
 import { Console } from 'src/app/utils/console';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
+import { POITool } from './tools/poi-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -690,8 +691,15 @@ export class MapComponent extends AbstractComponent {
     const phoneLockTool = new PhoneLockTool(screenLockService);
     this.defaultRightToolsItems.push(this.toMenuItem(phoneLockTool));
     if (this.enableShowRestrictedWays) {
+      const tool = new POITool(this.mapId);
+      this.defaultDynamicRightToolsItems.push(this.toMenuItem(tool));
+      this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoom$]), ([map, center, zoom]) => {
+        tool.refresh(map, this.injector, () => this.refreshTools());
+      });
+    }
+    if (this.enableShowRestrictedWays) {
       const tool = new RestrictedWaysTool(this.mapId);
-      this.defaultRightToolsItems.push(this.toMenuItem(tool));
+      this.defaultDynamicRightToolsItems.push(this.toMenuItem(tool));
       this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoom$]), ([map, center, zoom]) => {
         tool.refresh(map, this.injector, () => this.refreshTools());
       });
@@ -749,7 +757,7 @@ export class MapComponent extends AbstractComponent {
 
   private updateTools(): void {
     this.leftToolsItems = [...this.defaultLeftToolsItems, ...this.leftTools];
-    this.rightToolsItems = [...this.defaultRightToolsItems, ...this.rightTools];
+    this.rightToolsItems = [...this.defaultRightToolsItems, ...this.rightTools, ...this.defaultDynamicRightToolsItems];
   }
 
   private refreshTools(): void {
@@ -771,6 +779,7 @@ export class MapComponent extends AbstractComponent {
     this.toMenuItem(new MapLayerSelectionTool()),
     this.toMenuItem(new DarkMapToggleTool()),
   ];
+  defaultDynamicRightToolsItems: MenuItem[] = [];
 
   private toMenuItem(tool: MapTool): MenuItem {
     const item = new MenuItem()

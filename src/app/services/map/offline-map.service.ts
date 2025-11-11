@@ -13,7 +13,7 @@ import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { ErrorService } from '../progress/error.service';
 import { I18nError, TranslatedString } from '../i18n/i18n-string';
 import { Console } from 'src/app/utils/console';
-import { GeoService } from '../geolocation/geo.service';
+import { GeoService, POI } from '../geolocation/geo.service';
 import { Way } from '../geolocation/way';
 
 interface TileMetadata {
@@ -74,6 +74,7 @@ export class OfflineMapService {
       storesV1[layer + '_tiles'] = 'key';
     }
     storesV1['osm_restricted_ways'] = 'id, date';
+    storesV1['osm_poi'] = 'id, date';
     db.version(1).stores(storesV1);
     this._db = db;
     this.cleanExpiredTimeout();
@@ -84,7 +85,10 @@ export class OfflineMapService {
   ): void {
     if (!this._db) return;
     new Saver(this._db, layer, crs, tileLayer, minZoom, maxZoom, bounds, paths, pathAroundMeters, this.injector).start();
-    for (const b of bounds) this.saveRestrictedWays(b);
+    for (const b of bounds) {
+      this.saveRestrictedWays(b);
+      this.savePOIs(b);
+    }
   }
 
   public getTile(layerName: string, coords: L.Coords): Observable<BinaryContent | undefined> {
@@ -142,6 +146,15 @@ export class OfflineMapService {
     );
   }
 
+  private savePOIs(bounds: L.LatLngBounds): void {
+    this.geoService.findPOI(bounds).subscribe(
+      pois => {
+        if (!this._db) return;
+        this._db.table('osm_poi').bulkPut(pois.map(p => ({...p, date: Date.now()})));
+      }
+    );
+  }
+
   public getRestrictedWays(bounds: L.LatLngBounds): Observable<Way[]> {
     if (!this._db) return of([]);
     return from(this._db.table('osm_restricted_ways').toArray()).pipe(
@@ -153,6 +166,15 @@ export class OfflineMapService {
         if (way.bounds.minlon < bounds.getWest()) return false;
         if (way.bounds.maxlon > bounds.getEast()) return false;
         return true;
+      }))
+    );
+  }
+
+  public getPOIs(bounds: L.LatLngBounds): Observable<POI[]> {
+    if (!this._db) return of([]);
+    return from(this._db.table('osm_poi').toArray()).pipe(
+      map(pois => pois.filter(p => {
+        return bounds.contains(p.pos);
       }))
     );
   }

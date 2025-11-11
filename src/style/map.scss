@@ -151,6 +151,29 @@ app-map {
   }
 }
 
+.leaflet-pane.leaflet-tooltip-pane .leaflet-tooltip {
+  &.poi {
+    padding: 1px;
+    line-height: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    svg + span {
+      margin-left: 2px;
+      margin-bottom: -2px;
+      max-width: 125px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
 body.dark-map {
 
   .leaflet-layer,

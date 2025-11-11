@@ -100,6 +100,9 @@ export const SRC_ICONS: {[name: string]: string} = {
   'planner': 'calendar-outline.1.svg', // calendar-outline
   'play': 'play.1.svg', // play-outline
   'play-circle': 'play-circle.1.svg', // play-circle-outline
+  'poi-guidepost': 'signpost.1.svg',
+  'poi-toilets': 'toilet.1.svg',
+  'poi-water': 'water.1.svg',
   'points-distance': 'points-distance.1.svg',
   'positive-elevation': 'positive-elevation.1.svg',
   'privacy': 'eye.1.svg', //eye-outline

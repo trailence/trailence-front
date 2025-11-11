@@ -348,7 +348,7 @@
               } @else if(source?.externalAppName) {
                 <a href="{{url}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{source!.externalAppName}}</a>
               } @else {
-                <span>{{ i18n.texts.pages.trail.source.source_url }}</span>&nbsp;<a href="{{url}}" target="_blank">{{ url }}</a>
+                <span style="white-space: nowrap">{{ i18n.texts.pages.trail.source.source_url }}</span>&nbsp;<a href="{{url}}" target="_blank">{{ url }}</a>
               }
             </div>
           }
