@@ -38,6 +38,7 @@ import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { AsyncPipe } from '@angular/common';
 import { LeafletUtils } from 'src/app/utils/leaflet-utils';
+import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -551,7 +552,7 @@ export class TrailsPage extends AbstractPage {
         this.ngZone.run(() => {
           this.searching = true;
         });
-        return (plugin?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty()) ?? of({trailsByTile: [], uuids: undefined})).pipe(
+        return (plugin?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty(), this.injector.get(PreferencesService).preferences.lang) ?? of({trailsByTile: [], uuids: undefined})).pipe(
           catchError(e => {
             Console.error('Error searching bubbles on ' + plugins.join(',') + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
             this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);

@@ -434,7 +434,7 @@ export class TrailsListComponent extends AbstractComponent {
     this.mapTrails = this.allTrails.filter(
       t => { // NOSONAR
         if (filters.search.trim().length > 0) {
-          const textSearch = this.searchTextInTrail(filters.search, t.trail, t.trailTags);
+          const textSearch = this.searchTextInTrail(filters.search, t.trail, t.trailTags, t.info ?? undefined);
           if (textSearch.length > 0)
             searchTextRanges.set(t.trail.uuid + '-' + t.trail.owner, textSearch);
           else
@@ -498,10 +498,10 @@ export class TrailsListComponent extends AbstractComponent {
     return this.mapTrails;
   }
 
-  private searchTextInTrail(text: string, trail: Trail, trailTags: TrailTag[]): TextSearchPos[] {
+  private searchTextInTrail(text: string, trail: Trail, trailTags: TrailTag[], info?: TrailInfo): TextSearchPos[] {
     const result: TextSearchPos[] = [];
     const s = text.trim().toLowerCase();
-    let r = this._searchTextInTrail(s, trail, trailTags);
+    let r = this._searchTextInTrail(s, trail, trailTags, info);
     if (r) result.push(r);
 
     const segmenter = new Intl.Segmenter([], { granularity: 'word' });
@@ -509,15 +509,16 @@ export class TrailsListComponent extends AbstractComponent {
     const words = [...segmentedText].filter(seg => seg.isWordLike).map(seg => seg.segment);
     const wordsPos: TextSearchPos[] = [];
     for (const word of words) {
-      r = this._searchTextInTrail(word, trail, trailTags);
+      r = this._searchTextInTrail(word, trail, trailTags, info);
       if (r) wordsPos.push(r);
     }
     if (wordsPos.length === words.length) result.push(...wordsPos);
     return result;
   }
 
-  private _searchTextInTrail(text: string, trail: Trail, trailTags: TrailTag[]): TextSearchPos | undefined {
-    const inName = trail.name.toLowerCase().indexOf(text);
+  private _searchTextInTrail(text: string, trail: Trail, trailTags: TrailTag[], info?: TrailInfo): TextSearchPos | undefined {
+    const trailName = (info?.lang === this.preferences.preferences.lang ? trail.name : info?.nameTranslations?.[this.preferences.preferences.lang]) ?? trail.name;
+    const inName = trailName.toLowerCase().indexOf(text);
     const inLocation = trail.location.toLowerCase().indexOf(text);
     const tags = this.collectionTags.filter(t => t.name.toLowerCase().includes(text)).map(t => t.uuid);
     const inTags = tags.length === 0 ? false : trailTags.some(t => tags.includes(t.tagUuid));
