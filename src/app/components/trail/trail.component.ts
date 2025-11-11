@@ -956,13 +956,27 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               }
               return photosWithPoint;
             }),
-            switchMap(photosWithPoint => {
+            switchMap(photosWithPoint => combineLatest([of(photosWithPoint), this.map$.pipe(switchMap(map => map?.getState()?.zoom$ ?? of(undefined)))])),
+            switchMap(([photosWithPoint, zoom]) => {
               this.photosHavingPosition = photosWithPoint;
               this.trailsWaypoints.updatePhotos(photosWithPoint);
               if (photosWithPoint.length === 0 || !showPhotos) return of([]);
               const markers$: Observable<{key: string, marker: L.Marker, alreadyOnMap: boolean}>[] = [];
               photosByKey.clear();
-              for (const p of photosWithPoint) {
+              let photosGroups: {photos: Photo[], point: L.LatLngExpression}[];
+              if (zoom === undefined) photosGroups = photosWithPoint;
+              else {
+                photosGroups = [];
+                for (const p of photosWithPoint) {
+                  const point = L.CRS.EPSG3857.latLngToPoint(p.point, zoom);
+                  const nearGroup = photosGroups.find(pg => L.CRS.EPSG3857.latLngToPoint(pg.point, zoom).distanceTo(point) < 35);
+                  if (nearGroup)
+                    nearGroup.photos.push(...p.photos);
+                  else
+                    photosGroups.push({photos: [...p.photos], point: p.point});
+                }
+              }
+              for (const p of photosGroups) {
                 const key = p.photos[0].owner + '#' + p.photos[0].uuid + '#' + p.photos.length;
                 photosByKey.set(key, p.photos);
                 let marker = photosOnMap.get(key);
