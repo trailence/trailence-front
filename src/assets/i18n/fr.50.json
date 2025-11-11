@@ -9,7 +9,8 @@
     "display": "Affichage",
     "display_detailed": "Détaillé avec photos",
     "display_detailed_small_map": "Détaillé avec carte",
-    "display_condensed": "Compact"
+    "display_condensed": "Compact",
+    "search_text": "Par nom"
   },
   "pages": {
     "home": {

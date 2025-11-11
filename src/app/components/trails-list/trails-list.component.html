@@ -6,6 +6,17 @@
   [itemMinWidth]="size === 'small' ? 55 : 60"
   [noScroll]="true"
 ></app-toolbar>
+@if (searchOpen) {
+  <div class="search-text-container">
+    <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
+      [value]="state$.value.filters.search"
+      (ionInput)="searchTrailInput($event.detail.value)"
+      [placeholder]="i18n.texts.pages.trails.search_trail_placeholder"
+    >
+      <ion-icon slot="end" name="cross" (click)="clearSearch()"></ion-icon>
+    </ion-input>
+  </div>
+}
 @if (message) {
   <div class="message">
     {{message | i18nString}}
@@ -82,26 +93,7 @@
   } @else {
     <ng-container *ngTemplateOutlet="trailsListTemplate; context: { nbSelected: nbSelected }"></ng-container>
   }
-  <div class="list-bottom"></div>
 </div>
-@if (trails$?.size) {
-  <div class="search-container {{searchOpen ? 'open' : ''}}">
-    <div class="search-bar">
-      <ion-input fill="solid" color="dark" class="small" id="search-trail-{{id}}"
-        [value]="state$.value.filters.search"
-        (ionInput)="searchTrailInput($event.detail.value)"
-        [placeholder]="i18n.texts.pages.trails.search_trail_placeholder"
-      >
-        <ion-icon slot="end" name="cross" (click)="clearSearch()"></ion-icon>
-      </ion-input>
-    </div>
-    <div class="search-button">
-      <ion-button shape="round" color="primary" (click)="toggleSearch()">
-        <ion-icon slot="icon-only" name="search"></ion-icon>
-      </ion-button>
-    </div>
-  </div>
-}
 <ng-template #trailsListTemplate let-nbSelected="nbSelected">
   @if (state$.value.mode === 'condensed') {
     @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {

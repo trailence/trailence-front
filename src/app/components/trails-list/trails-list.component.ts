@@ -373,6 +373,24 @@ export class TrailsListComponent extends AbstractComponent {
           if (nb === 0) return undefined;
           return { text: '' + nb, color: 'success', fill: true };
         }),
+      new MenuItem().setIcon('search').setI18nLabel('tools.search_text')
+        .setDisabled(() => trails.length === 0 && this.listType !== 'search')
+        .setBackgroundColor(() => this.searchOpen ? 'light' : '')
+        .setTextColor(() => !!this.filters$.value?.search?.length ? 'secondary' : '')
+        .setAction(() => {
+          if (this.searchOpen) {
+            this.clearSearch();
+            this.searchOpen = false;
+          } else {
+            this.searchOpen = true;
+            setTimeout(() => {
+              const input = document.getElementById('search-trail-' + this.id) as any;
+              if (input?.setFocus) input.setFocus();
+            }, 100);
+          }
+          this.toolbar = [...this.toolbar];
+          this.changesDetection.detectChanges();
+        })
     ];
 
     // display
@@ -412,17 +430,15 @@ export class TrailsListComponent extends AbstractComponent {
   private applyFilters(): TrailWithInfo[] {
     const filters = FiltersUtils.toSystemUnit(this.state$.value.filters, this.preferences.preferences, this.i18n);
     this.clearHighlights();
-    const searchTextRanges = new Map<string, {text: string, name: number, location: number, inTags: boolean}>();
+    const searchTextRanges = new Map<string, TextSearchPos[]>();
     this.mapTrails = this.allTrails.filter(
       t => { // NOSONAR
         if (filters.search.trim().length > 0) {
-          const s = filters.search.trim().toLowerCase();
-          const inName = t.trail.name.toLowerCase().indexOf(s);
-          const inLocation = t.trail.location.toLowerCase().indexOf(s);
-          const tags = this.collectionTags.filter(t => t.name.toLowerCase().includes(s)).map(t => t.uuid);
-          const inTags = tags.length === 0 ? false : t.trailTags.some(t => tags.includes(t.tagUuid));
-          if (inName < 0 && inLocation < 0 && !inTags) return false;
-          searchTextRanges.set(t.trail.uuid + '-' + t.trail.owner, {text: s, name: inName, location: inLocation, inTags});
+          const textSearch = this.searchTextInTrail(filters.search, t.trail, t.trailTags);
+          if (textSearch.length > 0)
+            searchTextRanges.set(t.trail.uuid + '-' + t.trail.owner, textSearch);
+          else
+            return false;
         }
         if (filters.duration.from !== undefined || filters.duration.to !== undefined) {
           let duration = t.track?.duration;
@@ -463,7 +479,7 @@ export class TrailsListComponent extends AbstractComponent {
         return true;
       }
     );
-    this.refreshHighlights(searchTextRanges);
+    this.clearHighlights();
     const mapBounds = this.map?.getBounds();
     if (this.trails$)
       this.mapFilteredTrails.emit(this.mapTrails.map(t => t.trail));
@@ -474,7 +490,39 @@ export class TrailsListComponent extends AbstractComponent {
       });
     }
     this.hasRating = this.mapTrails.some(t => t.info?.rating !== undefined);
+    if (searchTextRanges.size > 0) {
+      this.changesDetection.detectChanges(() => {
+        this.refreshHighlights(searchTextRanges);
+      });
+    }
     return this.mapTrails;
+  }
+
+  private searchTextInTrail(text: string, trail: Trail, trailTags: TrailTag[]): TextSearchPos[] {
+    const result: TextSearchPos[] = [];
+    const s = text.trim().toLowerCase();
+    let r = this._searchTextInTrail(s, trail, trailTags);
+    if (r) result.push(r);
+
+    const segmenter = new Intl.Segmenter([], { granularity: 'word' });
+    const segmentedText = segmenter.segment(s);
+    const words = [...segmentedText].filter(seg => seg.isWordLike).map(seg => seg.segment);
+    const wordsPos: TextSearchPos[] = [];
+    for (const word of words) {
+      r = this._searchTextInTrail(word, trail, trailTags);
+      if (r) wordsPos.push(r);
+    }
+    if (wordsPos.length === words.length) result.push(...wordsPos);
+    return result;
+  }
+
+  private _searchTextInTrail(text: string, trail: Trail, trailTags: TrailTag[]): TextSearchPos | undefined {
+    const inName = trail.name.toLowerCase().indexOf(text);
+    const inLocation = trail.location.toLowerCase().indexOf(text);
+    const tags = this.collectionTags.filter(t => t.name.toLowerCase().includes(text)).map(t => t.uuid);
+    const inTags = tags.length === 0 ? false : trailTags.some(t => tags.includes(t.tagUuid));
+    if (inName < 0 && inLocation < 0 && !inTags) return undefined;
+    return {text, name: inName, location: inLocation, inTags};
   }
 
   private applySort(trails: TrailWithInfo[] | List<TrailWithInfo>): void {
@@ -760,19 +808,6 @@ export class TrailsListComponent extends AbstractComponent {
     }
   }
 
-  toggleSearch(): void {
-    if (this.searchOpen) {
-      this.searchOpen = false;
-    } else {
-      this.searchOpen = true;
-      setTimeout(() => {
-        const input = document.getElementById('search-trail-' + this.id) as any;
-        if (input?.setFocus) input.setFocus();
-      }, 100);
-    }
-    this.changesDetection.detectChanges();
-  }
-
   searchValue$ = new EventEmitter<string>();
   searchTrailInput(event: string | null | undefined): void {
     this.searchValue$.emit(event ?? '');
@@ -791,7 +826,7 @@ export class TrailsListComponent extends AbstractComponent {
   }
 
   private highlightTimeout: any;
-  private refreshHighlights(ranges: Map<string, {text: string, name: number, location: number, inTags: boolean}>, delay: number = 0, trial: number = 1): void {
+  private refreshHighlights(ranges: Map<string, TextSearchPos[]>, delay: number = 0, trial: number = 1): void {
     if (this.highlightTimeout) clearTimeout(this.highlightTimeout);
     this.highlightTimeout = setTimeout(() => {
       this.clearHighlights();
@@ -812,18 +847,25 @@ export class TrailsListComponent extends AbstractComponent {
     }, delay);
   }
 
-  private highlightTextsInTrail(trailElement: HTMLElement, pos: {text: string, name: number, location: number, inTags: boolean}): void {
-    if (pos.name >= 0) this.highlightTrailName(trailElement, pos.name, pos.text.length);
-    if (pos.location >= 0) this.highlightTrailLocation(trailElement, pos.location, pos.text.length);
-    if (pos.inTags) {
+  private highlightTextsInTrail(trailElement: HTMLElement, pos: TextSearchPos[]): void {
+    let inTags = false;
+    for (const p of pos) {
+      if (p.name >= 0) this.highlightTrailName(trailElement, p.name, p.text.length);
+      if (p.location >= 0) this.highlightTrailLocation(trailElement, p.location, p.text.length);
+      inTags ||= p.inTags;
+    }
+    if (inTags) {
       const tags = trailElement.getElementsByClassName('tag');
       for (let i = 0; i < tags.length; ++i) {
         const tagElement = tags.item(i) as HTMLElement;
         const tagText = tagElement.innerText;
-        const textIndex = tagText.toLowerCase().indexOf(pos.text);
-        if (textIndex >= 0) {
-          const element = tagElement.firstChild!;
-          this.createHighlight(element, textIndex, pos.text.length);
+        for (const p of pos) {
+          if (!p.inTags) continue;
+          const textIndex = tagText.toLowerCase().indexOf(p.text);
+          if (textIndex >= 0) {
+            const element = tagElement.firstChild!;
+            this.createHighlight(element, textIndex, p.text.length);
+          }
         }
       }
     }
@@ -868,4 +910,11 @@ export class TrailsListComponent extends AbstractComponent {
     })).then(p => p.present());
   }
 
+}
+
+interface TextSearchPos {
+  text: string;
+  name: number;
+  location: number;
+  inTags: boolean;
 }
