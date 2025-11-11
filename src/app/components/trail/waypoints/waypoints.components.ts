@@ -8,6 +8,9 @@ import { ComputedWayPoint } from 'src/app/model/track';
 import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { PhotosSliderComponent } from '../../photos-slider/photos-slider.component';
+import { PhotoService } from 'src/app/services/database/photo.service';
+import { Photo } from 'src/app/model/photo';
 
 @Component({
   selector: 'app-trail-waypoints',
@@ -18,6 +21,7 @@ import { NgClass, NgTemplateOutlet } from '@angular/common';
     TextComponent,
     NgTemplateOutlet,
     NgClass,
+    PhotosSliderComponent,
   ]
 })
 export class WaypointsComponent implements OnInit, OnDestroy {
@@ -40,6 +44,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     ngZone: NgZone,
     private readonly modalController: ModalController,
     private readonly alertController: AlertController,
+    private readonly photoService: PhotoService,
   ) {
     this.changesDetection = new ChangesDetection(ngZone, changesDetector);
   }
@@ -126,6 +131,10 @@ export class WaypointsComponent implements OnInit, OnDestroy {
         modal.present();
       });
     }
+  }
+
+  openPhotos(photos: Photo[], slider: PhotosSliderComponent): void {
+    this.photoService.openSliderPopup(photos, slider.index);
   }
 
 }

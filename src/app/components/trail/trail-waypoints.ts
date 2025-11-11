@@ -8,6 +8,9 @@ import { samePositionRound } from 'src/app/model/point';
 import { PointReference } from 'src/app/model/point-reference';
 import { TrailSelection } from './trail-selection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { Photo } from 'src/app/model/photo';
+import * as L from 'leaflet';
+import { Arrays } from 'src/app/utils/arrays';
 
 export class TrailsWaypoints {
 
@@ -28,6 +31,8 @@ export class TrailsWaypoints {
   }
   public showBreaksOnMapLocked = false;
 
+  private photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[] = [];
+
   constructor(
     private readonly selection: TrailSelection,
     public readonly i18n: I18nService,
@@ -46,7 +51,7 @@ export class TrailsWaypoints {
         newTrails.push(toRemove[index]);
         toRemove.splice(index, 1);
       } else {
-        newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, () => this.wayPointsUpdated()));
+        newTrails.push(new TrailWaypoints(this, trail.trail, trail.track, trail.recording, this.photosWithPosition, () => this.wayPointsUpdated()));
       }
     }
     for (const t of toRemove) t.destroy();
@@ -56,6 +61,15 @@ export class TrailsWaypoints {
       this._showBreaksOnMap = false;
     for (const mt of mapTracks) mt.showBreaksAnchors(this._showBreaksOnMap);
     this.changes$.next(true);
+  }
+
+  public updatePhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[]): void {
+    this.photosWithPosition = photosWithPosition;
+    let changed = false;
+    for (const t of this.trails) {
+      changed ||= t.updatePhotos(photosWithPosition);
+    }
+    if (changed) this.changes$.next(true);
   }
 
   public canShowBreaksOnMap(): boolean {
@@ -73,7 +87,7 @@ export class TrailsWaypoints {
   public get highlightedWayPointFromClick() { return this._highlightedWayPointFromClick; }
 
   highlightWayPoint(wp: ComputedWayPoint, click: boolean): void {
-    const trail = this.trails.find(t => t.wayPoints.includes(wp));
+    const trail = this.trails.find(t => !!t.wayPoints.find(w => w.computed === wp));
     if (click) this.waypointClick(wp, trail);
 
     if (this._highlightedWayPoint === wp) {
@@ -114,7 +128,7 @@ export class TrailsWaypoints {
       this._highlightedWayPointFromClick = false;
       if (this.selection.selectedWayPoint$.value === wp.wayPoint)
         this.selection.selectedWayPoint$.next(undefined);
-      const trail = this.trails.find(t => t.wayPoints.includes(wp));
+      const trail = this.trails.find(t => !!t.wayPoints.find(w => w.computed === wp));
       if (trail) {
         const mapTrack = this._mapTracks.find(mt => mt.track === trail.track);
         mapTrack?.unhighlightWayPoint(wp);
@@ -128,8 +142,8 @@ export class TrailsWaypoints {
 
 export class TrailWaypoints {
 
-  wayPoints: ComputedWayPoint[] = [];
-  wayPointDepartureAndArrival?: ComputedWayPoint;
+  wayPoints: TrailWayPoint[] = [];
+  wayPointDepartureAndArrival?: TrailWayPoint;
   wayPointsImages: string[] = [];
   hasBreaks = false;
   private _showBreaks = false;
@@ -143,29 +157,33 @@ export class TrailWaypoints {
     this.trails.showBreaksOnMap = value;
   }
 
+  private currentPhotos: {photos: Photo[], point: L.LatLngExpression}[];
+
   constructor(
     readonly trails: TrailsWaypoints,
     public readonly trail: Trail,
     public readonly track: Track,
     public readonly recording: boolean,
+    readonly initialPhotos: {photos: Photo[], point: L.LatLngExpression}[],
     readonly onUpdated: () => void,
   ) {
+    this.currentPhotos = initialPhotos;
     this.subscription = track.computedWayPoints$.subscribe(
       wayPoints => {
         const previousHighlighted = trails.highlightedWayPoint;
-        const previousHighlightedIndex = previousHighlighted ? this.wayPoints.indexOf(trails.highlightedWayPoint) : -1;
+        const previousHighlightedIndex = previousHighlighted ? this.wayPoints.findIndex(w => w.computed === trails.highlightedWayPoint) : -1;
         if (previousHighlightedIndex >= 0) trails.unhighlightWayPoint(previousHighlighted!, true);
-        this.wayPoints = wayPoints;
+        this.wayPoints = wayPoints.map(computed => ({computed, photos: this.getPhotos(this.currentPhotos, computed.wayPoint.point.pos)}));
         this.hasBreaks = wayPoints.some(wp => wp.breakPoint);
-        this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.isDeparture && wp.isArrival);
+        this.wayPointDepartureAndArrival = this.wayPoints.find(wp => wp.computed.isDeparture && wp.computed.isArrival);
         this.wayPointsImages = this.wayPoints.map(wp => {
-          if (wp.isDeparture)
+          if (wp.computed.isDeparture)
             return MapAnchor.createDataIcon(anchorDepartureBorderColor, trails.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
-          if (wp.breakPoint)
-            return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
-          if (wp.isArrival && (!recording || wp.isComputedOnly))
+          if (wp.computed.breakPoint)
+            return MapAnchor.createDataIcon(anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.computed.breakPoint), anchorBreakTextColor, anchorBreakFillColor);
+          if (wp.computed.isArrival && (!recording || wp.computed.isComputedOnly))
             return MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
-          return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
+          return MapAnchor.createDataIcon(anchorBorderColor, '' + wp.computed.index, anchorTextColor, anchorFillColor);
         });
         if (this.wayPointDepartureAndArrival)
           this.wayPointsImages.push(MapAnchor.createDataIcon(anchorArrivalBorderColor, trails.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor));
@@ -174,8 +192,36 @@ export class TrailWaypoints {
     );
   }
 
+  public updatePhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[]): boolean {
+    this.currentPhotos = photosWithPosition;
+    let changed = false;
+    for (const w of this.wayPoints) {
+      const newPhotos = this.getPhotos(photosWithPosition, w.computed.wayPoint.point.pos);
+      if (!Arrays.sameContent(w.photos, newPhotos)) {
+        w.photos = newPhotos;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  private getPhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[], pos: L.LatLngExpression): Photo[] {
+    const result: Photo[] = [];
+    const position = L.latLng(pos);
+    for (const p of photosWithPosition) {
+      if (position.distanceTo(p.point) <= 25)
+        result.push(...p.photos);
+    }
+    return result;
+  }
+
   destroy(): void {
     this.subscription.unsubscribe();
   }
 
+}
+
+export interface TrailWayPoint {
+  computed: ComputedWayPoint;
+  photos: Photo[];
 }

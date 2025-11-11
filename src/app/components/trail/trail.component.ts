@@ -937,6 +937,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             }),
             switchMap(photosWithPoint => {
               this.photosHavingPosition = photosWithPoint;
+              this.trailsWaypoints.updatePhotos(photosWithPoint);
               if (photosWithPoint.length === 0 || !showPhotos) return of([]);
               const markers$: Observable<{key: string, marker: L.Marker, alreadyOnMap: boolean}>[] = [];
               photosByKey.clear();

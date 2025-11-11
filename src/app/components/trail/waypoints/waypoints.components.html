@@ -25,8 +25,8 @@
       </div>
     }
     @for (wp of selectedTrail.wayPoints; track $index) {
-      @if (!wp.breakPoint || selectedTrail.showBreaks) {
-        <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.isArrival && !wp.isDeparture, img: selectedTrail.wayPointsImages[$index], track: selectedTrail.track, isRecording: selectedTrail.recording}"></ng-container>
+      @if (!wp.computed.breakPoint || selectedTrail.showBreaks) {
+        <ng-container *ngTemplateOutlet="waypointTemplate; context: {wp: wp, isArrival: wp.computed.isArrival && !wp.computed.isDeparture, img: selectedTrail.wayPointsImages[$index], track: selectedTrail.track, isRecording: selectedTrail.recording}"></ng-container>
       }
     }
     @if (selectedTrail.wayPointDepartureAndArrival) {
@@ -36,11 +36,11 @@
 }
 <ng-template #waypointTemplate let-wp="wp" let-arrival="isArrival" let-img="img" let-track="track" let-isRecording="isRecording">
   <div class="waypoint"
-    (mouseover)="highlightWaypoint.emit({wp, click: false})"
-    (mouseenter)="highlightWaypoint.emit({wp, click: false})"
-    (mouseleave)="unhighlightWaypoint.emit({wp, force: false})"
-    (click)="toogleHighlightWayPoint(wp)"
-    [ngClass]="{'highlighted': trails.highlightedWayPoint === wp}"
+    (mouseover)="highlightWaypoint.emit({wp: wp.computed, click: false})"
+    (mouseenter)="highlightWaypoint.emit({wp: wp.computed, click: false})"
+    (mouseleave)="unhighlightWaypoint.emit({wp: wp.computed, force: false})"
+    (click)="toogleHighlightWayPoint(wp.computed)"
+    [ngClass]="{'highlighted': trails.highlightedWayPoint === wp.computed}"
   >
     <div class="waypoint-header">
       <div class="waypoint-anchor">
@@ -49,38 +49,38 @@
       <div class="waypoint-info-section">
         <div class="waypoint-info">
           <div class="waypoint-info-title">{{i18n.texts.way_points.position}}</div>
-          <div class="waypoint-info-value small">{{i18n.coordToString(wp.wayPoint.point.pos.lat)}}<br/>{{i18n.coordToString(wp.wayPoint.point.pos.lng)}}</div>
+          <div class="waypoint-info-value small">{{i18n.coordToString(wp.computed.wayPoint.point.pos.lat)}}<br/>{{i18n.coordToString(wp.computed.wayPoint.point.pos.lng)}}</div>
         </div>
         <div class="waypoint-info">
           <div class="waypoint-info-title">{{i18n.texts.way_points.altitude}}</div>
-          <div class="waypoint-info-value">{{wp.altitude !== undefined ? i18n.elevationToString(wp.altitude) : '?'}}</div>
+          <div class="waypoint-info-value">{{wp.computed.altitude !== undefined ? i18n.elevationToString(wp.computed.altitude) : '?'}}</div>
         </div>
         @if (arrival || !wp.isDeparture) {
           <div class="waypoint-info">
             <div class="waypoint-info-title">{{i18n.texts.way_points.distance}}</div>
-            <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.distanceToString(track.metadata?.distance) : (wp.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.distanceFromDeparture) : '?')}}</div>
+            <div class="waypoint-info-value">{{arrival && wp.computed.isDeparture ? i18n.distanceToString(track.metadata?.distance) : (wp.computed.distanceFromDeparture !== undefined ? i18n.distanceToString(wp.computed.distanceFromDeparture) : '?')}}</div>
           </div>
           <div class="waypoint-info">
             <div class="waypoint-info-title">{{i18n.texts.way_points.time}}</div>
-            <div class="waypoint-info-value">{{arrival && wp.isDeparture ? i18n.durationToString(track.metadata?.duration) : (wp.timeSinceDeparture !== undefined ? i18n.durationToString(wp.timeSinceDeparture) : '?')}}</div>
+            <div class="waypoint-info-value">{{arrival && wp.computed.isDeparture ? i18n.durationToString(track.metadata?.duration) : (wp.computed.timeSinceDeparture !== undefined ? i18n.durationToString(wp.computed.timeSinceDeparture) : '?')}}</div>
           </div>
         }
         @if (wp.breakPoint) {
           <div class="waypoint-info">
             <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
-            <div class="waypoint-info-value">{{i18n.durationToString(wp.breakPoint.duration)}}</div>
+            <div class="waypoint-info-value">{{i18n.durationToString(wp.computed.breakPoint.duration)}}</div>
           </div>
         }
       </div>
-      @if ((editTools || isRecording) && !wp.breakPoint) {
+      @if ((editTools || isRecording) && !wp.computed.breakPoint) {
         <div class="waypoint-actions">
-          @if (!wp.isDeparture && !wp.isComputedOnly) {
-            <ion-button fill="clear" shape="round" size="small" color="danger" (click)="$event.preventDefault(); $event.stopPropagation(); removeWaypoint(wp);">
+          @if (!wp.computed.isDeparture && !wp.computed.isComputedOnly) {
+            <ion-button fill="clear" shape="round" size="small" color="danger" (click)="$event.preventDefault(); $event.stopPropagation(); removeWaypoint(wp.computed);">
               <ion-icon slot="icon-only" name="trash"></ion-icon>
             </ion-button>
           }
-          @if (!(wp.isDeparture && wp.isArrival && arrival)) {
-            <ion-button fill="clear" shape="round" size="small" color="secondary" (click)="$event.preventDefault(); $event.stopPropagation(); editWaypoint(wp);">
+          @if (!(wp.computed.isDeparture && wp.computed.isArrival && arrival)) {
+            <ion-button fill="clear" shape="round" size="small" color="secondary" (click)="$event.preventDefault(); $event.stopPropagation(); editWaypoint(wp.computed);">
               <ion-icon slot="icon-only" name="edit"></ion-icon>
             </ion-button>
           }
@@ -88,14 +88,19 @@
       }
     </div>
     <div class="waypoint-content">
-      @if (!wp.breakPoint && (!arrival || !wp.isDeparture)) {
+      @if (!wp.computed.breakPoint && (!arrival || !wp.computed.isDeparture)) {
         <div class="waypoint-name">
-          <app-text [text]="wp.wayPoint.name" [lang]="lang" [translations]="wp.wayPoint.nameTranslations"></app-text>
+          <app-text [text]="wp.computed.wayPoint.name" [lang]="lang" [translations]="wp.computed.wayPoint.nameTranslations"></app-text>
         </div>
         <div class="waypoint-description">
-          <app-text [text]="wp.wayPoint.description" [lang]="lang" [translations]="wp.wayPoint.descriptionTranslations"></app-text>
+          <app-text [text]="wp.computed.wayPoint.description" [lang]="lang" [translations]="wp.computed.wayPoint.descriptionTranslations"></app-text>
         </div>
       }
     </div>
+    @if (wp.photos.length > 0 && (!arrival || !wp.computed.isDeparture)) {
+      <div class="waypoint-photos">
+        <app-photos-slider #slider [photos]="wp.photos" [width]="150" [height]="100" (click)="$event.stopPropagation(); openPhotos(wp.photos, slider);"></app-photos-slider>
+      </div>
+    }
   </div>
 </ng-template>

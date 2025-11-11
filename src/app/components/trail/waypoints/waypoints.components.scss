@@ -74,4 +74,17 @@ div.show-breaks {
       font-size: 13px;
     }
   }
+
+  div.waypoint-photos {
+    max-height: 100px;
+    max-width: 150px;
+    width: 150px;
+    height: 100px;
+    overflow: hidden;
+    margin: auto;
+
+    app-photos-slider {
+      display: block;
+    }
+  }
 }
