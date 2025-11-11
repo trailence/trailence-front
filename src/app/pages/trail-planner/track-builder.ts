@@ -261,13 +261,17 @@ export class TrackBuilder {
     const linkToPrevious = refs.filter(r => r.point !== undefined && previousPosMapTracks.includes(r.track)).sort(MapTrackPointReference.distanceComparator);
     let best: {ref: MapTrackPointReference, using: MapTrack | undefined} | undefined = undefined;
     let bestWays: Way[] = [];
+    let bestDistance = -1;
     for (const ref of linkToPrevious) {
       const matching = this.getMatchingMapTracksIn(ref.position!, previousPosMapTracks); // NOSONAR
       if (matching.length === 1) {
+        const newPoints = this.getPointsToGoTo(previousPos.pos, ref.position!, (matching[0].track as SimplifiedTrackSnapshot).points);
+        const distance = TrackUtils.distanceBetween(newPoints, 0, newPoints.length - 1);
         const ways = WayUtils.getMatchingWays(ref.position!, this.ways, MATCHING_MAX_DISTANCE); // NOSONAR
-        if (best === undefined || (ways.length > bestWays.length && Arrays.includesAll(ways, bestWays))) {
+        if (best === undefined || (ways.length > bestWays.length && Arrays.includesAll(ways, bestWays)) || (ways.length === bestWays.length && distance < bestDistance)) {
           best = {ref, using: matching[0]};
           bestWays = ways;
+          bestDistance = distance;
         }
       }
     }
@@ -318,16 +322,35 @@ export class TrackBuilder {
   }
 
   private goTo(from: L.LatLngLiteral, to: L.LatLngLiteral, points: SimplifiedPoint[]): void {
-    const fromIndex = TrackUtils.findClosestPoint(from, points, MATCHING_MAX_DISTANCE);
-    if (fromIndex < 0) return;
-    const toIndex = TrackUtils.findClosestPoint(to, points, MATCHING_MAX_DISTANCE);
-    if (toIndex < 0) return;
+    const newPoints = this.getPointsToGoTo(from, to, points);
+    if (newPoints.length > 0)
+      this.points.push(this.track!.lastSegment.appendMany(newPoints));
+  }
+
+  private getPointsToGoTo(from: L.LatLngLiteral, to: L.LatLngLiteral, points: SimplifiedPoint[]): PointDescriptor[] {
+    const fromIndexes = TrackUtils.findClosestPoints(from, points, MATCHING_MAX_DISTANCE);
+    if (fromIndexes.length === 0) return [];
+    const toIndexes = TrackUtils.findClosestPoints(to, points, MATCHING_MAX_DISTANCE);
+    if (toIndexes.length === 0) return [];
+    let fromIndex = 0;
+    let toIndex = 0;
+    let distance = -1;
+    for (let fi = 0; fi < fromIndexes.length; ++fi) {
+      for (let ti = 0; ti < toIndexes.length; ++ti) {
+        const d = TrackUtils.distanceBetweenLatLng(points, Math.min(fromIndexes[fi], toIndexes[ti]), Math.max(fromIndexes[fi], toIndexes[ti]));
+        if (distance === -1 || d < distance) {
+          fromIndex = fromIndexes[fi];
+          toIndex = toIndexes[ti];
+          distance = d;
+        }
+      }
+    }
     const increment = fromIndex < toIndex ? 1 : -1;
     const result: PointDescriptor[] = [];
     for (let i = fromIndex + increment; i != toIndex + increment; i = i + increment) {
       result.push({pos: { lat: points[i].lat, lng: points[i].lng } });
     }
-    this.points.push( this.track!.lastSegment.appendMany(result) );
+    return result;
   }
 
 

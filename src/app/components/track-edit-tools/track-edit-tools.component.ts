@@ -266,25 +266,24 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       },
       refreshTools: () => this.refreshTools(),
 
-      startInteractiveTool: (toolbar: (ctx: InteractiveToolContext) => MenuItem[]) => new Promise(resolve => {
+      startInteractiveTool: (toolbar: (ctx: InteractiveToolContext) => MenuItem[], trackListener?: (ctx: InteractiveToolContext, track: Track) => void) => new Promise(resolve => {
         let endEdit: (() => void) | undefined = undefined;
         const ctx = {
           map: this.map$.value!,
-          startEditTrack: () => new Promise(resolve => {
+          trackListener,
+          startEditTrack: () => {
             this.modify(track => new Observable(subscriber => {
               endEdit = () => {
                 subscriber.next(true);
                 subscriber.complete();
               };
-              resolve(track);
+              trackListener?.(ctx, track);
             }), true, false).subscribe();
-          }),
+          },
           trackModified() {
-            return new Promise(resolve => {
-              if (!endEdit) return;
-              endEdit();
-              this.startEditTrack().then(resolve);
-            });
+            if (!endEdit) return;
+            endEdit();
+            this.startEditTrack();
           },
           endEditTrack: () => {
             if (!endEdit) return;
@@ -337,6 +336,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     this.undoneStack.push(this.getCurrentState());
     if (this.undoneStack.length > 50) this.undoneStack.splice(0, 1);
     this.setState(state);
+    this.interactiveTool?.trackModified()
   }
 
   redo(): void {

@@ -87,6 +87,17 @@ export class TrackUtils {
     }
   }
 
+  public static distanceBetweenLatLng(points: L.LatLngExpression[], startIndex: number, endIndex: number): number {
+    let total = 0;
+    let p = L.latLng(points[startIndex]);
+    for (let i = startIndex + 1; i <= endIndex; ++i) {
+      const p2 = L.latLng(points[i]);
+      total += p.distanceTo(p2);
+      p = p2;
+    }
+    return total;
+  }
+
   public static goBackUntilDistance(points: Point[], index: number, minIndex: number, maxDistance: number): number {
     if (index >= points.length || index < minIndex) return -1;
     let d = 0;
@@ -122,6 +133,23 @@ export class TrackUtils {
       }
     }
     return closestIndex;
+  }
+
+  public static findClosestPoints(pos: L.LatLngLiteral, points: L.LatLngLiteral[], maxDistance: number = -1): number[] {
+    if (points.length === 0) return [];
+    let closestIndexes: number[] = [];
+    let closestDistance = -1;
+    const p = L.latLng(pos);
+    for (let i = 0; i < points.length; ++i) {
+      const p2 = points[i];
+      const d = p.distanceTo(p2);
+      if ((maxDistance < 0 || d <= maxDistance) && (closestDistance === -1 || d <= closestDistance)) {
+        if (d === closestDistance) closestIndexes.push(i);
+        else closestIndexes = [i];
+        closestDistance = d;
+      }
+    }
+    return closestIndexes;
   }
 
   public static findClosestPointInTrack(pos: L.LatLngLiteral, track: Track, maxDistance: number = -1): {segmentIndex: number, pointIndex: number} | undefined {

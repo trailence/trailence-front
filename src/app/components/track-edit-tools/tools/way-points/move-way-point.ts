@@ -35,29 +35,31 @@ export class MoveWayPointTool implements TrackEditTool {
       selectionSubscription?.unsubscribe();
       iCtx.close();
     };
-    ctx.startInteractiveTool(iCtx => [
-      new MenuItem().setI18nLabel('track_edit_tools.tools.way_points.select_new_position').setSectionTitle(true),
-      new MenuItem()
-        .setI18nLabel('buttons.cancel')
-        .setIcon('cross')
-        .setAction(() => {
-          stop(iCtx);
-        }),
-    ]).then(
+    let newPos: PointReference;
+    ctx.startInteractiveTool(
+      iCtx => [
+        new MenuItem().setI18nLabel('track_edit_tools.tools.way_points.select_new_position').setSectionTitle(true),
+        new MenuItem()
+          .setI18nLabel('buttons.cancel')
+          .setIcon('cross')
+          .setAction(() => {
+            stop(iCtx);
+          }),
+      ],
+      (iCtx, editionTrack) => {
+        const wp = wayPoint ? editionTrack.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(editionTrack, point!.point.pos);
+        if (wp) {
+          wp.point.pos = {...newPos.point.pos};
+          wp.point.ele = newPos.point.ele;
+        }
+        iCtx.endEditTrack();
+        stop(iCtx);
+      }
+    ).then(
       iCtx => {
         selectionSubscription = ctx.selection.selection$.pipe(filter(s => s?.length === 1 && s[0] instanceof PointReference), take(1)).subscribe(s => {
-          const newPos = s![0] as PointReference;
-          iCtx.startEditTrack().then(editionTrack => {
-            const wp = wayPoint ? editionTrack.wayPoints[currentTrack.wayPoints.indexOf(wayPoint)] : TrackUtils.getWayPointAt(editionTrack, point!.point.pos);
-            if (wp) {
-              wp.point.pos = {...newPos.point.pos};
-              wp.point.ele = newPos.point.ele;
-            }
-            iCtx.trackModified().then(() => {
-              iCtx.endEditTrack();
-              stop(iCtx);
-            })
-          });
+          newPos = s![0] as PointReference;
+          iCtx.startEditTrack();
         });
       }
     );

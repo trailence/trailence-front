@@ -41,16 +41,17 @@ export interface TrackEditToolContext {
   getTool<T>(component: Type<T>): T | undefined;
   refreshTools(): void;
 
-  startInteractiveTool(toolbar: (ctx: InteractiveToolContext) => MenuItem[]): Promise<InteractiveToolContext>;
+  startInteractiveTool(toolbar: (ctx: InteractiveToolContext) => MenuItem[], trackListener?: (ctx: InteractiveToolContext, track: Track) => void): Promise<InteractiveToolContext>;
 
 }
 
 export interface InteractiveToolContext {
 
   map: MapComponent;
+  trackListener?: (ctx: InteractiveToolContext, track: Track) => void;
 
-  startEditTrack(): Promise<Track>;
-  trackModified(): Promise<Track>;
+  startEditTrack(): void;
+  trackModified(): void;
   endEditTrack(): void;
 
   toolbar: (ctx: InteractiveToolContext) => MenuItem[];

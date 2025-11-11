@@ -10,6 +10,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { MapTrackPointReference } from 'src/app/components/map/track/map-track-point-reference';
 import { Arrays } from 'src/app/utils/arrays';
 import { PointDescriptor } from 'src/app/model/point-descriptor';
+import { TrackUtils } from 'src/app/utils/track-utils';
 
 const MIN_ZOOM = 14;
 const MATCHING_MAX_DISTANCE = 2.5;
@@ -153,59 +154,82 @@ export class AddOsmPath extends AddPointsTool {
   }
 
   private getPoints(from: L.LatLngLiteral, to: L.LatLngLiteral, way: L.LatLngLiteral[], isForward: boolean): PointDescriptor[] | undefined { // NOSONAR
-    const toIndex = way.findIndex(p => p.lat === to.lat && p.lng === to.lng);
-    if (toIndex < 0) return undefined;
+    let fromIndexes: number[] = [];
+    let fromIndexesDistance = -1;
     const f = L.latLng(from);
-    let bestD = f.distanceTo(to);
-    let bestIndex = toIndex;
     for (let i = 0; i < way.length; ++i) {
-      if (i === toIndex) continue;
-      const d = f.distanceTo(way[i]);
-      if (d < bestD) {
-        bestD = d;
-        bestIndex = i;
+      const p = way[i];
+      const d = f.distanceTo(p);
+      if (fromIndexesDistance === -1 || d < fromIndexesDistance) {
+        fromIndexes = [i];
+        fromIndexesDistance = d;
+      } else if (d === fromIndexesDistance) {
+        fromIndexes.push(i);
       }
     }
-    if (bestIndex === toIndex) {
+    if (fromIndexes.length === 0) return undefined;
+    const toIndexes: number[] = [];
+    for (let i = 0; i < way.length; ++i) {
+      const p = way[i];
+      if (p.lat === to.lat && p.lng === to.lng)
+        toIndexes.push(i);
+    }
+    if (toIndexes.length === 0) return undefined;
+
+    let fromIndex = 0;
+    let toIndex = 0;
+    let distance = -1;
+    for (let fi = 0; fi < fromIndexes.length; ++fi) {
+      for (let ti = 0; ti < toIndexes.length; ++ti) {
+        const d = TrackUtils.distanceBetweenLatLng(way, Math.min(fromIndexes[fi], toIndexes[ti]), Math.max(fromIndexes[fi], toIndexes[ti]));
+        if (distance === -1 || d < distance) {
+          fromIndex = fromIndexes[fi];
+          toIndex = toIndexes[ti];
+          distance = d;
+        }
+      }
+    }
+
+    if (fromIndex === toIndex) {
       // single point
-      return [{pos: way[bestIndex]}];
+      return [{pos: way[fromIndex]}];
     }
     const points: PointDescriptor[] = [];
-    if (way[bestIndex].lat === from.lat && way[bestIndex].lng === from.lng) {
+    if (way[fromIndex].lat === from.lat && way[fromIndex].lng === from.lng) {
       // exactly the starting point
-      if (bestIndex > toIndex) {
+      if (fromIndex > toIndex) {
         if (isForward) {
-          for (let i = bestIndex - 1; i >= toIndex; --i) points.push({pos:way[i]});
+          for (let i = fromIndex - 1; i >= toIndex; --i) points.push({pos:way[i]});
         } else {
-          for (let i = toIndex; i < bestIndex; ++i) points.push({pos: way[i]});
+          for (let i = toIndex; i < fromIndex; ++i) points.push({pos: way[i]});
         }
       } else if (isForward) {
-        for (let i = bestIndex + 1; i <= toIndex; ++i) points.push({pos: way[i]});
+        for (let i = fromIndex + 1; i <= toIndex; ++i) points.push({pos: way[i]});
       } else {
-        for (let i = toIndex; i > bestIndex; --i) points.push({pos: way[i]});
+        for (let i = toIndex; i > fromIndex; --i) points.push({pos: way[i]});
       }
       return points;
     }
     // we should not go through the starting point
-    const previousPoint = bestIndex > toIndex ? way[bestIndex - 1] : way[bestIndex + 1];
-    const justBefore = {...way[bestIndex]};
+    const previousPoint = fromIndex > toIndex ? way[fromIndex - 1] : way[fromIndex + 1];
+    const justBefore = {...way[fromIndex]};
     if (previousPoint.lat < justBefore.lat) justBefore.lat -= 0.0000000001; else justBefore.lat += 0.0000000001;
     if (previousPoint.lng < justBefore.lng) justBefore.lng -= 0.0000000001; else justBefore.lng += 0.0000000001;
-    if (f.distanceTo(justBefore) < f.distanceTo(way[bestIndex])) {
-      if (bestIndex > toIndex) bestIndex--;
-      else bestIndex++;
+    if (f.distanceTo(justBefore) < f.distanceTo(way[fromIndex])) {
+      if (fromIndex > toIndex) fromIndex--;
+      else fromIndex++;
     }
 
-    if (bestIndex > toIndex) {
+    if (fromIndex > toIndex) {
     if (isForward) {
-        for (let i = bestIndex; i >= toIndex; --i) points.push({pos:way[i]});
+        for (let i = fromIndex; i >= toIndex; --i) points.push({pos:way[i]});
       } else {
-        for (let i = toIndex; i <= bestIndex; ++i) points.push({pos: way[i]});
+        for (let i = toIndex; i <= fromIndex; ++i) points.push({pos: way[i]});
       }
     } else if (isForward) {
-      for (let i = bestIndex; i <= toIndex; ++i) points.push({pos: way[i]});
+      for (let i = fromIndex; i <= toIndex; ++i) points.push({pos: way[i]});
     } else {
-      for (let i = toIndex; i >= bestIndex; --i) points.push({pos: way[i]});
+      for (let i = toIndex; i >= fromIndex; --i) points.push({pos: way[i]});
     }
     return points;
   }

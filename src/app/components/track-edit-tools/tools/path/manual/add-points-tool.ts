@@ -27,20 +27,24 @@ export abstract class AddPointsTool implements TrackEditTool {
     if (!sel) return;
     const isForward = sel.pointIndex !== 0;
     ctx.selection.cancelSelection();
-    ctx.startInteractiveTool(iCtx => [
-      new MenuItem()
-        .setI18nLabel('track_edit_tools.stop_interactive')
-        .setIcon('stop')
-        .setAction(() => {
-          this.disableAddPoints(true);
-          iCtx.map.removeFromMap(this.anchor.marker);
-          iCtx.close();
-        }),
-    ]).then(
+    ctx.startInteractiveTool(
+      iCtx => [
+        new MenuItem()
+          .setI18nLabel('track_edit_tools.stop_interactive')
+          .setIcon('stop')
+          .setAction(() => {
+            this.disableAddPoints(true);
+            iCtx.map.removeFromMap(this.anchor.marker);
+            iCtx.close();
+          }),
+      ],
+      (iCtx, editionTrack) => {
+        this.disableAddPoints(false);
+        this.continueAddPoints(ctx.injector, iCtx, editionTrack, sel.segmentIndex, isForward);
+      }
+    ).then(
       iCtx => {
-        iCtx.startEditTrack().then(editionTrack => {
-          this.continueAddPoints(ctx.injector, iCtx, editionTrack, sel.segmentIndex, isForward);
-        });
+        iCtx.startEditTrack();
       }
     );
   }
@@ -65,7 +69,7 @@ export abstract class AddPointsTool implements TrackEditTool {
           } else {
             this.segment.insertMany(0, points);
           }
-          iCtx.trackModified().then(newTrack => that.continueAddPoints(injector, iCtx, newTrack, segmentIndex, isForward));
+          iCtx.trackModified();
         });
       },
     });
