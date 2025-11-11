@@ -326,7 +326,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     return true;
   }
 
-  public override searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters): Observable<SearchBubblesResult[]> {
+  public override searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters): Observable<SearchBubblesResult> {
     const topLeft = L.CRS.EPSG3857.latLngToPoint(bounds.getNorthWest(), zoom);
     const bottomRight = L.CRS.EPSG3857.latLngToPoint(bounds.getSouthEast(), zoom);
     const startY = Math.floor(topLeft.y / 128);
@@ -348,11 +348,16 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
       activities: filters.activities.selected,
       rate: filters.rate
     };
-    return this.injector.get(HttpService).post<{trailsByTile: {tile: number, nbTrails: number}[]}>(environment.apiBaseUrl + '/public/trails/v1/countByTile', {zoom, tiles, filters: searchFilters}).pipe(
-      map(result => result.trailsByTile.map(r => ({
-        pos: L.CRS.EPSG3857.pointToLatLng(L.point((r.tile % nbTilesByY) * 128 + 64, Math.floor(r.tile / nbTilesByY) * 128 + 64), zoom),
-        count: r.nbTrails,
-      })))
+    return this.injector.get(HttpService).post<{trailsByTile: {tile: number, nbTrails: number}[], uuids: string[] | null | undefined}>
+      (environment.apiBaseUrl + '/public/trails/v1/countByTile', {zoom, tiles, filters: searchFilters, returnUuidsWhenLessThan: 100})
+    .pipe(
+      map(result => ({
+        trailsByTile: result.trailsByTile.map(r => ({
+          pos: L.CRS.EPSG3857.pointToLatLng(L.point((r.tile % nbTilesByY) * 128 + 64, Math.floor(r.tile / nbTilesByY) * 128 + 64), zoom),
+          count: r.nbTrails,
+        })),
+        uuids: result.uuids,
+      }))
     );
   }
 

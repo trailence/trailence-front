@@ -99,10 +99,11 @@ export class GeoTrekImport extends Importer {
   }
 
   private async getTreks(page: number): Promise<GeoTrekResponse> {
-    const response = await fetch(this.baseUrl + '/trek/?length_max=50000&page=' + page + '&practices=' + Object.keys(this.practicesToFetch).join(','));
+    const url = this.baseUrl + '/trek/?length_max=50000&page=' + page + '&practices=' + Object.keys(this.practicesToFetch).join(',');
+    const response = await fetch(url);
     const json: any = await response.json();
     if (!response.ok || json['results'] === undefined) {
-      console.error('Error getting geotrek page ' + page, json);
+      console.error('Error getting geotrek page ' + page, url, json);
       throw new Error();
     }
     return json as GeoTrekResponse;

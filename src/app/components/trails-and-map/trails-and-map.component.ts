@@ -179,7 +179,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     if (this.mapTracks$.value.length > 0)
       this.mapTracks$.next([]);
-    if (trails.length === 0) {
+    if (bubbles.length > 0 || trails.length === 0) {
       this.mapBubbles$.next(bubbles);
       return;
     }

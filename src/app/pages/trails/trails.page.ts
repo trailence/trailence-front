@@ -22,7 +22,7 @@ import * as L from 'leaflet';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { FetchSourcePlugin, SearchBubblesResult, SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { FetchSourcePlugin, SearchBubblesResult, SearchBubblesTileResult, SearchResult } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { AlertController, NavController } from '@ionic/angular/standalone';
@@ -97,7 +97,7 @@ export class TrailsPage extends AbstractPage {
     this.connected$ = combineLatest([networkService.internet$, networkService.server$]).pipe(map(([i,s]) => i && s));
     combineLatest([this.bubblesToolAvailable$, this.showBubbles$]).subscribe(
       ([available, show]) => {
-        if (this.viewId && available) localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(show));
+        if (this.viewId && available && this.trailsType !== 'search') localStorage.setItem(LOCALSTORAGE_KEY_BUBBLES + '.' + this.viewId, JSON.stringify(show));
       }
     );
     this.filters$ = this._trailsAndMap$.pipe(
@@ -141,7 +141,8 @@ export class TrailsPage extends AbstractPage {
 
   private initView(id: string): void {
     this.viewId = id;
-    this.loadShowBubbleState();
+    if (this.trailsType !== 'search')
+      this.loadShowBubbleState();
   }
 
   private loadShowBubbleState(): void {
@@ -499,6 +500,8 @@ export class TrailsPage extends AbstractPage {
 
   private doSearchTrails(plugins: string[]): void {
     this.showBubbles$.next(false);
+    if (this.bubblesToolAvailable$.value)
+      this.bubblesToolAvailable$.next(false);
     let firstResult = true;
     this.searchFiltersSubscription?.unsubscribe();
     this.searchFiltersSubscription = undefined;
@@ -533,11 +536,14 @@ export class TrailsPage extends AbstractPage {
 
   private doSearchBubbles(plugins: string[]): void {
     this.showBubbles$.next(true);
+    if (this.bubblesToolAvailable$.value)
+      this.bubblesToolAvailable$.next(false);
     const bounds = this.searchBounds!;
     const zoom = this.searchZoom!;
     Console.info('Start search bubbles on bounds ', bounds, 'zoom', zoom, 'using plugins', plugins);
     this.searchFiltersSubscription?.unsubscribe();
     let searchCount = 0;
+    const plugin = this.injector.get(FetchSourceService).getPluginByName(plugins[0]);
     this.searchFiltersSubscription = this.filters$.pipe(
       debounceTimeExtended(0, 1000),
       switchMap(filters => {
@@ -545,7 +551,7 @@ export class TrailsPage extends AbstractPage {
         this.ngZone.run(() => {
           this.searching = true;
         });
-        return (this.injector.get(FetchSourceService).getPluginByName(plugins[0])?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty()) ?? of([])).pipe(
+        return (plugin?.searchBubbles(bounds, zoom, filters ?? FiltersUtils.createEmpty()) ?? of({trailsByTile: [], uuids: undefined})).pipe(
           catchError(e => {
             Console.error('Error searching bubbles on ' + plugins.join(',') + ' with bounds', bounds, 'and zoom', zoom, 'error', e);
             this.injector.get(ErrorService).addNetworkError(e, 'pages.trails.search.error', []);
@@ -555,52 +561,69 @@ export class TrailsPage extends AbstractPage {
             }
             return EMPTY;
           }),
-          map(result => ([result, count]) as [SearchBubblesResult[], number]),
+          map(result => ([result, count]) as [SearchBubblesResult, number]),
         );
       })
     ).subscribe(([result, count]) => {
       this.ngZone.run(() => {
         if (searchCount !== count) return;
-        this.trails$.next(List());
-        this.bubbles$.next(result.map(r => {
-          const pos = L.latLng(r.pos);
-          const centerPoint = L.CRS.EPSG3857.latLngToPoint(pos, zoom);
-          const bubbleBoundsPoint = L.bounds(L.point(centerPoint.x - 60, centerPoint.y - 60), L.point(centerPoint.x + 60, centerPoint.y + 60));
-          const bubbleBounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getTopRight(), zoom));
-          const boundsPoint = L.bounds(L.point(centerPoint.x - 64, centerPoint.y - 64), L.point(centerPoint.x + 64, centerPoint.y + 64));
-          const bounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(boundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(boundsPoint.getTopRight(), zoom));
-          return new MapBubble(
-            bubbleBounds,
-            bounds,
-            '#80808080',
-            '#C0C0C0C0',
-            '' + r.count,
-            20,
-            '#000000',
-          ).onClick(map => {
-            let called = false;
-            const listener = () => {
-              if (called) return;
-              called = true;
-              map.removeEventListener('zoomend', listener);
-              setTimeout(() => {
-                const zoom = this.trailsAndMap?.map?.getState()?.zoom;
-                if (!this.searching && zoom && this.lastSearchZoom !== zoom)
-                  this.doSearch(this.selectedSearchPlugins);
-              }, 100);
-            };
-            map.addEventListener('zoomend', listener);
-            map.fitBounds(bounds);
-            setTimeout(() => {
-              if (!called) listener();
-            }, 2000);
+        this.bubbles$.next(result.trailsByTile.map(r => this.searchBubbleResultToMapBubble(r, zoom)));
+        Console.info('Search bubbles found', result.trailsByTile.length);
+        if (!result.uuids?.length) {
+          this.trails$.next(List());
+          this.searching = false;
+          this.hasSearchResult = result.trailsByTile.length > 0;
+          this.setSearchBounds(bounds, zoom, true);
+        } else {
+          plugin!!.getTrails(result.uuids)
+          .catch(e => {
+            Console.error('Get trails by uuids error', e);
+            return [] as Trail[];
+          })
+          .then(trails => {
+            this.trails$.next(List(trails.map(t => of(t))));
+            this.searching = false;
+            this.hasSearchResult = result.trailsByTile.length > 0;
+            this.setSearchBounds(bounds, zoom, true);
+            this.bubblesToolAvailable$.next(true);
           });
-        }));
-        this.searching = false;
-        this.hasSearchResult = result.length > 0;
-        this.setSearchBounds(bounds, zoom, true);
-        Console.info('Search bubbles found', result.length);
+        }
       });
+    });
+  }
+
+  private searchBubbleResultToMapBubble(r: SearchBubblesTileResult, zoom: number): MapBubble {
+    const pos = L.latLng(r.pos);
+    const centerPoint = L.CRS.EPSG3857.latLngToPoint(pos, zoom);
+    const bubbleBoundsPoint = L.bounds(L.point(centerPoint.x - 60, centerPoint.y - 60), L.point(centerPoint.x + 60, centerPoint.y + 60));
+    const bubbleBounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(bubbleBoundsPoint.getTopRight(), zoom));
+    const boundsPoint = L.bounds(L.point(centerPoint.x - 64, centerPoint.y - 64), L.point(centerPoint.x + 64, centerPoint.y + 64));
+    const bounds = L.latLngBounds(L.CRS.EPSG3857.pointToLatLng(boundsPoint.getBottomLeft(), zoom), L.CRS.EPSG3857.pointToLatLng(boundsPoint.getTopRight(), zoom));
+    return new MapBubble(
+      bubbleBounds,
+      bounds,
+      '#80808080',
+      '#C0C0C0C0',
+      '' + r.count,
+      20,
+      '#000000',
+    ).onClick(map => {
+      let called = false;
+      const listener = () => {
+        if (called) return;
+        called = true;
+        map.removeEventListener('zoomend', listener);
+        setTimeout(() => {
+          const zoom = this.trailsAndMap?.map?.getState()?.zoom;
+          if (!this.searching && zoom && this.lastSearchZoom !== zoom)
+            this.doSearch(this.selectedSearchPlugins);
+        }, 100);
+      };
+      map.addEventListener('zoomend', listener);
+      map.fitBounds(bounds);
+      setTimeout(() => {
+        if (!called) listener();
+      }, 2000);
     });
   }
 

@@ -1,6 +1,6 @@
 {
   "type": "geotrek",
-  "url": "https://admin.cheminsdesparcs.fr/api/v2/",
+  "url": "https://admin.cheminsdesparcs.fr/api/v2",
   "trek-link": "https://www.cheminsdesparcs.fr/trek/{{id}}",
   "practices": {
     "4": "hiking"
