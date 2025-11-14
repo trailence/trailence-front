@@ -21,6 +21,7 @@ export class AdditionsTool extends MapTool {
   ) {
     super();
     this.icon = 'info';
+    this.visible = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() >= 10;
     this.badges = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       let count = 0;
       const state = mapComponent.getState();
@@ -112,6 +113,11 @@ export class AdditionsTool extends MapTool {
       bounds = undefined;
     }
     if (!bounds) return;
+    if (map!.getZoom() < 10) {
+      for (const layer of this._layers) layer.remove();
+      this._layers = [];
+      return;
+    }
     this._loading = true;
     mapComponent.refreshTools();
     const count = ++this._refreshCount;
