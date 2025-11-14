@@ -1,0 +1,2 @@
+You can now choose which elements to add to a map<br/>
+Several other small improvements and bug fixes are also included in this version

@@ -1,0 +1,2 @@
+Vous pouvez à présent choisir les éléments à ajouter sur une carte<br/>
+Quelques autres petites améliorations et correctifs ont également été apportés dans cette version

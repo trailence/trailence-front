@@ -252,5 +252,19 @@
         "Several other improvements and bug fixes are also included in this version"
       ]
     }
+  },
+  "010201": {
+    "fr": {
+      "items": [
+        "Vous pouvez à présent choisir les éléments à ajouter sur une carte",
+        "Quelques autres petites améliorations et correctifs ont également été apportés dans cette version"
+      ]
+    },
+    "en": {
+      "items": [
+        "You can now choose which elements to add to a map",
+        "Several other small improvements and bug fixes are also included in this version"
+      ]
+    }
   }
 }
