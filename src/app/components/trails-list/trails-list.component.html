@@ -83,12 +83,18 @@
           } @else {
             <div>{{i18n.texts.pages.trails.empty_list.search}}</div>
           }
+          <ion-button (click)="enlargeSearchArea()" fill="clear" size="small" color="secondary">{{i18n.texts.pages.trails.empty_list.filter_search_enlarge_button}}</ion-button>
         }
       }
     </div>
   } @else if (listTrails.size === 0) {
     <div class="empty-list">
-      <div>{{i18n.texts.pages.trails.empty_list.filter}}</div>
+      @if (listType === 'search') {
+        <div>{{i18n.texts.pages.trails.empty_list.filter_search}}</div>
+        <ion-button (click)="enlargeSearchArea()" fill="clear" size="small" color="secondary">{{i18n.texts.pages.trails.empty_list.filter_search_enlarge_button}}</ion-button>
+      } @else {
+        <div>{{i18n.texts.pages.trails.empty_list.filter}}</div>
+      }
     </div>
   } @else {
     <ng-container *ngTemplateOutlet="trailsListTemplate; context: { nbSelected: nbSelected }"></ng-container>

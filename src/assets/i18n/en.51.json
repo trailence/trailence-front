@@ -172,6 +172,8 @@
         "collection": "No trail yet in this collection",
         "share": "No trail in this share",
         "filter": "No trail match your filters",
+        "filter_search": "No trail match your filters in this area",
+        "filter_search_enlarge_button": "Broaden search area",
         "all_collections": "You have no trail at the moment",
         "my_selection": "You don't have any trails in your selection",
         "search": "No trails found in this area.",

@@ -195,8 +195,8 @@ export class I18nService {
     }
   }
 
-  public elevationToString(elevation: number | undefined): string {
-    if (elevation === undefined) return '';
+  public elevationToString(elevation: number | undefined | null): string {
+    if (elevation === undefined || elevation === null) return '';
     switch (this.prefService.preferences.distanceUnit) {
       case 'METERS': return elevation.toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: elevation > 1000 ? 0 : 1}) + ' m';
       case 'IMPERIAL': return this.metersToFoot(elevation).toLocaleString(this.prefService.preferences.lang, {maximumFractionDigits: 0}) + ' ft';

@@ -172,6 +172,8 @@
         "collection": "Aucun parcours dans cette collection pour l'instant",
         "share": "Aucun parcours dans ce partage",
         "filter": "Aucun parcours ne correspond à vos filtres",
+        "filter_search": "Aucun parcours ne correspond à vos filtres dans cette zone",
+        "filter_search_enlarge_button": "Étendre la zone de recherche",
         "all_collections": "Vous n'avez aucun parcours pour l'instant",
         "my_selection": "Vous n'avez aucun parcours dans votre sélection",
         "search": "Aucun parcours trouvé dans cette zone.",
