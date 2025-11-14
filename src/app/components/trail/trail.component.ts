@@ -461,8 +461,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           };
         }
         if (this.photos && this.photos.length > 0) {
-            jd.image = 'https://trailence.org/api/public/trails/v1/photo/' + this.trail1.uuid + '/' + this.photos[0].uuid;
-            this._jdPhotos = true;
+          jd.image = environment.baseUrl + this.photos[0].uuid;
+          this._jdPhotos = true;
         }
       }
     } else if (this._jdTrail !== undefined) {
