@@ -145,6 +145,10 @@ export class TagService {
     this._trailTagStore.delete(new TrailTag({trailUuid, tagUuid}));
   }
 
+  public deleteManyTrailTag(toDelete: {trailUuid: string, tagUuid: string}[]) {
+    this._trailTagStore.deleteIf('Delete ' + toDelete.length + ' trail tags', item => toDelete.some(t => t.trailUuid === item.trailUuid && t.tagUuid === item.tagUuid));
+  }
+
   public getTagNames$(tagUuid: string, firstReady: boolean = false): Observable<string[]> {
     const result$ = this.getTag$(tagUuid).pipe(
       switchMap(tag => {

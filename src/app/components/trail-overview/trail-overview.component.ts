@@ -168,7 +168,10 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     this.reset();
-    if (!this.trail) return;
+    if (!this.trail) {
+      this.removeTrackMetadata();
+      return;
+    }
     if (!this.platform.is('capacitor')) {
       if (this.linkWithSlug && this.trailInfo?.externalUrl)
         this.openUrl = this.trailInfo.externalUrl;
@@ -362,10 +365,6 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.external$.next(undefined);
     this.publicTrailUuid = undefined;
     this._trackMetadataInitialized = false;
-    const element = document.getElementById('track-metadata-' + this.id);
-    if (element) {
-      while (element.previousElementSibling) element.previousElementSibling.remove();
-    }
     if (!this.delayLoading && !this.load$.value)
       this.load$.next(true);
   }
@@ -379,7 +378,15 @@ export class TrailOverviewComponent extends AbstractComponent {
   private initTrackMetadata(): void {
     this._trackMetadataInitialized = true;
     const element = document.getElementById('track-metadata-' + this.id);
+    if (!element) return;
+    while (element.previousElementSibling) element.previousElementSibling.remove();
     TrackMetadataComponent.init(element!.parentElement!, element!, this.track$, of(undefined), this.config!, this.assets, this.i18n, this.whenVisible, this.domController, this.preferencesService.preferences);
+  }
+  private removeTrackMetadata(): void {
+    const element = document.getElementById('track-metadata-' + this.id);
+    if (element) {
+      while (element.previousElementSibling) element.previousElementSibling.remove();
+    }
   }
 
   setSelected(selected: boolean) {
