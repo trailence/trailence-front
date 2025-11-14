@@ -1,5 +1,6 @@
 import { Platform } from '@ionic/angular/common';
 import { trailenceAppVersionCode, trailenceAppVersionName } from 'src/app/trailence-version';
+import Trailence from 'src/app/services/trailence.service';
 
 const DEVICE_ID_KEY = "device_id";
 
@@ -14,7 +15,7 @@ export class DeviceInfo {
   public versionCode: number;
   public deviceId: string;
 
-  constructor(ionic: Platform) {
+  constructor(ionic: Platform, public readonly info: any) {
     this.userAgent = globalThis.navigator.userAgent;
     const uaData = (globalThis.navigator as any).userAgentData;
     if (uaData) {

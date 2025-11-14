@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { GeoService, POI } from '../geolocation/geo.service';
-import { Observable } from 'rxjs';
+import { POI } from '../geolocation/geo.service';
+import { Observable, of } from 'rxjs';
 import { Way } from '../geolocation/way';
-import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';
 import * as L from 'leaflet';
 
@@ -10,22 +9,10 @@ import * as L from 'leaflet';
 export class MapAdditionsService {
 
   constructor(
-    private readonly geoService: GeoService,
-    private readonly network: NetworkService,
     private readonly mapOffline: OfflineMapService,
   ) {}
 
-  public findRestrictedWays(bounds: L.LatLngBounds): Observable<Way[]> {
-    if (this.network.internet)
-      return this.geoService.findWays(bounds, true);
-    return this.mapOffline.getRestrictedWays(bounds);
-  }
-
-  public findPOI(bounds: L.LatLngBounds): Observable<POI[]> {
-    if (this.network.internet)
-      return this.geoService.findPOI(bounds);
-    return this.mapOffline.getPOIs(bounds);
-  }
+  // --- State
 
   private readonly _states: {center: L.LatLngLiteral, zoom: number}[] = [];
 
@@ -56,4 +43,19 @@ export class MapAdditionsService {
     return undefined;
   }
 
+  // -- Additions
+
+  public getAdditions(bounds: L.LatLngBounds, options: MapAdditionsOptions): Observable<{pois: POI[], ways: Way[]}> {
+    if (!options.guidepost && !options.waterPoint && !options.toilets && !options.forbiddenWays && !options.permissiveWays) return of({pois: [], ways: []});
+    return this.mapOffline.getAdditions(bounds, !!options.guidepost, !!options.waterPoint, !!options.toilets, !!options.forbiddenWays, !!options.permissiveWays);
+  }
+
+}
+
+export interface MapAdditionsOptions {
+  guidepost?: boolean;
+  waterPoint?: boolean;
+  toilets?: boolean;
+  forbiddenWays?: boolean;
+  permissiveWays?: boolean;
 }

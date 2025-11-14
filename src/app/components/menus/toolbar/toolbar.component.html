@@ -20,6 +20,13 @@
             [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
           ></ion-icon>
         }
+        @if (item.spinner) {
+          <ion-spinner
+            [name]="item.spinner"
+            [color]="item.textColor ?? defaultIconColor"
+            [ngStyle]="{'width': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'height': (item.onlyIcon ? iconOnlySize : iconSize) + 'px', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+          ></ion-spinner>
+        }
         @if (item.text$) {
           <ion-label
             [color]="item.textColor"

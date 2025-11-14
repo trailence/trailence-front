@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from '../menu-item';
-import { IonIcon, IonLabel, PopoverController, IonBadge } from "@ionic/angular/standalone";
+import { IonIcon, IonLabel, PopoverController, IonBadge, IonSpinner } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
@@ -9,7 +9,7 @@ import { AsyncPipe, NgClass, NgStyle } from '@angular/common';
   selector: 'app-toolbar',
   templateUrl: './toolbar.component.html',
   imports: [
-    IonBadge, IonLabel, IonIcon,
+    IonBadge, IonLabel, IonIcon, IonSpinner,
     NgStyle, NgClass,
     AsyncPipe,
   ]

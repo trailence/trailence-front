@@ -22,21 +22,15 @@ export class MapLayerSelectionComponent implements OnInit {
   @Input() popup = false;
   @Input() initialSelection: string[] = [];
   @Input() onSelectionChanged?: (selection: string[]) => void;
-  @Input() enableOverlays = false;
-  @Input() initialOverlaysSelection: string[] = [];
-  @Input() onOverlaysSelectionChanged?: (selection: string[]) => void;
 
   @Output() selectionChange = new EventEmitter<string[]>();
-  @Output() overlaysSelectionChange = new EventEmitter<string[]>();
 
   selection: string[] = [];
-  overlaysSelection: string[] = [];
 
   globalLayers: {layer: MapLayer, tiles: L.TileLayer}[] = [];
   regionalLayers = new Map<string, {layer: MapLayer, tiles: L.TileLayer}[]>();
   sortedRegions: string[] = [];
   assertsUrl = environment.assetsUrl;
-  overlays: MapLayer[] = [];
 
   constructor(
     public readonly i18n: I18nService,
@@ -59,17 +53,12 @@ export class MapLayerSelectionComponent implements OnInit {
       }
     }
     this.sortedRegions = [...this.regionalLayers.keys()].sort((r1, r2) => r1.localeCompare(r2));
-    this.overlays = service.overlays;
   }
 
   ngOnInit(): void {
     if (this.initialSelection.length > 0) this.selection = [...this.initialSelection];
-    if (this.enableOverlays && this.initialOverlaysSelection.length > 0) this.overlaysSelection = [...this.initialOverlaysSelection];
     if (this.onSelectionChanged) {
       this.selectionChange.subscribe(event => this.onSelectionChanged!(event));
-    }
-    if (this.onOverlaysSelectionChanged) {
-      this.overlaysSelectionChange.subscribe(event => this.onOverlaysSelectionChanged!(event));
     }
   }
 
@@ -117,16 +106,6 @@ export class MapLayerSelectionComponent implements OnInit {
       }
     }
     return result;
-  }
-
-  selectOverlay(value: string, selected: boolean): void {
-    const index = this.overlaysSelection.indexOf(value);
-    if (selected) {
-      if (index < 0) this.overlaysSelection.push(value);
-      else return;
-    } else if (index >= 0) this.overlaysSelection.splice(index, 1);
-      else return;
-    this.overlaysSelectionChange.emit(this.overlaysSelection);
   }
 
   close(): void {

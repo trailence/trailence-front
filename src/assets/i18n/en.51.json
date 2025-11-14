@@ -1329,6 +1329,17 @@
       }
     }
   },
+  "mapAdditions": {
+    "title": "Show / Hide",
+    "guidepost": "Signposts",
+    "water": "Water points",
+    "toilets": "Toilets",
+    "way_forbidden": "Forbidden ways",
+    "way_permissive": "Permissive ways",
+    "overlays": {
+      "wmth": "Waymarked trails"
+    }
+  },
   "relativeDates": {
     "justNow": "Just now",
     "fewSecondsAgo": "Few seconds ago",

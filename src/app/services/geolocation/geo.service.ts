@@ -57,49 +57,39 @@ export class GeoService {
     return this.http.get<Place[]>(environment.apiBaseUrl + '/place/v1/search?terms=' + encodeURIComponent(name) + '&lang=' + this.prefService.preferences.lang);
   }
 
-  public findPOI(bounds: L.LatLngBounds): Observable<POI[]> {
-    const filterBounds = '(' + bounds.getSouth() + ',' + bounds.getWest() + ',' + bounds.getNorth() + ',' + bounds.getEast() + ')';
-    let request = '\n(';
-    request += 'node["tourism"="information"]["information"="guidepost"]' + filterBounds + ';';
-    request += 'node["amenity"~"(drinking_water)|(toilets)|(water_point)"]' + filterBounds + ';';
-    request += ');\nout meta geom;';
-    return this.overpass.request<OverpassResponse>(request, 25).pipe(
-      map(response => response.elements.map(element => {
-        if (!element.lat || !element.lon) return null;
-        if (element.tags['information'] === 'guidepost') {
-          let s = element.tags['name'] ?? '';
-          let s2 = element.tags['ref'] ?? '';
-          if (s.length > 0) {
-            if (s2.length > 0) s += ' (' + s2 + ')';
-          } else s = s2;
-          if (s.length === 0) return null;
-          return {id: element.id, type: 'guidepost', pos: {lat: element.lat, lng: element.lon}, text: s} as POI;
-        }
-        if (element.tags['amenity'] === 'drinking_water' || element.tags['amenity'] === 'water_point') {
-          return {id: element.id, type: 'water', pos: {lat: element.lat, lng: element.lon}} as POI;
-        }
-        if (element.tags['amenity'] === 'toilets') {
-          return {id: element.id, type: 'toilets', pos: {lat: element.lat, lng: element.lon}} as POI;
-        }
-        return null;
-      }).filter(e => !!e))
-    );
+  public overpassElementToPOI(element: OverpassElement): POI | null {
+    if (!element.lat || !element.lon) return null;
+    if (element.tags['information'] === 'guidepost') {
+      let s = element.tags['name'] ?? '';
+      let s2 = element.tags['ref'] ?? '';
+      if (s.length > 0) {
+        if (s2.length > 0) s += ' (' + s2 + ')';
+      } else s = s2;
+      if (s.length === 0) return null;
+      return {id: element.id, type: 'guidepost', pos: {lat: element.lat, lng: element.lon}, text: s} as POI;
+    }
+    if (element.tags['amenity'] === 'drinking_water' || element.tags['amenity'] === 'water_point') {
+      return {id: element.id, type: 'water', pos: {lat: element.lat, lng: element.lon}} as POI;
+    }
+    if (element.tags['amenity'] === 'toilets') {
+      return {id: element.id, type: 'toilets', pos: {lat: element.lat, lng: element.lon}} as POI;
+    }
+    return null;
   }
 
-  public findWays(bounds: L.LatLngBounds, onlyRestricted: boolean = false): Observable<Way[]> {
+  public findWays(bounds: L.LatLngBounds): Observable<Way[]> {
     const filterWays = 'way["highway"]';
-    const filterRestricted = onlyRestricted ? '["foot"~"(no)|(private)|(destination)|(permissive)"]' : '';
     const filterBounds = '(' + bounds.getSouth() + ',' + bounds.getWest() + ',' + bounds.getNorth() + ',' + bounds.getEast() + ')';
     const output = 'out tags geom;';
 
-    const request = filterWays + filterRestricted + filterBounds + ';' + output;
+    const request = filterWays + filterBounds + ';' + output;
 
     return this.overpass.request<OverpassResponse>(request, 25).pipe(
       map(response => response.elements.filter(e => e.geometry && e.geometry.length > 1).map(e => this.overpassElementToWay(e)))
     );
   }
 
-  private overpassElementToWay(element: OverpassElement): Way {
+  public overpassElementToWay(element: OverpassElement): Way {
     return {
       id: element.id,
       bounds: element.bounds,
@@ -445,12 +435,13 @@ export class GeoService {
 
 }
 
-interface OverpassResponse {
+export interface OverpassResponse {
   elements: OverpassElement[];
 }
 
-interface OverpassElement {
+export interface OverpassElement {
   id: string;
+  type: string;
   bounds?: {minlat: number, minlon: number, maxlat: number, maxlon: number};
   lat?: number;
   lon?: number;
@@ -458,7 +449,7 @@ interface OverpassElement {
   tags: {[key:string]: any};
 }
 
-interface OverpassGeometry {
+export interface OverpassGeometry {
   lat: number;
   lon: number;
 }

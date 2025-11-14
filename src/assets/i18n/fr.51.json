@@ -1329,6 +1329,17 @@
       }
     }
   },
+  "mapAdditions": {
+    "title": "Afficher / Masquer",
+    "guidepost": "Balises",
+    "water": "Points d'eau",
+    "toilets": "Toilettes",
+    "way_forbidden": "Passages interdits",
+    "way_permissive": "Passages tolérés",
+    "overlays": {
+      "wmth": "Sentiers balisés"
+    }
+  },
   "relativeDates": {
     "justNow": "A l'instant",
     "fewSecondsAgo": "Il y a quelques secondes",

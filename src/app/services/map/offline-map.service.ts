@@ -5,7 +5,7 @@ import Dexie from 'dexie';
 import { MapLayer, MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
-import { Observable, bufferCount, catchError, combineLatest, from, map, merge, of, switchMap, tap, zip } from 'rxjs';
+import { Observable, bufferCount, catchError, combineLatest, forkJoin, from, map, merge, of, switchMap, tap, zip } from 'rxjs';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -13,8 +13,9 @@ import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { ErrorService } from '../progress/error.service';
 import { I18nError, TranslatedString } from '../i18n/i18n-string';
 import { Console } from 'src/app/utils/console';
-import { GeoService, POI } from '../geolocation/geo.service';
-import { Way } from '../geolocation/way';
+import { GeoService, OverpassElement, OverpassResponse, POI } from '../geolocation/geo.service';
+import { Way, WayPermission } from '../geolocation/way';
+import { OverpassClient } from '../geolocation/overpass-client.service';
 
 interface TileMetadata {
   key: string;
@@ -36,6 +37,8 @@ export class OfflineMapService {
   private _openEmail?: string;
   private _cleanExpiredTimeout?: any;
 
+  private readonly osm_data_tables = ['osm_guidepost', 'osm_water', 'osm_toilets', 'osm_forbidden_ways', 'osm_permissive_ways'];
+
   constructor(
     auth: AuthService,
     private readonly layers: MapLayersService,
@@ -44,6 +47,7 @@ export class OfflineMapService {
     private readonly ngZone: NgZone,
     private readonly geoService: GeoService,
     private readonly injector: Injector,
+    private readonly overpass: OverpassClient,
   ) {
     auth.auth$.subscribe(
       auth => {
@@ -73,12 +77,129 @@ export class OfflineMapService {
       storesV1[layer + '_meta'] = 'key, date';
       storesV1[layer + '_tiles'] = 'key';
     }
-    storesV1['osm_restricted_ways'] = 'id, date';
-    storesV1['osm_poi'] = 'id, date';
+    for (const tableName of this.osm_data_tables)
+      storesV1[tableName] = '++id, north, south, west, east, date, offline';
     db.version(1).stores(storesV1);
     this._db = db;
     this.cleanExpiredTimeout();
   }
+
+  public getAdditions(bounds: L.LatLngBounds, guidepost: boolean, water: boolean, toilets: boolean, forbiddenWays: boolean, permissiveWays: boolean): Observable<{pois: POI[], ways: Way[]}> {
+    const fromCache: Observable<{pois: POI[], ways: Way[]} | undefined>[] = [];
+    fromCache.push(guidepost ? this.getOverpassElementsFromCache(bounds, 'osm_guidepost') : of(undefined));
+    fromCache.push(water ? this.getOverpassElementsFromCache(bounds, 'osm_water') : of(undefined));
+    fromCache.push(toilets ? this.getOverpassElementsFromCache(bounds, 'osm_toilets') : of(undefined));
+    fromCache.push(forbiddenWays ? this.getOverpassElementsFromCache(bounds, 'osm_forbidden_ways') : of(undefined));
+    fromCache.push(permissiveWays ? this.getOverpassElementsFromCache(bounds, 'osm_permissive_ways') : of(undefined));
+    return forkJoin(fromCache).pipe(
+      switchMap(cachedResult => {
+        return this.getOverpassElementsFromOsm(
+          bounds, false,
+          guidepost && cachedResult[0] === undefined,
+          water && cachedResult[1] === undefined,
+          toilets && cachedResult[2] === undefined,
+          forbiddenWays && cachedResult[3] === undefined,
+          permissiveWays && cachedResult[4] === undefined,
+        ).pipe(
+          map(osmResult => {
+            const result: {pois: POI[], ways: Way[]} = {pois: [], ways: []};
+            for (const cached of cachedResult)
+              if (cached) {
+                result.pois.push(...cached.pois);
+                result.ways.push(...cached.ways);
+              }
+            if (osmResult) {
+              result.pois.push(...osmResult.pois);
+              result.ways.push(...osmResult.ways);
+            }
+            return result;
+          })
+        );
+      })
+    );
+  }
+
+  private getOverpassElementsFromCache(bounds: L.LatLngBounds, tableName: string): Observable<{pois: POI[], ways: Way[]} | undefined> {
+    if (!this._db) return of(undefined);
+    const north = Math.floor(bounds.getNorth() * 1000000);
+    const south = Math.floor(bounds.getSouth() * 1000000);
+    const west = Math.floor(bounds.getWest() * 1000000);
+    const east = Math.floor(bounds.getEast() * 1000000);
+    return from(this._db.table(tableName).filter(obj => north <= obj.north && south >= obj.south && west >= obj.west && east <= obj.east).first()).pipe(
+      map(item => {
+        if (!item) return undefined;
+        const result: {pois: POI[], ways: Way[]} = {pois: [], ways: []};
+        for (const element of item.elements) {
+          if (element.pos?.lat !== undefined && element.pos?.lng !== undefined) {
+            if (bounds.contains(element.pos)) result.pois.push(element as POI);
+          }
+          if (element.bounds && element.points) {
+            if (bounds.overlaps(L.latLngBounds({lat: element.bounds.maxlat, lng: element.bounds.minlon}, {lat: element.bounds.minlat, lng:element.bounds.maxlon}))) result.ways.push(element as Way);
+          }
+        }
+        return result;
+      })
+    );
+  }
+
+  private storeOverpassElements(tableName: string, bounds: L.LatLngBounds, elements: any[], offline: boolean): void {
+    if (!this._db) return;
+    const north = Math.floor(bounds.getNorth() * 1000000);
+    const south = Math.floor(bounds.getSouth() * 1000000);
+    const west = Math.floor(bounds.getWest() * 1000000);
+    const east = Math.floor(bounds.getEast() * 1000000);
+    this._db.table(tableName).put({
+      north, south, west, east,
+      elements,
+      offline,
+      date: Date.now(),
+    });
+  }
+
+  private getOverpassElementsFromOsm(bounds: L.LatLngBounds, offline: boolean, guidepost: boolean, water: boolean, toilets: boolean, forbiddenWays: boolean, permissiveWays: boolean): Observable<{pois: POI[], ways: Way[]} | undefined> {
+    if (!guidepost && !water && !toilets && !forbiddenWays && !permissiveWays) return of({pois: [], ways: []});
+    const bbox = '(' + bounds.getSouth() + ',' + bounds.getWest() + ',' + bounds.getNorth() + ',' + bounds.getEast() + ')';
+    let request = '\n(';
+    if (guidepost)
+      request += '\n node["tourism"="information"]["information"="guidepost"]' + bbox + ';';
+    const amenity: string[] = [];
+    if (water) amenity.push('drinking_water');
+    if (toilets) amenity.push('toilets');
+    if (amenity.length > 0)
+      request += '\n node["amenity"~"' + amenity.map(a => '(' + a + ')').join('|') + '"]' + bbox + ';';
+    const wayfoot: string[] = [];
+    if (forbiddenWays) wayfoot.push('no','private','destination');
+    if (permissiveWays) wayfoot.push('permissive');
+    if (wayfoot.length > 0)
+      request += '\n way["highway"]["foot"~"' + wayfoot.map(a => '(' + a + ')').join('|') + '"]' + bbox + ';';
+    request += '\n);\nout meta geom;';
+    return this.overpass.request<OverpassResponse>(request, 25)
+    .pipe(
+      map(response => response.elements ?? undefined),
+      catchError(() => of(undefined)),
+      map(elements => {
+        if (!elements) return undefined;
+        const pois: POI[] = [];
+        const ways: Way[] = [];
+        for (const element of elements) {
+          if (element.type === 'way') {
+            ways.push(this.geoService.overpassElementToWay(element));
+          }
+          if (element.type === 'node') {
+            const poi = this.geoService.overpassElementToPOI(element);
+            if (poi) pois.push(poi);
+          }
+        }
+        if (guidepost) this.storeOverpassElements('osm_guidepost', bounds, pois.filter(p => p.type === 'guidepost'), offline);
+        if (water) this.storeOverpassElements('osm_water', bounds, pois.filter(p => p.type === 'water'), offline);
+        if (toilets) this.storeOverpassElements('osm_toilets', bounds, pois.filter(p => p.type === 'toilets'), offline);
+        if (forbiddenWays) this.storeOverpassElements('osm_forbidden_ways', bounds, ways.filter(w => w.permission === WayPermission.FORBIDDEN), offline);
+        if (permissiveWays) this.storeOverpassElements('osm_permissive_ways', bounds, ways.filter(w => w.permission === WayPermission.PERMISSIVE), offline);
+        return {pois, ways};
+      })
+    );
+  }
+
 
   public save( // NOSONAR
     layer: MapLayer, crs: L.CRS, tileLayer: L.TileLayer, minZoom: number, maxZoom: number, bounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number
@@ -86,8 +207,7 @@ export class OfflineMapService {
     if (!this._db) return;
     new Saver(this._db, layer, crs, tileLayer, minZoom, maxZoom, bounds, paths, pathAroundMeters, this.injector).start();
     for (const b of bounds) {
-      this.saveRestrictedWays(b);
-      this.savePOIs(b);
+      this.getOverpassElementsFromOsm(b, true, true, true, true, true, true);
     }
   }
 
@@ -137,62 +257,35 @@ export class OfflineMapService {
     }));
   }
 
-  private saveRestrictedWays(bounds: L.LatLngBounds): void {
-    this.geoService.findWays(bounds, true).subscribe(
-      ways => {
-        if (!this._db) return;
-        this._db.table('osm_restricted_ways').bulkPut(ways.map(w => ({...w, date: Date.now()})));
-      }
-    );
-  }
-
-  private savePOIs(bounds: L.LatLngBounds): void {
-    this.geoService.findPOI(bounds).subscribe(
-      pois => {
-        if (!this._db) return;
-        this._db.table('osm_poi').bulkPut(pois.map(p => ({...p, date: Date.now()})));
-      }
-    );
-  }
-
-  public getRestrictedWays(bounds: L.LatLngBounds): Observable<Way[]> {
-    if (!this._db) return of([]);
-    return from(this._db.table('osm_restricted_ways').toArray()).pipe(
-      map(ways => ways.filter(way => {
-        if (!way.bounds) return false;
-        if (!way.bounds.minlat || !way.bounds.maxlat || !way.bounds.minlon || !way.bounds.maxlon) return false;
-        if (way.bounds.minlat < bounds.getSouth()) return false;
-        if (way.bounds.maxlat > bounds.getNorth()) return false;
-        if (way.bounds.minlon < bounds.getWest()) return false;
-        if (way.bounds.maxlon > bounds.getEast()) return false;
-        return true;
-      }))
-    );
-  }
-
-  public getPOIs(bounds: L.LatLngBounds): Observable<POI[]> {
-    if (!this._db) return of([]);
-    return from(this._db.table('osm_poi').toArray()).pipe(
-      map(pois => pois.filter(p => {
-        return bounds.contains(p.pos);
-      }))
-    );
-  }
-
-  private cleanExpiredRestrictedWays(db: Dexie): void {
+  private cleanExpiredOsmData(db: Dexie): void {
     if (db !== this._db) return;
-    let count = 0;
-    Console.info('Cleaning restricted ways');
-    db.transaction('rw', ['osm_restricted_ways'], () => {
-      db.table('osm_restricted_ways')
-      .where('date')
-      .below(Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000)
-      .eachPrimaryKey(key => {
-        db.table('osm_restricted_ways').delete(key);
-        count++;
-      }).then(() => {
-        Console.info('Restricted ways removed: ', count);
-      });
+    Console.info('Cleaning osm data cache');
+    db.transaction('rw', this.osm_data_tables, () => {
+      const promises: Promise<any>[] = [];
+      for (const tableName of this.osm_data_tables) {
+        let count = 0;
+        promises.push(
+          db.table(tableName)
+          .where('date')
+          .below(Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000)
+          .eachPrimaryKey(key => {
+            db.table(tableName).delete(key);
+            count++;
+          }).then(() =>
+            db.table(tableName)
+            .where('date')
+            .below(Date.now() - 3 * 60 * 60 * 1000)
+            .and(obj => !obj.offline)
+            .eachPrimaryKey(key => {
+              db.table(tableName).delete(key);
+              count++;
+            })
+          ).then(() => {
+            Console.info('Osm data removed from ' + tableName + ': ', count);
+          })
+        );
+      }
+      return Promise.all(promises);
     });
   }
 
@@ -217,7 +310,7 @@ export class OfflineMapService {
       const name = this.layers.layers[i].name;
       setTimeout(() => this.cleanExpiredLayer(db, name), 60000 + i * 15000);
     }
-    this.cleanExpiredRestrictedWays(db);
+    this.cleanExpiredOsmData(db);
     setTimeout(() => {
       if (this._db === db) {
         localStorage.setItem('trailence.map-offline.last-cleaning.' + this._openEmail, '' + Date.now());

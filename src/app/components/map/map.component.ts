@@ -22,7 +22,6 @@ import { Trail } from 'src/app/model/trail';
 import { MapBubble } from './bubble/map-bubble';
 import { MapToggleBubblesTool } from './tools/toggle-bubbles-tool';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { RestrictedWaysTool } from './tools/restricted-ways-tool';
 import { PhoneLockTool } from './tools/phone-lock-tool';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
@@ -34,7 +33,7 @@ import { ScreenLockService } from 'src/app/services/screen-lock/screen-lock.serv
 import { HttpService } from 'src/app/services/http/http.service';
 import { Console } from 'src/app/utils/console';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
-import { POITool } from './tools/poi-tool';
+import { AdditionsTool } from './tools/additions-tool';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -56,7 +55,6 @@ export class MapComponent extends AbstractComponent {
   @Input() bubbles$: Observable<MapBubble[]> = of([]);
   @Input() showBubbles$?: BehaviorSubject<boolean>;
   @Input() bubblesToolAvailable$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  @Input() enableShowRestrictedWays = false;
   @Input() leftTools: MenuItem[] = [];
   @Input() rightTools: MenuItem[] = [];
 
@@ -116,7 +114,7 @@ export class MapComponent extends AbstractComponent {
     this.updateBubbles();
     if (!this.isEmbedded) {
       this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$, this._mapState.overlays$])
+        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$])
         .pipe(
           debounceTime(100),
           tap(() => this.refreshTools()),
@@ -679,6 +677,12 @@ export class MapComponent extends AbstractComponent {
   }
 
   private initTools(): void {
+    const additionsTool = new AdditionsTool(this.mapId);
+    this.defaultRightToolsItems.splice(1, 0, this.toMenuItem(additionsTool));
+    this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoom$]), ([map, center, zoom]) => {
+      additionsTool.refresh(map, this, this.injector);
+    });
+
     if (this.showBubbles$) {
       this.defaultRightToolsItems.push(this.toMenuItem(new MapToggleBubblesTool(this.showBubbles$, this.bubblesToolAvailable$)));
       this.whenVisible.subscribe(combineLatest([this.showBubbles$, this.bubblesToolAvailable$]), () => this.refreshTools(), true);
@@ -690,20 +694,6 @@ export class MapComponent extends AbstractComponent {
     const screenLockService = this.injector.get(ScreenLockService);
     const phoneLockTool = new PhoneLockTool(screenLockService);
     this.defaultRightToolsItems.push(this.toMenuItem(phoneLockTool));
-    if (this.enableShowRestrictedWays) {
-      const tool = new POITool(this.mapId);
-      this.defaultDynamicRightToolsItems.push(this.toMenuItem(tool));
-      this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoom$]), ([map, center, zoom]) => {
-        tool.refresh(map, this.injector, () => this.refreshTools());
-      });
-    }
-    if (this.enableShowRestrictedWays) {
-      const tool = new RestrictedWaysTool(this.mapId);
-      this.defaultDynamicRightToolsItems.push(this.toMenuItem(tool));
-      this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoom$]), ([map, center, zoom]) => {
-        tool.refresh(map, this.injector, () => this.refreshTools());
-      });
-    }
 
     const toolShowPosition = new MapShowPositionTool();
     this.defaultLeftToolsItems.push(
@@ -757,10 +747,10 @@ export class MapComponent extends AbstractComponent {
 
   private updateTools(): void {
     this.leftToolsItems = [...this.defaultLeftToolsItems, ...this.leftTools];
-    this.rightToolsItems = [...this.defaultRightToolsItems, ...this.rightTools, ...this.defaultDynamicRightToolsItems];
+    this.rightToolsItems = [...this.defaultRightToolsItems, ...this.rightTools];
   }
 
-  private refreshTools(): void {
+  public refreshTools(): void {
     if (this.toolbars) for (const tb of this.toolbars) tb.refresh();
   }
 
@@ -779,7 +769,6 @@ export class MapComponent extends AbstractComponent {
     this.toMenuItem(new MapLayerSelectionTool()),
     this.toMenuItem(new DarkMapToggleTool()),
   ];
-  defaultDynamicRightToolsItems: MenuItem[] = [];
 
   private toMenuItem(tool: MapTool): MenuItem {
     const item = new MenuItem()
@@ -788,6 +777,8 @@ export class MapComponent extends AbstractComponent {
       .setVisible(this.toMenuFunction(() => tool.visible, false))
       .setTextColor(this.toMenuFunction(() => tool.color, ''))
       .setBackgroundColor(this.toMenuFunction(() => tool.backgroundColor, ''))
+      .setBadges(this.toMenuFunction(() => tool.badges, undefined))
+      .setSpinner(this.toMenuFunction(() => tool.spinner, undefined))
       .setAction(tool.execute ? () => {
         const map = this._map$.value;
         if (!map) return;

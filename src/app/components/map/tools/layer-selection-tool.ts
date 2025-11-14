@@ -26,7 +26,6 @@ export class MapLayerSelectionTool extends MapTool {
           popup: true,
           enableOverlays: true,
           initialSelection: [mapComponent.getState().tilesName],
-          initialOverlaysSelection: mapComponent.getState().overlays,
           onSelectionChanged: (selection: string[]) => {
             if (selection.length > 0) {
               const service = injector.get(MapLayersService);
@@ -50,22 +49,6 @@ export class MapLayerSelectionTool extends MapTool {
             }
             modalController.dismiss();
           },
-          onOverlaysSelectionChanged: (selection: string[]) => {
-            const service = injector.get(MapLayersService);
-            const missing = [...selection];
-            map.eachLayer(layer => {
-              const id = (layer.options as any)['id']; // NOSONAR
-              if (id && service.overlays.some(l => l.name === id)) {
-                const index = missing.indexOf(id);
-                if (index >= 0) missing.splice(index, 1); else map.removeLayer(layer);
-              }
-            });
-            for (let missingId of missing) {
-              const layer = service.overlays.find(o => o.name === missingId);
-              if (layer) map.addLayer(layer.create());
-            }
-            mapComponent.getState().overlays = [...selection];
-          }
         }
       }))
       .then(modal => {

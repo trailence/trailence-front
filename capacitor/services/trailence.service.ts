@@ -28,6 +28,8 @@ export interface TrailencePlugin {
 
   exitApp(call: {}): Promise<any>;
 
+  getInfo(call: {}): Promise<any>;
+
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');

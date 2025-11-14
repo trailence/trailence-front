@@ -10,5 +10,7 @@ const Trailence = {
 
   exitApp: (call: {}) => Promise.resolve(),
 
+  getInfo: (call: {}) => Promise.resolve(),
+
 };
 export default Trailence;

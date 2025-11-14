@@ -16,6 +16,7 @@ import { Console } from 'src/app/utils/console';
 import { UserQuotas } from './user-quotas';
 import { publicRoutes } from 'src/app/routes/package.routes';
 import { NavController, Platform } from '@ionic/angular/common';
+import Trailence from '../trailence.service';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -175,27 +176,36 @@ export class AuthService {
     );
   }
 
+  private _info: any = undefined;
+  private async getInfo() {
+    if (this._info === undefined) this._info = (await Trailence.getInfo({})) ?? null;
+    return this._info;
+  }
+  private getDeviceInfo(): Observable<DeviceInfo> {
+    return from(this.getInfo()).pipe(map(i => new DeviceInfo(this.platform, i)));
+  }
+
   public login(email: string, password: string, captchaToken?: string): Observable<AuthResponse> {
-    return this.loginAndStoreKey(
+    return this.getDeviceInfo().pipe(switchMap(deviceInfo => this.loginAndStoreKey(
       publicKeyBase64 => this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/login', {
         email,
         password,
         publicKey: publicKeyBase64,
-        deviceInfo: new DeviceInfo(this.platform),
+        deviceInfo,
         captchaToken,
         expiresAfter: this.platform.is('capacitor') ? KEY_EXPIRATION_NATIVE : KEY_EXPIRATION_WEB,
       } as LoginRequest)
-    );
+    )));
   }
 
   public loginWithShareLink(token: string): Observable<AuthResponse> {
-    return this.loginAndStoreKey(
+    return this.getDeviceInfo().pipe(switchMap(deviceInfo => this.loginAndStoreKey(
       publicKeyBase64 => this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/share', {
         token,
         publicKey: publicKeyBase64,
-        deviceInfo: new DeviceInfo(this.platform)
+        deviceInfo,
       } as LoginShareRequest)
-    );
+    )));
   }
 
   private loginAndStoreKey(loginRequest: (publicKeyBase64: string) => Observable<AuthResponse>): Observable<AuthResponse> {
@@ -396,17 +406,20 @@ export class AuthService {
               }
             }
             return throwError(() => error);
-          })
+          }),
+          switchMap(result => this.getDeviceInfo().pipe(map(deviceInfo => ({result, deviceInfo}))))
         )
       }),
-      switchMap(result => {
+      switchMap(r => {
+        const result = r?.result;
         if (!result) return of(null);
+        const deviceInfo = r.deviceInfo;
         const request = {
           email: current.email,
           random: result.randomBase64,
           keyId: result.keyId,
           signature: btoa(String.fromCharCode(...new Uint8Array(result.signature))), // NOSONAR
-          deviceInfo: new DeviceInfo(this.platform),
+          deviceInfo,
         } as RenewRequest;
         if (current.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB) > Date.now())
           return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(timeout(30000));

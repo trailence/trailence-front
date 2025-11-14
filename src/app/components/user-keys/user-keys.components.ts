@@ -117,6 +117,10 @@ export class UserKeysComponent implements OnInit {
     if (i > 0) s = s.substring(0, i);
     i = s.indexOf('Build/');
     if (i > 0) s = s.substring(0, i);
+    if (this.auth.auth?.admin) {
+      const info = key.deviceInfo?.info;
+      if (info) s += ' ' + JSON.stringify(info);
+    }
     return s;
   }
 

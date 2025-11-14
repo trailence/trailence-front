@@ -59,6 +59,13 @@ app-toolbar {
       ion-icon {
         flex: none;
       }
+      ion-spinner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
       ion-label {
         margin-top: 2px;
         flex: 1 1 100%;

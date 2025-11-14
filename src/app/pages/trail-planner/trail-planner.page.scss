@@ -84,6 +84,16 @@
       pointer-events: none;
     }
   }
+  #trail-planner-legend {
+    position: absolute;
+    bottom: 15px;
+    right: 0;
+    z-index: 1000;
+    font-size: 12px;
+    background-color: var(--map-background-color);
+    color: var(--map-contrast-color);
+    padding: 1px 3px;
+  }
 
   &.has-elevation {
     --elevation-graph-height: var(--bottom-pane-height);

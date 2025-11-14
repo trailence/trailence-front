@@ -1,5 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 import * as L from 'leaflet';
+import { MapAdditionsOptions } from 'src/app/services/map/map-additions.service';
 
 export class MapState {
 
@@ -8,6 +9,7 @@ export class MapState {
   private readonly _zoom$ = new BehaviorSubject<number>(2);
   private readonly _tilesName$ = new BehaviorSubject<string>('osm');
   private readonly _overlays$ = new BehaviorSubject<string[]>([]);
+  private readonly _additions$ = new BehaviorSubject<MapAdditionsOptions>({});
 
   public get live(): boolean { return this._live$.value; }
   public get live$(): Observable<boolean> { return this._live$; }
@@ -32,6 +34,10 @@ export class MapState {
   public get overlays$(): Observable<string[]> { return this._overlays$; }
   public set overlays(value: string[]) { if (this._overlays$.value !== value) this._overlays$.next(value); }
 
+  public get additions(): MapAdditionsOptions { return this._additions$.value; }
+  public get additions$(): Observable<MapAdditionsOptions> { return this._additions$; }
+  public set additions(value: MapAdditionsOptions) { this._additions$.next(value); }
+
   public load(key: string): void {
     const stored = localStorage.getItem(key);
     if (stored) {
@@ -44,6 +50,16 @@ export class MapState {
         this.tilesName = json['tilesName'];
       if (json['overlays'] && Array.isArray(json['overlays']))
         this.overlays = json['overlays'];
+      if (json['additions'] && typeof json['additions'] === 'object') {
+        const additions = {} as MapAdditionsOptions;
+        const aj = json['additions'];
+        if (typeof aj['guidepost'] === 'boolean') additions.guidepost = aj['guidepost'];
+        if (typeof aj['waterPoint'] === 'boolean') additions.waterPoint = aj['waterPoint'];
+        if (typeof aj['toilets'] === 'boolean') additions.toilets = aj['toilets'];
+        if (typeof aj['forbiddenWays'] === 'boolean') additions.forbiddenWays = aj['forbiddenWays'];
+        if (typeof aj['permissiveWays'] === 'boolean') additions.permissiveWays = aj['permissiveWays'];
+        this.additions = additions;
+      }
     }
   }
 
@@ -54,6 +70,7 @@ export class MapState {
       zoom: this.zoom,
       tilesName: this.tilesName,
       overlays: this.overlays,
+      additions: this.additions,
     }));
   }
 

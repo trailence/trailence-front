@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+
 @CapacitorPlugin(
   name = "Trailence"
 )
@@ -49,6 +50,35 @@ public class TrailencePlugin extends Plugin {
 
   private static class SaveFile {
     private OutputStream out;
+  }
+
+  @PluginMethod()
+  public void getInfo(PluginCall call) {
+    String buildType = null;
+    try {
+      int id = getContext().getResources().getIdentifier("build_type", "string", getContext().getPackageName());
+      if (id > 0)
+        buildType = getContext().getResources().getString(id);
+    } catch (Throwable t) {}
+    String installer = null;
+    try {
+      installer = getContext().getPackageManager().getInstallerPackageName(getContext().getPackageName());
+    } catch (Throwable t) {}
+    if (installer == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+      try {
+        installer = getContext().getPackageManager().getInstallSourceInfo(getContext().getPackageName()).getInitiatingPackageName();
+      } catch (Throwable t) {}
+    String deviceModel = Build.MODEL;
+    String deviceBrand = Build.MANUFACTURER;
+    String deviceName = Build.DEVICE;
+    call.resolve(
+      new JSObject()
+        .put("buildType", buildType)
+        .put("installer", installer)
+        .put("deviceModel", deviceModel)
+        .put("deviceBrand", deviceBrand)
+        .put("deviceName", deviceName)
+    );
   }
 
   @PluginMethod()

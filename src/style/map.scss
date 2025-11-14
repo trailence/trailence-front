@@ -132,12 +132,6 @@ app-map {
 
 }
 
-.leaflet-legend {
-  background: #E8E8E8;
-  color: #202020;
-  z-index: 1000;
-  font-size: 11px;
-}
 .leaflet-pane.leaflet-marker-pane {
   .leaflet-marker-icon.highlighted {
     width: 50px !important;
@@ -175,14 +169,12 @@ app-map {
 }
 
 body.dark-map {
+  --map-background-color: #000000;
+  --map-contrast-color: #FFFFFF;
 
   .leaflet-layer,
   .leaflet-control {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-  }
-  .leaflet-legend {
-    background: #181818;
-    color: #D0D0D0;
   }
   .leaflet-position-marker {
     &[stroke="#2020FF"] {
@@ -204,17 +196,49 @@ body.dark-map {
       border-color: rgba(255, 255, 255, 0.2);
     }
 
+    div.leaflet-tooltip-pane div.leaflet-tooltip {
+      background-color: #fff;
+      border-color: #fff;
+      color: #222;
+    }
+    div.leaflet-tooltip-pane div.leaflet-tooltip-right:before {
+      border-right-color: #fff;
+    }
+    div.leaflet-tooltip-pane div.leaflet-tooltip-left:before {
+      border-left-color: #fff;
+    }
   }
   ion-spinner.map-loading {
     color: white;
   }
-
 }
 
 body:not(.dark-map) {
+  --map-background-color: #FFFFFF;
+  --map-contrast-color: #000000;
+
   ion-spinner.map-loading {
     color: black;
   }
+
+  app-map {
+    div.leaflet-tooltip-pane div.leaflet-tooltip {
+      background-color: #000;
+      border-color: #000;
+      color: #ddd;
+    }
+    div.leaflet-tooltip-pane div.leaflet-tooltip-right:before {
+      border-right-color: #000;
+    }
+    div.leaflet-tooltip-pane div.leaflet-tooltip-left:before {
+      border-left-color: #000;
+    }
+  }
+}
+
+body {
+  --way-forbidden-color: #B03030FF;
+  --way-permissive-color: #D09000FF;
 }
 
 app-trail-small-map {

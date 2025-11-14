@@ -30,7 +30,7 @@ async function generate(request) {
     request.return(200, result);
   })
   .catch(e=> {
-    console.error('Error generating trail page', e);
+    console.error('Error generating trail page', request.uri, e);
     request.return(307, '/');
   });
 }

@@ -42,6 +42,7 @@ export class MenuItem {
   public disabled: Attribute<boolean>;
   public visible: Attribute<boolean>;
   public badges: Attribute<BadgesConfig>;
+  public spinner: Attribute<string>;
   public cssClass: Attribute<string>;
   public sectionTitle?: boolean;
   public children?: MenuItem[];
@@ -63,6 +64,11 @@ export class MenuItem {
 
   public setI18nLabel(label: Attribute<string>): this {
     this.i18nLabel = label;
+    return this;
+  }
+
+  public setSpinner(spinner: Attribute<string>): this {
+    this.spinner = spinner;
     return this;
   }
 
@@ -188,6 +194,11 @@ export class MenuItem {
   public getIcon(): string | undefined {
     if (typeof this.icon === 'function') return this.icon();
     return this.icon;
+  }
+
+  public getSpinner(): string | undefined {
+    if (typeof this.spinner === 'function') return this.spinner();
+    return this.spinner;
   }
 
   public getTextColor(): string | undefined {
@@ -453,6 +464,7 @@ export class ComputedMenuItem {
   public onlyText = false;
   public onlyIcon = false;
   public cssClass: string = '';
+  public spinner: string | undefined;
 
   private i18nKey?: string;
   private fixedLabel?: string;
@@ -497,6 +509,7 @@ export class ComputedMenuItem {
     changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
     changed = this.setValue(this.selected, this.item.isSelected(), v => this.selected = v) || changed;
     changed = this.setValue(this.icon, this.item.getIcon(), v => this.icon = v) || changed;
+    changed = this.setValue(this.spinner, this.item.getSpinner(), v => this.spinner = v) || changed;
     changed = this.setValue(this.textColor, this.disabled ? 'disabled' : this.item.getTextColor(), v => this.textColor = v) || changed;
     changed = this.setValue(this.backgroundColor, this.disabled ? undefined : this.item.getBackgroundColor(), v => this.backgroundColor = v) || changed;
     changed = this.setValue(this.sectionTitle, this.item.isSectionTitle(), v => this.sectionTitle = v) || changed;

@@ -97,5 +97,6 @@ server {
       proxy_pass http://${TRAILENCE_BACK_NAME}:${TRAILENCE_BACK_PORT};
       client_body_buffer_size 64k;
       client_max_body_size 50m;
+      proxy_read_timeout 120s;
     }
 }
