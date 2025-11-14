@@ -22,7 +22,7 @@ public class InstallReceiver extends BroadcastReceiver {
     }
     int sessionId = intent.getIntExtra("sessionId", -1);
     if (sessionId > 0) {
-      PluginCall call = TrailencePlugin.installSessions.remove(sessionId);
+      PluginCall call = TrailenceUpdater.installSessions.remove(sessionId);
       if (call != null)
         call.resolve(new JSObject().put("done", true));
     }
