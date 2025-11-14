@@ -107,20 +107,16 @@ export class TrailGraphComponent extends AbstractComponent {
     }
   }
 
-  public updateRecording(track: Track, segmentIndexInTrack1?: number, pointIndexInTrack1?: number): void {
+  public updateRecording(track: Track, track1?: Track, segmentIndexInTrack1?: number, pointIndexInTrack1?: number): void {
     this.ngZone.runOutsideAngular(() => {
+      this.positionPlugin.track = track1;
+      this.positionPlugin.segmentIndex = segmentIndexInTrack1;
+      this.positionPlugin.pointIndex = pointIndexInTrack1;
       // when updating a recording track, the latest point may be updated, and new points may appeared
       if (!this.chartData) return;
       const datasetIndex = track === this.track1 ? 0 : track === this.track2 ? 1 : -1;
       if (datasetIndex < 0) return;
       const ds = this.chartData.datasets[datasetIndex];
-      if (datasetIndex === 1) {
-        this.positionPlugin.segmentIndex = segmentIndexInTrack1;
-        this.positionPlugin.pointIndex = pointIndexInTrack1;
-      } else {
-        this.positionPlugin.segmentIndex = undefined;
-        this.positionPlugin.pointIndex = undefined;
-      }
       this.updateRecordingData(ds, track);
     });
   }
@@ -408,7 +404,8 @@ export class TrailGraphComponent extends AbstractComponent {
       pointStyle: false,
       parsing: false,
       tension: 0.02,
-      data: []
+      data: [],
+      track,
     } as any;
     this.fillDataSet(ds, track);
     if (withGradeFilling) {

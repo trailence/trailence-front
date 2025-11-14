@@ -1070,14 +1070,26 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     let previousDistance = 0;
     this.byStateAndVisible.subscribe(
       combineLatest([trackChanges$, this.graph$, this._bottomSheetTab$])
-      .pipe(debounceTimeExtended(1000, 5000, 50, (p, n) => (!!n[0] && n[0].track.metadata.distance - previousDistance > 25) || p[1] !== n[1] || (!p[1]?.visible && !!n[1]?.visible) || p[1]?.graphType !== n[1]?.graphType || p[2] !== n[2]),),
+      .pipe(
+        debounceTimeExtended(
+          1000,
+          5000,
+          50,
+          (p, n) =>
+            (!!n[0] && n[0].track.metadata.distance - previousDistance > 25) ||
+            p[1] !== n[1] ||
+            (!p[1]?.visible && !!n[1]?.visible) ||
+            p[1]?.graphType !== n[1]?.graphType ||
+            p[2] !== n[2]
+        ),
+      ),
       ([r, g, tab]) => {
         previousDistance = r ? r.track.metadata.distance : 0;
         let remaining: Track | undefined = undefined;
         const pt = r?.track.arrivalPoint;
         let closestPoint: { segmentIndex: number, pointIndex: number } | undefined = undefined;
-        if (pt && this.tracks$.value.length > 1) {
-          const track = this.tracks$.value[0];
+        const track = this.tracks$.value.at(0);
+        if (pt && track) {
           closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining?.segmentIndex ?? 0, this.remaining?.pointIndex ?? 0);
           if (closestPoint) {
             remaining = track.subTrack(closestPoint.segmentIndex, closestPoint.pointIndex, track.segments.length - 1, track.segments.at(-1)!.points.length - 1);
@@ -1095,7 +1107,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             subTrack: remaining,
           };
 
-          let mapTrack = this.mapTracks$.value.find(mt => mt.track === this.tracks$.value[0] && mt.color === 'red');
+          let mapTrack = this.mapTracks$.value.find(mt => mt.track === track && mt.color === 'red');
           if (mapTrack)
             mapTrack.color = '#FF000080';
 
@@ -1115,7 +1127,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           this.mapTracks$.next(this.mapTracks$.value);
         } else if (this.remaining) {
           this.remaining = undefined;
-          let mapTrack = this.mapTracks$.value.find(mt => mt.track === this.tracks$.value[0] && mt.color === '#FF000080');
+          let mapTrack = this.mapTracks$.value.find(mt => mt.track === track && mt.color === '#FF000080');
           if (mapTrack)
             mapTrack.color = 'red';
           let index = this.mapTracks$.value.findIndex(mt => mt.data === 'remaining');
@@ -1125,7 +1137,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           }
         }
         if (pt && this.graph) {
-          this.graph.updateRecording(r.track, this.remaining?.segmentIndex, this.remaining?.pointIndex);
+          this.graph.updateRecording(r.track, track, this.remaining?.segmentIndex, this.remaining?.pointIndex);
         }
         this.refreshMapToolbarTop();
         this.changesDetection.detectChanges();
