@@ -82,7 +82,7 @@ export class ContactPage extends PublicPage {
     this.type = '';
     this.message = '';
     this.captchaToken = undefined;
-    this.captchaNeeded = !this.auth.auth;
+    this.captchaNeeded = !this.auth.auth || !!this.auth.auth.isAnonymous;
     if (this.captchaNeeded && !this.captchaInit && this.networkAvailable) this.initCaptcha();
     this.sending = false;
     this.sent = false;
@@ -118,7 +118,7 @@ export class ContactPage extends PublicPage {
 
   isValid(): boolean {
     if (!this.networkAvailable) return false;
-    if (!this.auth.auth && (
+    if ((!this.auth.auth || !!this.auth.auth.isAnonymous) && (
       this.email.trim().length === 0 ||
       !EMAIL_REGEX.test(this.email.trim())
     )) return false;
@@ -134,7 +134,7 @@ export class ContactPage extends PublicPage {
       message += this.data;
     }
     const request = {
-      email: this.auth.email ?? this.email,
+      email: (this.auth.auth?.isAnonymous ? undefined : this.auth.email) ?? this.email,
       type: this.type,
       message,
       captcha: this.captchaToken

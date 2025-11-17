@@ -2,7 +2,7 @@
 <div class="page-container">
   <div class="content-container">
     <div class="form-container">
-      @if (!auth.auth) {
+      @if (!auth.auth || !!auth.auth.isAnonymous) {
         <div class="form-value">
           <ion-input
             type="email"
