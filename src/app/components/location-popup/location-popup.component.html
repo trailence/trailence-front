@@ -27,10 +27,12 @@
           @if (!online) {
             <div style="color: var(--ion-color-danger)">{{i18n.texts.you_are_offline}}</div>
           } @else {
-            <div style="display: flex; flex-direction: row; align-items: center">
+            <div class="propose-places-search-container">
               <span>{{i18n.texts.pages.location_popup.radius}}</span>
-              <app-input-number [value]="5" [min]="radiusMin" [max]="radiusMax" [step]="radiusStep" [value]="radiusValue" (valueChange)="setRadius($event)" style="margin: 0 5px; --border: 1px solid rgba(var(--ion-color-medium-rgb), 0.33)"></app-input-number>
-              <span>{{radiusUnit}}</span>
+              <div style="white-space: nowrap;">
+                <app-input-number [value]="5" [min]="radiusMin" [max]="radiusMax" [step]="radiusStep" [value]="radiusValue" (valueChange)="setRadius($event)" style="margin: 0 5px; --border: 1px solid rgba(var(--ion-color-medium-rgb), 0.33)"></app-input-number>
+                <span>{{radiusUnit}}</span>
+              </div>
               <ion-button (click)="searchPlaces()" size="small" style="margin-left: 8px;" class="search-place-button">
                 <ion-icon name="search" slot="start"></ion-icon>
                 <span>{{i18n.texts.pages.location_popup.search}}</span>
