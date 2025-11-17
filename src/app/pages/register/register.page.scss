@@ -61,6 +61,10 @@ ion-card {
     height: 0px;
     opacity: 0;
   }
+
+  &.previous-content {
+    height: 25px;
+  }
 }
 .center {
   display: flex;

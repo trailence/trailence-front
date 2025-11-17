@@ -14,6 +14,7 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { PublicPage } from '../public.page';
 import { NgClass } from '@angular/common';
+import { ApiError } from 'src/app/services/http/api-error';
 
 @Component({
   templateUrl: './register.page.html',
@@ -68,10 +69,12 @@ export class RegisterPage extends PublicPage {
         if (!this.isStep1Valid()) return;
         this.inprogress = true;
         this.error = undefined;
+        const captcha = this.captchaToken;
+        this.captchaService.unload('captcha-register');
         this.http.post(environment.apiBaseUrl + '/user/v1/sendRegisterCode', {
           email: this.email,
           lang: this.preferences.preferences.lang,
-          captcha: this.captchaToken
+          captcha,
         }).subscribe({
           complete: () => {
             this.step = 2;
@@ -81,6 +84,7 @@ export class RegisterPage extends PublicPage {
             Console.error(e);
             this.error = this.i18n.texts.pages.register.errors.network;
             this.inprogress = false;
+            this.initCaptcha();
           },
         });
         break;
@@ -123,6 +127,10 @@ export class RegisterPage extends PublicPage {
     if (this.inprogress) return;
     this.step--;
     this.code = '';
+    if (this.step === 1) {
+      this.captchaService.unload('captcha-register');
+      this.initCaptcha();
+    }
   }
 
   isStep1Valid(): boolean {

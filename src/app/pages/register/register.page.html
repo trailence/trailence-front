@@ -38,6 +38,9 @@
             </ion-button>
           </div>
         </div>
+        <div class="step-content previous-content" [ngClass]="{'hidden': step === 1}">
+          <div>{{ email }}</div>
+        </div>
         <div class="step-header">
           <div class="step-number">2</div>
           <div class="step-title">{{ i18n.texts.pages.register.step2 }}</div>
