@@ -33,6 +33,7 @@ export class TrailMenuService {
   public getTrailsMenu(trails: Trail[], fromTrail: boolean = false, fromCollection: TrailCollection | undefined = undefined, onlyGlobal: boolean = false, isAll: boolean = false, isModeration: boolean = false): MenuItem[] { // NOSONAR
     const menu: MenuItem[] = [];
     const email = this.injector.get(AuthService).email;
+    if (trails.length === 1 && trails[0].fromModeration) isModeration = true;
 
     let inTools = false;
     let addTools = () => {
