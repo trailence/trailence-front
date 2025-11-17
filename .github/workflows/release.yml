@@ -231,7 +231,6 @@ jobs:
           ./scripts/build/build-android.sh fdroid
           cd android
           chmod 550 ./gradlew
-          sed -i -e 's/.com.android.tools.build:gradle:.*/"com.android.tools.build:gradle:8.11.1"/' ./build.gradle
           ./gradlew assembleRelease
       - name: Store APK
         uses: actions/upload-artifact@v4
