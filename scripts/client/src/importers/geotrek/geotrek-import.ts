@@ -382,6 +382,7 @@ export class GeoTrekImport extends Importer {
     text = this.removeDivs(text);
     text = this.removeStyles(text);
     text = this.removeClasses(text);
+    text = text.trim();
     return text;
   }
 
