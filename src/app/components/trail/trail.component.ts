@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController } from "@ionic/angular/standalone";
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -65,6 +65,8 @@ import { TrailsWaypoints } from './trail-waypoints';
 import { WayPoint } from 'src/app/model/way-point';
 import { samePositionRound } from 'src/app/model/point';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
+import { HttpService } from 'src/app/services/http/http.service';
+import { ErrorService } from 'src/app/services/progress/error.service';
 
 interface TrailSource {
   isExternal: boolean;
@@ -248,6 +250,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     new MenuItem().setIcon('web').setI18nLabel('publications.modify').setTextColor('secondary')
       .setVisible(() => !!this.source?.info?.itsMine && !!this.trail1 && !this.trail2)
       .setAction(() => this.editPublication()),
+    new MenuItem().setIcon('web').setI18nLabel('publications.remove').setTextColor('danger')
+      .setVisible(() => !!this.source?.info?.itsMine && !!this.trail1 && !this.trail2)
+      .setAction(() => this.deletePublication()),
     new MenuItem().setIcon('trash').setI18nLabel('buttons.delete')
       .setVisible(() => !!this.trail1 && !this.trail2 &&
         (this.trail1Collection?.type === TrailCollectionType.PUB_DRAFT || this.trail1Collection?.type === TrailCollectionType.PUB_REJECT
@@ -255,7 +260,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         )
       )
       .setTextColor('danger')
-      .setAction(() => this.deletePublication()),
+      .setAction(() => this.cancelPublication()),
     new MenuItem(),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
       .setVisible(() => !!this.recording && this.recording.paused)
@@ -1771,10 +1776,62 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     await alert.present();
   }
 
-  private async deletePublication() {
+  private async cancelPublication() {
     const module = await import('../../services/functions/delete-trails');
     const confirm = await module.confirmDeleteTrails(this.injector, [this.trail1!], true);
     if (confirm) this.publicationChecklist?.delete();
+  }
+
+  private async deletePublication() {
+    const confirm = await this.injector.get(AlertController).create({
+      header: this.i18n.texts.publications.remove_publication_title,
+      message: this.i18n.texts.publications.remove_publication_message,
+      inputs: [{
+        type: 'textarea',
+        attributes: {
+          minLength: 25,
+          maxlength: 50000,
+          counter: true,
+        }
+      }],
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.confirm,
+          role: 'confirm',
+          handler: (result) => {
+            const message = result ? result[0].trim() : '';
+            if (message.length < 25) return false;
+            this.injector.get(AlertController).dismiss(message, 'confirm');
+            return true;
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.injector.get(AlertController).dismiss(false, 'cancel');
+          }
+        }
+      ]
+    });
+    await confirm.present();
+    const result = await confirm.onDidDismiss();
+    if (result.role !== 'confirm') return;
+
+    this.injector.get(HttpService).postString(environment.apiBaseUrl + '/public/trails/v1/trail/' + this.trail1!.uuid + '/requestRemove', result.data)
+    .subscribe({
+      complete: () => {
+        this.injector.get(ToastController).create({
+          message: this.i18n.texts.publications.remove_publication_sent,
+          duration: 10000,
+          color: 'success',
+        })
+        .then(toast => toast.present());
+      },
+      error: e => {
+        Console.error('Error sending remove request for public trail', e);
+        this.injector.get(ErrorService).addNetworkError(e, 'publications.remove_publication_error', []);
+      }
+    });
   }
 
   private async compareToPublicTrail() {

@@ -1,0 +1,36 @@
+<app-header
+  [title]="i18n.texts.publications.moderation.menu_remove + ' - ' + i18n.texts.publications.moderation.menu_title"
+></app-header>
+<div class="content-container">
+  <div class="content">
+    <div class="refresh">
+      @if (loading) {
+        <ion-spinner></ion-spinner>
+      } @else {
+        <ion-button (click)="load()">
+          <ion-icon name="reset" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button [disabled]="getSelection().length === 0" (click)="declineRequests()">
+          <ion-icon name="cross" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button [disabled]="getSelection().length === 0" (click)="acceptRequests()">
+          <ion-icon name="trash" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
+    </div>
+    @if (requests) {
+      @for (request of requests; track request.trail.uuid) {
+        <div class="trail">
+          <ion-checkbox [(ngModel)]="request.selected"></ion-checkbox>
+          <div class="trail-content">
+            <div class="trail-title">
+              <a [routerLink]="'/trail/trailence/' + request.trail.uuid">{{ request.trail.name }}</a>
+            </div>
+            <div class="trail-author">{{ request.author }}</div>
+            <div class="request-message">{{ request.message }}</div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

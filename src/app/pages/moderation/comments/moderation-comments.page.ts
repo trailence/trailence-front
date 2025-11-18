@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FeedbackToReview, ModerationService } from 'src/app/services/moderation/moderation.service';
@@ -15,7 +15,7 @@ import { FeedbackComponent } from 'src/app/components/trail/rate-and-comments/fe
     HeaderComponent, RouterLink, FeedbackComponent
   ]
 })
-export class ModerationCommentsPage {
+export class ModerationCommentsPage implements OnInit {
 
   loading = false;
   toReview?: FeedbackToReview[];
@@ -25,6 +25,10 @@ export class ModerationCommentsPage {
     private readonly moderationService: ModerationService,
     private readonly changeDetector: ChangeDetectorRef,
   ) {}
+
+  ngOnInit(): void {
+    this.load();
+  }
 
   load(): void {
     this.loading = true;

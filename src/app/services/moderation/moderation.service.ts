@@ -462,6 +462,18 @@ export class ModerationService {
     );
   }
 
+  public getRemoveRequests(): Observable<{uuid: string, author: string, message: string}[]> {
+    return this.http.get<{uuid: string, author: string, message: string}[]>(environment.apiBaseUrl + '/moderation/v1/removeRequests');
+  }
+
+  public declineRemoveRequests(uuid: string[]): Observable<any> {
+    return this.http.post(environment.apiBaseUrl + '/moderation/v1/removeRequests/decline', uuid);
+  }
+
+  public acceptRemoveRequests(uuid: string[]): Observable<any> {
+    return this.http.post(environment.apiBaseUrl + '/moderation/v1/removeRequests/accept', uuid);
+  }
+
   public deletePublicTrail(uuid: string): Observable<any> {
     return this.http.delete(environment.apiBaseUrl + '/moderation/v1/publicTrail/' + uuid)
   }

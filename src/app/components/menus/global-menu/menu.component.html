@@ -281,6 +281,11 @@
             <div class="item-title comments-moderation">{{ i18n.texts.publications.moderation.menu_comments }}</div>
           </div>
         </div>
+        <div class="menu-item" (click)="goTo('/moderation/removals'); close();">
+          <div class="item-title-container">
+            <div class="item-title removals-moderation">{{ i18n.texts.publications.moderation.menu_remove }}</div>
+          </div>
+        </div>
       }
     </div>
     @if (isAdmin && !isNative) {

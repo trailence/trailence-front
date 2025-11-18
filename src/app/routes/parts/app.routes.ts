@@ -98,6 +98,10 @@ export const appAuthRoutes: Routes = [
         path: 'comments',
         loadComponent: () => import('../../pages/moderation/comments/moderation-comments.page').then(m => m.ModerationCommentsPage)
       },
+      {
+        path: 'removals',
+        loadComponent: () => import('../../pages/moderation/remove-requests/moderation-remove-requests.page').then(m => m.ModerationRemoveRequestsPage)
+      },
     ]
   },
   {

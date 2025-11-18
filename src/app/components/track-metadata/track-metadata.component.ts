@@ -252,8 +252,9 @@ export class TrackMetadataComponent extends AbstractComponent {
       TrackMetadataComponent.updateMeta(meta, 'positiveElevation', positiveElevation, v => '+ ' + i18n.elevationToString(v), force, domController, hideIfUndefined);
       TrackMetadataComponent.updateMeta(meta, 'negativeElevation', negativeElevation, v => '- ' + i18n.elevationToString(v), force, domController, hideIfUndefined);
       if (!config.alwaysShowElevation && !hideIfUndefined) {
-        TrackMetadataComponent.shown(meta.positiveElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
-        TrackMetadataComponent.shown(meta.negativeElevationDiv, meta.positiveElevationValue !== undefined && meta.negativeElevationValue !== undefined);
+        const hasAltitude = meta.positiveElevationValue !== undefined && meta.positiveElevationValue !== null && meta.negativeElevationValue !== undefined && meta.negativeElevationValue !== null;
+        TrackMetadataComponent.shown(meta.positiveElevationDiv, hasAltitude);
+        TrackMetadataComponent.shown(meta.negativeElevationDiv, hasAltitude);
       }
       if (duration && breaksDuration) duration -= breaksDuration;
       if (duration === undefined) breaksDuration = undefined;
