@@ -793,6 +793,7 @@
     "exit_compare_current": "Stop comparison",
     "check_public_trails_around": "Show public trails",
     "exit_check_public_trails_around": "Hide public trails",
+    "remove_publication_title": "Delete published trail",
     "remove_publication_message": "Please indicate the reason why you want this trail to be removed",
     "remove_publication_sent": "Your removal request has been sent",
     "remove_publication_error": "Error while sending your removal request",
