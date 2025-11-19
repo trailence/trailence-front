@@ -4,7 +4,6 @@ import { TrailenceHttpRequest } from '../http/http-request';
 import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, throwError, timeout, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
-import Dexie from 'dexie';
 import { ActivatedRouteSnapshot, GuardResult, MaybeAsync, NavigationEnd, NavigationStart, Router, RouterStateSnapshot } from '@angular/router';
 import { ApiError } from '../http/api-error';
 import { LoginRequest } from './login-request';
@@ -17,6 +16,8 @@ import { UserQuotas } from './user-quotas';
 import { publicRoutes } from 'src/app/routes/package.routes';
 import { NavController, Platform } from '@ionic/angular/common';
 import Trailence from '../trailence.service';
+import { Db, DbTable } from '../database/db.interface';
+import { DbService } from '../database/db.service';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -52,7 +53,8 @@ After RENEW_KEY_AFTER_xxx the key is renewed together with the token:
 export class AuthService {
 
   private readonly _auth$ = new BehaviorSubject<AuthResponse | null | undefined>(undefined);
-  private db?: Dexie;
+  private db?: Db;
+  private table?: DbTable<string, StoredSecurity>;
   private _currentAuth?: Subscriber<AuthResponse | null>[];
 
   constructor(
@@ -61,6 +63,7 @@ export class AuthService {
     private readonly ngZone: NgZone,
     readonly navController: NavController,
     private readonly platform: Platform,
+    private readonly dbService: DbService,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
     this._auth$.subscribe(auth => {
@@ -217,10 +220,9 @@ export class AuthService {
             this._auth$.next(response);
           }),
           switchMap(response =>
-            from(this.openDB(response.email)
-              .transaction('rw', DB_SECURITY_TABLE, tx =>
-                tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
-              )
+            from(
+              this.openDB(response.email)
+              .then(() => this.table?.put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId}))
             ).pipe(map(() => response))
           )
         )
@@ -300,13 +302,13 @@ export class AuthService {
           i--;
         }
       }
-      return from(Dexie.getDatabaseNames())
+      return from(this.dbService.listNames())
       .pipe(
         switchMap(names => {
           const deletes: Observable<any>[] = [];
           for (const name of names) {
             if (name.startsWith('trailence_') && name.endsWith('_' + email)) {
-              deletes.push(from(Dexie.delete(name)));
+              deletes.push(from(this.dbService.deleteDatabase(name)));
             }
           }
           return deletes.length === 0 ? of(true) : zip(deletes);
@@ -326,7 +328,7 @@ export class AuthService {
     }
     if (this.db) {
       const db = this.db;
-      db.delete().then(() => db.close());
+      db.delete();
       this.db = undefined;
     }
     this._auth$.next(null);
@@ -382,7 +384,7 @@ export class AuthService {
     const current = this._auth$.value;
     if (!current || current.isAnonymous) return of(null);
     Console.info('Authenticating ' + current.email);
-    return from(this.db!.transaction<StoredSecurity | undefined>('r', DB_SECURITY_TABLE, tx => tx.table<StoredSecurity, string>(DB_SECURITY_TABLE).get(current.email)))
+    return from(this.table?.get(current.email) ?? of(undefined))
     .pipe(
       switchMap(security => {
         if (!security) {
@@ -400,7 +402,7 @@ export class AuthService {
             if (error instanceof ApiError) {
               if (error.httpCode === 403) {
                 Console.warn('The server refused our authentication key id ' + security.keyId);
-                this.db?.table<StoredSecurity, string>(DB_SECURITY_TABLE).delete(current.email);
+                this.table?.delete(current.email);
                 this._auth$.next(null);
                 return of(null);
               }
@@ -432,9 +434,7 @@ export class AuthService {
             return this.http.post<AuthResponse>(environment.apiBaseUrl + '/auth/v1/renew', request).pipe(
               timeout(30000),
               switchMap(response =>
-                from(this.db!.transaction('rw', DB_SECURITY_TABLE, tx =>
-                  tx.db.table<StoredSecurity, string>(DB_SECURITY_TABLE).put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId})
-                ))
+                from(this.table?.put({email: response.email, privateKey: keys.keyPair.privateKey, keyId: response.keyId}) ?? of(undefined))
                 .pipe(map(() => response))
               )
             );
@@ -445,15 +445,24 @@ export class AuthService {
     );
   }
 
-  private openDB(email: string): Dexie {
-    return this.ngZone.runOutsideAngular(() => {
+  private async openDB(email: string): Promise<void> {
+    return await this.ngZone.runOutsideAngular(async () => {
       if (this.db) this.db.close();
-      const db = new Dexie(DB_SECURITY_PREFIX + email);
-      const stores: any = {};
-      stores[DB_SECURITY_TABLE] = 'email';
-      db.version(1).stores(stores);
+      this.db = undefined;
+      const db = await this.dbService.open(false, {
+        name: DB_SECURITY_PREFIX + email,
+        tables: [{
+          name: DB_SECURITY_TABLE,
+          indexes: [{
+            name: 'email',
+            type: 'string',
+            constraints: ['primary'],
+          }]
+        }]
+      });
+      const table = db.table(DB_SECURITY_TABLE);
       this.db = db;
-      return db;
+      this.table = table as DbTable<string, StoredSecurity>;
     });
   }
 
