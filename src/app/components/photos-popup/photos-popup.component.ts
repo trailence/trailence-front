@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, O
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
-import { PhotoService } from 'src/app/services/database/photo.service';
+import { PhotoService } from 'src/app/services/stores/photo.service';
 import { FileService } from 'src/app/services/file/file.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Progress, ProgressService } from 'src/app/services/progress/progress.service';
@@ -14,7 +14,7 @@ import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { TrackService } from 'src/app/services/database/track.service';
+import { TrackService } from 'src/app/services/stores/track.service';
 import { TrackUtils } from 'src/app/utils/track-utils';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';

@@ -9,15 +9,15 @@ import { Arrays } from 'src/app/utils/arrays';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
 import { TrackEditionService } from '../track-edition/track-edition.service';
-import { TrackService } from '../database/track.service';
-import { TrailService } from '../database/trail.service';
+import { TrackService } from '../stores/track.service';
+import { TrailService } from '../stores/trail.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
-import { PhotoService } from '../database/photo.service';
+import { PhotoService } from '../stores/photo.service';
 import { firstValueFrom } from 'rxjs';
 import { ModalController } from '@ionic/angular/standalone';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
-import { DatabaseService } from '../database/database.service';
+import { StoresService } from '../stores/stores.service';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { Console } from 'src/app/utils/console';
 
@@ -88,7 +88,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
               progress.addWorkDone(1);
               return [];
             }
-            injector.get(DatabaseService).pauseSync();
+            injector.get(StoresService).pauseSync();
             return new Promise<({trailUuid: string, tags: string[][]})[]>((resolve, reject) => {
               const previousZipEntries = zipEntries;
               zipEntries += gpxFiles.length;
@@ -97,11 +97,11 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
               progress.addWorkDone(1);
               const done: ({trailUuid: string, tags: string[][], source?: string})[] = [];
               const readNextZipEntry = (entryIndex: number) => {
-                injector.get(DatabaseService).pauseSync();
+                injector.get(StoresService).pauseSync();
                 const gpxFile = gpxFiles[entryIndex];
                 return gpxFile.async('arraybuffer')
                 .then(arraybuffer => {
-                  injector.get(DatabaseService).pauseSync();
+                  injector.get(StoresService).pauseSync();
                   const r = importGpx(injector, arraybuffer, email, collectionUuid, zip, TrailSourceType.FILE_IMPORT, filename + '/' + gpxFile.name, Date.now());
                   allDone.push(r.allDone.catch(e => null));
                   r.allDone.then(() => {
@@ -113,7 +113,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
                 .then(result => {
                   done.push(result);
                   if (entryIndex === gpxFiles.length - 1) {
-                    injector.get(DatabaseService).resumeSync();
+                    injector.get(StoresService).resumeSync();
                     resolve(done);
                   } else {
                     readNextZipEntry(entryIndex + 1);
@@ -124,7 +124,7 @@ export function openImportTrailsFileDialog(injector: Injector, collectionUuid: s
                   progress.subTitle = '' + (index + 1 + previousZipEntries + entryIndex + 1) + '/' + (nbFiles + zipEntries);
                   progress.addWorkDone(1);
                   if (entryIndex === gpxFiles.length - 1) {
-                    injector.get(DatabaseService).resumeSync();
+                    injector.get(StoresService).resumeSync();
                     resolve(done);
                   } else {
                     readNextZipEntry(entryIndex + 1);

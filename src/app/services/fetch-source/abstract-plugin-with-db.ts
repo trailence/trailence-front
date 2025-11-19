@@ -3,7 +3,7 @@ import { FetchSourcePlugin, TrailInfo } from './fetch-source.interfaces';
 import Dexie from 'dexie';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { TrackDto } from 'src/app/model/dto/track';
-import { TrackDatabase } from '../database/track-database';
+import { TrackDatabase } from '../stores/track-database';
 import { Trail } from 'src/app/model/trail';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Track } from 'src/app/model/track';

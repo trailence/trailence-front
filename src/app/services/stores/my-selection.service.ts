@@ -3,7 +3,7 @@ import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
 import { catchError, combineLatest, concat, defaultIfEmpty, filter, Observable, of, switchMap, throwError, timeout } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
-import { DatabaseService, MY_SELECTION_TABLE_NAME } from './database.service';
+import { StoresService, MY_SELECTION_TABLE_NAME } from './stores.service';
 import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { NetworkService } from '../network/network.service';
@@ -123,7 +123,7 @@ class MySelectionStore extends SimpleStoreWithoutUpdate<SelectedTrail, SelectedT
     return item.uuid + '#' + item.owner;
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+  protected override migrate(fromVersion: number, dbService: StoresService): Promise<number | undefined> {
     return Promise.resolve(undefined);
   }
 

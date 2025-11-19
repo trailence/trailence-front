@@ -2,7 +2,7 @@ import { Injector } from '@angular/core';
 import { catchError, combineLatest, debounceTime, first, map, of } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
-import { TrackService } from '../database/track.service';
+import { TrackService } from '../stores/track.service';
 import { ModalController } from '@ionic/angular/standalone';
 
 export function openMapDownloadDialog(injector: Injector, trails: Trail[], bounds?: L.LatLngBounds) {

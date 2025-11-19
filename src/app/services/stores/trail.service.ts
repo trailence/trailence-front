@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
-import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
+import { StoresService, TRAIL_TABLE_NAME } from './stores.service';
 import { HttpService } from '../http/http.service';
 import { BehaviorSubject, Observable, combineLatest, defaultIfEmpty, first, map, of, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -262,7 +262,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     return !q || q.trailsUsed >= q.trailsMax;
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined> {
+  protected override migrate(fromVersion: number, dbService: StoresService, isNewDb: boolean): Promise<number | undefined> {
     if (fromVersion < 1703 && !isNewDb) return this.markStoreToForceUpdateFromServer(true).then(() => undefined);
     return Promise.resolve(undefined);
   }
@@ -351,7 +351,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
       first(),
       switchMap(([trails, collections, shares]) => {
         return new Observable<any>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
+          const dbService = this.injector.get(StoresService);
           if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();

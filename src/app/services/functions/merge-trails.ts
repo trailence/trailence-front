@@ -1,12 +1,12 @@
 import { Injector } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { TrackService } from '../database/track.service';
+import { TrackService } from '../stores/track.service';
 import { combineLatest, first, map } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Track } from 'src/app/model/track';
 import { I18nService } from '../i18n/i18n.service';
-import { TrailService } from '../database/trail.service';
+import { TrailService } from '../stores/trail.service';
 import { Router } from '@angular/router';
 import { copyPoint } from 'src/app/model/point-descriptor';
 

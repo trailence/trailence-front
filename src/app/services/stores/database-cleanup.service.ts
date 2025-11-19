@@ -4,7 +4,7 @@ import { TrailService } from './trail.service';
 import { combineLatest, filter, first, Observable, of, switchMap } from 'rxjs';
 import { TagService } from './tag.service';
 import { TrackService } from './track.service';
-import { DatabaseService } from './database.service';
+import { StoresService } from './stores.service';
 import { NetworkService } from '../network/network.service';
 import { Console } from 'src/app/utils/console';
 import { AuthResponse } from '../auth/auth-response';
@@ -50,7 +50,7 @@ export class DatabaseCleanupService {
   }
 
   private doCleaning(email: string): Observable<boolean> {
-    const dbService = this.injector.get(DatabaseService);
+    const dbService = this.injector.get(StoresService);
     const db = dbService.db?.db;
     if (!db) return of(false);
     return combineLatest([dbService.hasLocalChanges, dbService.lastSync, dbService.syncStatus, this.injector.get(NetworkService).server$]).pipe(

@@ -5,14 +5,14 @@ import { provideErrorService } from 'test/utils/mock-error-service';
 import { BehaviorSubject, firstValueFrom, of } from 'rxjs';
 import { provideAuthService } from 'test/utils/mock-auth-service';
 import { provideNetworkService } from 'test/utils/mock-network-service';
-import { TrailCollectionService } from '../database/trail-collection.service';
+import { TrailCollectionService } from '../stores/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { PointDto } from 'src/app/model/dto/point';
 import { I18nService } from '../i18n/i18n.service';
-import { TrackService } from '../database/track.service';
-import { DatabaseService } from '../database/database.service';
+import { TrackService } from '../stores/track.service';
+import { StoresService } from '../stores/stores.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthResponse } from '../auth/auth-response';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
@@ -59,7 +59,7 @@ describe('Test Trace Recorder', () => {
     });
 
     await firstValueFrom(TestBed.inject(I18nService).texts$.pipe(filterDefined()));
-    await firstValueFrom(TestBed.inject(DatabaseService).allLoaded().pipe(filterDefined()));
+    await firstValueFrom(TestBed.inject(StoresService).allLoaded().pipe(filterDefined()));
   });
 
   afterEach(() => {

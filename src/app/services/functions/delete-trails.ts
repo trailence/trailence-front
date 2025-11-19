@@ -3,7 +3,7 @@ import { Trail } from 'src/app/model/trail';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController } from '@ionic/angular/standalone';
 import { ProgressService } from '../progress/progress.service';
-import { TrailService } from '../database/trail.service';
+import { TrailService } from '../stores/trail.service';
 import { Router } from '@angular/router';
 
 export async function confirmDeleteTrails(injector: Injector, trails: Trail[], fromTrail: boolean) {

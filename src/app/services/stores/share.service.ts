@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { SimpleStore } from './simple-store';
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
 import { Share } from 'src/app/model/share';
-import { DatabaseService, SHARE_TABLE_NAME } from './database.service';
+import { StoresService, SHARE_TABLE_NAME } from './stores.service';
 import { combineLatest, EMPTY, map, Observable, of, switchMap, tap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
@@ -213,7 +213,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     item.updatedAt = Date.now();
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined> {
+  protected override migrate(fromVersion: number, dbService: StoresService, isNewDb: boolean): Promise<number | undefined> {
     if (fromVersion < 1300 && !isNewDb) return import('./migrations/sharev1_sharev2').then(m => m.ShareV1ToShareV2.migrate(dbService)).then(() => undefined);
     return Promise.resolve(undefined);
   }

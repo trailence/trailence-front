@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { Console } from 'src/app/utils/console';
 import { Track } from 'src/app/model/track';
-import { TrailService } from 'src/app/services/database/trail.service';
+import { TrailService } from 'src/app/services/stores/trail.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 
 @Component({

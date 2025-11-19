@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollectionService } from 'src/app/services/stores/trail-collection.service';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';

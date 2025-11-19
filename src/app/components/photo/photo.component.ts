@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Even
 import { EMPTY, first, Subscription, switchMap, timer } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
 import { IonSpinner, IonIcon } from "@ionic/angular/standalone";
-import { PhotoService } from 'src/app/services/database/photo.service';
+import { PhotoService } from 'src/app/services/stores/photo.service';
 import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';

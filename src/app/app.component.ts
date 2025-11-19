@@ -149,14 +149,14 @@ export class AppComponent {
 
   private loadServices(): Promise<() => Observable<boolean>> {
     return Promise.all([
-      import('./services/database/database.service'),
-      import('./services/database/trail-collection.service'),
-      import('./services/database/share.service'),
-      import('./services/database/trail.service'),
-      import('./services/database/tag.service'),
-      import('./services/database/track.service'),
+      import('./services/stores/stores.service'),
+      import('./services/stores/trail-collection.service'),
+      import('./services/stores/share.service'),
+      import('./services/stores/trail.service'),
+      import('./services/stores/tag.service'),
+      import('./services/stores/track.service'),
     ]).then(services => {
-      const database = this.injector.get(services[0].DatabaseService);
+      const database = this.injector.get(services[0].StoresService);
       this.injector.get(services[1].TrailCollectionService);
       this.injector.get(services[2].ShareService);
       this.injector.get(services[3].TrailService);

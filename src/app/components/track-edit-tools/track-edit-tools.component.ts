@@ -27,8 +27,8 @@ import { ToogleShowOnlyModifiedTrack } from './tools/track/toggle-show-only-modi
 import { TrailSelection } from '../trail/trail-selection';
 import { EditWayPointTool } from './tools/way-points/edit-way-point';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
-import { TrackService } from 'src/app/services/database/track.service';
-import { TrailService } from 'src/app/services/database/trail.service';
+import { TrackService } from 'src/app/services/stores/track.service';
+import { TrailService } from 'src/app/services/stores/trail.service';
 import { TrackEditionService } from 'src/app/services/track-edition/track-edition.service';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { RemoveUnprobablePointsTool } from './tools/path/remove-unprobable-points';

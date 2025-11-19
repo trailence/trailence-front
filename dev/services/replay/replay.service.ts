@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
-import { TrackService } from 'src/app/services/database/track.service';
+import { TrackService } from 'src/app/services/stores/track.service';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { TrackUtils } from 'src/app/utils/track-utils';
 

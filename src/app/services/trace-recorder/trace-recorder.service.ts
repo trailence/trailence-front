@@ -7,13 +7,13 @@ import { Trail } from 'src/app/model/trail';
 import { AuthService } from '../auth/auth.service';
 import Dexie from 'dexie';
 import { I18nService } from '../i18n/i18n.service';
-import { TrailCollectionService } from '../database/trail-collection.service';
+import { TrailCollectionService } from '../stores/trail-collection.service';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { PointDto } from 'src/app/model/dto/point';
 import { Point } from 'src/app/model/point';
 import { PreferencesService } from '../preferences/preferences.service';
-import { TrackService } from '../database/track.service';
-import { TrailService } from '../database/trail.service';
+import { TrackService } from '../stores/track.service';
+import { TrailService } from '../stores/trail.service';
 import * as L from 'leaflet';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController, ToastController } from '@ionic/angular/standalone';
@@ -29,7 +29,7 @@ import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended'
 import { environment } from 'src/environments/environment';
 import { Photo } from 'src/app/model/photo';
 import { PhotoDto } from 'src/app/model/dto/photo';
-import { PhotoService } from '../database/photo.service';
+import { PhotoService } from '../stores/photo.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { CameraService } from '../camera/camera.service';
 

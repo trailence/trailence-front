@@ -3,7 +3,7 @@ import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { TrailOverviewComponent } from '../trail-overview/trail-overview.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
-import { TrackService } from 'src/app/services/database/track.service';
+import { TrackService } from 'src/app/services/stores/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
   IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController } from "@ionic/angular/standalone";
 import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
@@ -15,8 +15,8 @@ import { FilterNumericComponent, NumericFilterValueEvent } from '../filters/filt
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MapComponent } from '../map/map.component';
-import { TrailMenuService } from 'src/app/services/database/trail-menu.service';
-import { TagService } from 'src/app/services/database/tag.service';
+import { TrailMenuService } from 'src/app/services/stores/trail-menu.service';
+import { TagService } from 'src/app/services/stores/tag.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { FilterTagsComponent } from '../filters/filter-tags/filter-tags.component';
@@ -28,7 +28,7 @@ import { TrailOverviewCondensedComponent } from '../trail-overview/condensed/tra
 import { HorizontalGestureDirective } from 'src/app/utils/horizontal-gesture.directive';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { HighlightService } from 'src/app/services/highlight/highlight.service';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollectionService } from 'src/app/services/stores/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
 import { Console } from 'src/app/utils/console';

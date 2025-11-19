@@ -83,7 +83,7 @@ export interface VersionedDb {
 @Injectable({
   providedIn: 'root'
 })
-export class DatabaseService {
+export class StoresService {
 
   private readonly _db = new BehaviorSubject<VersionedDb | undefined>(undefined);
   private _openEmail?: string;

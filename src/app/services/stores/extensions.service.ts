@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, EMPTY, filter, first, from, map, Observable, of, switchMap } from 'rxjs';
 import { Extension } from 'src/app/model/extension';
-import { DatabaseService, EXTENSIONS_TABLE_NAME } from './database.service';
+import { StoresService, EXTENSIONS_TABLE_NAME } from './stores.service';
 import { StoreSyncStatus } from './store';
 import Dexie from 'dexie';
 import { HttpService } from '../http/http.service';
@@ -21,7 +21,7 @@ export class ExtensionsService {
   private readonly _pendingOperation$ = new BehaviorSubject<number>(0);
 
   constructor(
-    private readonly databaseService: DatabaseService,
+    private readonly databaseService: StoresService,
     private readonly http: HttpService,
   ) {
     databaseService.registerStore({

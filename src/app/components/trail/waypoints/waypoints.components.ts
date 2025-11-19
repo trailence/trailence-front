@@ -9,7 +9,7 @@ import { TrackEditToolsComponent } from '../../track-edit-tools/track-edit-tools
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { PhotosSliderComponent } from '../../photos-slider/photos-slider.component';
-import { PhotoService } from 'src/app/services/database/photo.service';
+import { PhotoService } from 'src/app/services/stores/photo.service';
 import { Photo } from 'src/app/model/photo';
 
 @Component({

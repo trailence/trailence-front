@@ -5,7 +5,7 @@ import { BehaviorSubject, concat, debounceTime, filter, from, map, Observable, o
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
-import { DatabaseService, MY_PUBLICATIONS_TABLE_NAME, VersionedDb } from './database.service';
+import { StoresService, MY_PUBLICATIONS_TABLE_NAME, VersionedDb } from './stores.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 export interface MyPublicTrail {
@@ -19,7 +19,7 @@ export class MyPublicTrailsService {
   public readonly myPublicTrails$ = new BehaviorSubject<MyPublicTrail[]>([]);
 
   constructor(
-    databaseService: DatabaseService,
+    databaseService: StoresService,
     authService: AuthService,
     networkService: NetworkService,
     http: HttpService,

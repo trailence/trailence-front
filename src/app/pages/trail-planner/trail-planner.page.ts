@@ -13,7 +13,7 @@ import { MapTrackPointReference } from 'src/app/components/map/track/map-track-p
 import { SearchPlaceComponent } from 'src/app/components/search-place/search-place.component';
 import { Place } from 'src/app/services/geolocation/place';
 import { FormsModule } from '@angular/forms';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollectionService } from 'src/app/services/stores/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { TrailGraphComponent } from 'src/app/components/trail-graph/trail-graph.component';

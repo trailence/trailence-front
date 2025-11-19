@@ -1,5 +1,5 @@
 import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, timeout } from "rxjs";
-import { DatabaseService, VersionedDb } from "./database.service";
+import { StoresService, VersionedDb } from "./stores.service";
 import Dexie, { Table } from "dexie";
 import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
@@ -127,7 +127,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected _initStore(name: string): void {
-    const dbService = this.injector.get(DatabaseService);
+    const dbService = this.injector.get(StoresService);
     dbService.registerStore({
       name,
       status$: this.syncStatus$,
@@ -164,7 +164,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  protected abstract migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined>;
+  protected abstract migrate(fromVersion: number, dbService: StoresService, isNewDb: boolean): Promise<number | undefined>;
 
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
   protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
@@ -190,7 +190,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  private load(dbService: DatabaseService, db: VersionedDb): void {
+  private load(dbService: StoresService, db: VersionedDb): void {
     if (this._db) this.close();
     this.ngZone.runOutsideAngular(() => {
       this.migrateIfNeeded(dbService, db.tablesVersion[this.tableName] ?? trailenceAppVersionCode, db.isNewDb)
@@ -226,7 +226,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  private migrateIfNeeded(dbService: DatabaseService, currentVersion: number, isNewDb: boolean): Promise<void> {
+  private migrateIfNeeded(dbService: StoresService, currentVersion: number, isNewDb: boolean): Promise<void> {
     if (currentVersion >= trailenceAppVersionCode) return Promise.resolve();
     return this.migrate(currentVersion, dbService, isNewDb)
     .then(migrationResult => {
@@ -531,7 +531,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   public cleanDatabase(db: Dexie, email: string): Observable<any> {
     return new Observable(subscriber => {
-      const dbService = this.injector.get(DatabaseService);
+      const dbService = this.injector.get(StoresService);
       if (db !== dbService.db?.db || email !== dbService.email) {
         subscriber.next(false);
         subscriber.complete();
@@ -557,11 +557,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected abstract doCleaning(email: string, db: Dexie): Observable<any>;
 
   protected markStoreToForceUpdateFromServer(force: boolean): Promise<any> {
-    return this.injector.get(DatabaseService).storeInternalData(this.tableName, 'forceUpdateFromServer', force);
+    return this.injector.get(StoresService).storeInternalData(this.tableName, 'forceUpdateFromServer', force);
   }
 
   protected shouldForceUpdateFromServer(): Promise<boolean> {
-    return this.injector.get(DatabaseService).getInternalData(this.tableName, 'forceUpdateFromServer').then(data => data === true);
+    return this.injector.get(StoresService).getInternalData(this.tableName, 'forceUpdateFromServer').then(data => data === true);
   }
 
 }

@@ -7,7 +7,7 @@ import { TrailTag } from "src/app/model/trail-tag";
 import { EMPTY, Observable, combineLatest, first, map, of, switchMap, tap, throwError, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
-import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
+import { StoresService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./stores.service";
 import { TrailCollectionService } from "./trail-collection.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { TrailService } from "./trail.service";
@@ -227,7 +227,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
     return !q || q.tagsUsed >= q.tagsMax;
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+  protected override migrate(fromVersion: number, dbService: StoresService): Promise<number | undefined> {
     return Promise.resolve(undefined);
   }
 
@@ -283,7 +283,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
       first(),
       switchMap(([tags, collections]) => {
         return new Observable<any>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
+          const dbService = this.injector.get(StoresService);
           if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();
@@ -354,7 +354,7 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
     return entity.trailUuid + '_' + entity.tagUuid;
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+  protected override migrate(fromVersion: number, dbService: StoresService): Promise<number | undefined> {
     return Promise.resolve(undefined);
   }
 
@@ -409,7 +409,7 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
       first(),
       switchMap(([trailsTags, tags, trails]) => {
         return new Observable<any>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
+          const dbService = this.injector.get(StoresService);
           if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();

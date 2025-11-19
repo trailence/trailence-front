@@ -1,11 +1,11 @@
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
-import { DatabaseService, SHARE_TABLE_NAME } from '../database.service';
+import { StoresService, SHARE_TABLE_NAME } from '../stores.service';
 import { SimpleStoreItem } from '../simple-store';
 import { Console } from 'src/app/utils/console';
 
 export class ShareV1ToShareV2 {
 
-  public static migrate(dbService: DatabaseService): Promise<void> {
+  public static migrate(dbService: StoresService): Promise<void> {
     Console.info("Migrate shares from V1 to V2");
     const db = dbService.db?.db;
     if (!db) return Promise.resolve();

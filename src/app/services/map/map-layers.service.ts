@@ -3,7 +3,7 @@ import * as L from 'leaflet';
 import { handleMapOffline } from './map-tiles-layer-offline';
 import { NetworkService } from '../network/network.service';
 import { OfflineMapService } from './offline-map.service';
-import { ExtensionsService } from '../database/extensions.service';
+import { ExtensionsService } from '../stores/extensions.service';
 import { Observable } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { HttpClient } from '@angular/common/http';

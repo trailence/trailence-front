@@ -1,5 +1,5 @@
 import { TrackEditTool, TrackEditToolContext } from '../tool.interface';
-import { TrackService } from 'src/app/services/database/track.service';
+import { TrackService } from 'src/app/services/stores/track.service';
 
 export class BackToOriginalTrack implements TrackEditTool {
 

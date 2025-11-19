@@ -4,8 +4,8 @@ import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonInput, IonConten
 import { Subscription, switchMap, throwError } from 'rxjs';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { Trail } from 'src/app/model/trail';
-import { TrackService } from 'src/app/services/database/track.service';
-import { TrailService } from 'src/app/services/database/trail.service';
+import { TrackService } from 'src/app/services/stores/track.service';
+import { TrailService } from 'src/app/services/stores/trail.service';
 import { GeoService } from 'src/app/services/geolocation/geo.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';

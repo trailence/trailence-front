@@ -1,15 +1,15 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonHeader, IonToolbar, IonContent, IonTitle, IonLabel, ModalController, IonFooter, IonButtons, IonButton } from '@ionic/angular/standalone'
-import { TrailService } from 'src/app/services/database/trail.service';
+import { TrailService } from 'src/app/services/stores/trail.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { ProgressService } from 'src/app/services/progress/progress.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { TrackService } from 'src/app/services/database/track.service';
+import { TrackService } from 'src/app/services/stores/track.service';
 import { combineLatest, firstValueFrom } from 'rxjs';
-import { PhotoService } from 'src/app/services/database/photo.service';
+import { PhotoService } from 'src/app/services/stores/photo.service';
 import { populateWayPointInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AsyncPipe } from '@angular/common';

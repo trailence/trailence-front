@@ -1,6 +1,6 @@
 import { Injector } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
-import { TrackService } from '../database/track.service';
+import { TrackService } from '../stores/track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { first, of, timeout } from 'rxjs';
 import { Platform } from '@ionic/angular/standalone';

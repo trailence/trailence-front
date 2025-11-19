@@ -6,7 +6,7 @@ import { VersionedDto } from 'src/app/model/dto/versioned';
 import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
-import { DatabaseService, PHOTO_TABLE_NAME } from './database.service';
+import { StoresService, PHOTO_TABLE_NAME } from './stores.service';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { StoredFilesService } from './stored-files.service';
 import { TrailService } from './trail.service';
@@ -299,7 +299,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
     return !q || q.photosUsed >= q.photosMax || q.photosSizeUsed >= q.photosSizeMax;
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+  protected override migrate(fromVersion: number, dbService: StoresService): Promise<number | undefined> {
     return Promise.resolve(undefined);
   }
 
@@ -390,7 +390,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
       first(),
       switchMap(([photos, trails]) => {
         return new Observable<any>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
+          const dbService = this.injector.get(StoresService);
           if (db !== dbService.db?.db || email !== dbService.email) {
             subscriber.next(false);
             subscriber.complete();

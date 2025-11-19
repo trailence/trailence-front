@@ -3,7 +3,7 @@ import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.s
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonInput, ModalController, Platform } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollectionService } from 'src/app/services/stores/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Console } from 'src/app/utils/console';
 import { firstValueFrom } from 'rxjs';

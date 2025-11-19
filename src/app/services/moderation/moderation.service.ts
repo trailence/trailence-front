@@ -4,7 +4,7 @@ import { BehaviorSubject, combineLatest, defaultIfEmpty, EMPTY, from, map, Obser
 import { Trail } from 'src/app/model/trail';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { environment } from 'src/environments/environment';
-import { TrackDatabase } from '../database/track-database';
+import { TrackDatabase } from '../stores/track-database';
 import { TrackDto } from 'src/app/model/dto/track';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';

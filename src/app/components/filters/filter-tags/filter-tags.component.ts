@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FilterTags } from '../filter';
-import { TagService } from 'src/app/services/database/tag.service';
+import { TagService } from 'src/app/services/stores/tag.service';
 import { Tag } from 'src/app/model/tag';
 import { Subscription } from 'rxjs';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';

@@ -1,6 +1,6 @@
 import { Track } from 'src/app/model/track';
 import { Trail } from 'src/app/model/trail';
-import { TrailService } from 'src/app/services/database/trail.service';
+import { TrailService } from 'src/app/services/stores/trail.service';
 import { Console } from 'src/app/utils/console';
 
 export class PublicationChecklist {

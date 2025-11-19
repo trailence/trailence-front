@@ -1,6 +1,6 @@
 import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, distinctUntilChanged, first, from, map, of, switchMap, tap, zip } from "rxjs";
 import { AuthService } from "../auth/auth.service";
-import { DatabaseService } from "./database.service";
+import { StoresService } from "./stores.service";
 import Dexie, { PromiseExtended, Table } from "dexie";
 import { TrackDto } from "src/app/model/dto/track";
 import { Track } from "src/app/model/track";
@@ -60,7 +60,7 @@ export class TrackDatabase {
       this.syncStatus$,
       this.ngZone
     );
-    injector.get(DatabaseService).registerStore({
+    injector.get(StoresService).registerStore({
       name: 'tracks',
       status$: this.syncStatus$,
       loaded$: this.loaded$,
@@ -141,7 +141,7 @@ export class TrackDatabase {
       this.fullTrackTable = db.table<TrackItem, string>('full_tracks');
       this.db = db;
       let init = false;
-      this.databaseServiceSubscription = this.injector.get(DatabaseService).db$.subscribe(
+      this.databaseServiceSubscription = this.injector.get(StoresService).db$.subscribe(
         versionedDb => {
           if (init || !versionedDb) return;
           init = true;
@@ -149,11 +149,11 @@ export class TrackDatabase {
           this.initStatus();
           let promise$ = Promise.resolve();
           if (versionedDb.isNewDb) {
-            promise$ = promise$.then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
+            promise$ = promise$.then(() => this.injector.get(StoresService).saveTableVersion('tracks', 1705));
           } else {
             const currentVersion = versionedDb.tablesVersion['tracks'];
             if (!currentVersion || currentVersion < 1705) {
-              promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
+              promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(StoresService).saveTableVersion('tracks', 1705));
             }
           }
           promise$.then(() => {
@@ -275,7 +275,7 @@ export class TrackDatabase {
       switchMap(trails$ => trails$.length === 0 ? of([]) : combineLatest(trails$)),
       first(),
       switchMap(trails => {
-        const dbService = this.injector.get(DatabaseService);
+        const dbService = this.injector.get(StoresService);
         if (db !== dbService.db?.db || email !== dbService.email) return of(false);
         const allKnownKeys: string[] = [];
         for (const trail of trails) {

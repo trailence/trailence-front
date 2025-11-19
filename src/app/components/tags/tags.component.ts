@@ -7,7 +7,7 @@ import { Tag } from 'src/app/model/tag';
 import { Trail } from 'src/app/model/trail';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { TagService } from 'src/app/services/database/tag.service';
+import { TagService } from 'src/app/services/stores/tag.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';

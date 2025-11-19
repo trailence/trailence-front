@@ -4,12 +4,12 @@ import { Trail } from 'src/app/model/trail';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonInput, IonButton, IonFooter, IonButtons, ModalController, IonRadio, IonRadioGroup, IonCheckbox } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollectionService } from 'src/app/services/stores/trail-collection.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { first, Observable, of } from 'rxjs';
 import { TagsComponent } from '../tags/tags.component';
 import { Tag } from 'src/app/model/tag';
-import { ShareService } from 'src/app/services/database/share.service';
+import { ShareService } from 'src/app/services/stores/share.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { EMAIL_REGEX } from 'src/app/utils/string-utils';
@@ -17,7 +17,7 @@ import { Share } from 'src/app/model/share';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
-import { TagService } from 'src/app/services/database/tag.service';
+import { TagService } from 'src/app/services/stores/tag.service';
 import { AsyncPipe } from '@angular/common';
 
 export function openSharePopup(injector: Injector, collectionUuid: string, trails: Trail[]) {

@@ -7,9 +7,9 @@ import { DateFormat, DistanceUnit, HourFormat, ThemeType } from 'src/app/service
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { OfflineMapService } from 'src/app/services/map/offline-map.service';
-import { ExtensionsService } from 'src/app/services/database/extensions.service';
+import { ExtensionsService } from 'src/app/services/stores/extensions.service';
 import { FilterNumeric, NumericFilterCustomConfig } from 'src/app/components/filters/filter';
-import { PhotoService } from 'src/app/services/database/photo.service';
+import { PhotoService } from 'src/app/services/stores/photo.service';
 import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-numeric-custom/filter-numeric-custom.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { IdGenerator } from 'src/app/utils/component-utils';

@@ -2,11 +2,11 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angu
 import { StatsSource, StatsSourceCollection } from '../../stats-config';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import { IonSelect, IonSelectOption } from "@ionic/angular/standalone";
-import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
+import { TrailCollectionService } from 'src/app/services/stores/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
-import { ShareService } from 'src/app/services/database/share.service';
+import { ShareService } from 'src/app/services/stores/share.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Share } from 'src/app/model/share';
 

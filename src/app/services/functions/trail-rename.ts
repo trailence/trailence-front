@@ -2,7 +2,7 @@ import { Injector } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController } from '@ionic/angular/standalone';
-import { TrailService } from '../database/trail.service';
+import { TrailService } from '../stores/trail.service';
 
 export async function openRenameTrailDialog(injector: Injector, trail: Trail) {
   const i18n = injector.get(I18nService);

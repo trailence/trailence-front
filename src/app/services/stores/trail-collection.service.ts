@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty,
 import { TrailCollection } from "src/app/model/trail-collection";
 import { OwnedStore, UpdatesResponse } from "./owned-store";
 import { isPublicationCollection, TrailCollectionDto, TrailCollectionType } from "src/app/model/dto/trail-collection";
-import { DatabaseService, TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./database.service";
+import { StoresService, TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./stores.service";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
@@ -136,7 +136,7 @@ export class TrailCollectionService {
   }
 
   public delete(collection: TrailCollection, progress: Progress): void {
-    this.injector.get(DatabaseService).pauseSync();
+    this.injector.get(StoresService).pauseSync();
     progress.workAmount = 100 + 1000 + 1;
     this.injector.get(TagService).deleteAllTagsFromCollections([{uuid: collection.uuid, owner: collection.owner}], progress, 100)
     .pipe(defaultIfEmpty(false), timeout(15000), catchError(e => { Console.error('Error deleting tags', e); return of(false); }))
@@ -147,7 +147,7 @@ export class TrailCollectionService {
         this._store.delete(collection);
         progress.addWorkDone(1);
         progress.done();
-        this.injector.get(DatabaseService).resumeSync();
+        this.injector.get(StoresService).resumeSync();
       });
     });
   }
@@ -292,7 +292,7 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
       return entity.toDto();
     }
 
-    protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
+    protected override migrate(fromVersion: number, dbService: StoresService): Promise<number | undefined> {
       return Promise.resolve(undefined);
     }
 
