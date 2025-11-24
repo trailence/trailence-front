@@ -53,7 +53,7 @@
     "@capacitor/network": "^7.0.2",
     "@capacitor/status-bar": "^7.0.3",
     "@capawesome/capacitor-file-picker": "^7.2.0",
-    "@ionic/angular": "^8.7.9",
+    "@ionic/angular": "^8.7.10",
     "angular-code-input": "^2.0.0",
     "chart.js": "^4.5.1",
     "dexie": "^4.2.1",
