@@ -207,19 +207,28 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     const searchPlaceItems = this.enableSearchPlace ? [
       new MenuItem().setIcon('search-position')
-        .setI18nLabel(this.mapTopToolbar$ ? 'search_place.placeholder' : undefined)
+        .setI18nLabel(() => this.mapTopToolbar$ || this.isSmall ? 'search_place.placeholder' : undefined)
         .setDisabled(() => !this.networkService.internet || !this.networkService.server || this.auth.email === ANONYMOUS_USER)
         .setVisible(() => !!this.auth.email && !this.searchPlaceExpanded)
         .setAction(() => this.expandSearchPlace()),
       new MenuItem().setCustomContentSelector('app-search-place').setVisible(() => this.searchPlaceExpanded),
       new MenuItem().setIcon('chevron-left').setAction(() => this.collapseSearchPlace()).setVisible(() => this.searchPlaceExpanded),
     ] : [];
-    this.mapToolbarTopItems = [...searchPlaceItems];
+    const filtersItem = new MenuItem()
+      .setIcon('filters').setI18nLabel('tools.filters')
+      .setVisible(() => this.isSmall && !this.searchPlaceExpanded)
+      .setBadgeTopRight(() => {
+        const nb = this.trailsList?.nbActiveFilters();
+        if (!nb) return undefined;
+        return { text: '' + nb, color: 'success', fill: true };
+      })
+      .setAction(() => this.trailsList?.filtersModal?.present());
+    this.mapToolbarTopItems = [filtersItem, new MenuItem(), ...searchPlaceItems];
     this.mapTopToolbarSubscription?.unsubscribe();
     this.mapTopToolbarSubscription = undefined;
     if (this.mapTopToolbar$) {
       this.mapTopToolbarSubscription = this.mapTopToolbar$.subscribe(items => {
-        this.mapToolbarTopItems = [...items.map(item => item.addVisibleCondition(() => !this.searchPlaceExpanded)), new MenuItem(), ...searchPlaceItems];
+        this.mapToolbarTopItems = [...items.map(item => item.addVisibleCondition(() => !this.searchPlaceExpanded)), filtersItem, new MenuItem(), ...searchPlaceItems];
         this.mapToolbarTop?.refresh();
       });
     }
@@ -237,6 +246,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.mapTrailsReceived = true;
       this.mapTrails$.next(newList);
     }
+    this.mapToolbarTop?.refresh();
   }
 
   setTab(tab: string): void {

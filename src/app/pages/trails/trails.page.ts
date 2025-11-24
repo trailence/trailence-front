@@ -410,15 +410,6 @@ export class TrailsPage extends AbstractPage {
             }]
           }).then(a => a.present());
         }),
-      new MenuItem()
-        .setIcon('filters').setI18nLabel('tools.filters')
-        .setVisible(() => this.trailsAndMap?.isSmall === true)
-        .setBadgeTopRight(() => {
-          const nb = this.trailsAndMap?.trailsList?.nbActiveFilters();
-          if (!nb) return undefined;
-          return { text: '' + nb, color: 'success', fill: true };
-        })
-        .setAction(() => this.trailsAndMap?.trailsList?.filtersModal?.present())
     ]);
     // available plugins
     this.searchPluginsSubscription = this.injector.get(FetchSourceService).getAllowedPlugins$().subscribe(list => {

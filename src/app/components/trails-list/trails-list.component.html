@@ -174,19 +174,21 @@
         >{{i18n.texts.pages.trails.filters.onlyVisibleOnMap}}</ion-checkbox>
       </div>
 
-      <div class="filter-header">
-        <ion-icon name="duration"></ion-icon>
-        <div>{{ i18n.texts.pages.trails.filters.duration }}</div>
-      </div>
-      <div class="filter-value">
-        <app-filter-numeric-custom
-          [config]="filterDurationConfig"
-          [value]="state$.value.filters.duration"
-          (valueChange)="updateNumericCustomFilter(state$.value.filters.duration, filterDurationConfig, $event)"
-          [maxValueLabel]="i18n.hoursToString(24) + '+'"
-          >
-        </app-filter-numeric-custom>
-      </div>
+      @if (listType !== 'search') {
+        <div class="filter-header">
+          <ion-icon name="duration"></ion-icon>
+          <div>{{ i18n.texts.pages.trails.filters.duration }}</div>
+        </div>
+        <div class="filter-value">
+          <app-filter-numeric-custom
+            [config]="filterDurationConfig"
+            [value]="state$.value.filters.duration"
+            (valueChange)="updateNumericCustomFilter(state$.value.filters.duration, filterDurationConfig, $event)"
+            [maxValueLabel]="i18n.hoursToString(24) + '+'"
+            >
+          </app-filter-numeric-custom>
+        </div>
+      }
 
       <div class="filter-header">
         <ion-icon name="chrono"></ion-icon>
