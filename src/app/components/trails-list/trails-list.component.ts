@@ -264,7 +264,7 @@ export class TrailsListComponent extends AbstractComponent {
           this.collection = collection ?? undefined;
           this.updateToolbar(trails);
           // if no active filter, we can early emit the list of trails to the map
-          if (this.nbActiveFilters() === 0)
+          if (this.nbActiveFilters(true) === 0)
             this.mapFilteredTrails.emit(trails);
           return trails.map(
             trail => combineLatest([
@@ -319,7 +319,7 @@ export class TrailsListComponent extends AbstractComponent {
     let previous = this.state$.value;
     let previousMapCenter: L.LatLngLiteral | undefined = undefined;
     let previousMapZoom: number | undefined = undefined;
-    this.byStateAndVisible.subscribe(
+    this.byState.add(
       this.state$.pipe(
         skip(1),
         debounceTime(100),
@@ -330,8 +330,7 @@ export class TrailsListComponent extends AbstractComponent {
             map(([mapCenter, mapZoom]) => ([state, mapCenter, mapZoom] as [State, L.LatLngLiteral | undefined, number | undefined]))
           )
         })
-      ),
-      ([state, mapCenter, mapZoom]) => {
+      ).subscribe(([state, mapCenter, mapZoom]) => {
         if (state === previous && mapCenter === previousMapCenter && mapZoom === previousMapZoom) return;
         if (state.filters !== previous.filters || mapCenter !== previousMapCenter || mapZoom !== previousMapZoom) {
           this.applySort(this.applyFilters());
@@ -345,8 +344,7 @@ export class TrailsListComponent extends AbstractComponent {
         previous = state;
         previousMapCenter = mapCenter;
         previousMapZoom = mapZoom;
-      },
-      true
+      })
     );
     if (this.collectionUuid)
       this.byStateAndVisible.subscribe(
@@ -703,8 +701,8 @@ export class TrailsListComponent extends AbstractComponent {
     });
   }
 
-  nbActiveFilters(): number {
-    return FiltersUtils.nbActives(this.state$.value.filters);
+  nbActiveFilters(includeByName: boolean = false): number {
+    return FiltersUtils.nbActives(this.state$.value.filters, includeByName);
   }
 
   resetFilters(): void {

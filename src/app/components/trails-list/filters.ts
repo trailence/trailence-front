@@ -128,7 +128,7 @@ export class FiltersUtils {
     };
   }
 
-  public static nbActives(filters: Filters): number {
+  public static nbActives(filters: Filters, includeByName: boolean = false): number {
     let nb = 0;
     if (filters.duration.from !== undefined || filters.duration.to !== undefined) nb++;
     if (filters.estimatedDuration.from !== undefined || filters.estimatedDuration.to !== undefined) nb++;
@@ -140,6 +140,7 @@ export class FiltersUtils {
     if (filters.onlyVisibleOnMap) nb++;
     if (filters.tags.type === 'onlyWithAnyTag' || filters.tags.type === 'onlyWithoutAnyTag' || filters.tags.tagsUuids.length !== 0) nb++;
     if (filters.rate.from !== undefined || filters.rate.to !== undefined) nb++;
+    if (includeByName && filters.search?.trim()?.length) nb++;
     return nb;
   }
 

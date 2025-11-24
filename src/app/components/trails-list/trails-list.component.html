@@ -296,6 +296,20 @@
           <app-filter-tags [collectionUuid]="collectionUuid" [filter]="state$.value.filters.tags" (filterChange)="updateTagsFilter($event)"></app-filter-tags>
         </div>
       }
+
+      <div class="filter-header">
+        <ion-icon name="edit-text"></ion-icon>
+        <div>{{ i18n.texts.tools.search_text }}</div>
+      </div>
+      <div class="filter-value">
+        <ion-input fill="solid" color="dark" class="small"
+          [value]="state$.value.filters.search"
+          (ionInput)="searchTrailInput($event.detail.value)"
+          [placeholder]="i18n.texts.pages.trails.search_trail_placeholder"
+        >
+          <ion-icon slot="end" name="cross" (click)="clearSearch()"></ion-icon>
+        </ion-input>
+      </div>
     </ion-content>
     <ion-footer>
       <ion-toolbar color="footer">

@@ -218,7 +218,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
       .setIcon('filters').setI18nLabel('tools.filters')
       .setVisible(() => this.isSmall && !this.searchPlaceExpanded)
       .setBadgeTopRight(() => {
-        const nb = this.trailsList?.nbActiveFilters();
+        const nb = this.trailsList?.nbActiveFilters(true);
         if (!nb) return undefined;
         return { text: '' + nb, color: 'success', fill: true };
       })
@@ -234,7 +234,11 @@ export class TrailsAndMapComponent extends AbstractComponent {
     }
     this.byStateAndVisible.subscribe(this.bubbles$ ?? of([]), bubbles => this.givenBubbles$.next(bubbles));
     this.byStateAndVisible.subscribe(
-      combineLatest([this.networkService.internet$, this.networkService.server$, this.auth.auth$, this.injector.get(FetchSourceService).getAllowedPlugins$()]),
+      combineLatest([
+        this.networkService.internet$, this.networkService.server$, this.auth.auth$,
+        this.injector.get(FetchSourceService).getAllowedPlugins$(),
+        this.trailsList$.pipe(switchMap(tl => tl?.filters$ || of(undefined)))
+      ]),
       () => this.mapToolbarTop?.refresh()
     )
   }
