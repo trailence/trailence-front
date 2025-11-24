@@ -24,7 +24,7 @@
               <category android:name="android.intent.category.LAUNCHER" />
           </intent-filter>
 
-          <!-- Open file by extension .gpx with scheme content -->
+          <!-- Open file by extension with scheme content -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
@@ -39,7 +39,7 @@
             <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
           </intent-filter>
 
-          <!-- Open file by extension .gpx with scheme file -->
+          <!-- Open file by extension with scheme file -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
@@ -78,7 +78,7 @@
             <data android:host="*" />
           </intent-filter>
 
-          <!-- Open file without mime type but extension .gpx and scheme content -->
+          <!-- Open file without mime type but extension and scheme content -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
@@ -92,7 +92,7 @@
             <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
           </intent-filter>
 
-          <!-- Open file without mime type but extension .gpx and scheme file -->
+          <!-- Open file without mime type but extension and scheme file -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
@@ -106,20 +106,7 @@
             <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
           </intent-filter>
 
-          <!-- Open file with extension .gpx without host and scheme content -->
-          <intent-filter>
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <action android:name="android.intent.action.VIEW" />
-            <action android:name="android.intent.action.OPEN_DOCUMENT" />
-            <data android:scheme="content" />
-            <data android:pathPattern=".*\\.gpx" />
-            <data android:pathPattern=".*\\..*\\.gpx"/>
-            <data android:pathPattern=".*\\..*\\..*\\.gpx"/>
-            <data android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
-            <data android:mimeType="*/*" />
-          </intent-filter>
-          <!-- Open file with extension .gpx without host and scheme file -->
+          <!-- Open file with extension without host and scheme file -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
