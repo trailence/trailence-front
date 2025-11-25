@@ -460,6 +460,10 @@
         "meters": "Mètres / Kilomètres",
         "imperial": "Pieds / Miles"
       },
+      "elevation_units_long": {
+        "meters": "mètres",
+        "imperial": "pieds"
+      },
       "date_format": "Format de date",
       "time_format": "Format d'heure",
       "privacy": "Vie privée",
@@ -472,6 +476,9 @@
       "traceMinMeters_explaination": "Une valeur trop faible risque de donner une trace de mauvaise qualité dû à l'imprécision des GPS.<br/>Une valeur trop élevée risque également de donner une trace de mauvaise qualité avec de grands traits.<br/>Il faut également prendre en compte que plus la distance est faible, plus le nombre de points enregistrés sera élevé, ce qui peut avoir un impact sur la consommation de la batterie pendant l'enregistrement.<br/>Pour un bon compromis, nous recommendons un valeur entre 5 et 15 mètres (soit environ 16 à 50 pieds).",
       "traceMinMillis": "Temps minimum entre chaque point enregistré",
       "traceMinMillis_explaination": "Si vous souhaitez limiter le nombre de points enregistrés, afin de réduire la consommation de la batterie, vous pouvez utiliser un temps minimum plus long entre chaque point.<br/>La distance minimum entre chaque point est également prise en compte, il faudra alors que la distance minimum soit atteinte ET que le temps minimum soit atteint avant d'enregistrer un nouveau point.<br/>Nous recommendons une valeur entre 2 et 5 secondes.",
+      "elevation_calibration": "Altitude",
+      "elevation_calibration_explaination": "L'altitude enregistrée par le GPS présente souvent un décalage par rapport à la réalité.<br/>Vous pouvez ici l'ajuster en précisant une différence à appliquer.<br/>Par exemple si votre GPS indique toujours environ {{1}} {{2}} de plus que l'altitude réelle, vous pouvez saisir <b>-{{1}}</b>.<br/>Chaque appareil étant différent, la configuration se fait par appareil.",
+      "elevation_calibration_this_device": "cet appareil",
       "offline_map": "Cartes hors-ligne",
       "offlineMapMaxKeepDays": "Nombre de jours de validité d'une carte téléchargée",
       "offlineMapMaxKeepDays_explaination": "Lorsque vous téléchargez une carte pour la rendre disponible hors-ligne, ce paramètre indique combien de jours elle sera conservée. Cela permet également de ne pas télécharger un élément de carte s'il a déjà été téléchargé récemment, faisant ainsi gagner du temps lors du téléchargement.",
@@ -1241,6 +1248,8 @@
       },
       "replace_elevation_with_provider": "Remplacer les altitudes",
       "improve_elevation_with_provider": "Améliorer les altitudes",
+      "calibrate_elevation": "Calibrer l'altitude",
+      "calibrate_elevation_message": "L'altitude connue présente une différence moyenne de {{1}} {{2}} par rapport à l'altitude enregistrée sur ce parcours",
       "arrival_to_departure": "Terminer au même endroit que le départ",
       "departure_to_arrival": "Démarrer au même endroit que l'arrivée",
       "start_from_arrival": "Créer le début manquant en rejoignant le point d’arrivée par le chemin retour",

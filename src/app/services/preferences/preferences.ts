@@ -27,6 +27,8 @@ export interface Preferences {
   photoCacheDays?: number;
 
   alias?: string;
+
+  elevationCalibrationByDevice?: {[device: string]: number};
 }
 
 export interface ComputedPreferences extends Preferences {
@@ -54,4 +56,5 @@ export interface ComputedPreferences extends Preferences {
 
   alias: string;
 
+  elevationCalibrationByDevice?: {[device: string]: number};
 }

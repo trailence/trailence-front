@@ -13,6 +13,7 @@ import { PhotoService } from 'src/app/services/database/photo.service';
 import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-numeric-custom/filter-numeric-custom.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { IdGenerator } from 'src/app/utils/component-utils';
+import { InputNumberComponent } from 'src/app/components/input-number/input-number.component';
 
 @Component({
   selector: 'app-preferences',
@@ -23,6 +24,7 @@ import { IdGenerator } from 'src/app/utils/component-utils';
     HeaderComponent,
     FormsModule,
     FilterNumericCustomComponent,
+    InputNumberComponent,
   ]
 })
 export class PreferencesPage implements OnDestroy {
@@ -161,6 +163,12 @@ export class PreferencesPage implements OnDestroy {
 
   setTraceMinimumInterval(millis: number | FilterNumeric): void {
     this.preferences.setTraceMinMillis(millis as number);
+  }
+
+  elevationCalibrationExplaination(): string {
+    const example = this.preferences.preferences.distanceUnit === 'METERS' ? 30 : 100;
+    const unit = this.i18n.texts.pages.preferences.elevation_units_long[this.preferences.preferences.distanceUnit.toLowerCase()];
+    return this.i18n.translateWithArguments('pages.preferences.elevation_calibration_explaination', [example, unit]);
   }
 
   setEstimatedBaseSpeed(speed: string | null | undefined): void {

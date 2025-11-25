@@ -13,6 +13,7 @@ import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { PluginWithDb, TrailInfoBaseDto } from './abstract-plugin-with-db';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
+import { PendingRequests } from 'src/app/utils/pending-requests';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
   keyNumber: string;
@@ -25,6 +26,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   public override readonly name = 'Visorando';
   public override readonly owner = 'visorando';
   public override readonly canFetchFromUrl = true;
+  private readonly pendingFetchByUrl = new PendingRequests<TrailInfo>();
 
   constructor(
     injector: Injector,
@@ -43,14 +45,14 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   public override fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> {
     if (!url.endsWith('/')) url += '/';
     const fromDb = this.tableInfos.searchFirstIgnoreCase('url', url);
-    return fromDb.then(info => info?.info ?? globalThis.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
+    return fromDb.then(info => info?.info ?? this.pendingFetchByUrl.request(url, () => globalThis.fetch(url, {mode: 'cors'}).then(response => response.text()).then(text => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, "text/html");
       return this.fetchTrailInfoByContent(doc);
-    }).catch(e => {
+    }))).catch(e => {
       Console.warn('Error parsing Visorando page', e);
       throw e;
-    }));
+    });
   }
 
   public override canFetchTrailInfoByContent(doc: Document): boolean {

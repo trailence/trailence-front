@@ -460,6 +460,10 @@
         "meters": "Meters / Kilometers",
         "imperial": "Foot / Miles"
       },
+      "elevation_units_long": {
+        "meters": "meters",
+        "imperial": "foot"
+      },
       "date_format": "Date format",
       "time_format": "Time format",
       "privacy": "Privacy",
@@ -472,6 +476,9 @@
       "traceMinMeters_explaination": "If the value is too low, the track quality may decrease due to GPS imprecision.<br/>A value that is too high also lead to a low-quality track with long straight lines.<br/>Additionally, shorter distances result in more recorded points, which can increase battery consumption.<br/>We recommend setting the value between 5 and 15 meters (approximately 16 to 50 foot) for a good balance.",
       "traceMinMillis": "Minimum time between each recorded point",
       "traceMinMillis_explaination": "To limit the number of recorded points and reduce battery consumption, you can increase the minimum time between each point. Both the minimum time and minimum distance must be met before recording a new point.<br/>We recommend setting it between 2 and 5 seconds.",
+      "elevation_calibration": "Altitude",
+      "elevation_calibration_explaination": "The altitude recorded by the GPS often shows a discrepancy compared to reality.<br/>Here, you can adjust it by specifying a correction value.<br/>For example, if your GPS is always about {{1}} {{2}} higher than the real altitude, you can enter <b>-{{1}}</b>.<br/>Since every device is different, the configuration is done per device.",
+      "elevation_calibration_this_device": "this device",
       "offline_map": "Offline maps",
       "offlineMapMaxKeepDays": "Number of days a downloaded map is valid",
       "offlineMapMaxKeepDays_explaination": "When you download a map to make it available offline, this setting defines how long it will be retained. It also prevents re-downloading a map if it was recently downloaded, saving time.",
@@ -1241,6 +1248,8 @@
       },
       "replace_elevation_with_provider": "Replace altitudes",
       "improve_elevation_with_provider": "Improve altitudes",
+      "calibrate_elevation": "Calibrate altitude",
+      "calibrate_elevation_message": "The known altitude shows an average difference of {{1}} {{2}} compared to the altitude recorded on this trail.",
       "arrival_to_departure": "Finish at the departure point",
       "departure_to_arrival": "Start at the arrival point",
       "back_to_departure": "Create a return to the start by following the same route",

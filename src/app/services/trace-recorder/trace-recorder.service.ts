@@ -405,6 +405,10 @@ export class TraceRecorderService {
       this.updatePoint(recording.status.latestRawPoint, position, 'raw', 'short time/distance');
     }
     // improved track
+    if (position.e !== undefined && position.e !== null) {
+      const eleCalibration = this.preferencesService.getElevationCalibration(undefined, false);
+      if (eleCalibration) position.e += eleCalibration;
+    }
     if (recording.status.points === 1) {
       if (recording.status.temporaryImprovedPoint === undefined) {
         // second point

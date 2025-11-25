@@ -181,6 +181,38 @@
     </div>
   </div>
 
+  <div class="preference">
+    <div class="icon">
+      <ion-icon name="elevation"></ion-icon>
+    </div>
+    <div class="preference-content">
+      <div class="title">{{i18n.texts.pages.preferences.elevation_calibration}}</div>
+      <div class="explaination" [innerHTML]="elevationCalibrationExplaination()"></div>
+      <div class="value">
+        <table>
+          @for (device of preferences.getElevationCalibrationDevices(); track device) {
+            <tr>
+              <td>
+                <span>{{device}}</span>
+                @if (device === preferences.getThisDevice()) {
+                  <span style="font-style: italic"> ({{i18n.texts.pages.preferences.elevation_calibration_this_device}})</span>
+                }
+              </td>
+              <td>
+                <app-input-number
+                  [value]="preferences.getElevationCalibration(device, true)"
+                  (valueChange)="preferences.setElevationCalibration($event, device, true)"
+                  [step]="1" [min]="-1000" [max]="1000"
+                ></app-input-number>
+                {{i18n.shortUserElevationUnit()}}
+              </td>
+            </tr>
+          }
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div class="page-section-title">
     {{i18n.texts.pages.preferences.time_calculation.title}}
   </div>

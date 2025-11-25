@@ -614,7 +614,7 @@
 </div>
 
 <ng-template #recordingMeta let-tracks="tracks">
-  @if (recording?.rawTrack?.arrivalPoint; as currentPoint) {
+  @if ((recording?.track || recording?.rawTrack)?.arrivalPoint; as currentPoint) {
     <div class="metadata-item-container">
       <div class="metadata-item">
         <ion-icon name="center-on-location"></ion-icon>

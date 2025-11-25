@@ -7,6 +7,8 @@ import { environment } from 'src/environments/environment';
 import { NetworkService } from '../network/network.service';
 import { StringUtils } from 'src/app/utils/string-utils';
 import { Console } from 'src/app/utils/console';
+import Trailence from '../trailence.service';
+import { I18nService } from '../i18n/i18n.service';
 
 const defaultPreferences: {[key:string]: Preferences} = {
   'en': {
@@ -51,6 +53,7 @@ export class PreferencesService implements OnDestroy {
   private readonly _saveNeeded$ = new BehaviorSubject<string | undefined>(undefined);
   private destroyed = false;
   private subscription?: Subscription;
+  private device = 'web';
 
   constructor(
     private readonly injector: Injector,
@@ -79,12 +82,21 @@ export class PreferencesService implements OnDestroy {
           photoMaxSizeKB: parsed['photoMaxSizeKB'],
           photoCacheDays: parsed['photoCacheDays'],
           alias: parsed['alias'] ?? '',
+          elevationCalibrationByDevice: parsed['elevationCalibrationByDevice'] ?? undefined,
         }
       }
     } catch (e) {} // NOSONAR
     this._prefs$ = new BehaviorSubject<Preferences>(prefs);
     this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
     Console.info('Initial preferences: ', this._computed$.value);
+    Trailence.getInfo({}).then(info => {
+      let elements = [];
+      if (info?.['deviceBrand']) elements.push(info['deviceBrand']);
+      if (info?.['deviceModel']) elements.push(info['deviceModel']);
+      if (elements.length === 0 && info?.['deviceName']) elements.push(info['deviceName']);
+      if (elements.length === 0) this.device = 'web';
+      else this.device = elements.join(' ');
+    })
     setTimeout(() => this.init(), 1);
   }
 
@@ -265,6 +277,30 @@ export class PreferencesService implements OnDestroy {
 
   public setAlias(value: string): void {
     this.setPreference('alias', value);
+  }
+
+  public getElevationCalibration(device: string | null | undefined, inUserUnit: boolean): number {
+    let value = this.preferences.elevationCalibrationByDevice?.[device ?? this.device] ?? 0;
+    if (inUserUnit) value = this.injector.get(I18nService).elevationInUserUnit(value);
+    return value;
+  }
+
+  public getElevationCalibrationDevices(): string[] {
+    let devices = [...Object.keys(this.preferences.elevationCalibrationByDevice ?? {})];
+    if (!devices.includes(this.device)) devices.push(this.device);
+    return devices;
+  }
+
+  public getThisDevice(): string {
+    return this.device;
+  }
+
+  public setElevationCalibration(value: number | null | undefined, device: string | null | undefined, inUserUnit: boolean): void {
+    let meters = value ?? 0;
+    if (inUserUnit) meters = Math.round(this.injector.get(I18nService).elevationInMetersFromUserUnit(meters));
+    const v = this.preferences.elevationCalibrationByDevice ?? {};
+    v[device ?? this.device] = meters;
+    this.setPreference('elevationCalibrationByDevice', {...v});
   }
 
   private setPreference(field: string, value: any): void {

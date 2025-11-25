@@ -41,8 +41,11 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
                     loadOffline(img, 1);
                   else if (trial < 3)
                     loadOffline(img, trial + 1);
-                  else
+                  else {
+                    img.classList.add('map-tile-error');
+                    img.classList.remove('map-tile-loading');
                     done(new Error('Cannot load tile'), img);
+                  }
                 };
                 img.onload = function() {
                   img.classList.remove('map-tile-loading');

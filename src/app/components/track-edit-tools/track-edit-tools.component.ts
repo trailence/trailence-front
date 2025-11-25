@@ -48,6 +48,7 @@ import { MapComponent } from '../map/map.component';
 import { ArrivalToStart } from './tools/path/arrival-to-start';
 import { MoveWayPointTool } from './tools/way-points/move-way-point';
 import { WayPoint } from 'src/app/model/way-point';
+import { CalibrateElevationWithProvider } from './tools/elevation/calibrate';
 
 interface TrackEditToolsState {
   originalTrack?: Track;
@@ -144,6 +145,7 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         new MenuItem().setI18nLabel('track_edit_tools.categories.elevation_provider').setTextColor('secondary').setSectionTitle(true),
         this.toMenuItem(new ImproveElevationWithProvider()),
         this.toMenuItem(new ReplaceElevationWithProvider()),
+        this.toMenuItem(new CalibrateElevationWithProvider()),
       ]),
     new MenuItem().setIcon('path').setI18nLabel('track_edit_tools.categories.path')
       .setVisible(() => !this.interactiveTool)
