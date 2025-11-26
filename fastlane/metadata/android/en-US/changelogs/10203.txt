@@ -1,0 +1,2 @@
+You can now configure GPS altitude calibration for each of your devices in the preferences page<br/>
+Several other small improvements and bug fixes are also included in this version

@@ -270,5 +270,19 @@
   "010202": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "010203": {
+    "fr": {
+      "items": [
+        "Vous pouvez à présent configurer un calibrage de l'altitude de votre GPS pour chacun de vos appareils dans la page de préférences",
+        "Quelques autres petites améliorations et correctifs ont également été apportés dans cette version"
+      ]
+    },
+    "en": {
+      "items": [
+        "You can now configure GPS altitude calibration for each of your devices in the preferences page",
+        "Several other small improvements and bug fixes are also included in this version"
+      ]
+    }
   }
 }
