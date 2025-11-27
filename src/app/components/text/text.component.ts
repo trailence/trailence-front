@@ -132,12 +132,24 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
     let i = 0;
     while ((i = text.indexOf('\n', i)) > 0) {
       const before = text.substring(0, i).toLowerCase().trim();
-      if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>')) {
+      if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>') && !this.isInsideBulletPoints(before)) {
         text = text.substring(0, i).trim() + '<br/>' + text.substring(i + 1);
       }
       i++;
     }
     return text;
+  }
+
+  private isInsideBulletPoints(textBefore: string): boolean {
+    let ulStart = textBefore.lastIndexOf('<ul');
+    if (ulStart < 0) return false;
+    let ulEnd = textBefore.indexOf('</ul>', ulStart);
+    if (ulEnd > 0) return false;
+    let liStart = textBefore.lastIndexOf('<li', ulStart);
+    if (liStart < 0) return true;
+    let liEnd = textBefore.indexOf('</li>', liStart);
+    if (liEnd < 0) return false;
+    return true;
   }
 
   private ellipsis(text: string): string {

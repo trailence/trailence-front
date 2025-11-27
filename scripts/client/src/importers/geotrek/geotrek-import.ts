@@ -16,6 +16,7 @@ export class GeoTrekImport extends Importer {
   private username: string;
   private trekLink?: string;
   private practicesToFetch: {[key: string]: string};
+  private portal?: string;
 
   constructor(
     trailenceClient: TrailenceClient,
@@ -28,6 +29,7 @@ export class GeoTrekImport extends Importer {
     this.username = config.getRequiredString(remoteName, 'username');
     this.trekLink = config.getString(remoteName, 'trek-link');
     this.practicesToFetch = config.getValue(remoteName, 'practices');
+    this.portal = config.getString(remoteName, 'portal');
   }
 
   public override async importTrails() {
@@ -99,7 +101,8 @@ export class GeoTrekImport extends Importer {
   }
 
   private async getTreks(page: number): Promise<GeoTrekResponse> {
-    const url = this.baseUrl + '/trek/?length_max=50000&page=' + page + '&practices=' + Object.keys(this.practicesToFetch).join(',');
+    let url = this.baseUrl + '/trek/?length_max=50000&page=' + page + '&practices=' + Object.keys(this.practicesToFetch).join(',');
+    if (this.portal?.length) url += '&portals=' + this.portal;
     const response = await fetch(url);
     const json: any = await response.json();
     if (!response.ok || json['results'] === undefined) {
@@ -386,31 +389,37 @@ export class GeoTrekImport extends Importer {
     return text;
   }
 
+  private findHtmlOpenElement(text: string, start: number, elementName: string): {start: number, end: number} | undefined {
+    const elementStart = text.indexOf('<' + elementName, start);
+    if (elementStart < 0) return undefined;
+    const end = text.indexOf('>', elementStart + 1 + elementName.length);
+    if (end < 0) return undefined;
+    return {start: elementStart, end: end + 1};
+  }
+
   private removeSpans(text: string): string {
     let pos = 0;
-    while ((pos = text.indexOf('<span', pos)) >= 0) {
-      let end1 = text.indexOf('>', pos + 5);
-      let end2 = text.indexOf('</span>', pos + 5);
-      if (end1 > 0 && end2 > 0) {
-        text = text.substring(0, pos) + text.substring(end1 + 1, end2) + text.substring(end2 + 7);
-      } else {
-        break;
-      }
-    }
+    do {
+      const spanPos = this.findHtmlOpenElement(text, pos, 'span');
+      if (!spanPos) break;
+      let end = text.indexOf('</span>', spanPos.end);
+      if (end < 0) break;
+      text = text.substring(0, spanPos.start) + text.substring(spanPos.end, end) + text.substring(end + 7);
+      pos = spanPos.start;
+    } while (true);
     return text;
   }
 
   private removeDivs(text: string): string {
     let pos = 0;
-    while ((pos = text.indexOf('<div', pos)) >= 0) {
-      let end1 = text.indexOf('>', pos + 4);
-      let end2 = text.indexOf('</div>', pos + 4);
-      if (end1 > 0 && end2 > 0) {
-        text = text.substring(0, pos) + text.substring(end1 + 1, end2) + text.substring(end2 + 6);
-      } else {
-        break;
-      }
-    }
+    do {
+      const divPos = this.findHtmlOpenElement(text, pos, 'div');
+      if (!divPos) break;
+      let end = text.indexOf('</div>', divPos.end);
+      if (end < 0) break;
+      text = text.substring(0, divPos.start) + text.substring(divPos.end, end) + text.substring(end + 6);
+      pos = divPos.start;
+    } while (true);
     return text;
   }
 
@@ -470,24 +479,25 @@ export class GeoTrekImport extends Importer {
   }
 
   private descriptionToWayPointsTexts(descr: string, nbWayPoints: number): {departure: string, wayPoints: string[]} {
-    let i = descr.indexOf('<ol>');
+    const olPos = this.findHtmlOpenElement(descr, 0, 'ol');
     const wayPoints: string[] = [];
-    if (i >= 0) {
-      let j = descr.indexOf('</ol>', i);
-      if (j > 0) {
-        let ol = descr.substring(i + 4, j);
-        descr = descr.substring(0, i) + descr.substring(j + 5);
-        while ((i = ol.indexOf('<li>')) >= 0) {
-          j = ol.indexOf('</li>', i);
-          if (j < 0) break;
+    if (olPos) {
+      let olEnd = descr.indexOf('</ol>', olPos.end);
+      if (olEnd > 0) {
+        let ol = descr.substring(olPos.end, olEnd);
+        descr = descr.substring(0, olPos.start) + descr.substring(olEnd + 5);
+        let liPos;
+        while (liPos = this.findHtmlOpenElement(ol, 0, 'li')) {
+          let liEnd = ol.indexOf('</li>', liPos.end);
+          if (liEnd < 0) break;
           try {
             const li = window.document.createElement('DIV');
-            li.innerHTML = ol.substring(i + 4, j);
+            li.innerHTML = ol.substring(liPos.end, liEnd);
             wayPoints.push(this.cleanText(li.textContent.trim()));
           } catch (e) {
             break;
           }
-          ol = ol.substring(j + 5);
+          ol = ol.substring(liEnd + 5);
         }
       }
     } else if (nbWayPoints > 0) {

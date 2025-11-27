@@ -167,9 +167,65 @@ function applyFunction(fctName, fctValue, fctContent, data) {
     return JSON.stringify(fctValue);
   } else if (fctName === 'text') {
     fctValue = resolveVariable(fctValue, data);
-    return (''+fctValue).replaceAll('\n', '<br/>');
+    return withEllipsis(replaceBreakLines(''+fctValue));
   }
   return '';
+}
+
+function withEllipsis(text) {
+  if (text.length <= 625) return text;
+  const ellipsis = createEllipsis(text);
+  return '<div id="text-description-with-ellipsis">' + text + '</div><div style="display:none" id="text-description-ellipsis">' + ellipsis + '</div>';
+}
+
+function createEllipsis(text) {
+  let pos = 550;
+  do {
+    pos = moveOutOfTag(text, pos);
+    const isLetter = isWordChar(text.charAt(pos));
+    if (isLetter && !isWordChar(text.charAt(pos - 1))) {
+      break;
+    }
+    if (isLetter) while (isWordChar(text.charAt(++pos)) && pos < text.length && pos < 600);
+    while (!isWordChar(text.charAt(++pos)) && pos < text.length && pos < 600);
+  } while (pos < text.length && pos < 600);
+  return text.substring(0, pos) + ' [...]';
+}
+
+function isWordChar(c) {
+  return !!/[a-z]/i.exec(c);
+}
+
+function moveOutOfTag(text, pos) {
+  const previousOpen = text.lastIndexOf('<', pos);
+  if (previousOpen < 0) return pos;
+  const nextClose = text.indexOf('>', previousOpen);
+  if (nextClose < pos) return pos;
+  return nextClose + 1;
+}
+
+function replaceBreakLines(text) {
+  let i = 0;
+  while ((i = text.indexOf('\n', i)) > 0) {
+    const before = text.substring(0, i).toLowerCase().trim();
+    if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>') && !isInsideBulletPoints(before)) {
+      text = text.substring(0, i).trim() + '<br/>' + text.substring(i + 1);
+    }
+    i++;
+  }
+  return text;
+}
+
+function isInsideBulletPoints(textBefore) {
+  let ulStart = textBefore.lastIndexOf('<ul');
+  if (ulStart < 0) return false;
+  let ulEnd = textBefore.indexOf('</ul>', ulStart);
+  if (ulEnd > 0) return false;
+  let liStart = textBefore.lastIndexOf('<li', ulStart);
+  if (liStart < 0) return true;
+  let liEnd = textBefore.indexOf('</li>', liStart);
+  if (liEnd < 0) return false;
+  return true;
 }
 
 function escapeHtml(unsafe) {

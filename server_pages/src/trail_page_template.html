@@ -276,7 +276,7 @@ div.open-app-button a, div.open-app-button a:active {
 div.source {
   margin-top: 10px;
 }
-div.source a, div.source a:active {
+div.source a, div.source a:active, div.trail-description a, div.trail-description a:active {
   color: var(--ion-color-tertiary);
 }
 </style>
@@ -579,6 +579,48 @@ window.fetch('/assets/icons.' + ICONS_VERSION + '.svg')
   }
 
 });
+</script>
+
+<script type="text/javascript">
+function handleTextEllipsis() {
+  const placeholder = document.getElementById('text-description-with-ellipsis');
+  if (!placeholder) return;
+  const ellipsisContainer = document.getElementById('text-description-ellipsis');
+  if (!ellipsisContainer) return;
+  const ellipsis = ellipsisContainer.innerHTML;
+  ellipsisContainer.remove();
+
+  const text = placeholder.innerHTML;
+  placeholder.innerHTML = "";
+
+  const div = document.createElement('DIV');
+  div.innerHTML = ellipsis;
+  const a = document.createElement('A');
+  a.href='#';
+  a.innerText = "{{i18n.show_more}}";
+  a.style.display = 'block';
+  a.style.width = '100%';
+  a.style.textAlign = 'center';
+  a.style.color = 'var(--ion-color-secondary)';
+  let isShowMore = false;
+  a.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isShowMore) {
+      a.innerText = "{{i18n.show_more}}";
+      div.innerHTML = ellipsis;
+      isShowMore = false;
+    } else {
+      a.innerText = "{{i18n.show_less}}";
+      div.innerHTML = text;
+      isShowMore = true;
+    }
+    return false;
+  }
+  placeholder.appendChild(div);
+  placeholder.appendChild(a);
+}
+handleTextEllipsis();
 </script>
 </body>
 </html>

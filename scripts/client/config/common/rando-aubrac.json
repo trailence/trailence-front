@@ -1,0 +1,9 @@
+{
+  "type": "geotrek",
+  "url": "https://openig-geotrek-pnrgca.ataraxie.fr/api/v2",
+  "trek-link": "https://www.rando-aubrac.fr/trek/{{id}}",
+  "practices": {
+    "12": "hiking"
+  },
+  "portal": "1"
+}
