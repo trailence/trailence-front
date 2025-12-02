@@ -46,14 +46,24 @@ export class ImageUtils {
           const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
           ctx.drawImage(img, 0, 0, width, height, 0, 0, dw, dh);
           urlCreator.revokeObjectURL(img.src);
+          console.log('canvas to blob');
           canvas.toBlob(
             blob => {
               if (blob) {
                 if (!!blob.arrayBuffer) { // NOSONAR
                   resolve({blob, width: dw, height: dh});
                 } else {
-                  const base64 = canvas.toDataURL('image/jpeg', quality ?? 1);
-                  BinaryContent.fromDataURL(base64).toBlob().then(b => resolve({blob: b, width: dw, height: dh}));
+                  try {
+                    const base64 = canvas.toDataURL('image/jpeg', quality ?? 1);
+                    BinaryContent.fromDataURL(base64).toBlob().then(b => resolve({blob: b, width: dw, height: dh})).
+                    catch(e => {
+                      Console.warn('Error converting data URL to blob', e);
+                      reject("Unable to generate JPEG");
+                    });
+                  } catch (e) {
+                    Console.warn('Error converting blob to JPEG data URL', e);
+                    reject("Unable to generate JPEG");
+                  }
                 }
                 canvas.remove();
               } else {

@@ -1,4 +1,4 @@
-import { Importer } from '../importer';
+import { Importer, ImportLimits, ImportOutput } from '../importer';
 import { TrailenceClient } from '../../trailence/trailence-client';
 import { Config } from 'src/config/config';
 import { GeoTrekDto, GeoTrekResponse, GeoTrekTranslations } from './geotrek-dtos';
@@ -22,7 +22,6 @@ export class GeoTrekImport extends Importer {
     trailenceClient: TrailenceClient,
     config: Config,
     remoteName: string,
-    private readonly maxPending: number,
   ) {
     super(trailenceClient, config);
     this.baseUrl = config.getRequiredString(remoteName, 'url');
@@ -32,16 +31,18 @@ export class GeoTrekImport extends Importer {
     this.portal = config.getString(remoteName, 'portal');
   }
 
-  public override async importTrails() {
+  public override async importTrails(limits: ImportLimits) {
+    const output = new ImportOutput();
     const myTrails = await this.trailenceClient.getMyTrails();
     const knownTrails = await this.trailenceClient.getTrailsByCollectionUuid(myTrails.uuid);
     const allTrails = await this.trailenceClient.getTrails();
     const allCollections = await this.trailenceClient.getCollections();
     const pendingTrails = allTrails.filter(t => allCollections.find(c => c.uuid === t.collectionUuid)?.type?.startsWith('PUB_'));
     let nbPending = pendingTrails.length;
-    if (nbPending >= this.maxPending) {
+    output.pending = nbPending;
+    if (nbPending >= limits.pending) {
       console.log('Already ' + nbPending + ' pending trails, do not import');
-      return;
+      return output;
     }
     console.log('Fetching treks from ' + this.baseUrl);
     let page = 1;
@@ -74,30 +75,41 @@ export class GeoTrekImport extends Importer {
           }
           const existing = knownTrails[knownIndex];
           knownTrails.splice(knownIndex, 1);
+          if (limits.update <= 0) continue;
           if (await this.updateTrail(trek, existing)) {
             updated++;
             nbPending++;
+            limits.update--;
+            limits.pending--;
+            output.update++;
+            output.pending++;
           } else {
             upToDate++;
           }
         } else {
+          if (limits.new <= 0) continue;
           await this.createTrail(trek);
           created++;
           nbPending++;
+          limits.new--;
+          limits.pending--;
+          output.new++;
+          output.pending++;
         }
-        if (nbPending >= this.maxPending) break;
+        if (limits.pending <= 0 || (limits.new <= 0 && limits.update <= 0)) break;
       }
       if (response.next === null) break;
       page++;
-    } while (nbPending < this.maxPending);
+    } while (limits.pending > 0 && (limits.new > 0 || limits.update > 0));
     let removed = 0;
-    if (nbPending >= this.maxPending) {
+    if (limits.pending <= 0) {
       console.log(nbPending + ' pending trails reached, stop importing.');
     } else {
       // TODO remove remaining trails not found
     }
     console.log('Total: before = ' + nbBefore + ', found = ' + found + ', up to date = ' + upToDate + ', updated = ' + updated + ', new = ' + created + ', removed = ' + removed + ', skipped because pending = ' + skippedPending + ', invalid = ' + invalid);
     console.log('Processed: ' + processed + '/' + nbTotal);
+    return output;
   }
 
   private async getTreks(page: number): Promise<GeoTrekResponse> {
@@ -347,6 +359,8 @@ export class GeoTrekImport extends Importer {
       if (att.license !== null) continue;
       if (att.type !== 'image') continue;
       if (!att.url) continue;
+      if (att.legend && (att.legend.indexOf('©') >= 0 || att.legend.indexOf('(c)') >= 0)) continue;
+      if (att.title && (att.title.indexOf('©') >= 0 || att.title.indexOf('(c)') >= 0)) continue;
       let photoDescription = '';
       if (att.legend && att.legend.length > 0) photoDescription = att.legend;
       else if (att.title && att.title.length > 0) photoDescription = att.title;
@@ -381,11 +395,14 @@ export class GeoTrekImport extends Importer {
 
   private cleanText(text: string): string {
     text = this.removeMsComments(text);
+    text = this.removeIFrames(text);
     text = this.removeSpans(text);
     text = this.removeDivs(text);
     text = this.removeStyles(text);
     text = this.removeClasses(text);
-    text = text.trim();
+    text = this.ensureTargetInLinks(text);
+    text = this.removeParagraphInsideBullet(text);
+    text = this.trimText(text);
     return text;
   }
 
@@ -395,6 +412,19 @@ export class GeoTrekImport extends Importer {
     const end = text.indexOf('>', elementStart + 1 + elementName.length);
     if (end < 0) return undefined;
     return {start: elementStart, end: end + 1};
+  }
+
+  private removeIFrames(text: string): string {
+    let pos = 0;
+    do {
+      const framePos = this.findHtmlOpenElement(text, pos, 'iframe');
+      if (!framePos) break;
+      let end = text.toLowerCase().indexOf('</iframe>', framePos.end);
+      if (end < 0) break;
+      text = text.substring(0, framePos.start) + text.substring(end + 9);
+      pos = framePos.start;
+    } while (true);
+    return text;
   }
 
   private removeSpans(text: string): string {
@@ -472,8 +502,72 @@ export class GeoTrekImport extends Importer {
     return text;
   }
 
+  private ensureTargetInLinks(text: string): string {
+    let pos = 0;
+    do {
+      const linkPos = this.findHtmlOpenElement(text, pos, 'a');
+      if (!linkPos) break;
+      let link = text.substring(linkPos.start, linkPos.end - 1).toLowerCase();
+      let target = link.indexOf('target');
+      if (target < 0) {
+        text = text.substring(0, linkPos.end - 1) + ' target="_blank"' + text.substring(linkPos.end - 1);
+      }
+      pos = linkPos.end;
+    } while (true);
+    return text;
+  }
+
+  private removeParagraphInsideBullet(text: string): string {
+    let pos = 0;
+    do {
+      const liStart = this.findHtmlOpenElement(text, pos, 'li');
+      if (!liStart) break;
+      let liEnd = text.indexOf('</li>', liStart.end);
+      if (liEnd < 0) break;
+      if (text.substring(liStart.end, liEnd).toLowerCase().indexOf('<li') >= 0) {
+        pos = liEnd;
+        continue;
+      }
+      let inside = text.substring(liStart.end, liEnd).trim();
+      const pStart = this.findHtmlOpenElement(inside, 0, 'p');
+      if (pStart && pStart.start === 0) {
+        let end = inside.toLowerCase().lastIndexOf('</p>');
+        if (end === inside.length - 4) {
+          text = text.substring(0, liStart.end) + inside.substring(pStart.end, end).trim() + text.substring(liEnd);
+        }
+      }
+      pos = liStart.end;
+    } while (true);
+    return text;
+  }
+
+  private trimText(text: string): string {
+    do {
+      let before = text;
+      text = text.trim();
+      text = this.trimPattern(text, '<br/>');
+      text = this.trimPattern(text, '<br />');
+      text = this.trimPattern(text, '<p></p>');
+      text = this.trimPattern(text, '<p ></p>');
+      text = this.trimPattern(text, '<p>&nbsp;</p>');
+      text = this.trimPattern(text, '<p >&nbsp;</p>');
+      if (text === before) break;
+    } while (text.length > 0);
+    return text;
+  }
+
+  private trimPattern(text: string, pattern: string): string {
+    if (text.toLowerCase().startsWith(pattern)) {
+      text = text.substring(pattern.length);
+    }
+    if (text.toLowerCase().endsWith(pattern)) {
+      text = text.substring(0, text.length - pattern.length);
+    }
+    return text;
+  }
+
   private appendDescription(current: string, append: string): string {
-    if (append.trim().length === 0) return current;
+    if (this.trimText(append).length === 0) return current;
     if (current.trim().endsWith('</p>') || current.trim().endsWith('<br/>') || append.trim().startsWith('<p>')) return current + append;
     return current + '<br/>' + append;
   }
@@ -501,15 +595,18 @@ export class GeoTrekImport extends Importer {
         }
       }
     } else if (nbWayPoints > 0) {
-      let s = this.splitWayPoints(descr, nbWayPoints, '.');
+      let s = this.splitWayPoints(descr, nbWayPoints, '.', true);
       if (!s) s = this.splitWayPoints(descr, nbWayPoints, ')');
       if (!s) s = this.splitWayPoints(descr, nbWayPoints, '-');
       if (!s) s = this.splitWayPoints(descr, nbWayPoints, String.fromCodePoint(8211));
+      if (!s) s = this.splitWayPoints(descr, nbWayPoints, ':');
       if (s) {
         for (let i = 0; i < s.wayPoints.length; ++i) {
           const div = window.document.createElement('DIV');
           div.innerHTML = s.wayPoints[i].trim();
-          wayPoints.push(this.cleanText(div.textContent));
+          let d = this.cleanText(div.textContent);
+          if (d.endsWith('(')) d = d.substring(0, d.length - 1).trim();
+          wayPoints.push(d);
         }
         descr = s.departure;
       }
@@ -519,13 +616,14 @@ export class GeoTrekImport extends Importer {
       const dep = window.document.createElement('DIV');
       dep.innerHTML = descr.trim();
       departure = this.cleanText(dep.textContent);
+      if (departure.endsWith('(')) departure = departure.substring(0, departure.length - 1).trim();
     } catch (e) {
       // ignore
     }
     return {departure, wayPoints};
   }
 
-  private splitWayPoints(descr: string, nbWayPoints: number, patternStart: string): {departure: string, wayPoints: string[]} | undefined {
+  private splitWayPoints(descr: string, nbWayPoints: number, patternStart: string, canIgnorePatternStart: boolean = false): {departure: string, wayPoints: string[]} | undefined {
     let startText = '1' + patternStart;
     let start = descr.indexOf(startText);
     if (start < 0) {
@@ -540,6 +638,10 @@ export class GeoTrekImport extends Importer {
       startText = '<strong>1</strong>' + patternStart;
       start = descr.indexOf(startText);
     }
+    if (start < 0 && canIgnorePatternStart) {
+      startText = '<strong>1</strong>';
+      start = descr.indexOf(startText);
+    }
     if (start < 0) {
       startText = '<strong>1</strong> ' + patternStart;
       start = descr.indexOf(startText);
@@ -552,8 +654,16 @@ export class GeoTrekImport extends Importer {
       startText = '<strong>1 </strong>' + patternStart;
       start = descr.indexOf(startText);
     }
+    if (start < 0 && canIgnorePatternStart) {
+      startText = '<strong>1 </strong>';
+      start = descr.indexOf(startText);
+    }
     if (start < 0) {
       startText = '<strong>1' + String.fromCodePoint(160) + '</strong>' + patternStart;
+      start = descr.indexOf(startText);
+    }
+    if (start < 0 && canIgnorePatternStart) {
+      startText = '<strong>1' + String.fromCodePoint(160) + '</strong>';
       start = descr.indexOf(startText);
     }
     //console.log('pattern', patternStart, start);
@@ -577,6 +687,10 @@ export class GeoTrekImport extends Importer {
         nextStartText = '<strong>' + (index + 1) + '</strong>' + patternStart;
         nextStart = descr.indexOf(nextStartText);
       }
+      if (nextStart < 0 && canIgnorePatternStart) {
+        nextStartText = '<strong>' + (index + 1) + '</strong>';
+        nextStart = descr.indexOf(nextStartText);
+      }
       if (nextStart < 0) {
         nextStartText = '<strong>' + (index + 1) + '</strong> ' + patternStart;
         nextStart = descr.indexOf(nextStartText);
@@ -589,8 +703,16 @@ export class GeoTrekImport extends Importer {
         nextStartText = '<strong>' + (index + 1) + ' </strong>' + patternStart;
         nextStart = descr.indexOf(nextStartText);
       }
+      if (nextStart < 0 && canIgnorePatternStart) {
+        nextStartText = '<strong>' + (index + 1) + ' </strong>';
+        nextStart = descr.indexOf(nextStartText);
+      }
       if (nextStart < 0) {
         nextStartText = '<strong>' + (index + 1) + String.fromCodePoint(160) + '</strong>' + patternStart;
+        nextStart = descr.indexOf(nextStartText);
+      }
+      if (nextStart < 0 && canIgnorePatternStart) {
+        nextStartText = '<strong>' + (index + 1) + String.fromCodePoint(160) + '</strong>';
         nextStart = descr.indexOf(nextStartText);
       }
       //console.log('next', patternStart, nextStart);

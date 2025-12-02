@@ -1,6 +1,6 @@
 import { Config } from './config/config';
 import { GeoTrekImport } from './importers/geotrek/geotrek-import';
-import { Importer } from './importers/importer';
+import { Importer, ImportLimits, ImportLimitsConfig, ImportOutput } from './importers/importer';
 import { TrailenceClient } from './trailence/trailence-client';
 import { configureWindow } from './utils/window';
 
@@ -20,33 +20,74 @@ const mode = args['mode'];
 if (!mode) throw new Error('Missing --mode');
 if (mode !== 'local' && mode !== 'prod') throw new Error('Invalid --mode=' + mode);
 
-const remote = args['remote'];
-if (!remote) throw new Error('Missing --remote');
-
-let maxPending: number;
-if (!args['maxpending']) maxPending = 50; else maxPending = parseInt(args['maxpending']);
-if (isNaN(maxPending)) maxPending = 50;
+let requestedRemote: string | undefined = args['remote'];
+if (requestedRemote.length === 0 || requestedRemote === '%npm_config_remote%') requestedRemote = undefined;
 
 const config = new Config(mode);
 
+const limitsConfig = config.getValue('import', 'limits');
+const globalLimitsConfig = limitsConfig.global as ImportLimitsConfig;
+const limitsConfigByRemote = limitsConfig.remote as ImportLimitsConfig;
+const remotesConfig = config.getValue('import', 'remotes');
+
 const adminTrailenceClient = new TrailenceClient(config, 'admin');
-const remoteTrailenceClient = new TrailenceClient(config, remote);
 
-await adminTrailenceClient.createUserIfNeeded(remoteTrailenceClient.username, remoteTrailenceClient.password);
-const displayName = config.getString(remote, 'displayName');
-if (displayName)
-  await remoteTrailenceClient.setDisplayName(displayName);
+if (requestedRemote) {
+  for (const remoteName of Object.keys(remotesConfig)) {
+    if (remoteName !== requestedRemote) delete remotesConfig[remoteName];
+  }
+}
 
-const remoteType = config.getRequiredString(remote, 'type');
+if (Object.keys(remotesConfig).length === 0) {
+  throw new Error('No remote to process.');
+}
 
 await configureWindow();
 
-let importer: Importer | undefined = undefined;
-switch (remoteType) {
-  case 'geotrek': importer = new GeoTrekImport(remoteTrailenceClient, config, remote, maxPending); break;
-  default: throw new Error('Unknown remote type: ' + remoteType);
+function computeLimit(remoteConfig: number | undefined, byRemote: number | undefined, global: number | undefined, done: number) {
+  let limit = remoteConfig;
+  if (byRemote !== undefined) limit = limit === undefined ? byRemote : Math.min(limitsConfig, byRemote);
+  if (global !== undefined) limit = limit === undefined ? (global - done) : Math.min(limit, global - done);
+  return limit ?? 0;
 }
 
-await importer.importTrails();
+const globalDone = new ImportOutput();
+
+for (const remoteName of Object.keys(remotesConfig)) {
+  console.log('--- Processing remote: ' + remoteName + ' ---');
+  console.log('');
+
+  const remoteLimits = remotesConfig[remoteName] as ImportLimitsConfig;
+  const limits = new ImportLimits({
+    new: computeLimit(remoteLimits.new, limitsConfigByRemote.new, globalLimitsConfig.new, globalDone.new),
+    update: computeLimit(remoteLimits.update, limitsConfigByRemote.update, globalLimitsConfig.update, globalDone.update),
+    pending: computeLimit(remoteLimits.pending, limitsConfigByRemote.pending, globalLimitsConfig.pending, globalDone.pending),
+  });
+
+  const remoteTrailenceClient = new TrailenceClient(config, remoteName);
+
+  await adminTrailenceClient.createUserIfNeeded(remoteTrailenceClient.username, remoteTrailenceClient.password);
+  const displayName = config.getString(remoteName, 'displayName');
+  if (displayName)
+    await remoteTrailenceClient.setDisplayName(displayName);
+
+  const remoteType = config.getRequiredString(remoteName, 'type');
+
+  let importer: Importer | undefined = undefined;
+  switch (remoteType) {
+    case 'geotrek': importer = new GeoTrekImport(remoteTrailenceClient, config, remoteName); break;
+    default: throw new Error('Unknown remote type: ' + remoteType);
+  }
+
+  const remoteOutput = await importer.importTrails(limits);
+  globalDone.new += remoteOutput.new;
+  globalDone.update += remoteOutput.update;
+  globalDone.pending += remoteOutput.pending;
+  globalDone.delete += remoteOutput.delete;
+
+  console.log('');
+  console.log('--- Remote done: ' + remoteName + ' ---');
+  console.log('');
+}
 
 console.log('Done.');

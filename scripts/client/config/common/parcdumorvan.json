@@ -1,0 +1,9 @@
+{
+  "type": "geotrek",
+  "url": "https://geotrek.parcdumorvan.org/api/v2",
+  "trek-link": "https://rando.parcdumorvan.org/trek/{{id}}",
+  "practices": {
+    "4": "hiking",
+    "5": "hiking"
+  }
+}

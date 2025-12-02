@@ -4,7 +4,7 @@
   "devDependencies": {
   },
   "scripts": {
-    "import-public-trails": "node --import=tsx ./src/import-public-trails.ts --mode=%npm_config_mode% --remote=%npm_config_remote% --maxpending=%npm_config_maxpending%",
+    "import-public-trails": "node --import=tsx ./src/import-public-trails.ts --mode=%npm_config_mode% --remote=%npm_config_remote%",
     "fix-loop-type": "node --import=tsx ./src/recompute-public-trails-loop-type.ts --mode=%npm_config_mode%"
   },
   "dependencies": {

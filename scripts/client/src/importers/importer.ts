@@ -17,7 +17,7 @@ export abstract class Importer {
   ) {
   }
 
-  public abstract importTrails(): Promise<any>;
+  public abstract importTrails(limits: ImportLimits): Promise<ImportOutput>;
 
   protected async createTrailOnTrailence(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[], progressText?: string) {
     trail.uuid ??= crypto.randomUUID();
@@ -147,6 +147,31 @@ export abstract class Importer {
       update: (dto: any) => { dto[field] = updated[field]; }
     };
   }
+}
+
+export interface ImportLimitsConfig {
+  new?: number;
+  update?: number;
+  pending?: number;
+}
+
+export class ImportLimits {
+  new: number;
+  update: number;
+  pending: number;
+
+  constructor(config: ImportLimitsConfig) {
+    this.new = config.new ?? 0;
+    this.update = config.update ?? 0;
+    this.pending = config.pending ?? 0;
+  }
+}
+
+export class ImportOutput {
+  new = 0;
+  update = 0;
+  delete = 0;
+  pending = 0;
 }
 
 export interface DtoUpdate<T> {

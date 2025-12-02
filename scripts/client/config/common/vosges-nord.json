@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://geotrek.parc-vosges-nord.fr/api/v2",
+  "trek-link": "https://www.randovosgesdunord.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

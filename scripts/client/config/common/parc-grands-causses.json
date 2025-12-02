@@ -1,0 +1,9 @@
+{
+  "type": "geotrek",
+  "url": "https://openig-geotrek-pnrgca.ataraxie.fr/api/v2",
+  "trek-link": "https://rando.parc-grands-causses.fr/trek/{{id}}",
+  "practices": {
+    "12": "hiking"
+  },
+  "portal": "2"
+}

@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://openig-gag-cd48.ataraxie.fr/api/v2",
+  "trek-link": "https://rando.lozere.fr/trek/{{id}}",
+  "practices": {
+    "8": "hiking"
+  }
+}

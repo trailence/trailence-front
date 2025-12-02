@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://geotrek-admin.parc-livradois-forez.org/api/v2",
+  "trek-link": "https://rando.parc-livradois-forez.org/trek/{{id}}",
+  "practices": {
+    "2": "hiking"
+  }
+}

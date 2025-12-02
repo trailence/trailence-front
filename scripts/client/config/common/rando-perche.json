@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://geotrek-perche.makina-corpus.net/api/v2",
+  "trek-link": "https://rando-perche.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

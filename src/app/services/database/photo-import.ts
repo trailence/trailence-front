@@ -29,17 +29,33 @@ export async function importPhoto( // NOSONAR
       Console.info('extracted info from image', info);
     }
   }
-  const nextConvert: (s:number,q:number) => Promise<Blob> = (currentMaxSize: number, currentMaxQuality: number) =>
-    ImageUtils.convertToJpeg(arr, currentMaxSize, currentMaxSize, currentMaxQuality)
+  const nextConvert: (s:number,q:number) => Promise<Blob> = (currentMaxSize: number, currentMaxQuality: number) => {
+    Console.info('Converting image (size ' + arr.byteLength + ') to JPEG with maximum size', currentMaxSize, 'and quality', currentMaxQuality);
+    return ImageUtils.convertToJpeg(arr, currentMaxSize, currentMaxSize, currentMaxQuality)
     .then(jpeg => {
       if (jpeg.blob.size <= preferences.photoMaxSizeKB * 1024) return jpeg.blob;
-      if (currentMaxQuality > preferences.photoMaxQuality - 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
-      if (currentMaxSize > 400) return nextConvert(currentMaxSize - 100, preferences.photoMaxQuality);
-      if (currentMaxQuality > 0.25) return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
-      if (currentMaxSize > 100) return nextConvert(currentMaxSize - 50, preferences.photoMaxQuality);
+      Console.info('Photo larger than', preferences.photoMaxSizeKB, 'KB: ', Math.floor(jpeg.blob.size / 1024));
+      if (currentMaxQuality > preferences.photoMaxQuality - 0.25) {
+        Console.info('Try reducing quality to', currentMaxQuality - 0.05);
+        return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
+      }
+      if (currentMaxSize > 400) {
+        Console.info('Try reducing size to', currentMaxSize - 100);
+        return nextConvert(currentMaxSize - 100, preferences.photoMaxQuality / 100);
+      }
+      if (currentMaxQuality > 0.25) {
+        Console.info('Try reducing quality to', currentMaxQuality - 0.05);
+        return nextConvert(currentMaxSize, currentMaxQuality - 0.05);
+      }
+      if (currentMaxSize > 100) {
+        Console.info('Try reducing size to', currentMaxSize - 50);
+        return nextConvert(currentMaxSize - 50, preferences.photoMaxQuality / 100);
+      }
+      Console.info('Cannot reduce more...');
       return jpeg.blob;
     });
-  const blob = await nextConvert(preferences.photoMaxPixels, preferences.photoMaxQuality);
+  };
+  const blob = await nextConvert(preferences.photoMaxPixels, preferences.photoMaxQuality / 100);
   const photo = new Photo({
     owner,
     uuid: photoUuid,

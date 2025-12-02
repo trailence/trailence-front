@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://admin.pilat-rando.fr/api/v2",
+  "trek-link": "https://pilat-rando.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

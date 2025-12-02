@@ -1,0 +1,35 @@
+{
+  "limits": {
+    "global": {
+      "new": 30,
+      "update": 0
+    },
+    "remote": {
+      "new": 30,
+      "update": 0,
+      "pending": 100
+    }
+  },
+  "remotes": {
+    "cevennes-parcnational": {},
+    "cheminsdesparcs": {},
+    "ecrins-parcnational": {},
+    "forets-parcnational": {},
+    "guadeloupe-parcnational": {},
+    "livradois-forez": {},
+    "maritimemercantour": {},
+    "parc-grands-causses": {
+      "new": 3
+    },
+    "parcdumorvan": {},
+    "pilat-rando": {},
+    "portcros-parcnational": {},
+    "rando-aubrac": {},
+    "rando-lozere": {
+      "new": 3
+    },
+    "rando-perche": {},
+    "vanoise": {},
+    "vosges-nord": {}
+  }
+}
