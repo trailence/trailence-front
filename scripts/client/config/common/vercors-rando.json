@@ -1,0 +1,10 @@
+{
+  "type": "geotrek",
+  "url": "https://geo.pnr-vercors.fr/api/v2",
+  "trek-link": "https://rando.parc-du-vercors.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  },
+  "portal": "2",
+  "message": "!! Waypoints are often at a wrong position !!"
+}

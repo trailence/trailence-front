@@ -1,7 +1,7 @@
 {
   "limits": {
     "global": {
-      "new": 30,
+      "new": 5,
       "update": 0
     },
     "remote": {
@@ -28,8 +28,12 @@
     "rando-lozere": {
       "new": 3
     },
+    "rando-millevaches": {},
     "rando-perche": {},
     "vanoise": {},
+    "vercors-rando": {
+      "new": 5
+    },
     "vosges-nord": {}
   }
 }

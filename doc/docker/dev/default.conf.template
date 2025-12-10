@@ -1,0 +1,22 @@
+server {
+  listen       80;
+  listen [::]:80;
+
+  subrequest_output_buffer_size 512k;
+
+  js_path "/usr/share/nginx/njs/";
+  js_import doc from njs.js;
+
+  location ~* ^/$ {
+    js_content doc.defaultPage;
+  }
+
+  location ~* ^/(en|fr)/.*\.html$ {
+    js_content doc.docPage;
+  }
+
+  location ~* .*\.(css|js|svg|png|gif)$ {
+    root   /usr/share/nginx/html/static;
+    try_files $uri =404;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "type": "geotrek",
+  "url": "https://rando-millevaches-admin.fr/api/v2",
+  "trek-link": "https://rando-millevaches.fr/trek/{{id}}",
+  "practices": {
+    "4": "hiking"
+  }
+}

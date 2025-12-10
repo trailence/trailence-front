@@ -542,7 +542,7 @@ export class MapComponent extends AbstractComponent {
       zoomControl: false,
       worldCopyJump: true,
       //zoomSnap: 0.5,
-      //zoomDelta: 1,
+      //zoomDelta: 0.5,
     });
     map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank">Leaflet</a>');
 

@@ -1,0 +1,12 @@
+name: trailence-doc-dev
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    volumes:
+      - ../../build:/usr/share/nginx/njs:ro
+      - ../../src:/usr/share/nginx/html:ro

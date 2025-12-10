@@ -17,6 +17,7 @@ export class GeoTrekImport extends Importer {
   private trekLink?: string;
   private practicesToFetch: {[key: string]: string};
   private portal?: string;
+  private message: string;
 
   constructor(
     trailenceClient: TrailenceClient,
@@ -29,6 +30,7 @@ export class GeoTrekImport extends Importer {
     this.trekLink = config.getString(remoteName, 'trek-link');
     this.practicesToFetch = config.getValue(remoteName, 'practices');
     this.portal = config.getString(remoteName, 'portal');
+    this.message = config.getString(remoteName, 'message') ?? '';
   }
 
   public override async importTrails(limits: ImportLimits) {
@@ -150,7 +152,7 @@ export class GeoTrekImport extends Importer {
     console.log('Trail name: ' + dtos.trail.name);
     const photos = await this.downloadPhotos(dtos.trail.owner, dtos.trail.uuid, dtos.photos);
 
-    await this.publishTrail(dtos.trail, dtos.track, dtos.wayPoints, photos);
+    await this.publishTrail(dtos.trail, dtos.track, dtos.wayPoints, photos, this.message);
   }
 
   private async updateTrail(trek: GeoTrekDto, existing: TrailDto): Promise<boolean> {
@@ -595,6 +597,7 @@ export class GeoTrekImport extends Importer {
         }
       }
     } else if (nbWayPoints > 0) {
+      descr = this.cleanText(descr);
       let s = this.splitWayPoints(descr, nbWayPoints, '.', true);
       if (!s) s = this.splitWayPoints(descr, nbWayPoints, ')');
       if (!s) s = this.splitWayPoints(descr, nbWayPoints, '-');

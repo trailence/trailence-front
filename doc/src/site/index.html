@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+  <title>{{meta:title}}</title>
+  <meta name="color-scheme" content="light dark" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <link rel="icon" type="image/png" href="/icons/favicon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/scripts.js"></script>
+</head>
+<body>
+<div class="site-content">
+  <div class="site-header back-primary flex-row flex-center" data-nosnippet>
+    <div class="icon-32 clickable" onclick="showMenu(!globalThis.menuShown)">{{icon:menu}}</div>
+    <div class="icon-32" style="margin: 0 8px 0 12px;"><a href="home.html">{{icon:trailence}}</a></div>
+    <span style="font-size: 20px; flex: 1 1 100%;">{{meta:title}}</span>
+    <div class="icon-32 clickable" style="padding: 0 8px;">
+      <div class="if-dark" onclick="globalThis.setTheme('light')">{{icon:theme-light}}</div>
+      <div class="if-light" onclick="globalThis.setTheme('dark')">{{icon:theme-dark}}</div>
+    </div>
+    <div style="padding: 0 8px;">
+      <a href="/en/{{pageName}}.html" class="if-not-lang lang-en"><img src="/icons/flags/en.1.png" /></a>
+      <a href="/fr/{{pageName}}.html" class="if-not-lang lang-fr"><img src="/icons/flags/fr.1.png" /></a>
+    </div>
+  </div>
+  <div class="site-container">
+    <div class="site-menu" data-nosnippet>TODO: menu</div>
+    <div class="site-page">{{page}}</div>
+  </div>
+</div>
+<script type="text/javascript">
+(function() { globalThis.init(); })();
+</script>
+</body>
+</html>

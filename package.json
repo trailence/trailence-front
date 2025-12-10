@@ -31,7 +31,8 @@
     "generate-local-nginx": "cd docker/local && node --import=tsx generate-local-nginx.ts && cd ../..",
     "make-leaflet-esm": "node ./scripts/make-leaflet-esm.js",
     "postinstall": "node ./scripts/make-leaflet-esm.js && node ./scripts/fix-ng2-charts.js",
-    "build-assets": "node --import=tsx src/icons/mapping/build.ts"
+    "build-assets": "node --import=tsx src/icons/mapping/build.ts",
+    "build-doc": "cd doc && node build/build.js"
   },
   "license": "Apache-2.0",
   "private": true,

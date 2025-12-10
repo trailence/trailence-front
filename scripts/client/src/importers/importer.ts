@@ -101,7 +101,7 @@ export abstract class Importer {
     return {segments, wayPoints};
   }
 
-  protected async publishTrail(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[]) {
+  protected async publishTrail(trail: TrailDto, track: PointDescriptor[][], wayPoints: WayPoint[], photos: {blob: Blob, photo: Photo}[], message: string) {
     const myTrailsPhoto = this.config.getRequiredBoolean('trailence', 'photos_in_my_trails', false) ? photos :
       photos.map(p => ({photo: p.photo, blob: new Blob([new ArrayBuffer(1)])}));
     await this.createTrailOnTrailence(trail, track, wayPoints, myTrailsPhoto, 'in My Trails');
@@ -115,7 +115,7 @@ export abstract class Importer {
         p.photo = new module.Photo({...p.photo.toDto(), uuid: crypto.randomUUID(), trailUuid: trail.uuid});
       }
     }
-    trail.publicationMessageFromAuthor = 'Imported from script';
+    trail.publicationMessageFromAuthor = 'Imported from script' + (message.length > 0 ? ': ' + message : '');
     if (this.config.getRequiredBoolean('trailence', 'publish', true))
       await this.createTrailOnTrailence(trail, track, wayPoints, photos, 'in Draft    ');
   }
