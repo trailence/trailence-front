@@ -226,7 +226,9 @@
         "add_to_my_selection": "Add to my selection",
         "remove_from_my_selection": "Remove from my selection",
         "copy_link": "Copy link",
-        "share_link": "Share link"
+        "share_link": "Share link",
+        "create_link": "Create a public link",
+        "edit_link": "See public link"
       },
       "tags": {
         "menu_item": "Tags",
@@ -435,6 +437,20 @@
         "COLLECTION": "Share the whole collection {{1}}",
         "TRAIL": "Share {{1}} trail(s)",
         "TAGS": "Share the following tags: {{1}}"
+      }
+    },
+    "trail_link": {
+      "title": "Public link",
+      "explanation": "Anyone with this link can view your trail, including its waypoints and photos.<br/>Tags and collection will not be visible.<br/>Any changes you make to the trail will be reflected automatically.",
+      "offline": "Please connect to the Internet to generate the link",
+      "waiting": "Creating link...",
+      "copy": "Copy",
+      "copied": "Link copied to clipboard",
+      "share": "Share",
+      "share_title": "Trailence public link",
+      "delete": {
+        "title": "Delete public link",
+        "message": "Are you sure you want to delete this link?"
       }
     },
     "find_duplicates": {
@@ -658,7 +674,8 @@
       "from_clipboard_title": "From clipboard",
       "from_clipboard_button": "Read clipboard",
       "nothing_found_in_clipboard": "No trail found in the clipboard",
-      "button_import": "Import from {{1}}"
+      "button_import": "Import from {{1}}",
+      "link_source": "a Trailence link"
     },
     "donation": {
       "meta_description": "Support the Trailence project",

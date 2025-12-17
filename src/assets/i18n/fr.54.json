@@ -226,7 +226,9 @@
         "add_to_my_selection": "Ajouter à ma sélection",
         "remove_from_my_selection": "Enlever de ma sélection",
         "copy_link": "Copier le lien",
-        "share_link": "Partager le lien"
+        "share_link": "Partager le lien",
+        "create_link": "Créer un lien public",
+        "edit_link": "Voir le lien public"
       },
       "tags": {
         "menu_item": "Tags",
@@ -435,6 +437,20 @@
         "COLLECTION": "Partage de toute la collection {{1}}",
         "TRAIL": "Partage de {{1}} parcours",
         "TAGS": "Partage des tags suivants: {{1}}"
+      }
+    },
+    "trail_link": {
+      "title": "Lien public",
+      "explanation": "Toute personne disposant de ce lien pourra consulter votre parcours, ses étapes et ses photos.<br/>En revanche, les tags et la collection ne seront pas visibles.<br/>Toute modification du parcours sera automatiquement répercutée.",
+      "offline": "Veuillez vous connecter à Internet pour générer le lien",
+      "waiting": "Création du lien...",
+      "copy": "Copier",
+      "copied": "Lien copié dans le presse-papier",
+      "share": "Partager",
+      "share_title": "Lien public Trailence",
+      "delete": {
+        "title": "Supprimer le lien public",
+        "message": "Êtes-vous sûr de vouloir supprimer ce lien ?"
       }
     },
     "find_duplicates": {
@@ -658,7 +674,8 @@
       "from_clipboard_title": "Depuis le presse-papier",
       "from_clipboard_button": "Lire le presse-papier",
       "nothing_found_in_clipboard": "Aucun parcours trouvé dans le presse papier",
-      "button_import": "Importer depuis {{1}}"
+      "button_import": "Importer depuis {{1}}",
+      "link_source": "un lien Trailence"
     },
     "donation": {
       "meta_description": "Soutenir le project Trailence",

@@ -94,6 +94,10 @@ describe('Import data from Visorando', () => {
     try { await App.waitNoProgress(); } catch (e) {}
   });
 
+  it('Wait again again again for everything to finish', async () => {
+    try { await App.waitNoProgress(); } catch (e) {}
+  });
+
   it('Remove all imported trails', async () => {
     await App.waitNoProgress();
     await list.selectAllCheckbox.setSelected(true);

@@ -98,7 +98,7 @@
           </ion-button>
         </div>
       }
-      <div class="title-text {{auth.email ? '' : 'not-logged'}} {{!useH1 && title2 && title2.length ? 'with-sub-title' : ''}}" long-press (longPressEvent)="titlePress()">
+      <div class="title-text {{auth.email || smallTitleNotLogged ? '' : 'not-logged'}} {{!useH1 && title2 && title2.length ? 'with-sub-title' : ''}}" long-press (longPressEvent)="titlePress()">
         @if (!auth.email && title.length > 0 && !small && !neverShowTrailenceTitle) {<span class="separator">-</span>}
         @if (useH1) {
           <h1>{{title}}</h1>

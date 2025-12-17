@@ -41,6 +41,7 @@ export const ICONS: string[] = [
   'collection-move',
   'compare',
   'reverse-way',
+  'copy',
   'cross',
   'database',
   'date',

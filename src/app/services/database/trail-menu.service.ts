@@ -20,6 +20,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { ModerationService } from '../moderation/moderation.service';
 import { environment } from 'src/environments/environment';
 import Trailence from '../trailence.service';
+import { TrailLinkService } from './link.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailMenuService {
@@ -213,6 +214,15 @@ export class TrailMenuService {
           })
         );
       }
+    }
+
+    if (trails.length === 1 && !onlyGlobal && trails[0].owner === email && !isPublicationCollection(fromCollection?.type)) {
+      menu.push(
+        new MenuItem()
+          .setIcon('link')
+          .setI18nLabel('pages.trails.actions.' + (this.injector.get(TrailLinkService).getLinkForTrail(trails[0].uuid) ? 'edit_link' : 'create_link'))
+          .setAction(() => import('../../components/trail-link-popup/trail-link-popup.component').then(m => m.openTrailLink(this.injector, trails[0].uuid))),
+      );
     }
 
     if (trails.length > 0 && !isAll && !isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {

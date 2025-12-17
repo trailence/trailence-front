@@ -62,6 +62,24 @@ ion-modal.semi-opaque {
   --background: rgba(var(--ion-background-color-rgb), 0.8);
 }
 
+ion-modal.auto-height {
+  --height: auto;
+  height: auto;
+  --max-height: 95%;
+
+  ion-content {
+    flex: 1 1 100%;
+    height: auto;
+    contain: content;
+    overflow-y: auto;
+    max-height: calc(95vh - 112px);
+
+    &::part(scroll) {
+      position: relative;
+    }
+  }
+}
+
 ion-modal ion-toolbar ion-title {
   ion-icon {
     margin-right: 10px;

@@ -35,6 +35,8 @@ import { TrailTag } from 'src/app/model/trail-tag';
 import { TrailSmallMapComponent } from '../trail-small-map/trail-small-map.component';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
+import { TrailLink } from 'src/app/model/dto/trail-link';
+import { TrailLinkService } from 'src/app/services/database/link.service';
 
 class Meta {
   name?: string;
@@ -126,6 +128,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   external$ = new BehaviorSubject<TrailInfo | undefined>(undefined);
   external?: TrailInfo;
   publicTrailUuid?: string;
+  trailLink?: TrailLink;
 
   constructor(
     injector: Injector,
@@ -145,6 +148,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     private readonly preferencesService: PreferencesService,
     private readonly mySelectionService: MySelectionService,
     private readonly platform: Platform,
+    private readonly trailLinkService: TrailLinkService,
   ) {
     super(injector);
     changeDetector.detach();
@@ -320,12 +324,20 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       this.load$.pipe(
         filterDefined(),
-        switchMap(() => this.injector.get(MyPublicTrailsService).myPublicTrails$)
+        switchMap(() => combineLatest([
+          this.injector.get(MyPublicTrailsService).myPublicTrails$,
+          this.trail ? this.trailLinkService.getLinkForTrail$(this.trail.uuid) : of(null)
+        ]))
       ),
-      myPublicTrails => {
+      ([myPublicTrails, link]) => {
         const newValue = this.trail?.uuid ? myPublicTrails.find(p => p.privateUuid === this.trail?.uuid)?.publicUuid : undefined;
         if (newValue !== this.publicTrailUuid) {
           this.publicTrailUuid = newValue;
+          this.changesDetection.detectChanges();
+        }
+        const tl = link || undefined;
+        if (tl != this.trailLink) {
+          this.trailLink = tl;
           this.changesDetection.detectChanges();
         }
       }
@@ -364,6 +376,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.photos = [];
     this.external$.next(undefined);
     this.publicTrailUuid = undefined;
+    this.trailLink = undefined;
     this._trackMetadataInitialized = false;
     if (!this.delayLoading && !this.load$.value)
       this.load$.next(true);
@@ -456,6 +469,13 @@ export class TrailOverviewComponent extends AbstractComponent {
   openPublicTrail(): void {
     if (!this.publicTrailUuid) return;
     this.router.navigate(['trail', 'trailence', this.publicTrailUuid], {queryParams: { from: this.router.url }});
+  }
+
+  openTrailLink(): void {
+    import('../trail-link-popup/trail-link-popup.component')
+    .then(m => {
+      if (this.trailLink) m.openTrailLink(this.injector, this.trailLink.trailUuid);
+    });
   }
 
   private _symbol?: string;

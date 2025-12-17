@@ -1,0 +1,19 @@
+.explanation {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  background-color: rgba(96, 96, 200, 0.25);
+  padding: 4px 8px;
+  border-radius: 5px;
+  margin: 10px 0;
+  > ion-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--ion-color-tertiary);
+  }
+  > div {
+    padding-left: 10px;
+    font-size: 14px;
+    color: rgba(var(--ion-text-color-rgb), 0.75);
+  }
+}

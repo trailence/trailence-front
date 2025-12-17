@@ -22,6 +22,7 @@ export const SHARE_TABLE_NAME = 'shares';
 export const PHOTO_TABLE_NAME = 'photos';
 export const MY_SELECTION_TABLE_NAME = 'my_selection';
 export const MY_PUBLICATIONS_TABLE_NAME = 'my_publications';
+export const TRAIL_LINKS_TABLE_NAME = 'trail_links';
 export const DEPENDENCIES_TABLE_NAME = 'dependencies';
 const INTERNAL_TABLE_NAME = 'internal';
 
@@ -230,6 +231,15 @@ export class DatabaseService {
     for (const s of this._stores.value) s.fireSyncStatus();
   }
 
+  public triggerStoreSync(name: string): void {
+    const store = this._stores.value.find(s => s.name === name);
+    if (store) {
+      store.lastSync = 0;
+      store.syncAgain = true;
+      store.fireSyncStatus();
+    }
+  }
+
   registerStore(store: StoreRegistration): void {
     const registered = new RegisteredStore(store);
     this._stores.value.push(registered);
@@ -362,6 +372,7 @@ export class DatabaseService {
         storesV1[SHARE_TABLE_NAME] = 'key';
         storesV1[PHOTO_TABLE_NAME] = 'id_owner';
         storesV1[MY_PUBLICATIONS_TABLE_NAME] = 'publicUuid';
+        storesV1[TRAIL_LINKS_TABLE_NAME] = 'key';
         storesV1[DEPENDENCIES_TABLE_NAME] = 'key';
         db.version(1).stores(storesV1);
         db.table(INTERNAL_TABLE_NAME).get('version')

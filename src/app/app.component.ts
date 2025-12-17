@@ -155,6 +155,7 @@ export class AppComponent {
       import('./services/database/trail.service'),
       import('./services/database/tag.service'),
       import('./services/database/track.service'),
+      import('./services/database/link.service'),
     ]).then(services => {
       const database = this.injector.get(services[0].DatabaseService);
       this.injector.get(services[1].TrailCollectionService);
@@ -162,7 +163,8 @@ export class AppComponent {
       this.injector.get(services[3].TrailService);
       this.injector.get(services[4].TagService);
       const trackService = this.injector.get(services[5].TrackService);
-      return () => database.storesLoaded(['trail_collections', 'shares', 'trails', 'tags', 'trail_tags']).pipe(
+      this.injector.get(services[6].TrailLinkService);
+      return () => database.storesLoaded(['trail_collections', 'shares', 'trails', 'tags', 'trail_tags', 'trail_links']).pipe(
         switchMap(loaded => loaded ? trackService.dbReady$() : of(false)),
         tap(loaded => {
           if (!this._ready$.value && loaded) this._ready$.next(true);

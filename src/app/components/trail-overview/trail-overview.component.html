@@ -31,6 +31,11 @@
         <ion-icon name="web" slot="icon-only"></ion-icon>
       </ion-button>
     }
+    @if (trailLink) {
+      <ion-button class="trail-link-button" size="small" fill="clear" color="success" (click)="openTrailLink()">
+        <ion-icon name="link" slot="icon-only"></ion-icon>
+      </ion-button>
+    }
     @if (external?.oscmSymbol; as symbol) {
       @let svg = generateRouteSymbol(symbol);
       @if (svg) {

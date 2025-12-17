@@ -25,8 +25,6 @@ export interface StoreSyncProgress {
   syncCounter: number;
 }
 
-const DEBUG_OPERATIONS = false;
-
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
   protected _db?: Dexie;
@@ -93,6 +91,22 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   public getAllNow(): STORE_ITEM[] {
     return (this._store.value?.map(item$ => item$.value).filter(item => !!item) ?? []) as STORE_ITEM[];
+  }
+
+  public getOne$(predicate: (item: STORE_ITEM) => boolean): Observable<STORE_ITEM | null> {
+    return this._store.pipe(
+      switchMap(all => all.find(i$ => i$.value && predicate(i$.value)) || of(null))
+    );
+  }
+
+  public getOneWhenLoaded$(predicate: (item: STORE_ITEM) => boolean): Observable<STORE_ITEM | null> {
+    return this._storeLoaded$.pipe(
+      switchMap(loaded => {
+        if (!loaded) return EMPTY;
+        return this._store;
+      }),
+      switchMap(all => all.find(i$ => i$.value && predicate(i$.value)) || of(null))
+    );
   }
 
   protected startSync(): void {

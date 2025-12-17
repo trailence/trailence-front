@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
-import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, from, map, merge, Observable, of, Subscriber, switchMap, take } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, from, map, merge, Observable, of, Subscriber, switchMap, take } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Photo } from 'src/app/model/photo';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -27,6 +27,7 @@ export class FetchSourceService {
   private load(): void {
     Promise.all([
       import('./trailence.plugin').then(m => new m.TrailencePlugin(this.injector)),
+      import('./link.plugin').then(m => new m.LinkPlugin(this.injector)),
       import('./visorando.plugin').then(m => new m.VisorandoPlugin(this.injector)),
       import('./outdoor.plugin').then(m => new m.OutdoorPlugin(this.injector)),
       import('./osm.plugin').then(m => new m.OsmPlugin(this.injector)),
@@ -230,6 +231,7 @@ export class FetchSourceService {
       Console.warn('Cannot fetch ' + description + ' (try ' + trial + '/5)');
       subscriber.next(onerror());
       if (trial >= 5 || (e instanceof ApiError && e.httpCode >= 400)) {
+        Console.error('Fetch ' + description + ' failed after ' + trial + ' attempts', e);
         subscriber.complete();
         return;
       }

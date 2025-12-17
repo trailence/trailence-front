@@ -46,7 +46,6 @@ export class ImageUtils {
           const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
           ctx.drawImage(img, 0, 0, width, height, 0, 0, dw, dh);
           urlCreator.revokeObjectURL(img.src);
-          console.log('canvas to blob');
           canvas.toBlob(
             blob => {
               if (blob) {

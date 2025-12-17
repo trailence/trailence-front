@@ -55,8 +55,12 @@ export class ImportPopupComponent {
       this.fetchSourceService.waitReady$().subscribe(() => {
         this.urlDetectedSource = this.fetchSourceService.canFetchTrailByUrl(value)?.name
           ?? this.fetchSourceService.canFetchTrailsByUrl(value)?.name;
-        if (this.urlDetectedSource) this.urlMessage = undefined;
-        else this.urlMessage = this.i18n.texts.pages.import_popup.unknown_source;
+        if (this.urlDetectedSource) {
+          this.urlMessage = undefined;
+          if (this.urlDetectedSource === 'link') this.urlDetectedSource = this.i18n.texts.pages.import_popup.link_source
+        } else {
+          this.urlMessage = this.i18n.texts.pages.import_popup.unknown_source;
+        }
       });
     }
   }

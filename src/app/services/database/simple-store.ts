@@ -370,6 +370,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
               item$.next(entity);
               this._errors.itemSuccess(this.getKey(entity));
               updated = true;
+              const createdLocally = this._createdLocally.indexOf(item$);
+              if (createdLocally >= 0) this._createdLocally.splice(createdLocally, 1);
             }
             dtos.splice(index, 1);
           } else if (!this._createdLocally.includes(item$)) {

@@ -475,7 +475,9 @@ export class AuthService {
     const optional =
       request.url === environment.apiBaseUrl + '/contact/v1' ||
       request.url === environment.apiBaseUrl + '/donation/v1/status' ||
-      (request.url.startsWith(environment.apiBaseUrl + '/public/') && !request.url.endsWith('/mine'))
+      (request.url.startsWith(environment.apiBaseUrl + '/public/') && !request.url.endsWith('/mine')) ||
+      request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/trail/') ||
+      request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/photo/')
       ;
     return this.requireAuth().pipe(
       filter(auth => {
