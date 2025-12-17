@@ -1,0 +1,91 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="text" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.pdf_popup.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="popup-content">
+    <div class="options">
+      <div class="model">
+        <div class="title">{{i18n.texts.pages.pdf_popup.options.model}}</div>
+        <div class="radio-group">
+          <ion-radio-group [(ngModel)]="options.model" (ngModelChange)="optionsChanged()">
+            @for (model of availableModels; track model) {
+              <div class="radio">
+                <ion-radio [value]="model" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.models[model]}}</ion-radio>
+              </div>
+            }
+          </ion-radio-group>
+        </div>
+      </div>
+      <div class="include">
+        <div class="title">{{i18n.texts.pages.pdf_popup.options.include.title}}</div>
+        <div class="checkboxes">
+          <div class="checkbox">
+            <ion-checkbox [disabled]="!hasDescription" [(ngModel)]="options.includeDescription" (ngModelChange)="optionsChanged()" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.description}}</ion-checkbox>
+          </div>
+          <div class="checkbox">
+            <ion-checkbox [disabled]="!hasWayPoints" [(ngModel)]="options.includeWaypoints" (ngModelChange)="optionsChanged()" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.waypoints}}</ion-checkbox>
+          </div>
+          <div class="checkbox">
+            <ion-checkbox [(ngModel)]="options.includeElevation" (ngModelChange)="optionsChanged()" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.elevation}}</ion-checkbox>
+          </div>
+          @if (link) {
+            <div class="checkbox">
+              <ion-checkbox [checked]="options.qrCode" (ionChange)="qrCodeChanged($event.detail.checked)" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.qrcode}}</ion-checkbox>
+            </div>
+          } @else {
+            <div class="checkbox">
+              <ion-checkbox [disabled]="true" [checked]="false" labelPlacement="end">
+                {{i18n.texts.pages.pdf_popup.options.include.qrcode}} ({{i18n.texts.pages.pdf_popup.options.include.no_qrcode_message}})
+              </ion-checkbox>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="layer">
+        <div class="title">{{i18n.texts.pages.pdf_popup.options.map_layer}}</div>
+        <div class="selected-layer" (click)="selectLayer()">
+          <img src="{{options.mapLayer.exampleUrl}}" style="width: 150px; height: 150px;">
+          <div>{{options.mapLayer.displayName}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="preview">
+      <div class="title">{{i18n.texts.pages.pdf_popup.preview.title}}</div>
+      <div class="toolbar">
+        <ion-button size="small" fill="clear" color="secondary" [disabled]="zoomIndex === zooms.length - 1" (click)="zoomIn()">
+          <ion-icon name="zoom-in"></ion-icon>
+        </ion-button>
+        <span>{{zooms[zoomIndex]}}%</span>
+        <ion-button size="small" fill="clear" color="secondary" [disabled]="zoomIndex === 0" (click)="zoomOut()">
+          <ion-icon name="zoom-out"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="viewer-container">
+        <div class="viewer" id="pdf-container-{{id}}">
+          <div class="pdfViewer"></div>
+        </div>
+        <div class="pdf-progress-container">
+          <div class="progress" [ngStyle]="{'opacity': generationPercent !== undefined ? '1' : '0'}">
+            <div class="progress-text">{{i18n.texts.pages.pdf_popup.progress_message}}</div>
+            <div class="progress-bar"><div class="progress-bar-inner" [ngStyle]="{'width': generationPercent !== undefined ? generationPercent + '%' : '100%'}"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      @if (this.blob) {
+        <ion-button color="success" (click)="download()">{{i18n.texts.pages.pdf_popup.download_button}}</ion-button>
+      }
+      <ion-button (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

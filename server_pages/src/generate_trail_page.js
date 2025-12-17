@@ -208,7 +208,7 @@ function replaceBreakLines(text) {
   let i = 0;
   while ((i = text.indexOf('\n', i)) > 0) {
     const before = text.substring(0, i).toLowerCase().trim();
-    if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>') && !isInsideBulletPoints(before)) {
+    if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>') && !before.endsWith('</ul>') && !before.endsWith('</ol>') && !isInsideBulletPoints(before)) {
       text = text.substring(0, i).trim() + '<br/>' + text.substring(i + 1);
     }
     i++;
@@ -218,10 +218,13 @@ function replaceBreakLines(text) {
 
 function isInsideBulletPoints(textBefore) {
   let ulStart = textBefore.lastIndexOf('<ul');
-  if (ulStart < 0) return false;
-  let ulEnd = textBefore.indexOf('</ul>', ulStart);
-  if (ulEnd > 0) return false;
-  let liStart = textBefore.lastIndexOf('<li', ulStart);
+  let olStart = textBefore.lastIndexOf('<ol');
+  if (ulStart < 0 && olStart < 0) return false;
+  let isUl = ulStart >= 0 && (olStart < 0 || ulStart > olStart);
+  let start = isUl ? ulStart : olStart;
+  let end = isUl ? textBefore.indexOf('</ul>', ulStart) : textBefore.indexOf('</ol>', olStart);
+  if (end > 0) return false;
+  let liStart = textBefore.lastIndexOf('<li', start);
   if (liStart < 0) return true;
   let liEnd = textBefore.indexOf('</li>', liStart);
   if (liEnd < 0) return false;

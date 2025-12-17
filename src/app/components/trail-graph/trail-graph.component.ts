@@ -46,6 +46,7 @@ export class TrailGraphComponent extends AbstractComponent {
   @Input() selectable = false;
   @Input() selection?: RangeReference[] | PointReference[];
   @Input() graphType!: GraphType;
+  @Input() waitVisibleBeforeToRender = true;
 
   @Output() pointHover = new EventEmitter<GraphPointReference[]>();
   @Output() pointClick = new EventEmitter<GraphPointReference[]>();
@@ -150,6 +151,13 @@ export class TrailGraphComponent extends AbstractComponent {
   private _visibilityObserver?: IntersectionObserver;
   private _visibilityTimeout?: any;
   private waitForVisible(): void {
+    if (!this.waitVisibleBeforeToRender) {
+      const element = this.injector.get(ElementRef).nativeElement;
+      this.width = element.offsetWidth;
+      this.height = element.offsetHeight;
+      this.startChart(this.width!, this.height!, element);
+      return;
+    }
     this._visibilityTimeout = undefined;
     this._visibilityObserver = new IntersectionObserver(entries => {
       if (!this._visibilityObserver) return;

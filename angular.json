@@ -32,6 +32,34 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              }, {
+                "glob": "pdfkit.standalone.js",
+                "input": "./node_modules/pdfkit/js",
+                "output": "assets"
+              }, {
+                "glob": "blob-stream.js",
+                "input": "./node_modules/blob-stream",
+                "output": "assets"
+              }, {
+                "glob": "pdf.min.mjs",
+                "input": "./node_modules/pdfjs-dist/build",
+                "output": "assets"
+              }, {
+                "glob": "pdf.worker.min.mjs",
+                "input": "./node_modules/pdfjs-dist/build",
+                "output": "assets"
+              }, {
+                "glob": "**/pdf_viewer.mjs",
+                "input": "./node_modules/pdfjs-dist/web",
+                "output": "assets/pdf-viewer"
+              }, {
+                "glob": "**/pdf_viewer.css",
+                "input": "./node_modules/pdfjs-dist/web",
+                "output": "assets/pdf-viewer"
+              }, {
+                "glob": "svg-to-pdfkit.js",
+                "input": "./node_modules/svg-to-pdfkit",
+                "output": "assets"
               }
             ],
             "styles": [

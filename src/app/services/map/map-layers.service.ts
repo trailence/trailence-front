@@ -17,6 +17,7 @@ export interface MapLayer {
   displayName: string;
   exampleUrl: string;
   regional: RegionalSettings | undefined;
+  templateUrl: string;
 
   create(): L.TileLayer;
 
@@ -148,6 +149,7 @@ function createDefaultLayer( // NOSONAR
     displayName,
     exampleUrl,
     regional,
+    templateUrl: urlTemplate,
     create: () => handleMapOffline(name, new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution: copyright,
@@ -198,6 +200,7 @@ function createIgnLayer( // NOSONAR
     displayName,
     exampleUrl,
     regional,
+    templateUrl: urlTemplate,
     create: () => handleMapOffline(name, new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution,

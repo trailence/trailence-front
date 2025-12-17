@@ -114,9 +114,9 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
     }
   }
 
-  private getText(text: string | undefined | null): string {
+  public getText(text: string | undefined | null): string {
     if (!text) return '';
-    text = this.replaceBreakLines(text);
+    text = TextComponent.replaceBreakLines(text);
     if (text.length > this.maxTextLength) {
       this.hasMore = true;
       if (!this.showFull) {
@@ -128,24 +128,29 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
     return text;
   }
 
-  private replaceBreakLines(text: string): string {
+  public static replaceBreakLines(text: string): string {
     let i = 0;
     while ((i = text.indexOf('\n', i)) > 0) {
       const before = text.substring(0, i).toLowerCase().trim();
-      if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>') && !this.isInsideBulletPoints(before)) {
-        text = text.substring(0, i).trim() + '<br/>' + text.substring(i + 1);
+      if (!before.endsWith('<br/>') && !before.endsWith('<br>') && !before.endsWith('</p>') && !before.endsWith('</ul>') && !before.endsWith('</ol>') && !this.isInsideBulletPoints(before)) {
+        const t1 = text.substring(0, i).trim();
+        text = t1 + '<br/>' + text.substring(i + 1);
+        i = t1.length;
       }
       i++;
     }
     return text;
   }
 
-  private isInsideBulletPoints(textBefore: string): boolean {
+  private static isInsideBulletPoints(textBefore: string): boolean {
     let ulStart = textBefore.lastIndexOf('<ul');
-    if (ulStart < 0) return false;
-    let ulEnd = textBefore.indexOf('</ul>', ulStart);
-    if (ulEnd > 0) return false;
-    let liStart = textBefore.lastIndexOf('<li', ulStart);
+    let olStart = textBefore.lastIndexOf('<ol');
+    if (ulStart < 0 && olStart < 0) return false;
+    let isUl = ulStart >= 0 && (olStart < 0 || ulStart > olStart);
+    let start = isUl ? ulStart : olStart;
+    let end = isUl ? textBefore.indexOf('</ul>', ulStart) : textBefore.indexOf('</ol>', olStart);
+    if (end > 0) return false;
+    let liStart = textBefore.lastIndexOf('<li', start);
     if (liStart < 0) return true;
     let liEnd = textBefore.indexOf('</li>', liStart);
     if (liEnd < 0) return false;

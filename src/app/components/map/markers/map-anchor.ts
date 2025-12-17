@@ -69,6 +69,16 @@ export class MapAnchor {
     fillColor?: string,
     fillColor2?: string
   ): string {
+    return 'data:image/svg+xml;base64,' + btoa(this.createSvg(borderColor, text, textColor, fillColor, fillColor2));
+  }
+
+  public static createSvg(
+    borderColor: string = '#000000',
+    text: string = '',
+    textColor?: string,
+    fillColor?: string,
+    fillColor2?: string
+  ): string {
     let svg = '<?xml version="1.0" encoding="utf-8"?>';
     svg += '<svg width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">';
     if (fillColor) {
@@ -84,7 +94,7 @@ export class MapAnchor {
     textColor ??= borderColor;
     svg += '<text x="960" y="700" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="600px" font-weight="bold" fill="' + textColor + '" stroke="' + textColor + '">' +text + '</text>';
     svg += '</svg>';
-    return 'data:image/svg+xml;base64,' + btoa(svg);
+    return svg;
   }
 
 }

@@ -677,6 +677,32 @@
       "button_import": "Import from {{1}}",
       "link_source": "a Trailence link"
     },
+    "pdf_popup": {
+      "title": "Create PDF",
+      "options": {
+        "model": "Template",
+        "models": {
+          "BIG_MAP": "Large map on a single page",
+          "ONE_PAGE": "Condensed"
+        },
+        "include": {
+          "title": "Include",
+          "description": "Trail description",
+          "waypoints": "Waypoints",
+          "elevation": "Elevation profile",
+          "qrcode": "QR code link",
+          "no_qrcode_message": "This trail has no public link"
+        },
+        "map_layer": "Map layer"
+      },
+      "preview": {
+        "title": "PDF Preview"
+      },
+      "progress_message": "Generating PDF...",
+      "qr_code_link": "Open in Trailence",
+      "download_button": "Save PDF",
+      "error_downloading_tile": "Error downloading map"
+    },
     "donation": {
       "meta_description": "Support the Trailence project",
       "title": "Contribute",

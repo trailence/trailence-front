@@ -225,6 +225,11 @@ export class TrailMenuService {
       );
     }
 
+    if (trails.length === 1 && !onlyGlobal) {
+      menu.push(new MenuItem().setIcon('text').setI18nLabel('pages.pdf_popup.title')
+        .setAction(() => import('../../components/pdf-popup/pdf-popup.component').then(m => m.openPdfPopup(this.injector, trails[0]))));
+    }
+
     if (trails.length > 0 && !isAll && !isPublicationCollection(fromCollection?.type) && email && !onlyGlobal) {
       menu.push(
         new MenuItem(),

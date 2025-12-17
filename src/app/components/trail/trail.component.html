@@ -564,8 +564,8 @@
   </div>
   @if (!isSmall || tab === 'map') {
     <div class="bottom-sheet-container">
-      <div class="bottom-sheet-button" (click)="toggleBottomSheet()">
-        <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'"></ion-icon>
+      <div class="bottom-sheet-button">
+        <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'" class="toggle" (click)="toggleBottomSheet()"></ion-icon>
       </div>
       @if (bottomSheetOpen) {
         <div class="bottom-sheet-tabs">

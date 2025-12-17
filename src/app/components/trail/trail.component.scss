@@ -83,12 +83,17 @@
     .bottom-sheet-button {
       height: var(--bottom-sheet-button-height);
       width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
 
-      ion-icon {
+      ion-icon.toggle {
         height: var(--bottom-sheet-button-height);
         width: var(--bottom-sheet-button-height);
         transform: scaleX(2);
-        margin-left: calc(50% - calc(var(--bottom-sheet-button-height) / 2));
+        padding: 0 5px;
+        cursor: pointer;
       }
     }
   }

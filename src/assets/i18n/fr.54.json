@@ -677,6 +677,32 @@
       "button_import": "Importer depuis {{1}}",
       "link_source": "un lien Trailence"
     },
+    "pdf_popup": {
+      "title": "Créer un PDF",
+      "options": {
+        "model": "Modèle",
+        "models": {
+          "BIG_MAP": "Grande carte sur une page",
+          "ONE_PAGE": "Condensé"
+        },
+        "include": {
+          "title": "Inclure",
+          "description": "Description du parcours",
+          "waypoints": "Étapes",
+          "elevation": "Profil altimétrique",
+          "qrcode": "QR code du lien",
+          "no_qrcode_message": "Ce parcours n'a pas de lien public"
+        },
+        "map_layer": "Fond de carte"
+      },
+      "preview": {
+        "title": "Aperçu du PDF"
+      },
+      "progress_message": "Création du PDF...",
+      "qr_code_link": "Ouvrir dans Trailence",
+      "download_button": "Enregistrer le PDF",
+      "error_downloading_tile": "Erreur de téléchargement de la carte"
+    },
     "donation": {
       "meta_description": "Soutenir le project Trailence",
       "title": "Contribuer",

@@ -10,15 +10,15 @@ export const anchorBorderColor = '#d00000';
 export const anchorFillColor = '#a00000';
 export const anchorTextColor = '#ffffff';
 
-const anchorDABorderColor = 'rgba(64, 128, 0, 0.75)';
-const anchorDATextColor = anchorTextColor;
+export const anchorDABorderColor = 'rgba(64, 128, 0, 0.75)';
+export const anchorDATextColor = anchorTextColor;
 
 export const anchorDepartureBorderColor = 'rgba(0, 128, 0, 0.75)';
-export const anchorDepartureFillColor = 'rgba(0, 128, 0, 0.75)';
+export const anchorDepartureFillColor = 'rgb(0, 128, 0)';
 export const anchorDepartureTextColor = anchorTextColor;
 
 export const anchorArrivalBorderColor = 'rgba(196, 0, 0, 0.75)';
-export const anchorArrivalFillColor = 'rgba(196, 0, 0, 0.75)';
+export const anchorArrivalFillColor = 'rgb(196, 0, 0)';
 export const anchorArrivalTextColor = anchorTextColor;
 
 export const anchorBreakBorderColor = '#b0865cD8';
