@@ -65,7 +65,7 @@
             <div class="waypoint-info-value">{{arrival && wp.computed.isDeparture ? i18n.durationToString(track.metadata?.duration) : (wp.computed.timeSinceDeparture !== undefined ? i18n.durationToString(wp.computed.timeSinceDeparture) : '?')}}</div>
           </div>
         }
-        @if (wp.breakPoint) {
+        @if (wp.computed.breakPoint) {
           <div class="waypoint-info">
             <div class="waypoint-info-title">{{i18n.texts.way_points.duration}}</div>
             <div class="waypoint-info-value">{{i18n.durationToString(wp.computed.breakPoint.duration)}}</div>
