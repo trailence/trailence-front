@@ -5,6 +5,7 @@ import { anchorArrivalBorderColor, anchorArrivalFillColor, anchorArrivalTextColo
 import { addSvgToPdf } from './pdf-icon';
 import { Console } from 'src/app/utils/console';
 import { ErrorService } from 'src/app/services/progress/error.service';
+import * as L from 'leaflet';
 
 export async function generatePdfMap(ctx: PdfContext, x: number, y: number, width: number, height: number, includeWaypoints: boolean) {
   const trackBounds = ctx.track.metadata.bounds;
@@ -58,18 +59,18 @@ export async function generatePdfMap(ctx: PdfContext, x: number, y: number, widt
   const anchorSize = 20;
 
   const departure = ctx.wayPoints.find(wp => wp.isDeparture);
+  const arrival = ctx.wayPoints.find(wp => wp.isArrival);
   if (departure) {
     const pos = pathPt(departure.wayPoint.point.pos);
     let svg: string;
-    if (departure.isArrival) {
+    if (departure.isArrival || (arrival && L.latLng(departure.wayPoint.point.pos).distanceTo(arrival.wayPoint.point.pos) <= 100)) {
       svg = MapAnchor.createSvg(anchorDABorderColor, ctx.i18n.texts.way_points.DA, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor);
     } else {
       svg = MapAnchor.createSvg(anchorDepartureBorderColor, ctx.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor, undefined);
     }
     addSvgToPdf(ctx, svg, x + pos.x / ratio - anchorSize / 2, y + pos.y / ratio - anchorSize, anchorSize, anchorSize);
   }
-  const arrival = ctx.wayPoints.find(wp => wp.isArrival);
-  if (arrival && !arrival.isDeparture) {
+  if (arrival && !arrival.isDeparture && (!departure || L.latLng(departure.wayPoint.point.pos).distanceTo(arrival.wayPoint.point.pos) > 100)) {
     const svg = MapAnchor.createSvg(anchorArrivalBorderColor, ctx.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor, undefined);
     const pos = pathPt(arrival.wayPoint.point.pos);
     addSvgToPdf(ctx, svg, x + pos.x / ratio - anchorSize / 2, y + pos.y / ratio - anchorSize, anchorSize, anchorSize);

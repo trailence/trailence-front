@@ -27,10 +27,12 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
   do {
     const wp = ctx.wayPoints.find(wp => wp.index === index);
     if (!wp) break;
-    wayPointData = getWaypointData(wp);
-    if (wayPointData) {
-      state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz, before);
-      before = noMoreHeader;
+    if (!wp.isDeparture && !wp.isArrival) {
+      wayPointData = getWaypointData(wp);
+      if (wayPointData) {
+        state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz, before);
+        before = noMoreHeader;
+      }
     }
     index++;
   } while (true);
