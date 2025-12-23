@@ -414,7 +414,7 @@ export class TrailsPage extends AbstractPage {
     // available plugins
     this.searchPluginsSubscription = this.injector.get(FetchSourceService).getAllowedPlugins$().subscribe(list => {
       Console.info('Allowed search plugins: ', list.map(p => p.name));
-      this.availableSearchPlugins = list;
+      this.availableSearchPlugins = list.filter(p => p.canSearchByArea());
       this.mapTopToolbar$.next([...this.mapTopToolbar$.value]);
     });
     this.selectedSearchPlugins = ['Trailence'];

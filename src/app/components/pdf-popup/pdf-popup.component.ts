@@ -234,7 +234,7 @@ export class PdfPopup implements OnInit, OnDestroy {
   }
 
   download(): void {
-    this.injector.get(FileService).saveBinaryData('Trailence - ' + this.trail.name + '.pdf', new BinaryContent(this.blob!));
+    this.injector.get(FileService).saveBinaryData('trailence.pdf', new BinaryContent(this.blob!));
   }
 
   close(): void {

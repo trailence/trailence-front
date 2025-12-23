@@ -189,6 +189,45 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
         keyNumber = button.href.substring(j + 1);
       }
     }
+    if (!keyNumber.length || !keyGpx.length) {
+      const html = doc.documentElement.innerHTML;
+      if (!keyGpx.length) {
+        const i = html.indexOf('task=gpxRandoPre&idRandonnee=');
+        if (i > 0) {
+          const end1 = html.indexOf('&', i + 29);
+          const end2 = html.indexOf('"', i + 29);
+          const end = end1 > 0 ? (end2 > 0 ? Math.min(end1, end2) : end1) : end2;
+          if (end > 0)
+            keyGpx = html.substring(i + 29, end);
+        }
+      }
+      if (!keyNumber.length) {
+        const i = html.indexOf('task=pdfRandoPre&idRandonnee=');
+        if (i > 0) {
+          const end1 = html.indexOf('&', i + 29);
+          const end2 = html.indexOf('"', i + 29);
+          const end = end1 > 0 ? (end2 > 0 ? Math.min(end1, end2) : end1) : end2;
+          if (end > 0)
+            keyNumber = html.substring(i + 29, end);
+        }
+      }
+      if (!keyNumber.length) {
+        let pos = 0;
+        while ((pos = html.indexOf('idRandonnee=', pos)) >= 0) {
+          const end1 = html.indexOf('&', pos + 12);
+          const end2 = html.indexOf('"', pos + 12);
+          const end = end1 > 0 ? (end2 > 0 ? Math.min(end1, end2) : end1) : end2;
+          if (end > 0) {
+            const value = html.substring(pos + 12, end);
+            if (/^[0-9]+$/.test(value)) {
+              keyNumber = value;
+              break;
+            }
+          }
+          pos = pos + 12;
+        }
+      }
+    }
     result.key = keyNumber + '-' + keyGpx;
     let url = fromUrl;
     if (!url) {
@@ -203,9 +242,9 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     }
     if (!url && keyNumber) url = 'https://www.visorando.com/randonnee-' + keyNumber;
     result.externalUrl = url;
-    Console.info('Trail fetch from Visorando', url, result);
+    Console.info('Trail fetch from Visorando', url, result, 'key', keyNumber);
 
-    if (keyNumber.length === 0) return Promise.reject('Cannot find Visorando data on page');
+    if (keyNumber.length === 0) return Promise.reject('Cannot find Visorando data on page ' + url);
 
     this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()});
     return Promise.resolve(result);
@@ -232,7 +271,14 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
             return;
           }
           const urlsToFetch = allItems.slice(startIndex, startIndex + Math.min(nbToFetch, 30)).map(item => item.url);
-          zip(...urlsToFetch.map(url => from(this.fetchTrailByUrl(url)))).subscribe(trails => {
+          zip(...urlsToFetch
+            .map(url => from(this.fetchTrailByUrl(url)
+              .catch(e => {
+                Console.error('Error fetching trail', e);
+                return undefined;
+              })
+            ))
+          ).subscribe(trails => {
             const ok = filterItemsDefined(trails);
             if (ok.length === 0) {
               nextItems(emitted, startIndex + urlsToFetch.length);
