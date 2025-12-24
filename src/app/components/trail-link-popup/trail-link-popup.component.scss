@@ -7,8 +7,9 @@
   border-radius: 5px;
   margin: 10px 0;
   > ion-icon {
-    width: 24px;
-    height: 24px;
+    flex: none;
+    width: 20px;
+    height: 20px;
     color: var(--ion-color-tertiary);
   }
   > div {

@@ -159,7 +159,7 @@ export class PdfGenerator {
       const xMap = x + wideMetaWidth + 5;
       let y = yMap;
       if (options.qrCode) {
-        y = await addQrCodeToPdf(ctx, options.qrCode, x, y, Math.min(wideMetaWidth, 150));
+        y = await addQrCodeToPdf(ctx, options.qrCode, x, y, Math.min(wideMetaWidth, 120));
         y += 10;
       }
       y = await metaToPdf(ctx, x, y, wideMetaWidth);
@@ -231,7 +231,7 @@ export class PdfGenerator {
 
       let horiz = {x, width: leftWidth, nextPage: current => { ctx.nextPage(); return {x: current.x, width: ctx.layout.width - current.x - ctx.layout.margin}; }} as HorizBounds;
       if (options.qrCode) {
-        y = await addQrCodeToPdf(ctx, options.qrCode, x, y, Math.min(leftWidth, 150));
+        y = await addQrCodeToPdf(ctx, options.qrCode, x, y, Math.min(leftWidth, 120));
         y += 10;
       }
       if (hasDescription) {
@@ -276,7 +276,7 @@ export class PdfGenerator {
 
     if (options.qrCode) {
       // QR Code and meta in 2 columns
-      const w = Math.min(colWidth, 150);
+      const w = Math.min(colWidth, 120);
       const y1 = await addQrCodeToPdf(ctx, options.qrCode, x, y, w);
       progress(15);
       const y2 = await metaToPdf(ctx, x + w + 25, y, Math.min(400, width - w - 25));

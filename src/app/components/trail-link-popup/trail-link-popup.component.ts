@@ -39,6 +39,7 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
 
   linkStart: string;
   canShare = false;
+  qrCode?: string;
 
   constructor(
     public readonly i18n: I18nService,
@@ -59,7 +60,28 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
         if (link) return of(link);
         return this.linkService.create(this.trailUuid);
       })
-    ).subscribe(link => this.trailLink = link || undefined);
+    ).subscribe(link => {
+      this.trailLink = link || undefined;
+      this.qrCode = undefined;
+      if (this.trailLink) {
+        import('qrcode')
+        .then(module => {
+          if (!this.trailLink) return;
+          const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
+          canvas.width = 100;
+          canvas.height = 100;
+          module.default.toDataURL(canvas, this.linkStart + this.trailLink.link,
+            {
+              type: 'image/png',
+              margin: 1,
+            },
+            (e, r) => {
+              if (r) this.qrCode = r;
+            }
+          );
+        });
+      }
+    });
   }
 
   ngOnDestroy(): void {

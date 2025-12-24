@@ -18,6 +18,9 @@
         <ion-icon name="info"></ion-icon>
         <div [innerHTML]="i18n.texts.pages.trail_link.explanation"></div>
       </div>
+      @if (qrCode) {
+        <div class="qrcode"><img [src]="qrCode" /></div>
+      }
     } @else {
       @if (network.server$ | async) {
         <div style="display: flex; flex-direction: row; align-items: center;">

@@ -21,6 +21,7 @@ import { ShareService } from 'src/app/services/database/share.service';
 import { ToastController, NavController, AlertController } from '@ionic/angular/standalone';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { TrailLinkService } from 'src/app/services/database/link.service';
 
 @Component({
   selector: 'app-trail-page',
@@ -178,7 +179,10 @@ export class TrailPage extends AbstractPage {
             this.injector.get(AuthService).auth$.pipe(
               switchMap(auth => {
                 if (t1 && auth && t1.owner === auth.email)
-                  return this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, t1.owner).pipe(map(col => ({t1, t2, col, auth})));
+                  return combineLatest([
+                    this.injector.get(TrailCollectionService).getCollection$(t1.collectionUuid, t1.owner),
+                    this.injector.get(TrailLinkService).getLinkForTrail$(t1.uuid)
+                  ]).pipe(map(([col, link]) => ({t1, t2, col, auth})));
                 return of({t1, t2, col: undefined, auth});
               })
             )
