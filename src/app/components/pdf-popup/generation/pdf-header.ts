@@ -2,7 +2,7 @@ import { PdfContext } from './pdf-context';
 import { addIconToPdf } from './pdf-icon';
 
 export async function generatePdfHeader(ctx: PdfContext) {
-  const title = 'Trailence - ' + ctx.trail.name;
+  const title = 'Trailence - ' + ctx.trailName;
   ctx.doc.font('Roboto');
   let size = 18;
   while (size >= 10) {

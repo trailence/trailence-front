@@ -19,6 +19,7 @@ import { generateElevationGraphToPdf } from './pdf-elevation-graph';
 import { addQrCodeToPdf } from './pdf-qrcode';
 import { hasWaypointsContent } from '../waypoints-utils';
 import { MapLayer } from 'src/app/services/map/map-layers.service';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 
 export enum PdfModel {
   BIG_MAP = 'BIG_MAP',
@@ -63,6 +64,13 @@ export class PdfGenerator {
       } else if (wayPoints.length === 0) {
         wayPoints = ComputedWayPoint.compute(track, preferences.preferences);
       }
+      const trailInfo = trail.owner.includes('@') ? undefined : await firstValueFrom(injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid));
+      const lang = preferences.preferences.lang;
+      const trailName = trailInfo?.lang && trailInfo.lang !== lang && trailInfo.nameTranslations?.[lang] ? trailInfo.nameTranslations[lang] : trail.name;
+      let description: string | undefined = options.includeDescription ?
+        (trailInfo?.lang && trailInfo.lang !== lang && trailInfo.descriptionTranslations?.[lang] ? trailInfo.descriptionTranslations[lang] : trail.description) :
+        undefined;
+      if (!description?.trim().length) description = undefined;
       percentDone(2);
       let docCounter = 0;
       const resetDoc = () => {
@@ -104,6 +112,9 @@ export class PdfGenerator {
         trail,
         track,
         wayPoints,
+        trailInfo,
+        trailName,
+        description,
         assets: injector.get(AssetsService),
         i18n: injector.get(I18nService),
         preferences,
@@ -136,8 +147,9 @@ export class PdfGenerator {
   }
 
   private static async generateOnePageModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, forceMetaOnLeft: boolean = false) {
-    const hasDescription = options.includeDescription && ctx.trail.description?.trim()?.length;
-    const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints);
+    const userLang = ctx.preferences.preferences.lang;
+    const sourceLang = ctx.trailInfo?.lang ?? userLang;
+    const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints, sourceLang, userLang);
 
     const trackBounds = ctx.track.metadata.bounds;
     const widthMeters = trackBounds ? trackBounds.getNorthWest().distanceTo(trackBounds.getNorthEast()) : 0;
@@ -150,7 +162,7 @@ export class PdfGenerator {
     const elevationHeight = options.includeElevation ? 100 : 0;
     const wideMapHeight = (ctx.layout.height - ctx.layout.headerHeight - ctx.layout.margin - 20) / 3;
     const largeMapWidth = w / 2;
-    const largeMapHeight = ctx.layout.height - ctx.layout.headerHeight - ctx.layout.headerMargin - ctx.layout.margin - elevationHeight - (!forceMetaOnLeft && (hasDescription || hasWaypoints) ? 175 : 0);
+    const largeMapHeight = ctx.layout.height - ctx.layout.headerHeight - ctx.layout.headerMargin - ctx.layout.margin - elevationHeight - (!forceMetaOnLeft && (ctx.description || hasWaypoints) ? 175 : 0);
     const wideRatio = Math.min(widthMeters / wideMapWidth, heightMeters / wideMapHeight);
     const largeRatio = Math.min(widthMeters / largeMapWidth, heightMeters / largeMapHeight);
     const wider = wideRatio > largeRatio;
@@ -184,10 +196,10 @@ export class PdfGenerator {
       y += 10;
 
       y = Math.max(y, endY1);
-      if (hasDescription) {
+      if (ctx.description) {
         await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, w);
         y = ctx.doc.y;
-        await generatePdfText(ctx, ctx.trail.description, y, {x, width: w}, 11);
+        await generatePdfText(ctx, ctx.description, y, {x, width: w}, 11);
         y = ctx.doc.y;
       }
       progress(5);
@@ -220,7 +232,7 @@ export class PdfGenerator {
       const leftWidth = ctx.layout.width / 2 - x - 5;
       let y = yMap;
 
-      if (!forceMetaOnLeft && (hasDescription || hasWaypoints)) {
+      if (!forceMetaOnLeft && (ctx.description || hasWaypoints)) {
         await metaToPdf(ctx, ctx.layout.width / 2, yMap + largeMapHeight + elevationHeight + 5, largeMapWidth);
         progress(5);
       } else {
@@ -234,10 +246,10 @@ export class PdfGenerator {
         y = await addQrCodeToPdf(ctx, options.qrCode, x, y, Math.min(leftWidth, 120));
         y += 10;
       }
-      if (hasDescription) {
+      if (ctx.description) {
         await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, leftWidth);
         y = ctx.doc.y;
-        const afterText = await generatePdfText(ctx, ctx.trail.description, y, horiz, 11);
+        const afterText = await generatePdfText(ctx, ctx.description, y, horiz, 11);
         y = afterText.y;
         horiz = afterText.horiz;
       }
@@ -257,7 +269,7 @@ export class PdfGenerator {
         horiz = afterText.horiz;
       }
       progress(5);
-      if (!forceMetaOnLeft && (hasDescription || hasWaypoints) && ctx.doc.bufferedPageRange().count === 1 && y < yMap + largeMapHeight - 175) {
+      if (!forceMetaOnLeft && (ctx.description || hasWaypoints) && ctx.doc.bufferedPageRange().count === 1 && y < yMap + largeMapHeight - 175) {
         ctx.reset();
         await this.generateOnePageModel(ctx, options, progress, true);
       }
@@ -265,8 +277,9 @@ export class PdfGenerator {
   }
 
   private static async generateBigMapModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void) {
-    const hasDescription = options.includeDescription && ctx.trail.description?.trim()?.length;
-    const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints);
+    const userLang = ctx.preferences.preferences.lang;
+    const sourceLang = ctx.trailInfo?.lang ?? userLang;
+    const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints, sourceLang, userLang);
 
     const colWidth = (ctx.layout.width - ctx.layout.margin * 2) / 2 - 5;
     const x2 = ctx.layout.margin + colWidth + 10;
@@ -283,10 +296,10 @@ export class PdfGenerator {
       progress(5);
       y = Math.max(y1 + 10, y2);
       let horiz = {x, width};
-      if (hasDescription) {
+      if (ctx.description) {
         await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, width);
         y = ctx.doc.y;
-        const afterText = await generatePdfText(ctx, ctx.trail.description, y, horiz, 11);
+        const afterText = await generatePdfText(ctx, ctx.description, y, horiz, 11);
         y = afterText.y;
       }
       progress(5);
@@ -303,14 +316,14 @@ export class PdfGenerator {
         y = afterText.y;
       }
       progress(5);
-    } else if (hasDescription && hasWaypoints) {
+    } else if (ctx.description && hasWaypoints) {
       // no QR Code, both description and waypoints => meta + description in 1 column, then waypoints in 2nd column
       y = await metaToPdf(ctx, x, y, colWidth);
       progress(10);
       await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, colWidth);
       y = ctx.doc.y;
       let horiz = {x, width: colWidth, nextPage: (c1) => ({x: x2 + c1.x - x, width: c1.width, nextPage: (c2) => { ctx.nextPage(); return {x: x + c2.x - x2, width: width + c2.width - colWidth};}})} as HorizBounds;
-      let after = await generatePdfText(ctx, ctx.trail.description, y, horiz, 11);
+      let after = await generatePdfText(ctx, ctx.description, y, horiz, 11);
       y = after.y;
       horiz = after.horiz;
       progress(10);
@@ -334,10 +347,10 @@ export class PdfGenerator {
       y = await metaToPdf(ctx, x, y, Math.min(width, 400));
       progress(10);
       let horiz = {x, width: width};
-      if (hasDescription) {
+      if (ctx.description) {
         await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, width);
         y = ctx.doc.y;
-        let after = await generatePdfText(ctx, ctx.trail.description, y, horiz, 11);
+        let after = await generatePdfText(ctx, ctx.description, y, horiz, 11);
         y = after.y;
         horiz = after.horiz;
       }

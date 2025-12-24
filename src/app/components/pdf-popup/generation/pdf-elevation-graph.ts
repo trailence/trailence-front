@@ -1,4 +1,4 @@
-import { ApplicationRef, createComponent, inputBinding, ViewContainerRef } from '@angular/core';
+import { ApplicationRef, createComponent, inputBinding } from '@angular/core';
 import { PdfContext } from './pdf-context';
 
 export async function generateElevationGraphToPdf(ctx: PdfContext, x: number, y: number, w: number, h: number) {

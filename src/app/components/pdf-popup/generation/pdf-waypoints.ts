@@ -7,8 +7,10 @@ import { generatePdfText } from './pdf-text';
 import { getWaypointData } from '../waypoints-utils';
 
 export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds, onFirst: (y: number, minHeight: number, horiz: HorizBounds) => Promise<{y: number, horiz: HorizBounds}>) {
+  const userLang = ctx.preferences.preferences.lang;
+  const sourceLang = ctx.trailInfo?.lang ?? userLang;
   const departure = ctx.wayPoints.find(wp => wp.isDeparture);
-  let wayPointData = getWaypointData(departure);
+  let wayPointData = getWaypointData(departure, sourceLang, userLang);
   let before = onFirst;
   let noMoreHeader = (y: number, minHeight: number, horiz: HorizBounds) => {
     if (y + minHeight > ctx.layout.height - ctx.layout.margin) {
@@ -28,7 +30,7 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
     const wp = ctx.wayPoints.find(wp => wp.index === index);
     if (!wp) break;
     if (!wp.isDeparture && !wp.isArrival) {
-      wayPointData = getWaypointData(wp);
+      wayPointData = getWaypointData(wp, sourceLang, userLang);
       if (wayPointData) {
         state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz, before);
         before = noMoreHeader;
@@ -37,7 +39,7 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
     index++;
   } while (true);
   const arrival = ctx.wayPoints.find(wp => wp.isArrival && !wp.isDeparture);
-  wayPointData = getWaypointData(arrival);
+  wayPointData = getWaypointData(arrival, sourceLang, userLang);
   if (wayPointData) {
     state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz, before);
     before = noMoreHeader;

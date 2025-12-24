@@ -14,12 +14,13 @@ import { TrailLinkService } from 'src/app/services/database/link.service';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { first } from 'rxjs';
+import { combineLatest, first, of } from 'rxjs';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { hasWaypointsContent } from './waypoints-utils';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TypeUtils } from 'src/app/utils/type-utils';
 import { Console } from 'src/app/utils/console';
+import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
   injector.get(ModalController).create({
@@ -111,10 +112,17 @@ export class PdfPopup implements OnInit, OnDestroy {
     if (this.link && this.qrCodeActivated) this.options.qrCode = this.link;
     this.hasDescription = !!this.trail.description?.trim().length;
     if (!this.hasDescription) this.options.includeDescription = false;
-    this.injector.get(TrackService).getFullTrack$(this.trail.currentTrackUuid, this.trail.owner).pipe(filterDefined(), first()).subscribe(t => {
+    combineLatest([
+      this.injector.get(TrackService).getFullTrack$(this.trail.currentTrackUuid, this.trail.owner).pipe(filterDefined(), first()),
+      this.trail.owner.includes('@') ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(this.trail.owner, this.trail.uuid),
+    ])
+    .subscribe(([t, info]) => {
       this.track = t;
-      this.wayPoints = ComputedWayPoint.compute(t, this.injector.get(PreferencesService).preferences);
-      this.hasWayPoints = hasWaypointsContent(this.wayPoints);
+      const preferences = this.injector.get(PreferencesService).preferences;
+      this.wayPoints = ComputedWayPoint.compute(t, preferences);
+      const userLang = preferences.lang;
+      const sourceLang = info?.lang ?? userLang;
+      this.hasWayPoints = hasWaypointsContent(this.wayPoints, sourceLang, userLang);
       if (!this.hasWayPoints) this.options.includeWaypoints = false;
     });
     this.optionsChanged();

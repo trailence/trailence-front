@@ -1,4 +1,4 @@
-import { Injectable, Injector, SecurityContext } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { BehaviorSubject, combineLatest, defaultIfEmpty, EMPTY, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
@@ -25,7 +25,6 @@ import { TypeUtils } from 'src/app/utils/type-utils';
 import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
 import { Feedback, FeedbackReply } from '../feedback/feedback.service';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
-import { DomSanitizer } from '@angular/platform-browser';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -379,7 +378,7 @@ export class ModerationService {
       author: trail.owner,
       authorUuid: trail.publishedFromUuid,
       name: trail.name,
-      description: this.injector.get(DomSanitizer).sanitize(SecurityContext.HTML, trail.description) ?? '',
+      description: trail.description,
       location: trail.location,
       date: trail.date!,
       distance: Math.floor(track.metadata.distance),
