@@ -359,7 +359,8 @@
         "following": " en suivant :*:{{1}}:*:{{2}}:*:",
         "initially_found_on": " initiallement trouvé dans :*:{{1}}:*:{{2}}:*:",
         "following_found_on": " en suivant un parcours trouvé sur :*:{{1}}:*:{{2}}:*:",
-        "source_url": "Source :"
+        "source_url": "Source :",
+        "source_advise": "💡 Il est conseillé de consulter la source avant de suivre le parcours, afin de disposer des informations les plus récentes."
       },
       "my_feedback": {
         "you_leave_a_rate": "Vous avez noté ce parcours {{1}}/5 le {{2}}",
