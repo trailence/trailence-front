@@ -360,7 +360,8 @@
         "initially_found_on": " initiallement trouvé dans :*:{{1}}:*:{{2}}:*:",
         "following_found_on": " en suivant un parcours trouvé sur :*:{{1}}:*:{{2}}:*:",
         "source_url": "Source :",
-        "source_advise": "💡 Il est conseillé de consulter la source avant de suivre le parcours, afin de disposer des informations les plus récentes."
+        "source_advise": "💡 Il est conseillé de consulter la source avant de suivre le parcours, afin de disposer des informations les plus récentes.",
+        "add_source_url": "Ajouter une source (lien)"
       },
       "my_feedback": {
         "you_leave_a_rate": "Vous avez noté ce parcours {{1}}/5 le {{2}}",

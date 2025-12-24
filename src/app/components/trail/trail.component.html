@@ -354,6 +354,31 @@
                 <div class="source-advise">{{ i18n.texts.pages.trail.source.source_advise }}</div>
               }
             </div>
+          } @else {
+            @if (editable) {
+              <div class="external-link">
+                @if (editingSourceUrl) {
+                  <span style="white-space: nowrap">{{ i18n.texts.pages.trail.source.source_url }}</span>
+                  <ion-input #sourceUrlEditor
+                    [value]="trail1?.sourceUrl || 'https://'"
+                    [maxlength]="500"
+                    (ionChange)="endEditSourceUrl($event.detail.value)"
+                    (ionBlur)="endEditSourceUrl(undefined)"
+                  ></ion-input>
+                } @else if(trail1?.sourceUrl; as url) {
+                  <div style="display:flex; flex-direction: row; align-items: center">
+                    <span style="white-space: nowrap">{{ i18n.texts.pages.trail.source.source_url }}&nbsp;</span><a href="{{url}}" target="_blank" style="flex: 1 1 100%; overflow:hidden;">{{ url }}</a>
+                    <ion-button size="small" color="secondary" fill="clear" (click)="startEditSourceUrl()"><ion-icon slot="icon-only" name="edit"></ion-icon></ion-button>
+                  </div>
+                } @else {
+                  <ion-button size="small" fill="clear" color="dark" (click)="startEditSourceUrl()">{{i18n.texts.pages.trail.source.add_source_url}}</ion-button>
+                }
+              </div>
+            } @else if (trail1?.sourceUrl; as url) {
+              <div class="external-link">
+                <span style="white-space: nowrap">{{ i18n.texts.pages.trail.source.source_url }}</span>&nbsp;<a href="{{url}}" target="_blank">{{ url }}</a>
+              </div>
+            }
           }
         }
 

@@ -8,7 +8,7 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { AsyncPipe, NgClass, NgComponentOutlet, NgStyle, NgTemplateOutlet } from '@angular/common';
-import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController } from "@ionic/angular/standalone";
+import { IonSegment, IonSegmentButton, IonIcon, IonButton, IonTextarea, IonCheckbox, AlertController, IonSpinner, ModalController, ToastController, IonInput } from "@ionic/angular/standalone";
 import { TrackMetadataComponent, TrackMetadataConfig } from '../track-metadata/track-metadata.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 import { MapTrackPointReference } from '../map/track/map-track-point-reference';
@@ -86,7 +86,7 @@ interface TrailSource {
     styleUrls: ['./trail.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        IonSpinner, IonCheckbox, IonTextarea, IonButton, IonIcon, IonSegmentButton, IonSegment,
+        IonSpinner, IonCheckbox, IonTextarea, IonButton, IonIcon, IonSegmentButton, IonSegment, IonInput,
         FormsModule,
         MapComponent,
         TrackMetadataComponent,
@@ -197,9 +197,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   canTakePhoto = false;
   publishedTrail?: Trail;
 
-  private _lockForDescription?: () => void;
+  private _lock?: () => void;
   editingDescription = false;
+  editingSourceUrl = false;
   @ViewChild('descriptionEditor') descriptionEditor?: IonTextarea;
+  @ViewChild('sourceUrlEditor') sourceUrlEditor?: IonInput;
 
   toolsStack?: TrackEditToolsStack;
   toolsEnabled = false;
@@ -402,11 +404,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   protected override onComponentStateChanged(previousState: any, newState: any): void {
     if (globalThis.location?.hash?.startsWith('#rate')) this.goToRate = Date.now();
     else this.goToRate = 0;
-    if (this._lockForDescription) {
-      this._lockForDescription();
-      this._lockForDescription = undefined;
+    if (this._lock) {
+      this._lock();
+      this._lock = undefined;
     }
     this.editingDescription = false;
+    this.editingSourceUrl = false;
     this.trail1 = null;
     this.trail2 = null;
     this.source = undefined;
@@ -506,10 +509,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       ),
       ([trail1, trail2, recordingWithTrack, toolsBaseTrack, toolsModifiedTrack, selectionTracks, zoomOnSelection, hideBaseTrack, publicTrailsAround]) => { // NOSONAR
         if (this.trail1 !== trail1[0]) {
-          if (this._lockForDescription) {
-            this._lockForDescription();
-            this._lockForDescription = undefined;
+          if (this._lock) {
+            this._lock();
+            this._lock = undefined;
             this.editingDescription = false;
+            this.editingSourceUrl = false;
           }
         }
         this.trail1 = trail1[0];
@@ -1479,13 +1483,15 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   startEditDescription(): void {
     if (!this.trail1) return;
-    if (this._lockForDescription) {
-      this._lockForDescription();
-      this._lockForDescription = undefined;
+    if (this._lock) {
+      this._lock();
+      this._lock = undefined;
+      this.editingDescription = false;
+      this.editingSourceUrl = false;
     }
     this.trailService.lock(this.trail1.uuid, this.trail1.owner, (locked, unlock) => {
       if (!locked) return;
-      this._lockForDescription = unlock;
+      this._lock = unlock;
       this.editingDescription = true;
       this.changesDetection.detectChanges(() => {
         setTimeout(() => {
@@ -1499,12 +1505,51 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.editingDescription = false;
     if (text !== null && text !== undefined && this.trail1) {
       text = text.trim();
-      if (this.trail1.description !== text && this._lockForDescription) {
+      if (this.trail1.description !== text && this._lock) {
         this.trail1.description = text;
         this.trailService.update(this.trail1, () => {
-          if (this._lockForDescription) {
-            this._lockForDescription();
-            this._lockForDescription = undefined;
+          if (this._lock) {
+            this._lock();
+            this._lock = undefined;
+          }
+        });
+      }
+    }
+    this.changesDetection.detectChanges();
+  }
+
+
+  startEditSourceUrl(): void {
+    if (!this.trail1) return;
+    if (this._lock) {
+      this._lock();
+      this._lock = undefined;
+      this.editingDescription = false;
+      this.editingSourceUrl = false;
+    }
+    this.trailService.lock(this.trail1.uuid, this.trail1.owner, (locked, unlock) => {
+      if (!locked) return;
+      this._lock = unlock;
+      this.editingSourceUrl = true;
+      this.changesDetection.detectChanges(() => {
+        setTimeout(() => {
+          if (this.sourceUrlEditor) this.sourceUrlEditor.setFocus();
+        }, 0);
+      });
+    });
+  }
+
+  endEditSourceUrl(text: string | null | undefined): void {
+    this.editingSourceUrl = false;
+    if (text !== null && text !== undefined && this.trail1) {
+      text = text.trim();
+      if (text.length === 0 || !text.toLowerCase().startsWith('https://')) text = undefined;
+      if (this.trail1.sourceUrl !== text && this._lock) {
+        this.trail1.sourceUrl = text;
+        this.trailService.update(this.trail1, () => {
+          if (this._lock) {
+            this._lock();
+            this._lock = undefined;
           }
         });
       }

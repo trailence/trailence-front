@@ -50,13 +50,15 @@
         }
       </form>
     }
-    <div class="bottom-button">
-      <a href="/try" (click)="$event.preventDefault()">
-        <ion-button fill="clear" color="secondary" (click)="tryWithoutAccount()">
-          {{i18n.texts.pages.login.try_without_account}}
-        </ion-button>
-      </a>
-    </div>
+    @if (!inprogress) {
+      <div class="bottom-button">
+        <a href="/try" (click)="$event.preventDefault()">
+          <ion-button fill="clear" color="secondary" (click)="tryWithoutAccount()">
+            {{i18n.texts.pages.login.try_without_account}}
+          </ion-button>
+        </a>
+      </div>
+    }
   </ion-card-content>
 </ion-card>
 </div>

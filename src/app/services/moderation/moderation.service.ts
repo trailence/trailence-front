@@ -403,7 +403,7 @@ export class ModerationService {
       lang: trail.publicationData!['lang'],
       nameTranslations: trail.publicationData!['nameTranslations'],
       descriptionTranslations: trail.publicationData!['descriptionTranslations'],
-      sourceUrl: trail.sourceType === TrailSourceType.EXTERNAL ? trail.source : undefined,
+      sourceUrl: trail.sourceType === TrailSourceType.EXTERNAL ? trail.source : trail.sourceUrl,
     };
 
     this.http.post(environment.apiBaseUrl + '/moderation/v1/publish', dto).subscribe({

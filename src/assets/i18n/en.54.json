@@ -360,7 +360,8 @@
         "initially_found_on": " initially found on :*:{{1}}:*:{{2}}:*:",
         "following_found_on": " by following a track found on :*:{{1}}:*:{{2}}:*:",
         "source_url": "Source:",
-        "source_advise": "💡 It is recommended to consult the source before following the trail, in order to get the most up-to-date information."
+        "source_advise": "💡 It is recommended to consult the source before following the trail, in order to get the most up-to-date information.",
+        "add_source_url": "Add a source (link)"
       },
       "my_feedback": {
         "you_leave_a_rate": "You rated this route {{1}}/5 on {{2}}",

@@ -11,6 +11,7 @@ export interface TrailDto extends OwnedDto {
   sourceType?: string;
   source?: string;
   sourceDate?: number;
+  sourceUrl?: string;
   followedUuid?: string;
   followedOwner?: string;
   followedUrl?: string;

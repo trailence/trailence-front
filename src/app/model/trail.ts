@@ -13,6 +13,7 @@ export class Trail extends Owned {
   private readonly _date$: BehaviorSubject<number | undefined>;
   private readonly _loopType$: BehaviorSubject<TrailLoopType | undefined>;
   private readonly _activity$: BehaviorSubject<TrailActivity | undefined>;
+  private readonly _sourceUrl$: BehaviorSubject<string | undefined>;
 
   private readonly _originalTrackUuid$: BehaviorSubject<string>;
   private readonly _currentTrackUuid$: BehaviorSubject<string>;
@@ -52,6 +53,7 @@ export class Trail extends Owned {
     this.sourceType = dto.sourceType ?? undefined;
     this.source = (dto.source ? (dto.source.length < 2000 ? dto.source : dto.source.substring(0, 2000)) : undefined);
     this.sourceDate = dto.sourceDate ?? undefined;
+    this._sourceUrl$ = new BehaviorSubject<string | undefined>(dto.sourceUrl ?? undefined);
     this.followedUuid = dto.followedUuid ?? undefined;
     this.followedOwner = dto.followedOwner ?? undefined;
     this.followedUrl = dto.followedUrl ?? undefined;
@@ -97,8 +99,12 @@ export class Trail extends Owned {
   public get collectionUuid$(): Observable<string> { return this._collectionUuid$; }
   public set collectionUuid(value: string) { this.setValue(value, this._collectionUuid$); }
 
+  public get sourceUrl(): string | undefined { return this._sourceUrl$.value; }
+  public get sourceUrl$(): Observable<string | undefined> { return this._sourceUrl$; }
+  public set sourceUrl(value: string | undefined) { this.setValue(value, this._sourceUrl$); }
+
   public get changes$(): Observable<any> {
-    return combineLatest([this.name$, this.description$, this.location$, this.date$, this.loopType$, this.activity$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$]).pipe(
+    return combineLatest([this.name$, this.description$, this.location$, this.date$, this.loopType$, this.activity$, this.originalTrackUuid$, this.currentTrackUuid$, this.collectionUuid$, this.sourceUrl$]).pipe(
       skip(1),
     );
   }
@@ -120,6 +126,7 @@ export class Trail extends Owned {
       sourceType: this.sourceType,
       source: this.source,
       sourceDate: this.sourceDate,
+      sourceUrl: this.sourceUrl,
       followedUuid: this.followedUuid,
       followedOwner: this.followedOwner,
       followedUrl: this.followedUrl,
