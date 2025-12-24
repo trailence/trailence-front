@@ -1,5 +1,7 @@
 <div id="trail-jd-json-{{id}}"></div>
-<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}">
+<div class="top-container {{displayMode}} tab-{{tab}} {{ bottomSheetOpen ? 'bottom-sheet-open bottom-sheet-' + bottomSheetTab : 'bottom-sheet-closed' }}"
+  [ngStyle]="{'--bottom-sheet-tab-content-height': bottomSheetCustomHeight && bottomSheetOpen ? bottomSheetCustomHeight : undefined}"
+>
   @if (tracks$ | async; as tracks) {
     @if (!isSmall || tab === 'details') {
       <div class="trail-details">
@@ -565,7 +567,18 @@
   @if (!isSmall || tab === 'map') {
     <div class="bottom-sheet-container">
       <div class="bottom-sheet-button">
-        <ion-icon [name]="bottomSheetOpen ? 'chevron-down' : 'chevron-up'" class="toggle" (click)="toggleBottomSheet()"></ion-icon>
+        @if (bottomSheetOpen) {
+          @if (bottomSheetCustomHeight) {
+            <ion-icon name="chevron-down" class="toggle" (click)="reduceBottomSheet()"></ion-icon>
+          } @else {
+            @if (maxBottomSheetHeight && maxBottomSheetHeight >= 200) {
+              <ion-icon name="chevron-up" class="toggle" (click)="enlargeBottomSheet()"></ion-icon>
+            }
+            <ion-icon name="chevron-down" class="toggle" (click)="closeBottomSheet()"></ion-icon>
+          }
+        } @else {
+          <ion-icon name="chevron-up" class="toggle" (click)="openBottomSheet()"></ion-icon>
+        }
       </div>
       @if (bottomSheetOpen) {
         <div class="bottom-sheet-tabs">

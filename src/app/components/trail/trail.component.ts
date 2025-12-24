@@ -172,6 +172,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   displayMode = 'loading';
   bottomSheetOpen = true;
   bottomSheetTab = 'info';
+  bottomSheetCustomHeight?: string;
+  maxBottomSheetHeight?: number;
   isSmall = false;
 
   editable = false;
@@ -1217,6 +1219,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       this.updateVisibility(this.tab === 'map', this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed');
     }
     this.mapToolbarTopRightMaxItems = w > 600 ? undefined : Math.floor((w - 90) / 48);
+    this.maxBottomSheetHeight = Math.min(h - 100, 350);
+    if (this.maxBottomSheetHeight < 200 && this.bottomSheetCustomHeight) {
+      this.reduceBottomSheet();
+    }
     this.changesDetection.detectChanges();
   }
 
@@ -1249,10 +1255,38 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.updateDisplay();
   }
 
-  toggleBottomSheet(): void {
-    this.bottomSheetOpen = !this.bottomSheetOpen;
+  openBottomSheet(): void {
+    this.bottomSheetCustomHeight = undefined;
+    this.bottomSheetOpen = true;
     this.updateDisplay();
     setTimeout(() => this.map?.invalidateSize(), 500);
+  }
+
+  closeBottomSheet(): void {
+    this.bottomSheetCustomHeight = undefined;
+    this.bottomSheetOpen = false;
+    this.updateDisplay();
+    setTimeout(() => this.map?.invalidateSize(), 500);
+  }
+
+  enlargeBottomSheet(): void {
+    this.bottomSheetCustomHeight = this.maxBottomSheetHeight! + 'px';
+    this.bottomSheetOpen = true;
+    this.updateDisplay();
+    setTimeout(() => {
+      this.map?.invalidateSize();
+      this.graph?.resetChart();
+    }, 500);
+  }
+
+  reduceBottomSheet(): void {
+    this.bottomSheetCustomHeight = undefined;
+    this.bottomSheetOpen = true;
+    this.updateDisplay();
+    setTimeout(() => {
+      this.map?.invalidateSize();
+      this.graph?.resetChart();
+    }, 500);
   }
 
   private readonly _bottomSheetTab$ = new BehaviorSubject<string>(this.bottomSheetTab);
