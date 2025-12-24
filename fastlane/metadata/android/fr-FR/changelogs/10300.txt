@@ -1,0 +1,4 @@
+Créez un lien public pour un parcours afin de le partager facilement<br/>
+Générez un fichier PDF pour un parcours<br/>
+Ajoutez un lien vers la source d'un parcours<br/>
+Quelques autres petites améliorations et correctifs ont également été apportés dans cette version

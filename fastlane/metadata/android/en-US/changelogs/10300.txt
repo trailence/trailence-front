@@ -1,0 +1,4 @@
+Create a public link for a trail to easily share it<br/>
+Generate a PDF file for a trail<br/>
+Add a link to the source of a trail<br/>
+Several other small improvements and bug fixes are also included in this version

@@ -284,5 +284,23 @@
         "Several other small improvements and bug fixes are also included in this version"
       ]
     }
+  },
+  "010300": {
+    "fr": {
+      "items": [
+        "Créez un lien public pour un parcours afin de le partager facilement",
+        "Générez un fichier PDF pour un parcours",
+        "Ajoutez un lien vers la source d'un parcours",
+        "Quelques autres petites améliorations et correctifs ont également été apportés dans cette version"
+      ]
+    },
+    "en": {
+      "items": [
+        "Create a public link for a trail to easily share it",
+        "Generate a PDF file for a trail",
+        "Add a link to the source of a trail",
+        "Several other small improvements and bug fixes are also included in this version"
+      ]
+    }
   }
 }
