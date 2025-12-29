@@ -8,6 +8,7 @@ import { environment } from 'src/environments/environment';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { AsyncPipe } from '@angular/common';
 import Trailence from 'src/app/services/trailence.service';
+import { AuthService } from 'src/app/services/auth/auth.service';
 
 export function openTrailLink(injector: Injector, trailUuid: string) {
   injector.get(ModalController).create({
@@ -40,6 +41,7 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
   linkStart: string;
   canShare = false;
   qrCode?: string;
+  isAnonymous: boolean;
 
   constructor(
     public readonly i18n: I18nService,
@@ -49,12 +51,15 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
     private readonly modalController: ModalController,
     private readonly alertController: AlertController,
     platform: Platform,
+    auth: AuthService,
   ) {
     this.linkStart = environment.baseUrl + '/trail/link/';
     this.canShare = platform.is('capacitor');
+    this.isAnonymous = auth.auth?.isAnonymous !== false;
   }
 
   ngOnInit(): void {
+    if (this.isAnonymous) return;
     this.subscription = this.linkService.getLinkForTrailReady$(this.trailUuid).pipe(
       switchMap(link => {
         if (link) return of(link);

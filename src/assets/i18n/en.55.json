@@ -445,6 +445,7 @@
       "title": "Public link",
       "explanation": "Anyone with this link can view your trail, including its waypoints and photos.<br/>Tags and collection will not be visible.<br/>Any changes you make to the trail will be reflected automatically.",
       "offline": "Please connect to the Internet to generate the link",
+      "anonymous": "This functionality is not available without an account.",
       "waiting": "Creating link...",
       "copy": "Copy",
       "copied": "Link copied to clipboard",

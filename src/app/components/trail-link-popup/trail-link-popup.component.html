@@ -7,31 +7,35 @@
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
-  <div class="link">
-    @if (trailLink && trailLink.link.length > 0) {
-      <ion-input
-        [value]="linkStart + trailLink.link"
-        [readonly]="true"
-        fill="solid"
-      ></ion-input>
-      <div class="explanation">
-        <ion-icon name="info"></ion-icon>
-        <div [innerHTML]="i18n.texts.pages.trail_link.explanation"></div>
-      </div>
-      @if (qrCode) {
-        <div class="qrcode"><img [src]="qrCode" /></div>
-      }
-    } @else {
-      @if (network.server$ | async) {
-        <div style="display: flex; flex-direction: row; align-items: center;">
-          <ion-spinner name="dots"></ion-spinner>
-          <div style="margin-left: 10px;">{{ i18n.texts.pages.trail_link.waiting}}</div>
+  @if (isAnonymous) {
+    <div>{{i18n.texts.pages.trail_link.anonymous}}</div>
+  } @else {
+    <div class="link">
+      @if (trailLink && trailLink.link.length > 0) {
+        <ion-input
+          [value]="linkStart + trailLink.link"
+          [readonly]="true"
+          fill="solid"
+        ></ion-input>
+        <div class="explanation">
+          <ion-icon name="info"></ion-icon>
+          <div [innerHTML]="i18n.texts.pages.trail_link.explanation"></div>
         </div>
+        @if (qrCode) {
+          <div class="qrcode"><img [src]="qrCode" /></div>
+        }
       } @else {
-        {{ i18n.texts.pages.trail_link.offline}}
+        @if (network.server$ | async) {
+          <div style="display: flex; flex-direction: row; align-items: center;">
+            <ion-spinner name="dots"></ion-spinner>
+            <div style="margin-left: 10px;">{{ i18n.texts.pages.trail_link.waiting}}</div>
+          </div>
+        } @else {
+          {{ i18n.texts.pages.trail_link.offline}}
+        }
       }
-    }
-  </div>
+    </div>
+  }
 </ion-content>
 <ion-footer>
   <ion-toolbar color="footer">

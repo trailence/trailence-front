@@ -445,6 +445,7 @@
       "title": "Lien public",
       "explanation": "Toute personne disposant de ce lien pourra consulter votre parcours, ses étapes et ses photos.<br/>En revanche, les tags et la collection ne seront pas visibles.<br/>Toute modification du parcours sera automatiquement répercutée.",
       "offline": "Veuillez vous connecter à Internet pour générer le lien",
+      "anonymous": "Cette fonctionnalité n'est pas disponible sans compte.",
       "waiting": "Création du lien...",
       "copy": "Copier",
       "copied": "Lien copié dans le presse-papier",

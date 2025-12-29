@@ -3,7 +3,7 @@ import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
 import { TrailLink } from 'src/app/model/dto/trail-link';
 import { DatabaseService, TRAIL_LINKS_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { catchError, concat, concatAll, EMPTY, forkJoin, from, map, Observable, of, switchMap, toArray } from 'rxjs';
+import { catchError, concatAll, EMPTY, from, map, Observable, of, switchMap, toArray } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { TrailService } from './trail.service';
