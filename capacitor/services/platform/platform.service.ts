@@ -27,6 +27,7 @@ export class PlatformService {
     private readonly injector: Injector,
   ) {
     this.listenToImportGpx();
+    this.listenToOpenLink();
     this.handleBackButton();
   }
 
@@ -52,6 +53,14 @@ export class PlatformService {
           ]
         }).then(a => a.present());
       })
+    });
+  }
+
+  private listenToOpenLink(): void {
+    Trailence.listenToOpenLink((message) => {
+      if (message.link) {
+        this.injector.get(Router).navigateByUrl('/trail/link/' + message.link);
+      }
     });
   }
 

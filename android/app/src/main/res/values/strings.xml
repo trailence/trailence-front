@@ -4,4 +4,6 @@
     <string name="title_activity_main">Trailence</string>
     <string name="package_name">org.trailence</string>
     <string name="custom_url_scheme">org.trailence</string>
+    <string name="hostname">trailence.org</string>
+    <string name="scheme">https</string>
 </resources>

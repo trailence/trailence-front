@@ -52,6 +52,12 @@ public class MainActivity extends BridgeActivity {
   private void checkForOpenFile(Intent intent) {
     Uri fileUri = intent.getData();
     if (fileUri != null && !intent.getBooleanExtra("consumed", false)) {
+      if (fileUri.getScheme() != null && fileUri.getScheme().startsWith("http") && fileUri.getPath() != null && fileUri.getPath().startsWith("/trail/link/")) {
+        String link = fileUri.getPath().substring(12);
+        ((TrailencePlugin) this.getBridge().getPlugin("Trailence").getInstance()).setLinkToOpen(link);
+        intent.putExtra("consumed", true);
+        return;
+      }
       String filename = this.getFileName(fileUri);
       List<byte[]> content = new LinkedList<>();
       try (InputStream in = this.getContentResolver().openInputStream(fileUri)) {

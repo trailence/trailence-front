@@ -55,7 +55,7 @@ export class TrailLinkPopup implements OnInit, OnDestroy {
   ) {
     this.linkStart = environment.baseUrl + '/trail/link/';
     this.canShare = platform.is('capacitor');
-    this.isAnonymous = auth.auth?.isAnonymous !== false;
+    this.isAnonymous = !auth.auth || auth.auth?.isAnonymous === false;
   }
 
   ngOnInit(): void {

@@ -204,6 +204,31 @@ public class TrailencePlugin extends Plugin {
     }
   }
 
+  private String linkToOpen = null;
+  private PluginCall openLinkListener = null;
+
+  public void setLinkToOpen(String link) {
+    if (openLinkListener == null)
+      this.linkToOpen = link;
+    else
+      this.pushLinkToOpen(link);
+  }
+
+  @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
+  public void listenToOpenLink(PluginCall call) {
+    call.setKeepAlive(true);
+    this.openLinkListener = call;
+    if (this.linkToOpen != null) {
+      String link = this.linkToOpen;
+      this.linkToOpen = null;
+      this.pushLinkToOpen(link);
+    }
+  }
+
+  private void pushLinkToOpen(String link) {
+    this.openLinkListener.resolve(new JSObject().put("link", link));
+  }
+
   @PluginMethod()
   public void downloadUsingBrowser(PluginCall call) {
     try {

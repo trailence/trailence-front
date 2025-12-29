@@ -24,6 +24,16 @@
               <category android:name="android.intent.category.LAUNCHER" />
           </intent-filter>
 
+          <!-- Open public link -->
+          <intent-filter android:autoVerify="true">
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="@string/scheme" />
+            <data android:host="@string/hostname" />
+            <data android:pathPrefix="/trail/link/" />
+          </intent-filter>
+
           <!-- Open file by extension with scheme content -->
           <intent-filter>
             <category android:name="android.intent.category.DEFAULT" />

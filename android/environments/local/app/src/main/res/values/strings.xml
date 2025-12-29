@@ -5,4 +5,6 @@
     <string name="package_name">org.trailence</string>
     <string name="custom_url_scheme">org.trailence</string>
     <string name="build_type">local</string>
+    <string name="hostname">localhost</string>
+    <string name="scheme">http</string>
 </resources>
