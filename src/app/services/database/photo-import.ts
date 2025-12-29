@@ -11,6 +11,7 @@ export async function importPhoto( // NOSONAR
   dateTaken?: number, latitude?: number, longitude?: number,
   isCover?: boolean,
   photoUuid?: string,
+  fromRecording?: boolean,
 ): Promise<{blob: Blob, photo: Photo}> {
   if (description.length > 100) description = description.substring(0, 100);
   const arr = new Uint8Array(content);
@@ -62,7 +63,7 @@ export async function importPhoto( // NOSONAR
     trailUuid,
     description,
     index,
-  });
+  }, false, fromRecording);
   photo.latitude = latitude ?? info?.latitude;
   photo.longitude = longitude ?? info?.longitude;
   photo.dateTaken = dateTaken ?? info?.dateTaken;

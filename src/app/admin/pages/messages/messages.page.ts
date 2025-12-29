@@ -29,7 +29,8 @@ export class AdminMessagesPage {
   ) {}
 
   styleProvider = (message: ContactMessageDto) => ({
-    'font-weight': message.read ? 'normal' : 'bold'
+    'font-weight': message.read ? 'normal' : 'bold',
+    'color': message.read ? '' : 'var(--ion-color-secondary)',
   });
 
   tableSettings = new TableSettings(

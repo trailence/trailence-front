@@ -134,27 +134,29 @@
               <div class="moderator-message">{{ trail1.publicationMessageFromModerator }}</div>
             </div>
           }
+        }
 
-          @if (photos !== undefined && !isSmall && (editable || photos.length !== 0)) {
-            <div class="trail-photos" (click)="openSlider()">
-              @if (photos.length === 0) {
-                <div class="no-photo">
-                  <ion-icon name="photos" color="secondary"></ion-icon>
-                  <span>{{i18n.texts.pages.trail.no_photo_message}}</span>
-                </div>
-              } @else {
-                <div class="cover">
-                  <app-photo [photo]="photos[0]" [maxWidth]="300" [maxHeight]="200"></app-photo>
-                </div>
-                @if (editable) {
-                  <ion-button class="edit" fill="solid" shape="round" color="secondary" (click)="openPhotos(); $event.stopPropagation();">
-                    <ion-icon name="edit" slot="icon-only"></ion-icon>
-                  </ion-button>
-                }
+        @if (photos !== undefined && !isSmall && (editable || photos.length !== 0 || !!recording)) {
+          <div class="trail-photos" (click)="openSlider()">
+            @if (photos.length === 0) {
+              <div class="no-photo">
+                <ion-icon name="photos" color="secondary"></ion-icon>
+                <span>{{i18n.texts.pages.trail.no_photo_message}}</span>
+              </div>
+            } @else {
+              <div class="cover">
+                <app-photo [photo]="photos[0]" [maxWidth]="300" [maxHeight]="200"></app-photo>
+              </div>
+              @if (editable || !!recording) {
+                <ion-button class="edit" fill="solid" shape="round" color="secondary" (click)="openPhotos(); $event.stopPropagation();">
+                  <ion-icon name="edit" slot="icon-only"></ion-icon>
+                </ion-button>
               }
-            </div>
-          }
+            }
+          </div>
+        }
 
+        @if (trail1) {
           @if (tagsNames1 && !trail2 && trail1Collection && !isPublication) {
             <div class="trail-tags-row editable" (click)="openTags(trail1)">
               <ion-icon name="tags" color="secondary"></ion-icon>
@@ -660,8 +662,8 @@
         <div class="metadata-content">
           <div class="metadata-title">{{ i18n.texts.metadata.current_position }}</div>
           <div class="metadata-value">
-            <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{i18n.coordToString(currentPoint.pos.lat)}}</div>
-            <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'">{{i18n.coordToString(currentPoint.pos.lng)}}</div>
+            <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'" style="font-size: 12px;">{{i18n.coordToString(currentPoint.pos.lat)}}</div>
+            <div [className]="tracks[1] ? 'metadata-secondary' : 'metadata-primary'" style="font-size: 12px;">{{i18n.coordToString(currentPoint.pos.lng)}}</div>
           </div>
         </div>
       </div>

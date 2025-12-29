@@ -32,6 +32,7 @@ import { PhotoDto } from 'src/app/model/dto/photo';
 import { PhotoService } from '../database/photo.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { CameraService } from '../camera/camera.service';
+import { importPhoto } from '../database/photo-import';
 
 @Injectable({
   providedIn: 'root'
@@ -291,21 +292,17 @@ export class TraceRecorderService {
     this.cameraService.takePhoto(location?.pos?.lat, location?.pos?.lng).then(photo => this.addPhoto(photo));
   }
 
-  public addPhoto(binary: BinaryContent): void {
+  public async addPhoto(binary: BinaryContent) {
     const recording = this._recording$.value;
     if (!recording || !this._table) return;
-    const photo = new Photo({
-      owner: recording.trail.owner,
-      trailUuid: recording.trail.uuid,
-      dateTaken: Date.now(),
-      index: recording.photos$.value.length + 1,
-    }, false, true);
-    photo.latitude = recording.track.arrivalPoint?.pos.lat;
-    photo.longitude = recording.track.arrivalPoint?.pos.lng;
+    const buffer = await binary.toArrayBuffer();
+    const imported = await importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
+    const photo = imported.photo;
+    const blob = imported.blob;
     const key = 'photo:' + photo.uuid;
-    binary.toArrayBuffer().
-    then(buffer => this._table?.add({key, photo: buffer}, 'photo:' + photo.uuid))
-    .then(() => recording.photos$.next([...recording.photos$.value, photo]));
+    await this._table?.add({key, photo: await blob.arrayBuffer()}, 'photo:' + photo.uuid);
+    recording.photos$.next([...recording.photos$.value, photo]);
+    return photo;
   }
 
   public deletePhoto(uuid: string) {

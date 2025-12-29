@@ -21,6 +21,7 @@ import { Trail } from 'src/app/model/trail';
 import { TraceRecorderService } from 'src/app/services/trace-recorder/trace-recorder.service';
 import { CameraService } from 'src/app/services/camera/camera.service';
 import { NgClass, NgStyle } from '@angular/common';
+import { BinaryContent } from 'src/app/utils/binary-content';
 
 interface PhotoWithInfo {
   photo: Photo;
@@ -281,8 +282,11 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
         return Promise.resolve(progress);
       },
       onfileread: (index: number, nbFiles: number, progress: Progress, filename: string, file: ArrayBuffer) => {
-        return firstValueFrom(this.photoService.addPhoto(trail.owner, trail.uuid, filename, photoIndex++, file))
-        .then(p => {
+        const promise = trail === this.traceRecorder.current?.trail ?
+          this.traceRecorder.addPhoto(new BinaryContent(file)) :
+          firstValueFrom(this.photoService.addPhoto(trail.owner, trail.uuid, filename, photoIndex++, file));
+        return promise
+        .then(() => {
           progress.subTitle = '' + (index + 1) + '/' + nbFiles;
           progress.addWorkDone(1);
           return true;
