@@ -15,6 +15,7 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrailSourceType } from 'src/app/model/dto/trail';
 import { Platform, NavController, AlertController } from '@ionic/angular/standalone';
+import { Keyboard } from '@capacitor/keyboard';
 
 @Injectable({providedIn: 'root'})
 export class PlatformService {
@@ -29,6 +30,23 @@ export class PlatformService {
     this.listenToImportGpx();
     this.listenToOpenLink();
     this.handleBackButton();
+    this.handleKeyboard();
+  }
+
+  private handleKeyboard(): void {
+    if (!this.platform.is('android')) return;
+    Keyboard.addListener('keyboardDidShow', info => {
+      Console.info('Keyboard shown', info);
+      const height = info.keyboardHeight;
+      if (height) {
+        const current = document.documentElement.style.getPropertyValue('--ion-safe-area-bottom');
+        document.documentElement.style.setProperty('--ion-safe-area-bottom', current?.length ? 'calc(' + current + ' + ' + height + 'px)' : height + 'px');
+      }
+    });
+    Keyboard.addListener('keyboardWillHide', () => {
+      Console.info('Keyboard hidden');
+      document.documentElement.style.setProperty('--ion-safe-area-bottom', '');
+    });
   }
 
   private handleBackButton(): void {

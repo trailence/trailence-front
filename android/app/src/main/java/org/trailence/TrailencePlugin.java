@@ -72,6 +72,9 @@ public class TrailencePlugin extends Plugin {
         .put("deviceModel", deviceModel)
         .put("deviceBrand", deviceBrand)
         .put("deviceName", deviceName)
+        .put("androidSdk", Build.VERSION.SDK_INT)
+        .put("androidOS", Build.VERSION.BASE_OS)
+        .put("androidRelease", Build.VERSION.RELEASE)
     );
   }
 

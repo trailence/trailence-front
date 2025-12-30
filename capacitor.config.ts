@@ -12,6 +12,9 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorHttp: {
       enabled: false
+    },
+    Keyboard: {
+      resizeOnFullScreen: false
     }
   },
   android: {
