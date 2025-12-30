@@ -1,0 +1,6 @@
+<div class="range-container {{direction}}" [ngStyle]="{'--start-value': ((value.lower - min) * 100 / (max - min)) + '%', '--end-value': ((value.upper - min) * 100 / (max - min)) + '%', '--size': size ? size + 'px' : '', '--height': height + 'px', '--disabled-color': 'var(--ion-color-' + disabledColor + ')', '--disabled-height': disabledLineHeight + 'px', '--enabled-color': 'var(--ion-color-' + enabledColor + ')', '--enabled-height': enabledLineHeight + 'px', '--knob-size': knobSize + 'px', '--knob-radius': knobRadius + 'px'}">
+  <div class="disabled-line"></div>
+  <div class="enabled-line"></div>
+  <div class="start-knob" #startKnob></div>
+  <div class="end-knob" #endKnob></div>
+</div>

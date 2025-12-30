@@ -189,6 +189,8 @@ export class PhotoService {
   }
 
   public updateFile(photo: Photo, blob: Blob, ondone?: () => void): void {
+    // TODO from moderation
+    // TODO from recorder
     this.delete(photo, () => {
       this.injector.get(StoredFilesService).delete(photo.owner, 'photo', photo.uuid)
       .then(() => blob.arrayBuffer())

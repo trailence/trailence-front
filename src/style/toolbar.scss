@@ -52,7 +52,7 @@ app-toolbar {
       }
       position: relative;
 
-      &:not(.disabled) {
+      &:not(.disabled):not(.section-title) {
         cursor: pointer;
       }
 
@@ -106,7 +106,7 @@ app-toolbar {
         }
       }
 
-      &:hover:not(.disabled) {
+      &:hover:not(.disabled):not(.section-title) {
         background: rgba(var(--ion-text-color-rgb), 0.1);
       }
 

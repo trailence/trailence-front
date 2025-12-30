@@ -1,0 +1,84 @@
+div.range-container {
+  position: relative;
+
+  div.disabled-line {
+    position: absolute;
+    background-color: var(--disabled-color);
+  }
+  div.enabled-line {
+    position: absolute;
+    background-color: var(--enabled-color);
+  }
+  div.start-knob, div.end-knob {
+    position: absolute;
+    background-color: var(--enabled-color);
+    width: var(--knob-size);
+    height: var(--knob-size);
+    border-radius: var(--knob-radius);
+    cursor: grab;
+  }
+
+  &.horizontal {
+    width: var(--size);
+    height: var(--height);
+
+    div.disabled-line {
+      top: calc(50% - var(--disabled-height) / 2);
+      height: var(--disabled-height);
+      left: 0;
+      right: 0;
+      width: 100%;
+    }
+    div.enabled-line {
+      top: calc(50% - var(--enabled-height) / 2);
+      height: var(--enabled-height);
+      left: var(--start-value);
+      right: var(--end-value);
+      width: calc(var(--end-value) - var(--start-value));
+    }
+    div.start-knob {
+      top: calc(50% - var(--knob-size) / 2);
+      left: calc(var(--start-value) - calc(var(--knob-size) / 2));
+    }
+    div.end-knob {
+      top: calc(50% - var(--knob-size) / 2);
+      left: calc(var(--end-value) - calc(var(--knob-size) / 2));
+    }
+  }
+
+  &.vertical {
+    height: var(--size);
+    width: var(--height);
+
+    div.disabled-line {
+      left: calc(50% - var(--disabled-height) / 2);
+      width: var(--disabled-height);
+      top: 0;
+      bottom: 0;
+      height: 100%;
+    }
+    div.enabled-line {
+      left: calc(50% - var(--enabled-height) / 2);
+      width: var(--enabled-height);
+      top: var(--start-value);
+      bottom: var(--end-value);
+      height: calc(var(--end-value) - var(--start-value));
+    }
+    div.start-knob {
+      left: calc(50% - var(--knob-size) / 2);
+      top: calc(var(--start-value) - calc(var(--knob-size) / 2));
+    }
+    div.end-knob {
+      left: calc(50% - var(--knob-size) / 2);
+      top: calc(var(--end-value) - calc(var(--knob-size) / 2));
+    }
+  }
+}
+
+div.range-container, div.disabled-line, div.enabled-line, div.start-knob, div.end-knob {
+  draggable: false;
+  user-drag: none;
+  -webkit-user-drag: none;
+  -moz-user-select: none;
+  user-select: none;
+}

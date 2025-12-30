@@ -8,19 +8,44 @@
 </ion-header>
 <div class="popup-content">
   <app-toolbar
-    [items]="toolbarItems"
+    [items]="toolbarItemsShown"
+    [itemMaxWidth]="smallWidth ? 65 : undefined"
     [align]="'center'"
   ></app-toolbar>
   <div class="photo-editor">
     <div class="top-tool"></div>
-    <div class="middle">
-      <div class="left-tool"></div>
-      <div class="photo-container" #photoEditorContainer>
-        <canvas #photoEditorCanvas></canvas>
+    <div class="middle" #middle>
+      <div class="left-tool">
+        @if (getLeftToolRange(); as range) {
+        <app-range
+          [min]="range.min"
+          [max]="range.max"
+          [step]="1"
+          [value]="range.value"
+          [size]="range.size"
+          [direction]="'vertical'"
+          [enabledColor]="'secondary'"
+          (valueChange)="setLeftToolValue($event)"
+        ></app-range>
+      }
       </div>
+      <canvas #photoEditorCanvas></canvas>
       <div class="right-tool"></div>
     </div>
-    <div class="bottom-tool"></div>
+    <div class="bottom-tool">
+      @if (getBottomToolRange(); as range) {
+        <app-range
+          [min]="range.min"
+          [max]="range.max"
+          [step]="1"
+          [value]="range.value"
+          [size]="range.size"
+          [direction]="'horizontal'"
+          [enabledColor]="'secondary'"
+          (valueChange)="setBottomToolValue($event)"
+        ></app-range>
+      }
+    </div>
   </div>
 </div>
 <ion-footer>
