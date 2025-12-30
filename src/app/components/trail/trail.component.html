@@ -54,8 +54,8 @@
                   <div class="metadata-content">
                     <div class="metadata-title">{{i18n.texts.metadata.description}}</div>
                     <div class="metadata-value">
-                      <div class="metadata-primary"><app-text [text]="trail1.description"></app-text></div>
-                      <div class="metadata-secondary"><app-text [text]="trail2.description"></app-text></div>
+                      <div class="metadata-primary"><app-text [text]="trail1.description" [showSource]="showTextHtml"></app-text></div>
+                      <div class="metadata-secondary"><app-text [text]="trail2.description" [showSource]="showTextHtml"></app-text></div>
                     </div>
                   </div>
                 </div>
@@ -175,12 +175,12 @@
               <div class="description-text">
                 @if (!editable) {
                   <h2>
-                    <app-text [text]="trail1.description" [lang]="source?.info?.lang" [translations]="source?.info?.descriptionTranslations"></app-text>
+                    <app-text [text]="trail1.description" [lang]="source?.info?.lang" [translations]="source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text>
                   </h2>
                 } @else {
                   @if (!editingDescription) {
                     <div class="edit-description" (click)="startEditDescription()">
-                      <app-text [text]="trail1.description" [placeholder]="i18n.texts.pages.trail.sections.description.placeholder"></app-text>
+                      <app-text [text]="trail1.description" [placeholder]="i18n.texts.pages.trail.sections.description.placeholder" [showSource]="showTextHtml"></app-text>
                     </div>
                   } @else {
                     <ion-textarea class="description-text"
@@ -437,6 +437,7 @@
             [trails]="trailsWaypoints"
             [lang]="source?.info?.lang"
             [editTools]="editTools"
+            [showSource]="showTextHtml"
             (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
             (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
           ></app-trail-waypoints>
@@ -640,6 +641,7 @@
             [trails]="trailsWaypoints"
             [lang]="source?.info?.lang"
             [editTools]="editTools"
+            [showSource]="showTextHtml"
             (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
             (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
           ></app-trail-waypoints>

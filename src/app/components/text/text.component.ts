@@ -9,11 +9,15 @@ import { StringUtils } from 'src/app/utils/string-utils';
   selector: 'app-text',
   template: `<div>
     @if (!placeholder || html.length > 0) {
-      <span [innerHTML]="html"></span>
+      @if (showSource) {
+        <span>{{html}}</span>
+      } @else {
+        <span [innerHTML]="html"></span>
+      }
     } @else {
       <span class="placeholder">{{placeholder}}</span>
     }
-    @if (hasMore) {
+    @if (hasMore && !showSource) {
       <div class="show-more">
         <a href='#' (click)="toggleMore(); $event.preventDefault(); $event.stopPropagation();">{{ (showFull ? i18n.texts.show_less : i18n.texts.show_more) }}</a>
       </div>
@@ -63,6 +67,8 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
 
   @Input() maxTextLength = 400;
   @Input() minTextEllipsis = 350;
+
+  @Input() showSource = false;
 
   html = '';
   translatedFrom?: string;
@@ -116,6 +122,7 @@ export class TextComponent implements OnChanges, OnInit, OnDestroy {
 
   public getText(text: string | undefined | null): string {
     if (!text) return '';
+    if (this.showSource) return text;
     text = TextComponent.replaceBreakLines(text);
     if (text.length > this.maxTextLength) {
       this.hasMore = true;

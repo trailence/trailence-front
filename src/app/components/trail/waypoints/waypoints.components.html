@@ -90,10 +90,10 @@
     <div class="waypoint-content">
       @if (!wp.computed.breakPoint && (!arrival || !wp.computed.isDeparture)) {
         <div class="waypoint-name">
-          <app-text [text]="wp.computed.wayPoint.name" [lang]="lang" [translations]="wp.computed.wayPoint.nameTranslations"></app-text>
+          <app-text [text]="wp.computed.wayPoint.name" [lang]="lang" [translations]="wp.computed.wayPoint.nameTranslations" [showSource]="showSource"></app-text>
         </div>
         <div class="waypoint-description">
-          <app-text [text]="wp.computed.wayPoint.description" [lang]="lang" [translations]="wp.computed.wayPoint.descriptionTranslations"></app-text>
+          <app-text [text]="wp.computed.wayPoint.description" [lang]="lang" [translations]="wp.computed.wayPoint.descriptionTranslations" [showSource]="showSource"></app-text>
         </div>
       }
     </div>

@@ -196,6 +196,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
   canTakePhoto = false;
   publishedTrail?: Trail;
+  showTextHtml = false;
 
   private _lock?: () => void;
   editingDescription = false;
@@ -235,6 +236,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     new MenuItem().setIcon('privacy').setI18nLabel('publications.exit_check_public_trails_around')
       .setVisible(() => this.isShowPublicTrailsAround)
       .setAction(() => this.hidePublicTrailsAround()),
+    new MenuItem().setIcon('text').setI18nLabel('publications.show_html_text')
+      .setVisible(() => this.trail1?.fromModeration && !this.showTextHtml)
+      .setAction(() => { this.showTextHtml = true; this.changesDetection.detectChanges(); }),
+    new MenuItem().setIcon('text').setI18nLabel('publications.exit_show_html_text')
+      .setVisible(() => this.trail1?.fromModeration && this.showTextHtml)
+      .setAction(() => { this.showTextHtml = false; this.changesDetection.detectChanges(); }),
     new MenuItem().setIcon('web').setI18nLabel('publications.publish')
       .setVisible(() => (this.trail1?.fromModeration || (!!this.publicationChecklist && !this.trail2)))
       .setDisabled(() =>

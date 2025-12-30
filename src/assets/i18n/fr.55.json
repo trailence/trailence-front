@@ -846,6 +846,8 @@
     "exit_compare_current": "Arrêter la comparaison",
     "check_public_trails_around": "Afficher les parcours publics",
     "exit_check_public_trails_around": "Enlever les parcours publics",
+    "show_html_text": "Textes en HTML",
+    "exit_show_html_text": "Textes normaux",
     "remove_publication_title": "Supprimer le parcours publié",
     "remove_publication_message": "Veuillez indiquer la raison pour laquelle vous souhaitez que ce parcours soit supprimé",
     "remove_publication_sent": "Votre demande de suppression a été envoyée",

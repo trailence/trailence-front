@@ -29,6 +29,7 @@ export class WaypointsComponent implements OnInit, OnDestroy {
   @Input() trails!: TrailsWaypoints;
   @Input() lang?: string;
   @Input() editTools?: TrackEditToolsComponent;
+  @Input() showSource = false;
 
   @Output() highlightWaypoint = new EventEmitter<{wp: ComputedWayPoint, click: boolean}>();
   @Output() unhighlightWaypoint = new EventEmitter<{wp: ComputedWayPoint, force: boolean}>();
