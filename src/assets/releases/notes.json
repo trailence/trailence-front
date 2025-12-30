@@ -302,5 +302,9 @@
         "Several other small improvements and bug fixes are also included in this version"
       ]
     }
+  },
+  "010301": {
+    "en": {"message": "Some improvements and fixes"},
+    "fr": {"message": "Quelques améliorations et correctifs"}
   }
 }
