@@ -1,0 +1,42 @@
+div.popup-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  app-toolbar {
+    flex: none;
+    background-color: var(--ion-toolbar-background);
+  }
+
+  div.photo-editor {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    div.top-tool, div.bottom-tool {
+      flex: none;
+      height: 20px;
+    }
+    div.middle {
+      flex: 1 1 100%;
+      align-self: stretch;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      div.left-tool, div.right-tool {
+        flex: none;
+        width: 20px;
+      }
+      div.photo-container {
+        flex: 1 1 100%;
+        align-self: stretch;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+}

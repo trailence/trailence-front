@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
@@ -87,6 +87,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     private readonly alertController: AlertController,
     private readonly traceRecorder: TraceRecorderService,
     private readonly cameraService: CameraService,
+    private readonly injector: Injector,
   ) {
     this.updateSize(browser);
     this.subscriptions.add(browser.resize$.subscribe(() => this.updateSize(browser)));
@@ -368,6 +369,10 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     if (photo.editing === null) return;
     photo.editing = null;
     this.changesDetector.detectChanges();
+  }
+
+  editPhoto(photo: Photo): void {
+    import('../photo-editor/photo-editor.component').then(m => m.openEditor(this.injector, photo));
   }
 
 }

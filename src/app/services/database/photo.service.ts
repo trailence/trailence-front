@@ -188,6 +188,19 @@ export class PhotoService {
     this.store.updateWithLock(photo, updater, ondone);
   }
 
+  public updateFile(photo: Photo, blob: Blob, ondone?: () => void): void {
+    this.delete(photo, () => {
+      this.injector.get(StoredFilesService).delete(photo.owner, 'photo', photo.uuid)
+      .then(() => blob.arrayBuffer())
+      .then(content => {
+        this.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover)
+        .pipe(first()).subscribe(() => {
+          if (ondone) ondone();
+        });
+      })
+    });
+  }
+
   public delete(photo: Photo, ondone?: () => void): void {
     if (photo.fromModeration) {
       this.injector.get(ModerationService).deletePhoto(photo).pipe(first()).subscribe(() => {

@@ -113,6 +113,8 @@ export const ICONS: string[] = [
   'redo',
   'reset',
   'road-bike',
+  'rotate-clockwise',
+  'rotate-counterclockwise',
   'running',
   'save',
   'search',

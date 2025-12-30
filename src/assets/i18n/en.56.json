@@ -802,6 +802,11 @@
     },
     "privacy_policy": {
       "title": "Privacy Policy"
+    },
+    "photo_editor": {
+      "title": "Photo Editor",
+      "rotate_clockwise": "Rotate right",
+      "rotate_counterclockwise": "Rotate left"
     }
   },
   "menu": {

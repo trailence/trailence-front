@@ -38,8 +38,9 @@ export class StoredFilesService {
     return from(this.table.add({key, blob, dateStored: Date.now()}, key));
   }
 
-  public delete(owner: string, type: string, uuid: string): void {
-    if (this.table) this.table.delete(this.getKey(owner, type, uuid));
+  public delete(owner: string, type: string, uuid: string): Promise<any> {
+    if (this.table) return this.table.delete(this.getKey(owner, type, uuid));
+    return Promise.resolve();
   }
 
   public deleteMany(type: string, toDelete: {owner: string, uuid: string}[]): void {

@@ -112,6 +112,8 @@ export const SRC_ICONS: {[name: string]: string} = {
   'redo': 'redo.1.svg', // arrow-redo-outline
   'reset': 'reset.1.svg', // refresh-outline
   'road-bike': 'road-bike.1.svg',
+  'rotate-clockwise': 'rotate-clockwise.1.svg',
+  'rotate-counterclockwise': 'rotate-counterclockwise.1.svg',
   'running': 'running.1.svg',
   'save': 'save.1.svg', // save
   'search': 'search.1.svg', // search-outline

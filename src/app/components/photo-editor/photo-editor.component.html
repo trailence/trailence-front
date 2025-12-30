@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="photos" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.photo_editor.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<div class="popup-content">
+  <app-toolbar
+    [items]="toolbarItems"
+    [align]="'center'"
+  ></app-toolbar>
+  <div class="photo-editor">
+    <div class="top-tool"></div>
+    <div class="middle">
+      <div class="left-tool"></div>
+      <div class="photo-container" #photoEditorContainer>
+        <canvas #photoEditorCanvas></canvas>
+      </div>
+      <div class="right-tool"></div>
+    </div>
+    <div class="bottom-tool"></div>
+  </div>
+</div>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      <ion-button color="success" [disabled]="!blob || historyBack.length === 0" (click)="close(true)">
+        <ion-icon name="save"></ion-icon>
+        <ion-label>{{i18n.texts.buttons.save}}</ion-label>
+      </ion-button>
+      <ion-button (click)="close(false)">
+        {{i18n.texts.buttons.close}}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
