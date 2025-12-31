@@ -297,8 +297,12 @@ export class TraceRecorderService {
     if (!recording || !this._table) return;
     const buffer = await binary.toArrayBuffer();
     const imported = await importPhoto(recording.trail.owner, recording.trail.uuid, '', recording.photos$.value.length + 1, buffer, this.preferencesService.preferences, Date.now(), recording.track.arrivalPoint?.pos.lat, recording.track.arrivalPoint?.pos.lng, false, undefined, true);
-    const photo = imported.photo;
-    const blob = imported.blob;
+    return await this.storePhoto(imported.photo, imported.blob);
+  }
+
+  public async storePhoto(photo: Photo, blob: Blob) {
+    const recording = this._recording$.value;
+    if (!recording || !this._table) return null;
     const key = 'photo:' + photo.uuid;
     await this._table?.add({key, photo: await blob.arrayBuffer()}, 'photo:' + photo.uuid);
     recording.photos$.next([...recording.photos$.value, photo]);

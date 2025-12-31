@@ -158,13 +158,17 @@ export class PhotoService {
     description: string, index: number,
     content: ArrayBuffer,
     dateTaken?: number, latitude?: number, longitude?: number,
-    isCover?: boolean
+    isCover?: boolean,
+    fromModeration?: boolean,
+    fromRecording?: boolean,
   ): Observable<Photo | null> {
     return from(importPhoto(owner, trailUuid, description, index, content, this.preferences.preferences, dateTaken, latitude, longitude, isCover)).pipe(
       switchMap(imported => {
         return this.injector.get(StoredFilesService).store(owner, 'photo', imported.photo.uuid, imported.blob).pipe(
           switchMap(result => {
             if (result === undefined) return of(null);
+            if (fromModeration) return this.injector.get(ModerationService).createPhoto(imported.photo, imported.blob);
+            if (fromRecording) return from(this.injector.get(TraceRecorderService).storePhoto(imported.photo, imported.blob));
             return this.store.create(imported.photo);
           })
         );
@@ -189,13 +193,11 @@ export class PhotoService {
   }
 
   public updateFile(photo: Photo, blob: Blob, ondone?: () => void): void {
-    // TODO from moderation
-    // TODO from recorder
     this.delete(photo, () => {
       this.injector.get(StoredFilesService).delete(photo.owner, 'photo', photo.uuid)
       .then(() => blob.arrayBuffer())
       .then(content => {
-        this.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover)
+        this.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover, photo.fromModeration, photo.fromRecording)
         .pipe(first()).subscribe(() => {
           if (ondone) ondone();
         });
@@ -208,6 +210,11 @@ export class PhotoService {
       this.injector.get(ModerationService).deletePhoto(photo).pipe(first()).subscribe(() => {
         if (ondone) ondone();
       });
+      return;
+    }
+    if (photo.fromRecording) {
+      this.injector.get(TraceRecorderService).deletePhoto(photo.uuid);
+      if (ondone) ondone();
       return;
     }
     this.store.delete(photo, () => {

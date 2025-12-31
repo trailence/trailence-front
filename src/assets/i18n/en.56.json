@@ -664,6 +664,9 @@
         "not_available": "Not located on the track",
         "clear_title": "Remove photo position",
         "clear_message": "Are you sure you want to remove this photo's position?"
+      },
+      "buttons": {
+        "edit": "Edit photo"
       }
     },
     "import_popup": {

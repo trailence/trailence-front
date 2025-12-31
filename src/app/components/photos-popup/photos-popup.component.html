@@ -50,9 +50,6 @@
                       <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
                     </ion-button>
                   }
-                  <ion-button shape="round" size="small" fill="clear" color="dark" (click)="editPhoto(photoWithInfo.photo)">
-                    <ion-icon slot="icon-only" name="edit"></ion-icon>
-                  </ion-button>
                 </div>
               </div>
             }
@@ -131,6 +128,12 @@
                       <ion-icon slot="icon-only" name="trash"></ion-icon>
                     </ion-button>
                   }
+                </div>
+                <div class="footer-buttons">
+                  <ion-button size="small" fill="clear" color="secondary" (click)="editPhoto(photoWithInfo.photo)">
+                    <ion-icon slot="start" name="edit"></ion-icon>
+                    <ion-label>{{i18n.texts.pages.photos_popup.buttons.edit}}</ion-label>
+                  </ion-button>
                 </div>
               </div>
             </div>

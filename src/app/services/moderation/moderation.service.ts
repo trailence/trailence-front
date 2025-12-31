@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, combineLatest, defaultIfEmpty, EMPTY, from, map, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, from, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { environment } from 'src/environments/environment';
@@ -31,7 +31,7 @@ export class ModerationService {
 
   private readonly trailCache: TimeoutCache<BehaviorSubject<Trail | null>>;
   private readonly trackCache: TimeoutCache<Track>;
-  private readonly trailAndPhotosCache: TimeoutCache<{trail: TrailDto, photos: PhotoDto[]}>;
+  private readonly trailAndPhotosCache: TimeoutCache<BehaviorSubject<{trail: TrailDto, photos: PhotoDto[]}>>;
   private readonly photoCache: TimeoutCache<BehaviorSubject<Photo | null>>;
   private readonly photoBlobCache: TimeoutCacheDb<{blob: Blob}>;
 
@@ -50,7 +50,7 @@ export class ModerationService {
 
   public getTrailsToReview(): Observable<Observable<Trail | null>[]> {
     return this.http.get<{trail: TrailDto, photos: PhotoDto[]}[]>(environment.apiBaseUrl + '/moderation/v1/trailsToReview?size=50').pipe(
-      tap(response => this.trailAndPhotosCache.feedList(response.map(r => ({key: r.trail.uuid + ' ' + r.trail.owner, item: r})))),
+      tap(response => this.trailAndPhotosCache.feedList(response.map(r => ({key: r.trail.uuid + ' ' + r.trail.owner, item: new BehaviorSubject(r)})))),
       switchMap(dtos =>
         (dtos.length === 0 ? of([]) : combineLatest(dtos.map(dto => this.trailCache.getItem(dto.trail.uuid + ' ' + dto.trail.owner)))).pipe(
           map(items$ => ({dtos, items$}))
@@ -81,7 +81,7 @@ export class ModerationService {
   private fetchTrail(uuid: string, owner: string): Observable<Trail | null> {
     return this.http.get<{trail: TrailDto, photos: PhotoDto[]}>(environment.apiBaseUrl + '/moderation/v1/trailToReview/' + uuid + '/' + owner).pipe(
       switchMap(response => {
-        this.trailAndPhotosCache.feedItem(uuid + ' ' + owner, response);
+        this.trailAndPhotosCache.feedItem(uuid + ' ' + owner, new BehaviorSubject(response));
         const trail = new Trail(response.trail, true);
         const trail$ = new BehaviorSubject<Trail | null>(trail);
         this.trailCache.feedItem(uuid + ' ' + owner, trail$);
@@ -95,22 +95,26 @@ export class ModerationService {
     return from(this.trailAndPhotosCache.getItem(trailKey)).pipe(
       switchMap(fromCache => {
         if (fromCache) {
-          if (fromCache.photos.length === 0) return of([]);
-          return combineLatest(fromCache.photos.map(p => this.photoCache.getItem(p.uuid + ' ' + p.owner))).pipe(
-            switchMap(photosFromCache => {
-              const photos$: BehaviorSubject<Photo | null>[] = [];
-              for (let i = 0; i < fromCache.photos.length; ++i) {
-                let photo$ = photosFromCache[i];
-                const photo = new Photo(fromCache.photos[i], true);
-                if (photo$) {
-                  photo$.next(photo);
-                } else {
-                  photo$ = new BehaviorSubject<Photo | null>(photo);
-                }
-                photos$.push(photo$);
-                this.photoCache.feedItem(photo.uuid + ' ' + photo.owner, photo$);
-              }
-              return combineLatest(photos$);
+          return fromCache.pipe(
+            switchMap(trailAndPhotos => {
+              if (trailAndPhotos.photos.length === 0) return of([]);
+              return combineLatest(trailAndPhotos.photos.map(p => this.photoCache.getItem(p.uuid + ' ' + p.owner))).pipe(
+                switchMap(photosFromCache => {
+                  const photos$: BehaviorSubject<Photo | null>[] = [];
+                  for (let i = 0; i < trailAndPhotos.photos.length; ++i) {
+                    let photo$ = photosFromCache[i];
+                    const photo = new Photo(trailAndPhotos.photos[i], true);
+                    if (photo$) {
+                      photo$.next(photo);
+                    } else {
+                      photo$ = new BehaviorSubject<Photo | null>(photo);
+                    }
+                    photos$.push(photo$);
+                    this.photoCache.feedItem(photo.uuid + ' ' + photo.owner, photo$);
+                  }
+                  return combineLatest(photos$);
+                })
+              );
             })
           );
         }
@@ -185,7 +189,9 @@ export class ModerationService {
             }
             this.trailCache.feedItem(trail.uuid + ' ' + trail.owner, trail$);
             if (fromCache[1]) {
-              fromCache[1].trail = response;
+              const trailAndPhotos = fromCache[1].value;
+              trailAndPhotos.trail = response;
+              fromCache[1].next(trailAndPhotos);
               this.trailAndPhotosCache.feedItem(response.uuid + ' ' + response.owner, fromCache[1]);
             }
             return trail$;
@@ -213,9 +219,11 @@ export class ModerationService {
             }
             this.photoCache.feedItem(photo.uuid + ' ' + photo.owner, photo$);
             if (fromCache[1]) {
-              const i = fromCache[1].photos.findIndex(p => p.uuid === photo.uuid);
-              if (i >= 0) fromCache[1].photos.splice(i, 1);
-              fromCache[1].photos.push(response);
+              const trailAndPhotos = fromCache[1].value;
+              const i = trailAndPhotos.photos.findIndex(p => p.uuid === photo.uuid);
+              if (i >= 0) trailAndPhotos.photos.splice(i, 1);
+              trailAndPhotos.photos.push(response);
+              fromCache[1].next(trailAndPhotos);
               this.trailAndPhotosCache.feedItem(photo.trailUuid + ' ' + response.owner, fromCache[1]);
             }
             return photo$;
@@ -235,8 +243,10 @@ export class ModerationService {
           map(fromCache => {
             if (fromCache[0]) fromCache[0].next(null);
             if (fromCache[1]) {
-              const i = fromCache[1].photos.findIndex(p => p.uuid === photo.uuid);
-              if (i >= 0) fromCache[1].photos.splice(i, 1);
+              const trailAndPhotos = fromCache[1].value;
+              const i = trailAndPhotos.photos.findIndex(p => p.uuid === photo.uuid);
+              if (i >= 0) trailAndPhotos.photos.splice(i, 1);
+              fromCache[1].next(trailAndPhotos);
               this.trailAndPhotosCache.feedItem(photo.trailUuid + ' ' + photo.owner, fromCache[1]);
             }
             this.photoBlobCache.removeItem(photo.uuid + ' ' + photo.owner);
@@ -244,6 +254,39 @@ export class ModerationService {
           })
         )
       )
+    );
+  }
+
+  public createPhoto(photo: Photo, blob: Blob): Observable<Photo | null> {
+    const headers: any = {
+      'Content-Type': 'application/octet-stream',
+      'X-Description': encodeURIComponent(photo.description),
+      'X-Cover': photo.isCover ? 'true' : 'false',
+      'X-Index': photo.index,
+    };
+    if (photo.dateTaken) headers['X-DateTaken'] = photo.dateTaken;
+    if (photo.latitude) headers['X-Latitude'] = photo.latitude;
+    if (photo.longitude) headers['X-Longitude'] = photo.longitude;
+    return this.http.post<PhotoDto>(environment.apiBaseUrl + '/moderation/v1/photoFromReview/' + photo.uuid + '/' + photo.owner + '/' + photo.trailUuid, blob, headers).pipe(
+      map(dto => {
+        const photo = new Photo(dto, true, false);
+        this.trailAndPhotosCache.getItem(photo.trailUuid + ' ' + photo.owner)
+        .then(cache => {
+          if (cache) {
+            const trailAndPhotos = cache.value;
+            this.photoBlobCache.feedItem(photo.uuid + ' ' + photo.owner, {blob});
+            trailAndPhotos.photos.push(dto);
+            cache.next(trailAndPhotos);
+            this.trailAndPhotosCache.feedItem(photo.trailUuid + ' ' + photo.owner, cache);
+          }
+        });
+        return photo;
+      }),
+      catchError(e => {
+        Console.error('error saving photo on server', photo.toDto(), e);
+        this.injector.get(ErrorService).addNetworkError(e, 'errors.stores.save_photo', [photo.description]);
+        return of(null);
+      })
     );
   }
 
@@ -265,7 +308,9 @@ export class ModerationService {
             }
             this.trailCache.feedItem(trail.uuid + ' ' + trail.owner, trail$);
             if (fromCache[1]) {
-              fromCache[1].trail = response;
+              const trailAndPhotos = fromCache[1].value;
+              trailAndPhotos.trail = response;
+              fromCache[1].next(trailAndPhotos);
               this.trailAndPhotosCache.feedItem(response.uuid + ' ' + response.owner, fromCache[1]);
             }
             return trail$;

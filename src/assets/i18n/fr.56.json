@@ -664,6 +664,9 @@
         "not_available": "Non localisée sur le parcours",
         "clear_title": "Supprimer la position de la photo",
         "clear_message": "Etes-vous sûr de vouloir supprimer la position de cette photo ?"
+      },
+      "buttons": {
+        "edit": "Modifier la photo"
       }
     },
     "import_popup": {
