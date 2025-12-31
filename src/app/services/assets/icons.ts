@@ -11,6 +11,7 @@ export const ICONS: string[] = [
   'arrow-forward',
   'arrow-up',
   'bicycle',
+  'blur',
   'boat',
   'browser-chrome',
   'browser-firefox',

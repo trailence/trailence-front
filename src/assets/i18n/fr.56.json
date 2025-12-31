@@ -810,7 +810,8 @@
       "title": "Edition d'une photo",
       "rotate_clockwise": "Pivoter à droite",
       "rotate_counterclockwise": "Pivoter à gauche",
-      "crop": "Recadrer"
+      "crop": "Recadrer",
+      "blur": "Flou"
     }
   },
   "menu": {

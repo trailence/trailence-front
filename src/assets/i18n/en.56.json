@@ -810,7 +810,8 @@
       "title": "Photo Editor",
       "rotate_clockwise": "Rotate right",
       "rotate_counterclockwise": "Rotate left",
-      "crop": "Crop"
+      "crop": "Crop",
+      "blur": "Blur"
     }
   },
   "menu": {

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Photo } from 'src/app/model/photo';
-import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, ModalController } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, ModalController, IonRange } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
@@ -25,7 +25,7 @@ export async function openEditor(injector: Injector, photo: Photo) {
   templateUrl: './photo-editor.component.html',
   styleUrl: './photo-editor.component.scss',
   imports: [
-    IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader,
+    IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonRange,
     ToolbarComponent,
     RangeComponent,
   ]
@@ -65,6 +65,9 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     new MenuItem().setIcon('crop').setI18nLabel('pages.photo_editor.crop')
       .setDisabled(() => this.applying)
       .setAction(() => this.startCrop()),
+    new MenuItem().setIcon('blur').setI18nLabel('pages.photo_editor.blur')
+      .setDisabled(() => this.applying)
+      .setAction(() => this.startBlur()),
     new MenuItem(),
     new MenuItem().setIcon('undo').setI18nLabel('buttons.undo')
       .setDisabled(() => this.historyBack.length === 0 || this.applying)
@@ -229,8 +232,26 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
   }
 
   private startCrop(): void {
-    this.tool = new CropTool(this, 0, 0, this.photoImage!.naturalWidth, this.photoImage!.naturalHeight, 0, this.photoImage!.naturalWidth, 0, this.photoImage!.naturalHeight);
+    this.tool = new CropTool(this, 0, 0, this.photoImage!.naturalWidth - 1, this.photoImage!.naturalHeight - 1, 0, this.photoImage!.naturalWidth - 1, 0, this.photoImage!.naturalHeight - 1);
+    this.tool!.refresh();
     this.refresh();
+  }
+
+  private startBlur(): void {
+    this.tool = new BlurTool(this, 0, 0, this.photoImage!.naturalWidth - 1, this.photoImage!.naturalHeight - 1, 0, this.photoImage!.naturalWidth - 1, 0, this.photoImage!.naturalHeight - 1);
+    this.tool!.refresh();
+    this.refresh();
+  }
+
+  getBlurValue(): number {
+    if (this.tool?.name === 'blur') return (this.tool as BlurTool).blur;
+    return 1;
+  }
+
+  setBlurValue(value: any): void {
+    if (!value || this.tool?.name !== 'blur') return;
+    (this.tool as BlurTool).blur = value as number;
+    this.tool!.refresh();
   }
 
   cancelTool(): void {
@@ -320,4 +341,58 @@ class CropTool implements Tool, ToolAreaRange {
     this.component.cancelTool();
   }
 
+}
+
+class BlurTool implements Tool, ToolAreaRange {
+  name = 'blur';
+  toolbarItems: MenuItem[] = [
+    new MenuItem().setSectionTitle(true).setIcon('blur').setI18nLabel('pages.photo_editor.blur').setTextColor('medium'),
+    new MenuItem(),
+    new MenuItem().setCustomContentSelector('.blur-control'),
+    new MenuItem(),
+    new MenuItem().setIcon('checkmark').setI18nLabel('buttons.apply')
+      .setTextColor('success')
+      .setAction(() => this.apply()),
+    new MenuItem().setIcon('cross').setI18nLabel('buttons.cancel')
+      .setAction(() => this.component.cancelTool()),
+  ];
+
+  constructor(
+    private readonly component: PhotoEditorComponent,
+    public x1: number,
+    public y1: number,
+    public x2: number,
+    public y2: number,
+    public minX: number,
+    public maxX: number,
+    public minY: number,
+    public maxY: number,
+    public blur: number = 3,
+  ) {
+  }
+
+  refresh(): void {
+    const render = this.component.drawImage();
+    render.ctx.save();
+    render.ctx.filter = 'blur(' + this.blur + 'px)';
+    render.ctx.drawImage(this.component.photoImage!,
+      this.x1, this.y1, this.x2 - this.x1 + 1, this.y2 - this.y1 + 1,
+      this.x1 * render.ratio - this.blur, this.y1 * render.ratio - this.blur, (this.x2 - this.x1 + 1) * render.ratio + this.blur * 2, (this.y2 - this.y1 + 1) * render.ratio + this.blur * 2);
+    render.ctx.restore();
+  }
+
+  apply(): void {
+    const original = this.component.photoImage!;
+    const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
+    canvas.width = original.naturalWidth;
+    canvas.height = original.naturalHeight;
+    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    ctx.drawImage(original, 0, 0, original.naturalWidth, original.naturalHeight);
+    ctx.filter = 'blur(' + this.blur + 'px)';
+    ctx.drawImage(original,
+      this.x1, this.y1, this.x2 - this.x1 + 1, this.y2 - this.y1 + 1,
+      this.x1 - this.blur, this.y1 - this.blur, (this.x2 - this.x1 + 1) + this.blur * 2, (this.y2 - this.y1 + 1) + this.blur * 2);
+    this.component.applyTransform(canvas);
+    this.component.cancelTool();
+  }
 }

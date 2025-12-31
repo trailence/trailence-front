@@ -10,6 +10,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'arrow-forward': 'arrow-forward.1.svg', // arrow-forward
   'arrow-up': 'arrow-up.1.svg', // arrow-up
   'bicycle': 'bicycle.1.svg',
+  'blur': 'blur.1.svg',
   'boat': 'boat.1.svg',
   'browser-chrome': 'browser-chrome.1.svg', // logo-chrome
   'browser-firefox': 'browser-firefox.1.svg', // logo-firefox

@@ -11,7 +11,17 @@
     [items]="toolbarItemsShown"
     [itemMaxWidth]="smallWidth ? 65 : undefined"
     [align]="'center'"
-  ></app-toolbar>
+  >
+    <div class="blur-control">
+      <ion-range
+        [min]="1"
+        [max]="20"
+        [value]="getBlurValue()"
+        [step]="1"
+        (ionInput)="setBlurValue($event.detail.value)"
+      ></ion-range>
+    </div>
+  </app-toolbar>
   <div class="photo-editor">
     <div class="top-tool"></div>
     <div class="middle" #middle>
