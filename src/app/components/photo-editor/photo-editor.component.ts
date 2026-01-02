@@ -9,6 +9,7 @@ import { first, Subscription } from 'rxjs';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { RangeComponent } from '../range/range.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
+import { NgStyle } from '@angular/common';
 
 export async function openEditor(injector: Injector, photo: Photo) {
   const modal = await injector.get(ModalController).create({
@@ -28,13 +29,14 @@ export async function openEditor(injector: Injector, photo: Photo) {
     IonButtons, IonFooter, IonButton, IonLabel, IonIcon, IonTitle, IonToolbar, IonHeader, IonRange,
     ToolbarComponent,
     RangeComponent,
+    NgStyle,
   ]
 })
 export class PhotoEditorComponent implements OnInit, OnDestroy {
 
   @Input() photo!: Photo;
 
-  @ViewChild('middle') middle!: ElementRef;
+  @ViewChild('photoEditorArea') photoEditorArea!: ElementRef;
   @ViewChild('photoEditorCanvas') photoEditorCanvas!: ElementRef;
 
   constructor(
@@ -45,8 +47,15 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     private readonly modalController: ModalController,
     readonly browser: BrowserService,
   ) {
-    this.smallWidth = browser.width < 500;
-    this.subscription = browser.resize$.subscribe(size => this.smallWidth = size.width < 500);
+    this.smallWidth = browser.width < 450;
+    this.subscription = browser.resize$.subscribe(size => {
+      this.smallWidth = size.width < 450;
+      if (this.photoImage) {
+        this.drawImage();
+        this.tool?.refresh();
+        this.changeDetector.detectChanges();
+      }
+    });
   }
 
   subscription?: Subscription;
@@ -130,7 +139,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
       if (this.blob !== blob) return;
       this.photoImage = img;
       const draw = () => {
-        if (this.middle.nativeElement.offsetWidth === 0) {
+        if (this.photoEditorArea.nativeElement.offsetWidth === 0) {
           setTimeout(() => draw(), 10);
         } else {
           this.drawImage();
@@ -144,19 +153,29 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     this.refresh();
   }
 
+  canvasArea = {x: 50, y: 10, width: 1, height: 1};
+
   public drawImage(): {canvas: HTMLCanvasElement, ratio: number, ctx: CanvasRenderingContext2D} {
     const img = this.photoImage!;
     const imgWidth = img.naturalWidth;
     const imgHeight = img.naturalHeight;
-    const containerWidth = this.middle.nativeElement.offsetWidth - 100;
-    const containerHeight = this.middle.nativeElement.offsetHeight;
+    const containerWidth = this.photoEditorArea.nativeElement.offsetWidth - 60;
+    const containerHeight = this.photoEditorArea.nativeElement.offsetHeight - 60;
     const containerRatio = Math.min(
       containerWidth >= imgWidth ? 1 : containerWidth / imgWidth,
       containerHeight >= imgHeight ? 1 : containerHeight / imgHeight
     );
     const renderCanvas = this.photoEditorCanvas.nativeElement as HTMLCanvasElement;
-    renderCanvas.width = imgWidth * containerRatio;
-    renderCanvas.height = imgHeight * containerRatio;
+    this.canvasArea = {
+      x: (containerWidth / 2) - (imgWidth * containerRatio / 2) + 50,
+      y: 10,
+      width: imgWidth * containerRatio,
+      height: imgHeight * containerRatio
+    };
+    renderCanvas.width = this.canvasArea.width;
+    renderCanvas.height = this.canvasArea.height;
+    renderCanvas.style.left = this.canvasArea.x + 'px';
+    renderCanvas.style.top = this.canvasArea.y + 'px';
     const renderContext = renderCanvas.getContext("2d") as CanvasRenderingContext2D;
     renderContext.drawImage(img, 0, 0, imgWidth, imgHeight, 0, 0, imgWidth * containerRatio, imgHeight * containerRatio);
     return {canvas: renderCanvas, ratio: containerRatio, ctx: renderContext};
@@ -171,13 +190,22 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((clockwise ? 90 : -90)*Math.PI/180);
     ctx.drawImage(original, -original.naturalWidth / 2, -original.naturalHeight / 2);
-    this.applyTransform(canvas);
+    this.applyTransform(canvas)
+    .then(() => {
+      this.applying = false;
+      this.refresh();
+    });
   }
 
-  applyTransform(canvas: HTMLCanvasElement) {
+  applyTransform(canvas: HTMLCanvasElement): Promise<any> {
     this.applying = true;
     this.refresh();
-    canvas.toBlob(newBlob => { if (newBlob) this.pushHistory(newBlob); }, 'image/jpeg', this.preferences.preferences.photoMaxQuality / 100);
+    return new Promise(resolve => {
+      canvas.toBlob(newBlob => {
+        if (newBlob) this.pushHistory(newBlob);
+        resolve(null);
+      }, 'image/jpeg', this.preferences.preferences.photoMaxQuality / 100);
+    })
   }
 
   getBottomToolRange(): {value: {lower: number, upper: number}, min: number, max: number, size: number} | undefined {
@@ -337,8 +365,7 @@ class CropTool implements Tool, ToolAreaRange {
     canvas.height = this.y2 - this.y1;
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     ctx.drawImage(original, this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1, 0, 0, this.x2 - this.x1, this.y2 - this.y1);
-    this.component.applyTransform(canvas);
-    this.component.cancelTool();
+    this.component.applyTransform(canvas).then(() => this.component.cancelTool());
   }
 
 }
@@ -392,7 +419,6 @@ class BlurTool implements Tool, ToolAreaRange {
     ctx.drawImage(original,
       this.x1, this.y1, this.x2 - this.x1 + 1, this.y2 - this.y1 + 1,
       this.x1 - this.blur, this.y1 - this.blur, (this.x2 - this.x1 + 1) + this.blur * 2, (this.y2 - this.y1 + 1) + this.blur * 2);
-    this.component.applyTransform(canvas);
-    this.component.cancelTool();
+    this.component.applyTransform(canvas).then(() => this.component.cancelTool());
   }
 }

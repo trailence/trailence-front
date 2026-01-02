@@ -9,7 +9,8 @@
 <div class="popup-content">
   <app-toolbar
     [items]="toolbarItemsShown"
-    [itemMaxWidth]="smallWidth ? 65 : undefined"
+    [itemMaxWidth]="smallWidth ? 60 : undefined"
+    [itemMinWidth]="45"
     [align]="'center'"
   >
     <div class="blur-control">
@@ -22,11 +23,10 @@
       ></ion-range>
     </div>
   </app-toolbar>
-  <div class="photo-editor">
-    <div class="top-tool"></div>
-    <div class="middle" #middle>
-      <div class="left-tool">
-        @if (getLeftToolRange(); as range) {
+  <div class="photo-editor-area" #photoEditorArea>
+    <canvas #photoEditorCanvas></canvas>
+    <div class="left-tool" [ngStyle]="{'top': canvasArea.y + 'px', 'left': (canvasArea.x - 50) + 'px', 'height': canvasArea.height + 'px'}">
+      @if (getLeftToolRange(); as range) {
         <app-range
           [min]="range.min"
           [max]="range.max"
@@ -38,11 +38,8 @@
           (valueChange)="setLeftToolValue($event)"
         ></app-range>
       }
-      </div>
-      <canvas #photoEditorCanvas></canvas>
-      <div class="right-tool"></div>
     </div>
-    <div class="bottom-tool">
+    <div class="bottom-tool" [ngStyle]="{'top': (canvasArea.y + canvasArea.height) + 'px', 'left': canvasArea.x + 'px', 'width': canvasArea.width + 'px'}">
       @if (getBottomToolRange(); as range) {
         <app-range
           [min]="range.min"
