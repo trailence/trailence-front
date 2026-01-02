@@ -78,6 +78,11 @@ export class WaypointsComponent implements OnInit, OnDestroy {
     else this.highlightWaypoint.emit({wp, click: true});
   }
 
+  toggleShowBreaks(trail: TrailWaypoints, checked: boolean): void {
+    trail.showBreaks = checked;
+    this.changesDetection.detectChanges();
+  }
+
   setTab(index: any): void {
     if (typeof index === 'number' && index >= 0 && index < this.trails.trails.length && index !== this.selectedTrailIndex) {
       this.selectedTrailIndex = index;

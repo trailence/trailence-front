@@ -19,7 +19,7 @@
       <div class="show-breaks">
         <ion-checkbox labelPlacement="end"
           [checked]="selectedTrail.showBreaks"
-          (ionChange)="selectedTrail.showBreaks = $event.detail.checked"
+          (ionChange)="toggleShowBreaks(selectedTrail, $event.detail.checked)"
           [disabled]="trails.showBreaksOnMapLocked"
         >{{i18n.texts.pages.trail.show_breaks}}</ion-checkbox>
       </div>
