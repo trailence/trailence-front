@@ -106,32 +106,36 @@ export class TrailMenuService {
       }
     }
 
-    if (!isPublicationCollection(fromCollection?.type) && email && !onlyGlobal && !isModeration) {
-      const sel = this.injector.get(MySelectionService).getMySelectionNow();
-      let hasAbsent = false;
-      let hasPresent = false;
-      for (const trail of trails) {
-        const isInSelection = sel.some(s => s.owner === trail.owner && s.uuid === trail.uuid);
-        if (isInSelection) hasPresent = true;
-        else hasAbsent = true;
+    if (!isPublicationCollection(fromCollection?.type) && email && !onlyGlobal && !isModeration && trails.length > 0) {
+      if (!hasPublish) {
+        menu.push(new MenuItem());
       }
-      if (hasPresent || hasAbsent) {
-        if (!hasPublish) {
-          menu.push(new MenuItem());
+      const hasAbsent = () => {
+        const sel = this.injector.get(MySelectionService).getMySelectionNow();
+        for (const trail of trails) {
+          const isInSelection = sel.some(s => s.owner === trail.owner && s.uuid === trail.uuid);
+          if (!isInSelection) return true;
         }
-        if (hasAbsent) {
-          menu.push(new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
-            .setTextColor('my-selection')
-            .setAction(() => this.addToMySelection(trails))
-          );
+        return false;
+      };
+      const hasPresent = () => {
+        const sel = this.injector.get(MySelectionService).getMySelectionNow();
+        for (const trail of trails) {
+          const isInSelection = sel.some(s => s.owner === trail.owner && s.uuid === trail.uuid);
+          if (isInSelection) return true;
         }
-        if (hasPresent) {
-          menu.push(new MenuItem().setIcon('star-empty').setI18nLabel('pages.trails.actions.remove_from_my_selection')
-            .setTextColor('my-selection')
-            .setAction(() => this.removeFromMySelection(trails))
-          );
-        }
-      }
+        return false;
+      };
+      menu.push(new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
+        .setTextColor('my-selection')
+        .setVisible(() => hasAbsent())
+        .setAction(() => this.addToMySelection(trails))
+      );
+      menu.push(new MenuItem().setIcon('star-empty').setI18nLabel('pages.trails.actions.remove_from_my_selection')
+        .setTextColor('my-selection')
+        .setVisible(() => hasPresent())
+        .setAction(() => this.removeFromMySelection(trails))
+      );
     }
 
     if (trails.length === 2 && email && !onlyGlobal) {
