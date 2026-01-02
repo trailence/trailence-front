@@ -18,6 +18,7 @@ export class TrailsWaypoints {
   changes$ = new BehaviorSubject<any>(undefined);
 
   private _mapTracks: MapTrack[] = [];
+  /*
   private _showBreaksOnMap = false;
   public get showBreaksOnMap() { return this._showBreaksOnMap; }
   public set showBreaksOnMap(value: boolean) {
@@ -28,7 +29,7 @@ export class TrailsWaypoints {
     for (const mt of this._mapTracks) mt.showBreaksAnchors(value);
     this.trails[0].showBreaks = value;
     this.changes$.next(true);
-  }
+  }*/
   public showBreaksOnMapLocked = false;
 
   private photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[] = [];
@@ -57,10 +58,30 @@ export class TrailsWaypoints {
     for (const t of toRemove) t.destroy();
     this.trails = newTrails;
     this._mapTracks = mapTracks;
-    if (this._showBreaksOnMap && !this.canShowBreaksOnMap())
-      this._showBreaksOnMap = false;
-    for (const mt of mapTracks) mt.showBreaksAnchors(this._showBreaksOnMap);
+    this.updateShowBreaks();
+  }
+
+  public updateShowBreaks(): void {
+    if (!this.canShowBreaksOnMap()) {
+      for (const mt of this._mapTracks) mt.showBreaksAnchors(undefined);
+    } else {
+      const multiple = this.trails.filter(t => t.showBreaks).length > 1;
+      for (const mt of this._mapTracks) {
+        const t = this.trails.find(twp => twp.trail.owner === mt.trail?.owner && twp.trail.uuid === mt.trail?.uuid);
+        if (t) mt.showBreaksAnchors(t.showBreaks ? (multiple ? 'colored' : 'normal') : undefined);
+      }
+    }
     this.changes$.next(true);
+  }
+
+  public isShowingAllBreaks(): boolean {
+    return this.trails.every(t => t.showBreaks);
+  }
+
+  public toggleShowAllBreaks(): void {
+    const newValue = !this.isShowingAllBreaks();
+    this.trails.forEach(t => t._showBreaks = newValue);
+    this.updateShowBreaks();
   }
 
   public updatePhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[]): void {
@@ -73,7 +94,7 @@ export class TrailsWaypoints {
   }
 
   public canShowBreaksOnMap(): boolean {
-    return this.trails.length === 1 && this.trails[0].hasBreaks;
+    return this.trails.some(t => t.hasBreaks) && !this.showBreaksOnMapLocked;
   }
 
   private wayPointsUpdated(): void {
@@ -146,15 +167,15 @@ export class TrailWaypoints {
   wayPointDepartureAndArrival?: TrailWayPoint;
   wayPointsImages: string[] = [];
   hasBreaks = false;
-  private _showBreaks = false;
+  _showBreaks = false;
 
   private readonly subscription: Subscription;
 
   public get showBreaks() { return this._showBreaks; }
   public set showBreaks(value: boolean) {
-    if (value === this._showBreaks) return;
+    if (value === this._showBreaks || this.trails.showBreaksOnMapLocked) return;
     this._showBreaks = value;
-    this.trails.showBreaksOnMap = value;
+    this.trails.updateShowBreaks();
   }
 
   private currentPhotos: {photos: Photo[], point: L.LatLngExpression}[];

@@ -25,17 +25,20 @@ export const anchorBreakBorderColor = '#b0865cD8';
 export const anchorBreakFillColor = '#C8986890';
 export const anchorBreakTextColor = '#ffffff';
 
+export type ShowBreaksStyle = 'colored' | 'normal' | undefined;
+
 export class MapTrackWayPoints {
 
   private _anchors?: MapAnchor[];
   private _breaks?: MapAnchor[];
+  private _breaksColored?: MapAnchor[];
   private _departure?: MapAnchor;
   private _arrival?: MapAnchor;
   private _departureAndArrival?: MapAnchor;
 
   private _showDA = false;
   private _showWP = false;
-  private _showBreaks = false;
+  private _showBreaks: ShowBreaksStyle = undefined;
   private _map?: L.Map;
   private subscription?: Subscription;
 
@@ -50,7 +53,7 @@ export class MapTrackWayPoints {
     if (this._map) return;
     this._map = map;
     if (this._showDA) this.addDAToMap();
-    if (this._showBreaks) this.addBreaksToMap();
+    if (this._showBreaks) this.addBreaksToMap(this._showBreaks);
     if (this._showWP) this.addWPToMap();
   }
 
@@ -70,6 +73,7 @@ export class MapTrackWayPoints {
     this.remove();
     this._anchors = undefined;
     this._breaks = undefined;
+    this._breaksColored = undefined;
     this._departure = undefined;
     this._arrival = undefined;
     this._departureAndArrival = undefined;
@@ -92,11 +96,11 @@ export class MapTrackWayPoints {
     }
   }
 
-  public showBreaks(show: boolean): void {
-    if (show === this._showBreaks) return;
-    this._showBreaks = show;
+  public showBreaks(style: ShowBreaksStyle): void {
+    if (style === this._showBreaks) return;
+    this._showBreaks = style;
     if (this._map) {
-      if (show) this.addBreaksToMap(); else this.removeBreaksFromMap();
+      if (style) this.addBreaksToMap(style); else this.removeBreaksFromMap();
     }
   }
 
@@ -115,11 +119,12 @@ export class MapTrackWayPoints {
     if (this._map && this._showBreaks) this.removeBreaksFromMap();
     this._anchors = [];
     this._breaks = [];
+    this._breaksColored = [];
     for (const wp of list) {
       this.createFromWayPoint(wp, list);
     }
     if (this._map && this._showDA) this.addDAToMap();
-    if (this._map && this._showBreaks) this.addBreaksToMap();
+    if (this._map && this._showBreaks) this.addBreaksToMap(this._showBreaks);
     if (this._map && this._showWP) this.addWPToMap();
   }
   private createFromWayPoint(wp: ComputedWayPoint, list: ComputedWayPoint[]): void { // NOSONAR
@@ -141,7 +146,8 @@ export class MapTrackWayPoints {
           this._arrival = this.createArrival(wp.wayPoint.point.pos);
       }
     } else if (wp.breakPoint) {
-      this._breaks!.push(this.createBreakPoint(wp));
+      this._breaks!.push(this.createBreakPoint(wp, false));
+      this._breaksColored!.push(this.createBreakPoint(wp, true))
     } else {
       this._anchors!.push(this.createWayPoint(wp));
     }
@@ -151,6 +157,7 @@ export class MapTrackWayPoints {
     if (this._map && this._showDA) this.removeDAFromMap();
     this._anchors = [];
     this._breaks = [];
+    this._breaksColored = [];
     const departurePoint = track.points[0];
     const arrivalPoint = track.points.at(-1);
     if (departurePoint && arrivalPoint && L.latLng(departurePoint.lat, departurePoint.lng).distanceTo(arrivalPoint) <= 25) {
@@ -183,8 +190,8 @@ export class MapTrackWayPoints {
     return new MapAnchor(wp.wayPoint.point.pos, color, '' + wp.index, undefined, anchorTextColor, new Color(color).setAlpha(0.8).darker(48).toString(), undefined, true, wp);
   }
 
-  private createBreakPoint(wp: ComputedWayPoint): MapAnchor {
-    return new MapAnchor(wp.wayPoint.point.pos, anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint!), undefined, anchorBreakTextColor, anchorBreakFillColor, undefined, true, wp);
+  private createBreakPoint(wp: ComputedWayPoint, colored: boolean): MapAnchor {
+    return new MapAnchor(wp.wayPoint.point.pos, anchorBreakBorderColor, MapTrackWayPoints.breakPointText(wp.breakPoint!), undefined, anchorBreakTextColor, colored ? new Color(this.getColor()).setAlpha(0.66).toString() : anchorBreakFillColor, undefined, true, wp);
   }
 
   public static breakPointText(breakPoint: BreakWayPoint): string {
@@ -222,16 +229,25 @@ export class MapTrackWayPoints {
       }
   }
 
-  private addBreaksToMap(): void {
+  private addBreaksToMap(style: ShowBreaksStyle): void {
     this.load();
-    for (const anchor of this._breaks!) {
+    const toShow = (style === 'colored' ? this._breaksColored! : this._breaks!);
+    const toHide = (style === 'colored' ? this._breaks! : this._breaksColored!);
+    for (const anchor of toShow) {
       anchor.marker.addTo(this._map!); // NOSONAR
+    }
+    for (const anchor of toHide) {
+      anchor.marker.removeFrom(this._map!); // NOSONAR
     }
   }
 
   private removeBreaksFromMap(): void {
     if (this._breaks)
       for (const anchor of this._breaks) {
+        anchor.marker.removeFrom(this._map!); // NOSONAR
+      }
+    if (this._breaksColored)
+      for (const anchor of this._breaksColored) {
         anchor.marker.removeFrom(this._map!); // NOSONAR
       }
   }
@@ -258,7 +274,8 @@ export class MapTrackWayPoints {
       return this._arrival || this._departureAndArrival;
     }
     if (wp.breakPoint && this._breaks) {
-      return this._breaks.find(b => b.data === wp);
+      console.log(this._breaks);
+      return this._breaks.find(b => b.data === wp); // TODO
     }
     if (this._anchors) {
       return this._anchors.find(b => b.data === wp);

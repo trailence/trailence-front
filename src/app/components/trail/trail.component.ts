@@ -385,10 +385,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       });
     const showBreaksTool = new MenuItem().setIcon('hourglass')
       .setVisible(() => !this.positionningOnMap$.value && this.trailsWaypoints.canShowBreaksOnMap())
-      .setTextColor(() => this.trailsWaypoints.showBreaksOnMap ? 'light' : 'dark')
-      .setBackgroundColor(() => this.trailsWaypoints.showBreaksOnMap ? 'dark' : '')
+      .setTextColor(() => this.trailsWaypoints.isShowingAllBreaks() ? 'light' : 'dark')
+      .setBackgroundColor(() => this.trailsWaypoints.isShowingAllBreaks() ? 'dark' : '')
       .setAction(() => {
-        this.trailsWaypoints.showBreaksOnMap = !this.trailsWaypoints.showBreaksOnMap;
+        this.trailsWaypoints.toggleShowAllBreaks();;
         this.refreshMapToolbarRight();
       });
     this.mapToolbarRightItems.push(new MenuItem(), showPhotoTool, showBreaksTool);
@@ -1354,9 +1354,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   positionPhotoOnMap(photo: Photo): void {
     if (this.isSmall) this.setTab('map');
 
-    const showBreaksBefore = this.trailsWaypoints.showBreaksOnMap;
-    if (showBreaksBefore) this.trailsWaypoints.showBreaksOnMap = false;
     this.trailsWaypoints.showBreaksOnMapLocked = true;
+    this.trailsWaypoints.updateShowBreaks();
     const showPhotosBefore = this.showPhotos$.value;
     if (showPhotosBefore) this.showPhotos$.next(false);
     const showOriginalBefore = this.showOriginal$.value;
@@ -1370,7 +1369,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.positionningOnMap$.pipe(filter(p => !p), first()).subscribe(() => {
       subscription.unsubscribe();
       this.trailsWaypoints.showBreaksOnMapLocked = false;
-      if (showBreaksBefore) this.trailsWaypoints.showBreaksOnMap = true;
+      this.trailsWaypoints.updateShowBreaks();
       if (showPhotosBefore) this.showPhotos$.next(true);
       if (showOriginalBefore) this.showOriginal$.next(true);
       this.refreshMapToolbarRight();
