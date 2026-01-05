@@ -107,6 +107,27 @@ app-toolbar {
   margin-bottom: 5px;
 }
 
+.filter-checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 5px;
+
+  ion-icon {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    color: var(--ion-color-secondary);
+  }
+  ion-checkbox {
+    flex: 1 1 100%;
+  }
+  ion-checkbox::part(label) {
+    margin-inline: 8px 0;
+  }
+}
+
 ion-item ion-radio ion-icon {
   margin-bottom: -2px;
 }

@@ -161,6 +161,7 @@
         "tags": "Tags",
         "rate": "Rating",
         "onlyVisibleOnMap": "Show in list only tracks visible on map",
+        "onlyWithPhotos": "Only routes with photos",
         "reset_button": "Reset all filters"
       },
       "tabs": {

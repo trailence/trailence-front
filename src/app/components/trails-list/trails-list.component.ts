@@ -45,6 +45,7 @@ import { ComputedPreferences } from 'src/app/services/preferences/preferences';
 import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/filter-numeric-custom.component';
 import { Arrays } from 'src/app/utils/arrays';
 import { NgTemplateOutlet } from '@angular/common';
+import { PhotoService } from 'src/app/services/database/photo.service';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -68,6 +69,7 @@ interface TrailWithInfo {
   trailTags: TrailTag[];
   selected: boolean;
   info: TrailInfo | null;
+  nbPhotos: number;
 }
 
 @Component({
@@ -278,13 +280,15 @@ export class TrailsListComponent extends AbstractComponent {
               ),
               trail.owner === this.authService.email ? this.tagService.getTrailTagsWhenLoaded$(trail.uuid) : of([]),
               trail.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid),
+              trail.owner.includes('@') ? this.injector.get(PhotoService).getPhotosForTrailReady$(trail) : of(null),
             ]).pipe(
-              map(([track, trailTags, info]) => ({
+              map(([track, trailTags, info, photos]) => ({
                 trail,
                 track,
                 trailTags,
                 info,
                 selected: false,
+                nbPhotos: photos !== null ? photos.length : info?.photos?.length ?? 0,
               }) as TrailWithInfo)
             )
           );
@@ -456,6 +460,7 @@ export class TrailsListComponent extends AbstractComponent {
         if (filters.activities.selected !== undefined && !filters.activities.selected.includes(t.trail.activity)) return false;
         if (filters.rate.from !== undefined && (t.info?.rating === undefined || t.info.rating < filters.rate.from)) return false;
         if (filters.rate.to !== undefined && (t.info?.rating !== undefined && t.info.rating > filters.rate.to)) return false;
+        if (filters.onlyWithPhotos && t.nbPhotos === 0) return false;
         if (filters.tags.type === 'onlyWithAnyTag') {
           if (t.trailTags.length === 0) return false;
         } else if (filters.tags.type === 'onlyWithoutAnyTag') {
@@ -681,6 +686,14 @@ export class TrailsListComponent extends AbstractComponent {
     this.state$.next({
       ...this.state$.value,
       filters: { ...this.state$.value.filters, onlyVisibleOnMap: checked }
+    });
+  }
+
+  updateFilterOnlyWithPhotos(checked: boolean): void {
+    if (checked === this.state$.value.filters.onlyWithPhotos) return;
+    this.state$.next({
+      ...this.state$.value,
+      filters: { ...this.state$.value.filters, onlyWithPhotos: checked }
     });
   }
 

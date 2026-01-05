@@ -13,6 +13,7 @@ export interface Filters {
   loopTypes: FilterEnum<TrailLoopType>;
   activities: FilterEnum<TrailActivity | undefined>;
   onlyVisibleOnMap: boolean;
+  onlyWithPhotos: boolean;
   tags: FilterTags;
   search: string;
   rate: FilterNumeric;
@@ -49,6 +50,7 @@ export class FiltersUtils {
         selected: undefined
       },
       onlyVisibleOnMap: false,
+      onlyWithPhotos: false,
       tags: {
         tagsUuids: [],
         type: 'include_and',
@@ -72,6 +74,7 @@ export class FiltersUtils {
       loopTypes: this.fixFilterEnum(filters.loopTypes, Object.values(TrailLoopType)),
       activities: this.fixFilterEnum(filters.activities, Object.values(TrailActivity)),
       onlyVisibleOnMap: filters.onlyVisibleOnMap ?? false,
+      onlyWithPhotos: filters.onlyWithPhotos ?? false,
       search: filters.search ?? '',
       tags: filters.tags,
       rate: this.fixFilterNumeric(filters.rate),
@@ -138,6 +141,7 @@ export class FiltersUtils {
     if (filters.loopTypes.selected) nb++;
     if (filters.activities.selected) nb++;
     if (filters.onlyVisibleOnMap) nb++;
+    if (filters.onlyWithPhotos) nb++;
     if (filters.tags.type === 'onlyWithAnyTag' || filters.tags.type === 'onlyWithoutAnyTag' || filters.tags.tagsUuids.length !== 0) nb++;
     if (filters.rate.from !== undefined || filters.rate.to !== undefined) nb++;
     if (includeByName && filters.search?.trim()?.length) nb++;
@@ -154,6 +158,7 @@ export class FiltersUtils {
     filters.loopTypes = {selected: undefined};
     filters.activities = {selected: undefined};
     filters.onlyVisibleOnMap = false;
+    filters.onlyWithPhotos = false;
     filters.tags = {tagsUuids: [], type: 'include_and'};
     filters.search = '';
   }

@@ -166,7 +166,8 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <div class="filter-value">
+      <div class="filter-checkbox">
+        <ion-icon name="map"></ion-icon>
         <ion-checkbox class="filter-map"
           [checked]="state$.value.filters.onlyVisibleOnMap"
           (ionChange)="updateFilterOnlyVisibleOnMap($event.detail.checked)"
@@ -259,6 +260,15 @@
             ></app-filter-numeric>
         </div>
       }
+      <div class="filter-checkbox">
+        <ion-icon name="photos"></ion-icon>
+        <ion-checkbox
+          [checked]="state$.value.filters.onlyWithPhotos"
+          (ionChange)="updateFilterOnlyWithPhotos($event.detail.checked)"
+          labelPlacement="end"
+        >{{i18n.texts.pages.trails.filters.onlyWithPhotos}}</ion-checkbox>
+      </div>
+
       <div class="filter-header">
         <ion-icon name="loop"></ion-icon>
         <div>{{ i18n.texts.pages.trails.filters.loopType }}</div>

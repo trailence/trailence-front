@@ -161,6 +161,7 @@
         "tags": "Tags",
         "rate": "Note",
         "onlyVisibleOnMap": "Afficher dans la liste uniquement les parcours visibles sur la carte",
+        "onlyWithPhotos": "Seulement les parcours avec photos",
         "reset_button": "Enlever tous les filtres"
       },
       "tabs": {
