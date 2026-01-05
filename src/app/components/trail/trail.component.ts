@@ -80,6 +80,35 @@ interface TrailSource {
   publishedFromTrail?: Trail;
 }
 
+class TrailWithInfo {
+  public source?: TrailSource;
+  public tagsNames: string[] | undefined;
+  public collection?: TrailCollection;
+  public collectionName?: string;
+
+  constructor(
+    public readonly trail: Trail,
+  ) {}
+
+  getName(lang: string): string {
+    const original = this.source?.info?.lang;
+    if (original && original !== lang) {
+      const name = this.source?.info?.nameTranslations?.[lang];
+      if (name) return name;
+    }
+    return this.trail.name;
+  }
+
+  getDescription(lang: string): string {
+    const original = this.source?.info?.lang;
+    if (original && original !== lang) {
+      const d = this.source?.info?.descriptionTranslations?.[lang];
+      if (d) return d;
+    }
+    return this.trail.description;
+  }
+}
+
 @Component({
     selector: 'app-trail',
     templateUrl: './trail.component.html',
@@ -120,8 +149,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   reverseWay$ = new BehaviorSubject<boolean>(false);
 
   id = IdGenerator.generateId();
-  trail1: Trail | null = null;
-  trail2: Trail | null = null;
+  trail1WithInfo$ = new BehaviorSubject<TrailWithInfo | null>(null);
+  trail2WithInfo$ = new BehaviorSubject<TrailWithInfo | null>(null);
   recording: Recording | null = null;
   tracks$ = new BehaviorSubject<Track[]>([]);
   toolsOriginalTrack$ = new BehaviorSubject<Track | undefined>(undefined);
@@ -129,8 +158,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   toolsModifiedTrack$ = new BehaviorSubject<Track | undefined>(undefined);
   toolsHideBaseTrack$ = new BehaviorSubject<boolean>(false);
   mapTracks$ = new BehaviorSubject<MapTrack[]>([]);
-  tagsNames1: string[] | undefined;
-  tagsNames2: string[] | undefined;
   photos: Photo[] | undefined;
   photosHavingPosition: {photos: Photo[], point: L.LatLngExpression}[] | undefined;
   graphTrack1?: Track;
@@ -138,6 +165,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   graphZoomButtonPosition = new BehaviorSubject<{x: number, y: number} | undefined>(undefined);
   myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
   trailsForPhotoPopup: Observable<Trail | null>[] = [];
+  currentLang: string;
+
+  get trail1WithInfo(): TrailWithInfo | null { return this.trail1WithInfo$.value; }
+  get trail2WithInfo(): TrailWithInfo | null { return this.trail2WithInfo$.value; }
+  get trail1(): Trail | null { return this.trail1WithInfo?.trail || null };
+  get trail2(): Trail | null { return this.trail2WithInfo?.trail || null };
 
   metadataConfig: TrackMetadataConfig = {
     mergeDurationAndEstimated: false,
@@ -185,12 +218,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   trailsWaypoints: TrailsWaypoints;
 
   comparison: number | undefined = undefined;
-  trail1CollectionName?: string;
-  trail1Collection?: TrailCollection;
-  trail2CollectionName?: string;
   isPublication = false;
   publicationChecklist?: PublicationChecklist;
-  source?: TrailSource;
   currentPublicTrailUuid?: string;
   isShowPublicTrailsAround = false;
   publicTrailsAroundMapTracks$ = new BehaviorSubject<MapTrack[]>([]);
@@ -211,13 +240,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   @ViewChild('toolbar') toolbar?: ToolbarComponent;
   toolbarItems: MenuItem[] = [
     new MenuItem().setIcon('download').setI18nLabel('pages.trail.actions.download_map')
-      .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true)
+      .setVisible(() => !isPublicationCollection(this.trail1WithInfo?.collection?.type) && this.trail1?.fromModeration !== true)
       .setAction(() => this.downloadMap()),
     new MenuItem().setIcon('car').setI18nLabel('pages.trail.actions.go_to_departure')
-      .setVisible(() => !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true && !this.recording)
+      .setVisible(() => !isPublicationCollection(this.trail1WithInfo?.collection?.type) && this.trail1?.fromModeration !== true && !this.recording)
       .setAction(() => this.goToDeparture()),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.start_this_trail')
-      .setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1Collection?.type) && this.trail1?.fromModeration !== true && !!this.auth.email)
+      .setVisible(() => !!this.trail1 && !this.recording && !this.toolsEnabled && !isPublicationCollection(this.trail1WithInfo?.collection?.type) && this.trail1?.fromModeration !== true && !!this.auth.email)
       .setAction(() => this.startTrail()),
     new MenuItem().setIcon('check-list').setI18nLabel('publications.checklist')
       .setVisible(() => !this.trail2 && !!this.publicationChecklist)
@@ -238,10 +267,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       .setAction(() => this.hidePublicTrailsAround()),
     new MenuItem().setIcon('text').setI18nLabel('publications.show_html_text')
       .setVisible(() => this.trail1?.fromModeration && !this.showTextHtml)
-      .setAction(() => { this.showTextHtml = true; this.changesDetection.detectChanges(); }),
+      .setAction(() => { this.showTextHtml = true; this.toolbarItems = [...this.toolbarItems]; this.changesDetection.detectChanges(); }),
     new MenuItem().setIcon('text').setI18nLabel('publications.exit_show_html_text')
       .setVisible(() => this.trail1?.fromModeration && this.showTextHtml)
-      .setAction(() => { this.showTextHtml = false; this.changesDetection.detectChanges(); }),
+      .setAction(() => { this.showTextHtml = false; this.toolbarItems = [...this.toolbarItems]; this.changesDetection.detectChanges(); }),
     new MenuItem().setIcon('web').setI18nLabel('publications.publish')
       .setVisible(() => (this.trail1?.fromModeration || (!!this.publicationChecklist && !this.trail2)))
       .setDisabled(() =>
@@ -255,18 +284,18 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       .setTextColor('danger')
       .setAction(() => this.rejectPublication()),
     new MenuItem().setIcon('undo').setI18nLabel('publications.reject_to_draft')
-      .setVisible(() => !!this.trail1 && !this.trail2 && this.trail1Collection?.type === TrailCollectionType.PUB_REJECT)
+      .setVisible(() => !!this.trail1 && !this.trail2 && this.trail1WithInfo?.collection?.type === TrailCollectionType.PUB_REJECT)
       .setTextColor('success')
       .setAction(() => this.rejectToDraft()),
     new MenuItem().setIcon('web').setI18nLabel('publications.modify').setTextColor('secondary')
-      .setVisible(() => !!this.source?.info?.itsMine && !!this.trail1 && !this.trail2)
+      .setVisible(() => !!this.trail1WithInfo?.source?.info?.itsMine && !this.trail2)
       .setAction(() => this.editPublication()),
     new MenuItem().setIcon('web').setI18nLabel('publications.remove').setTextColor('danger')
-      .setVisible(() => !!this.source?.info?.itsMine && !!this.trail1 && !this.trail2)
+      .setVisible(() => !!this.trail1WithInfo?.source?.info?.itsMine && !this.trail2)
       .setAction(() => this.deletePublication()),
     new MenuItem().setIcon('trash').setI18nLabel('buttons.delete')
       .setVisible(() => !!this.trail1 && !this.trail2 &&
-        (this.trail1Collection?.type === TrailCollectionType.PUB_DRAFT || this.trail1Collection?.type === TrailCollectionType.PUB_REJECT
+        (this.trail1WithInfo?.collection?.type === TrailCollectionType.PUB_DRAFT || this.trail1WithInfo?.collection?.type === TrailCollectionType.PUB_REJECT
           //|| !!this.source?.info?.itsMine
         )
       )
@@ -367,6 +396,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       }
     });
     this.trailsWaypoints = new TrailsWaypoints(this.selection, i18n);
+    this.currentLang = this.preferencesService.preferences.lang;
   }
 
   protected override initComponent(): void {
@@ -417,13 +447,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
     this.editingDescription = false;
     this.editingSourceUrl = false;
-    this.trail1 = null;
-    this.trail2 = null;
-    this.source = undefined;
+    this.trail1WithInfo$.next(null);
+    this.trail2WithInfo$.next(null);
     this.recording = null;
     this.mine = false;
-    this.tagsNames1 = undefined;
-    this.tagsNames2 = undefined;
     this.photos = undefined;
     this.comparison = undefined;
     this.currentPublicTrailUuid = undefined;
@@ -454,25 +481,25 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   private _jdMarker?: HTMLElement;
   ngAfterContentChecked(): void {
     let jd: any = undefined;
-    if (this.trail1 && !this.trail2 && !this.recording && this.trail1.owner === 'trailence' && this.tracks$.value.length > 0) {
-      if (this._jdTrail !== this.trail1 || this._jdPhotos !== (this.photos && this.photos.length > 0)) {
+    if (this.trail1WithInfo && !this.trail2 && !this.recording && this.trail1WithInfo.trail.owner === 'trailence' && this.tracks$.value.length > 0) {
+      if (this._jdTrail !== this.trail1WithInfo.trail || this._jdPhotos !== (this.photos && this.photos.length > 0)) {
         jd = {
           "@context": "https://schema.org",
           "@type": "SportsActivityLocation",
-          "name": this.trail1.name,
-          "description": this.trail1.description,
+          "name": this.trail1WithInfo.getName(this.preferencesService.preferences.lang),
+          "description": this.trail1WithInfo.getDescription(this.preferencesService.preferences.lang),
           "geo": {
             "@type":"GeoCoordinates",
             "latitude": '' + this.tracks$.value[0].departurePoint?.pos.lat,
             "longitude": '' +this.tracks$.value[0].departurePoint?.pos.lng
           },
         };
-        this._jdTrail = this.trail1;
-        if (this.source?.info?.rating !== undefined) {
+        this._jdTrail = this.trail1WithInfo.trail;
+        if (this.trail1WithInfo.source?.info?.rating !== undefined) {
           jd.aggregateRating = {
             "@type": "AggregateRating",
-            "ratingValue": Math.floor(this.source.info.rating * 10) / 10,
-            "ratingCount": (this.source.info.nbRate0 ?? 0) + (this.source.info.nbRate1 ?? 0) + (this.source.info.nbRate2 ?? 0) + (this.source.info.nbRate3 ?? 0) + (this.source.info.nbRate4 ?? 0) + (this.source.info.nbRate5 ?? 0),
+            "ratingValue": Math.floor(this.trail1WithInfo.source.info.rating * 10) / 10,
+            "ratingCount": (this.trail1WithInfo.source.info.nbRate0 ?? 0) + (this.trail1WithInfo.source.info.nbRate1 ?? 0) + (this.trail1WithInfo.source.info.nbRate2 ?? 0) + (this.trail1WithInfo.source.info.nbRate3 ?? 0) + (this.trail1WithInfo.source.info.nbRate4 ?? 0) + (this.trail1WithInfo.source.info.nbRate5 ?? 0),
             "worstRating":0,
             "bestRating":5
           };
@@ -523,8 +550,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.editingSourceUrl = false;
           }
         }
-        this.trail1 = trail1[0];
-        this.trail2 = trail2[0];
+        this.trail1WithInfo$.next(trail1[0] ? new TrailWithInfo(trail1[0]) : null);
+        this.trail2WithInfo$.next(trail2[0] ? new TrailWithInfo(trail2[0]) : null);
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];
@@ -639,8 +666,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.tracks$.next(tracks);
         this.mapTracks$.next(mapTracks);
 
-        this.editable = !this.trail2 && !!this.trail1 &&
-          (this.trail1.fromModeration || (this.trail1.owner === this.auth.email && this.trail1Collection?.type !== TrailCollectionType.PUB_SUBMIT));
         this.mine = !!this.trail1 && !this.trail2 && this.trail1.owner === this.auth.email;
         if (toolsModifiedTrack)
           this.graph?.resetChart();
@@ -680,14 +705,17 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private listenForSource(): void {
+    this._listenForSource(this.trail1WithInfo$);
+    this._listenForSource(this.trail2WithInfo$);
+  }
+  private _listenForSource(trailWithInfo$: Observable<TrailWithInfo | null>) {
     this.byStateAndVisible.subscribe(
       combineLatest([
-        this.trail1$ ?? of(null),
-        this.trail2$ ?? of(null),
+        trailWithInfo$,
         this.injector.get(FetchSourceService).isReady$,
       ]).pipe(
-        switchMap(([trail1, trail2]) => {
-          if (!trail1 || trail2) return of(undefined);
+        switchMap(([trailWithInfo]) => {
+          if (!trailWithInfo) return of(undefined);
           const source: TrailSource = {
             isExternal: false,
             isExternalOnly: false,
@@ -695,20 +723,20 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             externalUrl: undefined,
             sourceString: undefined,
           }
-          source.isExternal = trail1.sourceType === TrailSourceType.EXTERNAL;
+          source.isExternal = trailWithInfo.trail.sourceType === TrailSourceType.EXTERNAL;
           if (source.isExternal) {
-            source.isExternalOnly = !trail1.owner.includes('@');
-            source.externalUrl = trail1.source;
+            source.isExternalOnly = !trailWithInfo.trail.owner.includes('@');
+            source.externalUrl = trailWithInfo.trail.source;
             if (source.externalUrl?.startsWith(environment.baseUrl)) {
-              if (trail1.owner === 'trailence')
+              if (trailWithInfo.trail.owner === 'trailence')
                 source.externalUrl = undefined;
             }
             source.externalAppName = source.externalUrl ? this.injector.get(FetchSourceService).getPluginNameByUrl(source.externalUrl) : undefined;
             if (source.externalAppName === 'Trailence' && source.externalUrl?.startsWith(environment.baseUrl))
               source.externalUrl = source.externalUrl.substring(environment.baseUrl.length);
           }
-          const followedTrail$ = this.getFollowedTrailInfo(trail1);
-          const info$ = trail1.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trail1.owner, trail1.uuid);
+          const followedTrail$ = this.getFollowedTrailInfo(trailWithInfo.trail);
+          const info$ = trailWithInfo.trail.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trailWithInfo.trail.owner, trailWithInfo.trail.uuid);
           const infoAndPublishedFrom$ = info$.pipe(
             switchMap(info => {
               if (info?.myUuid) return this.trailService.getTrail$(info.myUuid, this.auth.email!).pipe(map(originalTrail => ([info, originalTrail] as [TrailInfo | null, Trail | null])));
@@ -716,7 +744,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             })
           );
           return combineLatest([
-            this.getSourceString(trail1),
+            this.getSourceString(trailWithInfo.trail),
             infoAndPublishedFrom$,
             followedTrail$,
           ]).pipe(
@@ -729,13 +757,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               source.info = info ?? undefined;
               source.followedInfo = followedInfo ?? undefined;
               source.publishedFromTrail = originalTrail ?? undefined;
-              return source;
+              return {trailWithInfo, source};
             })
           );
         }),
       ),
-      source => {
-        this.source = source;
+      result => {
+        if (result) result.trailWithInfo.source = result.source;
         this.toolbarItems = [...this.toolbarItems];
         this.changesDetection.detectChanges();
       }
@@ -879,24 +907,24 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private listenForTags(): void {
-    if (!this.trail1$) return;
+    this._listenForTags(this.trail1WithInfo$);
+    this._listenForTags(this.trail2WithInfo$);
+  }
+  private _listenForTags(trailWithInfo$: Observable<TrailWithInfo | null>) {
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$, this.trail2$ ?? of(null)]).pipe(
-        switchMap(([trail1, trail2]) =>
-          combineLatest([
-            trail1 && trail1.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail1.uuid) : of(undefined),
-            trail2 && trail2.owner === this.auth.email ? this.tagService.getTrailTagsFullNames$(trail2.uuid) : of(undefined),
-          ])
-        ),
+      trailWithInfo$.pipe(
+        switchMap(trailWithInfo => {
+          if (trailWithInfo && trailWithInfo.trail.owner === this.auth.email)
+            return this.tagService.getTrailTagsFullNames$(trailWithInfo.trail.uuid).pipe(map(tagsNames => ({trailWithInfo, tagsNames})));
+          return of({trailWithInfo, tagsNames: undefined});
+        }),
         debounceTimeExtended(0, 100)
       ),
-      ([names1, names2]) => {
-        const same = (n1: string[] | undefined, n2: string[] | undefined) =>
-          (n1 === undefined && n2 === undefined) ||
-          (n1 !== undefined && n2 !== undefined && Arrays.sameContent(n1, n2));
-        if (same(this.tagsNames1, names1) && same(this.tagsNames2, names2)) return;
-        this.tagsNames1 = names1?.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));;
-        this.tagsNames2 = names2?.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));;
+      result => {
+        if (!result.trailWithInfo) return;
+        if (result.trailWithInfo.tagsNames === undefined && result.tagsNames === undefined) return;
+        if (result.trailWithInfo.tagsNames !== undefined && result.tagsNames !== undefined && Arrays.sameContent(result.trailWithInfo.tagsNames, result.tagsNames)) return;
+        result.trailWithInfo.tagsNames = result.tagsNames?.sort((t1, t2) => t1.localeCompare(t2, this.preferencesService.preferences.lang));
         this.changesDetection.detectChanges();
       }, true
     );
@@ -1167,6 +1195,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.whenVisible.subscribe(
       this.injector.get(I18nService).texts$.pipe(skip(1)),
       () => {
+        this.currentLang = this.preferencesService.preferences.lang;
         this.toolbarItems = [...this.toolbarItems];
         this.refreshMapToolbarTop();
         this.refreshMapToolbarRight();
@@ -1177,36 +1206,45 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private listenForCollections(): void {
+    this._listenForCollections(this.trail1WithInfo$, true);
+    this._listenForCollections(this.trail2WithInfo$, false);
+  }
+  private _listenForCollections(trailWithInfo$: Observable<TrailWithInfo | null>, isTrail1: boolean): void {
     this.whenVisible.subscribe(
       combineLatest([
         this.auth.auth$,
-        combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null)]).pipe(
-          switchMap(([trail1, trail2]) => {
-            if (!trail1) return of({col1: null, col2: null, trail1, trail2, track: null});
+        trailWithInfo$.pipe(
+          switchMap(trailWithInfo => {
+            if (!trailWithInfo) return of({col: null, trailWithInfo: null, track: null});
             return combineLatest([
-              this.injector.get(TrailCollectionService).getCollectionWithName$(trail1.collectionUuid, trail1.owner),
-              trail2 ? this.injector.get(TrailCollectionService).getCollectionWithName$(trail2.collectionUuid, trail2.owner) : of(null),
-              this.trackService.getFullTrackReady$(trail1.currentTrackUuid, trail1.owner),
+              this.injector.get(TrailCollectionService).getCollectionWithName$(trailWithInfo.trail.collectionUuid, trailWithInfo.trail.owner),
+              isTrail1 ? this.trackService.getFullTrackReady$(trailWithInfo.trail.currentTrackUuid, trailWithInfo.trail.owner) : of(null),
             ]).pipe(
-              map(([col1, col2, track]) => ({col1, col2, track, trail1, trail2}))
+              map(([col, track]) => ({col, trailWithInfo, track}))
             );
           }),
         ),
       ]),
       ([auth, result]) => {
-        this.trail1Collection = result.col1?.collection ?? undefined;
-        this.trail1CollectionName = result.col1?.name ?? undefined;
-        this.isPublication = isPublicationCollection(this.trail1Collection?.type);
-        if (result.col1?.collection !== result.col2?.collection && auth && result.col1?.collection.owner === auth.email && result.col2?.collection.owner === auth.email) {
-          this.trail2CollectionName = result.col2.collection.name;
-        }
-        if (result.trail1 && result.track && this.trail1Collection?.type === TrailCollectionType.PUB_DRAFT) {
-          if (!this.publicationChecklist || this.publicationChecklist.trailUuid !== result.trail1.uuid || this.publicationChecklist.trailOwner !== result.trail1.owner)
-            this.publicationChecklist = PublicationChecklist.load(result.trail1, result.track, this.trailService);
-        } else {
+        if (result.trailWithInfo) {
+          result.trailWithInfo.collection = result.col?.collection;
+          result.trailWithInfo.collectionName = result.col?.name;
+          this.isPublication = isPublicationCollection(result.col?.collection?.type);
+          if (result.track && result.col?.collection?.type === TrailCollectionType.PUB_DRAFT) {
+            this.publicationChecklist = PublicationChecklist.load(result.trailWithInfo.trail, result.track, this.trailService);
+          } else {
+            this.publicationChecklist = undefined;
+          }
+          if (isTrail1)
+            this.editable = !this.trail2 && !!auth &&
+              (result.trailWithInfo.trail.fromModeration ||
+               (result.trailWithInfo.trail.owner === auth.email && result.col?.collection.type !== TrailCollectionType.PUB_SUBMIT)
+              );
+        } else if (isTrail1) {
+          this.isPublication = false;
           this.publicationChecklist = undefined;
+          this.editable = false;
         }
-        if (result.col1?.collection.type === TrailCollectionType.PUB_SUBMIT) this.editable = false;
         this.changesDetection.detectChanges();
       }
     );
@@ -1402,6 +1440,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   openTags(trail: Trail): void {
     import('../tags/tags.component').then(m => m.openTagsDialog(this.injector, [trail], trail.collectionUuid));
+  }
+
+  editTrailName(trail: Trail): void {
+    if (!this.editable) return;
+    import('../../services/functions/trail-rename').then(m => m.openRenameTrailDialog(this.injector, trail));
   }
 
   startTrail(): void {
@@ -1706,8 +1749,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   rateThisTrail(): void {
-    if (this.source?.externalUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
-      this.injector.get(Router).navigate([this.source.externalUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
+    if (this.trail1WithInfo?.source?.externalUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
+      this.injector.get(Router).navigate([this.trail1WithInfo?.source.externalUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
     else if (this.trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/'))
       this.injector.get(Router).navigate([this.trail1.followedUrl.substring(environment.baseUrl.length)], {fragment: 'rate'});
   }
@@ -1780,7 +1823,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       const collection = await firstValueFrom(this.injector.get(TrailCollectionService).getOrCreatePublicationSubmit());
       const copyModule = await import('../../services/functions/copy-trails');
       copyModule.moveTrailsTo(this.injector, [this.trail1!], collection, this.trail1!.owner, t => t.publicationMessageFromAuthor = result.data, true);
-      this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1Collection!.uuid + '/' + this.trail1Collection!.owner);
+      this.injector.get(Router).navigateByUrl('/trails/collection/' + this.trail1WithInfo!.collection!.uuid + '/' + this.trail1WithInfo!.collection!.owner);
     }
   }
 
@@ -1851,9 +1894,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         .subscribe(col => {
           import('../../services/functions/copy-trails')
           .then(m => m.copyTrailsTo(this.injector, [this.trail1!], col, col.owner, true, true, true, (newTrail) => ({
-            publishedFromUuid: this.source?.info?.myUuid,
-            sourceType: this.source?.info?.externalUrl ? TrailSourceType.EXTERNAL : undefined,
-            source: this.source?.info?.externalUrl
+            publishedFromUuid: this.trail1WithInfo?.source?.info?.myUuid,
+            sourceType: this.trail1WithInfo?.source?.info?.externalUrl ? TrailSourceType.EXTERNAL : undefined,
+            source: this.trail1WithInfo?.source?.info?.externalUrl
           })))
         });
       }

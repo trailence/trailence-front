@@ -102,7 +102,18 @@ export class TrailPage extends AbstractPage {
           );
         })
       ),
-      this.trail2$.pipe(switchMap(t => t ? t.name$ : of(undefined))),
+      this.trail2$.pipe(
+        switchMap(t => {
+          if (!t) return of(undefined);
+          const info$ = t.owner.includes('@') ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(t.owner, t.uuid);
+          return combineLatest([t.name$, info$]).pipe(
+            map(([trailName, trailInfo]) =>
+              trailInfo?.lang && trailInfo.lang !== this.injector.get(PreferencesService).preferences.lang && trailInfo.nameTranslations?.[this.injector.get(PreferencesService).preferences.lang] ?
+                trailInfo.nameTranslations[this.injector.get(PreferencesService).preferences.lang] : trailName
+            )
+          );
+        })
+      ),
       this.i18n.texts$,
     ]), ([rec, t1, t2, texts]) => { // NOSONAR
       if (t1) {

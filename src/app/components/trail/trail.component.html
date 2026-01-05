@@ -21,15 +21,15 @@
           @if (trail2) {
             <div class="metadata-container one-column with-title comparison">
 
-              @if (trail1CollectionName && trail2CollectionName) {
+              @if (trail1WithInfo?.collectionName && trail2WithInfo?.collectionName) {
                 <div class="metadata-item-container">
                   <div class="metadata-item">
                     <ion-icon name="collection"></ion-icon>
                     <div class="metadata-content">
                       <div class="metadata-title">{{i18n.texts.metadata.collection}}</div>
                       <div class="metadata-value">
-                        <div class="metadata-primary">{{ trail1CollectionName }}</div>
-                        <div class="metadata-secondary">{{ trail2CollectionName }}</div>
+                        <div class="metadata-primary">{{ trail1WithInfo!.collectionName }}</div>
+                        <div class="metadata-secondary">{{ trail2WithInfo!.collectionName }}</div>
                       </div>
                     </div>
                   </div>
@@ -42,8 +42,8 @@
                   <div class="metadata-content">
                     <div class="metadata-title">{{i18n.texts.metadata.title}}</div>
                     <div class="metadata-value">
-                      <div class="metadata-primary">{{ trail1.name }}</div>
-                      <div class="metadata-secondary">{{ trail2.name }}</div>
+                      <div class="metadata-primary">{{ trail1WithInfo!.getName(currentLang) }}</div>
+                      <div class="metadata-secondary">{{ trail2WithInfo!.getName(currentLang) }}</div>
                     </div>
                   </div>
                 </div>
@@ -54,14 +54,14 @@
                   <div class="metadata-content">
                     <div class="metadata-title">{{i18n.texts.metadata.description}}</div>
                     <div class="metadata-value">
-                      <div class="metadata-primary"><app-text [text]="trail1.description" [showSource]="showTextHtml"></app-text></div>
-                      <div class="metadata-secondary"><app-text [text]="trail2.description" [showSource]="showTextHtml"></app-text></div>
+                      <div class="metadata-primary"><app-text [text]="trail1.description" [lang]="trail1WithInfo!.source?.info?.lang" [translations]="trail1WithInfo!.source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text></div>
+                      <div class="metadata-secondary"><app-text [text]="trail2.description" [lang]="trail2WithInfo!.source?.info?.lang" [translations]="trail2WithInfo!.source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text></div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              @if (!isPublication && trail1Collection && (tagsNames1 !== undefined || tagsNames2 !== undefined)) {
+              @if (!isPublication && trail1WithInfo?.collection && (trail1WithInfo?.tagsNames !== undefined || trail2WithInfo?.tagsNames !== undefined)) {
                 <div class="metadata-item-container">
                   <div class="metadata-item">
                     <ion-icon name="tags"></ion-icon>
@@ -69,12 +69,12 @@
                       <div class="metadata-title">{{i18n.texts.metadata.tags}}</div>
                       <div class="metadata-value">
                         <div class="metadata-primary">
-                          @if (tagsNames1) {
+                          @if (trail1WithInfo?.tagsNames; as tags) {
                             <div class="trail-tags-row">
-                              @if (tagsNames1.length === 0) {
+                              @if (tags.length === 0) {
                                 <span class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
                               } @else {
-                                @for (tag of tagsNames1; track tag) {
+                                @for (tag of tags; track tag) {
                                   <div class="tag">{{tag}}</div>
                                 }
                               }
@@ -82,12 +82,12 @@
                           }
                         </div>
                         <div class="metadata-secondary">
-                          @if (tagsNames2) {
+                          @if (trail2WithInfo?.tagsNames; as tags) {
                             <div class="trail-tags-row">
-                              @if (tagsNames2.length === 0) {
+                              @if (tags.length === 0) {
                                 <span class="no-tag">{{i18n.texts.pages.trail.no_tag_message}}</span>
                               } @else {
-                                @for (tag of tagsNames2; track tag) {
+                                @for (tag of tags; track tag) {
                                   <div class="tag">{{tag}}</div>
                                 }
                               }
@@ -99,6 +99,11 @@
                   </div>
                 </div>
               }
+            </div>
+          } @else {
+            <div class="trail-name-row {{editable ? 'editable' : ''}}" (click)="editTrailName(trail1)">
+              <ion-icon name="edit-text" color="secondary"></ion-icon>
+              <div class="trail-name">{{trail1WithInfo!.getName(currentLang)}}</div>
             </div>
           }
 
@@ -128,7 +133,7 @@
                 <div class="author-message">{{ trail1.publicationMessageFromAuthor }}</div>
               }
             </div>
-          } @else if (trail1.publicationMessageFromModerator && (trail1Collection?.type === 'PUB_REJECT' || trail1Collection?.type === 'PUB_DRAFT')) {
+          } @else if (trail1.publicationMessageFromModerator && (trail1WithInfo?.collection?.type === 'PUB_REJECT' || trail1WithInfo?.collection?.type === 'PUB_DRAFT')) {
             <div class="moderation-messages">
               <h3>{{ i18n.texts.publications.moderation.moderator_message }}</h3>
               <div class="moderator-message">{{ trail1.publicationMessageFromModerator }}</div>
@@ -157,17 +162,19 @@
         }
 
         @if (trail1) {
-          @if (tagsNames1 && !trail2 && trail1Collection && !isPublication) {
-            <div class="trail-tags-row editable" (click)="openTags(trail1)">
-              <ion-icon name="tags" color="secondary"></ion-icon>
-              @if (tagsNames1.length === 0) {
-                <span class="no-tag"><span>{{i18n.texts.pages.trail.no_tag_message}}</span></span>
-              } @else {
-                @for (tag of tagsNames1; track tag) {
-                  <div class="tag">{{tag}}</div>
+          @if (!trail2 && trail1WithInfo?.collection && !isPublication) {
+            @if (trail1WithInfo?.tagsNames; as tags) {
+              <div class="trail-tags-row editable" (click)="openTags(trail1)">
+                <ion-icon name="tags" color="secondary"></ion-icon>
+                @if (tags.length === 0) {
+                  <span class="no-tag"><span>{{i18n.texts.pages.trail.no_tag_message}}</span></span>
+                } @else {
+                  @for (tag of tags; track tag) {
+                    <div class="tag">{{tag}}</div>
+                  }
                 }
-              }
-            </div>
+              </div>
+            }
           }
 
           @if (!trail2) {
@@ -175,7 +182,7 @@
               <div class="description-text">
                 @if (!editable) {
                   <h2>
-                    <app-text [text]="trail1.description" [lang]="source?.info?.lang" [translations]="source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text>
+                    <app-text [text]="trail1.description" [lang]="trail1WithInfo?.source?.info?.lang" [translations]="trail1WithInfo?.source?.info?.descriptionTranslations" [showSource]="showTextHtml"></app-text>
                   </h2>
                 } @else {
                   @if (!editingDescription) {
@@ -288,7 +295,7 @@
           </div>
           @if (trail1 && !trail2) {
             <div class="trail-dates">
-              @if (!source?.isExternalOnly) {
+              @if (!trail1WithInfo?.source?.isExternalOnly) {
                 <div>
                   <span class="trail-date-title">{{i18n.texts.pages.trail.created_in_trailence_on}} </span>
                   <span class="trail-date-value">{{i18n.timestampToDateTimeString(trail1.createdAt)}}</span>
@@ -300,7 +307,7 @@
                   </div>
                 }
               }
-              @if (source?.sourceString; as source) {
+              @if (trail1WithInfo?.source?.sourceString; as source) {
                 <span class="trail-date-title">
                   @for (element of i18n.textToHtml(source); track $index) {
                     @if (typeof element === 'string') {
@@ -313,25 +320,25 @@
                   }
                 </span>
               }
-              @if (source?.isExternalOnly && trail1.owner === 'trailence') {
+              @if (trail1WithInfo?.source?.isExternalOnly && trail1.owner === 'trailence') {
                 <div>
                   <span class="trail-date-title">{{i18n.texts.pages.trail.published_on}} </span>
                   <span class="trail-date-value">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
-                  @if (source?.author) {
+                  @if (trail1WithInfo?.source?.author) {
                     <span class="trail-date-title"> {{i18n.texts.pages.trail.published_by}} </span>
-                    <span class="trail-date-value">{{source?.author}}</span>
-                    @if (source?.info?.itsMine) {
+                    <span class="trail-date-value">{{trail1WithInfo?.source?.author}}</span>
+                    @if (trail1WithInfo?.source?.info?.itsMine) {
                       <span class="trail-you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
-                      @if (source?.publishedFromTrail) {
+                      @if (trail1WithInfo?.source?.publishedFromTrail) {
                         <span class="trail-date-title"> {{i18n.texts.pages.trail.published_from}} </span>
-                        <a [routerLink]="'/trail/' + source!.publishedFromTrail!.owner + '/' + source!.publishedFromTrail!.uuid">{{source!.publishedFromTrail!.name}}</a>
+                        <a [routerLink]="'/trail/' + trail1WithInfo!.source!.publishedFromTrail!.owner + '/' + trail1WithInfo!.source!.publishedFromTrail!.uuid">{{trail1WithInfo!.source!.publishedFromTrail!.name}}</a>
                       }
                     }
-                  } @else if (source?.publishedFromTrail) {
+                  } @else if (trail1WithInfo?.source?.publishedFromTrail) {
                     <span class="trail-date-title"> {{i18n.texts.pages.trail.published_by}} </span>
                     <span class="trail-you"> {{i18n.texts.pages.trail.sections.comments.you}}</span>
                     <span class="trail-date-title"> {{i18n.texts.pages.trail.published_from}} </span>
-                    <a [routerLink]="'/trail/' + source!.publishedFromTrail!.owner + '/' + source!.publishedFromTrail!.uuid">{{source!.publishedFromTrail!.name}}</a>
+                    <a [routerLink]="'/trail/' + trail1WithInfo!.source!.publishedFromTrail!.owner + '/' + trail1WithInfo!.source!.publishedFromTrail!.uuid">{{trail1WithInfo!.source!.publishedFromTrail!.name}}</a>
                   }
                 </div>
               }
@@ -345,12 +352,12 @@
               }
             </div>
           }
-          @if (source?.externalUrl; as url) {
+          @if (trail1WithInfo?.source?.externalUrl; as url) {
             <div class="external-link">
-              @if (source?.externalAppName === 'Trailence') {
+              @if (trail1WithInfo?.source?.externalAppName === 'Trailence') {
                 <a [routerLink]="url">{{i18n.texts.pages.trail.open_in_trailence}}</a>
-              } @else if(source?.externalAppName) {
-                <a href="{{url}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{source!.externalAppName}}</a>
+              } @else if(trail1WithInfo?.source?.externalAppName; as appName) {
+                <a href="{{url}}" target="_blank">{{i18n.texts.pages.trail.open_in_app}} {{appName}}</a>
               } @else {
                 <span style="white-space: nowrap">{{ i18n.texts.pages.trail.source.source_url }}</span>&nbsp;<a href="{{url}}" target="_blank">{{ url }}</a>
                 <div class="source-advise">{{ i18n.texts.pages.trail.source.source_advise }}</div>
@@ -407,7 +414,7 @@
                 {{ 'pages.trail.my_feedback.you_leave_a_comment' | i18nString:myFeedback.rate:i18n.timestampToDateString(myFeedback.latestCommentDate) }}
               </div>
             }
-            @if (source && !source.followedInfo?.itsMine && mine) {
+            @if (trail1WithInfo?.source && !trail1WithInfo?.source?.followedInfo?.itsMine && mine) {
               <div class="leave-feedback">
                 <div>{{ i18n.texts.pages.trail.my_feedback.invite_to_rate_title }}</div>
                 <ion-button shape="round" size="small" (click)="rateThisTrail()">
@@ -435,14 +442,14 @@
           </div>
           <app-trail-waypoints
             [trails]="trailsWaypoints"
-            [lang]="source?.info?.lang"
+            [lang]="trail1WithInfo?.source?.info?.lang"
             [editTools]="editTools"
             [showSource]="showTextHtml"
             (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
             (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
           ></app-trail-waypoints>
 
-          @if (trail1 && !trail2 && source?.isExternalOnly && (trail1.owner === 'trailence' || source?.info !== undefined)) {
+          @if (trail1 && !trail2 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || trail1WithInfo?.source?.info !== undefined)) {
             <div class="section-title">
               <ion-icon name="chat-bubbles"></ion-icon>
               <div>{{ i18n.texts.pages.trail.sections.comments.title }}</div>
@@ -511,7 +518,7 @@
             <div class="text">{{i18n.texts.pages.trail.tabs.waypoints}}</div>
           </div>
         </ion-segment-button>
-        @if (!trail2 && trail1 && source?.isExternalOnly && (trail1.owner === 'trailence' || source?.info !== undefined)) {
+        @if (!trail2 && trail1 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || trail1WithInfo?.source?.info !== undefined)) {
           <ion-segment-button value="reviews">
             <div>
               <ion-icon name="chat-bubbles"></ion-icon>
@@ -639,7 +646,7 @@
         <div class="trail-waypoints-tab">
           <app-trail-waypoints
             [trails]="trailsWaypoints"
-            [lang]="source?.info?.lang"
+            [lang]="trail1WithInfo?.source?.info?.lang"
             [editTools]="editTools"
             [showSource]="showTextHtml"
             (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"

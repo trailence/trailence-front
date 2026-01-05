@@ -334,7 +334,7 @@
     border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.15);
   }
 
-  .trail-tags-row {
+  .trail-tags-row, .trail-name-row {
     padding: 5px;
 
     &.editable {
@@ -347,6 +347,27 @@
 
     .tag {
       margin: 1px 0 1px 5px;
+    }
+  }
+  .trail-name-row {
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+
+    &.editable {
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba(var(--ion-text-color-rgb), 0.05);
+      }
+    }
+
+    .trail-name {
+      flex: 1 1 100%;
+      margin-left: 5px;
+      color: var(--ion-color-tertiary);
+      font-size: 14px;
     }
   }
 
