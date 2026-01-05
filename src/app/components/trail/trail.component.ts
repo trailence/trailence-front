@@ -1216,6 +1216,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         trailWithInfo$.pipe(
           switchMap(trailWithInfo => {
             if (!trailWithInfo) return of({col: null, trailWithInfo: null, track: null});
+            if (!trailWithInfo.trail.owner.includes('@') || trailWithInfo.trail.fromModeration)
+              return of({col: null, trailWithInfo, track: null});
             return combineLatest([
               this.injector.get(TrailCollectionService).getCollectionWithName$(trailWithInfo.trail.collectionUuid, trailWithInfo.trail.owner),
               isTrail1 ? this.trackService.getFullTrackReady$(trailWithInfo.trail.currentTrackUuid, trailWithInfo.trail.owner) : of(null),
@@ -1240,6 +1242,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               (result.trailWithInfo.trail.fromModeration ||
                (result.trailWithInfo.trail.owner === auth.email && result.col?.collection.type !== TrailCollectionType.PUB_SUBMIT)
               );
+          console.log('------------------', isTrail1, this.editable)
         } else if (isTrail1) {
           this.isPublication = false;
           this.publicationChecklist = undefined;

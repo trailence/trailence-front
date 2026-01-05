@@ -1,0 +1,4 @@
+Nouveau filtre : parcours avec photos<br/>
+Éditez une photo : rotation, recadrage, floutage<br/>
+Affichage des pauses sur la carte pendant l'enregistrement d'une trace<br/>
+Quelques autres petites améliorations et correctifs ont également été apportés dans cette version
