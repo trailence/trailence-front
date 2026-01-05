@@ -306,5 +306,23 @@
   "010301": {
     "en": {"message": "Some improvements and fixes"},
     "fr": {"message": "Quelques améliorations et correctifs"}
+  },
+  "010302": {
+    "fr": {
+      "items": [
+        "Nouveau filtre : parcours avec photos",
+        "Éditez une photo : rotation, recadrage, floutage",
+        "Affichage des pauses sur la carte pendant l'enregistrement d'une trace",
+        "Quelques autres petites améliorations et correctifs ont également été apportés dans cette version"
+      ]
+    },
+    "en": {
+      "items": [
+        "New filter: routes with photos",
+        "Edit a photo: rotate, crop, blur",
+        "Display of pauses on the map while recording a track",
+        "Several other small improvements and bug fixes are also included in this version"
+      ]
+    }
   }
 }

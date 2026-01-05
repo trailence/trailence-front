@@ -1,7 +1,7 @@
 {
   "limits": {
     "global": {
-      "new": 5,
+      "new": 20,
       "update": 0
     },
     "remote": {

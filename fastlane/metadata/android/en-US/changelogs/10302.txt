@@ -1,0 +1,4 @@
+New filter: routes with photos<br/>
+Edit a photo: rotate, crop, blur<br/>
+Display of pauses on the map while recording a track<br/>
+Several other small improvements and bug fixes are also included in this version
