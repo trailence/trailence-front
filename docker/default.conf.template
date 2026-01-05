@@ -35,6 +35,9 @@ server {
     js_import trail_page from generate_trail_page.js;
     js_import no_description from index_without_description.js;
 
+    location /.well-known {
+      root /var/www/wellknown;
+    }
     location ~* ^/(en|fr)/trail/ {
       js_content trail_page.generate;
     }
