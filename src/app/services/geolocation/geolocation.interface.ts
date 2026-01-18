@@ -18,6 +18,7 @@ export interface IGeolocationService {
   waitingForGps: boolean;
 
   getState(): Promise<GeolocationState>;
+  requirePermission(): Promise<boolean>;
 
   getCurrentPosition(): Promise<PointDto>;
 

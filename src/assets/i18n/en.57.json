@@ -1081,6 +1081,10 @@
       "title": "GPS disabled",
       "message": "Your GPS is disabled, please enable it to start a track."
     },
+    "denied_popup": {
+      "title": "Geolocation access",
+      "message": "Access to geolocation is disabled/denied."
+    },
     "confirm_popup": {
       "resume_message": "Please confirm to resume the track",
       "pause_message": "Please confirm to pause the track",

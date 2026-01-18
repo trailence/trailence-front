@@ -170,6 +170,34 @@ export class GeolocationService implements IGeolocationService {
     }
   }
 
+  async requirePermission(): Promise<boolean> {
+    const state = await this.getState();
+    Console.info('Geolocation.requirePermission: ', state);
+    if (state !== GeolocationState.DENIED) return true;
+    return new Promise<boolean>((resolve, reject) => {
+      this.alertController.create({
+        header: this.i18n.texts.trace_recorder.denied_popup.title,
+        message: this.i18n.texts.trace_recorder.denied_popup.message,
+        backdropDismiss: false,
+        buttons: [{
+          text: this.i18n.texts.buttons.retry,
+          role: 'ok',
+          handler: () => {
+            this.alertController.dismiss();
+            BackgroundGeolocation.requestPermissions().then(() => this.requirePermission().then(resolve)).catch(reject);
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            this.alertController.dismiss();
+            resolve(false);
+          }
+        }]
+      }).then(a => a.present());
+    });
+  }
+
   public stopWatching(listener: (position: PointDto) => void): void {
     const index = this.watchListeners.findIndex(l => l.listener === listener);
     if (index >= 0) {

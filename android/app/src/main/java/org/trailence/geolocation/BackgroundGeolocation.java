@@ -52,7 +52,6 @@ public class BackgroundGeolocation extends Plugin {
   public static final String LOCATION_ALIAS = "location";
   public static final String COARSE_LOCATION_ALIAS = "coarseLocation";
 
-  private PluginCall callPendingPermissions = null;
   private BackgroundGeolocationService.LocalBinder service = null;
   private Boolean stoppedWithoutPermissions = false;
 

@@ -1082,6 +1082,10 @@
       "title": "GPS désactivé",
       "message": "Votre GPS est actuellement désactivé, veuillez le démarrer afin de pouvoir démarrer une trace."
     },
+    "denied_popup": {
+      "title": "Accès à la géolocalisation",
+      "message": "L'accès à la géolocalisation est désactivé/autorisation refusée."
+    },
     "confirm_popup": {
       "resume_message": "Veuillez confirmer la reprise du parcours",
       "pause_message": "Veuillez confirmer la mise en pause du parcours",

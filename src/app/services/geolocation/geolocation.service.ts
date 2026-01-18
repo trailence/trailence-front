@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { GEOLOCATION_MAX_AGE, GEOLOCATION_TIMEOUT, GeolocationState, IGeolocationService } from './geolocation.interface';
 import { PointDto } from 'src/app/model/dto/point';
 import { BehaviorSubject } from 'rxjs';
@@ -20,7 +20,7 @@ export class GeolocationService implements IGeolocationService {
     timeout: GEOLOCATION_TIMEOUT
   }
 
-  constructor() { }
+  constructor(private readonly injector: Injector) { }
 
   public readonly isNative = false;
   public get waitingForGps$() { return this._waitingForGps$; }
@@ -56,6 +56,36 @@ export class GeolocationService implements IGeolocationService {
     });
   }
 
+  async requirePermission(): Promise<boolean> {
+    const state = await this.getState();
+    if (state !== GeolocationState.DENIED) return true;
+    const ionic = await import('@ionic/angular/standalone');
+    const i18n = this.injector.get((await import('../i18n/i18n.service')).I18nService);
+    const alertController = this.injector.get(ionic.AlertController);
+    return new Promise<boolean>((resolve, reject) => {
+      alertController.create({
+        header: i18n.texts.trace_recorder.denied_popup.title,
+        message: i18n.texts.trace_recorder.denied_popup.message,
+        backdropDismiss: false,
+        buttons: [{
+          text: i18n.texts.buttons.retry,
+          role: 'ok',
+          handler: () => {
+            alertController.dismiss();
+            this.requirePermission().then(resolve).catch(reject);
+          }
+        }, {
+          text: i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            alertController.dismiss();
+            resolve(false);
+          }
+        }]
+      }).then(a => a.present());
+    });
+  }
+
   public getCurrentPosition(): Promise<PointDto> {
     return new Promise((resolve, error) => {
       globalThis.navigator.geolocation.getCurrentPosition(
@@ -71,7 +101,8 @@ export class GeolocationService implements IGeolocationService {
   public watchPosition(
     notifMessage: string,
     listener: (position: PointDto) => void,
-    onerror?: (error: any) => void
+    onerror?: (error: any) => void,
+    skipPermission?: boolean,
   ): void {
     this._waitingForGps$.next(true);
     this.getCurrentPosition()
@@ -81,6 +112,17 @@ export class GeolocationService implements IGeolocationService {
     })
     .catch(e => {
       Console.warn('Geolocation error', e);
+      if (e instanceof GeolocationPositionError && e.code === 1) {
+        // denied
+        if (!skipPermission) {
+          this.requirePermission()
+          .then(result => {
+            if (result) this.watchPosition(notifMessage, listener, onerror, true);
+            else if (onerror) onerror(e);
+          });
+          return;
+        }
+      }
       if (onerror) onerror(e);
     });
     this.watchListeners.push({listener, onerror});
