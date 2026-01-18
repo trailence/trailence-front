@@ -111,7 +111,7 @@ app-toolbar {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 
   ion-icon {
     flex: none;
@@ -125,6 +125,7 @@ app-toolbar {
   }
   ion-checkbox::part(label) {
     margin-inline: 8px 0;
+    white-space: normal;
   }
 }
 
