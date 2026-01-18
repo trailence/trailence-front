@@ -1134,7 +1134,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         let remaining: Track | undefined = undefined;
         const pt = r?.track.arrivalPoint;
         let closestPoint: { segmentIndex: number, pointIndex: number } | undefined = undefined;
-        const track = this.tracks$.value.at(0);
+        let track = this.tracks$.value.at(0);
+        if (track === r?.track) track = undefined;
         if (pt && track) {
           closestPoint = TrackUtils.findNextClosestPointInTrack(pt.pos, track, 250, this.remaining?.segmentIndex ?? 0, this.remaining?.pointIndex ?? 0);
           if (closestPoint) {
