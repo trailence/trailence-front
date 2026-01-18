@@ -43,6 +43,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -84,6 +86,7 @@ public class CameraPlugin extends Plugin {
     private static final String USER_CANCELLED = "User cancelled photos app";
 
     private String imageFileSavePath;
+    private String imageFilename;
     private Uri imageFileUri;
     private boolean isFirstRequest = true;
     private boolean isSaved = false;
@@ -217,8 +220,13 @@ public class CameraPlugin extends Plugin {
                 // If we will be saving the photo, send the target file along
                 try {
                     String appId = getAppId();
-                    File photoFile = CameraUtils.createImageFile(getActivity());
+                    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                    File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    File photoFile = new File(storageDir, timeStamp + ".jpg");
+                    if (!photoFile.createNewFile())
+                      photoFile = File.createTempFile(timeStamp + "_", ".jpg", storageDir);
                     imageFileSavePath = photoFile.getAbsolutePath();
+                    imageFilename = timeStamp;
                     // TODO: Verify provider config exists
                     imageFileUri = FileProvider.getUriForFile(getActivity(), appId + ".fileprovider", photoFile);
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri);
@@ -308,12 +316,11 @@ public class CameraPlugin extends Plugin {
             isSaved = true;
             try {
                 String fileToSavePath = imageFileSavePath;
-                File fileToSave = new File(fileToSavePath);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ContentResolver resolver = getContext().getContentResolver();
                     ContentValues values = new ContentValues();
-                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileToSave.getName());
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, imageFilename);
                     values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
                     values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM);
 
@@ -347,16 +354,19 @@ public class CameraPlugin extends Plugin {
                       }
                     }
                 } else {
-                    String inserted = MediaStore.Images.Media.insertImage(
-                        getContext().getContentResolver(),
-                        fileToSavePath,
-                        fileToSave.getName(),
-                        ""
-                    );
+                  File file = new File(fileToSavePath);
+                  File target = new File(file.getParent(), imageFilename + ".jpg");
+                  if (file.renameTo(target)) file = target;
+                  String inserted = MediaStore.Images.Media.insertImage(
+                      getContext().getContentResolver(),
+                      file.getAbsolutePath(),
+                      imageFilename,
+                      ""
+                  );
 
-                    if (inserted == null) {
-                        isSaved = false;
-                    }
+                  if (inserted == null) {
+                      isSaved = false;
+                  }
                 }
             } catch (IOException e) {
                 isSaved = false;

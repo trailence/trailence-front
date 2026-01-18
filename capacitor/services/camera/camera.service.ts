@@ -32,7 +32,7 @@ export class CameraService implements ICameraService {
       source: CameraSource.Camera,
       correctOrientation: false,
       allowEditing: false,
-      quality: 90,
+      quality: 100,
       latitude, longitude
     } as ImageOptions).then(result => {
       if (!result.base64String) return Promise.reject('no photo taken');
