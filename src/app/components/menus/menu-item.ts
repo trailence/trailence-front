@@ -36,6 +36,7 @@ export class MenuItem {
   public icon: Attribute<string>;
   public i18nLabel: Attribute<string>;
   public label: Attribute<string>;
+  public subLabel: Attribute<string>;
   public backgroundColor: Attribute<string>;
   public textColor: Attribute<string>;
   public textSize: Attribute<string>;
@@ -64,6 +65,11 @@ export class MenuItem {
 
   public setI18nLabel(label: Attribute<string>): this {
     this.i18nLabel = label;
+    return this;
+  }
+
+  public setSubLabel(subLabel: Attribute<string>): this {
+    this.subLabel = subLabel;
     return this;
   }
 
@@ -209,6 +215,11 @@ export class MenuItem {
   public getBackgroundColor(): string | undefined {
     if (typeof this.backgroundColor === 'function') return this.backgroundColor();
     return this.backgroundColor;
+  }
+
+  public getSubLabel(): string | undefined {
+    if (typeof this.subLabel === 'function') return this.subLabel();
+    return this.subLabel;
   }
 
   public isSeparator(): boolean {
@@ -457,6 +468,7 @@ export class ComputedMenuItem {
   public text$?: Observable<string>;
   public textColor?: string;
   public textSize: string | undefined | (() => string | undefined);
+  public subText?: string;
   public backgroundColor?: string;
   public badges: Badges = { topLeft: undefined, topRight: undefined, bottomLeft: undefined, bottomRight: undefined };
   public sectionTitle: boolean = false;
@@ -506,6 +518,7 @@ export class ComputedMenuItem {
     if (this.i18nKey) this.text$ = this.i18n.texts$.pipe(map(texts => ObjectUtils.extractField(texts, this.i18nKey ?? 'x')));
     else if (this.fixedLabel) this.text$ = of(this.fixedLabel);
     else this.text$ = undefined;
+    changed = this.setValue(this.subText, this.item.getSubLabel(), v => this.subText = v) || changed;
     changed = this.setValue(this.disabled, this.item.isDisabled(), v => this.disabled = v) || changed;
     changed = this.setValue(this.selected, this.item.isSelected(), v => this.selected = v) || changed;
     changed = this.setValue(this.icon, this.item.getIcon(), v => this.icon = v) || changed;

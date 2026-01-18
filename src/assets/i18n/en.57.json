@@ -162,7 +162,15 @@
         "rate": "Rating",
         "onlyVisibleOnMap": "Show in list only tracks visible on map",
         "onlyWithPhotos": "Only routes with photos",
-        "reset_button": "Reset all filters"
+        "reset_button": "Reset all filters",
+        "preset": "My saved filters",
+        "load": "Load",
+        "save": "Save",
+        "remove": "Delete",
+        "no_saved_filter": "No saved filter",
+        "save_title": "Save filter",
+        "save_name": "Filter name",
+        "enum_or": "or"
       },
       "tabs": {
         "list": "List",

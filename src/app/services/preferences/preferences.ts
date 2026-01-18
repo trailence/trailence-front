@@ -1,3 +1,5 @@
+import { Filters } from 'src/app/components/trails-list/filters';
+
 export type DistanceUnit = 'IMPERIAL' | 'METERS';
 export type HourFormat = 'H12' | 'H24';
 export type DateFormat = 'm/d/yyyy' | 'dd/mm/yyyy';
@@ -29,6 +31,7 @@ export interface Preferences {
   alias?: string;
 
   elevationCalibrationByDevice?: {[device: string]: number};
+  trailFilters?: {[name: string]: Filters};
 }
 
 export interface ComputedPreferences extends Preferences {
@@ -57,4 +60,5 @@ export interface ComputedPreferences extends Preferences {
   alias: string;
 
   elevationCalibrationByDevice?: {[device: string]: number};
+  trailFilters?: {[name: string]: Filters};
 }

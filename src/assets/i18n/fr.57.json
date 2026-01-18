@@ -157,12 +157,21 @@
         "negative_elevation": "Dénivelé négatif",
         "loopType": "Type de parcours",
         "loopTypePlaceholder": "Sélectionnez les types",
+        "activity": "Activité",
         "select_activities_button": "Cliquez pour sélectionner",
         "tags": "Tags",
         "rate": "Note",
         "onlyVisibleOnMap": "Afficher dans la liste uniquement les parcours visibles sur la carte",
         "onlyWithPhotos": "Seulement les parcours avec photos",
-        "reset_button": "Enlever tous les filtres"
+        "reset_button": "Enlever tous les filtres",
+        "preset": "Mes filtres enregistrés",
+        "load": "Charger",
+        "save": "Enregistrer",
+        "remove": "Supprimer",
+        "no_saved_filter": "Aucun filtre enregistré",
+        "save_title": "Enregistrer le filter",
+        "save_name": "Nom du filter",
+        "enum_or": "ou"
       },
       "tabs": {
         "list": "Liste",

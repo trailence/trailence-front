@@ -131,6 +131,33 @@ export class FiltersUtils {
     };
   }
 
+  public static toUserUnit(filters: Filters, preferences: ComputedPreferences, i18n: I18nService): Filters {
+    const distanceConverter = preferences.distanceUnit === 'METERS' ? 1000 : 5280;
+    return {
+      ...filters,
+      distance: {
+        from: filters.distance.from === undefined ? undefined : i18n.distanceInUserUnit(filters.distance.from) / distanceConverter,
+        to: filters.distance.to === undefined ? undefined : i18n.distanceInUserUnit(filters.distance.to) / distanceConverter,
+      },
+      duration: {
+        from: filters.duration.from === undefined ? undefined : filters.duration.from / (60 * 60 * 1000),
+        to: filters.duration.to === undefined ? undefined : filters.duration.to / (60 * 60 * 1000),
+      },
+      estimatedDuration: {
+        from: filters.estimatedDuration.from === undefined ? undefined : filters.estimatedDuration.from / (60 * 60 * 1000),
+        to: filters.estimatedDuration.to === undefined ? undefined : filters.estimatedDuration.to / (60 * 60 * 1000),
+      },
+      positiveElevation: {
+        from: filters.positiveElevation.from === undefined ? undefined : i18n.elevationInUserUnit(filters.positiveElevation.from),
+        to: filters.positiveElevation.to === undefined ? undefined : i18n.elevationInUserUnit(filters.positiveElevation.to),
+      },
+      negativeElevation: {
+        from: filters.negativeElevation.from === undefined ? undefined : i18n.elevationInUserUnit(filters.negativeElevation.from),
+        to: filters.negativeElevation.to === undefined ? undefined : i18n.elevationInUserUnit(filters.negativeElevation.to),
+      }
+    };
+  }
+
   public static nbActives(filters: Filters, includeByName: boolean = false): number {
     let nb = 0;
     if (filters.duration.from !== undefined || filters.duration.to !== undefined) nb++;
@@ -161,6 +188,78 @@ export class FiltersUtils {
     filters.onlyWithPhotos = false;
     filters.tags = {tagsUuids: [], type: 'include_and'};
     filters.search = '';
+  }
+
+  public static copy(filters: Filters): Filters {
+    return {
+      duration: {...filters.duration},
+      estimatedDuration: {...filters.estimatedDuration},
+      distance: {...filters.distance},
+      positiveElevation: {...filters.positiveElevation},
+      negativeElevation: {...filters.negativeElevation},
+      rate: {...filters.rate},
+      loopTypes: {selected: filters.loopTypes.selected},
+      activities: {selected: filters.activities.selected},
+      onlyVisibleOnMap: filters.onlyVisibleOnMap,
+      onlyWithPhotos: filters.onlyWithPhotos,
+      tags: {tagsUuids: [...filters.tags.tagsUuids], type: filters.tags.type},
+      search: filters.search,
+    }
+  }
+
+  public static getDescription(filters: Filters, i18n: I18nService, preferences: ComputedPreferences): string {
+    const texts: string[] = [];
+    let text = this.getFilterNumericDescription(filters.duration, i18n, 'duration', v => i18n.hoursToString(v));
+    if (text) texts.push(text);
+    text = this.getFilterNumericDescription(filters.estimatedDuration, i18n, 'estimatedDuration', v => i18n.hoursToString(v));
+    if (text) texts.push(text);
+    text = this.getFilterNumericDescription(filters.distance, i18n, 'distance', this.getDistanceFormatter(preferences));
+    if (text) texts.push(text);
+    text = this.getFilterNumericDescription(filters.positiveElevation, i18n, 'positive_elevation', this.getElevationFormatter(preferences));
+    if (text) texts.push(text);
+    text = this.getFilterNumericDescription(filters.negativeElevation, i18n, 'negative_elevation', this.getElevationFormatter(preferences));
+    if (text) texts.push(text);
+    text = this.getFilterNumericDescription(filters.rate, i18n, 'rate', v => v + '★');
+    if (text) texts.push(text);
+    text = this.getFilterEnumDescription(filters.loopTypes, i18n, 'loopType', v => i18n.texts.loopType[v]);
+    if (text) texts.push(text);
+    text = this.getFilterEnumDescription(filters.activities, i18n, 'activity', v => v ? i18n.texts.activity[v] : i18n.texts.activity.unspecified);
+    if (text) texts.push(text);
+    if (filters.onlyVisibleOnMap) texts.push(i18n.texts.pages.trails.filters.onlyVisibleOnMap);
+    if (filters.onlyWithPhotos) texts.push(i18n.texts.pages.trails.filters.onlyWithPhotos);
+    if (filters.tags.type === 'onlyWithAnyTag' || filters.tags.type === 'onlyWithoutAnyTag' || filters.tags.tagsUuids.length !== 0) texts.push(i18n.texts.pages.trails.filters.tags);
+    if (filters.search?.trim()?.length) texts.push(i18n.texts.tools.search_text + ': ' + filters.search);
+    return texts.join(', ');
+  }
+
+  private static getFilterNumericDescription(filter: FilterNumeric, i18n: I18nService, filterName: string, valueLabel: (value: number) => string): string | undefined {
+    if (filter.from !== undefined) {
+      if (filter.to !== undefined)
+        return i18n.texts.pages.trails.filters[filterName] + ' ' + valueLabel(filter.from) + '..' + valueLabel(filter.to);
+      return i18n.texts.pages.trails.filters[filterName] + ' >= ' + valueLabel(filter.from);
+    } else if (filter.to !== undefined) {
+      return i18n.texts.pages.trails.filters[filterName] + ' <= ' + valueLabel(filter.to);
+    }
+    return undefined;
+  }
+
+  private static getFilterEnumDescription<T>(filter: FilterEnum<T>, i18n: I18nService, filterName: string, valueLabel: (value: T) => string): string | undefined {
+    if (filter.selected === undefined || filter.selected.length === 0) return undefined;
+    return i18n.texts.pages.trails.filters[filterName] + ' = ' + filter.selected.map(v => valueLabel(v)).join(' ' + i18n.texts.pages.trails.filters.enum_or + ' ');
+  }
+
+  public static getDistanceFormatter(preferences: ComputedPreferences): (value: number) => string {
+    switch (preferences.distanceUnit) {
+      case 'METERS': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' km';
+      case 'IMPERIAL': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' mi';
+    }
+  }
+
+  public static getElevationFormatter(preferences: ComputedPreferences): (value: number) => string {
+    switch (preferences.distanceUnit) {
+      case 'METERS': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' m';
+      case 'IMPERIAL': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' ft';
+    }
   }
 
 }

@@ -5,7 +5,7 @@ import { TrailOverviewComponent } from '../trail-overview/trail-overview.compone
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
-  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController } from "@ionic/angular/standalone";
+  IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController, AlertController } from "@ionic/angular/standalone";
 import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
@@ -152,6 +152,68 @@ export class TrailsListComponent extends AbstractComponent {
     showSpeed: false,
   };
 
+  filtersToolbar: MenuItem[] = [
+    new MenuItem().setI18nLabel('pages.trails.filters.preset').setSectionTitle(true).setTextColor('secondary'),
+    new MenuItem().setIcon('export').setI18nLabel('pages.trails.filters.load').setChildrenProvider(() => {
+      const saved = this.preferences.preferences.trailFilters;
+      const names = saved ? Object.keys(saved) : [];
+      if (names.length === 0) return of([new MenuItem().setI18nLabel('pages.trails.filters.no_saved_filter').setDisabled(true).setAction(() => {})]);
+      return of(names.sort().map(name => {
+        const systemFilter = saved![name];
+        const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
+        return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
+          .setAction(() => {
+            this.state$.next({...this.state$.value, filters: FiltersUtils.copy(userFilter)});
+          })
+      }));
+    }),
+    new MenuItem().setIcon('save').setI18nLabel('pages.trails.filters.save')
+      .setDisabled(() => FiltersUtils.nbActives(this.state$.value.filters, true) === 0)
+      .setAction(() => {
+        this.injector.get(AlertController).create({
+          header: this.i18n.texts.pages.trails.filters.save_title,
+          inputs: [{
+            type: 'text',
+            min: 1,
+            max: 100,
+            label: this.i18n.texts.pages.trails.filters.save_name,
+          }],
+          buttons: [
+            {
+              text: this.i18n.texts.buttons.ok,
+              role: 'ok'
+            }, {
+              text: this.i18n.texts.buttons.cancel,
+              role: 'cancel'
+            }
+          ]
+        }).then(a => a.present().then(() => a.onDidDismiss().then(event => {
+          if (event.role === 'ok') {
+            const name = event.data.values[0].trim();
+            if (name.length > 0) {
+              const filters = this.preferences.preferences.trailFilters ?? {};
+              filters[name] = FiltersUtils.toSystemUnit(FiltersUtils.copy(this.state$.value.filters), this.preferences.preferences, this.i18n);
+              this.preferences.saveTrailFilters({...filters});
+            }
+          }
+        })));
+      }),
+    new MenuItem().setIcon('trash').setI18nLabel('pages.trails.filters.remove').setChildrenProvider(() => {
+      const saved = this.preferences.preferences.trailFilters;
+      const names = saved ? Object.keys(saved) : [];
+      return of(names.sort().map(name => {
+        const systemFilter = saved![name];
+        const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
+        return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
+          .setAction(() => {
+            const filters = this.preferences.preferences.trailFilters ?? {};
+            delete filters[name];
+            this.preferences.saveTrailFilters({...filters});
+          })
+      }));
+    }),
+  ];
+
   constructor(
     injector: Injector,
     public i18n: I18nService,
@@ -185,15 +247,21 @@ export class TrailsListComponent extends AbstractComponent {
           currentLang = prefs.lang;
           i18n.langLoaded$.pipe(first(l => l === currentLang)).subscribe(() => {
             this.toolbar = [...this.toolbar];
+            this.filtersToolbar = [...this.filtersToolbar];
             this.changesDetection.detectChanges();
           });
+        } else {
+          this.filtersToolbar = [...this.filtersToolbar];
+          this.changesDetection.detectChanges();
         }
       }));
       this.state$.pipe(
         skip(1)
       ).subscribe(() => {
+        Console.info('New state: ', this.id, this.state$.value);
         this.saveState();
         this.toolbar = [...this.toolbar];
+        this.filtersToolbar = [...this.filtersToolbar];
         this.changesDetection.detectChanges();
       });
     });
@@ -641,24 +709,24 @@ export class TrailsListComponent extends AbstractComponent {
         this.filterDistanceConfig = {
           range: true,
           values: [0, 1, 2, 3, 4, 6, 8, 10, 12, 14, 17, 20, 25, 30, 40, 50],
-          formatter: (value: number) => value + ' km'
+          formatter: FiltersUtils.getDistanceFormatter(prefs),
         };
         this.filterElevationConfig = {
           range: true,
           values: [0, 50, 100, 200, 300, 400, 500, 600, 800, 1000, 1250, 1500, 2000],
-          formatter: (value: number) => value + ' m'
+          formatter: FiltersUtils.getElevationFormatter(prefs),
         };
         break;
       case 'IMPERIAL':
         this.filterDistanceConfig = {
           range: true,
           values: [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 17, 20, 25, 30],
-          formatter: (value: number) => value + ' mi'
+          formatter: FiltersUtils.getDistanceFormatter(prefs),
         };
         this.filterElevationConfig = {
           range: true,
           values: [0, 200, 500, 800, 1100, 1400, 1700, 2000, 2500, 3000, 4000, 5000, 6000, 7000],
-          formatter: (value: number) => value + ' ft'
+          formatter: FiltersUtils.getElevationFormatter(prefs),
         };
         break;
     }

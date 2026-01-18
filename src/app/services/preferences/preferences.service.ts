@@ -9,6 +9,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
 import { Console } from 'src/app/utils/console';
 import Trailence from '../trailence.service';
 import { I18nService } from '../i18n/i18n.service';
+import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
 
 const defaultPreferences: {[key:string]: Preferences} = {
   'en': {
@@ -83,6 +84,7 @@ export class PreferencesService implements OnDestroy {
           photoCacheDays: parsed['photoCacheDays'],
           alias: parsed['alias'] ?? '',
           elevationCalibrationByDevice: parsed['elevationCalibrationByDevice'] ?? undefined,
+          trailFilters: this.fixTrailFilters(parsed['trailFilters']) ?? undefined,
         }
       }
     } catch (e) {} // NOSONAR
@@ -98,6 +100,16 @@ export class PreferencesService implements OnDestroy {
       else this.device = elements.join(' ');
     })
     setTimeout(() => this.init(), 1);
+  }
+
+  private fixTrailFilters(loaded: any): {[name: string]: Filters} | undefined {
+    if (!loaded || typeof loaded !== 'object') return undefined;
+    const fixed: {[name: string]: Filters} = {};
+    for (let filterName of Object.keys(loaded)) {
+      const fix = FiltersUtils.fix(loaded[filterName]);
+      if (fix) fixed[filterName] = fix;
+    }
+    return fixed;
   }
 
   ngOnDestroy(): void {
@@ -162,6 +174,8 @@ export class PreferencesService implements OnDestroy {
     toComplete.photoMaxSizeKB ??= DEFAULT_PHOTO_MAX_SIZE;
     toComplete.photoCacheDays ??= DEFAULT_PHOTO_CACHE_DAYS;
     toComplete.alias ??= '';
+    if (toComplete.elevationCalibrationByDevice === null) toComplete.elevationCalibrationByDevice = undefined;
+    if (toComplete.trailFilters === null) toComplete.trailFilters = undefined;
   }
 
   private completeEnum<T>(value: string | undefined, defaultValue: T, allowedValues: string[]): T {
@@ -301,6 +315,10 @@ export class PreferencesService implements OnDestroy {
     const v = this.preferences.elevationCalibrationByDevice ?? {};
     v[device ?? this.device] = meters;
     this.setPreference('elevationCalibrationByDevice', {...v});
+  }
+
+  public saveTrailFilters(trailFilters: {[name: string]: Filters} | undefined): void {
+    this.setPreference('trailFilters', trailFilters);
   }
 
   private setPreference(field: string, value: any): void {
