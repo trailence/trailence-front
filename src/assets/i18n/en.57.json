@@ -163,7 +163,7 @@
         "onlyVisibleOnMap": "Show in list only tracks visible on map",
         "onlyWithPhotos": "Only routes with photos",
         "reset_button": "Reset all filters",
-        "preset": "My saved filters",
+        "preset": "My filters",
         "load": "Load",
         "save": "Save",
         "remove": "Delete",

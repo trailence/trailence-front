@@ -213,11 +213,11 @@ export class FiltersUtils {
     if (text) texts.push(text);
     text = this.getFilterNumericDescription(filters.estimatedDuration, i18n, 'estimatedDuration', v => i18n.hoursToString(v));
     if (text) texts.push(text);
-    text = this.getFilterNumericDescription(filters.distance, i18n, 'distance', this.getDistanceFormatter(preferences));
+    text = this.getFilterNumericDescription(filters.distance, i18n, 'distance', this.getDistanceFormatter(preferences, preferences.distanceUnit === 'METERS' ? 50 : 30));
     if (text) texts.push(text);
-    text = this.getFilterNumericDescription(filters.positiveElevation, i18n, 'positive_elevation', this.getElevationFormatter(preferences));
+    text = this.getFilterNumericDescription(filters.positiveElevation, i18n, 'positive_elevation', this.getElevationFormatter(preferences, preferences.distanceUnit === 'METERS' ? 2000 : 7000));
     if (text) texts.push(text);
-    text = this.getFilterNumericDescription(filters.negativeElevation, i18n, 'negative_elevation', this.getElevationFormatter(preferences));
+    text = this.getFilterNumericDescription(filters.negativeElevation, i18n, 'negative_elevation', this.getElevationFormatter(preferences, preferences.distanceUnit === 'METERS' ? 2000 : 7000));
     if (text) texts.push(text);
     text = this.getFilterNumericDescription(filters.rate, i18n, 'rate', v => v + '★');
     if (text) texts.push(text);
@@ -248,17 +248,17 @@ export class FiltersUtils {
     return i18n.texts.pages.trails.filters[filterName] + ' = ' + filter.selected.map(v => valueLabel(v)).join(' ' + i18n.texts.pages.trails.filters.enum_or + ' ');
   }
 
-  public static getDistanceFormatter(preferences: ComputedPreferences): (value: number) => string {
+  public static getDistanceFormatter(preferences: ComputedPreferences, max: number): (value: number) => string {
     switch (preferences.distanceUnit) {
-      case 'METERS': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' km';
-      case 'IMPERIAL': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' mi';
+      case 'METERS': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + (value >= max ? '+' : '') + ' km';
+      case 'IMPERIAL': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + (value >= max ? '+' : '') + ' mi';
     }
   }
 
-  public static getElevationFormatter(preferences: ComputedPreferences): (value: number) => string {
+  public static getElevationFormatter(preferences: ComputedPreferences, max: number): (value: number) => string {
     switch (preferences.distanceUnit) {
-      case 'METERS': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' m';
-      case 'IMPERIAL': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + ' ft';
+      case 'METERS': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + (value >= max ? '+' : '') + ' m';
+      case 'IMPERIAL': return (value: number) => value.toLocaleString(preferences.lang, {maximumFractionDigits: 1}) + (value >= max ? '+' : '') + ' ft';
     }
   }
 

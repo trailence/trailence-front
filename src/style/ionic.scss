@@ -357,6 +357,15 @@ ion-range {
   --bar-background: rgba(var(--ion-text-color-rgb), 0.33);
 }
 
+ion-range.compact, .compact ion-range {
+  --height: 20px;
+  --knob-handle-size: var(--knob-size);
+
+  &.always-show-knob-pin::part(pin) {
+    transform: translate3d(0px, -30px, 0px) scale(1);
+  }
+}
+
 .alert-head {
   background-color: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);

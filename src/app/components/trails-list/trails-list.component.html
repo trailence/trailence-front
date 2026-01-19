@@ -155,7 +155,7 @@
   }
 </ng-template>
 
-<ion-modal #filtersModal>
+<ion-modal #filtersModal class="filters-modal auto-height">
   <ng-template>
     <ion-header>
       <ion-toolbar color="primary">
@@ -166,6 +166,8 @@
       </ion-toolbar>
       <app-toolbar class="filters-toolbar"
         [items]="filtersToolbar"
+        [iconSize]="16"
+        [textSize]="'12px'"
       ></app-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
@@ -185,10 +187,12 @@
         </div>
         <div class="filter-value">
           <app-filter-numeric-custom
+            class="compact"
             [config]="filterDurationConfig"
             [value]="state$.value.filters.duration"
             (valueChange)="updateNumericCustomFilter(state$.value.filters.duration, filterDurationConfig, $event)"
-            [maxValueLabel]="i18n.hoursToString(24) + '+'"
+            [minValueLabel]="null"
+            [maxValueLabel]="null"
             >
           </app-filter-numeric-custom>
         </div>
@@ -200,10 +204,12 @@
       </div>
       <div class="filter-value">
         <app-filter-numeric-custom
+          class="compact"
           [config]="filterDurationConfig"
           [value]="state$.value.filters.estimatedDuration"
           (valueChange)="updateNumericCustomFilter(state$.value.filters.estimatedDuration, filterDurationConfig, $event)"
-          [maxValueLabel]="i18n.hoursToString(24) + '+'"
+          [minValueLabel]="null"
+          [maxValueLabel]="null"
           >
         </app-filter-numeric-custom>
       </div>
@@ -214,10 +220,12 @@
       </div>
       <div class="filter-value">
         <app-filter-numeric-custom
+          class="compact"
           [config]="filterDistanceConfig"
           [value]="state$.value.filters.distance"
           (valueChange)="updateNumericCustomFilter(state$.value.filters.distance, filterDistanceConfig, $event)"
-          [maxValueLabel]="filterDistanceConfig.formatter(filterDistanceConfig.values[filterDistanceConfig.values.length - 1]) + '+'"
+          [minValueLabel]="null"
+          [maxValueLabel]="null"
           >
         </app-filter-numeric-custom>
       </div>
@@ -228,10 +236,12 @@
       </div>
       <div class="filter-value">
         <app-filter-numeric-custom
+          class="compact"
           [config]="filterElevationConfig"
           [value]="state$.value.filters.positiveElevation"
           (valueChange)="updateNumericCustomFilter(state$.value.filters.positiveElevation, filterElevationConfig, $event)"
-          [maxValueLabel]="filterElevationConfig.formatter(filterElevationConfig.values[filterElevationConfig.values.length - 1]) + '+'"
+          [minValueLabel]="null"
+          [maxValueLabel]="null"
           >
         </app-filter-numeric-custom>
       </div>
@@ -241,10 +251,12 @@
       </div>
       <div class="filter-value">
         <app-filter-numeric-custom
+          class="compact"
           [config]="filterElevationConfig"
           [value]="state$.value.filters.negativeElevation"
           (valueChange)="updateNumericCustomFilter(state$.value.filters.negativeElevation, filterElevationConfig, $event)"
-          [maxValueLabel]="filterElevationConfig.formatter(filterElevationConfig.values[filterElevationConfig.values.length - 1]) + '+'"
+          [minValueLabel]="null"
+          [maxValueLabel]="null"
           >
         </app-filter-numeric-custom>
       </div>
@@ -256,6 +268,7 @@
         </div>
         <div class="filter-value">
           <app-filter-numeric
+            class="compact"
             [minValue]="0" [maxValue]="5" [step]="0.5"
             [selectedMinValue]="state$.value.filters.rate.from || 0" [selectedMaxValue]="state$.value.filters.rate.to || 5"
             (selectionChange)="updateNumericFilter(state$.value.filters.rate, $event)"
@@ -279,7 +292,7 @@
       <div class="filter-value">
         <ion-select
           [multiple]="true"
-          [value]="state$.value.filters.loopTypes?.selected || []"
+          [value]="state$.value.filters.loopTypes.selected || []"
           (ionChange)="updateEnumFilter(state$.value.filters.loopTypes, $event.detail.value)"
           placeholder="{{i18n.texts.pages.trails.filters.loopTypePlaceholder}}"
           cancelText="{{i18n.texts.buttons.cancel}}"

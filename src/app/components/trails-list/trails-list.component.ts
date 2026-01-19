@@ -129,7 +129,7 @@ export class TrailsListComponent extends AbstractComponent {
 
   collectionTags: Tag[] = [];
 
-  durationFormatter = (value: number) => this.i18n.hoursToString(value);
+  durationFormatter = (value: number) => this.i18n.hoursToString(value) + (value === 24 ? '+' : '');
   isPositive = (value: any) => typeof value === 'number' && value > 0;
 
   loopTypes = Object.values(TrailLoopType);
@@ -162,6 +162,7 @@ export class TrailsListComponent extends AbstractComponent {
         const systemFilter = saved![name];
         const userFilter = FiltersUtils.toUserUnit(systemFilter, this.preferences.preferences, this.i18n);
         return new MenuItem().setFixedLabel(name).setSubLabel(FiltersUtils.getDescription(userFilter, this.i18n, this.preferences.preferences))
+          .setDisabled(() => !this.isFilterEligible(systemFilter))
           .setAction(() => {
             this.state$.next({...this.state$.value, filters: FiltersUtils.copy(userFilter)});
           })
@@ -569,6 +570,16 @@ export class TrailsListComponent extends AbstractComponent {
     return this.mapTrails;
   }
 
+  private isFilterEligible(filters: Filters): boolean {
+    if ((filters.duration.from !== undefined || filters.duration.to !== undefined) && this.listType === 'search') return false;
+    if ((filters.rate.from !== undefined || filters.rate.to !== undefined) && this.listType !== 'search' && this.listType !== 'my-selection' && this.listType !== 'my-publications') return false;
+    if (filters.tags.type === 'onlyWithAnyTag' || filters.tags.type === 'onlyWithoutAnyTag' || filters.tags.tagsUuids.length !== 0) {
+      if (!this.collectionUuid) return false;
+      if (filters.tags.tagsUuids.length !== 0 && !filters.tags.tagsUuids.every(uuid => this.collectionTags.some(tag => tag.uuid === uuid))) return false;
+    }
+    return true;
+  }
+
   private searchTextInTrail(text: string, trail: Trail, trailTags: TrailTag[], info?: TrailInfo): TextSearchPos[] {
     const result: TextSearchPos[] = [];
     const s = text.trim().toLowerCase();
@@ -709,24 +720,24 @@ export class TrailsListComponent extends AbstractComponent {
         this.filterDistanceConfig = {
           range: true,
           values: [0, 1, 2, 3, 4, 6, 8, 10, 12, 14, 17, 20, 25, 30, 40, 50],
-          formatter: FiltersUtils.getDistanceFormatter(prefs),
+          formatter: FiltersUtils.getDistanceFormatter(prefs, 50),
         };
         this.filterElevationConfig = {
           range: true,
           values: [0, 50, 100, 200, 300, 400, 500, 600, 800, 1000, 1250, 1500, 2000],
-          formatter: FiltersUtils.getElevationFormatter(prefs),
+          formatter: FiltersUtils.getElevationFormatter(prefs, 2000),
         };
         break;
       case 'IMPERIAL':
         this.filterDistanceConfig = {
           range: true,
           values: [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 17, 20, 25, 30],
-          formatter: FiltersUtils.getDistanceFormatter(prefs),
+          formatter: FiltersUtils.getDistanceFormatter(prefs, 30),
         };
         this.filterElevationConfig = {
           range: true,
           values: [0, 200, 500, 800, 1100, 1400, 1700, 2000, 2500, 3000, 4000, 5000, 6000, 7000],
-          formatter: FiltersUtils.getElevationFormatter(prefs),
+          formatter: FiltersUtils.getElevationFormatter(prefs, 7000),
         };
         break;
     }

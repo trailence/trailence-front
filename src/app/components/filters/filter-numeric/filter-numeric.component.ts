@@ -21,8 +21,8 @@ export class FilterNumericComponent {
   @Input() maxValue!: number;
   @Input() valueFormatter!: (value: number) => string;
   @Input() step = 1;
-  @Input() minValueLabel?: string;
-  @Input() maxValueLabel?: string;
+  @Input() minValueLabel: string | null | undefined;
+  @Input() maxValueLabel: string | null | undefined;
 
   @Input() selectedMinValue!: number;
   @Input() selectedMaxValue!: number;

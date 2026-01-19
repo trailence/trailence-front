@@ -15,8 +15,8 @@ export class FilterNumericCustomComponent implements OnInit, OnChanges {
   @Input() value!: FilterNumeric | number;
   @Output() valueChange = new EventEmitter<FilterNumeric | number>;
 
-  @Input() minValueLabel?: string;
-  @Input() maxValueLabel?: string;
+  @Input() minValueLabel: string | null | undefined;
+  @Input() maxValueLabel: string | null | undefined;
 
   valueFormatter = (value: number) => this.config.formatter(this.getValueFromIndex(value));
   ionValue: number | { lower: number, upper: number } = 0;

@@ -13,6 +13,10 @@
   (ionInput)="ionValueChanged($event.detail.value)"
   class="always-show-knob-pin"
 >
-  <ion-label slot="start">{{ minValueLabel ? minValueLabel : config.formatter(config.values[0]) }}</ion-label>
-  <ion-label slot="end">{{ maxValueLabel ? maxValueLabel : config.formatter(config.values[config.values.length - 1]) }}</ion-label>
+  @if (minValueLabel !== null) {
+    <ion-label slot="start">{{ minValueLabel ? minValueLabel : config.formatter(config.values[0]) }}</ion-label>
+  }
+  @if (maxValueLabel !== null) {
+    <ion-label slot="end">{{ maxValueLabel ? maxValueLabel : config.formatter(config.values[config.values.length - 1]) }}</ion-label>
+  }
 </ion-range>

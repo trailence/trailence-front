@@ -87,45 +87,51 @@ app-toolbar {
   }
 }
 
+.filters-modal {
+  --header-footer-size: calc(var(--toolbar-height) * 2 + 40px);
+}
+.filter-header, .filter-checkbox {
+  ion-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    color: var(--ion-color-secondary);
+  }
+}
+
 .filter-header {
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin: 0 -8px 2px -8px;
 
-  ion-icon {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-    color: var(--ion-color-secondary);
-  }
   div {
-    color: var(--ion-color-tertiary);
+    color: var(--ion-color-secondary);
+    font-size: 14px;
   }
 }
 
 .filter-value {
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
 
 .filter-checkbox {
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 8px;
+  margin: 0 -8px 3px -8px;
 
   ion-icon {
     flex: none;
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-    color: var(--ion-color-secondary);
   }
   ion-checkbox {
     flex: 1 1 100%;
+    --size: 16px;
   }
   ion-checkbox::part(label) {
     margin-inline: 8px 0;
     white-space: normal;
+    font-size: 14px;
   }
 }
 app-toolbar.filters-toolbar {

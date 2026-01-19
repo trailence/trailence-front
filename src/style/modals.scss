@@ -1,3 +1,10 @@
+ion-modal {
+  --toolbar-height: 56px;
+  ion-toolbar {
+    --min-height: var(--toolbar-height);
+  }
+}
+
 ion-modal.small-modal {
   --width: auto;
   --height: auto;
@@ -42,13 +49,14 @@ ion-modal.auto-height {
   --height: auto;
   height: auto;
   --max-height: 95%;
+  --header-footer-size: calc(var(--toolbar-height) * 2);
 
   ion-content {
     flex: 1 1 100%;
     height: auto;
     contain: content;
     overflow-y: auto;
-    max-height: calc(95vh - 112px);
+    max-height: calc(95vh - var(--header-footer-size));
 
     &::part(scroll) {
       position: relative;
@@ -66,9 +74,8 @@ ion-modal ion-toolbar ion-title {
 
 @media (max-height: 600px) or (max-width: 600px) {
   ion-modal {
+    --toolbar-height: 40px;
     ion-toolbar {
-      --min-height: 40px;
-
       ion-title {
         ion-icon {
           margin-right: 6px;
@@ -92,6 +99,13 @@ ion-modal ion-toolbar ion-title {
     &.small-modal {
       ion-content {
         max-height: calc(95vh - 80px);
+      }
+    }
+
+    &.auto-height {
+      --max-height: 100%;
+      ion-content {
+        max-height: calc(100vh - var(--header-footer-size));
       }
     }
   }
