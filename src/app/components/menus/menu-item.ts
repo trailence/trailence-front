@@ -324,7 +324,7 @@ export class ComputedMenuItems {
     this._allItems = newAllItems;
 
     // refresh visibility
-    return forkJoin(this._allItems.map(i => i.refreshVisible$())).pipe(
+    return (this._allItems.length === 0 ? of([]) : forkJoin(this._allItems.map(i => i.refreshVisible$()))).pipe(
       switchMap(itemsChanged => {
         changed = changed || itemsChanged.reduce((p, n) => p || n, false);
         this.hideEmptySections();
