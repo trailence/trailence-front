@@ -157,6 +157,7 @@
         "negative_elevation": "Negative elevation",
         "loopType": "Track type",
         "loopTypePlaceholder": "Select types",
+        "activity": "Activity",
         "select_activities_button": "Click to select",
         "tags": "Tags",
         "rate": "Rating",

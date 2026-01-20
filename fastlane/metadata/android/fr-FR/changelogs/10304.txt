@@ -1,0 +1,2 @@
+Vous pouvez désormais enregistrer des filtres afin de les réutiliser<br/>
+Quelques autres petites améliorations et correctifs ont également été apportés dans cette version

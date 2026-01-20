@@ -1243,7 +1243,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               (result.trailWithInfo.trail.fromModeration ||
                (result.trailWithInfo.trail.owner === auth.email && result.col?.collection.type !== TrailCollectionType.PUB_SUBMIT)
               );
-          console.log('------------------', isTrail1, this.editable)
         } else if (isTrail1) {
           this.isPublication = false;
           this.publicationChecklist = undefined;

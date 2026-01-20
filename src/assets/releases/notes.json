@@ -320,5 +320,19 @@
         "Several other small improvements and bug fixes are also included in this version"
       ]
     }
+  },
+  "010304": {
+    "fr": {
+      "items": [
+        "Vous pouvez désormais enregistrer des filtres afin de les réutiliser",
+        "Quelques autres petites améliorations et correctifs ont également été apportés dans cette version"
+      ]
+    },
+    "en": {
+      "items": [
+        "You can now save filters to reuse them",
+        "Several other small improvements and bug fixes are also included in this version"
+      ]
+    }
   }
 }

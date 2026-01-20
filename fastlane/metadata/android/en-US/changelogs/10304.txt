@@ -1,0 +1,2 @@
+You can now save filters to reuse them<br/>
+Several other small improvements and bug fixes are also included in this version
