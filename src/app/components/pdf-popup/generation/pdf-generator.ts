@@ -5,7 +5,7 @@ import { AssetsService } from 'src/app/services/assets/assets.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { environment } from 'src/environments/environment';
-import { HorizBounds, PdfContext } from './pdf-context';
+import { defaultNextPage, HorizBounds, PdfContext } from './pdf-context';
 import { generatePdfHeader } from './pdf-header';
 import { generatePdfMap } from './pdf-map';
 import { generatePdfText } from './pdf-text';
@@ -20,6 +20,10 @@ import { addQrCodeToPdf } from './pdf-qrcode';
 import { hasWaypointsContent } from '../waypoints-utils';
 import { MapLayer } from 'src/app/services/map/map-layers.service';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { Console } from 'src/app/utils/console';
+import { BinaryContent } from 'src/app/utils/binary-content';
+import { PdfFixedColumnsLayout, pdfFullWidth, PdfSectionGenerator } from './pdf-layout-helper';
+import { generateDescriptionAndWaypoints } from './pdf-description-and-waypoints';
 
 export enum PdfModel {
   BIG_MAP = 'BIG_MAP',
@@ -32,17 +36,20 @@ export interface PdfOptions {
   includeWaypoints: boolean;
   includeElevation: boolean;
   qrCode?: string;
+  includeAvatar?: 'small' | 'large';
+  includePhoto: boolean;
   mapLayer: MapLayer;
 }
 
 export class PdfGenerator {
 
-  public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], options: PdfOptions, progress: (percent: number) => void): Promise<Blob> {
+  public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void): Promise<Blob> {
     return new Promise<Blob>(async (resolve) => {
       let percent = 0;
-      let percentDone = (done: number) => { percent = Math.min(75, percent + done); progress(percent); };
+      let percentDone = (done: number) => { percent = Math.min(100, percent + done); progress(percent); };
       let roboto: ArrayBuffer;
       let robotoBold: ArrayBuffer;
+      // progress: 10% for resources
       await Promise.all([
         PdfGenerator.loadJs('blob-stream.js').then(() => percentDone(2)),
         PdfGenerator.loadJs('pdfkit.standalone.js').then(() => percentDone(2)),
@@ -71,34 +78,39 @@ export class PdfGenerator {
         (trailInfo?.lang && trailInfo.lang !== lang && trailInfo.descriptionTranslations?.[lang] ? trailInfo.descriptionTranslations[lang] : trail.description) :
         undefined;
       if (!description?.trim().length) description = undefined;
-      percentDone(2);
-      let docCounter = 0;
-      const resetDoc = () => {
-        const count = ++docCounter;
-        const doc = new (window as any).PDFDocument(opts);
-        doc.registerFont('Roboto', roboto);
-        doc.registerFont('Roboto-Bold', robotoBold);
-        const stream = doc.pipe((window as any).blobStream());
-        stream.on('finish', function() {
-          if (count !== docCounter) return;
-          percentDone(2);
-          const blob = stream.toBlob('application/pdf');
-          resolve(blob);
-        });
-        return doc;
-      };
+      let avatarImage = undefined;
+      if (options.includeAvatar && avatar) {
+        avatarImage = await createRoundedAvatar(avatar);
+      }
+      let photoCtx: {photo: ArrayBuffer, width: number, height: number} | undefined = undefined;
+      if (options.includePhoto && !!photo) {
+        photoCtx = await getPhotoCtx(photo);
+      }
+      percentDone(5); // 15%
+      const doc = new (window as any).PDFDocument(opts);
+      doc.registerFont('Roboto', roboto!);
+      doc.registerFont('Roboto-Bold', robotoBold!);
+      const stream = doc.pipe((window as any).blobStream());
+      stream.on('finish', function() {
+        percentDone(2);
+        const blob = stream.toBlob('application/pdf');
+        resolve(blob);
+      });
+      percentDone(2); // 17%
       const ctx = {
-        doc: resetDoc(),
-        reset() {
-          const previous = this.doc;
-          this.doc = resetDoc();
-          previous.end();
+        doc,
+        sandbox() {
+          const doc = new (window as any).PDFDocument(opts);
+          doc.registerFont('Roboto', roboto);
+          doc.registerFont('Roboto-Bold', robotoBold);
+          return doc;
         },
         nextPage() {
           if (this.doc.page !== this.doc._pageBuffer.at(-1)) {
             this.doc.switchToPage(this.doc._pageBuffer.length - 1);
           } else {
             this.doc.addPage();
+            this.doc.y = this.layout.headerHeight + this.layout.headerMargin;
           }
         },
         layout: {
@@ -115,6 +127,9 @@ export class PdfGenerator {
         trailInfo,
         trailName,
         description,
+        avatar: avatarImage,
+        avatarSize: options.includeAvatar,
+        photo: photoCtx,
         assets: injector.get(AssetsService),
         i18n: injector.get(I18nService),
         preferences,
@@ -123,7 +138,7 @@ export class PdfGenerator {
         mapLayer: options.mapLayer,
       } as PdfContext;
 
-      await this.generatePdf(ctx, options, percentDone);
+      await this.generatePdf(ctx, options, percentDone, 80);
 
       const range = ctx.doc.bufferedPageRange();
       for (let page = 0; page < range.count; page++) {
@@ -135,18 +150,63 @@ export class PdfGenerator {
     });
   }
 
-  private static async generatePdf(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void) {
+  private static async generatePdf(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) {
     switch (options.model) {
       case PdfModel.ONE_PAGE:
-        await this.generateOnePageModel(ctx, options, progress);
+        await this.generateOnePageModel(ctx, options, progress, workAmount);
         break;
       case PdfModel.BIG_MAP:
-        await this.generateBigMapModel(ctx, options, progress);
+        await this.generateBigMapModel(ctx, options, progress, workAmount);
         break;
     }
   }
 
-  private static async generateOnePageModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, forceMetaOnLeft: boolean = false) {
+  private static qrCodeGenerator: PdfSectionGenerator = async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+    return await addQrCodeToPdf(ctx, options.qrCode!, x, y, width, 64);
+  }
+
+  private static getPhotoSize(ctx: PdfContext, maxWidth: number, maxHeight?: number): {width: number, height: number} {
+    let width = ctx.photo!.width * 1.33333333;
+    let height = ctx.photo!.height * 1.33333333;
+    if (width > maxWidth) {
+      height = height * (maxWidth / width);
+      width = maxWidth;
+    }
+    if (maxHeight && height > maxHeight) {
+      const ratio = maxHeight / height;
+      height = maxHeight;
+      width *= ratio;
+    }
+    return {width, height};
+  }
+
+  private static photoGenerator(maxHeight?: number): PdfSectionGenerator {
+    return async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+      const size = PdfGenerator.getPhotoSize(ctx, width, maxHeight);
+      ctx.doc.image(ctx.photo!.photo, x, y, size);
+      return y + size.height;
+    }
+  }
+
+  private static metaGenerator: PdfSectionGenerator = async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+    return await metaToPdf(ctx, x, y, width);
+  }
+
+  private static mapGenerator(height: number): PdfSectionGenerator {
+    return async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+      await generatePdfMap(ctx, x, y, width, height, options.includeWaypoints);
+      return y + height;
+    }
+  }
+
+  private static elevationGraphGenerator(height: number): PdfSectionGenerator {
+    return async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+      await generateElevationGraphToPdf(ctx, x, y, width, height);
+      return y + height;
+    }
+  }
+
+  private static async generateOnePageModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) {
     const userLang = ctx.preferences.preferences.lang;
     const sourceLang = ctx.trailInfo?.lang ?? userLang;
     const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints, sourceLang, userLang);
@@ -158,217 +218,122 @@ export class PdfGenerator {
     const w = ctx.layout.width - ctx.layout.margin * 2;
     const wideMetaWidth = ctx.layout.width * 0.25;
     const wideMapWidth = w - wideMetaWidth - 5;
-    const yMap = ctx.layout.headerHeight + ctx.layout.headerMargin;
+    let yMap = ctx.layout.headerHeight + ctx.layout.headerMargin;
     const elevationHeight = options.includeElevation ? 100 : 0;
-    const wideMapHeight = (ctx.layout.height - ctx.layout.headerHeight - ctx.layout.margin - 20) / 3;
+    let wideMapHeight = (ctx.layout.height - ctx.layout.headerHeight - ctx.layout.margin - 20) / 3;
     const largeMapWidth = w / 2;
-    const largeMapHeight = ctx.layout.height - ctx.layout.headerHeight - ctx.layout.headerMargin - ctx.layout.margin - elevationHeight - (!forceMetaOnLeft && (ctx.description || hasWaypoints) ? 175 : 0);
+    let largeMapHeight = ctx.layout.height - ctx.layout.headerHeight - ctx.layout.headerMargin - ctx.layout.margin - elevationHeight - 175;
+    if (options.includeAvatar === 'large') {
+      yMap += 10;
+      largeMapHeight -= 10;
+      wideMapHeight -= 10;
+    }
     const wideRatio = Math.min(widthMeters / wideMapWidth, heightMeters / wideMapHeight);
     const largeRatio = Math.min(widthMeters / largeMapWidth, heightMeters / largeMapHeight);
     const wider = wideRatio > largeRatio;
 
+    const work = new WorkItems(ctx, options, hasWaypoints, workAmount, progress);
+
     if (wider) {
-      const xMap = x + wideMetaWidth + 5;
-      let y = yMap;
-      if (options.qrCode) {
-        y = await addQrCodeToPdf(ctx, options.qrCode, x, y, Math.min(wideMetaWidth, 120));
-        y += 10;
-      }
-      y = await metaToPdf(ctx, x, y, wideMetaWidth);
-      y += 10;
-      progress(5);
-      let endY1 = y;
-
-      y = yMap;
-      await generatePdfMap(ctx, xMap, yMap, wideMapWidth, wideMapHeight, options.includeWaypoints);
-      progress(15);
-      y += wideMapHeight;
-
+      const cols = new PdfFixedColumnsLayout(x, yMap, [{width: wideMetaWidth, gap: 5}, {width: wideMapWidth, gap: 0}], ctx, options);
+      if (ctx.photo) await cols.generate(0, this.photoGenerator(), 3);
+      work.photoDone();
+      await cols.generate(0, this.metaGenerator, 10);
+      work.metaDone();
+      await cols.generate(1, this.mapGenerator(wideMapHeight), 0);
+      work.mapDone();
+      if (options.qrCode) await cols.generate(0, this.qrCodeGenerator, 10);
+      work.qrDone();
       if (options.includeElevation) {
-        if (endY1 <= y) {
-          await generateElevationGraphToPdf(ctx, x, y, ctx.layout.width - ctx.layout.margin * 2, elevationHeight);
+        if (cols.getColumnHeight(0) > cols.getColumnHeight(1)) {
+          await cols.generate(1, this.elevationGraphGenerator(elevationHeight), 0);
+          cols.close(ctx);
         } else {
-          await generateElevationGraphToPdf(ctx, xMap, y, wideMapWidth, elevationHeight);
+          cols.close(ctx);
+          await pdfFullWidth(this.elevationGraphGenerator(elevationHeight), ctx, options);
         }
-        y += elevationHeight;
       }
-      progress(15);
-      y += 10;
-
-      y = Math.max(y, endY1);
-      if (ctx.description) {
-        await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, w);
-        y = ctx.doc.y;
-        await generatePdfText(ctx, ctx.description, y, {x, width: w}, 11);
-        y = ctx.doc.y;
-      }
-      progress(5);
-      if (hasWaypoints) {
-        const wpTitle = async (y: number, minSize: number, horiz: HorizBounds) => {
-          if (y + 15 + minSize > ctx.layout.height - ctx.layout.margin) {
-            y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-            if (horiz.nextPage) horiz = horiz.nextPage(horiz);
-            else ctx.doc.addPage();
-          }
-          await addTitleToPdf(ctx, 1, ctx.i18n.texts.pages.trail.sections.waypoints.title, horiz.x, y, horiz.width);
-          return {y: ctx.doc.y, horiz};
-        }
-        await generateWaypointsTextToPdf(ctx, y, {x, width: w}, wpTitle);
-      }
-      progress(5);
+      work.elevationDone();
+      await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y + 10, {x, width: w, nextPage: defaultNextPage(ctx)});
+      work.descriptionDone();
+      work.waypointsDone();
     } else {
       // --- larger ---
-      await generatePdfMap(ctx, ctx.layout.width / 2, yMap, largeMapWidth, largeMapHeight, options.includeWaypoints);
-      progress(15);
-      if (options.includeElevation) {
-        if (forceMetaOnLeft) {
-          await generateElevationGraphToPdf(ctx, x, yMap + largeMapHeight, ctx.layout.width - ctx.layout.margin * 2, elevationHeight);
-        } else {
-          await generateElevationGraphToPdf(ctx, ctx.layout.width / 2, yMap + largeMapHeight, largeMapWidth, elevationHeight);
-        }
-      }
-      progress(15);
-
-      const leftWidth = ctx.layout.width / 2 - x - 5;
-      let y = yMap;
-
-      if (!forceMetaOnLeft && (ctx.description || hasWaypoints)) {
-        await metaToPdf(ctx, ctx.layout.width / 2, yMap + largeMapHeight + elevationHeight + 5, largeMapWidth);
-        progress(5);
+      const col1Width = ctx.layout.width - x - ctx.layout.margin - 5 - largeMapWidth;
+      const cols = new PdfFixedColumnsLayout(x, yMap, [{width: col1Width, gap: 5}, {width: largeMapWidth, gap: 0}], ctx, options);
+      if (ctx.photo) await cols.generate(0, this.photoGenerator(220), 3);
+      work.photoDone();
+      await cols.generate(1, this.mapGenerator(largeMapWidth), 0);
+      work.mapDone();
+      await cols.generate(0, this.metaGenerator, 10);
+      work.metaDone();
+      if (options.qrCode) await cols.generate(0, this.qrCodeGenerator, 10);
+      work.qrDone();
+      await cols.generate(1, this.elevationGraphGenerator(elevationHeight), 0);
+      work.elevationDone();
+      const y1 = cols.getColumnHeight(0);
+      const y2 = cols.getColumnHeight(1);
+      cols.close(ctx);
+      if (y1 < y2 - 150) {
+        // important space remaining in column 1 => try to fill it
+        ctx.doc.y = y1;
+        let horiz: HorizBounds = {x, width: col1Width, nextPage: current => {
+          if (y2 > ctx.layout.height - ctx.layout.margin - 150) return defaultNextPage(ctx)(current);
+          ctx.doc.y = y2 + 10;
+          return {x: x + col1Width + 5, width: largeMapWidth, nextPage: defaultNextPage(ctx)};
+        }};
+        await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y + 10, horiz);
       } else {
-        y = await metaToPdf(ctx, x, y, leftWidth);
-        y += 5;
-        progress(5);
+        await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y + 10, {x, width: w, nextPage: defaultNextPage(ctx)});
       }
-
-      let horiz = {x, width: leftWidth, nextPage: current => { ctx.nextPage(); return {x: current.x, width: ctx.layout.width - current.x - ctx.layout.margin}; }} as HorizBounds;
-      if (options.qrCode) {
-        y = await addQrCodeToPdf(ctx, options.qrCode, x, y, Math.min(leftWidth, 120));
-        y += 10;
-      }
-      if (ctx.description) {
-        await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, leftWidth);
-        y = ctx.doc.y;
-        const afterText = await generatePdfText(ctx, ctx.description, y, horiz, 11);
-        y = afterText.y;
-        horiz = afterText.horiz;
-      }
-      progress(5);
-      if (hasWaypoints) {
-        const wpTitle = async (y: number, minSize: number, horiz: HorizBounds) => {
-          if (y + 30 + minSize > ctx.layout.height - ctx.layout.margin) {
-            y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-            if (horiz.nextPage) horiz = horiz.nextPage(horiz);
-            else ctx.nextPage();
-          }
-          await addTitleToPdf(ctx, 1, ctx.i18n.texts.pages.trail.sections.waypoints.title, horiz.x, y, horiz.width);
-          return {y: ctx.doc.y, horiz};
-        }
-        const afterText = await generateWaypointsTextToPdf(ctx, y, horiz, wpTitle);
-        y = afterText.y;
-        horiz = afterText.horiz;
-      }
-      progress(5);
-      if (!forceMetaOnLeft && (ctx.description || hasWaypoints) && ctx.doc.bufferedPageRange().count === 1 && y < yMap + largeMapHeight - 175) {
-        ctx.reset();
-        await this.generateOnePageModel(ctx, options, progress, true);
-      }
+      work.descriptionDone();
+      work.waypointsDone();
     }
   }
 
-  private static async generateBigMapModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void) {
+  private static async generateBigMapModel(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) {
     const userLang = ctx.preferences.preferences.lang;
     const sourceLang = ctx.trailInfo?.lang ?? userLang;
     const hasWaypoints = options.includeWaypoints && hasWaypointsContent(ctx.wayPoints, sourceLang, userLang);
 
-    const colWidth = (ctx.layout.width - ctx.layout.margin * 2) / 2 - 5;
-    const x2 = ctx.layout.margin + colWidth + 10;
     let x = ctx.layout.margin;
     let y = ctx.layout.headerHeight + ctx.layout.headerMargin;
     let width = ctx.layout.width - ctx.layout.margin * 2;
 
-    if (options.qrCode) {
-      // QR Code and meta in 2 columns
-      const w = Math.min(colWidth, 120);
-      const y1 = await addQrCodeToPdf(ctx, options.qrCode, x, y, w);
-      progress(15);
-      const y2 = await metaToPdf(ctx, x + w + 25, y, Math.min(400, width - w - 25));
-      progress(5);
-      y = Math.max(y1 + 10, y2);
-      let horiz = {x, width};
-      if (ctx.description) {
-        await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, width);
-        y = ctx.doc.y;
-        const afterText = await generatePdfText(ctx, ctx.description, y, horiz, 11);
-        y = afterText.y;
+    const work = new WorkItems(ctx, options, hasWaypoints, workAmount, progress);
+
+    ctx.doc.y = y;
+    if (ctx.photo || options.qrCode) {
+      const photoSize = ctx.photo ? this.getPhotoSize(ctx, 225, 200) : {width: 0, height: 0};
+      let colX = x;
+      let maxY = y;
+      if (ctx.photo) {
+        maxY = await this.photoGenerator(200)(ctx, options, x, y, photoSize.width);
+        colX += photoSize.width + 5;
       }
-      progress(5);
-      if (hasWaypoints) {
-        const wpTitle = async (y: number, minSize: number, horiz: HorizBounds) => {
-          if (y + 30 + minSize > ctx.layout.height - ctx.layout.margin) {
-            ctx.doc.nextPage();
-            y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-          }
-          await addTitleToPdf(ctx, 1, ctx.i18n.texts.pages.trail.sections.waypoints.title, horiz.x, y, horiz.width);
-          return {y: ctx.doc.y, horiz};
-        }
-        const afterText = await generateWaypointsTextToPdf(ctx, y, horiz, wpTitle);
-        y = afterText.y;
+      work.photoDone();
+      const metaWidth = Math.min(400, ctx.layout.width - colX - (options.qrCode ? 96 + 5 : 0) - ctx.layout.margin);
+      const metaHeight = await this.metaGenerator(ctx, options, colX, y, metaWidth);
+      colX += metaWidth + 5;
+      maxY = Math.max(maxY, metaHeight);
+      work.metaDone();
+      if (options.qrCode) {
+        const qrHeight = await this.qrCodeGenerator(ctx, options, colX, y + (options.includeAvatar === 'large' ? 20 : 0), 96);
+        maxY = Math.max(maxY, qrHeight);
       }
-      progress(5);
-    } else if (ctx.description && hasWaypoints) {
-      // no QR Code, both description and waypoints => meta + description in 1 column, then waypoints in 2nd column
-      y = await metaToPdf(ctx, x, y, colWidth);
-      progress(10);
-      await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, colWidth);
-      y = ctx.doc.y;
-      let horiz = {x, width: colWidth, nextPage: (c1) => ({x: x2 + c1.x - x, width: c1.width, nextPage: (c2) => { ctx.nextPage(); return {x: x + c2.x - x2, width: width + c2.width - colWidth};}})} as HorizBounds;
-      let after = await generatePdfText(ctx, ctx.description, y, horiz, 11);
-      y = after.y;
-      horiz = after.horiz;
-      progress(10);
-      if (horiz.x === x && horiz.nextPage) {
-        horiz = horiz.nextPage(horiz);
-        y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-      }
-      const wpTitle = async (y: number, minSize: number, horiz: HorizBounds) => {
-        if (y + 30 + minSize > ctx.layout.height - ctx.layout.margin) {
-          y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-            if (horiz.nextPage) horiz = horiz.nextPage(horiz);
-            else ctx.nextPage();
-        }
-        await addTitleToPdf(ctx, 1, ctx.i18n.texts.pages.trail.sections.waypoints.title, horiz.x, y, horiz.width);
-        return {y: ctx.doc.y, horiz};
-      }
-      await generateWaypointsTextToPdf(ctx, y, horiz, wpTitle);
-      progress(10);
+      work.qrDone();
+      ctx.doc.y = maxY + 10;
     } else {
-      // else everything in 1 column
-      y = await metaToPdf(ctx, x, y, Math.min(width, 400));
-      progress(10);
-      let horiz = {x, width: width};
-      if (ctx.description) {
-        await addTitleToPdf(ctx, 1, ctx.i18n.texts.metadata.description, x, y, width);
-        y = ctx.doc.y;
-        let after = await generatePdfText(ctx, ctx.description, y, horiz, 11);
-        y = after.y;
-        horiz = after.horiz;
-      }
-      progress(10);
-      if (hasWaypoints) {
-        const wpTitle = async (y: number, minSize: number, horiz: HorizBounds) => {
-          if (y + 30 + minSize > ctx.layout.height - ctx.layout.margin) {
-            ctx.nextPage();
-            y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-          }
-          await addTitleToPdf(ctx, 1, ctx.i18n.texts.pages.trail.sections.waypoints.title, horiz.x, y, horiz.width);
-          return {y: ctx.doc.y, horiz};
-        }
-        await generateWaypointsTextToPdf(ctx, y, horiz, wpTitle);
-      }
-      progress(10);
+      const metaHeight = await this.metaGenerator(ctx, options, x, y, 400);
+      ctx.doc.y = metaHeight + 10;
+      work.metaDone();
     }
 
+    await generateDescriptionAndWaypoints(ctx, options, hasWaypoints, ctx.doc.y, {x, width, nextPage: defaultNextPage(ctx)});
+    work.descriptionDone();
+    work.waypointsDone();
+
+    // page with map
     const trackBounds = ctx.track.metadata.bounds;
     const widthMeters = trackBounds ? trackBounds.getNorthWest().distanceTo(trackBounds.getNorthEast()) : 0;
     const heightMeters = trackBounds ? trackBounds.getNorthWest().distanceTo(trackBounds.getSouthWest()) : 0;
@@ -388,7 +353,7 @@ export class PdfGenerator {
       ctx.doc.page.height - ctx.layout.headerHeight - ctx.layout.headerMargin - ctx.layout.margin - elevationHeight,
       options.includeWaypoints
     );
-    progress(15);
+    work.mapDone();
     if (options.includeElevation) {
       await generateElevationGraphToPdf(
         ctx,
@@ -398,7 +363,7 @@ export class PdfGenerator {
         elevationHeight
       );
     }
-    progress(15);
+    work.elevationDone();
   }
 
   private static _jsLoaded: string[] = [];
@@ -438,6 +403,153 @@ export class PdfGenerator {
     style.href = environment.assetsUrl + name;
     document.getElementsByTagName('HEAD')[0].appendChild(style);
     this._loadedCss.push(name);
+  }
+
+}
+
+function createRoundedAvatar(blob: Blob): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement('IMG') as HTMLImageElement;
+    const urlCreator = globalThis.URL || globalThis.webkitURL;
+    img.onload = (e) => {
+      try {
+        const width = img.naturalWidth;
+        const height = img.naturalHeight;
+        const size = Math.min(width, height);
+        const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
+        canvas.width = size;
+        canvas.height = size;
+        canvas.style.position = 'fixed';
+        canvas.style.top = '-1000px';
+        canvas.style.left = '-1000px';
+        document.documentElement.appendChild(canvas);
+        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+        const dx = width - size;
+        const dy = height - size;
+        ctx.beginPath();
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(img, 0, 0, width, height, -dx / 2, -dy / 2, size, size);
+        urlCreator.revokeObjectURL(img.src);
+        canvas.toBlob(
+          b => {
+            if (b) {
+              if (!!b.arrayBuffer) { // NOSONAR
+                b.arrayBuffer().then(resolve).catch(reject);
+              } else {
+                try {
+                  const base64 = canvas.toDataURL('image/png');
+                  BinaryContent.fromDataURL(base64).toArrayBuffer().then(b => resolve(b)).
+                  catch(e => {
+                    Console.warn('Error converting data URL to blob', e);
+                    reject('Unable to generate PNG');
+                  });
+                } catch (e) {
+                  Console.warn('Error converting blob to PNG data URL', e);
+                  reject('Unable to generate PNG');
+                }
+              }
+              canvas.remove();
+            } else {
+              reject('Unable to generate PNG');
+            }
+          },
+          "image/png"
+        )
+      } catch (e) {
+        reject('Error converting photo');
+      }
+    };
+    img.onerror = () => reject('Error loading photo');
+    img.src = urlCreator.createObjectURL(blob);
+  });
+}
+
+function getPhotoCtx(photo: ArrayBuffer): Promise<{photo: ArrayBuffer, width: number, height: number}> {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement('IMG') as HTMLImageElement;
+    const urlCreator = globalThis.URL || globalThis.webkitURL;
+    img.onload = (e) => {
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      resolve({photo, width, height});
+    };
+    img.onerror = () => reject('Error loading photo');
+    img.src = urlCreator.createObjectURL(new Blob([photo]));
+  });
+}
+
+class WorkItems {
+
+  private meta: number;
+  private map: number;
+  private photo: number;
+  private description: number;
+  private wayPoints: number;
+  private elevation: number;
+  private qrCode: number;
+
+  private percentRemaining: number;
+
+  constructor(
+    ctx: PdfContext, options: PdfOptions, hasWayPoints: boolean,
+    workAmount: number,
+    private readonly percentDone: (pc: number) => void
+  ) {
+    this.percentRemaining = workAmount;
+    this.meta = 5;
+    this.map = 15;
+    this.photo = ctx.photo ? 3 : 0;
+    this.description = ctx.description ? 2 : 0;
+    this.elevation = options.includeElevation ? 5 : 0;
+    this.qrCode = options.qrCode ? 2 : 0;
+    this.wayPoints = hasWayPoints ? 5 : 0;
+  }
+
+  private getRemainingItems(): number {
+    return this.meta + this.map + this.photo + this.description + this.wayPoints + this.elevation + this.qrCode;
+  }
+
+  private itemDone(amount: number): void {
+    if (amount === 0) return;
+    const pc = Math.floor(this.percentRemaining / this.getRemainingItems() * amount);
+    this.percentDone(pc);
+    this.percentRemaining -= pc;
+  }
+
+  public metaDone(): void {
+    this.itemDone(this.meta);
+    this.meta = 0;
+  }
+
+  public mapDone(): void {
+    this.itemDone(this.map);
+    this.map = 0;
+  }
+
+  public photoDone(): void {
+    this.itemDone(this.photo);
+    this.photo = 0;
+  }
+
+  public descriptionDone(): void {
+    this.itemDone(this.description);
+    this.description = 0;
+  }
+
+  public elevationDone(): void {
+    this.itemDone(this.elevation);
+    this.elevation = 0;
+  }
+
+  public qrDone(): void {
+    this.itemDone(this.qrCode);
+    this.qrCode = 0;
+  }
+
+  public waypointsDone(): void {
+    this.itemDone(this.wayPoints);
+    this.wayPoints = 0;
   }
 
 }

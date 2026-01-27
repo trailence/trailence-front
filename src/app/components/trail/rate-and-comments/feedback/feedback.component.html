@@ -1,19 +1,30 @@
 @if (feedback) {
   <div class="feedback">
-    <div class="date"><app-relative-date [date]="feedback.date"></app-relative-date></div>
     <div class="header">
-      @if (feedback.rate !== undefined) {
-        <app-rate [rate]="feedback.rate" [showValue]="false"></app-rate>
-      }
-      <div class="author">
-        {{ feedback.alias || i18n.texts.pages.preferences.anonymous }}
-        @if (feedback.you) {
-          <span class="you"> ({{ i18n.texts.pages.trail.sections.comments.you }})</span>
+      @if (feedback.avatarUuid) {
+        <app-avatar [uuid]="feedback.avatarUuid"></app-avatar>
+      } @else if (feedback.you) {
+        @if (avatarService.getMyCurrentBlob$() | async; as blob) {
+          <app-avatar [blob]="blob"></app-avatar>
         }
-      </div>
-      @if (!feedback.comment && feedback.rate === undefined) {
-        <div class="followed">{{ i18n.texts.pages.trail.sections.comments.has_done_this_trail }}</div>
       }
+      <div class="header-lines">
+        <div class="date"><app-relative-date [date]="feedback.date"></app-relative-date></div>
+        <div class="who">
+          @if (feedback.rate !== undefined) {
+            <app-rate [rate]="feedback.rate" [showValue]="false"></app-rate>
+          }
+          <div class="author">
+            {{ feedback.alias || i18n.texts.pages.preferences.anonymous }}
+            @if (feedback.you) {
+              <span class="you"> ({{ i18n.texts.pages.trail.sections.comments.you }})</span>
+            }
+          </div>
+          @if (!feedback.comment && feedback.rate === undefined) {
+            <div class="followed">{{ i18n.texts.pages.trail.sections.comments.has_done_this_trail }}</div>
+          }
+        </div>
+      </div>
     </div>
     @if (feedback.comment) {
       <div class="comment">{{ feedback.comment }}</div>
@@ -38,13 +49,24 @@
   </div>
   @for (reply of feedback.replies; track reply.uuid) {
     <div class="feedback reply">
-      <div class="date"><app-relative-date [date]="reply.date"></app-relative-date></div>
       <div class="header">
-        <div class="author">
-          {{ reply.alias || i18n.texts.pages.preferences.anonymous }}
-          @if (reply.you) {
-            <span class="you"> ({{ i18n.texts.pages.trail.sections.comments.you }})</span>
+        @if (reply.avatarUuid) {
+          <app-avatar [uuid]="reply.avatarUuid"></app-avatar>
+        } @else if (reply.you) {
+          @if (avatarService.getMyCurrentBlob$() | async; as blob) {
+            <app-avatar [blob]="blob"></app-avatar>
           }
+        }
+        <div class="header-lines">
+          <div class="date"><app-relative-date [date]="reply.date"></app-relative-date></div>
+          <div class="who">
+            <div class="author">
+              {{ reply.alias || i18n.texts.pages.preferences.anonymous }}
+              @if (reply.you) {
+                <span class="you"> ({{ i18n.texts.pages.trail.sections.comments.you }})</span>
+              }
+            </div>
+          </div>
         </div>
       </div>
       <div class="comment">{{ reply.comment }}</div>

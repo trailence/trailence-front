@@ -216,3 +216,26 @@ svg.ionicon .ionicon-fill-none {
 svg.ionicon .ionicon-stroke-width {
   stroke-width: 32px;
 }
+
+div.site-menu {
+  padding-top: 10px;
+  line-height: 1.2;
+}
+div.site-menu a {
+  display: block;
+  text-decoration: none;
+  padding-left: 8px;
+}
+div.site-menu a.selected {
+  background-color: var(--primary-color);
+  color: var(--primary-color-contrast);
+}
+div.site-menu h5 {
+  font-size: inherit;
+  font-weight: normal;
+  margin: 0;
+  padding-left: 8px;
+}
+div.site-menu div {
+  padding-left: 10px;
+}

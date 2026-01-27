@@ -39,10 +39,12 @@ export class FeedbackService {
     .pipe(
       map(list => list.map(fb => {
         fb.alias = fb.alias ?? undefined;
+        fb.avatarUuid = fb.avatarUuid ?? undefined;
         fb.rate = fb.rate ?? undefined;
         fb.comment = fb.comment ?? undefined;
         fb.replies = fb.replies.map(r => {
           r.alias = r.alias ?? undefined;
+          r.avatarUuid = r.avatarUuid ?? undefined;
           return r;
         }).sort((r1,r2) => r1.date - r2.date);
         return fb;
@@ -98,6 +100,7 @@ export interface MyFeedback {
 export interface Feedback {
   uuid: string;
   alias?: string;
+  avatarUuid?: string;
   you: boolean;
   date: number;
   rate?: number;
@@ -109,6 +112,7 @@ export interface Feedback {
 export interface FeedbackReply {
   uuid: string;
   alias?: string;
+  avatarUuid?: string;
   you: boolean;
   date: number;
   comment: string;

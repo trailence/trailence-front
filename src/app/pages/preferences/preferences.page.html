@@ -107,7 +107,7 @@
 
   @if (!isAnonymous) {
     <div class="page-section-title">
-      {{i18n.texts.pages.preferences.privacy}}
+      {{i18n.texts.pages.preferences.appearance_and_privacy}}
     </div>
 
     <div class="preference">
@@ -139,6 +139,53 @@
             </div>
           </ion-radio-group>
         </div>
+
+        @if (!avatarDto || avatarDto.hasAvatar || !avatarDto.hasPending) {
+          <div class="title">{{i18n.texts.pages.preferences.avatar}}</div>
+          <div class="value">
+            @if (avatarDto?.hasAvatar) {
+              <div class="avatar-section">
+                <div class="avatar-images">
+                  <app-avatar style="--size: 128px;"></app-avatar>
+                </div>
+                <div>{{avatarDto?.avatarPublic ? i18n.texts.pages.preferences.avatar_public : i18n.texts.pages.preferences.avatar_private}}</div>
+                <div class="avatar-buttons">
+                  @if (!avatarDto?.hasPending) {
+                    <ion-button size="small" (click)="editAvatar()">
+                      {{i18n.texts.buttons.edit}}
+                    </ion-button>
+                  }
+                  <ion-button size="small" color="danger" (click)="deleteCurrentAvatar()">
+                    {{i18n.texts.buttons.delete}}
+                  </ion-button>
+                </div>
+              </div>
+            }
+            @if (!avatarDto?.hasAvatar && !avatarDto?.hasPending) {
+              <ion-button size="small" (click)="editAvatar()">
+                {{i18n.texts.pages.preferences.create_avatar}}
+              </ion-button>
+            }
+          </div>
+        }
+        @if (avatarDto?.hasPending) {
+          <div class="title">{{i18n.texts.pages.preferences.avatar_pending}}</div>
+          <div class="value">
+            <div class="avatar-section">
+              <div class="avatar-images">
+                <app-avatar style="--size: 128px;" [pending]="true"></app-avatar>
+              </div>
+              <div class="avatar-buttons">
+                <ion-button size="small" (click)="editAvatar()">
+                  {{i18n.texts.buttons.edit}}
+                </ion-button>
+                <ion-button size="small" color="danger" (click)="deletePendingAvatar()">
+                  {{i18n.texts.buttons.delete}}
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </div>
   }

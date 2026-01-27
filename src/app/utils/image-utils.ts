@@ -13,7 +13,7 @@ export class ImageUtils {
       image[2] === 0xFF;
   }
 
-  public static convertToJpeg(image: Uint8Array | Blob, maxWidth?: number, maxHeight?: number, quality?: number): Promise<{blob: Blob, width: number, height: number}> {
+  public static convertToJpeg(image: Uint8Array | Blob, maxWidth?: number, maxHeight?: number, quality?: number, minWidth?: number, minHeight?: number): Promise<{blob: Blob, width: number, height: number}> {
     return new Promise((resolve, reject) => {
       const blob = image instanceof Blob ? image : new Blob([image as BlobPart]);
       const img = document.createElement('IMG') as HTMLImageElement;
@@ -31,6 +31,15 @@ export class ImageUtils {
           if (maxHeight && dh > maxHeight) {
             const ratio = maxHeight / dh;
             dh = maxHeight;
+            dw *= ratio;
+          }
+          if (minWidth && dw < minWidth) {
+            dw = minWidth;
+            dh = height * (minWidth / width);
+          }
+          if (minHeight && dh < minHeight) {
+            const ratio = minHeight / dh;
+            dh = minHeight;
             dw *= ratio;
           }
           dw = Math.floor(dw);

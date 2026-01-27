@@ -6,24 +6,14 @@ import { addSvgToPdf } from './pdf-icon';
 import { generatePdfText } from './pdf-text';
 import { getWaypointData } from '../waypoints-utils';
 
-export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds, onFirst: (y: number, minHeight: number, horiz: HorizBounds) => Promise<{y: number, horiz: HorizBounds}>) {
+export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, horiz: HorizBounds) {
   const userLang = ctx.preferences.preferences.lang;
   const sourceLang = ctx.trailInfo?.lang ?? userLang;
   const departure = ctx.wayPoints.find(wp => wp.isDeparture);
   let wayPointData = getWaypointData(departure, sourceLang, userLang);
-  let before = onFirst;
-  let noMoreHeader = (y: number, minHeight: number, horiz: HorizBounds) => {
-    if (y + minHeight > ctx.layout.height - ctx.layout.margin) {
-      y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-      if (horiz.nextPage) horiz = horiz.nextPage(horiz);
-      else ctx.nextPage();
-    }
-    return Promise.resolve({y, horiz});
-  };
   let state: {y: number, horiz: HorizBounds} = {y, horiz};
   if (wayPointData) {
-    state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz, before);
-    before = noMoreHeader;
+    state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
   }
   let index = 1;
   do {
@@ -32,8 +22,7 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
     if (!wp.isDeparture && !wp.isArrival) {
       wayPointData = getWaypointData(wp, sourceLang, userLang);
       if (wayPointData) {
-        state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz, before);
-        before = noMoreHeader;
+        state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
       }
     }
     index++;
@@ -41,14 +30,13 @@ export async function generateWaypointsTextToPdf(ctx: PdfContext, y: number, hor
   const arrival = ctx.wayPoints.find(wp => wp.isArrival && !wp.isDeparture);
   wayPointData = getWaypointData(arrival, sourceLang, userLang);
   if (wayPointData) {
-    state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz, before);
-    before = noMoreHeader;
+    state = await generateWaypoint(ctx, wayPointData.waypoint, wayPointData.name, wayPointData.description, state.y, state.horiz);
   }
   ctx.doc.y = state.y;
   return state;
 }
 
-async function generateWaypoint(ctx: PdfContext, waypoint: ComputedWayPoint, name: string | undefined, description: string | undefined, y: number, horiz: HorizBounds, before: (y: number, minHeight: number, horiz: HorizBounds) => Promise<{y: number, horiz: HorizBounds}>): Promise<{y: number, horiz: HorizBounds}> {
+async function generateWaypoint(ctx: PdfContext, waypoint: ComputedWayPoint, name: string | undefined, description: string | undefined, y: number, horiz: HorizBounds): Promise<{y: number, horiz: HorizBounds}> {
   const anchorSize = 20;
   const anchorMargin = 2;
 
@@ -59,35 +47,43 @@ async function generateWaypoint(ctx: PdfContext, waypoint: ComputedWayPoint, nam
     nameSize++;
   }
 
-  let state = await before(y, Math.max(anchorSize + 1, nameSize + 15), horiz);
-  y = state.y + 3;
-  horiz = state.horiz;
-
   const svg = MapAnchor.createSvg(
     waypoint.isDeparture ? anchorDepartureBorderColor : anchorBorderColor,
     waypoint.isDeparture ? ctx.i18n.texts.way_points.D : waypoint.isArrival ? ctx.i18n.texts.way_points.A : '' + waypoint.index,
     waypoint.isDeparture ? anchorDepartureTextColor : anchorTextColor,
     waypoint.isDeparture ? anchorDepartureFillColor : anchorFillColor,
     undefined);
-  const startY = y;
-  const startPage = ctx.doc.bufferedPageRange().count;
-  addSvgToPdf(ctx, svg, horiz.x, y, anchorSize, anchorSize);
+  ctx.doc.y = y;
+  let nextPageCalled = false;
+  const originalHoriz = horiz;
+  horiz = {x: horiz.x, width: horiz.width, nextPage: current => {
+    nextPageCalled = true;
+    return originalHoriz.nextPage(current);
+  }};
+  if (y + Math.max(anchorSize + 1, nameSize + 15) > ctx.layout.height - ctx.layout.margin) {
+    horiz = horiz.nextPage(horiz);
+  }
+  addSvgToPdf(ctx, svg, horiz.x, ctx.doc.y, anchorSize, anchorSize);
   if (name) {
     ctx.doc.strokeColor('#3088D8').fillColor('#3088D8').font('Roboto', 10);
-    ctx.doc.text(name, horiz.x + anchorSize + anchorMargin, y, {continued: false, width: horiz.width - (anchorSize + anchorMargin)});
-    y = ctx.doc.y + 1;
+    ctx.doc.text(name, horiz.x + anchorSize + anchorMargin, ctx.doc.y, {continued: false, width: horiz.width - (anchorSize + anchorMargin)});
+    ctx.doc.y++;
   }
   if (description) {
-    const h = {x: horiz.x + anchorSize + anchorMargin, width: horiz.width - (anchorSize + anchorMargin), nextPage: horiz.nextPage} as HorizBounds;
-    const after = await generatePdfText(ctx, description, y, h, 9);
+    const h = {x: horiz.x + anchorSize + anchorMargin, width: horiz.width - (anchorSize + anchorMargin), nextPage: current => {
+      const next = horiz.nextPage(current);
+      next.x += anchorSize + anchorMargin;
+      next.width -= anchorSize + anchorMargin;
+      return next;
+    }} as HorizBounds;
+    const after = await generatePdfText(ctx, description, ctx.doc.y, h, 9);
     ctx.doc.y = after.y;
     horiz.x = after.horiz.x - (anchorSize + anchorMargin);
     horiz.width = after.horiz.width + (anchorSize + anchorMargin);
-    horiz.nextPage = after.horiz.nextPage;
-    y = ctx.doc.y + 1;
+    horiz.nextPage = after.horiz.nextPage === h.nextPage ? horiz.nextPage : after.horiz.nextPage;
+    ctx.doc.y++;
   }
-  if (ctx.doc.bufferedPageRange().count === startPage)
-    y = Math.max(y, startY + anchorSize + 1);
-  ctx.doc.y = y;
-  return {y, horiz};
+  if (!nextPageCalled)
+    ctx.doc.y = Math.max(ctx.doc.y, y + anchorSize + 1);
+  return {y: ctx.doc.y, horiz};
 }

@@ -521,6 +521,18 @@ export class ModerationService {
   public deletePublicTrail(uuid: string): Observable<any> {
     return this.http.delete(environment.apiBaseUrl + '/moderation/v1/publicTrail/' + uuid)
   }
+
+  public getAvatarsToReview(): Observable<string[]> {
+    return this.http.get<string[]>(environment.apiBaseUrl + '/moderation/v1/avatars');
+  }
+
+  public getAvatarToReview(email: string): Observable<Blob> {
+    return this.http.getBlob(environment.apiBaseUrl + '/moderation/v1/avatars/' + email);
+  }
+
+  public avatarModeration(email: string, accept: boolean): Observable<any> {
+    return this.http.post(environment.apiBaseUrl + '/moderation/v1/avatars/' + email + '/' + (accept ? 'accept' : 'decline'), null);
+  }
 }
 
 interface CreatePublicTrailDto {

@@ -4,6 +4,7 @@ function init() {
   setTheme(theme);
   displayForLang();
   showMenu(window.innerWidth >= 900, true);
+  highlightCurrentMenu();
 }
 
 function setTheme(theme) {
@@ -29,4 +30,17 @@ function showMenu(shown, first) {
   if (first) setTimeout(function() {
     menu.style.transition = 'width 0.3s ease-in-out, left 0.3s ease-in-out';
   }, 0);
+}
+
+function highlightCurrentMenu() {
+  const links = document.querySelectorAll('div.site-menu a');
+  let pageName = globalThis.location.pathname;
+  let i = pageName.lastIndexOf('/');
+  if (i >= 0) pageName = pageName.substring(i + 1);
+  links.forEach(link => {
+    let target = link.href;
+    i = target.lastIndexOf('/');
+    if (i >= 0) target = target.substring(i + 1);
+    if (target === pageName) link.classList.add('selected');
+  });
 }

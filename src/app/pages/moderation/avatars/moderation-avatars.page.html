@@ -1,0 +1,28 @@
+<app-header
+  [title]="i18n.texts.pages.avatar_moderation.menu_title + ' - ' + i18n.texts.publications.moderation.menu_title"
+></app-header>
+<div class="content-container">
+  <div class="content">
+    <div class="refresh">
+      @if (loading) {
+        <ion-spinner></ion-spinner>
+      } @else {
+        <ion-button (click)="load()">
+          <ion-icon name="reset"></ion-icon>
+        </ion-button>
+      }
+    </div>
+    @if (toReview) {
+      @for (avatar of toReview; track avatar.email) {
+        <div class="avatar">
+          <app-avatar [blob]="avatar.blob"></app-avatar>
+          <div>{{avatar.email}}</div>
+          <div>
+            <ion-button color="success" (click)="moderation(avatar.email, true)">{{i18n.texts.pages.avatar_moderation.validate}}</ion-button>
+            <ion-button color="danger" (click)="moderation(avatar.email, false)">{{i18n.texts.pages.avatar_moderation.reject}}</ion-button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

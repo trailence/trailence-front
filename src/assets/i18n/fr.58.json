@@ -495,11 +495,17 @@
       },
       "date_format": "Format de date",
       "time_format": "Format d'heure",
-      "privacy": "Vie privée",
+      "appearance_and_privacy": "Apparence et vie privée",
       "alias": "Comment souhaitez-vous apparaître publiquement ?",
       "alias_explaination": "Lorsque vous publiez un parcours ou que vous laissez un commentaire sur un parcours public, vous pouvez choisir de rester anonyme ou d'afficher le nom de votre choix. Si vous choisissez un nom, veillez à ce qu'il ne contienne aucun terme injurieux, offensant ou discriminatoire.",
       "anonymous": "Anonyme",
       "alias_name": "Avec le nom",
+      "avatar": "Photo de profil",
+      "avatar_pending": "Photo en attente de validation",
+      "create_avatar": "Ajouter une photo de profil",
+      "delete_avatar_error": "Erreur lors de la suppression de la photo de profil",
+      "avatar_public": "Photo visible publiquement",
+      "avatar_private": "Photo privée, uniquement visible pour vous",
       "trace_recorder": "Enregistrement de trace",
       "traceMinMeters": "Distance minimum entre chaque point enregistré",
       "traceMinMeters_explaination": "Une valeur trop faible risque de donner une trace de mauvaise qualité dû à l'imprécision des GPS.<br/>Une valeur trop élevée risque également de donner une trace de mauvaise qualité avec de grands traits.<br/>Il faut également prendre en compte que plus la distance est faible, plus le nombre de points enregistrés sera élevé, ce qui peut avoir un impact sur la consommation de la batterie pendant l'enregistrement.<br/>Pour un bon compromis, nous recommendons un valeur entre 5 et 15 mètres (soit environ 16 à 50 pieds).",
@@ -543,6 +549,13 @@
         "long_break_maximum_distance": "Périmètre maximum"
       },
       "reset_all": "Réinitialiser tout aux valeurs par défaut"
+    },
+    "edit_avatar": {
+      "title": "Photo de profil",
+      "edit": "Modifier la photo",
+      "select_file": "Charger un fichier",
+      "is_public": "Visible publiquement",
+      "error_saving": "Erreur lors de la sauvegarde de la photo de profil"
     },
     "myaccount": {
       "title": "Mon Compte",
@@ -707,7 +720,13 @@
           "waypoints": "Étapes",
           "elevation": "Profil altimétrique",
           "qrcode": "QR code du lien",
-          "no_qrcode_message": "Ce parcours n'a pas de lien public"
+          "no_qrcode_message": "Ce parcours n'a pas de lien public",
+          "avatar": "Ma photo de profil",
+          "avatar_size": {
+            "small": "Petite taille",
+            "large": "Grande taille"
+          },
+          "photo": "Photo"
         },
         "map_layer": "Fond de carte"
       },
@@ -822,6 +841,11 @@
       "rotate_counterclockwise": "Pivoter à gauche",
       "crop": "Recadrer",
       "blur": "Flou"
+    },
+    "avatar_moderation": {
+      "menu_title": "Photos de profil",
+      "validate": "Valider",
+      "reject": "Refuser"
     }
   },
   "menu": {
@@ -1414,6 +1438,14 @@
         },
         "reply": {
           "text": "Quelqu'un a répondu à votre commentaire sur le parcours :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        }
+      },
+      "avatar": {
+        "accepted": {
+          "text": "Votre photo de profil a été acceptée."
+        },
+        "rejected": {
+          "text": "Votre photo de profil a été refusée."
         }
       }
     }

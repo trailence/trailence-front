@@ -8,6 +8,9 @@ import { FormsModule } from '@angular/forms';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { RelativeDateComponent } from 'src/app/components/relative-date/relative-date.component';
 import { ModerationService } from 'src/app/services/moderation/moderation.service';
+import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
+import { AvatarService } from 'src/app/services/avatar/avatar.service';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-feedback',
@@ -17,8 +20,10 @@ import { ModerationService } from 'src/app/services/moderation/moderation.servic
     IonTextarea,
     IonButton,
     FormsModule,
+    AsyncPipe,
     RateComponent,
     RelativeDateComponent,
+    AvatarComponent,
   ]
 })
 export class FeedbackComponent {
@@ -43,6 +48,7 @@ export class FeedbackComponent {
     private readonly changeDetector: ChangeDetectorRef,
     private readonly errorService: ErrorService,
     private readonly moderationService: ModerationService,
+    public readonly avatarService: AvatarService,
   ) {
     this.moderator = !!authService.auth?.admin || (authService.auth?.roles ?? []).includes('moderator');
   }

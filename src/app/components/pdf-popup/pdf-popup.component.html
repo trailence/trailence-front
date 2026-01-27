@@ -44,6 +44,45 @@
               </ion-checkbox>
             </div>
           }
+          @if (avatar) {
+            <div class="checkbox">
+              <ion-checkbox [checked]="!!options.includeAvatar" (ionChange)="avatarCheckboxChanged($event.detail.checked)" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.avatar}}</ion-checkbox>
+            </div>
+            @if (!!options.includeAvatar) {
+              <div class="radio-group" style="margin-left: 20px;">
+                <ion-radio-group [(ngModel)]="options.includeAvatar" (ngModelChange)="avatarSizeChanged()">
+                  <div class="radio">
+                    <ion-radio [value]="'small'" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.avatar_size.small}}</ion-radio>
+                  </div>
+                  <div class="radio">
+                    <ion-radio [value]="'large'" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.avatar_size.large}}</ion-radio>
+                  </div>
+                </ion-radio-group>
+              </div>
+            }
+          }
+          @if (photos) {
+            <div class="checkbox">
+              <ion-checkbox [(ngModel)]="options.includePhoto" (ngModelChange)="optionsChanged()" labelPlacement="end">{{i18n.texts.pages.pdf_popup.options.include.photo}}</ion-checkbox>
+            </div>
+            @if (options.includePhoto) {
+              <div style="margin-left: 20px; display: flex; flex-direction: row; align-items: center;">
+                @if (photos.length > 1) {
+                  <ion-button size="small" fill="clear" color="dark" [disabled]="photoIndex === 0" (click)="previousPhoto()">
+                    <ion-icon slot="icon-only" name="chevron-left"></ion-icon>
+                  </ion-button>
+                }
+                <div style="overflow: hidden; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px;">
+                  <app-photos-slider #photoSlider [photos]="photos" [width]="150" [height]="150" style="display: block; width: 150px; height: 150px;" (indexChange)="photoIndexChanged($event)"></app-photos-slider>
+                </div>
+                @if (photos.length > 1) {
+                  <ion-button size="small" fill="clear" color="dark" [disabled]="photoIndex === photos.length - 1" (click)="nextPhoto()">
+                    <ion-icon slot="icon-only" name="chevron-right"></ion-icon>
+                  </ion-button>
+                }
+              </div>
+            }
+          }
         </div>
       </div>
       <div class="layer">

@@ -1,11 +1,13 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>
-      <ion-icon name="photos" style="margin-right: 10px"></ion-icon>
-      <ion-label>{{i18n.texts.pages.photo_editor.title}}</ion-label>
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+@if (!embedded) {
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>
+        <ion-icon name="photos" style="margin-right: 10px"></ion-icon>
+        <ion-label>{{i18n.texts.pages.photo_editor.title}}</ion-label>
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+}
 <div class="popup-content">
   <app-toolbar
     [items]="toolbarItemsShown"
@@ -55,6 +57,7 @@
     </div>
   </div>
 </div>
+@if (!embedded) {
 <ion-footer>
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
@@ -68,3 +71,4 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>
+}

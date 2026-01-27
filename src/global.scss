@@ -164,3 +164,31 @@ app-text {
     padding-inline-start: 25px;
   }
 }
+
+app-avatar {
+  width: var(--size);
+  height: var(--size);
+  min-width: var(--size);
+  max-width: var(--size);
+  min-height: var(--size);
+  max-height: var(--size);
+  border-radius: calc(var(--size) / 2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  div:not(.avatar-img-container) {
+    font-size: calc(var(--size) / 2);
+  }
+  div.avatar-img-container {
+    font-size: 0;
+    img {
+      min-width: var(--size);
+      max-width: var(--size);
+      min-height: var(--size);
+      max-height: var(--size);
+    }
+  }
+}

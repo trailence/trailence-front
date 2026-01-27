@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Photo } from 'src/app/model/photo';
 import { PhotoComponent } from '../photo/photo.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
@@ -25,6 +25,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
   @Input() height?: number;
   @Input() zoomable = false;
   @Input() preLoadNext = true;
+  @Output() indexChange = new EventEmitter<number>();
 
   items: Item[] = [];
   screenWidth = 1;
@@ -144,6 +145,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
       for (const item of this.items) item.loaded = item.index === this.index || (this.preLoadNext && (item.index === this.index - 1 || item.index === this.index + 1));
       this.changesDetector.detectChanges();
     }, 500);
+    this.indexChange.emit(this.index);
   }
 
 }

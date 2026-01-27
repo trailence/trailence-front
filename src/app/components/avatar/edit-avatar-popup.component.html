@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-label>{{i18n.texts.pages.edit_avatar.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <div class="popup-content">
+    <div class="editor-container">
+      @if (fromBlob) {
+        <app-photo-editor [initialBlob]="fromBlob" [embedded]="true" [rounded]="true" (blobChange)="onBlobChange($event)"></app-photo-editor>
+      }
+    </div>
+    <div class="bottom">
+      @if (blob) {
+        <ion-checkbox
+          [checked]="isPublic"
+          [disabled]="saving"
+          (ionChange)="setPublic($event.detail.checked)"
+          labelPlacement="end"
+        >{{i18n.texts.pages.edit_avatar.is_public}}</ion-checkbox>
+      }
+      <ion-button size="small" fill="clear" color="dark" [disabled]="saving" (click)="selectFile()">
+        <ion-icon slot="start" name="export"></ion-icon>
+        {{i18n.texts.pages.edit_avatar.select_file}}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      @if (blob && (isNewBlob || publicUpdated || blobUpdated)) {
+        <ion-button (click)="close(true)" [disabled]="saving">
+          {{i18n.texts.buttons.save}}
+        </ion-button>
+      }
+      <ion-button (click)="close(false)" [disabled]="saving">
+        {{i18n.texts.buttons.cancel}}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -10,7 +10,7 @@
 .trail-name-row {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   margin-right: -3px;
 
   ion-checkbox.trail-checkbox {
@@ -41,7 +41,7 @@
   ion-button.my-selection {
     margin-inline-start: 2px;
     margin-inline-end: 2px;
-    margin-top: 0;
+    margin-top: -2px;
     margin-bottom: 0;
     min-width: 24px;
     margin-right: -2px;
@@ -51,8 +51,9 @@
     flex: 1 1 100%;
     color: var(--ion-color-tertiary);
     font-size: 15px;
-    max-width: calc(100% - 45px);
+    max-width: calc(100% - calc(var(--checkbox-width, 0px) + var(--navigation-width, 0px) + var(--myselection-width, 0px) + var(--public-trail-width, 0px) + var(--public-link-width, 0px) + var(--ocsm-width, 0px) + var(--menu-button-width, 0px)));
     margin-left: 2px;
+    margin-top: 3px;
 
     a, a:active, span {
       text-decoration: none;

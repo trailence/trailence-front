@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Photo } from 'src/app/model/photo';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, ModalController, IonRange } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ToolbarComponent } from '../menus/toolbar/toolbar.component';
 import { MenuItem } from '../menus/menu-item';
 import { PhotoService } from 'src/app/services/database/photo.service';
-import { first, Subscription } from 'rxjs';
+import { first, Observable, of, Subscription } from 'rxjs';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { RangeComponent } from '../range/range.component';
 import { BrowserService } from 'src/app/services/browser/browser.service';
@@ -15,14 +15,19 @@ export async function openEditor(injector: Injector, photo: Photo) {
   const modal = await injector.get(ModalController).create({
     component: PhotoEditorComponent,
     componentProps: {
-      photo,
+      initialBlob: () => injector.get(PhotoService).getFile$(photo),
     },
     cssClass: 'large-modal',
+  });
+  modal.onDidDismiss().then(result => {
+    if (result.data)
+      injector.get(PhotoService).updateFile(photo, result.data);
   });
   await modal.present();
 }
 
 @Component({
+  selector: 'app-photo-editor',
   templateUrl: './photo-editor.component.html',
   styleUrl: './photo-editor.component.scss',
   imports: [
@@ -32,16 +37,18 @@ export async function openEditor(injector: Injector, photo: Photo) {
     NgStyle,
   ]
 })
-export class PhotoEditorComponent implements OnInit, OnDestroy {
+export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
 
-  @Input() photo!: Photo;
+  @Input() initialBlob!: (() => Observable<Blob>) | Blob;
+  @Input() embedded = false;
+  @Input() rounded = false;
+  @Output() blobChange = new EventEmitter<{blob: Blob, changed: boolean}>();
 
   @ViewChild('photoEditorArea') photoEditorArea!: ElementRef;
   @ViewChild('photoEditorCanvas') photoEditorCanvas!: ElementRef;
 
   constructor(
     public readonly i18n: I18nService,
-    private readonly photoService: PhotoService,
     private readonly preferences: PreferencesService,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly modalController: ModalController,
@@ -87,8 +94,28 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
   ];
   toolbarItemsShown: MenuItem[] = this.toolbarItems;
 
+  private isInit = false;
+
   ngOnInit(): void {
-    this.photoService.getFile$(this.photo).pipe(first()).subscribe(blob => this.pushHistory(blob));
+    this.isInit = true;
+    if (typeof this.initialBlob === 'function')
+      this.initialBlob().pipe(first()).subscribe(blob => this.pushHistory(blob));
+    else
+      this.pushHistory(this.initialBlob);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.isInit && changes['initialBlob']) {
+      const newBlob = typeof this.initialBlob === 'function' ? this.initialBlob() : of(this.initialBlob);
+      newBlob.pipe(first()).subscribe(blob => {
+        this.blob = undefined;
+        if (this.blobUrl) this.urlCreator.revokeObjectURL(this.blobUrl);
+        this.blobUrl = undefined;
+        this.historyBack = [];
+        this.historyForward = [];
+        this.pushHistory(blob);
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -113,6 +140,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     if (this.blob)
       this.historyBack.push(this.blob);
     this.updateFromBlob(blob);
+    this.blobChange.emit({blob, changed: this.historyBack.length > 0});
   }
 
   private undo(): void {
@@ -120,6 +148,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     const newBlob = this.historyBack.splice(this.historyBack.length - 1, 1)[0];
     this.historyForward.push(this.blob!);
     this.updateFromBlob(newBlob);
+    this.blobChange.emit({blob: newBlob, changed: this.historyBack.length > 0});
   }
 
   private redo(): void {
@@ -127,6 +156,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     const newBlob = this.historyForward.splice(this.historyForward.length - 1, 1)[0];
     this.historyBack.push(this.blob!);
     this.updateFromBlob(newBlob);
+    this.blobChange.emit({blob: newBlob, changed: this.historyBack.length > 0});
   }
 
   private updateFromBlob(blob: Blob): void {
@@ -155,7 +185,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
 
   canvasArea = {x: 50, y: 10, width: 1, height: 1};
 
-  public drawImage(): {canvas: HTMLCanvasElement, ratio: number, ctx: CanvasRenderingContext2D} {
+  public drawImage(ignoreRounded: boolean = false): {canvas: HTMLCanvasElement, ratio: number, ctx: CanvasRenderingContext2D} {
     const img = this.photoImage!;
     const imgWidth = img.naturalWidth;
     const imgHeight = img.naturalHeight;
@@ -178,6 +208,12 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
     renderCanvas.style.top = this.canvasArea.y + 'px';
     const renderContext = renderCanvas.getContext("2d") as CanvasRenderingContext2D;
     renderContext.drawImage(img, 0, 0, imgWidth, imgHeight, 0, 0, imgWidth * containerRatio, imgHeight * containerRatio);
+    if (this.rounded && !ignoreRounded) {
+      const size = Math.min(renderCanvas.width, renderCanvas.height);
+      const dx = renderCanvas.width - size;
+      const dy = renderCanvas.height - size;
+      CropTool.renderRounded(renderContext, dx / 2, renderCanvas.width - dx / 2, dy / 2, renderCanvas.height - dy / 2, renderCanvas.width, renderCanvas.height);
+    }
     return {canvas: renderCanvas, ratio: containerRatio, ctx: renderContext};
   }
 
@@ -289,8 +325,10 @@ export class PhotoEditorComponent implements OnInit, OnDestroy {
   }
 
   close(save: boolean): void {
-    if (save && this.blob && this.historyBack.length > 0) this.photoService.updateFile(this.photo, this.blob);
-    this.modalController.dismiss();
+    if (save && this.blob && this.historyBack.length > 0)
+      this.modalController.dismiss(this.blob);
+    else
+      this.modalController.dismiss();
   }
 
 }
@@ -340,7 +378,15 @@ class CropTool implements Tool, ToolAreaRange {
   }
 
   refresh(): void {
-    const render = this.component.drawImage();
+    const render = this.component.drawImage(true);
+    if (this.component.rounded) {
+      const w = this.x2 - this.x1 + 1;
+      const h = this.y2 - this.y1 + 1;
+      const size = Math.min(w, h);
+      const dx = (w - size) / 2;
+      const dy = (h - size) / 2;
+      CropTool.renderRounded(render.ctx, (this.x1 + dx) * render.ratio, (this.x2 - dx) * render.ratio, (this.y1 + dy) * render.ratio, (this.y2 - dy) * render.ratio, (this.maxX - this.minX + 1) * render.ratio, (this.maxY - this.minY + 1) * render.ratio);
+    }
     render.ctx.save();
     render.ctx.fillStyle = 'rgba(0,0,0,0.4)';
     if (this.y1 > 0) {
@@ -366,6 +412,17 @@ class CropTool implements Tool, ToolAreaRange {
     const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
     ctx.drawImage(original, this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1, 0, 0, this.x2 - this.x1, this.y2 - this.y1);
     this.component.applyTransform(canvas).then(() => this.component.cancelTool());
+  }
+
+  public static renderRounded(ctx: CanvasRenderingContext2D, x1: number, x2: number, y1: number, y2: number, w: number, h: number): void {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.arc(x1 + (x2 - x1) / 2, y1 + (y2 - y1) / 2, (x2 - x1) / 2, 0, Math.PI * 2, true);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
   }
 
 }

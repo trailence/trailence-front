@@ -1,4 +1,4 @@
-import { Component, NgZone, OnDestroy } from '@angular/core';
+import { Component, Injector, NgZone, OnDestroy } from '@angular/core';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { IonIcon, IonSegment, IonSegmentButton, IonLabel, IonRange, IonButton, IonInput, IonSpinner, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
@@ -14,6 +14,8 @@ import { FilterNumericCustomComponent } from 'src/app/components/filters/filter-
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { IdGenerator } from 'src/app/utils/component-utils';
 import { InputNumberComponent } from 'src/app/components/input-number/input-number.component';
+import { AvatarDto, AvatarService } from 'src/app/services/avatar/avatar.service';
+import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
 
 @Component({
   selector: 'app-preferences',
@@ -25,6 +27,7 @@ import { InputNumberComponent } from 'src/app/components/input-number/input-numb
     FormsModule,
     FilterNumericCustomComponent,
     InputNumberComponent,
+    AvatarComponent,
   ]
 })
 export class PreferencesPage implements OnDestroy {
@@ -41,10 +44,12 @@ export class PreferencesPage implements OnDestroy {
   photoCacheSize?: {total: number, expired: number};
   aliasType: 'anonymous' | 'name' = 'anonymous';
   isAnonymous = false;
+  avatarDto?: AvatarDto;
 
   private readonly extensionsSubscription: Subscription;
   private readonly preferencesSubscription: Subscription;
   private readonly authSubscription: Subscription;
+  private readonly avatarDtoSubscription: Subscription;
 
   constructor(
     public readonly i18n: I18nService,
@@ -54,6 +59,8 @@ export class PreferencesPage implements OnDestroy {
     private readonly extensions: ExtensionsService,
     private readonly photoService: PhotoService,
     private readonly ngZone: NgZone,
+    private readonly avatarService: AvatarService,
+    private readonly injector: Injector,
   ) {
     this.updateOfflineMapCounters();
     this.updatePhotoCacheSize();
@@ -68,12 +75,15 @@ export class PreferencesPage implements OnDestroy {
       this.tfoAllowed = !!a && a.allowedExtensions.includes('thunderforest.com');
       this.isAnonymous = a?.isAnonymous ?? false;
     });
+    this.avatarDtoSubscription = avatarService.getMyAvatarDto$().subscribe(dto => this.avatarDto = dto);
+    avatarService.refreshMyAvatarDto();
   }
 
   ngOnDestroy(): void {
     this.extensionsSubscription.unsubscribe();
     this.preferencesSubscription.unsubscribe();
     this.authSubscription.unsubscribe();
+    this.avatarDtoSubscription.unsubscribe();
   }
 
   traceMinMillisConfig: NumericFilterCustomConfig = {
@@ -287,6 +297,18 @@ export class PreferencesPage implements OnDestroy {
       if (this.computeCounter[type] !== counter) return true;
       return operation();
     });
+  }
+
+  editAvatar(): void {
+    import('../../components/avatar/edit-avatar-popup.component').then(m => m.openEditAvatarPopup(this.injector));
+  }
+
+  deleteCurrentAvatar(): void {
+    this.avatarService.deleteMyCurrent();
+  }
+
+  deletePendingAvatar(): void {
+    this.avatarService.deleteMyPending();
   }
 
 }

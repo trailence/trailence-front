@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EnvironmentInjector, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, EnvironmentInjector, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonRadioGroup, IonRadio, IonCheckbox } from '@ionic/angular/standalone';
 import { PdfGenerator, PdfModel, PdfOptions } from './generation/pdf-generator';
@@ -14,13 +14,17 @@ import { TrailLinkService } from 'src/app/services/database/link.service';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { TrackService } from 'src/app/services/database/track.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { combineLatest, first, of } from 'rxjs';
+import { combineLatest, first, firstValueFrom, of } from 'rxjs';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { hasWaypointsContent } from './waypoints-utils';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
 import { TypeUtils } from 'src/app/utils/type-utils';
 import { Console } from 'src/app/utils/console';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
+import { AvatarService } from 'src/app/services/avatar/avatar.service';
+import { PhotoService } from 'src/app/services/database/photo.service';
+import { Photo } from 'src/app/model/photo';
+import { PhotosSliderComponent } from '../photos-slider/photos-slider.component';
 
 export function openPdfPopup(injector: Injector, trail: Trail) {
   injector.get(ModalController).create({
@@ -40,6 +44,7 @@ const KEY_LOCAL_STORAGE = 'trailence.pdf-options';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonContent, IonFooter, IonButtons, IonButton, IonCheckbox, IonRadioGroup, IonRadio,
     FormsModule, NgStyle,
+    PhotosSliderComponent,
 ]
 })
 export class PdfPopup implements OnInit, OnDestroy {
@@ -52,6 +57,7 @@ export class PdfPopup implements OnInit, OnDestroy {
   id = IdGenerator.generateId();
 
   qrCodeActivated = false;
+  avatar?: Blob;
   options = this.loadPdfOptions();
 
   link?: string;
@@ -65,6 +71,9 @@ export class PdfPopup implements OnInit, OnDestroy {
   hasDescription = true;
   hasWayPoints = false;
 
+  photos?: Photo[];
+  photoIndex = 0;
+
   constructor(
     private readonly changeDetector: ChangeDetectorRef,
     private readonly injector: Injector,
@@ -73,6 +82,8 @@ export class PdfPopup implements OnInit, OnDestroy {
     private readonly auth: AuthService,
     private readonly mapLayerService: MapLayersService,
     private readonly modalController: ModalController,
+    private readonly avatarService: AvatarService,
+    private readonly photoService: PhotoService,
   ) {}
 
   private loadPdfOptions(): PdfOptions {
@@ -86,6 +97,8 @@ export class PdfPopup implements OnInit, OnDestroy {
           includeDescription: !!json.includeDescription,
           includeWaypoints: !!json.includeWaypoints,
           includeElevation: !!json.includeElevation,
+          includeAvatar: json.includeAvatar === 'small' ? 'small' : json.includeAvatar === 'large' ? 'large' : undefined,
+          includePhoto: !!json.includePhoto,
           mapLayer: (json.mapLayer ? this.mapLayerService.layers.find(l => l.name === json.mapLayer) : undefined) ?? this.mapLayerService.layers.find(l => l.name === this.mapLayerService.getDefaultLayer())!,
         }
       } catch (e) {
@@ -98,11 +111,14 @@ export class PdfPopup implements OnInit, OnDestroy {
       includeDescription: true,
       includeWaypoints: true,
       includeElevation: true,
+      includeAvatar: undefined,
+      includePhoto: false,
       mapLayer: this.mapLayerService.layers.find(l => l.name === this.mapLayerService.getDefaultLayer())!,
     }
   }
 
   ngOnInit(): void {
+    this.avatarService.getOneOfMyAvatarBlobReady$().pipe(first()).subscribe(a => this.avatar = a);
     if (this.trail.owner === 'trailence' && this.trail.source) {
       this.link = this.trail.source;
     } else if (this.trail.owner === this.auth.email) {
@@ -115,8 +131,9 @@ export class PdfPopup implements OnInit, OnDestroy {
     combineLatest([
       this.injector.get(TrackService).getFullTrack$(this.trail.currentTrackUuid, this.trail.owner).pipe(filterDefined(), first()),
       this.trail.owner.includes('@') ? of(undefined) : this.injector.get(FetchSourceService).getTrailInfo$(this.trail.owner, this.trail.uuid),
+      this.photoService.getPhotosForTrailReady$(this.trail),
     ])
-    .subscribe(([t, info]) => {
+    .subscribe(([t, info, photos]) => {
       this.track = t;
       const preferences = this.injector.get(PreferencesService).preferences;
       this.wayPoints = ComputedWayPoint.compute(t, preferences);
@@ -124,6 +141,7 @@ export class PdfPopup implements OnInit, OnDestroy {
       const sourceLang = info?.lang ?? userLang;
       this.hasWayPoints = hasWaypointsContent(this.wayPoints, sourceLang, userLang);
       if (!this.hasWayPoints) this.options.includeWaypoints = false;
+      this.photos = photos.length > 0 ? photos : undefined;
     });
     this.optionsChanged();
   }
@@ -150,6 +168,35 @@ export class PdfPopup implements OnInit, OnDestroy {
       this.options.qrCode = undefined;
     }
     this.optionsChanged();
+  }
+
+  avatarCheckboxChanged(checked: boolean): void {
+    if (!checked) {
+      this.options.includeAvatar = undefined;
+      this.optionsChanged();
+    } else if (!this.options.includeAvatar) {
+      this.options.includeAvatar = 'small';
+      this.optionsChanged();
+    }
+  }
+
+  avatarSizeChanged(): void {
+    this.optionsChanged();
+  }
+
+  photoIndexChanged(index: number): void {
+    console.log('index', index);
+    if (index === this.photoIndex) return;
+    this.photoIndex = index;
+    this.optionsChanged();
+  }
+
+  @ViewChild('photoSlider') photoSlider?: PhotosSliderComponent;
+  previousPhoto(): void {
+    this.photoSlider?.previous();
+  }
+  nextPhoto(): void {
+    this.photoSlider?.next();
   }
 
   async selectLayer() {
@@ -190,7 +237,20 @@ export class PdfPopup implements OnInit, OnDestroy {
       this.generationPercent = pc;
       this.changeDetector.detectChanges();
     };
-    const blob = await generatorModule.PdfGenerator.generate(this.injector, this.environmentInjector, this.trail, this.track, this.wayPoints, this.options, progress);
+    const options = {...this.options};
+    if (!this.avatar) options.includeAvatar = undefined;
+    let photo: ArrayBuffer | undefined;
+    if (options.includePhoto) {
+      if (!this.photos) {
+        options.includePhoto = false;
+      } else {
+        const blob = await firstValueFrom(this.photoService.getFile$(this.photos[this.photoIndex]));
+        photo = await blob.arrayBuffer();
+      }
+    }
+    const blob = await generatorModule.PdfGenerator.generate(this.injector, this.environmentInjector, this.trail, this.track, this.wayPoints, this.avatar, photo, options, pc => {
+      progress(pc * 0.8);
+    });
     if (counter !== this.generationCounter) return;
     this.blob = blob;
     this.pdfUrl = URL.createObjectURL(this.blob);

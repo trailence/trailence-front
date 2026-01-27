@@ -495,11 +495,17 @@
       },
       "date_format": "Date format",
       "time_format": "Time format",
-      "privacy": "Privacy",
+      "appearance_and_privacy": "Appearence and Privacy",
       "alias": "How would you like to appear publicly?",
       "alias_explaination": "When you publish a track or leave a comment on a public track, you can choose to remain anonymous or display a name of your choice. If you choose a name, please make sure it does not contain any offensive, abusive, or discriminatory language.",
       "anonymous": "Anonymous",
       "alias_name": "Using name",
+      "avatar": "Profile picture",
+      "avatar_pending": "Picture pending approval",
+      "create_avatar": "Add a profile picture",
+      "delete_avatar_error": "Error while deleting profile picture",
+      "avatar_public": "Publicly visible photo",
+      "avatar_private": "Private photo, visible only to you",
       "trace_recorder": "Trace recording",
       "traceMinMeters": "Minimum distance between each recorded point",
       "traceMinMeters_explaination": "If the value is too low, the track quality may decrease due to GPS imprecision.<br/>A value that is too high also lead to a low-quality track with long straight lines.<br/>Additionally, shorter distances result in more recorded points, which can increase battery consumption.<br/>We recommend setting the value between 5 and 15 meters (approximately 16 to 50 foot) for a good balance.",
@@ -543,6 +549,13 @@
         "long_break_maximum_distance": "Maximum perimeter"
       },
       "reset_all": "Restore all settings to default"
+    },
+    "edit_avatar": {
+      "title": "Profile picture",
+      "edit": "Edit picture",
+      "select_file": "Load file",
+      "is_public": "Publicly visible",
+      "error_saving": "Error while saving profile picture"
     },
     "myaccount": {
       "title": "My Account",
@@ -707,7 +720,13 @@
           "waypoints": "Waypoints",
           "elevation": "Elevation profile",
           "qrcode": "QR code link",
-          "no_qrcode_message": "This trail has no public link"
+          "no_qrcode_message": "This trail has no public link",
+          "avatar": "My profile picture",
+          "avatar_size": {
+            "small": "Small size",
+            "large": "Large size"
+          },
+          "photo": "Photo"
         },
         "map_layer": "Map layer"
       },
@@ -822,6 +841,11 @@
       "rotate_counterclockwise": "Rotate left",
       "crop": "Crop",
       "blur": "Blur"
+    },
+    "avatar_moderation": {
+      "menu_title": "Profile pictures",
+      "validate": "Validate",
+      "reject": "Reject"
     }
   },
   "menu": {
@@ -1414,6 +1438,14 @@
         },
         "reply": {
           "text": "Someone replied to your comment on the trail :*:/trail/trailence/{{1}}:*:{{2}}:*:"
+        }
+      },
+      "avatar": {
+        "accepted": {
+          "text": "Your profile picture has been approved."
+        },
+        "rejected": {
+          "text": "Your profile picture has been declined."
         }
       }
     }

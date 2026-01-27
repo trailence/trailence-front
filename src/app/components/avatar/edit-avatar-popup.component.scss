@@ -1,0 +1,14 @@
+div.popup-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  div.editor-container {
+    flex: 1 1 100%;
+  }
+  div.bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

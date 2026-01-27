@@ -4,6 +4,7 @@ import { TrailenceHttpRequest } from './http-request';
 import { Observable, catchError, map, of } from 'rxjs';
 import { TrailenceHttpResponse } from './http-response';
 import { IHttpClient } from './http-client.interface';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +32,10 @@ export class HttpClientService implements IHttpClient {
   private toResponse<T>(request: TrailenceHttpRequest, response: HttpResponse<T>): TrailenceHttpResponse<T> {
     if (response instanceof HttpErrorResponse)
       return new TrailenceHttpResponse<T>(request, response.error, this.toHeaders(response.headers), response.status, response.statusText);
-    return new TrailenceHttpResponse<T>(request, response.body, this.toHeaders(response.headers), response.status, response.statusText);
+    if (response instanceof HttpResponse)
+      return new TrailenceHttpResponse<T>(request, response.body, this.toHeaders(response.headers), response.status, response.statusText);
+    Console.error('Http error', response);
+    return new TrailenceHttpResponse<T>(request, null, {}, 0, '' + response);
   }
 
   private toHeaders(headers: HttpHeaders): { [header: string]: string } {

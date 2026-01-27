@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge } from '@ionic/angular/standalone';
-import { combineLatest, map } from 'rxjs';
+import { combineLatest, distinctUntilChanged, map, switchMap } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
+import { AvatarService } from 'src/app/services/avatar/avatar.service';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -10,15 +12,16 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { NotificationsService } from 'src/app/services/notifications/notifications.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
+import { AvatarComponent } from '../avatar/avatar.component';
 
 @Component({
     selector: 'app-header-user-menu',
     templateUrl: './header-user-menu.component.html',
     styleUrls: ['./header-user-menu.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList,
-        IonButton,
-        IonPopover,
+    imports: [
+      IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList, IonButton, IonPopover,
+      AvatarComponent,
     ]
 })
 export class HeaderUserMenuComponent extends AbstractComponent {
@@ -30,7 +33,6 @@ export class HeaderUserMenuComponent extends AbstractComponent {
 
   id: string;
   loggingOut = false;
-  userLetter = '';
   isAnonymous = false;
 
   nbUnreadNotifications = 0;
@@ -76,7 +78,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
         ),
         this.databaseService.hasLocalChanges,
         this.databaseService.lastSync,
-        this.auth.auth$
+        this.auth.auth$,
       ]),
       ([s, localChanges, lastSync, auth]) => {
         this.isAnonymous = !!auth?.isAnonymous;
@@ -84,8 +86,6 @@ export class HeaderUserMenuComponent extends AbstractComponent {
         this.hasLocalChanges = localChanges && !this.isAnonymous;
         this.icon = s === 'online' && this.hasLocalChanges ? 'duration' : s;
         this.lastSync = lastSync;
-        const email = auth?.email;
-        this.userLetter = email ? (this.isAnonymous ? '?' : email.substring(0, 1)) : '';
         this.changesDetection.detectChanges();
       }
     );

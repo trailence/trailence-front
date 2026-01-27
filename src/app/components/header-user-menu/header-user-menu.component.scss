@@ -10,8 +10,8 @@ ion-button.user-button {
   --padding-end: 0;
   margin-right: 8px;
 
-  div {
-      font-size: calc(var(--min-height) / 2);
+  app-avatar {
+    --size: var(--min-height);
   }
 }
 

@@ -11,25 +11,39 @@ div.feedback {
     background-color: rgba(var(--ion-color-medium-rgb), 0.1);
   }
 }
-div.date {
-  color: var(--ion-color-medium);
-  font-size: 11px;
-}
 div.header {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
 
-  app-rate {
-    margin-right: 5px;
+  app-avatar {
+    --size: 26px;
+    margin-right: 3px;
   }
 
-  div.author {
-    font-size: 12px;
-    color: var(--ion-color-tertiary);
+  div.header-lines {
+    flex: 1 1 100%;
+    div.date {
+      color: var(--ion-color-medium);
+      font-size: 11px;
+    }
+    div.who {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
 
-    span.you {
-      color: var(--ion-color-secondary);
+      app-rate {
+        margin-right: 5px;
+      }
+
+      div.author {
+        font-size: 12px;
+        color: var(--ion-color-tertiary);
+
+        span.you {
+          color: var(--ion-color-secondary);
+        }
+      }
     }
   }
 }

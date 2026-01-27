@@ -1,3 +1,4 @@
+import { AvatarDto } from '../avatar/avatar.service';
 import { Preferences } from '../preferences/preferences';
 import { UserQuotas } from './user-quotas';
 
@@ -16,5 +17,6 @@ export interface AuthResponse {
   allowedExtensions: string[];
   isAnonymous?: boolean;
   roles?: string[];
+  avatar?: AvatarDto;
 
 }

@@ -19,12 +19,20 @@ export interface PageLayout {
 export interface HorizBounds {
   x: number;
   width: number;
-  nextPage?: (current: HorizBounds) => HorizBounds;
+  nextPage: (current: HorizBounds) => HorizBounds;
+}
+
+export function defaultNextPage(ctx: PdfContext): (current: HorizBounds) => HorizBounds {
+  return current => {
+    ctx.doc.addPage();
+    ctx.doc.y = ctx.layout.headerHeight + ctx.layout.headerMargin;
+    return {x: ctx.layout.margin, width: ctx.layout.width - ctx.layout.margin * 2, nextPage: defaultNextPage(ctx)};
+  };
 }
 
 export interface PdfContext {
   doc: any;
-  reset: () => void;
+  sandbox: () => any;
   nextPage: () => void,
   layout: PageLayout;
   pages: number;
@@ -35,6 +43,9 @@ export interface PdfContext {
   trailInfo?: TrailInfo;
   trailName: string;
   description?: string;
+  avatar?: ArrayBuffer;
+  avatarSize?: 'small' | 'large';
+  photo?: {photo: ArrayBuffer, width: number, height: number};
   mapLayer: MapLayer;
 
   assets: AssetsService;

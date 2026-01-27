@@ -108,23 +108,15 @@ function drawText(ctx: PdfContext, options: TextOptions, text: string) {
   }
   const pageAfter = ctx.doc.bufferedPageRange().count;
   if (remainingText.length > 0) {
-    if (!options.horiz.nextPage && pageAfter === pageBefore) {
-      ctx.nextPage();
-      ctx.doc.y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-    } else if (options.horiz.nextPage && pageAfter !== pageBefore) {
+    if (pageAfter !== pageBefore)
       ctx.doc.switchToPage(ctx.doc.bufferedPageRange().count - 2);
-    }
-    if (options.horiz.nextPage) options.horiz = options.horiz.nextPage(options.horiz);
-    ctx.doc.y = ctx.layout.headerHeight + ctx.layout.headerMargin;
+    options.horiz = options.horiz.nextPage(options.horiz);
     ctx.doc.x = options.horiz.x;
     drawText(ctx, options, remainingText);
   } else if (pageAfter !== pageBefore) {
-    if (options.horiz.nextPage) {
-      ctx.doc.switchToPage(ctx.doc.bufferedPageRange().count - 2);
-      options.horiz = options.horiz.nextPage(options.horiz);
-      ctx.doc.y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-      ctx.doc.x = options.horiz.x;
-    }
+    ctx.doc.switchToPage(ctx.doc.bufferedPageRange().count - 2);
+    options.horiz = options.horiz.nextPage(options.horiz);
+    ctx.doc.x = options.horiz.x;
   }
 }
 
@@ -133,12 +125,9 @@ function text(ctx: PdfContext, options: TextOptions, op: () => any) {
   op();
   const endPage = ctx.doc.bufferedPageRange().count;
   if (endPage !== startPage) {
-    if (options.horiz.nextPage) {
-      ctx.doc.switchToPage(ctx.doc.bufferedPageRange().count - 2);
-      options.horiz = options.horiz.nextPage(options.horiz);
-      ctx.doc.y = ctx.layout.headerHeight + ctx.layout.headerMargin;
-      ctx.doc.x = options.horiz.x;
-    }
+    ctx.doc.switchToPage(ctx.doc.bufferedPageRange().count - 2);
+    options.horiz = options.horiz.nextPage(options.horiz);
+    ctx.doc.x = options.horiz.x;
   }
 }
 

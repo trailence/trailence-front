@@ -107,6 +107,10 @@ export const appAuthRoutes: Routes = [
         path: 'removals',
         loadComponent: () => import('../../pages/moderation/remove-requests/moderation-remove-requests.page').then(m => m.ModerationRemoveRequestsPage)
       },
+      {
+        path: 'avatars',
+        loadComponent: () => import('../../pages/moderation/avatars/moderation-avatars.page').then(m => m.ModerationAvatarsPage)
+      },
     ]
   },
   {
