@@ -353,11 +353,7 @@ export class TraceRecorderService {
           }).then(alert => alert.present());
         });
       } else if (state === GeolocationState.DENIED) {
-        return this.geolocation.requirePermission()
-        .then(r => {
-          if (!r) throw new Error('Geolocation access denied by user');
-          return this.startRecording(recording);
-        });
+        throw new Error('Geolocation access denied by user');
       } else {
         Console.info('Start recording');
         this._recording$.next(recording);
