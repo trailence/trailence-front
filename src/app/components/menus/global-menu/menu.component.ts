@@ -186,6 +186,10 @@ export class MenuComponent implements OnInit {
     }
   }
 
+  openHelp(): void {
+    window.open('https://help.trailence.org/' + this.injector.get(PreferencesService).preferences.lang + '/home.html', '_blank');
+  }
+
   async close(trial: number = 1) {
     if (!await this.menuController.close()) {
       console.log('App Menu not closed ! trial ', trial);

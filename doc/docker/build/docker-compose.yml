@@ -1,0 +1,9 @@
+name: trailence-doc-build
+
+services:
+  nginx:
+    build:
+      context: ../..
+      dockerfile: docker/build/Dockerfile
+    ports:
+      - 80:80

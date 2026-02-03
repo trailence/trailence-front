@@ -16,7 +16,8 @@ RUN npm install && \
     rimraf www/browser/media && \
     export BUILD_TIME="$(date -u -Iseconds)" && \
     sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' -e 's/\${BUILD_TIME}/'"$BUILD_TIME"'/g' /build/site/sitemap.xml > /build/www/browser/sitemap.xml && \
-    sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' /build/site/robots.txt > /build/www/browser/robots.txt
+    sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' /build/site/robots.txt > /build/www/browser/robots.txt && \
+    npm run build-doc
 
 FROM mingc/android-build-box:1.29.0 AS build-apk
 COPY --from=build-app /build /build-apk
@@ -30,5 +31,6 @@ COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 COPY ./docker/default.conf.template /etc/nginx/templates/default.conf.template
 COPY ./server_pages/src /usr/share/nginx/njs
 COPY --from=build-app /build/www/browser /usr/share/nginx/html
+COPY --from=build-app /build/doc/www /usr/share/nginx/html/doc
 COPY --from=build-apk /build-apk/android/app/build/outputs/apk/release/app-release.apk /usr/share/nginx/html/assets/apk/trailence.apk
 COPY --from=build-apk /build-apk/android/app/build/outputs/apk/release/output-metadata.json /usr/share/nginx/html/assets/apk/metadata.json

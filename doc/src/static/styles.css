@@ -187,10 +187,13 @@ ul {
   margin: 0;
   padding-inline-start: 25px;
 }
-div.site-page a, div.site-page a:active {
+li {
+  margin-bottom: 3px;
+}
+div.site-page a, div.site-page a:active, div.site-menu a, div.site-menu a:active {
   color: rgba(var(--link-color-rgb), 0.8);
 }
-div.site-page a:hover {
+div.site-page a:hover, div.site-menu a:hover {
   color: rgba(var(--link-color-rgb), 1);
 }
 
@@ -224,7 +227,6 @@ div.site-menu {
 div.site-menu a {
   display: block;
   text-decoration: none;
-  padding-left: 8px;
 }
 div.site-menu a.selected {
   background-color: var(--primary-color);
@@ -237,5 +239,5 @@ div.site-menu h5 {
   padding-left: 8px;
 }
 div.site-menu div {
-  padding-left: 10px;
+  padding-left: 20px;
 }

@@ -1,0 +1,15 @@
+<html>
+<body>
+<script type="text/javascript">
+var s = navigator.language;
+if (s) {
+  if (s.length > 2) s = s.substring(0, 2);
+  s = s.toLowerCase();
+}
+if (s == 'fr')
+  location = '/fr/home.html';
+else
+  location = '/en/home.html';
+</script>
+</body>
+</html>

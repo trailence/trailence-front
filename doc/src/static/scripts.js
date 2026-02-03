@@ -35,12 +35,11 @@ function showMenu(shown, first) {
 function highlightCurrentMenu() {
   const links = document.querySelectorAll('div.site-menu a');
   let pageName = globalThis.location.pathname;
-  let i = pageName.lastIndexOf('/');
-  if (i >= 0) pageName = pageName.substring(i + 1);
+  if (pageName.startsWith('/')) pageName = pageName.substring(1);
+  let i = pageName.indexOf('/'); // lang
+  pageName = pageName.substring(i + 1);
   links.forEach(link => {
-    let target = link.href;
-    i = target.lastIndexOf('/');
-    if (i >= 0) target = target.substring(i + 1);
-    if (target === pageName) link.classList.add('selected');
+    let target = '' + link.href;
+    if (target.endsWith('/' + pageName)) link.classList.add('selected');
   });
 }

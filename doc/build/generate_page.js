@@ -1,8 +1,10 @@
 async function generatePage(lang, pageName, readFile) {
+  const i = pageName.lastIndexOf('/');
+  const pageEndName = i > 0 ? pageName.substring(i + 1) : pageName;
   const indexContent$ = readFile('site/index.html');
   const menuContent$ = readFile('site/menu.' + lang + '.html');
-  const pageContent$ = readFile('site/pages/' + pageName + '/' + pageName + '.' + lang + '.html');
-  const pageMeta$ = readFile('site/pages/' + pageName + '/' + pageName + '.' + lang + '.json').then(text => JSON.parse(text));
+  const pageContent$ = readFile('site/pages/' + pageName + '/' + pageEndName + '.' + lang + '.html');
+  const pageMeta$ = readFile('site/pages/' + pageName + '/' + pageEndName + '.' + lang + '.json').then(text => JSON.parse(text));
   const files = await Promise.all([indexContent$, menuContent$, pageContent$, pageMeta$]);
   return await generateIndexHtml(lang, pageName, files[0], files[1], files[2], files[3], readFile);
 }
@@ -10,6 +12,7 @@ async function generatePage(lang, pageName, readFile) {
 async function generateIndexHtml(lang, pageName, indexHtml, menuHtml, pageHtml, pageMeta, readFile) {
   let result = indexHtml;
   let pos = 0;
+  menuHtml = menuHtml.replaceAll('{{lang}}', lang);
   while ((pos = result.indexOf('{{', pos)) >= 0) {
     const end = result.indexOf('}}', pos + 2);
     if (end < 0) break;

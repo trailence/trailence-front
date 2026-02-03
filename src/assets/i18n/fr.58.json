@@ -360,7 +360,7 @@
       "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours",
       "source": {
         "trailence_recorder": "Trace enregistrée dans Trailence",
-        "trailence_planner": "Parcours plannifié dans Trailence",
+        "trailence_planner": "Parcours planifié dans Trailence",
         "with_date": " le {{1}}",
         "with_owner": " par {{1}}",
         "file_import": "Importé depuis le fichier {{1}}",
@@ -661,7 +661,7 @@
       },
       "reset_confirmation": {
         "title": "Tout annuler",
-        "message": "Confirmez-vous vouloir supprimer tout le parcours plannifié ?"
+        "message": "Confirmez-vous vouloir supprimer tout le parcours planifié ?"
       }
     },
     "export_popup": {
@@ -758,6 +758,10 @@
         "title": "Vous êtes développeur ?",
         "message": "Vous pouvez également contribuer au code. Trailence est open-source et disponible sur ",
         "message2": "Plus spécifiquement, une contribution recherchée est le développement de l'app sous iOS. Nous utilisons Ionic donc seulement quelques fonctionnalités natives sont nécessaires."
+      },
+      "translations": {
+        "title": "Aidez-nous à traduire Trailence !",
+        "message": "Nous aimerions rendre Trailence disponible dans encore plus de langues. Si vous souhaitez participer en traduisant Trailence dans une nouvelle langue ou en améliorant les traductions existantes, n'hésitez pas à nous contacter !"
       }
     },
     "contact": {
@@ -857,10 +861,11 @@
     "my_publications": "Mes publications",
     "start_trace": "Démarrer une trace",
     "current_trace": "Trace en cours",
-    "planner": "Plannifier un parcours",
+    "planner": "Planifier un parcours",
     "search_trail": "Trouver un parcours",
     "no_share_for_anonymous": "Les fonctionnalités de partage ne sont pas disponibles sans compte",
-    "anonymous_account": "Essai sans compte"
+    "anonymous_account": "Essai sans compte",
+    "help": "Aide"
   },
   "collection_menu": {
     "delete_confirm": {

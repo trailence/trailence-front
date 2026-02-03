@@ -16,12 +16,17 @@ async function docPage(request) {
   let i = path.indexOf('/');
   const lang = path.substring(0, i).toLowerCase();
   let page = path.substring(i + 1).toLowerCase();
-  if (page.indexOf('/') >= 0 || !page.endsWith('.html')) {
+  if (!page.endsWith('.html')) {
     request.error(`Not found: ${request.uri}`);
     request.return(404);
     return;
   }
-  page = page.substring(0, page.length - 5);
+  page = page.substring(0, page.length - 5); // remove .html
+  if (page.indexOf('/.') >= 0 || page.indexOf('./') >= 0) {
+    request.error(`Not found: ${request.uri}`);
+    request.return(404);
+    return;
+  }
 
   generatePage.generatePage(lang, page, readFile)
   .then(result => {

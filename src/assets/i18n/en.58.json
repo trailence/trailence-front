@@ -758,6 +758,10 @@
         "title": "Are You a Developer?",
         "message": "You can also contribute to the code. Trailence is open-source and available on ",
         "message2": "In particular, one contribution we’re looking for is developing the app for iOS. Since we use Ionic, only a few native features are required."
+      },
+      "translations": {
+        "title": "Help us translate Trailence!",
+        "message": "We'd love to make Trailence available in even more languages. If you'd like to help by translating Trailence into a new language or improving existing translations, feel free to get in touch!"
       }
     },
     "contact": {
@@ -860,7 +864,8 @@
     "planner": "Plan a trail",
     "search_trail": "Find a trail",
     "no_share_for_anonymous": "Sharing features are not available without an account",
-    "anonymous_account": "Trial without account"
+    "anonymous_account": "Trial without account",
+    "help": "Help"
   },
   "collection_menu": {
     "delete_confirm": {
