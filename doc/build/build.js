@@ -63,6 +63,42 @@ async function generatePage(lang, pageName) {
   fs.writeFileSync(dir + '/' + endName + '.html', page, {encoding: 'utf-8'});
 }
 
+function releaseNoteToHtml(code, content) {
+  let html = '<div class="release_version">';
+  html += '<div class="version_header">';
+  html += '<div class="version_code">' + code + '</div>';
+  if (content.message) html += '<div class="version_message">' + content.message + '</div>';
+  html += '</div>';
+  if (content.items) {
+    html += '<ul>';
+    for (const item of content.items) html += '<li>' + item + '</li>';
+    html += '</ul>';
+  }
+  html += '</div>';
+  return html;
+}
+
+async function generateReleaseNotes() {
+  const notesRaw = fs.readFileSync('../src/assets/releases/notes.json', {encoding: 'utf-8'});
+  const notes = JSON.parse(notesRaw);
+  const versions = [];
+  for (const v of Object.keys(notes)) {
+    const num = parseInt(v);
+    const code = Math.floor(v / 10000) + '.' + Math.floor((v % 10000) / 100) + '.' + (v % 100);
+    versions.push({num, code, ...notes[v]});
+  }
+  versions.sort(function (v1, v2) { return v2.num - v1.num; });
+  let htmlFr = "";
+  let htmlEn = "";
+  for (const v of versions) {
+    htmlFr += releaseNoteToHtml(v.code, v.fr);
+    htmlEn += releaseNoteToHtml(v.code, v.en);
+  }
+  const indexHtml = await readFile('site/index.html');
+  fs.writeFileSync('./www/en/release_notes.html', await generator.generateIndexHtml('en', 'release_notes', indexHtml, await readFile('site/menu.en.html'), htmlEn, {title: "Trailence Releases"}, readFile), {encoding: 'utf-8'});
+  fs.writeFileSync('./www/fr/release_notes.html', await generator.generateIndexHtml('fr', 'release_notes', indexHtml, await readFile('site/menu.fr.html'), htmlFr, {title: "Versions de Trailence"}, readFile), {encoding: 'utf-8'});
+}
+
 copy('./src/static', './www');
 fs.copyFileSync('./src/default.html', './www/index.html');
 
@@ -76,3 +112,4 @@ for (const lang of languages) {
     await generatePage(lang, page);
   }
 }
+await generateReleaseNotes();

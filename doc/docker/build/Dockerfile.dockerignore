@@ -1,0 +1,9 @@
+/node_modules/
+/android/
+/capacitor/
+/dist/
+/dev/
+/e2e/
+/fastlane/
+/scripts/
+/server_pages/

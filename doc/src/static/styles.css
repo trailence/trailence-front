@@ -241,3 +241,19 @@ div.site-menu h5 {
 div.site-menu div {
   padding-left: 20px;
 }
+
+div.release_version {
+  margin-bottom: 8px;
+}
+div.release_version div.version_header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+div.release_version div.version_header div.version_code {
+  color: var(--secondary-color);
+  padding-right: 10px;
+}
+div.release_version ul li {
+  color: rgba(var(--contrast-color-rgb), 0.7);
+}

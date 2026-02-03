@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://help.${TRAILENCE_HOSTNAME}/sitemap.xml

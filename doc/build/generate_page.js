@@ -60,4 +60,4 @@ const iconsVersions = {
   "theme-light": 1,
 };
 
-export default { generatePage };
+export default { generatePage, generateIndexHtml };

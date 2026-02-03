@@ -17,7 +17,9 @@ RUN npm install && \
     export BUILD_TIME="$(date -u -Iseconds)" && \
     sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' -e 's/\${BUILD_TIME}/'"$BUILD_TIME"'/g' /build/site/sitemap.xml > /build/www/browser/sitemap.xml && \
     sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' /build/site/robots.txt > /build/www/browser/robots.txt && \
-    npm run build-doc
+    npm run build-doc && \
+    sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' -e 's/\${BUILD_TIME}/'"$BUILD_TIME"'/g' /build/doc/src/static/sitemap.xml > /build/doc/www/sitemap.xml && \
+    sed -e 's/\${TRAILENCE_HOSTNAME}/trailence.org/g' /build/doc/src/static/robots.txt > /build/doc/www/robots.txt
 
 FROM mingc/android-build-box:1.29.0 AS build-apk
 COPY --from=build-app /build /build-apk

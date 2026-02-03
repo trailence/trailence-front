@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+  http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/home.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/home.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/home.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/home.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/home.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/home.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/home.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/home.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/create.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/create.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/create/import.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create/import.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create/import.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/create/import.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create/import.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create/import.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/create/record.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create/record.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create/record.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/create/record.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create/record.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create/record.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/create/planner.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create/planner.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create/planner.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/create/planner.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/create/planner.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/create/planner.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/edit-track.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/edit-track.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/edit-track.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/edit-track.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/edit-track.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/edit-track.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/organize.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/organize.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/organize.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/organize.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/organize.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/organize.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/organize/collections.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/organize/collections.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/organize/collections.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/organize/collections.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/organize/collections.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/organize/collections.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/organize/tags.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/organize/tags.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/organize/tags.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/organize/tags.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/organize/tags.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/organize/tags.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/share.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/share.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/share/create-link.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share/create-link.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share/create-link.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/share/create-link.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share/create-link.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share/create-link.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/share/create-share.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share/create-share.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share/create-share.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/share/create-share.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share/create-share.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share/create-share.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/share/publish.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share/publish.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share/publish.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/share/publish.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/share/publish.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/share/publish.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/fr/release_notes.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/release_notes.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/release_notes.html" />
+  </url>
+  <url>
+    <loc>https://help.${TRAILENCE_HOSTNAME}/en/release_notes.html</loc>
+    <lastmod>${BUILD_TIME}</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://help.${TRAILENCE_HOSTNAME}/en/release_notes.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://help.${TRAILENCE_HOSTNAME}/fr/release_notes.html" />
+  </url>
+
+</urlset>
