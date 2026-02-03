@@ -1,0 +1,4 @@
+Improved Create PDF feature<br/>
+Ability to add a profile picture<br/>
+Added a first version of the online help<br/>
+Minor improvements and bug fixes

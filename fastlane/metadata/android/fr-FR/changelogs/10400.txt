@@ -1,0 +1,4 @@
+Amélioration de la fonction Créer un PDF<br/>
+Possibilité d'ajouter une photo de profil<br/>
+Ajout d'une première version de l'aide en ligne<br/>
+Quelques autres petites améliorations et correctifs
