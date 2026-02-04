@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { SRC_ICONS } from './src';
 
-const iconsVersion = '7';
+const iconsVersion = '8';
 const srcPath = 'src/icons';
 const svgPath = 'src/assets/icons.' + iconsVersion + '.svg';
 const listPath = 'src/app/services/assets/icons.ts';

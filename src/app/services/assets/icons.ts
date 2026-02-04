@@ -85,6 +85,8 @@ export const ICONS: string[] = [
   'lowest-point',
   'mail',
   'map',
+  'map-anchor',
+  'map-anchor-off',
   'menu',
   'merge',
   'minus',

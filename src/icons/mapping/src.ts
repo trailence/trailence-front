@@ -80,6 +80,8 @@ export const SRC_ICONS: {[name: string]: string} = {
   'lowest-point': 'lowest-point.1.svg',
   'mail': 'mail.1.svg', // mail-outline
   'map': 'map.1.svg', // map
+  'map-anchor': 'map-anchor.1.svg',
+  'map-anchor-off': 'map-anchor-off.1.svg',
   'menu': 'menu.1.svg', // menu
   'merge': 'merge.1.svg', // git-merge-outline
   'minus': 'minus.1.svg', // remove

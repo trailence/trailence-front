@@ -421,7 +421,14 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.trailsWaypoints.toggleShowAllBreaks();;
         this.refreshMapToolbarRight();
       });
-    this.mapToolbarRightItems.push(new MenuItem(), showPhotoTool, showBreaksTool);
+    const showWaypointsTool = new MenuItem()
+      .setIcon(() => this.trailsWaypoints.showWaypointsOnMap ? 'map-anchor-off' : 'map-anchor')
+      .setVisible(() => this.trailsWaypoints.canShowWaypointsOnMap())
+      .setAction(() => {
+        this.trailsWaypoints.toggleShowWaypointsOnMap();
+        this.refreshMapToolbarRight();
+      });
+    this.mapToolbarRightItems.push(new MenuItem(), showPhotoTool, showBreaksTool, showWaypointsTool);
   }
 
   protected override destroyComponent(): void {
@@ -570,7 +577,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             mapTrack.showArrowPath();
             if (!toolsModifiedTrack) {
               mapTrack.showDepartureAndArrivalAnchors();
-              mapTrack.showWayPointsAnchors();
+              mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
             mapTracks.push(mapTrack);
           }
@@ -583,7 +590,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             mapTracks.push(trail1[2]);
             if (!toolsModifiedTrack) {
               trail1[2].showDepartureAndArrivalAnchors();
-              trail1[2].showWayPointsAnchors();
+              trail1[2].showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
           }
           if (trail2[1]) {
@@ -593,7 +600,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               trail2[2].color = 'blue';
               mapTracks.push(trail2[2]);
               trail2[2].showDepartureAndArrivalAnchors();
-              trail2[2].showWayPointsAnchors();
+              trail2[2].showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             }
           }
         }
@@ -614,7 +621,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this.graphTrack1 = recordingWithTrack.track;
           const mapTrack = new MapTrack(recordingWithTrack.recording.trail, recordingWithTrack.track, 'blue', 1, true, this.i18n);
           mapTrack.showDepartureAndArrivalAnchors();
-          mapTrack.showWayPointsAnchors();
+          mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
           mapTrack.showArrowPath();
           mapTracks.push(mapTrack)
         }
@@ -629,7 +636,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               this.graphTrack1 = toolsModifiedTrack;
             const mapTrack = new MapTrack(undefined, toolsModifiedTrack, 'blue', 1, false, this.i18n, hideBaseTrack ? 3 : 2);
             mapTrack.showDepartureAndArrivalAnchors();
-            mapTrack.showWayPointsAnchors();
+            mapTrack.showWayPointsAnchors(this.trailsWaypoints.showWaypointsOnMap);
             mapTracks.push(mapTrack);
           }
         }

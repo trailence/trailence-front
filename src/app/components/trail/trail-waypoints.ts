@@ -18,19 +18,8 @@ export class TrailsWaypoints {
   changes$ = new BehaviorSubject<any>(undefined);
 
   private _mapTracks: MapTrack[] = [];
-  /*
-  private _showBreaksOnMap = false;
-  public get showBreaksOnMap() { return this._showBreaksOnMap; }
-  public set showBreaksOnMap(value: boolean) {
-    if (this.showBreaksOnMapLocked) return;
-    if (this._showBreaksOnMap === value) return;
-    if (value && !this.canShowBreaksOnMap()) return;
-    this._showBreaksOnMap = value;
-    for (const mt of this._mapTracks) mt.showBreaksAnchors(value);
-    this.trails[0].showBreaks = value;
-    this.changes$.next(true);
-  }*/
   public showBreaksOnMapLocked = false;
+  public showWaypointsOnMap = true;
 
   private photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[] = [];
 
@@ -58,6 +47,7 @@ export class TrailsWaypoints {
     for (const t of toRemove) t.destroy();
     this.trails = newTrails;
     this._mapTracks = mapTracks;
+    this._mapTracks.forEach(mt => mt.showWayPointsAnchors(this.showWaypointsOnMap));
     this.updateShowBreaks();
   }
 
@@ -84,6 +74,11 @@ export class TrailsWaypoints {
     this.updateShowBreaks();
   }
 
+  public toggleShowWaypointsOnMap(): void {
+    this.showWaypointsOnMap = !this.showWaypointsOnMap;
+    this._mapTracks.forEach(mt => mt.showWayPointsAnchors(this.showWaypointsOnMap));
+  }
+
   public updatePhotos(photosWithPosition: {photos: Photo[], point: L.LatLngExpression}[]): void {
     this.photosWithPosition = photosWithPosition;
     let changed = false;
@@ -95,6 +90,10 @@ export class TrailsWaypoints {
 
   public canShowBreaksOnMap(): boolean {
     return this.trails.some(t => t.hasBreaks) && !this.showBreaksOnMapLocked;
+  }
+
+  public canShowWaypointsOnMap(): boolean {
+    return this.trails.some(t => t.wayPoints.some(wp => !wp.computed.breakPoint && !wp.computed.isDeparture && !wp.computed.isArrival));
   }
 
   private wayPointsUpdated(): void {
