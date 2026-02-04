@@ -5,4 +5,3 @@ User-agent: *
 Allow: /
 
 Sitemap: https://${TRAILENCE_HOSTNAME}/sitemap.xml
-Sitemap: https://${TRAILENCE_HOSTNAME}/api/public/trails/v1/sitemap.xml
