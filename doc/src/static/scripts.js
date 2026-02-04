@@ -5,6 +5,8 @@ function init() {
   displayForLang();
   showMenu(window.innerWidth >= 900, true);
   highlightCurrentMenu();
+  if (window.innerWidth >= 900)
+    document.querySelector('div.site-menu.home-menu')?.remove();
 }
 
 function setTheme(theme) {
@@ -24,7 +26,7 @@ function displayForLang() {
 
 function showMenu(shown, first) {
   globalThis.menuShown = shown;
-  const menu = document.querySelector('div.site-menu');
+  const menu = document.querySelector('div.site-menu:not(.home-menu)');
   if (shown) menu.classList.add('shown');
   else menu.classList.remove('shown');
   if (first) setTimeout(function() {
