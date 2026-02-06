@@ -97,6 +97,7 @@ export const ICONS: string[] = [
   'notification',
   'one-way',
   'online',
+  'open-link',
   'out-and-back',
   'path',
   'pause',

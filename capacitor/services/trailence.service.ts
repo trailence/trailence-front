@@ -26,6 +26,7 @@ export interface TrailencePlugin {
   canTakePhoto(call: {}): Promise<{canTakePhoto: boolean}>;
 
   share(call: {link: string, title?: string}): Promise<any>;
+  shareFile(call: {filename: string, data: string}): Promise<any>;
 
   exitApp(call: {}): Promise<any>;
 

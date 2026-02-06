@@ -190,6 +190,17 @@ export class TrailMenuService {
       addTools();
       menu.push(new MenuItem().setIcon('export').setI18nLabel('pages.trails.actions.export' + (onlyGlobal ? '_collection' : ''))
         .setAction(() => import('../functions/export').then(m => m.exportTrails(this.injector, trails))));
+      if (trails.length === 1 && this.injector.get(Platform).is('capacitor'))
+        menu.push(new MenuItem().setIcon('open-link').setI18nLabel('pages.trails.actions.open_gpx')
+          .setAction(() =>
+            import('../functions/export')
+            .then(m => m.exportStandardGpx(this.injector, trails[0], 'current'))
+            .then(gpx => {
+              if (!gpx) return;
+              return gpx.data.toBase64().then(base64 => Trailence.shareFile({filename: gpx.filename, data: base64}));
+            })
+          )
+        );
     }
 
     if (trails.length > 0 && fromCollection && !isPublicationCollection(fromCollection.type) && trails.some(t => t.owner !== ANONYMOUS_USER) &&

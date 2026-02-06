@@ -7,6 +7,7 @@ const Trailence = {
   getInsets: (call: {}) => Promise.resolve({top: 0, bottom: 0, left: 0, right: 0}),
 
   share: (call: {link: string, title?: string}) => Promise.resolve(),
+  shareFile: (call: {filename: string, data: string}) => Promise.resolve(),
 
   exitApp: (call: {}) => Promise.resolve(),
 

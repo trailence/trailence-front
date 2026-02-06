@@ -215,6 +215,7 @@
         "moving": "Moving",
         "export": "Export",
         "export_collection": "Export collection",
+        "open_gpx": "Open GPX with...",
         "edit_collection": "Rename",
         "modify": "Edit",
         "prepare": "Prepare",

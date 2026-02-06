@@ -93,6 +93,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'offline': 'exclamation-circle.1.svg', // alert-circle-outline
   'one-way': 'point-to-point.1.svg',
   'online': 'online.1.svg', // checkmark-circle-outline
+  'open-link': 'open-link.1.svg', // open-outline
   'out-and-back': 'out-and-back.1.svg',
   'path': 'path.1.svg',
   'pause': 'pause.1.svg', // pause-outline

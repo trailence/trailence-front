@@ -302,6 +302,7 @@
 </g>
 </svg></icon>
 <icon names="online"><svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z" stroke-miterlimit="10" class="ionicon-fill-none ionicon-stroke-width"/><path stroke-linecap="round" stroke-linejoin="round" d="M352 176L217.6 336 160 272" class="ionicon-fill-none ionicon-stroke-width"/></svg></icon>
+<icon names="open-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="ionicon"><path d="M384 224v184a40 40 0 0 1-40 40H104a40 40 0 0 1-40-40V168a40 40 0 0 1 40-40h167.48M336 64h112v112M224 288 440 72" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32px"/></svg></icon>
 <icon names="out-and-back"><svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g fill="none" stroke="currentColor" stroke-width="4">
   <line x1="5" y1="32" x2="60" y2="32" />

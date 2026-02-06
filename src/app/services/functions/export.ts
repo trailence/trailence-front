@@ -1,5 +1,5 @@
 import { Injector } from '@angular/core';
-import { catchError, defaultIfEmpty, EMPTY, first, forkJoin, map, Observable, of, switchMap, zip } from 'rxjs';
+import { catchError, defaultIfEmpty, EMPTY, first, firstValueFrom, forkJoin, map, Observable, of, switchMap, zip } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { PhotoService } from '../database/photo.service';
 import { ModalController } from '@ionic/angular/standalone';
@@ -42,6 +42,28 @@ export function exportTrails(injector: Injector, trails: Trail[]) {
       })
     })
   });
+}
+
+export function exportStandardGpx(injector: Injector, trail: Trail, whichTrack: 'original' | 'current'): Promise<{filename: string, data: BinaryContent} | null> {
+  let track$: Observable<Track | null>;
+  if (whichTrack === 'original')
+    track$ =
+      trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.originalTrackUuid) :
+      injector.get(TrackService).getFullTrack$(trail.originalTrackUuid, trail.owner);
+  else
+    track$ =
+      trail.fromModeration ? injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trail.currentTrackUuid) :
+      injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner);
+  return firstValueFrom(track$.pipe(
+    firstTimeout(track => !!track, 15000, () => null as (Track | null)),
+    map(t => {
+      if (!t) return null;
+      return {
+        filename: StringUtils.toFilename(trail.name) + '.gpx',
+        data: GpxFormat.exportGpx(trail, [t], [], [], new Map<Photo, string>())
+      };
+    }),
+  ));
 }
 
 function doExport(injector: Injector, trails: Trail[], what: 'original' | 'current' | 'both', includePhotos: boolean, trailsPhotos: {trail: Trail, photos: Photo[]}[]): void {

@@ -216,6 +216,7 @@
         "edit_collection": "Renommer",
         "export": "Exporter",
         "export_collection": "Exporter la collection",
+        "open_gpx": "Ouvrir le GPX avec...",
         "prepare": "Préparer",
         "modify": "Modifier",
         "rename": "Titre",

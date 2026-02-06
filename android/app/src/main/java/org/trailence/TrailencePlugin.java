@@ -10,6 +10,7 @@ import android.provider.Settings;
 
 import androidx.activity.result.ActivityResult;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.util.Pair;
 import androidx.core.view.ViewCompat;
@@ -23,6 +24,8 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Base64;
@@ -339,6 +342,31 @@ public class TrailencePlugin extends Plugin {
     if (title != null && !title.isBlank())
       shareIntent.putExtra(Intent.EXTRA_TITLE, title);
     getContext().startActivity(Intent.createChooser(shareIntent, null));
+    call.resolve();
+  }
+
+  @PluginMethod
+  public void shareFile(PluginCall call) {
+    String data = call.getString("data");
+    String filename = call.getString("filename");
+    if (data == null || data.isBlank() || filename == null) return;
+    try {
+      File tmpFile = File.createTempFile(filename, ".tmp");
+      try (var stream = new FileOutputStream((tmpFile))) {
+        stream.write(Base64.getDecoder().decode(data));
+      }
+      Uri uri = FileProvider.getUriForFile(getActivity(), getAppId() + ".fileprovider", tmpFile);
+      Intent intent = new Intent();
+      intent.setAction(Intent.ACTION_VIEW);
+      intent.addCategory(Intent.CATEGORY_DEFAULT);
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      getContext().grantUriPermission(getContext().getPackageName(), uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+      intent.setDataAndType(uri, "application/gpx+xml");
+      getContext().startActivity(intent);
+    } catch (Exception e) {
+      Logger.error("Error opening file", e);
+    }
     call.resolve();
   }
 
