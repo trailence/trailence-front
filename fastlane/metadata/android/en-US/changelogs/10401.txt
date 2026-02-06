@@ -1,0 +1,2 @@
+Ability to hide/show waypoints on the map<br/>
+On Android: open a routre in another app using the new memu “Open GPX with”

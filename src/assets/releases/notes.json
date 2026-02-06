@@ -148,5 +148,19 @@
         "Minor improvements and bug fixes"
       ]
     }
+  },
+  "010401": {
+    "fr": {
+      "items": [
+        "Possibilité de cacher/montrer les étapes sur la carte",
+        "Sur Android: ouvrez un parcours dans une autre application avec le nouveau menu “Ouvrir le GPX avec”"
+      ]
+    },
+    "en": {
+      "items": [
+        "Ability to hide/show waypoints on the map",
+        "On Android: open a routre in another app using the new memu “Open GPX with”"
+      ]
+    }
   }
 }

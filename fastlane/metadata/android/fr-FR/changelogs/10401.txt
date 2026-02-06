@@ -1,0 +1,2 @@
+Possibilité de cacher/montrer les étapes sur la carte<br/>
+Sur Android: ouvrez un parcours dans une autre application avec le nouveau menu “Ouvrir le GPX avec”
