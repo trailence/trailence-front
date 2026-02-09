@@ -327,7 +327,6 @@ export class TrailsAndMapComponent extends AbstractComponent {
         child.setVisible(listVisible);
         child.changesDetection.detectChanges();
       } else if (child instanceof TrailOverviewComponent) child.setVisible(trailSheetVisible);
-      else Console.error('unexpected child', child);
     };
   }
 

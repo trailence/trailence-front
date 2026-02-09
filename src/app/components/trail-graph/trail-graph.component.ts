@@ -293,6 +293,27 @@ export class TrailGraphComponent extends AbstractComponent {
       this.canvas!.chart!.options.scales!['y']!.min = this.chartOptions!.scales!['y']!.min;
       this.canvas!.chart!.options.scales!['y']!.max = this.chartOptions!.scales!['y']!.max;
     }
+    if (this.width && this.width > 200 && maxX > 1 && this.graphType === 'elevation') {
+      const whishedSteps = Math.floor(this.width / 100);
+      const step = 0.1 * whishedSteps >= maxX ? 0.1 :
+        0.25 * whishedSteps >= maxX ? 0.25 :
+        0.5 * whishedSteps >= maxX ? 0.5 :
+        whishedSteps >= maxX ? 1 :
+        2 * whishedSteps >= maxX ? 2 :
+        2.5 * whishedSteps >= maxX ? 2.5 :
+        undefined;
+      (this.chartOptions!.scales!['x']!.ticks as any).stepSize = step;
+    } else if (this.width && this.width > 200 && maxX > 60 && this.graphType === 'speed') {
+      const whishedSteps = Math.floor(this.width / 100);
+      const step = 10 * whishedSteps >= maxX ? 10 :
+        15 * whishedSteps >= maxX ? 15 :
+        30 * whishedSteps >= maxX ? 30 :
+        60 * whishedSteps >= maxX ? 60 :
+        90 * whishedSteps >= maxX ? 90 :
+        120 * whishedSteps >= maxX ? 120 :
+        undefined;
+      (this.chartOptions!.scales!['x']!.ticks as any).stepSize = step;
+    }
   }
 
   private buildOptions(): void {
@@ -333,8 +354,7 @@ export class TrailGraphComponent extends AbstractComponent {
             color: this.contrastColor,
             callback: this.graphType === 'elevation' ?
               value => (typeof value === 'number' ? value : Number.parseInt(value ?? '0')).toLocaleString(this.preferencesService.preferences.lang, {maximumFractionDigits: 2}) :
-              value => this.i18n.durationToString(typeof value === 'number' ? value : Number.parseInt(value ?? '0'), true, false),
-              count: this.width ? Math.max(4, Math.floor(this.width / 100) + 2) : undefined,
+              value => this.i18n.durationToString((typeof value === 'number' ? value : Number.parseInt(value ?? '0')) * 60000, true, false),
           }
         },
         y: {
@@ -530,7 +550,7 @@ export class TrailGraphComponent extends AbstractComponent {
     const dataPoint: DataPoint = {
       x: this.graphType === 'elevation' ?
            this.i18n.elevationGraphDistanceValue(this.i18n.distanceInUserUnit(distance)) :
-           timeSinceStart ?? 0,
+           (timeSinceStart ?? 0) / 60000,
       y: this.graphType === 'elevation' ?
           (point.ele === undefined ? null : this.i18n.elevationInUserUnit(point.ele)) :
           this.i18n.distanceInLongUserUnit(speedInMeters),
@@ -555,7 +575,7 @@ export class TrailGraphComponent extends AbstractComponent {
       const previous = dataPoints[dataIndex - 1];
       return [
         {
-          x: previous.x + 1,
+          x: previous.x + (1 / 60000),
           y: 0,
           segmentIndex: trackSegmentIndex,
           pointIndex: trackPointIndex,
@@ -574,7 +594,7 @@ export class TrailGraphComponent extends AbstractComponent {
           speedInMeters: 0,
           isBreakPoint: true,
         }, {
-          x: dataPoint.x - 1,
+          x: dataPoint.x - (1 / 60000),
           y: 0,
           segmentIndex: trackSegmentIndex,
           pointIndex: trackPointIndex,

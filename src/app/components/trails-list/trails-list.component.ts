@@ -6,7 +6,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { TrackService } from 'src/app/services/database/track.service';
 import { IonModal, IonHeader, IonTitle, IonContent, IonFooter, IonToolbar, IonButton, IonButtons, IonIcon, IonLabel, IonRadio, IonRadioGroup,
   IonItem, IonCheckbox, IonList, IonSelectOption, IonSelect, IonInput, IonSpinner, PopoverController, AlertController } from "@ionic/angular/standalone";
-import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, distinctUntilChanged, filter, first, map, Observable, of, skip, switchMap } from 'rxjs';
 import { ObjectUtils } from 'src/app/utils/object-utils';
 import { ToggleChoiceComponent } from '../toggle-choice/toggle-choice.component';
 import { Router } from '@angular/router';
@@ -323,7 +323,9 @@ export class TrailsListComponent extends AbstractComponent {
     const trails$ = this.trails$ ? this.trails$.toArray() : [];
     this.byState.add(this.ngZone.runOutsideAngular(() =>
       combineLatest([this.visible$, this.map?.visible$ ?? of(false)]).pipe(
-        filter(([thisVisible, mapVisible]) => thisVisible || mapVisible),
+        map(([thisVisible, mapVisible]) => thisVisible || mapVisible),
+        distinctUntilChanged(),
+        filter(v => v),
         switchMap(() => combineLatest([
           this.collectionUuid && this.authService.email ? this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid, this.authService.email) : of(undefined),
           (trails$.length === 0 ? of([]) : combineLatest(trails$)).pipe(
@@ -331,38 +333,51 @@ export class TrailsListComponent extends AbstractComponent {
             debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
           ),
         ])),
-        map(([collection, trails]) => {
+        switchMap(([collection, trails]) => {
           this.collection = collection ?? undefined;
           this.updateToolbar(trails);
           // if no active filter, we can early emit the list of trails to the map
           if (this.nbActiveFilters(true) === 0)
             this.mapFilteredTrails.emit(trails);
-          return trails.map(
-            trail => combineLatest([
-              trail.currentTrackUuid$.pipe(
-                switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getTrackMetadata$(trail.uuid, trail.owner, trackUuid) : this.trackService.getMetadata$(trackUuid, trail.owner)),
-                filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null),
-                catchError(e => {
-                  Console.warn('Cannot get track metadata for trail', trail);
-                  return of(null);
-                })
-              ),
-              trail.owner === this.authService.email ? this.tagService.getTrailTagsWhenLoaded$(trail.uuid) : of([]),
-              trail.owner.includes('@') ? of(null) : this.injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid),
-              trail.owner.includes('@') ? this.injector.get(PhotoService).getPhotosForTrailReady$(trail) : of(null),
-            ]).pipe(
-              map(([track, trailTags, info, photos]) => ({
-                trail,
-                track,
-                trailTags,
-                info,
-                selected: false,
-                nbPhotos: photos !== null ? photos.length : info?.photos?.length ?? 0,
-              }) as TrailWithInfo)
+          if (trails.length === 0) return of([]);
+          const email = this.authService.email;
+          const hasOwner = trails.some(t => t.owner === email);
+          const trailTags$ = hasOwner ? this.tagService.getAllTrailTagsWhenLoaded$() : of([]);
+          const photoIds = trails.map(t => t.owner.includes('@') ? {owner: t.owner, uuid: t.uuid} : null).filter(i => !!i);
+          const photos$ = photoIds.length === 0 ? of([]) : this.injector.get(PhotoService).getPhotosForTrailsReady$(photoIds);
+          const infoIds: {owner: string, uuid: string}[] = [];
+          for (const t of trails) {
+            if (t.owner.includes('@')) continue;
+            infoIds.push({owner: t.owner, uuid: t.uuid});
+          }
+          const infos$ = infoIds.length === 0 ? of([]) : this.injector.get(FetchSourceService).getTrailsInfos$(infoIds);
+          const trailsTracks$ = combineLatest(trails.map(
+            trail => trail.currentTrackUuid$.pipe(
+              switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getTrackMetadata$(trail.uuid, trail.owner, trackUuid) : this.trackService.getMetadata$(trackUuid, trail.owner)),
+              filterTimeout(track => !!track, 1000, () => null as TrackMetadataSnapshot | null),
+              catchError(e => {
+                Console.warn('Cannot get track metadata for trail', trail);
+                return of(null);
+              }),
+              map(track => ({trail, track})),
+            )
+          ));
+          return combineLatest([trailsTracks$, trailTags$, photos$, infos$]).pipe(
+            map(([tracks, tags, photos, infos]) =>
+              trails.map(trail => {
+                const info = trail.owner.includes('@') ? null : infos.find(i => i.owner === trail.owner && i.uuid === trail.uuid)?.info || null;
+                return {
+                  trail,
+                  track: tracks.find(t => t.trail === trail)?.track,
+                  trailTags: trail.owner === email ? tags.filter(t => t.trailUuid === trail.uuid) : [],
+                  info: info,
+                  selected: false,
+                  nbPhotos: photos.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid).length || (info?.photos?.length ?? 0),
+                } as TrailWithInfo;
+              })
             )
           );
         }),
-        switchMap(trailsWithInfo$ => trailsWithInfo$.length > 0 ? combineLatest(trailsWithInfo$) : of([])),
         debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
       ).subscribe((trailsWithInfo) => {
         const newList = [];

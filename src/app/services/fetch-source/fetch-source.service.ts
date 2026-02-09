@@ -340,6 +340,31 @@ export class FetchSourceService {
     );
   }
 
+  public getTrailsInfo$(owner: string, uuids: string[]): Observable<{uuid: string, info: TrailInfo}[]> {
+    return this.plugin$(owner).pipe(
+      switchMap(plugin => plugin ?
+        this.promiseToObservable('trail info from ' + owner, () => plugin.getInfos(uuids), i => !i, () => [])
+        : of([])
+      )
+    );
+  }
+
+  public getTrailsInfos$(ids: {owner: string, uuid: string}[]): Observable<{owner: string, uuid: string, info: TrailInfo}[]> {
+    if (ids.length === 0) return of([]);
+    const owners: string[] = [];
+    for (const id of ids) if (owners.indexOf(id.owner) < 0) owners.push(id.owner);
+    if (owners.length === 1) return this.getTrailsInfo$(owners[0], ids.map(i => i.uuid)).pipe(map(l => l.map(e => ({owner: owners[0], ...e}))));
+    return combineLatest(owners.map(owner => {
+      const uuids: string[] = [];
+      for (const id of ids) if (id.owner === owner) uuids.push(id.uuid);
+      return this.getTrailsInfo$(owner, uuids).pipe(map(l => l.map(e => ({owner, ...e}))));
+    })).pipe(map(results => {
+      const r: {owner: string, uuid: string, info: TrailInfo}[] = [];
+      for (const result of results) r.push(...result);
+      return r;
+    }));
+  }
+
   public getPluginNameByOwner(owner: string): string | undefined {
     return this.plugins$.value.find(p => p.owner === owner)?.name;
   }

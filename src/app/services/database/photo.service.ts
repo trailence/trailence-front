@@ -63,7 +63,7 @@ export class PhotoService {
     );
   }
 
-  private getPhotosForTrailsReady$(ids: {owner: string, uuid: string}[]): Observable<Photo[]> {
+  public getPhotosForTrailsReady$(ids: {owner: string, uuid: string}[]): Observable<Photo[]> {
     const external = ids.filter(id => !id.owner.includes('@'));
     const internal = ids.filter(id => id.owner.includes('@'));
     const external$ = external.length === 0 ? of([]) : zip(external.map(id => this.injector.get(FetchSourceService).getPhotos$(id.owner, id.uuid)));

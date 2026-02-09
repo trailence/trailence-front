@@ -14,7 +14,7 @@
         </ion-button>
       </div>
     }
-    @if (auth.auth) {
+    @if (load$.value && auth.auth) {
       <ion-button class="my-selection" color="my-selection" size="small" fill="clear" (click)="toggleMySelection(); $event.stopPropagation();">
         <ion-icon slot="icon-only" [name]="meta.isInMySelection ? 'star-filled' : 'star-empty'"></ion-icon>
       </ion-button>
@@ -26,26 +26,28 @@
         <span (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</span>
       }
     </div>
-    @if (publicTrailUuid) {
-      <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
-        <ion-icon name="web" slot="icon-only"></ion-icon>
-      </ion-button>
-    }
-    @if (trailLink) {
-      <ion-button class="trail-link-button" size="small" fill="clear" color="success" (click)="openTrailLink()">
-        <ion-icon name="link" slot="icon-only"></ion-icon>
-      </ion-button>
-    }
-    @if (external?.oscmSymbol; as symbol) {
-      @let svg = generateRouteSymbol(symbol);
-      @if (svg) {
-        <div class="ocsm-symbol" [innerHTML]="svg"></div>
+    @if (load$.value) {
+      @if (publicTrailUuid) {
+        <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
+          <ion-icon name="web" slot="icon-only"></ion-icon>
+        </ion-button>
       }
-    }
-    @if (!hideMenu) {
-      <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
-        <ion-icon name="item-menu" slot="icon-only"></ion-icon>
-      </ion-button>
+      @if (trailLink) {
+        <ion-button class="trail-link-button" size="small" fill="clear" color="success" (click)="openTrailLink()">
+          <ion-icon name="link" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
+      @if (external?.oscmSymbol; as symbol) {
+        @let svg = generateRouteSymbol(symbol);
+        @if (svg) {
+          <div class="ocsm-symbol" [innerHTML]="svg"></div>
+        }
+      }
+      @if (!hideMenu) {
+        <ion-button class="trail-menu-button" size="small" fill="clear" color="dark" (click)="openMenu($event)">
+          <ion-icon name="item-menu" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
     }
   </div>
 }

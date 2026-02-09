@@ -129,6 +129,12 @@ export class TagService {
     return this._trailTagStore.getAll$();
   }
 
+  public getAllTrailTagsWhenLoaded$(): Observable<TrailTag[]> {
+    return this._trailTagStore.getAllWhenLoaded$().pipe(
+      collection$items(),
+    );
+  }
+
   public addTrailTag(trailUuid: string, tagUuid: string, ondone?: () => void) {
     if (!this.injector.get(QuotaService).checkQuota(q => q.trailTagsUsed + this._trailTagStore.getNbLocalCreates() >= q.trailTagsMax, 'trails_tags'))
       return;

@@ -70,6 +70,7 @@ export abstract class FetchSourcePlugin {
   public searchBubbles(bounds: L.LatLngBounds, zoom: number, filters: Filters, lang: string): Observable<SearchBubblesResult> { return of({trailsByTile: [], uuids: undefined}); }
 
   public abstract getInfo(uuid: string): Promise<TrailInfo | null>;
+  public abstract getInfos(uuids: string[]): Promise<{uuid: string, info: TrailInfo}[]>;
   public abstract getTrail(uuid: string): Promise<Trail | null>;
   public abstract getTrails(uuids: string[]): Promise<Trail[]>;
   public abstract getMetadata(uuid: string): Promise<TrackMetadataSnapshot | null>;

@@ -101,6 +101,8 @@
   }
 </div>
 <ng-template #trailsListTemplate let-nbSelected="nbSelected">
+  @let hasSelected = nbSelected > 0;
+  @let isAllCollections = listType === 'all-collections';
   @if (state$.value.mode === 'condensed') {
     @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
       <app-trail-overview-condensed
@@ -111,18 +113,23 @@
         [selected]="trailWithInfo.selected"
         (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
         [fromCollection]="!!collectionUuid"
-        [isAllCollections]="listType === 'all-collections'"
+        [isAllCollections]="isAllCollections"
         style="background-color: {{highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}}"
         (click)="onTrailClick(trailWithInfo.trail)"
         [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
-        [hideMenu]="nbSelected > 0"
+        [hideMenu]="hasSelected"
         (openTrailEvent)="setHighlighted($event)"
       >
       </app-trail-overview-condensed>
     }
   } @else {
+    @let cl = size === 'large' ? 'two-columns' : ('one-column' + (size === 'medium' ? ' accept-small' : ''));
+    @let isModeration = listType === 'moderation';
+    @let photoCanBeOnLeft = size === 'large';
+    @let photoEnabled = state$.value.mode !== 'detailed_small_map';
+    @let smallMapEnabled = state$.value.mode === 'detailed_small_map';
     @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
-      <div class="trail metadata-container {{size === 'large' ? 'two-columns' : ('one-column' + (size === 'medium' ? ' accept-small' : ''))}}"
+      <div class="trail metadata-container {{cl}}"
         style="background-color: {{highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}}"
         id="trail-list-{{id}}-trail-{{trailWithInfo.trail.uuid}}-{{trailWithInfo.trail.owner}}"
         [horizontalGesture]="enableRemoveByGesture" (horizontalGesturePerformed)="removeFromList(trailWithInfo)"
@@ -136,18 +143,18 @@
           (selectedChange)="trailWithInfo.selected = $event; onTrailSelected();"
           (click)="onTrailClick(trailWithInfo.trail)"
           [fromCollection]="!!collectionUuid"
-          [isAllCollections]="listType === 'all-collections'"
-          [isModeration]="listType === 'moderation'"
+          [isAllCollections]="isAllCollections"
+          [isModeration]="isModeration"
           [trackSnapshot]="trailWithInfo.track"
           [delayLoading]="$index >= 10 && state$.value.filters.search.length === 0"
-          [photoCanBeOnLeft]="size === 'large'"
+          [photoCanBeOnLeft]="photoCanBeOnLeft"
           [showPublished]="showPublished"
           [config]="metadataConfig"
           [enableShowOnMap]="enableShowOnMap"
           (showOnMap)="showOnMap.emit($event)"
-          [hideMenu]="nbSelected > 0"
-          [photoEnabled]="state$.value.mode !== 'detailed_small_map'"
-          [smallMapEnabled]="state$.value.mode === 'detailed_small_map'"
+          [hideMenu]="hasSelected"
+          [photoEnabled]="photoEnabled"
+          [smallMapEnabled]="smallMapEnabled"
           (openTrailEvent)="setHighlighted($event)"
         ></app-trail-overview>
       </div>

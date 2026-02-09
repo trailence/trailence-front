@@ -116,6 +116,17 @@ export class LinkPlugin extends FetchSourcePlugin {
   public getInfo(uuid: string): Promise<TrailInfo | null> {
     return this.toPromise(this.getLink(uuid, false).pipe(map(cache => this.toTrailInfo(uuid, cache))));
   }
+
+  public getInfos(uuids: string[]): Promise<{uuid: string, info: TrailInfo}[]> {
+    return Promise.all(uuids.map(u => this.getInfo(u).catch(e => null)))
+    .then(results => {
+      const r: {uuid: string, info: TrailInfo}[] = [];
+      for (let i = 0; i < uuids.length; ++i)
+        if (results[i]) r.push({uuid: uuids[i], info: results[i]!!});
+      return r;
+    });
+  }
+
   private toTrailInfo(link: string, cache: LinkCache): TrailInfo {
     if (cache.info) return cache.info;
     return cache.info = {

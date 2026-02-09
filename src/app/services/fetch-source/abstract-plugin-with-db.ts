@@ -164,8 +164,50 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     });
   }
 
+  public override getInfos(uuids: string[]): Promise<{uuid: string, info: TrailInfo}[]> {
+    return this.tableInfos.bulkGet(uuids)
+    .then(known => {
+      const result: {uuid: string, info: TrailInfo}[] = [];
+      const unknown: string[] = [];
+      const toRefresh: string[] = [];
+      for (let i = 0; i < uuids.length; ++i) {
+        const k = known[i];
+        if (k) {
+          if (this.refreshAfter !== undefined && Date.now() - k.fetchDate > this.refreshAfter)
+            toRefresh.push(uuids[i]);
+          else
+            result.push({uuid: uuids[i], info: known[i]!!.info});
+        } else {
+          unknown.push(uuids[i]);
+        }
+      }
+      if (unknown.length === 0 && toRefresh.length === 0) return result;
+      return this.fetchInfosByIds([...unknown, ...toRefresh])
+      .then(fromFetch => {
+        for (const uuid of toRefresh) {
+          const fr = fromFetch.find(f => f.uuid === uuid);
+          if (fr) result.push(fr); else result.push({uuid, info: known[uuids.indexOf(uuid)]!!.info});
+        }
+        for (const uuid of unknown) {
+          const fr = fromFetch.find(f => f.uuid === uuid);
+          if (fr) result.push(fr);
+        }
+        return result;
+      });
+    });
+  }
+
   protected fetchInfoById(uuid: string): Promise<TrailInfo | null> {
     return Promise.resolve(null);
+  }
+
+  protected fetchInfosByIds(uuids: string[]): Promise<{uuid: string, info: TrailInfo}[]> {
+    return Promise.all(uuids.map(uuid => this.fetchInfoById(uuid).catch(e => null)))
+    .then(byId => {
+      const result: {uuid: string, info: TrailInfo}[] = [];
+      for (let i = 0; i < uuids.length; ++i) if (byId[i]) result.push({uuid: uuids[i], info: byId[i]!!});
+      return result;
+    });
   }
 
   protected prepareTrailToStore(trail: Trail, originalTrack: Track, uuid: string, overrideMetadata: Partial<TrackMetadataSnapshot> = {}, skipImprovment: boolean = false): TrailToStore {

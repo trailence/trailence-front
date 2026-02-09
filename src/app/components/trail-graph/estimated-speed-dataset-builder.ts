@@ -59,7 +59,7 @@ export class EstimatedSpeedDatasetBuilder {
           index++;
         }
         ds.data.push({
-          x: duration,
+          x: duration / 60000,
           y: i18n.distanceInLongUserUnit(speed),
           distance,
           duration,

@@ -1289,10 +1289,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     for (const child of this._children$.value) {
       if (child instanceof MapComponent) child.setVisible(mapVisible);
       else if (child instanceof TrailGraphComponent) child.setVisible(graphVisible);
-      else if (child instanceof TrackMetadataComponent) {
-        // nothing
-      }
-      else Console.error('unexpected child', child);
     }
   }
 

@@ -304,6 +304,11 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
     });
   }
 
+  protected override fetchInfosByIds(uuids: string[]): Promise<{ uuid: string; info: TrailInfo; }[]> {
+    return this.fetchTrailsByIds(uuids)
+    .then(trails => this.getInfos(trails.map(t => t.uuid)));
+  }
+
   protected override fetchFullTrackById(uuid: string): Promise<Track | null> {
     return this._pendingFullTrack.request(uuid, () =>
       firstValueFrom(this.injector.get(HttpService).get<PublicTrack>(environment.apiBaseUrl + '/public/trails/v1/track/' + uuid))
