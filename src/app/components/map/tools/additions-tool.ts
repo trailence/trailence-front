@@ -138,7 +138,7 @@ export class AdditionsTool extends MapTool {
   }
 
   private poiToTooltip(poi: POI, injector: Injector): L.Tooltip {
-    const tooltip = L.tooltip({className: 'poi'}).setLatLng(poi.pos).setContent('');
+    const tooltip = L.tooltip({className: 'poi', permanent: true}).setLatLng(poi.pos).setContent('');
     if (poi.text) {
       const span = document.createElement('SPAN');
       span.innerText = poi.text;

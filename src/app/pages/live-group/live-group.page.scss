@@ -1,0 +1,86 @@
+div.page-content {
+  flex: 1 1 100%;
+  overflow: hidden;
+  position: relative;
+
+  div.live-group-container {
+    app-live-group {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+  }
+
+  &.horizontal {
+    div.live-group-container {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 300px;
+      width: 300px;
+      height: 100%;
+      overflow: auto;
+    }
+    div.map-container {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 300px;
+      right: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+  }
+
+  &.vertical {
+    div.live-group-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 200px;
+      overflow: auto;
+    }
+    div.map-container {
+      position: absolute;
+      top: 0;
+      bottom: 200px;
+      left: 0;
+      right: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+  }
+}
+
+div.joining {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  ion-card {
+    max-width: calc(min(90%, 300px));
+    min-width: calc(min(90%, 300px));
+
+    ion-toolbar {
+      div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px 16px;
+        font-size: 20px;
+      }
+    }
+  }
+
+  div.buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

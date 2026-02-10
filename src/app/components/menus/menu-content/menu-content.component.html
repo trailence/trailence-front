@@ -65,8 +65,8 @@
     @if (item.text$) {
       <ion-label [color]="item.item.textColor">
         {{ item.text$ | async }}
-        @if (item.subText) {
-          <p style="font-size: 0.7rem">{{item.subText}}</p>
+        @for (subText of item.subText; track $index) {
+          <p class="sub-text">{{subText}}</p>
         }
       </ion-label>
     }

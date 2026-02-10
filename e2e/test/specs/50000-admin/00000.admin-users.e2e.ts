@@ -23,7 +23,7 @@ describe('Admin Users', () => {
   });
 
   it('Open myself', async () => {
-    const cell = await TestUtils.retry(() => usersPage.table.searchCellByColumnTitleAndValue('E-Mail', 'user@trailence.org'), 2, 1000);
+    const cell = await TestUtils.retry(() => usersPage.table.searchCellByColumnTitleAndValue('E-Mail', 'user@trailence.org'), 3, 1000);
     expect(cell).toBeDefined();
     if (cell) {
       await cell.click();

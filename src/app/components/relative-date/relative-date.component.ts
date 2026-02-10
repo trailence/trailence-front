@@ -9,6 +9,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 export class RelativeDateComponent implements OnChanges, OnDestroy {
 
   @Input() date?: number;
+  @Input() forceRelative = false;
 
   constructor(
     private readonly i18n: I18nService,
@@ -28,11 +29,16 @@ export class RelativeDateComponent implements OnChanges, OnDestroy {
 
   private refresh(): void {
     this._timeout = undefined;
-    this.element.nativeElement.innerText = this.i18n.timestampToRelativeDate(this.date);
+    this.element.nativeElement.innerText = this.i18n.timestampToRelativeDate(this.date, this.forceRelative);
     if (this.date) {
       const diff = Date.now() - this.date;
       if (diff < 4 * 60 * 60 * 1000) {
-        this._timeout = setTimeout(() => this.refresh(), 60000);
+        let nextUpdate;
+        if (diff < 10000) nextUpdate = 1000;
+        else if (diff < 30000) nextUpdate = 5000;
+        else if (diff < 60000) nextUpdate = 10000;
+        else nextUpdate = 60000;
+        this._timeout = setTimeout(() => this.refresh(), nextUpdate);
       }
     }
   }

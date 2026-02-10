@@ -1,0 +1,40 @@
+.disconnected-message {
+  text-align: center;
+  color: var(--ion-color-danger);
+}
+div.explaination {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  background-color: rgba(96, 96, 200, 0.25);
+  color: rgba(var(--ion-text-color-rgb), 0.75);
+  padding: 5px;
+  border-radius: 5px;
+
+  ion-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+  }
+  span {
+    font-size: 13px;
+    padding-left: 5px;
+  }
+}
+div.field {
+  margin-bottom: 5px;
+}
+h2 {
+  font-size: 16px;
+  color: var(--ion-color-tertiary);
+  em {
+    color: var(--ion-color-secondary);
+  }
+}
+
+ion-button {
+  display: block;
+}

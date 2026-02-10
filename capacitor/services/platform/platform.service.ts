@@ -29,6 +29,7 @@ export class PlatformService {
   ) {
     this.listenToImportGpx();
     this.listenToOpenLink();
+    this.listenToJoinLiveGroup();
     this.handleBackButton();
     this.handleKeyboard();
   }
@@ -78,6 +79,14 @@ export class PlatformService {
     Trailence.listenToOpenLink((message) => {
       if (message.link) {
         this.injector.get(Router).navigateByUrl('/trail/link/' + message.link);
+      }
+    });
+  }
+
+  private listenToJoinLiveGroup(): void {
+    Trailence.listenToJoinLiveGroup((message) => {
+      if (message.slug) {
+        this.injector.get(Router).navigateByUrl('/live-group/join/' + message.slug);
       }
     });
   }

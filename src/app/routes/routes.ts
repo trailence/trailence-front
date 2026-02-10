@@ -15,7 +15,7 @@ export const routes: Routes = [
     children: publicRoutes.filter(p => !p.path?.startsWith('link') && !p.path?.startsWith('trail/trailence/') && p.path !== 'search-route')
   },
   ...publicRoutes.map(p => {
-    if (p.path?.startsWith('link') || p.path?.startsWith('try') || p.path === 'search-route' || p.path?.startsWith('trail/trailence/') || p.path?.startsWith('trail/link/')) return p;
+    if (p.path?.startsWith('link') || p.path?.startsWith('try') || p.path === 'search-route' || p.path?.startsWith('trail/trailence/') || p.path?.startsWith('trail/link/') || p.path?.startsWith('live-group/')) return p;
     return {
       path: p.path,
       loadComponent: () => import('src/app/pages/public.page').then(m => m.PublicPageWithoutLang),

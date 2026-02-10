@@ -73,6 +73,8 @@ export const SRC_ICONS: {[name: string]: string} = {
   'list-condensed': 'list-condensed.1.svg',
   'list-detailed': 'list-detailed.1.svg',
   'list-items': 'list-items.1.svg', // list-outline
+  'live-group': 'live-group.svg',
+  'live-group-on': 'live-group-on.svg',
   'location': 'location.1.svg', // location
   'logo': 'trailence.1.svg',
   'logout': 'logout.1.svg', // log-out-outline
@@ -115,6 +117,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'question': 'question.1.svg', // help-outline
   'radio-group': 'radio-group.1.svg',
   'redo': 'redo.1.svg', // arrow-redo-outline
+  'refresh': 'refresh.svg',
   'reset': 'reset.1.svg', // refresh-outline
   'road-bike': 'road-bike.1.svg',
   'rotate-clockwise': 'rotate-clockwise.1.svg',

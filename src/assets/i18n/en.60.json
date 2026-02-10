@@ -193,7 +193,7 @@
       "search_trail_placeholder": "Search a trail",
       "actions": {
         "share_global": "Create a share",
-        "share_trail": "Create a share with this trail",
+        "share_trail": "Create a share",
         "share_trails": "Create a share with these trails",
         "delete_confirm_single": {
           "title": "Delete Track",
@@ -215,10 +215,11 @@
         "moving": "Moving",
         "export": "Export",
         "export_collection": "Export collection",
-        "open_gpx": "Open GPX with...",
+        "open_gpx": "Open GPX with",
         "edit_collection": "Rename",
         "modify": "Edit",
         "prepare": "Prepare",
+        "share_section": "Share",
         "rename": "Title",
         "edit_date": "Date",
         "rename_popup": {
@@ -239,7 +240,7 @@
         "copy_link": "Copy link",
         "share_link": "Share link",
         "create_link": "Create a public link",
-        "edit_link": "See public link"
+        "edit_link": "Public link"
       },
       "tags": {
         "menu_item": "Tags",
@@ -739,6 +740,50 @@
       "download_button": "Save PDF",
       "error_downloading_tile": "Error downloading map"
     },
+    "live_group": {
+      "title": "Live Group Tracking",
+      "explaination": "A live group tracking lets you share your location during an activity.<br/>Anyone can join a group using a link or a QR code, without necessarily needing a Trailence account.<br/>Each member’s location is regularly recorded and shared with the other group members, so you can easily find each other if needed.<br/>Of course, location sharing only works when a network connection is available. However, you can disable your network during your activity and only turn it on when necessary.<br/>A group is automatically deleted if it is more than one week old.",
+      "group_name": "Group name",
+      "my_name": "My name / alias",
+      "create_error": "Error while creating group",
+      "save_error": "Error while saving",
+      "create_offline": "Please connect to Internet to create a group",
+      "save_offline": "Please connect to Internet to modify the group",
+      "member_not_localized": "Not located",
+      "member_localized": "Located",
+      "link_button": "Link",
+      "join_group": "Join group",
+      "joining_offline": "Please connect to Internet to join the group",
+      "joining_error": "Error joining group",
+      "stop": "Stop",
+      "leave": "Leave",
+      "offline": "No Internet connection",
+      "rename_me": "Change my name",
+      "nb_members_singular": "{{1}} people",
+      "nb_members_plural": "{{1}} people",
+      "updated_at": "Updated",
+      "date_from": "From",
+      "date_to": "to",
+      "remove_trail_attachment": "Remove the trail attachment",
+      "confirm": {
+        "stop": {
+          "title": "Stop group",
+          "message": "Once stopped, the group is permanently deleted.<br/>All members automatically leave the group, and the link no longer works.<br/><br/>Are you sure you want to stop the group?"
+        },
+        "leave": {
+          "title": "Leave the group",
+          "message": "Are you sure you want to leave the group?"
+        }
+      },
+      "no_trail_explaination": "The group will not be attached to any trail.<br/><br/>This means the group will be accessible from a dedicated screen, where you will only see the group members and their locations. However, when the group is attached to a route, you can view the group directly from the trail screen. This is much more convenient if you plan to follow this trail with the group.<br/><br/>To create a group attached to a trail, open the trail, then from its menu select “Create a live tracking group”.<br/>You can also attach an existing group by opening the trail, then from its menu select “Attach to a live group tracking”.",
+      "share_trail": "Share the trail with group members",
+      "explaination_trail_restricted_access": "This trail was shared with you. Only members who also have access to this trail will be able to see it.",
+      "explaination_trail_needs_public_link": "Only members you have shared this trail with can see it. To allow all members to see it, you can create a public link for this trail.",
+      "trail_menu": {
+        "attach": "Attach to a live group tracking",
+        "create": "Create a live tracking group"
+      }
+    },
     "donation": {
       "meta_description": "Support the Trailence project",
       "title": "Contribute",
@@ -866,7 +911,10 @@
     "search_trail": "Find a trail",
     "no_share_for_anonymous": "Sharing features are not available without an account",
     "anonymous_account": "Trial without account",
-    "help": "Help"
+    "help": "Help",
+    "create_live_group": "Create a live group tracking",
+    "one_live_group": "Live group tracking",
+    "several_live_groups": "{{1}} live groups tracking"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -1465,7 +1513,7 @@
   },
   "relativeDates": {
     "justNow": "Just now",
-    "fewSecondsAgo": "Few seconds ago",
+    "secondsAgo": "{{1}} seconds ago",
     "minuteAgo": "1 minute ago",
     "minutesAgo": "{{1}} minutes ago",
     "ago": "{{1}} ago"

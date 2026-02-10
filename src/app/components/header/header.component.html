@@ -44,6 +44,29 @@
           <a href="/search-route" (click)="$event.preventDefault()" data-nosnippet>
             <ion-button (click)="goTo('/search-route')"><ion-icon slot="icon-only" name="search"></ion-icon></ion-button>
           </a>
+          @if (liveGroups.length > 0) {
+            <ion-button id="header-no-auth-live-group-menu-{{id}}">
+              <ion-icon slot="icon-only" name="live-group"></ion-icon>
+            </ion-button>
+            <ion-popover trigger="header-no-auth-live-group-menu-{{id}}" [dismissOnSelect]="true">
+              <ng-template>
+                <ion-content>
+                  <ion-list>
+                    @for (group of liveGroups; track group.slug) {
+                      <a href="/live-group/{{group.slug}}" (click)="$event.preventDefault()">
+                        <ion-item (click)="goTo('/live-group/' + group.slug)">
+                          <ion-label>
+                            <h2>{{group.name}}</h2>
+                            <p>{{'pages.live_group.nb_members_' + (group.members.length < 2 ? 'singular' : 'plural') | i18nString:group.members.length}}</p>
+                          </ion-label>
+                        </ion-item>
+                      </a>
+                    }
+                  </ion-list>
+                </ion-content>
+              </ng-template>
+            </ion-popover>
+          }
           <a href="/{{prefs.preferences.lang}}/donation" (click)="$event.preventDefault()" data-nosnippet>
             <ion-button (click)="goTo('/' + prefs.preferences.lang + '/donation')"><ion-icon slot="icon-only" name="heart-outline" class="donation-color"></ion-icon></ion-button>
           </a>
@@ -65,6 +88,30 @@
                       <ion-label>{{i18n.texts.menu.search_trail}}</ion-label>
                     </ion-item>
                   </a>
+                  @if (liveGroups.length > 0) {
+                    <ion-item id="header-no-auth-live-group-menu-{{id}}" [detail]="true" button>
+                      <ion-icon slot="start" name="live-group"></ion-icon>
+                      <ion-label>{{i18n.texts.pages.live_group.title}}</ion-label>
+                    </ion-item>
+                    <ion-popover trigger="header-no-auth-live-group-menu-{{id}}" [dismissOnSelect]="true">
+                      <ng-template>
+                        <ion-content>
+                          <ion-list>
+                            @for (group of liveGroups; track group.slug) {
+                              <a href="/live-group/{{group.slug}}" (click)="$event.preventDefault()">
+                                <ion-item (click)="goTo('/live-group/' + group.slug)">
+                                  <ion-label>
+                                    <h2>{{group.name}}</h2>
+                                    <p>{{'pages.live_group.nb_members_' + (group.members.length < 2 ? 'singular' : 'plural') | i18nString:group.members.length}}</p>
+                                  </ion-label>
+                                </ion-item>
+                              </a>
+                            }
+                          </ion-list>
+                        </ion-content>
+                      </ng-template>
+                    </ion-popover>
+                  }
                   <a href="/{{prefs.preferences.lang}}/contact" (click)="$event.preventDefault()">
                     <ion-item (click)="goTo('/' + prefs.preferences.lang + '/contact')">
                       <ion-icon slot="start" name="mail"></ion-icon>

@@ -33,6 +33,30 @@
       <div class="item-title">{{ i18n.texts.menu[traceRecorder.recording ? 'current_trace' : 'start_trace'] }}</div>
     </div>
   </div>
+  @if (liveGroups.length === 0 && !isAnonymous) {
+    <div class="menu-item" (click)="createLiveGroup();">
+      <ion-icon name="live-group" class="left-icon"></ion-icon>
+      <div class="item-title-container">
+        <div class="item-title">{{ i18n.texts.menu.create_live_group }}</div>
+      </div>
+    </div>
+  } @else if (liveGroups.length > 0) {
+    <div class="menu-item" (click)="liveGroupMenu($event);">
+      <ion-icon name="live-group-on" class="left-icon"></ion-icon>
+      <div class="item-title-container">
+        <div class="item-title with-actions">
+          <span>
+            @if (liveGroups.length === 1) {
+              {{ i18n.texts.menu.one_live_group }}
+            } @else {
+              {{ 'menu.several_live_groups' | i18nString:liveGroups.length }}
+            }
+          </span>
+          <ion-icon name="chevron-right"></ion-icon>
+        </div>
+      </div>
+    </div>
+  }
 
   <div class="menu-separator"></div>
 

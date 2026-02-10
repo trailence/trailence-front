@@ -281,13 +281,14 @@ export class I18nService {
     return this.timestampToDateString(timestamp) + ' ' + this.timestampToTimeString(timestamp, showSeconds);
   }
 
-  public timestampToRelativeDate(timestamp?: number): string {
+  public timestampToRelativeDate(timestamp: number | null | undefined, forceRelative: boolean = false): string {
     if (!timestamp) return '';
     const now = Date.now();
-    if (now - timestamp < 60000) return this.texts.relativeDates.justNow;
+    if (now - timestamp < 5000) return this.texts.relativeDates.justNow;
+    if (now - timestamp < 60000) return this.translateWithArguments('relativeDates.secondsAgo', [Math.floor((now - timestamp) / 1000)]);
     if (now - timestamp < 120000) return this.texts.relativeDates.minuteAgo;
     if (now - timestamp < 60 * 60 * 1000) return this.translateWithArguments('relativeDates.minutesAgo', [Math.floor((now - timestamp) / (60 * 1000))]);
-    if (now - timestamp < 4 * 60 * 60 * 1000) return this.translateWithArguments('relativeDates.ago', [this.durationToString(now - timestamp, false, false)]);
+    if (now - timestamp < 4 * 60 * 60 * 1000 || forceRelative) return this.translateWithArguments('relativeDates.ago', [this.durationToString(now - timestamp, false, false)]);
     return this.timestampToDateTimeString(timestamp);
   }
 

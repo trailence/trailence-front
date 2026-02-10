@@ -1,0 +1,23 @@
+<svg width="24" height="24" viewBox="2 2 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Onde 1 -->
+  <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" opacity="0.6">
+    <animate attributeName="r" from="4" to="8" dur="2.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" from="0.6" to="0" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Onde 2 (décalée) -->
+  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" opacity="0.3">
+    <animate attributeName="r" from="6" to="11" dur="2.5s" begin="1.25s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" from="0.3" to="0" dur="2.5s" begin="1.25s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Personne centrale -->
+  <circle cx="12" cy="10" r="2" fill="currentColor"/>
+  <path d="M9 16c1.5-1.2 4.5-1.2 6 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Membres du groupe -->
+  <circle cx="6" cy="14" r="1.5" fill="currentColor"/>
+  <circle cx="18" cy="14" r="1.5" fill="currentColor"/>
+
+</svg>

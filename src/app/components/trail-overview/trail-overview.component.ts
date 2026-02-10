@@ -441,7 +441,7 @@ export class TrailOverviewComponent extends AbstractComponent {
       component: MenuContentComponent,
       componentProps: {
         menu,
-        enableToolbarsForSections: 2,
+        enableToolbarsForSections: 3,
       },
       cssClass: 'always-tight-menu',
       event: event,

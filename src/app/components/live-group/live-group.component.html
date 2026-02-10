@@ -1,0 +1,53 @@
+<div class="container {{orientation}}">
+  <div class="toolbar-container">
+    <app-toolbar
+      [items]="toolbar"
+      [direction]="orientation === 'vertical' ? 'horizontal' : 'vertical'"
+    ></app-toolbar>
+  </div>
+  <div class="group-content">
+    <div class="group-header">
+      @if (showTitle) {
+        <div class="group-title">
+          <div class="name">{{group.name}}</div>
+          <div class="people">
+            {{ 'pages.live_group.nb_members_' + (group.members.length < 2 ? 'singular' : 'plural') | i18nString:group.members.length }}
+          </div>
+        </div>
+      }
+      <div class="group-status {{!showTitle ? 'alone' : ''}}">
+        @if (!networkAvailable) {
+          <div class="disconnected">{{ i18n.texts.pages.live_group.offline }}</div>
+        } @else {
+          <div class="updated_at">
+            <span>{{ i18n.texts.pages.live_group.updated_at }}</span>
+            <app-relative-date [date]="group.updatedAt" [forceRelative]="true"></app-relative-date>
+          </div>
+          <ion-button fill="clear" size="small" shape="round" color="dark" (click)="updateNow()">
+            <ion-icon slot="icon-only" name="refresh"></ion-icon>
+          </ion-button>
+        }
+      </div>
+    </div>
+    <div class="members">
+      @for (member of members; track member.uuid) {
+        <div class="member {{member.uuid === highlighted?.uuid ? 'highlighted' : ''}}" (click)="toggleHighlightMember(member)">
+          <div class="member-name-row">
+            <div class="member-name {{member.you ? 'you' : ''}}">{{ member.name }}</div>
+            @if (member.owner) {
+              <ion-icon name="star-filled"></ion-icon>
+            }
+          </div>
+          <div class="member-status-row">
+            @if (member.lastPosition && member.lastPositionAt) {
+              {{ i18n.texts.pages.live_group.member_localized }}
+              <app-relative-date [date]="member.lastPositionAt" [forceRelative]="true"></app-relative-date>
+            } @else {
+              {{ i18n.texts.pages.live_group.member_not_localized }}
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

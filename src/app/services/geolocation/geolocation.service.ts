@@ -10,6 +10,7 @@ import { Console } from 'src/app/utils/console';
 export class GeolocationService implements IGeolocationService {
 
   private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
+  private readonly _lastKnownPosition$ = new BehaviorSubject<{position: PointDto, timestamp: number} | undefined>(undefined);
 
   private watchId?: number;
   private readonly watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
@@ -25,6 +26,8 @@ export class GeolocationService implements IGeolocationService {
   public readonly isNative = false;
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
+  public get lastKnownPosition$() { return this._lastKnownPosition$; }
+  public get lastKnownPosition() { return this._lastKnownPosition$.value; }
 
   getState(): Promise<GeolocationState> {
     return globalThis.navigator.permissions.query({name: 'geolocation'})
@@ -104,7 +107,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   private positionToPointDto(position: GeolocationPosition): PointDto {
-    return {
+    const dto = {
       l: position.coords.latitude,
       n: position.coords.longitude,
       e: position.coords.altitude ?? undefined,
@@ -114,6 +117,8 @@ export class GeolocationService implements IGeolocationService {
       h: position.coords.heading ?? undefined,
       s: position.coords.speed ?? undefined,
     };
+    this._lastKnownPosition$.next({position: dto, timestamp: Date.now()});
+    return dto;
   }
 
   private emitPosition(position: GeolocationPosition): void {

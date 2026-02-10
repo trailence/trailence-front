@@ -235,6 +235,31 @@ public class TrailencePlugin extends Plugin {
     this.openLinkListener.resolve(new JSObject().put("link", link));
   }
 
+  private String groupToJoin = null;
+  private PluginCall joinGroupListener = null;
+
+  public void setGroupToJoin(String slug) {
+    if (joinGroupListener == null)
+      this.groupToJoin = slug;
+    else
+      this.pushGroupToJoin(slug);
+  }
+
+  @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
+  public void listenToJoinLiveGroup(PluginCall call) {
+    call.setKeepAlive(true);
+    this.joinGroupListener = call;
+    if (this.groupToJoin != null) {
+      String slug = this.groupToJoin;
+      this.groupToJoin = null;
+      this.pushGroupToJoin(slug);
+    }
+  }
+
+  private void pushGroupToJoin(String slug) {
+    this.joinGroupListener.resolve(new JSObject().put("slug", slug));
+  }
+
   @PluginMethod()
   public void downloadUsingBrowser(PluginCall call) {
     try {

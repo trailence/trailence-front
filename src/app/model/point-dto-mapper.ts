@@ -1,7 +1,7 @@
 import { PointDto } from './dto/point';
 import { PointDescriptor } from './point-descriptor';
 
-const POSITION_FACTOR = 10000000;
+export const POSITION_FACTOR = 10000000;
 const ELEVATION_FACTOR = 10;
 const POSITION_ACCURACY_FACTOR = 100;
 const ELEVATION_ACCURACY_FACTOR = 100;

@@ -7,23 +7,26 @@ import { MenuItem } from 'src/app/components/menus/menu-item';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MenuContentComponent } from '../menus/menu-content/menu-content.component';
 import { UpdateService } from 'src/app/services/update/update.service';
-import { of } from 'rxjs';
+import { of, switchMap } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { publicRoutes } from 'src/app/routes/package.routes';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import { LongPressDirective } from 'src/app/utils/long-press.directive';
 import { NgClass } from '@angular/common';
+import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 
 @Component({
     selector: 'app-header',
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss'],
-    imports: [IonItem, IonList,
-      IonBadge, IonContent, IonPopover, IonButton, IonHeader, IonToolbar, IonButtons, IonIcon, IonLabel, IonMenuButton,
+    imports: [
+      IonItem, IonList, IonBadge, IonContent, IonPopover, IonButton, IonHeader, IonToolbar, IonButtons, IonIcon, IonLabel, IonMenuButton,
       HeaderUserMenuComponent, MenuContentComponent,
       LongPressDirective,
       NgClass,
+      I18nPipe,
     ]
 })
 export class HeaderComponent extends AbstractComponent {
@@ -43,6 +46,7 @@ export class HeaderComponent extends AbstractComponent {
   small: boolean;
   publicUrl?: string;
   alwaysTightMenu = false;
+  liveGroups: LiveGroupDto[] = [];
 
   constructor(
     injector: Injector,
@@ -80,6 +84,18 @@ export class HeaderComponent extends AbstractComponent {
 
   setLanguage(lang: string): void {
     this.prefs.setLanguage(lang);
+  }
+
+  protected override initComponent(): void {
+    this.whenVisible.subscribe(
+      this.auth.auth$.pipe(
+        switchMap(auth => {
+          if (auth) return of([]);
+          return this.injector.get(LiveGroupService).groups$;
+        })
+      ),
+      groups => this.liveGroups = groups || []
+    );
   }
 
   protected override getComponentState() {

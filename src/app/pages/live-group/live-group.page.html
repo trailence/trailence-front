@@ -1,0 +1,67 @@
+@if (group) {
+  <app-header
+    [title]="group.name"
+    [title2]="i18n.texts.pages.live_group.title"
+    [actions]="menu"
+    [neverShowTrailenceTitle]="true"
+    [titleLongPress]="titleLongPress"
+    [smallTitleNotLogged]="true"
+  ></app-header>
+  <div class="page-content {{orientation}}">
+    <div class="live-group-container">
+      <app-live-group
+        [group]="group"
+        [orientation]="orientation === 'horizontal' ? 'vertical' : 'horizontal'"
+        [mapComponent$]="mapComponent$"
+        [autoFitMap]="true"
+        [showTitle]="false"
+      ></app-live-group>
+    </div>
+    <div class="map-container">
+      <app-map
+        #map
+        [mapId]="'live-group.' + group.slug"
+        [tracks$]="mapTracks"
+      ></app-map>
+    </div>
+  </div>
+} @else if (path1 === 'join') {
+  <div class="joining">
+    @let networkAvailable = network.server$ | async;
+    @if (networkAvailable) {
+      @if (groupsLoaded) {
+        <ion-card>
+          <ion-toolbar color="primary">
+            <div>
+              <ion-label>{{i18n.texts.pages.live_group.title}}</ion-label>
+            </div>
+          </ion-toolbar>
+          <ion-card-content>
+            <ion-input
+              fill="outline"
+              label="{{i18n.texts.pages.live_group.my_name}}"
+              label-placement="floating"
+              [(ngModel)]="myName"
+              [maxlength]="25"
+              [counter]="true"
+              [disabled]="joining"
+            ></ion-input>
+            <div class="buttons">
+              <ion-button [disabled]="joining || !canJoin()" (click)="join()">
+                @if (joining) {
+                  <ion-spinner></ion-spinner>
+                } @else {
+                  {{i18n.texts.pages.live_group.join_group}}
+                }
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      } @else {
+        <ion-spinner></ion-spinner>
+      }
+    } @else {
+      <div>{{ i18n.texts.pages.live_group.joining_offline }}</div>
+    }
+  </div>
+}

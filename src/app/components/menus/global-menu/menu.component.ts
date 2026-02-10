@@ -23,13 +23,16 @@ import { MyPublicTrail, MyPublicTrailsService } from 'src/app/services/database/
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { AsyncPipe } from '@angular/common';
+import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { MenuItem } from '../menu-item';
 
 @Component({
     selector: 'app-menu',
     templateUrl: './menu.component.html',
     styleUrls: ['./menu.component.scss'],
     imports: [
-      IonBadge, IonButton, IonIcon, AsyncPipe,
+      IonBadge, IonButton, IonIcon, AsyncPipe, I18nPipe,
     ]
 })
 export class MenuComponent implements OnInit {
@@ -45,6 +48,7 @@ export class MenuComponent implements OnInit {
   pubSubmit?: CollectionWithInfo;
   pubReject?: CollectionWithInfo;
   myPublicTrails: MyPublicTrail[] = [];
+  liveGroups: LiveGroupDto[] = [];
 
   collectionsOpen = true;
   sharedWithMeOpen = true;
@@ -77,6 +81,7 @@ export class MenuComponent implements OnInit {
     mySelectionService: MySelectionService,
     changeDetector: ChangeDetectorRef,
     ngZone: NgZone,
+    private readonly liveGroupService: LiveGroupService,
   ) {
     const changesDetection = new ChangesDetection(ngZone, changeDetector);
     const refresh = () => {
@@ -159,6 +164,12 @@ export class MenuComponent implements OnInit {
       this.mySelectionCount = list.length;
       refresh();
     });
+    liveGroupService.groups$.subscribe(groups => {
+      const list = groups || [];
+      if (list.length === 0 && this.liveGroups.length === 0) return;
+      this.liveGroups = list;
+      refresh();
+    });
   }
 
   ngOnInit(): void {
@@ -184,6 +195,43 @@ export class MenuComponent implements OnInit {
     } else {
       this.traceRecorder.start().then(() => this.goTo('/trail'));
     }
+  }
+
+  createLiveGroup(): void {
+    import('../../live-group/live-group-popup.component')
+    .then(m => m.openCreateLiveGroupPopup(this.injector))
+    .then(created => {
+      if (created) this.liveGroupService.openLiveGroup(created);
+    });
+    this.close();
+  }
+
+  liveGroupMenu($event: MouseEvent): void {
+    $event.stopPropagation();
+    const menu: MenuItem[] = [
+      ...this.liveGroups.map(
+        group => new MenuItem().setFixedLabel(group.name)
+          .setSubLabel([
+            (group.members.find(m => m.you)?.name || '') + ' +' + (group.members.filter(m => !m.you).length),
+            this.i18n.texts.pages.live_group.date_from + ' ' + this.i18n.timestampToDateTimeString(group.startedAt, false) + ' ' +
+            this.i18n.texts.pages.live_group.date_to + ' ' + this.i18n.timestampToDateTimeString(group.expiresAt, false)
+          ])
+          .setAction(() => { this.liveGroupService.openLiveGroup(group); this.close(); })
+      ),
+      new MenuItem().setIcon('add').setI18nLabel('menu.create_live_group').setTextColor('success')
+        .setVisible(() => !this.isAnonymous)
+        .setAction(() => this.createLiveGroup()),
+    ];
+    this.injector.get(PopoverController).create({
+      component: MenuContentComponent,
+      componentProps: {
+        menu,
+      },
+      event: $event,
+      side: 'right',
+      dismissOnSelect: true,
+      arrow: true,
+    }).then(p => p.present());
   }
 
   openHelp(): void {

@@ -17,6 +17,9 @@ export interface IGeolocationService {
   waitingForGps$: Observable<boolean>;
   waitingForGps: boolean;
 
+  lastKnownPosition$: Observable<{position: PointDto, timestamp: number} | undefined>;
+  lastKnownPosition: {position: PointDto, timestamp: number} | undefined;
+
   getState(): Promise<GeolocationState>;
 
   getCurrentPosition(): Promise<PointDto>;

@@ -10,7 +10,7 @@
 </ion-header>
 <ion-content class="ion-padding">
   <ion-list>
-    @for (error of errors; track error) {
+    @for (error of errors; track $index) {
       <ion-item [detail]="false" [lines]="$index < errors.length - 1 ? 'full' : 'none'">
         <span class="error-item" style="font-size: 12px;">{{error}}</span>
         <ion-button slot="end" size="small" fill="clear" color="dark" (click)="removeError($index)">

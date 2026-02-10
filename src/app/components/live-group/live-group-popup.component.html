@@ -1,0 +1,99 @@
+@let networkAvailable = network.server$ | async;
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="live-group" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.live_group.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  @if (!group) {
+    <div class="explaination">
+      <ion-icon name="info"></ion-icon>
+      <span [innerHTML]="i18n.texts.pages.live_group.explaination"></span>
+    </div>
+  }
+  <div class="field">
+    <ion-input
+      fill="outline"
+      label="{{i18n.texts.pages.live_group.group_name}}"
+      label-placement="floating"
+      [(ngModel)]="name"
+      [maxlength]="30"
+      [counter]="true"
+    ></ion-input>
+  </div>
+  <div class="field">
+    <ion-input
+      fill="outline"
+      label="{{i18n.texts.pages.live_group.my_name}}"
+      label-placement="floating"
+      [(ngModel)]="myName"
+      [maxlength]="25"
+      [counter]="true"
+    ></ion-input>
+  </div>
+  @if (!group && !trailOwner) {
+    <div class="explaination">
+      <ion-icon name="info"></ion-icon>
+      <span [innerHTML]="i18n.texts.pages.live_group.no_trail_explaination"></span>
+    </div>
+  } @else if ((!group && trailOwner) || (group && (group.trailOwner || trailOwner))) {
+    @if (previousTrail && (previousTrail.owner !== trail?.owner || previousTrail.uuid !== trail?.uuid)) {
+      <h2>Actuellement rattaché au parcours <em>{{ previousTrail.name }}</em></h2>
+      @if (trail) {
+        <h2>Va être rattaché au parcours <em>{{ trail.name }}</em></h2>
+      }
+    } @else if (trail) {
+      <h2>Rattaché au parcours <em>{{ trail.name }}</em></h2>
+    }
+    @if (trailOwner && trailUuid) {
+      <div class="field">
+        <ion-checkbox
+          [(ngModel)]="shareTrail"
+          labelPlacement="end"
+        >{{ i18n.texts.pages.live_group.share_trail }}</ion-checkbox>
+      </div>
+      @if (trailNeedsPublicLink && shareTrail) {
+        @if (!trailOwned) {
+          <div class="explaination">
+            <ion-icon name="info"></ion-icon>
+            <span [innerHTML]="i18n.texts.pages.live_group.explaination_trail_restricted_access"></span>
+          </div>
+        } @else if (!trailHasPublicLink) {
+          <div class="explaination">
+            <ion-icon name="info"></ion-icon>
+            <span [innerHTML]="i18n.texts.pages.live_group.explaination_trail_needs_public_link"></span>
+          </div>
+          <ion-button (click)="createPublicLink()" fill="clear" size="small" color="dark">
+            {{ i18n.texts.pages.trails.actions.create_link }}
+          </ion-button>
+        }
+      }
+      <ion-button (click)="removeTrail()" fill="clear" size="small" color="danger">
+        {{ i18n.texts.pages.live_group.remove_trail_attachment }}
+      </ion-button>
+    }
+  }
+  @if (!networkAvailable) {
+    <div class="disconnected-message">{{i18n.texts.pages.live_group[group ? 'save_offline' : 'create_offline']}}</div>
+  }
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      @if (!group) {
+        @if (networkAvailable) {
+          <ion-button color="success" (click)="create()" [disabled]="!isValid() || saving">{{i18n.texts.buttons.create}}</ion-button>
+        }
+        <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.cancel}}</ion-button>
+      } @else {
+        @if (networkAvailable) {
+          <ion-button color="success" (click)="save()" [disabled]="!isValid() || !isChanged() || saving">{{i18n.texts.buttons.save}}</ion-button>
+        }
+        <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -73,6 +73,8 @@ export class MapComponent extends AbstractComponent {
 
   @ViewChildren(ToolbarComponent) toolbars?: QueryList<ToolbarComponent>;
 
+  disableShowPosition$ = new BehaviorSubject<number>(0);
+
   constructor(
     injector: Injector,
     private readonly browser: BrowserService,
@@ -359,6 +361,18 @@ export class MapComponent extends AbstractComponent {
     }
   }
 
+  private _fitBoundsProviders: (() => L.LatLngBounds | undefined)[] = [];
+  public addFitBoundsProvider(provider: () => L.LatLngBounds | undefined): void {
+    if (this._fitBoundsProviders.indexOf(provider) < 0)
+      this._fitBoundsProviders.push(provider);
+    this.refreshTools();
+  }
+  public removeFitBoundsProvider(provider: () => L.LatLngBounds | undefined): void {
+    const index = this._fitBoundsProviders.indexOf(provider);
+    if (index >= 0) this._fitBoundsProviders.splice(index, 1);
+    this.refreshTools();
+  }
+
   fitMapBounds(map: L.Map): void {
     let bounds;
     for (const t of this._currentTracks) {
@@ -378,6 +392,12 @@ export class MapComponent extends AbstractComponent {
         bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
       }
     }
+    for (const provider of this._fitBoundsProviders) {
+      const b = provider();
+      if (!b) continue;
+      if (bounds) bounds.extend(b);
+      else bounds = b;
+    }
     if (bounds) {
       bounds = bounds.pad(0.05);
       map.fitBounds(bounds);
@@ -386,7 +406,9 @@ export class MapComponent extends AbstractComponent {
   }
 
   public canFitMapBounds(): boolean {
-    return this._currentTracks.length > 0 || this._currentBubbles.length > 0;
+    if (this._currentTracks.length > 0 || this._currentBubbles.length > 0) return true;
+    for (const provider of this._fitBoundsProviders) if (provider() !== undefined) return true;
+    return false;
   }
 
   public ensureVisible(track: MapTrack): void {
@@ -400,6 +422,12 @@ export class MapComponent extends AbstractComponent {
       this.ngZone.runOutsideAngular(() => map.flyToBounds(newBounds));
       this._initZoomTimestamp = 1;
     }
+  }
+
+  public ensurePointVisible(pos: L.LatLngExpression): void {
+    const map = this._map$.value;
+    if (!map) return;
+    this.ngZone.runOutsideAngular(() => map.panInside(pos, {padding: [75, 75]}));
   }
 
   private readonly _followingLocation$ = new BehaviorSubject<boolean>(false);
@@ -711,8 +739,9 @@ export class MapComponent extends AbstractComponent {
         this.mapGeolocation.showPosition$,
         screenLockService.available$,
         screenLockService.enabled$,
+        this.disableShowPosition$,
       ]).subscribe(
-        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled]) => {
+        ([live, position, recording, showPosition, screenLockAvailable, screenLockEnabled, nbPosDisabled]) => {
           if (!live) return;
           // show position tool only if not recording
           // show phone lock only if recording
@@ -726,12 +755,16 @@ export class MapComponent extends AbstractComponent {
             toolShowPosition.visible = false;
             phoneLockTool.visible = phoneLockTool.available;
           } else {
-            toolShowPosition.visible = true;
-            toolShowPosition.icon = showPosition ? 'pin-off' : 'pin';
+            if (nbPosDisabled > 0) {
+              toolShowPosition.visible = false;
+            } else {
+              toolShowPosition.visible = true;
+              toolShowPosition.icon = showPosition ? 'pin-off' : 'pin';
+            }
             phoneLockTool.visible = false;
           }
           // show position
-          if (position) {
+          if (position && nbPosDisabled === 0) {
             this.showLocation(position.lat, position.lng, position.active ? '#2020FF' : '#555');
           } else {
             this.hideLocation();

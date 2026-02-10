@@ -66,6 +66,7 @@ const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>("Backg
 export class GeolocationService implements IGeolocationService {
 
   private readonly _waitingForGps$ = new BehaviorSubject<boolean>(false);
+  private readonly _lastKnownPosition$ = new BehaviorSubject<{position: PointDto, timestamp: number} | undefined>(undefined);
 
   private watchBackgroundId?: string;
   private readonly watchListeners: ({listener: (position: PointDto) => void, onerror?: (error: any) => void})[] = [];
@@ -84,6 +85,8 @@ export class GeolocationService implements IGeolocationService {
   public readonly isNative = true;
   public get waitingForGps$() { return this._waitingForGps$; }
   public get waitingForGps() { return this._waitingForGps$.value; }
+  public get lastKnownPosition$() { return this._lastKnownPosition$; }
+  public get lastKnownPosition() { return this._lastKnownPosition$.value; }
 
   public getState(): Promise<GeolocationState> {
     return BackgroundGeolocation.checkPermissions()
@@ -183,7 +186,7 @@ export class GeolocationService implements IGeolocationService {
   }
 
   private backgroundLocationToPointDto(position: Location): PointDto {
-    return {
+    const dto = {
       l: position.latitude,
       n: position.longitude,
       e: position.altitude === null ? undefined : position.altitude,
@@ -192,7 +195,9 @@ export class GeolocationService implements IGeolocationService {
       ea: position.altitudeAccuracy === null ? undefined : position.altitudeAccuracy,
       h: position.bearing === null ? undefined : position.bearing,
       s: position.speed === null ? undefined : position.speed,
-    }
+    };
+    this._lastKnownPosition$.next({position: dto, timestamp: Date.now()});
+    return dto;
   }
 
   private emitPosition(position: Location): void {

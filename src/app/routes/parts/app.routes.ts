@@ -44,6 +44,15 @@ export const appPublicRoutes: Routes = [
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)
   },
   {
+    path: 'live-group/join/:path2',
+    data: { 'path1': 'join' },
+    loadComponent: () => import('../../pages/live-group/live-group.page').then(m => m.LiveGroupPage)
+  },
+  {
+    path: 'live-group/:path1',
+    loadComponent: () => import('../../pages/live-group/live-group.page').then(m => m.LiveGroupPage)
+  },
+  {
     path: 'privacy-policy',
     loadComponent: () => import('../../pages/privacy-policy/privacy-policy.page').then(m => m.PrivacyPolicyPage)
   }

@@ -193,7 +193,7 @@
       "search_trail_placeholder": "Chercher un parcours",
       "actions": {
         "share_global": "Créer un partage",
-        "share_trail": "Créer un partage avec ce parcours",
+        "share_trail": "Créer un partage",
         "share_trails": "Créer un partage avec ces parcours",
         "delete_confirm_single": {
           "title": "Supprimer un parcours",
@@ -216,9 +216,10 @@
         "edit_collection": "Renommer",
         "export": "Exporter",
         "export_collection": "Exporter la collection",
-        "open_gpx": "Ouvrir le GPX avec...",
+        "open_gpx": "Ouvrir le GPX avec",
         "prepare": "Préparer",
         "modify": "Modifier",
+        "share_section": "Partager",
         "rename": "Titre",
         "edit_date": "Date",
         "rename_popup": {
@@ -239,7 +240,7 @@
         "copy_link": "Copier le lien",
         "share_link": "Partager le lien",
         "create_link": "Créer un lien public",
-        "edit_link": "Voir le lien public"
+        "edit_link": "Lien public"
       },
       "tags": {
         "menu_item": "Tags",
@@ -739,6 +740,50 @@
       "download_button": "Enregistrer le PDF",
       "error_downloading_tile": "Erreur de téléchargement de la carte"
     },
+    "live_group": {
+      "title": "Suivi de groupe",
+      "explaination": "Un groupe de suivi permet de partager sa position pendant une activité.<br/>N'importe qui peut rejoindre un groupe grâce à un lien ou un QR code, sans avoir forcément besoin d'un compte sur Trailence.<br/>La position de chaque membre est régulièrement enregistrée et partagée avec les autres membres du groupe, afin de pouvoir se retrouver facilement en cas de besoin.<br/>Bien sûr, le partage de position fonctionne uniquement lorsqu'une connexion réseau est disponible. Vous pouvez toutefois désactiver le réseau pendant votre activité et ne l'activer que en cas de besoin.<br/>Un groupe est automatiquement supprimé s'il date de plus d'une semaine.",
+      "group_name": "Nom du groupe",
+      "my_name": "Mon nom / alias",
+      "create_error": "Erreur lors de la création du groupe",
+      "save_error": "Erreur lors de la sauvegarde",
+      "create_offline": "Veuillez vous connecter à Internet pour créer un groupe",
+      "save_offline": "Veuillez vous connecter à Internet pour modifier le groupe",
+      "member_not_localized": "Non localisé",
+      "member_localized": "Localisé",
+      "link_button": "Lien",
+      "join_group": "Rejoindre le groupe",
+      "joining_offline": "Veuillez vous connecter à Internet pour rejoindre le groupe",
+      "joining_error": "Erreur de connexion au groupe",
+      "stop": "Arrêter",
+      "leave": "Quitter",
+      "offline": "Pas de connexion Internet",
+      "rename_me": "Changer mon nom",
+      "nb_members_singular": "{{1}} personne",
+      "nb_members_plural": "{{1}} personnes",
+      "updated_at": "Mis à jour",
+      "date_from": "Du",
+      "date_to": "au",
+      "remove_trail_attachment": "Enlever le rattachement au parcours",
+      "confirm": {
+        "stop": {
+          "title": "Arrêter le groupe",
+          "message": "Une fois arrêté, le groupe est définitivement supprimé.<br/>Tous les members quittent automatiquement le groupe, et le lien ne fonctionne plus.<br/><br/>Etes-vous sûr de vouloir arrêter le groupe ?"
+        },
+        "leave": {
+          "title": "Quitter le groupe",
+          "message": "Etes-vous sûr de vouloir quitter le groupe ?"
+        }
+      },
+      "no_trail_explaination": "Le groupe ne sera rattaché à aucun parcours.<br/><br/>Cela signifie que la consultation du groupe se fera dans un écran dédié, où vous verrez uniquement les membres du groupe et leur position. En revanche, lorsque le groupe est rattaché à un parcours, vous pouvez consulter le groupe directement depuis l'écran du parcours. Cela est beaucoup plus pratique si vous prévoyez de suivre ce parcours avec le groupe.<br/><br/>Pour créer un groupe rattaché à un parcours, ouvrez le parcours, puis dans son menu, sélectionnez « Créer un groupe de suivi ».<br/>Vous pouvez également rattacher un groupe existant en ouvrant le parcours, puis dans son menu, sélectionnez « Rattacher à un groupe de suivi »",
+      "share_trail": "Partager le parcours avec les membres du groupe",
+      "explaination_trail_restricted_access": "Ce parcours provient d'un partage avec vous. Seuls les membres qui ont également accès à ce parcours pourront le voir.",
+      "explaination_trail_needs_public_link": "Seuls les membres avec qui vous avez partagé ce parcours peuvent le voir. Pour que tous les membres puissent le voir, vous pouvez créer un lien public de partage pour ce parcours.",
+      "trail_menu": {
+        "attach": "Rattacher à un groupe de suivi",
+        "create": "Créer un groupe de suivi"
+      }
+    },
     "donation": {
       "meta_description": "Soutenir le project Trailence",
       "title": "Contribuer",
@@ -866,7 +911,10 @@
     "search_trail": "Trouver un parcours",
     "no_share_for_anonymous": "Les fonctionnalités de partage ne sont pas disponibles sans compte",
     "anonymous_account": "Essai sans compte",
-    "help": "Aide"
+    "help": "Aide",
+    "create_live_group": "Créer un groupe de suivi",
+    "one_live_group": "Groupe de suivi en cours",
+    "several_live_groups": "{{1}} groupes de suivi en cours"
   },
   "collection_menu": {
     "delete_confirm": {
@@ -1464,8 +1512,8 @@
     }
   },
   "relativeDates": {
-    "justNow": "A l'instant",
-    "fewSecondsAgo": "Il y a quelques secondes",
+    "justNow": "À l'instant",
+    "secondsAgo": "Il y a {{1}} secondes",
     "minuteAgo": "Il y a 1 minute",
     "minutesAgo": "Il y a {{1}} minutes",
     "ago": "Il y a {{1}}"

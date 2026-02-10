@@ -29,7 +29,7 @@ describe('Edit tools', () => {
   });
 
   const selectPoint = async (arrowIndex: number) => {
-    return await TestUtils.retry(async () => {
+    return await TestUtils.retry(async trial => {
       const arrow = await TestUtils.retry(async () => {
         const elements = map.getPathsWithClass('track-arrow');
         const arrow = elements[arrowIndex];
@@ -37,9 +37,9 @@ describe('Edit tools', () => {
         throw Error('Cannot find arrow index ' + arrowIndex + ' in map paths');
       }, 2, 1000);
       const pos = await map.getPathPosition(arrow);
-      await browser.action('pointer').move({x: Math.floor(pos.x) + 2, y: Math.floor(pos.y) + 2, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
-      return await tools.waitSelectionTool();
-    }, 2, 1000);
+      await browser.action('pointer').move({x: Math.floor(pos.x) + 2 - trial, y: Math.floor(pos.y) + 2 - trial, origin: 'viewport'}).pause(10).down().pause(10).up().perform();
+      return await tools.waitSelectionTool(2000);
+    }, 3, 1000);
   };
 
   const selectWayPoint = async (text: string) => {

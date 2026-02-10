@@ -66,7 +66,7 @@ export class AuthService {
     this._auth$.subscribe(auth => {
       if (auth === null) {
         const url = globalThis.location.pathname;
-        if (!url.includes('/login') && !url.includes('/link') && url !== '/search-route' && !url.startsWith('/trail/trailence/')) {
+        if (!url.includes('/login') && !url.includes('/link') && url !== '/search-route' && !url.startsWith('/trail/trailence/') && !url.startsWith('/live-group/')) {
           if (!publicRoutes.some(r => '/' + r.path === url || '/fr/' + r.path === url || '/en/' + r.path === url)) {
             if (url === '/')
               navController.navigateRoot(['/home']);
@@ -477,7 +477,8 @@ export class AuthService {
       request.url === environment.apiBaseUrl + '/donation/v1/status' ||
       (request.url.startsWith(environment.apiBaseUrl + '/public/') && !request.url.endsWith('/mine')) ||
       request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/trail/') ||
-      request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/photo/')
+      request.url.startsWith(environment.apiBaseUrl + '/trail-link/v1/photo/') ||
+      request.url.startsWith(environment.apiBaseUrl + '/live-group/v1')
       ;
     return this.requireAuth().pipe(
       filter(auth => {

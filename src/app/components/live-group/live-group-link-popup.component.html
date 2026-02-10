@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="live-group" style="margin-right: 10px"></ion-icon>
+      <ion-label>{{i18n.texts.pages.live_group.title}}</ion-label>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <div class="link">
+    <ion-input
+      [value]="linkStart + group.slug"
+      [readonly]="true"
+      fill="solid"
+    ></ion-input>
+
+  </div>
+  <div class="qrcode"><img [src]="qrCode" /></div>
+</ion-content>
+<ion-footer>
+  <ion-toolbar color="footer">
+    <ion-buttons slot="end">
+      @if (canShare) {
+        <ion-button color="dark" (click)="shareLink()">
+          <ion-icon name="share" slot="start"></ion-icon>
+          <ion-label>{{i18n.texts.pages.trail_link.share}}</ion-label>
+        </ion-button>
+      } @else {
+        <ion-button color="dark" (click)="copyLink()">
+          <ion-icon name="copy" slot="start"></ion-icon>
+          <ion-label>{{i18n.texts.pages.trail_link.copy}}</ion-label>
+        </ion-button>
+      }
+      <ion-button color="medium" (click)="close()">{{i18n.texts.buttons.close}}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

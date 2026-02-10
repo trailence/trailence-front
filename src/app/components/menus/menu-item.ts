@@ -36,7 +36,7 @@ export class MenuItem {
   public icon: Attribute<string>;
   public i18nLabel: Attribute<string>;
   public label: Attribute<string>;
-  public subLabel: Attribute<string>;
+  public subLabel: Attribute<string | string[]>;
   public backgroundColor: Attribute<string>;
   public textColor: Attribute<string>;
   public textSize: Attribute<string>;
@@ -68,7 +68,7 @@ export class MenuItem {
     return this;
   }
 
-  public setSubLabel(subLabel: Attribute<string>): this {
+  public setSubLabel(subLabel: Attribute<string | string[]>): this {
     this.subLabel = subLabel;
     return this;
   }
@@ -217,9 +217,9 @@ export class MenuItem {
     return this.backgroundColor;
   }
 
-  public getSubLabel(): string | undefined {
-    if (typeof this.subLabel === 'function') return this.subLabel();
-    return this.subLabel;
+  public getSubLabel(): string[] {
+    const s = typeof this.subLabel === 'function' ? this.subLabel() : this.subLabel;
+    return s === undefined ? [] : Array.isArray(s) ? s : [s];
   }
 
   public isSeparator(): boolean {
@@ -468,7 +468,7 @@ export class ComputedMenuItem {
   public text$?: Observable<string>;
   public textColor?: string;
   public textSize: string | undefined | (() => string | undefined);
-  public subText?: string;
+  public subText: string[] = [];
   public backgroundColor?: string;
   public badges: Badges = { topLeft: undefined, topRight: undefined, bottomLeft: undefined, bottomRight: undefined };
   public sectionTitle: boolean = false;

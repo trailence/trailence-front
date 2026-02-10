@@ -67,6 +67,8 @@ import { samePositionRound } from 'src/app/model/point';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
 import { HttpService } from 'src/app/services/http/http.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
+import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
+import { LiveGroupComponent } from '../live-group/live-group.component';
 
 interface TrailSource {
   isExternal: boolean;
@@ -135,6 +137,7 @@ class TrailWithInfo {
         NgTemplateOutlet,
         NgComponentOutlet,
         AsyncPipe,
+        LiveGroupComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent implements AfterContentChecked {
@@ -166,6 +169,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   myFeedback$ = new BehaviorSubject<MyFeedback | undefined>(undefined);
   trailsForPhotoPopup: Observable<Trail | null>[] = [];
   currentLang: string;
+  liveGroups$ = new BehaviorSubject<LiveGroupDto[]>([]);
 
   get trail1WithInfo(): TrailWithInfo | null { return this.trail1WithInfo$.value; }
   get trail2WithInfo(): TrailWithInfo | null { return this.trail2WithInfo$.value; }
@@ -429,6 +433,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         this.refreshMapToolbarRight();
       });
     this.mapToolbarRightItems.push(new MenuItem(), showPhotoTool, showBreaksTool, showWaypointsTool);
+    if (globalThis.location.hash === '#bottom-tab=live-group') {
+      this.liveGroups$.pipe(first(groups => !!groups?.length)).subscribe(groups => {
+        this.bottomSheetTab = 'live-group-' + groups[0].slug;
+        globalThis.location.hash = '';
+        this.changesDetection.detectChanges();
+      })
+    }
   }
 
   protected override destroyComponent(): void {
@@ -481,6 +492,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.listenMyFeedback();
     this.listenForPublished();
     this.listenCurrentPublic();
+    this.listenForLiveGroups();
   }
 
   private _jdTrail?: Trail = undefined;
@@ -913,6 +925,28 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     })
   }
 
+  private listenForLiveGroups(): void {
+    this.byStateAndVisible.subscribe(
+      combineLatest([this.trail1$ || of(undefined), this.trail2$ || of(undefined)]).pipe(
+        switchMap(trails => {
+          if (!trails[0] || trails[1]) return of([]);
+          return this.injector.get(LiveGroupService).groups$.pipe(
+            map(groups => groups ? groups.filter(g => g.trailOwner === trails[0]!.owner && g.trailUuid === trails[0]!.uuid) : [])
+          );
+        })
+      ),
+      groups => {
+        if (groups.length === 0 && this.liveGroups$.value.length === 0) return;
+        this.liveGroups$.next(groups);
+        this.changesDetection.detectChanges();
+      }
+    )
+  }
+  getOpenedLiveGroup(): LiveGroupDto | undefined {
+    if (!this.bottomSheetTab.startsWith('live-group-')) return undefined;
+    return this.liveGroups$.value.find(g => g.slug === this.bottomSheetTab.substring(11));
+  }
+
   private listenForTags(): void {
     this._listenForTags(this.trail1WithInfo$);
     this._listenForTags(this.trail2WithInfo$);
@@ -1295,8 +1329,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   protected override getChildVisibility(child: AbstractComponent): boolean | undefined {
     if (child instanceof MapComponent) return !this.isSmall || this.tab === 'map';
     if (child instanceof TrailGraphComponent)
-      return (this.isSmall && (this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed')) ||
-             (!this.isSmall && this.bottomSheetOpen);
+      return this.bottomSheetTab === 'elevation' || this.bottomSheetTab === 'speed';
     return undefined;
   }
 

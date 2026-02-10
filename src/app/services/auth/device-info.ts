@@ -1,6 +1,5 @@
 import { Platform } from '@ionic/angular/common';
 import { trailenceAppVersionCode, trailenceAppVersionName } from 'src/app/trailence-version';
-import Trailence from 'src/app/services/trailence.service';
 
 const DEVICE_ID_KEY = "device_id";
 
@@ -30,15 +29,19 @@ export class DeviceInfo {
     this.ionPlatforms = ionic.platforms();
     this.versionName = trailenceAppVersionName;
     this.versionCode = trailenceAppVersionCode;
-    let deviceId = localStorage.getItem(DEVICE_ID_KEY);
-    if (deviceId && !/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i.test(deviceId)) deviceId = null;
-    if (!deviceId) {
-      deviceId = globalThis.crypto.randomUUID();
-      localStorage.setItem(DEVICE_ID_KEY, deviceId);
-    }
-    this.deviceId = deviceId;
+    this.deviceId = deviceId();
   }
 
+}
+
+export function deviceId(): string {
+  let deviceId = localStorage.getItem(DEVICE_ID_KEY);
+  if (deviceId && !/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i.test(deviceId)) deviceId = null;
+  if (!deviceId) {
+    deviceId = globalThis.crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
 }
 
 export interface BrandVersion {
