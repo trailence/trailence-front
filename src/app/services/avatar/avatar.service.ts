@@ -49,7 +49,7 @@ export class AvatarService {
     });
     authService.auth$.subscribe(auth => {
       const newDto = auth && !auth.isAnonymous ? auth.avatar : undefined;
-      if (this._myDto$.value !== newDto) this._myDto$.next(newDto);
+      if (this._myDto$.value !== newDto || newDto === undefined) this._myDto$.next(newDto);
     });
   }
 
@@ -138,8 +138,9 @@ export class AvatarService {
   }
 
   private getMyLetter(): string {
+    if (this.authService.auth?.isAnonymous) return '?';
     const email = this.authService.auth?.email;
-    return email ? (this.authService.auth?.isAnonymous ? '?' : email.substring(0, 1)) : '';
+    return email ? email.substring(0, 1) : '';
   }
 
   private getAvatarToGenerate(key: string, request: string): Observable<AvatarToGenerate | undefined> {
