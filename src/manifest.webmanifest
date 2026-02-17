@@ -1,0 +1,14 @@
+{
+  "name": "Trailence",
+  "short_name": "Trailence",
+  "display": "standalone",
+  "scope": "./",
+  "start_url": "./",
+  "icons": [
+    {
+      "src": "assets/icon/favicon.png",
+      "type": "image/png",
+      "purpose": "monochrome maskable any"
+    }
+  ]
+}

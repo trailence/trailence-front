@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
-import { BehaviorSubject, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, interval, map, Observable, Observer, Subscription, switchMap, tap, timer } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, interval, map, Observable, Observer, Subscription, switchMap, tap, timer } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { AuthService } from '../auth/auth.service';
@@ -10,6 +10,7 @@ import { I18nService } from '../i18n/i18n.service';
 import { PointDto } from 'src/app/model/dto/point';
 import { POSITION_FACTOR } from 'src/app/model/point-dto-mapper';
 import { Router } from '@angular/router';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({providedIn: 'root'})
 export class LiveGroupService {
@@ -46,6 +47,10 @@ export class LiveGroupService {
         }
         if (!connected) return EMPTY;
         return this.http.get<LiveGroupDto[]>(environment.apiBaseUrl + '/live-group/v1' + (newId.includes('@') ? '' : '?id=' + newId));
+      }),
+      catchError(e => {
+        Console.warn("Error getting live groups", e);
+        return EMPTY;
       })
     ).subscribe(groups => this.updateGroups(this.decodeGroups(groups)));
   }
@@ -68,7 +73,12 @@ export class LiveGroupService {
             memberId: this._currentId.includes('@') ? undefined : this._currentId,
             position: hasPos ? {lat: lat * POSITION_FACTOR, lng: lng * POSITION_FACTOR} : undefined,
             positionAt: hasPos ? tim : undefined,
-          })
+          }).pipe(
+            catchError(e => {
+              Console.warn("Error listening to live groups", e);
+              return EMPTY;
+            })
+          )
         })
       ).subscribe(groups => this.updateGroups(this.decodeGroups(groups)));
     this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);

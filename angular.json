@@ -60,7 +60,8 @@
                 "glob": "svg-to-pdfkit.js",
                 "input": "./node_modules/svg-to-pdfkit",
                 "output": "assets"
-              }
+              },
+              "src/manifest.webmanifest"
             ],
             "styles": [
               "src/global.scss",
@@ -88,7 +89,8 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             },
             "analyze-bundle": {
               "sourceMap": true,

@@ -8,6 +8,7 @@ import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { provideHttpClient } from '@angular/common/http';
 import { Console } from './app/utils/console';
+import { provideServiceWorker } from '@angular/service-worker';
 
 Console.info('App loading: start framework after ', Date.now() - ((globalThis as any)._trailenceStart || 0));
 
@@ -32,7 +33,11 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular({mode: 'md', swipeBackEnabled: false}),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(),
-    { provide: ErrorHandler, useClass: MyErrorHandler }
+    { provide: ErrorHandler, useClass: MyErrorHandler },
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: environment.serviceWorker,
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
 });
 
