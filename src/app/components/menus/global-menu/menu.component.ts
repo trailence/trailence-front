@@ -81,7 +81,7 @@ export class MenuComponent implements OnInit {
     mySelectionService: MySelectionService,
     changeDetector: ChangeDetectorRef,
     ngZone: NgZone,
-    private readonly liveGroupService: LiveGroupService,
+    public readonly liveGroupService: LiveGroupService,
   ) {
     const changesDetection = new ChangesDetection(ngZone, changeDetector);
     const refresh = () => {
@@ -164,10 +164,12 @@ export class MenuComponent implements OnInit {
       this.mySelectionCount = list.length;
       refresh();
     });
-    liveGroupService.groups$.subscribe(groups => {
-      const list = groups || [];
-      if (list.length === 0 && this.liveGroups.length === 0) return;
-      this.liveGroups = list;
+    liveGroupService.groups$
+    .pipe(
+      switchMap(groups => !groups?.length ? of({groups: [], paused: false}) : this.liveGroupService.paused$.pipe(map(paused => ({groups, paused}))))
+    )
+    .subscribe(result => {
+      this.liveGroups = result.groups;
       refresh();
     });
   }
@@ -209,17 +211,23 @@ export class MenuComponent implements OnInit {
   liveGroupMenu($event: MouseEvent): void {
     $event.stopPropagation();
     const menu: MenuItem[] = [
+      new MenuItem().setIcon('pause').setI18nLabel('pages.live_group.pause')
+        .setVisible(() => !this.liveGroupService.paused)
+        .setAction(() => this.liveGroupService.pause()),
+      new MenuItem().setIcon('play').setI18nLabel('pages.live_group.resume')
+        .setVisible(() => this.liveGroupService.paused)
+        .setAction(() => this.liveGroupService.resume()),
+      new MenuItem(),
       ...this.liveGroups.map(
         group => new MenuItem().setFixedLabel(group.name)
           .setSubLabel([
-            (group.members.find(m => m.you)?.name || '') + ' +' + (group.members.filter(m => !m.you).length),
-            this.i18n.texts.pages.live_group.date_from + ' ' + this.i18n.timestampToDateTimeString(group.startedAt, false) + ' ' +
-            this.i18n.texts.pages.live_group.date_to + ' ' + this.i18n.timestampToDateTimeString(group.expiresAt, false)
+            this.i18n.texts.pages.live_group.date_from + ' ' + this.i18n.timestampToDateString(group.startedAt) + ' ' +
+            this.i18n.texts.pages.live_group.date_to + ' ' + this.i18n.timestampToDateString(group.expiresAt)
           ])
           .setAction(() => { this.liveGroupService.openLiveGroup(group); this.close(); })
       ),
       new MenuItem().setIcon('add').setI18nLabel('menu.create_live_group').setTextColor('success')
-        .setVisible(() => !this.isAnonymous)
+        .setVisible(() => !this.isAnonymous && this.liveGroups.length < 10)
         .setAction(() => this.createLiveGroup()),
     ];
     this.injector.get(PopoverController).create({

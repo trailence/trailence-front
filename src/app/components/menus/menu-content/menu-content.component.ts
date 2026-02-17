@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { AfterViewChecked, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ComputedMenuItem, ComputedMenuItems, MenuItem } from 'src/app/components/menus/menu-item';
 import { IonItem, IonIcon, IonLabel, IonList, IonListHeader, IonButton, PopoverController } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
+import { BrowserService } from 'src/app/services/browser/browser.service';
 
 interface Section {
   type: 'toolbar' | 'menu';
@@ -39,6 +40,8 @@ export class MenuContentComponent implements OnInit, OnChanges {
     changesDetector: ChangeDetectorRef,
     ngZone: NgZone,
     private readonly popoverController: PopoverController,
+    private readonly elementRef: ElementRef,
+    private readonly browser: BrowserService,
   ) {
     this.changesDetection = new ChangesDetection(ngZone, changesDetector);
   }
@@ -69,7 +72,7 @@ export class MenuContentComponent implements OnInit, OnChanges {
       type: 'menu',
       items: items,
     })
-    this.changesDetection.detectChanges();
+    this.changesDetection.detectChanges(() => setTimeout(() => this.checkHeight(), 10));
   }
 
   private extractToolbar(items: ComputedMenuItem[]): Section | undefined {
@@ -118,5 +121,13 @@ export class MenuContentComponent implements OnInit, OnChanges {
 
   close(): void {
     this.popoverController.dismiss();
+  }
+
+  private checkHeight(): void {
+    if (this.elementRef.nativeElement.parentElement?.nodeName?.toLowerCase() === 'ion-popover') {
+      const bh = this.browser.height;
+      const y = this.elementRef.nativeElement.offsetTop;
+      this.elementRef.nativeElement.style.maxHeight = (bh - y - 5) + 'px';
+    }
   }
 }

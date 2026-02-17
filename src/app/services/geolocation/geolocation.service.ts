@@ -39,20 +39,34 @@ export class GeolocationService implements IGeolocationService {
       if (status.state === 'prompt') {
         Console.info('geolocation permission must be prompt');
         return new Promise((resolve, error) => {
+          let done = false;
+          const check = () => {
+            this.getCurrentPosition().then(p => {
+              Console.info('getCurrentPosition returned a position => consider it as enabled', p);
+              done = true;
+              resolve(GeolocationState.ENABLED);
+            });
+          };
           const listener = () => {
             Console.info('geolocation permission status changed', status, status.state);
+            if (done) {
+              status.removeEventListener('change', listener);
+              return;
+            }
             if (status.state === 'granted') {
+              done = true;
               resolve(GeolocationState.ENABLED);
               status.removeEventListener('change', listener);
             } else if (status.state === 'denied') {
+              done = true;
               resolve(GeolocationState.DENIED);
               status.removeEventListener('change', listener);
             } else {
-              this.getCurrentPosition();
+              check();
             }
           };
           status.addEventListener('change', listener);
-          this.getCurrentPosition();
+          check();
         });
       }
       return GeolocationState.DENIED;

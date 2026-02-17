@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
 import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, interval, map, Observable, Observer, Subscription, switchMap, tap, timer } from 'rxjs';
@@ -11,6 +11,8 @@ import { PointDto } from 'src/app/model/dto/point';
 import { POSITION_FACTOR } from 'src/app/model/point-dto-mapper';
 import { Router } from '@angular/router';
 import { Console } from 'src/app/utils/console';
+import { GeolocationState } from '../geolocation/geolocation.interface';
+import { AlertController } from '@ionic/angular/standalone';
 
 @Injectable({providedIn: 'root'})
 export class LiveGroupService {
@@ -18,6 +20,7 @@ export class LiveGroupService {
   private _currentId = '';
   private readonly _groups$ = new BehaviorSubject<LiveGroupDto[] | undefined>(undefined);
   private readonly _forceUpdate$ = new BehaviorSubject<any>(undefined);
+  private _paused$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     private readonly http: HttpService,
@@ -26,6 +29,7 @@ export class LiveGroupService {
     private readonly authService: AuthService,
     private readonly i18n: I18nService,
     private readonly router: Router,
+    private readonly injector: Injector,
   ) {
     this.init();
   }
@@ -57,10 +61,10 @@ export class LiveGroupService {
 
   private listenToGroupsSubscription: Subscription | undefined;
   private _geolocationListener: (position: PointDto) => void = () => {};
-  private listenToGroups(): void {
+  private listenToGroups(askGps: boolean): void {
     this.listenToGroupsSubscription?.unsubscribe();
     this.listenToGroupsSubscription =
-      combineLatest([interval(60000), this.network.server$, this._forceUpdate$.pipe(debounceTime(250))])
+      combineLatest([interval(30000), this.network.server$, this._forceUpdate$.pipe(debounceTime(250))])
       .pipe(
         filter(([i, connected, updateRequested]) => connected),
         switchMap(() => {
@@ -81,17 +85,70 @@ export class LiveGroupService {
           )
         })
       ).subscribe(groups => this.updateGroups(this.decodeGroups(groups)));
-    this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
+    this.watchPosition(askGps);
+  }
+
+  private watching = false;
+  private watchPosition(ask: boolean): void {
+    this.geolocation.getState()
+    .then(state => {
+      if (state === GeolocationState.DISABLED) {
+        if (!ask) return;
+        const alertController = this.injector.get(AlertController);
+        alertController.create({
+          header: this.i18n.texts.trace_recorder.disabled_popup.title,
+          message: this.i18n.texts.trace_recorder.disabled_popup.message,
+          backdropDismiss: false,
+          buttons: [{
+            text: this.i18n.texts.buttons.retry,
+            role: 'ok',
+            handler: () => {
+              alertController.dismiss();
+              this.watchPosition(true);
+            }
+          }, {
+            text: this.i18n.texts.buttons.cancel,
+            role: 'cancel',
+            handler: () => {
+              alertController.dismiss();
+              Console.info('User cancel GPS: cannot watch for live groups');
+            }
+          }]
+        }).then(alert => alert.present());
+      } else if (state === GeolocationState.DENIED) {
+        Console.error('Geolocation access denied by user: cannot watch for live groups');
+      } else {
+        this.watching = true;
+        this.geolocation.watchPosition(this.i18n.texts.trace_recorder.notif_message, this._geolocationListener);
+      }
+    });
   }
 
   private stopListening(): void {
     this.listenToGroupsSubscription?.unsubscribe();
     this.listenToGroupsSubscription = undefined;
+    this.watching = false;
     this.geolocation.stopWatching(this._geolocationListener);
   }
 
+  public get paused$(): Observable<boolean> { return this._paused$; }
+  public get paused(): boolean { return this._paused$.value; }
+
+  public resume(): void {
+    if (!this._paused$.value) return;
+    this._paused$.next(false);
+    if (this._informListeningShown || !this._groups$.value?.length) return;
+    this.listenToGroups(true);
+  }
+
+  public pause(): void {
+    if (this._paused$.value) return;
+    this._paused$.next(true);
+    this.stopListening();
+  }
+
   private decodeGroups(groups: LiveGroupDto[]): LiveGroupDto[] {
-    return groups.map(g => this.decodeGroup(g));
+    return groups.map(g => this.decodeGroup(g)).sort((g1, g2) => g1.startedAt - g2.startedAt);
   }
 
   private decodeGroup(group: LiveGroupDto): LiveGroupDto {
@@ -107,8 +164,12 @@ export class LiveGroupService {
   private updateGroups(groups: LiveGroupDto[]): void {
     if (groups.length === 0) {
       this.stopListening();
-    } else if (!this._groups$.value?.length) {
-      this.listenToGroups();
+    } else if (!this._paused$.value) {
+      if (!this._groups$.value?.length) {
+        this.informListening();
+      } else if (!this.watching && !this._informListeningShown) {
+        this.listenToGroups(false);
+      }
     }
     this._groups$.next(groups);
   }
@@ -180,6 +241,35 @@ export class LiveGroupService {
       this.router.navigate(['trail', group.trailOwner, group.trailUuid], {fragment: 'bottom-tab=live-group'});
     else
       this.router.navigateByUrl('/live-group/' + group.slug);
+  }
+
+  private _informListeningShown = false;
+  private informListening(): void {
+    this._informListeningShown = true;
+    const alertController = this.injector.get(AlertController);
+    alertController.create({
+      header: this.i18n.texts.pages.live_group.title,
+      message: this.i18n.texts.pages.live_group.listening_info_message,
+      buttons: [
+        {
+          text: this.i18n.texts.buttons.understood,
+          role: 'ok',
+          handler: () => {
+            alertController.dismiss();
+            this._informListeningShown = false;
+            if (this._groups$.value?.length) this.listenToGroups(true);
+          }
+        }, {
+          text: this.i18n.texts.buttons.cancel,
+          role: 'cancel',
+          handler: () => {
+            alertController.dismiss();
+            this._informListeningShown = false;
+            this._paused$.next(true);
+          }
+        }
+      ]
+    }).then(a => a.present());
   }
 
 }

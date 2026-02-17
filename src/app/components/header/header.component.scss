@@ -137,6 +137,10 @@ ion-toolbar {
     }
 }
 
+a {
+  text-decoration: none;
+}
+
 @media (max-width: 499px) {
   .trailence-title {
     padding: 4px 8px;

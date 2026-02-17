@@ -54,6 +54,9 @@
           </span>
           <ion-icon name="chevron-right"></ion-icon>
         </div>
+        @if (liveGroupService.paused) {
+          <div class="item-sub-title">{{i18n.texts.pages.live_group.paused}}</div>
+        }
       </div>
     </div>
   }

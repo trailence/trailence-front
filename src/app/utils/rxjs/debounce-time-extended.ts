@@ -6,11 +6,13 @@ export function debounceTimeExtended<T>(
   subsequentDelay: number,
   maximumPending: number = -1,
   predicateSkipDelay: (previousEmission: T, newValue: T) => boolean = () => false,
+  maximumDelay: number = -1,
   scheduler: SchedulerLike = asyncScheduler,
 ): MonoTypeOperatorFunction<T> {
   return source => new Observable(destination => {
     let lastValue: T;
     let lastEmission: T;
+    let lastEmissionTime = 0;
     let activeTask: Subscription | undefined;
     let firstEmitted = false;
     let pending = 0;
@@ -21,13 +23,16 @@ export function debounceTimeExtended<T>(
         pending++;
         activeTask?.unsubscribe();
         activeTask = undefined;
+        let now = Date.now();
         if ((maximumPending > 0 && pending >= maximumPending) ||
             (!firstEmitted && initialDelay <= 0) ||
+            (firstEmitted && maximumDelay > 0 && now - lastEmissionTime >= maximumDelay) ||
             (firstEmitted && predicateSkipDelay(lastEmission, value))) {
           // emit now
           firstEmitted = true;
           pending = 0;
           lastEmission = value;
+          lastEmissionTime = now;
           destination.next(value);
           return;
         }
@@ -41,6 +46,7 @@ export function debounceTimeExtended<T>(
             firstEmitted = true;
             pending = 0;
             lastEmission = value;
+            lastEmissionTime = Date.now();
             destination.next(v);
           },
           firstEmitted ? subsequentDelay : initialDelay

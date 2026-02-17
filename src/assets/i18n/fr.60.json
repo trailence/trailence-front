@@ -758,7 +758,7 @@
       "stop": "Arrêter",
       "leave": "Quitter",
       "offline": "Pas de connexion Internet",
-      "rename_me": "Changer mon nom",
+      "rename_me": "Nom",
       "nb_members_singular": "{{1}} personne",
       "nb_members_plural": "{{1}} personnes",
       "updated_at": "Mis à jour",
@@ -782,7 +782,11 @@
       "trail_menu": {
         "attach": "Rattacher à un groupe de suivi",
         "create": "Créer un groupe de suivi"
-      }
+      },
+      "listening_info_message": "Un groupe de suivi est activé. Votre position sera enregistrée et partagée avec les membres du groupe lorsqu'une connexion réseau sera disponible.",
+      "pause": "Mettre en pause l'enregistrement",
+      "resume": "Reprendre l'enregistrement",
+      "paused": "Enregistrement en pause"
     },
     "donation": {
       "meta_description": "Soutenir le project Trailence",

@@ -145,7 +145,7 @@
 
       .bottom-sheet-tab {
         flex: 1 1 100%;
-        border-right: 2px solid var(--ion-color-light);
+        border-right: 2px solid rgba(var(--ion-color-secondary-rgb), 0.2);
         display: flex;
         flex-direction: row;
         align-items: center;

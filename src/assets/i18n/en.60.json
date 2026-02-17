@@ -758,7 +758,7 @@
       "stop": "Stop",
       "leave": "Leave",
       "offline": "No Internet connection",
-      "rename_me": "Change my name",
+      "rename_me": "Name",
       "nb_members_singular": "{{1}} people",
       "nb_members_plural": "{{1}} people",
       "updated_at": "Updated",
@@ -782,7 +782,11 @@
       "trail_menu": {
         "attach": "Attach to a live group tracking",
         "create": "Create a live tracking group"
-      }
+      },
+      "listening_info_message": "Group tracking is active. Your location will be recorded and shared with group members when a network connection is available.",
+      "pause": "Pause recording",
+      "resume": "Resume recording",
+      "paused": "Recording paused"
     },
     "donation": {
       "meta_description": "Support the Trailence project",

@@ -41,7 +41,7 @@
           <div class="member-status-row">
             @if (member.lastPosition && member.lastPositionAt) {
               {{ i18n.texts.pages.live_group.member_localized }}
-              <app-relative-date [date]="member.lastPositionAt" [forceRelative]="true"></app-relative-date>
+              <app-relative-date [date]="member.lastPositionAt" [forceRelative]="true" [hideUntil]="120000"></app-relative-date>
             } @else {
               {{ i18n.texts.pages.live_group.member_not_localized }}
             }

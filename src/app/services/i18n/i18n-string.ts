@@ -77,7 +77,8 @@ export class DateTimeI18nString implements I18nString {
 }
 
 @Pipe({
-  name: 'i18nString'
+  name: 'i18nString',
+  pure: false,
 })
 export class I18nPipe implements PipeTransform {
 

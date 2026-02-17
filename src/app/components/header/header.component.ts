@@ -47,6 +47,7 @@ export class HeaderComponent extends AbstractComponent {
   publicUrl?: string;
   alwaysTightMenu = false;
   liveGroups: LiveGroupDto[] = [];
+  liveGroupService?: LiveGroupService;
 
   constructor(
     injector: Injector,
@@ -91,7 +92,8 @@ export class HeaderComponent extends AbstractComponent {
       this.auth.auth$.pipe(
         switchMap(auth => {
           if (auth) return of([]);
-          return this.injector.get(LiveGroupService).groups$;
+          this.liveGroupService = this.injector.get(LiveGroupService);
+          return this.liveGroupService.groups$;
         })
       ),
       groups => this.liveGroups = groups || []

@@ -14,6 +14,8 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { defaultAuthRoute, defaultPublicRoute } from 'src/app/routes/package.routes';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
+import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
+import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 
 @Component({
   selector: 'app-live-group',
@@ -50,7 +52,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     new MenuItem().setIcon('link').setI18nLabel('pages.live_group.link_button')
       .setAction(() => import('./live-group-link-popup.component').then(m => m.openLiveGroupLinkPopup(this.injector, this.group))),
 
-    new MenuItem().setIcon('stop').setI18nLabel('pages.live_group.stop').setTextColor('danger')
+    new MenuItem().setIcon('stop-circle').setI18nLabel('pages.live_group.stop').setTextColor('danger')
       .setDisabled(() => !this.network.server)
       .setVisible(() => this.group.members.some(m => m.you && m.owner))
       .setAction(() => this.leave()),
@@ -62,6 +64,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
 
   private networkSubscription?: Subscription;
   private mapSubscription?: Subscription;
+  private locationSubscription?: Subscription;
   private mapComponent?: MapComponent;
   private mapReady = false;
 
@@ -72,6 +75,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     private readonly liveGroupService: LiveGroupService,
     private readonly changeDetector: ChangeDetectorRef,
     public readonly network: NetworkService,
+    private readonly geolocation: GeolocationService,
   ) {}
 
   ngOnInit(): void {
@@ -80,6 +84,9 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
       this.toolbar = [...this.toolbar];
       this.changeDetector.detectChanges();
     });
+    this.locationSubscription = this.geolocation.lastKnownPosition$
+    .pipe(debounceTimeExtended(0, 1000, -1, () => false, 2000))
+    .subscribe(() => this.updateYou());
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -98,6 +105,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.networkSubscription?.unsubscribe();
     this.mapSubscription?.unsubscribe();
+    this.locationSubscription?.unsubscribe();
     if (this.mapComponent) {
       this.mapComponent.removeFitBoundsProvider(this.mapBoundsProvider);
       if (this._mapComponentShowPositionDisabled === this.mapComponent)
@@ -113,6 +121,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     this.members = this.group.members.sort((m1, m2) => m1.name.localeCompare(m2.name, this.prefService.preferences.lang));
     const h = this.highlighted?.uuid;
     this.highlighted = this.members.find(m => m.uuid === h);
+    this.updateYou();
   }
 
   toggleHighlightMember(member: LiveGroupMemberDto): void {
@@ -132,6 +141,7 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private markers: L.CircleMarker[] = [];
+  private youMarker?: L.CircleMarker;
   private highlightedTooltip?: L.Tooltip;
   private mapBoundsProvider: () => L.LatLngBounds | undefined = () => {
     let bounds: L.LatLngBounds | undefined = undefined;
@@ -154,10 +164,11 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
         this.mapComponent.disableShowPosition$.next(this.mapComponent.disableShowPosition$.value + 1);
         this._mapComponentShowPositionDisabled = this.mapComponent;
       }
-      let you: L.CircleMarker | undefined = undefined;
+      this.youMarker = undefined;
       for (const member of this.group.members) {
-        if (!member.lastPosition) continue;
-        const marker = new L.CircleMarker(member.lastPosition, {
+        const pos = member.you && this.geolocation.lastKnownPosition ? {lat: this.geolocation.lastKnownPosition.position.l!, lng: this.geolocation.lastKnownPosition.position.n!} : member.lastPosition;
+        if (!pos) continue;
+        const marker = new L.CircleMarker(pos, {
           radius: 5,
           color: member.you ? 'blue' : '#FF00FF',
           opacity: 0.75,
@@ -170,16 +181,16 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
         marker.addEventListener('click', () => this.toggleHighlightMember(member));
         this.markers.push(marker);
         this.mapComponent.addToMap(marker);
-        if (member.you) you = marker;
+        if (member.you) this.youMarker = marker;
         if (this.highlighted?.uuid === member.uuid) {
           const span = document.createElement('SPAN');
           span.innerText = member.name;
-          this.highlightedTooltip = L.tooltip({className: 'poi', permanent: true}).setLatLng(member.lastPosition).setContent(span.outerHTML);
+          this.highlightedTooltip = L.tooltip({className: 'poi', permanent: true}).setLatLng(pos).setContent(span.outerHTML);
           this.highlightedTooltip.setOpacity(0.75);
           this.mapComponent.addToMap(this.highlightedTooltip);
         }
       }
-      if (you) you.bringToFront();
+      this.youMarker?.bringToFront();
 
       if (this.markers.length > 0 && nbMarkersBefore != this.markers.length && this.autoFitMap) {
         const bounds = this.mapBoundsProvider();
@@ -189,6 +200,18 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this._mapComponentShowPositionDisabled = undefined;
     }
+  }
+
+  private updateYou(): void {
+    if (this.geolocation.lastKnownPosition) {
+      const you = this.members.find(m => m.you);
+      if (you) {
+        you.lastPosition = {lat: this.geolocation.lastKnownPosition.position.l!, lng: this.geolocation.lastKnownPosition.position.n!};
+        you.lastPositionAt = this.geolocation.lastKnownPosition.timestamp;
+      }
+    }
+    if (!this.youMarker || !this.geolocation.lastKnownPosition) return;
+    this.youMarker.setLatLng({lat: this.geolocation.lastKnownPosition.position.l!, lng: this.geolocation.lastKnownPosition.position.n!});
   }
 
   private leave(): void {

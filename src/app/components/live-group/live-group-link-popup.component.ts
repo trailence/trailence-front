@@ -40,12 +40,13 @@ export class LiveGroupLinkPopup implements OnInit {
     import('qrcode')
     .then(module => {
       const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
-      canvas.width = 100;
-      canvas.height = 100;
+      canvas.width = 150;
+      canvas.height = 150;
       module.default.toDataURL(canvas, this.linkStart + this.group.slug,
         {
           type: 'image/png',
           margin: 1,
+          width: 150,
         },
         (e, r) => {
           if (r) this.qrCode = r;

@@ -52,6 +52,17 @@
               <ng-template>
                 <ion-content>
                   <ion-list>
+                    @if (liveGroupService?.paused) {
+                      <ion-item (click)="liveGroupService!.resume()">
+                        <ion-icon name="play" slot="start"></ion-icon>
+                        <ion-label>{{i18n.texts.pages.live_group.resume}}</ion-label>
+                      </ion-item>
+                    } @else {
+                      <ion-item (click)="liveGroupService!.pause()">
+                        <ion-icon name="pause" slot="start"></ion-icon>
+                        <ion-label>{{i18n.texts.pages.live_group.pause}}</ion-label>
+                      </ion-item>
+                    }
                     @for (group of liveGroups; track group.slug) {
                       <a href="/live-group/{{group.slug}}" (click)="$event.preventDefault()">
                         <ion-item (click)="goTo('/live-group/' + group.slug)">
@@ -97,6 +108,17 @@
                       <ng-template>
                         <ion-content>
                           <ion-list>
+                            @if (liveGroupService?.paused) {
+                              <ion-item (click)="liveGroupService!.resume()">
+                                <ion-icon name="play" slot="start"></ion-icon>
+                                <ion-label>{{i18n.texts.pages.live_group.resume}}</ion-label>
+                              </ion-item>
+                            } @else {
+                              <ion-item (click)="liveGroupService!.pause()">
+                                <ion-icon name="pause" slot="start"></ion-icon>
+                                <ion-label>{{i18n.texts.pages.live_group.pause}}</ion-label>
+                              </ion-item>
+                            }
                             @for (group of liveGroups; track group.slug) {
                               <a href="/live-group/{{group.slug}}" (click)="$event.preventDefault()">
                                 <ion-item (click)="goTo('/live-group/' + group.slug)">

@@ -45,6 +45,12 @@
     margin-bottom: 0;
     min-width: 24px;
     margin-right: -2px;
+    ion-icon {
+      width: 18px;
+      height: 18px;
+      margin-top: -1px;
+      margin-left: -1px;
+    }
   }
 
   .trail-name {
@@ -83,6 +89,14 @@
   ion-button.public-trail-button, ion-button.trail-link-button {
     margin: 0 4px 0 0;
     min-width: 24px;
+  }
+  ion-button.public-trail-button {
+    ion-icon {
+      width: 18px;
+      height: 18px;
+      margin-top: -1px;
+      margin-left: -1px;
+    }
   }
 
 }

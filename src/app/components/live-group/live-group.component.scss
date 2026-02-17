@@ -20,7 +20,6 @@ div.container {
     flex-direction: row;
     div.toolbar-container {
       border-right: 1px solid rgba(var(--ion-text-color-rgb), 0.25);
-      margin-right: 3px;
     }
     div.group-header {
       display: flex;
@@ -50,7 +49,6 @@ div.container {
     flex-direction: column;
     div.toolbar-container {
       border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.25);
-      margin-bottom: 3px;
     }
     div.members {
       overflow: auto;
@@ -75,15 +73,18 @@ div.group-content {
   height: 100%;
 }
 div.group-header {
+  background-color: rgba(var(--ion-color-medium-rgb), 0.1);
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
 
   div.group-title {
+    flex: 1 1 50%;
+    max-width: 50%;
     display: flex;
     flex-direction: column;
     padding: 0 5px;
-    white-space: nowrap;
     div.name {
       color: var(--ion-color-tertiary);
+      font-size: 14px;
     }
     div.people {
       color: var(--ion-color-medium);
@@ -91,7 +92,7 @@ div.group-header {
     }
   }
   div.group-status {
-    flex: 1 1 100%;
+    flex: 1 1 50%;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -103,6 +104,7 @@ div.group-header {
     div.updated_at {
       font-size: 13px;
       color: var(--ion-color-medium);
+      text-align: right;
       app-relative-date { margin-left: 5px; }
     }
     ion-button {
