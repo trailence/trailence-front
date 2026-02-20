@@ -162,5 +162,9 @@
         "On Android: open a routre in another app using the new memu “Open GPX with”"
       ]
     }
+  },
+  "010450": {
+    "fr": { "message": "BETA" },
+    "en": { "message": "BETA" }
   }
 }
