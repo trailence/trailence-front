@@ -370,7 +370,7 @@
   }
 
   <div class="menu-bottom">
-    <div class="version">Trailence {{versionName}}</div>
+    <div class="version" (click)="debug()">Trailence {{versionName}}</div>
     <a href="/privacy-policy" (click)="$event.preventDefault(); goToPublicPage('/privacy-policy'); close();">
       {{ i18n.texts.pages.privacy_policy.title }}
     </a>

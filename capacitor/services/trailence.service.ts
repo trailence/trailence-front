@@ -33,6 +33,8 @@ export interface TrailencePlugin {
 
   getInfo(call: {}): Promise<any>;
 
+  getLogs(callback: (message: {lines: string[], end: boolean}) => void): void;
+
 }
 
 const Trailence = registerPlugin<TrailencePlugin>('Trailence');

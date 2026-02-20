@@ -14,6 +14,7 @@ import { NetworkService } from 'src/app/services/network/network.service';
 import { FormsModule } from '@angular/forms';
 import { PublicPage } from '../public.page';
 import { trailenceAppVersionName } from 'src/app/trailence-version';
+import { DebugService } from 'src/app/services/debug/debug.service';
 
 @Component({
   templateUrl: './contact.page.html',
@@ -88,7 +89,10 @@ export class ContactPage extends PublicPage {
     this.sent = false;
     this.error = false;
     this.retryWithCaptcha = false;
-    this.data = ' --- Technical data ---\nVersion: ' + trailenceAppVersionName + '\nPlatform: ' + globalThis.navigator.userAgent + ' / ' + this.platform.platforms().join() + '\n --- Logs ---\n' + Console.getHistory();
+    this.injector.get(DebugService).getAllLogs().then(logs => {
+      if (logs.length > 1500000) logs = logs.substring(logs.length - 1500000);
+      this.data = ' --- Technical data ---\nVersion: ' + trailenceAppVersionName + '\nPlatform: ' + globalThis.navigator.userAgent + ' / ' + this.platform.platforms().join() + '\n --- Logs ---\n' + logs;
+    });
   }
 
   private destroy(): void {

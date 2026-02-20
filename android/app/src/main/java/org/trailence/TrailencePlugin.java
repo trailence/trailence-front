@@ -24,9 +24,13 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import org.json.JSONArray;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Base64;
 import java.util.HashMap;
@@ -398,5 +402,27 @@ public class TrailencePlugin extends Plugin {
   @PluginMethod
   public void exitApp(PluginCall call) {
     this.getActivity().finishAndRemoveTask();
+  }
+
+  @PluginMethod(returnType = PluginMethod.RETURN_CALLBACK)
+  public void getLogs(PluginCall call) {
+    call.setKeepAlive(true);
+    try {
+      Process process = Runtime.getRuntime().exec("logcat -d -t 50000 -v year -v time *:E System.out:D Capacitor:D");
+      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      JSONArray lines = new JSONArray();
+      String line;
+      while ((line = bufferedReader.readLine()) != null) {
+        lines.put(line);
+        if (lines.length() >= 1000) {
+          call.resolve(new JSObject().put("lines", lines).put("end", false));
+          lines = new JSONArray();
+        }
+      }
+      call.resolve(new JSObject().put("lines", lines).put("end", true));
+      call.setKeepAlive(false);
+    } catch (Exception e) {
+      call.reject(e.getMessage());
+    }
   }
 }

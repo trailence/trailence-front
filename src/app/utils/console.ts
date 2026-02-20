@@ -11,11 +11,15 @@ export class Console {
 
   private static readonly _history: {log: string, date: number, level: ConsoleLevel}[] = [];
 
-  public static getHistory(): string {
+  public static getHistoryLines() {
+    return [...this._history];
+  }
+
+  public static getHistory(limit: number = 1000000): string {
     let s = '';
     for (let i = this._history.length - 1; i >= 0; --i) {
       s = this._history[i].log + '\n' + s;
-      if (s.length > 1000000) break;
+      if (limit > 0 && s.length > limit) break;
     }
     return s;
   }

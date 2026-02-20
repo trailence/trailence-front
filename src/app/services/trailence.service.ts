@@ -13,5 +13,7 @@ const Trailence = {
 
   getInfo: (call: {}) => Promise.resolve({} as any),
 
+  getLogs: (callback: (message: {lines: string[], end: boolean}) => void) => { callback({lines: [], end: true})},
+
 };
 export default Trailence;

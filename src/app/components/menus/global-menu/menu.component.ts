@@ -26,6 +26,7 @@ import { AsyncPipe } from '@angular/common';
 import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { MenuItem } from '../menu-item';
+import { DebugService } from 'src/app/services/debug/debug.service';
 
 @Component({
     selector: 'app-menu',
@@ -311,6 +312,19 @@ export class MenuComponent implements OnInit {
       dismissOnSelect: true,
       arrow: true,
     }).then(p => p.present());
+  }
+
+  debugLastClick = 0;
+  debugClickCount = 0;
+  debug(): void {
+    const now = Date.now();
+    if (now - this.debugLastClick < 2000) {
+      if (++this.debugClickCount >= 10) {
+        this.debugClickCount = 0;
+        this.injector.get(DebugService).openPopup();
+      }
+    }
+    this.debugLastClick = now;
   }
 
 }
