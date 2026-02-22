@@ -2,27 +2,17 @@
   text-align: center;
   color: var(--ion-color-danger);
 }
-div.explaination {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  margin-bottom: 15px;
-  background-color: rgba(96, 96, 200, 0.25);
-  color: rgba(var(--ion-text-color-rgb), 0.75);
+app-collapsable-section {
+  margin-bottom: 10px;
+}
+.explaination-content {
+  font-size: 13px;
   padding: 5px;
-  border-radius: 5px;
-
-  ion-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    min-width: 18px;
-    min-height: 18px;
-  }
-  span {
-    font-size: 13px;
-    padding-left: 5px;
-  }
+  margin: 0 5px;
+  background-color: rgba(96, 96, 200, 0.1);
+  color: rgba(var(--ion-text-color-rgb), 0.75);
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 div.field {
   margin-bottom: 5px;

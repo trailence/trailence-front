@@ -156,8 +156,6 @@ export class GeolocationService implements IGeolocationService {
     this.watchListeners.push({listener, onerror});
     if (!this.watchBackgroundId) {
       BackgroundGeolocation.addWatcher({
-        //backgroundMessage: this.i18n.texts.trace_recorder.notif_message,
-        //backgroundTitle: this.i18n.texts.trace_recorder.notif_title,
         backgroundMessage: '',
         backgroundTitle: notifMessage,
         distanceFilter: 1,

@@ -742,6 +742,7 @@
     },
     "live_group": {
       "title": "Live Group Tracking",
+      "explaination_title": "How a group works",
       "explaination": "A live group tracking lets you share your location during an activity.<br/>Anyone can join a group using a link or a QR code, without necessarily needing a Trailence account.<br/>Each member’s location is regularly recorded and shared with the other group members, so you can easily find each other if needed.<br/>Of course, location sharing only works when a network connection is available. However, you can disable your network during your activity and only turn it on when necessary.<br/>A group is automatically deleted if it is more than one week old.",
       "group_name": "Group name",
       "my_name": "My name / alias",
@@ -775,7 +776,8 @@
           "message": "Are you sure you want to leave the group?"
         }
       },
-      "no_trail_explaination": "The group will not be attached to any trail.<br/><br/>This means the group will be accessible from a dedicated screen, where you will only see the group members and their locations. However, when the group is attached to a route, you can view the group directly from the trail screen. This is much more convenient if you plan to follow this trail with the group.<br/><br/>To create a group attached to a trail, open the trail, then from its menu select “Create a live tracking group”.<br/>You can also attach an existing group by opening the trail, then from its menu select “Attach to a live group tracking”.",
+      "no_trail": "The group will not be attached to any trail.",
+      "no_trail_explaination": "This means the group will be accessible from a dedicated screen, where you will only see the group members and their locations. However, when the group is attached to a route, you can view the group directly from the trail screen. This is much more convenient if you plan to follow this trail with the group.<br/><br/>To create a group attached to a trail, open the trail, then from its menu select “Create a live tracking group”.<br/>You can also attach an existing group by opening the trail, then from its menu select “Attach to a live group tracking”.",
       "share_trail": "Share the trail with group members",
       "explaination_trail_restricted_access": "This trail was shared with you. Only members who also have access to this trail will be able to see it.",
       "explaination_trail_needs_public_link": "Only members you have shared this trail with can see it. To allow all members to see it, you can create a public link for this trail.",
@@ -1152,9 +1154,7 @@
     "resume": "Resume",
     "stop": "Stop",
     "start_this_trail": "Start this track",
-    "notif_title": "Trailence",
-    "notif_message": "Track in progress",
-    "notif_message_map": "Following your position on the map",
+    "notif_message": "Following your position in Trailence",
     "disclosure_popup": {
       "title": "Use your location",
       "message": "Trailence collects location data to enable trace recording during your trail, even when the app is closed or not in use.",

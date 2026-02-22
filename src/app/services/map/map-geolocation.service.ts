@@ -68,7 +68,7 @@ export class MapGeolocationService {
         }
         if (!this.watching) {
           this.watching = true;
-          this.geolocationService.watchPosition(this.i18n.texts.trace_recorder.notif_message_map, this.watcher);
+          this.geolocationService.watchPosition(this.i18n.texts.trace_recorder.notif_message, this.watcher);
         }
         if (!watch) return undefined;
         Console.info('new position received on map', watch);

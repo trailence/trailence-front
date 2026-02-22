@@ -174,7 +174,7 @@ public class BackgroundGeolocation extends Plugin {
     String backgroundMessage = call.getString("backgroundMessage");
     if (backgroundMessage != null) {
       Notification.Builder builder = new Notification.Builder(getContext())
-        .setContentTitle(call.getString("backgroundTitle","Using your location"))
+        .setContentTitle(call.getString("backgroundTitle","Following your location"))
         .setOngoing(true)
         .setPriority(Notification.PRIORITY_HIGH)
         .setWhen(System.currentTimeMillis());

@@ -1,6 +1,6 @@
 import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
-import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, IonCheckbox} from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, ModalController, IonCheckbox } from '@ionic/angular/standalone';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
@@ -10,9 +10,10 @@ import { AsyncPipe } from '@angular/common';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { Trail } from 'src/app/model/trail';
 import { TrailService } from 'src/app/services/database/trail.service';
-import { first } from 'rxjs';
 import { TrailLinkService } from 'src/app/services/database/link.service';
 import { Subscriptions } from 'src/app/utils/rxjs/subscription-utils';
+import { CollapsableSectionComponent } from '../collapsable-section/collapsable-section.component';
+import { TooltipDirective } from '../tooltip/tooltip.directive';
 
 export function openCreateLiveGroupPopup(injector: Injector, trailOwner?: string, trailUuid?: string): Promise<LiveGroupDto | null> {
   return injector.get(ModalController).create({
@@ -39,6 +40,8 @@ export const LAST_NAME_STORAGE_KEY_PREFIX = 'trailence.live-group.last-name.';
     IonHeader, IonToolbar, IonIcon, IonLabel, IonButtons, IonButton, IonContent, IonFooter, IonTitle, IonInput, IonCheckbox,
     FormsModule,
     AsyncPipe,
+    CollapsableSectionComponent,
+    TooltipDirective,
   ]
 })
 export class LiveGroupPopup implements OnInit, OnDestroy {

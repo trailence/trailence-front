@@ -80,14 +80,10 @@ export class MenuContentComponent implements OnInit, OnChanges {
     let i = items.findIndex((item, index) => item.separator || (index > 0 && item.sectionTitle));
     if (i < 0) return undefined;
     const firstTitle = items[0].sectionTitle;
-    let title;
-    if (firstTitle) {
-      title = items[0];
-      items.splice(0, 1);
-      i--;
-    } else {
-      title = undefined;
-    }
+    if (!firstTitle) return undefined;
+    const title = items[0];
+    items.splice(0, 1);
+    i--;
     const result = items.splice(0, i);
     if (items[0].separator) items.splice(0, 1);
     return {

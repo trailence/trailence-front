@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { NetworkService } from '../network/network.service';
-import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, interval, map, Observable, Observer, Subscription, switchMap, tap, timer } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, interval, map, Observable, Subscription, switchMap, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { GeolocationService } from '../geolocation/geolocation.service';
 import { AuthService } from '../auth/auth.service';
@@ -13,6 +13,8 @@ import { Router } from '@angular/router';
 import { Console } from 'src/app/utils/console';
 import { GeolocationState } from '../geolocation/geolocation.interface';
 import { AlertController } from '@ionic/angular/standalone';
+
+const LATEST_GROUPS_KEY_PREFIX = 'trailence.latest_live_groups.';
 
 @Injectable({providedIn: 'root'})
 export class LiveGroupService {
@@ -49,7 +51,17 @@ export class LiveGroupService {
           this.stopListening();
           this._groups$.next(undefined);
         }
-        if (!connected) return EMPTY;
+        if (!connected) {
+          const key = LATEST_GROUPS_KEY_PREFIX + (this.authService.email || '$');
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            try {
+              const groups = JSON.parse(stored) as LiveGroupDto[];
+              this.updateGroups(groups);
+            } catch (e) {}
+          }
+          return EMPTY;
+        }
         return this.http.get<LiveGroupDto[]>(environment.apiBaseUrl + '/live-group/v1' + (newId.includes('@') ? '' : '?id=' + newId));
       }),
       catchError(e => {
@@ -171,6 +183,8 @@ export class LiveGroupService {
         this.listenToGroups(false);
       }
     }
+    const key = LATEST_GROUPS_KEY_PREFIX + (this.authService.email || '$');
+    localStorage.setItem(key, JSON.stringify(groups));
     this._groups$.next(groups);
   }
 

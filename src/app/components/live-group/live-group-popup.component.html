@@ -8,12 +8,9 @@
   </ion-toolbar>
 </ion-header>
 <ion-content class="ion-padding">
-  @if (!group) {
-    <div class="explaination">
-      <ion-icon name="info"></ion-icon>
-      <span [innerHTML]="i18n.texts.pages.live_group.explaination"></span>
-    </div>
-  }
+  <app-collapsable-section icon="info" [title]="i18n.texts.pages.live_group.explaination_title">
+    <div class="explaination-content" [innerHTML]="i18n.texts.pages.live_group.explaination"></div>
+  </app-collapsable-section>
   <div class="field">
     <ion-input
       fill="outline"
@@ -35,9 +32,9 @@
     ></ion-input>
   </div>
   @if (!group && !trailOwner) {
-    <div class="explaination">
-      <ion-icon name="info"></ion-icon>
-      <span [innerHTML]="i18n.texts.pages.live_group.no_trail_explaination"></span>
+    <div>
+      <span>{{i18n.texts.pages.live_group.no_trail}}</span>
+      <ion-icon name="help-circle" [appTooltip]="i18n.texts.pages.live_group.no_trail_explaination" style="width: 20px; height: 20px; margin-left: 8px; margin-bottom: -4px"></ion-icon>
     </div>
   } @else if ((!group && trailOwner) || (group && (group.trailOwner || trailOwner))) {
     @if (previousTrail && (previousTrail.owner !== trail?.owner || previousTrail.uuid !== trail?.uuid)) {

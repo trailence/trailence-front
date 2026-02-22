@@ -742,6 +742,7 @@
     },
     "live_group": {
       "title": "Suivi de groupe",
+      "explaination_title": "Fonctionnement d'un groupe",
       "explaination": "Un groupe de suivi permet de partager sa position pendant une activité.<br/>N'importe qui peut rejoindre un groupe grâce à un lien ou un QR code, sans avoir forcément besoin d'un compte sur Trailence.<br/>La position de chaque membre est régulièrement enregistrée et partagée avec les autres membres du groupe, afin de pouvoir se retrouver facilement en cas de besoin.<br/>Bien sûr, le partage de position fonctionne uniquement lorsqu'une connexion réseau est disponible. Vous pouvez toutefois désactiver le réseau pendant votre activité et ne l'activer que en cas de besoin.<br/>Un groupe est automatiquement supprimé s'il date de plus d'une semaine.",
       "group_name": "Nom du groupe",
       "my_name": "Mon nom / alias",
@@ -749,8 +750,8 @@
       "save_error": "Erreur lors de la sauvegarde",
       "create_offline": "Veuillez vous connecter à Internet pour créer un groupe",
       "save_offline": "Veuillez vous connecter à Internet pour modifier le groupe",
-      "member_not_localized": "Non localisé",
-      "member_localized": "Localisé",
+      "member_not_localized": "Non localisé(e)",
+      "member_localized": "Localisé(e)",
       "link_button": "Lien",
       "join_group": "Rejoindre le groupe",
       "joining_offline": "Veuillez vous connecter à Internet pour rejoindre le groupe",
@@ -775,7 +776,8 @@
           "message": "Etes-vous sûr de vouloir quitter le groupe ?"
         }
       },
-      "no_trail_explaination": "Le groupe ne sera rattaché à aucun parcours.<br/><br/>Cela signifie que la consultation du groupe se fera dans un écran dédié, où vous verrez uniquement les membres du groupe et leur position. En revanche, lorsque le groupe est rattaché à un parcours, vous pouvez consulter le groupe directement depuis l'écran du parcours. Cela est beaucoup plus pratique si vous prévoyez de suivre ce parcours avec le groupe.<br/><br/>Pour créer un groupe rattaché à un parcours, ouvrez le parcours, puis dans son menu, sélectionnez « Créer un groupe de suivi ».<br/>Vous pouvez également rattacher un groupe existant en ouvrant le parcours, puis dans son menu, sélectionnez « Rattacher à un groupe de suivi »",
+      "no_trail": "Le groupe ne sera rattaché à aucun parcours.",
+      "no_trail_explaination": "Cela signifie que la consultation du groupe se fera dans un écran dédié, où vous verrez uniquement les membres du groupe et leur position. En revanche, lorsque le groupe est rattaché à un parcours, vous pouvez consulter le groupe directement depuis l'écran du parcours. Cela est beaucoup plus pratique si vous prévoyez de suivre ce parcours avec le groupe.<br/><br/>Pour créer un groupe rattaché à un parcours, ouvrez le parcours, puis dans son menu, sélectionnez « Créer un groupe de suivi ».<br/>Vous pouvez également rattacher un groupe existant en ouvrant le parcours, puis dans son menu, sélectionnez « Rattacher à un groupe de suivi »",
       "share_trail": "Partager le parcours avec les membres du groupe",
       "explaination_trail_restricted_access": "Ce parcours provient d'un partage avec vous. Seuls les membres qui ont également accès à ce parcours pourront le voir.",
       "explaination_trail_needs_public_link": "Seuls les membres avec qui vous avez partagé ce parcours peuvent le voir. Pour que tous les membres puissent le voir, vous pouvez créer un lien public de partage pour ce parcours.",
@@ -1152,9 +1154,7 @@
     "resume": "Reprendre",
     "stop": "Terminer",
     "start_this_trail": "Démarrer le parcours",
-    "notif_title": "Trailence",
-    "notif_message": "Trace en cours",
-    "notif_message_map": "Suivi de votre position sur la carte",
+    "notif_message": "Suivi de votre position dans Trailence",
     "disclosure_popup": {
       "title": "Utilisation de votre position",
       "message": "Trailence collecte des données de localisation pour permettre l'enregistrement d'une trace pendant votre parcours, même lorsque l'application est fermée ou non utilisée.",

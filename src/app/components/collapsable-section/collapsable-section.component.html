@@ -1,0 +1,10 @@
+<div class="collapsable-section-header" (click)="toggle()">
+  @if (icon) {
+    <ion-icon class="header-icon" [name]="icon"></ion-icon>
+  }
+  <div class="header-title"><span>{{ title }}</span></div>
+  <ion-icon class="collapsable-section-button" [name]="collapsed ? 'chevron-left' : 'chevron-down'"></ion-icon>
+</div>
+<div class="collapsable-section-content {{collapsed ? 'collapsed' : 'expanded'}}">
+  <ng-content></ng-content>
+</div>
