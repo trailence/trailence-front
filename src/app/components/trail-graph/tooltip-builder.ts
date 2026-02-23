@@ -50,7 +50,17 @@ export function buildTooltip(context: any, container: HTMLElement, isSelecting: 
     return s;
   });
   addInfo(i18n.texts.trailGraph.distance, pt => i18n.distanceToString(pt.raw.distanceMeters));
-  addInfo(i18n.texts.trailGraph.time_duration, pt => i18n.durationToString(pt.raw.timeSinceStart));
+  addInfo(i18n.texts.trailGraph.time_duration, pt => {
+    const s1 = i18n.durationToString(pt.raw.timeSinceStart);
+    const s2 = i18n.durationToString(pt.raw.estimatedDuration);
+    if (s1.length === 0) {
+      if (s2.length === 0) return '';
+      return '≈ ' + s2;
+    } else {
+      if (s2.length === 0) return s1;
+      return s1 + ' (≈ ' + s2 + ')';
+    }
+  });
   addInfo(i18n.texts.trailGraph.speed, pt => {
     const s1 = pt.raw.speedInMeters ? i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(pt.raw.speedInMeters)) : '';
     const s2 = pt.raw.estimatedSpeed ? i18n.getSpeedStringInUserUnit(i18n.getSpeedInUserUnit(pt.raw.estimatedSpeed)) : '';

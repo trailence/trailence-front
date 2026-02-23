@@ -521,7 +521,7 @@ export class TrailGraphComponent extends AbstractComponent {
       if (start) timeSinceStart = point.time - start;
     }
 
-    const isBreak = trackPointIndex > 0 && point.durationFromPreviousPoint && point.durationFromPreviousPoint > 60 * 1000;
+    const isBreak = trackPointIndex > 0 && point.durationFromPreviousPoint && point.durationFromPreviousPoint > 60 * 1000 && (!point.distanceFromPreviousPoint || point.distanceFromPreviousPoint / point.durationFromPreviousPoint < 0.0001);
 
     let distanceSinceLastSpeed = (previous?.distanceSinceLastSpeed ?? 0) + (trackPointIndex > 0 ? point.distanceFromPreviousPoint : 0);
     let timeSinceLastSpeed = (previous?.timeSinceLastSpeed ?? 0) + (trackPointIndex > 0 && point.durationFromPreviousPoint ? point.durationFromPreviousPoint : 0);

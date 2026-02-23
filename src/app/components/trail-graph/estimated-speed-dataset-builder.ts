@@ -69,6 +69,7 @@ export class EstimatedSpeedDatasetBuilder {
           originalDataIndex: index,
         });
         originalData[index].estimatedSpeed = speed;
+        originalData[index].estimatedDuration = estimatedDuration;
         if (originalData[index].x === 0) originalData[index].x = duration;
         index++;
         if (durationSincePreviousBreak >= ESTIMATED_SMALL_BREAK_EVERY &&

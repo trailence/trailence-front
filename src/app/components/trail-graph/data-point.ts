@@ -18,5 +18,6 @@ export interface DataPoint {
   speedInMeters: number;
   isBreakPoint?: boolean;
   estimatedSpeed?: number;
+  estimatedDuration?: number;
   originalDataIndex?: number;
 }
