@@ -126,8 +126,9 @@
     @let cl = size === 'large' ? 'two-columns' : ('one-column' + (size === 'medium' ? ' accept-small' : ''));
     @let isModeration = listType === 'moderation';
     @let photoCanBeOnLeft = size === 'large';
-    @let photoEnabled = state$.value.mode !== 'detailed_small_map';
     @let smallMapEnabled = state$.value.mode === 'detailed_small_map';
+    @let elevationProfile = state$.value.mode === 'detailed_elevation';
+    @let photoEnabled = !smallMapEnabled && !elevationProfile;
     @for (trailWithInfo of listTrails; track trailWithInfo.trail.uuid + trailWithInfo.trail.owner) {
       <div class="trail metadata-container {{cl}}"
         style="background-color: {{highlighted === trailWithInfo.trail ? 'rgba(var(--ion-color-medium-rgb), 0.33)' : ''}}"
@@ -155,6 +156,8 @@
           [hideMenu]="hasSelected"
           [photoEnabled]="photoEnabled"
           [smallMapEnabled]="smallMapEnabled"
+          [elevationProfile]="elevationProfile"
+          [maxWidth]="size === 'large' ? 340 : size === 'medium' ? 240 : 165"
           (openTrailEvent)="setHighlighted($event)"
         ></app-trail-overview>
       </div>

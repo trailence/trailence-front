@@ -247,7 +247,7 @@ export class TrailGraphComponent extends AbstractComponent {
         this.buildDataSet(this.track1, this.primaryColor, 1, this.graphType === 'elevation', this.graphType === 'speed');
         if (this.graphType === 'elevation') {
           if (!this.chartPlugins.some(p => p instanceof ElevationLegendPlugin))
-            this.chartPlugins.push(new ElevationLegendPlugin(GradeDatasetBuilder.gradeColors, GradeDatasetBuilder.gradeLegend));
+            this.chartPlugins.push(new ElevationLegendPlugin());
         } else if (this.graphType === 'speed') {
           if (!this.chartPlugins.some(p => p instanceof SpeedLegendPlugin))
             this.chartPlugins.push(new SpeedLegendPlugin(EstimatedSpeedDatasetBuilder.SPEED_ESTIMATION_COLOR, this.contrastColor, this.i18n.texts.trailGraph.legend_estimated_speed));

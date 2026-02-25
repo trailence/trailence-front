@@ -9,6 +9,7 @@
     "display": "Display",
     "display_detailed": "Detailed with photos",
     "display_detailed_small_map": "Detailed with map",
+    "display_detailed_elevation": "Detailed with elevation",
     "display_condensed": "Compact",
     "search_text": "By name"
   },

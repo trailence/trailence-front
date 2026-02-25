@@ -9,6 +9,7 @@
     "display": "Affichage",
     "display_detailed": "Détaillé avec photos",
     "display_detailed_small_map": "Détaillé avec carte",
+    "display_detailed_elevation": "Détaillé avec altimétrie",
     "display_condensed": "Compact",
     "search_text": "Par nom"
   },

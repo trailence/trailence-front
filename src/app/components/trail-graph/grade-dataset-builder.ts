@@ -1,4 +1,5 @@
 import * as L from 'leaflet';
+import { getGradeRange, gradeColors } from './grade-values';
 
 export class GradeDatasetBuilder {
   public static buildGradeDatasets(originalDs: any): any[] { // NOSONAR
@@ -15,7 +16,7 @@ export class GradeDatasetBuilder {
     let totalGradeFromPrevious = 0;
     for (let i = 1; i < points.length; ++i) {
       const g = Math.abs(points[i].grade.gradeBefore as number);
-      if (previousIndex === i - 1 && previousLevel === this.getGradeRange(g)) {
+      if (previousIndex === i - 1 && previousLevel === getGradeRange(g)) {
         // same level => add it to the current dataset
         this.addElevationGrade(ds, points, previousIndex, i, minY, previousLevel);
         previousIndex = i;
@@ -25,7 +26,7 @@ export class GradeDatasetBuilder {
       distanceFromPrevious += d;
       totalGradeFromPrevious += g * d;
       if (distanceFromPrevious === 0) continue;
-      const level = this.getGradeRange(totalGradeFromPrevious / distanceFromPrevious);
+      const level = getGradeRange(totalGradeFromPrevious / distanceFromPrevious);
       if (distanceFromPrevious > 25 || level === previousLevel) {
         previousLevel = this.addElevationGrade(ds, points, previousIndex, i, minY, level);
         previousIndex = i;
@@ -34,12 +35,12 @@ export class GradeDatasetBuilder {
       }
     }
     if (distanceFromPrevious > 0)
-      this.addElevationGrade(ds, points, previousIndex, points.length - 1, minY, this.getGradeRange(totalGradeFromPrevious / distanceFromPrevious));
+      this.addElevationGrade(ds, points, previousIndex, points.length - 1, minY, getGradeRange(totalGradeFromPrevious / distanceFromPrevious));
     return ds;
   }
 
   public static addElevationGrade(ds: any[], points: any[], startIndex: number, endIndex: number, minY: number, level: number): number {
-    const color = this.gradeColors[level] + 'A0';
+    const color = gradeColors[level] + 'A0';
     if (ds.length === 0 || ds.at(-1).backgroundColor !== color) {
       ds.push({
         isGrade: true,
@@ -67,27 +68,5 @@ export class GradeDatasetBuilder {
         y: minY,
       });
     return level;
-  }
-
-  public static readonly gradeColors = [
-    '#D8D8D8', // 5%-
-    '#FFD890', // 7% to 5%
-    '#F0A040', // 10% to 7%
-    '#C05016', // 15% to 10%
-    '#700000' // 15%+
-  ];
-  public static readonly gradeLegend = [
-    '± 5%',
-    '> 5%',
-    '> 7%',
-    '> 10%',
-    '> 15%'
-  ];
-  private static getGradeRange(grade: number): number {
-    if (grade <= 0.05) return 0;
-    if (grade <= 0.07) return 1;
-    if (grade <= 0.1) return 2;
-    if (grade <= 0.15) return 3;
-    return 4;
   }
 }

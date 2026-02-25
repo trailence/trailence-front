@@ -34,9 +34,10 @@ import { LongPressDirective } from 'src/app/utils/long-press.directive';
 import { TrailTag } from 'src/app/model/trail-tag';
 import { TrailSmallMapComponent } from '../trail-small-map/trail-small-map.component';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
-import { NgClass, NgStyle, NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgStyle } from '@angular/common';
 import { TrailLink } from 'src/app/model/dto/trail-link';
 import { TrailLinkService } from 'src/app/services/database/link.service';
+import { TrailSmallElevationProfileComponent } from '../trail-small-elevation-profile/trail-small-elevation-profile.component';
 
 class Meta {
   name?: string;
@@ -54,6 +55,17 @@ class Meta {
   isInMySelection?: boolean;
 }
 
+interface State {
+  trail: Trail | undefined;
+  trackSnapshot: TrackMetadataSnapshot | undefined | null;
+  mode: 'live' | 'snapshot';
+  trailInfo: TrailInfo | undefined | null;
+  trailTags: TrailTag[] | undefined;
+  photoEnabled: boolean;
+  smallMapEnabled: boolean;
+  elevationProfile: boolean;
+}
+
 @Component({
     selector: 'app-trail-overview',
     templateUrl: './trail-overview.component.html',
@@ -61,11 +73,10 @@ class Meta {
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
       IonSpinner, IonButton, IonCheckbox, IonIcon,
-      PhotosSliderComponent, TrailSmallMapComponent,
+      PhotosSliderComponent, TrailSmallMapComponent, TrailSmallElevationProfileComponent,
       RateComponent,
       LongPressDirective,
       NgClass, NgStyle,
-      NgTemplateOutlet,
     ]
 })
 export class TrailOverviewComponent extends AbstractComponent {
@@ -89,6 +100,8 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() photoCanBeOnLeft = true;
   @Input() alwaysShowLocation = false;
   @Input() smallMapEnabled = false;
+  @Input() elevationProfile = false;
+  @Input() maxWidth = 240;
 
   @Input() delayLoading = false;
 
@@ -163,15 +176,16 @@ export class TrailOverviewComponent extends AbstractComponent {
       trailTags: this.trailTags,
       photoEnabled: this.photoEnabled,
       smallMapEnabled: this.smallMapEnabled,
-    }
+      elevationProfile: this.elevationProfile,
+    } as State;
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {
-    if (changes['selected'] || changes['enableShowOnMap'] || changes['hideMenu']) this.changesDetection.detectChanges();
+    if (changes['selected'] || changes['enableShowOnMap'] || changes['hideMenu'] || changes['photoCanBeOnLeft'] || changes['maxWidth']) this.changesDetection.detectChanges();
   }
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
-    this.reset();
+    this.reset(previousState, newState);
     if (!this.trail) {
       this.removeTrackMetadata();
       return;
@@ -211,7 +225,7 @@ export class TrailOverviewComponent extends AbstractComponent {
         let changed = force;
         previousI18nState = i18nState;
         if (track != this.track$.value) {
-          if (this.smallMapEnabled) this.fullTrack = track as Track;
+          if (this.smallMapEnabled || this.elevationProfile) this.fullTrack = track as Track;
           this.track$.next(track);
           changed = true;
         }
@@ -345,10 +359,10 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   private trackData$(trail: Trail, owner: string): Observable<[TrackMetadataSnapshot | Track | undefined, number | undefined]> {
-    if (this.trackSnapshot && this.refreshMode !== 'live' && !this.smallMapEnabled)
+    if (this.trackSnapshot && this.refreshMode !== 'live' && !this.smallMapEnabled && !this.elevationProfile)
       return of([this.trackSnapshot, this.trackSnapshot.startDate]);
     return concat(of([undefined, undefined] as [undefined, undefined]), trail.currentTrackUuid$.pipe(
-      switchMap(uuid => this.refreshMode === 'live' || this.smallMapEnabled ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
+      switchMap(uuid => this.refreshMode === 'live' || this.smallMapEnabled || this.elevationProfile ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
       switchMap(track => {
         if (!track) return of([undefined, undefined] as [undefined, undefined]);
         if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
@@ -369,15 +383,23 @@ export class TrailOverviewComponent extends AbstractComponent {
     return true;
   }
 
-  private reset(): void {
-    this.meta = new Meta();
-    this.track$.next(undefined);
-    this.tagsNames = [];
-    this.photos = [];
-    this.external$.next(undefined);
-    this.publicTrailUuid = undefined;
-    this.trailLink = undefined;
-    this._trackMetadataInitialized = false;
+  private reset(previousState: State | undefined | null, newState: State | undefined | null): void {
+    if (previousState?.trail !== newState?.trail || previousState?.trackSnapshot !== newState?.trackSnapshot) {
+      this.meta = new Meta();
+      this.track$.next(undefined);
+      this._trackMetadataInitialized = false;
+    }
+    if (previousState?.trailTags !== newState?.trailTags) {
+      this.tagsNames = [];
+    }
+    if (previousState?.trail !== newState?.trail) {
+      this.photos = [];
+      this.publicTrailUuid = undefined;
+      this.trailLink = undefined;
+    }
+    if (previousState?.trail !== newState?.trail || previousState?.trailInfo !== newState?.trailInfo) {
+      this.external$.next(undefined);
+    }
     if (!this.delayLoading && !this.load$.value)
       this.load$.next(true);
   }
