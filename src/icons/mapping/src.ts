@@ -114,6 +114,7 @@ export const SRC_ICONS: {[name: string]: string} = {
   'points-distance': 'points-distance.1.svg',
   'positive-elevation': 'positive-elevation.1.svg',
   'privacy': 'eye.1.svg', //eye-outline
+  'privacy-off': 'eye-off.1.svg', // eye-off-outline
   'question': 'question.1.svg', // help-outline
   'radio-group': 'radio-group.1.svg',
   'redo': 'redo.1.svg', // arrow-redo-outline

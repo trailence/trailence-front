@@ -7,14 +7,15 @@ import { FormsModule } from '@angular/forms';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
 import { Console } from 'src/app/utils/console';
 import { CodeInputModule } from 'angular-code-input';
-import { EMAIL_REGEX, StringUtils } from 'src/app/utils/string-utils';
+import { EMAIL_REGEX } from 'src/app/utils/string-utils';
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { PublicPage } from '../public.page';
 import { NgClass } from '@angular/common';
-import { ApiError } from 'src/app/services/http/api-error';
+import { PasswordUtils } from 'src/app/utils/password-utils';
+import { InputPasswordComponent } from 'src/app/components/input-password/input-password.component';
 
 @Component({
   templateUrl: './register.page.html',
@@ -25,6 +26,7 @@ import { ApiError } from 'src/app/services/http/api-error';
     CodeInputModule,
     IonSpinner, IonButton, IonInput, IonItem, IonList, IonCardContent, IonLabel, IonToolbar, IonCard,
     NgClass,
+    InputPasswordComponent,
   ]
 })
 export class RegisterPage extends PublicPage {
@@ -134,7 +136,7 @@ export class RegisterPage extends PublicPage {
   }
 
   isStep1Valid(): boolean {
-    return this.email.length > 0 && EMAIL_REGEX.test(this.email) && StringUtils.isValidPassword(this.password1) && this.password1 == this.password2 && !!this.captchaToken;
+    return this.email.length > 0 && EMAIL_REGEX.test(this.email) && PasswordUtils.isValidPassword(this.password1) && this.password1 == this.password2 && !!this.captchaToken;
   }
 
   validateStep1(): void {
@@ -144,7 +146,7 @@ export class RegisterPage extends PublicPage {
       return;
     }
     if (this.password1.length > 0 && this.password2.length > 0) {
-      if (!StringUtils.isValidPassword(this.password1)) {
+      if (!PasswordUtils.isValidPassword(this.password1)) {
         this.error = this.i18n.texts.errors.password_strength;
         return;
       }

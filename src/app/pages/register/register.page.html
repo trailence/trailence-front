@@ -21,10 +21,14 @@
               <ion-input label="{{i18n.texts.pages.register.email}}" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" autocomplete="username" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
             </ion-item>
             <ion-item>
-              <ion-input label="{{i18n.texts.pages.register.password1}}" labelPlacement="floating" type="password" name="password1" [(ngModel)]="password1" autocomplete="new-password" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
+              <app-input-password>
+                <ion-input label="{{i18n.texts.pages.register.password1}}" labelPlacement="floating" type="password" name="password1" [(ngModel)]="password1" autocomplete="new-password" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
+              </app-input-password>
             </ion-item>
             <ion-item>
-              <ion-input label="{{i18n.texts.pages.register.password2}}" labelPlacement="floating" type="password" name="password2" [(ngModel)]="password2" autocomplete="new-password" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
+              <app-input-password [enableStrength]="false">
+                <ion-input label="{{i18n.texts.pages.register.password2}}" labelPlacement="floating" type="password" name="password2" [(ngModel)]="password2" autocomplete="new-password" [disabled]="inprogress" (ionBlur)="validateStep1()"></ion-input>
+              </app-input-password>
             </ion-item>
           </ion-list>
           <div>

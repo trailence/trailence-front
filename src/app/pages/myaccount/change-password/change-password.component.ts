@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonLabel, IonContent, IonButtons, IonFooter, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
 import { CodeInputModule } from 'angular-code-input';
+import { InputPasswordComponent } from 'src/app/components/input-password/input-password.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { ApiError } from 'src/app/services/http/api-error';
 import { HttpService } from 'src/app/services/http/http.service';
@@ -10,6 +11,7 @@ import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { Console } from 'src/app/utils/console';
+import { PasswordUtils } from 'src/app/utils/password-utils';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -21,6 +23,7 @@ import { environment } from 'src/environments/environment';
     FormsModule,
     CodeInputModule,
     I18nPipe,
+    InputPasswordComponent,
   ]
 })
 export class ChangePasswordComponent {
@@ -52,10 +55,14 @@ export class ChangePasswordComponent {
     if (this.canGoNext() && !this.pending) this.next();
   }
 
+  password1Valid(): boolean {
+    return PasswordUtils.isValidPassword(this.newPassword1);
+  }
+
   canGoNext(): boolean {
     if (this.page === 1) {
       this.passwordsDontMatch = this.newPassword1.length >= 8 && this.newPassword2.length >= 8 && this.newPassword1 !== this.newPassword2;
-      return (!this.hasPreviousPassword || this.previousPassword.length > 0) && this.newPassword1.length >= 8 && this.newPassword1 === this.newPassword2;
+      return (!this.hasPreviousPassword || this.previousPassword.length > 0) && PasswordUtils.isValidPassword(this.newPassword1) && this.newPassword1 === this.newPassword2;
     }
     if (this.page === 2) return this.code.length === 6;
     return false;

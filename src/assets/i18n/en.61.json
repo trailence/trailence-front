@@ -606,7 +606,6 @@
         "error": "An error occurred, please go back and try again",
         "errors": {
           "current_password": "Please enter your current password",
-          "new_password": "Must contain at least 8 characters",
           "passwordsDontMatch": "The 2 passwords don't match",
           "mail_already_sent": "A request was already made for your account less than 10 minutes ago.",
           "mail_error": "An error has occurred, please try again."
@@ -1320,7 +1319,7 @@
     "invalid_format": "Invalid format",
     "search_places": "Error searching places",
     "search_routes": "Error searching circuits",
-    "password_strength": "The password must be at least 8 characters long"
+    "password_strength": "The password is not strong enough"
   },
   "export": {
     "trail": "Track",
@@ -1565,5 +1564,6 @@
       "estimated_duration": "The estimated duration is calculated based on a base speed on flat terrain, then adjusted according to elevation gain, total duration, and taking into account short regular breaks (about 2–3 minutes every hour).<p>By default, the base speed is set to 5 km/h, which corresponds to the average speed of a hiker. You can change this value in your preferences.</p>",
       "breaks": "The break time corresponds to the total duration of <i>long</i> breaks. This time is subtracted from the trail duration. <p>We distinguish between <i>short</i> breaks (to refresh yourself, enjoy the view, etc.) and <i>long</i> breaks (such as a picnic).</p> <p>Short breaks are included in the displayed trail duration, as it’s normal to have brief pauses. However, when a long break is detected, its duration is deducted from the trail time, so the time shown doesn’t depend on how long you napped 😉. The deducted time appears in the <i>Breaks</i> section.</p> <p><i>Long</i> breaks are those lasting at least {{1}} minutes. This threshold can be configured in your preferences.</p>"
     }
-  }
+  },
+  "password_strength": ["Very weak", "Weak", "Insufficient", "Acceptable", "Strong", "Very strong"]
 }

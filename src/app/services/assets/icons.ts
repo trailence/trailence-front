@@ -115,6 +115,7 @@ export const ICONS: string[] = [
   'poi-water',
   'points-distance',
   'positive-elevation',
+  'privacy-off',
   'question',
   'radio-group',
   'redo',

@@ -74,9 +74,4 @@ export class StringUtils {
     return majorVersion * 10000 + minorVersion * 100 + fixVersion;
   }
 
-  public static isValidPassword(password: string): boolean {
-    // TODO
-    return password.length >= 8;
-  }
-
 }
