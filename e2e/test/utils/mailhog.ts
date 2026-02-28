@@ -27,6 +27,7 @@ export class MailHog {
   }
 
   private async refreshMessages() {
+    console.log('refresh mailhog messages');
     if (await $('div.toolbar').$('button[title=Refresh]').isDisplayed()) {
       await $('div.toolbar').$('button[title=Refresh]').click();
       const start = Date.now();
@@ -35,9 +36,11 @@ export class MailHog {
   }
 
   private async getMessageContent(email: string) {
+    console.log('search for mail to ' + email + ' in mailhog');
     for (const msg of await $('div.messages').$$('div.msglist-message').getElements()) {
       for (const div of await msg.$$('div div div').getElements()) {
         const to = (await div.getText()).trim();
+        console.log('mail to: ', to);
         if (to === email) {
           await msg.click();
           const preview = $('div.preview div.tab-content iframe');

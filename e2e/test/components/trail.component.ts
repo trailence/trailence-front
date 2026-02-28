@@ -262,15 +262,23 @@ export class TrailComponent extends Component {
     return new PublicationChecklistModal(await App.waitModal());
   }
 
-  public async publishDraft(message: string) {
-    const details = await (await this.openDetails()).getElement();
-    const alert = await TestUtils.retry(async () => {
-      await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
-      return await App.waitAlert(5000);
+  public async publishDraft(message: string, checkAllCheckList: boolean) {
+    await TestUtils.retry(async () => {
+      if (checkAllCheckList) {
+        const checklist = await this.openPublicationCheckList();
+        await checklist.checkAll();
+        await (await checklist.getFooterButtonWithText('Close')).click();
+        await checklist.waitNotDisplayed();
+      }
+      const details = await (await this.openDetails()).getElement();
+      const alert = await TestUtils.retry(async () => {
+        await new ToolbarComponent(details.$('app-toolbar')).getButtonByIcon('web').click();
+        return await App.waitAlert(5000);
+      }, 2, 100);
+      await alert.setTextareaValue(message);
+      await alert.clickButtonWithRole('confirm');
+      await alert.waitNotDisplayed();
     }, 2, 100);
-    await alert.setTextareaValue(message);
-    await alert.clickButtonWithRole('confirm');
-    await alert.waitNotDisplayed();
   }
 
   public async rejectPublication(message: string) {

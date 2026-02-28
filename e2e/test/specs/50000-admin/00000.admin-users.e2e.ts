@@ -23,7 +23,10 @@ describe('Admin Users', () => {
   });
 
   it('Open myself', async () => {
-    const cell = await TestUtils.retry(() => usersPage.table.searchCellByColumnTitleAndValue('E-Mail', 'user@trailence.org'), 3, 1000);
+    const cell = await TestUtils.retry(() =>
+      usersPage.table.searchCellByColumnTitleAndValue('E-Mail', 'user@trailence.org')
+      .then(c => { if (c) return c; throw new Error('Cell not found for user@trailence.org'); })
+    , 3, 1000);
     expect(cell).toBeDefined();
     if (cell) {
       await cell.click();

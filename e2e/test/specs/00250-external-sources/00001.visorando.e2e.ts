@@ -41,7 +41,8 @@ describe('Import data from Visorando', () => {
     expect(location).toBe(hautMontetLocation);
     const photos = await trailPage.trailComponent.openPhotos();
     const photosInfos = await photos.collectPhotosInfos();
-    expect(photosInfos.has('Station Radar')).toBeTrue();
+    if (!photosInfos.has('Station Radar')) throw new Error('Expected photo not found: ' + photosInfos);
+    if (!photosInfos.has('Prairies et Rocaille')) throw new Error('Expected photo not found: ' + photosInfos);
     await photos.close();
 
     await (await trailPage.header.openActionsMenu()).clickItemWithText('Delete');
@@ -98,6 +99,14 @@ describe('Import data from Visorando', () => {
     try { await App.waitNoProgress(); } catch (e) {}
   });
 
+  it('Wait again again again again for everything to finish', async () => {
+    try { await App.waitNoProgress(); } catch (e) {}
+  });
+
+  it('Wait again again again again again for everything to finish', async () => {
+    try { await App.waitNoProgress(); } catch (e) {}
+  });
+
   it('Remove all imported trails', async () => {
     await App.waitNoProgress();
     await list.selectAllCheckbox.setSelected(true);
@@ -118,7 +127,12 @@ describe('Import data from Visorando', () => {
     expect(await modal.getClipboardMessage()).toBe('No trail found in the clipboard');
 
     await browser.newWindow('https://www.visorando.com/randonnee-le-haut-montet-2/', { type: 'tab' });
-    await browser.waitUntil(() => browser.$('h2=Photos').isExisting());
+    try {
+      await browser.waitUntil(() => browser.$('h2=Photos').isExisting().then(ok => ok ? true : browser.$('h2#photos-gallery').isExisting()));
+    } catch (e) {
+      console.log('visorando html: ' + await browser.getPageSource());
+      throw e;
+    }
     await browser.action('key').down(Key.Ctrl).down('a').up('a').down('c').up('c').up(Key.Ctrl).perform();
     await browser.closeWindow();
     let handles = await browser.getWindowHandles();

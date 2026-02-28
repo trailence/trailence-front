@@ -1,7 +1,5 @@
 import { App } from '../../app/app';
 import { TrailsPage, TrailsPageType } from '../../app/pages/trails-page';
-import { IonicInput } from '../../components/ionic/ion-input';
-import { IonicTextArea } from '../../components/ionic/ion-textarea';
 import { ModerationTranslationsComponent } from '../../components/moderation-translations.component';
 
 describe('Publication - Moderator Accept', () => {

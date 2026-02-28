@@ -19,11 +19,7 @@ describe('Publication - User Publish', () => {
     await messageElement.waitForDisplayed();
     expect(await messageElement.getText()).toBe('Try again please');
     await trailPage.trailComponent.improvePublication();
-    const checklist = await trailPage.trailComponent.openPublicationCheckList();
-    await checklist.checkAll();
-    await (await checklist.getFooterButtonWithText('Close')).click();
-    await checklist.waitNotDisplayed();
-    await trailPage.trailComponent.publishDraft('Please accept');
+    await trailPage.trailComponent.publishDraft('Please accept', true);
   });
 
   it('Synchronize and logout', async () => {

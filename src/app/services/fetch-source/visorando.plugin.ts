@@ -144,13 +144,46 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     // photos
     const photos = doc.querySelectorAll('a.thumbnail img');
     if (photos.length > 0) {
-      result.photos = [];
       for (let i = 0; i < photos.length; ++i) {
         const photo = photos.item(i)! as HTMLImageElement; // NOSONAR
+        let photoUrl = photo.src;
+        if (!photoUrl) continue;
+        if (photoUrl.includes('/thumbnail/t-')) {
+          photoUrl = photoUrl.replace('/thumbnail/t-', '/inter/m-')
+        } else if (photoUrl.includes('/inter/m-')) {
+          // good
+        } else {
+          continue;
+        }
+        if (!result.photos) result.photos = [];
+        Console.info('Photo found from main page', photoUrl, photo.alt);
         result.photos.push({
-          url: photo.src.replace('/thumbnail/t-', '/inter/m-'),
+          url: photoUrl,
           description: photo.alt
         })
+      }
+    }
+    if (!result.photos) {
+      const photos = doc.querySelectorAll('a.root-sheet--photo img');
+      if (photos.length > 0) {
+        for (let i = 0; i < photos.length; ++i) {
+          const photo = photos.item(i)! as HTMLImageElement; // NOSONAR
+          let photoUrl = photo.src;
+          if (!photoUrl) continue;
+          if (photoUrl.includes('/thumbnail/t-')) {
+            photoUrl = photoUrl.replace('/thumbnail/t-', '/inter/m-')
+          } else if (photoUrl.includes('/inter/m-')) {
+            // good
+          } else {
+            continue;
+          }
+          if (!result.photos) result.photos = [];
+          Console.info('Photo found from main page newlook', photoUrl, photo.alt);
+          result.photos.push({
+            url: photoUrl,
+            description: photo.alt
+          })
+        }
       }
     }
 
@@ -165,6 +198,23 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
       if (ratingElement2?.textContent) {
         const v = Number.parseFloat(ratingElement2.textContent);
         if (!Number.isNaN(v) && v >= 0 && v <= 5) result.rating = v;
+      }
+    }
+    if (result.rating === undefined) {
+      const ratingElement3 = doc.querySelectorAll('div.jumbo-3');
+      for (let i = 0; i < ratingElement3.length; ++i) {
+        const div = ratingElement3.item(i)!;
+        const spans = div.querySelectorAll('span');
+        if (spans.length !== 2) continue;
+        const span = spans.item(0);
+        const rate = span?.textContent;
+        if (rate) {
+          const v = Number.parseFloat(rate);
+          if (!Number.isNaN(v) && v >= 0 && v <= 5) {
+            result.rating = v;
+            break;
+          }
+        }
       }
     }
 
@@ -242,12 +292,43 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     }
     if (!url && keyNumber) url = 'https://www.visorando.com/randonnee-' + keyNumber;
     result.externalUrl = url;
-    Console.info('Trail fetch from Visorando', url, result, 'key', keyNumber);
 
-    if (keyNumber.length === 0) return Promise.reject('Cannot find Visorando data on page ' + url);
+    // photos.html
+    return (!url || (result.photos && result.photos.length > 0 && result.photos.length < 3) ? Promise.resolve(true) :
+      globalThis.fetch(url + (url.endsWith('/') ? '' : '/') + 'photos.html')
+      .then(photosResponse => photosResponse.text())
+      .then(text => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "text/html");
+        const photos = doc.querySelectorAll('a.thumbnail img');
+        if (photos.length > 0) {
+          for (let i = 0; i < photos.length; ++i) {
+            const photo = photos.item(i)! as HTMLImageElement; // NOSONAR
+            const photoUrl = photo.src.replace('/thumbnail/t-', '/inter/m-');
+            if (!result.photos) result.photos = [];
+            if (!result.photos.find(p => p.url === photoUrl || p.url.startsWith(photoUrl) || photoUrl.startsWith(p.url))) {
+              Console.info('Photo found from photos.html', photoUrl, photo.alt);
+              result.photos.push({
+                url: photoUrl,
+                description: photo.alt
+              });
+            }
+          }
+        }
+      })
+      .catch(e => {
+        Console.warn('Error fetching photos from visorando ' + url, e);
+        return true;
+      })
+    )
+    .then(() => {
+      Console.info('Trail fetch from Visorando', url, result, 'key', keyNumber);
 
-    this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()});
-    return Promise.resolve(result);
+      if (keyNumber.length === 0) throw 'Cannot find Visorando data on page ' + url;
+
+      this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()});
+      return result;
+    });
   }
 
   private sanitize(content: string | null | undefined): string | null {

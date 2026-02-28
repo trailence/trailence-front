@@ -25,11 +25,7 @@ describe('Publication - User Publish', () => {
     await trailPage.trailComponent.setDescription('A trail to publish to test everything is working, but unfortunately it will be rejected the first time, then accepted.')
     await trailPage.trailComponent.setLocation();
     await trailPage.trailComponent.setActivity('hiking');
-    const checklist = await trailPage.trailComponent.openPublicationCheckList();
-    await checklist.checkAll();
-    await (await checklist.getFooterButtonWithText('Close')).click();
-    await checklist.waitNotDisplayed();
-    await trailPage.trailComponent.publishDraft('Hello');
+    await trailPage.trailComponent.publishDraft('Hello', true);
   });
 
   it('Synchronize and logout', async () => {
