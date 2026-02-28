@@ -1,4 +1,4 @@
-import { BehaviorSubject, combineLatest, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, of, Subscription, switchMap } from 'rxjs';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
 import { Track } from 'src/app/model/track';
 import { MapComponent } from '../map/map.component';
@@ -21,13 +21,13 @@ export class TrailSelection {
     public readonly graph$: BehaviorSubject<TrailGraphComponent | undefined>,
   ) {
     this._mapClickSubscription = map$.pipe(
-      switchMap(map => map?.mouseClickPoint ?? of(undefined))
+      switchMap(map => map?.mouseClickPoint ?? EMPTY)
     ).subscribe(click => this.mapClick(click));
     this._elevationGraphClickSubscription = graph$.pipe(
-      switchMap(graph => graph?.pointClick ?? of(undefined))
+      switchMap(graph => graph?.pointClick ?? EMPTY)
     ).subscribe(click => this.graphClick(click));
     this._elevationGraphSelectedSubscription = graph$.pipe(
-      switchMap(graph => graph?.selected ?? of(undefined))
+      switchMap(graph => graph?.selected ?? EMPTY)
     ).subscribe(range => this.graphRange(range));
     this._mapAnchorSubscription = combineLatest([map$, this.selection$])
     .subscribe(([map, sel]) => {
@@ -251,9 +251,9 @@ export class TrailSelection {
   }
 
 
-  private mapClick(event: MapTrackPointReference[] | undefined): void {
-    if (event) event = event.filter(e => !e.track.ignoreCursorHover);
-    if (!event || event.length === 0) {
+  private mapClick(event: MapTrackPointReference[]): void {
+    event = event.filter(e => !e.track.ignoreCursorHover);
+    if (event.length === 0) {
       this.cancelSelection();
       return;
     }
@@ -269,8 +269,8 @@ export class TrailSelection {
     this.selectPoint(newSelection);
   }
 
-  private graphClick(event: GraphPointReference[] | undefined): void {
-    if (!event || event.length === 0) {
+  private graphClick(event: GraphPointReference[]): void {
+    if (event.length === 0) {
       this.cancelSelection();
       return;
     }
