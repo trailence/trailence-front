@@ -45,7 +45,7 @@ async function generateCommandLines() {
       password = admin_password;
     } else {
       username = 'user_' + (user_index++) + '_' + Date.now() + '@trailence.org';
-      password = '' + Date.now();
+      password = 'Pass;' + Date.now() + '#M0';
       if (!token) token = await create_user.loginAsAdmin(admin_username, admin_password);
       await create_user.createUser(token, username, password);
       if (test.roles.length > 0)

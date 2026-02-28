@@ -12,7 +12,7 @@ describe('Reset password', () => {
   it('Login with new password', async () => {
     App.init();
     const loginPage = await App.start();
-    trailsPage = await loginPage.loginAndWaitMyTrailsCollection(App.config.username, 'myNewPassword');
+    trailsPage = await loginPage.loginAndWaitMyTrailsCollection(App.config.username, 'myNew0Password;1');
   });
 
   let accountPage: MyAccountPage;
@@ -25,7 +25,7 @@ describe('Reset password', () => {
     await browser.waitUntil(() => accountPage.changePasswordButton.isDisplayed());
     await accountPage.changePasswordButton.click();
     const modal = new ChangePasswordModal(await App.waitModal());
-    await modal.currentPasswordInput.setValue('myNewPassword');
+    await modal.currentPasswordInput.setValue('myNew0Password;1');
     await modal.newPasswordInput.setValue(App.config.password);
     await modal.newPassword2Input.setValue(App.config.password);
     const continueButton = await modal.getFooterButtonWithText('Continue');
@@ -49,7 +49,7 @@ describe('Reset password', () => {
   it('Reset password', async () => {
     await accountPage.changePasswordButton.click();
     const modal = new ChangePasswordModal(await App.waitModal());
-    await modal.currentPasswordInput.setValue('myNewPassword');
+    await modal.currentPasswordInput.setValue('myNew0Password;1');
     await modal.newPasswordInput.setValue(App.config.password);
     await modal.newPassword2Input.setValue(App.config.password);
     const continueButton = await modal.getFooterButtonWithText('Continue');

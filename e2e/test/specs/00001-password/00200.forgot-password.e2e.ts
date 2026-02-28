@@ -23,8 +23,8 @@ describe('Forgot password', () => {
     const modal = new ForgotPasswordModal(await App.waitModal());
     await modal.emailInput.waitDisplayed();
     expect(await modal.emailInput.getValue()).toBe(App.config.username);
-    await modal.newPasswordInput.setValue('myNewPassword');
-    await modal.newPassword2Input.setValue('myNewPassword');
+    await modal.newPasswordInput.setValue('myNew0Password;1');
+    await modal.newPassword2Input.setValue('myNew0Password;1');
     const continueButton = await modal.getFooterButtonWithText('Continue');
     await continueButton.click();
     await browser.waitUntil(() => modal.codeInput.getElement().isDisplayed());
