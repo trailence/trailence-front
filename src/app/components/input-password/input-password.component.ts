@@ -49,7 +49,6 @@ export class InputPasswordComponent implements OnDestroy {
     } else if (this.complexity >= COMPLEXITY_LEVELS[4]) {
       this.strengthColor = '#00FF00';
     } else {
-      '#00FF00'
       this.strengthColor = 'rgb(' + (255 - (this.complexity - MIN_COMPLEXITY) * 12) + ',255,0)';
     }
     if (this.complexity > COMPLEXITY_LEVELS[4])

@@ -244,16 +244,16 @@ export class TrailsListComponent extends AbstractComponent {
         }
         if (changed)
           this.state$.next({...this.state$.value, filters: {...this.state$.value.filters}});
-        if (currentLang !== prefs.lang) {
+        if (currentLang === prefs.lang) {
+          this.filtersToolbar = [...this.filtersToolbar];
+          this.changesDetection.detectChanges();
+        } else {
           currentLang = prefs.lang;
           i18n.langLoaded$.pipe(first(l => l === currentLang)).subscribe(() => {
             this.toolbar = [...this.toolbar];
             this.filtersToolbar = [...this.filtersToolbar];
             this.changesDetection.detectChanges();
           });
-        } else {
-          this.filtersToolbar = [...this.filtersToolbar];
-          this.changesDetection.detectChanges();
         }
       }));
       this.state$.pipe(
@@ -462,7 +462,7 @@ export class TrailsListComponent extends AbstractComponent {
       new MenuItem().setIcon('search').setI18nLabel('tools.search_text')
         .setDisabled(() => trails.length === 0 && this.listType !== 'search')
         .setBackgroundColor(() => this.searchOpen ? 'light' : '')
-        .setTextColor(() => !!this.filters$.value?.search?.length ? 'secondary' : '')
+        .setTextColor(() => this.filters$.value?.search?.length ? 'secondary' : '')
         .setAction(() => {
           if (this.searchOpen) {
             this.clearSearch();

@@ -52,7 +52,7 @@ async function generateWaypoint(ctx: PdfContext, waypoint: ComputedWayPoint, nam
     waypoint.isDeparture ? ctx.i18n.texts.way_points.D : waypoint.isArrival ? ctx.i18n.texts.way_points.A : '' + waypoint.index,
     waypoint.isDeparture ? anchorDepartureTextColor : anchorTextColor,
     waypoint.isDeparture ? anchorDepartureFillColor : anchorFillColor,
-    undefined);
+  );
   ctx.doc.y = y;
   let nextPageCalled = false;
   const originalHoriz = horiz;

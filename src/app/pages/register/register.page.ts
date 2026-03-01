@@ -67,7 +67,7 @@ export class RegisterPage extends PublicPage {
   onSubmit(): void {
     if (this.inprogress) return;
     switch (this.step) {
-      case 1:
+      case 1: {
         if (!this.isStep1Valid()) return;
         this.inprogress = true;
         this.error = undefined;
@@ -90,6 +90,7 @@ export class RegisterPage extends PublicPage {
           },
         });
         break;
+      }
       case 2:
         this.inprogress = true;
         this.error = undefined;

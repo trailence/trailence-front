@@ -32,11 +32,11 @@
   <ion-toolbar color="footer">
     <ion-buttons slot="end">
       @if (blob && (isNewBlob || publicUpdated || blobUpdated)) {
-        <ion-button (click)="close(true)" [disabled]="saving">
+        <ion-button (click)="save()" [disabled]="saving">
           {{i18n.texts.buttons.save}}
         </ion-button>
       }
-      <ion-button (click)="close(false)" [disabled]="saving">
+      <ion-button (click)="close()" [disabled]="saving">
         {{i18n.texts.buttons.cancel}}
       </ion-button>
     </ion-buttons>

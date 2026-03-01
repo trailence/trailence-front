@@ -352,7 +352,7 @@ export class FetchSourceService {
   public getTrailsInfos$(ids: {owner: string, uuid: string}[]): Observable<{owner: string, uuid: string, info: TrailInfo}[]> {
     if (ids.length === 0) return of([]);
     const owners: string[] = [];
-    for (const id of ids) if (owners.indexOf(id.owner) < 0) owners.push(id.owner);
+    for (const id of ids) if (!owners.includes(id.owner)) owners.push(id.owner);
     if (owners.length === 1) return this.getTrailsInfo$(owners[0], ids.map(i => i.uuid)).pipe(map(l => l.map(e => ({owner: owners[0], ...e}))));
     return combineLatest(owners.map(owner => {
       const uuids: string[] = [];

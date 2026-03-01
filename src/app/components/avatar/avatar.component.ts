@@ -1,5 +1,4 @@
-import { Component, ElementRef, Injector, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Component, ElementRef, Injector, Input } from '@angular/core';
 import { AvatarService } from 'src/app/services/avatar/avatar.service';
 import { AbstractComponent } from 'src/app/utils/component-utils';
 

@@ -34,6 +34,7 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { Console } from 'src/app/utils/console';
 import { SimplifiedTrackSnapshot } from 'src/app/model/snapshots';
 import { AdditionsTool } from './tools/additions-tool';
+import { BoundsBuilder } from 'src/app/utils/leaflet-utils';
 
 const LOCALSTORAGE_KEY_MAPSTATE = 'trailence.map-state.';
 
@@ -327,43 +328,30 @@ export class MapComponent extends AbstractComponent {
   }
 
   private fitTracksBounds(map: L.Map, tracks: MapTrack[], padding: number = 0.05): void {
-    let bounds;
-    for (const t of tracks) {
-      if (bounds) {
-        const tb = t.bounds;
-        if (tb) {
-          bounds.extend(tb);
-        }
-      } else {
-        bounds = t.bounds;
-      }
-    }
-    if (bounds) {
-      bounds = bounds.pad(padding);
-      map.fitBounds(bounds);
-      this._initZoomTimestamp = 1;
-    }
+    const boundsBuilder = new BoundsBuilder();
+    for (const t of tracks) boundsBuilder.extend(t.bounds);
+    boundsBuilder.pad(padding);
+    this.fit(map, boundsBuilder);
   }
 
   private fitTracksBubbles(map: L.Map, bubbles: MapBubble[], padding: number = 0.05): void {
-    let bounds;
-    for (const t of bubbles) {
-      if (bounds) {
-        bounds.extend(t.associatedBounds);
-      } else {
-        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
-      }
-    }
+    const boundsBuilder = new BoundsBuilder();
+    for (const t of bubbles) boundsBuilder.extend(t.associatedBounds);
+    boundsBuilder.pad(padding);
+    this.fit(map, boundsBuilder);
+  }
+
+  private fit(map: L.Map, boundsBuilder: BoundsBuilder) {
+    const bounds = boundsBuilder.getBounds();
     if (bounds) {
-      bounds = bounds.pad(padding);
       map.fitBounds(bounds);
       this._initZoomTimestamp = 1;
     }
   }
 
-  private _fitBoundsProviders: (() => L.LatLngBounds | undefined)[] = [];
+  private readonly _fitBoundsProviders: (() => L.LatLngBounds | undefined)[] = [];
   public addFitBoundsProvider(provider: () => L.LatLngBounds | undefined): void {
-    if (this._fitBoundsProviders.indexOf(provider) < 0)
+    if (!this._fitBoundsProviders.includes(provider))
       this._fitBoundsProviders.push(provider);
     this.refreshTools();
   }
@@ -374,35 +362,12 @@ export class MapComponent extends AbstractComponent {
   }
 
   fitMapBounds(map: L.Map): void {
-    let bounds;
-    for (const t of this._currentTracks) {
-      if (bounds) {
-        const tb = t.bounds;
-        if (tb) {
-          bounds.extend(tb);
-        }
-      } else {
-        bounds = t.bounds;
-      }
-    }
-    for (const t of this._currentBubbles) {
-      if (bounds) {
-        bounds.extend(L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast()));
-      } else {
-        bounds = L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast());
-      }
-    }
-    for (const provider of this._fitBoundsProviders) {
-      const b = provider();
-      if (!b) continue;
-      if (bounds) bounds.extend(b);
-      else bounds = b;
-    }
-    if (bounds) {
-      bounds = bounds.pad(0.05);
-      map.fitBounds(bounds);
-      this._initZoomTimestamp = 1;
-    }
+    const boundsBuilder = new BoundsBuilder();
+    for (const t of this._currentTracks) boundsBuilder.extend(t.bounds);
+    for (const t of this._currentBubbles) boundsBuilder.extend(L.latLngBounds(t.associatedBounds.getSouthWest(), t.associatedBounds.getNorthEast()));
+    for (const provider of this._fitBoundsProviders) boundsBuilder.extend(provider());
+    boundsBuilder.pad(0.05);
+    this.fit(map, boundsBuilder);
   }
 
   public canFitMapBounds(): boolean {

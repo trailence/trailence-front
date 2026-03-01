@@ -176,7 +176,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
           if (this.refreshAfter !== undefined && Date.now() - k.fetchDate > this.refreshAfter)
             toRefresh.push(uuids[i]);
           else
-            result.push({uuid: uuids[i], info: known[i]!!.info});
+            result.push({uuid: uuids[i], info: k.info});
         } else {
           unknown.push(uuids[i]);
         }
@@ -186,7 +186,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
       .then(fromFetch => {
         for (const uuid of toRefresh) {
           const fr = fromFetch.find(f => f.uuid === uuid);
-          if (fr) result.push(fr); else result.push({uuid, info: known[uuids.indexOf(uuid)]!!.info});
+          if (fr) result.push(fr); else result.push({uuid, info: known[uuids.indexOf(uuid)]!.info});
         }
         for (const uuid of unknown) {
           const fr = fromFetch.find(f => f.uuid === uuid);
@@ -205,7 +205,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     return Promise.all(uuids.map(uuid => this.fetchInfoById(uuid).catch(e => null)))
     .then(byId => {
       const result: {uuid: string, info: TrailInfo}[] = [];
-      for (let i = 0; i < uuids.length; ++i) if (byId[i]) result.push({uuid: uuids[i], info: byId[i]!!});
+      for (let i = 0; i < uuids.length; ++i) if (byId[i]) result.push({uuid: uuids[i], info: byId[i]!});
       return result;
     });
   }

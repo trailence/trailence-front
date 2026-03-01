@@ -179,12 +179,12 @@ export class AddOsmPath extends AddPointsTool {
     let fromIndex = 0;
     let toIndex = 0;
     let distance = -1;
-    for (let fi = 0; fi < fromIndexes.length; ++fi) {
-      for (let ti = 0; ti < toIndexes.length; ++ti) {
-        const d = TrackUtils.distanceBetweenLatLng(way, Math.min(fromIndexes[fi], toIndexes[ti]), Math.max(fromIndexes[fi], toIndexes[ti]));
+    for (const fromI of fromIndexes) {
+      for (const toI of toIndexes) {
+        const d = TrackUtils.distanceBetweenLatLng(way, Math.min(fromI, toI), Math.max(fromI, toI));
         if (distance === -1 || d < distance) {
-          fromIndex = fromIndexes[fi];
-          toIndex = toIndexes[ti];
+          fromIndex = fromI;
+          toIndex = toI;
           distance = d;
         }
       }

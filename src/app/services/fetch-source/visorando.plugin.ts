@@ -155,7 +155,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
         } else {
           continue;
         }
-        if (!result.photos) result.photos = [];
+        result.photos ??= [];
         Console.info('Photo found from main page', photoUrl, photo.alt);
         result.photos.push({
           url: photoUrl,
@@ -177,7 +177,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
           } else {
             continue;
           }
-          if (!result.photos) result.photos = [];
+          result.photos ??= [];
           Console.info('Photo found from main page newlook', photoUrl, photo.alt);
           result.photos.push({
             url: photoUrl,
@@ -203,7 +203,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     if (result.rating === undefined) {
       const ratingElement3 = doc.querySelectorAll('div.jumbo-3');
       for (let i = 0; i < ratingElement3.length; ++i) {
-        const div = ratingElement3.item(i)!;
+        const div = ratingElement3.item(i);
         const spans = div.querySelectorAll('span');
         if (spans.length !== 2) continue;
         const span = spans.item(0);
@@ -305,8 +305,8 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
           for (let i = 0; i < photos.length; ++i) {
             const photo = photos.item(i)! as HTMLImageElement; // NOSONAR
             const photoUrl = photo.src.replace('/thumbnail/t-', '/inter/m-');
-            if (!result.photos) result.photos = [];
-            if (!result.photos.find(p => p.url === photoUrl || p.url.startsWith(photoUrl) || photoUrl.startsWith(p.url))) {
+            result.photos ??= [];
+            if (!result.photos.some(p => p.url === photoUrl || p.url.startsWith(photoUrl) || photoUrl.startsWith(p.url))) {
               Console.info('Photo found from photos.html', photoUrl, photo.alt);
               result.photos.push({
                 url: photoUrl,
@@ -324,7 +324,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     .then(() => {
       Console.info('Trail fetch from Visorando', url, result, 'key', keyNumber);
 
-      if (keyNumber.length === 0) throw 'Cannot find Visorando data on page ' + url;
+      if (keyNumber.length === 0) throw new Error('Cannot find Visorando data on page ' + url);
 
       this.tableInfos.put({info: result, keyNumber, keyGpx, url: url ?? '', fetchDate: Date.now()});
       return result;

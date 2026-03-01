@@ -33,7 +33,7 @@ export class AvatarService {
     this._myDto$.pipe(
       switchMap(dto => {
         Console.info('Avatar info', dto);
-        if (!dto || !dto.hasAvatar) return of({letter: this.getMyLetter()} as AvatarToGenerate);
+        if (!dto?.hasAvatar) return of({letter: this.getMyLetter()} as AvatarToGenerate);
         return this.getAvatarToGenerate('mine*' + this.authService.email, '/current');
       })
     ).subscribe(avatar => {

@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge } from '@ionic/angular/standalone';
-import { combineLatest, distinctUntilChanged, map, switchMap } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { AvatarService } from 'src/app/services/avatar/avatar.service';
-import { BrowserService } from 'src/app/services/browser/browser.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';

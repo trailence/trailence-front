@@ -52,14 +52,14 @@ export class TrailsWaypoints {
   }
 
   public updateShowBreaks(): void {
-    if (!this.canShowBreaksOnMap()) {
-      for (const mt of this._mapTracks) mt.showBreaksAnchors(undefined);
-    } else {
+    if (this.canShowBreaksOnMap()) {
       const multiple = this.trails.filter(t => t.showBreaks).length > 1;
       for (const mt of this._mapTracks) {
         const t = this.trails.find(twp => twp.trail.owner === mt.trail?.owner && twp.trail.uuid === mt.trail?.uuid);
         if (t) mt.showBreaksAnchors(t.showBreaks ? (multiple ? 'colored' : 'normal') : undefined);
       }
+    } else {
+      for (const mt of this._mapTracks) mt.showBreaksAnchors(undefined);
     }
     this.changes$.next(true);
   }
@@ -107,7 +107,7 @@ export class TrailsWaypoints {
   public get highlightedWayPointFromClick() { return this._highlightedWayPointFromClick; }
 
   highlightWayPoint(wp: ComputedWayPoint, click: boolean): void {
-    const trail = this.trails.find(t => !!t.wayPoints.find(w => w.computed === wp));
+    const trail = this.trails.find(t => t.wayPoints.some(w => w.computed === wp));
     if (click) this.waypointClick(wp, trail);
 
     if (this._highlightedWayPoint === wp) {
@@ -148,7 +148,7 @@ export class TrailsWaypoints {
       this._highlightedWayPointFromClick = false;
       if (this.selection.selectedWayPoint$.value === wp.wayPoint)
         this.selection.selectedWayPoint$.next(undefined);
-      const trail = this.trails.find(t => !!t.wayPoints.find(w => w.computed === wp));
+      const trail = this.trails.find(t => t.wayPoints.some(w => w.computed === wp));
       if (trail) {
         const mapTrack = this._mapTracks.find(mt => mt.track === trail.track);
         mapTrack?.unhighlightWayPoint(wp);

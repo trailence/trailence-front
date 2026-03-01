@@ -561,12 +561,7 @@ export class TrailsPage extends AbstractPage {
         if (searchCount !== count) return;
         this.bubbles$.next(result.trailsByTile.map(r => this.searchBubbleResultToMapBubble(r, zoom)));
         Console.info('Search bubbles found', result.trailsByTile.length);
-        if (!result.uuids?.length) {
-          this.trails$.next(List());
-          this.searching = false;
-          this.hasSearchResult = result.trailsByTile.length > 0;
-          this.setSearchBounds(bounds, zoom, true);
-        } else {
+        if (result.uuids?.length) {
           plugin!!.getTrails(result.uuids)
           .catch(e => {
             Console.error('Get trails by uuids error', e);
@@ -579,6 +574,11 @@ export class TrailsPage extends AbstractPage {
             this.setSearchBounds(bounds, zoom, true);
             this.bubblesToolAvailable$.next(true);
           });
+        } else {
+          this.trails$.next(List());
+          this.searching = false;
+          this.hasSearchResult = result.trailsByTile.length > 0;
+          this.setSearchBounds(bounds, zoom, true);
         }
       });
     });

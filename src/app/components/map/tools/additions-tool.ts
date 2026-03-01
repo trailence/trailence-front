@@ -38,7 +38,7 @@ export class AdditionsTool extends MapTool {
           text: '' + count,
         }
       } as BadgesConfig;
-    },
+    };
     this.spinner = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       return this._loading ? 'crescent' : undefined;
     };
@@ -131,7 +131,7 @@ export class AdditionsTool extends MapTool {
       for (const way of additions.ways) {
         this._layers.push(this.wayToPath(way));
       }
-      for (const layer of this._layers) layer.addTo(map!);
+      for (const layer of this._layers) layer.addTo(map!); // NOSONAR
       this._loading = false;
       mapComponent.refreshTools();
     });

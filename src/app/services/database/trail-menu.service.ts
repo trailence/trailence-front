@@ -5,7 +5,7 @@ import { ModalController, AlertController, Platform } from '@ionic/angular/stand
 import { TrailCollection } from 'src/app/model/trail-collection';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
-import { combineLatest, filter, first, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, first, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
 import { TrailCollectionService } from './trail-collection.service';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { isPublicationCollection, isPublicationLockedCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
@@ -93,11 +93,6 @@ export class TrailMenuService {
         if (!isPublicationCollection(fromCollection?.type) && !isModeration) {
           menu.push(new MenuItem().setIcon('tags').setI18nLabel('pages.trails.tags.menu_item')
             .setAction(() => import('../../components/tags/tags.component').then(m => m.openTagsDialog(this.injector, trails, collectionUuid))));
-          if (trails.length === 1 &&
-            !this.injector.get(MyPublicTrailsService).myPublicTrails$.value.some(p => p.privateUuid === trails[0].uuid) &&
-            !this.injector.get(TrailService).getAllNow().some(t => t.publishedFromUuid === trails[0].uuid)
-          ) {
-          }
         }
       }
     }
@@ -193,12 +188,12 @@ export class TrailMenuService {
         }
         return false;
       };
-      menu.push(new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
+      menu.push(
+        new MenuItem().setIcon('star-filled').setI18nLabel('pages.trails.actions.add_to_my_selection')
         .setTextColor('my-selection')
         .setVisible(() => hasAbsent())
-        .setAction(() => this.addToMySelection(trails))
-      );
-      menu.push(new MenuItem().setIcon('star-empty').setI18nLabel('pages.trails.actions.remove_from_my_selection')
+        .setAction(() => this.addToMySelection(trails)),
+        new MenuItem().setIcon('star-empty').setI18nLabel('pages.trails.actions.remove_from_my_selection')
         .setTextColor('my-selection')
         .setVisible(() => hasPresent())
         .setAction(() => this.removeFromMySelection(trails))

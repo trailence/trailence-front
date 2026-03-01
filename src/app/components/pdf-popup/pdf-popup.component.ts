@@ -155,7 +155,7 @@ export class PdfPopup implements OnInit, OnDestroy {
       localStorage.setItem(KEY_LOCAL_STORAGE, JSON.stringify({
         ...this.options,
         mapLayer: this.options.mapLayer.name,
-        qrCode: this.options.qrCode ? true : false,
+        qrCode: !!this.options.qrCode,
       }))
       this.generate();
     }
@@ -258,11 +258,11 @@ export class PdfPopup implements OnInit, OnDestroy {
     PdfGenerator.loadCss('/pdf-viewer/pdf_viewer.css');
     await PdfGenerator.loadJs('pdf.min.mjs', 'module');
     progress(85);
-    (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = environment.assetsUrl + '/pdf.worker.min.mjs';
+    (globalThis as any).pdfjsLib.GlobalWorkerOptions.workerSrc = environment.assetsUrl + '/pdf.worker.min.mjs';
     await PdfGenerator.loadJs('pdf-viewer/pdf_viewer.mjs', 'module');
     progress(90);
     if (counter !== this.generationCounter) return;
-    this.pdfTask = (window as any).pdfjsLib.getDocument(this.pdfUrl);
+    this.pdfTask = (globalThis as any).pdfjsLib.getDocument(this.pdfUrl);
     progress(95);
     const pdf = await this.pdfTask.promise;
     if (counter !== this.generationCounter) return;
@@ -285,9 +285,9 @@ export class PdfPopup implements OnInit, OnDestroy {
       setTimeout(() => this.displayPreview(pdf, counter), 0);
       return;
     }
-    const viewer = new (window as any).pdfjsViewer.PDFViewer({
+    const viewer = new (globalThis as any).pdfjsViewer.PDFViewer({
       container,
-      eventBus: new (window as any).pdfjsViewer.EventBus(),
+      eventBus: new (globalThis as any).pdfjsViewer.EventBus(),
     });
     viewer.setDocument(pdf);
     if (viewer.pagesCount === 0)

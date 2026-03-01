@@ -13,7 +13,7 @@ import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
 import { ErrorService } from '../progress/error.service';
 import { I18nError, TranslatedString } from '../i18n/i18n-string';
 import { Console } from 'src/app/utils/console';
-import { GeoService, OverpassElement, OverpassResponse, POI } from '../geolocation/geo.service';
+import { GeoService, OverpassResponse, POI } from '../geolocation/geo.service';
 import { Way, WayPermission } from '../geolocation/way';
 import { OverpassClient } from '../geolocation/overpass-client.service';
 
@@ -85,12 +85,13 @@ export class OfflineMapService {
   }
 
   public getAdditions(bounds: L.LatLngBounds, guidepost: boolean, water: boolean, toilets: boolean, forbiddenWays: boolean, permissiveWays: boolean): Observable<{pois: POI[], ways: Way[]}> {
-    const fromCache: Observable<{pois: POI[], ways: Way[]} | undefined>[] = [];
-    fromCache.push(guidepost ? this.getOverpassElementsFromCache(bounds, 'osm_guidepost') : of(undefined));
-    fromCache.push(water ? this.getOverpassElementsFromCache(bounds, 'osm_water') : of(undefined));
-    fromCache.push(toilets ? this.getOverpassElementsFromCache(bounds, 'osm_toilets') : of(undefined));
-    fromCache.push(forbiddenWays ? this.getOverpassElementsFromCache(bounds, 'osm_forbidden_ways') : of(undefined));
-    fromCache.push(permissiveWays ? this.getOverpassElementsFromCache(bounds, 'osm_permissive_ways') : of(undefined));
+    const fromCache: Observable<{pois: POI[], ways: Way[]} | undefined>[] = [
+      guidepost ? this.getOverpassElementsFromCache(bounds, 'osm_guidepost') : of(undefined),
+      water ? this.getOverpassElementsFromCache(bounds, 'osm_water') : of(undefined),
+      toilets ? this.getOverpassElementsFromCache(bounds, 'osm_toilets') : of(undefined),
+      forbiddenWays ? this.getOverpassElementsFromCache(bounds, 'osm_forbidden_ways') : of(undefined),
+      permissiveWays ? this.getOverpassElementsFromCache(bounds, 'osm_permissive_ways') : of(undefined),
+    ];
     return forkJoin(fromCache).pipe(
       switchMap(cachedResult => {
         return this.getOverpassElementsFromOsm(

@@ -167,7 +167,7 @@ export class MenuComponent implements OnInit {
     });
     liveGroupService.groups$
     .pipe(
-      switchMap(groups => !groups?.length ? of({groups: [], paused: false}) : this.liveGroupService.paused$.pipe(map(paused => ({groups, paused}))))
+      switchMap(groups => groups?.length ? this.liveGroupService.paused$.pipe(map(paused => ({groups, paused}))) : of({groups: [], paused: false}))
     )
     .subscribe(result => {
       this.liveGroups = result.groups;

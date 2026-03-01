@@ -16,7 +16,6 @@ import { List } from 'immutable';
 import { BrowserService } from 'src/app/services/browser/browser.service';
 import * as L from 'leaflet';
 import { MapBubble } from '../map/bubble/map-bubble';
-import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { SearchPlaceComponent } from '../search-place/search-place.component';
 import { Place } from 'src/app/services/geolocation/place';

@@ -128,7 +128,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
   historyBack: Blob[] = [];
   private historyForward: Blob[] = [];
 
-  private urlCreator = globalThis.URL || globalThis.webkitURL;
+  private readonly urlCreator = globalThis.URL || globalThis.webkitURL;
 
   private refresh(): void {
     this.toolbarItemsShown = this.tool?.toolbarItems ? [...this.tool.toolbarItems] : [...this.toolbarItems];
@@ -145,7 +145,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
 
   private undo(): void {
     if (this.historyBack.length === 0) return;
-    const newBlob = this.historyBack.splice(this.historyBack.length - 1, 1)[0];
+    const newBlob = this.historyBack.splice(-1, 1)[0];
     this.historyForward.push(this.blob!);
     this.updateFromBlob(newBlob);
     this.blobChange.emit({blob: newBlob, changed: this.historyBack.length > 0});
@@ -153,7 +153,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
 
   private redo(): void {
     if (this.historyForward.length === 0) return;
-    const newBlob = this.historyForward.splice(this.historyForward.length - 1, 1)[0];
+    const newBlob = this.historyForward.splice(-1, 1)[0];
     this.historyBack.push(this.blob!);
     this.updateFromBlob(newBlob);
     this.blobChange.emit({blob: newBlob, changed: this.historyBack.length > 0});
@@ -297,13 +297,13 @@ export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
 
   private startCrop(): void {
     this.tool = new CropTool(this, 0, 0, this.photoImage!.naturalWidth - 1, this.photoImage!.naturalHeight - 1, 0, this.photoImage!.naturalWidth - 1, 0, this.photoImage!.naturalHeight - 1);
-    this.tool!.refresh();
+    this.tool.refresh();
     this.refresh();
   }
 
   private startBlur(): void {
     this.tool = new BlurTool(this, 0, 0, this.photoImage!.naturalWidth - 1, this.photoImage!.naturalHeight - 1, 0, this.photoImage!.naturalWidth - 1, 0, this.photoImage!.naturalHeight - 1);
-    this.tool!.refresh();
+    this.tool.refresh();
     this.refresh();
   }
 
@@ -315,7 +315,7 @@ export class PhotoEditorComponent implements OnInit, OnDestroy, OnChanges {
   setBlurValue(value: any): void {
     if (!value || this.tool?.name !== 'blur') return;
     (this.tool as BlurTool).blur = value as number;
-    this.tool!.refresh();
+    this.tool.refresh();
   }
 
   cancelTool(): void {

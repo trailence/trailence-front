@@ -22,7 +22,7 @@ export async function generatePdfMap(ctx: PdfContext, x: number, y: number, widt
         .replace('{x}', '' + tileX)
         .replace('{s}', 'a');
       try {
-        const image = await window.fetch(url).then(r => r.arrayBuffer());
+        const image = await globalThis.fetch(url).then(r => r.arrayBuffer());
         ctx.doc.image(
           image,
           x + (MapGenerator.tileSize * (tileX - mapBounds.leftTile) + mapBounds.leftDiff) / ratio,
@@ -66,19 +66,19 @@ export async function generatePdfMap(ctx: PdfContext, x: number, y: number, widt
     if (departure.isArrival || (arrival && L.latLng(departure.wayPoint.point.pos).distanceTo(arrival.wayPoint.point.pos) <= 100)) {
       svg = MapAnchor.createSvg(anchorDABorderColor, ctx.i18n.texts.way_points.DA, anchorDATextColor, anchorDepartureFillColor, anchorArrivalFillColor);
     } else {
-      svg = MapAnchor.createSvg(anchorDepartureBorderColor, ctx.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor, undefined);
+      svg = MapAnchor.createSvg(anchorDepartureBorderColor, ctx.i18n.texts.way_points.D, anchorDepartureTextColor, anchorDepartureFillColor);
     }
     addSvgToPdf(ctx, svg, x + pos.x / ratio - anchorSize / 2, y + pos.y / ratio - anchorSize, anchorSize, anchorSize);
   }
   if (arrival && !arrival.isDeparture && (!departure || L.latLng(departure.wayPoint.point.pos).distanceTo(arrival.wayPoint.point.pos) > 100)) {
-    const svg = MapAnchor.createSvg(anchorArrivalBorderColor, ctx.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor, undefined);
+    const svg = MapAnchor.createSvg(anchorArrivalBorderColor, ctx.i18n.texts.way_points.A, anchorArrivalTextColor, anchorArrivalFillColor);
     const pos = pathPt(arrival.wayPoint.point.pos);
     addSvgToPdf(ctx, svg, x + pos.x / ratio - anchorSize / 2, y + pos.y / ratio - anchorSize, anchorSize, anchorSize);
   }
   if (includeWaypoints) {
     for (const wp of ctx.wayPoints) {
       if (wp.isDeparture || wp.isArrival || wp.breakPoint) continue;
-      const svg = MapAnchor.createSvg(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor, undefined);
+      const svg = MapAnchor.createSvg(anchorBorderColor, '' + wp.index, anchorTextColor, anchorFillColor);
       const pos = pathPt(wp.wayPoint.point.pos);
       addSvgToPdf(ctx, svg, x + pos.x / ratio - anchorSize / 2, y + pos.y / ratio - anchorSize, anchorSize, anchorSize);
     }

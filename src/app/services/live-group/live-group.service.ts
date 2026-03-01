@@ -22,7 +22,7 @@ export class LiveGroupService {
   private _currentId = '';
   private readonly _groups$ = new BehaviorSubject<LiveGroupDto[] | undefined>(undefined);
   private readonly _forceUpdate$ = new BehaviorSubject<any>(undefined);
-  private _paused$ = new BehaviorSubject<boolean>(false);
+  private readonly _paused$ = new BehaviorSubject<boolean>(false);
 
   constructor(
     private readonly http: HttpService,
@@ -58,7 +58,7 @@ export class LiveGroupService {
             try {
               const groups = JSON.parse(stored) as LiveGroupDto[];
               this.updateGroups(groups);
-            } catch (e) {}
+            } catch (e) { /* ignore */ }
           }
           return EMPTY;
         }
@@ -72,7 +72,7 @@ export class LiveGroupService {
   }
 
   private listenToGroupsSubscription: Subscription | undefined;
-  private _geolocationListener: (position: PointDto) => void = () => {};
+  private readonly _geolocationListener: (position: PointDto) => void = () => {};
   private listenToGroups(askGps: boolean): void {
     this.listenToGroupsSubscription?.unsubscribe();
     this.listenToGroupsSubscription =

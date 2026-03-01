@@ -64,15 +64,13 @@ async function htmlToPdf(ctx: PdfContext, html: HTMLElement, options: TextOption
 
 function htmlContentToPdf(ctx: PdfContext, html: HTMLElement, options: TextOptions) {
   for (let i = 0; i < html.childNodes.length; ++i) {
-    const child = html.childNodes.item(i)!;
+    const child = html.childNodes.item(i);
     switch (child.nodeType) {
       case child.TEXT_NODE:
         drawText(ctx, options, child.nodeValue ?? '');
         break;
       case child.ELEMENT_NODE:
-        //text(ctx, options, () => ctx.doc.text("[" + child.nodeName + "]", {continued: true, width: options.horiz.width}));
         htmlToPdf(ctx, child as HTMLElement, options);
-        //text(ctx, options, () => ctx.doc.text("[/" + child.nodeName + "]", {continued: true, width: options.horiz.width}));
         break;
     }
   }

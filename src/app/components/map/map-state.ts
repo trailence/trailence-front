@@ -38,7 +38,7 @@ export class MapState {
   public get additions$(): Observable<MapAdditionsOptions> { return this._additions$; }
   public set additions(value: MapAdditionsOptions) { this._additions$.next(value); }
 
-  public load(key: string): void {
+  public load(key: string): void { // NOSONAR
     const stored = localStorage.getItem(key);
     if (stored) {
       const json = JSON.parse(stored);

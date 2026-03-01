@@ -48,7 +48,7 @@ export async function metaToPdf(ctx: PdfContext, x: number, y: number, w: number
 export async function metaRowToPdf(ctx: PdfContext, icon: string, title: string, value: string, x: number, y: number, w: number) {
   const large = w >= 100;
   const iconSize = large ? 24 : 14;
-  const iconHMargin = large ? 2 : 2;
+  const iconHMargin = 2;
   const iconVMargin = large ? 0 : 2;
 
   ctx.doc.strokeColor('#A07040').fillColor('#A07040').fontSize(large ? 9 : 8);
@@ -62,14 +62,3 @@ export async function metaRowToPdf(ctx: PdfContext, icon: string, title: string,
 
   if (ctx.doc.y < iconY + iconSize) ctx.doc.y = iconY + iconSize;
 }
-/*
-export async function metaTileToPdf(ctx: PdfContext, icon: string, title: string, value: string, x: number, y: number, w: number) {
-  const iconSize = 18;
-  ctx.doc.fontSize(9).strokeColor('#A07040').fillColor('#A07040');
-  ctx.doc.text(title, x, y, {continued: false, width: w, align: 'center'});
-  await addIconToPdf(ctx, icon, '#A07040', x + w / 2 - iconSize / 2, ctx.doc.y - 1, iconSize, iconSize);
-  ctx.doc.y += iconSize;
-  ctx.doc.fontSize(10).strokeColor('#000000').fillColor('#000000');
-  ctx.doc.text(replaceSpaces(value), x, ctx.doc.y, {continued: false, width: w, align: 'center'});
-}
-*/

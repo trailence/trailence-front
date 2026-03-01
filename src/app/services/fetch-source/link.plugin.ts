@@ -122,7 +122,7 @@ export class LinkPlugin extends FetchSourcePlugin {
     .then(results => {
       const r: {uuid: string, info: TrailInfo}[] = [];
       for (let i = 0; i < uuids.length; ++i)
-        if (results[i]) r.push({uuid: uuids[i], info: results[i]!!});
+        if (results[i]) r.push({uuid: uuids[i], info: results[i]!});
       return r;
     });
   }
@@ -140,8 +140,8 @@ export class LinkPlugin extends FetchSourcePlugin {
   }
 
 
-  private _loadedTrails = new Map<string, {content$: BehaviorSubject<LinkCache>, fetchDate: number}>();
-  private _loadingTrails = new Map<string, Observable<LinkCache>>();
+  private readonly _loadedTrails = new Map<string, {content$: BehaviorSubject<LinkCache>, fetchDate: number}>();
+  private readonly _loadingTrails = new Map<string, Observable<LinkCache>>();
 
   private getLink(link: string, force: boolean): Observable<LinkCache> {
     const loaded = this._loadedTrails.get(link);

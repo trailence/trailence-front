@@ -30,7 +30,7 @@ function getWaypointName(waypoint: ComputedWayPoint, sourceLang: string, userLan
   const text =
     sourceLang === userLang ? waypoint.wayPoint.name?.trim() :
     (waypoint.wayPoint.nameTranslations?.[userLang] ? waypoint.wayPoint.nameTranslations[userLang].trim() : waypoint.wayPoint.name?.trim());
-  if (text && text.length === 0) return undefined;
+  if (text?.length === 0) return undefined;
   return text;
 }
 
@@ -39,6 +39,6 @@ function getWaypointDescription(waypoint: ComputedWayPoint, sourceLang: string, 
   const text =
     sourceLang === userLang ? waypoint.wayPoint.description?.trim() :
     (waypoint.wayPoint.descriptionTranslations?.[userLang] ? waypoint.wayPoint.descriptionTranslations[userLang].trim() : waypoint.wayPoint.description?.trim());
-  if (text && text.length === 0) return undefined;
+  if (text?.length === 0) return undefined;
   return text;
 }

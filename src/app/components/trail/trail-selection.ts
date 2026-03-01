@@ -1,4 +1,4 @@
-import { BehaviorSubject, combineLatest, EMPTY, of, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, Subscription, switchMap } from 'rxjs';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
 import { Track } from 'src/app/model/track';
 import { MapComponent } from '../map/map.component';

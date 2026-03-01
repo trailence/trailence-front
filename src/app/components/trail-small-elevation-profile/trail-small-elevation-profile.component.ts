@@ -1,5 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { Point } from 'src/app/model/point';
+import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { getGradeRange, gradeColors } from '../trail-graph/grade-values';
 

@@ -415,7 +415,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     const element = document.getElementById('track-metadata-' + this.id);
     if (!element) return;
     while (element.previousElementSibling) element.previousElementSibling.remove();
-    TrackMetadataComponent.init(element!.parentElement!, element!, this.track$, of(undefined), this.config!, this.assets, this.i18n, this.whenVisible, this.domController, this.preferencesService.preferences);
+    TrackMetadataComponent.init(element.parentElement!, element, this.track$, of(undefined), this.config!, this.assets, this.i18n, this.whenVisible, this.domController, this.preferencesService.preferences);
   }
   private removeTrackMetadata(): void {
     const element = document.getElementById('track-metadata-' + this.id);

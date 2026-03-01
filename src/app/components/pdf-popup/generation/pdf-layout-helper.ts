@@ -14,18 +14,18 @@ export class PdfFixedColumnsLayout {
   ) {
     let colX = x;
     this.colState = [];
-    for (let i = 0; i < colSizes.length; ++i) {
+    for (const colSize of colSizes) {
       this.colState.push({
         x: colX,
         y: y,
-        width: colSizes[i].width,
+        width: colSize.width,
         nextMargin: 0,
       });
-      colX += colSizes[i].width + colSizes[i].gap;
+      colX += colSize.width + colSize.gap;
     }
   }
 
-  private colState: {
+  private readonly colState: {
     x: number,
     y: number,
     width: number,

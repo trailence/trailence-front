@@ -16,6 +16,7 @@ import { defaultAuthRoute, defaultPublicRoute } from 'src/app/routes/package.rou
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { GeolocationService } from 'src/app/services/geolocation/geolocation.service';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
+import { BoundsBuilder } from 'src/app/utils/leaflet-utils';
 
 @Component({
   selector: 'app-live-group',
@@ -143,17 +144,14 @@ export class LiveGroupComponent implements OnInit, OnChanges, OnDestroy {
   private markers: L.CircleMarker[] = [];
   private youMarker?: L.CircleMarker;
   private highlightedTooltip?: L.Tooltip;
-  private mapBoundsProvider: () => L.LatLngBounds | undefined = () => {
-    let bounds: L.LatLngBounds | undefined = undefined;
-    for (const marker of this.markers) {
-      if (!bounds) bounds = L.latLngBounds(marker.getLatLng(), marker.getLatLng());
-      else bounds = bounds.extend(marker.getLatLng());
-    }
-    return bounds;
+  private readonly mapBoundsProvider: () => L.LatLngBounds | undefined = () => {
+    const boundsBuilder = new BoundsBuilder();
+    for (const marker of this.markers) boundsBuilder.extendPoint(marker.getLatLng());
+    return boundsBuilder.getBounds();
   };
   private _mapComponentShowPositionDisabled?: MapComponent;
 
-  private updateMap(): void {
+  private updateMap(): void { // NOSONAR
     const nbMarkersBefore = this.markers.length;
     this.markers.forEach(m => m.remove());
     this.markers = [];

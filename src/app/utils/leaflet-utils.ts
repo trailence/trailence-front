@@ -61,3 +61,24 @@ export class LeafletUtils {
   }
 
 }
+
+export class BoundsBuilder {
+  private _bounds: L.LatLngBounds | undefined;
+
+  public extend(bounds: L.LatLngBounds | undefined) {
+    if (!bounds) return;
+    if (this._bounds) this._bounds = this._bounds.extend(bounds);
+    else this._bounds = L.latLngBounds(bounds.getSouthWest(), bounds.getNorthEast());
+  }
+
+  public extendPoint(point: L.LatLng) {
+    if (this._bounds) this._bounds.extend(point);
+    else this._bounds = L.latLngBounds(point, point);
+  }
+
+  public pad(pad: number) {
+    if (this._bounds) this._bounds = this._bounds.pad(pad);
+  }
+
+  public getBounds(): L.LatLngBounds | undefined { return this._bounds; }
+}

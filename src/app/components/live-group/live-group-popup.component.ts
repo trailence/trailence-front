@@ -59,7 +59,7 @@ export class LiveGroupPopup implements OnInit, OnDestroy {
   trailOwned = false;
   shareTrail = false;
 
-  private subscriptions = new Subscriptions();
+  private readonly subscriptions = new Subscriptions();
 
   constructor(
     public readonly i18n: I18nService,
@@ -88,7 +88,7 @@ export class LiveGroupPopup implements OnInit, OnDestroy {
     }
     if (this.trailOwner && this.trailUuid) {
       this.subscriptions.add(this.trailService.getTrail$(this.trailUuid, this.trailOwner).subscribe(t => this.trail = t || undefined));
-      if (this.group && this.group.trailOwner && this.group.trailUuid)
+      if (this.group?.trailOwner && this.group.trailUuid)
         this.subscriptions.add(this.trailService.getTrail$(this.group.trailUuid, this.group.trailOwner).subscribe(t => this.previousTrail = t || undefined));
       this.trailNeedsPublicLink = this.trailOwner.includes('@');
       this.trailOwned = this.trailOwner === this.authService.email;

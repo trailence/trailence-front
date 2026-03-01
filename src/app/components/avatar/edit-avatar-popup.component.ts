@@ -36,7 +36,7 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
   isNewBlob = false;
   saving = false;
 
-  private subscriptions = new Subscriptions();
+  private readonly subscriptions = new Subscriptions();
   private isInit = false;
 
   constructor(
@@ -181,6 +181,7 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
             1
           )
         } catch (e) {
+          Console.warn('Error converting photo', e);
           reject('Error converting photo');
         }
       };
@@ -189,22 +190,23 @@ export class EditAvatarPopup implements OnDestroy, OnInit {
     });
   }
 
-  close(save: boolean): void {
-    if (!save) this.modalController.dismiss();
-    else {
-      this.saving = true;
-      this.refresh();
-      this.avatarService.save(this.blob!, this.isPublic).subscribe({
-        next: () => {
-          this.modalController.dismiss();
-        },
-        error: e => {
-          this.saving = false;
-          this.refresh();
-          this.errorService.addNetworkError(e, 'pages.edit_avatar.error_saving', []);
-        }
-      })
-    }
+  close(): void {
+    this.modalController.dismiss();
+  }
+
+  save(): void {
+    this.saving = true;
+    this.refresh();
+    this.avatarService.save(this.blob!, this.isPublic).subscribe({
+      next: () => {
+        this.modalController.dismiss();
+      },
+      error: e => {
+        this.saving = false;
+        this.refresh();
+        this.errorService.addNetworkError(e, 'pages.edit_avatar.error_saving', []);
+      }
+    });
   }
 
 }

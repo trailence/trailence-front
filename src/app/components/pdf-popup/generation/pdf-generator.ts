@@ -8,13 +8,10 @@ import { environment } from 'src/environments/environment';
 import { defaultNextPage, HorizBounds, PdfContext } from './pdf-context';
 import { generatePdfHeader } from './pdf-header';
 import { generatePdfMap } from './pdf-map';
-import { generatePdfText } from './pdf-text';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { metaToPdf } from './pdf-meta';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
-import { addTitleToPdf } from './pdf-title';
 import { ComputedWayPoint, Track } from 'src/app/model/track';
-import { generateWaypointsTextToPdf } from './pdf-waypoints';
 import { generateElevationGraphToPdf } from './pdf-elevation-graph';
 import { addQrCodeToPdf } from './pdf-qrcode';
 import { hasWaypointsContent } from '../waypoints-utils';
@@ -43,7 +40,7 @@ export interface PdfOptions {
 
 export class PdfGenerator {
 
-  public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void): Promise<Blob> {
+  public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void): Promise<Blob> { // NOSONAR
     return new Promise<Blob>(async (resolve) => {
       let percent = 0;
       let percentDone = (done: number) => { percent = Math.min(100, percent + done); progress(percent); };
@@ -87,10 +84,10 @@ export class PdfGenerator {
         photoCtx = await getPhotoCtx(photo);
       }
       percentDone(5); // 15%
-      const doc = new (window as any).PDFDocument(opts);
+      const doc = new (globalThis as any).PDFDocument(opts);
       doc.registerFont('Roboto', roboto!);
       doc.registerFont('Roboto-Bold', robotoBold!);
-      const stream = doc.pipe((window as any).blobStream());
+      const stream = doc.pipe((globalThis as any).blobStream());
       stream.on('finish', function() {
         percentDone(2);
         const blob = stream.toBlob('application/pdf');
@@ -100,17 +97,17 @@ export class PdfGenerator {
       const ctx = {
         doc,
         sandbox() {
-          const doc = new (window as any).PDFDocument(opts);
+          const doc = new (globalThis as any).PDFDocument(opts);
           doc.registerFont('Roboto', roboto);
           doc.registerFont('Roboto-Bold', robotoBold);
           return doc;
         },
         nextPage() {
-          if (this.doc.page !== this.doc._pageBuffer.at(-1)) {
-            this.doc.switchToPage(this.doc._pageBuffer.length - 1);
-          } else {
+          if (this.doc.page === this.doc._pageBuffer.at(-1)) {
             this.doc.addPage();
             this.doc.y = this.layout.headerHeight + this.layout.headerMargin;
+          } else {
+            this.doc.switchToPage(this.doc._pageBuffer.length - 1);
           }
         },
         layout: {
@@ -161,7 +158,7 @@ export class PdfGenerator {
     }
   }
 
-  private static qrCodeGenerator: PdfSectionGenerator = async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+  private static readonly qrCodeGenerator: PdfSectionGenerator = async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
     return await addQrCodeToPdf(ctx, options.qrCode!, x, y, width, 64);
   }
 
@@ -188,7 +185,7 @@ export class PdfGenerator {
     }
   }
 
-  private static metaGenerator: PdfSectionGenerator = async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
+  private static readonly metaGenerator: PdfSectionGenerator = async function (ctx: PdfContext, options: PdfOptions, x: number, y: number, width: number): Promise<number> {
     return await metaToPdf(ctx, x, y, width);
   }
 
@@ -366,8 +363,8 @@ export class PdfGenerator {
     work.elevationDone();
   }
 
-  private static _jsLoaded: string[] = [];
-  private static _jsLoading = new Map<string, ((a:any) => void)[]>();
+  private static readonly _jsLoaded: string[] = [];
+  private static readonly _jsLoading = new Map<string, ((a:any) => void)[]>();
 
   public static loadJs(name: string, type?: string): Promise<any> {
     return new Promise((resolve) => {
@@ -394,7 +391,7 @@ export class PdfGenerator {
     });
   }
 
-  private static _loadedCss: string[] = [];
+  private static readonly _loadedCss: string[] = [];
 
   public static loadCss(name: string) {
     if (this._loadedCss.includes(name)) return;
@@ -457,6 +454,7 @@ function createRoundedAvatar(blob: Blob): Promise<ArrayBuffer> {
           "image/png"
         )
       } catch (e) {
+        Console.warn('Error converting photo', e);
         reject('Error converting photo');
       }
     };
