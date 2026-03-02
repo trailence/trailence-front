@@ -101,7 +101,7 @@
     "pdfkit": "^0.17.2",
     "svg-to-pdfkit": "^0.1.8",
     "tsx": "^4.20.6",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.3"
   },
   "description": "Trailence"
 }
