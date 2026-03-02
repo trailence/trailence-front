@@ -91,6 +91,11 @@ export class PreferencesService implements OnDestroy {
     this._prefs$ = new BehaviorSubject<Preferences>(prefs);
     this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
     Console.info('Initial preferences: ', this._computed$.value);
+    this.initDevice();
+    setTimeout(() => this.init(), 1);
+  }
+
+  private initDevice(): void {
     Trailence.getInfo({}).then(info => {
       let elements = [];
       if (info?.['deviceBrand']) elements.push(info['deviceBrand']);
@@ -98,8 +103,7 @@ export class PreferencesService implements OnDestroy {
       if (elements.length === 0 && info?.['deviceName']) elements.push(info['deviceName']);
       if (elements.length === 0) this.device = 'web';
       else this.device = elements.join(' ');
-    })
-    setTimeout(() => this.init(), 1);
+    });
   }
 
   private fixTrailFilters(loaded: any): {[name: string]: Filters} | undefined {

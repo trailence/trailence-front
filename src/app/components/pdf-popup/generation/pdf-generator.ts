@@ -41,110 +41,114 @@ export interface PdfOptions {
 export class PdfGenerator {
 
   public static generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void): Promise<Blob> { // NOSONAR
-    return new Promise<Blob>(async (resolve) => {
-      let percent = 0;
-      let percentDone = (done: number) => { percent = Math.min(100, percent + done); progress(percent); };
-      let roboto: ArrayBuffer;
-      let robotoBold: ArrayBuffer;
-      // progress: 10% for resources
-      await Promise.all([
-        PdfGenerator.loadJs('blob-stream.js').then(() => percentDone(2)),
-        PdfGenerator.loadJs('pdfkit.standalone.js').then(() => percentDone(2)),
-        PdfGenerator.loadJs('svg-to-pdfkit.js').then(() => percentDone(2)),
-        globalThis.fetch(environment.assetsUrl + '/Roboto-Regular.ttf').then(r => r.arrayBuffer()).then(b => {roboto = b; percentDone(2);}),
-        globalThis.fetch(environment.assetsUrl + '/Roboto-Bold.ttf').then(r => r.arrayBuffer()).then(b => {robotoBold = b; percentDone(2);}),
-      ]);
-      const opts = {
-        size: 'A4',
-        margins: { top: 60, bottom: 20, left: 20, right: 20},
-        displayTitle: true,
-        info: { Title: trail.name },
-        bufferPages: true
-      };
-      const preferences = injector.get(PreferencesService);
-      if (!track) {
-        track = await firstValueFrom(injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner).pipe(filterDefined()));
-        wayPoints = ComputedWayPoint.compute(track, preferences.preferences);
-      } else if (wayPoints.length === 0) {
-        wayPoints = ComputedWayPoint.compute(track, preferences.preferences);
-      }
-      const trailInfo = trail.owner.includes('@') ? undefined : await firstValueFrom(injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid));
-      const lang = preferences.preferences.lang;
-      const trailName = trailInfo?.lang && trailInfo.lang !== lang && trailInfo.nameTranslations?.[lang] ? trailInfo.nameTranslations[lang] : trail.name;
-      let description: string | undefined = options.includeDescription ?
-        (trailInfo?.lang && trailInfo.lang !== lang && trailInfo.descriptionTranslations?.[lang] ? trailInfo.descriptionTranslations[lang] : trail.description) :
-        undefined;
-      if (!description?.trim().length) description = undefined;
-      let avatarImage = undefined;
-      if (options.includeAvatar && avatar) {
-        avatarImage = await createRoundedAvatar(avatar);
-      }
-      let photoCtx: {photo: ArrayBuffer, width: number, height: number} | undefined = undefined;
-      if (options.includePhoto && !!photo) {
-        photoCtx = await getPhotoCtx(photo);
-      }
-      percentDone(5); // 15%
-      const doc = new (globalThis as any).PDFDocument(opts);
-      doc.registerFont('Roboto', roboto!);
-      doc.registerFont('Roboto-Bold', robotoBold!);
-      const stream = doc.pipe((globalThis as any).blobStream());
-      stream.on('finish', function() {
-        percentDone(2);
-        const blob = stream.toBlob('application/pdf');
-        resolve(blob);
-      });
-      percentDone(2); // 17%
-      const ctx = {
-        doc,
-        sandbox() {
-          const doc = new (globalThis as any).PDFDocument(opts);
-          doc.registerFont('Roboto', roboto);
-          doc.registerFont('Roboto-Bold', robotoBold);
-          return doc;
-        },
-        nextPage() {
-          if (this.doc.page === this.doc._pageBuffer.at(-1)) {
-            this.doc.addPage();
-            this.doc.y = this.layout.headerHeight + this.layout.headerMargin;
-          } else {
-            this.doc.switchToPage(this.doc._pageBuffer.length - 1);
-          }
-        },
-        layout: {
-          width: 595.28,
-          height: 841.89,
-          margin: 20,
-          headerHeight: 50,
-          headerMargin: 10,
-          pixelRatio: 1.333333,
-        },
-        trail,
-        track,
-        wayPoints,
-        trailInfo,
-        trailName,
-        description,
-        avatar: avatarImage,
-        avatarSize: options.includeAvatar,
-        photo: photoCtx,
-        assets: injector.get(AssetsService),
-        i18n: injector.get(I18nService),
-        preferences,
-        injector,
-        environmentInjector,
-        mapLayer: options.mapLayer,
-      } as PdfContext;
-
-      await this.generatePdf(ctx, options, percentDone, 80);
-
-      const range = ctx.doc.bufferedPageRange();
-      for (let page = 0; page < range.count; page++) {
-        ctx.doc.switchToPage(range.start + page);
-        await generatePdfHeader(ctx);
-        percentDone(1);
-      }
-      ctx.doc.end();
+    return new Promise<Blob>((resolve) => {
+      this._generate(injector, environmentInjector, trail, track, wayPoints, avatar, photo, options, progress, resolve);
     });
+  }
+
+  private static async _generate(injector: Injector, environmentInjector: EnvironmentInjector, trail: Trail, track: Track | undefined, wayPoints: ComputedWayPoint[], avatar: Blob | undefined, photo: ArrayBuffer | undefined, options: PdfOptions, progress: (percent: number) => void, resolve: (blob: Blob) => void) { // NOSONAR
+    let percent = 0;
+    let percentDone = (done: number) => { percent = Math.min(100, percent + done); progress(percent); };
+    let roboto: ArrayBuffer;
+    let robotoBold: ArrayBuffer;
+    // progress: 10% for resources
+    await Promise.all([
+      PdfGenerator.loadJs('blob-stream.js').then(() => percentDone(2)),
+      PdfGenerator.loadJs('pdfkit.standalone.js').then(() => percentDone(2)),
+      PdfGenerator.loadJs('svg-to-pdfkit.js').then(() => percentDone(2)),
+      globalThis.fetch(environment.assetsUrl + '/Roboto-Regular.ttf').then(r => r.arrayBuffer()).then(b => {roboto = b; percentDone(2);}),
+      globalThis.fetch(environment.assetsUrl + '/Roboto-Bold.ttf').then(r => r.arrayBuffer()).then(b => {robotoBold = b; percentDone(2);}),
+    ]);
+    const opts = {
+      size: 'A4',
+      margins: { top: 60, bottom: 20, left: 20, right: 20},
+      displayTitle: true,
+      info: { Title: trail.name },
+      bufferPages: true
+    };
+    const preferences = injector.get(PreferencesService);
+    if (!track) {
+      track = await firstValueFrom(injector.get(TrackService).getFullTrack$(trail.currentTrackUuid, trail.owner).pipe(filterDefined()));
+      wayPoints = ComputedWayPoint.compute(track, preferences.preferences);
+    } else if (wayPoints.length === 0) {
+      wayPoints = ComputedWayPoint.compute(track, preferences.preferences);
+    }
+    const trailInfo = trail.owner.includes('@') ? undefined : await firstValueFrom(injector.get(FetchSourceService).getTrailInfo$(trail.owner, trail.uuid));
+    const lang = preferences.preferences.lang;
+    const trailName = trailInfo?.lang && trailInfo.lang !== lang && trailInfo.nameTranslations?.[lang] ? trailInfo.nameTranslations[lang] : trail.name;
+    let description: string | undefined = options.includeDescription ?
+      (trailInfo?.lang && trailInfo.lang !== lang && trailInfo.descriptionTranslations?.[lang] ? trailInfo.descriptionTranslations[lang] : trail.description) :
+      undefined;
+    if (!description?.trim().length) description = undefined;
+    let avatarImage = undefined;
+    if (options.includeAvatar && avatar) {
+      avatarImage = await createRoundedAvatar(avatar);
+    }
+    let photoCtx: {photo: ArrayBuffer, width: number, height: number} | undefined = undefined;
+    if (options.includePhoto && !!photo) {
+      photoCtx = await getPhotoCtx(photo);
+    }
+    percentDone(5); // 15%
+    const doc = new (globalThis as any).PDFDocument(opts);
+    doc.registerFont('Roboto', roboto!);
+    doc.registerFont('Roboto-Bold', robotoBold!);
+    const stream = doc.pipe((globalThis as any).blobStream());
+    stream.on('finish', function() {
+      percentDone(2);
+      const blob = stream.toBlob('application/pdf');
+      resolve(blob);
+    });
+    percentDone(2); // 17%
+    const ctx = {
+      doc,
+      sandbox() {
+        const doc = new (globalThis as any).PDFDocument(opts);
+        doc.registerFont('Roboto', roboto);
+        doc.registerFont('Roboto-Bold', robotoBold);
+        return doc;
+      },
+      nextPage() {
+        if (this.doc.page === this.doc._pageBuffer.at(-1)) {
+          this.doc.addPage();
+          this.doc.y = this.layout.headerHeight + this.layout.headerMargin;
+        } else {
+          this.doc.switchToPage(this.doc._pageBuffer.length - 1);
+        }
+      },
+      layout: {
+        width: 595.28,
+        height: 841.89,
+        margin: 20,
+        headerHeight: 50,
+        headerMargin: 10,
+        pixelRatio: 1.333333,
+      },
+      trail,
+      track,
+      wayPoints,
+      trailInfo,
+      trailName,
+      description,
+      avatar: avatarImage,
+      avatarSize: options.includeAvatar,
+      photo: photoCtx,
+      assets: injector.get(AssetsService),
+      i18n: injector.get(I18nService),
+      preferences,
+      injector,
+      environmentInjector,
+      mapLayer: options.mapLayer,
+    } as PdfContext;
+
+    await this.generatePdf(ctx, options, percentDone, 80);
+
+    const range = ctx.doc.bufferedPageRange();
+    for (let page = 0; page < range.count; page++) {
+      ctx.doc.switchToPage(range.start + page);
+      await generatePdfHeader(ctx);
+      percentDone(1);
+    }
+    ctx.doc.end();
   }
 
   private static async generatePdf(ctx: PdfContext, options: PdfOptions, progress: (done: number) => void, workAmount: number) {

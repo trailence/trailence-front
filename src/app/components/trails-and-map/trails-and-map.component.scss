@@ -118,7 +118,7 @@
       align-items: center;
       justify-content: center;
 
-      div {
+      > div {
         background-color: rgba(var(--ion-background-color-rgb), 0.75);
         color: var(--ion-text-color);
         border-radius: 10px;
