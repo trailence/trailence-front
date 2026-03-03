@@ -41,7 +41,7 @@ export type GraphType = 'elevation' | 'speed';
 })
 export class TrailGraphComponent extends AbstractComponent {
 
-  @Input() track1!: Track
+  @Input() track1!: Track;
   @Input() track2?: Track;
   @Input() selectable = false;
   @Input() selection?: RangeReference[] | PointReference[];

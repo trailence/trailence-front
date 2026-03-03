@@ -301,14 +301,9 @@ export class TrailsAndMapComponent extends AbstractComponent {
       this.isSmall = true;
       this.listSize = w >= 350 ? 'large' : w >= 250 ? 'medium' : 'small';
       if (this.tab === 'map') {
-        if (w >= 750 || h <= 400) {
-          this.trailSheetMode = 'left';
-          this.trailSheetMetadataClass = 'one-column';
-        } else {
-          this.trailSheetMode = 'bottom';
-          if (w < 500 + 36) this.trailSheetMode += ' two-rows';
-          this.trailSheetMetadataClass = 'tiles';
-        }
+        this.trailSheetMode = 'bottom';
+        if (w < 500 + 36) this.trailSheetMode += ' two-rows';
+        this.trailSheetMetadataClass = 'two-columns';
         this.updateVisibility(true, false, true);
       } else {
         this.trailSheetMode = 'none';

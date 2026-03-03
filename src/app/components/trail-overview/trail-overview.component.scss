@@ -1,6 +1,7 @@
 :host {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .not-loaded {
@@ -17,6 +18,7 @@
     padding-right: 2px;
     padding-top: 4px;
     padding-bottom: 2px;
+    margin-right: 2px;
   }
 
   div.navigation {
@@ -45,6 +47,7 @@
     margin-bottom: 0;
     min-width: 24px;
     margin-right: -2px;
+    margin-left: 0;
     ion-icon {
       width: 18px;
       height: 18px;
@@ -99,6 +102,62 @@
     }
   }
 
+  &.no-checkbox {
+    ion-button {
+      min-height: 24px;
+      max-height: 24px;
+    }
+    .trail-name {
+      margin-top: 2px;
+    }
+  }
+
+}
+
+.trail-overview-content {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  overflow-y: hidden;
+
+  .vertical-tabs {
+    flex: none;
+  }
+
+  .tab-content {
+    flex: 1 1 100%;
+    &.with-tabs {
+      margin-left: 2px;
+      overflow: hidden;
+    }
+    > div {
+      &.shown {
+        width: 100%;
+        height: 100%;
+      }
+      &.hidden {
+        position: fixed;
+        top: -1000px;
+        left: -1000px;
+        width: 0px;
+        height: 0px;
+        overflow: hidden;
+      }
+    }
+    .trail-overview-info {
+      display: flex;
+      flex-direction: column;
+      .inner-metadata-container {
+        flex: 1 1 100%;
+      }
+    }
+    .trail-overview-photos {
+      app-photos-slider {
+        display: block;
+      }
+    }
+  }
 }
 
 .trail-tags-row {

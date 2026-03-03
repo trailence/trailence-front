@@ -629,20 +629,20 @@
         }
       </div>
       @if (bottomSheetOpen) {
-        <div class="bottom-sheet-tabs">
+        <div class="bottom-sheet-tabs vertical-tabs">
           @if (isSmall) {
-            <div class="bottom-sheet-tab {{bottomSheetTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('info')">
+            <div class="vertical-tab {{bottomSheetTab === 'info' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('info')">
               <ion-icon name="info"></ion-icon>
             </div>
           }
-          <div class="bottom-sheet-tab {{bottomSheetTab === 'elevation' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('elevation')">
+          <div class="vertical-tab {{bottomSheetTab === 'elevation' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('elevation')">
             <ion-icon name="elevation"></ion-icon>
           </div>
-          <div class="bottom-sheet-tab {{bottomSheetTab === 'speed' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('speed')">
+          <div class="vertical-tab {{bottomSheetTab === 'speed' ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('speed')">
             <ion-icon name="speed"></ion-icon>
           </div>
           @for (group of (liveGroups$ | async); track group.slug) {
-            <div class="bottom-sheet-tab {{bottomSheetTab === 'live-group-' + group.slug ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('live-group-' + group.slug)">
+            <div class="vertical-tab {{bottomSheetTab === 'live-group-' + group.slug ? 'tab-selected' : ''}}" (click)="setBottomSheetTab('live-group-' + group.slug)">
               <ion-icon name="live-group"></ion-icon>
             </div>
           }

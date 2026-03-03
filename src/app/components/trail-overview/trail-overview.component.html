@@ -1,5 +1,5 @@
 @if (trail) {
-  <div class="trail-name-row" [ngStyle]="{'--checkbox-width': selectable ? '20px' : '0px', '--navigation-width': navigationCount && navigationIndex !== undefined ? '64px' : '0px', '--myselection-width': auth.auth ? '26px' : '0px', '--public-trail-width': publicTrailUuid ? '28px' : '0px', '--public-link-width': trailLink ? '28px' : '0px', '--ocsm-width': external?.oscmSymbol ? '24px' : '0px', '--menu-button-width': hideMenu ? '0px' : '28px'}">
+  <div class="trail-name-row {{ selectable ? '' : 'no-checkbox' }}" [ngStyle]="{'--checkbox-width': selectable ? '22px' : '0px', '--navigation-width': navigationCount && navigationIndex !== undefined ? '64px' : '0px', '--myselection-width': auth.auth ? '24px' : '0px', '--public-trail-width': publicTrailUuid ? '28px' : '0px', '--public-link-width': trailLink ? '28px' : '0px', '--ocsm-width': external?.oscmSymbol ? '24px' : '0px', '--menu-button-width': hideMenu ? '0px' : '28px'}">
     @if (selectable) {
       <ion-checkbox class="trail-checkbox" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
     }
@@ -52,115 +52,149 @@
   </div>
 }
 @if (load$.value) {
-  <div class="trail-tags-row" [ngClass]="{'nowrap': hasFixedHeight}">
-    @for (tag of tagsNames; track tag) {
-      <div class="tag">{{tag}}</div>
-    }
-  </div>
-  @if (external && external.rating !== undefined) {
-    <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
-  }
-
-  <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined), 'has-photo': photoEnabled && photos.length > 0, 'compact': photoEnabled && photos.length === 0}">
-    @if (meta.dateString || meta.location) {
-      @if (meta.dateString) {
-        <div class="metadata-item-container">
-          <div class="metadata-item">
-            <ion-icon name="date"></ion-icon>
-            <div class="metadata-content">
-              <div class="metadata-value">
-                <div class="metadata-primary">{{ meta.dateString }}</div>
-              </div>
-            </div>
+  <div class="trail-overview-content">
+    @if (enableTabs) {
+      <div class="vertical-tabs">
+        <div class="vertical-tab {{selectedTab === 'info' ? 'tab-selected' : ''}}" (click)="setTab('info')">
+          <ion-icon name="info"></ion-icon>
+        </div>
+        <div class="vertical-tab {{selectedTab === 'elevation' ? 'tab-selected' : ''}}" (click)="setTab('elevation')">
+          <ion-icon name="elevation"></ion-icon>
+        </div>
+        @if (photos.length > 0) {
+          <div class="vertical-tab {{selectedTab === 'photos' ? 'tab-selected' : ''}}" (click)="setTab('photos')">
+            <ion-icon name="photos"></ion-icon>
           </div>
-        </div>
-      }
-      @if (meta.location || alwaysShowLocation) {
-        <div class="metadata-item-container">
-          <div class="metadata-item nowrap">
-            <ion-icon name="location"></ion-icon>
-            <div class="metadata-content">
-              <div class="metadata-value">
-                <div class="metadata-primary trail-location">{{ meta.location }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
+        }
+      </div>
     }
-    @let hasPhotosElement = photoEnabled || smallMapEnabled || elevationProfile;
-    <div [ngClass]="{'metadata-with-photos': hasPhotosElement, 'photo-left': hasPhotosElement && photoCanBeOnLeft, 'photo-block': hasPhotosElement && !photoCanBeOnLeft}">
-      @if (photoEnabled && photoCanBeOnLeft && photos.length > 0) {
-        <div class="photos">
-          <app-photos-slider #slider [photos]="photos" [width]="100" [height]="85" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
-        </div>
-      } @else if (!photoEnabled && smallMapEnabled && fullTrack) {
-        <div class="photos" [ngStyle]="{'width': (photoCanBeOnLeft ? 100 : maxWidth) + 'px', 'max-width': (photoCanBeOnLeft ? 100 : maxWidth) + 'px'}">
-          <app-trail-small-map [track]="fullTrack" [width]="photoCanBeOnLeft ? 100 : maxWidth" [height]="85"></app-trail-small-map>
-        </div>
-      } @else if (elevationProfile && fullTrack && photoCanBeOnLeft) {
-        <div class="photos">
-          <app-trail-small-elevation-profile [track]="fullTrack" [width]="100" [height]="85"></app-trail-small-elevation-profile>
-        </div>
-      }
-      <div class="metadata" [ngClass]="{'with-photos': (photoEnabled && photoCanBeOnLeft && photos.length > 0) || smallMapEnabled}">
-
-        <div id="track-metadata-{{id}}"></div>
-        @if (meta.loopTypeString || meta.activityString) {
-          @if (meta.loopTypeString) {
-            <div class="metadata-item-container metadata-content-small">
-              <div class="metadata-item">
-                <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
-                <div class="metadata-content">
-                  <div class="metadata-value">
-                    <div class="metadata-primary">{{ meta.loopTypeString }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+    <div class="tab-content {{enableTabs ? 'with-tabs' : ''}}">
+      <div class="trail-overview-info {{selectedTab === 'info' ? 'shown' : 'hidden'}}">
+        <div class="trail-tags-row" [ngClass]="{'nowrap': hasFixedHeight}">
+          @for (tag of tagsNames; track tag) {
+            <div class="tag">{{tag}}</div>
           }
-          @if (meta.activityString) {
-            <div class="metadata-item-container metadata-content-small">
-              <div class="metadata-item">
-                <ion-icon [name]="meta.activityIconString"></ion-icon>
-                <div class="metadata-content">
-                  <div class="metadata-value">
-                    <div class="metadata-primary">{{ meta.activityString }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-          @if ((!meta.loopTypeString || !meta.activityString) && photos.length === 0) {
-            <div class="metadata-item-container">
-              <div class="metadata-item">
-              </div>
-            </div>
-          }
+        </div>
+        @if (external && external.rating !== undefined) {
+          <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
         }
 
-      </div>
-      @if (photoEnabled && !photoCanBeOnLeft && photos.length > 0) {
-        <div class="photos" [ngStyle]="{'margin-left': ((maxWidth - 140) / 2) + 'px'}">
-          <app-photos-slider #slider [photos]="photos" [width]="140" [height]="85" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
+        <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined), 'has-photo': photoEnabled && photos.length > 0, 'compact': photoEnabled && photos.length === 0}">
+          @if (meta.dateString || meta.location) {
+            @if (meta.dateString) {
+              <div class="metadata-item-container">
+                <div class="metadata-item">
+                  <ion-icon name="date"></ion-icon>
+                  <div class="metadata-content">
+                    <div class="metadata-value">
+                      <div class="metadata-primary">{{ meta.dateString }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (meta.location || alwaysShowLocation) {
+              <div class="metadata-item-container">
+                <div class="metadata-item nowrap">
+                  <ion-icon name="location"></ion-icon>
+                  <div class="metadata-content">
+                    <div class="metadata-value">
+                      <div class="metadata-primary trail-location">{{ meta.location }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+          @let hasPhotosElement = photoEnabled || smallMapEnabled || elevationProfile;
+          <div [ngClass]="{'metadata-with-photos': hasPhotosElement, 'photo-left': hasPhotosElement && photoCanBeOnLeft, 'photo-block': hasPhotosElement && !photoCanBeOnLeft}">
+            @if (photoEnabled && photoCanBeOnLeft && photos.length > 0) {
+              <div class="photos">
+                <app-photos-slider #slider [photos]="photos" [width]="100" [height]="85" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
+              </div>
+            } @else if (!photoEnabled && smallMapEnabled && fullTrack) {
+              <div class="photos" [ngStyle]="{'width': (photoCanBeOnLeft ? 100 : maxWidth) + 'px', 'max-width': (photoCanBeOnLeft ? 100 : maxWidth) + 'px'}">
+                <app-trail-small-map [track]="fullTrack" [width]="photoCanBeOnLeft ? 100 : maxWidth" [height]="85"></app-trail-small-map>
+              </div>
+            } @else if (elevationProfile && fullTrack && photoCanBeOnLeft) {
+              <div class="photos">
+                <app-trail-small-elevation-profile [track]="fullTrack" [width]="100" [height]="85"></app-trail-small-elevation-profile>
+              </div>
+            }
+            <div class="metadata" [ngClass]="{'with-photos': (photoEnabled && photoCanBeOnLeft && photos.length > 0) || smallMapEnabled}">
+
+              <div id="track-metadata-{{id}}"></div>
+              @if (meta.loopTypeString || meta.activityString) {
+                @if (meta.loopTypeString) {
+                  <div class="metadata-item-container metadata-content-small">
+                    <div class="metadata-item">
+                      <ion-icon [name]="meta.loopTypeIconString"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{ meta.loopTypeString }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (meta.activityString) {
+                  <div class="metadata-item-container metadata-content-small">
+                    <div class="metadata-item">
+                      <ion-icon [name]="meta.activityIconString"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{ meta.activityString }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if ((!meta.loopTypeString || !meta.activityString) && photos.length === 0) {
+                  <div class="metadata-item-container">
+                    <div class="metadata-item">
+                    </div>
+                  </div>
+                }
+              }
+
+            </div>
+            @if (photoEnabled && !photoCanBeOnLeft && photos.length > 0) {
+              <div class="photos" [ngStyle]="{'margin-left': ((maxWidth - 140) / 2) + 'px'}">
+                <app-photos-slider #slider [photos]="photos" [width]="140" [height]="85" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
+              </div>
+            } @else if (elevationProfile && fullTrack && !photoCanBeOnLeft) {
+              <div class="photos" [ngStyle]="{'width': maxWidth + 'px', 'max-width': maxWidth + 'px'}">
+                <app-trail-small-elevation-profile [track]="fullTrack" [width]="maxWidth" [height]="85"></app-trail-small-elevation-profile>
+              </div>
+            }
+          </div>
         </div>
-      } @else if (elevationProfile && fullTrack && !photoCanBeOnLeft) {
-        <div class="photos" [ngStyle]="{'width': maxWidth + 'px', 'max-width': maxWidth + 'px'}">
-          <app-trail-small-elevation-profile [track]="fullTrack" [width]="maxWidth" [height]="85"></app-trail-small-elevation-profile>
+        @if (!track$.value) {
+          <ion-spinner name="dots"></ion-spinner>
+        }
+        @if (trail && enableShowOnMap) {
+          <div class="show-on-map">
+            <ion-button size="small" fill="clear" color="secondary" (click)="showOnMap.emit(trail); $event.stopPropagation()">
+              <ion-icon name="search-map" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        }
+      </div>
+      @if (enableTabs && fullTrack) {
+        <div class="trail-overview-graph {{selectedTab === 'elevation' ? 'shown' : 'hidden'}}">
+          <app-trail-graph
+            [track1]="fullTrack"
+            [graphType]="'elevation'"
+          ></app-trail-graph>
+        </div>
+      }
+      @if (enableTabs && photos.length > 0) {
+        <div class="trail-overview-photos {{selectedTab === 'photos' ? 'shown' : 'hidden'}}">
+          <app-photos-slider #slider [photos]="photos" [width]="2000" [height]="100" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(slider);"></app-photos-slider>
         </div>
       }
     </div>
   </div>
-  @if (!track$.value) {
-    <ion-spinner name="dots"></ion-spinner>
-  }
-  @if (trail && enableShowOnMap) {
-    <div class="show-on-map">
-      <ion-button size="small" fill="clear" color="secondary" (click)="showOnMap.emit(trail); $event.stopPropagation()">
-        <ion-icon name="search-map" slot="icon-only"></ion-icon>
-      </ion-button>
-    </div>
-  }
 } @else {
   <div class="not-loaded"></div>
 }

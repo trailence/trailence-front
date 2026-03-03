@@ -139,32 +139,8 @@
       bottom: 0;
       left: 0;
       width: var(--bottom-sheet-tabs-width);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      .bottom-sheet-tab {
-        flex: 1 1 100%;
-        border-right: 2px solid rgba(var(--ion-color-secondary-rgb), 0.2);
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: stretch;
-
-        ion-icon {
-          width: var(--bottom-sheet-tab-icon-size);
-          height: var(--bottom-sheet-tab-icon-size);
-          color: var(--ion-color-medium);
-        }
-
-        &.tab-selected {
-          background-color: var(--ion-color-light);
-          border-color: var(--ion-color-secondary);
-          ion-icon {
-            color: var(--ion-color-secondary);
-          }
-        }
-      }
+      --vertical-tabs-width: var(--bottom-sheet-tabs-width);
+      --vertical-tab-icon-size: var(--bottom-sheet-tab-icon-size);
     }
   }
 

@@ -38,6 +38,7 @@ import { NgClass, NgStyle } from '@angular/common';
 import { TrailLink } from 'src/app/model/dto/trail-link';
 import { TrailLinkService } from 'src/app/services/database/link.service';
 import { TrailSmallElevationProfileComponent } from '../trail-small-elevation-profile/trail-small-elevation-profile.component';
+import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
 
 class Meta {
   name?: string;
@@ -77,6 +78,7 @@ interface State {
       RateComponent,
       LongPressDirective,
       NgClass, NgStyle,
+      TrailGraphComponent,
     ]
 })
 export class TrailOverviewComponent extends AbstractComponent {
@@ -117,6 +119,9 @@ export class TrailOverviewComponent extends AbstractComponent {
 
   @Input() linkWithSlug = false;
   @Input() dateWithoutTime = false;
+
+  @Input() enableTabs = false;
+  selectedTab = 'info';
 
   @Input() renameOnTrailNamePress = false;
   trailNamePressed(): void {
@@ -225,7 +230,7 @@ export class TrailOverviewComponent extends AbstractComponent {
         let changed = force;
         previousI18nState = i18nState;
         if (track != this.track$.value) {
-          if (this.smallMapEnabled || this.elevationProfile) this.fullTrack = track as Track;
+          if (this.smallMapEnabled || this.elevationProfile || this.enableTabs) this.fullTrack = track as Track;
           this.track$.next(track);
           changed = true;
         }
@@ -258,7 +263,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     );
     if (owner === this.auth.email)
       this.listenToTags();
-    if (this.photoEnabled)
+    if (this.photoEnabled || this.enableTabs)
       this.listenToPhotos();
     if (!this.trail.owner.includes('@'))
       this.listenToExternal();
@@ -359,10 +364,10 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   private trackData$(trail: Trail, owner: string): Observable<[TrackMetadataSnapshot | Track | undefined, number | undefined]> {
-    if (this.trackSnapshot && this.refreshMode !== 'live' && !this.smallMapEnabled && !this.elevationProfile)
+    if (this.trackSnapshot && this.refreshMode !== 'live' && !this.smallMapEnabled && !this.elevationProfile && !this.enableTabs)
       return of([this.trackSnapshot, this.trackSnapshot.startDate]);
     return concat(of([undefined, undefined] as [undefined, undefined]), trail.currentTrackUuid$.pipe(
-      switchMap(uuid => this.refreshMode === 'live' || this.smallMapEnabled || this.elevationProfile ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
+      switchMap(uuid => this.refreshMode === 'live' || this.smallMapEnabled || this.elevationProfile || this.enableTabs ? this.trackService.getFullTrack$(uuid, owner) : this.trackService.getMetadata$(uuid, owner)),
       switchMap(track => {
         if (!track) return of([undefined, undefined] as [undefined, undefined]);
         if (track instanceof Track) return combineLatest([of(track), track.metadata.startDate$]);
@@ -530,6 +535,12 @@ export class TrailOverviewComponent extends AbstractComponent {
       this.mySelectionService.addSelection(this.trail.owner, this.trail.uuid);
     else
       this.mySelectionService.deleteSelection(this.trail.owner, this.trail.uuid);
+    this.changesDetection.detectChanges();
+  }
+
+  setTab(tab: string) {
+    if (!this.enableTabs || this.selectedTab === tab) return;
+    this.selectedTab = tab;
     this.changesDetection.detectChanges();
   }
 

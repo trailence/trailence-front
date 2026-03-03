@@ -85,7 +85,6 @@ export class TrailSmallElevationProfileComponent implements OnChanges {
       }
     }
     if (previous) {
-      console.log('x', previous.x, this.width, grades.length)
       for (let x = 0; x < grades.length; ++x) {
         const g = grades[x].grade;
         const y = grades[x].y;
