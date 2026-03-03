@@ -81,6 +81,9 @@
     <div class="menu-section-header no-separator-before" (click)="collectionsOpen = !collectionsOpen">
       <ion-icon name="collection" class="left-icon"></ion-icon>
       <div class="section-title">{{ i18n.texts.menu.collections }}</div>
+      <ion-button size="small" shape="round" fill="clear" color="dark" class="new-collection" (click)="$event.stopPropagation(); collectionService.collectionPopup(); close();">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
       <ion-button size="small" shape="round" fill="clear" color="secondary">
         <ion-icon slot="icon-only" [name]="collectionsOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
       </ion-button>
@@ -115,11 +118,6 @@
               <div class="count">{{allCollectionsTrails}}</div>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="menu-item new-collection" (click)="collectionService.collectionPopup(); close();">
-        <div class="item-title-container">
-          <div class="item-title">{{ i18n.texts.pages.trails.actions.new_collection }}</div>
         </div>
       </div>
     }

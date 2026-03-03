@@ -52,7 +52,7 @@ export class AppMenu extends Component {
   }
 
   public getAddCollectionButton() {
-    return this.getCollectionsSection().$('.menu-item.new-collection');
+    return new IonicButton(this.getCollectionsSection().$('ion-button.new-collection'));
   }
 
   public async addCollection(name: string) {
