@@ -173,7 +173,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         return;
       }
       this.mapTracks$.next(this.mapTracksMapper.update(trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
-      if (this.highlightedTrail) this.highlight(this.highlightedTrail, true);
+      if (this.highlightedTrail) this.setHighlighted(this.highlightedTrail);
       return;
     }
     if (this.mapTracks$.value.length > 0)
@@ -199,7 +199,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   private mapTopToolbarSubscription?: Subscription;
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
-    if (previousState?.trails$ === undefined && this.trails$ !== undefined && this.trails$.size === 0) {
+    if (previousState?.trails$ === undefined && this.trails$?.size === 0) {
       if (this.isSmall && this.tab === 'map' && this.viewId !== 'search-trails') {
         this.setTab('list');
       }
@@ -337,12 +337,9 @@ export class TrailsAndMapComponent extends AbstractComponent {
 
   toggleHighlightedTrail(trail: Trail, others?: Trail[]): void {
     if (this.highlightedTrail === trail) {
-      this.highlight(trail, false);
-      this.highlightedTrail = undefined;
+      this.setHighlighted(undefined);
     } else {
-      if (this.highlightedTrail) this.highlight(this.highlightedTrail, false);
-      this.highlightedTrail = trail;
-      this.highlight(trail, true);
+      this.setHighlighted(trail);
     }
     this.bottomSheetTrails = others && others.length > 0 ? [trail, ...others] : undefined;
     this.bottomSheetTrailsIndex = 0;
@@ -353,25 +350,25 @@ export class TrailsAndMapComponent extends AbstractComponent {
     if (!this.bottomSheetTrails) return;
     const nb = this.bottomSheetTrails.length;
     this.bottomSheetTrailsIndex = index < 0 ? 0 : index >= nb ? nb - 1 : index;
-    if (this.highlightedTrail)
-      this.highlight(this.highlightedTrail, false);
-    this.highlightedTrail = this.bottomSheetTrails[this.bottomSheetTrailsIndex];
-    this.highlight(this.highlightedTrail, true);
+    this.setHighlighted(this.bottomSheetTrails[this.bottomSheetTrailsIndex]);
     this.changesDetection.detectChanges();
   }
 
-  private highlight(trail: Trail, highlight: boolean): void {
-    const mapTrack = this.mapTracks$.value.find(mt => mt.trail?.uuid === trail.uuid && mt.trail?.owner === trail.owner);
-    if (mapTrack) {
-      mapTrack.color = highlight ? '#4040FF' : 'red';
-      mapTrack.showDepartureAndArrivalAnchors(highlight);
-      mapTrack.highlighted = highlight;
-      if (highlight)
+  private setHighlighted(trail: Trail | undefined): void {
+    for (const mapTrack of this.mapTracks$.value) {
+      const highlighted = !!trail && trail.uuid === mapTrack.trail?.uuid && trail.owner === mapTrack.trail?.owner;
+      const unhighlighted = !highlighted && !!this.highlightedTrail && this.highlightedTrail.uuid === mapTrack.trail?.uuid && this.highlightedTrail.owner === mapTrack.trail?.owner;
+      mapTrack.color = highlighted ? '#4040FF' : (!!trail ? '#FF000080' : 'red');
+      if (!highlighted && !unhighlighted) continue;
+      mapTrack.showDepartureAndArrivalAnchors(highlighted);
+      mapTrack.highlighted = highlighted;
+      if (highlighted)
         mapTrack.bringToFront();
       else
         mapTrack.bringToBack();
     }
-    this.trailsList?.setHighlighted(highlight ? trail : undefined);
+    this.trailsList?.setHighlighted(trail);
+    this.highlightedTrail = trail;
   }
 
   onTrailClickOnList(trail: Trail, showOnMap: boolean = false): void {

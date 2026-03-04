@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { TrailCollection } from 'src/app/model/trail-collection';
-import { IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonContent, IonFooter, IonButtons, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
+import { IonHeader, IonToolbar, IonIcon, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonInput } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { FormsModule } from '@angular/forms';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
@@ -15,7 +15,7 @@ import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
     selector: 'app-collection-form-popup',
     templateUrl: './collection-form-popup.component.html',
     styleUrls: [],
-    imports: [IonInput, IonButton, IonButtons, IonFooter, IonContent, IonLabel, IonTitle, IonIcon, IonToolbar, IonHeader, FormsModule,]
+    imports: [IonInput, IonButton, IonButtons, IonFooter, IonLabel, IonTitle, IonIcon, IonToolbar, IonHeader, FormsModule,]
 })
 export class CollectionFormPopupComponent implements OnInit, OnChanges {
 

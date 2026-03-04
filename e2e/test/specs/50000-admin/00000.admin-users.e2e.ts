@@ -38,7 +38,15 @@ describe('Admin Users', () => {
   it('Add me 2 roles', async () => {
     if (!userModal) return;
     await userModal.addRole('test');
+    await TestUtils.retry(async () => {
+      const currentRoles = await userModal.getRoles();
+      if (currentRoles.length !== 1 || currentRoles[0] !== 'test') throw new Error('Expected role "test", found: ' + currentRoles.join());
+    }, 3, 1000);
     await userModal.addRole('second');
+    await TestUtils.retry(async () => {
+      const currentRoles = await userModal.getRoles();
+      if (currentRoles.length !== 2) throw new Error('Expected 2 roles, found: ' + currentRoles.join());
+    }, 3, 1000);
     await (await userModal.getFooterButtonWithText('Close')).click();
     const cell = await usersPage.table.searchCellByColumnTitleAndValue('E-Mail', 'user@trailence.org');
     const rolesIndex = await usersPage.table.searchColumnIndexByTitle('Roles');
