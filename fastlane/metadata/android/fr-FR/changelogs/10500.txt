@@ -1,0 +1,3 @@
+Nouvelle fonctionnalité “Groupe de suivi”: permet de partager sa position afin de pouvoir se retrouver facilement en cas de besoin<br/>
+Altimétrie disponible dans l'aperçu d'un parcours<br/>
+Quelques autres améliorations et correctifs

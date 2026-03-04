@@ -1,0 +1,3 @@
+New feature “Live Tracking Group”: allows you to share your location so you can easily find each other if needed<br/>
+Elevation profile now available in the route preview<br/>
+Minor improvements and bug fixes

@@ -163,8 +163,20 @@
       ]
     }
   },
-  "010450": {
-    "fr": { "message": "BETA" },
-    "en": { "message": "BETA" }
+  "010500": {
+    "fr": {
+      "items": [
+        "Nouvelle fonctionnalité “Groupe de suivi”: permet de partager sa position afin de pouvoir se retrouver facilement en cas de besoin",
+        "Altimétrie disponible dans l'aperçu d'un parcours",
+        "Quelques autres améliorations et correctifs"
+      ]
+    },
+    "en": {
+      "items": [
+        "New feature “Live Tracking Group”: allows you to share your location so you can easily find each other if needed",
+        "Elevation profile now available in the route preview",
+        "Minor improvements and bug fixes"
+      ]
+    }
   }
 }
