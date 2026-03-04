@@ -39,6 +39,8 @@ services:
       - SMTP_PORT=1025
       - SMTP_AUTH_ENABLED=false
       - SMTP_TLS_ENABLED=false
+      - TRAILENCE_HOSTNAME=localhost
+      - TRAILENCE_PROTOCOL=http
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080/api/ping || exit 1
       interval: 1s
@@ -49,10 +51,11 @@ services:
     depends_on:
       back:
         condition: service_started
-    image: nginx:stable-alpine
+    build:
+      context: .
     volumes:
       - ../../www/browser:/usr/share/nginx/html:ro
-      - ../../www/nginx:/etc/nginx/templates:ro
+      - ../../server_pages/src:/usr/share/nginx/njs:ro
     ports:
       - 80:80
     environment:
