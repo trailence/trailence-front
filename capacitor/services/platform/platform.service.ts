@@ -40,13 +40,15 @@ export class PlatformService {
       Console.info('Keyboard shown', info);
       const height = info.keyboardHeight;
       if (height) {
-        const current = document.documentElement.style.getPropertyValue('--ion-safe-area-bottom');
-        document.documentElement.style.setProperty('--ion-safe-area-bottom', current?.length ? 'calc(' + current + ' + ' + height + 'px)' : height + 'px');
+        document.documentElement.style.setProperty('--keyboard-bottom-height', height + 'px');
+        setTimeout(() => {
+          document.activeElement?.scrollIntoView();
+        }, 0);
       }
     });
     Keyboard.addListener('keyboardWillHide', () => {
       Console.info('Keyboard hidden');
-      document.documentElement.style.setProperty('--ion-safe-area-bottom', '');
+      document.documentElement.style.setProperty('--keyboard-bottom-height', '');
     });
   }
 

@@ -6,8 +6,13 @@ import com.getcapacitor.Logger;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.webkit.WebView;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import org.trailence.camera.CameraPlugin;
 import org.trailence.geolocation.BackgroundGeolocation;
@@ -23,24 +28,23 @@ public class MainActivity extends BridgeActivity {
     registerPlugin(BackgroundGeolocation.class);
     registerPlugin(CameraPlugin.class);
     super.onCreate(savedInstanceState);
-    //if (getApplicationInfo().targetSdkVersion >= 35 && Build.VERSION.SDK_INT < 35)
-    //  WindowCompat.enableEdgeToEdge();
     WebView.setWebContentsDebuggingEnabled(true);
-    /*
     ViewCompat.setOnApplyWindowInsetsListener(this.getBridge().getWebView(), (v, windowInsets) -> {
-      try {
-        Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this, getApplicationContext());
-        String js =
-            "document.documentElement.style.setProperty('--ion-safe-area-top', '" + insets.top + "px');" +
-            "document.documentElement.style.setProperty('--ion-safe-area-bottom', '" + insets.bottom + "px');" +
-            "document.documentElement.style.setProperty('--ion-safe-area-left', '" + insets.left + "px');" +
-            "document.documentElement.style.setProperty('--ion-safe-area-right', '" + insets.right + "px');";
-        bridge.getWebView().evaluateJavascript(js, null);
-      } catch (Exception e) {
-        Logger.error("Error setting insets", e);
+      if (Build.VERSION.SDK_INT < 35) {
+        try {
+          Insets insets = TrailencePlugin.getDeviceInsets(windowInsets, this, getApplicationContext());
+          String js =
+            "document.documentElement.style.setProperty('--safe-area-inset-top', '" + insets.top + "px');" +
+              "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + insets.bottom + "px');" +
+              "document.documentElement.style.setProperty('--safe-area-inset-left', '" + insets.left + "px');" +
+              "document.documentElement.style.setProperty('--safe-area-inset-right', '" + insets.right + "px');";
+          bridge.getWebView().evaluateJavascript(js, null);
+        } catch (Exception e) {
+          Logger.error("Error setting insets", e);
+        }
       }
       return WindowInsetsCompat.CONSUMED;
-    });*/
+    });
   }
 
   @Override

@@ -36,6 +36,16 @@
   --donation-color: #E000E0;
 }
 
+app-root > ion-app > ion-content > ion-router-outlet {
+  margin-bottom: var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px));
+}
+app-root > ion-app > ion-menu {
+  margin-top: var(--safe-area-inset-top, 0px);
+  margin-bottom: var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px));
+  margin-left: var(--safe-area-inset-left, 0px);
+  margin-right: var(--safe-area-inset-right, 0px);
+}
+
 @media (max-height: 600px) {
   :root {
     --header-height: 40px;

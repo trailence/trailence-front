@@ -3,7 +3,7 @@ import { ModalComponent } from './modal';
 
 export class CollectionModal extends ModalComponent {
 
-  public get nameInput() { return new IonicInput(this.getElement().$('div.content'), '>>>ion-input'); }
+  public get nameInput() { return new IonicInput(this.getElement().$('div.modal-content'), '>>>ion-input'); }
 
   public async setName(name: string) {
     const input = this.nameInput;

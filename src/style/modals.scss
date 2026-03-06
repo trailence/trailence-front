@@ -13,7 +13,7 @@ ion-modal.small-modal {
   --max-width: 95%;
   --max-height: 95%;
 
-  ion-content {
+  ion-content, div.modal-content {
     flex: 1 1 100%;
     height: auto;
     contain: content;
@@ -49,9 +49,9 @@ ion-modal.auto-height {
   --height: auto;
   height: auto;
   --max-height: 95%;
-  --header-footer-size: calc(var(--toolbar-height) * 2);
+  --header-footer-size: calc(var(--toolbar-height) * 2 + var(--additional-header-footer-size, 0px) + calc(var(--ion-safe-area-bottom, 0px) + var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px))) + calc(var(--ion-safe-area-top, 0px) + var(--safe-area-inset-top, 0px)));
 
-  ion-content {
+  ion-content, div.modal-content {
     flex: 1 1 100%;
     height: auto;
     contain: content;
@@ -97,14 +97,14 @@ ion-modal ion-toolbar ion-title {
     }
 
     &.small-modal {
-      ion-content {
+      ion-content, div.modal-content {
         max-height: calc(95vh - 80px);
       }
     }
 
     &.auto-height {
       --max-height: 100%;
-      ion-content {
+      ion-content, div.modal-content {
         max-height: calc(100vh - var(--header-footer-size));
       }
     }
@@ -112,7 +112,7 @@ ion-modal ion-toolbar ion-title {
 }
 
 ion-modal, ion-alert {
-  margin: var(--ion-safe-area-top, 0px) var(--ion-safe-area-right, 0px) var(--ion-safe-area-bottom, 0px) var(--ion-safe-area-left, 0px);
+  margin: calc(var(--ion-safe-area-top, 0px) + var(--safe-area-inset-top, 0px)) var(--ion-safe-area-right, 0px) calc(var(--ion-safe-area-bottom, 0px) + var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px))) var(--ion-safe-area-left, 0px);
 
   > * {
     --ion-safe-area-top: 0px;
