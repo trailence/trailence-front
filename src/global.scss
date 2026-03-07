@@ -203,3 +203,7 @@ app-avatar {
     }
   }
 }
+
+.round-img img, img.round-img {
+  border-radius: 5px;
+}

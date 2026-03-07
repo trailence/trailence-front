@@ -7,8 +7,9 @@
 }
 
 app-toolbar {
-  border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.1);
   padding-bottom: 2px;
+  background-color: rgba(var(--ion-text-color-rgb), 0.1);
+  border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.15);
 }
 
 .message {
@@ -23,14 +24,13 @@ app-toolbar {
   display: flex;
   flex-direction: row;
   align-items: center;
-  border-bottom: 2px solid rgba(var(--ion-text-color-rgb), 0.1);
 
   ion-checkbox {
     flex: none;
     padding-right: 8px;
     padding-top: 7px;
     padding-bottom: 8px;
-    margin-left: 5px;
+    margin-left: 3px;
   }
 
   div.nb-selected {
@@ -63,8 +63,10 @@ app-toolbar {
   position: relative;
 
   .trail {
-    padding: 3px 5px;
-    border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.1);
+    margin: 2px 2px 3px 2px;
+    padding: 1px;
+    background: linear-gradient(to bottom, var(--ion-item-background-gradient-color) 0, var(--ion-item-background) 20px);
+    border-radius: 10px;
   }
 
   .empty-list {

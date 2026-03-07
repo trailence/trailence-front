@@ -24,6 +24,7 @@ import { buildTooltip } from './tooltip-builder';
 import { GradeDatasetBuilder } from './grade-dataset-builder';
 import { DataPoint } from './data-point';
 import { EstimatedSpeedDatasetBuilder } from './estimated-speed-dataset-builder';
+import { GradientEffectPlugin } from './plugins/gradient-effect';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -47,6 +48,7 @@ export class TrailGraphComponent extends AbstractComponent {
   @Input() selection?: RangeReference[] | PointReference[];
   @Input() graphType!: GraphType;
   @Input() waitVisibleBeforeToRender = true;
+  @Input() enableVisualEffects = true;
 
   @Output() pointHover = new EventEmitter<GraphPointReference[]>();
   @Output() pointClick = new EventEmitter<GraphPointReference[]>();
@@ -220,7 +222,7 @@ export class TrailGraphComponent extends AbstractComponent {
   private createChart(): void {
     this.ngZone.runOutsideAngular(() => {
       if (!this.chartOptions) this.buildOptions();
-      if (this.chartPlugins.length === 0)
+      if (this.chartPlugins.length === 0) {
         this.chartPlugins.push(
           new HoverVerticalLine(this.contrastColor),
           new BackgroundPlugin(this.backgroundColor),
@@ -234,9 +236,10 @@ export class TrailGraphComponent extends AbstractComponent {
             () => this.selectable,
             (pos) => this.zoomButtonPosition.emit(pos),
           ),
-          this.positionPlugin
+          this.positionPlugin,
         );
-
+        if (this.enableVisualEffects) this.chartPlugins.push(new GradientEffectPlugin(new Color(this.backgroundColor)));
+      }
       this.chartData = {
         datasets: []
       }
@@ -368,7 +371,7 @@ export class TrailGraphComponent extends AbstractComponent {
             padding: { top: 0, bottom: 0, y: 0 },
           },
           grid: {
-            color: new Color(this.contrastColor).setAlpha(0.33).toString(),
+            color: new Color(this.contrastColor).setAlpha(0.2).toString(),
           },
           border: {
             color: this.contrastColor

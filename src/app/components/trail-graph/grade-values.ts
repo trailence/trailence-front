@@ -1,5 +1,5 @@
 export const gradeColors = [
-  '#D8D8D8', // 5%-
+  '#D8FFD8', // 5%-
   '#FFD890', // 7% to 5%
   '#F0A040', // 10% to 7%
   '#C05016', // 15% to 10%

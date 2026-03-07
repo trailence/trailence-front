@@ -41,7 +41,9 @@
     position: absolute;
     right: 0;
     bottom: 0;
-    background-color: var(--ion-background-color);
+    background: linear-gradient(to bottom, var(--ion-background-gradient-color) 0%, var(--ion-background-color) 33%);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     z-index: 10;
     width: 0;
     height: 0;

@@ -769,7 +769,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             followedTrail$,
           ]).pipe(
             map(([sourceString, [info, originalTrail], followedInfo]) => {
-              console.log('info', info)
               if ((source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http')) ||
                   (!source.externalUrl && info?.externalUrl))
                 source.externalUrl = info?.externalUrl;

@@ -1,3 +1,8 @@
+:host {
+  box-shadow: 0 0 10px 0px var(--ion-color-primary);
+  z-index: 1;
+}
+
 .trailence-title {
   font-size: 20px;
   display: flex;
@@ -84,57 +89,57 @@
 }
 
 ion-toolbar {
-    --min-height: var(--header-height);
+  --min-height: var(--header-height);
 
-    ion-menu-button {
-        width: var(--header-height);
-        height: var(--header-height);
-    }
+  ion-menu-button {
+    width: var(--header-height);
+    height: var(--header-height);
+  }
 
-    .update-app-badge {
-      position: relative;
-      width: 0px;
-      height: 0px;
+  .update-app-badge {
+    position: relative;
+    width: 0px;
+    height: 0px;
+    pointer-events: none;
+
+    ion-badge {
+      position: absolute;
+      right: calc(var(--header-height) / 2 - 18px);
+      top: -16px;
+      font-size: 13px;
+      --background: rgba(var(--ion-color-success-rgb), 0.85);
+      --color: var(--ion-color-success-contrast);
+      --padding-start: 2px;
+      --padding-end: 2px;
+      --padding-top: 2px;
+      --padding-bottom: 2px;
       pointer-events: none;
-
-      ion-badge {
-        position: absolute;
-        right: calc(var(--header-height) / 2 - 18px);
-        top: -16px;
-        font-size: 13px;
-        --background: rgba(var(--ion-color-success-rgb), 0.85);
-        --color: var(--ion-color-success-contrast);
-        --padding-start: 2px;
-        --padding-end: 2px;
-        --padding-top: 2px;
-        --padding-bottom: 2px;
-        pointer-events: none;
-      }
     }
+  }
 
-    .header-title {
-        ion-button {
-            margin-top: 0;
-            margin-bottom: 0;
-            color: var(--ion-color-primary-contrast);
-            width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
-            height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
-            min-width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
-            min-height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
-        }
-    }
-
-    ion-buttons.public-buttons {
-      div.separator {
-        width: 0px;
-        height: calc(var(--header-height) / 2);
-        margin: 0 2px;
-        border-right: 1px solid rgba(var(--ion-color-primary-contrast-rgb), 0.33);
-      }
-      a:hover, a:active, a {
+  .header-title {
+    ion-button {
+        margin-top: 0;
+        margin-bottom: 0;
         color: var(--ion-color-primary-contrast);
-      }
+        width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+        height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+        min-width: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
+        min-height: calc(min(var(--header-height), clamp(30px, 2.86em, 60px)));
     }
+  }
+
+  ion-buttons.public-buttons {
+    div.separator {
+      width: 0px;
+      height: calc(var(--header-height) / 2);
+      margin: 0 2px;
+      border-right: 1px solid rgba(var(--ion-color-primary-contrast-rgb), 0.33);
+    }
+    a:hover, a:active, a {
+      color: var(--ion-color-primary-contrast);
+    }
+  }
 }
 
 a {
@@ -142,6 +147,30 @@ a {
 }
 
 @media (max-width: 499px) {
+  ion-toolbar {
+    ion-menu-button {
+      width: 40px;
+    }
+    .header-title {
+      ion-button {
+        width: 24px;
+        min-width: 24px;
+        margin-inline-start: 0;
+        margin-inline-end: 0;
+        ion-icon {
+          min-width: 22px;
+          min-height: 22px;
+        }
+      }
+      .title-actions {
+        ion-button {
+          ion-icon {
+            margin-left: 6px;
+          }
+        }
+      }
+    }
+  }
   .trailence-title {
     padding: 4px 8px;
 

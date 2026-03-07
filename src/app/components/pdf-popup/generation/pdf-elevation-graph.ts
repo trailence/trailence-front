@@ -18,6 +18,7 @@ export async function generateElevationGraphToPdf(ctx: PdfContext, x: number, y:
       inputBinding('track1', () => ctx.track),
       inputBinding('graphType', () => 'elevation'),
       inputBinding('waitVisibleBeforeToRender', () => false),
+      inputBinding('enableVisualEffects', () => false),
     ]
   });
   ctx.injector.get(ApplicationRef).attachView(graphRef.hostView);

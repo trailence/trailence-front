@@ -9,6 +9,7 @@ export class GradeDatasetBuilder {
     let minY = originalDs.data[0].y;
     for (let i = 1; i < originalDs.data.length; ++i)
       minY = Math.min(minY, originalDs.data[i].y);
+    minY -= 10;
 
     let previousIndex = 0;
     let previousLevel: number | undefined = undefined;
@@ -42,6 +43,11 @@ export class GradeDatasetBuilder {
   public static addElevationGrade(ds: any[], points: any[], startIndex: number, endIndex: number, minY: number, level: number): number {
     const color = gradeColors[level] + 'A0';
     if (ds.length === 0 || ds.at(-1).backgroundColor !== color) {
+      if (ds.length > 0)
+        ds.at(-1).data.push({
+          x: points[startIndex].x + 0.001,
+          y: minY,
+        });
       ds.push({
         isGrade: true,
         isNotData: true,
@@ -49,7 +55,7 @@ export class GradeDatasetBuilder {
         borderColor: color,
         pointColor: color,
         strokeColor: color,
-        borderWidth: 0,
+        borderWidth: 10,
         showLine: false,
         spanGaps: false,
         fill: 0,
@@ -62,11 +68,12 @@ export class GradeDatasetBuilder {
         }]
       });
     }
-    for (let i = startIndex + 1; i <= endIndex; ++i)
+    if (ds.length > 0 && endIndex === points.length - 1) {
       ds.at(-1).data.push({
-        x: points[i].x,
+        x: points[endIndex].x,
         y: minY,
       });
+    }
     return level;
   }
 }

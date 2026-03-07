@@ -102,7 +102,6 @@
             </div>
           } @else {
             <div class="trail-name-row {{editable ? 'editable' : ''}}" (click)="editTrailName(trail1)">
-              <ion-icon name="edit-text" color="secondary"></ion-icon>
               <div class="trail-name">{{trail1WithInfo!.getName(currentLang)}}</div>
             </div>
 
@@ -664,7 +663,7 @@
     @switch (tab) {
       @case ('photos') {
         @if (photos !== undefined) {
-          <div class="trail-photos-tab">
+          <div class="trail-photos-tab round-img">
             <app-photos-popup [trails$]="trailsForPhotoPopup" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
           </div>
         }

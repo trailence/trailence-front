@@ -78,7 +78,7 @@
     height: var(--bottom-sheet-button-height);
     transition: height 0.3s ease-in-out;
     z-index: 500;
-    background-color: var(--ion-background-color);
+    background: linear-gradient(to bottom, var(--ion-background-gradient-color) 0%, var(--ion-background-color) 33%);
 
     .bottom-sheet-button {
       height: var(--bottom-sheet-button-height);
@@ -308,6 +308,7 @@
     display: block;
     padding-bottom: 6px;
     border-bottom: 1px solid rgba(var(--ion-text-color-rgb), 0.15);
+    background-color: rgba(var(--ion-text-color-rgb), 0.1);
   }
 
   .trail-tags-row, .trail-name-row {
@@ -342,8 +343,8 @@
     .trail-name {
       flex: 1 1 100%;
       margin-left: 5px;
-      color: var(--ion-color-tertiary);
-      font-size: 14px;
+      color: var(--ion-tet-color);
+      font-size: 20px;
     }
   }
 
@@ -599,26 +600,23 @@ div.trail-publication {
     flex: 1 1 100%;
     font-size: 13px;
     line-height: 1.2;
-    color: var(--ion-color-secondary);
+    color: rgba(var(--ion-text-color-rgb), 0.75);
 
-    .author {
-      color: var(--ion-color-tertiary);
+    .author, .info {
+      color: var(--ion-text-color);
     }
     .you {
       font-style: italic;
     }
     .nb_publications {
       a {
-        color: var(--ion-color-medium);
+        color: rgba(var(--ion-text-color-rgb), 0.75);
         font-size: 12px;
       }
-    }
-    .info {
-      color: var(--ion-text-color);
     }
   }
 }
 div.published-from {
-  padding: 0 8px;
+  padding: 0 8px 0 56px;
   font-size: 13px;
 }
