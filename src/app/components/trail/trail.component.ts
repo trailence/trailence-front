@@ -69,6 +69,7 @@ import { HttpService } from 'src/app/services/http/http.service';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { LiveGroupComponent } from '../live-group/live-group.component';
+import { AvatarComponent } from '../avatar/avatar.component';
 
 interface TrailSource {
   isExternal: boolean;
@@ -76,7 +77,6 @@ interface TrailSource {
   externalUrl?: string;
   externalAppName?: string;
   sourceString?: string;
-  author?: string;
   info?: TrailInfo;
   followedInfo?: TrailInfo;
   publishedFromTrail?: Trail;
@@ -138,6 +138,7 @@ class TrailWithInfo {
         NgComponentOutlet,
         AsyncPipe,
         LiveGroupComponent,
+        AvatarComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent implements AfterContentChecked {
@@ -768,11 +769,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             followedTrail$,
           ]).pipe(
             map(([sourceString, [info, originalTrail], followedInfo]) => {
+              console.log('info', info)
               if ((source.externalAppName !== 'Trailence' && source?.externalUrl && !source.externalUrl.startsWith('http')) ||
                   (!source.externalUrl && info?.externalUrl))
                 source.externalUrl = info?.externalUrl;
               source.sourceString = sourceString;
-              source.author = info?.author;
               source.info = info ?? undefined;
               source.followedInfo = followedInfo ?? undefined;
               source.publishedFromTrail = originalTrail ?? undefined;
@@ -2002,7 +2003,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   }
 
   private async compareToPublicTrail() {
-    const trailence = this.injector.get(FetchSourceService).getPluginByName('Trailence');
+    const trailence = this.injector.get(FetchSourceService).getTrailence();
     const trail = await trailence?.getTrail(this.currentPublicTrailUuid!);
     if (trail)
       (this.trail2$ as BehaviorSubject<Trail | null>).next(trail);

@@ -222,6 +222,9 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
             url: environment.apiBaseUrl + '/public/trails/v1/photo/' + pt.uuid + '/' + p.uuid,
           })),
           author: pt.authorAlias,
+          authorAvatar: pt.authorAvatar,
+          authorNbPublications: pt.authorNbPublications,
+          authorPublicId: pt.authorPublicId,
           myUuid: pt.myUuid ?? undefined,
           itsMine: pt.itsMine ?? undefined,
           nbRate0: pt.nbRate0,
@@ -377,6 +380,9 @@ export interface PublicTrail {
   createdAt: number;
   updatedAt: number;
   authorAlias?: string;
+  authorAvatar?: string;
+  authorPublicId?: string;
+  authorNbPublications?: number;
   myUuid?: string;
   itsMine?: boolean;
 

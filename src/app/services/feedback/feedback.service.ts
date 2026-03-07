@@ -65,7 +65,7 @@ export class FeedbackService {
           rateDate: rate === undefined ? known.value?.rateDate : Date.now(),
           latestCommentDate: comment === undefined || comment.trim().length === 0 ? known.value?.latestCommentDate : Date.now(),
         });
-        return from(this.fetchService.getPluginByName('Trailence')!.forceRefresh(trailUuid)).pipe(map(() => response));
+        return from(this.fetchService.getTrailence()!.forceRefresh(trailUuid)).pipe(map(() => response));
       })
     );
   }

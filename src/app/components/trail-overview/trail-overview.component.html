@@ -75,8 +75,16 @@
             <div class="tag">{{tag}}</div>
           }
         </div>
-        @if (external && external.rating !== undefined) {
-          <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
+        @if (external) {
+          @if (external.rating !== undefined) {
+            <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
+          }
+          @if (external.authorPublicId) {
+            <div class="published-by">
+              {{i18n.texts.pages.trail.published__by}}
+              <span> @if(external.itsMine) { {{i18n.texts.pages.trail.sections.comments.you}} }@else { {{external.author || i18n.texts.pages.preferences.anonymous}} }</span>
+            </div>
+          }
         }
 
         <div [ngStyle]="{display: track$.value ? '' : 'none'}" class="inner-metadata-container" [ngClass]="{'smaller': hasFixedHeight && (tagsNames.length > 0 || external?.rating !== undefined), 'has-photo': photoEnabled && photos.length > 0, 'compact': photoEnabled && photos.length === 0}">

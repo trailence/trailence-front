@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchSourcePlugin, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import { Trail } from 'src/app/model/trail';
-import { BehaviorSubject, catchError, combineLatest, debounceTime, filter, from, map, merge, Observable, of, Subscriber, switchMap, take } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, EMPTY, filter, from, map, merge, Observable, of, Subscriber, switchMap, take } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { Photo } from 'src/app/model/photo';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -11,6 +11,7 @@ import { Console } from 'src/app/utils/console';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { NetworkService } from '../network/network.service';
 import { ApiError } from '../http/api-error';
+import { TrailencePlugin } from './trailence.plugin';
 
 @Injectable({providedIn: 'root'})
 export class FetchSourceService {
@@ -392,6 +393,20 @@ export class FetchSourceService {
 
   public getPluginsByName(names: string[]): FetchSourcePlugin[] {
     return this.plugins$.value.filter(p => names.includes(p.name));
+  }
+
+  public getTrailence(): TrailencePlugin | undefined {
+    return this.getPluginByName('Trailence') as TrailencePlugin;
+  }
+
+  public getTrailence$(): Observable<TrailencePlugin> {
+    return this.plugins$.pipe(
+      switchMap(plugins => {
+        const trailence = plugins.find(p => p.name === 'Trailence');
+        if (!trailence) return EMPTY;
+        return of(trailence as TrailencePlugin)
+      })
+    );
   }
 
   public getExternalUrl$(owner: string, uuid: string): Observable<string | null> {

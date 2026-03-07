@@ -105,6 +105,38 @@
               <ion-icon name="edit-text" color="secondary"></ion-icon>
               <div class="trail-name">{{trail1WithInfo!.getName(currentLang)}}</div>
             </div>
+
+            @if (trail1WithInfo?.source?.isExternalOnly && trail1.owner === 'trailence') {
+              <div class="trail-publication">
+                @let info = trail1WithInfo?.source?.info;
+                @let author = info?.author || i18n.texts.pages.preferences.anonymous;
+                <app-avatar [uuid]="info?.authorAvatar" [name]="info?.author" [anonymous]="!info?.author"></app-avatar>
+                <div class="trail-publication-infos">
+                  <div>
+                    {{i18n.texts.pages.trail.published_by}} <span class="author">{{author}}</span>
+                    @if (info?.itsMine) {
+                      <span class="you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
+                    }
+                  </div>
+                  <div>
+                    {{i18n.texts.pages.trail.published__on}} <span class="info">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
+                  </div>
+                  @if (info?.authorNbPublications) {
+                    <div class="nb_publications">
+                      <a [routerLink]="'/user-routes/' + info?.authorPublicId">
+                        {{info?.authorNbPublications}} {{i18n.texts.pages.trail[info!.authorNbPublications! > 1 ? 'nb_publications' : 'nb_publication']}}
+                      </a>
+                    </div>
+                  }
+                </div>
+              </div>
+              @if (trail1WithInfo?.source?.publishedFromTrail) {
+                <div class="published-from">
+                  {{i18n.texts.pages.trail.published_from}}
+                  <a [routerLink]="'/trail/' + trail1WithInfo!.source!.publishedFromTrail!.owner + '/' + trail1WithInfo!.source!.publishedFromTrail!.uuid">{{trail1WithInfo!.source!.publishedFromTrail!.name}}</a>
+                </div>
+              }
+            }
           }
 
           @if (comparison !== undefined) {
@@ -319,28 +351,6 @@
                     }
                   }
                 </span>
-              }
-              @if (trail1WithInfo?.source?.isExternalOnly && trail1.owner === 'trailence') {
-                <div>
-                  <span class="trail-date-title">{{i18n.texts.pages.trail.published_on}} </span>
-                  <span class="trail-date-value">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
-                  @if (trail1WithInfo?.source?.author) {
-                    <span class="trail-date-title"> {{i18n.texts.pages.trail.published_by}} </span>
-                    <span class="trail-date-value">{{trail1WithInfo?.source?.author}}</span>
-                    @if (trail1WithInfo?.source?.info?.itsMine) {
-                      <span class="trail-you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
-                      @if (trail1WithInfo?.source?.publishedFromTrail) {
-                        <span class="trail-date-title"> {{i18n.texts.pages.trail.published_from}} </span>
-                        <a [routerLink]="'/trail/' + trail1WithInfo!.source!.publishedFromTrail!.owner + '/' + trail1WithInfo!.source!.publishedFromTrail!.uuid">{{trail1WithInfo!.source!.publishedFromTrail!.name}}</a>
-                      }
-                    }
-                  } @else if (trail1WithInfo?.source?.publishedFromTrail) {
-                    <span class="trail-date-title"> {{i18n.texts.pages.trail.published_by}} </span>
-                    <span class="trail-you"> {{i18n.texts.pages.trail.sections.comments.you}}</span>
-                    <span class="trail-date-title"> {{i18n.texts.pages.trail.published_from}} </span>
-                    <a [routerLink]="'/trail/' + trail1WithInfo!.source!.publishedFromTrail!.owner + '/' + trail1WithInfo!.source!.publishedFromTrail!.uuid">{{trail1WithInfo!.source!.publishedFromTrail!.name}}</a>
-                  }
-                </div>
               }
               @if (publishedTrail) {
                 <div>

@@ -7,6 +7,8 @@
         @if (avatarService.getMyCurrentBlob$() | async; as blob) {
           <app-avatar [blob]="blob"></app-avatar>
         }
+      } @else {
+        <app-avatar [name]="feedback.alias" [anonymous]="!feedback.alias"></app-avatar>
       }
       <div class="header-lines">
         <div class="date"><app-relative-date [date]="feedback.date"></app-relative-date></div>
@@ -56,6 +58,8 @@
           @if (avatarService.getMyCurrentBlob$() | async; as blob) {
             <app-avatar [blob]="blob"></app-avatar>
           }
+        } @else {
+          <app-avatar [name]="reply.alias" [anonymous]="!reply.alias"></app-avatar>
         }
         <div class="header-lines">
           <div class="date"><app-relative-date [date]="reply.date"></app-relative-date></div>

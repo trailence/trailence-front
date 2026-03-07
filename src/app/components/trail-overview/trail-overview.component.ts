@@ -151,7 +151,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   constructor(
     injector: Injector,
     private readonly trackService: TrackService,
-    private readonly i18n: I18nService,
+    public readonly i18n: I18nService,
     changeDetector: ChangeDetectorRef,
     public trailMenuService: TrailMenuService,
     private readonly tagService: TagService,

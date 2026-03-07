@@ -357,8 +357,12 @@
       "remaining_metadata_title": "Restant",
       "created_in_trailence_on": "Créé dans Trailence le",
       "last_update_on": "Dernière mise à jour le",
+      "published_by": "Publié par",
+      "published__by": "Par",
       "published_on": "Publié le",
-      "published_by": "par",
+      "published__on": "Le",
+      "nb_publication": "parcours publié",
+      "nb_publications": "parcours publiés",
       "published_from": "à partir de",
       "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours",
       "source": {

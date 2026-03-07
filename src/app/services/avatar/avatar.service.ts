@@ -137,6 +137,27 @@ export class AvatarService {
     return div;
   }
 
+  public generateFromName(name: string): HTMLElement {
+    let firstLetter: string | undefined = undefined;
+    let firstDigit: string | undefined = undefined;
+    for (let i = 0; i < name.length && !firstLetter; ++i) {
+      const c = name.codePointAt(i);
+      if (!c) continue;
+      if (c >= 'A'.codePointAt(0)! && c <= 'Z'.codePointAt(0)!) {
+        firstLetter = name.charAt(i);
+      } else if (c >= 'a'.codePointAt(0)! && c <= 'z'.codePointAt(0)!) {
+        firstLetter = name.charAt(i).toUpperCase();
+      } else if (!firstDigit && c >= '0'.codePointAt(0)! && c <= '9'.codePointAt(0)!) {
+        firstDigit = name.charAt(i);
+      }
+    }
+    return this.generateHtml({letter: firstLetter || firstDigit || '?'});
+  }
+
+  public generateAnonymous(): HTMLElement {
+    return this.generateHtml({letter: '?'});
+  }
+
   private getMyLetter(): string {
     if (this.authService.auth?.isAnonymous) return '?';
     const email = this.authService.auth?.email;

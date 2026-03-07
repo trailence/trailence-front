@@ -1,5 +1,5 @@
 <ion-button color="secondary" shape="round" fill="solid" id="header-user-button-{{id}}" class="user-button" #userButton>
-  <app-avatar slot="icon-only" style="pointer-events: none;" data-nosnippet></app-avatar>
+  <app-avatar slot="icon-only" style="pointer-events: none;" [me]="true" data-nosnippet></app-avatar>
 </ion-button>
 @if (nbUnreadNotifications > 0) {
   <ion-badge class="notif-badge" color="danger" (click)="transferEvent($event, userButton)">{{nbUnreadNotifications}}</ion-badge>

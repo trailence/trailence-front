@@ -42,7 +42,7 @@ export class ModerationRemoveRequestsPage implements OnInit {
       switchMap(list => {
         if (list.length === 0) return of([]);
         return this.fetchSourceService.waitReady$().pipe(
-          switchMap(() => from(this.fetchSourceService.getPluginByName('Trailence')?.getTrails(list.map(e => e.uuid)) ?? Promise.resolve([]))),
+          switchMap(() => from(this.fetchSourceService.getTrailence()?.getTrails(list.map(e => e.uuid)) ?? Promise.resolve([]))),
           map(trails => {
             return trails.map(t => {
               const request = list.find(r => r.uuid === t.uuid)!;

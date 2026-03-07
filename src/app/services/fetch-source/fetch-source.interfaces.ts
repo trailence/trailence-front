@@ -104,6 +104,9 @@ export interface TrailInfo {
   nbRates?: number;
   oscmSymbol?: string;
   author?: string;
+  authorAvatar?: string;
+  authorPublicId?: string;
+  authorNbPublications?: number;
   myUuid?: string;
   itsMine?: boolean;
 

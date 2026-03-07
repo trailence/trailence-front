@@ -19,6 +19,8 @@ div.header {
   app-avatar {
     --size: 26px;
     margin-right: 3px;
+    background-color: var(--ion-color-secondary);
+    color: var(--ion-color-secondary-contrast);
   }
 
   div.header-lines {

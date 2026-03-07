@@ -39,6 +39,9 @@ import { BrowserService } from 'src/app/services/browser/browser.service';
 import { AsyncPipe } from '@angular/common';
 import { LeafletUtils } from 'src/app/utils/leaflet-utils';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
+import { HttpService } from 'src/app/services/http/http.service';
+import { environment } from 'src/environments/environment';
+import { Arrays } from 'src/app/utils/arrays';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -132,6 +135,7 @@ export class TrailsPage extends AbstractPage {
       case 'moderation': this.initModeration(); break;
       case 'my-publications': this.initMyPublications(); break;
       case 'my-selection': this.initMySelection(); break;
+      case 'user-public': this.initUserPublic(newState.id); break;
       default: this.ngZone.run(() => this.injector.get(Router).navigateByUrl('/'));
     }
   }
@@ -299,6 +303,34 @@ export class TrailsPage extends AbstractPage {
         if (first || !newList.equals(this.trails$.value)) {
           first = false;
           this.ngZone.run(() => this.trails$.next(newList));
+        }
+      }
+    );
+  }
+
+  private initUserPublic(userId: string): void {
+    this.initView('user-public-' + userId);
+    this.actions = [];
+    this.title = '';
+    let current: Trail[] | undefined = undefined;
+    this.byStateAndVisible.subscribe(
+      this.injector.get(HttpService).get<{ids: string[], alias?: string, avatar?: string}>(environment.apiBaseUrl + '/public/trails/v1/user/' + userId)
+      .pipe(
+        switchMap(user => {
+          const trails$ = user.ids.length === 0 ? of([]) : this.injector.get(FetchSourceService).getTrailence$().pipe(switchMap(trailence => from(trailence.getTrails(user.ids))));
+          return trails$.pipe(map(trails => ({trails, alias: user.alias || undefined, avatar: user.avatar || undefined})))
+        }),
+      ),
+      result => {
+        if (current === undefined || !Arrays.sameContent(current, result.trails)) {
+          current = result.trails;
+          this.ngZone.run(() => this.trails$.next(List(result.trails.map(t => of(t)))));
+          this.changesDetection.detectChanges();
+        }
+        const title = result.alias || this.i18n.texts.pages.preferences.anonymous;
+        if (this.title !== title) {
+          this.title = title;
+          this.changesDetection.detectChanges();
         }
       }
     );

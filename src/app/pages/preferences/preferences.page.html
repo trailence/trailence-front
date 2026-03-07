@@ -146,7 +146,7 @@
             @if (avatarDto?.hasAvatar) {
               <div class="avatar-section">
                 <div class="avatar-images">
-                  <app-avatar style="--size: 128px;"></app-avatar>
+                  <app-avatar style="--size: 128px;" [me]="true"></app-avatar>
                 </div>
                 <div>{{avatarDto?.avatarPublic ? i18n.texts.pages.preferences.avatar_public : i18n.texts.pages.preferences.avatar_private}}</div>
                 <div class="avatar-buttons">
@@ -173,7 +173,7 @@
           <div class="value">
             <div class="avatar-section">
               <div class="avatar-images">
-                <app-avatar style="--size: 128px;" [pending]="true"></app-avatar>
+                <app-avatar style="--size: 128px;" [me]="true" [pending]="true"></app-avatar>
               </div>
               <div class="avatar-buttons">
                 <ion-button size="small" (click)="editAvatar()">

@@ -34,6 +34,11 @@ export const appPublicRoutes: Routes = [
     loadComponent: () => import('../../pages/trails/trails.page').then(m => m.TrailsPage)
   },
   {
+    path: 'user-routes/:trailsId',
+    data: { 'trailsType': 'user-public' },
+    loadComponent: () => import('../../pages/trails/trails.page').then(m => m.TrailsPage)
+  },
+  {
     path: 'trail/trailence/:trailId',
     data: { 'trailOwner': 'trailence' },
     loadComponent: () => import('../../pages/trail/trail.page').then(m => m.TrailPage)

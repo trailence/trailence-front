@@ -471,11 +471,6 @@ div.trail-dates {
   span.trail-date-title {
     color: var(--ion-color-secondary);
   }
-
-  span.trail-you {
-    font-style: italic;
-    color: var(--ion-color-secondary);
-  }
 }
 
 div.my-feedback {
@@ -586,4 +581,44 @@ div.leave-feedback {
 
 div.edit-tool-container {
   border: 1px solid rgba(var(--ion-color-medium-rgb), 0.5);
+}
+
+div.trail-publication {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 3px 8px;
+
+  app-avatar {
+    --size: 40px;
+    margin-right: 8px;
+    background-color: var(--ion-color-secondary);
+    color: var(--ion-color-secondary-contrast);
+  }
+  div.trail-publication-infos {
+    flex: 1 1 100%;
+    font-size: 13px;
+    line-height: 1.2;
+    color: var(--ion-color-secondary);
+
+    .author {
+      color: var(--ion-color-tertiary);
+    }
+    .you {
+      font-style: italic;
+    }
+    .nb_publications {
+      a {
+        color: var(--ion-color-medium);
+        font-size: 12px;
+      }
+    }
+    .info {
+      color: var(--ion-text-color);
+    }
+  }
+}
+div.published-from {
+  padding: 0 8px;
+  font-size: 13px;
 }
