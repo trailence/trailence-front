@@ -18,5 +18,8 @@ export interface AuthResponse {
   isAnonymous?: boolean;
   roles?: string[];
   avatar?: AvatarDto;
+  nbPublications?: number;
+  nbComments?: number;
+  nbRates?: number;
 
 }

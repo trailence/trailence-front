@@ -1,5 +1,5 @@
 import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, combineLatest, concat, debounceTime, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -479,6 +479,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     this.trailsForPhotoPopup = [];
     this.trailsWaypoints.reset();
     this.publishedTrail = undefined;
+    this.proposeToPublish = undefined;
     if (this.recording$) this.trailsForPhotoPopup.push(this.recording$.pipe(map(r => r?.trail ?? null)));
     if (this.trail1$) this.trailsForPhotoPopup.push(this.trail1$);
     if (this.trail2$) this.trailsForPhotoPopup.push(this.trail2$);
@@ -555,6 +556,9 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     }
   }
 
+  private proposeToPublishSubscription?: Subscription;
+  proposeToPublish?: string;
+
   private listenForTracks(): void {
     const recording$ = this.recording$ ? combineLatest([this.recording$, this.showOriginal$]).pipe(map(([r,s]) => r ? {recording: r, track: s ? r.rawTrack : r.track} : null)) : of(null);
     this.byStateAndVisible.subscribe(
@@ -568,6 +572,13 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             this._lock = undefined;
             this.editingDescription = false;
             this.editingSourceUrl = false;
+          }
+          if (trail1[0] && trail1[1] && !trail2[0] && !recordingWithTrack) {
+            this.proposeToPublishSubscription?.unsubscribe();
+            this.proposeToPublish = undefined;
+            this.proposeToPublishSubscription = this.trailService.proposeToPublish(trail1[0], trail1[1]).subscribe(result => {
+              this.proposeToPublish = result;
+            });
           }
         }
         this.trail1WithInfo$.next(trail1[0] ? new TrailWithInfo(trail1[0]) : null);
@@ -1662,6 +1673,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     import('../activity-popup/activity-popup.component')
     .then(m => m.openActivityDialog(this.injector, [trail.trail], trail.isRecording))
     .then(() => this.refreshMapToolbarTop());
+  }
+
+  openPublish(): void {
+    this.injector.get(TrailMenuService).startPublication(this.trail1!);
   }
 
   canEdit(): boolean {

@@ -300,6 +300,11 @@
       "photo_no_description": "Description",
       "take_photo": "Prendre une photo",
       "comparison_message": "Ces parcours sont similaires à {{1}}%",
+      "propose_to_publish": {
+        "be_the_first": "Aucun parcours dans cette zone. Soyez le premier à en partager un et aider la communauté 🙏",
+        "improve_region": "Cette zone manque de parcours. Aidez la communauté en partageant le vôtre 🙏",
+        "participate_region": "Il y a encore peu de parcours dans cette zone. Contribuez à la communauté en partageant le vôtre 🙏"
+      },
       "sections": {
         "description": {
           "placeholder": "Entrez une description ici"
@@ -363,6 +368,10 @@
       "published__on": "Le",
       "nb_publication": "parcours publié",
       "nb_publications": "parcours publiés",
+      "nb_rate": "parcours noté",
+      "nb_rates": "parcours notés",
+      "nb_comment": "commentaire",
+      "nb_comments": "commentaires",
       "published_from": "à partir de",
       "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours",
       "source": {

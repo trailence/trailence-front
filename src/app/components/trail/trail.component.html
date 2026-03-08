@@ -434,6 +434,10 @@
           }
         }
 
+        @if (proposeToPublish) {
+          <div class="propose-to-publish" (click)="openPublish()">{{i18n.texts.pages.trail.propose_to_publish[proposeToPublish]}}</div>
+        }
+
         @if (tracks[0] && !toolsEnabled && (trail1?.originalTrackUuid !== trail1?.currentTrackUuid || trail2?.originalTrackUuid !== trail2?.currentTrackUuid)) {
           <div class="show-original">
             <ion-checkbox labelPlacement="end" [checked]="showOriginal$.value" (ionChange)="showOriginal$.next($event.detail.checked)">

@@ -300,6 +300,11 @@
       "photo_no_description": "Description",
       "take_photo": "Take a photo",
       "comparison_message": "These paths are {{1}}% similar",
+      "propose_to_publish": {
+        "be_the_first": "No routes in this area yet. Be the first to share one and help the community 🙏",
+        "improve_region": "This area needs more routes. Help the community by sharing yours 🙏",
+        "participate_region": "There are still only a few routes in this area. Contribute by sharing yours with the community 🙏"
+      },
       "sections": {
         "description": {
           "placeholder": "Describe the trail here"
@@ -361,8 +366,12 @@
       "published__by": "By",
       "published_on": "Published on",
       "published__on": "On",
-      "nb_publication": "published trail",
-      "nb_publications": "published trails",
+      "nb_publication": "published route",
+      "nb_publications": "published routes",
+      "nb_rate": "route rated",
+      "nb_rates": "routes rated",
+      "nb_comment": "comment",
+      "nb_comments": "comments",
       "published_from": "from",
       "select_photo_position": "Select where the photo was taken on the track",
       "source": {

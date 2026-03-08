@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { OwnedStore, UpdatesResponse } from './owned-store';
 import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, Observable, combineLatest, defaultIfEmpty, first, map, of, switchMap, tap, zip } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, from, map, of, switchMap, take, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto } from 'src/app/model/dto/trail';
@@ -26,6 +26,12 @@ import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailLoopType } from 'src/app/model/dto/trail-loop-type';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
 import { ErrorService } from '../progress/error.service';
+import { Track } from 'src/app/model/track';
+import * as L from 'leaflet';
+import { estimateSimilarity } from '../track-edition/path-analysis/similarity';
+import { MyPublicTrailsService } from './my-public-trails.service';
+import { boundingBoxAround } from 'src/app/utils/leaflet-utils';
+import { NetworkService } from '../network/network.service';
 
 @Injectable({
   providedIn: 'root'
@@ -239,6 +245,49 @@ export class TrailService {
   public storeLoadedAndServerUpdates$(): Observable<boolean> {
     return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
       map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
+    );
+  }
+
+  public proposeToPublish(trail: Trail, track: Track): Observable<string> {
+    if (!this.injector.get(NetworkService).server) return EMPTY;
+    const auth = this.injector.get(AuthService).auth;
+    if (!auth || auth.isAnonymous) return EMPTY;
+    if (trail.owner !== auth.email) return EMPTY;
+    const trackBounds = track.metadata.bounds;
+    if (!trackBounds) return EMPTY;
+    const trackCloseArea = L.latLngBounds(trackBounds.getSouthWest(), trackBounds.getNorthEast()).pad(0.5);
+    const trackLargeArea = boundingBoxAround(track.departurePoint!.pos, 50000);
+    return this.injector.get(MyPublicTrailsService).myPublicTrails$.pipe(
+      switchMap(mines => {
+        if (mines.some(t => t.privateUuid === trail.uuid)) return EMPTY;
+        return this.injector.get(FetchSourceService).getTrailence$();
+      }),
+      switchMap(trailence =>
+        trailence.searchByArea(trackCloseArea, 100).pipe(
+          switchMap(closeSearchResult => {
+            if (closeSearchResult.trails.length === 0) return of(undefined);
+            return from(closeSearchResult.trails).pipe(
+              switchMap(publicTrail => from(trailence.getFullTrack(publicTrail.uuid)).pipe(
+                catchError(() => EMPTY),
+                filterDefined(),
+                map(publicTrack => estimateSimilarity(track, publicTrack)),
+                filter(similarity => similarity > 0),
+                map(() => publicTrail),
+              )),
+              take(1),
+              defaultIfEmpty(undefined),
+            );
+          }),
+          filter(similar => !similar),
+          switchMap(() => trailence.searchByArea(trackLargeArea, 25)),
+          switchMap(found => {
+            if (found.trails.length === 0) return of('be_the_first');
+            if (found.trails.length < 10) return of('improve_region');
+            if (found.trails.length < 20) return of('participate_region');
+            return EMPTY;
+          })
+        )
+      )
     );
   }
 }

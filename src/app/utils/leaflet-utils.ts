@@ -62,6 +62,17 @@ export class LeafletUtils {
 
 }
 
+export const APPROXIMATE_METERS_PER_DEGREE = 111320;
+
+export function boundingBoxAround(point: L.LatLngLiteral, distanceMeters: number): L.LatLngBounds {
+  const latOffset = distanceMeters / APPROXIMATE_METERS_PER_DEGREE;
+  const lngOffset = distanceMeters / (APPROXIMATE_METERS_PER_DEGREE * Math.cos(point.lat * Math.PI / 180));
+  return L.latLngBounds(
+    L.latLng(point.lat - latOffset, point.lng - lngOffset),
+    L.latLng(point.lat + latOffset, point.lng + lngOffset)
+  );
+}
+
 export class BoundsBuilder {
   private _bounds: L.LatLngBounds | undefined;
 

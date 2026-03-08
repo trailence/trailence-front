@@ -15,8 +15,34 @@
             {{ i18n.texts.menu.anonymous_account }}
           </ion-item>
         } @else {
-          <ion-item id="item-user" color="secondary">
-            {{ auth.email }}
+          <ion-item color="secondary">
+            <div class="user-header">
+              <div class="email" id="item-user">{{ auth.email }}</div>
+              <div class="community-participation">
+                <div>
+                  @let nbPublications = auth.auth?.nbPublications || 0;
+                  @if (nbPublications === 0) {
+                    0 {{ i18n.texts.pages.trail.nb_publication }}
+                  } @else {
+                    <a [routerLink]="'/trails/my-publications'">
+                      {{ nbPublications }}
+                      @if (nbPublications > 1) { {{ i18n.texts.pages.trail.nb_publications }} }@else { {{ i18n.texts.pages.trail.nb_publication }} }
+                    </a>
+                  }
+                </div>
+                <div>&nbsp; - &nbsp;</div>
+                <div>
+                  @let nbRates = auth.auth?.nbRates || 0;
+                  {{ nbRates }}
+                  @if (nbRates > 1) { {{ i18n.texts.pages.trail.nb_rates }} }@else { {{ i18n.texts.pages.trail.nb_rate }} }
+                </div>
+                <div>
+                  @let nbComments = auth.auth?.nbComments || 0;
+                  &nbsp;{{ i18n.texts.pages.trail.title_compare_and }} {{ nbComments }}
+                  @if (nbComments > 1) { {{ i18n.texts.pages.trail.nb_comments }} }@else { {{ i18n.texts.pages.trail.nb_comment }} }
+                </div>
+              </div>
+            </div>
           </ion-item>
           <ion-item button [detail]="true" id="item-synchro" [disabled]="status !== 'online'" lines="none">
             <ion-icon slot="start" name="sync"></ion-icon>

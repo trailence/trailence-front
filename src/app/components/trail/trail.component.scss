@@ -621,3 +621,11 @@ div.published-from {
   padding: 0 8px 0 56px;
   font-size: 13px;
 }
+div.propose-to-publish {
+  font-size: calc(max(13px, var(--min-font-size)));
+  background-color: rgba(var(--ion-color-success-rgb), 0.25);
+  border-radius: 8px;
+  padding: 5px;
+  margin: 3px;
+  cursor: pointer;
+}

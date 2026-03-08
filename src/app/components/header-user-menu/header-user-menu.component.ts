@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge, IonToggle } from '@ionic/angular/standalone';
 import { combineLatest, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -20,6 +20,7 @@ import { AvatarComponent } from '../avatar/avatar.component';
     imports: [
       IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList, IonButton, IonPopover, IonToggle,
       AvatarComponent,
+      RouterLink,
     ]
 })
 export class HeaderUserMenuComponent extends AbstractComponent {
