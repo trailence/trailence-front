@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge } from '@ionic/angular/standalone';
+import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge, IonToggle } from '@ionic/angular/standalone';
 import { combineLatest, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
@@ -18,7 +18,7 @@ import { AvatarComponent } from '../avatar/avatar.component';
     styleUrls: ['./header-user-menu.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-      IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList, IonButton, IonPopover,
+      IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList, IonButton, IonPopover, IonToggle,
       AvatarComponent,
     ]
 })

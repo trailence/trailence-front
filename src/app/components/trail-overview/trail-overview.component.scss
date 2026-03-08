@@ -45,7 +45,7 @@
     margin-inline-end: 2px;
     margin-top: -2px;
     margin-bottom: 0;
-    min-width: 24px;
+    min-width: calc(24px + var(--small-button-add-size));
     margin-right: -2px;
     margin-left: 0;
     ion-icon {
@@ -87,11 +87,11 @@
   ion-button.trail-menu-button {
     margin: 0;
     margin-inline-end: 0;
-    min-width: 28px;
+    min-width: calc(28px + var(--small-button-add-size));
   }
   ion-button.public-trail-button, ion-button.trail-link-button {
     margin: 0 4px 0 0;
-    min-width: 24px;
+    min-width: calc(24px + var(--small-button-add-size));
   }
   ion-button.public-trail-button {
     ion-icon {

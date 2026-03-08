@@ -121,6 +121,7 @@
     left: var(--left-pane-button-width);
     right: 0;
     height: var(--bottom-pane-height);
+    background: linear-gradient(to bottom, var(--ion-background-gradient-color) 0, var(--ion-background-color) 15px);
 
     .bottom-tabs {
       position: absolute;

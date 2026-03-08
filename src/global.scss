@@ -30,6 +30,7 @@
 @use "style/map.scss";
 @use "style/toolbar.scss";
 @use "style/vertical-tabs.scss";
+@use "style/accessibility.scss";
 
 :root {
   --header-height: 56px;
@@ -69,17 +70,17 @@ app-root > ion-app > ion-menu {
 }
 
 .always-tight-menu app-menu-content ion-list ion-item {
-  --min-height: 30px;
+  --min-height: calc(30px + var(--tight-menu-add-size));
 
   ::slotted(ion-label), ion-label, ion-label.sc-ion-label-md-s {
     margin-top: 4px;
     margin-bottom: 4px;
-    font-size: 14px;
+    font-size: calc(14px + var(--tight-menu-add-size) / 5);
   }
 
   ion-icon {
-    width: 18px;
-    height: 18px;
+    width: calc(18px + var(--tight-menu-add-size) / 2);
+    height: calc(18px + var(--tight-menu-add-size) / 2);
   }
 }
 

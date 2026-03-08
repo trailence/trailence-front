@@ -30,7 +30,7 @@
         @if (item.text$) {
           <ion-label
             [color]="item.textColor"
-            [ngStyle]="{'font-size': item.textSize ?? textSize, 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
+            [ngStyle]="{'font-size': 'calc(max(var(--min-font-size), ' + (item.textSize ?? textSize) + '))', 'color': item.textColor ? '' : 'var(--ion-text-color)'}"
           >{{ item.text$ | async }}</ion-label>
         }
         @if (item.badges) {

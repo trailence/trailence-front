@@ -41,12 +41,12 @@ div.show-breaks {
         .waypoint-info-title {
           color: var(--ion-color-secondary);
           font-weight: bold;
-          font-size: 12px;
+          font-size: calc(max(12px, var(--min-font-size)));
         }
         .waypoint-info-value {
-          font-size: 14px;
+          font-size: calc(max(14px, var(--min-font-size)));
           &.small {
-            font-size: 12px;
+            font-size: calc(max(12px, var(--min-font-size)));
           }
         }
       }
@@ -65,13 +65,13 @@ div.show-breaks {
     margin-left: 4px;
 
     .waypoint-name {
-      font-size: 14px;
+      font-size: calc(max(14px, var(--min-font-size)));
       color: var(--ion-color-tertiary);
     }
     .waypoint-description {
       margin-top: 2px;
       color: var(--ion-color-medium);
-      font-size: 13px;
+      font-size: calc(max(13px, var(--min-font-size)));
     }
   }
 

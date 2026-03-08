@@ -1,0 +1,20 @@
+:root {
+  --small-button-add-size: 0px;
+  --tight-menu-add-size: 0px;
+  --toolbar-item-add-size: 0px;
+  --min-font-size: 9px;
+}
+
+:root.larger-touch-targets {
+  --small-button-add-size: 8px;
+  --tight-menu-add-size: 10px;
+  --toolbar-item-add-size: 8px;
+
+  ion-popover.always-tight-menu {
+    --width: calc(min(325px, 85vw));
+  }
+}
+
+:root.larger-texts {
+  --min-font-size: 14px;
+}

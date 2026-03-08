@@ -30,7 +30,7 @@
 
           div.metadata-primary, div.metadata-secondary {
             flex: 1 1 100%;
-            font-size: var(--metadata-font-size, 13px);
+            font-size: calc(max(var(--metadata-font-size, 13px), var(--min-font-size)));
             overflow: hidden;
           }
         }
@@ -61,7 +61,7 @@
 
           .metadata-title {
             display: block;
-            font-size: 11px;
+            font-size: calc(max(11px, var(--min-font-size)));
             color: var(--ion-color-secondary);
             margin-bottom: 3px;
             white-space: nowrap;
@@ -72,7 +72,7 @@
               ion-icon, svg {
                 width: 18px;
                 height: 18px;
-                margin-bottom: -4px;
+                margin-bottom: -6px;
               }
             }
           }
@@ -158,7 +158,7 @@
 
             div.metadata-primary, div.metadata-secondary {
               flex: 1 1 100%;
-              font-size: var(--metadata-font-size, 13px);
+              font-size: calc(max(var(--metadata-font-size, 13px), var(--min-font-size)));
               text-align: center;
             }
           }
@@ -187,7 +187,7 @@
               height: 0;
               text-align: center;
               color: var(--ion-color-secondary);
-              font-size: 11px;
+              font-size: calc(max(11px, var(--min-font-size)));
               white-space: nowrap;
 
               div.contextual-help {
@@ -231,7 +231,7 @@
     color: var(--tag-text-color);
     border-radius: 8px;
     padding: 1px 5px;
-    font-size: 12px;
+    font-size: calc(max(12px, var(--min-font-size)));
     white-space: nowrap;
 
     &:not(:first-child) {

@@ -6,7 +6,7 @@
 }
 <div class="status status-{{icon}}" data-nosnippet><ion-icon [name]="icon"></ion-icon></div>
 
-<ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click" style="--width: calc(min(90%, 350px))">
+<ion-popover #accountPopover trigger="header-user-button-{{id}}" triggerAction="click">
   <ng-template>
     <ion-content>
       <ion-list>
@@ -50,6 +50,22 @@
         <ion-item button id="item-theme" [detail]="true" lines="full">
           <ion-icon slot="start" name="theme"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.theme}}</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-toggle
+            [checked]="preferences.largerTouchTargets"
+            (ionChange)="preferences.setLargerTouchTargets($event.detail.checked)"
+          >
+            {{i18n.texts.pages.preferences.larger_touch_targets}}
+          </ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-toggle
+            [checked]="preferences.largerTexts"
+            (ionChange)="preferences.setLargerTexts($event.detail.checked)"
+          >
+            {{i18n.texts.pages.preferences.larger_texts}}
+          </ion-toggle>
         </ion-item>
         <ion-item button (click)="router.navigateByUrl('/preferences'); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="settings"></ion-icon>

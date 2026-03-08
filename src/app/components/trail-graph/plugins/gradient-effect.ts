@@ -12,19 +12,12 @@ export class GradientEffectPlugin implements C.Plugin<"line"> {
     this.c2 = backgroundColor.copy().setAlpha(0.2).toString();
     this.c3 = backgroundColor.copy().setAlpha(0.35).toString();
     this.c4 = backgroundColor.copy().setAlpha(0.5).toString();
-    const blue = backgroundColor.r === 0 ? backgroundColor.copy().setBlue(255) : backgroundColor.copy().darker(48).setBlue(255);
-    this.blue1 = blue.copy().setAlpha(0).toString();
-    this.blue2 = blue.copy().setAlpha(0.1).toString();
-    this.blue3 = blue.copy().setAlpha(0.25).toString();
   }
 
   private readonly c1: string;
   private readonly c2: string;
   private readonly c3: string;
   private readonly c4: string;
-  private readonly blue1: string;
-  private readonly blue2: string;
-  private readonly blue3: string;
 
   afterDraw(chart: C.Chart<'line', (number | C.Point | null)[], unknown>): void {
     let hasGrades = false;
@@ -60,15 +53,6 @@ export class GradientEffectPlugin implements C.Plugin<"line"> {
       gradient.addColorStop(1, this.c4);
       ctx.fillStyle = gradient;
       ctx.fillRect(x1, yMin, x2 - x1, yAxis.bottom - yMin);
-
-      gradient = ctx.createLinearGradient(x1, yMin, x1, yAxis.top);
-      gradient.addColorStop(0, this.blue1);
-      gradient.addColorStop(0.15, this.blue3);
-      gradient.addColorStop(0.2, this.blue2);
-      gradient.addColorStop(0.25, this.blue1);
-      gradient.addColorStop(1, this.blue1);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(x1, yAxis.top, x2 - x1, yMin);
 
       x1 = x2 - 0.001;
       x2 = Math.min(xAxis.right, x1 + 5);

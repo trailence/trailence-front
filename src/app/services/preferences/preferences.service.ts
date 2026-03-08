@@ -27,6 +27,8 @@ const defaultPreferences: {[key:string]: Preferences} = {
 }
 
 const LOCALSTORAGE_PREFERENCES_KEY = 'trailence.preferences';
+const LOCALSTORAGE_LARGER_TOUCH_TARGETS = 'trailence.larger_touch_targets';
+const LOCALSTORAGE_LARGER_TEXTS = 'trailence.larger_texts';
 
 const DEFAULT_TRACE_MIN_METERS = 3;
 const DEFAULT_TRACE_MIN_MILLIS = 5000;
@@ -55,6 +57,8 @@ export class PreferencesService implements OnDestroy {
   private destroyed = false;
   private subscription?: Subscription;
   private device = 'web';
+  private _largerTouchTargets = false;
+  private _largerTexts = false;
 
   constructor(
     private readonly injector: Injector,
@@ -88,6 +92,14 @@ export class PreferencesService implements OnDestroy {
         }
       }
     } catch (e) {} // NOSONAR
+    try {
+      const stored = localStorage.getItem(LOCALSTORAGE_LARGER_TOUCH_TARGETS);
+      if (stored === 'true') this.setLargerTouchTargets(true);
+    } catch (e) {} // NOSONAR
+    try {
+      const stored = localStorage.getItem(LOCALSTORAGE_LARGER_TEXTS);
+      if (stored === 'true') this.setLargerTexts(true);
+    } catch (e) {} // NOSONAR
     this._prefs$ = new BehaviorSubject<Preferences>(prefs);
     this._computed$ = new BehaviorSubject<ComputedPreferences>(this.compute(this._prefs$.value));
     Console.info('Initial preferences: ', this._computed$.value);
@@ -120,6 +132,24 @@ export class PreferencesService implements OnDestroy {
     this.destroyed = true;
     this.subscription?.unsubscribe();
   }
+
+  public setLargerTouchTargets(enabled: boolean): void {
+    this._largerTouchTargets = enabled;
+    localStorage.setItem(LOCALSTORAGE_LARGER_TOUCH_TARGETS, '' + enabled);
+    if (enabled) document.documentElement.classList.add('larger-touch-targets');
+    else document.documentElement.classList.remove('larger-touch-targets');
+  }
+
+  public get largerTouchTargets() { return this._largerTouchTargets; }
+
+  public setLargerTexts(enabled: boolean): void {
+    this._largerTexts = enabled;
+    localStorage.setItem(LOCALSTORAGE_LARGER_TEXTS, '' + enabled);
+    if (enabled) document.documentElement.classList.add('larger-texts');
+    else document.documentElement.classList.remove('larger-texts');
+  }
+
+  public get largerTexts() { return this._largerTexts; }
 
   private init(): void {
     if (this.destroyed) return;

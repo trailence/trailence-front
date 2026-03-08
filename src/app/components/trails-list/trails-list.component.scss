@@ -63,8 +63,8 @@ app-toolbar {
   position: relative;
 
   .trail {
-    margin: 2px 2px 3px 2px;
-    padding: 1px;
+    margin: 2px 2px 3px 0px;
+    padding: 1px 1px 1px 3px;
     background: linear-gradient(to bottom, var(--ion-item-background-gradient-color) 0, var(--ion-item-background) 20px);
     border-radius: 10px;
   }

@@ -45,6 +45,22 @@
           </ion-segment-button>
         </ion-segment>
       </div>
+      <div style="margin-top: 10px;">
+        <ion-toggle
+          [checked]="preferences.largerTouchTargets"
+          (ionChange)="preferences.setLargerTouchTargets($event.detail.checked)"
+        >
+          {{i18n.texts.pages.preferences.larger_touch_targets}}
+        </ion-toggle>
+      </div>
+      <div style="margin-top: 10px;">
+        <ion-toggle
+          [checked]="preferences.largerTexts"
+          (ionChange)="preferences.setLargerTexts($event.detail.checked)"
+        >
+          {{i18n.texts.pages.preferences.larger_texts}}
+        </ion-toggle>
+      </div>
     </div>
   </div>
 

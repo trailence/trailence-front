@@ -491,6 +491,8 @@
         "dark": "Sombre",
         "system": "Préférence du système"
       },
+      "larger_touch_targets": "Éléments tactiles agrandis",
+      "larger_texts": "Textes plus grands",
       "distance_unit": "Unité de distance",
       "distance_units": {
         "meters": "Mètres / Kilomètres",

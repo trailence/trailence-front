@@ -42,13 +42,13 @@ app-toolbar {
       flex-direction: column;
       align-items: center;
       border-radius: 5px;
-      padding-left: var(--item-padding-left, '0');
-      padding-right: var(--item-padding-right, '0');
-      padding-top: var(--item-padding-top, '0');
-      padding-bottom: var(--item-padding-bottom, '0');
-      min-width: var(--item-min-width, var(--item-fixed-width, ''));
+      padding-left: calc(var(--item-padding-left, '0') + var(--toolbar-item-add-size) / 2);
+      padding-right: calc(var(--item-padding-right, '0') + var(--toolbar-item-add-size) / 2);
+      padding-top: calc(var(--item-padding-top, '0') + var(--toolbar-item-add-size) / 2);
+      padding-bottom: calc(var(--item-padding-bottom, '0') + var(--toolbar-item-add-size) / 2);
+      min-width: calc(var(--item-min-width, var(--item-fixed-width, '')) + var(--toolbar-item-add-size));
       &:not(.section-title), &.section-title.small-section-title {
-        max-width: var(--item-max-width, var(--item-fixed-width, ''));
+        max-width: calc(var(--item-max-width, var(--item-fixed-width, '')) + var(--toolbar-item-add-size));
       }
       position: relative;
 
@@ -137,11 +137,11 @@ app-toolbar {
 @media (max-width: 450px) {
   app-toolbar div.toolbar-items-container.horizontal {
     div.toolbar-item {
-      padding-left: calc(var(--item-padding-left, '0') / var(--small-size-divider, 2));
-      padding-right: calc(var(--item-padding-right, '0') / var(--small-size-divider, 2));
-      min-width: var(--item-min-width-small, var(--item-min-width, var(--item-fixed-width, '')));
+      padding-left: calc(var(--item-padding-left, '0') / var(--small-size-divider, 2) + var(--toolbar-item-add-size) / 2);
+      padding-right: calc(var(--item-padding-right, '0') / var(--small-size-divider, 2) + var(--toolbar-item-add-size) / 2);
+      min-width: calc(var(--item-min-width-small, var(--item-min-width, var(--item-fixed-width, ''))) + var(--toolbar-item-add-size));
       &:not(.section-title), &.section-title.small-section-title {
-        max-width: var(--item-max-width-small, var(--item-max-width, var(--item-fixed-width, '')));
+        max-width: calc(var(--item-max-width-small, var(--item-max-width, var(--item-fixed-width, ''))) + var(--toolbar-item-add-size));
       }
 
       + div.toolbar-item {

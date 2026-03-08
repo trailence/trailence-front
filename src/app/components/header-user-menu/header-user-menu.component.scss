@@ -61,7 +61,7 @@ ion-content > ion-list {
 }
 
 .synchro {
-  font-size: 12px;
+  font-size: calc(max(12px, var(--min-font-size)));
   padding: 5px 0;
 
   .title {
@@ -106,4 +106,8 @@ div.logout-message {
     font-size: 12px;
     padding: 0 0 0 8px;
   }
+}
+
+ion-popover {
+  --width: calc(min(90%, 350px));
 }

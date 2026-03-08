@@ -78,7 +78,7 @@
     height: var(--bottom-sheet-button-height);
     transition: height 0.3s ease-in-out;
     z-index: 500;
-    background: linear-gradient(to bottom, var(--ion-background-gradient-color) 0%, var(--ion-background-color) 33%);
+    background: linear-gradient(to bottom, var(--ion-background-gradient-color) 0, var(--ion-background-color) 40px);
 
     .bottom-sheet-button {
       height: var(--bottom-sheet-button-height);
@@ -172,7 +172,7 @@
       left: calc(var(--details-width) + var(--bottom-sheet-tabs-width));
       right: 0;
       height: var(--bottom-sheet-large-height);
-      background-color: var(--ion-color-light);
+      background-color: rgba(var(--ion-color-light-rgb), 0.5);
       transition: top 0.3s ease-in-out;
     }
   }
@@ -345,6 +345,7 @@
       margin-left: 5px;
       color: var(--ion-tet-color);
       font-size: 20px;
+      text-align: center;
     }
   }
 
@@ -402,11 +403,11 @@
   div.description-text {
     padding: 5px 0px 5px 8px;
     color: rgba(var(--ion-color-dark-rgb), 0.9);
-    font-size: 11pt;
+    font-size: calc(max(11pt, var(--min-font-size)));
     line-height: 1.35em;
 
     h2 {
-      font-size: 11pt;
+      font-size: calc(max(11pt, var(--min-font-size)));
       line-height: 1.35em;
       margin: 0;
     }
@@ -465,7 +466,7 @@
 }
 
 div.trail-dates {
-  font-size: 12px;
+  font-size: calc(max(12px, var(--min-font-size)));
   padding: 0 8px;
   margin-top: 6px;
 
@@ -475,7 +476,7 @@ div.trail-dates {
 }
 
 div.my-feedback {
-  font-size: 12px;
+  font-size: calc(max(12px, var(--min-font-size)));
   padding: 0 8px;
   margin-top: 3px;
   color: rgba(var(--ion-text-color-rgb), 0.75);
@@ -490,7 +491,7 @@ div.my-feedback {
   font-size: 14px;
 
   div.source-advise {
-    font-size: 12px;
+    font-size: calc(max(12px, var(--min-font-size)));
   }
 }
 
@@ -545,7 +546,7 @@ div.metadata-item-container.longtext {
   flex-direction: row;
   align-items: center;
   color: rgba(var(--ion-color-medium-rgb), 0.75);
-  font-size: 12px;
+  font-size: calc(max(12px, var(--min-font-size)));
   font-style: italic;
 
   ion-icon {
@@ -611,7 +612,7 @@ div.trail-publication {
     .nb_publications {
       a {
         color: rgba(var(--ion-text-color-rgb), 0.75);
-        font-size: 12px;
+        font-size: calc(max(12px, var(--min-font-size)));
       }
     }
   }

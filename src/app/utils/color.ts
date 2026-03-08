@@ -72,4 +72,11 @@ export class Color {
     return this;
   }
 
+  public lighter(value: number): this {
+    this.r = Math.min(255, this.r + value);
+    this.g = Math.min(255, this.g + value);
+    this.b = Math.min(255, this.b + value);
+    return this;
+  }
+
 }

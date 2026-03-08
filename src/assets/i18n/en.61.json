@@ -491,6 +491,8 @@
         "dark": "Dark",
         "system": "System Default"
       },
+      "larger_touch_targets": "Larger touch targets",
+      "larger_texts": "Larger texts",
       "distance_unit": "Distance Unit",
       "distance_units": {
         "meters": "Meters / Kilometers",

@@ -345,7 +345,8 @@ export class TrailGraphComponent extends AbstractComponent {
             display: true,
             color: this.contrastColor,
             padding: { top: -5, bottom: 0, y: 0 },
-            align: 'start'
+            align: 'start',
+            font: {size: this.preferencesService.largerTexts ? 13 : undefined},
           },
           grid: {
             color: new Color(this.contrastColor).setAlpha(0.33).toString()
@@ -355,6 +356,7 @@ export class TrailGraphComponent extends AbstractComponent {
           },
           ticks: {
             color: this.contrastColor,
+            font: {size: this.preferencesService.largerTexts ? 13 : undefined},
             callback: this.graphType === 'elevation' ?
               value => (typeof value === 'number' ? value : Number.parseInt(value ?? '0')).toLocaleString(this.preferencesService.preferences.lang, {maximumFractionDigits: 2}) :
               value => this.i18n.durationToString((typeof value === 'number' ? value : Number.parseInt(value ?? '0')) * 60000, true, false),
@@ -369,6 +371,7 @@ export class TrailGraphComponent extends AbstractComponent {
             display: true,
             color: this.contrastColor,
             padding: { top: 0, bottom: 0, y: 0 },
+            font: {size: this.preferencesService.largerTexts ? 13 : undefined},
           },
           grid: {
             color: new Color(this.contrastColor).setAlpha(0.2).toString(),
@@ -378,6 +381,7 @@ export class TrailGraphComponent extends AbstractComponent {
           },
           ticks: {
             color: this.contrastColor,
+            font: {size: this.preferencesService.largerTexts ? 13 : undefined},
           },
         }
       },
@@ -427,9 +431,19 @@ export class TrailGraphComponent extends AbstractComponent {
   }
 
   private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean, withSpeedEstimation: boolean) {
+    const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
+    const ctx = canvas.getContext('2d')!;
+    const gradient = ctx.createLinearGradient(0, 0, 0, 3);
+    gradient.addColorStop(0, new Color(colorBase).setAlpha(lineAlpha * 0.66).toString());
+    gradient.addColorStop(0.25, new Color(colorBase).setAlpha(lineAlpha).toString());
+    gradient.addColorStop(0.5, new Color(colorBase).lighter(64).setAlpha(lineAlpha).toString());
+    gradient.addColorStop(0.75, new Color(colorBase).setAlpha(lineAlpha).toString());
+    gradient.addColorStop(1, new Color(colorBase).setAlpha(lineAlpha * 0.66).toString());
     const color = new Color(colorBase).setAlpha(lineAlpha).toString();
     const ds = {
-      borderColor: color,
+      borderColor: gradient,
+      borderJoinStyle: 'round',
+      borderCapStyle: 'round',
       pointColor: color,
       strokeColor: color,
       pointStyle: false,

@@ -268,7 +268,7 @@ export class TrackBuilder {
         const newPoints = this.getPointsToGoTo(previousPos.pos, ref.position!, (matching[0].track as SimplifiedTrackSnapshot).points);
         const distance = TrackUtils.distanceBetween(newPoints, 0, newPoints.length - 1);
         const ways = WayUtils.getMatchingWays(ref.position!, this.ways, MATCHING_MAX_DISTANCE); // NOSONAR
-        if (best === undefined || (ways.length > bestWays.length && Arrays.includesAll(ways, bestWays)) || (ways.length === bestWays.length && distance < bestDistance)) {
+        if (best === undefined || (ways.length > bestWays.length && Arrays.includesAll(ways, bestWays)) || (ways.length === bestWays.length && distance < bestDistance && matching[0] !== best.using)) {
           best = {ref, using: matching[0]};
           bestWays = ways;
           bestDistance = distance;
