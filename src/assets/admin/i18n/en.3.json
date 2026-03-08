@@ -20,8 +20,12 @@
     "view": "View",
     "view_general": "General",
     "view_quotas": "Quotas",
+    "view_community": "Participation",
     "quota_tracks": "Tracks",
-    "stop_subscription_confirmation": "Are you sure to stop this subscription?"
+    "stop_subscription_confirmation": "Are you sure to stop this subscription?",
+    "nb_publications": "Published routes",
+    "nb_comments": "Comments",
+    "nb_rates": "Rates"
   },
   "plans": {
     "title": "Plans",

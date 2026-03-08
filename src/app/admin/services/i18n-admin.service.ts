@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, filter, first } from 'rxjs';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 
-const TEXTS_VERSION = '2';
+const TEXTS_VERSION = '3';
 
 @Injectable({providedIn: 'root'})
 export class I18nAdminService {

@@ -279,7 +279,7 @@ export class TrailService {
             );
           }),
           filter(similar => !similar),
-          switchMap(() => trailence.searchByArea(trackLargeArea, 25)),
+          switchMap(() => trailence.searchByArea(trackLargeArea, 21)),
           switchMap(found => {
             if (found.trails.length === 0) return of('be_the_first');
             if (found.trails.length < 10) return of('improve_region');

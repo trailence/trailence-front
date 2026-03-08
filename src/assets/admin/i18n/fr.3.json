@@ -20,8 +20,12 @@
     "view": "Vue",
     "view_general": "Général",
     "view_quotas": "Quotas",
+    "view_community": "Participation",
     "quota_tracks": "Traces",
-    "stop_subscription_confirmation": "Confirmez-vous l'arrêt de cet abonnement ?"
+    "stop_subscription_confirmation": "Confirmez-vous l'arrêt de cet abonnement ?",
+    "nb_publications": "Parcours publiés",
+    "nb_comments": "Commentaires",
+    "nb_rates": "Notes"
   },
   "plans": {
     "title": "Offres",

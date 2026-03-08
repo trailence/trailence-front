@@ -26,6 +26,12 @@ export class TableSettings {
     return this;
   }
 
+  withDefaultSort(sortBy: string, sortAsc: boolean): this {
+    this.pageRequest.sortBy = sortBy;
+    this.pageRequest.sortAsc = sortAsc;
+    return this;
+  }
+
 }
 
 export enum HorizontalAlignment {

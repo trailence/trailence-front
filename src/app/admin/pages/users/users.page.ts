@@ -41,7 +41,7 @@ export class AdminUsersPage {
     ],
     (request: PageRequest) => this.http.get<PageResult<UserDto>>(environment.apiBaseUrl + '/admin/users/v1' + request.toQueryParams()),
     'admin.users.error'
-  );
+  ).withDefaultSort('lastLogin', false);
 
   private readonly simpleQuotaFormatter = (used: number, max: number) => used + ' / ' + max;
   private readonly sizeQuotaFormatter = (used: number, max: number) => this.i18n.sizeToString(used) + ' / ' + this.i18n.sizeToString(max);
@@ -82,6 +82,16 @@ export class AdminUsersPage {
     'admin.users.error'
   );
 
+  tableSettingsCommunity = new TableSettings([
+      new TableColumn('admin.users.email').withSortableField('email'),
+      new TableColumn('admin.users.nb_publications').withSortableField('nbPublications'),
+      new TableColumn('admin.users.nb_comments').withSortableField('nbComments'),
+      new TableColumn('admin.users.nb_rates').withSortableField('nbRates'),
+    ],
+    (request: PageRequest) => this.http.get<PageResult<UserDto>>(environment.apiBaseUrl + '/admin/users/v1' + request.toQueryParams()),
+    'admin.users.error'
+  ).withDefaultSort('nbPublications', false);
+
   view = 'general';
   tableSettings = this.tableSettingsGeneral;
 
@@ -102,6 +112,9 @@ export class AdminUsersPage {
     } else if (value === 'quotas') {
       this.view = 'quotas';
       this.tableSettings = this.tableSettingsQuotas;
+    } else if (value === 'community') {
+      this.view = 'community';
+      this.tableSettings = this.tableSettingsCommunity;
     }
   }
 }
