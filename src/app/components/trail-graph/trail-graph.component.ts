@@ -431,19 +431,12 @@ export class TrailGraphComponent extends AbstractComponent {
   }
 
   private buildDataSet(track: Track, colorBase: string, lineAlpha: number, withGradeFilling: boolean, withSpeedEstimation: boolean) {
-    const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d')!;
-    const gradient = ctx.createLinearGradient(0, 0, 0, 3);
-    gradient.addColorStop(0, new Color(colorBase).setAlpha(lineAlpha * 0.66).toString());
-    gradient.addColorStop(0.25, new Color(colorBase).setAlpha(lineAlpha).toString());
-    gradient.addColorStop(0.5, new Color(colorBase).lighter(64).setAlpha(lineAlpha).toString());
-    gradient.addColorStop(0.75, new Color(colorBase).setAlpha(lineAlpha).toString());
-    gradient.addColorStop(1, new Color(colorBase).setAlpha(lineAlpha * 0.66).toString());
     const color = new Color(colorBase).setAlpha(lineAlpha).toString();
     const ds = {
-      borderColor: gradient,
+      borderColor: color,
       borderJoinStyle: 'round',
       borderCapStyle: 'round',
+      borderWidth: 3,
       pointColor: color,
       strokeColor: color,
       pointStyle: false,

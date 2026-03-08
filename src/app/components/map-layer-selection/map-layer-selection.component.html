@@ -9,7 +9,7 @@
   </ion-header>
 }
 
-<div [ngClass]="{'popup': popup}">
+<div [ngClass]="{'modal-content': popup}">
 <ion-radio-group (ionChange)="select($event.detail.value, true, true)" [value]="selection.length > 0 ? selection[0] : undefined">
   @for (layer of globalLayers; track layer.layer.name) {
     <ng-container *ngTemplateOutlet="layerTemplate; context: {layer: layer}"></ng-container>

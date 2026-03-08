@@ -112,13 +112,13 @@
                 <app-avatar [uuid]="info?.authorAvatar" [name]="info?.author" [anonymous]="!info?.author"></app-avatar>
                 <div class="trail-publication-infos">
                   <div>
-                    {{i18n.texts.pages.trail.published_by}} <span class="author">{{author}}</span>
+                    {{i18n.texts.pages.trail.published_on}} <span class="info">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
+                  </div>
+                  <div>
+                    {{i18n.texts.pages.trail.published__by}} <span class="author">{{author}}</span>
                     @if (info?.itsMine) {
                       <span class="you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
                     }
-                  </div>
-                  <div>
-                    {{i18n.texts.pages.trail.published__on}} <span class="info">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
                   </div>
                   @if (info?.authorNbPublications) {
                     <div class="nb_publications">
@@ -246,83 +246,85 @@
         @if (!tracks[0]) {
           <ion-spinner name="dots"></ion-spinner>
         } @else {
-          @if (trail1) {
-            <div class="metadata-container one-column with-title">
-              <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openDateDialog()">
-                <div class="metadata-item">
-                  <ion-icon name="date"></ion-icon>
-                  <div class="metadata-content">
-                    <div class="metadata-title">{{ i18n.texts.metadata.trail_date }}</div>
-                    <div class="metadata-value">
-                      <div class="metadata-primary">{{ i18n.timestampToDateTimeString(trail1.date ?? tracks[0].metadata.startDate) }}</div>
-                      @if (tracks[1]) {
-                        <div class="metadata-secondary">{{ i18n.timestampToDateTimeString(trail2?.date ?? tracks[1].metadata.startDate) }}</div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openLocationDialog()">
-                <div class="metadata-item">
-                  <ion-icon name="location"></ion-icon>
-                  <div class="metadata-content">
-                    <div class="metadata-title">{{ i18n.texts.metadata.trail_location }}</div>
-                    <div class="metadata-value">
-                      <div class="metadata-primary">{{ trail1.location }}</div>
-                      @if (trail2?.location) {
-                        <div class="metadata-secondary">{{ trail2?.location ?? '' }}</div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
-          <div class="metadata-container two-columns with-title">
-            <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [config]="metadataConfig"></app-track-metadata>
+          <div class="trail-metadata">
             @if (trail1) {
-              <div class="metadata-item-container">
-                <div class="metadata-item">
-                  <ion-icon [name]="trailService.getLoopTypeIcon(trail1.loopType)"></ion-icon>
-                  <div class="metadata-content">
-                    <div class="metadata-title">{{ i18n.texts.metadata.loop_type }}</div>
-                    <div class="metadata-value">
-                      @if (trail1.loopType; as lt) {<div class="metadata-primary">{{ i18n.texts.loopType[lt] }}</div>}
-                      @if (trail2?.loopType; as lt) {<div class="metadata-secondary">{{ i18n.texts.loopType[lt] }}</div>}
+              <div class="metadata-container one-column with-title">
+                <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openDateDialog()">
+                  <div class="metadata-item">
+                    <ion-icon name="date"></ion-icon>
+                    <div class="metadata-content">
+                      <div class="metadata-title">{{ i18n.texts.metadata.trail_date }}</div>
+                      <div class="metadata-value">
+                        <div class="metadata-primary">{{ i18n.timestampToDateTimeString(trail1.date ?? tracks[0].metadata.startDate) }}</div>
+                        @if (tracks[1]) {
+                          <div class="metadata-secondary">{{ i18n.timestampToDateTimeString(trail2?.date ?? tracks[1].metadata.startDate) }}</div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="metadata-item-container" [ngClass]="{'clickable': !trail2 && editable}" (click)="openLocationDialog()">
+                  <div class="metadata-item">
+                    <ion-icon name="location"></ion-icon>
+                    <div class="metadata-content">
+                      <div class="metadata-title">{{ i18n.texts.metadata.trail_location }}</div>
+                      <div class="metadata-value">
+                        <div class="metadata-primary">{{ trail1.location }}</div>
+                        @if (trail2?.location) {
+                          <div class="metadata-secondary">{{ trail2?.location ?? '' }}</div>
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             }
-            @if (trail1 || recording) {
-              <div class="metadata-item-container" [ngClass]="{'clickable': (!trail2 && editable && !recording) || (!trail1 && recording)}" (click)="openActivityDialog()">
-                <div class="metadata-item">
-                  <ion-icon [name]="trailService.getActivityIcon(trail1?.activity || trail2?.activity || recording?.trail?.activity || undefined)"></ion-icon>
-                  <div class="metadata-content">
-                    <div class="metadata-title">{{ i18n.texts.metadata.activity }}</div>
-                    <div class="metadata-value">
-                      @if (recording && !trail1) {
-                        @if (recording.trail.activity; as act) {
-                          <div class="metadata-primary">{{ i18n.texts.activity[act] }}</div>
-                        }
-                      } @else {
-                        @if (trail1?.activity; as act) {
-                          <div class="metadata-primary">{{ i18n.texts.activity[act] }}</div>
-                        }
-                        @if (trail2?.activity; as act) {
-                          <div class="metadata-secondary">{{ i18n.texts.activity[act] }}</div>
-                        } @else if (recording?.trail?.activity; as act) {
-                          <div class="metadata-secondary">{{ i18n.texts.activity[act] }}</div>
-                        }
-                      }
+            <div class="metadata-container two-columns with-title">
+              <app-track-metadata class="in-details" [track]="tracks[0]" [track2]="tracks[1]" [config]="metadataConfig"></app-track-metadata>
+              @if (trail1) {
+                <div class="metadata-item-container">
+                  <div class="metadata-item">
+                    <ion-icon [name]="trailService.getLoopTypeIcon(trail1.loopType)"></ion-icon>
+                    <div class="metadata-content">
+                      <div class="metadata-title">{{ i18n.texts.metadata.loop_type }}</div>
+                      <div class="metadata-value">
+                        @if (trail1.loopType; as lt) {<div class="metadata-primary">{{ i18n.texts.loopType[lt] }}</div>}
+                        @if (trail2?.loopType; as lt) {<div class="metadata-secondary">{{ i18n.texts.loopType[lt] }}</div>}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            }
-          </div>
-          <div class="metadata-container two-columns with-title">
-            <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
+              }
+              @if (trail1 || recording) {
+                <div class="metadata-item-container" [ngClass]="{'clickable': (!trail2 && editable && !recording) || (!trail1 && recording)}" (click)="openActivityDialog()">
+                  <div class="metadata-item">
+                    <ion-icon [name]="trailService.getActivityIcon(trail1?.activity || trail2?.activity || recording?.trail?.activity || undefined)"></ion-icon>
+                    <div class="metadata-content">
+                      <div class="metadata-title">{{ i18n.texts.metadata.activity }}</div>
+                      <div class="metadata-value">
+                        @if (recording && !trail1) {
+                          @if (recording.trail.activity; as act) {
+                            <div class="metadata-primary">{{ i18n.texts.activity[act] }}</div>
+                          }
+                        } @else {
+                          @if (trail1?.activity; as act) {
+                            <div class="metadata-primary">{{ i18n.texts.activity[act] }}</div>
+                          }
+                          @if (trail2?.activity; as act) {
+                            <div class="metadata-secondary">{{ i18n.texts.activity[act] }}</div>
+                          } @else if (recording?.trail?.activity; as act) {
+                            <div class="metadata-secondary">{{ i18n.texts.activity[act] }}</div>
+                          }
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="metadata-container two-columns with-title">
+              <ng-container *ngTemplateOutlet="recordingMeta; context: {tracks: tracks}"></ng-container>
+            </div>
           </div>
           @if (trail1 && !trail2) {
             <div class="trail-dates">
@@ -449,25 +451,29 @@
 
 
         @if (!isSmall) {
-          <div class="section-title">
-            <ion-icon name="location"></ion-icon>
-            <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+          <div class="section">
+            <div class="section-title">
+              <ion-icon name="location"></ion-icon>
+              <div>{{ i18n.texts.pages.trail.sections.waypoints.title }}</div>
+            </div>
+            <app-trail-waypoints
+              [trails]="trailsWaypoints"
+              [lang]="trail1WithInfo?.source?.info?.lang"
+              [editTools]="editTools"
+              [showSource]="showTextHtml"
+              (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
+              (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
+            ></app-trail-waypoints>
           </div>
-          <app-trail-waypoints
-            [trails]="trailsWaypoints"
-            [lang]="trail1WithInfo?.source?.info?.lang"
-            [editTools]="editTools"
-            [showSource]="showTextHtml"
-            (highlightWaypoint)="highlightWayPoint($event.wp, $event.click)"
-            (unhighlightWaypoint)="unhighlightWayPoint($event.wp, $event.force)"
-          ></app-trail-waypoints>
 
           @if (trail1 && !trail2 && trail1WithInfo?.source?.isExternalOnly && (trail1.owner === 'trailence' || trail1WithInfo?.source?.info !== undefined)) {
-            <div class="section-title">
-              <ion-icon name="chat-bubbles"></ion-icon>
-              <div>{{ i18n.texts.pages.trail.sections.comments.title }}</div>
+            <div class="section">
+              <div class="section-title">
+                <ion-icon name="chat-bubbles"></ion-icon>
+                <div>{{ i18n.texts.pages.trail.sections.comments.title }}</div>
+              </div>
+              <app-rate-and-comments [trail]="trail1" id="rate-{{id}}"></app-rate-and-comments>
             </div>
-            <app-rate-and-comments [trail]="trail1" id="rate-{{id}}"></app-rate-and-comments>
           }
         }
       </div>

@@ -113,11 +113,73 @@ ion-modal ion-toolbar ion-title {
 
 ion-modal, ion-alert {
   margin: calc(var(--ion-safe-area-top, 0px) + var(--safe-area-inset-top, 0px)) var(--ion-safe-area-right, 0px) calc(var(--ion-safe-area-bottom, 0px) + var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px))) var(--ion-safe-area-left, 0px);
+  --modal-header-background: rgba(var(--ion-color-primary-rgb), 0.85);
+  --modal-footer-background: rgba(var(--ion-toolbar-background-rgb), 0.85);
+  --modal-content-background: rgba(var(--ion-background-color-rgb), 0.9);
+  --modal-blur: blur(3px);
+  --modal-border-radius: 10px;
+  --modal-border: 2px solid rgba(var(--ion-color-dark-rgb), 0.1);
+  --modal-shadow: 0 0 10px 0px rgba(var(--ion-background-color-rgb), 0.66);
 
   > * {
     --ion-safe-area-top: 0px;
     --ion-safe-area-bottom: 0px;
     --ion-safe-area-left: 0px;
     --ion-safe-area-right: 0px;
+  }
+}
+
+ion-alert .alert-wrapper.sc-ion-alert-md {
+  border-radius: var(--modal-border-radius);
+  border: var(--modal-border);
+  box-shadow: var(--modal-shadow);
+  background: transparent;
+  backdrop-filter: var(--modal-blur);
+  .alert-head {
+    background-color: var(--modal-header-background);
+    margin-bottom: 0;
+  }
+  .alert-button-group {
+    background-color: var(--modal-footer-background);
+  }
+  .alert-input-group {
+    background-color: var(--modal-content-background);
+    .alert-input.sc-ion-alert-md {
+      border-bottom-color: var(--ion-color-secondary);
+    }
+  }
+  .alert-message.sc-ion-alert-md {
+    padding-top: 15px;
+    background-color: var(--modal-content-background);
+  }
+  .alert-radio-group.sc-ion-alert-md {
+    background-color: var(--modal-content-background);
+  }
+}
+ion-modal {
+  --background: transparent;
+  --border-radius: var(--modal-border-radius);
+  &::part(content) {
+    border-radius: var(--modal-border-radius);
+    backdrop-filter: var(--modal-blur);
+    border: var(--modal-border);
+    box-shadow: var(--modal-shadow);
+  }
+
+  .ion-page {
+    background: transparent;
+  }
+
+  ion-header ion-toolbar::part(background), .modal-header {
+    background: var(--modal-header-background);
+  }
+  ion-footer ion-toolbar::part(background), .modal-footer {
+    background-color: var(--modal-footer-background);
+  }
+  ion-content::part(background) {
+    background-color: var(--modal-content-background);
+  }
+  div.modal-content {
+    background-color: var(--modal-content-background);
   }
 }

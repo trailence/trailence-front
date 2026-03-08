@@ -1,14 +1,16 @@
+:host {
+  margin-bottom: 6px;
+  background-color: rgba(var(--ion-text-color-rgb), 0.05);
+  border-radius: 8px;
+}
 div.feedback {
   display: block;
-  background-color: rgba(var(--ion-color-medium-rgb), 0.2);
-  border: 1px solid rgba(var(--ion-color-medium-rgb), 0.33);
   border-radius: 8px;
   padding: 5px;
 
   &.reply {
     margin-left: 25px;
-    margin-top: 2px;
-    background-color: rgba(var(--ion-color-medium-rgb), 0.1);
+    padding-top: 7px;
   }
 }
 div.header {
@@ -51,6 +53,7 @@ div.header {
 }
 div.comment {
   margin-top: 3px;
+  margin-left: 30px;
   font-size: 14px;
 }
 div.followed {

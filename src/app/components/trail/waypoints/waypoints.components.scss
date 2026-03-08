@@ -11,6 +11,19 @@ div.show-breaks {
   margin-top: 3px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--ion-color-light);
+  position: relative;
+
+  &:not(:last-child):before {
+    content: ' ';
+    position: absolute;
+    left: 19px;
+    width: 1px;
+    top: 20px;
+    bottom: 0;
+    height: 100%;
+    border-left: 1px dotted var(--ion-color-medium);
+    z-index: 0;
+  }
 
   &.highlighted {
     background-color: rgba(var(--ion-text-color-rgb), 0.1);
@@ -24,6 +37,7 @@ div.show-breaks {
     .waypoint-anchor {
       flex: none;
       align-self: flex-start;
+      z-index: 1;
     }
 
     .waypoint-info-section {
@@ -62,7 +76,7 @@ div.show-breaks {
   }
 
   .waypoint-content {
-    margin-left: 4px;
+    margin-left: 30px;
 
     .waypoint-name {
       font-size: calc(max(14px, var(--min-font-size)));

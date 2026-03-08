@@ -24,9 +24,13 @@ import { Component, Input } from '@angular/core';
       border-radius: calc(var(--height) * 1px / 5);
     }
     div.inner-text {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
       text-align: center;
       font-size: calc(var(--height) * 1px - 4px);
-      mix-blend-mode: overlay;
     }
   }
   `,

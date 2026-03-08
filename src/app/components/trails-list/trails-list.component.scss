@@ -140,6 +140,7 @@ app-toolbar.filters-toolbar {
   padding: 0;
   border-bottom: 1px solid var(--ion-color-light);
   display: block;
+  background-color: rgba(var(--ion-toolbar-background-rgb), 0.6);
 }
 
 ion-item ion-radio ion-icon {

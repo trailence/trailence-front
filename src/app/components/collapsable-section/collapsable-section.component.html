@@ -2,7 +2,10 @@
   @if (icon) {
     <ion-icon class="header-icon" [name]="icon"></ion-icon>
   }
-  <div class="header-title"><span>{{ title }}</span></div>
+  <div class="header-title">
+    <span>{{ title }}</span>
+    <span class="remaining-space"></span>
+  </div>
   <ion-icon class="collapsable-section-button" [name]="collapsed ? 'chevron-left' : 'chevron-down'"></ion-icon>
 </div>
 <div class="collapsable-section-content {{collapsed ? 'collapsed' : 'expanded'}}">

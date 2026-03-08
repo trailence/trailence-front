@@ -7,13 +7,13 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
 
 @Component({
   template: `
-  <div class="header">
+  <div class="modal-header">
     <div>{{i18n.texts.mapAdditions.title}}</div>
     <ion-button size="small" fill="clear" color="dark" (click)="close()">
       <ion-icon name="cross"></ion-icon>
     </ion-button>
   </div>
-  <div class="content">
+  <div class="modal-content">
     <div>
       <ion-checkbox [(ngModel)]="options.guidepost" labelPlacement="end" (ngModelChange)="emitChange()">
         <ion-icon name="poi-guidepost"></ion-icon>
@@ -54,8 +54,7 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
   </div>
   `,
   styles: `
-  div.header {
-    background-color: var(--ion-color-primary);
+  div.modal-header {
     color: var(--ion-color-primary-contrast);
     padding: 2px 8px;
     display: flex;
@@ -75,7 +74,7 @@ import { MapLayer, MapLayersService } from 'src/app/services/map/map-layers.serv
       --padding-bottom: 0;
     }
   }
-  div.content {
+  div.modal-content {
     padding: 8px;
 
     ion-checkbox {

@@ -349,8 +349,14 @@
     }
   }
 
+  .trail-metadata {
+    background: linear-gradient(to bottom, var(--ion-item-background-gradient-color) 0, var(--ion-item-background) 20px);
+    border-radius: 8px;
+    margin: 0 3px;
+  }
+
   .metadata-container {
-    padding: 0 8px;
+    padding: 0 5px;
 
     &.one-column .metadata-item-container {
       margin: 3px 0;
@@ -368,6 +374,32 @@
     padding: 6px 3px 0 8px;
   }
 
+  .section {
+    background-color: var(--ion-item-background);
+    border-radius: 8px;
+    margin: 6px 3px 0 3px;
+    .section-title {
+      background: linear-gradient(to bottom right, var(--ion-item-title-gradient-color) 0%, var(--ion-item-background) 80%, var(--ion-item-background) 100%);
+      color: var(--ion-color-secondary);
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 6px 8px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+
+      ion-icon {
+        width: 24px;
+        height: 24px;
+      }
+      div {
+        font-size: 16px;
+        font-weight: bold;
+        margin-left: 5px;
+      }
+    }
+  }
+  /*
   .section-title {
     display: flex;
     flex-direction: row;
@@ -398,7 +430,7 @@
       font-weight: bold;
       margin-left: 5px;
     }
-  }
+  }*/
 
   div.description-text {
     padding: 5px 0px 5px 8px;
@@ -589,7 +621,10 @@ div.trail-publication {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 3px 8px;
+  padding: 3px;
+  margin: 1px 5px;
+  background: linear-gradient(to bottom, var(--ion-item-background-gradient-color) 0, var(--ion-item-background) 20px);
+  border-radius: 8px;
 
   app-avatar {
     --size: 40px;
