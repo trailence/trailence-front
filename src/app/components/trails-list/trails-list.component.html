@@ -1,3 +1,4 @@
+<ng-content select=".before-toolbar"></ng-content>
 <app-toolbar
   [items]="toolbar"
   [itemPaddingLeft]="size !== 'large' ? '2px' : '4px'"
@@ -159,6 +160,7 @@
           [elevationProfile]="elevationProfile"
           [maxWidth]="size === 'large' ? 340 : size === 'medium' ? 240 : 165"
           (openTrailEvent)="setHighlighted($event)"
+          [showAuthor]="listType !== 'user-public'"
         ></app-trail-overview>
       </div>
     }

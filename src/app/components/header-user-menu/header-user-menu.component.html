@@ -15,34 +15,8 @@
             {{ i18n.texts.menu.anonymous_account }}
           </ion-item>
         } @else {
-          <ion-item color="secondary">
-            <div class="user-header">
-              <div class="email" id="item-user">{{ auth.email }}</div>
-              <div class="community-participation">
-                <div>
-                  @let nbPublications = auth.auth?.nbPublications || 0;
-                  @if (nbPublications === 0) {
-                    0 {{ i18n.texts.pages.trail.nb_publication }}
-                  } @else {
-                    <a [routerLink]="'/trails/my-publications'">
-                      {{ nbPublications }}
-                      @if (nbPublications > 1) { {{ i18n.texts.pages.trail.nb_publications }} }@else { {{ i18n.texts.pages.trail.nb_publication }} }
-                    </a>
-                  }
-                </div>
-                <div>&nbsp; - &nbsp;</div>
-                <div>
-                  @let nbRates = auth.auth?.nbRates || 0;
-                  {{ nbRates }}
-                  @if (nbRates > 1) { {{ i18n.texts.pages.trail.nb_rates }} }@else { {{ i18n.texts.pages.trail.nb_rate }} }
-                </div>
-                <div>
-                  @let nbComments = auth.auth?.nbComments || 0;
-                  &nbsp;{{ i18n.texts.pages.trail.title_compare_and }} {{ nbComments }}
-                  @if (nbComments > 1) { {{ i18n.texts.pages.trail.nb_comments }} }@else { {{ i18n.texts.pages.trail.nb_comment }} }
-                </div>
-              </div>
-            </div>
+          <ion-item color="secondary" id="item-user">
+            {{ auth.email }}
           </ion-item>
           <ion-item button [detail]="true" id="item-synchro" [disabled]="status !== 'online'" lines="none">
             <ion-icon slot="start" name="sync"></ion-icon>
@@ -55,14 +29,18 @@
                   <div>{{i18n.texts.synchro.in_progress}}</div>
                 }
                 @case('online') {
-                  <div class="title">{{i18n.texts.synchro.last_sync}}</div>
-                  <div class="value">{{lastSync ? i18n.timestampToTimeString(lastSync) : i18n.texts.synchro.not_yet}}</div>
-                  <div class="title">{{i18n.texts.synchro.local_changes}}</div>
-                  @if (hasLocalChanges) {
-                    <div class="value invalid">{{i18n.texts.synchro.yes}}</div>
-                  } @else {
-                    <div class="value valid">{{i18n.texts.synchro.no}}</div>
-                  }
+                  <div class="synchro-info">
+                    <div class="title">{{i18n.texts.synchro.last_sync}}</div>
+                    <div class="value">{{lastSync ? i18n.timestampToTimeString(lastSync) : i18n.texts.synchro.not_yet}}</div>
+                  </div>
+                  <div class="synchro-info">
+                    <div class="title">{{i18n.texts.synchro.local_changes}}</div>
+                    @if (hasLocalChanges) {
+                      <div class="value invalid">{{i18n.texts.synchro.yes}}</div>
+                    } @else {
+                      <div class="value valid">{{i18n.texts.synchro.no}}</div>
+                    }
+                  </div>
                 }
               }
             </div>
@@ -77,21 +55,21 @@
           <ion-icon slot="start" name="theme"></ion-icon>
           <ion-label>{{i18n.texts.pages.preferences.theme}}</ion-label>
         </ion-item>
-        <ion-item>
-          <ion-toggle
-            [checked]="preferences.largerTouchTargets"
-            (ionChange)="preferences.setLargerTouchTargets($event.detail.checked)"
-          >
-            {{i18n.texts.pages.preferences.larger_touch_targets}}
-          </ion-toggle>
-        </ion-item>
-        <ion-item>
-          <ion-toggle
-            [checked]="preferences.largerTexts"
-            (ionChange)="preferences.setLargerTexts($event.detail.checked)"
-          >
-            {{i18n.texts.pages.preferences.larger_texts}}
-          </ion-toggle>
+        <ion-item class="toggles" lines="full">
+          <div>
+            <ion-toggle
+              [checked]="preferences.largerTouchTargets"
+              (ionChange)="preferences.setLargerTouchTargets($event.detail.checked)"
+            >
+              {{i18n.texts.pages.preferences.larger_touch_targets}}
+            </ion-toggle>
+            <ion-toggle
+              [checked]="preferences.largerTexts"
+              (ionChange)="preferences.setLargerTexts($event.detail.checked)"
+            >
+              {{i18n.texts.pages.preferences.larger_texts}}
+            </ion-toggle>
+          </div>
         </ion-item>
         <ion-item button (click)="router.navigateByUrl('/preferences'); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="settings"></ion-icon>
@@ -121,6 +99,14 @@
           <ion-icon slot="start" name="account"></ion-icon>
           <ion-label>{{i18n.texts.pages.myaccount.title}}</ion-label>
         </ion-item>
+        @if (!isAnonymous) {
+          <ion-item lines="full">
+            <div class="contributions">
+              <div class="contributions-title">{{ i18n.texts.contributions.title }}</div>
+              <app-contributions-badges></app-contributions-badges>
+            </div>
+          </ion-item>
+        }
         <ion-item button (click)="logout(); accountPopover.dismiss();" lines="full">
           <ion-icon slot="start" name="logout"></ion-icon>
           <ion-label>{{ isAnonymous ? i18n.texts.logout.title_anonymous : i18n.texts.logout.title}}</ion-label>
@@ -176,7 +162,7 @@
         </ion-title>
       </ion-toolbar>
     </ion-header>
-    <div class="ion-padding">
+    <div class="ion-padding modal-content">
       <div>{{i18n.texts.logout.text}}</div>
       @if (hasLocalChanges) {
         <div class="logout-message danger">

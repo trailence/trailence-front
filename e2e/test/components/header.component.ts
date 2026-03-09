@@ -132,7 +132,7 @@ export class UserMenu extends Component {
 
   public async synchronizeLocalChanges(trial: number = 0, alreadyClickOnSynchronizeNow: boolean = false) {
     const item = this.getElement().$('>>>ion-item#item-synchro');
-    const localChanges = item.$('>>>.synchro>.value:last-child');
+    const localChanges = item.$('>>>.synchro>.synchro-info:last-child>.value');
     let result = false;
     for (; trial <= 10; ++trial) {
       try {

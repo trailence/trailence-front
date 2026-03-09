@@ -28,3 +28,22 @@ div.disconnected-message {
     margin: 2px;
   }
 }
+
+div.user-profile {
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid var(--ion-color-medium);
+
+  app-avatar {
+    --size: 70px;
+    margin-right: 10px;
+  }
+  div.author-infos {
+    display: flex;
+    flex-direction: column;
+    div.author-name {
+      color: var(--ion-color-tertiary);
+    }
+  }
+}

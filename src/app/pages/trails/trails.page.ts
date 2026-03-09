@@ -42,6 +42,10 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { HttpService } from 'src/app/services/http/http.service';
 import { environment } from 'src/environments/environment';
 import { Arrays } from 'src/app/utils/arrays';
+import { UserProfile } from 'src/app/services/contribution/contribution.service';
+import { ObjectUtils } from 'src/app/utils/object-utils';
+import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
+import { ContributionsBadgesComponent } from 'src/app/components/contributions-badges/contribution-badges.component';
 
 const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
 
@@ -53,6 +57,8 @@ const LOCALSTORAGE_KEY_BUBBLES = 'trailence.trails.bubbles';
     HeaderComponent,
     TrailsAndMapComponent,
     AsyncPipe,
+    AvatarComponent,
+    ContributionsBadgesComponent,
   ]
 })
 export class TrailsPage extends AbstractPage {
@@ -77,6 +83,8 @@ export class TrailsPage extends AbstractPage {
   availableSearchPlugins: FetchSourcePlugin[] = [];
   selectedSearchPlugins: string[] = [];
   searchPluginsSubscription?: Subscription;
+
+  userProfile?: UserProfile;
 
   connected$: Observable<boolean>;
 
@@ -314,11 +322,20 @@ export class TrailsPage extends AbstractPage {
     this.title = '';
     let current: Trail[] | undefined = undefined;
     this.byStateAndVisible.subscribe(
-      this.injector.get(HttpService).get<{ids: string[], alias?: string, avatar?: string}>(environment.apiBaseUrl + '/public/trails/v1/user/' + userId)
+      this.injector.get(HttpService).get<{ids: string[], alias?: string, avatar?: string, nbPublications?: number, nbComments?: number, nbRates?: number}>(environment.apiBaseUrl + '/public/trails/v1/user/' + userId)
       .pipe(
         switchMap(user => {
           const trails$ = user.ids.length === 0 ? of([]) : this.injector.get(FetchSourceService).getTrailence$().pipe(switchMap(trailence => from(trailence.getTrails(user.ids))));
-          return trails$.pipe(map(trails => ({trails, alias: user.alias || undefined, avatar: user.avatar || undefined})))
+          return trails$.pipe(map(trails => ({
+            trails,
+            userProfile: {
+              alias: user.alias || undefined,
+              avatar: user.avatar || undefined,
+              nbPublications: user.nbPublications || 0,
+              nbComments: user.nbComments || 0,
+              nbRates: user.nbRates || 0,
+            } as UserProfile
+          })))
         }),
       ),
       result => {
@@ -327,9 +344,13 @@ export class TrailsPage extends AbstractPage {
           this.ngZone.run(() => this.trails$.next(List(result.trails.map(t => of(t)))));
           this.changesDetection.detectChanges();
         }
-        const title = result.alias || this.i18n.texts.pages.preferences.anonymous;
+        const title = result.userProfile.alias || this.i18n.texts.pages.preferences.anonymous;
         if (this.title !== title) {
           this.title = title;
+          this.changesDetection.detectChanges();
+        }
+        if (!ObjectUtils.sameContent(this.userProfile, result.userProfile)) {
+          this.userProfile = result.userProfile;
           this.changesDetection.detectChanges();
         }
       }
@@ -751,6 +772,7 @@ export class TrailsPage extends AbstractPage {
     this.searchFiltersSubscription?.unsubscribe();
     this.searchFiltersSubscription = undefined;
     this.titleLongPressEvent = undefined;
+    this.userProfile = undefined;
   }
 
 }

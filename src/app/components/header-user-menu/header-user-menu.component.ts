@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge, IonToggle } from '@ionic/angular/standalone';
 import { combineLatest, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
@@ -11,6 +11,7 @@ import { NotificationsService } from 'src/app/services/notifications/notificatio
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { AvatarComponent } from '../avatar/avatar.component';
+import { ContributionsBadgesComponent } from "../contributions-badges/contribution-badges.component";
 
 @Component({
     selector: 'app-header-user-menu',
@@ -18,10 +19,10 @@ import { AvatarComponent } from '../avatar/avatar.component';
     styleUrls: ['./header-user-menu.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-      IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList, IonButton, IonPopover, IonToggle,
-      AvatarComponent,
-      RouterLink,
-    ]
+    IonBadge, IonButtons, IonFooter, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonLabel, IonIcon, IonItem, IonList, IonButton, IonPopover, IonToggle,
+    AvatarComponent,
+    ContributionsBadgesComponent,
+]
 })
 export class HeaderUserMenuComponent extends AbstractComponent {
 

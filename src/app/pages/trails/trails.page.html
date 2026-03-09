@@ -22,5 +22,19 @@
     [mapTopToolbar$]="trailsType === 'search' ? mapTopToolbar$ : undefined"
     [showPublished]="trailsType === 'collection' || trailsType === 'all-collections'"
     [searching]="searching"
-  ></app-trails-and-map>
+  >
+    @if (userProfile) {
+      <div class="before-list-toolbar">
+        <div class="user-profile">
+          <app-avatar [uuid]="userProfile.avatar" [name]="userProfile.alias" [anonymous]="!userProfile.alias"></app-avatar>
+          <div class="author-infos">
+            <div class="author-name">
+              {{ userProfile.alias || i18n.texts.pages.preferences.anonymous }}
+            </div>
+            <app-contributions-badges [contrib]="userProfile" style="justify-content: flex-start;"></app-contributions-badges>
+          </div>
+        </div>
+      </div>
+    }
+  </app-trails-and-map>
 }

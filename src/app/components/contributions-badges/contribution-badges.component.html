@@ -1,0 +1,32 @@
+@if (contributions) {
+  <div class="contribution">
+    <div class="header">{{i18n.texts.contributions.publications}}</div>
+    <div class="badge">
+      <ion-icon name="map" [color]="contributions.nbPublications > 0 ? 'secondary' : 'medium'"></ion-icon>
+      <div class="badge-icon" [innerHTML]="badge1"></div>
+    </div>
+    @if (showLevel) {
+      <div class="level">{{level1}}</div>
+    }
+  </div>
+  <div class="contribution">
+    <div class="header">{{i18n.texts.contributions.ratings}}</div>
+    <div class="badge">
+      <ion-icon name="star-empty" [color]="contributions.nbRates > 0 ? 'secondary' : 'medium'"></ion-icon>
+      <div class="badge-icon" [innerHTML]="badge2"></div>
+    </div>
+    @if (showLevel) {
+      <div class="level">{{level2}}</div>
+    }
+  </div>
+  <div class="contribution">
+    <div class="header">{{i18n.texts.contributions.reviews}}</div>
+    <div class="badge">
+      <ion-icon name="chat-bubbles" [color]="contributions.nbComments > 0 ? 'secondary' : 'medium'"></ion-icon>
+      <div class="badge-icon" [innerHTML]="badge3"></div>
+    </div>
+    @if (showLevel) {
+      <div class="level">{{level3}}</div>
+    }
+  </div>
+}

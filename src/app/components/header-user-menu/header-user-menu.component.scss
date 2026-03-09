@@ -63,16 +63,27 @@ ion-content > ion-list {
 .synchro {
   font-size: calc(max(12px, var(--min-font-size)));
   padding: 5px 0;
+  flex: 1 1 100%;
 
-  .title {
-    color: rgba(var(--ion-text-color-rgb), 0.5);
-  }
-  .value {
-    &.valid {
-      color: var(--ion-color-success);
+  .synchro-info {
+    display: flex;
+    flex-direction: row;
+    &:not(:first-child) {
+      margin-top: 3px;
     }
-    &.invalid {
-      color: var(--ion-color-danger);
+    .title {
+      white-space: nowrap;
+      color: rgba(var(--ion-text-color-rgb), 0.5);
+    }
+    .value {
+      flex: 1 1 100%;
+      text-align: right;
+      &.valid {
+        color: var(--ion-color-success);
+      }
+      &.invalid {
+        color: var(--ion-color-danger);
+      }
     }
   }
 }
@@ -112,19 +123,12 @@ ion-popover {
   --width: calc(min(90%, 350px));
 }
 
-.user-header {
-  .community-participation {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    margin-top: 3px;
-    div {
-      white-space: nowrap;
-      font-size: calc(max(12px, var(--min-font-size)));
-      opacity: 0.66;
-      a {
-        color: inherit;
-      }
-    }
+.contributions {
+  flex: 1 1 100%;
+  margin: 2px;
+  .contributions-title {
+    font-size: 13px;
+    color: var(--ion-color-secondary);
+    text-align: center;
   }
 }

@@ -224,6 +224,8 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
           author: pt.authorAlias,
           authorAvatar: pt.authorAvatar,
           authorNbPublications: pt.authorNbPublications,
+          authorNbComments: pt.authorNbComments,
+          authorNbRates: pt.authorNbRates,
           authorPublicId: pt.authorPublicId,
           myUuid: pt.myUuid ?? undefined,
           itsMine: pt.itsMine ?? undefined,
@@ -383,6 +385,8 @@ export interface PublicTrail {
   authorAvatar?: string;
   authorPublicId?: string;
   authorNbPublications?: number;
+  authorNbComments?: number;
+  authorNbRates?: number;
   myUuid?: string;
   itsMine?: boolean;
 

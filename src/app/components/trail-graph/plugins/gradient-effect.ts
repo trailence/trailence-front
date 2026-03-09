@@ -36,28 +36,49 @@ export class GradientEffectPlugin implements C.Plugin<"line"> {
     let yAxis = chart.scales['y'];
     ctx.save();
 
-    let x1 = xAxis.left;
-    let x2 = Math.min(xAxis.right, x1 + 5);
-    let i = 0;
-    let yMin = yAxis.bottom;
-    while (i < dataset.data.length) {
-      do {
-        const y = dataset.data[i].y;
-        yMin = Math.min(yMin, y);
-      } while (dataset.data[i++].x <= x2 && i < dataset.data.length);
-      let gradient = ctx.createLinearGradient(x1, yMin, x1, yAxis.bottom);
+    const values: {val: number, nb: number}[] = [];
+    const startX = Math.floor(xAxis.left) + 1;
+    const endX = Math.floor(xAxis.right) + 1;
+    for (let x = startX; x <= endX; ++x) values.push({val: 0, nb: 0});
+    for (const data of dataset.data) {
+      const i = Math.max(0, Math.min(values.length - 1, Math.round(data.x) - startX));
+      values[i].val += data.y;
+      values[i].nb++;
+    }
+    for (let x = 0; x < values.length; ++x) {
+      let v = values[x];
+      if (v.nb === 0) {
+        let x1 = x - 1;
+        while (x1 > 0 && values[x1].nb === 0) x1--;
+        let x2 = x + 1;
+        while (x2 < values.length && values[x2].nb === 0) x2++;
+        if (x1 < 0) {
+          if (x2 >= values.length) {
+            continue;
+          }
+          v = {...values[x2]};
+        } else if (x2 >= values.length) {
+          v = {...values[x1]};
+        } else {
+          let x1Val = values[x1].val / values[x1].nb;
+          let x2Val = values[x2].val / values[x2].nb;
+          let x1Distance = x - x1;
+          let x2Distance = x2 - x;
+          let totalDistance = x1Distance + x2Distance;
+          v = {val: x1Val * (x2Distance / totalDistance) + x2Val * (x1Distance / totalDistance), nb: 1};
+        }
+      }
+      const y = v.val / v.nb;
+      let gradient = ctx.createLinearGradient(x, y, x, yAxis.bottom);
       gradient.addColorStop(0, this.c1)
       gradient.addColorStop(0.5, this.c1);
       gradient.addColorStop(0.66, this.c2);
       gradient.addColorStop(0.8, this.c3);
       gradient.addColorStop(1, this.c4);
       ctx.fillStyle = gradient;
-      ctx.fillRect(x1, yMin, x2 - x1, yAxis.bottom - yMin);
-
-      x1 = x2 - 0.001;
-      x2 = Math.min(xAxis.right, x1 + 5);
-      yMin = yAxis.bottom;
+      ctx.fillRect(x + startX - 1, y, 1, yAxis.bottom - y);
     }
+
     ctx.restore();
   }
 

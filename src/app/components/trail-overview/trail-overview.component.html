@@ -79,7 +79,7 @@
           @if (external.rating !== undefined) {
             <app-rate [rate]="external.rating" [nbRates]="external.nbRates"></app-rate>
           }
-          @if (external.authorPublicId) {
+          @if (external.authorPublicId && showAuthor) {
             <div class="published-by">
               {{i18n.texts.pages.trail.published__by}}
               <span> @if(external.itsMine) { {{i18n.texts.pages.trail.sections.comments.you}} }@else { {{external.author || i18n.texts.pages.preferences.anonymous}} }</span>

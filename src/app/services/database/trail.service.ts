@@ -32,6 +32,7 @@ import { estimateSimilarity } from '../track-edition/path-analysis/similarity';
 import { MyPublicTrailsService } from './my-public-trails.service';
 import { boundingBoxAround } from 'src/app/utils/leaflet-utils';
 import { NetworkService } from '../network/network.service';
+import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
 
 @Injectable({
   providedIn: 'root'
@@ -43,7 +44,7 @@ export class TrailService {
   constructor(
     http: HttpService,
     private readonly trackService: TrackService,
-    collectionService: TrailCollectionService,
+    private readonly collectionService: TrailCollectionService,
     private readonly injector: Injector,
   ) {
     this._store = new TrailStore(injector, http, trackService, collectionService);
@@ -260,6 +261,10 @@ export class TrailService {
     return this.injector.get(MyPublicTrailsService).myPublicTrails$.pipe(
       switchMap(mines => {
         if (mines.some(t => t.privateUuid === trail.uuid)) return EMPTY;
+        return this.collectionService.getCollection$(trail.collectionUuid, trail.owner);
+      }),
+      switchMap(col => {
+        if (!col || isPublicationCollection(col.type)) return EMPTY;
         return this.injector.get(FetchSourceService).getTrailence$();
       }),
       switchMap(trailence =>

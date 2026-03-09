@@ -1,5 +1,5 @@
 import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, timer } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -70,6 +70,7 @@ import { ErrorService } from 'src/app/services/progress/error.service';
 import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live-group.service';
 import { LiveGroupComponent } from '../live-group/live-group.component';
 import { AvatarComponent } from '../avatar/avatar.component';
+import { ContributionsBadgesComponent } from '../contributions-badges/contribution-badges.component';
 
 interface TrailSource {
   isExternal: boolean;
@@ -139,6 +140,7 @@ class TrailWithInfo {
         AsyncPipe,
         LiveGroupComponent,
         AvatarComponent,
+        ContributionsBadgesComponent,
     ]
 })
 export class TrailComponent extends AbstractComponent implements AfterContentChecked {
@@ -576,8 +578,10 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           if (trail1[0] && trail1[1] && !trail2[0] && !recordingWithTrack) {
             this.proposeToPublishSubscription?.unsubscribe();
             this.proposeToPublish = undefined;
-            this.proposeToPublishSubscription = this.trailService.proposeToPublish(trail1[0], trail1[1]).subscribe(result => {
+            const trail = trail1;
+            this.proposeToPublishSubscription = timer(3000).pipe(switchMap(() => this.trail1 === trail[0] ? this.trailService.proposeToPublish(trail[0]!, trail[1]!) : EMPTY)).subscribe(result => {
               this.proposeToPublish = result;
+              this.changesDetection.detectChanges();
             });
           }
         }
@@ -1286,7 +1290,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           result.trailWithInfo.collectionName = result.col?.name;
           this.isPublication = isPublicationCollection(result.col?.collection?.type);
           if (result.track && result.col?.collection?.type === TrailCollectionType.PUB_DRAFT) {
-            this.publicationChecklist = PublicationChecklist.load(result.trailWithInfo.trail, result.track, this.trailService);
+            if (!this.publicationChecklist || this.publicationChecklist.trailUuid !== result.trailWithInfo.trail.uuid || this.publicationChecklist.trailOwner !== result.trailWithInfo.trail.owner)
+              this.publicationChecklist = PublicationChecklist.load(result.trailWithInfo.trail, result.track, this.trailService);
           } else {
             this.publicationChecklist = undefined;
           }

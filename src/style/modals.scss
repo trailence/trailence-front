@@ -156,7 +156,7 @@ ion-alert .alert-wrapper.sc-ion-alert-md {
     background-color: var(--modal-content-background);
   }
 }
-ion-modal {
+ion-modal:not(.modal-sheet) {
   --background: transparent;
   --border-radius: var(--modal-border-radius);
   &::part(content) {

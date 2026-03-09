@@ -123,6 +123,8 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() enableTabs = false;
   selectedTab = 'info';
 
+  @Input() showAuthor = true;
+
   @Input() renameOnTrailNamePress = false;
   trailNamePressed(): void {
     if(this.renameOnTrailNamePress && this.trail && this.trail.owner === this.auth.email)

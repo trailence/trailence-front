@@ -104,38 +104,6 @@
             <div class="trail-name-row {{editable ? 'editable' : ''}}" (click)="editTrailName(trail1)">
               <div class="trail-name">{{trail1WithInfo!.getName(currentLang)}}</div>
             </div>
-
-            @if (trail1WithInfo?.source?.isExternalOnly && trail1.owner === 'trailence') {
-              <div class="trail-publication">
-                @let info = trail1WithInfo?.source?.info;
-                @let author = info?.author || i18n.texts.pages.preferences.anonymous;
-                <app-avatar [uuid]="info?.authorAvatar" [name]="info?.author" [anonymous]="!info?.author"></app-avatar>
-                <div class="trail-publication-infos">
-                  <div>
-                    {{i18n.texts.pages.trail.published_on}} <span class="info">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
-                  </div>
-                  <div>
-                    {{i18n.texts.pages.trail.published__by}} <span class="author">{{author}}</span>
-                    @if (info?.itsMine) {
-                      <span class="you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
-                    }
-                  </div>
-                  @if (info?.authorNbPublications) {
-                    <div class="nb_publications">
-                      <a [routerLink]="'/user-routes/' + info?.authorPublicId">
-                        {{info?.authorNbPublications}} {{i18n.texts.pages.trail[info!.authorNbPublications! > 1 ? 'nb_publications' : 'nb_publication']}}
-                      </a>
-                    </div>
-                  }
-                </div>
-              </div>
-              @if (trail1WithInfo?.source?.publishedFromTrail) {
-                <div class="published-from">
-                  {{i18n.texts.pages.trail.published_from}}
-                  <a [routerLink]="'/trail/' + trail1WithInfo!.source!.publishedFromTrail!.owner + '/' + trail1WithInfo!.source!.publishedFromTrail!.uuid">{{trail1WithInfo!.source!.publishedFromTrail!.name}}</a>
-                </div>
-              }
-            }
           }
 
           @if (comparison !== undefined) {
@@ -362,6 +330,42 @@
                 </div>
               }
             </div>
+
+            @if (trail1WithInfo?.source?.isExternalOnly && trail1.owner === 'trailence' && trail1WithInfo?.source?.info) {
+              <div class="trail-publication">
+                @let info = trail1WithInfo?.source?.info;
+                @let author = info?.author || i18n.texts.pages.preferences.anonymous;
+                <div class="author-infos">
+                  <app-avatar [uuid]="info?.authorAvatar" [name]="info?.author" [anonymous]="!info?.author"></app-avatar>
+                  <div class="trail-publication-infos">
+                    <div>
+                      {{i18n.texts.pages.trail.published_on}}
+                      <span class="info">{{i18n.timestampToDateString(trail1.createdAt)}}</span>
+                    </div>
+                    <div>
+                      {{i18n.texts.pages.trail.published__by}}
+                      @if (info?.itsMine) {
+                        <span class="author">{{author}}</span>
+                        <span class="you"> ({{i18n.texts.pages.trail.sections.comments.you}})</span>
+                      } @else {
+                        <span class="author">
+                          <a [routerLink]="'/user-routes/' + info?.authorPublicId">
+                            {{author}}
+                          </a>
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <app-contributions-badges [trailInfo]="info" [showLevel]="false" style="justify-content: flex-start; margin: 3px"></app-contributions-badges>
+              </div>
+              @if (trail1WithInfo?.source?.publishedFromTrail) {
+                <div class="published-from">
+                  {{i18n.texts.pages.trail.published_from}}
+                  <a [routerLink]="'/trail/' + trail1WithInfo!.source!.publishedFromTrail!.owner + '/' + trail1WithInfo!.source!.publishedFromTrail!.uuid">{{trail1WithInfo!.source!.publishedFromTrail!.name}}</a>
+                </div>
+              }
+            }
           }
           @if (trail1WithInfo?.source?.externalUrl; as url) {
             <div class="external-link">

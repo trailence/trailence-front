@@ -366,12 +366,6 @@
       "published__by": "Par",
       "published_on": "Publié le",
       "published__on": "Le",
-      "nb_publication": "parcours publié",
-      "nb_publications": "parcours publiés",
-      "nb_rate": "parcours noté",
-      "nb_rates": "parcours notés",
-      "nb_comment": "commentaire",
-      "nb_comments": "commentaires",
       "published_from": "à partir de",
       "select_photo_position": "Sélectionnez où la photo a été prise sur le parcours",
       "source": {
@@ -1580,5 +1574,43 @@
       "breaks": "Le temps de pauses correspond à la somme des pauses <i>longues</i>. Ce temps est décompté de la durée du parcours.<p>Nous distinguons les pauses <i>courtes</i> (par exemple pour se rafraîchir, admirer la vue, ...) et les pauses <i>longues</i> (par exemple pour pique-niquer).</p><p>Les pauses courtes font partie du temps de parcours affiché, car il est normal de les inclure. En revanche, lorsqu'une pause longue est détectée, son temps est déduit du temps de parcours, afin que le temps affiché ne dépende pas de la durée de votre sieste 😉. Le temps ainsi décompté est affiché dans la partie <i>Pauses</i>.</p><p>Les pauses <i>longues</i> sont des pauses d'au moins {{1}} minutes. Ce temps est configurable dans vos préférences.</p>"
     }
   },
-  "password_strength": ["Très faible", "Faible", "Insuffisant", "Acceptable", "Fort", "Très fort"]
+  "password_strength": ["Très faible", "Faible", "Insuffisant", "Acceptable", "Fort", "Très fort"],
+  "contributions": {
+    "publications": "Parcours",
+    "ratings": "Notes",
+    "reviews": "Avis",
+    "title": "Contributions",
+    "levels": {
+      "publications": [
+        "Aucun",
+        "Premiers parcours",
+        "Explorateur",
+        "Découvreur",
+        "Grand explorateur",
+        "Cartographe",
+        "Maître cartographe",
+        "Légende des sentiers"
+      ],
+      "comments": [
+        "Aucun",
+        "Premiers avis",
+        "Observateur",
+        "Conseiller",
+        "Guide de la communauté",
+        "Sage des sentiers",
+        "Mentor",
+        "Pilier de la communauté"
+      ],
+      "rates": [
+        "Aucune",
+        "Premières notes",
+        "Évaluateur",
+        "Éclaireur",
+        "Bon connaisseur",
+        "Expert des parcours",
+        "Référence",
+        "Boussole de la communauté"
+      ]
+    }
+  }
 }

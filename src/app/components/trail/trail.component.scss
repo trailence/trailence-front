@@ -618,42 +618,38 @@ div.edit-tool-container {
 }
 
 div.trail-publication {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   padding: 3px;
   margin: 1px 5px;
   background: linear-gradient(to bottom, var(--ion-item-background-gradient-color) 0, var(--ion-item-background) 20px);
   border-radius: 8px;
 
-  app-avatar {
-    --size: 40px;
-    margin-right: 8px;
-    background-color: var(--ion-color-secondary);
-    color: var(--ion-color-secondary-contrast);
-  }
-  div.trail-publication-infos {
-    flex: 1 1 100%;
-    font-size: 13px;
-    line-height: 1.2;
-    color: rgba(var(--ion-text-color-rgb), 0.75);
+  div.author-infos {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    app-avatar {
+      --size: 40px;
+      margin-right: 8px;
+      background-color: var(--ion-color-secondary);
+      color: var(--ion-color-secondary-contrast);
+    }
+    div.trail-publication-infos {
+      flex: 1 1 100%;
+      font-size: 13px;
+      line-height: 1.2;
+      color: rgba(var(--ion-text-color-rgb), 0.75);
 
-    .author, .info {
-      color: var(--ion-text-color);
-    }
-    .you {
-      font-style: italic;
-    }
-    .nb_publications {
-      a {
-        color: rgba(var(--ion-text-color-rgb), 0.75);
-        font-size: calc(max(12px, var(--min-font-size)));
+      .author, .info {
+        color: var(--ion-text-color);
+      }
+      .you {
+        font-style: italic;
       }
     }
   }
 }
 div.published-from {
-  padding: 0 8px 0 56px;
+  padding: 0 8px;
   font-size: 13px;
 }
 div.propose-to-publish {

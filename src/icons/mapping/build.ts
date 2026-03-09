@@ -24,7 +24,7 @@ function removeXmlHeader(xml: string): string {
 
 let svgOutput = '<icons>\n';
 let listOutput = 'export const ICONS: string[] = [\n';
-let overviewOutput = '<!DOCTYPE html>\n<html lang="en"><head><style>svg { width: 64px; height: 64px; } svg.ionicon { stroke: currentColor; fill: currentColor; } svg.ionicon .ionicon-fill-none { fill: none; } svg.ionicon .ionicon-stroke-width { stroke-width: 32px; } }</style></head><body><table>';
+let overviewOutput = '<!DOCTYPE html>\n<html lang="en"><head><style>svg { width: 64px; height: 64px; } svg.ionicon { stroke: currentColor; fill: currentColor; } svg.ionicon .ionicon-fill-none { fill: none; } svg.ionicon .ionicon-stroke-width { stroke-width: 32px; } }</style></head><body style="background-color: black; color: white;"><table>';
 
 let filesDone: string[] = [];
 

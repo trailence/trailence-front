@@ -181,6 +181,7 @@ export class AvatarService {
                   Console.warn('Error getting avatar', e);
                   return of(null);
                 }),
+                tap(blob => this._cache.feedItem(key, {blob: blob || undefined})),
               )
             ))).pipe(
               map(blob => blob ? {blob} as AvatarToGenerate : undefined)

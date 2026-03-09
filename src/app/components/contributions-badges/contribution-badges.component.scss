@@ -1,0 +1,62 @@
+:host {
+  --icon-size: 18px;
+  --counter-size: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+}
+div.contribution {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &:not(:last-child) {
+    margin-right: 8px;
+  }
+
+  div.header {
+    color: var(--ion-color-medium);
+    font-size: calc(max(12px, var(--min-font-size)));
+    text-align: center;
+    flex: none;
+  }
+  div.level {
+    color: var(--ion-color-medium);
+    font-size: calc(max(11px, var(--min-font-size)));
+    text-align: center;
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  div.badge {
+    width: 28px;
+    height: 28px;
+    position: relative;
+    flex: none;
+
+    ion-icon {
+      width: var(--icon-size);
+      height: var(--icon-size);
+      position: absolute;
+      top: 0;
+      left: 0;
+      &.ion-color-medium {
+        left: 4px;
+      }
+    }
+    div.badge-icon {
+      position: absolute;
+      width: var(--counter-size);
+      height: var(--counter-size);
+      bottom: 0;
+      right: 0;
+      svg {
+        width: var(--counter-size);
+        height: var(--counter-size);
+      }
+    }
+  }
+}

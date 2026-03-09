@@ -107,6 +107,8 @@ export interface TrailInfo {
   authorAvatar?: string;
   authorPublicId?: string;
   authorNbPublications?: number;
+  authorNbComments?: number;
+  authorNbRates?: number;
   myUuid?: string;
   itsMine?: boolean;
 

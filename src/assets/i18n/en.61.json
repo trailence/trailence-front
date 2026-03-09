@@ -366,12 +366,6 @@
       "published__by": "By",
       "published_on": "Published on",
       "published__on": "On",
-      "nb_publication": "published route",
-      "nb_publications": "published routes",
-      "nb_rate": "route rated",
-      "nb_rates": "routes rated",
-      "nb_comment": "comment",
-      "nb_comments": "comments",
       "published_from": "from",
       "select_photo_position": "Select where the photo was taken on the track",
       "source": {
@@ -1580,5 +1574,43 @@
       "breaks": "The break time corresponds to the total duration of <i>long</i> breaks. This time is subtracted from the trail duration. <p>We distinguish between <i>short</i> breaks (to refresh yourself, enjoy the view, etc.) and <i>long</i> breaks (such as a picnic).</p> <p>Short breaks are included in the displayed trail duration, as it’s normal to have brief pauses. However, when a long break is detected, its duration is deducted from the trail time, so the time shown doesn’t depend on how long you napped 😉. The deducted time appears in the <i>Breaks</i> section.</p> <p><i>Long</i> breaks are those lasting at least {{1}} minutes. This threshold can be configured in your preferences.</p>"
     }
   },
-  "password_strength": ["Very weak", "Weak", "Insufficient", "Acceptable", "Strong", "Very strong"]
+  "password_strength": ["Very weak", "Weak", "Insufficient", "Acceptable", "Strong", "Very strong"],
+  "contributions": {
+    "publications": "Routes",
+    "ratings": "Ratings",
+    "reviews": "Reviews",
+    "title": "Contributions",
+    "levels": {
+      "publications": [
+        "None",
+        "First routes",
+        "Explorer",
+        "Discoverer",
+        "Great explorer",
+        "Cartographer",
+        "Master cartographer",
+        "Trail legend"
+      ],
+      "comments": [
+        "None",
+        "First reviews",
+        "Observer",
+        "Advisor",
+        "Community guide",
+        "Trail sage",
+        "Mentor",
+        "Community pillar"
+      ],
+      "rates": [
+        "None",
+        "First ratings",
+        "Rater",
+        "Pathfinder",
+        "Keen reviewer",
+        "Route expert",
+        "Trusted voice",
+        "Community compass"
+      ]
+    }
+  }
 }
