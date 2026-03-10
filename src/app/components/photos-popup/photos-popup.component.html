@@ -134,11 +134,13 @@
                   </ion-button>
                 }
               </div>
-              <div class="footer-buttons">
-                <ion-button size="small" fill="clear" shape="round" color="secondary" (click)="editPhoto(photoWithInfo.photo)">
-                  <ion-label>{{i18n.texts.pages.photos_popup.buttons.edit}}</ion-label>
-                </ion-button>
-              </div>
+              @if (canEdit) {
+                <div class="footer-buttons">
+                  <ion-button size="small" fill="clear" shape="round" color="secondary" (click)="editPhoto(photoWithInfo.photo)">
+                    <ion-label>{{i18n.texts.pages.photos_popup.buttons.edit}}</ion-label>
+                  </ion-button>
+                </div>
+              }
             </div>
 
           </div>

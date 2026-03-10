@@ -176,12 +176,12 @@ export class AvatarService {
             if (!serverAvailable) return of(undefined);
             return from(this._pending.request(request, () => firstValueFrom(
               this.http.getBlob(environment.apiBaseUrl + '/avatar/v1' + request).pipe(
+                tap(blob => this._cache.feedItem(key, {blob: blob || undefined})),
                 catchError(e => {
                   if (e instanceof ApiError && e.httpCode === 404) return of(null);
                   Console.warn('Error getting avatar', e);
                   return of(null);
                 }),
-                tap(blob => this._cache.feedItem(key, {blob: blob || undefined})),
               )
             ))).pipe(
               map(blob => blob ? {blob} as AvatarToGenerate : undefined)

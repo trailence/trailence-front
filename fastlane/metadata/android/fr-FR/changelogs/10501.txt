@@ -1,0 +1,2 @@
+ Ajout d'options d'accessibilité
+ Quelques autres améliorations et correctifs

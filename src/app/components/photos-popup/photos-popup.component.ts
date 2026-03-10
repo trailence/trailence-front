@@ -99,7 +99,6 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
     this.maxWidth = this.popup ? Math.min(Math.floor(this.width * 0.9) - 20, 250) : this.width - 35;
     this.maxHeight = Math.min(Math.floor(this.height * 0.4) - 50, 300);
     this.metaColumns = this.maxWidth >= 250 ? 'two-columns' : 'one-column';
-    console.log('width', this.width, this.maxWidth, this.popup);
   }
 
   ngOnInit() {

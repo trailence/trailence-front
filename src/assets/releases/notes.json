@@ -178,5 +178,19 @@
         "Minor improvements and bug fixes"
       ]
     }
+  },
+  "010501": {
+    "fr": {
+      "items": [
+        "Ajout d'options d'accessibilité",
+        "Quelques autres améliorations et correctifs"
+      ]
+    },
+    "en": {
+      "items": [
+        "New accessibility options",
+        "Minor improvements and bug fixes"
+      ]
+    }
   }
 }

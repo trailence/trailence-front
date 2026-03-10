@@ -1,0 +1,2 @@
+ New accessibility options
+ Minor improvements and bug fixes
