@@ -8,21 +8,40 @@
   padding: 8px;
 
   .photo-container {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
     border: 1px solid var(--ion-color-light);
     border-radius: 8px;
-    padding: 8px;
     margin-right: 5px;
+    margin-bottom: 5px;
 
     &.selected {
       border-color: var(--ion-color-primary);
     }
 
-    ion-checkbox {
-      margin-right: 8px;
+    .controls-and-photo {
+      padding: 8px;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
     }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      align-self: stretch;
+
+      ion-checkbox {
+        margin-right: 8px;
+      }
+
+      .buttons {
+        flex: 1 1 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
 
     .photo-and-description {
       flex: 1 1 100%;
@@ -35,14 +54,6 @@
         align-self: stretch;
       }
 
-      .photo-footer {
-        flex: 1 1 100%;
-        align-self: stretch;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-end;
-      }
     }
 
     .description {
@@ -52,6 +63,23 @@
       span.no-description {
         font-style: italic;
         opacity: 0.75;
+      }
+    }
+
+    .photo-footer {
+      flex: 1 1 100%;
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-end;
+      background: rgba(var(--ion-toolbar-background-rgb), 0.5);
+      padding: 2px 8px;
+
+      .footer-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
     }
 

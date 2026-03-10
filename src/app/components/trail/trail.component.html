@@ -161,21 +161,6 @@
         }
 
         @if (trail1) {
-          @if (!trail2 && trail1WithInfo?.collection && !isPublication) {
-            @if (trail1WithInfo?.tagsNames; as tags) {
-              <div class="trail-tags-row editable" (click)="openTags(trail1)">
-                <ion-icon name="tags" color="secondary"></ion-icon>
-                @if (tags.length === 0) {
-                  <span class="no-tag"><span>{{i18n.texts.pages.trail.no_tag_message}}</span></span>
-                } @else {
-                  @for (tag of tags; track tag) {
-                    <div class="tag">{{tag}}</div>
-                  }
-                }
-              </div>
-            }
-          }
-
           @if (!trail2) {
             @if (trail1.description || editable) {
               <div class="description-text">
@@ -207,6 +192,21 @@
                   }
                 }
               </div>
+            }
+
+            @if (trail1WithInfo?.collection && !isPublication) {
+              @if (trail1WithInfo?.tagsNames; as tags) {
+                <div class="trail-tags-row editable" (click)="openTags(trail1)">
+                  <ion-icon name="tags" color="secondary"></ion-icon>
+                  @if (tags.length === 0) {
+                    <span class="no-tag"><span>{{i18n.texts.pages.trail.no_tag_message}}</span></span>
+                  } @else {
+                    @for (tag of tags; track tag) {
+                      <div class="tag">{{tag}}</div>
+                    }
+                  }
+                </div>
+              }
             }
           }
         }
@@ -677,7 +677,7 @@
     @switch (tab) {
       @case ('photos') {
         @if (photos !== undefined) {
-          <div class="trail-photos-tab round-img">
+          <div class="trail-photos-tab">
             <app-photos-popup [trails$]="trailsForPhotoPopup" [popup]="false" (positionOnMapRequested)="positionPhotoOnMap($event)"></app-photos-popup>
           </div>
         }

@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonIcon, IonLabel, IonButton, IonFooter, IonButtons, IonCheckbox, ModalController, IonTextarea, AlertController, IonSegment, IonSegmentButton } from "@ionic/angular/standalone";
 import { BehaviorSubject, combineLatest, firstValueFrom, map, Observable, of, switchMap, tap } from 'rxjs';
 import { Photo } from 'src/app/model/photo';
@@ -41,7 +41,7 @@ interface PhotoWithInfo {
     NgClass, NgStyle,
   ]
 })
-export class PhotosPopupComponent  implements OnInit, OnDestroy {
+export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
 
   @Input() trails$!: Observable<Trail | null>[];
   @Input() popup = true;
@@ -78,7 +78,7 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
     private readonly photoService: PhotoService,
     private readonly fileService: FileService,
     private readonly progressService: ProgressService,
-    browser: BrowserService,
+    private readonly browser: BrowserService,
     private readonly auth: AuthService,
     private readonly modalController: ModalController,
     private readonly changesDetector: ChangeDetectorRef,
@@ -96,9 +96,10 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
   private updateSize(browser: BrowserService): void {
     this.width = browser.width;
     this.height = browser.height;
-    this.maxWidth = Math.min(Math.floor(this.width * 0.9) - 20, 300);
+    this.maxWidth = this.popup ? Math.min(Math.floor(this.width * 0.9) - 20, 250) : this.width - 35;
     this.maxHeight = Math.min(Math.floor(this.height * 0.4) - 50, 300);
-    this.metaColumns = this.maxWidth === 300 ? 'two-columns' : 'one-column';
+    this.metaColumns = this.maxWidth >= 250 ? 'two-columns' : 'one-column';
+    console.log('width', this.width, this.maxWidth, this.popup);
   }
 
   ngOnInit() {
@@ -159,6 +160,10 @@ export class PhotosPopupComponent  implements OnInit, OnDestroy {
         this.changesDetector.detectChanges();
       })
     );
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    this.updateSize(this.browser);
   }
 
   private readonly _dateToPosCache = new Map<number, L.LatLngLiteral | null>();

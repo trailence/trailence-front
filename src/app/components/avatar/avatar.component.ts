@@ -49,7 +49,7 @@ export class AvatarComponent extends AbstractComponent {
       );
     } else if (this.name && this.name.length > 0) {
       this.element.nativeElement.appendChild(this.avatarService.generateFromName(this.name));
-    } else if (this.anonymous) {
+    } else {
       this.element.nativeElement.appendChild(this.avatarService.generateAnonymous());
     }
   }

@@ -54,6 +54,7 @@ import { StringUtils } from 'src/app/utils/string-utils';
   }
   span.placeholder {
     font-style: italic;
+    opacity: 0.5;
   }
   `,
   imports: [],

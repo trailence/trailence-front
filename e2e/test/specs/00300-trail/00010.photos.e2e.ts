@@ -97,9 +97,11 @@ describe('Trail - Photos', () => {
     expect(await slider.slider.moveNextButton.isEnabled()).toBeFalse();
     expect(await slider.slider.movePreviousButton.isEnabled()).toBeTrue();
     await slider.slider.movePreviousButton.click();
+    await browser.pause(500);
     expect(await slider.slider.moveNextButton.isEnabled()).toBeTrue();
     expect(await slider.slider.movePreviousButton.isEnabled()).toBeFalse();
     await slider.slider.moveNextButton.click();
+    await browser.pause(500);
     expect(await slider.slider.moveNextButton.isEnabled()).toBeFalse();
     expect(await slider.slider.movePreviousButton.isEnabled()).toBeTrue();
     await slider.close();

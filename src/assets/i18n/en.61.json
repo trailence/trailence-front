@@ -163,7 +163,7 @@
         "tags": "Tags",
         "rate": "Rating",
         "onlyVisibleOnMap": "Show in list only tracks visible on map",
-        "onlyWithPhotos": "Only routes with photos",
+        "onlyWithPhotos": "Only trails with photos",
         "reset_button": "Reset all filters",
         "preset": "My filters",
         "load": "Load",
@@ -301,9 +301,9 @@
       "take_photo": "Take a photo",
       "comparison_message": "These paths are {{1}}% similar",
       "propose_to_publish": {
-        "be_the_first": "No routes in this area yet. Be the first to share one and help the community 🙏",
-        "improve_region": "This area needs more routes. Help the community by sharing yours 🙏",
-        "participate_region": "There are still only a few routes in this area. Contribute by sharing yours with the community 🙏"
+        "be_the_first": "No trails in this area yet. Be the first to share one and help the community 🙏",
+        "improve_region": "This area needs more trails. Help the community by sharing yours 🙏",
+        "participate_region": "There are still only a few trails in this area. Contribute by sharing yours with the community 🙏"
       },
       "sections": {
         "description": {
@@ -384,12 +384,12 @@
         "add_source_url": "Add a source (link)"
       },
       "my_feedback": {
-        "you_leave_a_rate": "You rated this route {{1}}/5 on {{2}}",
-        "you_leave_a_comment": "You left a comment on this route on {{1}}",
-        "you_leave_a_rate_and_a_comment_same_date": "You rated this route {{1}}/5 with a comment on {{2}}",
-        "you_leave_a_rate_and_a_comment_different_date": "You rated this route {{1}}/5 on {{2}} and left a comment on {{3}}",
+        "you_leave_a_rate": "You rated this trail {{1}}/5 on {{2}}",
+        "you_leave_a_comment": "You left a comment on this trail on {{1}}",
+        "you_leave_a_rate_and_a_comment_same_date": "You rated this trail {{1}}/5 with a comment on {{2}}",
+        "you_leave_a_rate_and_a_comment_different_date": "You rated this trail {{1}}/5 on {{2}} and left a comment on {{3}}",
         "invite_to_rate_title": "🙏 Join the community!",
-        "invite_to_rate_button": "⭐ Rate this route"
+        "invite_to_rate_button": "⭐ Rate this trail"
       }
     },
     "collection_form": {
@@ -786,7 +786,7 @@
         }
       },
       "no_trail": "The group will not be attached to any trail.",
-      "no_trail_explaination": "This means the group will be accessible from a dedicated screen, where you will only see the group members and their locations. However, when the group is attached to a route, you can view the group directly from the trail screen. This is much more convenient if you plan to follow this trail with the group.<br/><br/>To create a group attached to a trail, open the trail, then from its menu select “Create a live tracking group”.<br/>You can also attach an existing group by opening the trail, then from its menu select “Attach to a live group tracking”.",
+      "no_trail_explaination": "This means the group will be accessible from a dedicated screen, where you will only see the group members and their locations. However, when the group is attached to a trail, you can view the group directly from the trail screen. This is much more convenient if you plan to follow this trail with the group.<br/><br/>To create a group attached to a trail, open the trail, then from its menu select “Create a live tracking group”.<br/>You can also attach an existing group by opening the trail, then from its menu select “Attach to a live group tracking”.",
       "share_trail": "Share the trail with group members",
       "explaination_trail_restricted_access": "This trail was shared with you. Only members who also have access to this trail will be able to see it.",
       "explaination_trail_needs_public_link": "Only members you have shared this trail with can see it. To allow all members to see it, you can create a public link for this trail.",
@@ -852,11 +852,11 @@
       "type_title": "Statistics on",
       "time_unit_title": "By",
       "source_title": "Among",
-      "filter_title": "Taking into account only routes",
+      "filter_title": "Taking into account only trails",
       "activity_filter_title": "with activity",
       "types": {
         "nb_trails": {
-          "title": "Number of routes"
+          "title": "Number of trails"
         },
         "distance": {
           "title": "Distance"
@@ -1035,7 +1035,7 @@
       },
       "activity": {
         "title": "Type of activity provided",
-        "description_start": "Make sure to clearly distinguish between walking and hiking: If the track is short, with little elevation gain and few difficulties, or if it’s an urban route, it’s more appropriate to classify it as walking. Hiking usually refers to tracks in nature, typically over an hour long, often with elevation gain..."
+        "description_start": "Make sure to clearly distinguish between walking and hiking: If the track is short, with little elevation gain and few difficulties, or if it’s an urban trail, it’s more appropriate to classify it as walking. Hiking usually refers to tracks in nature, typically over an hour long, often with elevation gain..."
       },
       "track": {
         "title": "Track quality",
@@ -1143,7 +1143,7 @@
     "parameters": "Parameters",
     "max_zoom": "Maximum zoom level to download",
     "max_zoom_explaination": "The higher you select a zoom level, the more you will be able to zoom during your hike when you are offline, but consequently the longer the download will take and the more storage space will be required on your device.",
-    "max_zoom_reco": "A value between 15 and 17 is recommended. Below 15, the level of detail is often too low to see small paths clearly. Above 17, the download size is large, and is generally not necessary to perfectly follow a route.",
+    "max_zoom_reco": "A value between 15 and 17 is recommended. Below 15, the level of detail is often too low to see small paths clearly. Above 17, the download size is large, and is generally not necessary to perfectly follow a trail.",
     "padding": "Extend the area to download (%)",
     "padding_explaination_for_trail": "Percentage of the area to download in around the track area (100% means only the track area). Allows you to see more around the track in offline mode.",
     "padding_explaination_for_map": "Percentage of the area to download in around the currently displayed area (100% means only the track area). Allows you to see a larger area in offline mode.",
@@ -1576,14 +1576,14 @@
   },
   "password_strength": ["Very weak", "Weak", "Insufficient", "Acceptable", "Strong", "Very strong"],
   "contributions": {
-    "publications": "Routes",
+    "publications": "Trails",
     "ratings": "Ratings",
     "reviews": "Reviews",
     "title": "Contributions",
     "levels": {
       "publications": [
         "None",
-        "First routes",
+        "First trails",
         "Explorer",
         "Discoverer",
         "Great explorer",
@@ -1607,7 +1607,7 @@
         "Rater",
         "Pathfinder",
         "Keen reviewer",
-        "Route expert",
+        "Trail expert",
         "Trusted voice",
         "Community compass"
       ]

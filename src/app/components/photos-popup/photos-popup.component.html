@@ -36,107 +36,111 @@
       <div class="photos" style="flex: 1 1 100%; overflow-y: auto;">
         @for (photoWithInfo of photos; track photoWithInfo.photo.uuid + photoWithInfo.photo.owner) {
           <div [ngStyle]="{'width': (maxWidth + 30) + 'px'}" class="photo-container" [ngClass]="{'selected': photoWithInfo.selected}">
-            @if (canEdit) {
-              <div style="display: flex; flex-direction: column; align-items: center; align-self: stretch;">
-                <ion-checkbox [checked]="photoWithInfo.selected" (ionChange)="setSelected(photoWithInfo, $event.detail.checked)"></ion-checkbox>
-                <div style="flex: 1 1 100%; display: flex; flex-direction: column; align-items: center; justify-content: center">
-                  @if ($index > 0) {
-                    <ion-button shape="round" size="small" fill="clear" color="dark" (click)="moveBack($index)">
-                      <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
-                    </ion-button>
-                  }
-                  @if ($index < photos.length - 1) {
-                    <ion-button shape="round" size="small" fill="clear" color="dark" (click)="moveForward($index)">
-                      <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
-                    </ion-button>
-                  }
+            <div class="controls-and-photo">
+              @if (canEdit) {
+                <div class="controls">
+                  <ion-checkbox [checked]="photoWithInfo.selected" (ionChange)="setSelected(photoWithInfo, $event.detail.checked)"></ion-checkbox>
+                  <div class="buttons">
+                    @if ($index > 0) {
+                      <ion-button shape="round" size="small" fill="clear" color="dark" (click)="moveBack($index)">
+                        <ion-icon slot="icon-only" name="arrow-up"></ion-icon>
+                      </ion-button>
+                    }
+                    @if ($index < photos.length - 1) {
+                      <ion-button shape="round" size="small" fill="clear" color="dark" (click)="moveForward($index)">
+                        <ion-icon slot="icon-only" name="arrow-down"></ion-icon>
+                      </ion-button>
+                    }
+                  </div>
                 </div>
-              </div>
-            }
-            <div class="photo-and-description">
-              <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)" (blobSize)="setBlobSize(photoWithInfo, $event)" [loadWhenVisible]="true"></app-photo>
-              @if (photoWithInfo.editing === null) {
-                <div class="description" (click)="editDescription(photoWithInfo)" [ngClass]="{'editable-text': canEdit}">
-                  @if (photoWithInfo.photo.description.trim().length === 0) {
-                    <span class="no-description">{{i18n.texts.pages.trail.photo_no_description}}</span>
-                  } @else {
-                    {{photoWithInfo.photo.description}}
-                  }
-                </div>
-              } @else {
-                <ion-textarea #descriptionEditor
-                  [maxlength]="100"
-                  [autoGrow]="true"
-                  [value]="photoWithInfo.editing"
-                  (ionChange)="descriptionChanged(photoWithInfo, $event.detail.value)"
-                  (ionInput)="descriptionChanging(photoWithInfo, $event.detail.value)"
-                  (ionBlur)="exitEditDescription(photoWithInfo)"
-                ></ion-textarea>
               }
-              <div class="photo-footer">
-                <div class="metadata-container {{metaColumns}}">
-                  @if (photoWithInfo.photo.dateTaken) {
-                    <div class="metadata-item-container">
-                      <div class="metadata-item">
-                        <ion-icon name="date"></ion-icon>
-                        <div class="metadata-content">
-                          <div class="metadata-value">
-                            <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                  @if (photoWithInfo.blobSize) {
-                    <div class="metadata-item-container">
-                      <div class="metadata-item">
-                        <ion-icon name="file"></ion-icon>
-                        <div class="metadata-content">
-                          <div class="metadata-value">
-                            <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                  @if (photoWithInfo.photo.latitude) {
-                    <div class="metadata-item-container force-one-column">
-                      <div class="metadata-item">
-                        <ion-icon name="location"></ion-icon>
-                        <div class="metadata-content">
-                          <div class="metadata-value">
-                            <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-                </div>
-                <div class="position-on-map">
-                  @if (photoWithInfo.positionOnMap) {
-                    <ion-icon name="checkmark" color="success"></ion-icon>
-                    <span>{{ i18n.texts.pages.photos_popup.position.available }}</span>
-                  } @else {
-                    <ion-icon name="cross" color="danger"></ion-icon>
-                    <span>{{ i18n.texts.pages.photos_popup.position.not_available }}</span>
-                  }
-                  @if (canPositionOnMap) {
-                    <ion-button fill="clear" size="small" color="tertiary" (click)="positionOnMap(photoWithInfo.photo)">
-                      <ion-icon slot="icon-only" name="center-on-location"></ion-icon>
-                    </ion-button>
-                    <ion-button fill="clear" size="small" color="danger" (click)="clearPosition(photoWithInfo)" [disabled]="!photoWithInfo.positionOnMap && (photoWithInfo.photo.latitude === undefined || photoWithInfo.photo.longitude === undefined)">
-                      <ion-icon slot="icon-only" name="trash"></ion-icon>
-                    </ion-button>
-                  }
-                </div>
-                <div class="footer-buttons">
-                  <ion-button size="small" fill="clear" color="secondary" (click)="editPhoto(photoWithInfo.photo)">
-                    <ion-icon slot="start" name="edit"></ion-icon>
-                    <ion-label>{{i18n.texts.pages.photos_popup.buttons.edit}}</ion-label>
-                  </ion-button>
-                </div>
+              <div class="photo-and-description">
+                <app-photo [photo]="photoWithInfo.photo" [maxWidth]="maxWidth" [maxHeight]="maxHeight" (click)="openSlider($index)" (blobSize)="setBlobSize(photoWithInfo, $event)" [loadWhenVisible]="true"></app-photo>
+                @if (photoWithInfo.editing === null) {
+                  <div class="description" (click)="editDescription(photoWithInfo)" [ngClass]="{'editable-text': canEdit}">
+                    @if (photoWithInfo.photo.description.trim().length === 0) {
+                      <span class="no-description">{{i18n.texts.pages.trail.photo_no_description}}</span>
+                    } @else {
+                      {{photoWithInfo.photo.description}}
+                    }
+                  </div>
+                } @else {
+                  <ion-textarea #descriptionEditor
+                    [maxlength]="100"
+                    [autoGrow]="true"
+                    [value]="photoWithInfo.editing"
+                    (ionChange)="descriptionChanged(photoWithInfo, $event.detail.value)"
+                    (ionInput)="descriptionChanging(photoWithInfo, $event.detail.value)"
+                    (ionBlur)="exitEditDescription(photoWithInfo)"
+                  ></ion-textarea>
+                }
               </div>
             </div>
+
+
+            <div class="photo-footer">
+              <div class="metadata-container {{metaColumns}}">
+                @if (photoWithInfo.photo.dateTaken) {
+                  <div class="metadata-item-container">
+                    <div class="metadata-item">
+                      <ion-icon name="date"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{i18n.timestampToDateTimeString(photoWithInfo.photo.dateTaken)}}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (photoWithInfo.blobSize) {
+                  <div class="metadata-item-container">
+                    <div class="metadata-item">
+                      <ion-icon name="file"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{i18n.sizeToString(photoWithInfo.blobSize)}}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (photoWithInfo.photo.latitude) {
+                  <div class="metadata-item-container force-one-column">
+                    <div class="metadata-item">
+                      <ion-icon name="location"></ion-icon>
+                      <div class="metadata-content">
+                        <div class="metadata-value">
+                          <div class="metadata-primary">{{i18n.coordToString(photoWithInfo.photo.latitude!)}} {{i18n.coordToString(photoWithInfo.photo.longitude!)}}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+              <div class="position-on-map">
+                @if (photoWithInfo.positionOnMap) {
+                  <ion-icon name="checkmark" color="success"></ion-icon>
+                  <span>{{ i18n.texts.pages.photos_popup.position.available }}</span>
+                } @else {
+                  <ion-icon name="cross" color="danger"></ion-icon>
+                  <span>{{ i18n.texts.pages.photos_popup.position.not_available }}</span>
+                }
+                @if (canPositionOnMap) {
+                  <ion-button fill="clear" size="small" color="tertiary" (click)="positionOnMap(photoWithInfo.photo)">
+                    <ion-icon slot="icon-only" name="center-on-location"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" color="danger" (click)="clearPosition(photoWithInfo)" [disabled]="!photoWithInfo.positionOnMap && (photoWithInfo.photo.latitude === undefined || photoWithInfo.photo.longitude === undefined)">
+                    <ion-icon slot="icon-only" name="trash"></ion-icon>
+                  </ion-button>
+                }
+              </div>
+              <div class="footer-buttons">
+                <ion-button size="small" fill="clear" shape="round" color="secondary" (click)="editPhoto(photoWithInfo.photo)">
+                  <ion-label>{{i18n.texts.pages.photos_popup.buttons.edit}}</ion-label>
+                </ion-button>
+              </div>
+            </div>
+
           </div>
         }
       </div>
