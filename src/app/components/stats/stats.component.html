@@ -14,7 +14,7 @@
   </div>
   <div class="graph-container">
     @if (!resetChart) {
-      <app-stats-graph [statsConfig]="config"></app-stats-graph>
+      <app-graph [source]="graphSource" [provider]="graphProvider"></app-graph>
     }
   </div>
 }

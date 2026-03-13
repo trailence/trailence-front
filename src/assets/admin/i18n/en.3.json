@@ -77,6 +77,9 @@
     "delete": "Remove",
     "error": "Error retrieving data"
   },
+  "stats": {
+    "title": "Statistics"
+  },
   "starts_at": "Since",
   "ends_at": "Until"
 }

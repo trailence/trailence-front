@@ -1,5 +1,5 @@
 <div class="graph-container">
-  @if (chartConfig && height) {
+  @if (config && height) {
     @if (hasNavigation) {
       <div class="navigation-container">
         <ion-button fill="clear" color="dark" [disabled]="navigationOffset === 0" (click)="navigation(-1)">
@@ -9,10 +9,10 @@
     }
     <canvas baseChart [height]="height" [width]="width" [ngStyle]="{ 'width': width + 'px', 'height': height + 'px' }" id="{{id}}"
       #canvas
-      [type]="chartConfig.type"
-      [data]="chartConfig.data"
-      [options]="chartConfig.options"
-      [plugins]="[]"
+      [type]="config.type"
+      [data]="config.data"
+      [options]="config.options"
+      [plugins]="config.plugins || []"
       [legend]="false">
     </canvas>
     @if (hasNavigation) {

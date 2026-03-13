@@ -77,6 +77,31 @@
     "delete": "Supprimer",
     "error": "Erreur lors de la récupération des données"
   },
+  "stats": {
+    "title": "Statistiques",
+    "types": {
+      "nbUsers": "Utilisateurs",
+      "newUsers": "Nouveaux utilisateurs",
+      "deletedUsers": "Utilisateurs supprimés",
+      "connectedUsers": "Utilisateurs connectés",
+      "nbCollections": "Collections",
+      "nbTrails": "Parcours",
+      "nbTracks": "Traces",
+      "nbTags": "Tags",
+      "nbTrailTags": "Parcours taggués",
+      "nbShares": "Partages",
+      "nbPhotos": "Photos",
+      "nbPublicTrails": "Parcours publiés",
+      "nbPublicLinks": "Liens publics",
+      "newLiveGroups": "Groupes de suivi"
+    },
+    "aggregations": {
+      "day": "Par jour",
+      "week": "Par semaine",
+      "month": "Par mois",
+      "year": "Par année"
+    }
+  },
   "starts_at": "Depuis",
   "ends_at": "Jusqu'à"
 }

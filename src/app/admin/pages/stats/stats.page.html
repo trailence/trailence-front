@@ -1,0 +1,20 @@
+<div class="stats-config">
+  <ion-radio-group [value]="config$.value.type" (ionChange)="setType($event.detail.value)">
+    @for (type of types; track type) {
+      <div>
+        <ion-radio [value]="type" labelPlacement="end">{{i18n.texts.admin.stats.types[type]}}</ion-radio>
+      </div>
+    }
+  </ion-radio-group>
+
+  <ion-radio-group [value]="config$.value.aggregation" (ionChange)="setAggregation($event.detail.value)">
+    @for (aggregation of aggregations; track aggregation) {
+      <div>
+        <ion-radio [value]="aggregation" labelPlacement="end">{{i18n.texts.admin.stats.aggregations[aggregation]}}</ion-radio>
+      </div>
+    }
+  </ion-radio-group>
+</div>
+<div class="stats-graph">
+  <app-graph [source]="graphSource" [provider]="graphProvider"></app-graph>
+</div>
