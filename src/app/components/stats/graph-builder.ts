@@ -1,7 +1,6 @@
 import { Injector } from '@angular/core';
-import { StatsConfig, StatsTimeUnit, StatsValue } from '../stats-config';
+import { StatsConfig, StatsTimeUnit, StatsValue } from './stats-config';
 import { combineLatest, map, Observable, of, switchMap } from 'rxjs';
-import { ChartConfig } from './chart-config';
 import { Trail } from 'src/app/model/trail';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
@@ -16,17 +15,18 @@ import { AuthService } from 'src/app/services/auth/auth.service';
 import { ShareService } from 'src/app/services/database/share.service';
 import { Share } from 'src/app/model/share';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { GraphConfig, GraphProvider } from '../graph/graph-config';
 
 C.Chart.register(C.LinearScale, C.BarController, C.CategoryScale, C.BarElement, C.PointElement);
 
-export class GraphBuilder {
+export class GraphBuilder implements GraphProvider<StatsConfig> {
 
   constructor(
     private readonly injector: Injector,
   ) {
   }
 
-  public build(cfg: StatsConfig, width: number, height: number, styles: CSSStyleDeclaration): Observable<ChartConfig | undefined> {
+  public buildGraphConfig(cfg: StatsConfig, width: number, height: number, styles: CSSStyleDeclaration): Observable<GraphConfig | undefined> {
     return this.getAllItems(cfg).pipe(
       map(allItems => {
         const filteredItems = allItems.filter(i => this.filterItem(i, cfg));
@@ -124,7 +124,7 @@ export class GraphBuilder {
     return r;
   }
 
-  private buildFrom(cfg: StatsConfig, width: number, height: number, styles: CSSStyleDeclaration, allItems: Item[]): ChartConfig {
+  private buildFrom(cfg: StatsConfig, width: number, height: number, styles: CSSStyleDeclaration, allItems: Item[]): GraphConfig {
     const minMax = this.getMinMaxTimeValue(cfg);
     let byTimeValue = new Map<number, number>();
     for (const item of allItems) {

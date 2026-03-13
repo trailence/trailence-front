@@ -1,0 +1,26 @@
+:host {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
+  overflow: hidden;
+}
+
+.stats-config {
+  flex: none;
+  max-width: calc(min(300px, 25%));
+
+  ion-radio::part(label) {
+    text-overflow: unset;
+    white-space: unset;
+  }
+}
+.stats-graph {
+  flex: 1 1 100%;
+
+  app-graph {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}

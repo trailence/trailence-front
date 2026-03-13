@@ -77,6 +77,35 @@
     "delete": "Supprimer",
     "error": "Erreur lors de la récupération des données"
   },
+  "stats": {
+    "title": "Statistiques",
+    "types": {
+      "nbUsers": "Utilisateurs",
+      "newUsers": "Nouveaux utilisateurs",
+      "deletedUsers": "Utilisateurs supprimés",
+      "connectedUsers": "Utilisateurs connectés",
+      "nbCollections": "Collections",
+      "nbTrails": "Parcours",
+      "nbTracks": "Traces",
+      "nbTags": "Tags",
+      "nbTrailTags": "Parcours taggués",
+      "nbShares": "Partages",
+      "nbPhotos": "Photos",
+      "nbPublicTrails": "Parcours publiés",
+      "nbPublicLinks": "Liens publics",
+      "newLiveGroups": "Groupes de suivi",
+      "nbActiveUsers3030": "Utilisateurs de plus de 30 jours, actifs sur les 30 derniers jours",
+      "nbActiveUsers6045": "Utilisateurs de plus de 60 jours, actifs sur les 45 derniers jours",
+      "nbActiveUsers9045": "Utilisateurs de plus de 90 jours, actifs sur les 45 derniers jours",
+      "nbActiveUsers18045": "Utilisateurs de plus de 180 jours, actifs sur les 45 derniers jours"
+    },
+    "aggregations": {
+      "day": "Par jour",
+      "week": "Par semaine",
+      "month": "Par mois",
+      "year": "Par année"
+    }
+  },
   "starts_at": "Depuis",
   "ends_at": "Jusqu'à"
 }

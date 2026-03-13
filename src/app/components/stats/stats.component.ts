@@ -3,15 +3,17 @@ import { AbstractComponent } from 'src/app/utils/component-utils';
 import { StatsConfig } from './stats-config';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { StatsConfigComponent } from "./config/stats-config.component";
-import { StatsGraphComponent } from "./graph/stats-graph.component";
 import { IonAccordionGroup, IonAccordion, IonItem, IonLabel, IonIcon } from "@ionic/angular/standalone";
 import { I18nService } from 'src/app/services/i18n/i18n.service';
+import { GraphComponent } from '../graph/graph.component';
+import { GraphConfigSource, GraphProvider } from '../graph/graph-config';
+import { GraphBuilder } from './graph-builder';
 
 @Component({
   selector: 'app-stats',
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.scss',
-  imports: [IonIcon, StatsConfigComponent, StatsGraphComponent, IonAccordionGroup, IonAccordion, IonItem, IonLabel]
+  imports: [IonIcon, StatsConfigComponent, GraphComponent, IonAccordionGroup, IonAccordion, IonItem, IonLabel]
 })
 export class StatsComponent extends AbstractComponent {
 
@@ -19,6 +21,9 @@ export class StatsComponent extends AbstractComponent {
   resetChart = true;
 
   accordionValue: string | undefined = 'config';
+
+  graphSource?: GraphConfigSource<StatsConfig>;
+  graphProvider?: GraphProvider<StatsConfig>;
 
   constructor(
     injector: Injector,
@@ -33,6 +38,8 @@ export class StatsComponent extends AbstractComponent {
       auth => {
         if (auth) {
           this.config = StatsConfig.load(auth.email);
+          this.graphSource = { source$: this.config.config$ };
+          this.graphProvider = new GraphBuilder(this.injector);
         } else {
           this.config = undefined;
         }

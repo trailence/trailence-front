@@ -77,6 +77,35 @@
     "delete": "Remove",
     "error": "Error retrieving data"
   },
+  "stats": {
+    "title": "Statistics",
+    "types": {
+      "nbUsers": "Users",
+      "newUsers": "New users",
+      "deletedUsers": "Deleted users",
+      "connectedUsers": "Connected users",
+      "nbCollections": "Collections",
+      "nbTrails": "Trails",
+      "nbTracks": "Tracks",
+      "nbTags": "Tags",
+      "nbTrailTags": "Trail tags",
+      "nbShares": "Shares",
+      "nbPhotos": "Photos",
+      "nbPublicTrails": "Published trails",
+      "nbPublicLinks": "Public links",
+      "newLiveGroups": "Live groups",
+      "nbActiveUsers3030": "Users older than 30 days, active over the past 30 days",
+      "nbActiveUsers6045": "Users older than 60 days, active over the past 45 days",
+      "nbActiveUsers9045": "Users older than 90 days, active over the past 45 days",
+      "nbActiveUsers18045": "Users older than 180 days, active over the past 45 days"
+    },
+    "aggregations": {
+      "day": "Daily",
+      "week": "Weekly",
+      "month": "Monthly",
+      "year": "Yearly"
+    }
+  },
   "starts_at": "Since",
   "ends_at": "Until"
 }

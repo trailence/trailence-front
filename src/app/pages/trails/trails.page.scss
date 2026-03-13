@@ -38,6 +38,8 @@ div.user-profile {
   app-avatar {
     --size: 70px;
     margin-right: 10px;
+    background-color: var(--ion-color-secondary);
+    color: var(--ion-color-secondary-contrast);
   }
   div.author-infos {
     display: flex;

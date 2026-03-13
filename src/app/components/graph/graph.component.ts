@@ -1,35 +1,33 @@
 import { ChangeDetectorRef, Component, ElementRef, Injector, Input, ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfig } from './chart-config';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { BrowserService } from 'src/app/services/browser/browser.service';
-import { combineLatest, debounceTime, Subscription } from 'rxjs';
-import { GraphBuilder } from './graph-builder';
-import { StatsConfig } from '../stats-config';
+import { combineLatest, concat, debounceTime, of, Subscription } from 'rxjs';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { IonButton, IonIcon, GestureController, Gesture } from "@ionic/angular/standalone";
 import { NgStyle } from '@angular/common';
+import { GraphConfig, GraphConfigSource, GraphProvider } from './graph-config';
 
 @Component({
-  selector: 'app-stats-graph',
-  templateUrl: './stats-graph.component.html',
-  styleUrl: './stats-graph.component.scss',
+  selector: 'app-graph',
+  templateUrl: './graph.component.html',
+  styleUrl: './graph.component.scss',
   imports: [
     IonIcon, IonButton,
     BaseChartDirective,
     NgStyle,
   ]
 })
-export class StatsGraphComponent extends AbstractComponent {
+export class GraphComponent extends AbstractComponent {
 
-  @Input() statsConfig?: StatsConfig;
+  @Input() source?: GraphConfigSource<any>;
+  @Input() provider?: GraphProvider<any>;
 
-  chartConfig?: ChartConfig;
+  config?: GraphConfig;
   width?: number;
   height?: number;
   id = IdGenerator.generateId();
 
-  private readonly builder: GraphBuilder;
   private subscription?: Subscription;
   private styles?: CSSStyleDeclaration;
 
@@ -37,33 +35,30 @@ export class StatsGraphComponent extends AbstractComponent {
 
   constructor(
     injector: Injector,
-    browser: BrowserService,
+    private readonly browser: BrowserService,
     changeDetector: ChangeDetectorRef,
     private readonly gestureController: GestureController,
   ) {
     super(injector);
     changeDetector.detach();
-    this.builder = new GraphBuilder(injector);
-    this.whenVisible.subscribe(browser.resize$.pipe(debounceTime(300)), () => {
-      this.resetChart();
-    });
-    this.visible$.subscribe(() => this.resetChart());
   }
 
   protected override getComponentState() {
-    return {statsConfig: this.statsConfig};
+    return {source: this.source, provider: this.provider};
   }
 
   private _init = false;
 
   protected override onComponentStateChanged(previousState: any, newState: any): void {
-    if (!this.statsConfig) return;
+    if (!this.provider || !this.source) return;
     this._init = true;
-    this.byState.add(
+    this.byStateAndVisible.subscribe(
       combineLatest([
-        this.statsConfig.config$,
+        this.source.source$,
         this.injector.get(PreferencesService).preferences$,
-      ]).subscribe(() => this.resetChart())
+        concat(of(null), this.browser.resize$.pipe(debounceTime(300))),
+      ]),
+      ([src]) => this.resetChart(src)
     );
   }
 
@@ -71,7 +66,7 @@ export class StatsGraphComponent extends AbstractComponent {
     this.subscription?.unsubscribe();
   }
 
-  public resetChart(): void {
+  public resetChart(src: any): void {
     this.ngZone.runOutsideAngular(() => {
       this.width = undefined;
       this.height = undefined;
@@ -86,8 +81,8 @@ export class StatsGraphComponent extends AbstractComponent {
         clearTimeout(this._visibilityTimeout);
         this._visibilityTimeout = undefined;
       }
-      if (this.visible && this.statsConfig)
-        this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 0);
+      if (this.visible && src && this.provider)
+        this._visibilityTimeout = setTimeout(() => this.waitForVisible(src), 0);
     });
     if (this._init)
       this.changesDetection.detectChanges();
@@ -95,7 +90,7 @@ export class StatsGraphComponent extends AbstractComponent {
 
   private _visibilityObserver?: IntersectionObserver;
   private _visibilityTimeout?: any;
-  private waitForVisible(): void {
+  private waitForVisible(src: any): void {
     this._visibilityTimeout = undefined;
     this._visibilityObserver = new IntersectionObserver(entries => {
       if (!this._visibilityObserver) return;
@@ -106,9 +101,9 @@ export class StatsGraphComponent extends AbstractComponent {
         this._visibilityObserver = undefined;
         if (w > 100 && h > 100) {
           this.styles ??= getComputedStyle(entries[0].target);
-          this.buildChart(w, h);
+          this.buildChart(src, w, h);
         } else {
-          this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 250);
+          this._visibilityTimeout = setTimeout(() => this.waitForVisible(src), 250);
         }
       }
     });
@@ -121,8 +116,8 @@ export class StatsGraphComponent extends AbstractComponent {
   allLabels: string[] = [];
   allData: number[][] = [];
 
-  private buildChart(width: number, height: number): void {
-    this.subscription = this.builder.build(this.statsConfig!, width, height, this.styles!).subscribe(cfg => {
+  private buildChart(src: any, width: number, height: number): void {
+    this.subscription = this.provider!.buildGraphConfig(src, width, height, this.styles!).subscribe(cfg => {
       this.hasNavigation = false;
       this.navigationOffset = 0;
       this.maxNavigationOffset = 0;
@@ -135,13 +130,13 @@ export class StatsGraphComponent extends AbstractComponent {
         this.allData = cfg.data!.datasets.map(ds => ds.data as number[]);
         this.allLabels = cfg.data!.labels as string[];
         const nb = this.allData[0].length;
-        if (nb > cfg.maxDataShown) {
+        if (cfg.maxDataShown !== undefined && nb > cfg.maxDataShown) {
           this.hasNavigation = true;
           this.maxNavigationOffset = nb - cfg.maxDataShown;
           this.navigationOffset = this.maxNavigationOffset;
         }
       }
-      this.chartConfig = cfg;
+      this.config = cfg;
       if (this.hasNavigation) {
         this.width = width - 50;
         this.height = height - 20;
@@ -158,9 +153,9 @@ export class StatsGraphComponent extends AbstractComponent {
 
   private moveDataWithOffset(): void {
     for (let ds = 0; ds < this.allData.length; ds++) {
-      this.chartConfig!.data!.datasets[ds].data = this.allData[ds].slice(this.navigationOffset, this.navigationOffset + this.chartConfig!.maxDataShown);
+      this.config!.data!.datasets[ds].data = this.allData[ds].slice(this.navigationOffset, this.navigationOffset + this.config!.maxDataShown!);
     }
-    this.chartConfig!.data!.labels = this.allLabels.slice(this.navigationOffset, this.navigationOffset + this.chartConfig!.maxDataShown);
+    this.config!.data!.labels = this.allLabels.slice(this.navigationOffset, this.navigationOffset + this.config!.maxDataShown!);
   }
 
   navigation(diff: number, fromScrollbar = false): void {
@@ -196,13 +191,13 @@ export class StatsGraphComponent extends AbstractComponent {
 
   private gesture?: Gesture;
   private createGesture(): void {
-    if (this.gesture) return;
+    if (this.gesture || this.config?.maxDataShown === undefined) return;
     const element = document.getElementById(this.id);
     if (!element) {
       setTimeout(() => this.createGesture(), 10);
       return;
     }
-    const threshold = this.canvas!.chart!.chartArea.width / this.chartConfig!.maxDataShown;
+    const threshold = this.canvas!.chart!.chartArea.width / this.config.maxDataShown;
     let initialOffset = this.navigationOffset;
     this.gesture = this.gestureController.create({
       el: element,
