@@ -42,7 +42,7 @@
                     }
                   </div>
                   @if (webUrl) {
-                    <div><a [href]="webUrl" target="_blank" (click)="$event.stopPropagation()">{{i18n.texts.open_web_version}}</a></div>
+                    <div><a [href]="webUrl" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openWebVersion();">{{i18n.texts.open_web_version}}</a></div>
                   }
                 }
               }

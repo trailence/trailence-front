@@ -1,3 +1,3 @@
 ext {
-  appId = 'trailence.org'
+  appId = 'local.trailence.org'
 }

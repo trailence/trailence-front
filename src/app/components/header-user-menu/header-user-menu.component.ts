@@ -13,6 +13,7 @@ import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from "../contributions-badges/contribution-badges.component";
 import { environment } from 'src/environments/environment';
+import Trailence from 'src/app/services/trailence.service';
 
 @Component({
     selector: 'app-header-user-menu',
@@ -129,6 +130,10 @@ export class HeaderUserMenuComponent extends AbstractComponent {
 
   goToNotifications(): void {
     this.router.navigateByUrl('/notifications');
+  }
+
+  openWebVersion(): void {
+    Trailence.openLink({link: this.webUrl!});
   }
 
 }

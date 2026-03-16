@@ -8,6 +8,7 @@ const Trailence = {
 
   share: (call: {link: string, title?: string}) => Promise.resolve(),
   shareFile: (call: {filename: string, data: string}) => Promise.resolve(),
+  openLink: (call: {link: string}) => Promise.resolve(),
 
   exitApp: (call: {}) => Promise.resolve(),
 

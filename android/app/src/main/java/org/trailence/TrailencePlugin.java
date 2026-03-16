@@ -400,6 +400,17 @@ public class TrailencePlugin extends Plugin {
   }
 
   @PluginMethod
+  public void openLink(PluginCall call) {
+    String link = call.getString("link");
+    if (link == null || link.isBlank()) return;
+    Intent intent = new Intent();
+    intent.setAction(Intent.ACTION_VIEW);
+    intent.setData(Uri.parse(link));
+    getContext().startActivity(intent);
+    call.resolve();
+  }
+
+  @PluginMethod
   public void exitApp(PluginCall call) {
     this.getActivity().finishAndRemoveTask();
   }

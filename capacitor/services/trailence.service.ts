@@ -28,6 +28,7 @@ export interface TrailencePlugin {
 
   share(call: {link: string, title?: string}): Promise<any>;
   shareFile(call: {filename: string, data: string}): Promise<any>;
+  openLink(call: {link: string}): Promise<any>;
 
   exitApp(call: {}): Promise<any>;
 
