@@ -192,5 +192,17 @@
         "Minor improvements and bug fixes"
       ]
     }
+  },
+  "010502": {
+    "fr": {
+      "items": [
+        "Quelques améliorations mineures et correctifs"
+      ]
+    },
+    "en": {
+      "items": [
+        "Minor improvements and bug fixes"
+      ]
+    }
   }
 }
