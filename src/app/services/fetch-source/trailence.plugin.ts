@@ -112,42 +112,51 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
 
   protected override fetchTrailsByIds(uuids: string[]): Promise<Trail[]> {
     return this._pending.requestMultiple(uuids, (keys) =>
-      firstValueFrom(
-        this.injector.get(HttpService).post<PublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/trailsByIds', uuids)
-      .pipe(
-        map(result => {
-          if (result.length === 0) return [];
-          const trailDtos: TrailDto[] = [];
-          const metadataDtos: TrackMetadataSnapshot[] = [];
-          const simplifiedTrackDtos: SimplifiedTrackDto[] = [];
-          const infoDtos: TrailInfoDto[] = [];
-          for (const pt of result) {
-            const dtos = this.publicTrailToDtos(pt);
-            trailDtos.push(dtos.trailDto);
-            metadataDtos.push(dtos.metadataDto);
-            simplifiedTrackDtos.push(dtos.simplifiedTrackDto);
-            infoDtos.push(dtos.infoDto);
-          }
-          this.tableTrails.bulkPut(trailDtos);
-          this.tableMetadata.bulkPut(metadataDtos);
-          this.tableSimplifiedTracks.bulkPut(simplifiedTrackDtos);
-          this.tableInfos.bulkPut(infoDtos);
-          return trailDtos.map(t => new Trail(t));
-        }),
-        catchError(e => {
-          Console.error('Error fetching public trails', uuids, e);
-          // try by smaller bunches
-          if (uuids.length < 2) return of([]);
-          const middle = uuids.length / 2;
-          const bunch1 = uuids.slice(0, middle);
-          const bunch2 = uuids.slice(middle);
-          return combineLatest([
-            this.fetchTrailsByIds(bunch1),
-            this.fetchTrailsByIds(bunch2),
-          ]).pipe(map(([t1,t2]) => [...t1, ...t2]));
-        }),
-      )
-    ));
+      firstValueFrom(this._fetchByIdsByBunch(keys))
+    );
+  }
+
+  private _fetchByIdsByBunch(uuids: string[]): Observable<Trail[]> {
+    if (uuids.length === 0) return of([]);
+    if (uuids.length > 100) return this._fetchByIdsByBunchSplit(uuids);
+    return this.injector.get(HttpService).post<PublicTrail[]>(environment.apiBaseUrl + '/public/trails/v1/trailsByIds', uuids)
+    .pipe(
+      map(result => {
+        if (result.length === 0) return [];
+        const trailDtos: TrailDto[] = [];
+        const metadataDtos: TrackMetadataSnapshot[] = [];
+        const simplifiedTrackDtos: SimplifiedTrackDto[] = [];
+        const infoDtos: TrailInfoDto[] = [];
+        for (const pt of result) {
+          const dtos = this.publicTrailToDtos(pt);
+          trailDtos.push(dtos.trailDto);
+          metadataDtos.push(dtos.metadataDto);
+          simplifiedTrackDtos.push(dtos.simplifiedTrackDto);
+          infoDtos.push(dtos.infoDto);
+        }
+        this.tableTrails.bulkPut(trailDtos);
+        this.tableMetadata.bulkPut(metadataDtos);
+        this.tableSimplifiedTracks.bulkPut(simplifiedTrackDtos);
+        this.tableInfos.bulkPut(infoDtos);
+        return trailDtos.map(t => new Trail(t));
+      }),
+      catchError(e => {
+        Console.error('Error fetching public trails', uuids, e);
+        // try by smaller bunches
+        if (uuids.length < 2) return of([]);
+        return this._fetchByIdsByBunchSplit(uuids);
+      }),
+    );
+  }
+
+  private _fetchByIdsByBunchSplit(uuids: string[]): Observable<Trail[]> {
+    const middle = uuids.length / 2;
+    const bunch1 = uuids.slice(0, middle);
+    const bunch2 = uuids.slice(middle);
+    return combineLatest([
+      this._fetchByIdsByBunch(bunch1),
+      this._fetchByIdsByBunch(bunch2),
+    ]).pipe(map(([t1,t2]) => [...t1, ...t2]));
   }
 
   private publicTrailToDtos(pt: PublicTrail): {trailDto: TrailDto, metadataDto: TrackMetadataSnapshot, simplifiedTrackDto: SimplifiedTrackDto, infoDto: TrailInfoDto} {

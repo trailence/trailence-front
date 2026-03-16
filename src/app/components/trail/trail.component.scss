@@ -379,7 +379,7 @@
     border-radius: 8px;
     margin: 6px 3px 0 3px;
     .section-title {
-      background: linear-gradient(to bottom right, var(--ion-item-title-gradient-color) 0%, var(--ion-item-background) 80%, var(--ion-item-background) 100%);
+      background: linear-gradient(175deg, var(--ion-item-title-gradient-color) 0%, var(--ion-item-background) 25px, var(--ion-item-background) 100%);
       color: var(--ion-color-secondary);
       display: flex;
       flex-direction: row;
@@ -399,38 +399,6 @@
       }
     }
   }
-  /*
-  .section-title {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    background: linear-gradient(140deg, rgba(var(--ion-color-tertiary-rgb), 1) 0%, rgba(var(--ion-color-tertiary-rgb), 1) 33%, rgba(var(--ion-color-tertiary-rgb), 0.66) 70%, rgba(var(--ion-color-tertiary-rgb), 0.01) 100%);
-    color: var(--ion-background-color);
-    padding: 6px 8px;
-    margin-top: 8px;
-
-    position: relative;
-    margin-left: 6px;
-
-    &:before {
-      content: '';
-      position: absolute;
-      left: -5px;
-      width: 3px;
-      height: 100%;
-      background-color: var(--ion-color-tertiary);
-    }
-
-    ion-icon {
-      width: 24px;
-      height: 24px;
-    }
-    div {
-      font-size: 16px;
-      font-weight: bold;
-      margin-left: 5px;
-    }
-  }*/
 
   div.description-text {
     padding: 5px 0px 5px 8px;
@@ -618,8 +586,8 @@ div.edit-tool-container {
 }
 
 div.trail-publication {
-  padding: 3px;
-  margin: 1px 5px;
+  padding: 5px;
+  margin: 3px 5px;
   background: linear-gradient(to bottom, var(--ion-item-background-gradient-color) 0, var(--ion-item-background) 20px);
   border-radius: 8px;
 

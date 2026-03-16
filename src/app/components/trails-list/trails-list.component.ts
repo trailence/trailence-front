@@ -884,8 +884,8 @@ export class TrailsListComponent extends AbstractComponent {
     const bottom = top + element.offsetHeight;
     if (top < scrollPos) {
       parent.scrollTo(0, top);
-    } else if (bottom > scrollPos + totalHeight) {
-      parent.scrollTo(0, bottom - totalHeight + 25);
+    } else if (bottom > scrollPos + totalHeight - 80) {
+      parent.scrollTo(0, bottom - totalHeight + 100);
     } else {
       return;
     }

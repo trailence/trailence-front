@@ -86,6 +86,10 @@ ion-content > ion-list {
       }
     }
   }
+
+  a, a:hover {
+    color: var(--ion-color-tertiary);
+  }
 }
 
 div.separator {

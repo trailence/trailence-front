@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge, IonToggle } from '@ionic/angular/standalone';
+import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge, IonToggle, Platform } from '@ionic/angular/standalone';
 import { combineLatest, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { DatabaseService } from 'src/app/services/database/database.service';
@@ -12,6 +12,7 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from "../contributions-badges/contribution-badges.component";
+import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'app-header-user-menu',
@@ -37,6 +38,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
 
   nbUnreadNotifications = 0;
   notificationsMenuTitle = '';
+  webUrl?: string;
 
   @ViewChild('logoutModal') logoutModal?: IonModal;
   @ViewChild('accountPopover') accountPopover?: IonPopover;
@@ -51,10 +53,13 @@ export class HeaderUserMenuComponent extends AbstractComponent {
     changeDetector: ChangeDetectorRef,
     public readonly router: Router,
     public readonly notifications: NotificationsService,
+    private readonly platform: Platform,
   ) {
     super(injector);
     changeDetector.detach();
     this.id = IdGenerator.generateId();
+    if (platform.is('capacitor'))
+      this.webUrl = environment.baseUrl;
   }
 
   transferEvent(event: any, target: any): void {

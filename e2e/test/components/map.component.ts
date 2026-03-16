@@ -50,7 +50,10 @@ export class MapComponent extends Component {
   public async goTo(lat: number, lng: number, zoom: number) {
     const search = await this.openSearchTool();
     const result = await TestUtils.retry(async () => await search.searchPlace('' + lat + ' ' + lng), 2, 100);
-    await result[0].click();
+    await TestUtils.retry(async () => {
+      await result[0].click();
+      await App.waitNoPopover({timeout: 2000});
+    }, 2, 500);
     await this.closeSearchTool();
     await browser.pause(2000); // wait for map to go to the position
     await this.zoomTo(zoom);
