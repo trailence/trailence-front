@@ -23,9 +23,7 @@
       }
     }
     <div class="trail-name">
-      <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">
-        {{ trail.name }}
-      </a>
+      <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ trail.name }}</a>
     </div>
   </div>
   @if (subTitle) {

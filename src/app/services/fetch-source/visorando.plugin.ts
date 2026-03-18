@@ -5,7 +5,7 @@ import * as L from 'leaflet';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';
-import { catchError, from, Observable, of, switchMap, zip } from 'rxjs';
+import { from, Observable, switchMap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
@@ -31,11 +31,7 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
   constructor(
     injector: Injector,
   ) {
-    super(injector, 'visorando', 'keyNumber, keyGpx, url', 'keyNumber');
-  }
-
-  protected override checkAllowed$(): Observable<boolean> {
-    return this.injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/visorando/available').pipe(catchError(e => of(false)));
+    super(injector, 'visorando', 'visorando', 'keyNumber, keyGpx, url', 'keyNumber');
   }
 
   public override canFetchTrailInfoByUrl(url: string): boolean {

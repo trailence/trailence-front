@@ -73,7 +73,7 @@
                   </ion-button>
                 }
                 <div style="overflow: hidden; min-width: 150px; min-height: 150px; max-width: 150px; max-height: 150px;">
-                  <app-photos-slider #photoSlider [photos]="photos" [width]="150" [height]="150" style="display: block; width: 150px; height: 150px;" (indexChange)="photoIndexChanged($event)"></app-photos-slider>
+                  <app-photos-slider #photoSlider [photos]="photos" [width]="150" [height]="150" [preLoadNext]="true" style="display: block; width: 150px; height: 150px;" (indexChange)="photoIndexChanged($event)"></app-photos-slider>
                 </div>
                 @if (photos.length > 1) {
                   <ion-button size="small" fill="clear" color="dark" [disabled]="photoIndex === photos.length - 1" (click)="nextPhoto()">

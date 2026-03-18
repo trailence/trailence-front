@@ -24,7 +24,7 @@ export class PhotosSliderComponent implements OnInit, OnDestroy, OnChanges {
   @Input() width?: number;
   @Input() height?: number;
   @Input() zoomable = false;
-  @Input() preLoadNext = true;
+  @Input() preLoadNext = false;
   @Output() indexChange = new EventEmitter<number>();
 
   items: Item[] = [];

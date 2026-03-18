@@ -1,7 +1,7 @@
 import { Trail } from 'src/app/model/trail';
 import { PluginWithDb, TrailInfoBaseDto, TrailToStore } from './abstract-plugin-with-db';
 import { Injector } from '@angular/core';
-import { firstValueFrom, from, map, merge, Observable, of, switchMap } from 'rxjs';
+import { firstValueFrom, from, map, merge, Observable, switchMap } from 'rxjs';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
 import { SearchResult } from './fetch-source.interfaces';
@@ -11,8 +11,6 @@ import * as L from 'leaflet';
 import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Arrays } from 'src/app/utils/arrays';
 import { TrailSourceType } from 'src/app/model/dto/trail';
-import { AuthService } from '../auth/auth.service';
-import { FetchSourceService } from './fetch-source.service';
 import { OverpassClient } from '../geolocation/overpass-client.service';
 
 interface TrailInfoDto extends TrailInfoBaseDto {
@@ -28,33 +26,11 @@ export class OsmPlugin extends PluginWithDb<TrailInfoDto> {
   constructor(
     injector: Injector,
   ) {
-    super(injector, 'osm_routes', 'id', 'id');
+    super(injector, 'visorando', 'osm_routes', 'id', 'id');
     this.i18n = injector.get(I18nService);
   }
 
   private readonly i18n: I18nService;
-
-  protected override listenAllowed(): void {
-    this.injector.get(AuthService).auth$.pipe(
-      map(a => !!a?.admin),
-      switchMap(a => {
-        if (a) return of(true);
-        return this.injector.get(FetchSourceService).getAllPlugins$().pipe(
-          switchMap(plugins => {
-            const visorando = plugins.find(p => p.name === 'Visorando');
-            if (!visorando) return of(false);
-            return visorando.allowed$;
-          })
-        )
-      })
-    ).subscribe(allowed => {
-      if (this._allowed$.value !== allowed) this._allowed$.next(allowed);
-    });
-  }
-
-  protected override checkAllowed$(): Observable<boolean> {
-    return this.allowed$;
-  }
 
   public override canSearchByArea(): boolean {
     return true;

@@ -16,6 +16,7 @@ import { IdGenerator } from 'src/app/utils/component-utils';
 import { InputNumberComponent } from 'src/app/components/input-number/input-number.component';
 import { AvatarDto, AvatarService } from 'src/app/services/avatar/avatar.service';
 import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
+import { ObserverHelper } from 'src/app/utils/observer-helper';
 
 @Component({
   selector: 'app-preferences',
@@ -268,7 +269,7 @@ export class PreferencesPage implements OnDestroy {
 
   private compute$ = Promise.resolve(true);
   private computeCounter: {[key: string]: number} = {};
-  private computeObservers: {[key: string]: IntersectionObserver} = {};
+  private computeObservers: {[key: string]: ObserverHelper} = {};
 
   private compute(type: string, operation: () => Promise<boolean>): void {
     const element = document.getElementById(this.id + '-' + type);
@@ -278,19 +279,17 @@ export class PreferencesPage implements OnDestroy {
     }
     let observer = this.computeObservers[type];
     if (observer) return;
-    observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        observer.disconnect();
-        setTimeout(() => this.doCompute(observer, type, operation), 0);
-      }
+    observer = new ObserverHelper();
+    observer.observe(element, () => {
+      setTimeout(() => this.doCompute(observer, type, operation), 0);
     });
     this.computeObservers[type] = observer;
-    observer.observe(element);
   }
 
-  private doCompute(observer: IntersectionObserver, type: string, operation: () => Promise<boolean>): void {
+  private doCompute(observer: ObserverHelper, type: string, operation: () => Promise<boolean>): void {
     if (this.computeObservers[type] !== observer) return;
     delete this.computeObservers[type];
+    observer.disconnect();
     const counter = (this.computeCounter[type] ?? 0) + 1;
     this.computeCounter[type] = counter;
     this.compute$ = this.compute$.then(() => {

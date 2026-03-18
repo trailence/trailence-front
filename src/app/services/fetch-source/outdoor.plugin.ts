@@ -23,16 +23,12 @@ export class OutdoorPlugin extends PluginWithDb<TrailInfoDto> {
   constructor(
     injector: Injector,
   ) {
-    super(injector, 'outdooractive', 'id', 'id');
+    super(injector, 'outdooractive', 'outdooractive', 'id', 'id');
   }
 
   public override readonly name = 'Outdoor Active';
   public override readonly owner = 'outdooractive';
   public override readonly canFetchFromUrl = true;
-
-  protected override checkAllowed$(): Observable<boolean> {
-    return this.injector.get(HttpService).get<boolean>(environment.apiBaseUrl + '/search-trails/v1/outdooractive/available').pipe(catchError(e => of(false)));
-  }
 
   public override canFetchTrailInfoByUrl(url: string): boolean {
     return this.idFromUrl(url) !== undefined;

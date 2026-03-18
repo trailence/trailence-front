@@ -4,9 +4,8 @@ import { ComputedWayPoint, Track } from 'src/app/model/track';
 import { ComputedPreferences } from '../preferences/preferences';
 import { Injector } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BehaviorSubject, EMPTY, first, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
-import { NetworkService } from '../network/network.service';
 import { Filters } from 'src/app/components/trails-list/filters';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
 import { TrailActivity } from 'src/app/model/dto/trail-activity';
@@ -15,26 +14,20 @@ export abstract class FetchSourcePlugin {
 
   constructor(
     protected readonly injector: Injector,
+    searchTrailsFeatureName: string | undefined,
   ) {
     this.sanitizer = injector.get(DomSanitizer);
-    this.listenAllowed();
-  }
-
-  protected listenAllowed(): void {
-    this.injector.get(AuthService).auth$.pipe(
-      switchMap(a => !a || a.isAnonymous ? of(false) :
-        this.injector.get(NetworkService).server$.pipe(
-          switchMap(n => n ? this.checkAllowed$() : EMPTY),
-          first(),
-        )
-      )
-    ).subscribe(allowed => {
-      if (this._allowed$.value !== allowed) this._allowed$.next(allowed);
-    });
+    this._allowed$ = new BehaviorSubject<boolean>(searchTrailsFeatureName === undefined);
+    if (searchTrailsFeatureName !== undefined)
+      injector.get(AuthService).auth$.subscribe(auth => {
+        const allowed = !!auth && !auth.isAnonymous && !!auth.enabledSearchTrails?.includes(searchTrailsFeatureName);
+        if (this._allowed$.value !== allowed)
+          this._allowed$.next(allowed);
+      });
   }
 
   protected readonly sanitizer: DomSanitizer;
-  protected readonly _allowed$ = new BehaviorSubject<boolean>(false);
+  protected readonly _allowed$: BehaviorSubject<boolean>;
   public get allowed$(): Observable<boolean> { return this._allowed$; }
   public get allowed(): boolean { return this._allowed$.value; }
 
@@ -42,8 +35,6 @@ export abstract class FetchSourcePlugin {
   public readonly abstract owner: string;
 
   public readonly abstract canFetchFromUrl: boolean;
-
-  protected abstract checkAllowed$(): Observable<boolean>;
 
   public canFetchTrailInfoByUrl(url: string): boolean { return false };
   public fetchTrailInfoByUrl(url: string): Promise<TrailInfo | null> { return Promise.resolve(null); };

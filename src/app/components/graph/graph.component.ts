@@ -7,6 +7,7 @@ import { PreferencesService } from 'src/app/services/preferences/preferences.ser
 import { IonButton, IonIcon, GestureController, Gesture } from "@ionic/angular/standalone";
 import { NgStyle } from '@angular/common';
 import { GraphConfig, GraphConfigSource, GraphProvider } from './graph-config';
+import { ObserverHelper } from 'src/app/utils/observer-helper';
 
 @Component({
   selector: 'app-graph',
@@ -64,6 +65,7 @@ export class GraphComponent extends AbstractComponent {
 
   protected override destroyComponent(): void {
     this.subscription?.unsubscribe();
+    this._visibilityObserver.disconnect();
   }
 
   public resetChart(src: any): void {
@@ -81,6 +83,7 @@ export class GraphComponent extends AbstractComponent {
         clearTimeout(this._visibilityTimeout);
         this._visibilityTimeout = undefined;
       }
+      this._visibilityObserver.disconnect();
       if (this.visible && src && this.provider)
         this._visibilityTimeout = setTimeout(() => this.waitForVisible(src), 0);
     });
@@ -88,26 +91,20 @@ export class GraphComponent extends AbstractComponent {
       this.changesDetection.detectChanges();
   }
 
-  private _visibilityObserver?: IntersectionObserver;
+  private readonly _visibilityObserver = new ObserverHelper();
   private _visibilityTimeout?: any;
   private waitForVisible(src: any): void {
     this._visibilityTimeout = undefined;
-    this._visibilityObserver = new IntersectionObserver(entries => {
-      if (!this._visibilityObserver) return;
-      if (entries[0].isIntersecting) {
-        const w = entries[0].boundingClientRect.width;
-        const h = entries[0].boundingClientRect.height;
-        this._visibilityObserver.disconnect();
-        this._visibilityObserver = undefined;
-        if (w > 100 && h > 100) {
-          this.styles ??= getComputedStyle(entries[0].target);
-          this.buildChart(src, w, h);
-        } else {
-          this._visibilityTimeout = setTimeout(() => this.waitForVisible(src), 250);
-        }
+    this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement, e => {
+      const w = e.boundingClientRect.width;
+      const h = e.boundingClientRect.height;
+      if (w > 100 && h > 100) {
+        this.styles ??= getComputedStyle(e.target);
+        this.buildChart(src, w, h);
+      } else {
+        this._visibilityTimeout = setTimeout(() => this.waitForVisible(src), 250);
       }
     });
-    this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement);
   }
 
   hasNavigation = false;

@@ -99,7 +99,7 @@
     </div>
     @if (wp.photos.length > 0 && (!arrival || !wp.computed.isDeparture)) {
       <div class="waypoint-photos">
-        <app-photos-slider #slider [photos]="wp.photos" [width]="150" [height]="100" (click)="$event.stopPropagation(); openPhotos(wp.photos, slider);"></app-photos-slider>
+        <app-photos-slider #slider [photos]="wp.photos" [width]="150" [height]="100" [preLoadNext]="false" (click)="$event.stopPropagation(); openPhotos(wp.photos, slider);"></app-photos-slider>
       </div>
     }
   </div>

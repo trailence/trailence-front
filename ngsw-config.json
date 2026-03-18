@@ -12,7 +12,11 @@
           "/manifest.webmanifest",
           "/*.css",
           "/*.js",
-          "/assets/icons.*.svg"
+          "/assets/icons.*.svg",
+          "/assets/*.js",
+          "/assets/*.mjs",
+          "/assets/pdf-viewer/pdf-viewer.mjs",
+          "/assets/pdf-viewer/pdf-viewer.css"
         ]
       }
     },
@@ -25,6 +29,26 @@
           "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "public",
+      "cacheConfig": {
+        "maxAge": "0",
+        "strategy": "freshness",
+        "maxSize": 0
+      },
+      "urls": [
+        "/fr/trail/*",
+        "/en/trail/*",
+        "/index_fr_*.html",
+        "/index_en_*.html",
+        "/assets/mentions-legales.*.html",
+        "/assets/apk/*",
+        "/assets/releases/*",
+        "/api/*"
+      ]
     }
   ]
 }

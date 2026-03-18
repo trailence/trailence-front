@@ -80,6 +80,8 @@ export class AuthService {
           ', token expires at ' + new Date(auth.expires).toISOString() +
           ', complete = ' + auth.complete +
           ', admin = ' + auth.admin +
+          ', roles = [' + (auth.roles || []).join() + ']' +
+          ', searches = [' + (auth.enabledSearchTrails || []).join() + ']' +
           ', key expires at ' + new Date(auth.keyExpiresAt).toISOString() +
           ', renew key after ' + new Date(auth.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB)).toISOString()
         );

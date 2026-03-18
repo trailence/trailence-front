@@ -79,6 +79,8 @@
   },
   "stats": {
     "title": "Statistics",
+    "type_title": "Statistic",
+    "aggregation_title": "Periodicity",
     "types": {
       "nbUsers": "Users",
       "newUsers": "New users",

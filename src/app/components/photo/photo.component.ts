@@ -7,6 +7,7 @@ import { Console } from 'src/app/utils/console';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { ChangesDetection } from 'src/app/utils/angular-helpers';
 import { NgStyle } from '@angular/common';
+import { ObserverHelper } from 'src/app/utils/observer-helper';
 
 @Component({
     selector: 'app-photo',
@@ -46,7 +47,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   error = false;
   private subscription?: Subscription;
   private reloadSubscription?: Subscription;
-
+  private readonly observer = new ObserverHelper();
   private readonly changesDetection: ChangesDetection;
 
   constructor(
@@ -70,6 +71,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
       this.subscription = undefined;
       this.reloadSubscription?.unsubscribe();
       this.reloadSubscription = undefined;
+      this.observer.disconnect();
       this.error = false;
       this.setBlob(undefined);
       if (this.photo) {
@@ -95,14 +97,10 @@ export class PhotoComponent implements OnChanges, OnDestroy {
         }
         if (this.loadWhenVisible) {
           const p = this.photo;
-          const observer = new IntersectionObserver(entries => {
-            if (entries.some(e => e.isIntersecting)) {
-              observer.disconnect();
-              if (this.photo?.uuid === p.uuid && this.photo?.owner === p.owner)
-                loadPhoto(p, 1);
-            }
+          this.observer.observe(this.elementRef.nativeElement, () => {
+            if (this.photo?.uuid === p.uuid && this.photo?.owner === p.owner)
+              loadPhoto(p, 1);
           });
-          observer.observe(this.elementRef.nativeElement);
         } else {
           loadPhoto(this.photo, 1);
         }
@@ -113,6 +111,7 @@ export class PhotoComponent implements OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
     this.reloadSubscription?.unsubscribe();
+    this.observer.disconnect();
   }
 
   private setBlob(blob: {url: string, blobSize?: number} | undefined | null) {

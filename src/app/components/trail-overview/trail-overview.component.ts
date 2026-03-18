@@ -39,6 +39,7 @@ import { TrailLink } from 'src/app/model/dto/trail-link';
 import { TrailLinkService } from 'src/app/services/database/link.service';
 import { TrailSmallElevationProfileComponent } from '../trail-small-elevation-profile/trail-small-elevation-profile.component';
 import { TrailGraphComponent } from '../trail-graph/trail-graph.component';
+import { ObserverHelper } from 'src/app/utils/observer-helper';
 
 class Meta {
   name?: string;
@@ -106,6 +107,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   @Input() maxWidth = 240;
 
   @Input() delayLoading = false;
+  @Output() updated = new EventEmitter<boolean>();
 
   @Input() showPublished = false;
   @Input() hideMenu = false;
@@ -143,7 +145,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   photos: Photo[] = [];
   openUrl?: string;
   load$ = new BehaviorSubject<boolean>(false);
-  observer?: IntersectionObserver;
+  private readonly observer = new ObserverHelper();
 
   external$ = new BehaviorSubject<TrailInfo | undefined>(undefined);
   external?: TrailInfo;
@@ -254,7 +256,7 @@ export class TrailOverviewComponent extends AbstractComponent {
           this.meta.isInMySelection = isInMySelection;
           changed = true;
         }
-        if (changed) this.changesDetection.detectChanges();
+        if (changed) this.changesDetection.detectChanges(() => this.updated.emit(true));
         if (!this._trackMetadataInitialized && track) {
           this.changesDetection.detectChanges(() => {
             this.initTrackMetadata();
@@ -272,15 +274,10 @@ export class TrailOverviewComponent extends AbstractComponent {
     if (this.showPublished)
       this.listenToPublicTrail();
 
-    if (this.delayLoading && !this.load$.value && !this.observer) {
-      this.observer = new IntersectionObserver(entries => {
-        if (this.observer && entries[0].isIntersecting) {
-          this.observer.disconnect();
-          this.observer = undefined;
-          this.load$.next(true);
-        }
-      });
-      this.observer.observe(this.injector.get(ElementRef).nativeElement);
+    if (this.delayLoading && !this.load$.value) {
+      this.observer.observe(this.injector.get(ElementRef).nativeElement, () => this.load$.next(true));
+    } else {
+      this.observer.disconnect();
     }
     if (!this.load$.value) this.changesDetection.detectChanges();
   }
@@ -412,8 +409,7 @@ export class TrailOverviewComponent extends AbstractComponent {
   }
 
   protected override destroyComponent(): void {
-    this.observer?.disconnect();
-    this.observer = undefined;
+    this.observer.disconnect();
   }
 
   private _trackMetadataInitialized = false;

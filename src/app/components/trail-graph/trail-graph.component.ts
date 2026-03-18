@@ -25,6 +25,7 @@ import { GradeDatasetBuilder } from './grade-dataset-builder';
 import { DataPoint } from './data-point';
 import { EstimatedSpeedDatasetBuilder } from './estimated-speed-dataset-builder';
 import { GradientEffectPlugin } from './plugins/gradient-effect';
+import { ObserverHelper } from 'src/app/utils/observer-helper';
 
 C.Chart.register(C.LinearScale, C.LineController, C.PointElement, C.LineElement, C.Filler, C.Tooltip);
 
@@ -132,10 +133,7 @@ export class TrailGraphComponent extends AbstractComponent {
       this.width = undefined;
       this.height = undefined;
       this.selectionRange = this.selection || [];
-      if (this._visibilityObserver) {
-        this._visibilityObserver.disconnect();
-        this._visibilityObserver = undefined;
-      }
+      this._visibilityObserver.disconnect();
       if (this._visibilityTimeout) {
         clearTimeout(this._visibilityTimeout);
         this._visibilityTimeout = undefined;
@@ -150,7 +148,15 @@ export class TrailGraphComponent extends AbstractComponent {
     });
   }
 
-  private _visibilityObserver?: IntersectionObserver;
+  protected override destroyComponent(): void {
+    if (this._visibilityTimeout) {
+      clearTimeout(this._visibilityTimeout);
+      this._visibilityTimeout = undefined;
+    }
+    this._visibilityObserver.disconnect();
+  }
+
+  private readonly _visibilityObserver = new ObserverHelper();
   private _visibilityTimeout?: any;
   private waitForVisible(): void {
     if (!this.waitVisibleBeforeToRender) {
@@ -161,21 +167,15 @@ export class TrailGraphComponent extends AbstractComponent {
       return;
     }
     this._visibilityTimeout = undefined;
-    this._visibilityObserver = new IntersectionObserver(entries => {
-      if (!this._visibilityObserver) return;
-      if (entries[0].isIntersecting) {
-        const w = entries[0].boundingClientRect.width;
-        const h = entries[0].boundingClientRect.height;
-        this._visibilityObserver.disconnect();
-        this._visibilityObserver = undefined;
-        if (w > 100 && h > 100) {
-          this.startChart(w, h, entries[0].target as HTMLElement);
-        } else {
-          this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 250);
-        }
+    this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement, (e) => {
+      const w = e.boundingClientRect.width;
+      const h = e.boundingClientRect.height;
+      if (w > 100 && h > 100) {
+        this.startChart(w, h, e.target as HTMLElement);
+      } else {
+        this._visibilityTimeout = setTimeout(() => this.waitForVisible(), 250);
       }
     });
-    this._visibilityObserver.observe(this.injector.get(ElementRef).nativeElement);
   }
 
   private backgroundColor = '';

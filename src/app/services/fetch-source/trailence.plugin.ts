@@ -36,15 +36,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   constructor(
     injector: Injector,
   ) {
-    super(injector, 'trailence_public', 'uuid, slug', 'uuid', true, 120000);
-  }
-
-  protected override listenAllowed(): void {
-    this._allowed$.next(true);
-  }
-
-  protected override checkAllowed$(): Observable<boolean> {
-    return of(true);
+    super(injector, undefined, 'trailence_public', 'uuid, slug', 'uuid', true, 120000);
   }
 
   public override canFetchTrailByUrl(url: string): boolean {

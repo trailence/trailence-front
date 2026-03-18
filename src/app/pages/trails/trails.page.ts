@@ -29,7 +29,6 @@ import { AlertController, NavController } from '@ionic/angular/standalone';
 import { MapBubble } from 'src/app/components/map/bubble/map-bubble';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
-import { TrailencePlugin } from 'src/app/services/fetch-source/trailence.plugin';
 import { MySelectionService } from 'src/app/services/database/my-selection.service';
 import { Filters, FiltersUtils } from 'src/app/components/trails-list/filters';
 import { MapLayersService } from 'src/app/services/map/map-layers.service';
@@ -715,8 +714,8 @@ export class TrailsPage extends AbstractPage {
     let first = true;
     this.byStateAndVisible.subscribe(
       this.injector.get(MyPublicTrailsService).myPublicTrails$.pipe(
-        switchMap(ids => this.injector.get(FetchSourceService).plugin$('trailence').pipe(
-          switchMap(plugin => plugin ? from((plugin as TrailencePlugin).getTrails(ids.map(pair => pair.publicUuid))) : of([] as Trail[])),
+        switchMap(ids => this.injector.get(FetchSourceService).getTrailence$().pipe(
+          switchMap(plugin => plugin ? from(plugin.getTrails(ids.map(pair => pair.publicUuid))) : of([] as Trail[])),
           map(trails => trails.map(trail => of(trail))),
         ))
       ),

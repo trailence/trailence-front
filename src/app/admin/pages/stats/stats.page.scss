@@ -9,6 +9,12 @@
 .stats-config {
   flex: none;
   max-width: calc(min(300px, 25%));
+  height: 100%;
+  overflow: auto;
+
+  app-collapsable-section:not(:first-child) {
+    margin-top: 5px;
+  }
 
   ion-radio::part(label) {
     text-overflow: unset;

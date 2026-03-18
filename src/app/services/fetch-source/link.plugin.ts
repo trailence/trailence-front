@@ -4,7 +4,7 @@ import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { SegmentDto } from 'src/app/model/dto/segment';
 import { WayPointDto } from 'src/app/model/dto/way-point';
-import { BehaviorSubject, firstValueFrom, map, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, map, Observable, switchMap } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { Track } from 'src/app/model/track';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -18,14 +18,7 @@ export class LinkPlugin extends FetchSourcePlugin {
   public readonly owner = 'link';
 
   constructor(injector: Injector) {
-    super(injector);
-  }
-
-  protected override listenAllowed(): void {
-    this._allowed$.next(true);
-  }
-  protected override checkAllowed$(): Observable<boolean> {
-    return of(true);
+    super(injector, undefined);
   }
 
   public readonly canFetchFromUrl = true;

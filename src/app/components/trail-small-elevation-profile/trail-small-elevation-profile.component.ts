@@ -1,6 +1,7 @@
 import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { getGradeRange, gradeColors } from '../trail-graph/grade-values';
+import { ObserverHelper } from 'src/app/utils/observer-helper';
 
 @Component({
   selector: 'app-trail-small-elevation-profile',
@@ -20,28 +21,19 @@ export class TrailSmallElevationProfileComponent implements OnChanges {
     this.update();
   }
 
-  private observer?: IntersectionObserver;
+  private readonly observer = new ObserverHelper();
 
   private update(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-      this.observer = undefined;
-    }
-    this.elementRef.nativeElement.innerHTML = '';
-    this.observer = new IntersectionObserver(entries => {
-      if (this.observer && entries[0].isIntersecting) {
-        this.observer.disconnect();
-        this.observer = undefined;
-        this.buildGraph();
-      }
-    });
-    this.observer.observe(this.elementRef.nativeElement);
+    this.observer.disconnect();
+    this.elementRef.nativeElement.innerHTML = '<div style="width: 5px; height: 5px;"></div>';
+    this.observer.observe(this.elementRef.nativeElement, () => this.buildGraph());
   }
 
   private buildGraph(): void {
     const canvas = document.createElement('CANVAS') as HTMLCanvasElement;
     canvas.width = this.width;
     canvas.height = this.height;
+    this.elementRef.nativeElement.innerHTML = '';
     this.elementRef.nativeElement.appendChild(canvas);
     const maxDistance = this.track.metadata.distance;
     const minEle = this.track.metadata.lowestAltitude;

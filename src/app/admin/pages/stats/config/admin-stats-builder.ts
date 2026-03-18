@@ -43,6 +43,7 @@ export class AdminStatsBuilder implements GraphProvider<AdminStatsConfig> {
           },
           scales: {
             y: {
+              beginAtZero: true,
               border: {
                 color: textColor,
               },

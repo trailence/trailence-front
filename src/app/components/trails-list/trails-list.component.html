@@ -147,7 +147,8 @@
           [isAllCollections]="isAllCollections"
           [isModeration]="isModeration"
           [trackSnapshot]="trailWithInfo.track"
-          [delayLoading]="$index >= 10 && state$.value.filters.search.length === 0"
+          [delayLoading]="true"
+          (updated)="trailChanged(trailWithInfo)"
           [photoCanBeOnLeft]="photoCanBeOnLeft"
           [showPublished]="showPublished"
           [config]="metadataConfig"
@@ -159,7 +160,7 @@
           [elevationProfile]="elevationProfile"
           [maxWidth]="size === 'large' ? 340 : size === 'medium' ? 240 : 165"
           (openTrailEvent)="setHighlighted($event)"
-          [showAuthor]="listType !== 'user-public'"
+          [showAuthor]="listType !== 'user-public' && listType !== 'my-publications'"
         ></app-trail-overview>
       </div>
     }

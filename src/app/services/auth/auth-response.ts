@@ -21,5 +21,6 @@ export interface AuthResponse {
   nbPublications?: number;
   nbComments?: number;
   nbRates?: number;
+  enabledSearchTrails?: string[];
 
 }

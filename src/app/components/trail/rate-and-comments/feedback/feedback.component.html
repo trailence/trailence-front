@@ -13,7 +13,7 @@
       <div class="header-lines">
         <div class="date"><app-relative-date [date]="feedback.date"></app-relative-date></div>
         <div class="who">
-          @if (feedback.rate !== undefined) {
+          @if (feedback.rate !== undefined && feedback.rate !== null) {
             <app-rate [rate]="feedback.rate" [showValue]="false"></app-rate>
           }
           <div class="author">
@@ -22,7 +22,7 @@
               <span class="you"> ({{ i18n.texts.pages.trail.sections.comments.you }})</span>
             }
           </div>
-          @if (!feedback.comment && feedback.rate === undefined) {
+          @if (!feedback.comment && (feedback.rate === undefined || feedback.rate === null)) {
             <div class="followed">{{ i18n.texts.pages.trail.sections.comments.has_done_this_trail }}</div>
           }
         </div>

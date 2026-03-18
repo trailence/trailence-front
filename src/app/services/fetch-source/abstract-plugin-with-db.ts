@@ -31,13 +31,14 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
 
   constructor(
     injector: Injector,
+    searchTrailsFeatureName: string | undefined,
     dbName: string,
     private readonly trailInfosKeys: string,
     private readonly trailInfoId: string,
     dbByUser: boolean = false,
     private readonly refreshAfter?: number,
   ) {
-    super(injector);
+    super(injector, searchTrailsFeatureName);
     injector.get(NgZone).runOutsideAngular(() => {
       this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
         if (dbByUser) injector.get(AuthService).auth$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
