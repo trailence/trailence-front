@@ -131,6 +131,10 @@ export const appAuthRoutes: Routes = [
     path: 'stats',
     loadComponent: () => import('../../pages/stats/stats.page').then(m => m.StatsPage)
   },
+  {
+    path: 'my-contributions',
+    loadComponent: () => import('../../pages/my-contributions/my-contributions.page').then(m => m.MyContributionsPage)
+  },
 ];
 
 export const appDefaultAuthRoute = 'trails/collection/my_trails';

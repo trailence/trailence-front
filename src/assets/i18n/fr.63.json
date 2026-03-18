@@ -911,6 +911,14 @@
       "menu_title": "Photos de profil",
       "validate": "Valider",
       "reject": "Refuser"
+    },
+    "my_contributions": {
+      "publications_singular": "Parcours",
+      "publications_plural": "Parcours",
+      "comments_singular": "Avis",
+      "comments_plural": "Avis",
+      "ratings_singular": "Note",
+      "ratings_plural": "Notes"
     }
   },
   "menu": {
@@ -1579,7 +1587,7 @@
     "publications": "Parcours",
     "ratings": "Notes",
     "reviews": "Avis",
-    "title": "Contributions",
+    "title": "Mes Contributions",
     "levels": {
       "publications": [
         "Aucun",

@@ -911,6 +911,9 @@
       "menu_title": "Profile pictures",
       "validate": "Validate",
       "reject": "Reject"
+    },
+    "my_contributions": {
+
     }
   },
   "menu": {
@@ -1579,7 +1582,7 @@
     "publications": "Trails",
     "ratings": "Ratings",
     "reviews": "Reviews",
-    "title": "Contributions",
+    "title": "My Contributions",
     "levels": {
       "publications": [
         "None",

@@ -34,6 +34,10 @@ export class FeedbackService {
     return known.pipe(filterDefined());
   }
 
+  public getMyFeedbacks(): Observable<Feedback[]> {
+    return this.http.get<Feedback[]>(environment.apiBaseUrl + '/public_trail_feedback/v1/my-comments');
+  }
+
   public getFeedbacks(uuid: string, pageFromDate: number, pageFromDateExclude: string[], filterRate?: number): Observable<Feedback[]> {
     return this.http.get<Feedback[]>(environment.apiBaseUrl + '/public_trail_feedback/v1/' + uuid + '?pageFromDate=' + pageFromDate + '&pageFromDateExclude=' + encodeURIComponent(pageFromDateExclude.join(',')) + (filterRate === undefined ? '' : '&filterRate=' + filterRate))
     .pipe(
@@ -99,6 +103,7 @@ export interface MyFeedback {
 
 export interface Feedback {
   uuid: string;
+  trailUuid: string;
   alias?: string;
   avatarUuid?: string;
   you: boolean;

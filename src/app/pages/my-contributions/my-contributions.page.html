@@ -1,0 +1,49 @@
+<app-header [title]="i18n.texts.contributions.title"></app-header>
+@if (contributions) {
+<ion-segment [value]="tab" color="secondary" (ionChange)="setTab($event.detail.value)">
+  <ion-segment-button value="publications">
+    {{contributions.nbPublications}} {{i18n.texts.pages.my_contributions['publications_' + (contributions.nbPublications > 1 ? 'plural' : 'singular')]}}
+  </ion-segment-button>
+  <ion-segment-button value="comments">
+    {{contributions.nbComments}} {{i18n.texts.pages.my_contributions['comments_' + (contributions.nbComments > 1 ? 'plural' : 'singular')]}}
+  </ion-segment-button>
+  <ion-segment-button value="rates">
+    {{contributions.nbRates}} {{i18n.texts.pages.my_contributions['ratings_' + (contributions.nbRates > 1 ? 'plural' : 'singular')]}}
+  </ion-segment-button>
+</ion-segment>
+<div class="page-content">
+  @if (tab === 'publications') {
+    <div class="publications-container">
+      <app-trails-list
+        listType="my-publications"
+        [trails$]="(trails$ | async) || undefined"
+      ></app-trails-list>
+    </div>
+  } @else {
+    <div class="comments-container">
+      @for (trailAndFeedbacks of ((feedbacks$ | async) || []); track trailAndFeedbacks.trail.uuid) {
+        @let feedbacks = tab === 'comments' ? trailAndFeedbacks.comments : trailAndFeedbacks.rates;
+        @if (feedbacks.length > 0) {
+          <div class="trail-with-feedbacks metadata-container two-columns">
+            <app-trail-overview
+              [trail]="trailAndFeedbacks.trail"
+              [trailInfo]="trailAndFeedbacks.info"
+              [trackSnapshot]="trailAndFeedbacks.metadata"
+              [config]="metadataConfig"
+              [showAuthor]="false"
+              [showPublished]="false"
+            ></app-trail-overview>
+            <div class="feedbacks">
+              @for (feedback of feedbacks; track feedback.uuid) {
+                <app-feedback
+                  [feedback]="feedback"
+                ></app-feedback>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>
+}

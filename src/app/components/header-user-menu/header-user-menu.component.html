@@ -103,7 +103,7 @@
           <ion-label>{{i18n.texts.pages.myaccount.title}}</ion-label>
         </ion-item>
         @if (!isAnonymous) {
-          <ion-item lines="full">
+          <ion-item lines="full" button (click)="router.navigateByUrl('/my-contributions'); accountPopover.dismiss();">
             <div class="contributions">
               <div class="contributions-title">{{ i18n.texts.contributions.title }}</div>
               <app-contributions-badges></app-contributions-badges>

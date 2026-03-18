@@ -1,0 +1,36 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  --content-width: calc(min(100%, 600px));
+}
+ion-segment {
+  margin: auto;
+  max-width: var(--content-width);
+}
+
+div.page-content {
+  flex: 1 1 100%;
+  overflow: hidden;
+
+  div.publications-container, div.comments-container {
+    margin: auto;
+    max-width: var(--content-width);
+    height: 100%;
+    overflow-y: auto;
+  }
+  div.trail-with-feedbacks {
+    app-trail-overview {
+      margin-right: auto;
+      max-width: 450px;
+    }
+    div.feedbacks {
+      margin-left: auto;
+      max-width: 350px;
+      app-feedback {
+        display: block;
+      }
+    }
+  }
+}
