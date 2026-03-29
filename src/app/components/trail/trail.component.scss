@@ -5,7 +5,7 @@
   --tabs-height: 36px;
   --bottom-sheet-button-height: 20px;
   --details-width: 350px;
-  --bottom-sheet-tabs-width: 30px;
+  --bottom-sheet-tabs-width: var(--vertical-tabs-width);
   --bottom-sheet-tab-icon-size: 24px;
   --bottom-sheet-tab-content-height: 150px;
 }
@@ -139,7 +139,6 @@
       bottom: 0;
       left: 0;
       width: var(--bottom-sheet-tabs-width);
-      --vertical-tabs-width: var(--bottom-sheet-tabs-width);
       --vertical-tab-icon-size: var(--bottom-sheet-tab-icon-size);
     }
   }

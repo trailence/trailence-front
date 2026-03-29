@@ -1,8 +1,17 @@
+:root {
+  --vertical-tabs-width: 30px;
+}
+
+:root.larger-touch-targets {
+  --vertical-tabs-width: 45px;
+}
+
 .vertical-tabs {
-  width: var(--vertical-tabs-width, 30px);
+  width: var(--vertical-tabs-width);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  padding-right: 2px;
 
   .vertical-tab {
     flex: 1 1 100%;
@@ -10,7 +19,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: stretch;
+    justify-content: center;
     background-color: rgba(var(--ion-color-light-rgb), 0);
     transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
 
