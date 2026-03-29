@@ -571,8 +571,7 @@ export class TrailsListComponent extends AbstractComponent {
       }
     );
     const mapBounds = this.map?.getBounds();
-    if (this.trails$)
-      this.mapFilteredTrails.emit(this.mapTrails.map(t => t.trail));
+    this.mapFilteredTrails.emit(this.mapTrails.map(t => t.trail));
     if (filters.onlyVisibleOnMap && mapBounds) {
       return this.mapTrails.filter(t => {
         const b = t.track?.bounds;
