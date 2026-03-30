@@ -211,7 +211,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.pushHistory();
         this.baseTrack$.next(track);
         this.modifiedTrack$.next(undefined);
-        this.currentTrackChanged();
       },
       isBaseTrackShown: () => !this.hideBaseTrack$.value,
       setShowBaseTrack: (show) => {
@@ -303,7 +302,17 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.refreshTools();
       }),
     };
-    this.currentTrackChanged();
+    combineLatest([
+      this.originalTrack$,
+      this.baseTrack$,
+      this.modifiedTrack$
+    ]).subscribe(([original, base, modified]) => {
+      const newTrack = modified ?? base ?? original;
+      if (this.context.currentTrack$.value !== newTrack) {
+        this.context.currentTrack$.next(newTrack);
+        this.refreshTools();
+      }
+    });
     this.selectionSubscription = combineLatest([
       this.selection.selection$,
       this.selection.selectedWayPoint$,
@@ -363,7 +372,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
   }
 
   private setState(state: TrackEditToolsState): void { // NOSONAR
-    const previousState = this.getCurrentState();
     this.baseTrack$.next(state.baseTrack);
     if (state.modifiedTrack) {
       this.modifiedTrack$.next(state.modifiedTrack);
@@ -371,17 +379,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
       this.modifiedTrack$.next(state.originalTrack);
     } else {
       this.modifiedTrack$.next(undefined);
-    }
-    if (previousState.modifiedTrack) {
-      if (state.modifiedTrack !== previousState.modifiedTrack)
-        this.currentTrackChanged();
-    } else if (state.modifiedTrack) {
-      this.currentTrackChanged();
-    } else if (previousState.baseTrack) {
-      if (state.baseTrack !== previousState.baseTrack)
-        this.currentTrackChanged();
-    } else if (state.baseTrack) {
-      this.currentTrackChanged();
     }
     if (state.selection && state.selection.length > 0) {
       if (state.selection[0] instanceof PointReference) {
@@ -403,21 +400,10 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
     return this.originalTrack$.pipe(filterDefined(), first());
   }
 
-  private currentTrackChanged(): void {
-    if (this.modifiedTrack$.value)
-      this.context.currentTrack$.next(this.modifiedTrack$.value)
-    else if (this.baseTrack$.value)
-      this.context.currentTrack$.next(this.baseTrack$.value);
-    else
-      this.originalTrack$.pipe(first()).subscribe(newTrack => this.context.currentTrack$.next(newTrack));
-    this.refreshTools();
-  }
-
   private trackModified(newTrack: Track) {
     this.pushHistory();
     this.undoneStack.splice(0, this.undoneStack.length);
     this.modifiedTrack$.next(newTrack);
-    this.currentTrackChanged();
   }
 
   public modify<T>(modification: (track: Track) => Observable<T>, mayNotChange: boolean, doNotNotifyIfNotChange: boolean): Observable<T | undefined> {
@@ -559,7 +545,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
             this.saving = false;
             this.modifiedTrack$.next(undefined);
             this.baseTrack$.next(undefined);
-            this.currentTrackChanged();
           });
         });
         return;
@@ -576,7 +561,6 @@ export class TrackEditToolsComponent implements OnInit, OnDestroy {
         this.saving = false;
         this.modifiedTrack$.next(undefined);
         this.baseTrack$.next(undefined);
-        this.currentTrackChanged();
       });
     }, 0);
   }

@@ -408,7 +408,8 @@ export class TrailGraphComponent extends AbstractComponent {
       events: ['mousemove', 'mouseout', 'click', 'mousedown', 'mouseup', 'touchstart', 'touchmove', 'touchend'],
       onHover: (event:any, elements: C.ActiveElement[], chart: any) => {
         const references = this.canvas!.chart!.getActiveElements().map(element => {
-          if ((this.chartData!.datasets[element.datasetIndex] as any).isNotData) return null;
+          if (!this.chartData) return null;
+          if ((this.chartData.datasets[element.datasetIndex] as any).isNotData) return null;
           if ((element.element as any).$context) // NOSONAR
             return this.activeElementToPointReference(element);
           return null;
