@@ -323,11 +323,6 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   mapToolbarTopRightMaxItems: number | undefined = undefined;
   @ViewChild('mapToolbarTopRight') mapToolbarTopRight?: ToolbarComponent;
   mapToolbarTopRightItems: MenuItem[] = [
-    new MenuItem()
-      .setSectionTitle(true)
-      .setVisible(() => !!this.recording)
-      .setI18nLabel('trace_recorder.notif_message')
-      .setCssClass('small-section-title'),
     new MenuItem().setIcon('play-circle').setI18nLabel('trace_recorder.resume')
       .setVisible(() => !!this.recording?.paused)
       .setAction(() => this.togglePauseRecordingWithConfirmation()),
