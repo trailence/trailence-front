@@ -152,7 +152,7 @@
 
 </div>
 <ion-footer>
-  <ion-toolbar color="footer">
+  <ion-toolbar color="footer" style="padding-bottom: 0">
     <ion-buttons slot="end">
       @if (canAdd) {
         <ion-button color="success" (click)="addPhotos(false)" [disabled]="!loaded || photos.length >= 25">
