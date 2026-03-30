@@ -1,5 +1,13 @@
 @if (trail) {
-  <div class="trail-name-row {{ selectable ? '' : 'no-checkbox' }}" [ngStyle]="{'--checkbox-width': selectable ? '22px' : '0px', '--navigation-width': navigationCount && navigationIndex !== undefined ? '64px' : '0px', '--myselection-width': auth.auth ? '24px' : '0px', '--public-trail-width': publicTrailUuid ? '28px' : '0px', '--public-link-width': trailLink ? '28px' : '0px', '--ocsm-width': external?.oscmSymbol ? '24px' : '0px', '--menu-button-width': hideMenu ? '0px' : '28px'}">
+  @let checkboxWidth = selectable ? 22 : 0;
+  @let navWidth = navigationCount && navigationIndex !== undefined ? 64 : 0;
+  @let mySelWidth = auth.auth ? 24 : 0;
+  @let publishedWidth = publicTrailUuid ? 28 : 0;
+  @let linkWidth = trailLink ? 28 : 0;
+  @let ocsmWidth = external?.oscmSymbol ? 24 : 0;
+  @let menuWidth = hideMenu ? 0 : 28;
+  @let nameSpace = maxWidth - checkboxWidth - navWidth - mySelWidth - publishedWidth - linkWidth - ocsmWidth - menuWidth;
+  <div class="trail-name-row {{ selectable ? '' : 'no-checkbox' }}" [ngStyle]="{'flex-wrap': nameSpace > 75 ? '' : 'wrap', '--checkbox-width': checkboxWidth + 'px', '--navigation-width': navWidth + 'px', '--myselection-width': mySelWidth + 'px', '--public-trail-width': publishedWidth + 'px', '--public-link-width': linkWidth + 'px', '--ocsm-width': ocsmWidth + 'px', '--menu-button-width': menuWidth + 'px'}">
     @if (selectable) {
       <ion-checkbox class="trail-checkbox" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
     }
@@ -19,13 +27,17 @@
         <ion-icon slot="icon-only" [name]="meta.isInMySelection ? 'star-filled' : 'star-empty'"></ion-icon>
       </ion-button>
     }
-    <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (longPressEvent)="trailNamePressed()">
-      @if (openUrl) {
-        <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
-      } @else {
-        <span (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</span>
-      }
-    </div>
+    @if (nameSpace > 75) {
+      <div class="trail-name" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (longPressEvent)="trailNamePressed()">
+        @if (openUrl) {
+          <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
+        } @else {
+          <span (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</span>
+        }
+      </div>
+    } @else {
+      <div style="flex: 1 1 100%; max-width: {{nameSpace}}px"></div>
+    }
     @if (load$.value) {
       @if (publicTrailUuid) {
         <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
@@ -48,6 +60,15 @@
           <ion-icon name="item-menu" slot="icon-only"></ion-icon>
         </ion-button>
       }
+    }
+    @if (nameSpace <= 75) {
+      <div class="trail-name full-width" [ngClass]="{'nowrap': hasFixedHeight, 'selectable': selectable}" long-press (longPressEvent)="trailNamePressed()">
+        @if (openUrl) {
+          <a href="{{ openUrl }}" target="_blank" (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</a>
+        } @else {
+          <span (click)="$event.stopPropagation(); $event.preventDefault(); openTrail();">{{ meta.name }}</span>
+        }
+      </div>
     }
   </div>
 }

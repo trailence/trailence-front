@@ -82,6 +82,12 @@
       text-overflow: ellipsis;
       overflow: hidden;
     }
+
+    &.full-width {
+      flex: none;
+      margin: 0 0 2px 0;
+      min-width: 100%;
+    }
   }
 
   ion-button.trail-menu-button {

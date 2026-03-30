@@ -18,7 +18,7 @@ ion-modal.small-modal {
     height: auto;
     contain: content;
     overflow-y: auto;
-    max-height: calc(95vh - 112px);
+    max-height: calc(95vh - 112px - var(--modal-area-margin-height));
 
     &::part(scroll) {
       position: relative;
@@ -58,7 +58,7 @@ ion-modal.auto-height {
     height: auto;
     contain: content;
     overflow-y: auto;
-    max-height: calc(95vh - var(--header-footer-size));
+    max-height: calc(95vh - var(--header-footer-size) - var(--modal-area-margin-height));
 
     &::part(scroll) {
       position: relative;
@@ -100,21 +100,30 @@ ion-modal ion-toolbar ion-title {
 
     &.small-modal {
       ion-content, div.modal-content {
-        max-height: calc(95vh - 80px);
+        max-height: calc(95vh - 80px - var(--modal-area-margin-height));
       }
     }
 
     &.auto-height {
       --max-height: 100%;
       ion-content, div.modal-content {
-        max-height: calc(100vh - var(--header-footer-size));
+        max-height: calc(100vh - var(--header-footer-size) - var(--modal-area-margin-height));
       }
     }
   }
 }
 
 ion-modal, ion-alert {
-  margin: calc(var(--ion-safe-area-top, 0px) + var(--safe-area-inset-top, 0px)) var(--ion-safe-area-right, 0px) calc(var(--ion-safe-area-bottom, 0px) + var(--keyboard-bottom-height, var(--safe-area-inset-bottom, 0px))) var(--ion-safe-area-left, 0px);
+  --modal-area-margin-top: calc(max(var(--ion-safe-area-top, 0px), var(--safe-area-inset-top, 0px)));
+  --modal-area-margin-bottom: calc(max(var(--ion-safe-area-bottom, 0px), var(--safe-area-inset-bottom, 0px)) + var(--keyboard-bottom-height, 0px));
+  --modal-area-margin-left: calc(max(var(--ion-safe-area-left, 0px), var(--safe-area-inset-left, 0px)));
+  --modal-area-margin-right: calc(max(var(--ion-safe-area-right, 0px), var(--safe-area-inset-right, 0px)));
+  --modal-area-margin-height: calc(var(--modal-area-margin-top) + var(--modal-area-margin-bottom));
+  --modal-area-margin-with: calc(var(--modal-area-margin-left) + var(--modal-area-margin-right));
+  margin-top: var(--modal-area-margin-top);
+  margin-bottom: var(--modal-area-margin-bottom);
+  margin-left: var(--modal-area-margin-left);
+  margin-right: var(--modal-area-margin-right);
   --modal-header-background: rgba(var(--ion-color-primary-rgb), 0.85);
   --modal-footer-background: rgba(var(--ion-toolbar-background-rgb), 0.85);
   --modal-content-background: rgba(var(--ion-background-color-rgb), 0.9);
@@ -138,6 +147,19 @@ ion-modal, ion-alert {
   }
 }
 
+ion-alert {
+  --alert-available-height: calc(100vh - var(--modal-area-margin-height));
+  --alert-header-footer-max-padding: calc(var(--alert-available-height) * 0.05);
+  .alert-head.sc-ion-alert-md {
+    padding-top: calc(min(20px, var(--alert-header-footer-max-padding)));
+    padding-bottom: calc(min(15px, calc(var(--alert-header-footer-max-padding)) * 0.75));
+  }
+  .alert-button-group.sc-ion-alert-md {
+    padding-top: calc(min(8px, calc(var(--alert-header-footer-max-padding)) * 0.5));
+    padding-bottom: calc(min(8px, calc(var(--alert-header-footer-max-padding)) * 0.5));
+  }
+}
+
 ion-alert .alert-wrapper.sc-ion-alert-md {
   border-radius: var(--modal-border-radius);
   border: var(--modal-border);
@@ -153,6 +175,7 @@ ion-alert .alert-wrapper.sc-ion-alert-md {
     background-color: var(--modal-footer-background);
   }
   .alert-input-group {
+    padding-top: 0;
     background-color: var(--modal-content-background);
     .alert-input.sc-ion-alert-md {
       border-bottom-color: var(--ion-color-secondary);

@@ -5,6 +5,7 @@
   [itemPaddingRight]="size !== 'large' ? '2px' : '4px'"
   [itemSpace]="size !== 'large' ? '2px' : '4px'"
   [itemMinWidth]="size === 'small' ? 55 : 60"
+  [maxItems]="size === 'small' ? 2 : size === 'medium' ? 3 : undefined"
   [noScroll]="true"
 ></app-toolbar>
 @if (searchOpen) {
