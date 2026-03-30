@@ -1,5 +1,5 @@
 import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription, combineLatest, concat, debounceTime, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, timer } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -1018,6 +1018,16 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         switchMap(showOriginal => showOriginal ? trail.originalTrackUuid$ : trail.currentTrackUuid$),
         switchMap(trackUuid => trail.fromModeration ? this.injector.get(ModerationService).getFullTrack$(trail.uuid, trail.owner, trackUuid) : this.trackService.getFullTrack$(trackUuid, trail.owner))
       );
+    const mapZoom$ = this.map$.pipe(
+      switchMap(m => {
+        const zoom$ = m?.getState()?.zoom$;
+        if (!zoom$) return of(undefined);
+        return zoom$.pipe(
+          map(zoom => Math.floor(zoom)),
+          distinctUntilChanged(),
+        );
+      })
+    );
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null), this.showPhotos$]).pipe(
         switchMap(([trail1, trail2, recording, showPhotos]) =>
@@ -1053,12 +1063,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               }
               return photosWithPoint;
             }),
-            switchMap(photosWithPoint => combineLatest([of(photosWithPoint), this.map$.pipe(switchMap(map => map?.getState()?.zoom$ ?? of(undefined)))])),
+            switchMap(photosWithPoint => combineLatest([of(photosWithPoint), mapZoom$])),
             switchMap(([photosWithPoint, zoom]) => {
               this.photosHavingPosition = photosWithPoint;
               this.trailsWaypoints.updatePhotos(photosWithPoint);
               if (photosWithPoint.length === 0 || !showPhotos) return of([]);
-              const markers$: Observable<{key: string, marker: L.Marker, alreadyOnMap: boolean}>[] = [];
+              const markers$: Observable<{key: string, marker: L.Marker}>[] = [];
               photosByKey.clear();
               let photosGroups: {photos: Photo[], point: L.LatLngExpression}[];
               if (zoom === undefined) photosGroups = photosWithPoint;
@@ -1078,8 +1088,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                 photosByKey.set(key, p.photos);
                 let marker = photosOnMap.get(key);
                 if (marker) {
-                  markers$.push(of({key, marker, alreadyOnMap: true}));
-                  photosOnMap.delete(key);
+                  markers$.push(of({key, marker}));
                 } else {
                   markers$.push(this.createPhotoMarker(p.point, p.photos, photosByKey, key));
                 }
@@ -1091,11 +1100,17 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       ),
       result => {
         if (!this.map) return;
-        for (const marker of photosOnMap.values()) this.map.removeFromMap(marker);
+        const alreadyOnMap: string[] = [];
+        for (const[key,marker] of photosOnMap) {
+          if (result.some(p => p.key === key))
+            alreadyOnMap.push(key);
+          else
+            this.map.removeFromMap(marker);
+        }
         photosOnMap.clear();
         for (const element of result) {
           photosOnMap.set(element.key, element.marker);
-          if (!element.alreadyOnMap) this.map.addToMap(element.marker);
+          if (!alreadyOnMap.includes(element.key)) this.map.addToMap(element.marker);
         }
         this.refreshMapToolbarRight();
       }, true
@@ -1138,7 +1153,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           marker.addEventListener('click', () => {
             this.photoService.openSliderPopup(photosByKey.get(key)!, 0);
           });
-          return {key, marker, alreadyOnMap: false};
+          return {key, marker};
         }),
       )),
     );
