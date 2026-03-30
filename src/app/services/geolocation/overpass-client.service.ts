@@ -20,7 +20,7 @@ export class OverpassClient {
     }, {
       url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
       maxTimeoutSeconds: 60,
-      isTimeout: (response, err) => !!response?.remark?.includes('timed out'),
+      isTimeout: (response, err) => !!response?.remark?.includes('timed out') || (!response && err instanceof ApiError && (err.httpCode === 504 || err.httpCode === 429 || err.httpCode === 403)),
     }, {
       url: 'https://overpass.private.coffee/api/interpreter',
       maxTimeoutSeconds: 60,

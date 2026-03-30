@@ -36,7 +36,7 @@ export class TrailencePlugin extends PluginWithDb<TrailInfoDto> {
   constructor(
     injector: Injector,
   ) {
-    super(injector, undefined, 'trailence_public', 'uuid, slug', 'uuid', true, 120000);
+    super(injector, undefined, 'trailence_public', 'uuid, slug', 'uuid', true, 600000);
   }
 
   public override canFetchTrailByUrl(url: string): boolean {
