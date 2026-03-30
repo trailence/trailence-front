@@ -13,6 +13,7 @@ export class TrailOverview extends Component {
     if (name.trim().length > 0) return name;
     try {
       await browser.waitUntil(async () => {
+        await this.getElement().scrollIntoView({block: 'center', inline: 'center'});
         name = await this.getElement().$('div.trail-name').getText();
         return name.trim().length > 0;
       }, { timeout: 5000 });

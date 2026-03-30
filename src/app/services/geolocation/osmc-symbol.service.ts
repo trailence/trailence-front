@@ -46,8 +46,14 @@ export class OsmcSymbolService {
       if (back?.clipId)
         svg += '<g clip-path="url(#' + back.clipId + '">';
       if (front2) {
-        svg += '<g transform="translate(-2 5) scale(0.6)">' + front + '</g>' +
-               '<g transform="translate(11 5) scale(0.6)">' + front2 + '</g>';
+        console.log('2 front', foreground, foreground2, front, front2)
+        if (foreground2?.endsWith('_lower')) {
+          svg += '<g>' + front + '</g>' +
+                '<g>' + front2 + '</g>';
+        } else {
+          svg += '<g transform="translate(-2 5) scale(0.6)">' + front + '</g>' +
+                '<g transform="translate(11 5) scale(0.6)">' + front2 + '</g>';
+        }
       } else {
         svg += front;
       }
@@ -110,6 +116,7 @@ export class OsmcSymbolService {
                             '<circle cx="10" cy="12" r="2" fill="' + color + '"></circle>' +
                             '<circle cx="16" cy="12" r="2" fill="' + color + '"></circle>';
         case 'lower': return '<rect x="0" y="12" width="24" height="12" fill="' + color + '"></rect>';
+        case 'upper': return '<rect x="0" y="0" width="24" height="12" fill="' + color + '"></rect>';
         case 'stripe': return '<rect x="6" y="0" width="12" height="24" fill="' + color + '"></rect>';
         case 'diamond': return '<rect x="10.5" y="-8" width="14" height="14" transform="rotate(45)" fill="' + color + '"></rect>';
         case 'frame': return '<rect x="3" y="3" width="18" height="18" stroke="' + color + '"></rect>';
