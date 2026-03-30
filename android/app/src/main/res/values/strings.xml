@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Trailence Local</string>
-    <string name="title_activity_main">Trailence Local</string>
+    <string name="app_name">Trailence</string>
+    <string name="title_activity_main">Trailence</string>
     <string name="package_name">org.trailence</string>
     <string name="custom_url_scheme">org.trailence</string>
-    <string name="build_type">local</string>
-    <string name="hostname">localhost</string>
-    <string name="scheme">http</string>
+    <string name="build_type">prod</string>
+    <string name="hostname">trailence.org</string>
+    <string name="scheme">https</string>
 </resources>
