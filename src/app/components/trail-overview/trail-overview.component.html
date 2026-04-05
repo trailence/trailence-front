@@ -3,11 +3,14 @@
   @let navWidth = navigationCount && navigationIndex !== undefined ? 64 : 0;
   @let mySelWidth = auth.auth ? 24 : 0;
   @let publishedWidth = publicTrailUuid ? 28 : 0;
+  @let draftWidth = draftTrailUuid ? 28 : 0;
+  @let submittedWidth = submittedTrailUuid ? 28 : 0;
+  @let rejectedWidth = rejectedTrailUuid ? 28 : 0;
   @let linkWidth = trailLink ? 28 : 0;
   @let ocsmWidth = external?.oscmSymbol ? 24 : 0;
   @let menuWidth = hideMenu ? 0 : 28;
-  @let nameSpace = maxWidth - checkboxWidth - navWidth - mySelWidth - publishedWidth - linkWidth - ocsmWidth - menuWidth;
-  <div class="trail-name-row {{ selectable ? '' : 'no-checkbox' }}" [ngStyle]="{'flex-wrap': nameSpace > 75 ? '' : 'wrap', '--checkbox-width': checkboxWidth + 'px', '--navigation-width': navWidth + 'px', '--myselection-width': mySelWidth + 'px', '--public-trail-width': publishedWidth + 'px', '--public-link-width': linkWidth + 'px', '--ocsm-width': ocsmWidth + 'px', '--menu-button-width': menuWidth + 'px'}">
+  @let nameSpace = maxWidth - checkboxWidth - navWidth - mySelWidth - publishedWidth - draftWidth - submittedWidth - rejectedWidth - linkWidth - ocsmWidth - menuWidth;
+  <div class="trail-name-row {{ selectable ? '' : 'no-checkbox' }}" [ngStyle]="{'flex-wrap': nameSpace > 75 ? '' : 'wrap', '--checkbox-width': checkboxWidth + 'px', '--navigation-width': navWidth + 'px', '--myselection-width': mySelWidth + 'px', '--public-trail-width': (publishedWidth + draftWidth + submittedWidth + rejectedWidth) + 'px', '--public-link-width': linkWidth + 'px', '--ocsm-width': ocsmWidth + 'px', '--menu-button-width': menuWidth + 'px'}">
     @if (selectable) {
       <ion-checkbox class="trail-checkbox" [checked]="selected" (ionChange)="setSelected($event.detail.checked)" (click)="$event.stopPropagation()"></ion-checkbox>
     }
@@ -41,6 +44,21 @@
     @if (load$.value) {
       @if (publicTrailUuid) {
         <ion-button class="public-trail-button" size="small" fill="clear" color="success" (click)="openPublicTrail()">
+          <ion-icon name="web" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
+      @if (draftTrailUuid) {
+        <ion-button class="draft-trail-button" size="small" fill="clear" color="secondary" (click)="openTrail(draftTrailUuid)">
+          <ion-icon name="web" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
+      @if (submittedTrailUuid) {
+        <ion-button class="draft-trail-button" size="small" fill="clear" color="tertiary" (click)="openTrail(submittedTrailUuid)">
+          <ion-icon name="web" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
+      @if (rejectedTrailUuid) {
+        <ion-button class="draft-trail-button" size="small" fill="clear" color="danger" (click)="openTrail(rejectedTrailUuid)">
           <ion-icon name="web" slot="icon-only"></ion-icon>
         </ion-button>
       }

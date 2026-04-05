@@ -33,6 +33,8 @@ export class TrailLinkService {
     return this.store.getOneWhenLoaded$(i => i.trailUuid === trailUuid);
   }
 
+  public getAllWhenReady$() { return this.store.getAllWhenLoaded$(); }
+
   public create(trailUuid: string): Observable<TrailLink | null> {
     return this.store.create({link: '', trailUuid, createdAt: Date.now()}, () => { this.store.triggerSyncNow(); });
   }

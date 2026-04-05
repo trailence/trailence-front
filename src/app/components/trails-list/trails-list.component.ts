@@ -36,7 +36,7 @@ import { TrackMetadataConfig } from '../track-metadata/track-metadata.component'
 import { Filters, FiltersUtils } from './filters';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
-import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
+import { isPublicationCollection, TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Tag } from 'src/app/model/tag';
 import { TrackMetadataSnapshot } from 'src/app/model/snapshots';
@@ -46,6 +46,10 @@ import { FilterNumericCustomComponent } from '../filters/filter-numeric-custom/f
 import { Arrays } from 'src/app/utils/arrays';
 import { NgTemplateOutlet } from '@angular/common';
 import { PhotoService } from 'src/app/services/database/photo.service';
+import { MyPublicTrail, MyPublicTrailsService } from 'src/app/services/database/my-public-trails.service';
+import { TrailLinkService } from 'src/app/services/database/link.service';
+import { TrailService } from 'src/app/services/database/trail.service';
+import { TrailLink } from 'src/app/model/dto/trail-link';
 
 const LOCALSTORAGE_KEY_LISTSTATE = 'trailence.list-state.';
 
@@ -70,6 +74,7 @@ interface TrailWithInfo {
   selected: boolean;
   info: TrailInfo | null;
   nbPhotos: number;
+  publications: {published: string | null, draft: string | null, submitted: string | null, rejected: string | null, link: TrailLink | null} | undefined;
 }
 
 @Component({
@@ -327,13 +332,28 @@ export class TrailsListComponent extends AbstractComponent {
         distinctUntilChanged(),
         filter(v => v),
         switchMap(() => combineLatest([
-          this.collectionUuid && this.authService.email ? this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid, this.authService.email) : of(undefined),
           (trails$.length === 0 ? of([]) : combineLatest(trails$)).pipe(
             map(trails => trails.filter(t => !!t)),
             debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
           ),
+          this.collectionUuid && this.authService.email ? this.injector.get(TrailCollectionService).getCollection$(this.collectionUuid, this.authService.email) : of(undefined),
+          this.collectionUuid && this.authService.email && this.showPublished ?
+            combineLatest([
+              this.injector.get(MyPublicTrailsService).myPublicTrails$,
+              this.injector.get(TrailLinkService).getAllWhenReady$().pipe(collection$items()),
+              this.injector.get(TrailService).getAllWhenLoaded$().pipe(
+                collection$items(t => !!t.publishedFromUuid),
+                switchMap(publishedFrom => {
+                  if (publishedFrom.length === 0) return of(undefined);
+                  return this.injector.get(TrailCollectionService).getAllCollectionsReady$().pipe(
+                    map(collections => ({collections, publishedFrom}))
+                  );
+                })
+              )
+            ])
+            : of([undefined, undefined, undefined] as [MyPublicTrail[] | undefined, TrailLink[] | undefined, {collections: TrailCollection[], publishedFrom: Trail[]} | undefined])
         ])),
-        switchMap(([collection, trails]) => {
+        switchMap(([trails, collection, publications]) => {
           this.collection = collection ?? undefined;
           this.updateToolbar(trails);
           // if no active filter, we can early emit the list of trails to the map
@@ -363,9 +383,18 @@ export class TrailsListComponent extends AbstractComponent {
             )
           ));
           return combineLatest([trailsTracks$, trailTags$, photos$, infos$]).pipe(
-            map(([tracks, tags, photos, infos]) =>
-              trails.map(trail => {
+            map(([tracks, tags, photos, infos]) => {
+              const email = this.authService.email;
+              const draftCol = publications[2]?.collections?.find(c => c.type === TrailCollectionType.PUB_DRAFT);
+              const submitCol = publications[2]?.collections?.find(c => c.type === TrailCollectionType.PUB_SUBMIT);
+              const rejectCol = publications[2]?.collections?.find(c => c.type === TrailCollectionType.PUB_REJECT);
+              return trails.map(trail => {
                 const info = trail.owner.includes('@') ? null : infos.find(i => i.owner === trail.owner && i.uuid === trail.uuid)?.info || null;
+                const published = trail.owner === email ? publications[0]?.find(p => p.privateUuid === trail.uuid)?.publicUuid || null : null;
+                const draft = draftCol && trail.owner === email ? publications[2]?.publishedFrom?.find(p => p.publishedFromUuid === trail.uuid && p.collectionUuid === draftCol.uuid) || null : null;
+                const submitted = submitCol && trail.owner === email ? publications[2]?.publishedFrom?.find(p => p.publishedFromUuid === trail.uuid && p.collectionUuid === submitCol.uuid) || null : null;
+                const rejected = rejectCol && trail.owner === email ? publications[2]?.publishedFrom?.find(p => p.publishedFromUuid === trail.uuid && p.collectionUuid === rejectCol.uuid) || null : null;
+                const link = trail.owner === email ? publications[1]?.find(l => l.trailUuid === trail.uuid) || null : null;
                 return {
                   trail,
                   track: tracks.find(t => t.trail === trail)?.track,
@@ -373,9 +402,10 @@ export class TrailsListComponent extends AbstractComponent {
                   info: info,
                   selected: false,
                   nbPhotos: photos.filter(p => p.owner === trail.owner && p.trailUuid === trail.uuid).length || (info?.photos?.length ?? 0),
+                  publications: {published, draft, submitted, rejected, link},
                 } as TrailWithInfo;
-              })
-            )
+              });
+            })
           );
         }),
         debounceTimeExtended(0, 250, -1, (p, n) => p.length !== n.length),
