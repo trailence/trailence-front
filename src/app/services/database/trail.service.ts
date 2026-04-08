@@ -154,7 +154,11 @@ export class TrailService {
       if (ondone) ondone();
       return;
     }
-    const doneHandler = new CompositeOnDone(ondone);
+    const previousPause = this.injector.get(DatabaseService).pauseSync();
+    const doneHandler = new CompositeOnDone(() => {
+      if (ondone) ondone();
+      this.injector.get(DatabaseService).resumeSync(previousPause);
+    });
     const tracks: {uuid: string, owner: string}[] = [];
     for (const trail of trails) {
       tracks.push({uuid: trail.originalTrackUuid, owner: trail.owner});

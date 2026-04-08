@@ -136,7 +136,7 @@ export class TrailCollectionService {
   }
 
   public delete(collection: TrailCollection, progress: Progress): void {
-    this.injector.get(DatabaseService).pauseSync();
+    const previousPause = this.injector.get(DatabaseService).pauseSync();
     progress.workAmount = 100 + 1000 + 1;
     this.injector.get(TagService).deleteAllTagsFromCollections([{uuid: collection.uuid, owner: collection.owner}], progress, 100)
     .pipe(defaultIfEmpty(false), timeout(15000), catchError(e => { Console.error('Error deleting tags', e); return of(false); }))
@@ -147,7 +147,7 @@ export class TrailCollectionService {
         this._store.delete(collection);
         progress.addWorkDone(1);
         progress.done();
-        this.injector.get(DatabaseService).resumeSync();
+        this.injector.get(DatabaseService).resumeSync(previousPause);
       });
     });
   }

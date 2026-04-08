@@ -220,15 +220,18 @@ export class DatabaseService {
     }
   }
 
-  public pauseSync(): void {
+  public pauseSync(): number {
     Console.info("Pause sync");
+    const previous = this._syncPaused;
     this._syncPaused = Date.now();
+    return previous;
   }
 
-  public resumeSync(): void {
+  public resumeSync(previous: number = 0): void {
     Console.info("Resume sync");
-    this._syncPaused = 0;
-    for (const s of this._stores.value) s.fireSyncStatus();
+    this._syncPaused = previous;
+    if (Date.now() - this._syncPaused > 60000)
+      for (const s of this._stores.value) s.fireSyncStatus();
   }
 
   public triggerStoreSync(name: string): void {
@@ -266,7 +269,7 @@ export class DatabaseService {
           if (this._syncNowRequestedAt >= registered.lastSync) return true;
         }
         this.ngZone.runOutsideAngular(() => {
-          let nextTimeout = Date.now() - this._syncPaused < 60000 ? 5000 : Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync));
+          let nextTimeout = Date.now() - this._syncPaused < 60000 ? 15000 : Math.max(1000, MINIMUM_SYNC_INTERVAL - (Date.now() - registered.lastSync));
           if (nextTimeout > MINIMUM_SYNC_INTERVAL) nextTimeout = MINIMUM_SYNC_INTERVAL;
           const nextDate = Date.now() + nextTimeout;
           if (registered.syncTimeout && registered.syncTimeoutDate > nextDate) {

@@ -525,11 +525,19 @@ export class TrailGraphComponent extends AbstractComponent {
     if (trackPointIndex > 0) distance += point.distanceFromPreviousPoint;
 
     let timeSinceStart = undefined;
-    if (previous?.timeSinceStart && previous.time && point.time)
+    if (trackPointIndex === 0) {
+      if (trackSegmentIndex === 0)
+        timeSinceStart = 0;
+      else
+        timeSinceStart = previous?.timeSinceStart;
+    } else if (previous?.timeSinceStart && previous.time && point.time)
       timeSinceStart = previous.timeSinceStart + (point.time - previous.time);
-    else if (point.time) {
-      const start = track.startDate;
-      if (start) timeSinceStart = point.time - start;
+    if (timeSinceStart === undefined && point.time) {
+      const currentSegmentStartDate = track.segments[trackSegmentIndex].startDate;
+      let previousSegmentsTime = 0;
+      for (let i = 0; i < trackSegmentIndex; ++i) previousSegmentsTime += track.segments[i].duration || 0;
+      if (currentSegmentStartDate || previousSegmentsTime)
+        timeSinceStart = previousSegmentsTime + (currentSegmentStartDate ? point.time - currentSegmentStartDate : 0);
     }
 
     const isBreak = trackPointIndex > 0 && point.durationFromPreviousPoint && point.durationFromPreviousPoint > 60 * 1000 && (!point.distanceFromPreviousPoint || point.distanceFromPreviousPoint / point.durationFromPreviousPoint < 0.0001);
