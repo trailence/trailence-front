@@ -12,6 +12,7 @@ export class AvatarComponent extends AbstractComponent {
   @Input() uuid?: string;
   @Input() blob?: Blob;
   @Input() name?: string;
+  @Input() url?: string;
   @Input() anonymous = false;
   @Input() me = false;
   @Input() pending = false;
@@ -49,6 +50,8 @@ export class AvatarComponent extends AbstractComponent {
       );
     } else if (this.name && this.name.length > 0) {
       this.element.nativeElement.appendChild(this.avatarService.generateFromName(this.name));
+    } else if (this.url && this.url.length > 0) {
+      this.element.nativeElement.appendChild(this.avatarService.generateFromUrl(this.url));
     } else {
       this.element.nativeElement.appendChild(this.avatarService.generateAnonymous());
     }

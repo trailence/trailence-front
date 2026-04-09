@@ -109,4 +109,28 @@
       </div>
     </div>
   }
+} @else if (externalComment) {
+  <div class="feedback">
+    <div class="header">
+      @if (externalComment.avatar) {
+        <app-avatar [url]="externalComment.avatar"></app-avatar>
+      } @else {
+        <app-avatar [name]="externalComment.author" [anonymous]="!externalComment.author"></app-avatar>
+      }
+      <div class="header-lines">
+        <div class="date"><app-relative-date [date]="externalComment.date"></app-relative-date></div>
+        <div class="who">
+          @if (externalComment.rate !== undefined && externalComment.rate !== null) {
+            <app-rate [rate]="externalComment.rate" [showValue]="false"></app-rate>
+          }
+          <div class="author">
+            {{ externalComment.author || i18n.texts.pages.preferences.anonymous }}
+          </div>
+        </div>
+      </div>
+    </div>
+    @if (externalComment.text) {
+      <div class="comment">{{ externalComment.text }}</div>
+    }
+  </div>
 }

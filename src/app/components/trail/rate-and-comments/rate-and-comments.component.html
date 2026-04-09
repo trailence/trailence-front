@@ -72,7 +72,7 @@
 } @else if (!connected && feedbacks === undefined) {
   <div class="disconnected-message">{{ i18n.texts.pages.trail.sections.comments.not_connected }}</div>
 }
-@if (feedbacks !== undefined && trail) {
+@if ((feedbacks !== undefined || externalComments !== undefined) && trail) {
   <div class="comments">
     @if (filterRate !== undefined) {
       <div class="filter">
@@ -86,9 +86,15 @@
         </ion-checkbox>
       </div>
     }
-    @for (fb of feedbacks; track fb.uuid) {
-      @if (showFollowedThisTrail || fb.comment || fb.rate !== undefined) {
-        <app-feedback [feedback]="fb" [trailUuid]="trail.uuid" (feedbackChange)="feedbackChanged(fb, $event)"></app-feedback>
+    @if (feedbacks) {
+      @for (fb of feedbacks; track fb.uuid) {
+        @if (showFollowedThisTrail || fb.comment || fb.rate !== undefined) {
+          <app-feedback [feedback]="fb" [trailUuid]="trail.uuid" (feedbackChange)="feedbackChanged(fb, $event)"></app-feedback>
+        }
+      }
+    } @else if (externalComments) {
+      @for (c of externalComments; track $index) {
+        <app-feedback [externalComment]="c"></app-feedback>
       }
     }
     <div class="load-button">

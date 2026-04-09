@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Trail } from 'src/app/model/trail';
 import { Feedback, FeedbackService } from 'src/app/services/feedback/feedback.service';
-import { TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
+import { FetchSourceTrailComment, TrailInfo } from 'src/app/services/fetch-source/fetch-source.interfaces';
 import { FetchSourceService } from 'src/app/services/fetch-source/fetch-source.service';
 import { RateComponent } from './rate/rate.component';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -10,8 +10,9 @@ import { ProgressBarComponent } from '../../progress-bar/progress-bar.component'
 import { IonButton, ModalController, IonSpinner, IonIcon, IonCheckbox } from "@ionic/angular/standalone";
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { FeedbackComponent } from './feedback/feedback.component';
-import { combineLatest, EMPTY, Subscription, switchMap } from 'rxjs';
+import { combineLatest, EMPTY, first, Subscription, switchMap } from 'rxjs';
 import { NetworkService } from 'src/app/services/network/network.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 @Component({
   selector: 'app-rate-and-comments',
@@ -31,6 +32,7 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
 
   info?: TrailInfo;
   feedbacks?: Feedback[];
+  externalComments?: FetchSourceTrailComment[];
   myRate: number | null | undefined = undefined;
   lastPage = true;
   loadingComments = false;
@@ -91,6 +93,9 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
   }
 
   private resetComments(): void {
+    this.feedbacks = undefined;
+    this.externalComments = undefined;
+    this.hasFollowedThisTrail = false;
     if (this.trail?.owner === 'trailence' && this.authService.auth && !this.authService.auth.isAnonymous) {
       this.filterRate = undefined;
       this.loadingComments = true;
@@ -99,6 +104,17 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
         this.lastPage = list.length < 25;
         this.loadingComments = false;
         this.hasFollowedThisTrail = this.feedbacks?.some(f => !f.comment && f.rate === undefined);
+        this.changeDetector.detectChanges();
+      });
+    }
+    if (this.trail && this.trail.owner !== 'trailence' && !this.trail.owner.includes('@')) {
+      this.fetchService.getPluginByOwner$(this.trail.owner).pipe(
+        switchMap(plugin => plugin && this.trail ? plugin.fetchComments(this.trail.uuid, 0, 25) : EMPTY),
+        first()
+      ).subscribe(list => {
+        this.externalComments = list;
+        this.lastPage = list.length < 25;
+        this.loadingComments = false;
         this.changeDetector.detectChanges();
       });
     }
@@ -131,17 +147,32 @@ export class RateAndCommentsComponent implements OnChanges, OnDestroy {
   }
 
   loadMoreComments(): void {
-    const lastDate = this.feedbacks?.at(-1)?.date ?? 0;
-    const exclude = this.feedbacks ? this.feedbacks.filter(f => f.date === lastDate).map(f => f.uuid) : [];
-    this.lastPage = true;
-    this.loadingComments = true;
-    this.changeDetector.detectChanges();
-    this.feedbackService.getFeedbacks(this.trail!.uuid, lastDate, exclude, this.filterRate).subscribe(list => {
-      this.feedbacks = [...(this.feedbacks ?? []), ...list];
-      this.lastPage = list.length < 25;
-      this.loadingComments = false;
+    if (this.feedbacks) {
+      const lastDate = this.feedbacks.at(-1)?.date ?? 0;
+      const exclude = this.feedbacks.filter(f => f.date === lastDate).map(f => f.uuid);
+      this.lastPage = true;
+      this.loadingComments = true;
       this.changeDetector.detectChanges();
-    });
+      this.feedbackService.getFeedbacks(this.trail!.uuid, lastDate, exclude, this.filterRate).subscribe(list => {
+        this.feedbacks = [...(this.feedbacks ?? []), ...list];
+        this.lastPage = list.length < 25;
+        this.loadingComments = false;
+        this.changeDetector.detectChanges();
+      });
+    } else if (this.externalComments) {
+      this.lastPage = true;
+      this.loadingComments = true;
+      this.changeDetector.detectChanges();
+      this.fetchService.getPluginByOwner$(this.trail!.owner).pipe(
+        switchMap(plugin => plugin && this.trail && this.externalComments ? plugin.fetchComments(this.trail.uuid, this.externalComments.length, 25) : EMPTY),
+        first()
+      ).subscribe(list => {
+        this.externalComments = [...(this.externalComments ?? []), ...list];
+        this.lastPage = list.length < 25;
+        this.loadingComments = false;
+        this.changeDetector.detectChanges();
+      });
+    }
   }
 
   async openCommentModal() {

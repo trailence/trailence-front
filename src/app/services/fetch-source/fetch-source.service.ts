@@ -370,6 +370,10 @@ export class FetchSourceService {
     return this.plugins$.value.find(p => p.owner === owner)?.name;
   }
 
+  public getPluginByOwner$(owner: string): Observable<FetchSourcePlugin | undefined> {
+    return this.plugins$.pipe(map(plugins => plugins.find(p => p.owner === owner)));
+  }
+
   public getPluginNameByUrl(url: string): string | undefined {
     for (const plugin of this.plugins$.value) {
       if (plugin.canFetchTrailInfoByUrl(url) || plugin.canFetchTrailByUrl(url))

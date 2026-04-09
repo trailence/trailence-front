@@ -74,6 +74,9 @@ export abstract class FetchSourcePlugin {
   public fetchPhoto(url: string): Promise<Blob | undefined> {
     return Promise.resolve(undefined);
   }
+
+  public canFetchComments(): boolean { return false; }
+  public fetchComments(uuid: string, start: number, limit: number): Observable<FetchSourceTrailComment[]> { return of([]); }
 }
 
 export interface TrailInfo {
@@ -139,6 +142,14 @@ export interface SearchBubblesResult {
 export interface SearchBubblesTileResult {
   pos: L.LatLngLiteral;
   count: number;
+}
+
+export interface FetchSourceTrailComment {
+  date?: number;
+  author?: string;
+  avatar?: string;
+  rate?: number;
+  text?: string;
 }
 
 export function populateWayPointInfo(track: Track, fetched: WayPointInfo[], preferences: ComputedPreferences): boolean { // NOSONAR

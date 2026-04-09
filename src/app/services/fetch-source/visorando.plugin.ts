@@ -1,11 +1,11 @@
 import { Injector, SecurityContext } from '@angular/core';
 import { XmlUtils } from 'src/app/utils/xml-utils';
-import { populateWayPointInfo, SearchResult, TrailInfo } from './fetch-source.interfaces';
+import { FetchSourceTrailComment, populateWayPointInfo, SearchResult, TrailInfo } from './fetch-source.interfaces';
 import * as L from 'leaflet';
 import { GpxFormat } from 'src/app/utils/formats/gpx-format';
 import { PreferencesService } from '../preferences/preferences.service';
 import { Trail } from 'src/app/model/trail';
-import { from, Observable, switchMap, zip } from 'rxjs';
+import { from, map, Observable, of, switchMap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
@@ -532,4 +532,65 @@ export class VisorandoPlugin extends PluginWithDb<TrailInfoDto> {
     });
   }*/
 
+  public override canFetchComments(): boolean {
+    return true;
+  }
+
+  public override fetchComments(uuid: string, start: number, limit: number): Observable<FetchSourceTrailComment[]> {
+    const keyNumber = Number.parseInt(uuid);
+    if (Number.isNaN(keyNumber)) return of([]);
+    return this.injector.get(HttpService).get<{error?: number, html?: string}>('https://www.visorando.com/index.php?component=ajax&task=getRandoTopics&idRandonnee=' + keyNumber + '&start=' + start + '&limit=' + limit).pipe(
+      map(response => {
+        if (!response?.html) return [];
+        const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, response.html);
+        if (!sanitized) return [];
+        const div = document.createElement('DIV');
+        div.innerHTML = sanitized;
+        const topics = div.querySelectorAll('div.topic');
+        const comments: FetchSourceTrailComment[] = [];
+        for (let i = 0; i < topics.length; ++i) {
+          const topic = topics.item(i);
+          // date
+          const dateStr = topic.querySelector('time')?.getAttribute('datetime');
+          const dateParsed = dateStr ? Date.parse(dateStr) : undefined;
+          const date = dateParsed && !isNaN(dateParsed) ? dateParsed : undefined;
+          // text
+          const paragraphs = topic.querySelectorAll('div.topic-text p');
+          let text = '';
+          let rate: number | undefined;
+          for (let pi = 0; pi < paragraphs.length; ++pi) {
+            const p = paragraphs.item(pi);
+            const inside = p.innerHTML.trim();
+            if (inside.startsWith('<strong>')) {
+              const span = inside.indexOf('<span>');
+              if (span > 0) {
+                const spanEnd = inside.indexOf('</span>', span);
+                if (spanEnd > 0) {
+                  const r = parseFloat(inside.substring(span + 6, spanEnd).trim());
+                  if (!isNaN(r) && r >= 0 && r <= 5) {
+                    rate = r;
+                  }
+                }
+              }
+              continue;
+            }
+            if (text.length > 0) text += '\n';
+            text += p.textContent;
+          }
+          // avatar & author
+          const img = topic.querySelector('img.profile-pic');
+          const avatar = img?.getAttribute('src') || undefined;
+          const author = img?.getAttribute('title') || undefined;
+          comments.push({
+            date,
+            rate,
+            text,
+            avatar,
+            author,
+          });
+        }
+        return comments;
+      })
+    );
+  }
 }

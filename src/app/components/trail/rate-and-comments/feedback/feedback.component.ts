@@ -11,6 +11,7 @@ import { ModerationService } from 'src/app/services/moderation/moderation.servic
 import { AvatarComponent } from 'src/app/components/avatar/avatar.component';
 import { AvatarService } from 'src/app/services/avatar/avatar.service';
 import { AsyncPipe } from '@angular/common';
+import { FetchSourceTrailComment } from 'src/app/services/fetch-source/fetch-source.interfaces';
 
 @Component({
   selector: 'app-feedback',
@@ -31,6 +32,8 @@ export class FeedbackComponent {
   @Input() feedback?: Feedback;
   @Input() trailUuid?: string;
   @Output() feedbackChange = new EventEmitter<Feedback | null>();
+
+  @Input() externalComment?: FetchSourceTrailComment;
 
   moderator: boolean;
 

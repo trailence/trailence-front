@@ -139,6 +139,15 @@ export class AvatarService {
     return div;
   }
 
+  public generateFromUrl(url: string): HTMLElement {
+    const div = document.createElement('DIV');
+    div.classList.add('avatar-img-container');
+    const img = document.createElement('IMG') as HTMLImageElement;
+    img.src = url;
+    div.appendChild(img);
+    return div;
+  }
+
   public generateFromName(name: string): HTMLElement {
     let firstLetter: string | undefined = undefined;
     let firstDigit: string | undefined = undefined;
