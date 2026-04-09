@@ -27,6 +27,8 @@ import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live
 import { I18nPipe } from 'src/app/services/i18n/i18n-string';
 import { MenuItem } from '../menu-item';
 import { DebugService } from 'src/app/services/debug/debug.service';
+import { ModerationCounters, ModerationService } from 'src/app/services/moderation/moderation.service';
+import { AuthResponse } from 'src/app/services/auth/auth-response';
 
 @Component({
     selector: 'app-menu',
@@ -50,6 +52,7 @@ export class MenuComponent implements OnInit {
   pubReject?: CollectionWithInfo;
   myPublicTrails: MyPublicTrail[] = [];
   liveGroups: LiveGroupDto[] = [];
+  moderationCounters: ModerationCounters | undefined = undefined;
 
   collectionsOpen = true;
   sharedWithMeOpen = true;
@@ -126,7 +129,12 @@ export class MenuComponent implements OnInit {
       refresh();
     });
     combineLatest([
-      authService.auth$,
+      authService.permissionsChanged$.pipe(
+        switchMap(auth => {
+          if (!auth || (!auth.admin && !auth.roles?.includes('moderator'))) return of([auth, undefined] as [AuthResponse | undefined, ModerationCounters | undefined]);
+          return this.injector.get(ModerationService).counters$.pipe(map(counters => ([auth, counters] as [AuthResponse | undefined, ModerationCounters | undefined])));
+        })
+      ),
       shareService.getAll$().pipe(
         collection$items(),
         map(shares => {
@@ -149,12 +157,13 @@ export class MenuComponent implements OnInit {
         debounceTimeExtended(0, 10),
       )
     ])
-    .subscribe(([auth, shares]) => {
+    .subscribe(([[auth, moderationCounters], shares]) => {
       this.sharedByMe = List(shares.filter(share => share.share.owner === auth?.email));
       this.sharedWithMe = List(shares.filter(share => share.share.owner !== auth?.email));
       this.isAdmin = !!auth?.admin;
       this.isAnonymous = !!auth?.isAnonymous;
       this.isModerator = !!auth?.roles?.find(r => r === 'moderator');
+      this.moderationCounters = moderationCounters;
       refresh();
     });
     myPublicTrailsService.myPublicTrails$.subscribe(list => {

@@ -61,6 +61,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   @Input() searching = false;
 
   @Input() mapTopToolbar$?: Observable<MenuItem[]>;
+  @Input() listToolbar?: MenuItem[];
 
   mode =  '';
   listSize: 'large' | 'medium' | 'small' = 'large';

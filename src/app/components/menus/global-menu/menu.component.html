@@ -290,7 +290,14 @@
     <div class="menu-section" id="section-moderation">
       <div class="menu-section-header" (click)="moderationOpen = !moderationOpen">
         <ion-icon name="web" class="left-icon"></ion-icon>
-        <div class="section-title">{{ i18n.texts.publications.moderation.menu_title }}</div>
+        <div class="section-title">
+          <div class="name-and-count">
+            <div class="name">{{ i18n.texts.publications.moderation.menu_title }}</div>
+            @if (moderationCounters) {
+              <div class="count">{{ moderationCounters.trails + moderationCounters.comments + moderationCounters.commentReplies + moderationCounters.removeRequests + moderationCounters.avatars }}</div>
+            }
+          </div>
+        </div>
         <ion-button size="small" shape="round" fill="clear" color="secondary">
           <ion-icon slot="icon-only" [name]="moderationOpen ? 'chevron-down' : 'chevron-right'"></ion-icon>
         </ion-button>
@@ -298,22 +305,50 @@
       @if (moderationOpen) {
         <div class="menu-item" (click)="goTo('/trails/moderation'); close();">
           <div class="item-title-container">
-            <div class="item-title trails-moderation">{{ i18n.texts.publications.moderation.menu_trails }}</div>
+            <div class="item-title trails-moderation">
+              <div class="name-and-count">
+                <div class="name">{{ i18n.texts.publications.moderation.menu_trails }}</div>
+                @if (moderationCounters) {
+                  <div class="count">{{ moderationCounters.trails }}</div>
+                }
+              </div>
+            </div>
           </div>
         </div>
         <div class="menu-item" (click)="goTo('/moderation/comments'); close();">
           <div class="item-title-container">
-            <div class="item-title comments-moderation">{{ i18n.texts.publications.moderation.menu_comments }}</div>
+            <div class="item-title comments-moderation">
+              <div class="name-and-count">
+                <div class="name">{{ i18n.texts.publications.moderation.menu_comments }}</div>
+                @if (moderationCounters) {
+                  <div class="count">{{ moderationCounters.comments + moderationCounters.commentReplies }}</div>
+                }
+              </div>
+            </div>
           </div>
         </div>
         <div class="menu-item" (click)="goTo('/moderation/removals'); close();">
           <div class="item-title-container">
-            <div class="item-title removals-moderation">{{ i18n.texts.publications.moderation.menu_remove }}</div>
+            <div class="item-title removals-moderation">
+              <div class="name-and-count">
+                <div class="name">{{ i18n.texts.publications.moderation.menu_remove }}</div>
+                @if (moderationCounters) {
+                  <div class="count">{{ moderationCounters.removeRequests }}</div>
+                }
+              </div>
+            </div>
           </div>
         </div>
         <div class="menu-item" (click)="goTo('/moderation/avatars'); close();">
           <div class="item-title-container">
-            <div class="item-title avatars-moderation">{{ i18n.texts.pages.avatar_moderation.menu_title }}</div>
+            <div class="item-title avatars-moderation">
+              <div class="name-and-count">
+                <div class="name">{{ i18n.texts.pages.avatar_moderation.menu_title }}</div>
+                @if (moderationCounters) {
+                  <div class="count">{{ moderationCounters.avatars }}</div>
+                }
+              </div>
+            </div>
           </div>
         </div>
       }

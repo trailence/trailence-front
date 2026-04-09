@@ -17,6 +17,7 @@ import { UserQuotas } from './user-quotas';
 import { publicRoutes } from 'src/app/routes/package.routes';
 import { NavController, Platform } from '@ionic/angular/common';
 import Trailence from '../trailence.service';
+import { Arrays } from 'src/app/utils/arrays';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -55,6 +56,9 @@ export class AuthService {
   private db?: Dexie;
   private _currentAuth?: Subscriber<AuthResponse | null>[];
 
+  private readonly _userChanged$ = new BehaviorSubject<AuthResponse | undefined>(undefined);
+  private readonly _permissionsChanged$ = new BehaviorSubject<AuthResponse | undefined>(undefined);
+
   constructor(
     private readonly http: HttpService,
     private readonly router: Router,
@@ -63,7 +67,15 @@ export class AuthService {
     private readonly platform: Platform,
   ) {
     http.addRequestInterceptor(r => this.addBearerToken(r));
+    let previous: AuthResponse | undefined = undefined;
     this._auth$.subscribe(auth => {
+      if (auth?.email !== previous?.email) this._userChanged$.next(auth || undefined);
+      if (auth?.email !== previous?.email ||
+          (auth?.isAnonymous || false) !== (previous?.isAnonymous || false) ||
+          (auth?.admin || false) !== (previous?.admin || false) ||
+          !Arrays.sameContent((auth?.roles || []), (previous?.roles || []))
+      ) this._permissionsChanged$.next(auth || undefined);
+      previous = auth || undefined;
       if (auth === null) {
         const url = globalThis.location.pathname;
         if (!url.includes('/login') && !url.includes('/link') && url !== '/search-route' && !url.startsWith('/trail/trailence/') && !url.startsWith('/live-group/')) {
@@ -133,6 +145,9 @@ export class AuthService {
   public get email(): string | undefined { return this.auth?.email; }
   public hasRole(role: string): boolean { return !!this.auth?.roles?.find(r => r === role); }
   public hasRole$(role: string): Observable<boolean> { return this.auth$.pipe(map(a => !!a?.roles?.find(r => r === role))); }
+
+  public get userChanged$(): Observable<AuthResponse | undefined> { return this._userChanged$; }
+  public get permissionsChanged$(): Observable<AuthResponse | undefined> { return this._permissionsChanged$; }
 
   public preferencesUpdated(): void {
     const auth = this.auth;

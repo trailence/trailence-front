@@ -87,6 +87,7 @@ export class TrailsPage extends AbstractPage {
 
   connected$: Observable<boolean>;
 
+  listToolbar?: MenuItem[];
   readonly mapTopToolbar$ = new BehaviorSubject<MenuItem[]>([]);
   readonly showBubbles$ = new BehaviorSubject<boolean>(false);
   readonly bubblesToolAvailable$ = new BehaviorSubject<boolean>(true);
@@ -689,9 +690,14 @@ export class TrailsPage extends AbstractPage {
       this.changesDetection.detectChanges();
     }));
     // trails
+    const refresh$ = new BehaviorSubject<boolean>(true);
+    this.listToolbar = [
+      new MenuItem().setIcon('refresh').setI18nLabel('publications.moderation.refresh')
+      .setAction(() => refresh$.next(true))
+    ];
     let first = true;
     this.byStateAndVisible.subscribe(
-      this.injector.get(ModerationService).getTrailsToReview(),
+      refresh$.pipe(switchMap(() => this.injector.get(ModerationService).getTrailsToReview())),
       trails => {
         const newList = List(trails);
         if (first || !newList.equals(this.trails$.value)) {
@@ -763,6 +769,7 @@ export class TrailsPage extends AbstractPage {
     this.searching = false;
     this.searchMessage = undefined;
     this.searchMode = undefined;
+    this.listToolbar = undefined;
     this.mapTopToolbar$.next([]);
     this.searchPluginsSubscription?.unsubscribe();
     this.searchPluginsSubscription = undefined;

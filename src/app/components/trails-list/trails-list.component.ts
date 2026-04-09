@@ -114,6 +114,7 @@ export class TrailsListComponent extends AbstractComponent {
   @Input() searching = false;
   @Input() onlyBubbles = false;
   @Input() enableShowOnMap = false;
+  @Input() additionalToolbarItems?: MenuItem[];
 
   id = IdGenerator.generateId();
   highlighted?: Trail;
@@ -536,6 +537,9 @@ export class TrailsListComponent extends AbstractComponent {
           .setAction(() => import('../../services/functions/import').then(m => m.openImportTrailsDialog(this.injector, this.collectionUuid!)))
       );
     }
+
+    // additions
+    if (this.additionalToolbarItems) this.toolbar.push(...this.additionalToolbarItems);
   }
 
   protected override onChangesBeforeCheckComponentState(changes: SimpleChanges): void {

@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { HttpService } from '../http/http.service';
-import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, from, map, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatest, debounceTime, defaultIfEmpty, EMPTY, filter, from, map, Observable, of, switchMap, tap, timer } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { TrailDto, TrailSourceType } from 'src/app/model/dto/trail';
 import { environment } from 'src/environments/environment';
@@ -25,6 +25,8 @@ import { TypeUtils } from 'src/app/utils/type-utils';
 import { PointDtoMapper } from 'src/app/model/point-dto-mapper';
 import { Feedback, FeedbackReply } from '../feedback/feedback.service';
 import { SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { AuthService } from '../auth/auth.service';
+import { NetworkService } from '../network/network.service';
 
 @Injectable({providedIn: 'root'})
 export class ModerationService {
@@ -46,6 +48,7 @@ export class ModerationService {
     this.trailAndPhotosCache = cacheService.createTimeoutCache(90000);
     this.photoCache = cacheService.createTimeoutCache(15 * 60 * 1000);
     this.photoBlobCache = cacheService.createTimeoutCacheDb('photo_blob', 15 * 60 * 1000);
+    this.listenCounters();
   }
 
   public getTrailsToReview(): Observable<Observable<Trail | null>[]> {
@@ -480,6 +483,7 @@ export class ModerationService {
       (await this.photoCache.getItem(p.uuid + ' ' + p.owner))?.next(null);
       await this.photoBlobCache.removeItem(p.uuid + ' ' + p.owner);
     }
+    this._refreshCounters$.next(true);
   }
 
   public getFeedbacksToReview(): Observable<FeedbackToReview[]> {
@@ -491,6 +495,7 @@ export class ModerationService {
       defaultIfEmpty(true),
       map(() => {
         feedback.reviewed = true;
+        this._refreshCounters$.next(true);
         return feedback;
       }),
     );
@@ -501,6 +506,7 @@ export class ModerationService {
       defaultIfEmpty(true),
       map(() => {
         reply.reviewed = true;
+        this._refreshCounters$.next(true);
         return reply;
       }),
     );
@@ -511,15 +517,21 @@ export class ModerationService {
   }
 
   public declineRemoveRequests(uuid: string[]): Observable<any> {
-    return this.http.post(environment.apiBaseUrl + '/moderation/v1/removeRequests/decline', uuid);
+    return this.http.post(environment.apiBaseUrl + '/moderation/v1/removeRequests/decline', uuid).pipe(
+      tap(() => this._refreshCounters$.next(true))
+    );
   }
 
   public acceptRemoveRequests(uuid: string[]): Observable<any> {
-    return this.http.post(environment.apiBaseUrl + '/moderation/v1/removeRequests/accept', uuid);
+    return this.http.post(environment.apiBaseUrl + '/moderation/v1/removeRequests/accept', uuid).pipe(
+      tap(() => this._refreshCounters$.next(true))
+    );
   }
 
   public deletePublicTrail(uuid: string): Observable<any> {
-    return this.http.delete(environment.apiBaseUrl + '/moderation/v1/publicTrail/' + uuid)
+    return this.http.delete(environment.apiBaseUrl + '/moderation/v1/publicTrail/' + uuid).pipe(
+      tap(() => this._refreshCounters$.next(true))
+    );
   }
 
   public getAvatarsToReview(): Observable<string[]> {
@@ -531,7 +543,34 @@ export class ModerationService {
   }
 
   public avatarModeration(email: string, accept: boolean): Observable<any> {
-    return this.http.post(environment.apiBaseUrl + '/moderation/v1/avatars/' + email + '/' + (accept ? 'accept' : 'decline'), null);
+    return this.http.post(environment.apiBaseUrl + '/moderation/v1/avatars/' + email + '/' + (accept ? 'accept' : 'decline'), null).pipe(
+      tap(() => this._refreshCounters$.next(true))
+    );;
+  }
+
+  private readonly _refreshCounters$ = new BehaviorSubject<boolean>(true);
+  private readonly _counters$ = new BehaviorSubject<ModerationCounters | undefined>(undefined);
+
+  public get counters$(): Observable<ModerationCounters | undefined> { return this._counters$; }
+
+  private listenCounters(): void {
+    this.injector.get(AuthService).permissionsChanged$.pipe(
+      // only admin or moderator
+      filter(auth => !!auth && (auth.admin || !!auth.roles?.find(r => r === 'moderator'))),
+      // only network available
+      switchMap(() => this.injector.get(NetworkService).server$),
+      filter(net => net),
+      // stable for at least 5 seconds
+      debounceTime(5000),
+      // refresh requested or timer every 10 minutes
+      switchMap(() => combineLatest([this._refreshCounters$, timer(0, 10 * 60 * 1000)])),
+      switchMap(() => this.http.get<ModerationCounters>(environment.apiBaseUrl + '/moderation/v1/counters'))
+    ).subscribe(counters => {
+      const current = this._counters$.value;
+      if (current?.trails !== counters.trails || current.comments !== counters.comments || current.commentReplies !== counters.commentReplies ||
+        current.removeRequests !== counters.removeRequests || current.avatars !== counters.avatars)
+        this._counters$.next(counters);
+    });
   }
 }
 
@@ -593,4 +632,12 @@ export interface FeedbackToReview {
   trailName: string;
   trailDescription: string;
   feedbacks: Feedback[];
+}
+
+export interface ModerationCounters {
+  trails: number;
+  comments: number;
+  commentReplies: number;
+  removeRequests: number;
+  avatars: number;
 }

@@ -1080,6 +1080,7 @@
       "message_from_author": "Message de l'auteur",
       "previous_moderator_message": "Précédent message du modérateur",
       "moderator_message": "Message du modérateur",
+      "refresh": "Rafraichir",
       "comments": {
         "reviewed_button": "Valider"
       }
