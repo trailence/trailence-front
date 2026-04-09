@@ -54,15 +54,17 @@ export class AvatarService {
   }
 
   public refreshMyAvatarDto(): void {
-    this.authService.auth$.pipe(
+    this.authService.userChanged$.pipe(
       switchMap(a => {
         if (!a || a.isAnonymous) return EMPTY;
         return this.http.get<AvatarDto>(environment.apiBaseUrl + '/avatar/v1');
       })
     ).subscribe(dto => {
       this._cache.removeItem('mine*' + this.authService.email);
-      this.authService.auth!.avatar = dto;
-      this.authService.preferencesUpdated();
+      if (this.authService.auth) {
+        this.authService.auth.avatar = dto;
+        this.authService.preferencesUpdated();
+      }
       this._myDto$.next(dto);
     });
   }

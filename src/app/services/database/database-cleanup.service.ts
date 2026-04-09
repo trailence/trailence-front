@@ -17,14 +17,14 @@ export class DatabaseCleanupService {
   constructor(private readonly injector: Injector) {
     injector.get(NgZone).runOutsideAngular(() => {
       setTimeout(() => {
-        injector.get(AuthService).auth$.subscribe(auth => this.checkCleaning(auth));
+        injector.get(AuthService).userChanged$.subscribe(auth => this.checkCleaning(auth));
       }, 5000);
     });
   }
 
   private timeout: any = undefined;
   private email: string | undefined = undefined;
-  private checkCleaning(auth: AuthResponse | null): void {
+  private checkCleaning(auth: AuthResponse | undefined): void {
     if (!auth || auth.email !== this.email) {
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = undefined;

@@ -178,7 +178,7 @@ export class TrailsPage extends AbstractPage {
     // title is collection name, or default
     this.byState.add(
       combineLatest([
-        this.injector.get(AuthService).auth$.pipe(
+        this.injector.get(AuthService).userChanged$.pipe(
           filterDefined(),
           switchMap(auth => this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email)),
           switchMap(collection => {
@@ -212,7 +212,7 @@ export class TrailsPage extends AbstractPage {
     let first = true;
     this.byStateAndVisible.subscribe(
       combineLatest([
-        this.injector.get(AuthService).auth$.pipe(
+        this.injector.get(AuthService).userChanged$.pipe(
           switchMap(auth => auth ? this.injector.get(TrailCollectionService).getCollection$(collectionUuid, auth.email) : of(undefined)),
           filterDefined(),
         ),

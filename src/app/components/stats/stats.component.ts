@@ -34,7 +34,7 @@ export class StatsComponent extends AbstractComponent {
 
   protected override initComponent(): void {
     this.whenVisible.subscribe(
-      this.injector.get(AuthService).auth$,
+      this.injector.get(AuthService).userChanged$,
       auth => {
         if (auth) {
           this.config = StatsConfig.load(auth.email);

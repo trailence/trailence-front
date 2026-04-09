@@ -235,10 +235,14 @@ export class TrailOverviewComponent extends AbstractComponent {
             this.trail!.loopType$,
             this.trail!.activity$,
             this.trackData$(this.trail!, owner),
-            this.auth.auth ?
-              concat(of(false), this.mySelectionService.getMySelection().pipe(
-                map(sel => sel.some(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid)),
-              )) : of(false),
+            this.auth.userChanged$.pipe(
+              switchMap(auth => auth ?
+                concat(of(false), this.mySelectionService.getMySelection().pipe(
+                  map(sel => sel.some(s => s.owner === this.trail!.owner && s.uuid === this.trail!.uuid)),
+                ))
+                : of(false)
+              )
+            ),
             this.external$,
           ])
         ),
@@ -357,7 +361,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     this.byStateAndVisible.subscribe(
       this.load$.pipe(
         filterDefined(),
-        switchMap(() => this.auth.auth$),
+        switchMap(() => this.auth.userChanged$),
         switchMap(a => {
           if (!a || this.trail?.owner !== a.email) return EMPTY;
           if (this.refrehPublicTrailFromInput()) return EMPTY;
@@ -494,7 +498,7 @@ export class TrailOverviewComponent extends AbstractComponent {
     const remaining = h - y - 15;
     const collection = this.fromCollection ?
       await firstValueFrom(
-        this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.injector.get(AuthService).email ?? '').pipe(filterDefined())
+        this.injector.get(TrailCollectionService).getCollection$(this.trail!.collectionUuid, this.auth.email ?? '').pipe(filterDefined())
       ) : undefined;
     const menu = this.trailMenuService.getTrailsMenu([this.trail!], false, collection, false, this.isAllCollections, this.isModeration);
     let estimatedHeight = 16;

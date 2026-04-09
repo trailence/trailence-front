@@ -94,7 +94,7 @@ export class MenuComponent implements OnInit {
     };
     this.isNative = platform.is('capacitor');
     combineLatest([
-      authService.auth$,
+      authService.userChanged$,
       collectionService.getAllCollectionsReady$().pipe(
         map(list => collectionService.sort(list)),
       )

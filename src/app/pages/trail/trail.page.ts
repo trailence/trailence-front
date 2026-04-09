@@ -187,7 +187,7 @@ export class TrailPage extends AbstractPage {
             )
           }),
           switchMap(([t1, t2]) =>
-            this.injector.get(AuthService).auth$.pipe(
+            this.injector.get(AuthService).permissionsChanged$.pipe(
               switchMap(auth => {
                 if (t1 && auth && t1.owner === auth.email)
                   return combineLatest([

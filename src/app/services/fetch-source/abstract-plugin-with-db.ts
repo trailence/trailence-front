@@ -41,7 +41,7 @@ export abstract class PluginWithDb<TRAIL_INFO_DTO extends TrailInfoBaseDto> exte
     super(injector, searchTrailsFeatureName);
     injector.get(NgZone).runOutsideAngular(() => {
       this._allowed$.pipe(filter(a => a), first()).subscribe(() => {
-        if (dbByUser) injector.get(AuthService).auth$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
+        if (dbByUser) injector.get(AuthService).userChanged$.subscribe(auth => this.openDb(dbName + (auth ? '_' + auth.email : '')));
         else this.openDb(dbName);
       });
     });

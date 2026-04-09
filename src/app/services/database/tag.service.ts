@@ -47,7 +47,7 @@ export class TagService {
   }
 
   public getTag$(uuid: string): Observable<Tag | null> {
-    return this.auth.auth$.pipe(filterDefined(),switchMap(auth => this._tagStore.getItem$(uuid, auth.email)))
+    return this.auth.userChanged$.pipe(filterDefined(),switchMap(auth => this._tagStore.getItem$(uuid, auth.email)))
   }
 
   public getTag(uuid: string): Tag | null {

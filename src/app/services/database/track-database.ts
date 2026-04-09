@@ -70,7 +70,7 @@ export class TrackDatabase {
       doSync: () => this.sync(),
       resetErrors: () => this._errors.reset(),
     });
-    injector.get(AuthService).auth$.subscribe(
+    injector.get(AuthService).userChanged$.subscribe(
       auth => {
         if (auth) this.open(auth.email);
         else this.close();

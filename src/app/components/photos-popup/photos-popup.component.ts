@@ -103,7 +103,7 @@ export class PhotosPopupComponent  implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.add(
-      this.auth.auth$.pipe(
+      this.auth.userChanged$.pipe(
         switchMap(auth => combineLatest(this.trails$).pipe(
           tap(() => this.loaded = false),
           switchMap(trails => {

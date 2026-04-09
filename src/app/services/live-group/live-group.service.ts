@@ -43,7 +43,7 @@ export class LiveGroupService {
   }
 
   private init(): void {
-    combineLatest([this.network.server$, this.authService.auth$]).pipe(
+    combineLatest([this.network.server$, this.authService.userChanged$]).pipe(
       switchMap(([connected, auth]) => {
         const newId = auth && !auth.isAnonymous ? auth.email : 'anonymous$' + deviceId();
         if (newId !== this._currentId) {

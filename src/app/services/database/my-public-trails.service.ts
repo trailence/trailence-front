@@ -24,7 +24,7 @@ export class MyPublicTrailsService {
     networkService: NetworkService,
     http: HttpService,
   ) {
-    authService.auth$.pipe(
+    authService.userChanged$.pipe(
       switchMap(auth => {
         if (!auth || auth.isAnonymous) return of([]);
         return databaseService.db$.pipe(

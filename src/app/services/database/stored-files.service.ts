@@ -11,7 +11,7 @@ export class StoredFilesService {
   constructor(
     auth: AuthService,
   ) {
-    auth.auth$.subscribe(
+    auth.userChanged$.subscribe(
       auth => {
         if (auth) this.open(auth.email);
         else this.close();

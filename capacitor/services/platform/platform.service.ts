@@ -3,7 +3,7 @@ import Trailence from 'src/app/services/trailence.service';
 import { Console } from 'src/app/utils/console';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { first } from 'rxjs';
-import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup } from "@ionic/angular/standalone";
+import { IonHeader, IonContent, IonToolbar, IonTitle, IonLabel, IonFooter, IonButtons, IonButton, ModalController, IonRadio, IonRadioGroup, Platform, NavController, AlertController } from "@ionic/angular/standalone";
 import { Router } from '@angular/router';
 import { ErrorService } from 'src/app/services/progress/error.service';
 import { TrailCollection } from 'src/app/model/trail-collection';
@@ -14,7 +14,6 @@ import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
 import { TrailSourceType } from 'src/app/model/dto/trail';
-import { Platform, NavController, AlertController } from '@ionic/angular/standalone';
 import { Keyboard } from '@capacitor/keyboard';
 
 @Injectable({providedIn: 'root'})

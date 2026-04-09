@@ -138,7 +138,7 @@ export class ShareService {
   }
 
   public getTrailsByShare(shares: Share[]): Observable<Map<Share, Observable<Trail | null>[]>> {
-    return this.injector.get(AuthService).auth$.pipe(
+    return this.injector.get(AuthService).userChanged$.pipe(
       switchMap(auth => {
         if (!auth) return of(new Map<Share, Observable<Trail | null>[]>());
         const user = auth.email;

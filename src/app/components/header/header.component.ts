@@ -89,7 +89,7 @@ export class HeaderComponent extends AbstractComponent {
 
   protected override initComponent(): void {
     this.whenVisible.subscribe(
-      this.auth.auth$.pipe(
+      this.auth.userChanged$.pipe(
         switchMap(auth => {
           if (auth) return of([]);
           this.liveGroupService = this.injector.get(LiveGroupService);

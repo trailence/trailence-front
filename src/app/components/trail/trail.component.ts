@@ -880,7 +880,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
 
   private listenMyFeedback(): void {
     this.byStateAndVisible.subscribe(
-      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null), this.auth.auth$]).pipe(
+      combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null), this.auth.userChanged$]).pipe(
         switchMap(([trail1, trail2, recording, auth]) => {
           if (!trail2 && !recording && trail1?.followedUrl?.startsWith(environment.baseUrl + '/trail/trailence/') && auth && !auth.isAnonymous) {
             return this.injector.get(NetworkService).server$.pipe(
@@ -1279,7 +1279,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   private _listenForCollections(trailWithInfo$: Observable<TrailWithInfo | null>, isTrail1: boolean): void {
     this.whenVisible.subscribe(
       combineLatest([
-        this.auth.auth$,
+        this.auth.userChanged$,
         trailWithInfo$.pipe(
           switchMap(trailWithInfo => {
             if (!trailWithInfo) return of({col: null, trailWithInfo: null, track: null});

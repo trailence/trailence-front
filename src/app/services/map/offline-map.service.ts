@@ -49,7 +49,7 @@ export class OfflineMapService {
     private readonly injector: Injector,
     private readonly overpass: OverpassClient,
   ) {
-    auth.auth$.subscribe(
+    auth.userChanged$.subscribe(
       auth => {
         if (auth) this.open(auth.email);
         else this.close();

@@ -32,7 +32,7 @@ export class NotificationsService {
     private readonly network: NetworkService,
     private readonly auth: AuthService,
   ) {
-    auth.auth$.pipe(
+    auth.userChanged$.pipe(
       switchMap(auth => {
         if (!auth || auth.isAnonymous) {
           this._lastNb = 0;

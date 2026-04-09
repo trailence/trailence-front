@@ -98,7 +98,7 @@ export class DatabaseService {
     private readonly network: NetworkService,
     private readonly injector: Injector,
   ) {
-    auth.auth$.subscribe(
+    auth.userChanged$.subscribe(
       auth => {
         if (!auth) {
           this.close();
@@ -250,7 +250,7 @@ export class DatabaseService {
       store.loaded$,         // local database is loaded
       this.network.server$,  // network is connected
       store.status$,         // there is something to sync and we are not syncing
-      this.auth.auth$,       // authenticated and not anonymous
+      this.auth.permissionsChanged$,       // authenticated and not anonymous
       this.db$,
     ]).pipe(
       map(([storeLoaded, networkConnected, syncStatus, auth, db]) => [storeLoaded && networkConnected && syncStatus?.needsSync && !syncStatus.inProgress && auth && !auth.isAnonymous, syncStatus?.needsUpdateFromServer, db]),

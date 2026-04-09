@@ -84,7 +84,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
         ),
         this.databaseService.hasLocalChanges,
         this.databaseService.lastSync,
-        this.auth.auth$,
+        this.auth.permissionsChanged$,
       ]),
       ([s, localChanges, lastSync, auth]) => {
         this.isAnonymous = !!auth?.isAnonymous;
