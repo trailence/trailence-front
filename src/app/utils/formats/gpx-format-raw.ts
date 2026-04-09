@@ -224,6 +224,7 @@ export class GpxFormatRaw {
   private static fixPoints(points: PointDescriptor[]): void {
     while (this.removeTimeGoingToPast(points));
     this.removeTimeIfAllPointsAreAtTheSameTime(points);
+    this.removeTimeIfNotPossible(points);
     this.removeImpossibleElevations(points);
   }
 
@@ -273,6 +274,37 @@ export class GpxFormatRaw {
         for (const p of points) p.time = undefined;
       }
     }
+  }
+
+  private static removeTimeIfNotPossible(points: PointDescriptor[]): void {
+    let firstTimeIndex = points.findIndex(p => p.time !== undefined);
+    if (firstTimeIndex < 0) return;
+    let lastTimeIndex = points.length - 1;
+    while (lastTimeIndex > firstTimeIndex && !points[lastTimeIndex].time) lastTimeIndex--;
+    if (lastTimeIndex <= firstTimeIndex) return;
+    let distance = 0;
+    for (let i = firstTimeIndex + 1; i <= lastTimeIndex; ++i) {
+      distance += this.distance(points[i].pos.lat, points[i - 1].pos.lat, points[i].pos.lng, points[i - 1].pos.lng);
+    }
+    if (distance < 100) return;
+    const speedMetersSeconds = distance / ((points[lastTimeIndex].time! - points[firstTimeIndex].time!) / 1000);
+    if (speedMetersSeconds < 20) return; // 72 km/h
+    for (const p of points) p.time = undefined;
+  }
+
+  private static distance(lat1: number, lat2: number, lon1: number, lon2: number): number {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; // in metres
   }
 
   private static removeImpossibleElevations(points: PointDescriptor[]): void {
