@@ -1,5 +1,5 @@
 import { AfterContentChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, EMPTY, Observable, Subscription, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, timer } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, distinctUntilChanged, filter, first, firstValueFrom, from, map, of, skip, switchMap, take, takeWhile, tap, timer } from 'rxjs';
 import { Trail } from 'src/app/model/trail';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapComponent } from '../map/map.component';
@@ -71,6 +71,7 @@ import { LiveGroupDto, LiveGroupService } from 'src/app/services/live-group/live
 import { LiveGroupComponent } from '../live-group/live-group.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from '../contributions-badges/contribution-badges.component';
+import { ApiError } from 'src/app/services/http/api-error';
 
 interface TrailSource {
   isExternal: boolean;
@@ -1030,17 +1031,20 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     );
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null), this.showPhotos$]).pipe(
+        debounceTimeExtended(100, 100, 3),
         switchMap(([trail1, trail2, recording, showPhotos]) =>
           combineLatest([
             trail1 ? this.photoService.getTrailPhotos$(trail1) : of([]),
             trail2 ? this.photoService.getTrailPhotos$(trail2) : of([]),
             recording ? recording.photos$ as Observable<Photo[]> : of([]),
           ]).pipe(
+            debounceTimeExtended(50, 100, 3),
             switchMap(([p1, p2, p3]) => combineLatest([
               trail1 && p1.length > 0 ? this.getPhotosWithPosition(p1, () => getTrack(trail1), dateToPoint) : of([]),
               trail2 && p2.length > 0 ? this.getPhotosWithPosition(p2, () => getTrack(trail2), dateToPoint) : of([]),
               recording && p3.length > 0 ? this.getPhotosWithPosition(p3, () => of(recording.track), dateToPoint) : of([]),
             ])),
+            debounceTimeExtended(0, 100, 3),
             map(([p1, p2, p3]) => [...p1, ...p2, ...p3]),
             map(photos => {
               // sort and keep only one if distance is < 15 meters
@@ -1064,11 +1068,12 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               return photosWithPoint;
             }),
             switchMap(photosWithPoint => combineLatest([of(photosWithPoint), mapZoom$])),
+            debounceTimeExtended(0, 100, 3),
             switchMap(([photosWithPoint, zoom]) => {
               this.photosHavingPosition = photosWithPoint;
               this.trailsWaypoints.updatePhotos(photosWithPoint);
               if (photosWithPoint.length === 0 || !showPhotos) return of([]);
-              const markers$: Observable<{key: string, marker: L.Marker}>[] = [];
+              const markers$: Observable<{key: string, marker: L.Marker} | undefined | null>[] = [];
               photosByKey.clear();
               let photosGroups: {photos: Photo[], point: L.LatLngExpression}[];
               if (zoom === undefined) photosGroups = photosWithPoint;
@@ -1093,22 +1098,33 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
                   markers$.push(this.createPhotoMarker(p.point, p.photos, photosByKey, key));
                 }
               }
-              return combineLatest(markers$);
+              return combineLatest(markers$).pipe(debounceTimeExtended(0, 500, 5));
             }),
           )
         ),
       ),
       result => {
         if (!this.map) return;
+        console.log(result);
+        const ok = result.filter(m => !!m);
+        if (ok.length !== result.length) {
+          const noNet = result.filter(m => m === undefined);
+          const msg = noNet.length > 0 ? 'photos_error_no_network' : 'photos_error';
+          this.injector.get(ToastController).create({
+            message: this.i18n.texts.errors[msg],
+            color: 'danger',
+            duration: 5000,
+          }).then(t => t.present());
+        }
         const alreadyOnMap: string[] = [];
         for (const[key,marker] of photosOnMap) {
-          if (result.some(p => p.key === key))
+          if (ok.some(p => p.key === key))
             alreadyOnMap.push(key);
           else
             this.map.removeFromMap(marker);
         }
         photosOnMap.clear();
-        for (const element of result) {
+        for (const element of ok) {
           photosOnMap.set(element.key, element.marker);
           if (!alreadyOnMap.includes(element.key)) this.map.addToMap(element.marker);
         }
@@ -1144,7 +1160,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
     .filter(p => !!p.point) as {photo: Photo, point: L.LatLngExpression}[];
   }
 
-  private createPhotoMarker(point: L.LatLngExpression, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string) {
+  private createPhotoMarker(point: L.LatLngExpression, photos: Photo[], photosByKey: Map<string, Photo[]>, key: string, withError: boolean = true): Observable<{key: string, marker: L.Marker} | undefined | null> {
     return this.photoService.getFile$(photos[0]).pipe(
       switchMap(blob => from(ImageUtils.convertToJpeg(blob, 75, 75, 0.7))),
       switchMap(jpeg => from(new BinaryContent(jpeg.blob).toBase64()).pipe(
@@ -1156,6 +1172,19 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
           return {key, marker};
         }),
       )),
+      catchError(e => {
+        if (!withError) return EMPTY;
+        if (e instanceof ApiError && e.httpCode === 0) {
+          // no network
+          return concat(
+            of(undefined),
+            this.injector.get(NetworkService).server$.pipe(
+              switchMap(connected => connected ? this.createPhotoMarker(point, photos, photosByKey, key, false) : EMPTY)
+            )
+          );
+        }
+        return of(null);
+      })
     );
   }
 

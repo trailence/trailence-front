@@ -1329,7 +1329,9 @@
     "invalid_format": "Format invalide/non supporté",
     "search_places": "Erreur lors de la recherche de lieux",
     "search_routes": "Erreur lors de la recherche des circuits",
-    "password_strength": "Le mot de passe n'est pas assez fort"
+    "password_strength": "Le mot de passe n'est pas assez fort",
+    "photos_error_no_network": "Certaines photos ne peuvent pas s'afficher car vous n'êtes pas connecté ou n'avez pas de réseau",
+    "photos_error": "Certaines photos n'ont pas pu être téléchargées"
   },
   "export": {
     "trail": "Parcours",
