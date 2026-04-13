@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { catchError, map, Observable, of, switchMap, throwError, timeout } from 'rxjs';
 import { ApiError } from '../http/api-error';
+import { Console } from 'src/app/utils/console';
 
 @Injectable({
   providedIn: 'root'
@@ -35,6 +36,7 @@ export class OverpassClient {
   private doRequestOnInstance<T>(body: string, timeoutSeconds: number, instanceIndex: number): Observable<T> {
     const instance = this.instances[instanceIndex];
     const to = Math.min(timeoutSeconds, instance.maxTimeoutSeconds);
+    Console.info('Overpass request on', instance.url);
     return this.http.post<T>(instance.url, '[out:json][timeout:' + to + '];' + body).pipe(
       catchError(error => of(new OverpassInstanceResponse<T>(undefined, error))),
       map(response => {

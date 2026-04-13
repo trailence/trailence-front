@@ -140,6 +140,9 @@ ion-modal, ion-alert {
     --ion-safe-area-right: 0px;
   }
 }
+ion-modal.content-no-transparent {
+  --modal-content-background: var(--ion-background-color);
+}
 @media (max-width: 767px) or (max-height: 599px) {
   ion-modal:not(.large-modal):not(.medium-modal):not(.small-modal) {
     --modal-border-width: 0px;

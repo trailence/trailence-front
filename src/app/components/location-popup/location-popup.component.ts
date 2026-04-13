@@ -19,6 +19,7 @@ export async function openLocationDialog(injector: Injector, trail: Trail) {
   const modal = await injector.get(ModalController).create({
     component: LocationPopupComponent,
     backdropDismiss: true,
+    cssClass: 'content-no-transparent',
     componentProps: {
       trail,
     }
