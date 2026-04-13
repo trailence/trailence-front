@@ -200,6 +200,7 @@ export class DatabaseService {
   private _syncNowRequestedAt = 0;
   public syncNow(): void {
     this._syncNowRequestedAt = Date.now();
+    this._syncPaused = 0;
     for (const s of this._stores.value) {
       s.resetErrors();
       s.lastSync = 0;
