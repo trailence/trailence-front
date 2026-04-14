@@ -174,7 +174,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
         return;
       }
       this.mapTracks$.next(this.mapTracksMapper.update(trails as {trail: Trail, data: SimplifiedTrackSnapshot}[]));
-      if (this.highlightedTrail) this.setHighlighted(this.highlightedTrail);
+      this.setHighlighted(this.highlightedTrail);
       return;
     }
     if (this.mapTracks$.value.length > 0)
