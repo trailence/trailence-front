@@ -156,7 +156,7 @@ export class TrailPlannerPage extends AbstractPage {
         })
       );
       this.whenVisible.subscribe(
-        combineLatest([this.mapState.center$, this.mapState.zoom$]).pipe(debounceTime(200)),
+        combineLatest([this.mapState.center$, this.mapState.zoomInt$]).pipe(debounceTime(200)),
         () => {
           this.trackBuilder!.mapChanged();
           this.trails!.mapChanged();

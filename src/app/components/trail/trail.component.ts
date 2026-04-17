@@ -1023,7 +1023,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       );
     const mapZoom$ = this.map$.pipe(
       switchMap(m => {
-        const zoom$ = m?.getState()?.zoom$;
+        const zoom$ = m?.getState()?.zoomInt$;
         if (!zoom$) return of(undefined);
         return zoom$.pipe(
           map(zoom => Math.floor(zoom)),

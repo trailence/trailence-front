@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, Observable } from 'rxjs';
 import * as L from 'leaflet';
 import { MapAdditionsOptions } from 'src/app/services/map/map-additions.service';
 
@@ -24,6 +24,7 @@ export class MapState {
 
   public get zoom(): number { return this._zoom$.value; }
   public get zoom$(): Observable<number> { return this._zoom$; }
+  public get zoomInt$(): Observable<number> { return this._zoom$.pipe(map(z => Math.floor(z)), distinctUntilChanged()); }
   public set zoom(value: number) { if (this._zoom$.value !== value) this._zoom$.next(value); }
 
   public get tilesName(): string { return this._tilesName$.value; }

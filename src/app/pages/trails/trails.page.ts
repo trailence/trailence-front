@@ -407,7 +407,7 @@ export class TrailsPage extends AbstractPage {
     this.byStateAndVisible.subscribe(
       this._trailsAndMap$.pipe(
         switchMap(c => c ? c.map$ : of(undefined)),
-        switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoom$, this.injector.get(FetchSourceService).getAllowedPlugins$()]).pipe(
+        switchMap(c => c ? combineLatest([c.getState().center$, c.getState().zoomInt$, this.injector.get(FetchSourceService).getAllowedPlugins$()]).pipe(
           debounceTime(200),
           map(() => ({bounds: c.getBounds(), zoom: c.getState().zoom}))
         ) : of(undefined))

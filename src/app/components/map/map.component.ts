@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, Output, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { AbstractComponent, IdGenerator } from 'src/app/utils/component-utils';
 import { MapState } from './map-state';
-import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, first, map, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest, debounceTime, filter, first, map, of, switchMap, tap } from 'rxjs';
 import * as L from 'leaflet';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { DistanceUnit } from 'src/app/services/preferences/preferences';
@@ -117,7 +117,7 @@ export class MapComponent extends AbstractComponent {
     this.updateBubbles();
     if (!this.isEmbedded) {
       this.whenVisible.subscribe(
-        combineLatest([this._mapState.center$, this._mapState.zoom$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$])
+        combineLatest([this._mapState.center$, this._mapState.zoomInt$, this._mapState.tilesName$, this._mapState.overlays$, this._mapState.additions$])
         .pipe(
           debounceTime(100),
           tap(() => this.refreshTools()),
@@ -274,7 +274,13 @@ export class MapComponent extends AbstractComponent {
   private updateBubbles(): void {
     this._bubblesSubscription?.unsubscribe();
     this._bubblesSubscription = this.ngZone.runOutsideAngular(() =>
-      combineLatest([this.bubbles$, this._mapState.live$, this._map$]).subscribe(
+      combineLatest([this.bubbles$, this._mapState.live$, this._map$]).pipe(
+        switchMap(r => this._zoomAnim$.pipe(
+          filter(anim => !anim),
+          map(() => r),
+        )),
+      )
+    .subscribe(
       ([bubbles, live, map]) => {
         if (!map || !live) return;
         const toRemove = [...this._currentBubbles];
@@ -522,6 +528,7 @@ export class MapComponent extends AbstractComponent {
     return this._map$.value?.options.crs ?? L.CRS.EPSG3857;
   }
 
+  private readonly _zoomAnim$ = new BehaviorSubject<boolean>(false);
   private createMap(): void {
     const layer = this.mapLayersService.layers.find(lay => lay.name === this._mapState.tilesName)
       ?? this.mapLayersService.layers.find(lay => lay.name === this.mapLayersService.getDefaultLayer())
@@ -555,7 +562,11 @@ export class MapComponent extends AbstractComponent {
       this.mapChanged(map);
       this.refreshTools();
     });
+    map.on('zoomstart', () => {
+      this._zoomAnim$.next(true);
+    });
     map.on('zoomend', () => {
+      this._zoomAnim$.next(false);
       this.refreshTools();
     });
     map.on('click', e => {
@@ -574,7 +585,9 @@ export class MapComponent extends AbstractComponent {
         this.mouseOver.emit(e.latlng);
       }
     });
-    map.on('zoomanim', e => this._mapState.zoom = e.zoom);
+    map.on('zoomanim', e => {
+      this._mapState.zoom = e.zoom;
+    });
 
     this.cursors.addTo(map);
 
@@ -672,7 +685,7 @@ export class MapComponent extends AbstractComponent {
   private initTools(): void {
     const additionsTool = new AdditionsTool(this.mapId);
     this.defaultRightToolsItems.splice(1, 0, this.toMenuItem(additionsTool));
-    this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoom$]), ([map, center, zoom]) => {
+    this.whenVisible.subscribe(combineLatest([this._map$, this._mapState.center$, this._mapState.zoomInt$]), ([map, center, zoom]) => {
       additionsTool.refresh(map, this, this.injector);
     });
 

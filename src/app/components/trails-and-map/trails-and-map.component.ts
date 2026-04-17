@@ -129,7 +129,7 @@ export class TrailsAndMapComponent extends AbstractComponent {
   mapReady = false;
   private mapTrailsReceived = false;
   private initDelayed(): void {
-    const mapZoom$ = this.map$.pipe(switchMap(map => map ? map.getState().zoom$ : of(undefined)));
+    const mapZoom$ = this.map$.pipe(switchMap(map => map ? map.getState().zoomInt$ : of(undefined)));
     this.whenVisible.subscribe(
       combineLatest([
         combineLatest([this.mapTrails$, mapZoom$, this.showBubbles$]).pipe(

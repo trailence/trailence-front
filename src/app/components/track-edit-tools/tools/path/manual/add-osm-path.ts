@@ -52,7 +52,7 @@ export class AddOsmPath extends AddPointsTool {
 
   override enableAddPoints(ctx: AddPointsContext): void {
     if (this.waysSubscription === undefined) {
-      this.waysSubscription = combineLatest([ctx.map.getState().center$, ctx.map.getState().zoom$]).pipe(
+      this.waysSubscription = combineLatest([ctx.map.getState().center$, ctx.map.getState().zoomInt$]).pipe(
         distinctUntilChanged(),
         switchMap(([center, zoom]) => zoom < MIN_ZOOM ? of([]) : ctx.injector.get(GeoService).findWays(ctx.map.getBounds()!)), // NOSONAR
         map(ways => WayUtils.mergeWays(ways)),

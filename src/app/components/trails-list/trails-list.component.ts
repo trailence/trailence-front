@@ -444,7 +444,7 @@ export class TrailsListComponent extends AbstractComponent {
         debounceTime(100),
         switchMap(state => {
           if (!state.filters.onlyVisibleOnMap || !this.map) return of([state, undefined, undefined] as [State, L.LatLngLiteral | undefined, number | undefined]);
-          return combineLatest([this.map.getState().center$, this.map.getState().zoom$]).pipe(
+          return combineLatest([this.map.getState().center$, this.map.getState().zoomInt$]).pipe(
             debounceTime(100),
             map(([mapCenter, mapZoom]) => ([state, mapCenter, mapZoom] as [State, L.LatLngLiteral | undefined, number | undefined]))
           )
