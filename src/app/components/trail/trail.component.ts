@@ -580,9 +580,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
               this.changesDetection.detectChanges();
             });
           }
+          this.trail1WithInfo$.next(trail1[0] ? new TrailWithInfo(trail1[0]) : null);
         }
-        this.trail1WithInfo$.next(trail1[0] ? new TrailWithInfo(trail1[0]) : null);
-        this.trail2WithInfo$.next(trail2[0] ? new TrailWithInfo(trail2[0]) : null);
+        if (this.trail2 !== trail2[0]) {
+          this.trail2WithInfo$.next(trail2[0] ? new TrailWithInfo(trail2[0]) : null);
+        }
         this.recording = recordingWithTrack ? recordingWithTrack.recording : null;
         const tracks: Track[] = [];
         const mapTracks: MapTrack[] = [];

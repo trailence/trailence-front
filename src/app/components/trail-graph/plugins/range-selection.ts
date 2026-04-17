@@ -59,10 +59,11 @@ export class RangeSelection implements C.Plugin<"line"> {
       return;
     }
     const event = args.event;
+    const x = Math.min(Math.max(event.x, chart.chartArea.left), chart.chartArea.right);
     if (event.type === 'mousedown') {
       this.cancelSelection();
       this.selecting = {
-        startX: event.x,
+        startX: x,
         startElements: chart.getActiveElements(),
         endX: -1,
         endElements: undefined,
@@ -71,8 +72,8 @@ export class RangeSelection implements C.Plugin<"line"> {
     } else if (event.type === 'mousemove') {
       if (this.selecting) {
         this.moving = true;
-        if (event.x !== this.selecting.startX || this.selecting.endX !== -1) {
-          this.selecting.endX = event.x;
+        if (x !== this.selecting.startX || this.selecting.endX !== -1) {
+          this.selecting.endX = x;
           this.selecting.endElements = chart.getActiveElements();
           this.onSelecting(this.buildSelectingEvent());
         }
@@ -84,7 +85,7 @@ export class RangeSelection implements C.Plugin<"line"> {
       }
     } else if (event.type === 'mouseup') {
       if (this.selecting && this.moving) {
-        this.selectingUp = {time: Date.now(), x: event.x};
+        this.selectingUp = {time: Date.now(), x: x};
         this.selected = this.selecting;
         this.onSelecting(undefined);
         this.onSelected(this.buildSelectionEvent());

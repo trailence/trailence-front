@@ -1,4 +1,4 @@
-import { BehaviorSubject, combineLatest, EMPTY, Subscription, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, EMPTY, map, of, Subscription, switchMap } from 'rxjs';
 import { PointReference, RangeReference } from 'src/app/model/point-reference';
 import { Track } from 'src/app/model/track';
 import { MapComponent } from '../map/map.component';
@@ -29,7 +29,7 @@ export class TrailSelection {
     this._elevationGraphSelectedSubscription = graph$.pipe(
       switchMap(graph => graph?.selected ?? EMPTY)
     ).subscribe(range => this.graphRange(range));
-    this._mapAnchorSubscription = combineLatest([map$, this.selection$])
+    this._mapAnchorSubscription = combineLatest([map$.pipe(switchMap(m => m ? m.ready$.pipe(map(r => r ? m : undefined)) : of(undefined))), this.selection$])
     .subscribe(([map, sel]) => {
       if (!map) return;
       if (sel && sel.length > 0 && (sel[0] instanceof PointReference)) {
