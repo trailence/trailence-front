@@ -30,7 +30,7 @@ export class CameraService implements ICameraService {
       resultType: CameraResultType.Base64,
       saveToGallery: true,
       source: CameraSource.Camera,
-      correctOrientation: false,
+      correctOrientation: true,
       allowEditing: false,
       quality: 100,
       latitude, longitude

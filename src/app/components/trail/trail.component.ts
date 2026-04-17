@@ -1029,9 +1029,11 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
         );
       })
     );
+    let canDisplayError = true;
     this.byStateAndVisible.subscribe(
       combineLatest([this.trail1$ ?? of(null), this.trail2$ ?? of(null), this.recording$ ?? of(null), this.showPhotos$]).pipe(
         debounceTimeExtended(100, 100, 3),
+        tap(() => canDisplayError = true),
         switchMap(([trail1, trail2, recording, showPhotos]) =>
           combineLatest([
             trail1 ? this.photoService.getTrailPhotos$(trail1) : of([]),
@@ -1105,9 +1107,8 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
       ),
       result => {
         if (!this.map) return;
-        console.log(result);
         const ok = result.filter(m => !!m);
-        if (ok.length !== result.length) {
+        if (ok.length !== result.length && canDisplayError) {
           const noNet = result.filter(m => m === undefined);
           const msg = noNet.length > 0 ? 'photos_error_no_network' : 'photos_error';
           this.injector.get(ToastController).create({
@@ -1115,6 +1116,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
             color: 'danger',
             duration: 5000,
           }).then(t => t.present());
+          canDisplayError = false;
         }
         const alreadyOnMap: string[] = [];
         for (const[key,marker] of photosOnMap) {

@@ -72,7 +72,7 @@ public class ImageUtils {
      * @return
      */
     public static Bitmap correctOrientation(final Context c, final Bitmap bitmap, final Uri imageUri, ExifWrapper exif) throws IOException {
-        final int orientation = getOrientation(c, imageUri);
+        final int orientation = exif.getOrientation();
         if (orientation != 0) {
             Matrix matrix = new Matrix();
             matrix.postRotate(orientation);
@@ -83,27 +83,7 @@ public class ImageUtils {
         }
     }
 
-    private static int getOrientation(final Context c, final Uri imageUri) throws IOException {
-        int result = 0;
-
-        try (InputStream iStream = c.getContentResolver().openInputStream(imageUri)) {
-            final ExifInterface exifInterface = new ExifInterface(iStream);
-
-            final int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-
-            if (orientation == ExifInterface.ORIENTATION_ROTATE_90) {
-                result = 90;
-            } else if (orientation == ExifInterface.ORIENTATION_ROTATE_180) {
-                result = 180;
-            } else if (orientation == ExifInterface.ORIENTATION_ROTATE_270) {
-                result = 270;
-            }
-        }
-
-        return result;
-    }
-
-    public static ExifWrapper getExifData(final Context c, final Bitmap bitmap, final Uri imageUri) {
+    public static ExifWrapper getExifData(final Context c, final Uri imageUri) {
         InputStream stream = null;
         try {
             stream = c.getContentResolver().openInputStream(imageUri);

@@ -43,6 +43,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -300,7 +301,8 @@ public class CameraPlugin extends Plugin {
     }
 
     private void returnResult(PluginCall call, Bitmap bitmap, Uri u) {
-        ExifWrapper exif = ImageUtils.getExifData(getContext(), bitmap, u);
+        ExifWrapper exif = ImageUtils.getExifData(getContext(), u);
+        Bitmap original = bitmap;
         try {
             bitmap = prepareBitmap(bitmap, u, exif);
         } catch (IOException e) {
@@ -357,6 +359,20 @@ public class CameraPlugin extends Plugin {
                   File file = new File(fileToSavePath);
                   File target = new File(file.getParent(), imageFilename + ".jpg");
                   if (file.renameTo(target)) file = target;
+                  if (original != bitmap) {
+                    try (FileOutputStream stream = new FileOutputStream(file)) {
+                      bitmap.compress(Bitmap.CompressFormat.JPEG, settings.getQuality(), stream);
+                    } catch (Exception e) {
+                      Logger.error("Cannot override photo file", e);
+                    }
+                  }
+                  if (settings.hasGeolocation()) {
+                    try (RandomAccessFile f = new RandomAccessFile(file, "rw")) {
+                      new ExifWrapper(new ExifInterface(f.getFD())).setGeolocation(settings.getLatitude(), settings.getLongitude());
+                    } catch (Exception e) {
+                      Logger.error("Cannot save GPS location", e);
+                    }
+                  }
                   String inserted = MediaStore.Images.Media.insertImage(
                       getContext().getContentResolver(),
                       file.getAbsolutePath(),

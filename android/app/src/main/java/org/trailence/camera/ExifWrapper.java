@@ -8,6 +8,7 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public class ExifWrapper {
 
@@ -239,4 +240,21 @@ public class ExifWrapper {
         Logger.error("Cannot save geolocation Exif", e);
       }
     }
+
+    public int getOrientation() {
+      try {
+        final int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+
+        if (orientation == ExifInterface.ORIENTATION_ROTATE_90)
+          return 90;
+        if (orientation == ExifInterface.ORIENTATION_ROTATE_180)
+          return 180;
+        if (orientation == ExifInterface.ORIENTATION_ROTATE_270)
+          return 270;
+      } catch(Exception e){
+        Logger.error("Cannot read orientation", e);
+      }
+      return 0;
+    }
+
 }
