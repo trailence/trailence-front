@@ -237,12 +237,12 @@ export class PreferencesPage implements OnDestroy {
 
   removeAllCachedPhotos(): void {
     this.photoCacheSize = undefined;
-    this.photoService.removeAllCached().subscribe(() => this.updatePhotoCacheSize());
+    this.photoService.removeAllCachedFiles().subscribe(() => this.updatePhotoCacheSize());
   }
 
   removeExpiredPhotos(): void {
     this.photoCacheSize = undefined;
-    this.photoService.removeExpired().subscribe(() => this.updatePhotoCacheSize());
+    this.photoService.removeExpiredFiles().subscribe(() => this.updatePhotoCacheSize());
   }
 
   private updatePhotoCacheSize(): void {

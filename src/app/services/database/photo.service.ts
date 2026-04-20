@@ -166,7 +166,6 @@ export class PhotoService {
       switchMap(imported => {
         return this.injector.get(StoredFilesService).store(owner, 'photo', imported.photo.uuid, imported.blob).pipe(
           switchMap(result => {
-            if (result === undefined) return of(null);
             if (fromModeration) return this.injector.get(ModerationService).createPhoto(imported.photo, imported.blob);
             if (fromRecording) return from(this.injector.get(TraceRecorderService).storePhoto(imported.photo, imported.blob));
             return this.store.create(imported.photo);
@@ -194,14 +193,13 @@ export class PhotoService {
 
   public updateFile(photo: Photo, blob: Blob, ondone?: () => void): void {
     this.delete(photo, () => {
-      this.injector.get(StoredFilesService).delete(photo.owner, 'photo', photo.uuid)
-      .then(() => blob.arrayBuffer())
-      .then(content => {
-        this.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover, photo.fromModeration, photo.fromRecording)
-        .pipe(first()).subscribe(() => {
-          if (ondone) ondone();
-        });
-      })
+      this.injector.get(StoredFilesService).deleteFile(photo.owner, 'photo', photo.uuid).pipe(
+        switchMap(() => from(blob.arrayBuffer())),
+        switchMap(content =>  this.addPhoto(photo.owner, photo.trailUuid, photo.description, photo.index, content, photo.dateTaken, photo.latitude, photo.longitude, photo.isCover, photo.fromModeration, photo.fromRecording)),
+        first()
+      ).subscribe(() => {
+        if (ondone) ondone();
+      });
     });
   }
 
@@ -274,10 +272,10 @@ export class PhotoService {
     return this.injector.get(StoredFilesService).getTotalSize('photo', maxDateStored, 20);
   }
 
-  public removeAllCached(): Observable<any> {
+  public removeAllCachedFiles(): Observable<any> {
     return this.store.getAll$().pipe(
       collection$items(),
-      switchMap(items => this.injector.get(StoredFilesService).removeAll('photo', (owner, uuid) => {
+      switchMap(items => this.injector.get(StoredFilesService).removeAllFiles('photo', (owner, uuid) => {
         const item = items.find(p => p.owner === owner && p.uuid === uuid);
         if (!item) return false;
         return !item.isSavedOnServerAndNotDeletedLocally() || this.store.itemUpdatedLocally(owner, uuid);
@@ -285,8 +283,8 @@ export class PhotoService {
     );
   }
 
-  public removeExpired(): Observable<any> {
-    return this.injector.get(StoredFilesService).cleanExpired('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays);
+  public removeExpiredFiles(): Observable<any> {
+    return this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays);
   }
 
 }
@@ -401,7 +399,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
 
   protected override deleted(deleted: {item$: BehaviorSubject<Photo | null> | undefined, item: Photo}[]): void {
     super.deleted(deleted);
-    this.files.deleteMany('photo', deleted.map(d => ({owner: d.item.owner, uuid: d.item.uuid})));
+    this.files.deleteFiles('photo', deleted.map(d => ({owner: d.item.owner, uuid: d.item.uuid}))).subscribe();
   }
 
   protected override doCleaning(email: string, db: Dexie): Observable<any> {
@@ -411,10 +409,11 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
     ]).pipe(
       first(),
       switchMap(([photos, trails]) => {
-        return new Observable<any>(subscriber => {
+        const knownPhotos = photos.map(p => ({owner: p.owner, uuid: p.uuid}));
+        return new Observable<{owner: string, uuid: string}[] | undefined>(subscriber => {
           const dbService = this.injector.get(DatabaseService);
           if (db !== dbService.db?.db || email !== dbService.email) {
-            subscriber.next(false);
+            subscriber.next(undefined);
             subscriber.complete();
             return;
           }
@@ -422,7 +421,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
           let count = 0;
           const ondone = new CompositeOnDone(() => {
             Console.info('Photos database cleaned: ' + count + ' removed');
-            subscriber.next(true);
+            subscriber.next(knownPhotos);
             subscriber.complete();
           });
           for (const photo of photos) {
@@ -448,9 +447,14 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
       })
     );
 
-    const filesCleant$ = this.injector.get(StoredFilesService).cleanExpired('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays);
-
-    return photosCleant$.pipe(switchMap(() => filesCleant$));
+    return photosCleant$.pipe(
+      switchMap(references => {
+        if (!references) return of(undefined);
+        return this.injector.get(StoredFilesService).cleanExpiredFiles('photo', Date.now() - this.injector.get(PreferencesService).preferences.photoCacheDays).pipe(
+          switchMap(() => this.injector.get(StoredFilesService).cleanUnreferencedFiles('photo', references, Date.now() - 3 * 24 * 60 * 60 * 1000)),
+        );
+      })
+    );
   }
 
 }

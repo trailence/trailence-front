@@ -1,162 +1,76 @@
-import { Injectable } from '@angular/core';
-import { from, Observable, of, throwError, throwIfEmpty } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
-import Dexie, { Table } from 'dexie';
-import { Console } from 'src/app/utils/console';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Injectable, Injector } from '@angular/core';
+import { Observable, reduce } from 'rxjs';
+import { FileStorage } from '../local-files/local-files.service';
 
 @Injectable({providedIn: 'root'})
 export class StoredFilesService {
 
+  private readonly storage: FileStorage;
+
   constructor(
-    auth: AuthService,
+    injector: Injector,
   ) {
-    auth.userChanged$.subscribe(
-      auth => {
-        if (auth) this.open(auth.email);
-        else this.close();
-      }
-    );
-  }
-
-  public getFile$(owner: string, type: string, uuid: string): Observable<Blob> {
-    if (!this.table) return throwError(() => new Error('File database not open'));
-    return from(this.table.where('key').equals(this.getKey(owner, type, uuid)).first().then(entry => entry?.blob)).pipe(
-      filterDefined(),
-      throwIfEmpty(() => new Error('File ' + this.getKey(owner, type, uuid) + ' not found'))
-    );
-  }
-
-  public isStored$(owner: string, type: string, uuid: string): Observable<boolean> {
-    if (!this.table) return of(false);
-    return from(this.table.where('key').equals(this.getKey(owner, type, uuid)).primaryKeys().then(pks => pks.length > 0));
-  }
-
-  public store(owner: string, type: string, uuid: string, blob: Blob): Observable<any> {
-    if (!this.table) return of(undefined);
-    const key = this.getKey(owner, type, uuid);
-    return from(this.table.add({key, blob, dateStored: Date.now()}, key));
-  }
-
-  public delete(owner: string, type: string, uuid: string): Promise<any> {
-    if (this.table) return this.table.delete(this.getKey(owner, type, uuid));
-    return Promise.resolve();
-  }
-
-  public deleteMany(type: string, toDelete: {owner: string, uuid: string}[]): void {
-    if (this.table && toDelete.length > 0) {
-      const keys = toDelete.map(d => this.getKey(d.owner, type, d.uuid));
-      this.table.bulkDelete(keys);
-    }
+    this.storage = new FileStorage(injector, 'trailence_files', true, 'files', 'key', 'key', 'blob');
   }
 
   private getKey(owner: string, type: string, uuid: string): string {
     return owner + '#' + type + '#' + uuid;
   }
 
+  public getFile$(owner: string, type: string, uuid: string): Observable<Blob> {
+    return this.storage.getBlobByKey(this.getKey(owner, type, uuid));
+  }
+
+  public isStored$(owner: string, type: string, uuid: string): Observable<boolean> {
+    return this.storage.blobExists(this.getKey(owner, type, uuid));
+  }
+
+  public store(owner: string, type: string, uuid: string, blob: Blob): Observable<any> {
+    const key = this.getKey(owner, type, uuid);
+    return this.storage.storeBlob({key, blob, dateStored: Date.now()});
+  }
+
+  public deleteFile(owner: string, type: string, uuid: string): Observable<any> {
+    return this.storage.deleteEntry(this.getKey(owner, type, uuid));
+  }
+
+  public deleteFiles(type: string, toDelete: {owner: string, uuid: string}[]): Observable<any> {
+    const keys = toDelete.map(d => this.getKey(d.owner, type, d.uuid));
+    return this.storage.deleteEntries(keys);
+  }
+
   public getTotalSize(type: string, maxDateStored: number, chunk: number = 100): Observable<[number,number]> {
-    if (!this.table) return of([0,0]);
-    const t = this.table;
-    return from(t.toCollection().primaryKeys()
-    .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
-    .then(keys => {
-      if (keys.length === 0 || t !== this.table) return Promise.resolve([0,0]) as Promise<[number,number]>; // NOSONAR
-      const next: (i:number,total1:number,total2:number) => Promise<[number,number]> = (i, total1, total2) => {
-        if (t !== this.table) return Promise.resolve([total1, total2]);
-        const end = Math.min(i + chunk, keys.length);
-        let next$: Promise<[number,number]> = t.bulkGet(keys.slice(i, end))
-        .then(dtos => {
-          let nt1 = total1;
-          let nt2 = total2;
-          for (const dto of dtos) {
-            if (!dto) continue;
-            const s = dto.blob.size;
-            nt1 += s;
-            nt2 += (!dto.dateStored || dto.dateStored < maxDateStored ? s : 0);
-          }
-          return [nt1, nt2];
-        });
-        if (end < keys.length) next$ = next$.then(([t1,t2]) => next(end, t1, t2));
-        return next$;
-      }
-      return next(0,0,0);
-    }));
+    return this.storage.listContentWithSize(chunk, key => key.indexOf('#' + type + '#') > 0).pipe(
+      reduce((acc, value) => {
+        let nt1 = acc[0];
+        let nt2 = acc[1];
+        for (const v of value) {
+          nt1 += v.size;
+          nt2 += (!v.dto.dateStored || v.dto.dateStored < maxDateStored ? v.size : 0);
+        }
+        return [nt1, nt2];
+      }, ([0, 0]))
+    );
   }
 
-  public cleanExpired(type: string, maxDateStored: number): Observable<any> {
-    if (!this.table) return of(null);
-    const t = this.table;
-    return from(t.toCollection().primaryKeys()
-    .then(keys => keys.filter(k => k.indexOf('#' + type + '#') > 0))
-    .then(keys => {
-      if (keys.length === 0 || t !== this.table) return [];
-      const next: (i:number,toRemove:string[]) => Promise<string[]> = (i,toRemove) => {
-        if (t !== this.table) return Promise.resolve([] as string[]);
-        let next$ = t.get(keys[i])
-        .then(dto => {
-          if (!dto) return toRemove;
-          if (!dto.dateStored || dto.dateStored < maxDateStored) return [...toRemove, keys[i]];
-          return toRemove;
-        });
-        if (i < keys.length - 1) next$ = next$.then(list => next(i + 1, list));
-        return next$;
-      }
-      return next(0,[]);
-    }).then(toRemove => {
-      if (t !== this.table) return;
-      Console.info('Cleaning', type, toRemove.length);
-      return t.bulkDelete(toRemove);
-    }));
+  public cleanExpiredFiles(type: string, maxDateStored: number): Observable<any> {
+    return this.storage.deleteWhen(25, k => k.indexOf('#' + type + '#') > 0, dto => !dto.dateStored || dto.dateStored < maxDateStored);
   }
 
-  public removeAll(type: string, filterExclude: (owner: string, uuid: string) => boolean): Observable<any> {
-    if (!this.table) return of(null);
-    const t = this.table;
-    return from(t.toCollection().primaryKeys()
-    .then(keys => keys.filter(k => {
+  public cleanUnreferencedFiles(type: string, references: {owner: string, uuid: string}[], maxDateStored: number): Observable<any> {
+    const keys = references.map(r => this.getKey(r.owner, type, r.uuid));
+    return this.storage.deleteWhen(25, k => !keys.includes(k) && k.indexOf('#' + type + '#') > 0, dto => dto.dateStored && dto.dateStored < maxDateStored);
+  }
+
+  public removeAllFiles(type: string, filterExclude: (owner: string, uuid: string) => boolean): Observable<any> {
+    return this.storage.deleteWhen(25, k => {
       const i = k.indexOf('#' + type + '#');
       if (i < 0) return false;
       const owner = k.substring(0, i);
       const uuid = k.substring(i + type.length + 2);
       if (filterExclude(owner, uuid)) return false;
       return true;
-    }))
-    .then(toRemove => {
-      if (t !== this.table) return;
-      Console.info('Removing files', type, toRemove.length);
-      return t.bulkDelete(toRemove);
-    }));
+    });
   }
 
-  private db?: Dexie;
-  private openEmail?: string;
-  private table?: Table<StoredFileDto, string>;
-
-  private close() {
-    if (this.db) {
-      Console.info('Close files DB')
-      this.db.close();
-      this.openEmail = undefined;
-      this.db = undefined;
-    }
-  }
-
-  private open(email: string): void {
-    if (this.openEmail === email) return;
-    this.close();
-    Console.info('Open files DB for user ' + email);
-    this.openEmail = email;
-    const db = new Dexie('trailence_files_' + email);
-    const schemaV1: any = {};
-    schemaV1['files'] = 'key';
-    db.version(1).stores(schemaV1);
-    this.table = db.table<StoredFileDto, string>('files');
-    this.db = db;
-  }
-}
-
-interface StoredFileDto {
-  key: string;
-  blob: Blob;
-  dateStored: number;
 }

@@ -153,6 +153,10 @@
                   "with": "capacitor/services/update/update.service.ts"
                 },
                 {
+                  "replace": "src/app/services/local-files/local-files.ts",
+                  "with": "capacitor/services/local-files/local-files.ts"
+                },
+                {
                   "replace": "src/app/services/trailence.service.ts",
                   "with": "capacitor/services/trailence.service.ts"
                 },
@@ -195,6 +199,10 @@
                 {
                   "replace": "src/app/services/update/update.service.ts",
                   "with": "capacitor/services/update/update.service.ts"
+                },
+                {
+                  "replace": "src/app/services/local-files/local-files.ts",
+                  "with": "capacitor/services/local-files/local-files.ts"
                 },
                 {
                   "replace": "src/app/services/trailence.service.ts",
@@ -241,6 +249,10 @@
                   "with": "capacitor/services/update/update.service.ts"
                 },
                 {
+                  "replace": "src/app/services/local-files/local-files.ts",
+                  "with": "capacitor/services/local-files/local-files.ts"
+                },
+                {
                   "replace": "src/app/services/trailence.service.ts",
                   "with": "capacitor/services/trailence.service.ts"
                 },
@@ -283,6 +295,10 @@
                 {
                   "replace": "src/app/services/update/update.service.ts",
                   "with": "capacitor/services/update/no-update.service.ts"
+                },
+                {
+                  "replace": "src/app/services/local-files/local-files.ts",
+                  "with": "capacitor/services/local-files/local-files.ts"
                 },
                 {
                   "replace": "src/app/services/trailence.service.ts",
@@ -329,6 +345,10 @@
                   "with": "capacitor/services/update/no-update.service.ts"
                 },
                 {
+                  "replace": "src/app/services/local-files/local-files.ts",
+                  "with": "capacitor/services/local-files/local-files.ts"
+                },
+                {
                   "replace": "src/app/services/trailence.service.ts",
                   "with": "capacitor/services/trailence.service.ts"
                 },
@@ -371,6 +391,10 @@
                 {
                   "replace": "src/app/services/update/update.service.ts",
                   "with": "capacitor/services/update/no-update.service.ts"
+                },
+                {
+                  "replace": "src/app/services/local-files/local-files.ts",
+                  "with": "capacitor/services/local-files/local-files.ts"
                 },
                 {
                   "replace": "src/app/services/trailence.service.ts",

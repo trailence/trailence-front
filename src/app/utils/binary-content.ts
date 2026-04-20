@@ -76,7 +76,7 @@ export class BinaryContent {
       return Promise.resolve(this.blob);
     }
     if (this.base64) {
-      this.blob = this.b64toBlob(this.base64, this.contentType);
+      this.blob = BinaryContent.b64toBlob(this.base64, this.contentType);
       return Promise.resolve(this.blob);
     }
     return Promise.reject("Unexpected data type");
@@ -103,7 +103,7 @@ export class BinaryContent {
     return Promise.reject("Unexpected data type");
   }
 
-  public toUint8Array(): Promise<Uint8Array> {
+  public toUint8Array(): Promise<Uint8Array<ArrayBufferLike>> {
     if (this.uint8Array) {
       return Promise.resolve(this.uint8Array);
     }
@@ -135,7 +135,15 @@ export class BinaryContent {
     return this.base64!;
   }
 
-  private b64toBlob(b64Data: string, contentType: string = '', sliceSize: number = 512) {
+  public getSize(): number {
+    if (this.buffer) return this.buffer.byteLength;
+    if (this.blob) return this.blob.size;
+    if (this.uint8Array) return this.uint8Array.byteLength;
+    this.uint8Array = Uint8Array.from(atob(this.base64!), c => c.charCodeAt(0)); // NOSONAR
+    return this.uint8Array.byteLength;
+  }
+
+  public static b64toBlob(b64Data: string, contentType: string = '', sliceSize: number = 512) {
     const byteCharacters = atob(b64Data);
     const byteArrays = [];
 

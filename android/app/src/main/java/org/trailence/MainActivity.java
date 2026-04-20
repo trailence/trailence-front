@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import org.trailence.camera.CameraPlugin;
 import org.trailence.geolocation.BackgroundGeolocation;
+import org.trailence.storage.LocalFilesPlugin;
 
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -25,6 +26,7 @@ public class MainActivity extends BridgeActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     registerPlugin(TrailencePlugin.class);
+    registerPlugin(LocalFilesPlugin.class);
     registerPlugin(BackgroundGeolocation.class);
     registerPlugin(CameraPlugin.class);
     super.onCreate(savedInstanceState);
