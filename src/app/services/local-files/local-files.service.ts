@@ -5,7 +5,7 @@ import LocalFiles from './local-files';
 import { AuthService } from '../auth/auth.service';
 import { Console } from 'src/app/utils/console';
 import Dexie, { Table } from 'dexie';
-import { BehaviorSubject, debounceTime, filter, from, map, Observable, of, Subscription, switchMap, tap, throwError, throwIfEmpty } from 'rxjs';
+import { BehaviorSubject, debounceTime, filter, first, from, map, Observable, of, Subscription, switchMap, tap, throwIfEmpty } from 'rxjs';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -478,7 +478,7 @@ export class FileStorage {
 
   private onReady(): Observable<Table> {
     const email = this.openEmail;
-    return this.ready$.pipe(filter(r => r && email === this.openEmail), map(() => this.table!));
+    return this.ready$.pipe(filter(r => r && email === this.openEmail), map(() => this.table!), first());
   }
 
   public getBlobByKey(key: string, contentType?: string): Observable<Blob> {
@@ -589,7 +589,7 @@ export class FileStorage {
             subscriber.next(n);
             if (end < keys.length) next(end);
             else subscriber.complete();
-          })
+          });
         }
         next(0);
       });

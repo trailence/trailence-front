@@ -49,7 +49,7 @@ export class StoredFilesService {
           nt2 += (!v.dto.dateStored || v.dto.dateStored < maxDateStored ? v.size : 0);
         }
         return [nt1, nt2];
-      }, ([0, 0]))
+      }, ([0, 0])),
     );
   }
 
