@@ -84,7 +84,7 @@ export class MapLayersService {
       }
     );
     this.possibleLayers = [
-      'osm', 'osmfr', 'otm', 'ign', 'ign-sat',
+      'osm', 'osmfr', 'otm', 'cyclosm', 'ign', 'ign-sat',
       'kartverket', 'swiss-topo', 'usgs-topo', 'usgs-sat', 'ngi-be-topo', 'lantmateriet',
       'tfo'
     ];
