@@ -1149,8 +1149,7 @@
     "padding_explaination_for_trail": "Percentage of the area to download in around the track area (100% means only the track area). Allows you to see more around the track in offline mode.",
     "padding_explaination_for_map": "Percentage of the area to download in around the currently displayed area (100% means only the track area). Allows you to see a larger area in offline mode.",
     "downloading": {
-      "progress_title": "Downloading from {{1}}",
-      "calculating": "Calculation of items to download"
+      "progress_title": "Downloading from {{1}}"
     }
   },
   "layers_popup": {

@@ -5,7 +5,7 @@ import { filterItemsDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrackService } from '../database/track.service';
 import { ModalController } from '@ionic/angular/standalone';
 
-export function openMapDownloadDialog(injector: Injector, trails: Trail[], bounds?: L.LatLngBounds) {
+export function openMapDownloadDialog(injector: Injector, trails: Trail[], bounds?: L.LatLngBounds, layer?: string) {
   const tracks$ = trails.length === 0 ? of([]) : combineLatest(trails.map(trail =>
     injector.get(TrackService).getFullTrackReady$(trail.currentTrackUuid, trail.owner).pipe(catchError(() => of(null)))
   )).pipe(
@@ -21,6 +21,7 @@ export function openMapDownloadDialog(injector: Injector, trails: Trail[], bound
       componentProps: {
         tracks,
         bounds,
+        layer,
       }
     });
     modal.present();

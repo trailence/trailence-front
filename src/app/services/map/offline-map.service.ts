@@ -1,7 +1,7 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import * as L from 'leaflet';
 import { AuthService } from '../auth/auth.service';
-import Dexie from 'dexie';
+import Dexie, { Table } from 'dexie';
 import { MapLayer, MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -16,6 +16,7 @@ import { Console } from 'src/app/utils/console';
 import { GeoService, OverpassResponse, POI } from '../geolocation/geo.service';
 import { Way, WayPermission } from '../geolocation/way';
 import { OverpassClient } from '../geolocation/overpass-client.service';
+import { calculateTilesFromBounds, calculateTilesFromPaths } from './calculate-tiles';
 
 interface TileMetadata {
   key: string;
@@ -202,14 +203,34 @@ export class OfflineMapService {
   }
 
 
-  public save( // NOSONAR
-    layer: MapLayer, crs: L.CRS, tileLayer: L.TileLayer, minZoom: number, maxZoom: number, bounds: L.LatLngBounds[], paths: L.LatLngExpression[], pathAroundMeters: number
-  ): void {
+  public save(layer: MapLayer, crs: L.CRS, tileLayer: L.TileLayer, toDownload: Map<number, L.Point[]>): void {
     if (!this._db) return;
-    new Saver(this._db, layer, crs, tileLayer, minZoom, maxZoom, bounds, paths, pathAroundMeters, this.injector).start();
+    new Saver(this._db, layer, crs, tileLayer, toDownload, this.injector).start();
+
+  }
+
+  public saveOsm(bounds: L.LatLngBounds[]): void {
     for (const b of bounds) {
       this.getOverpassElementsFromOsm(b, true, true, true, true, true, true);
     }
+  }
+
+  public getTilesToDownload(tiles: L.Point[], zoomLevel: number, layerName: string): Promise<L.Point[]> {
+    if (!this._db) return Promise.resolve([]);
+    const maxCacheValidDate = Date.now() - this.injector.get(PreferencesService).preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000;
+    const metaTable = this._db.table<TileMetadata>(layerName + '_meta');
+    const toSearch = tiles.map(tile => '' + zoomLevel + '_' + tile.y + '_' + tile.x);
+    return metaTable.where('key').anyOf(toSearch).toArray()
+    .then(metas => {
+      const byKey = new Map<string, TileMetadata>(metas.map(m => [m.key, m]));
+      const result: L.Point[] = [];
+      for (const tile of tiles) {
+        const key = '' + zoomLevel + '_' + tile.y + '_' + tile.x;
+        const meta = byKey.get(key);
+        if (!meta || meta.date <= maxCacheValidDate) result.push(tile);
+      }
+      return result;
+    })
   }
 
   public getTile(layerName: string, coords: L.Coords): Observable<BinaryContent | undefined> {
@@ -364,11 +385,7 @@ class Saver {
     private readonly layer: MapLayer,
     private readonly crs: L.CRS,
     private readonly tileLayer: L.TileLayer,
-    private readonly minZoom: number,
-    private readonly maxZoom: number,
-    private readonly bounds: L.LatLngBounds[],
-    private readonly paths: L.LatLngExpression[],
-    private readonly pathAroundMeters: number,
+    private readonly toDownload: Map<number, L.Point[]>,
     private readonly injector: Injector,
   ) {
     this.limiter = new RequestLimiter(layer.maxConcurrentRequests);
@@ -379,18 +396,20 @@ class Saver {
       this.limiter.cancel();
       this.progress.done();
     });
-    this.currentZoom = minZoom;
-    this.maxCacheValidDate = Date.now() - injector.get(PreferencesService).preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000;
+    this.zooms = Array.from(toDownload.keys()).sort((a, b) => a - b);
+    this.currentZoom = 0;
   }
+
+  private readonly zooms: number[];
 
   public start(): void {
     setTimeout(() => {
-      this.process(this.minZoom)
+      this.process(0)
       .then(() => {
         // TODO retry errors
         this.progress.done();
         let nbErrors = 0;
-        for (const [zoom, tiles] of this.errorsByZoom) {
+        for (const [_, tiles] of this.errorsByZoom) {
           nbErrors += tiles.length;
         }
         if (nbErrors > 0) this.injector.get(ErrorService).addError(new I18nError('errors.download_offline_map', [nbErrors]));
@@ -405,135 +424,15 @@ class Saver {
 
   private cancelled = false;
   private currentZoom: number;
-  private readonly maxCacheValidDate: number;
   private readonly errorsByZoom = new Map<number, L.Point[]>();
 
-  private process(zoomLevel: number): Promise<any> {
-    this.currentZoom = zoomLevel;
-    return this.processCurrentZoom()
+  private process(zoomIndex: number): Promise<any> {
+    this.currentZoom = zoomIndex;
+    const zoomLevel = this.zooms[zoomIndex];
+    return this.downloadTiles(zoomLevel, this.toDownload.get(zoomLevel)!)
     .then(() => {
-      if (this.currentZoom === this.maxZoom || this.cancelled) return;
+      if (this.currentZoom === this.zooms.length - 1 || this.cancelled) return;
       return this.process(this.currentZoom + 1);
-    })
-  }
-
-  private processCurrentZoom(): Promise<any> {
-    return this.calculateTilesCurrentZoom()
-    .then(tiles => {
-      if (tiles.length === 0) return Promise.resolve();
-      return this.downloadTiles(this.currentZoom, tiles);
-    })
-  }
-
-  private calculateTilesCurrentZoom(): Promise<L.Point[]> {
-    const workAmount = this.getCalculationWorkAmount(this.currentZoom) + this.getCheckExistingsWorkAmount(this.currentZoom);
-    this.progress.workDone = 0;
-    this.progress.workAmount = workAmount + 1;
-    this.progress.subTitle = 'Zoom ' + this.currentZoom + ': ' + this.i18n.texts.offline_map.downloading.calculating;
-    const calculation$ = this.currentZoom <= 17 || this.paths.length === 0 ? this.calculateTilesFromBounds(this.currentZoom, this.bounds) : this.calculateTilesFromPaths(this.currentZoom, this.paths);
-    return calculation$.then(tiles => {
-      if (this.cancelled) return [];
-      return this.checkExistingTiles(tiles, this.currentZoom);
-    });
-  }
-
-  private getCalculationWorkAmount(zoomLevel: number): number {
-    return zoomLevel <= 17 ? zoomLevel * zoomLevel + 1 : zoomLevel * zoomLevel * 2;
-  }
-
-  private addPoints(points: L.Point[], area: L.Bounds): void {
-    if (area.min && area.max) {
-      const topLeftTile = area.min.divideBy(this.layer.tileSize).floor();
-      const bottomRightTile = area.max.divideBy(this.layer.tileSize).floor();
-
-      for (let y = topLeftTile.y; y <= bottomRightTile.y; ++y) {
-        for (let x = topLeftTile.x; x <= bottomRightTile.x; ++x) {
-          if (!points.some(p => p.x === x && p.y === y))
-            points.push(new L.Point(x, y));
-        }
-      }
-    }
-  }
-
-  private calculateTilesFromBounds(zoomLevel: number, bounds: L.LatLngBounds[]): Promise<L.Point[]> {
-    const points: L.Point[] = [];
-    let work = this.getCalculationWorkAmount(zoomLevel);
-    const nextBound = (boundIndex: number) => new Promise<L.Point[]>(resolve => {
-      if (this.cancelled) {
-        resolve([]);
-        return;
-      }
-      if (boundIndex >= bounds.length) {
-        this.progress.addWorkDone(work);
-        resolve(points);
-        return;
-      }
-      const bound = bounds[boundIndex];
-      const area = L.bounds(
-        this.crs.latLngToPoint(bound.getNorthWest(), zoomLevel),
-        this.crs.latLngToPoint(bound.getSouthEast(), zoomLevel)
-      );
-      this.addPoints(points, area);
-      const amountDone = Math.floor(work / (bounds.length - boundIndex));
-      this.progress.addWorkDone(amountDone);
-      work -= amountDone;
-      setTimeout(() => nextBound(boundIndex + 1).then(resolve), 0);
-    });
-    return nextBound(0);
-  }
-
-  private calculateTilesFromPaths(zoomLevel: number, paths: L.LatLngExpression[]): Promise<L.Point[]> {
-    let work = this.getCalculationWorkAmount(zoomLevel);
-    const points: L.Point[] = [];
-    const samplePoint = this.crs.latLngToPoint(paths[0], zoomLevel);
-    const pixelLatDistance = this.crs.pointToLatLng(L.point(samplePoint.x, samplePoint.y + 1), zoomLevel).distanceTo(paths[0]);
-    const pixelLngDistance = this.crs.pointToLatLng(L.point(samplePoint.x + 1, samplePoint.y), zoomLevel).distanceTo(paths[0]);
-    const latPixels = Math.round(this.pathAroundMeters / pixelLatDistance) + 1;
-    const lngPixels = Math.round(this.pathAroundMeters / pixelLngDistance) + 1;
-
-    const computeNextPoints = (index: number) => new Promise<L.Point[]>(resolve => {
-      if (this.cancelled) {
-        resolve([]);
-        return;
-      }
-      const nbPoints = Math.min(100, paths.length - index);
-      const workAmount = index + nbPoints === paths.length ? work : nbPoints * work / (paths.length - index);
-      work -= workAmount;
-      for (let i = index; i < index + nbPoints; ++i) {
-        const pos = paths[i];
-        const point = this.crs.latLngToPoint(pos, zoomLevel);
-        const northWest = L.point(point.x - lngPixels, point.y - latPixels);
-        const southEast = L.point(point.x + lngPixels, point.y + latPixels);
-        const area = L.bounds(northWest, southEast);
-        this.addPoints(points, area);
-      }
-      this.progress.addWorkDone(workAmount);
-      if (index + nbPoints === paths.length) {
-        resolve(points);
-      } else {
-        setTimeout(() => computeNextPoints(index + nbPoints).then(resolve), 0);
-      }
-    });
-    return computeNextPoints(0);
-  }
-
-  private getCheckExistingsWorkAmount(zoomLevel: number) {
-    return zoomLevel * zoomLevel + 1;
-  }
-
-  private checkExistingTiles(tiles: L.Point[], zoomLevel: number): Promise<L.Point[]> {
-    const metaTable = this.db.table<TileMetadata>(this.layer.name + '_meta');
-    return metaTable.bulkGet(tiles.map(tile => this.getDbKey(tile.x, tile.y, zoomLevel)))
-    .then(metas => {
-      if (this.cancelled) return [];
-      const result: L.Point[] = [];
-      for (let i = 0; i < tiles.length; ++i) {
-        const meta = metas[i];
-        if (meta && meta.date > this.maxCacheValidDate) continue; // already there
-        result.push(tiles[i]);
-      }
-      this.progress.addWorkDone(this.getCheckExistingsWorkAmount(zoomLevel));
-      return result;
     })
   }
 

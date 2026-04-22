@@ -1532,7 +1532,7 @@ export class TrailComponent extends AbstractComponent implements AfterContentChe
   downloadMap(): void {
     if (this.trail1) {
       const trail = this.trail1;
-      import('../../services/functions/map-download').then(m => m.openMapDownloadDialog(this.injector, [trail]));
+      import('../../services/functions/map-download').then(m => m.openMapDownloadDialog(this.injector, [trail], undefined, this.map$.value?.getState().tilesName));
     }
   }
 

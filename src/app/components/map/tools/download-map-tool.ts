@@ -15,7 +15,7 @@ export class DownloadMapTool extends MapTool {
     this.disabled = (map: L.Map, mapComponent: MapComponent, injector: Injector) => map.getZoom() < 12;
     this.execute = (map: L.Map, mapComponent: MapComponent, injector: Injector) => {
       import('../../../services/functions/map-download')
-      .then(m => m.openMapDownloadDialog(injector, trail ? [trail] : [], map.getBounds()));
+      .then(m => m.openMapDownloadDialog(injector, trail ? [trail] : [], map.getBounds(), mapComponent.getState().tilesName));
       return of(true);
     };
   }
