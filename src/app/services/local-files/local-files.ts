@@ -2,6 +2,7 @@ const notSupported = () => Promise.reject(new Error('not supported'));
 const LocalFiles = {
 
   fileExists: notSupported as (call: {dir: string, filename: string}) => Promise<{exists: boolean}>,
+  filesExist: notSupported as (call: {dir: string, files: string[]}) => Promise<{exist: boolean[]}>,
   getFilesSize: notSupported as (call: {dir: string, files: string[]}) => Promise<{files: {filename: string, size: number}[]}>,
 
   deleteFile: notSupported as (call: {dir: string, filename: string}) => Promise<any>,

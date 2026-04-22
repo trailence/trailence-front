@@ -3,6 +3,7 @@ import { registerPlugin } from '@capacitor/core';
 export interface LocalFilesPlugin {
 
   fileExists(call: {dir: string, filename: string}): Promise<{exists: boolean}>;
+  filesExist(call: {dir: string, files: string[]}): Promise<{exist: boolean[]}>;
   getFilesSize(call: {dir: string, files: string[]}): Promise<{files: {filename: string, size: number}[]}>;
 
   deleteFile(call: {dir: string, filename: string}): Promise<any>;

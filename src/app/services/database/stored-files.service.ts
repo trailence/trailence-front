@@ -1,16 +1,26 @@
 import { Injectable, Injector } from '@angular/core';
 import { Observable, reduce } from 'rxjs';
-import { FileStorage } from '../local-files/local-files.service';
+import { Db } from './storage/db';
+import { DbTableWithBlob } from './storage/db-table-with-blob';
+
+interface StoredFileDto {
+  key: string;
+  dateStored: number | undefined;
+  blob: Blob | undefined;
+}
 
 @Injectable({providedIn: 'root'})
 export class StoredFilesService {
 
-  private readonly storage: FileStorage;
+  private readonly db: Db;
+  private readonly table: DbTableWithBlob<StoredFileDto>;
 
   constructor(
     injector: Injector,
   ) {
-    this.storage = new FileStorage(injector, 'trailence_files', true, 'files', 'key', 'key', 'blob');
+    this.table = new DbTableWithBlob<StoredFileDto>(injector, 'files', 'key', 'key', 'blob', () => 'image/jpeg');
+    this.db = new Db(injector, 'trailence_files', true, [this.table]);
+    this.db.start();
   }
 
   private getKey(owner: string, type: string, uuid: string): string {
@@ -18,29 +28,29 @@ export class StoredFilesService {
   }
 
   public getFile$(owner: string, type: string, uuid: string): Observable<Blob> {
-    return this.storage.getBlobByKey(this.getKey(owner, type, uuid));
+    return this.table.getBlobByKey$(this.getKey(owner, type, uuid));
   }
 
   public isStored$(owner: string, type: string, uuid: string): Observable<boolean> {
-    return this.storage.blobExists(this.getKey(owner, type, uuid));
+    return this.table.blobExists$(this.getKey(owner, type, uuid));
   }
 
   public store(owner: string, type: string, uuid: string, blob: Blob): Observable<any> {
     const key = this.getKey(owner, type, uuid);
-    return this.storage.storeBlob({key, blob, dateStored: Date.now()});
+    return this.table.addOne$({key, blob, dateStored: Date.now()});
   }
 
   public deleteFile(owner: string, type: string, uuid: string): Observable<any> {
-    return this.storage.deleteEntry(this.getKey(owner, type, uuid));
+    return this.table.deleteOne$(this.getKey(owner, type, uuid));
   }
 
   public deleteFiles(type: string, toDelete: {owner: string, uuid: string}[]): Observable<any> {
     const keys = toDelete.map(d => this.getKey(d.owner, type, d.uuid));
-    return this.storage.deleteEntries(keys);
+    return this.table.deleteMany$(keys);
   }
 
   public getTotalSize(type: string, maxDateStored: number, chunk: number = 100): Observable<[number,number]> {
-    return this.storage.listContentWithSize(chunk, key => key.indexOf('#' + type + '#') > 0).pipe(
+    return this.table.listContentWithSize(chunk, key => key.indexOf('#' + type + '#') > 0).pipe(
       reduce((acc, value) => {
         let nt1 = acc[0];
         let nt2 = acc[1];
@@ -54,16 +64,16 @@ export class StoredFilesService {
   }
 
   public cleanExpiredFiles(type: string, maxDateStored: number): Observable<any> {
-    return this.storage.deleteWhen(25, k => k.indexOf('#' + type + '#') > 0, dto => !dto.dateStored || dto.dateStored < maxDateStored);
+    return this.table.deleteWhen$(25, k => k.indexOf('#' + type + '#') > 0, dto => !dto.dateStored || dto.dateStored < maxDateStored);
   }
 
   public cleanUnreferencedFiles(type: string, references: {owner: string, uuid: string}[], maxDateStored: number): Observable<any> {
     const keys = references.map(r => this.getKey(r.owner, type, r.uuid));
-    return this.storage.deleteWhen(25, k => !keys.includes(k) && k.indexOf('#' + type + '#') > 0, dto => dto.dateStored && dto.dateStored < maxDateStored);
+    return this.table.deleteWhen$(25, k => !keys.includes(k) && k.indexOf('#' + type + '#') > 0, dto => !!dto.dateStored && dto.dateStored < maxDateStored);
   }
 
   public removeAllFiles(type: string, filterExclude: (owner: string, uuid: string) => boolean): Observable<any> {
-    return this.storage.deleteWhen(25, k => {
+    return this.table.deleteWhen$(25, k => {
       const i = k.indexOf('#' + type + '#');
       if (i < 0) return false;
       const owner = k.substring(0, i);

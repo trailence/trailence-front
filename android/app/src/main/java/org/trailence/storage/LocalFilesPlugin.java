@@ -465,6 +465,36 @@ public class LocalFilesPlugin extends Plugin {
   /**
    * Input:
    *  - dir
+   *  - files: string[]
+   * Output:
+   *  - exist: boolean[]
+   */
+  @PluginMethod
+  public void filesExist(PluginCall call) {
+    try {
+      String dir = call.getString("dir");
+      if (dir == null || dir.isBlank()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "Missing dir");
+      JSObject response = new JSObject();
+      JSONArray filesOutput = new JSONArray();
+      response.put("exist", filesOutput);
+      JSONArray filesInput = call.getArray("files");
+      if (filesInput != null) {
+        File subDir = new File(root, dir);
+        for (int i = 0; i < filesInput.length(); ++i) {
+          filesOutput.put(new File(subDir, filesInput.getString(i)).exists());
+        }
+      }
+      call.resolve(response);
+    } catch (LocalFilesException e) {
+      e.reject(call);
+    } catch (Exception e) {
+      Utils.reject(call, e);
+    }
+  }
+
+  /**
+   * Input:
+   *  - dir
    *  - filename
    */
   @PluginMethod
