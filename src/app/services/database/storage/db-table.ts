@@ -1,8 +1,9 @@
 import { EventEmitter, Injector } from '@angular/core';
-import Dexie, { Table } from 'dexie';
-import { BehaviorSubject, debounceTime, first, from, MonoTypeOperatorFunction, Observable, of, switchMap } from 'rxjs';
+import Dexie, { Collection, Table } from 'dexie';
+import { BehaviorSubject, debounceTime, filter, first, from, MonoTypeOperatorFunction, Observable, of, switchMap } from 'rxjs';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
+import { Db } from './db';
 
 export class DbTable<DTO> {
 
@@ -44,16 +45,25 @@ export class DbTable<DTO> {
   private openEmail?: string;
   protected localDir?: string;
   protected ready$ = new BehaviorSubject<Table<DTO, string> | undefined>(undefined);
+  protected readyInfo$ = new BehaviorSubject<{db: Db} | undefined>(undefined);
 
-  async start(dexie: Dexie, table: Table, localDir: string, email: string | undefined) {
+  async start(db: Db, dexie: Dexie, table: Table, localDir: string, email: string | undefined) {
     this.openEmail = email;
     this.localDir = localDir;
+    this.readyInfo$.next({db});
     this.ready$.next(table);
   }
 
   shutdown(): void {
     this.openEmail = undefined;
     this.ready$.next(undefined);
+    this.readyInfo$.next(undefined);
+  }
+
+  public whenReady$(): Observable<{db: Db}> {
+    return this.readyInfo$.pipe(
+      filter(info => !!info)
+    );
   }
 
   protected onReady(): Observable<Table<DTO, string>> {
@@ -74,15 +84,45 @@ export class DbTable<DTO> {
     );
   }
 
+  public keysWhere$(where: DbTableWhere<DTO>): Observable<string[]> {
+    return this.onReady().pipe(
+      switchMap(table => where.toDexie(table).primaryKeys()),
+    );
+  }
+
   public getAll$(): Observable<DTO[]> {
     return this.onReady().pipe(
       switchMap(table => table.toArray().then(dtos => this.toDtos(dtos))),
     );
   }
 
+  public getPage$(offset: number, limit: number): Observable<DTO[]> {
+    return this.onReady().pipe(
+      switchMap(table => table.offset(offset).limit(limit).toArray().then(dtos => this.toDtos(dtos))),
+    );
+  }
+
+  public count$(): Observable<number> {
+    return this.onReady().pipe(
+      switchMap(table => table.count()),
+    );
+  }
+
   public getByKey$(key: string): Observable<DTO | undefined> {
     return this.onReady().pipe(
       switchMap(table => table.get(key).then(dto => dto ? this.toDtos([dto]).then(dtos => dtos[0]) : undefined)),
+    );
+  }
+
+  public getOneWhen(predicate: (dto: DTO) => boolean): Observable<DTO | undefined> {
+    return this.onReady().pipe(
+      switchMap(table => table.filter(predicate).first().then(dto => dto ? this.toDtos([dto]).then(dtos => dtos[0]) : undefined)),
+    );
+  }
+
+  public getByKeys$(keys: string[]): Observable<DTO[]> {
+    return this.onReady().pipe(
+      switchMap(table => table.where(this.dtoKeyField).anyOf(keys).toArray().then(dtos => this.toDtos(dtos))),
     );
   }
 
@@ -108,6 +148,28 @@ export class DbTable<DTO> {
       switchMap(async table => {
         const toStore = await this.fromDtos(dtos);
         await table.bulkAdd(toStore as DTO[]);
+        this.triggerChanged();
+        return dtos;
+      })
+    );
+  }
+
+  public setOne$(dto: DTO): Observable<DTO> {
+    return this.onReady().pipe(
+      switchMap(async table => {
+        const toStore = await this.fromDtos([dto]).then(dtos => dtos[0]);
+        await table.put(toStore as DTO, (dto as any)[this.dtoKeyField]);
+        this.triggerChanged();
+        return dto;
+      })
+    );
+  }
+
+  public setMany$(dtos: DTO[]): Observable<DTO[]> {
+    return this.onReady().pipe(
+      switchMap(async table => {
+        const toStore = await this.fromDtos(dtos);
+        await table.bulkPut(toStore as DTO[]);
         this.triggerChanged();
         return dtos;
       })
@@ -173,10 +235,34 @@ export class DbTable<DTO> {
     );
   }
 
+  public deleteAll$(): Observable<boolean> {
+    return this.onReady().pipe(
+      switchMap(table => table.clear().then(() => true)),
+    );
+  }
+
 }
 
 export interface DbTableMigration {
   name: string;
   version: number;
   migration: (injector: Injector, dexie: Dexie, table: Table, localDir: string) => Promise<any>;
+}
+
+export interface DbTableWhere<T> {
+  toDexie: (table: Table<T, string>) => Collection<T, string>,
+}
+
+export class DbTableWhereLessThan<T> implements DbTableWhere<T> {
+  constructor(
+    private readonly key: string,
+    private readonly value: number,
+    private readonly predicate?: (dto: T) => boolean,
+  ) {}
+
+  toDexie(table: Table<T, string>) {
+    const collection = table.where(this.key).below(this.value);
+    if (this.predicate != null) return collection.and(this.predicate);
+    return collection;
+  }
 }

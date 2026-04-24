@@ -26,6 +26,7 @@ export interface MapLayer {
   maxConcurrentRequests: number;
   doNotUseNativeHttp: boolean;
   tileSize: number;
+  tileMimeFormat: string;
 
 }
 
@@ -46,24 +47,24 @@ export class MapLayersService {
 
   constructor(private readonly injector: Injector) {
     this.layers = [
-      createDefaultLayer(injector, 'osm', 'Open Street Map', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>', 2, true, environment.assetsUrl + '/map-layers/osm.png'),
-      //createDefaultLayer(injector, 'osmfr', 'Open Street Map French', 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.fr" target="_blank">OpenStreetMap</a>', 2, false),
-      //createDefaultLayer('osmch', 'Open Street Map Swiss', 'https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png', 19, '&copy; <a href="https://sosm.ch/" target="_blank">Swiss OpenStreetMap Association</a>', 2, false),
-      createDefaultLayer(injector, 'otm', 'Open Topo Map', 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', 17, '&copy; <a href="http://www.opentopomap.org" target="_blank">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">CC-BY-SA</a>)', 2, false, environment.assetsUrl + '/map-layers/otm.png'),
-      createDefaultLayer(injector, 'cyclosm', 'CyclOSM', 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', 20, '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" target="_blank">CyclOSM</a> Map data &copy; <a href="http://www.openstreetmap.org" target="_blank">OpenStreetMap</a> contributors', 2, true, 'https://a.tile-cyclosm.openstreetmap.fr/cyclosm/16/34021/23955.png'),
+      createDefaultLayer(injector, 'osm', 'Open Street Map', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>', 2, true, 'image/png', environment.assetsUrl + '/map-layers/osm.png'),
+      //createDefaultLayer(injector, 'osmfr', 'Open Street Map French', 'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', 19, '&copy; <a href="http://www.openstreetmap.fr" target="_blank">OpenStreetMap</a>', 2, false, 'image/png'),
+      //createDefaultLayer('osmch', 'Open Street Map Swiss', 'https://tile.osm.ch/osm-swiss-style/{z}/{x}/{y}.png', 19, '&copy; <a href="https://sosm.ch/" target="_blank">Swiss OpenStreetMap Association</a>', 2, false, 'image/png'),
+      createDefaultLayer(injector, 'otm', 'Open Topo Map', 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', 17, '&copy; <a href="http://www.opentopomap.org" target="_blank">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">CC-BY-SA</a>)', 2, false, 'image/png', environment.assetsUrl + '/map-layers/otm.png'),
+      createDefaultLayer(injector, 'cyclosm', 'CyclOSM', 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', 20, '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" target="_blank">CyclOSM</a> Map data &copy; <a href="http://www.openstreetmap.org" target="_blank">OpenStreetMap</a> contributors', 2, true, 'image/png', 'https://a.tile-cyclosm.openstreetmap.fr/cyclosm/16/34021/23955.png'),
       createIgnLayer(injector, 'ign', 'IGN', 'https://data.geopf.fr/wmts', 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2', 'PM', 'normal', 'image/png', 19, 5, '&copy; IGN France', environment.assetsUrl + '/map-layers/ign.png', {code: 'fr'}),
       createIgnLayer(injector, 'ign-sat', 'IGN Satellite', 'https://data.geopf.fr/wmts', 'ORTHOIMAGERY.ORTHOPHOTOS', 'PM', 'normal', 'image/jpeg', 19, 5, '&copy; IGN France', environment.assetsUrl + '/map-layers/ign-sat.png', {code: 'fr'}),
       createIgnLayer(injector, 'kartverket', 'Kartverket', 'https://cache.kartverket.no/v1/service', 'topo', 'webmercator', 'default', 'image/png', 18, 5, '&copy; Kartverket', 'https://cache.kartverket.no/v1/service?layer=topo&style=default&tilematrixset=utm33n&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=14&TileCol=8627&TileRow=4455', {code: 'no'}),
       //createIgnLayer(injector, 'ngi-be', 'NGI Belgium', 'https://', 'topo', '3857', 'default', 'image/png', 18, 5, '&copy; ngi.be', 'https://', {code: 'be'}),
-      createDefaultLayer(injector, 'swiss-topo', 'Swiss Topo', 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg', 18, '&copy; <a href="https://www.swisstopo.admin.ch/" target="_blank">swisstopo</a>', 2, false, 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/16/34060/23186.jpeg', {minZoom: 2, bounds: [[45.398181, 5.140242], [48.230651, 11.47757]]}, {code: 'ch'}),
-      createDefaultLayer(injector, 'usgs-topo', 'USGS Topo', 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', 16, 'Tiles courtesy of the <a href="https://usgs.gov/" target="_blank">U.S. Geological Survey</a>', 2, false, 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/16/26186/16826', {}, {code: 'us'}),
-      createDefaultLayer(injector, 'usgs-sat', 'USGS Satellite', 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', 16, 'Tiles courtesy of the <a href="https://usgs.gov/" target="_blank">U.S. Geological Survey</a>', 2, false, 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/16/26186/16826', {}, {code: 'us'}),
-      //createDefaultLayer('stadia-sat', 'Stadia Satellite', 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg', 20, '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors', 2),
-      createDefaultLayer(injector, 'ngi-be-topo', 'NGI Topo', 'https://cartoweb.wmts.ngi.be/1.0.0/topo/default/3857/{z}/{y}/{x}.png', 17, '&copy; <a href="https://ngi.be/" target="_blank">ngi.be</a>', 2, false, 'https://cartoweb.wmts.ngi.be/1.0.0/topo/default/3857/14/5550/8432.png', {minZoom: 7}, {code: 'be'}),
+      createDefaultLayer(injector, 'swiss-topo', 'Swiss Topo', 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg', 18, '&copy; <a href="https://www.swisstopo.admin.ch/" target="_blank">swisstopo</a>', 2, false, 'image/jpeg', 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/16/34060/23186.jpeg', {minZoom: 2, bounds: [[45.398181, 5.140242], [48.230651, 11.47757]]}, {code: 'ch'}),
+      createDefaultLayer(injector, 'usgs-topo', 'USGS Topo', 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}', 16, 'Tiles courtesy of the <a href="https://usgs.gov/" target="_blank">U.S. Geological Survey</a>', 2, false, 'image/png', 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/16/26186/16826', {}, {code: 'us'}),
+      createDefaultLayer(injector, 'usgs-sat', 'USGS Satellite', 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', 16, 'Tiles courtesy of the <a href="https://usgs.gov/" target="_blank">U.S. Geological Survey</a>', 2, false, 'image/jpeg', 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/16/26186/16826', {}, {code: 'us'}),
+      //createDefaultLayer('stadia-sat', 'Stadia Satellite', 'https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.jpg', 20, '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors', 2, 'image/jpeg'),
+      createDefaultLayer(injector, 'ngi-be-topo', 'NGI Topo', 'https://cartoweb.wmts.ngi.be/1.0.0/topo/default/3857/{z}/{y}/{x}.png', 17, '&copy; <a href="https://ngi.be/" target="_blank">ngi.be</a>', 2, false, 'image/png', 'https://cartoweb.wmts.ngi.be/1.0.0/topo/default/3857/14/5550/8432.png', {minZoom: 7}, {code: 'be'}),
       createIgnLayer(injector, 'lantmateriet', 'Lantmäteriet', 'https://minkarta.lantmateriet.se/map/topowebbcache', 'topowebb', '3857', 'default', 'image/png', 17, 5, '&copy; Lantmäteriet', 'https://minkarta.lantmateriet.se/map/topowebbcache?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=topowebb&STYLE=default&TILEMATRIXSET=3857&TILEMATRIX=13&TILEROW=2338&TILECOL=4457&FORMAT=image%2Fpng', {code: 'se'}),
     ];
     this.overlays = [
-      createDefaultLayer(injector, 'wmth', 'Way Marked Trails Hiking', 'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', 18, '&copy; <a href="http://waymarkedtrails.org/" target="_blank">Way Marked Trails</a>', 2, false, '', {zIndex: 2}),
+      createDefaultLayer(injector, 'wmth', 'Way Marked Trails Hiking', 'https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png', 18, '&copy; <a href="http://waymarkedtrails.org/" target="_blank">Way Marked Trails</a>', 2, false, 'image/png', '', {zIndex: 2}),
     ];
     let previousTfoKey: string | undefined = undefined;
     injector.get(ExtensionsService).getExtensions$().subscribe(
@@ -75,7 +76,7 @@ export class MapLayersService {
             if (index >= 0) {
               this.layers.splice(index, 1);
             }
-            this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2, false, environment.assetsUrl + '/map-layers/tfo.png'));
+            this.layers.push(createDefaultLayer(injector, 'tfo', 'Thunderforest Outdoors', 'https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=' + thunderforest.data['apikey'], 22, 'Maps &copy; <a href="https://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', 2, false, 'image/png', environment.assetsUrl + '/map-layers/tfo.png'));
           }
         } else if (index >= 0) {
           this.layers.splice(index, 1);
@@ -141,6 +142,7 @@ function createDefaultLayer( // NOSONAR
   copyright: string,
   maxConcurrentRequests: number,
   doNotUseNativeHttp: boolean,
+  tileMimeFormat: string,
   exampleUrl: string,
   additionalOptions: any = {},
   regional: RegionalSettings | undefined = undefined,
@@ -151,6 +153,7 @@ function createDefaultLayer( // NOSONAR
     exampleUrl,
     regional,
     templateUrl: urlTemplate,
+    tileMimeFormat,
     create: () => handleMapOffline(name, new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution: copyright,
@@ -202,6 +205,7 @@ function createIgnLayer( // NOSONAR
     exampleUrl,
     regional,
     templateUrl: urlTemplate,
+    tileMimeFormat: format,
     create: () => handleMapOffline(name, new L.TileLayer(urlTemplate, {
       maxZoom,
       attribution,

@@ -492,6 +492,26 @@ public class LocalFilesPlugin extends Plugin {
     }
   }
 
+  @PluginMethod
+  public void listFiles(PluginCall call) {
+    try {
+      String dir = call.getString("dir");
+      if (dir == null || dir.isBlank()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "Missing dir");
+      File subDir = new File(root, dir);
+      JSObject response = new JSObject();
+      if (subDir.exists()) {
+        response.put("files", new JSONArray(subDir.list()));
+      } else {
+        response.put("files", new JSONArray());
+      }
+      call.resolve(response);
+    } catch (LocalFilesException e) {
+      e.reject(call);
+    } catch (Exception e) {
+      Utils.reject(call, e);
+    }
+  }
+
   /**
    * Input:
    *  - dir
@@ -524,6 +544,27 @@ public class LocalFilesPlugin extends Plugin {
         File subDir = new File(root, dir);
         for (int i = 0; i < files.length(); ++i)
           Files.deleteIfExists(new File(subDir, files.getString(i)).toPath());
+      }
+      call.resolve();
+    } catch (LocalFilesException e) {
+      e.reject(call);
+    } catch (Exception e) {
+      Utils.reject(call, e);
+    }
+  }
+
+  @PluginMethod
+  public void deleteAllFiles(PluginCall call) {
+    try {
+      String dir = call.getString("dir");
+      if (dir == null || dir.isBlank()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "Missing dir");
+      File subDir = new File(root, dir);
+      if (subDir.exists()) {
+        File[] files = subDir.listFiles();
+        if (files != null) {
+          for (var file : files)
+            if (file.isFile()) file.delete();
+        }
       }
       call.resolve();
     } catch (LocalFilesException e) {

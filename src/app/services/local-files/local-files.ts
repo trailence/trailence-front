@@ -5,8 +5,11 @@ const LocalFiles = {
   filesExist: notSupported as (call: {dir: string, files: string[]}) => Promise<{exist: boolean[]}>,
   getFilesSize: notSupported as (call: {dir: string, files: string[]}) => Promise<{files: {filename: string, size: number}[]}>,
 
+  listFiles: notSupported as (call: {dir: string}) => Promise<{files: string[]}>,
+
   deleteFile: notSupported as (call: {dir: string, filename: string}) => Promise<any>,
   deleteFiles: notSupported as (call: {dir: string, files: string[]}) => Promise<any>,
+  deleteAllFiles: notSupported as (call: {dir: string}) => Promise<any>,
 
   readBinaryFile: notSupported as (call: {dir: string, filename: string}) => Promise<{data: string, chunks: number, id: number | undefined}>,
   readBinaryFileChunk: notSupported as (call: {id: number}) => Promise<{data: string}>,

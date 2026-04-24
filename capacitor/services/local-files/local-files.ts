@@ -6,8 +6,11 @@ export interface LocalFilesPlugin {
   filesExist(call: {dir: string, files: string[]}): Promise<{exist: boolean[]}>;
   getFilesSize(call: {dir: string, files: string[]}): Promise<{files: {filename: string, size: number}[]}>;
 
+  listFiles(call: {dir: string}): Promise<{files: string[]}>;
+
   deleteFile(call: {dir: string, filename: string}): Promise<any>;
   deleteFiles(call: {dir: string, files: string[]}): Promise<any>;
+  deleteAllFiles(call: {dir: string}): Promise<any>;
 
   readBinaryFile(call: {dir: string, filename: string}): Promise<{data: string, chunks: number, id: number | undefined}>;
   readBinaryFileChunk(call: {id: number}): Promise<{data: string}>;

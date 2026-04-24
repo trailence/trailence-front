@@ -1,7 +1,7 @@
 import { Injector } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, from, of, Subscription, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, filter, from, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { Console } from 'src/app/utils/console';
 import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
@@ -37,6 +37,14 @@ export class Db {
     } else {
       this.open();
     }
+  }
+
+  public get dbReady$() { return this.ready$.pipe(map(ready => ready ? {email: this.openEmail} : false)); }
+  public tableLocalDir$(tableName: string): Observable<string> {
+    return this.ready$.pipe(
+      filter(ready => ready),
+      map(() => this.localDir! + '/' + tableName),
+    )
   }
 
   private async open(email?: string) {
@@ -97,7 +105,7 @@ export class Db {
     // ready
     this.db = db;
     for (const table of this.tables) {
-      await table.start(db, db.table(table.name), this.localDir + '/' + table.name, email);
+      await table.start(this, db, db.table(table.name), this.localDir + '/' + table.name, email);
       if (this.openEmail !== email) return;
     }
     Console.info('DB ready ' + dbName);
@@ -179,13 +187,13 @@ export class Db {
           return of(undefined);
         } else {
           pending = true;
-          return from(this.backupTable(table)).pipe(tap(() => pending = false));
+          return from(this.backupTable(localFiles, table)).pipe(tap(() => pending = false));
         }
       })
     ).subscribe());
   }
 
-  private async backupTable(table: DbTable<any>) {
+  private async backupTable(localFiles: LocalFilesService, table: DbTable<any>) {
     const db = this.db;
     if (!db) return;
     Console.info('Backuping DB table ' + db.name + '/' + table.name);
@@ -194,7 +202,7 @@ export class Db {
     const filename = table.name + '.jsonl';
     try {
       const keys = await t.toCollection().primaryKeys();
-      await this.injector.get(LocalFilesService).saveJsonl(
+      await localFiles.saveJsonl(
         dir,
         filename,
         async (from, limit) => {

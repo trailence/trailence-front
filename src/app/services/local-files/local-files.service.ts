@@ -148,6 +148,10 @@ export class LocalFilesService {
     return this.multipleOperation(dir, files, 'filesSize', () => LocalFiles.getFilesSize({dir, files}).then(r => r.files));
   }
 
+  public listFiles(dir: string): Promise<string[]> {
+    return LocalFiles.listFiles({dir}).then(r => r.files);
+  }
+
   public deleteFile(dir: string, filename: string): Promise<any> {
     return this.operation(dir, filename, 'delete', () => LocalFiles.deleteFile({dir, filename}));
   }
@@ -155,6 +159,10 @@ export class LocalFilesService {
   public deleteFiles(dir: string, files: string[]): Promise<any> {
     if (files.length === 0) return Promise.resolve();
     return this.multipleOperation(dir, files, 'delete', () => LocalFiles.deleteFiles({dir, files}));
+  }
+
+  public deleteAllFiles(dir: string): Promise<any> {
+    return LocalFiles.deleteAllFiles({dir});
   }
 
   public saveBinaryFile(dir: string, filename: string, data: BinaryContent): Promise<boolean> {

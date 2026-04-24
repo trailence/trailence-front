@@ -1,11 +1,10 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import * as L from 'leaflet';
 import { AuthService } from '../auth/auth.service';
-import Dexie, { Table } from 'dexie';
 import { MapLayer, MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
-import { Observable, bufferCount, catchError, combineLatest, forkJoin, from, map, merge, of, switchMap, tap, zip } from 'rxjs';
+import { Observable, bufferCount, catchError, combineLatest, firstValueFrom, forkJoin, map, merge, of, switchMap, tap, zip } from 'rxjs';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -16,7 +15,9 @@ import { Console } from 'src/app/utils/console';
 import { GeoService, OverpassResponse, POI } from '../geolocation/geo.service';
 import { Way, WayPermission } from '../geolocation/way';
 import { OverpassClient } from '../geolocation/overpass-client.service';
-import { calculateTilesFromBounds, calculateTilesFromPaths } from './calculate-tiles';
+import { Db } from '../database/storage/db';
+import { BlobDto, DbTablesMetaBlob } from '../database/storage/db-tables-meta-blob';
+import { DbTable, DbTableWhereLessThan } from '../database/storage/db-table';
 
 interface TileMetadata {
   key: string;
@@ -24,9 +25,14 @@ interface TileMetadata {
   date: number;
 }
 
-interface TileBlob {
-  key: string;
-  blob: Blob;
+interface OsmDataEntryDto {
+  north: number;
+  south: number;
+  west: number;
+  east: number;
+  date: number;
+  offline: boolean;
+  elements: any[];
 }
 
 @Injectable({
@@ -34,11 +40,11 @@ interface TileBlob {
 })
 export class OfflineMapService {
 
-  private _db?: Dexie;
-  private _openEmail?: string;
+  private readonly db: Db;
+  private readonly tilesTables = new Map<string, DbTablesMetaBlob<TileMetadata>>();
+  private readonly osmDataTables = new Map<string, DbTable<OsmDataEntryDto>>();
   private _cleanExpiredTimeout?: any;
-
-  private readonly osm_data_tables = ['osm_guidepost', 'osm_water', 'osm_toilets', 'osm_forbidden_ways', 'osm_permissive_ways'];
+  private _dbCounter = 0;
 
   constructor(
     auth: AuthService,
@@ -50,39 +56,28 @@ export class OfflineMapService {
     private readonly injector: Injector,
     private readonly overpass: OverpassClient,
   ) {
-    auth.userChanged$.subscribe(
-      auth => {
-        if (auth) this.open(auth.email);
-        else this.close();
-      }
-    );
-  }
-
-  private close() {
-    if (this._db) {
-      this._db.close();
-      this._openEmail = undefined;
-      this._db = undefined;
-      if (this._cleanExpiredTimeout) clearTimeout(this._cleanExpiredTimeout);
-      this._cleanExpiredTimeout = undefined;
-    }
-  }
-
-  private open(email: string): void {
-    if (this._openEmail === email) return;
-    this.close();
-    this._openEmail = email;
-    const db = new Dexie('trailence_offline_map_' + email);
-    const storesV1: any = {};
+    const tables: DbTable<any>[] = [];
     for (const layer of this.layers.possibleLayers) {
-      storesV1[layer + '_meta'] = 'key, date';
-      storesV1[layer + '_tiles'] = 'key';
+      const layerTables = new DbTablesMetaBlob<TileMetadata>(injector, layer, 'meta', 'tiles', 'key, date', 'key');
+      this.tilesTables.set(layer, layerTables);
+      tables.push(...layerTables.getTables());
     }
-    for (const tableName of this.osm_data_tables)
-      storesV1[tableName] = '++id, north, south, west, east, date, offline';
-    db.version(1).stores(storesV1);
-    this._db = db;
-    this.cleanExpiredTimeout();
+    for (const dataTable of ['osm_guidepost', 'osm_water', 'osm_toilets', 'osm_forbidden_ways', 'osm_permissive_ways']) {
+      const table = new DbTable<OsmDataEntryDto>(injector, dataTable, '++id, north, south, west, east, date, offline', 'id');
+      this.osmDataTables.set(dataTable, table);
+      tables.push(table);
+    }
+    // TODO migrate to non-user-specific database
+    this.db = new Db(injector, 'trailence_offline_map', true, tables);
+    this.db.dbReady$.subscribe(ready => {
+      this._dbCounter++;
+      if (ready) this.cleanExpiredTimeout(ready.email);
+      else {
+        if (this._cleanExpiredTimeout) clearTimeout(this._cleanExpiredTimeout);
+        this._cleanExpiredTimeout = undefined;
+      }
+    });
+    this.db.start();
   }
 
   public getAdditions(bounds: L.LatLngBounds, guidepost: boolean, water: boolean, toilets: boolean, forbiddenWays: boolean, permissiveWays: boolean): Observable<{pois: POI[], ways: Way[]}> {
@@ -122,12 +117,11 @@ export class OfflineMapService {
   }
 
   private getOverpassElementsFromCache(bounds: L.LatLngBounds, tableName: string): Observable<{pois: POI[], ways: Way[]} | undefined> {
-    if (!this._db) return of(undefined);
     const north = Math.floor(bounds.getNorth() * 1000000);
     const south = Math.floor(bounds.getSouth() * 1000000);
     const west = Math.floor(bounds.getWest() * 1000000);
     const east = Math.floor(bounds.getEast() * 1000000);
-    return from(this._db.table(tableName).filter(obj => north <= obj.north && south >= obj.south && west >= obj.west && east <= obj.east).first()).pipe(
+    return this.osmDataTables.get(tableName)!.getOneWhen(dto => north <= dto.north && south >= dto.south && west >= dto.west && east <= dto.east).pipe(
       map(item => {
         if (!item) return undefined;
         const result: {pois: POI[], ways: Way[]} = {pois: [], ways: []};
@@ -145,17 +139,17 @@ export class OfflineMapService {
   }
 
   private storeOverpassElements(tableName: string, bounds: L.LatLngBounds, elements: any[], offline: boolean): void {
-    if (!this._db) return;
     const north = Math.floor(bounds.getNorth() * 1000000);
     const south = Math.floor(bounds.getSouth() * 1000000);
     const west = Math.floor(bounds.getWest() * 1000000);
     const east = Math.floor(bounds.getEast() * 1000000);
-    this._db.table(tableName).put({
+    const dto: OsmDataEntryDto = {
       north, south, west, east,
       elements,
       offline,
       date: Date.now(),
-    });
+    };
+    this.osmDataTables.get(tableName)!.setOne$(dto).subscribe();
   }
 
   private getOverpassElementsFromOsm(bounds: L.LatLngBounds, offline: boolean, guidepost: boolean, water: boolean, toilets: boolean, forbiddenWays: boolean, permissiveWays: boolean): Observable<{pois: POI[], ways: Way[]} | undefined> {
@@ -204,8 +198,9 @@ export class OfflineMapService {
 
 
   public save(layer: MapLayer, crs: L.CRS, tileLayer: L.TileLayer, toDownload: Map<number, L.Point[]>): void {
-    if (!this._db) return;
-    new Saver(this._db, layer, crs, tileLayer, toDownload, this.injector).start();
+    const table = this.tilesTables.get(layer.name);
+    if (!table) return;
+    new Saver(table, layer, crs, tileLayer, toDownload, this.injector).start();
 
   }
 
@@ -216,11 +211,11 @@ export class OfflineMapService {
   }
 
   public getTilesToDownload(tiles: L.Point[], zoomLevel: number, layerName: string): Promise<L.Point[]> {
-    if (!this._db) return Promise.resolve([]);
+    const table = this.tilesTables.get(layerName);
+    if (!table) return Promise.resolve([]);
     const maxCacheValidDate = Date.now() - this.injector.get(PreferencesService).preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000;
-    const metaTable = this._db.table<TileMetadata>(layerName + '_meta');
     const toSearch = tiles.map(tile => '' + zoomLevel + '_' + tile.y + '_' + tile.x);
-    return metaTable.where('key').anyOf(toSearch).toArray()
+    return firstValueFrom(table.metadata.getByKeys$(toSearch))
     .then(metas => {
       const byKey = new Map<string, TileMetadata>(metas.map(m => [m.key, m]));
       const result: L.Point[] = [];
@@ -235,14 +230,10 @@ export class OfflineMapService {
 
   public getTile(layerName: string, coords: L.Coords): Observable<BinaryContent | undefined> {
     return this.ngZone.runOutsideAngular(() => {
-      if (!this._db) return of(undefined);
-      return from(this._db.table<TileBlob>(layerName + '_tiles').get('' + coords.z + '_' + coords.y + '_' + coords.x)).pipe(
-        map(result => {
-          const blob = result?.blob;
-          if (!blob) return undefined;
-          return new BinaryContent(blob);
-        })
-      );
+      const table = this.tilesTables.get(layerName);
+      if (!table) return of(undefined);
+      const contentType = this.layers.layers.find(l => l.name === layerName)?.tileMimeFormat;
+      return table.getBlob$('' + coords.z + '_' + coords.y + '_' + coords.x, contentType).pipe(map(b => b ? new BinaryContent(b) : undefined));
     });
   }
 
@@ -263,117 +254,97 @@ export class OfflineMapService {
 
   private computeLayerContent(name: string): Observable<{items: number, size: number}> {
     const result = {items: 0, size: 0};
-    if (!this._db) return of(result);
-    const t = this._db.table<TileMetadata>(name + '_meta');
-    return from(t.count().then(count => {
-      result.items = count;
-      if (count === 0) return result;
-      const next = (i: number): Promise<void> => {
-        const next$ = t.offset(i).limit(i + 50000 > count ? count - i : 50000).toArray()
-          .then(items => {
-            for (const item of items) result.size += item.size;
-          });
-        return i + 50000 > count ? next$ : next$.then(() => next(i + 50000));
-      };
-      return next(0).then(() => result);
-    }));
-  }
-
-  private cleanExpiredOsmData(db: Dexie): void {
-    if (db !== this._db) return;
-    Console.info('Cleaning osm data cache');
-    db.transaction('rw', this.osm_data_tables, () => {
-      const promises: Promise<any>[] = [];
-      for (const tableName of this.osm_data_tables) {
-        let count = 0;
-        promises.push(
-          db.table(tableName)
-          .where('date')
-          .below(Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000)
-          .eachPrimaryKey(key => {
-            db.table(tableName).delete(key);
-            count++;
-          }).then(() =>
-            db.table(tableName)
-            .where('date')
-            .below(Date.now() - 3 * 60 * 60 * 1000)
-            .and(obj => !obj.offline)
-            .eachPrimaryKey(key => {
-              db.table(tableName).delete(key);
-              count++;
+    const table = this.tilesTables.get(name);
+    if (!table) return of(result);
+    return table.metadata.count$().pipe(
+      switchMap(count => {
+        result.items = count;
+        if (count === 0) return of(result);
+        const next = (i: number): Observable<boolean> => {
+          const next$ = table.metadata.getPage$(i, i + 50000 > count ? count - i : 50000).pipe(
+            map(items => {
+              for (const item of items) result.size += item.size;
+              return true;
             })
-          ).then(() => {
-            Console.info('Osm data removed from ' + tableName + ': ', count);
-          })
-        );
-      }
-      return Promise.all(promises);
-    });
+          )
+          return i + 50000 > count ? next$ : next$.pipe(switchMap(() => next(i + 50000)));
+        };
+        return next(0);
+      }),
+      map(() => result),
+    );
   }
 
-  private cleanExpiredTimeout() {
-    const db = this._db!;
-    const lastClean = localStorage.getItem('trailence.map-offline.last-cleaning.' + this._openEmail);
+  private cleanExpiredOsmData(dbCounter: number): void {
+    if (dbCounter !== this._dbCounter) return;
+    Console.info('Cleaning osm data cache');
+    const tables = Array.from(this.osmDataTables.values());
+    zip(
+      tables.map(table =>
+        table.keysWhere$(new DbTableWhereLessThan<OsmDataEntryDto>('date', Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000))
+        .pipe(
+          switchMap(keys =>
+            table.deleteMany$(keys).pipe(
+              switchMap(() => table.keysWhere$(new DbTableWhereLessThan<OsmDataEntryDto>('date', Date.now() - 3 * 60 * 60 * 1000, dto => !dto.offline))),
+              switchMap(keys2 => table.deleteMany$(keys2).pipe(map(() => keys.length + keys2.length)))
+            )
+          ),
+          tap(count => Console.info('Osm data removed from ' + table.name + ': ', count))
+        )
+      )
+    ).subscribe();
+  }
+
+  private cleanExpiredTimeout(email: string | undefined) {
+    if (!email) return; // TODO when migrated to non-user-specific
+    const dbCounter = this._dbCounter;
+    const lastClean = localStorage.getItem('trailence.map-offline.last-cleaning.' + email);
     const lastCleanTime = lastClean ? Number.parseInt(lastClean) : undefined;
     const nextClean = lastCleanTime && !Number.isNaN(lastCleanTime) ? lastCleanTime + 24 * 60 * 60 * 1000 : Date.now() + 60000;
     this._cleanExpiredTimeout = setTimeout(() => {
-      if (db !== this._db) return;
+      if (dbCounter !== this._dbCounter) return;
       this._cleanExpiredTimeout = undefined;
       if (this.traceRecorder.recording) {
-        this.cleanExpiredTimeout();
+        this.cleanExpiredTimeout(email);
         return;
       }
-      this.cleanExpired(db);
+      this.cleanExpired(dbCounter, email);
     }, Math.max(nextClean - Date.now(), 60000));
   }
 
-  private cleanExpired(db: Dexie): void {
+  private cleanExpired(dbCounter: number, email: string): void {
     for (let i = 0; i < this.layers.layers.length; ++i) {
       const name = this.layers.layers[i].name;
-      setTimeout(() => this.cleanExpiredLayer(db, name), 60000 + i * 15000);
+      setTimeout(() => this.cleanExpiredLayer(dbCounter, name), 60000 + i * 15000);
     }
-    this.cleanExpiredOsmData(db);
+    this.cleanExpiredOsmData(dbCounter);
     setTimeout(() => {
-      if (this._db === db) {
-        localStorage.setItem('trailence.map-offline.last-cleaning.' + this._openEmail, '' + Date.now());
+      if (this._dbCounter === dbCounter) {
+        localStorage.setItem('trailence.map-offline.last-cleaning.' + email, '' + Date.now());
         Console.info('All offline maps cleaned, next cleaning in 24 hours');
       }
     }, 60000 + this.layers.layers.length * 15000 + 30000);
   }
 
-  private cleanExpiredLayer(db: Dexie, layerName: string): void {
-    if (db !== this._db) return;
-    let count = 0;
+  private cleanExpiredLayer(dbCounter: number, layerName: string): void {
+    if (dbCounter !== this._dbCounter) return;
+    const table = this.tilesTables.get(layerName);
+    if (!table) return;
     Console.info('Cleaning offline maps: ' + layerName);
-    db.transaction('rw', [layerName + '_meta', layerName + '_tiles'], () => {
-      db.table<TileMetadata, string>(layerName + '_meta')
-      .where('date')
-      .below(Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000)
-      .eachPrimaryKey(key => {
-        this.cleanExpiredTile(db, layerName, key);
-        count++;
-      }).then(() => {
-        Console.info('Offline maps removed: ', layerName, count);
-      });
-    });
-  }
-
-  private cleanExpiredTile(db: Dexie, layerName: string, key: string): void {
-    if (db !== this._db) return;
-    db.table<TileMetadata, string>(layerName + '_meta').delete(key);
-    db.table<TileBlob, string>(layerName + '_tiles').delete(key);
+    table.metadata.keysWhere$(new DbTableWhereLessThan('date', Date.now() - this.preferencesService.preferences.offlineMapMaxKeepDays * 24 * 60 * 60 * 1000))
+    .pipe(
+      switchMap(keys => {
+        if (dbCounter !== this._dbCounter) return of(undefined);
+        return table.deleteMany$(keys).pipe(tap(() => Console.info('Offline maps removed: ', layerName, keys.length)));
+      })
+    ).subscribe();
   }
 
   public removeAll(): Observable<any> {
-    const promises = [];
-    for (const layer of this.layers.layers) {
-      promises.push(
-        from(this._db!.table(layer.name + '_meta').clear()),
-        from(this._db!.table(layer.name + '_tiles').clear()),
-      );
-    }
-    if (promises.length === 0) return of(null);
-    return zip(promises);
+    const deletes$ = Array.from(this.tilesTables.values())
+      .map(table => table.deleteAll$());
+    if (deletes$.length === 0) return of(null);
+    return zip(deletes$);
   }
 
 }
@@ -381,7 +352,7 @@ export class OfflineMapService {
 class Saver {
 
   constructor(
-    private readonly db: Dexie,
+    private readonly table: DbTablesMetaBlob<TileMetadata>,
     private readonly layer: MapLayer,
     private readonly crs: L.CRS,
     private readonly tileLayer: L.TileLayer,
@@ -445,8 +416,6 @@ class Saver {
     this.progress.workAmount = tiles.length + 1;
     this.progress.subTitle = 'Zoom ' + zoomLevel + ': 0/' + tiles.length;
     let done = 0;
-    const metaTable = this.db.table<TileMetadata>(this.layer.name + '_meta');
-    const tilesTables = this.db.table<TileBlob>(this.layer.name + '_tiles');
     const processNext1000 = (startIndex: number) => new Promise(resolve => {
       const requests: Observable<{blob: Blob | undefined, key: string, tile: L.Point, error: any}>[] = [];
       for (let i = startIndex; i < startIndex + 1000 && i < tiles.length; ++i) {
@@ -465,7 +434,7 @@ class Saver {
         bufferCount(50),
         switchMap(bunch => {
           const metadata: TileMetadata[] = [];
-          const tiles: TileBlob[] = [];
+          const tiles: BlobDto[] = [];
           for (const response of bunch) {
             if (response.error === undefined) {
               metadata.push({
@@ -484,10 +453,7 @@ class Saver {
               else this.errorsByZoom.set(zoomLevel, [response.tile]);
             }
           }
-          return metadata.length === 0 ? of(bunch.length) : zip([
-            from(metaTable.bulkPut(metadata)),
-            from(tilesTables.bulkPut(tiles))
-          ]).pipe(
+          return metadata.length === 0 ? of(bunch.length) : this.table.setMany$(metadata, tiles).pipe(
             map(() => bunch.length),
             catchError(e => {
               Console.error('Error storing map tiles', e);
