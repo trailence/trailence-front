@@ -3,6 +3,9 @@ import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
 import { catchError, concat, filter, first, forkJoin, from, last, map, Observable, switchMap, throwError, zip } from 'rxjs';
 import { BinaryContent } from 'src/app/utils/binary-content';
+import { Table } from 'dexie';
+import { ProgressService } from '../../progress/progress.service';
+import { I18nService } from '../../i18n/i18n.service';
 
 export interface BlobDto {
   key: string;
@@ -13,7 +16,7 @@ export class DbTablesMetaBlob<MetaDto> {
 
   constructor(
     injector: Injector,
-    tablesPrefix: string,
+    private readonly tablesPrefix: string,
     metaTableSuffix: string,
     private readonly blobTableSuffix: string,
     metaTableSchema: string,
@@ -21,18 +24,37 @@ export class DbTablesMetaBlob<MetaDto> {
   ) {
     this.localFiles = injector.get(LocalFilesService);
     this.metaTable = new DbTable<MetaDto>(injector, tablesPrefix + '_' + metaTableSuffix, metaTableSchema, metaDtoKeyField);
-    if (!this.localFiles.supported())
-      this.blobTable = new DbTable<BlobDto>(injector, tablesPrefix + '_' + blobTableSuffix, 'key', 'key');
+    this.blobTable = new DbTable<BlobDto>(injector, tablesPrefix + '_' + blobTableSuffix, 'key', 'key');
+    if (this.localFiles.supported())
+      this.blobTable.addMigration({
+        name: 'to local files',
+        version: 10600,
+        migration: (injector, dexie, table, localDir) => this.migrateToLocalFiles(injector, table, localDir),
+      });
   }
 
   private readonly localFiles: LocalFilesService;
   private readonly metaTable: DbTable<MetaDto>;
-  private readonly blobTable?: DbTable<BlobDto>;
+  private blobTable?: DbTable<BlobDto>;
 
   public getTables(): DbTable<any>[] {
-    const tables: DbTable<any>[] = [this.metaTable];
-    if (this.blobTable) tables.push(this.blobTable);
-    return tables;
+    return [this.metaTable, this.blobTable!];
+  }
+
+  private async migrateToLocalFiles(injector: Injector, table: Table, localDir: string) {
+    const nb = await table.count();
+    if (nb > 0) {
+      const progress = injector.get(ProgressService).getOrCreate('update-migration', injector.get(I18nService).texts.update.updating, nb);
+      let workDone = 0;
+      await table.each(async (dto: BlobDto) => {
+        await this.localFiles.saveBinaryFile(localDir, dto.key, new BinaryContent(dto.blob));
+        progress.addWorkDone(1);
+        workDone++;
+      });
+      await table.clear();
+      if (workDone < nb) progress.addWorkDone(nb - workDone);
+    }
+    this.blobTable = undefined;
   }
 
   public get metadata() { return this.metaTable; }
@@ -72,7 +94,7 @@ export class DbTablesMetaBlob<MetaDto> {
   private get localDir$() {
     return this.metaTable.whenReady$().pipe(
       filter(info => !!info),
-      switchMap(info => info.db.tableLocalDir$(this.blobTableSuffix)),
+      switchMap(info => info.db.tableLocalDir$(this.tablesPrefix + '_' + this.blobTableSuffix)),
       first(),
     );
   }

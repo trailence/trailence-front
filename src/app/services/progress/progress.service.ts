@@ -9,48 +9,35 @@ export class Progress {
   private readonly _divProgress: HTMLDivElement;
   private readonly _divInnerProgress: HTMLDivElement;
   private readonly _divSubTitle: HTMLDivElement;
+  private readonly _divFooter: HTMLDivElement;
 
   constructor(
     private readonly _service: ProgressService,
     private readonly _container: HTMLDivElement,
     _title: string,
     private _workAmount: number,
-    i18n: I18nService,
-    _oncancel?: () => void,
+    private readonly i18n: I18nService,
   ) {
     _container.className = 'progress-item';
     this._divTitle = document.createElement('DIV') as HTMLDivElement;
     this._divProgress = document.createElement('DIV') as HTMLDivElement;
     this._divInnerProgress = document.createElement('DIV') as HTMLDivElement;
     this._divSubTitle = document.createElement('DIV') as HTMLDivElement;
-    const footer = document.createElement('DIV') as HTMLDivElement;
+    this._divFooter = document.createElement('DIV') as HTMLDivElement;
     _container.appendChild(this._divTitle);
     _container.appendChild(this._divProgress);
     this._divProgress.appendChild(this._divInnerProgress);
-    _container.appendChild(footer);
-    footer.appendChild(this._divSubTitle);
+    _container.appendChild(this._divFooter);
+    this._divFooter.appendChild(this._divSubTitle);
 
     this._divTitle.className = 'progress-title';
     this._divProgress.className = 'progress-bar';
     this._divInnerProgress.className = 'progress-bar-inner';
-    footer.className = 'progress-footer';
+    this._divFooter.className = 'progress-footer';
     this._divSubTitle.className = 'progress-sub-title';
 
     this._divTitle.innerText = _title;
     this._divInnerProgress.style.width = '0%';
-
-    if (_oncancel) {
-      const cancel = document.createElement('A') as HTMLAnchorElement;
-      cancel.href = '#';
-      cancel.innerText = i18n.texts.buttons.cancel;
-      cancel.className = 'cancel-button';
-      footer.appendChild(cancel);
-      cancel.onclick = (event: Event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        _oncancel();
-      };
-    }
   }
 
   public get workAmount(): number { return this._workAmount; }
@@ -91,6 +78,31 @@ export class Progress {
     this._divInnerProgress.style.width = (this._workDone * 100 / this._workAmount) + '%';
   }
 
+  private readonly _oncancel: (() => Promise<any>)[] = [];
+
+  public addOnCancel(handler: () => Promise<any>) {
+    if (this._oncancel.length === 0) {
+      const cancel = document.createElement('A') as HTMLAnchorElement;
+      cancel.href = '#';
+      cancel.innerText = this.i18n.texts.buttons.cancel;
+      cancel.className = 'cancel-button';
+      this._divFooter.appendChild(cancel);
+      cancel.onclick = (event: Event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        this._cancel();
+      };
+    }
+    this._oncancel.push(handler);
+  }
+
+  private async _cancel() {
+    for (const handler of this._oncancel) {
+      await handler();
+    }
+    this.done();
+  }
+
 }
 
 @Injectable({
@@ -111,11 +123,27 @@ export class ProgressService {
     this.setupGesture();
   }
 
-  public create(title: string, workAmount: number, oncancel?: () => void): Progress {
+  public create(title: string, workAmount: number, oncancel?: () => Promise<any>): Progress {
+    return this._create(undefined, title, workAmount, oncancel);
+  }
+
+  public getOrCreate(id: string, title: string, workAmount: number, oncancel?: () => Promise<any>): Progress {
+    const existing = this._container.querySelector('#progress-' + id);
+    if (!existing) return this._create('#progress-' + id, title, workAmount, oncancel);
+    const p = (existing as any).__progress as Progress;
+    p.addWorkToDo(workAmount);
+    if (oncancel) p.addOnCancel(oncancel);
+    return p;
+  }
+
+  private _create(id: string | undefined, title: string, workAmount: number, oncancel?: () => Promise<any>): Progress {
     const div = document.createElement('DIV') as HTMLDivElement;
-    const p = new Progress(this, div, title, workAmount, this.i18n, oncancel);
+    if (id) div.id = id;
+    const p = new Progress(this, div, title, workAmount, this.i18n);
+    if (oncancel) p.addOnCancel(oncancel);
     this._container.appendChild(div);
     this._container.style.display = '';
+    (div as any).__progress = p;
     return p;
   }
 

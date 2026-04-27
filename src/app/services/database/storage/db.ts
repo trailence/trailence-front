@@ -6,6 +6,7 @@ import { Console } from 'src/app/utils/console';
 import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
 import { trailenceAppVersionCode } from 'src/app/trailence-version';
+import { DbRegistryService } from './db.registry.service';
 
 const INTERNAL_TABLE_NAME = 'internal';
 const INTERNAL_KEY = 'key';
@@ -25,8 +26,13 @@ export class Db {
   protected localDir?: string;
   protected readonly ready$ = new BehaviorSubject<boolean>(false);
   private readonly tableChangedSubscriptions = new Map<string, Subscription>();
+  private closing: Promise<any> | undefined = undefined;
 
   start(): void {
+    this.injector.get(DbRegistryService).register(this.dbName, {
+      isByUser: this.dbByUser,
+      close$: () => this.close(),
+    });
     if (this.dbByUser) {
       this.injector.get(AuthService).userChanged$.subscribe(
         auth => {
@@ -40,6 +46,11 @@ export class Db {
   }
 
   public get dbReady$() { return this.ready$.pipe(map(ready => ready ? {email: this.openEmail} : false)); }
+  public get dbClosed$() {
+    if (this.closing) return from(this.closing).pipe(map(() => true));
+    if (this.db) return of(false);
+    return of(true);
+  }
   public tableLocalDir$(tableName: string): Observable<string> {
     return this.ready$.pipe(
       filter(ready => ready),
@@ -48,7 +59,7 @@ export class Db {
   }
 
   private async open(email?: string) {
-    if (this.openEmail === email) return;
+    if (email && this.openEmail === email) return;
     this.close();
     const dbName = this.dbName + (email ? '_' + email : '');
     Console.info('Opening DB ' + dbName);
@@ -117,7 +128,15 @@ export class Db {
     for (const table of this.tables) table.triggerChanged();
   }
 
-  private close(): void {
+  private close(): Promise<any> {
+    if (this.closing) return this.closing.then(() => this.close());
+    this.closing = this._close().then(() => {
+      this.closing = undefined;
+    });
+    return this.closing;
+  }
+
+  private async _close(): Promise<any> {
     if (!this.db) return;
     Console.info('Close DB ' + this.db.name);
     const db = this.db;
@@ -126,7 +145,8 @@ export class Db {
     this.ready$.next(false);
     for (const s of this.tableChangedSubscriptions.values()) s.unsubscribe();
     this.tableChangedSubscriptions.clear();
-    for (const table of this.tables) table.shutdown();
+    for (const table of this.tables)
+      await table.shutdown();
     db.close();
   }
 
@@ -175,6 +195,9 @@ export class Db {
     const localFiles = this.injector.get(LocalFilesService);
     if (!localFiles.supported()) return;
     for (const table of this.tables) this.registerBackup(localFiles, table);
+    // launch backup of internal table
+    if (this.db)
+      this.backupTable(this.db, localFiles, INTERNAL_TABLE_NAME, 1000);
   }
 
   private registerBackup(localFiles: LocalFilesService, table: DbTable<any>): void {
@@ -186,20 +209,23 @@ export class Db {
           table.triggerChanged();
           return of(undefined);
         } else {
+          const db = this.db;
+          if (!db) return of(undefined);
           pending = true;
-          return from(this.backupTable(localFiles, table)).pipe(tap(() => pending = false));
+          return from(this.backupTable(db, localFiles, table.name, table.backupLinesBunch)).pipe(tap(() => pending = false));
         }
       })
     ).subscribe());
+    const db = this.db;
+    if (db)
+      table.addShutdownHook(() => this.backupTable(db, localFiles, table.name, table.backupLinesBunch));
   }
 
-  private async backupTable(localFiles: LocalFilesService, table: DbTable<any>) {
-    const db = this.db;
-    if (!db) return;
-    Console.info('Backuping DB table ' + db.name + '/' + table.name);
-    const t = db.table(table.name);
+  private async backupTable(db: Dexie, localFiles: LocalFilesService, tableName: string, chunkSize: number) {
+    Console.info('Backuping DB table ' + db.name + '/' + tableName);
+    const t = db.table(tableName);
     const dir = this.localDir!;
-    const filename = table.name + '.jsonl';
+    const filename = tableName + '.jsonl';
     try {
       const keys = await t.toCollection().primaryKeys();
       await localFiles.saveJsonl(
@@ -212,7 +238,7 @@ export class Db {
           const lines = dtos.map(dto => JSON.stringify(dto));
           return {lines, hasMore};
         },
-        table.backupLinesBunch,
+        chunkSize,
       );
       Console.info('Backup done for DB table to ' + dir + '/' + filename);
     } catch (e) {

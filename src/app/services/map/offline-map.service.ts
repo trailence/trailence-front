@@ -1,6 +1,5 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import * as L from 'leaflet';
-import { AuthService } from '../auth/auth.service';
 import { MapLayer, MapLayersService } from './map-layers.service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
@@ -47,7 +46,6 @@ export class OfflineMapService {
   private _dbCounter = 0;
 
   constructor(
-    auth: AuthService,
     private readonly layers: MapLayersService,
     private readonly preferencesService: PreferencesService,
     private readonly traceRecorder: TraceRecorderService,
@@ -362,10 +360,9 @@ class Saver {
     this.limiter = new RequestLimiter(layer.maxConcurrentRequests);
     this.i18n = injector.get(I18nService);
     this.mapLayerService = injector.get(MapLayersService);
-    this.progress = injector.get(ProgressService).create(new TranslatedString('offline_map.downloading.progress_title', [layer.displayName]).translate(this.i18n), 1, () => {
+    this.progress = injector.get(ProgressService).create(new TranslatedString('offline_map.downloading.progress_title', [layer.displayName]).translate(this.i18n), 1, async () => {
       this.cancelled = true;
       this.limiter.cancel();
-      this.progress.done();
     });
     this.zooms = Array.from(toDownload.keys()).sort((a, b) => a - b);
     this.currentZoom = 0;

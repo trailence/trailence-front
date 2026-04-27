@@ -43,6 +43,7 @@ export class DbTable<DTO> {
   }
 
   private openEmail?: string;
+  private readonly shutdownHooks: (() => Promise<any>)[] = [];
   protected localDir?: string;
   protected ready$ = new BehaviorSubject<Table<DTO, string> | undefined>(undefined);
   protected readyInfo$ = new BehaviorSubject<{db: Db} | undefined>(undefined);
@@ -54,10 +55,17 @@ export class DbTable<DTO> {
     this.ready$.next(table);
   }
 
-  shutdown(): void {
+  async shutdown() {
     this.openEmail = undefined;
     this.ready$.next(undefined);
     this.readyInfo$.next(undefined);
+    for (const hook of this.shutdownHooks) {
+      await hook();
+    }
+  }
+
+  public addShutdownHook(hook: () => Promise<any>): void {
+    this.shutdownHooks.push(hook);
   }
 
   public whenReady$(): Observable<{db: Db}> {

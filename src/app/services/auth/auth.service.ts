@@ -1,7 +1,7 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, Injector, NgZone } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, from, map, of, switchMap, tap, throwError, timeout, zip } from 'rxjs';
+import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, tap, throwError, timeout, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -18,6 +18,8 @@ import { publicRoutes } from 'src/app/routes/package.routes';
 import { NavController, Platform } from '@ionic/angular/common';
 import Trailence from '../trailence.service';
 import { Arrays } from 'src/app/utils/arrays';
+import { DbRegistryService } from '../database/storage/db.registry.service';
+import { LocalFilesService } from '../local-files/local-files.service';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
@@ -60,6 +62,7 @@ export class AuthService {
   private readonly _permissionsChanged$ = new BehaviorSubject<AuthResponse | undefined>(undefined);
 
   constructor(
+    private readonly injector: Injector,
     private readonly http: HttpService,
     private readonly router: Router,
     private readonly ngZone: NgZone,
@@ -309,6 +312,18 @@ export class AuthService {
   public logout(withDelete: boolean): Observable<any> {
     const email = this.email;
     if (!email) return of(true);
+    let logout$: Promise<any> = Promise.resolve(true);
+    localStorage.removeItem(LOCALSTORAGE_KEY_AUTH);
+    const auth = this._auth$.value;
+    if (auth && !auth.isAnonymous) {
+      logout$ = logout$.then(() => firstValueFrom(this.http.delete(environment.apiBaseUrl + '/auth/v1/mykeys/' + auth.keyId)).catch(_ => true));
+    }
+    if (this.db) {
+      const db = this.db;
+      this.db = undefined;
+      logout$ = logout$.then(() => db.delete().then(() => db.close()).catch(_ => true));
+    }
+    this._auth$.next(null);
     if (withDelete) {
       for (let i = 0; i < localStorage.length; ++i) {
         const key = localStorage.key(i);
@@ -317,37 +332,24 @@ export class AuthService {
           i--;
         }
       }
-      return from(Dexie.getDatabaseNames())
-      .pipe(
-        switchMap(names => {
-          const deletes: Observable<any>[] = [];
-          for (const name of names) {
-            if (name.startsWith('trailence_') && name.endsWith('_' + email)) {
-              deletes.push(from(Dexie.delete(name)));
-            }
+      logout$ = logout$.then(() => this.injector.get(DbRegistryService).closeAllUserSpecific$())
+      .then(() => Dexie.getDatabaseNames())
+      .then(names => {
+        const deletes: Promise<any>[] = [];
+        for (const name of names) {
+          if (name.startsWith('trailence_') && name.endsWith('_' + email)) {
+            deletes.push(Dexie.delete(name));
           }
-          return deletes.length === 0 ? of(true) : zip(deletes);
-        }),
-        defaultIfEmpty(true),
-        switchMap(() => this.doLogout())
-      )
+        }
+        return Promise.all(deletes);
+      })
+      .then(() => {
+        const localFiles = this.injector.get(LocalFilesService);
+        if (!localFiles.supported()) return true;
+        return localFiles.deleteDirectoryAndContent(email);
+      });
     }
-    return this.doLogout();
-  }
-
-  private doLogout(): Observable<any> {
-    localStorage.removeItem(LOCALSTORAGE_KEY_AUTH);
-    const auth = this._auth$.value;
-    if (auth && !auth.isAnonymous) {
-      this.http.delete(environment.apiBaseUrl + '/auth/v1/mykeys/' + auth.keyId).subscribe();
-    }
-    if (this.db) {
-      const db = this.db;
-      db.delete().then(() => db.close());
-      this.db = undefined;
-    }
-    this._auth$.next(null);
-    return of(true);
+    return from(logout$);
   }
 
   private requireAuth(): Observable<AuthResponse | null> {

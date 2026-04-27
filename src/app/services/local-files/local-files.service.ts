@@ -1,26 +1,42 @@
-import { EventEmitter, Injectable, Injector } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Platform } from '@ionic/angular/standalone';
 import { BinaryContent } from 'src/app/utils/binary-content';
 import LocalFiles from './local-files';
-import { AuthService } from '../auth/auth.service';
 import { Console } from 'src/app/utils/console';
-import Dexie, { Table } from 'dexie';
-import { BehaviorSubject, debounceTime, filter, first, from, map, Observable, of, Subscription, switchMap, tap, throwIfEmpty } from 'rxjs';
-import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { ProgressService } from '../progress/progress.service';
-import { I18nService } from '../i18n/i18n.service';
+import { LocalFilesPlugin } from './local-files.interface';
 
 type waitingOperation = {name: string, operation: () => Promise<any>, resolve: (result: any) => void, reject: (reason: any) => void};
+
+@Injectable({providedIn: 'root'})
+export class LocalFilesPluginProvider {
+  constructor(
+    platform: Platform,
+  ) {
+    this._support = platform.is('capacitor');
+  }
+
+  private readonly _support: boolean;
+
+  public supported(): boolean {
+    return this._support;
+  }
+
+  public getPlugin(): LocalFilesPlugin {
+    return LocalFiles;
+  }
+}
 
 @Injectable({providedIn: 'root'})
 export class LocalFilesService {
 
   private readonly support: boolean;
+  private readonly plugin: LocalFilesPlugin;
 
   constructor(
-    readonly platform: Platform,
+    readonly pluginProvider: LocalFilesPluginProvider,
   ) {
-    this.support = this.platform.is('capacitor');
+    this.support = this.pluginProvider.supported();
+    this.plugin = this.pluginProvider.getPlugin();
   }
 
   public supported(): boolean {
@@ -136,39 +152,47 @@ export class LocalFilesService {
 
 
   public fileExists(dir: string, filename: string): Promise<boolean> {
-    return this.operation(dir, filename, 'fileExists', () => LocalFiles.fileExists({dir, filename}).then(r => r.exists));
+    return this.operation(dir, filename, 'fileExists', () => this.plugin.fileExists({dir, filename}).then(r => r.exists));
   }
 
   public filesExist(dir: string, files: string[]): Promise<boolean[]> {
-    return this.multipleOperation(dir, files, 'fileExist', () => LocalFiles.filesExist({dir, files}).then(r => r.exist));
+    return this.multipleOperation(dir, files, 'fileExist', () => this.plugin.filesExist({dir, files}).then(r => r.exist));
   }
 
   public filesSize(dir: string, files: string[]): Promise<{filename: string, size: number}[]> {
     if (files.length === 0) return Promise.resolve([]);
-    return this.multipleOperation(dir, files, 'filesSize', () => LocalFiles.getFilesSize({dir, files}).then(r => r.files));
+    return this.multipleOperation(dir, files, 'filesSize', () => this.plugin.getFilesSize({dir, files}).then(r => r.files));
   }
 
   public listFiles(dir: string): Promise<string[]> {
-    return LocalFiles.listFiles({dir}).then(r => r.files);
+    return this.plugin.listFiles({dir}).then(r => r.files);
   }
 
   public deleteFile(dir: string, filename: string): Promise<any> {
-    return this.operation(dir, filename, 'delete', () => LocalFiles.deleteFile({dir, filename}));
+    return this.operation(dir, filename, 'delete', () => this.plugin.deleteFile({dir, filename}));
   }
 
   public deleteFiles(dir: string, files: string[]): Promise<any> {
     if (files.length === 0) return Promise.resolve();
-    return this.multipleOperation(dir, files, 'delete', () => LocalFiles.deleteFiles({dir, files}));
+    return this.multipleOperation(dir, files, 'delete', () => this.plugin.deleteFiles({dir, files}));
   }
 
   public deleteAllFiles(dir: string): Promise<any> {
-    return LocalFiles.deleteAllFiles({dir});
+    return this.plugin.deleteAllFiles({dir});
+  }
+
+  public deleteDirectoryAndContent(dir: string): Promise<any> {
+    const retry: (trial:number) => Promise<any> = (trial: number) => this.plugin.deleteDirectoryAndContent({dir}).catch(_ => {
+      if (trial < 10) return retry(trial + 1);
+      return false;
+    });
+    return retry(0);
   }
 
   public saveBinaryFile(dir: string, filename: string, data: BinaryContent): Promise<boolean> {
     return this.operation(dir, filename, 'saveBinary', () =>
-      LocalFiles.saveBinaryFile({dir, filename, size: data.getSize()})
-      .then(init => data.toUint8Array().then(content =>this.saveBinaryChunk(init.id, init.maxChunkSize, content, 0)))
+      this.plugin.saveBinaryFile({dir, filename, size: data.getSize()})
+      .then(init => (init as any)['id'] ? data.toUint8Array().then(content =>this.saveBinaryChunk((init as any).id, (init as any).maxChunkSize, content, 0)) : {})
       .then(() => true)
     );
   }
@@ -178,7 +202,7 @@ export class LocalFilesService {
     const data = btoa(content.slice(offset, end).reduce((data, byte) => {
       return data + String.fromCharCode(byte); // NOSONAR
     }, ''));
-    return LocalFiles.saveBinaryFileChunk({id, data})
+    return this.plugin.saveBinaryFileChunk({id, data})
     .then(r => {
       if (end === content.byteLength) return r;
       return this.saveBinaryChunk(id, maxChunkSize, content, end);
@@ -187,17 +211,17 @@ export class LocalFilesService {
 
   public readBlob(dir: string, filename: string, contentType?: string): Promise<Blob> {
     return this.operation(dir, filename, 'readBlob', () =>
-      LocalFiles.readBinaryFile({dir, filename})
+      this.plugin.readBinaryFile({dir, filename})
       .then(init => {
         if (init.chunks === 0) return new Blob([], {type: contentType});
-        if (init.chunks === 1) return BinaryContent.b64toBlob(init.data, contentType);
-        return this.readBlobChunk(init.id!, init.chunks, 2, init.data, contentType);
+        if (init.chunks === 1) return BinaryContent.b64toBlob(init.data!, contentType);
+        return this.readBlobChunk(init.id!, init.chunks, 2, init.data!, contentType);
       })
     );
   }
 
   private readBlobChunk(id: number, nbChunks: number, chunkIndex: number, b64: string, contentType?: string): Promise<Blob> {
-    return LocalFiles.readBinaryFileChunk({id})
+    return this.plugin.readBinaryFileChunk({id})
     .then(r => {
       const b = b64 + r.data;
       if (chunkIndex === nbChunks) return BinaryContent.b64toBlob(b, contentType);
@@ -209,7 +233,7 @@ export class LocalFilesService {
     return this.operation(dir, filename, 'saveJsonl', () =>
       linesGenerator(0, chunkSize)
       .then(generated =>
-        LocalFiles.saveJsonlFile({dir, filename, lines: generated.lines, more: generated.hasMore})
+        this.plugin.saveJsonlFile({dir, filename, lines: generated.lines, more: generated.hasMore})
         .then(r => {
           if (r.id) return this.saveJsonlChunk(r.id, linesGenerator, chunkSize, chunkSize);
           return undefined;
@@ -221,7 +245,7 @@ export class LocalFilesService {
   private saveJsonlChunk(id: number, linesGenerator: (from: number, limit: number) => Promise<{lines: string[], hasMore: boolean}>, from: number, chunkSize: number = 250): Promise<any> {
     return linesGenerator(from, chunkSize)
     .then(generated =>
-      LocalFiles.saveJsonlFileChunk({id, lines: generated.lines, more: generated.hasMore})
+      this.plugin.saveJsonlFileChunk({id, lines: generated.lines, more: generated.hasMore})
       .then(() => {
         if (generated.hasMore) return this.saveJsonlChunk(id, linesGenerator, from + chunkSize, chunkSize);
         return undefined;
@@ -231,7 +255,7 @@ export class LocalFilesService {
 
   public readJsonl(dir: string, filename: string, linesConsumer: (lines: string[]) => Promise<any>): Promise<any> {
     return this.operation(dir, filename, 'readJsonl', () =>
-      LocalFiles.readJsonlFile({dir, filename})
+      this.plugin.readJsonlFile({dir, filename})
       .then(r => linesConsumer(r.lines).then(() => {
         if (!r.id) return r.lines.length > 0 ? linesConsumer([]) : undefined;
         return this.readJsonlChunk(r.id, linesConsumer);
@@ -240,7 +264,7 @@ export class LocalFilesService {
   }
 
   private readJsonlChunk(id: number, linesConsumer: (lines: string[]) => Promise<any>): Promise<any> {
-    return LocalFiles.readJsonlFileChunk({id})
+    return this.plugin.readJsonlFileChunk({id})
     .then(r => linesConsumer(r.lines).then(() => {
       if (r.end) return linesConsumer([]);
       return this.readJsonlChunk(id, linesConsumer);

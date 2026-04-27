@@ -46,7 +46,7 @@ export class BinaryContent {
       return Promise.resolve(this.base64);
     }
     if (this.uint8Array) {
-      this.base64 = this.uint8ArrayToBase64(this.uint8Array);
+      this.base64 = BinaryContent.uint8ArrayToBase64(this.uint8Array);
       return Promise.resolve(this.base64);
     }
     if (this.blob) {
@@ -177,10 +177,10 @@ export class BinaryContent {
   }
 
   private bufferToBase64(buffer: ArrayBuffer) {
-    return this.uint8ArrayToBase64(new Uint8Array(buffer));
+    return BinaryContent.uint8ArrayToBase64(new Uint8Array(buffer));
   }
 
-  private uint8ArrayToBase64(a: Uint8Array) {
+  public static uint8ArrayToBase64(a: Uint8Array) {
     return btoa(a.reduce((data, byte) => {
       return data + String.fromCharCode(byte); // NOSONAR
     }, ''));

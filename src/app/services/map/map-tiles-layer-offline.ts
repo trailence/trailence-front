@@ -4,7 +4,7 @@ import { OfflineMapService } from 'src/app/services/map/offline-map.service';
 import { NetworkService } from 'src/app/services/network/network.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
-export function handleMapOffline(name: string, tiles: L.TileLayer, network: NetworkService, offlineMap: OfflineMapService): L.TileLayer {
+export function handleMapOffline(name: string, tiles: L.TileLayer, getTileUrl: (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => string, network: NetworkService, offlineMap: OfflineMapService): L.TileLayer {
   const originalCreateTile = (tiles as any)['createTile'];
   (tiles as any)['createTile'] = function(coords: L.Coords, done: L.DoneCallback) {
     const loadOffline = (img: any, trial: number) => {
@@ -78,7 +78,8 @@ export function handleMapOffline(name: string, tiles: L.TileLayer, network: Netw
     img.classList.add('map-tile-loading');
     img.crossOrigin = 'anonymous';
     return img;
-  }
+  };
+  (tiles as any)['getTileUrl'] = function(coords: L.Coords) { return getTileUrl(this, coords, this._map ? this._map.options.crs : undefined); }
   return tiles;
 }
 

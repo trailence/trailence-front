@@ -39,7 +39,8 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
     const keys = await table.toCollection().primaryKeys();
     if (keys.length === 0) return;
     Console.info(keys.length + ' entries to migrate to local files from ' + dexie.name + '/' + this.name);
-    const progress = injector.get(ProgressService).create(injector.get(I18nService).texts.update.updating, keys.length);
+    const progress = injector.get(ProgressService).getOrCreate('update-migration', injector.get(I18nService).texts.update.updating, keys.length);
+    let workDone = 0;
     const next = async (from: number) => {
       const end = Math.min(keys.length, from + 25);
       const keysToProcess = keys.slice(from, end);
@@ -49,24 +50,24 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
           const blob = dto[this.dtoBlobField];
           if (!blob) {
             progress.addWorkDone(1);
+            workDone++;
             return Promise.resolve(dto);
           }
           return this.localFiles.saveBinaryFile(localDir, dto[this.dtoKeyField], new BinaryContent(blob))
-          .then(() => progress.addWorkDone(1))
           .then(() => {
+            progress.addWorkDone(1);
+            workDone++;
             delete dto[this.dtoBlobField];
             return dto;
           });
         })
       );
       await table.bulkPut(dtosWithoutBlob);
-      if (end === keys.length) {
-        progress.done();
-        return;
-      }
+      if (end === keys.length) return;
       await next(from + 25);
     };
     await next(0);
+    if (workDone < keys.length) progress.addWorkDone(keys.length - workDone);
   }
 
   private async augmentWithBlob(fromTable: Partial<DTO>) {
@@ -75,7 +76,12 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
   }
 
   private async storeAndRemoveBlob(dto: DTO) {
-    await this.localFiles.saveBinaryFile(this.localDir!, (dto as any)[this.dtoKeyField] as string, new BinaryContent((dto as any)[this.dtoBlobField] as Blob));
+    const key = (dto as any)[this.dtoKeyField] as string;
+    const blob = (dto as any)[this.dtoBlobField] as Blob;
+    if (!key) throw new Error('Missing key on DTO');
+    if (!blob) throw new Error('Missing blob for key: ' + key);
+    await this.localFiles.saveBinaryFile(this.localDir!, key, new BinaryContent(blob));
+    dto = {...dto};
     delete (dto as any)[this.dtoBlobField];
     return dto;
   }

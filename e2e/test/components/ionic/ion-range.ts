@@ -8,6 +8,7 @@ export class IonicRange extends Component {
       const newValue = {lower: lower ?? currentValue.lower, upper: upper ?? currentValue.upper};
       (el as any).value = newValue;
       (el as any).ionInput.emit({value: newValue});
+      (el as any).ionChange.emit({value: newValue});
     }, await this.getElement().getElement(), lowerValue, upperValue);
   }
 
@@ -15,6 +16,7 @@ export class IonicRange extends Component {
     await browser.execute((el, v) => {
       (el as any).value = v;
       (el as any).ionInput.emit({value: v});
+      (el as any).ionChange.emit({value: v});
     }, await this.getElement().getElement(), value);
   }
 

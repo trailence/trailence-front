@@ -2,6 +2,7 @@ import { App } from '../app/app';
 import { TestUtils } from '../utils/test-utils';
 import { Component } from './component';
 import { IonicButton } from './ionic/ion-button';
+import { IonicCheckbox } from './ionic/ion-checkbox';
 import { IonicRange } from './ionic/ion-range';
 import { SearchPlace } from './search-place.component';
 import { ToolbarComponent } from './toolbar.component';
@@ -100,7 +101,9 @@ export class MapComponent extends Component {
   public async selectLayer(name: string) {
     await this.rightToolbar.clickByIcon('layers');
     const modal = await App.waitModal();
-    await browser.waitUntil(() => modal.$('div.layer.layer-' + name).isDisplayed());
+    await browser.waitUntil(() => modal.$('>>>div.layer.layer-' + name).isExisting());
+    await modal.$('div.layer.layer-' + name).scrollIntoView({block: 'center', inline: 'center'});
+    await browser.waitUntil(() => modal.$('>>>div.layer.layer-' + name).isDisplayed());
     await modal.$('div.layer.layer-' + name).click();
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
   }
@@ -108,9 +111,9 @@ export class MapComponent extends Component {
   public async isLayerAvailable(name: string) {
     await this.rightToolbar.clickByIcon('layers');
     const modal = await App.waitModal();
-    await modal.$('div.layer').isDisplayed();
-    const result = await modal.$('div.layer.layer-' + name).isExisting();
-    await modal.$('ion-radio-group div.layer.selected').click();
+    await modal.$('>>>div.layer').isDisplayed();
+    const result = await modal.$('>>>div.layer.layer-' + name).isExisting();
+    await modal.$('>>>ion-radio-group div.layer.selected').click();
     await browser.waitUntil(() => modal.isDisplayed().then(d => !d));
     return result;
   }
@@ -139,10 +142,14 @@ export class MapComponent extends Component {
       await browser.action('pointer').move({x: 3, y: 3, origin: await this.rightToolbar.getButtonByIcon('download').getElement()}).pause(50).down().pause(10).up().perform();
       modal = await App.waitModal();
     }
-    for (const layerName of layers) {
-      const layerContainer = modal.$('>>>div.layer.layer-' + layerName);
-      await layerContainer.isDisplayed();
-      await layerContainer.click();
+    const layerSelection = modal.$('>>>app-map-layer-selection');
+    const layersContainers = await layerSelection.$$('div.layer').getElements();
+    for (const layerContainer of layersContainers) {
+      await layerContainer.scrollIntoView({block: 'center', inline: 'center'});
+      const layerClass = await layerContainer.getAttribute('class');
+      const layerName = layerClass.substring(layerClass.indexOf('layer-') + 6).trim();
+      const layerCheckbox = new IonicCheckbox(layerContainer.$('ion-checkbox'));
+      await layerCheckbox.setSelected(layers.includes(layerName))
     }
     const zoomRange = new IonicRange(modal.$('>>>ion-range[name=max-zoom]'));
     await zoomRange.setValue(zoomLevel);

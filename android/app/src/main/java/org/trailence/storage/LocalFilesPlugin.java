@@ -574,6 +574,36 @@ public class LocalFilesPlugin extends Plugin {
     }
   }
 
+  @PluginMethod
+  public void deleteDirectoryAndContent(PluginCall call) {
+    try {
+      String dir = call.getString("dir");
+      if (dir == null || dir.isBlank()) throw new LocalFilesException(LocalFilesException.Code.INVALID_INPUT, "Missing dir");
+      File subDir = new File(root, dir);
+      if (subDir.exists()) {
+        if (!deleteDirRecursive(subDir)) {
+          call.reject("Cannot delete directory: " + dir);
+          return;
+        }
+      }
+      call.resolve();
+    } catch (LocalFilesException e) {
+      e.reject(call);
+    } catch (Exception e) {
+      Utils.reject(call, e);
+    }
+  }
+
+  private boolean deleteDirRecursive(File dir) {
+    File[] files = dir.listFiles();
+    if (files == null) return false;
+    for (var file : files) {
+      if (file.isFile()) file.delete();
+      else if (!file.getName().equals(".") && !file.getName().equals("..") && file.isDirectory()) deleteDirRecursive(file);
+    }
+    return dir.delete();
+  }
+
   /**
    * Input:
    *  - dir

@@ -21,7 +21,7 @@ export interface MapLayer {
 
   create(): L.TileLayer;
 
-  getTileUrl(layer: L.TileLayer, coords: L.Coords, crs: L.CRS): string;
+  getTileUrl(layer: L.TileLayer, coords: L.Coords, crs?: L.CRS): string;
 
   maxConcurrentRequests: number;
   doNotUseNativeHttp: boolean;
@@ -147,6 +147,26 @@ function createDefaultLayer( // NOSONAR
   additionalOptions: any = {},
   regional: RegionalSettings | undefined = undefined,
 ): MapLayer {
+  const getTileUrl = (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => {
+    let zoom = coords.z;
+    if (layer.options.zoomReverse && layer.options.maxZoom) zoom = layer.options.maxZoom - zoom;
+    if (layer.options.zoomOffset) zoom += layer.options.zoomOffset;
+    const data = {
+        r: L.Browser.retina ? '@2x' : '',
+        s: (layer as any)._getSubdomain(coords),
+        x: coords.x,
+        y: coords.y,
+        z: zoom,
+      } as any;
+      if (crs && !crs.infinite && (layer as any)._globalTileRange) {
+        const invertedY = (layer as any)._globalTileRange.max.y - coords.y;
+        if (layer.options.tms) {
+          data['y'] = invertedY;
+        }
+        data['-y'] = invertedY;
+      }
+      return L.Util.template((layer as any)._url, L.Util.extend(data, layer.options));
+  };
   return {
     name,
     displayName,
@@ -159,24 +179,8 @@ function createDefaultLayer( // NOSONAR
       attribution: copyright,
       id: name,
       ...additionalOptions
-    }), injector.get(NetworkService), injector.get(OfflineMapService)),
-    getTileUrl(layer, coords, crs) {
-      const data = {
-        r: L.Browser.retina ? '@2x' : '',
-        s: (layer as any)._getSubdomain(coords),
-        x: coords.x,
-        y: coords.y,
-        z: coords.z
-      } as any;
-      if (!crs.infinite && (layer as any)._globalTileRange) {
-        const invertedY = (layer as any)._globalTileRange.max.y - coords.y;
-        if (layer.options.tms) {
-          data['y'] = invertedY;
-        }
-        data['-y'] = invertedY;
-      }
-      return L.Util.template((layer as any)._url, L.Util.extend(data, layer.options));
-    },
+    }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService)),
+    getTileUrl,
     maxConcurrentRequests,
     doNotUseNativeHttp,
     tileSize: 256,
@@ -199,6 +203,14 @@ function createIgnLayer( // NOSONAR
   regional: RegionalSettings | undefined = undefined,
 ): MapLayer {
   const urlTemplate = baseUrl + '?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=' + layerName + '&STYLE=' + style + '&TILEMATRIXSET=' + matrixSet + '&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&FORMAT=' + encodeURIComponent(format);
+  const getTileUrl = (layer: L.TileLayer, coords: L.Coords, crs?: L.CRS) => {
+    const data = {
+      x: coords.x,
+      y: coords.y,
+      z: coords.z
+    } as any;
+    return L.Util.template(urlTemplate, data);
+  };
   return {
     name,
     displayName,
@@ -210,15 +222,8 @@ function createIgnLayer( // NOSONAR
       maxZoom,
       attribution,
       id: name,
-    }), injector.get(NetworkService), injector.get(OfflineMapService)),
-    getTileUrl: (layer, coords, crs) => {
-      const data = {
-        x: coords.x,
-        y: coords.y,
-        z: coords.z
-      } as any;
-      return L.Util.template(urlTemplate, data);
-    },
+    }), getTileUrl, injector.get(NetworkService), injector.get(OfflineMapService)),
+    getTileUrl,
     maxConcurrentRequests,
     doNotUseNativeHttp: false,
     tileSize: 256,
