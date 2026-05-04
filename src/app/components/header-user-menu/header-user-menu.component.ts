@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { IonButton, IonPopover, IonList, IonItem, IonIcon, IonLabel, IonContent, IonModal, IonHeader, IonToolbar, IonTitle, IonFooter, IonButtons, IonBadge, IonToggle, Platform } from '@ionic/angular/standalone';
 import { combineLatest, map } from 'rxjs';
 import { AuthService } from 'src/app/services/auth/auth.service';
-import { DatabaseService } from 'src/app/services/database/database.service';
 import { TranslatedString } from 'src/app/services/i18n/i18n-string';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
 import { NetworkService } from 'src/app/services/network/network.service';
@@ -14,6 +13,7 @@ import { AvatarComponent } from '../avatar/avatar.component';
 import { ContributionsBadgesComponent } from "../contributions-badges/contribution-badges.component";
 import { environment } from 'src/environments/environment';
 import Trailence from 'src/app/services/trailence.service';
+import { StoreService } from 'src/app/services/database/store/store.service';
 
 @Component({
     selector: 'app-header-user-menu',
@@ -49,7 +49,7 @@ export class HeaderUserMenuComponent extends AbstractComponent {
     public readonly i18n: I18nService,
     public readonly auth: AuthService,
     public readonly preferences: PreferencesService,
-    private readonly databaseService: DatabaseService,
+    private readonly stores: StoreService,
     private readonly networkService: NetworkService,
     changeDetector: ChangeDetectorRef,
     public readonly router: Router,
@@ -75,15 +75,15 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   protected override initComponent(): void {
     this.whenVisible.subscribe(
       combineLatest([
-        combineLatest([this.networkService.server$, this.databaseService.syncStatus]).pipe(
+        combineLatest([this.networkService.server$, this.stores.syncStatus$]).pipe(
           map(([connected, sync]) => {
             if (!connected) return 'offline';
             if (sync) return 'sync';
             return 'online';
           })
         ),
-        this.databaseService.hasLocalChanges,
-        this.databaseService.lastSync,
+        this.stores.localChanges$,
+        this.stores.lastSync$,
         this.auth.permissionsChanged$,
       ]),
       ([s, localChanges, lastSync, auth]) => {
@@ -121,11 +121,11 @@ export class HeaderUserMenuComponent extends AbstractComponent {
   }
 
   syncNow(): void {
-    this.databaseService.syncNow();
+    this.stores.syncNow();
   }
 
   resetAll(): void {
-    this.databaseService.resetAll();
+    this.stores.hardDeleteLocalData();
   }
 
   goToNotifications(): void {

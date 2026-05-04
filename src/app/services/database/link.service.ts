@@ -1,14 +1,14 @@
 import { Injectable, Injector } from '@angular/core';
-import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
+import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
 import { TrailLink } from 'src/app/model/dto/trail-link';
-import { DatabaseService, TRAIL_LINKS_TABLE_NAME } from './database.service';
 import { HttpService } from '../http/http.service';
 import { catchError, concatAll, EMPTY, from, map, Observable, of, switchMap, toArray } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Console } from 'src/app/utils/console';
 import { TrailService } from './trail.service';
 import { AuthService } from '../auth/auth.service';
-import Dexie from 'dexie';
+import { CommonDatabaseService } from './common-database.service';
+import { StoreService } from './store/store.service';
 
 @Injectable({providedIn: 'root'})
 export class TrailLinkService {
@@ -43,6 +43,8 @@ export class TrailLinkService {
     this.store.delete(link);
   }
 
+  public get storeLoaded$() { return this.store.isLoaded$; }
+
 }
 
 class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> {
@@ -50,7 +52,7 @@ class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> {
   constructor(
     injector: Injector,
   ) {
-    super(TRAIL_LINKS_TABLE_NAME, injector);
+    super(injector.get(CommonDatabaseService).publicLinksTable, injector);
     this.http = injector.get(HttpService);
   }
 
@@ -123,14 +125,6 @@ class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> {
     return item.trailUuid;
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-    return Promise.resolve(undefined);
-  }
-
-  protected override doCleaning(email: string, db: Dexie): Observable<any> {
-    return of(true);
-  }
-
   protected override createdLocallyCanBeRemoved(entity: TrailLink): Observable<boolean> {
     const email = this.injector.get(AuthService).email
     if (!email) return of(false);
@@ -144,7 +138,7 @@ class TrailLinkStore extends SimpleStoreWithoutUpdate<TrailLink, TrailLink> {
   }
 
   public triggerSyncNow(): void {
-    this.injector.get(DatabaseService).triggerStoreSync(this.tableName);
+    this.injector.get(StoreService).triggerStoreSync(this.table.name);
   }
 
 }

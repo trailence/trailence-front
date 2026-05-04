@@ -92,7 +92,6 @@ export class AppComponent {
           auth.auth$,
           from(this.loadServices()).pipe(
             timeout(10000),
-            switchMap(allDatabasesLoaded => allDatabasesLoaded()),
             catchError(e => {
               Console.error('Error loading services', e);
               return of(true);
@@ -110,7 +109,7 @@ export class AppComponent {
           first(),
         ).subscribe(() => {
           this.loadMenu = true;
-          this.loadServices().then(() => {});
+          this.loadServices();
         });
         setTimeout(() => this.loadServices(), 1000);
       }
@@ -147,30 +146,12 @@ export class AppComponent {
     });
   }
 
-  private loadServices(): Promise<() => Observable<boolean>> {
-    return Promise.all([
-      import('./services/database/database.service'),
-      import('./services/database/trail-collection.service'),
-      import('./services/database/share.service'),
-      import('./services/database/trail.service'),
-      import('./services/database/tag.service'),
-      import('./services/database/track.service'),
-      import('./services/database/link.service'),
-    ]).then(services => {
-      const database = this.injector.get(services[0].DatabaseService);
-      this.injector.get(services[1].TrailCollectionService);
-      this.injector.get(services[2].ShareService);
-      this.injector.get(services[3].TrailService);
-      this.injector.get(services[4].TagService);
-      const trackService = this.injector.get(services[5].TrackService);
-      this.injector.get(services[6].TrailLinkService);
-      return () => database.storesLoaded(['trail_collections', 'shares', 'trails', 'tags', 'trail_tags', 'trail_links']).pipe(
-        switchMap(loaded => loaded ? trackService.dbReady$() : of(false)),
-        tap(loaded => {
-          if (!this._ready$.value && loaded) this._ready$.next(true);
-        })
-      );
-    });
+  private loadServices(): Promise<any> {
+    return import('./services/database/all')
+    .then(all => all.all(this.injector))
+    .then(loaded$ => loaded$.subscribe(() => {
+      if (!this._ready$.value) this._ready$.next(true);
+    }));
   }
 
   private ready(startup: HTMLElement): void {

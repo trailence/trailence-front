@@ -1,18 +1,16 @@
 import { Injectable, Injector } from '@angular/core';
-import { OwnedStore, UpdatesResponse } from './owned-store';
+import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { PhotoDto } from 'src/app/model/dto/photo';
 import { Photo } from 'src/app/model/photo';
 import { VersionedDto } from 'src/app/model/dto/versioned';
 import { BehaviorSubject, catchError, combineLatest, defaultIfEmpty, EMPTY, first, firstValueFrom, from, map, Observable, of, share, switchMap, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpService } from '../http/http.service';
-import { DatabaseService, PHOTO_TABLE_NAME } from './database.service';
 import { RequestLimiter } from 'src/app/utils/request-limiter';
 import { StoredFilesService } from './stored-files.service';
 import { TrailService } from './trail.service';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
-import Dexie from 'dexie';
 import { Trail } from 'src/app/model/trail';
 import { ModalController, Platform } from '@ionic/angular/standalone';
 import { PreferencesService } from '../preferences/preferences.service';
@@ -27,6 +25,8 @@ import { ModerationService } from '../moderation/moderation.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { importPhoto } from './photo-import';
 import { TraceRecorderService } from '../trace-recorder/trace-recorder.service';
+import { CommonDatabaseService } from './common-database.service';
+import { StoreWithCleaning } from './store/store.service';
 
 @Injectable({providedIn: 'root'})
 export class PhotoService {
@@ -289,7 +289,7 @@ export class PhotoService {
 
 }
 
-class PhotoStore extends OwnedStore<PhotoDto, Photo> {
+class PhotoStore extends OwnedStore<PhotoDto, Photo> implements StoreWithCleaning {
 
   private readonly http: HttpService;
   private readonly files: StoredFilesService;
@@ -299,7 +299,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
   constructor(
     injector: Injector,
   ) {
-    super(PHOTO_TABLE_NAME, injector);
+    super(injector.get(CommonDatabaseService).photoTable, injector);
     this.http = injector.get(HttpService);
     this.files = injector.get(StoredFilesService);
     this.trails = injector.get(TrailService);
@@ -317,10 +317,6 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
   protected override isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
     return !q || q.photosUsed >= q.photosMax || q.photosSizeUsed >= q.photosSizeMax;
-  }
-
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-    return Promise.resolve(undefined);
   }
 
   protected override getUpdatesFromServer(knownItems: VersionedDto[]): Observable<UpdatesResponse<PhotoDto>> {
@@ -345,14 +341,15 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
   protected override createOnServer(items: PhotoDto[]): Observable<PhotoDto[]> {
     const limiter = new RequestLimiter(1);
     const requests: Observable<PhotoDto>[] = [];
-    const db = this._db;
+    const status = this._storeLoaded$.value;
+    if (!status) return EMPTY;
     for (const dto of items) {
       const request = () => {
-        if (this._db !== db) return EMPTY;
+        if (status.counter !== this._storeLoaded$.value?.counter) return EMPTY;
         return this.files.getFile$(dto.owner, 'photo', dto.uuid).pipe(
-          catchError(e => EMPTY),
+          catchError(_ => EMPTY),
           switchMap(blob => {
-            if (this._db !== db) return EMPTY;
+            if (status.counter !== this._storeLoaded$.value?.counter) return EMPTY;
             const headers: any = {
               'Content-Type': 'application/octet-stream',
               'X-Description': encodeURIComponent(dto.description),
@@ -402,7 +399,13 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
     this.files.deleteFiles('photo', deleted.map(d => ({owner: d.item.owner, uuid: d.item.uuid}))).subscribe();
   }
 
-  protected override doCleaning(email: string, db: Dexie): Observable<any> {
+  cleaningDependencies(): string[] {
+    return ['trails'];
+  }
+
+  doCleaning(): Observable<any> {
+    const status = this._storeLoaded$.value;
+    if (!status) return of(undefined);
     const photosCleant$ = zip([
       this.getAll$().pipe(collection$items()),
       this.trails.getAll$().pipe(collection$items()),
@@ -411,8 +414,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
       switchMap(([photos, trails]) => {
         const knownPhotos = photos.map(p => ({owner: p.owner, uuid: p.uuid}));
         return new Observable<{owner: string, uuid: string}[] | undefined>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db?.db || email !== dbService.email) {
+          if (status.counter !== this._storeLoaded$.value?.counter) {
             subscriber.next(undefined);
             subscriber.complete();
             return;
@@ -430,7 +432,7 @@ class PhotoStore extends OwnedStore<PhotoDto, Photo> {
             if (trail) continue;
             const d = ondone.add();
             this.getLocalUpdate(photo).then(date => {
-              if (db !== dbService.db?.db || email !== dbService.email) {
+              if (status.counter !== this._storeLoaded$.value?.counter) {
                 d();
                 return;
               }

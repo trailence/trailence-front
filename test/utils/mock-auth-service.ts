@@ -42,6 +42,7 @@ export function provideAuthService(email: string) {
       auth$: new BehaviorSubject<AuthResponse>(response),
       userChanged$: new BehaviorSubject<AuthResponse>(response),
       permissionsChanged$: new BehaviorSubject<AuthResponse>(response),
+      email: response.email,
     }
   }
 }

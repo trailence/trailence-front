@@ -1,9 +1,8 @@
 import { Injectable, Injector } from "@angular/core";
 import { BehaviorSubject, Observable, catchError, combineLatest, defaultIfEmpty, first, map, of, switchMap, takeWhile, tap, throwError, timeout } from "rxjs";
 import { TrailCollection } from "src/app/model/trail-collection";
-import { OwnedStore, UpdatesResponse } from "./owned-store";
+import { OwnedStore, UpdatesResponse } from "./store/owned-store";
 import { isPublicationCollection, TrailCollectionDto, TrailCollectionType } from "src/app/model/dto/trail-collection";
-import { DatabaseService, TRAIL_COLLECTION_TABLE_NAME, TRAIL_TABLE_NAME } from "./database.service";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
@@ -13,7 +12,6 @@ import { I18nService } from '../i18n/i18n.service';
 import { TagService } from './tag.service';
 import { TrailService } from './trail.service';
 import { Progress, ProgressService } from '../progress/progress.service';
-import Dexie from 'dexie';
 import { Router } from '@angular/router';
 import { Trail } from 'src/app/model/trail';
 import { DependenciesService } from './dependencies.service';
@@ -24,6 +22,8 @@ import { ShareService } from './share.service';
 import { ANONYMOUS_USER, AuthService } from '../auth/auth.service';
 import { Console } from 'src/app/utils/console';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
+import { CommonDatabaseService } from './common-database.service';
+import { StoreService } from './store/store.service';
 
 @Injectable({
     providedIn: 'root'
@@ -136,7 +136,7 @@ export class TrailCollectionService {
   }
 
   public delete(collection: TrailCollection, progress: Progress): void {
-    const previousPause = this.injector.get(DatabaseService).pauseSync();
+    const previousPause = this.injector.get(StoreService).pauseSync();
     progress.workAmount = 100 + 1000 + 1;
     this.injector.get(TagService).deleteAllTagsFromCollections([{uuid: collection.uuid, owner: collection.owner}], progress, 100)
     .pipe(defaultIfEmpty(false), timeout(15000), catchError(e => { Console.error('Error deleting tags', e); return of(false); }))
@@ -147,7 +147,7 @@ export class TrailCollectionService {
         this._store.delete(collection);
         progress.addWorkDone(1);
         progress.done();
-        this.injector.get(DatabaseService).resumeSync(previousPause);
+        this.injector.get(StoreService).resumeSync(previousPause);
       });
     });
   }
@@ -213,8 +213,10 @@ export class TrailCollectionService {
     await alert.present();
   }
 
+  public get storeLoaded$() { return this._store.isLoaded$; }
+
   public storeLoadedAndServerUpdates$(): Observable<boolean> {
-    return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
+    return combineLatest([this._store.isLoaded$, this._store.syncStatus$]).pipe(
       map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
     );
   }
@@ -222,13 +224,14 @@ export class TrailCollectionService {
   public doNotDeleteCollectionWhileTrailNotSync(collectionUuid: string, trail: Trail): Promise<any> {
     const collectionKey = collectionUuid + '#' + trail.owner;
     const trailKey = trail.uuid + '#' + trail.owner;
+    const db = this.injector.get(CommonDatabaseService);
     return this.injector.get(DependenciesService).addDependencies(
-      TRAIL_COLLECTION_TABLE_NAME,
+      db.collectionTable.name,
       collectionKey,
       'delete',
       [
         {
-          storeName: TRAIL_TABLE_NAME,
+          storeName: db.trailTable.name,
           itemKey: trailKey,
           operation: 'update'
         }
@@ -238,7 +241,7 @@ export class TrailCollectionService {
 
   public doNotDeleteCollectionUntilEvent(collectionUuid: string, collectionOwner: string, eventId: string): void {
     this.injector.get(DependenciesService).addEventDependency(
-      TRAIL_COLLECTION_TABLE_NAME,
+      this.injector.get(CommonDatabaseService).collectionTable.name,
       collectionUuid + '#' + collectionOwner,
       'delete',
       eventId
@@ -263,7 +266,7 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
       injector: Injector,
       private readonly http: HttpService,
     ) {
-      super(TRAIL_COLLECTION_TABLE_NAME, injector);
+      super(injector.get(CommonDatabaseService).collectionTable, injector);
       this.quotaService = injector.get(QuotaService);
     }
 
@@ -290,10 +293,6 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override toDTO(entity: TrailCollection): TrailCollectionDto {
       return entity.toDto();
-    }
-
-    protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-      return Promise.resolve(undefined);
     }
 
     protected override readyToSave(entity: TrailCollection): boolean {
@@ -337,10 +336,6 @@ class TrailCollectionStore extends OwnedStore<TrailCollectionDto, TrailCollectio
 
     protected override signalDeleted(deleted: { uuid: string; owner: string; }[]): void {
       this.injector.get(ShareService).signalCollectionsDeleted(deleted);
-    }
-
-    protected override doCleaning(email: string, db: Dexie): Observable<any> {
-      return of(false);
     }
 
     protected override newItemFromServer(dto: TrailCollectionDto, entity: TrailCollection): void {

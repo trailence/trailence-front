@@ -1,7 +1,7 @@
-import { Injector } from '@angular/core';
+import { Injector, NgZone } from '@angular/core';
 import { AuthService } from '../../auth/auth.service';
 import Dexie from 'dexie';
-import { BehaviorSubject, filter, from, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, filter, from, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { Console } from 'src/app/utils/console';
 import { DbTable } from './db-table';
 import { LocalFilesService } from '../../local-files/local-files.service';
@@ -12,6 +12,15 @@ const INTERNAL_TABLE_NAME = 'internal';
 const INTERNAL_KEY = 'key';
 const INTERNAL_VERSION_KEY = 'version';
 
+export interface DbReady {
+  db: Dexie;
+  counter: number;
+  email: string | undefined;
+  isNew: boolean;
+  localDir: string;
+  updatedFrom: number | undefined;
+}
+
 export class Db {
 
   constructor(
@@ -21,12 +30,11 @@ export class Db {
     protected readonly tables: DbTable<any>[],
   ) {}
 
-  protected openEmail?: string;
-  protected db?: Dexie;
-  protected localDir?: string;
-  protected readonly ready$ = new BehaviorSubject<boolean>(false);
+  private readonly ready$ = new BehaviorSubject<DbReady | undefined>(undefined);
   private readonly tableChangedSubscriptions = new Map<string, Subscription>();
   private closing: Promise<any> | undefined = undefined;
+  private opening: Promise<any> | undefined = undefined;
+  private _openCounter = 0;
 
   start(): void {
     this.injector.get(DbRegistryService).register(this.dbName, {
@@ -34,42 +42,79 @@ export class Db {
       close$: () => this.close(),
     });
     if (this.dbByUser) {
-      this.injector.get(AuthService).userChanged$.subscribe(
-        auth => {
-          if (auth) this.open(auth.email);
-          else this.close();
-        }
+      this.injector.get(NgZone).runOutsideAngular(() =>
+        this.injector.get(AuthService).userChanged$.subscribe(
+          auth => {
+            if (auth) this.open(auth.email);
+            else this.close();
+          }
+        )
       );
     } else {
       this.open();
     }
   }
 
-  public get dbReady$() { return this.ready$.pipe(map(ready => ready ? {email: this.openEmail} : false)); }
+  public get dbReady$(): Observable<DbReady | undefined> { return this.ready$; }
   public get dbClosed$() {
     if (this.closing) return from(this.closing).pipe(map(() => true));
-    if (this.db) return of(false);
+    if (this.ready$.value) return of(false);
     return of(true);
   }
+
   public tableLocalDir$(tableName: string): Observable<string> {
     return this.ready$.pipe(
-      filter(ready => ready),
-      map(() => this.localDir! + '/' + tableName),
+      filter(status => !!status),
+      map(status => status.localDir + '/' + tableName),
     )
   }
 
-  private async open(email?: string) {
-    if (email && this.openEmail === email) return;
-    this.close();
+  public transaction$<T>(readonly: boolean, tables: string[], op: () => Promise<T> | undefined): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      this.ready$.value!.db.transaction(readonly ? 'r' : 'rw', tables, () => ({result: op()}))
+      .then(r => r.result ? r.result.then(resolve).catch(reject) : undefined);
+    });
+  }
+
+  private async open(email?: string): Promise<any> {
+    if (this.ready$.value && this.ready$.value.email === email) return;
+    await this.close();
+    if (email && this.injector.get(AuthService).email !== email) return;
+    if (this.opening) {
+      const previous = this.opening;
+      this.opening = previous.then(() => this.open(email));
+      return this.opening;
+    }
+    if (email && this.injector.get(AuthService).email !== email) return;
+    const counter = ++this._openCounter;
+    this.opening = new Promise((resolve, reject) => {
+      this._open(email, counter)
+      .catch(reject)
+      .then(() => {
+        this.opening = undefined;
+        resolve(true);
+      });
+    });
+    await this.opening;
+  }
+
+  private async _open(email: string | undefined, counter: number) {
     const dbName = this.dbName + (email ? '_' + email : '');
     Console.info('Opening DB ' + dbName);
-    this.localDir = (email ? email + '/' : '') + this.dbName;
-    this.openEmail = email;
+    const stillValid = () => this._openCounter === counter && (!email || email === this.injector.get(AuthService).email);
 
     const dbExists = await Dexie.exists(dbName);
-    if (this.openEmail !== email) return;
+    if (!stillValid()) return;
 
     const db = new Dexie(dbName);
+    const openStatus: DbReady = {
+      db,
+      counter,
+      email,
+      isNew: !dbExists,
+      localDir: (email ? email + '/' : '') + this.dbName,
+      updatedFrom: undefined,
+    };
     const schema: any = {};
     for (const table of this.tables) schema[table.name] = table.schema;
     schema[INTERNAL_TABLE_NAME] = INTERNAL_KEY;
@@ -78,26 +123,27 @@ export class Db {
     // restore backups
     if (!dbExists) {
       try {
-        await this.restoreBackups(db, email);
+        await this.restoreBackups(db, openStatus.localDir, stillValid);
       } catch (e) {
         Console.error('Error restoring backups for DB ' + dbName, e);
       }
-      if (this.openEmail !== email) return;
+      if (!stillValid()) return;
     }
 
     // migrations
     const versions = await db.table(INTERNAL_TABLE_NAME).get(INTERNAL_VERSION_KEY);
-    if (this.openEmail !== email) return;
+    if (!stillValid()) return;
     const initialVersion = dbExists ? 1100 : trailenceAppVersionCode;
     const appVersion: number | undefined = versions?.appVersion;
     Console.info('Database ' + this.dbName + ': current version is ' + trailenceAppVersionCode + ', stored =', versions);
+    if (dbExists && appVersion && appVersion < trailenceAppVersionCode) openStatus.updatedFrom = appVersion;
     const newVersions: any = versions ? { ...versions } : {};
     newVersions[INTERNAL_KEY] = INTERNAL_VERSION_KEY;
     for (const table of this.tables) {
       try {
-        if (this.openEmail !== email) return;
+        if (!stillValid()) return;
         const currentVersion = versions?.[table.name] || initialVersion;
-        const newVersion = await table.migrate(db, db.table(table.name), this.localDir + '/' + table.name, appVersion || initialVersion, dbExists, currentVersion, trailenceAppVersionCode);
+        const newVersion = await table.migrate(db, db.table(table.name), openStatus.localDir + '/' + table.name, appVersion || initialVersion, dbExists, currentVersion, trailenceAppVersionCode);
         newVersions[table.name] = newVersion;
         if (newVersion !== currentVersion) {
           await db.table(INTERNAL_TABLE_NAME).put(newVersions, INTERNAL_VERSION_KEY);
@@ -106,24 +152,24 @@ export class Db {
         Console.error('Error during migration of table ' + this.dbName + '/' + table.name, e);
       }
     }
-    if (this.openEmail !== email) return;
+    if (!stillValid()) return;
     if (!appVersion || appVersion !== trailenceAppVersionCode) {
       newVersions['appVersion'] = trailenceAppVersionCode;
       await db.table(INTERNAL_TABLE_NAME).put(newVersions, INTERNAL_VERSION_KEY);
-      if (this.openEmail !== email) return;
+      if (!stillValid()) return;
     }
 
     // ready
-    this.db = db;
-    for (const table of this.tables) {
-      await table.start(this, db, db.table(table.name), this.localDir + '/' + table.name, email);
-      if (this.openEmail !== email) return;
-    }
     Console.info('DB ready ' + dbName);
-    this.ready$.next(true);
+    this.ready$.next(openStatus);
+    for (const table of this.tables) {
+      await table.start(this, openStatus, db.table(table.name), openStatus.localDir + '/' + table.name, stillValid);
+      if (!stillValid()) return;
+    }
+    Console.info('DB ready and all tables started' + dbName);
 
     // backups
-    this.registerBackups();
+    this.registerBackups(openStatus);
 
     for (const table of this.tables) table.triggerChanged();
   }
@@ -137,42 +183,45 @@ export class Db {
   }
 
   private async _close(): Promise<any> {
-    if (!this.db) return;
-    Console.info('Close DB ' + this.db.name);
-    const db = this.db;
-    this.openEmail = undefined;
-    this.db = undefined;
-    this.ready$.next(false);
+    const ready = this.ready$.value;
+    if (!ready) return;
+    Console.info('Closing DB ' + ready.db.name);
+    this._openCounter++;
+    this.ready$.next(undefined);
     for (const s of this.tableChangedSubscriptions.values()) s.unsubscribe();
     this.tableChangedSubscriptions.clear();
     for (const table of this.tables)
       await table.shutdown();
-    db.close();
+    ready.db.close();
+    Console.info('DB closed: ' + ready.db.name);
   }
 
-  private async restoreBackups(db: Dexie, email: string | undefined) {
+  private async restoreBackups(db: Dexie, localDir: string, stillValid: () => boolean) {
     const localFiles = this.injector.get(LocalFilesService);
     if (!localFiles.supported()) return;
-    const dir = this.localDir!;
-    if (!(await localFiles.fileExists(dir, INTERNAL_TABLE_NAME + '.jsonl'))) return;
-    const backupExist = await localFiles.filesExist(dir, this.tables.map(t => t.name + '.jsonl'));
-    if (this.openEmail !== email) return;
-    await this.restoreTable(db, INTERNAL_TABLE_NAME, localFiles);
-    for (let i = 0; i < this.tables.length; ++i) {
-      if (backupExist[i])
+    if (!(await localFiles.fileExists(localDir, INTERNAL_TABLE_NAME + '.jsonl'))) return;
+    if (!stillValid()) return;
+    const backupableTables = this.tables.filter(t => t.backupEnabled).map(t => t.name);
+    const backupExist = await localFiles.filesExist(localDir, backupableTables.map(name => name + '.jsonl'));
+    if (!stillValid()) return;
+    await this.restoreTable(db, INTERNAL_TABLE_NAME, localFiles, localDir);
+    for (let i = 0; i < backupableTables.length; ++i) {
+      if (backupExist[i]) {
+        const tableName = backupableTables[i];
         try {
-          if (this.openEmail !== email) return;
-          await this.restoreTable(db, this.tables[i].name, localFiles);
+          if (!stillValid()) return;
+          await this.restoreTable(db, tableName, localFiles, localDir);
         } catch (e) {
-          Console.error('Error restoring backup from ' + this.dbName + '/' + this.tables[i].name, e);
+          Console.error('Error restoring backup from ' + this.dbName + '/' + tableName, e);
         }
+      }
     }
   }
 
-  private async restoreTable(db: Dexie, tableName: string, localFiles: LocalFilesService) {
+  private async restoreTable(db: Dexie, tableName: string, localFiles: LocalFilesService, localDir: string) {
     Console.info('Restoring table ' + tableName + ' for DB ' + this.dbName);
     const table = db.table(tableName);
-    await localFiles.readJsonl(this.localDir!, tableName + '.jsonl', async (lines: string[]) => {
+    await localFiles.readJsonl(localDir, tableName + '.jsonl', async (lines: string[]) => {
       const json = lines
         .map(l => l.trim())
         .filter(l => l.length > 0)
@@ -191,45 +240,47 @@ export class Db {
     });
   }
 
-  private registerBackups(): void {
+  private registerBackups(ready: DbReady): void {
     const localFiles = this.injector.get(LocalFilesService);
     if (!localFiles.supported()) return;
-    for (const table of this.tables) this.registerBackup(localFiles, table);
+    for (const table of this.tables) this.registerBackup(localFiles, table, ready);
     // launch backup of internal table
-    if (this.db)
-      this.backupTable(this.db, localFiles, INTERNAL_TABLE_NAME, 1000);
+    if (this.ready$.value === ready)
+      this.backupTable(ready, localFiles, INTERNAL_TABLE_NAME, 1000, false);
   }
 
-  private registerBackup(localFiles: LocalFilesService, table: DbTable<any>): void {
-    let pending = false;
-    this.tableChangedSubscriptions.set(table.name, table.changed$.pipe(
-      table.triggerBackupOperator,
-      switchMap(() => {
-        if (pending) {
-          table.triggerChanged();
-          return of(undefined);
-        } else {
-          const db = this.db;
-          if (!db) return of(undefined);
-          pending = true;
-          return from(this.backupTable(db, localFiles, table.name, table.backupLinesBunch)).pipe(tap(() => pending = false));
-        }
-      })
-    ).subscribe());
-    const db = this.db;
-    if (db)
-      table.addShutdownHook(() => this.backupTable(db, localFiles, table.name, table.backupLinesBunch));
+  private registerBackup(localFiles: LocalFilesService, table: DbTable<any>, ready: DbReady): void {
+    if (!table.backupEnabled) return;
+    this.injector.get(NgZone).runOutsideAngular(() => {
+      let pending = false;
+      this.tableChangedSubscriptions.set(table.name, table.changed$.pipe(
+        table.triggerBackupOperator,
+        switchMap(() => {
+          if (this.ready$.value !== ready) return EMPTY;
+          if (pending) {
+            table.triggerChanged();
+            return of(undefined);
+          } else {
+            pending = true;
+            return from(this.backupTable(ready, localFiles, table.name, table.backupLinesBunch, false)).pipe(tap(() => pending = false));
+          }
+        })
+      ).subscribe());
+    });
+    if (this.ready$.value === ready)
+      table.addShutdownHook(() => this.backupTable(ready, localFiles, table.name, table.backupLinesBunch, true));
   }
 
-  private async backupTable(db: Dexie, localFiles: LocalFilesService, tableName: string, chunkSize: number) {
-    Console.info('Backuping DB table ' + db.name + '/' + tableName);
-    const t = db.table(tableName);
-    const dir = this.localDir!;
+  private async backupTable(ready: DbReady, localFiles: LocalFilesService, tableName: string, chunkSize: number, onClose: boolean) {
+    if (!onClose && this.ready$.value !== ready) return;
+    Console.info('Backuping DB table ' + ready.db.name + '/' + tableName);
+    const t = ready.db.table(tableName);
     const filename = tableName + '.jsonl';
     try {
       const keys = await t.toCollection().primaryKeys();
+      if (!onClose && this.ready$.value !== ready) return;
       await localFiles.saveJsonl(
-        dir,
+        ready.localDir,
         filename,
         async (from, limit) => {
           const end = Math.min(keys.length, from + limit);
@@ -240,11 +291,31 @@ export class Db {
         },
         chunkSize,
       );
-      Console.info('Backup done for DB table to ' + dir + '/' + filename);
+      Console.info('Backup done for DB table to ' + ready.localDir + '/' + filename);
     } catch (e) {
-      Console.error('Error storing backup to ' + dir + '/' + filename, e);
-      this.injector.get(LocalFilesService).deleteFile(dir, filename);
+      Console.error('Error storing backup to ' + ready.localDir + '/' + filename, e);
+      this.injector.get(LocalFilesService).deleteFile(ready.localDir, filename);
     }
+  }
+
+  public static setInternalData(db: Dexie, key: string, data: any) {
+    return db.table(INTERNAL_TABLE_NAME).put({key, data});
+  }
+
+  public static readInternalData(db: Dexie, key: string) {
+    return db.table(INTERNAL_TABLE_NAME).get(key);
+  }
+
+  public async setInternalData(key: string, data: any) {
+    const db = this.ready$.value?.db;
+    if (db) return await Db.setInternalData(db, key, data);
+    return undefined;
+  }
+
+  public async readInternalData(key: string) {
+    const db = this.ready$.value?.db;
+    if (db) return await Db.readInternalData(db, key);
+    return undefined;
   }
 
 }

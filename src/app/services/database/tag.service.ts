@@ -1,13 +1,12 @@
 import { Injectable, Injector } from "@angular/core";
-import { OwnedStore, UpdatesResponse } from "./owned-store";
+import { OwnedStore, UpdatesResponse } from "./store/owned-store";
 import { TagDto } from "src/app/model/dto/tag";
 import { Tag } from "src/app/model/tag";
 import { TrailTagDto } from "src/app/model/dto/trail-tag";
 import { TrailTag } from "src/app/model/trail-tag";
-import { EMPTY, Observable, combineLatest, first, map, of, switchMap, tap, throwError, zip } from "rxjs";
+import { EMPTY, Observable, combineLatest, filter, first, map, of, switchMap, tap, throwError, zip } from "rxjs";
 import { HttpService } from "../http/http.service";
 import { environment } from "src/environments/environment";
-import { DatabaseService, TAG_TABLE_NAME, TRAIL_TAG_TABLE_NAME } from "./database.service";
 import { TrailCollectionService } from "./trail-collection.service";
 import { VersionedDto } from "src/app/model/dto/versioned";
 import { TrailService } from "./trail.service";
@@ -15,13 +14,14 @@ import { AuthService } from "../auth/auth.service";
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import Dexie from 'dexie';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { QuotaService } from '../auth/quota.service';
-import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
+import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
 import { ShareService } from './share.service';
+import { CommonDatabaseService } from './common-database.service';
+import { StoreWithCleaning } from './store/store.service';
 
 @Injectable({
     providedIn: 'root'
@@ -199,22 +199,18 @@ export class TagService {
     );
   }
 
-  public cleanDatabase(db: Dexie, email: string): Observable<any> {
-    return this._tagStore.cleanDatabase(db, email).pipe(
-      switchMap(() => this._trailTagStore.cleanDatabase(db, email))
-    );
-  }
+  public get storeLoaded$() { return combineLatest([this._tagStore.isLoaded$, this._trailTagStore.isLoaded$]).pipe(filter(loaded => loaded.every(l => l))); }
 
 }
 
-class TagStore extends OwnedStore<TagDto, Tag> {
+class TagStore extends OwnedStore<TagDto, Tag> implements StoreWithCleaning {
 
   constructor(
     injector: Injector,
     private readonly http: HttpService,
     private readonly collectionService: TrailCollectionService,
   ) {
-    super(TAG_TABLE_NAME, injector);
+    super(injector.get(CommonDatabaseService).tagTable, injector);
     this.quotaService = injector.get(QuotaService);
   }
 
@@ -231,10 +227,6 @@ class TagStore extends OwnedStore<TagDto, Tag> {
   protected override isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
     return !q || q.tagsUsed >= q.tagsMax;
-  }
-
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-    return Promise.resolve(undefined);
   }
 
   protected override readyToSave(entity: Tag): boolean {
@@ -281,7 +273,11 @@ class TagStore extends OwnedStore<TagDto, Tag> {
     this.injector.get(ShareService).signalTagsDeleted(deleted);
   }
 
-  protected override doCleaning(email: string, db: Dexie): Observable<any> {
+  cleaningDependencies() { return []; }
+
+  doCleaning(): Observable<any> {
+    const status = this._storeLoaded$.value;
+    if (!status) return of(undefined);
     return zip([
       this.getAll$().pipe(collection$items()),
       this.collectionService.getMyCollectionsReady$(),
@@ -289,8 +285,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
       first(),
       switchMap(([tags, collections]) => {
         return new Observable<any>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db?.db || email !== dbService.email) {
+          if (!this.isStillValid(status)) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -304,11 +299,11 @@ class TagStore extends OwnedStore<TagDto, Tag> {
           });
           for (const tag of tags) {
             if (tag.createdAt > maxDate || tag.updatedAt > maxDate) continue;
-            const collection = collections.find(c => c.uuid === tag.collectionUuid && c.owner === email);
+            const collection = collections.find(c => c.uuid === tag.collectionUuid && c.owner === status.email);
             if (collection) continue;
             const d = ondone.add();
             this.getLocalUpdate(tag).then(date => {
-              if (db !== dbService.db?.db || email !== dbService.email) {
+              if (!this.isStillValid(status)) {
                 d();
                 return;
               }
@@ -328,7 +323,7 @@ class TagStore extends OwnedStore<TagDto, Tag> {
 
 }
 
-class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
+class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> implements StoreWithCleaning {
 
   constructor(
     injector: Injector,
@@ -337,7 +332,7 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
     private readonly trailService: TrailService,
     private readonly auth: AuthService,
   ) {
-    super(TRAIL_TAG_TABLE_NAME, injector);
+    super(injector.get(CommonDatabaseService).trailTagTable, injector);
     this.quotaService = injector.get(QuotaService);
   }
 
@@ -358,10 +353,6 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
 
   protected override getKey(entity: TrailTag): string {
     return entity.trailUuid + '_' + entity.tagUuid;
-  }
-
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-    return Promise.resolve(undefined);
   }
 
   protected override readyToSave(entity: TrailTag): boolean {
@@ -406,7 +397,13 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
     return this.http.get<TrailTagDto[]>(environment.apiBaseUrl + '/tag/v1/trails');
   }
 
-  protected override doCleaning(email: string, db: Dexie): Observable<any> {
+  cleaningDependencies(): string[] {
+    return ['trails', 'tags']
+  }
+
+  doCleaning(): Observable<any> {
+    const status = this._storeLoaded$.value;
+    if (!status) return of(undefined);
     return zip([
       this.getAll$().pipe(collection$items()),
       this.tagService.getAllTags$().pipe(collection$items()),
@@ -415,8 +412,7 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
       first(),
       switchMap(([trailsTags, tags, trails]) => {
         return new Observable<any>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db?.db || email !== dbService.email) {
+          if (!this.isStillValid(status)) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -429,7 +425,7 @@ class TrailTagStore extends SimpleStoreWithoutUpdate<TrailTagDto, TrailTag> {
           });
           for (const trailTag of trailsTags) {
             const tag = tags.find(t => t.uuid === trailTag.tagUuid);
-            const trail = trails.find(t => t.uuid === trailTag.trailUuid && t.owner === email);
+            const trail = trails.find(t => t.uuid === trailTag.trailUuid && t.owner === status.email);
             if (tag && trail) continue;
             count++;
             this.delete(trailTag, ondone.add());

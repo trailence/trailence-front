@@ -50,7 +50,7 @@ function runTests(withFiles: boolean) {
       const table = new DbTableWithBlob<MyDto>(injector, 'test_with_blob', 'key', 'key', 'blob', undefined);
       const db = new Db(injector, 'test_db_with_blob', false, [table]);
       db.start();
-      await firstValueFrom(db.dbReady$.pipe(filter(ready => ready !== false)));
+      await firstValueFrom(db.dbReady$.pipe(filter(ready => !!ready)));
       // empty
       expect(await firstValueFrom(table.getByKey$('key1'))).toBeUndefined();
 
@@ -197,7 +197,7 @@ function runTests(withFiles: boolean) {
       const table = new DbTableWithBlob<MyDto>(injector, 'test_with_blob', 'key', 'key', 'blob', undefined);
       const db = new Db(injector, 'test_db_with_blob', false, [table]);
       db.start();
-      await firstValueFrom(db.dbReady$.pipe(filter(ready => ready !== false)));
+      await firstValueFrom(db.dbReady$.pipe(filter(ready => !!ready)));
 
       const found = await firstValueFrom(table.getAll$());
       expect(found.length).toBe(3);

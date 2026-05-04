@@ -1,13 +1,12 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, timeout } from "rxjs";
-import { DatabaseService, VersionedDb } from "./database.service";
-import Dexie, { Table } from "dexie";
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, debounceTime, defaultIfEmpty, filter, first, forkJoin, map, of, switchMap, timeout } from "rxjs";
 import { Injector, NgZone } from "@angular/core";
 import { SynchronizationLocks } from './synchronization-locks';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { StoreErrors } from './store-errors';
-import { trailenceAppVersionCode } from 'src/app/trailence-version';
 import { StoreOperations } from './store-operations';
+import { DbStatus, DbTable } from '../storage/db-table';
+import { StoreService } from './store.service';
 
 export interface StoreSyncStatus {
 
@@ -25,9 +24,13 @@ export interface StoreSyncProgress {
   syncCounter: number;
 }
 
+export interface StoreLoadStatus {
+  counter: number;
+  email: string;
+}
+
 export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncStatus> {
 
-  protected _db?: Dexie;
   protected ngZone: NgZone;
 
   protected _store = new BehaviorSubject<BehaviorSubject<STORE_ITEM | null>[]>([]);
@@ -37,7 +40,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected _errors: StoreErrors;
   protected _locks = new SynchronizationLocks();
 
-  private readonly _storeLoaded$ = new BehaviorSubject<boolean>(false);
+  protected readonly _storeLoaded$ = new BehaviorSubject<StoreLoadStatus | undefined>(undefined);
 
   protected operations: StoreOperations;
 
@@ -47,20 +50,20 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   private _syncProgressCounter = 0;
 
   constructor(
-    protected tableName: string,
-    protected injector: Injector,
+    protected readonly table: DbTable<DB_ITEM>,
+    protected readonly injector: Injector,
     initialStatus: SYNCSTATUS,
   ) {
     this.ngZone = injector.get(NgZone);
-    this._errors = new StoreErrors(injector, tableName, () => this.isQuotaReached());
+    this._errors = new StoreErrors(injector, table.name, () => this.isQuotaReached());
     this._syncStatus$ = new BehaviorSubject(initialStatus);
-    this.operations = new StoreOperations(tableName, this._storeLoaded$, this._syncStatus$, this.ngZone);
+    this.operations = new StoreOperations(table.name, this._storeLoaded$, this._syncStatus$, this.ngZone);
     this._syncProgress$.subscribe(p => {
-      Console.debug('Store ' + tableName + ' -- sync: ', p);
+      Console.debug('Store ' + table.name + ' -- sync: ', p);
     });
   }
 
-  public get loaded$() { return this._storeLoaded$; }
+  public get isLoaded$() { return this._storeLoaded$.pipe(map(l => !!l)); };
 
   public get syncStatus$() { return this._syncStatus$; }
   public get syncStatus() { return this._syncStatus$.value; }
@@ -111,7 +114,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected startSync(): void {
     if (this._syncProgress$.value) {
-      Console.warn('Store start a sync while already in progress', this.tableName, this._syncProgress$.value);
+      Console.warn('Store start a sync while already in progress', this.table.name, this._syncProgress$.value);
     }
     this._syncProgress$.next({
       step: 'Starting',
@@ -141,31 +144,31 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   }
 
   protected _initStore(name: string): void {
-    const dbService = this.injector.get(DatabaseService);
-    dbService.registerStore({
+    this.injector.get(StoreService).registerStore({
       name,
+      store: this,
       status$: this.syncStatus$,
-      loaded$: this._storeLoaded$,
+      loadStatus$: this._storeLoaded$,
       hasPendingOperations$: this.operations.hasPendingOperations$,
       syncFromServer: () => this.triggerSyncFromServer(),
       fireSyncStatus: () => this.syncStatus = this.syncStatus, // NOSONAR
       doSync: () => this.sync(),
       resetErrors: () => this._errors.reset(),
+      hardDelete: () => this.hardDelete(),
     });
     // listen to database change (when authentication changed)
-    dbService.db$.subscribe(db => {
-      if (db) this.load(dbService, db);
-      else this.close();
+    this.table.onStatus$().subscribe(status => {
+      if (status) this.load(status);
+      else this.unload();
     });
   }
 
   public triggerSyncFromServer(): void {
-    const db = this._db;
-    this._storeLoaded$.pipe(
-      filterDefined(),
-      first()
-    ).subscribe(() => {
-      if (this._db === db && db)
+    this.ngZone.runOutsideAngular(() =>
+      this._storeLoaded$.pipe(
+        filterDefined(),
+        first()
+      ).subscribe(() => {
         this.performOperation(
           'trigger sync from server',
           () => false,
@@ -175,10 +178,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
             return true;
           }
         );
-    });
+      })
+    );
   }
-
-  protected abstract migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined>;
 
   protected abstract itemFromDb(item: DB_ITEM): STORE_ITEM;
   protected abstract areSame(item1: STORE_ITEM, item2: STORE_ITEM): boolean;
@@ -186,14 +188,24 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract sync(): Observable<boolean>;
 
-  protected close(): void {
-    if (!this._db) return;
+  private _loadingCounter = -1;
+
+  protected stillValidChecker(): () => boolean {
+    const counter = this._loadingCounter;
+    return () => counter > 0 && counter === this._loadingCounter;
+  }
+
+  protected isStillValid(status: StoreLoadStatus): boolean {
+    return status.counter === this._loadingCounter;
+  }
+
+  protected unload(): void {
+    this._loadingCounter = -1;
     this.ngZone.runOutsideAngular(() => {
       this.operations.reset();
       this._errors.reset();
       this._locks = new SynchronizationLocks();
-      this._db = undefined;
-      this._storeLoaded$.next(false);
+      this._storeLoaded$.next(undefined);
       const items = this._store.value;
       this._store.next([]);
       this._createdLocally = [];
@@ -204,49 +216,34 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  private load(dbService: DatabaseService, db: VersionedDb): void {
-    if (this._db) this.close();
+  private load(status: DbStatus<DB_ITEM>): void {
+    this._loadingCounter = status.counter;
     this.ngZone.runOutsideAngular(() => {
-      this.migrateIfNeeded(dbService, db.tablesVersion[this.tableName] ?? trailenceAppVersionCode, db.isNewDb)
-      .then(() => {
-        if (dbService.db !== db) return;
-        this._db = db.db;
-        this._locks = new SynchronizationLocks();
-        Console.info('Loading data from store', this.tableName);
-        from(db.db.table<DB_ITEM>(this.tableName).toArray()).subscribe({
-          next: items => {
-            if (this._db !== db.db) return;
-            const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
-            for (const dbItem of items) {
-              const item = this.itemFromDb(dbItem);
-              if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
-              else {
-                const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
-                if (this.isCreatedLocally(dbItem)) this._createdLocally.push(item$);
-                else if (this.isUpdatedLocally(dbItem)) this._updatedLocally.push(this.getKey(item));
-                newStore.push(item$);
-              }
+      this._locks = new SynchronizationLocks();
+      Console.info('Loading data from store', this.table.name);
+      this.table.getAll$().subscribe({
+        next: items => {
+          if (this._loadingCounter !== status.counter) return;
+          const newStore: BehaviorSubject<STORE_ITEM | null>[] = [];
+          for (const dbItem of items) {
+            const item = this.itemFromDb(dbItem);
+            if (this.isDeletedLocally(dbItem)) this._deletedLocally.push(item);
+            else {
+              const item$ = new BehaviorSubject<STORE_ITEM | null>(item);
+              if (this.isCreatedLocally(dbItem)) this._createdLocally.push(item$);
+              else if (this.isUpdatedLocally(dbItem)) this._updatedLocally.push(this.getKey(item));
+              newStore.push(item$);
             }
-            Console.info('Data loaded from store', this.tableName);
-            this._store.next(newStore);
-            this.beforeEmittingStoreLoaded();
-            this._storeLoaded$.next(true);
-          },
-          error: e => {
-            Console.error('Error loading store ' + this.tableName, e);
           }
-        });
+          Console.info('Data loaded from store', this.table.name);
+          this._store.next(newStore);
+          this.beforeEmittingStoreLoaded();
+          this._storeLoaded$.next({counter: status.counter, email: status.email!});
+        },
+        error: e => {
+          Console.error('Error loading store ' + this.table.name, e);
+        }
       });
-    });
-  }
-
-  private migrateIfNeeded(dbService: DatabaseService, currentVersion: number, isNewDb: boolean): Promise<void> {
-    if (currentVersion >= trailenceAppVersionCode) return Promise.resolve();
-    return this.migrate(currentVersion, dbService, isNewDb)
-    .then(migrationResult => {
-      const newVersion = migrationResult ?? trailenceAppVersionCode;
-      return dbService.saveTableVersion(this.tableName, newVersion)
-      .then(() => this.migrateIfNeeded(dbService, newVersion, isNewDb));
     });
   }
 
@@ -259,14 +256,18 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
   protected performOperation(
     description: string,
     storeUpdater: () => void,
-    tableUpdater: (db: Dexie) => Observable<any>,
+    tableUpdater: (status: StoreLoadStatus) => Observable<any>,
     statusUpdater: (status: SYNCSTATUS) => boolean,
     ondone?: () => void,
     oncancelled?: () => void,
   ): void {
-    const db = this._db!;
+    const status = this._storeLoaded$.value;
+    if (!status) {
+      if (oncancelled) oncancelled();
+      return;
+    }
     const operation = () => new Promise(resolve => {
-      if (this._db !== db) {
+      if (this._storeLoaded$.value?.counter !== status.counter) {
         if (oncancelled) oncancelled();
         resolve(false);
         return;
@@ -274,7 +275,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
       let tableUpdate;
       try {
         storeUpdater();
-        tableUpdate = tableUpdater(db);
+        tableUpdate = tableUpdater(status);
       } catch (e) {
         Console.error('Error updating store', e);
         if (ondone) ondone();
@@ -343,12 +344,11 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           inStore$.next(item$);
         }
       },
-      db => existing ? of(true)
-        : (recovered ?
-             this.markUndeletedInDb(db.table<DB_ITEM>(this.tableName), item)
-             : from(db.table<DB_ITEM>(this.tableName).add(this.dbItemCreatedLocally(item)))
-          )
-      , status => {
+      () => {
+        if (existing) return of(true);
+        if (recovered) return this.markUndeletedInDb(item);
+        return this.table.addOne$(this.dbItemCreatedLocally(item));
+      }, status => {
         if (existing) return false;
         return this.updateStatusWithLocalCreate(status);
       },
@@ -394,19 +394,19 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         }
         if (storeChanged) this._store.next(this._store.value);
       },
-      db => {
-        return from(db.transaction('rw', this.tableName, async () => {
-          const table = db.table<DB_ITEM>(this.tableName);
-          const toAdd: DB_ITEM[] = [];
-          for (const item of items) {
-            if (existingList.includes(item)) continue;
-            if (recoveredList.includes(item)) await firstValueFrom(this.markUndeletedInDb(table, item));
-            else toAdd.push(this.dbItemCreatedLocally(item));
-          }
-          if (toAdd.length > 0)
-            await table.bulkAdd(toAdd);
-        }));
-      },
+      () => this.table.inTransaction$(false, () => {
+        const toAdd: DB_ITEM[] = [];
+        const ops: Observable<any>[] = [];
+        for (const item of items) {
+          if (existingList.includes(item)) continue;
+          if (recoveredList.includes(item)) ops.push(this.markUndeletedInDb(item));
+          else toAdd.push(this.dbItemCreatedLocally(item));
+        }
+        let result$ = (ops.length === 0 ? of([]) : forkJoin(ops));
+        if (toAdd.length > 0)
+          result$ = result$.pipe(switchMap(() => this.table.addMany$(toAdd)));
+        return result$;
+      }),
       status => {
         if (nbNew === 0) return false;
         return this.updateStatusWithLocalCreate(status);
@@ -429,9 +429,9 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
 
   protected abstract updated(item: STORE_ITEM): void;
 
-  protected abstract markDeletedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
-  protected abstract markUndeletedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
-  protected abstract markUpdatedInDb(table: Table<DB_ITEM>, item: STORE_ITEM): Observable<any>;
+  protected abstract markDeletedInDb(item: STORE_ITEM): Observable<any>;
+  protected abstract markUndeletedInDb(item: STORE_ITEM): Observable<any>;
+  protected abstract markUpdatedInDb(item: STORE_ITEM): Observable<any>;
 
   protected abstract updateStatusWithLocalDelete(status: SYNCSTATUS): boolean;
   protected abstract updateStatusWithLocalUpdate(status: SYNCSTATUS): boolean;
@@ -459,7 +459,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
           this._store.next(this._store.value);
         }
       },
-      db => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item),
+      () => this.markDeletedInDb(item),
       status => this.updateStatusWithLocalDelete(status),
       ondone,
     );
@@ -490,7 +490,7 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         }
         this._store.next(this._store.value);
       },
-      db => items.length === 0 ? of(true) : combineLatest(items.map(item => this.markDeletedInDb(db.table<DB_ITEM>(this.tableName), item))),
+      () => items.length === 0 ? of(true) : combineLatest(items.map(item => this.markDeletedInDb(item))),
       status => items.length === 0 ? false : this.updateStatusWithLocalDelete(status),
       ondone
     );
@@ -537,24 +537,25 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
         const entity$ = this._store.value.find(item$ => item$.value && this.areSame(item$.value, item));
         entity$?.next(item);
       },
-      db => this.markUpdatedInDb(db.table<DB_ITEM>(this.tableName), item),
+      () => this.markUpdatedInDb(item),
       status => this.updateStatusWithLocalUpdate(status),
       ondone
     );
   }
 
-  public cleanDatabase(db: Dexie, email: string): Observable<any> {
+  protected dbOperation(name: string, op: () => Observable<any>): Observable<any> {
+    const loaded = this._storeLoaded$.value;
+    if (!loaded) return of(undefined);
     return new Observable(subscriber => {
-      const dbService = this.injector.get(DatabaseService);
-      if (db !== dbService.db?.db || email !== dbService.email) {
+      if (loaded != this._storeLoaded$.value) {
         subscriber.next(false);
         subscriber.complete();
         return;
       }
       this.performOperation(
-        'database cleaning',
+        name,
         () => {},
-        dbo => this.doCleaning(email, dbo),
+        dbStatus => dbStatus.counter === loaded.counter ? op() : of(false),
         () => false,
         () => {
           subscriber.next(true);
@@ -568,14 +569,24 @@ export abstract class Store<STORE_ITEM, DB_ITEM, SYNCSTATUS extends StoreSyncSta
     });
   }
 
-  protected abstract doCleaning(email: string, db: Dexie): Observable<any>;
-
-  protected markStoreToForceUpdateFromServer(force: boolean): Promise<any> {
-    return this.injector.get(DatabaseService).storeInternalData(this.tableName, 'forceUpdateFromServer', force);
+  private hardDelete(): Observable<any> {
+    return this.dbOperation('hard delete local data', () => this.table.deleteAll$());
   }
 
-  protected shouldForceUpdateFromServer(): Promise<boolean> {
-    return this.injector.get(DatabaseService).getInternalData(this.tableName, 'forceUpdateFromServer').then(data => data === true);
+  protected async shouldForceUpdateFromServer() {
+    const db = this.table.dbNow();
+    if (!db) return false;
+    const data = await db.readInternalData('store_' + this.table.name);
+    return data?.['forceUpdateFromServer'] || false;
+  }
+
+  protected async markStoreToForceUpdateFromServer(force: boolean) {
+    const db = this.table.dbNow();
+    if (!db) return false;
+    const key = 'store_' + this.table.name;
+    const previousData = await db.readInternalData(key) || {};
+    const newData = {...previousData, forceUpdateFromServer: force};
+    return await db.setInternalData(key, newData);
   }
 
 }

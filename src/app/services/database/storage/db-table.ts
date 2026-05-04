@@ -1,9 +1,18 @@
-import { EventEmitter, Injector } from '@angular/core';
+import { EventEmitter, Injector, NgZone } from '@angular/core';
 import Dexie, { Collection, Table } from 'dexie';
-import { BehaviorSubject, debounceTime, filter, first, from, MonoTypeOperatorFunction, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, first, firstValueFrom, from, map, MonoTypeOperatorFunction, Observable, of, switchMap } from 'rxjs';
 import { Console } from 'src/app/utils/console';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
-import { Db } from './db';
+import { Db, DbReady } from './db';
+
+export interface DbStatus<DTO> {
+  counter: number;
+  db: Db;
+  table: Table<DTO, string>
+  localDir: string;
+  isNewDb: boolean;
+  email: string | undefined;
+}
 
 export class DbTable<DTO> {
 
@@ -12,17 +21,27 @@ export class DbTable<DTO> {
     public readonly name: string,
     public readonly schema: string,
     protected readonly dtoKeyField: string,
-  ) {}
+  ) {
+    this.ngZone = injector.get(NgZone);
+  }
 
   protected _changed$ = new EventEmitter<boolean>();
 
   public get changed$() { return this._changed$; }
   public triggerChanged(): void { this._changed$.emit(true); }
 
+  public backupEnabled = true;
+
   private readonly migrations: DbTableMigration[] = [];
 
-  public addMigration(migration: DbTableMigration): void {
+  public addMigration(migration: DbTableMigration): this {
     this.migrations.push(migration);
+    return this;
+  }
+
+  public disableBackup(): this {
+    this.backupEnabled = false;
+    return this;
   }
 
   public triggerBackupOperator: MonoTypeOperatorFunction<boolean> = debounceTime(5000);
@@ -42,109 +61,157 @@ export class DbTable<DTO> {
     return version;
   }
 
-  private openEmail?: string;
   private readonly shutdownHooks: (() => Promise<any>)[] = [];
-  protected localDir?: string;
-  protected ready$ = new BehaviorSubject<Table<DTO, string> | undefined>(undefined);
-  protected readyInfo$ = new BehaviorSubject<{db: Db} | undefined>(undefined);
+  protected ready$ = new BehaviorSubject<DbStatus<DTO> | undefined>(undefined);
+  private readonly ngZone: NgZone;
 
-  async start(db: Db, dexie: Dexie, table: Table, localDir: string, email: string | undefined) {
-    this.openEmail = email;
-    this.localDir = localDir;
-    this.readyInfo$.next({db});
-    this.ready$.next(table);
+  async start(db: Db, ready: DbReady, table: Table, localDir: string, stillValid: () => boolean) {
+    this.ready$.next({db, table, localDir, email: ready.email, isNewDb: ready.isNew, counter: ready.counter});
   }
 
   async shutdown() {
-    this.openEmail = undefined;
     this.ready$.next(undefined);
-    this.readyInfo$.next(undefined);
     for (const hook of this.shutdownHooks) {
       await hook();
     }
+    this.shutdownHooks.splice(0, this.shutdownHooks.length);
   }
 
   public addShutdownHook(hook: () => Promise<any>): void {
     this.shutdownHooks.push(hook);
   }
 
-  public whenReady$(): Observable<{db: Db}> {
-    return this.readyInfo$.pipe(
-      filter(info => !!info)
+  public onceReady$(): Observable<DbStatus<DTO>> {
+    return this.ngZone.runOutsideAngular(() => this.ready$.pipe(filterDefined(), first()));
+  }
+
+  public onStatus$(): Observable<DbStatus<DTO> | undefined> {
+    return this.ready$;
+  }
+
+  public whenReady$(): Observable<DbStatus<DTO>> {
+    return this.ngZone.runOutsideAngular(() => this.ready$.pipe(filterDefined()));
+  }
+
+  protected isStillValid(status: DbStatus<DTO>): boolean {
+    return this.ready$.value?.counter === status.counter;
+  }
+
+  public inTransaction$<T>(readonly: boolean, op: (stillValid: () => boolean) => Observable<T>): Observable<T> {
+    return this.onceReady$().pipe(
+      switchMap(status => {
+        return status.db.transaction$(readonly, [status.table.name], () => {
+          if (!this.isStillValid(status)) return undefined;
+          return firstValueFrom(op(() => this.isStillValid(status)));
+        });
+      }),
     );
   }
 
-  protected onReady(): Observable<Table<DTO, string>> {
-    return this.ready$.pipe(filterDefined(), first());
+  public dbNow(): Db | undefined {
+    return this.ready$.value?.db;
   }
 
-  protected isStillValid(table: Table): boolean {
-    return this.ready$.value === table;
-  }
-
-  protected toDtos: (fromTable: Partial<DTO>[]) => Promise<DTO[]> = dtos => Promise.resolve(dtos as DTO[]);
-  protected fromDtos: (dtos: DTO[]) => Promise<Partial<DTO>[]> = dtos => Promise.resolve(dtos);
-  protected deleted: (keys: string[]) => Promise<any> = () => Promise.resolve();
+  protected toDtos: (fromTable: Partial<DTO>[], status: DbStatus<DTO>) => Promise<DTO[]> = dtos => Promise.resolve(dtos as DTO[]);
+  protected fromDtos: (dtos: DTO[], status: DbStatus<DTO>) => Promise<Partial<DTO>[]> = dtos => Promise.resolve(dtos);
+  protected deleted: (keys: string[], status: DbStatus<DTO>) => Promise<any> = () => Promise.resolve();
 
   public getAllKeys$(): Observable<string[]> {
-    return this.onReady().pipe(
-      switchMap(table => from(table.toCollection().primaryKeys())),
+    return this.onceReady$().pipe(
+      switchMap(status => from(status.table.toCollection().primaryKeys())),
     );
   }
 
-  public keysWhere$(where: DbTableWhere<DTO>): Observable<string[]> {
-    return this.onReady().pipe(
-      switchMap(table => where.toDexie(table).primaryKeys()),
+  public keysWhere$(where: DbTableWhere<DTO>, limit?: number, offset?: number): Observable<string[]> {
+    return this.onceReady$().pipe(
+      switchMap(status => {
+        let collection = where.toDexie(status.table);
+        if (offset !== undefined) collection = collection.offset(offset);
+        if (limit !== undefined) collection = collection.limit(limit);
+        return collection.primaryKeys();
+      }),
     );
   }
 
   public getAll$(): Observable<DTO[]> {
-    return this.onReady().pipe(
-      switchMap(table => table.toArray().then(dtos => this.toDtos(dtos))),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.toArray().then(dtos => this.toDtos(dtos, status))),
+    );
+  }
+
+  public forEach$(op: (dto: DTO) => void): Observable<any> {
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.each(op))
     );
   }
 
   public getPage$(offset: number, limit: number): Observable<DTO[]> {
-    return this.onReady().pipe(
-      switchMap(table => table.offset(offset).limit(limit).toArray().then(dtos => this.toDtos(dtos))),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.offset(offset).limit(limit).toArray().then(dtos => this.toDtos(dtos, status))),
+    );
+  }
+
+  public getWhere$(where: DbTableWhere<DTO>, limit?: number, offset?: number): Observable<DTO[]> {
+    return this.onceReady$().pipe(
+      switchMap(status => {
+        let collection = where.toDexie(status.table);
+        if (offset !== undefined) collection = collection.offset(offset);
+        if (limit !== undefined) collection = collection.limit(limit);
+        return collection.toArray();
+      }),
+    );
+  }
+
+  public getWhereMapping$<T>(where: DbTableWhere<DTO>, mapper: (dto: DTO) => T, limit?: number, offset?: number): Observable<T[]> {
+    return this.onceReady$().pipe(
+      switchMap(status => {
+        let collection = where.toDexie(status.table);
+        if (offset !== undefined) collection = collection.offset(offset);
+        if (limit !== undefined) collection = collection.limit(limit);
+        const result: T[] = [];
+        return new Promise<T[]>((resolve, reject) => {
+          collection.each(dto => result.push(mapper(dto)))
+          .then(() => resolve(result)).catch(reject);
+        });
+      }),
     );
   }
 
   public count$(): Observable<number> {
-    return this.onReady().pipe(
-      switchMap(table => table.count()),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.count()),
     );
   }
 
   public getByKey$(key: string): Observable<DTO | undefined> {
-    return this.onReady().pipe(
-      switchMap(table => table.get(key).then(dto => dto ? this.toDtos([dto]).then(dtos => dtos[0]) : undefined)),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.get(key).then(dto => dto ? this.toDtos([dto], status).then(dtos => dtos[0]) : undefined)),
     );
   }
 
   public getOneWhen(predicate: (dto: DTO) => boolean): Observable<DTO | undefined> {
-    return this.onReady().pipe(
-      switchMap(table => table.filter(predicate).first().then(dto => dto ? this.toDtos([dto]).then(dtos => dtos[0]) : undefined)),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.filter(predicate).first().then(dto => dto ? this.toDtos([dto], status).then(dtos => dtos[0]) : undefined)),
     );
   }
 
   public getByKeys$(keys: string[]): Observable<DTO[]> {
-    return this.onReady().pipe(
-      switchMap(table => table.where(this.dtoKeyField).anyOf(keys).toArray().then(dtos => this.toDtos(dtos))),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.where(this.dtoKeyField).anyOf(keys).toArray().then(dtos => this.toDtos(dtos, status))),
     );
   }
 
   public exists$(key: string): Observable<boolean> {
-    return this.onReady().pipe(
-      switchMap(table => table.where(this.dtoKeyField).equals(key).primaryKeys().then(pks => pks.length > 0)),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.where(this.dtoKeyField).equals(key).primaryKeys().then(pks => pks.length > 0)),
     );
   }
 
   public addOne$(dto: DTO): Observable<DTO> {
-    return this.onReady().pipe(
-      switchMap(async table => {
-        const toStore = await this.fromDtos([dto]).then(dtos => dtos[0]);
-        await table.add(toStore as DTO, (dto as any)[this.dtoKeyField]);
+    return this.onceReady$().pipe(
+      switchMap(async status => {
+        const toStore = await this.fromDtos([dto], status).then(dtos => dtos[0]);
+        await status.table.add(toStore as DTO, (dto as any)[this.dtoKeyField]);
         this.triggerChanged();
         return dto;
       })
@@ -152,10 +219,10 @@ export class DbTable<DTO> {
   }
 
   public addMany$(dtos: DTO[]): Observable<DTO[]> {
-    return this.onReady().pipe(
-      switchMap(async table => {
-        const toStore = await this.fromDtos(dtos);
-        await table.bulkAdd(toStore as DTO[]);
+    return this.onceReady$().pipe(
+      switchMap(async status => {
+        const toStore = await this.fromDtos(dtos, status);
+        await status.table.bulkAdd(toStore as DTO[]);
         this.triggerChanged();
         return dtos;
       })
@@ -163,10 +230,10 @@ export class DbTable<DTO> {
   }
 
   public setOne$(dto: DTO): Observable<DTO> {
-    return this.onReady().pipe(
-      switchMap(async table => {
-        const toStore = await this.fromDtos([dto]).then(dtos => dtos[0]);
-        await table.put(toStore as DTO, (dto as any)[this.dtoKeyField]);
+    return this.onceReady$().pipe(
+      switchMap(async status => {
+        const toStore = await this.fromDtos([dto], status).then(dtos => dtos[0]);
+        await status.table.put(toStore as DTO, (dto as any)[this.dtoKeyField]);
         this.triggerChanged();
         return dto;
       })
@@ -174,10 +241,10 @@ export class DbTable<DTO> {
   }
 
   public setMany$(dtos: DTO[]): Observable<DTO[]> {
-    return this.onReady().pipe(
-      switchMap(async table => {
-        const toStore = await this.fromDtos(dtos);
-        await table.bulkPut(toStore as DTO[]);
+    return this.onceReady$().pipe(
+      switchMap(async status => {
+        const toStore = await this.fromDtos(dtos, status);
+        await status.table.bulkPut(toStore as DTO[]);
         this.triggerChanged();
         return dtos;
       })
@@ -185,10 +252,10 @@ export class DbTable<DTO> {
   }
 
   public deleteOne$(key: string): Observable<boolean> {
-    return this.onReady().pipe(
-      switchMap(table => Promise.all([
-        table.delete(key),
-        this.deleted([key]),
+    return this.onceReady$().pipe(
+      switchMap(status => Promise.all([
+        status.table.delete(key),
+        this.deleted([key], status),
       ]).then(() => {
         this.triggerChanged();
         return true;
@@ -198,10 +265,10 @@ export class DbTable<DTO> {
 
   public deleteMany$(keys: string[]): Observable<boolean> {
     if (keys.length === 0) return of(true);
-    return this.onReady().pipe(
-      switchMap(table => Promise.all([
-        table.bulkDelete(keys),
-        this.deleted(keys),
+    return this.onceReady$().pipe(
+      switchMap(status => Promise.all([
+        status.table.bulkDelete(keys),
+        this.deleted(keys, status),
       ]).then(() => {
         this.triggerChanged();
         return true;
@@ -210,26 +277,26 @@ export class DbTable<DTO> {
   }
 
   public deleteWhen$(chunk: number, keyPredicate?: (key: string) => boolean, dtoPredicate?: (dto: Partial<DTO>) => boolean): Observable<number> {
-    return this.onReady().pipe(
-      switchMap(table => {
+    return this.onceReady$().pipe(
+      switchMap(status => {
         let count = 0;
-        let keys$ = table.toCollection().primaryKeys();
+        let keys$ = status.table.toCollection().primaryKeys();
         if (keyPredicate) keys$ = keys$.then(k => k.filter(keyPredicate));
         return from(keys$.then(keys => {
-          if (keys.length === 0 || !this.isStillValid(table)) return count;
+          if (keys.length === 0 || !this.isStillValid(status)) return count;
           const next = (i:number): Promise<any> => {
-            if (!this.isStillValid(table)) return Promise.resolve(count);
+            if (!this.isStillValid(status)) return Promise.resolve(count);
             const end = Math.min(i + chunk, keys.length);
             const bunch = keys.slice(i, end);
-            const dtos$ = table.bulkGet(bunch).then(dtos => dtos.filter(dto => !!dto && (dtoPredicate ? dtoPredicate(dto) : true)));
+            const dtos$ = status.table.bulkGet(bunch).then(dtos => dtos.filter(dto => !!dto && (dtoPredicate ? dtoPredicate(dto) : true)));
             const nextKeys$ = dtos$.then(dtos => dtos.map(dto => (dto as any)[this.dtoKeyField] as string));
             return nextKeys$.then(toRemove => {
-              if (!this.isStillValid(table)) return count;
-              return table.bulkDelete(toRemove)
-              .then(() => this.isStillValid(table) ? this.deleted(toRemove) : undefined)
+              if (!this.isStillValid(status)) return count;
+              return status.table.bulkDelete(toRemove)
+              .then(() => this.isStillValid(status) ? this.deleted(toRemove, status) : undefined)
               .then(() => count += toRemove.length);
             }).then(() => {
-              if (this.isStillValid(table) && end < keys.length) return next(end);
+              if (this.isStillValid(status) && end < keys.length) return next(end);
               return count;
             })
           };
@@ -244,8 +311,25 @@ export class DbTable<DTO> {
   }
 
   public deleteAll$(): Observable<boolean> {
-    return this.onReady().pipe(
-      switchMap(table => table.clear().then(() => true)),
+    return this.onceReady$().pipe(
+      switchMap(status => status.table.clear().then(() => true)),
+    );
+  }
+
+  public replaceAll$(itemsProvider: () => DTO[]): Observable<boolean> {
+    return this.onceReady$().pipe(
+      switchMap(info => {
+        const counter = info.counter;
+        return info.db.transaction$(false, [info.table.name], async () => {
+          if (counter !== this.ready$.value?.counter) return undefined;
+          await info.table.clear();
+          const items = itemsProvider();
+          if (items.length > 0)
+            await info.table.bulkAdd(items);
+          return true;
+        });
+      }),
+      map(r => !!r),
     );
   }
 
@@ -261,6 +345,20 @@ export interface DbTableWhere<T> {
   toDexie: (table: Table<T, string>) => Collection<T, string>,
 }
 
+export class DbTableWhereEquals<T> implements DbTableWhere<T> {
+  constructor(
+    private readonly key: string,
+    private readonly value: string | number,
+    private readonly predicate?: (dto: T) => boolean,
+  ) {}
+
+  toDexie(table: Table<T, string>) {
+    const collection = table.where(this.key).equals(this.value);
+    if (this.predicate != null) return collection.and(this.predicate);
+    return collection;
+  }
+}
+
 export class DbTableWhereLessThan<T> implements DbTableWhere<T> {
   constructor(
     private readonly key: string,
@@ -270,6 +368,20 @@ export class DbTableWhereLessThan<T> implements DbTableWhere<T> {
 
   toDexie(table: Table<T, string>) {
     const collection = table.where(this.key).below(this.value);
+    if (this.predicate != null) return collection.and(this.predicate);
+    return collection;
+  }
+}
+
+export class DbTableWhereGreaterThan<T> implements DbTableWhere<T> {
+  constructor(
+    private readonly key: string,
+    private readonly value: number,
+    private readonly predicate?: (dto: T) => boolean,
+  ) {}
+
+  toDexie(table: Table<T, string>) {
+    const collection = table.where(this.key).above(this.value);
     if (this.predicate != null) return collection.and(this.predicate);
     return collection;
   }

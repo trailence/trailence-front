@@ -1,13 +1,13 @@
 import { NgZone } from '@angular/core';
 import { BehaviorSubject, combineLatest, filter, first, map, Observable, switchMap } from 'rxjs';
 import { Console } from 'src/app/utils/console';
-import { StoreSyncStatus } from './store';
+import { StoreLoadStatus, StoreSyncStatus } from './store';
 
 export class StoreOperations {
 
   constructor(
     private readonly name: string,
-    private readonly storeLoaded$: BehaviorSubject<boolean>,
+    private readonly storeLoaded$: BehaviorSubject<StoreLoadStatus | undefined>,
     private readonly syncStatus$: Observable<StoreSyncStatus | null>,
     private readonly ngZone: NgZone,
   ) {}
@@ -23,7 +23,7 @@ export class StoreOperations {
       if (this._queue$.value.length === 1) {
         this._queue$.next(this._queue$.value);
         this.storeLoaded$.pipe(
-          filter(loaded => loaded),
+          filter(loaded => !!loaded),
           first()
         ).subscribe(() => this.launch());
       }

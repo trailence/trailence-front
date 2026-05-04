@@ -1,7 +1,7 @@
 import { Injectable, Injector, NgZone } from '@angular/core';
 import { HttpService } from '../http/http.service';
 import { TrailenceHttpRequest } from '../http/http-request';
-import { BehaviorSubject, Observable, Subscriber, catchError, defaultIfEmpty, filter, first, firstValueFrom, from, map, of, switchMap, tap, throwError, timeout, zip } from 'rxjs';
+import { BehaviorSubject, Observable, Subscriber, catchError, filter, first, firstValueFrom, from, map, of, switchMap, tap, throwError, timeout } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthResponse } from './auth-response';
 import Dexie from 'dexie';
@@ -20,11 +20,14 @@ import Trailence from '../trailence.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { DbRegistryService } from '../database/storage/db.registry.service';
 import { LocalFilesService } from '../local-files/local-files.service';
+import { I18nService } from '../i18n/i18n.service';
+import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 export const ANONYMOUS_USER = 'anonymous@trailence.org';
 
 const LOCALSTORAGE_KEY_AUTH = 'trailence.auth';
 const LOCALSTORAGE_KEY_ANONYMOUS_PREFS = 'trailence.anonymous_preferences';
+const ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY = 'trailence.anonymous_toast_last_time';
 const DB_SECURITY_PREFIX = 'trailence_security_';
 const DB_SECURITY_TABLE = 'security';
 
@@ -101,6 +104,29 @@ export class AuthService {
           ', renew key after ' + new Date(auth.keyCreatedAt + (this.platform.is('capacitor') ? RENEW_KEY_AFTER_NATIVE : RENEW_KEY_AFTER_WEB)).toISOString()
         );
         localStorage.setItem(LOCALSTORAGE_KEY_AUTH, JSON.stringify(auth));
+        if (auth.isAnonymous && !this.injector.get(Platform).is('capacitor')) {
+          const lastTimeStr = localStorage.getItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY);
+          const lastTime = lastTimeStr ? Number.parseInt(lastTimeStr) : 0;
+          if (Number.isNaN(lastTime) || Date.now() - lastTime > 3 * 60 * 60 * 1000) {
+            localStorage.setItem(ANONYMOUS_TOAST_LAST_TIME_LOCAL_STORAGE_KEY, '' + Date.now());
+            const i18n = injector.get(I18nService);
+            i18n.texts$.pipe(filterDefined(), first()).subscribe(() => {
+              import('@ionic/angular/standalone').then(ionic => injector.get(ionic.ToastController).create({
+                message: i18n.texts.toast_anonymous_account,
+                color: 'warning',
+                position: 'bottom',
+                duration: 60000,
+                swipeGesture: "vertical",
+                mode: "ios",
+                layout: "stacked",
+                buttons: [{
+                  text: i18n.texts.buttons.close,
+                  role: 'cancel',
+                }]
+              })).then(t => t.present());
+            });
+          }
+        }
       }
     });
     router.events.subscribe(e => {

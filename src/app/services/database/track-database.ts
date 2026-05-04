@@ -1,15 +1,11 @@
-import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, defaultIfEmpty, distinctUntilChanged, first, from, map, of, switchMap, tap, zip } from "rxjs";
-import { AuthService } from "../auth/auth.service";
-import { DatabaseService } from "./database.service";
-import Dexie, { PromiseExtended, Table } from "dexie";
+import { BehaviorSubject, EMPTY, Observable, Subscription, catchError, combineLatest, concat, debounceTime, defaultIfEmpty, first, firstValueFrom, forkJoin, from, map, of, switchMap, tap, throwError, zip } from "rxjs";
 import { TrackDto } from "src/app/model/dto/track";
 import { Track } from "src/app/model/track";
-import { StoreSyncStatus } from "./store";
+import { StoreLoadStatus, StoreSyncStatus } from "./store/store";
 import { RequestLimiter } from "src/app/utils/request-limiter";
 import { environment } from "src/environments/environment";
 import { HttpService } from "../http/http.service";
-import { UpdatesResponse } from "./owned-store";
-import { VersionDto } from "src/app/model/dto/owned";
+import { UpdatesResponse } from "./store/owned-store";
 import { Injector, NgZone } from "@angular/core";
 import { TrailService } from './trail.service';
 import { TrackService } from './track.service';
@@ -18,14 +14,16 @@ import { DatabaseSubject } from './database-subject';
 import { DatabaseSubjectService } from './database-subject-service';
 import { Progress, ProgressService } from '../progress/progress.service';
 import { I18nService } from '../i18n/i18n.service';
-import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { ErrorService } from '../progress/error.service';
 import { Console } from 'src/app/utils/console';
 import { debounceTimeExtended } from 'src/app/utils/rxjs/debounce-time-extended';
 import { QuotaService } from '../auth/quota.service';
-import { StoreErrors } from './store-errors';
-import { StoreOperations } from './store-operations';
+import { StoreErrors } from './store/store-errors';
+import { StoreOperations } from './store/store-operations';
 import { SimplifiedPoint, SimplifiedTrackSnapshot, TrackMetadataSnapshot } from 'src/app/model/snapshots';
+import { StoreService, StoreWithCleaning } from './store/store.service';
+import { DbTable, DbTableWhereEquals, DbTableWhereGreaterThan, DbTableWhereLessThan } from './storage/db-table';
+import { Db, DbReady } from './storage/db';
 
 interface MetadataItem extends TrackMetadataSnapshot {
   key: string;
@@ -44,7 +42,7 @@ interface TrackItem {
   track?: TrackDto;
 }
 
-export class TrackDatabase {
+export class TrackDatabase implements StoreWithCleaning {
 
   constructor(
     private readonly injector: Injector,
@@ -53,134 +51,103 @@ export class TrackDatabase {
     this.subjectService = injector.get(DatabaseSubjectService);
     this.quotaService = injector.get(QuotaService);
     this._errors = new StoreErrors(injector, 'tracks', () => this.isQuotaReached());
-    this.syncStatus$.pipe(map(s => !!s), distinctUntilChanged()).subscribe(loaded => this.loaded$.next(loaded));
     this.operations = new StoreOperations(
       'tracks',
       this.loaded$,
       this.syncStatus$,
       this.ngZone
     );
-    injector.get(DatabaseService).registerStore({
+    injector.get(StoreService).registerStore({
       name: 'tracks',
+      store: this,
       status$: this.syncStatus$,
-      loaded$: this.loaded$,
+      loadStatus$: this.loaded$,
       hasPendingOperations$: this.operations.hasPendingOperations$,
       fireSyncStatus: () => this.syncStatus$.next(this.syncStatus$.value),
       syncFromServer: () => this.triggerSyncFromServer(),
       doSync: () => this.sync(),
       resetErrors: () => this._errors.reset(),
+      hardDelete: () => this.hardDelete(),
     });
-    injector.get(AuthService).userChanged$.subscribe(
-      auth => {
-        if (auth) this.open(auth.email);
-        else this.close();
-      }
-    );
+    this.tableMeta = new DbTable<MetadataItem>(injector, 'metadata', 'key', 'key');
+    this.tableSimplifiedTrack = new DbTable<SimplifiedTrackItem>(injector, 'simplified_tracks', 'key', 'key');
+    this.tableFullTrack = new DbTable<TrackItem>(injector, 'full_tracks', 'key, version, updatedLocally, owner', 'key');
+    this.tableFullTrack.backupLinesBunch = 2;
+    this.tableFullTrack.triggerBackupOperator = debounceTime(15000);
+    // TODO may be full track table backup should support diff and one file by line ?
+    this.database = new Db(injector, 'trailence_tracks', true, [this.tableMeta, this.tableSimplifiedTrack, this.tableFullTrack]);
+    this.database.dbReady$.subscribe(ready => {
+      if (ready) this.load(ready);
+      else this.unload();
+    });
+    this.database.start();
   }
 
+  private readonly database: Db;
+  private readonly tableMeta: DbTable<MetadataItem>;
+  private readonly tableSimplifiedTrack: DbTable<SimplifiedTrackItem>;
+  private readonly tableFullTrack: DbTable<TrackItem>;
   private readonly subjectService: DatabaseSubjectService;
   private readonly quotaService: QuotaService;
-  private db?: Dexie;
-  private openEmail?: string;
   private preferencesSubscription?: Subscription;
-  private databaseServiceSubscription?: Subscription;
   private readonly ngZone: NgZone;
   private readonly syncStatus$ = new BehaviorSubject<TrackSyncStatus | null>(null);
   private readonly _errors: StoreErrors;
   private readonly operations: StoreOperations;
-  private readonly loaded$ = new BehaviorSubject<boolean>(false);
-  private readonly dbReady$ = new BehaviorSubject<boolean>(false);
-
-  public get dbReady(): Observable<boolean> { return this.dbReady$; }
+  private readonly loaded$ = new BehaviorSubject<StoreLoadStatus | undefined>(undefined);
 
   private isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
     return !q || q.tracksUsed >= q.tracksMax || q.tracksSizeUsed >= q.tracksSizeMax;
   }
 
-  private close() {
-    this.ngZone.runOutsideAngular(() => {
-      if (this.db) {
-        Console.info('Close track DB')
-        this.dbReady$.next(false);
-        this.operations.reset();
-        this.db.close();
-        this.openEmail = undefined;
-        this.db = undefined;
-        this.syncStatus$.next(null);
-        this.preferencesSubscription?.unsubscribe();
-        this.preferencesSubscription = undefined;
-        this.databaseServiceSubscription?.unsubscribe();
-        this.databaseServiceSubscription = undefined;
-        this.metadataKeysToLoad.clear();
-        this.simplifiedKeysToLoad.clear();
-        for (const s of this.metadata.values()) s.close();
-        this.metadata.clear();
-        for (const s of this.simplifiedTracks.values()) s.close();
-        this.simplifiedTracks.clear();
-        for (const s of this.fullTracks.values()) s.close();
-        this.fullTracks.clear();
-      }
+  public get isLoaded$() { return this.loaded$.pipe(map(l => !!l)); }
+
+  private unload() {
+    this.loaded$.next(undefined);
+    this.operations.reset();
+    this.syncStatus$.next(null);
+    this.preferencesSubscription?.unsubscribe();
+    this.preferencesSubscription = undefined;
+    this.metadataKeysToLoad.clear();
+    this.simplifiedKeysToLoad.clear();
+    for (const s of this.metadata.values()) s.close();
+    this.metadata.clear();
+    for (const s of this.simplifiedTracks.values()) s.close();
+    this.simplifiedTracks.clear();
+    for (const s of this.fullTracks.values()) s.close();
+    this.fullTracks.clear();
+  }
+
+  private _loading?: DbReady;
+  private load(ready: DbReady): void {
+    this._loading = ready;
+    this.initStatus(ready).subscribe(() => {
+      if (this._loading === ready)
+        this._loading = undefined;
+      this.listenPreferences();
     });
   }
 
-  private open(email: string): void {
-    if (this.openEmail === email) return;
-    this.close();
-    this.ngZone.runOutsideAngular(() => {
-      Console.info('Open track DB for user ' + email);
-      this.openEmail = email;
-      const db = new Dexie('trailence_tracks_' + email);
-      const schemaV1: any = {};
-      schemaV1['metadata'] = 'key';
-      schemaV1['simplified_tracks'] = 'key';
-      schemaV1['full_tracks'] = 'key, version, updatedLocally, owner';
-      db.version(1).stores(schemaV1);
-      this.metadataTable = db.table<MetadataItem, string>('metadata');
-      this.simplifiedTrackTable = db.table<SimplifiedTrackItem, string>('simplified_tracks');
-      this.fullTrackTable = db.table<TrackItem, string>('full_tracks');
-      this.db = db;
-      let init = false;
-      this.databaseServiceSubscription = this.injector.get(DatabaseService).db$.subscribe(
-        versionedDb => {
-          if (init || !versionedDb) return;
-          init = true;
-          this.dbReady$.next(true);
-          this.initStatus();
-          let promise$ = Promise.resolve();
-          if (versionedDb.isNewDb) {
-            promise$ = promise$.then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
-          } else {
-            const currentVersion = versionedDb.tablesVersion['tracks'];
-            if (!currentVersion || currentVersion < 1705) {
-              promise$ = promise$.then(() => this.recomputeMetadata(true, false)).then(() => this.injector.get(DatabaseService).saveTableVersion('tracks', 1705));
-            }
-          }
-          promise$.then(() => {
-            this.listenPreferences();
-          });
-        }
-      );
-    });
-  }
-
-  private initStatus(): void {
+  private initStatus(ready: DbReady): Observable<any> {
     const status = new TrackSyncStatus();
-    const db = this.db;
-    zip([
-      from(this.fullTrackTable!.where('version').equals(0).limit(1).toArray()),
-      from(this.fullTrackTable!.where('version').below(0).limit(1).toArray()),
-      from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray())
+    return zip([
+      this.tableFullTrack.keysWhere$(new DbTableWhereEquals('version', 0), 1),
+      this.tableFullTrack.keysWhere$(new DbTableWhereLessThan('version', 0), 1),
+      this.tableFullTrack.keysWhere$(new DbTableWhereEquals('updatedLocally', 1), 1),
     ])
-    .pipe(first())
-    .subscribe(([r1, r2, r3]) => {
-      if (this.db === db) {
+    .pipe(
+      first(),
+      map(([r1, r2, r3]) => {
+        if (this._loading !== ready) return false;
         status.hasLocalCreates = r1.length > 0;
         status.hasLocalDeletes = r2.length > 0;
         status.hasLocalUpdates = r3.length > 0;
         this.syncStatus$.next(status);
-      }
-    });
+        this.loaded$.next({counter: ready.counter, email: ready.email!});
+        return true;
+      }),
+    );
   }
 
   private listenPreferences(): void {
@@ -221,42 +188,43 @@ export class TrackDatabase {
   }
 
   public recomputeMetadata(updateTimeEstimation: boolean, updateBreakTime: boolean): Promise<any> {
-    if (!this.db || !this.metadataTable || !this.fullTrackTable) return Promise.resolve();
     Console.info('Preferences changed, recompute estimated time/breaks duration of trails', updateTimeEstimation, updateBreakTime);
     return this.operations.push('Update trails metadata', () => {
       let count = 0;
       let countInMemory = 0;
       let workAmount = 1000;
       const progress = this.injector.get(ProgressService).create(this.injector.get(I18nService).texts.recompute_metadata, workAmount);
-      return this.db!.transaction('rw', [this.fullTrackTable!, this.metadataTable!], () => {
-        return this.metadataTable?.count()
-        .then(countFromTable => {
-          const step = countFromTable > 0 ? workAmount / countFromTable : workAmount;
-          return this.fullTrackTable?.each(trackItem => {
-            if (!trackItem.track || trackItem.version === -1) return;
-            count++;
-            const track = new Track(trackItem.track, this.injector.get(PreferencesService));
-            let meta$ = this.metadata.get(trackItem.key);
-            if (meta$?.loadedValue) {
-              countInMemory++;
-              const meta = meta$.loadedValue;
-              if (updateTimeEstimation) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
-              if (updateBreakTime) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
-              meta$.newValue({...meta});
-              this.metadataTable?.put({
-                key: trackItem.key,
-                ...meta
-              });
-            } else {
-              this.metadataTable?.put({
-                key: trackItem.key,
-                ...TrackDatabase.toMetadata(track)
-              });
-            };
-            progress.addWorkDone(Math.min(workAmount, step));
-            workAmount -= step;
-          });
-        });
+      if (!this.loaded$.value) return Promise.resolve();
+      return this.database.transaction$(false, [this.tableFullTrack.name, this.tableMeta.name], () => {
+        return firstValueFrom(this.tableMeta.count$().pipe(
+          switchMap(countFromTable => {
+            const step = countFromTable > 0 ? workAmount / countFromTable : workAmount;
+            return this.tableFullTrack.forEach$(trackItem => {
+              if (!trackItem.track || trackItem.version === -1) return;
+              count++;
+              const track = new Track(trackItem.track, this.injector.get(PreferencesService));
+              let meta$ = this.metadata.get(trackItem.key);
+              if (meta$?.loadedValue) {
+                countInMemory++;
+                const meta = meta$.loadedValue;
+                if (updateTimeEstimation) meta.estimatedDuration = track.computedMetadata.estimatedDurationSnapshot();
+                if (updateBreakTime) meta.breaksDuration = track.computedMetadata.breakDurationSnapshot();
+                meta$.newValue({...meta});
+                this.tableMeta.setOne$({
+                  key: trackItem.key,
+                  ...meta
+                }).subscribe();
+              } else {
+                this.tableMeta.setOne$({
+                  key: trackItem.key,
+                  ...TrackDatabase.toMetadata(track)
+                }).subscribe();
+              };
+              progress.addWorkDone(Math.min(workAmount, step));
+              workAmount -= step;
+            });
+          }),
+        ));
       })
       .then(() => {
         Console.info('Trails metadata updated', count, 'including items in memory', countInMemory);
@@ -269,14 +237,19 @@ export class TrackDatabase {
     });
   }
 
-  public cleanDatabase(db: Dexie, email: string): Observable<any> {
+  cleaningDependencies(): string[] {
+    return ['trails'];
+  }
+
+  doCleaning(): Observable<any> {
     // remove all tracks not linked by any trail
+    const status = this.loaded$.value;
+    if (!status) return of(false);
     return this.injector.get(TrailService).getAll$().pipe(
       switchMap(trails$ => trails$.length === 0 ? of([]) : combineLatest(trails$)),
       first(),
       switchMap(trails => {
-        const dbService = this.injector.get(DatabaseService);
-        if (db !== dbService.db?.db || email !== dbService.email) return of(false);
+        if (status.counter !== this.loaded$.value?.counter) return of(false);
         const allKnownKeys: string[] = [];
         for (const trail of trails) {
           if (trail) {
@@ -285,9 +258,9 @@ export class TrackDatabase {
               allKnownKeys.push(trail.currentTrackUuid + '#' + trail.owner);
           }
         }
-        return from(this.metadataTable!.toCollection().primaryKeys()).pipe(
+        return this.tableMeta.getAllKeys$().pipe(
           map(keys => {
-            if (db !== dbService.db?.db || email !== dbService.email) return [];
+            if (status.counter !== this.loaded$.value?.counter) return [];
             const eligibleKeys: string[] = [];
             for (const key of keys) {
               if (!allKnownKeys.includes(key)) {
@@ -297,16 +270,15 @@ export class TrackDatabase {
             return eligibleKeys;
           }),
           switchMap(keys => {
-            if (keys.length === 0) return of([]);
-            if (this.openEmail !== email) return of([]);
-            return from(this.metadataTable!.bulkGet(keys));
+            if (keys.length === 0 || status.counter !== this.loaded$.value?.counter) return of([]);
+            return this.tableMeta.getByKeys$(keys);
           }),
           map(items => {
-            if (db !== dbService.db?.db || email !== dbService.email) return false;
-            items = items.filter(i => i && i.localUpdate < Date.now() - 24 * 60 * 60 * 1000 && i.updatedAt < Date.now() - 24 * 60 * 60 * 1000);
+            if (status.counter !== this.loaded$.value?.counter) return false;
+            items = items.filter(i => i.localUpdate < Date.now() - 24 * 60 * 60 * 1000 && i.updatedAt < Date.now() - 24 * 60 * 60 * 1000);
             Console.info('Tracks cleanup: ' + items.length + ' to delete');
             for (const item of items) {
-              this.injector.get(TrackService).deleteByUuidAndOwner(item!.uuid, item!.owner);
+              this.injector.get(TrackService).deleteByUuidAndOwner(item.uuid, item.owner);
             }
             return true;
           })
@@ -315,7 +287,6 @@ export class TrackDatabase {
     );
   }
 
-  private metadataTable?: Table<MetadataItem, string>;
   private readonly metadata = new Map<string, DatabaseSubject<TrackMetadataSnapshot>>();
 
   public getMetadata$(uuid: string, owner: string): Observable<TrackMetadataSnapshot | null> {
@@ -343,23 +314,18 @@ export class TrackDatabase {
     const map = this.metadataKeysToLoad;
     this.metadataKeysToLoad = new Map();
     let keys = [...map.keys()];
-    this.metadataTable?.bulkGet(keys)
-    .then(items => {
-      for (let i = items.length - 1; i >= 0; --i) {
-        const item = items[i];
-        if (item) {
-          map.get(item.key)!(item);
-        } else {
-          map.get(keys[i])!(null);
-        }
+    this.tableMeta.getByKeys$(keys).subscribe(items => {
+      for (const entry of map.entries()) {
+        const item = items.find(i => i.key === entry[0]);
+        const callback = entry[1];
+        callback(item || null);
       }
     });
   }
 
   public getAllMetadata$(): Observable<Observable<TrackMetadataSnapshot | null>[]> {
     return this.ngZone.runOutsideAngular(() => {
-      if (!this.metadataTable) return of([]);
-      return from(this.metadataTable.toArray()).pipe(
+      return this.tableMeta.getAll$().pipe(
         map(items => {
           const result = [];
           for (const item of items) {
@@ -379,7 +345,6 @@ export class TrackDatabase {
     });
   }
 
-  private simplifiedTrackTable?: Table<SimplifiedTrackItem, string>;
   private readonly simplifiedTracks = new Map<string, DatabaseSubject<SimplifiedTrackSnapshot>>();
 
   public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
@@ -407,20 +372,15 @@ export class TrackDatabase {
     const map = this.simplifiedKeysToLoad;
     this.simplifiedKeysToLoad = new Map();
     let keys = [...map.keys()];
-    this.simplifiedTrackTable?.bulkGet(keys)
-    .then(items => {
-      for (let i = items.length - 1; i >= 0; --i) {
-        const item = items[i];
-        if (item) {
-          map.get(item.key)!(item);
-        } else {
-          map.get(keys[i])!(null)
-        }
+    this.tableSimplifiedTrack.getByKeys$(keys).subscribe(items => {
+      for (const entry of map.entries()) {
+        const item = items.find(i => i.key === entry[0]);
+        const callback = entry[1];
+        callback(item || null);
       }
     });
   }
 
-  private fullTrackTable?: Table<TrackItem, string>;
   private readonly fullTracks = new Map<string, DatabaseSubject<Track>>();
 
   public getFullTrack$(uuid: string, owner: string): Observable<Track | null> {
@@ -434,12 +394,12 @@ export class TrackDatabase {
   }
 
   private loadFullTrack(key: string): Promise<Track | null> {
-    if (!this.fullTrackTable) return Promise.resolve(null);
-    return this.fullTrackTable.get(key)
-    .then(item => {
-      if (item?.track) return new Track(item.track, this.injector.get(PreferencesService));
-      return null;
-    });
+    return firstValueFrom(this.tableFullTrack.getByKey$(key).pipe(
+      map(item => {
+        if (item?.track) return new Track(item.track, this.injector.get(PreferencesService));
+        return null;
+      })
+    ));
   }
 
   public static simplify(track: Track): SimplifiedTrackSnapshot {
@@ -509,32 +469,35 @@ export class TrackDatabase {
       const dto = track.toDto();
       const simplified = TrackDatabase.simplify(track);
       const metadata = TrackDatabase.toMetadata(track);
-      const stepsDone = new CompositeOnDone(ondone);
-      const onDbDone = stepsDone.add();
+      const status = this.loaded$.value;
+      if (!status) return;
       this.operations.push('Create track', () => {
-        if (!this.db) return Promise.reject();
-        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
-          const promise1 = this.fullTrackTable?.add({
-            key,
-            uuid: dto.uuid,
-            owner: dto.owner,
-            version: dto.version,
-            updatedLocally: 0,
-            track: dto,
-          });
-          const promise2 = this.simplifiedTrackTable?.add({
-            ...simplified,
-            key,
-          });
-          const promise3 = this.metadataTable?.add({
-            ...metadata,
-            key,
-          });
-          return Promise.all([promise1, promise2, promise3])
-          .catch(e => {
-            Console.error("Error storing track in database", e);
-          });
-        });
+        if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
+        const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
+          firstValueFrom(forkJoin([
+            this.tableFullTrack.addOne$({
+              key,
+              uuid: dto.uuid,
+              owner: dto.owner,
+              version: dto.version,
+              updatedLocally: 0,
+              track: dto,
+            }),
+            this.tableSimplifiedTrack.addOne$({
+              ...simplified,
+              key,
+            }),
+            this.tableMeta.addOne$({
+              ...metadata,
+              key,
+            })
+          ]).pipe(
+            catchError(e => {
+              Console.error('Error storing track in database', e);
+              return throwError(() => e);
+            })
+          ))
+        );
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
@@ -544,13 +507,10 @@ export class TrackDatabase {
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(metadata);
         else this.metadata.set(key, this.subjectService.create<TrackMetadataSnapshot>('TrackMetadataSnapshot', () => this.loadMetadata(key), undefined, metadata));
-        const onDone4 = stepsDone.add();
-        stepsDone.start();
-        onDone4();
         return tx.then(() => {
           this.syncStatus$.value!.hasLocalCreates = true;
           this.syncStatus$.next(this.syncStatus$.value);
-          onDbDone();
+          if (ondone) ondone();
         });
       });
     });
@@ -563,30 +523,35 @@ export class TrackDatabase {
       const dto = track.toDto();
       const simplified = TrackDatabase.simplify(track);
       const metadata = TrackDatabase.toMetadata(track);
+      const status = this.loaded$.value;
+      if (!status) return;
       this.operations.push('Update track', () => {
-        if (!this.db) return Promise.reject();
-        const tx = this.db.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], () => {
-          const promise1 = this.fullTrackTable?.put({
-            key,
-            uuid: dto.uuid,
-            owner: dto.owner,
-            version: dto.version,
-            updatedLocally: 1,
-            track: dto,
-          });
-          const promise2 = this.simplifiedTrackTable?.put({
-            ...simplified,
-            key,
-          });
-          const promise3 = this.metadataTable?.put({
-            ...metadata,
-            key,
-          });
-          return Promise.all([promise1, promise2, promise3])
-          .catch(e => {
-            Console.error("Error updating track in database", e);
-          });
-        });
+        if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
+        const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
+          firstValueFrom(forkJoin([
+            this.tableFullTrack.setOne$({
+              key,
+              uuid: dto.uuid,
+              owner: dto.owner,
+              version: dto.version,
+              updatedLocally: 1,
+              track: dto,
+            }),
+            this.tableSimplifiedTrack.setOne$({
+              ...simplified,
+              key,
+            }),
+            this.tableMeta.setOne$({
+              ...metadata,
+              key,
+            }),
+          ]).pipe(
+            catchError(e => {
+              Console.error('Error updating track in database', e);
+              return throwError(() => e);
+            })
+          ))
+        );
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(track);
         else this.fullTracks.set(key, this.subjectService.create<Track>('Track', () => this.loadFullTrack(key), undefined, track));
@@ -606,28 +571,37 @@ export class TrackDatabase {
 
   public delete(uuid: string, owner: string, ondone?: () => void): void {
     this.ngZone.runOutsideAngular(() => {
+      const status = this.loaded$.value;
+      if (!status) return;
       this.operations.push('Delete track', () => {
+        if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
         const key = uuid + '#' + owner;
-        let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
-          await this.fullTrackTable?.put({
-            key,
-            uuid: uuid,
-            owner: owner,
-            version: -1,
-            updatedLocally: 0,
-            track: undefined,
-          });
-          await this.simplifiedTrackTable?.delete(key);
-          await this.metadataTable?.delete(key);
-        });
+        const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
+          firstValueFrom(forkJoin([
+            this.tableFullTrack.setOne$({
+              key,
+              uuid: uuid,
+              owner: owner,
+              version: -1,
+              updatedLocally: 0,
+              track: undefined,
+            }),
+            this.tableSimplifiedTrack.deleteOne$(key),
+            this.tableMeta.deleteOne$(key),
+          ]).pipe(
+            catchError(e => {
+              Console.error('Error deleting track in database', e);
+              return throwError(() => e);
+            })
+          ))
+        );
         const full$ = this.fullTracks.get(key);
         if (full$) full$.newValue(null);
         const simplified$ = this.simplifiedTracks.get(key);
         if (simplified$) simplified$.newValue(null);
         const metadata$ = this.metadata.get(key);
         if (metadata$) metadata$.newValue(null);
-        dbUpdated ??= Promise.resolve();
-        return dbUpdated.then(() => {
+        return tx.then(() => {
           this.syncStatus$.value!.hasLocalDeletes = true;
           this.syncStatus$.next(this.syncStatus$.value);
           if (ondone) ondone();
@@ -638,20 +612,30 @@ export class TrackDatabase {
 
   public deleteMany(ids: {uuid: string, owner: string}[], progress: Progress | undefined, progressWork: number, ondone?: () => void): void {
     this.ngZone.runOutsideAngular(() => {
+      const status = this.loaded$.value;
+      if (!status) return;
       this.operations.push('Delete multiple tracks', () => {
+        if (status.counter !== this.loaded$.value?.counter) return Promise.reject(new Error('track DB changed'));
         const keys = ids.map(id => id.uuid + '#' + id.owner);
-        let dbUpdated: PromiseExtended<void> | Promise<void> | undefined = this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => {
-          await this.fullTrackTable?.bulkPut(ids.map(id => ({
-            key: id.uuid + '#' + id.owner,
-            uuid: id.uuid,
-            owner: id.owner,
-            version: -1,
-            updatedLocally: 0,
-            track: undefined,
-          })));
-          await this.simplifiedTrackTable?.bulkDelete(keys);
-          await this.metadataTable?.bulkDelete(keys);
-        });
+        const tx = this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], () =>
+          firstValueFrom(forkJoin([
+            this.tableFullTrack.setMany$(ids.map(id => ({
+              key: id.uuid + '#' + id.owner,
+              uuid: id.uuid,
+              owner: id.owner,
+              version: -1,
+              updatedLocally: 0,
+              track: undefined,
+            }))),
+            this.tableSimplifiedTrack.deleteMany$(keys),
+            this.tableMeta.deleteMany$(keys),
+          ]).pipe(
+            catchError(e => {
+              Console.error('Error deleting tracks in database', e);
+              return throwError(() => e);
+            })
+          ))
+        );
         const progressDb = progressWork / 3;
         let progress2 = progressWork - progressDb;
         let remaining = keys.length;
@@ -667,8 +651,7 @@ export class TrackDatabase {
           remaining--;
           progress?.addWorkDone(work);
         }
-        dbUpdated ??= Promise.resolve();
-        return dbUpdated.then(() => {
+        return tx.then(() => {
           progress?.addWorkDone(progressDb);
           this.syncStatus$.value!.hasLocalDeletes = true;
           this.syncStatus$.next(this.syncStatus$.value);
@@ -693,10 +676,10 @@ export class TrackDatabase {
       ),
       this.syncStatus$.pipe(
         switchMap(status => {
-          if (!status || !this.db) return of(false);
+          if (!status) return of(false);
           return concat(
             of(false),
-            from(this.fullTrackTable!.get(key)).pipe(
+            this.tableFullTrack.getByKey$(key).pipe(
               map(item => !!item && item.version > 0)
             )
           );
@@ -715,61 +698,61 @@ export class TrackDatabase {
   }
 
   private sync(): Observable<boolean> {
-    if (!this.db) return EMPTY;
-    const db = this.db;
-    return this.operations.requestSync(() => this.db === db ? this.doSync() : EMPTY);
+    const status = this.loaded$.value;
+    if (!status) return EMPTY;
+    return this.operations.requestSync(() => this.doSync(status));
   }
 
-  private doSync(): Observable<boolean> {
+  private doSync(status: StoreLoadStatus): Observable<boolean> {
     return this.ngZone.runOutsideAngular(() => {
-      const db = this.db!;
+      if (status.counter !== this.loaded$.value?.counter) return EMPTY;
       this.syncStatus$.value!.inProgress = true;
       this.syncStatus$.next(this.syncStatus$.value);
       Console.info("Store tracks sync start: ", this.syncStatus$.value, this.operations.pendingOperations);
-      const nextStep = (previousComplete: boolean, nextOp: (db: Dexie) => Observable<boolean>) => {
-        if (this.db !== db) return EMPTY;
+      const nextStep = (previousComplete: boolean, nextOp: () => Observable<boolean>) => {
+        if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         if (!previousComplete || this.operations.pendingOperations > 0) return of(false);
-        return nextOp(db);
+        return nextOp();
       };
-      return this.syncCreatedLocally(db).pipe(
-        switchMap(r => nextStep(r, db => this.syncDeletedLocally(db))),
-        switchMap(r => nextStep(r, db => this.syncUpdatesFromServer(db))),
-        switchMap(r => nextStep(r, db => this.syncUpdatesToServer(db))),
-        switchMap(r => this.db === db ? this.getLocalChanges().pipe(map(l => ([l, r] as [{create: boolean, update: boolean, delete: boolean}, boolean]))) : EMPTY),
+      return this.syncCreatedLocally(status).pipe(
+        switchMap(r => nextStep(r, () => this.syncDeletedLocally(status))),
+        switchMap(r => nextStep(r, () => this.syncUpdatesFromServer(status))),
+        switchMap(r => nextStep(r, () => this.syncUpdatesToServer(status))),
+        switchMap(r => status.counter === this.loaded$.value?.counter ? this.getLocalChanges().pipe(map(l => ([l, r] as [{create: boolean, update: boolean, delete: boolean}, boolean]))) : EMPTY),
         defaultIfEmpty([undefined, false] as [{create: boolean, update: boolean, delete: boolean} | undefined, boolean]),
         map(([hasLocalChanges, syncComplete]) => {
-          const status = this.syncStatus$.value!;
-          if (!hasLocalChanges || this.db !== db) {
-            status.inProgress = false;
-            this.syncStatus$.next(status);
+          const sync = this.syncStatus$.value!;
+          if (!hasLocalChanges || status.counter !== this.loaded$.value?.counter) {
+            sync.inProgress = false;
+            this.syncStatus$.next(sync);
             return false;
           }
-          status.hasLocalCreates = hasLocalChanges.create;
-          status.hasLocalUpdates = hasLocalChanges.update;
-          status.hasLocalDeletes = hasLocalChanges.delete;
-          status.quotaReached = this.isQuotaReached();
-          status.inProgress = false;
-          status.needsUpdateFromServer = !syncComplete;
-          status.lastUpdateFromServer = syncComplete ? Date.now() : 0;
-          Console.info("Store tracks sync done: ", status, this.operations.pendingOperations);
-          this.syncStatus$.next(status);
+          sync.hasLocalCreates = hasLocalChanges.create;
+          sync.hasLocalUpdates = hasLocalChanges.update;
+          sync.hasLocalDeletes = hasLocalChanges.delete;
+          sync.quotaReached = this.isQuotaReached();
+          sync.inProgress = false;
+          sync.needsUpdateFromServer = !syncComplete;
+          sync.lastUpdateFromServer = syncComplete ? Date.now() : 0;
+          Console.info("Store tracks sync done: ", sync, this.operations.pendingOperations);
+          this.syncStatus$.next(sync);
           return !syncComplete;
         })
       );
     });
   }
 
-  private syncCreatedLocally(db: Dexie): Observable<boolean> {
-    return from(this.fullTrackTable!.where('version').equals(0).limit(50).toArray()).pipe(
+  private syncCreatedLocally(status: StoreLoadStatus): Observable<boolean> {
+    return this.tableFullTrack.getWhere$(new DbTableWhereEquals('version', 0), 50).pipe(
       switchMap(items => {
-        if (this.db !== db) return EMPTY;
+        if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         const toCreate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, true));
         if (toCreate.length === 0) return of(true);
         Console.info('' + toCreate.length + ' tracks to be created on server');
         const limiter = new RequestLimiter(2);
         const requests: Observable<any>[] = [];
         for (const item of toCreate) {
-          const request = this.createItemRequest(db, item);
+          const request = this.createItemRequest(status, item);
           requests.push(limiter.add(request));
         }
         if (requests.length === 0) return of(true);
@@ -782,26 +765,26 @@ export class TrackDatabase {
       })
     );
   }
-  private createItemRequest(db: Dexie, item: TrackItem): () => Observable<any> {
+  private createItemRequest(status: StoreLoadStatus, item: TrackItem): () => Observable<any> {
     return () => {
-      if (this.db !== db) return EMPTY;
+      if (status.counter !== this.loaded$.value?.counter) return EMPTY;
       return this.injector.get(HttpService).post<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
         switchMap(result => {
-          if (this.db !== db) return EMPTY;
+          if (status.counter !== this.loaded$.value?.counter) return EMPTY;
           Console.info("track created on server", result.uuid);
           this._errors.itemSuccess(item.uuid + '#' + item.owner);
           this.quotaService.updateQuotas(q => {
             q.tracksUsed++;
             q.tracksSizeUsed += result.sizeUsed ?? 0;
           });
-          return from(this.fullTrackTable!.put({
+          return this.tableFullTrack.setOne$({
             key: result.uuid + '#' + result.owner,
             uuid: result.uuid,
             owner: result.owner,
             version: result.version,
             updatedLocally: 0,
             track: result,
-          }));
+          });
         }),
         catchError(e => {
           Console.error('error creating track on server', item.track, e);
@@ -813,24 +796,24 @@ export class TrackDatabase {
     };
   }
 
-  private syncDeletedLocally(db: Dexie): Observable<any> {
-    return from(this.fullTrackTable!.where('version').equals(-1).limit(50).toArray()).pipe(
+  private syncDeletedLocally(status: StoreLoadStatus): Observable<any> {
+    return this.tableFullTrack.getWhere$(new DbTableWhereEquals('version', -1), 50).pipe(
       switchMap(items => {
-        if (this.db !== db) return EMPTY;
+        if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         if (items.length === 0) return of(true);
         Console.info('' + items.length + ' tracks deleted locally');
         const keys = items.map(item => item.uuid + '#' + item.owner);
-        const uuids = items.filter(item => item.owner === this.openEmail!).map(item => item.uuid);
+        const uuids = items.filter(item => item.owner === status.email).map(item => item.uuid);
         Console.info('' + uuids.length + ' tracks to be deleted on server');
         return (uuids.length > 0 ? this.injector.get(HttpService).post<void>(environment.apiBaseUrl + '/track/v1/_bulkDelete', uuids) : EMPTY).pipe(
           defaultIfEmpty(true),
           switchMap(() => {
-            if (this.db !== db) return EMPTY;
+            if (status.counter !== this.loaded$.value?.counter) return EMPTY;
             this.quotaService.updateQuotas(q => {
               q.tracksUsed -= uuids.length;
-              q.tracksSizeUsed -= items.filter(item => item.owner === this.openEmail).reduce((p,n) => p + (n.track?.sizeUsed ?? 0), 0);
+              q.tracksSizeUsed -= items.filter(item => item.owner === status.email).reduce((p,n) => p + (n.track?.sizeUsed ?? 0), 0);
             });
-            return from(this.fullTrackTable!.bulkDelete(keys)).pipe(map(() => uuids.length < 50));
+            return this.tableFullTrack.deleteMany$(keys).pipe(map(() => uuids.length < 50));
           }),
           catchError(error => {
             this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_tracks', []);
@@ -842,18 +825,17 @@ export class TrackDatabase {
     );
   }
 
-  private syncUpdatesFromServer(db: Dexie): Observable<any> {
-    const known: VersionDto[] = [];
-    return from(this.fullTrackTable!.where('version').above(0).each(item => known.push({uuid: item.uuid, owner: item.owner, version: item.version}))).pipe(
-      switchMap(() => {
-        if (this.db !== db) return EMPTY;
+  private syncUpdatesFromServer(status: StoreLoadStatus): Observable<any> {
+    return this.tableFullTrack.getWhereMapping$(new DbTableWhereGreaterThan('version', 0), item => ({uuid: item.uuid, owner: item.owner, version: item.version})).pipe(
+      switchMap(known => {
+        if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         return this.injector.get(HttpService).post<UpdatesResponse<{uuid: string, owner: string}>>(environment.apiBaseUrl + '/track/v1/_bulkGetUpdates', known).pipe(
           switchMap(response => {
-            if (this.db !== db) return EMPTY;
+            if (status.counter !== this.loaded$.value?.counter) return EMPTY;
             Console.info('Server updates for tracks: sent ' + known.length + ' known tracks, received ' + response.created.length + ' new tracks, ' + response.updated.length + ' updated tracks, ' + response.deleted.length + ' deleted tracks');
             let operations$: Observable<any>;
             if (response.deleted.length > 0) {
-              operations$ = this.updatesFromServer(db, [], response.deleted);
+              operations$ = this.updatesFromServer(status, [], response.deleted);
             } else {
               operations$ = of(true);
             }
@@ -867,7 +849,7 @@ export class TrackDatabase {
                 const limiter = new RequestLimiter(3);
                 const requests = bunch
                 .map(item => () => {
-                  if (this.db !== db) {
+                  if (status.counter !== this.loaded$.value?.counter) {
                     progress.done();
                     return EMPTY;
                   }
@@ -890,7 +872,7 @@ export class TrackDatabase {
                 ));
                 operations$ = operations$.pipe(
                   switchMap(() => (requests.length === 0 ? of([]) : zip(requests)).pipe(
-                    switchMap(responses => this.updatesFromServer(db, responses.filter(t => !!t), [])),
+                    switchMap(responses => this.updatesFromServer(status, responses.filter(t => !!t), [])),
                     map(() => true),
                   ))
                 );
@@ -908,10 +890,10 @@ export class TrackDatabase {
     );
   }
 
-  private syncUpdatesToServer(db: Dexie): Observable<boolean> {
-    return from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(50).toArray()).pipe(
+  private syncUpdatesToServer(status: StoreLoadStatus): Observable<boolean> {
+    return this.tableFullTrack.getWhere$(new DbTableWhereEquals('updatedLocally', 1), 50).pipe(
       switchMap(items => {
-        if (this.db !== db) return EMPTY;
+        if (status.counter !== this.loaded$.value?.counter) return EMPTY;
         const toUpdate = items.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false));
         if (toUpdate.length === 0) return of(true);
         Console.info('' + toUpdate.length + ' tracks to be updated on server');
@@ -919,7 +901,7 @@ export class TrackDatabase {
         const requests: Observable<TrackDto>[] = [];
         for (const item of toUpdate) {
           const request = () => {
-            if (this.db !== db) return EMPTY;
+            if (status.counter !== this.loaded$.value?.counter) return EMPTY;
             return this.injector.get(HttpService).put<TrackDto>(environment.apiBaseUrl + '/track/v1', item.track).pipe(
               map(r => {
                 this._errors.itemSuccess(item.uuid + '#' + item.owner);
@@ -936,7 +918,7 @@ export class TrackDatabase {
           requests.push(limiter.add(request));
         }
         return (requests.length === 0 ? of([]) : zip(requests)).pipe(
-          switchMap(responses => this.updatesFromServer(db, responses, [])),
+          switchMap(responses => this.updatesFromServer(status, responses, [])),
           map(() => items.length < 50),
           defaultIfEmpty(true),
         );
@@ -949,27 +931,25 @@ export class TrackDatabase {
     );
   }
 
-  private updatesFromServer(db: Dexie, tracks: TrackDto[], deleted: { uuid: string, owner: string }[]): Observable<any> {
-    if (this.db !== db) return EMPTY;
+  private updatesFromServer(status: StoreLoadStatus, tracks: TrackDto[], deleted: { uuid: string, owner: string }[]): Observable<any> {
+    if (status.counter !== this.loaded$.value?.counter) return EMPTY;
     if (tracks.length === 0 && deleted.length === 0) return of(true);
     for (const t of tracks) this._errors.itemSuccess(t.uuid + '#' + t.owner);
     for (const t of deleted) this._errors.itemSuccess(t.uuid + '#' + t.owner);
-    return from(this.db?.transaction('rw', [this.metadataTable!, this.simplifiedTrackTable!, this.fullTrackTable!], async tx => { // NOSONAR
+    return from(this.database.transaction$(false, [this.tableMeta.name, this.tableSimplifiedTrack.name, this.tableFullTrack.name], async () => {
       if (deleted.length > 0) {
         const keys = deleted.map(item => item.uuid + '#' + item.owner);
-        if (this.db !== db) return;
-        await this.metadataTable!.bulkDelete(keys);
-        if (this.db !== db) return;
-        await this.simplifiedTrackTable!.bulkDelete(keys);
-        if (this.db !== db) return;
-        await this.fullTrackTable!.bulkDelete(keys);
-        if (this.db !== db) return;
+        await firstValueFrom(forkJoin([
+          this.tableMeta.deleteMany$(keys),
+          this.tableSimplifiedTrack.deleteMany$(keys),
+          this.tableFullTrack.deleteMany$(keys),
+        ]));
+        if (status.counter !== this.loaded$.value?.counter) return;
         for (const key of keys) {
           this.fullTracks.get(key)?.newValue(null);
           this.simplifiedTracks.get(key)?.newValue(null);
           this.metadata.get(key)?.newValue(null);
         }
-        if (this.db !== db) return;
       }
       if (tracks.length > 0) {
         const fulls = tracks.map(track => ({
@@ -980,21 +960,18 @@ export class TrackDatabase {
           updatedLocally: 0,
           track: track,
         }));
-        await this.fullTrackTable!.bulkPut(fulls);
-        if (this.db !== db) return;
+        const fulls$ = firstValueFrom(this.tableFullTrack.setMany$(fulls));
         const prefs = this.injector.get(PreferencesService);
         const entities = tracks.map(track => new Track(track, prefs));
         for (const entity of entities) this.fullTracks.get(entity.uuid + '#' + entity.owner)?.newValue(entity);
         const simplified = entities.map(track => ({...TrackDatabase.simplify(track), key: track.uuid + '#' + track.owner}));
-        if (this.db !== db) return;
-        await this.simplifiedTrackTable!.bulkPut(simplified);
-        if (this.db !== db) return;
+        const simplified$ = firstValueFrom(this.tableSimplifiedTrack.setMany$(simplified));
         for (const s of simplified) this.simplifiedTracks.get(s.key)?.newValue(s);
         const metadata = entities.map(track => ({...TrackDatabase.toMetadata(track), key: track.uuid + '#' + track.owner}));
-        if (this.db !== db) return;
-        await this.metadataTable!.bulkPut(metadata);
-        if (this.db !== db) return;
+        const meta$ = firstValueFrom(this.tableMeta.setMany$(metadata));
         for (const m of metadata) this.metadata.get(m.key)?.newValue(m);
+        await Promise.all([fulls$, simplified$, meta$]);
+        if (status.counter !== this.loaded$.value?.counter) return;
       }
     })).pipe(
       defaultIfEmpty(true),
@@ -1008,14 +985,29 @@ export class TrackDatabase {
 
   private getLocalChanges(): Observable<{create: boolean, update: boolean, delete: boolean}> {
     return zip([
-      from(this.fullTrackTable!.where('version').equals(0).limit(1).toArray()),
-      from(this.fullTrackTable!.where('version').below(0).limit(1).toArray()),
-      from(this.fullTrackTable!.where('updatedLocally').equals(1).limit(1).toArray())
+      this.tableFullTrack.keysWhere$(new DbTableWhereEquals('version', 0), 1),
+      this.tableFullTrack.keysWhere$(new DbTableWhereLessThan('version', 0), 1),
+      this.tableFullTrack.keysWhere$(new DbTableWhereEquals('updatedLocally', 1), 1),
     ])
     .pipe(
       first(),
       map(([r1, r2, r3]) => ({create: r1.length > 0, delete: r2.length > 0, update: r3.length > 0}))
     );
+  }
+
+  private hardDelete(): Observable<any> {
+    return forkJoin([
+      this.tableFullTrack.deleteAll$(),
+      this.tableSimplifiedTrack.deleteAll$(),
+      this.tableMeta.deleteAll$(),
+      new Observable(subscriber => {
+        this.fullTracks.forEach(item => item.newValue(null));
+        this.simplifiedTracks.forEach(item => item.newValue(null));
+        this.metadata.forEach(item => item.newValue(null));
+        subscriber.next(true);
+        subscriber.complete();
+      }),
+    ]);
   }
 
 }

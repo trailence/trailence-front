@@ -9,15 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Cache Global NPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -29,7 +29,7 @@ jobs:
           rm www/browser/media/*
           rmdir www/browser/media
       - name: Store web app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-app
           path: www/browser
@@ -39,20 +39,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
       - name: Cache Global NPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -80,7 +80,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-release
           path: android/app/build/outputs/apk/release
@@ -90,20 +90,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
       - name: Cache Global NPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -131,7 +131,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-appgallery-release
           path: android/app/build/outputs/apk/release
@@ -141,20 +141,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
       - name: Cache Global NPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -182,7 +182,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew :app:bundleRelease
       - name: Store PlayStore AAB
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aab-playstore-release
           path: android/app/build/outputs/bundle/release
@@ -192,20 +192,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
       - name: Cache Global NPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -233,7 +233,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-fdroid-release
           path: android/app/build/outputs/apk/release
@@ -251,40 +251,40 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Retrieve web app build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: web-app
           path: www/browser
       - name: Retrieve apk
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: apk-release
           path: android/app/build/outputs/apk/release
       - name: Rename apk
         run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence.apk
       - name: Retrieve PlayStore AAB
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: aab-playstore-release
           path: android/app/build/outputs/bundle/release
       - name: Retrieve AppGallery apk
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: apk-appgallery-release
           path: android/app/build/outputs/apk/release
       - name: Rename AppGallery apk
         run: mv android/app/build/outputs/apk/release/app-release.apk ./trailence-appgallery.apk
       - name: Retrieve PlayStore AAB
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: aab-playstore-release
           path: android/app/build/outputs/bundle/release
       - name: Rename PlayStore AAB
         run: mv android/app/build/outputs/bundle/release/app-release.aab ./trailence-playstore.aab
       - name: Retrieve FDroid apk
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: apk-fdroid-release
           path: android/app/build/outputs/apk/release

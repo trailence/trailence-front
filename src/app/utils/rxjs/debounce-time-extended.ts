@@ -2,8 +2,8 @@ import { MonoTypeOperatorFunction, Observable, SchedulerLike, Subscription, asyn
 import { executeSchedule } from 'rxjs/internal/util/executeSchedule';
 
 export function debounceTimeExtended<T>(
-  initialDelay: number,
-  subsequentDelay: number,
+  initialDelay: number | ((firstValue: T) => number),
+  subsequentDelay: number | ((value: T) => number),
   maximumPending: number = -1,
   predicateSkipDelay: (previousEmission: T, newValue: T) => boolean = () => false,
   maximumDelay: number = -1,
@@ -23,9 +23,10 @@ export function debounceTimeExtended<T>(
         pending++;
         activeTask?.unsubscribe();
         activeTask = undefined;
+        const delay = firstEmitted ? (typeof subsequentDelay === 'number' ? subsequentDelay : subsequentDelay(value)) : (typeof initialDelay === 'number' ? initialDelay : initialDelay(value));
         let now = Date.now();
         if ((maximumPending > 0 && pending >= maximumPending) ||
-            (!firstEmitted && initialDelay <= 0) ||
+            delay <= 0 ||
             (firstEmitted && maximumDelay > 0 && now - lastEmissionTime >= maximumDelay) ||
             (firstEmitted && predicateSkipDelay(lastEmission, value))) {
           // emit now
@@ -49,7 +50,7 @@ export function debounceTimeExtended<T>(
             lastEmissionTime = Date.now();
             destination.next(v);
           },
-          firstEmitted ? subsequentDelay : initialDelay
+          delay
         );
       },
       complete: () => {

@@ -1,6 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { OwnedStore, UpdatesResponse } from './owned-store';
-import { DatabaseService, TRAIL_TABLE_NAME } from './database.service';
+import { OwnedStore, UpdatesResponse } from './store/owned-store';
 import { HttpService } from '../http/http.service';
 import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, defaultIfEmpty, filter, first, from, map, of, switchMap, take, tap, zip } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -13,7 +12,6 @@ import { TagService } from './tag.service';
 import { CompositeOnDone } from 'src/app/utils/callback-utils';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
-import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { ShareService } from './share.service';
 import { AuthService } from '../auth/auth.service';
@@ -33,6 +31,8 @@ import { MyPublicTrailsService } from './my-public-trails.service';
 import { boundingBoxAround } from 'src/app/utils/leaflet-utils';
 import { NetworkService } from '../network/network.service';
 import { isPublicationCollection } from 'src/app/model/dto/trail-collection';
+import { CommonDatabaseService } from './common-database.service';
+import { StoreService, StoreWithCleaning } from './store/store.service';
 
 @Injectable({
   providedIn: 'root'
@@ -154,10 +154,10 @@ export class TrailService {
       if (ondone) ondone();
       return;
     }
-    const previousPause = this.injector.get(DatabaseService).pauseSync();
+    const previousPause = this.injector.get(StoreService).pauseSync();
     const doneHandler = new CompositeOnDone(() => {
       if (ondone) ondone();
-      this.injector.get(DatabaseService).resumeSync(previousPause);
+      this.injector.get(StoreService).resumeSync(previousPause);
     });
     const tracks: {uuid: string, owner: string}[] = [];
     for (const trail of trails) {
@@ -243,12 +243,8 @@ export class TrailService {
     }
   }
 
-  public cleanDatabase(db: Dexie, email: string): Observable<any> {
-    return this._store.cleanDatabase(db, email);
-  }
-
   public storeLoadedAndServerUpdates$(): Observable<boolean> {
-    return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
+    return combineLatest([this._store.isLoaded$, this._store.syncStatus$]).pipe(
       map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
     );
   }
@@ -299,9 +295,11 @@ export class TrailService {
       )
     );
   }
+
+  public get storeLoaded$() { return this._store.isLoaded$; }
 }
 
-class TrailStore extends OwnedStore<TrailDto, Trail> {
+class TrailStore extends OwnedStore<TrailDto, Trail> implements StoreWithCleaning {
 
   constructor(
     injector: Injector,
@@ -309,7 +307,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     private readonly trackService: TrackService,
     private readonly collectionService: TrailCollectionService,
   ) {
-    super(TRAIL_TABLE_NAME, injector);
+    super(injector.get(CommonDatabaseService).trailTable, injector);
     this.quotaService = injector.get(QuotaService);
   }
 
@@ -318,11 +316,6 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
   protected override isQuotaReached(): boolean {
     const q = this.quotaService.quotas;
     return !q || q.trailsUsed >= q.trailsMax;
-  }
-
-  protected override migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined> {
-    if (fromVersion < 1703 && !isNewDb) return this.markStoreToForceUpdateFromServer(true).then(() => undefined);
-    return Promise.resolve(undefined);
   }
 
   protected override fromDTO(dto: TrailDto): Trail {
@@ -400,7 +393,11 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
     this.injector.get(ShareService).signalTrailsDeleted(deleted);
   }
 
-  protected override doCleaning(email: string, db: Dexie): Observable<any> {
+  cleaningDependencies(): string[] { return [] };
+
+  doCleaning(): Observable<any> {
+    const status = this._storeLoaded$.value;
+    if (!status) return of(undefined);
     return zip([
       this.getAll$().pipe(collection$items()),
       this.collectionService.getAllCollectionsReady$(),
@@ -409,8 +406,7 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
       first(),
       switchMap(([trails, collections, shares]) => {
         return new Observable<any>(subscriber => {
-          const dbService = this.injector.get(DatabaseService);
-          if (db !== dbService.db?.db || email !== dbService.email) {
+          if (!this.isStillValid(status)) {
             subscriber.next(false);
             subscriber.complete();
             return;
@@ -424,15 +420,15 @@ class TrailStore extends OwnedStore<TrailDto, Trail> {
           });
           for (const trail of trails) {
             if (trail.createdAt > maxDate || trail.updatedAt > maxDate) continue;
-            if (trail.owner === email) {
-              const collection = collections.find(c => c.uuid === trail.collectionUuid && c.owner === email);
+            if (trail.owner === status.email) {
+              const collection = collections.find(c => c.uuid === trail.collectionUuid && c.owner === status.email);
               if (collection) continue;
             }
             const share = shares.find(s => s.owner === trail.owner && s.trails.includes(trail.uuid));
             if (share) continue;
             const d = ondone.add();
             this.getLocalUpdate(trail).then(date => {
-              if (db !== dbService.db?.db || email !== dbService.email) {
+              if (!this.isStillValid(status)) {
                 d();
                 return;
               }

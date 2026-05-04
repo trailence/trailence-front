@@ -1,21 +1,21 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, first, from, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, catchError, combineLatest, concat, defaultIfEmpty, first, firstValueFrom, from, map, of, switchMap, tap } from 'rxjs';
 import { Owned } from 'src/app/model/owned';
 import { OwnedDto } from 'src/app/model/dto/owned';
 import { Store, StoreSyncStatus } from './store';
-import { Table } from 'dexie';
 import { Injector } from '@angular/core';
-import { ErrorService } from '../progress/error.service';
+import { ErrorService } from '../../progress/error.service';
 import { Console } from 'src/app/utils/console';
-import { DependenciesService } from './dependencies.service';
+import { DependenciesService } from '../dependencies.service';
+import { DbTable } from '../storage/db-table';
 
 export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> extends Store<ENTITY, StoredItem<DTO>, OwnedStoreSyncStatus> {
 
   constructor(
-    tableName: string,
+    table: DbTable<StoredItem<DTO>>,
     injector: Injector,
   ) {
-    super(tableName, injector, new OwnedStoreSyncStatus());
-    this._initStore(tableName);
+    super(table, injector, new OwnedStoreSyncStatus());
+    this._initStore(table.name);
   }
 
   protected abstract fromDTO(dto: DTO): ENTITY;
@@ -89,14 +89,14 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     // nothing by default
   }
 
-  protected override markDeletedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
+  protected override markDeletedInDb(item: ENTITY): Observable<any> {
     item.markAsDeletedLocally();
     const dto = this.toDTO(item);
     const key = item.uuid + '#' + item.owner;
-    return from(table.put({id_owner: key, item: dto, updatedLocally: false, localUpdate: Date.now()}));
+    return this.table.setOne$({id_owner: key, item: dto, updatedLocally: false, localUpdate: Date.now()});
   }
 
-  protected override markUndeletedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
+  protected override markUndeletedInDb(item: ENTITY): Observable<any> {
     return of(true); // not possible to create again exactly the same as an item deleted locally
   }
 
@@ -118,8 +118,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     item.updatedAt = Date.now();
   }
 
-  protected override markUpdatedInDb(table: Table<StoredItem<DTO>, any, StoredItem<DTO>>, item: ENTITY): Observable<any> {
-    return from(table.put({id_owner: item.uuid + '#' + item.owner, item: this.toDTO(item), updatedLocally: true, localUpdate: Date.now()}))
+  protected override markUpdatedInDb(item: ENTITY): Observable<any> {
+    return this.table.setOne$({id_owner: item.uuid + '#' + item.owner, item: this.toDTO(item), updatedLocally: true, localUpdate: Date.now()});
   }
 
   protected override updateStatusWithLocalUpdate(status: OwnedStoreSyncStatus): boolean {
@@ -158,8 +158,8 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         dtosToAdd.push({id_owner: key, item: this.toDTO(entity), updatedLocally: false, localUpdate: Date.now()});
       } // else: updated from server, but deleted locally => ignore item from server
     }
-    this.injector.get(DependenciesService).operationDone(this.tableName, 'delete', deleted.map(d => d.uuid + '#' + d.owner));
-    this.injector.get(DependenciesService).operationDone(this.tableName, 'update', dtosToUpdate.map(d => d.id_owner));
+    this.injector.get(DependenciesService).operationDone(this.table.name, 'delete', deleted.map(d => d.uuid + '#' + d.owner));
+    this.injector.get(DependenciesService).operationDone(this.table.name, 'update', dtosToUpdate.map(d => d.id_owner));
     const deletedKeys: string[] = [];
     const deletedItems: BehaviorSubject<ENTITY | null>[] = [];
     const callDeleted: {item$: BehaviorSubject<ENTITY | null>, item: ENTITY}[] = [];
@@ -192,19 +192,16 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
       this._store.next(this._store.value);
       for (const item$ of deletedItems) item$.next(null);
     }
-    return from(this._db!.transaction('rw', this.tableName, async tx => {
-      const table = tx.db.table<StoredItem<DTO>>(this.tableName);
+    return this.table.inTransaction$(false, (stillValid) => {
+      let result$: Observable<any> = of(true);
       if (dtosToAdd.length > 0)
-        await table.bulkAdd(dtosToAdd);
+        result$ = result$.pipe(switchMap(() => stillValid() ? this.table.addMany$(dtosToAdd) : EMPTY));
       if (dtosToUpdate.length > 0)
-        await table.bulkPut(dtosToUpdate);
+        result$ = result$.pipe(switchMap(() => stillValid() ? this.table.setMany$(dtosToUpdate) : EMPTY));
       if (deletedKeys.length > 0)
-        await table.bulkDelete(deletedKeys);
-    })).pipe(defaultIfEmpty(true), map(() => true));
-  }
-
-  protected override close(): void {
-    super.close();
+        result$ = result$.pipe(switchMap(() => stillValid() ? this.table.deleteMany$(deletedKeys) : EMPTY));
+      return result$;
+    }).pipe(defaultIfEmpty(true), map(() => true));
   }
 
   protected override itemFromDb(item: StoredItem<DTO>): ENTITY {
@@ -227,17 +224,16 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected override sync(): Observable<boolean> {
-    const db = this._db;
+    const valid = this.stillValidChecker();
     this.startSync();
     this.syncStep('waiting operations');
-    return this.operations.requestSync(() => this._db === db ? this._sync() : EMPTY);
+    return this.operations.requestSync(() => valid() ? this._sync() : EMPTY);
   }
 
   private _forceUpdateFromServerChecked = false;
   private _sync(): Observable<boolean> {
     return this.ngZone.runOutsideAngular(() => {
-      const db = this._db;
-      const stillValid = () => this._db === db;
+      const stillValid = this.stillValidChecker();
 
       this._syncStatus$.value.inProgress = true;
       this._syncStatus$.next(this._syncStatus$.value);
@@ -279,7 +275,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         }),
         catchError(error => {
           // should never happen
-          Console.error('Error synchronizing ' + this.tableName, error);
+          Console.error('Error synchronizing ' + this.table.name, error);
           return of(false);
         }),
         defaultIfEmpty(false),
@@ -293,7 +289,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           status.inProgress = false;
           status.needsUpdateFromServer = false;
           status.lastUpdateFromServer = Date.now();
-          Console.info('Store ' + this.tableName + ' sync: ' + (status.hasLocalChanges ? 'still ' + this._createdLocally.length + ' to create, ' + this._deletedLocally.length + ' to delete, ' + this._updatedLocally.length + ' to update' : 'no more local changes'))
+          Console.info('Store ' + this.table.name + ' sync: ' + (status.hasLocalChanges ? 'still ' + this._createdLocally.length + ' to create, ' + this._deletedLocally.length + ' to delete, ' + this._updatedLocally.length + ' to update' : 'no more local changes'))
           this._syncStatus$.next(status);
           if (!stillValid()) return EMPTY;
           const isIncomplete =
@@ -330,18 +326,18 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           });
         }
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.table.name);
           return of(false);
         }
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server, ' + notReady.length + ' waiting');
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + notReady.length + ' waiting');
             if (!stillValid()) return of(false);
             return this.updatedDtosFromServer(result);
           }),
           catchError(error => {
-            Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
-            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.tableName]);
+            Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.table.name]);
             this._errors.itemsError(readyEntities.map(e => e.uuid + '#' + e.owner), error);
             return of(false);
           }),
@@ -359,12 +355,12 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return this.getUpdatesFromServer(known).pipe(
       switchMap(result => {
         if (!stillValid()) return of(false);
-        Console.info('Server updates for ' + this.tableName + ': sent ' + known.length + ' known element(s), received ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
+        Console.info('Server updates for ' + this.table.name + ': sent ' + known.length + ' known element(s), received ' + result.deleted.length + ' deleted, ' + result.updated.length + ' updated, ' + result.created.length + ' created');
         return this.updatedDtosFromServer([...result.updated, ...result.created], result.deleted);
       }),
       catchError(error => {
-        Console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.tableName, error);
-        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
+        Console.error('Error requesting updates from server with ' + known.length + ' known element(s) of ' + this.table.name, error);
+        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.table.name]);
         return of(false);
       })
     );
@@ -374,7 +370,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     return this.getUpdatesFromServer([]).pipe(
       switchMap(result => {
         if (!stillValid()) return of(false);
-        Console.info('Force update from server: received ' + result.created.length + ' items of ' + this.tableName);
+        Console.info('Force update from server: received ' + result.created.length + ' items of ' + this.table.name);
         const dtosToUpdate: StoredItem<DTO>[] = [];
         for (const dto of result.created) {
           const key = dto.uuid + '#' + dto.owner;
@@ -386,11 +382,11 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
           }
         }
         if (dtosToUpdate.length === 0) return of(true);
-        return from(this._db!.table<StoredItem<DTO>>(this.tableName).bulkPut(dtosToUpdate).then(() => true));
+        return this.table.setMany$(dtosToUpdate).pipe(map(() => true));
       }),
       catchError(error => {
-        Console.error('Error requesting all updates from server for ' + this.tableName, error);
-        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
+        Console.error('Error requesting all updates from server for ' + this.table.name, error);
+        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.table.name]);
         return of(false);
       })
     );
@@ -415,39 +411,39 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
         const notReady = toUpdate.filter(item => !readyEntities.some(entity => entity.uuid === item.uuid && entity.owner === item.owner));
         for (const item of notReady) this._locks.syncDone(item.uuid + '#' + item.owner);
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.tableName + ', ' + notReady.length + ' waiting');
+          Console.info('Nothing ready to update on server among ' + toUpdate.length + ' element(s) of ' + this.table.name + ', ' + notReady.length + ' waiting');
           return of(false);
         }
         return this.sendUpdatesToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
             if (!stillValid()) return of(false);
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server');
-            const promises: Promise<any>[] = [];
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) updated on server');
+            const notUpdatedDtos: StoredItem<DTO>[] = [];
             let notUpdated: string[] = [];
             for (const entity of readyEntities) {
               const updated = result.find(d => d.uuid === entity.uuid && d.owner === entity.owner);
               if (!updated) {
                 // no update needed by the server: remove the updatedLocally from the DB
                 notUpdated.push(entity.uuid + '#' + entity.owner);
-                promises.push(this._db!.table<StoredItem<DTO>>(this.tableName).put({
+                notUpdatedDtos.push({
                   id_owner: entity.uuid + '#' + entity.owner,
                   item: this.toDTO(entity),
                   updatedLocally: false,
                   localUpdate: Date.now(),
-                }));
+                });
               }
               const index = this._updatedLocally.indexOf(entity.uuid + '#' + entity.owner);
               if (index >= 0) this._updatedLocally.splice(index, 1);
               this._errors.itemSuccess(entity.uuid + '#' + entity.owner);
             }
-            this.injector.get(DependenciesService).operationDone(this.tableName, 'update', notUpdated);
-            return from(Promise.all(promises)).pipe(
+            this.injector.get(DependenciesService).operationDone(this.table.name, 'update', notUpdated);
+            return (notUpdatedDtos.length === 0 ? of([]) : this.table.setMany$(notUpdatedDtos)).pipe(
               switchMap(() => this.updatedDtosFromServer(result).pipe(map(ok => ok && readyEntities.length === toUpdate.length)))
             );
           }),
           catchError(error => {
-            Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
-            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.tableName]);
+            Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.table.name]);
             this._errors.itemsError(readyEntities.map(item => item.uuid + '#' + item.owner), error);
             return of(false);
           }),
@@ -463,24 +459,24 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
     const toDelete = this._deletedLocally.filter(item => this._errors.canProcess(item.uuid + '#' + item.owner, false));
     if (toDelete.length === 0) return of(true);
     this.syncStep('send deleted local items to server');
-    return from(this.injector.get(DependenciesService).canDo(this.tableName, 'delete', toDelete.map(item => item.uuid + '#' + item.owner))).pipe(
+    return from(this.injector.get(DependenciesService).canDo(this.table.name, 'delete', toDelete.map(item => item.uuid + '#' + item.owner))).pipe(
       switchMap(canDelete => {
         if (canDelete.length === 0) {
-          Console.info('Nothing ready to be deleted among ' + toDelete.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to be deleted among ' + toDelete.length + ' element(s) of ' + this.table.name);
           return of(false);
         }
-        Console.info(canDelete.length + ' element(s) of ' + this.tableName + ' ready to be deleted on server');
+        Console.info(canDelete.length + ' element(s) of ' + this.table.name + ' ready to be deleted on server');
         const uuids = canDelete.map(key => key.substring(0, key.indexOf('#')));
         return this.deleteFromServer(uuids).pipe(
           defaultIfEmpty(true),
           switchMap(() => {
             if (!stillValid()) return of(false);
-            Console.info('' + canDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
+            Console.info('' + canDelete.length + ' element(s) of ' + this.table.name + ' deleted on server');
             return this.updatedDtosFromServer([], canDelete.map(e => ({uuid: e.substring(0, e.indexOf('#')), owner: e.substring(e.indexOf('#') + 1)})));
           }),
           catchError(error => {
-            Console.error('Error deleting element(s) of ' + this.tableName + ' on server', error);
-            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
+            Console.error('Error deleting element(s) of ' + this.table.name + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.table.name]);
             this._errors.itemsError(canDelete, error);
             return of(false);
           })
@@ -490,7 +486,7 @@ export abstract class OwnedStore<DTO extends OwnedDto, ENTITY extends Owned> ext
   }
 
   protected getLocalUpdate(entity: ENTITY): Promise<number | undefined> {
-    return this._db!.table<StoredItem<DTO>>(this.tableName).get(entity.uuid + '#' + entity.owner).then(item => item?.localUpdate);
+    return firstValueFrom(this.table.getByKey$(this.getKey(entity))).then(item => item?.localUpdate);
   }
 
 }

@@ -1,8 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
-import { SimpleStore } from './simple-store';
+import { SimpleStore } from './store/simple-store';
 import { ShareDto, ShareElementType } from 'src/app/model/dto/share';
 import { Share } from 'src/app/model/share';
-import { DatabaseService, SHARE_TABLE_NAME } from './database.service';
 import { combineLatest, EMPTY, map, Observable, of, switchMap, tap, zip } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
@@ -14,11 +13,11 @@ import { TrailService } from './trail.service';
 import { MenuItem } from 'src/app/components/menus/menu-item';
 import { I18nService } from '../i18n/i18n.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
-import Dexie from 'dexie';
 import { collection$items, collection$items$ } from 'src/app/utils/rxjs/collection$items';
 import { QuotaService } from '../auth/quota.service';
 import { Arrays } from 'src/app/utils/arrays';
 import { Trail } from 'src/app/model/trail';
+import { CommonDatabaseService } from './common-database.service';
 
 @Injectable({
   providedIn: 'root'
@@ -120,7 +119,7 @@ export class ShareService {
   }
 
   public storeLoadedAndServerUpdates$(): Observable<boolean> {
-    return combineLatest([this._store.loaded$, this._store.syncStatus$]).pipe(
+    return combineLatest([this._store.isLoaded$, this._store.syncStatus$]).pipe(
       map(([loaded, sync]) => loaded && !sync.needsUpdateFromServer)
     );
   }
@@ -184,7 +183,7 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
   constructor(
     injector: Injector
   ) {
-    super(SHARE_TABLE_NAME, injector);
+    super(injector.get(CommonDatabaseService).shareTable, injector);
     this.quotaService = injector.get(QuotaService);
   }
 
@@ -213,18 +212,14 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
     item.updatedAt = Date.now();
   }
 
-  protected override migrate(fromVersion: number, dbService: DatabaseService, isNewDb: boolean): Promise<number | undefined> {
-    if (fromVersion < 1300 && !isNewDb) return import('./migrations/sharev1_sharev2').then(m => m.ShareV1ToShareV2.migrate(dbService)).then(() => undefined);
-    return Promise.resolve(undefined);
-  }
-
   protected override createOnServer(items: ShareDto[]): Observable<ShareDto[]> {
-    const db = this._db;
+    const status = this._storeLoaded$.value;
+    if (!status) return EMPTY;
     const limiter = new RequestLimiter(2);
     const requests: Observable<any>[] = [];
     for (const item of items) {
       const request = () => {
-        if (this._db !== db) return EMPTY;
+        if (status.counter !== this._storeLoaded$.value?.counter) return EMPTY;
         return this.injector.get(HttpService).post<ShareDto>(environment.apiBaseUrl + '/share/v2', {
           id: item.uuid,
           name: item.name,
@@ -248,12 +243,13 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
   }
 
   protected override deleteFromServer(items: ShareDto[]): Observable<void> {
-    const db = this._db;
+    const status = this._storeLoaded$.value;
+    if (!status) return EMPTY;
     const limiter = new RequestLimiter(2);
     const requests: Observable<any>[] = [];
     for (const item of items) {
       const request = () => {
-        if (this._db !== db) return EMPTY;
+        if (status.counter !== this._storeLoaded$.value?.counter) return EMPTY;
         return this.injector.get(HttpService).delete(environment.apiBaseUrl + '/share/v2/' + encodeURIComponent(item.owner) + '/' + item.uuid).pipe(
           tap({
             complete: () => this.quotaService.updateQuotas(q => q.sharesUsed--)
@@ -268,12 +264,13 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
   }
 
   protected override updateToServer(items: ShareDto[]): Observable<ShareDto[]> {
-    const db = this._db;
+    const status = this._storeLoaded$.value;
+    if (!status) return EMPTY;
     const limiter = new RequestLimiter(2);
     const requests: Observable<any>[] = [];
     for (const item of items) {
       const request = () => {
-        if (this._db !== db) return EMPTY;
+        if (status.counter !== this._storeLoaded$.value?.counter) return EMPTY;
         return this.injector.get(HttpService).put<ShareDto>(environment.apiBaseUrl + '/share/v2/' + item.uuid, {
           name: item.name,
           includePhotos: item.includePhotos,
@@ -343,10 +340,6 @@ class ShareStore extends SimpleStore<ShareDto, Share> {
   }
 
   protected override createdLocallyCanBeRemoved(entity: Share): Observable<boolean> {
-    return of(false);
-  }
-
-  protected override doCleaning(email: string, db: Dexie): Observable<any> {
     return of(false);
   }
 

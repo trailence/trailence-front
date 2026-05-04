@@ -1,12 +1,12 @@
 import { Injector } from '@angular/core';
 import { LocalFilesService } from '../../local-files/local-files.service';
-import { DbTable, DbTableMigration } from './db-table';
+import { DbStatus, DbTable, DbTableMigration } from './db-table';
 import Dexie, { Table } from 'dexie';
 import { Console } from 'src/app/utils/console';
 import { ProgressService } from '../../progress/progress.service';
 import { I18nService } from '../../i18n/i18n.service';
 import { BinaryContent } from 'src/app/utils/binary-content';
-import { from, map, Observable, switchMap, throwIfEmpty } from 'rxjs';
+import { map, Observable, switchMap, throwIfEmpty } from 'rxjs';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 
 export class DbTableWithBlob<DTO> extends DbTable<DTO> {
@@ -29,9 +29,9 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
         version: 10600,
         migration: (injector, dexie, table, localDir) => this.migrateToLocalFiles(injector, dexie, table, localDir),
       } as DbTableMigration);
-      this.toDtos = fromTable => Promise.all(fromTable.map(dto => this.augmentWithBlob(dto)));
-      this.fromDtos = dtos => Promise.all(dtos.map(dto => this.storeAndRemoveBlob(dto)));
-      this.deleted = keys => this.deleteFiles(keys);
+      this.toDtos = (fromTable, status) => Promise.all(fromTable.map(dto => this.augmentWithBlob(dto, status)));
+      this.fromDtos = (dtos, status) => Promise.all(dtos.map(dto => this.storeAndRemoveBlob(dto, status)));
+      this.deleted = (keys, status) => this.deleteFiles(keys, status);
     }
   }
 
@@ -70,29 +70,30 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
     if (workDone < keys.length) progress.addWorkDone(keys.length - workDone);
   }
 
-  private async augmentWithBlob(fromTable: Partial<DTO>) {
-    (fromTable as any)[this.dtoBlobField] = await this.localFiles.readBlob(this.localDir!, (fromTable as any)[this.dtoKeyField] as string, this.getContentType(fromTable));
+  private async augmentWithBlob(fromTable: Partial<DTO>, status: DbStatus<DTO>) {
+    (fromTable as any)[this.dtoBlobField] = await this.localFiles.readBlob(status.localDir, (fromTable as any)[this.dtoKeyField] as string, this.getContentType(fromTable));
     return fromTable as DTO;
   }
 
-  private async storeAndRemoveBlob(dto: DTO) {
+  private async storeAndRemoveBlob(dto: DTO, status: DbStatus<DTO>) {
     const key = (dto as any)[this.dtoKeyField] as string;
     const blob = (dto as any)[this.dtoBlobField] as Blob;
     if (!key) throw new Error('Missing key on DTO');
     if (!blob) throw new Error('Missing blob for key: ' + key);
-    await this.localFiles.saveBinaryFile(this.localDir!, key, new BinaryContent(blob));
+    await this.localFiles.saveBinaryFile(status.localDir, key, new BinaryContent(blob));
     dto = {...dto};
     delete (dto as any)[this.dtoBlobField];
     return dto;
   }
 
-  private async deleteFiles(keys: string[]) {
-    if (keys.length === 1) await this.localFiles.deleteFile(this.localDir!, keys[0]);
-    else await this.localFiles.deleteFiles(this.localDir!, keys);
+  private async deleteFiles(keys: string[], status: DbStatus<DTO>) {
+    if (keys.length === 1) await this.localFiles.deleteFile(status.localDir, keys[0]);
+    else await this.localFiles.deleteFiles(status.localDir, keys);
   }
 
   public getBlobByKey$(key: string, contentType?: string): Observable<Blob> {
-    if (this.localFiles.supported()) return from(this.localFiles.readBlob(this.localDir!, key, contentType));
+    if (this.localFiles.supported())
+      return this.onceReady$().pipe(switchMap(status => this.localFiles.readBlob(status.localDir, key, contentType)));
     return this.getByKey$(key).pipe(
       map(dto => (dto as any)?.[this.dtoBlobField]),
       filterDefined(),
@@ -101,25 +102,26 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
   }
 
   public blobExists$(key: string): Observable<boolean> {
-    if (this.localFiles.supported()) return from(this.localFiles.fileExists(this.localDir!, key));
+    if (this.localFiles.supported())
+      return this.onceReady$().pipe(switchMap(status =>this.localFiles.fileExists(status.localDir, key)));
     return this.exists$(key);
   }
 
   public listContentWithSize(chunk: number, keyPredicate?: (key: string) => boolean, dtoPredicate?: (dto: Partial<DTO>) => boolean): Observable<{dto: Partial<DTO>, size: number}[]> {
-    return this.onReady().pipe(switchMap(table => new Observable<{dto: Partial<DTO>, size: number}[]>(subscriber => {
-      if (!this.isStillValid(table)) {
+    return this.onceReady$().pipe(switchMap(status => new Observable<{dto: Partial<DTO>, size: number}[]>(subscriber => {
+      if (!this.isStillValid(status)) {
         subscriber.complete();
         return;
       }
-      let keys$ = table.toCollection().primaryKeys();
+      let keys$ = status.table.toCollection().primaryKeys();
       if (keyPredicate) keys$ = keys$.then(k => k.filter(keyPredicate));
       keys$.then(keys => {
-        if (keys.length === 0 || !this.isStillValid(table)) {
+        if (keys.length === 0 || !this.isStillValid(status)) {
           subscriber.complete();
           return;
         }
         const next = (i:number) => {
-          if (!this.isStillValid(table)) {
+          if (!this.isStillValid(status)) {
             subscriber.complete();
             return;
           }
@@ -134,25 +136,25 @@ export class DbTableWithBlob<DTO> extends DbTable<DTO> {
                 return {dto, size};
               }).filter(dto => !!dto);
             if (dtoPredicate) {
-              nexts$ = table.bulkGet(bunch).then(dtos => {
-                const filtered: Partial<DTO>[] = this.isStillValid(table) ? dtos.filter(dto => !!dto && dtoPredicate(dto)) as Partial<DTO>[] : [];
+              nexts$ = status.table.bulkGet(bunch).then(dtos => {
+                const filtered: Partial<DTO>[] = this.isStillValid(status) ? dtos.filter(dto => !!dto && dtoPredicate(dto)) as Partial<DTO>[] : [];
                 if (filtered.length === 0) return [];
-                return this.localFiles.filesSize(this.localDir!, filtered.map(dto => (dto as any)[this.dtoKeyField])).then(sizes => mapWithSizes(filtered, sizes));
+                return this.localFiles.filesSize(status.localDir, filtered.map(dto => (dto as any)[this.dtoKeyField])).then(sizes => mapWithSizes(filtered, sizes));
               });
             } else {
               nexts$ = Promise.all([
-                table.bulkGet(bunch),
-                this.localFiles.filesSize(this.localDir!, bunch)
+                status.table.bulkGet(bunch),
+                this.localFiles.filesSize(status.localDir, bunch)
               ]).then(([dtos, sizes]) => mapWithSizes(dtos, sizes));
             }
           } else {
-            nexts$ = table.bulkGet(bunch).then(fromTable => {
+            nexts$ = status.table.bulkGet(bunch).then(fromTable => {
               const dtos = fromTable.filter(dto => !!dto && (dtoPredicate ? dtoPredicate(dto) : true)) as DTO[];
               return dtos.map(dto => ({dto, size: ((dto as any)[this.dtoBlobField] as Blob | undefined)?.size ?? 0}));
             });
           }
           nexts$.then(n => {
-            if (!this.isStillValid(table)) {
+            if (!this.isStillValid(status)) {
               subscriber.complete();
               return;
             }

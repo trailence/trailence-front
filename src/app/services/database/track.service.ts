@@ -2,7 +2,6 @@ import { Injectable, Injector } from '@angular/core';
 import { Track } from 'src/app/model/track';
 import { EMPTY, map, Observable, of, switchMap } from 'rxjs';
 import { TrackDatabase } from './track-database';
-import Dexie from 'dexie';
 import { FetchSourceService } from '../fetch-source/fetch-source.service';
 import { Progress } from '../progress/progress.service';
 import { firstTimeout } from 'src/app/utils/rxjs/first-timeout';
@@ -20,8 +19,6 @@ export class TrackService {
   ) {
     this.db = new TrackDatabase(injector);
   }
-
-  public dbReady$(): Observable<boolean> { return this.db.dbReady };
 
   public getSimplifiedTrack$(uuid: string, owner: string): Observable<SimplifiedTrackSnapshot | null> {
     if (!owner.includes('@')) return this.injector.get(FetchSourceService).getSimplifiedTrack$(owner, uuid);
@@ -95,8 +92,6 @@ export class TrackService {
     return this.db.isSavedOnServerAndNotDeletedLocally$(uuid, owner);
   }
 
-  public cleanDatabase(db: Dexie, email: string): Observable<any> {
-    return this.db.cleanDatabase(db, email);
-  }
+  public get storeLoaded$() { return this.db.isLoaded$; }
 
 }

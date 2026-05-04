@@ -6,9 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
@@ -19,7 +19,7 @@ jobs:
           npm run build -- --configuration=development
           npm run instrument
       - name: Store web app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prepare-e2e-web-app
           path: www
@@ -29,15 +29,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Cache Global NPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -49,7 +49,7 @@ jobs:
           rm www/browser/media/*
           rmdir www/browser/media
       - name: Store web app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-app
           path: www/browser
@@ -59,20 +59,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
       - name: Cache Global NPM packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: npm-global-packages
           path: ~/.npm
@@ -100,7 +100,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-release
           path: android/app/build/outputs/apk/release
@@ -113,7 +113,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK AppGallery
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-appgallery-release
           path: android/app/build/outputs/apk/release
@@ -126,7 +126,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew :app:bundleRelease
       - name: Store PlayStore AAB
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aab-playstore-release
           path: android/app/build/outputs/bundle/release
@@ -139,7 +139,7 @@ jobs:
           chmod 550 ./gradlew
           ./gradlew assembleRelease
       - name: Store APK FDroid
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apk-fdroid-release
           path: android/app/build/outputs/apk/release
@@ -149,9 +149,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
@@ -162,7 +162,7 @@ jobs:
       - name: Unit Tests
         run: npm run test-ci
       - name: Store coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: unit-tests-web-app-coverage-report
           path: ./coverage/app/lcov.info
@@ -191,21 +191,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
       - name: Retrieve web app
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: prepare-e2e-web-app
           path: www
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             trailence/front
@@ -235,13 +235,13 @@ jobs:
           ls -l ../coverage/e2e
       - name: Upload output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wdio_output_${{github.run_number}}_${{ steps.e2e.outputs.test_name }}
           path: e2e/output
           retention-days: 5
       - name: Store coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-tests-web-app-${{ steps.e2e.outputs.test_name }}-coverage-report
           path: ./coverage/e2e/${{ steps.e2e.outputs.test_name }}.info
@@ -255,17 +255,17 @@ jobs:
       - e2e-tests-web-app
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
       - name: Retrieve web app unit tests coverage results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: unit-tests-web-app-coverage-report
           path: coverage/app
       - name: Retrieve web app e2e tests coverage results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: coverage/e2e
           pattern: e2e-tests-web-app-*-coverage-report

@@ -18,6 +18,7 @@ import { DependenciesService } from '../database/dependencies.service';
 import { AlertController, ModalController } from '@ionic/angular/standalone';
 import { TrailDto } from 'src/app/model/dto/trail';
 import { ModerationService } from '../moderation/moderation.service';
+import { StoreService } from '../database/store/store.service';
 
 export function copyTrailsTo( // NOSONAR
   injector: Injector, trails: Trail[], toCollection: TrailCollection, email: string,
@@ -202,6 +203,8 @@ function doImportPhotos(
   const allPhotos = photos.flatMap(p => p.photos);
   const progress = injector.get(ProgressService).create(injector.get(I18nService).texts.pages.trails.actions.copying_photos, allPhotos.length);
   progress.subTitle = '0/' + allPhotos.length;
+  const stores = injector.get(StoreService);
+  const previousPause = stores.pauseSync();
   let index = 0;
   const photoService = injector.get(PhotoService);
   const copyNext = () => {
@@ -226,12 +229,14 @@ function doImportPhotos(
               progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
               progress.addWorkDone(1);
               if (++index < allPhotos.length) setTimeout(copyNext, 0);
+              else stores.resumeSync(previousPause);
             },
             error: err => {
               injector.get(ErrorService).addNetworkError(err, "pages.trails.actions.copy_photo_error", [allPhotos[index].description]);
               progress.subTitle = '' + (index + 1) + '/' + allPhotos.length;
               progress.addWorkDone(1);
               if (++index < allPhotos.length) setTimeout(copyNext, 0);
+              else stores.resumeSync(previousPause);
             }
           });
         });

@@ -12,11 +12,11 @@ import { GeolocationState } from '../geolocation/geolocation.interface';
 import { PointDto } from 'src/app/model/dto/point';
 import { I18nService } from '../i18n/i18n.service';
 import { TrackService } from '../database/track.service';
-import { DatabaseService } from '../database/database.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthResponse } from '../auth/auth-response';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { TrailCollectionType } from 'src/app/model/dto/trail-collection';
+import { StoreService } from '../database/store/store.service';
 
 describe('Test Trace Recorder', () => {
 
@@ -59,7 +59,7 @@ describe('Test Trace Recorder', () => {
     });
 
     await firstValueFrom(TestBed.inject(I18nService).texts$.pipe(filterDefined()));
-    await firstValueFrom(TestBed.inject(DatabaseService).allLoaded().pipe(filterDefined()));
+    await firstValueFrom(TestBed.inject(StoreService).allLoaded$.pipe(filterDefined()));
   });
 
   afterEach(() => {

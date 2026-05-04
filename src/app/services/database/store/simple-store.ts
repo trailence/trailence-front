@@ -1,9 +1,9 @@
-import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, from, map, of, switchMap } from "rxjs";
+import { BehaviorSubject, EMPTY, Observable, catchError, defaultIfEmpty, map, of, switchMap } from "rxjs";
 import { Store, StoreSyncStatus } from "./store";
-import { Table } from "dexie";
 import { Injector } from "@angular/core";
-import { ErrorService } from '../progress/error.service';
+import { ErrorService } from '../../progress/error.service';
 import { Console } from 'src/app/utils/console';
+import { DbTable } from '../storage/db-table';
 
 export interface SimpleStoreItem<T> {
   key: string;
@@ -30,11 +30,11 @@ export class SimpleStoreSyncStatus implements StoreSyncStatus {
 export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStoreItem<DTO>, SimpleStoreSyncStatus> {
 
   constructor(
-    tableName: string,
+    table: DbTable<SimpleStoreItem<DTO>>,
     injector: Injector,
   ) {
-    super(tableName, injector, new SimpleStoreSyncStatus());
-    this._initStore(tableName);
+    super(table, injector, new SimpleStoreSyncStatus());
+    this._initStore(table.name);
   }
 
   protected abstract fromDTO(dto: DTO): ENTITY;
@@ -74,9 +74,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
   }
 
   private saveStore(): Observable<boolean> {
-    return from(this._db!.transaction('rw', this.tableName, async tx => {
-      const table = tx.db.table<SimpleStoreItem<DTO>>(this.tableName);
-      await table.clear();
+    return this.table.replaceAll$(() => {
       const dbItems: SimpleStoreItem<DTO>[] = [];
       for (const item$ of this._store.value) {
         if (item$.value) {
@@ -99,8 +97,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           deletedLocally: true,
         })
       }
-      await table.bulkAdd(dbItems);
-    })).pipe(defaultIfEmpty(true), map(() => true));
+      return dbItems;
+    });
   }
 
   protected override beforeEmittingStoreLoaded(): void {
@@ -133,35 +131,41 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     return true;
   }
 
-  protected override markDeletedInDb(table: Table<SimpleStoreItem<DTO>, any, SimpleStoreItem<DTO>>, item: ENTITY): Observable<any> {
+  protected override markDeletedInDb(item: ENTITY): Observable<any> {
     const key = this.getKey(item);
-    return from(this._db!.transaction('rw', table, () => {
-      table.get(key).then(dbItem => {
-        if (!dbItem) return true;
-        if (dbItem.createdLocally) return table.delete(key);
-        return table.put({...dbItem, deletedLocally: true}, key);
-      });
-    }));
+    return this.table.inTransaction$(false, (stillValid) =>
+      this.table.getByKey$(key).pipe(
+        switchMap(dbItem => {
+          if (!dbItem || !stillValid()) return of(true);
+          if (dbItem.createdLocally) return this.table.deleteOne$(key);
+          return this.table.setOne$({...dbItem, deletedLocally: true});
+        })
+      )
+    );
   }
 
-  protected override markUndeletedInDb(table: Table<SimpleStoreItem<DTO>, any, SimpleStoreItem<DTO>>, item: ENTITY): Observable<any> {
+  protected override markUndeletedInDb(item: ENTITY): Observable<any> {
     const key = this.getKey(item);
-    return from(this._db!.transaction('rw', table, () => {
-      table.get(key).then(dbItem => {
-        if (!dbItem) return true;
-        return table.put({...dbItem, deletedLocally: false, createdLocally: true}, key);
-      });
-    }));
+    return this.table.inTransaction$(false, (stillValid) =>
+      this.table.getByKey$(key).pipe(
+        switchMap(dbItem => {
+          if (!dbItem || !stillValid()) return of(true);
+          return this.table.setOne$({...dbItem, deletedLocally: false, createdLocally: true});
+        })
+      )
+    );
   }
 
-  protected override markUpdatedInDb(table: Table<SimpleStoreItem<DTO>, any, SimpleStoreItem<DTO>>, item: ENTITY): Observable<any> {
+  protected override markUpdatedInDb(item: ENTITY): Observable<any> {
     const key = this.getKey(item);
-    return from(this._db!.transaction('rw', table, () => {
-      table.get(key).then(dbItem => {
-        if (!dbItem) return true;
-        return table.put({...dbItem, updatedLocally: true}, key);
-      });
-    }));
+    return this.table.inTransaction$(false, (stillValid) =>
+      this.table.getByKey$(key).pipe(
+        switchMap(dbItem => {
+          if (!dbItem || !stillValid()) return of(true);
+          return this.table.setOne$({...dbItem, updatedLocally: true});
+        })
+      )
+    );
   }
 
   protected override updateStatusWithLocalDelete(status: SimpleStoreSyncStatus): boolean {
@@ -177,16 +181,15 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
   }
 
   protected override sync(): Observable<boolean> {
-    const db = this._db;
+    const valid = this.stillValidChecker();
     this.startSync();
     this.syncStep('waiting operations');
-    return this.operations.requestSync(() => this._db === db ? this._sync() : EMPTY);
+    return this.operations.requestSync(() => valid() ? this._sync() : EMPTY);
   }
 
   private _sync(): Observable<boolean> {
     return this.ngZone.runOutsideAngular(() => {
-      const db = this._db;
-      const stillValid = () => this._db === db;
+      const stillValid = this.stillValidChecker();
 
       this._syncStatus$.value.inProgress = true;
       this._syncStatus$.next(this._syncStatus$.value);
@@ -253,12 +256,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     return ready$.pipe(
       switchMap(readyEntities => {
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to create on server among ' + toCreate.length + ' element(s) of ' + this.table.name);
           return of(false);
         }
         return this.createOnServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) created on server, ' + (toCreate.length - readyEntities.length) + ' additional pending');
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) created on server, ' + (toCreate.length - readyEntities.length) + ' additional pending');
             if (!stillValid()) return of(false);
             for (const created of result) {
               const entity = this.fromDTO(created);
@@ -270,8 +273,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             return this.saveStore().pipe(map(ok => ok && readyEntities.length === toCreate.length));
           }),
           catchError(error => {
-            Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
-            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.tableName]);
+            Console.error('Error creating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.create_items', [this.table.name]);
             this._errors.itemsError(readyEntities.map(e => this.getKey(e)), error);
             return of(false);
           })
@@ -295,12 +298,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
           this._errors.itemSuccess(this.getKey(entity));
         }
         this._syncStatus$.value.localDeletes = this._deletedLocally.length !== 0;
-        Console.info('' + toDelete.length + ' element(s) of ' + this.tableName + ' deleted on server');
+        Console.info('' + toDelete.length + ' element(s) of ' + this.table.name + ' deleted on server');
         return this.saveStore();
       }),
       catchError(error => {
-        Console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.tableName + ' on server', error);
-        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.tableName]);
+        Console.error('Error deleting ' + toDelete.length + ' element(s) of ' + this.table.name + ' on server', error);
+        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.delete_items', [this.table.name]);
         this._errors.itemsError(toDelete.map(e => this.getKey(e)), error);
         return of(false);
       })
@@ -318,12 +321,12 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
     return ready$.pipe(
       switchMap(readyEntities => {
         if (readyEntities.length === 0) {
-          Console.info('Nothing ready to update on server among ' + entities.length + ' element(s) of ' + this.tableName);
+          Console.info('Nothing ready to update on server among ' + entities.length + ' element(s) of ' + this.table.name);
           return of(false);
         }
         return this.updateToServer(readyEntities.map(entity => this.toDTO(entity))).pipe(
           switchMap(result => {
-            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.tableName + ' element(s) updated on server, ' + (entities.length - readyEntities.length) + ' additional pending');
+            Console.info('' + result.length + '/' + readyEntities.length + ' ' + this.table.name + ' element(s) updated on server, ' + (entities.length - readyEntities.length) + ' additional pending');
             if (!stillValid()) return of(false);
             const updatedEntities = result.map(dto => this.fromDTO(dto));
             for (const previousEntity of readyEntities) {
@@ -340,8 +343,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             return this.saveStore().pipe(map(ok => ok && readyEntities.length === entities.length));
           }),
           catchError(error => {
-            Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.tableName + ' on server', error);
-            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.tableName]);
+            Console.error('Error updating ' + readyEntities.length + ' element(s) of ' + this.table.name + ' on server', error);
+            this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.send_updates', [this.table.name]);
             this._errors.itemsError(readyEntities.map(e => this.getKey(e)), error);
             return of(false);
           })
@@ -389,7 +392,7 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
             added.push(new BehaviorSubject<ENTITY | null>(e));
           }
         }
-        Console.info('Server updates for ' + this.tableName + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
+        Console.info('Server updates for ' + this.table.name + ': ' + added.length + ' new items, ' + deleted.length + ' deleted items, ' + (returnedFromServer - added.length) + ' known items');
         if (deleted.length > 0 || added.length > 0 || updated) {
           for (const item$ of deleted) {
             const index = this._store.value.indexOf(item$);
@@ -402,8 +405,8 @@ export abstract class SimpleStore<DTO, ENTITY> extends Store<ENTITY, SimpleStore
         return of(true);
       }),
       catchError(error => {
-        Console.error('Error getting updates from server for ' + this.tableName, error);
-        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.tableName]);
+        Console.error('Error getting updates from server for ' + this.table.name, error);
+        this.injector.get(ErrorService).addNetworkError(error, 'errors.stores.get_updates', [this.table.name]);
         return of(false);
       })
     );

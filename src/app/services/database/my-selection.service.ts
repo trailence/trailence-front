@@ -1,15 +1,14 @@
 import { Injectable, Injector } from '@angular/core';
-import { SimpleStoreWithoutUpdate } from './simple-store-without-update';
+import { SimpleStoreWithoutUpdate } from './store/simple-store-without-update';
 import { catchError, combineLatest, concat, defaultIfEmpty, filter, Observable, of, switchMap, throwError, timeout } from 'rxjs';
 import { HttpService } from '../http/http.service';
 import { environment } from 'src/environments/environment';
-import { DatabaseService, MY_SELECTION_TABLE_NAME } from './database.service';
-import Dexie from 'dexie';
 import { collection$items } from 'src/app/utils/rxjs/collection$items';
 import { NetworkService } from '../network/network.service';
 import { TrailService } from './trail.service';
 import { filterDefined } from 'src/app/utils/rxjs/filter-defined';
 import { Console } from 'src/app/utils/console';
+import { CommonDatabaseService } from './common-database.service';
 
 @Injectable({providedIn: 'root'})
 export class MySelectionService {
@@ -77,7 +76,7 @@ class MySelectionStore extends SimpleStoreWithoutUpdate<SelectedTrail, SelectedT
   constructor(
     injector: Injector,
   ) {
-    super(MY_SELECTION_TABLE_NAME, injector);
+    super(injector.get(CommonDatabaseService).mySelectionTable, injector);
     this.http = injector.get(HttpService);
   }
 
@@ -121,14 +120,6 @@ class MySelectionStore extends SimpleStoreWithoutUpdate<SelectedTrail, SelectedT
 
   protected override getKey(item: SelectedTrail): string {
     return item.uuid + '#' + item.owner;
-  }
-
-  protected override migrate(fromVersion: number, dbService: DatabaseService): Promise<number | undefined> {
-    return Promise.resolve(undefined);
-  }
-
-  protected override doCleaning(email: string, db: Dexie): Observable<any> {
-    return of(true);
   }
 
   protected override createdLocallyCanBeRemoved(entity: SelectedTrail): Observable<boolean> {

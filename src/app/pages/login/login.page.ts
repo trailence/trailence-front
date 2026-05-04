@@ -6,7 +6,6 @@ import { combineLatest, filter, first } from 'rxjs';
 import { HeaderComponent } from 'src/app/components/header/header.component';
 import { AuthService } from 'src/app/services/auth/auth.service';
 import { CaptchaService } from 'src/app/services/captcha/captcha.service';
-import { DatabaseService } from 'src/app/services/database/database.service';
 import { TrailCollectionService } from 'src/app/services/database/trail-collection.service';
 import { ApiError } from 'src/app/services/http/api-error';
 import { I18nService } from 'src/app/services/i18n/i18n.service';
@@ -15,6 +14,7 @@ import { Console } from 'src/app/utils/console';
 import { PublicPage } from '../public.page';
 import { PreferencesService } from 'src/app/services/preferences/preferences.service';
 import { NgStyle } from '@angular/common';
+import { StoreService } from 'src/app/services/database/store/store.service';
 
 @Component({
     selector: 'app-login',
@@ -106,7 +106,7 @@ export class LoginPage extends PublicPage {
       next: () => {
         combineLatest([
           this.auth.auth$,
-          this.injector.get(DatabaseService).allLoaded(),
+          this.injector.get(StoreService).allLoaded$,
           this.injector.get(TrailCollectionService).getMyCollectionsReady$()
         ]).pipe(
           filter(([a,l,c]) => {
@@ -156,9 +156,10 @@ export class LoginPage extends PublicPage {
       }
     });
     // loading services in parallel
-    this.injector.get(DatabaseService);
+    this.injector.get(StoreService);
     this.injector.get(TrailCollectionService);
     this.injector.get(NavController);
+    import('../../services/database/all');
   }
 
   async resetPassword() {
