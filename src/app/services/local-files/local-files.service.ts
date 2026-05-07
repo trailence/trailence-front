@@ -198,13 +198,13 @@ export class LocalFilesService {
   }
 
   private saveBinaryChunk(id: number, maxChunkSize: number, content: Uint8Array, offset: number): Promise<any> {
-    const end = Math.min(offset + maxChunkSize, content.byteLength);
+    const end = Math.min(offset + maxChunkSize, content.length);
     const data = btoa(content.slice(offset, end).reduce((data, byte) => {
       return data + String.fromCharCode(byte); // NOSONAR
     }, ''));
     return this.plugin.saveBinaryFileChunk({id, data})
     .then(r => {
-      if (end === content.byteLength) return r;
+      if (end === content.length) return r;
       return this.saveBinaryChunk(id, maxChunkSize, content, end);
     });
   }

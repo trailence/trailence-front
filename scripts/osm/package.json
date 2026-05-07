@@ -1,0 +1,9 @@
+{
+  "name": "osm-scripts",
+  "type": "module",
+  "scripts": {
+  },
+  "dependencies": {
+    "flatgeobuf": "^4.4.0"
+  }
+}
